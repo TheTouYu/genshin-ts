@@ -268,11 +268,10 @@ function main() {
     [...familyCounts.keys()].sort().map((subType) => [
       subType,
       {
-        beyond: { status: 'available', reason: '', syntax: [] },
+        beyond: { status: 'available', reason: '' },
         classic: {
           status: 'unknown',
-          reason: 'client classic mode requires sample confirmation',
-          syntax: []
+          reason: 'client classic mode requires sample confirmation'
         }
       }
     ])

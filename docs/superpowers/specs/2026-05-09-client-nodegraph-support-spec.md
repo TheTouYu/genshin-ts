@@ -21,27 +21,27 @@ The user-facing API must match the existing design direction:
 ```ts
 import { g } from 'genshin-ts'
 
-g.characterSkill({ id: 1073741825, name: 'Skill' }, (_evt, f) => {
+g.characterSkill({ id: 1073741825, name: 'Skill' }).on('start', (_evt, f) => {
   f.printString('hello')
 })
 
-g.creationSkill((_evt, f) => {
+g.creationSkill().on('start', (_evt, f) => {
   f.printString('creation skill')
 })
 
-g.creationStatus((_evt, f) => {
+g.creationStatus().on('start', (_evt, f) => {
   f.printString('status')
 })
 
-g.creationStatusDecision((_evt, f) => {
+g.creationStatusDecision().on('start', (_evt, f) => {
   f.printString('decision')
 })
 
-g.boolFilter((_evt, f) => {
+g.boolFilter().on('start', (_evt, f) => {
   return f.greaterThan(2, 1)
 })
 
-g.intFilter(() => {
+g.intFilter().on('start', () => {
   return 1n
 })
 ```
@@ -69,8 +69,8 @@ Client-specific boundaries:
 
 - `src/definitions`: DSL method names, mode maps, type-level method availability, capability data for user-facing checks.
 - `src/runtime`: graph registration, handler execution, capability checks, client IR construction.
-- `src/compiler`: client graph encoding, client IR validation, client node id resolution, client graph assembly.
-- `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data`: client node metadata lookup.
+- `src/compiler`: client IR validation, client node id resolution, client graph assembly.
+- `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data`: client node metadata lookup and GIA graph encoding facts.
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen`: metadata-driven client node, pin, value, and graph body construction.
 - `resources`: generated source caches and reports only; never runtime or compiler dependencies.
 - `scripts`: extraction and generation pipeline.
@@ -95,10 +95,11 @@ Generated source caches:
 
 Generated TypeScript modules:
 
-- `src/compiler/client_graph_encoding.ts`
 - `src/definitions/client_graph_modes.ts`
-- `src/definitions/client_method_modes.ts`
+- `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`
+
+`src/definitions/client_method_modes.ts` is generated only after real node metadata extraction can populate method availability. It must not be introduced as an empty Phase 2 placeholder.
 
 ## Supported Client Graph Families
 
@@ -115,7 +116,7 @@ Each family needs:
 
 - subtype
 - public DSL entry method
-- start/end handler shape
+- public `start` handler shape
 - supported modes
 - capability status
 - compiler graph encoding

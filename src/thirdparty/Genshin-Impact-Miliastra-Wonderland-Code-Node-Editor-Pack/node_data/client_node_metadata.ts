@@ -52,4 +52,4 @@ export type ClientNodeMetadata = {
   sampleFile: string
 }
 
-export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = []
+export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [] as const

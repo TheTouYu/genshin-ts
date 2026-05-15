@@ -2,73 +2,61 @@
   "bool_filter": {
     "beyond": {
       "status": "available",
-      "reason": "",
-      "syntax": []
+      "reason": ""
     },
     "classic": {
       "status": "unknown",
-      "reason": "client classic mode requires sample confirmation",
-      "syntax": []
+      "reason": "client classic mode requires sample confirmation"
     }
   },
   "character_skill": {
     "beyond": {
       "status": "available",
-      "reason": "",
-      "syntax": []
+      "reason": ""
     },
     "classic": {
       "status": "unknown",
-      "reason": "client classic mode requires sample confirmation",
-      "syntax": []
+      "reason": "client classic mode requires sample confirmation"
     }
   },
   "creation_skill": {
     "beyond": {
       "status": "available",
-      "reason": "",
-      "syntax": []
+      "reason": ""
     },
     "classic": {
       "status": "unknown",
-      "reason": "client classic mode requires sample confirmation",
-      "syntax": []
+      "reason": "client classic mode requires sample confirmation"
     }
   },
   "creation_status": {
     "beyond": {
       "status": "available",
-      "reason": "",
-      "syntax": []
+      "reason": ""
     },
     "classic": {
       "status": "unknown",
-      "reason": "client classic mode requires sample confirmation",
-      "syntax": []
+      "reason": "client classic mode requires sample confirmation"
     }
   },
   "creation_status_decision": {
     "beyond": {
       "status": "available",
-      "reason": "",
-      "syntax": []
+      "reason": ""
     },
     "classic": {
       "status": "unknown",
-      "reason": "client classic mode requires sample confirmation",
-      "syntax": []
+      "reason": "client classic mode requires sample confirmation"
     }
   },
   "int_filter": {
     "beyond": {
       "status": "available",
-      "reason": "",
-      "syntax": []
+      "reason": ""
     },
     "classic": {
       "status": "unknown",
-      "reason": "client classic mode requires sample confirmation",
-      "syntax": []
+      "reason": "client classic mode requires sample confirmation"
     }
   }
 }

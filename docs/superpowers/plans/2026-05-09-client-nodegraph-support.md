@@ -22,10 +22,10 @@ Create these files:
 - `scripts/smoke-client-cli-e2e.mjs`: CLI-level compile smoke for client graph entries.
 - `scripts/smoke-client-import-validation.mjs`: package-style import validation for client modules.
 - `src/definitions/client_graph_modes.ts`: generated client graph family, mode, event, handler, and capability maps.
-- `src/definitions/client_method_modes.ts`: generated method-to-subtype/mode maps.
+- `src/definitions/client_method_modes.ts`: generated method-to-subtype/mode maps; created only after real client node metadata extraction can populate it.
 - `src/runtime/client_graph_support.ts`: runtime client graph validation, registry helpers, filter normalization, and stable errors.
 - `src/shared/client_capability_errors.ts`: stable client error codes and helpers.
-- `src/compiler/client_graph_encoding.ts`: generated compiler-only graph header encoding.
+- `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`: generated client GIA graph header encoding data.
 - `src/compiler/ir_to_gia_transform/client_graph.ts`: client IR -> GIA implementation.
 - `src/compiler/ir_to_gia_transform/client_nodes.ts`: client node resolver and argument/connection mapping.
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`: generated metadata table.
@@ -337,8 +337,8 @@ function main() {
     [...familyCounts.keys()].sort().map((subType) => [
       subType,
       {
-        beyond: { status: 'available', reason: '', syntax: [] },
-        classic: { status: 'unknown', reason: 'client classic mode requires sample confirmation', syntax: [] }
+        beyond: { status: 'available', reason: '' },
+        classic: { status: 'unknown', reason: 'client classic mode requires sample confirmation' }
       }
     ])
   )
@@ -431,8 +431,7 @@ git commit -m "chore: extract client nodegraph source caches"
 - Create: `scripts/client-nodegraph/generate-client-nodegraph-modules.ts`
 - Modify: `package.json`
 - Output: `src/definitions/client_graph_modes.ts`
-- Output: `src/definitions/client_method_modes.ts`
-- Output: `src/compiler/client_graph_encoding.ts`
+- Output: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`
 - Output: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`
 
 - [ ] **Step 1: Write generator script**
@@ -474,8 +473,8 @@ const graphEncoding = {
 }
 
 write(
-  'src/compiler/client_graph_encoding.ts',
-  `import type { ClientGraphSubType } from '../runtime/IR.js'
+  'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts',
+  `import type { ClientGraphSubType } from './client_node_metadata.js'
 
 export type ClientGraphEncoding = {
   graphType: number
@@ -496,7 +495,7 @@ export function getClientGraphEncoding(subType: ClientGraphSubType): ClientGraph
 
 write(
   'src/definitions/client_graph_modes.ts',
-  `import type { ClientGraphSubType } from '../runtime/IR.js'
+  `import type { ClientGraphSubType } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 
 export const CLIENT_GRAPH_SUB_TYPES = ${JSON.stringify(subTypes, null, 2)} as const
 
@@ -515,26 +514,13 @@ export const CLIENT_GRAPH_SUB_TYPE_BY_METHOD = Object.fromEntries(
 
 export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = ${JSON.stringify(capability, null, 2)} as const
 
-export const CLIENT_GRAPH_SPEC_BY_SUB_TYPE = {
-  character_skill: { event: 'node_graph_begins', handler: { params: [], shape: 'start', maxArrayHandlers: 64, returnType: 'void' } },
-  creation_skill: { event: 'node_graph_begins', handler: { params: [], shape: 'start', maxArrayHandlers: 64, returnType: 'void' } },
-  creation_status: { event: 'node_graph_begins', handler: { params: [], shape: 'start', maxArrayHandlers: 64, returnType: 'void' } },
-  creation_status_decision: { event: 'node_graph_begins', handler: { params: [], shape: 'start', maxArrayHandlers: 64, returnType: 'void' } },
-  bool_filter: { event: 'node_graph_begins', handler: { params: [], shape: 'filter', maxArrayHandlers: 64, returnType: 'bool' } },
-  int_filter: { event: 'node_graph_begins', handler: { params: [], shape: 'filter', maxArrayHandlers: 64, returnType: 'int' } }
-} as const
-`
-)
-
-write(
-  'src/definitions/client_method_modes.ts',
-  `export const CLIENT_NODE_METHODS_BY_SUB_TYPE = {
-  character_skill: [],
-  creation_skill: [],
-  creation_status: [],
-  creation_status_decision: [],
-  bool_filter: [],
-  int_filter: []
+export const CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE = {
+  character_skill: { event: 'start', startNodeType: 'node_graph_begins', handler: { params: [], shape: 'start', returnType: 'void' } },
+  creation_skill: { event: 'start', startNodeType: 'node_graph_begins', handler: { params: [], shape: 'start', returnType: 'void' } },
+  creation_status: { event: 'start', startNodeType: 'node_graph_begins', handler: { params: [], shape: 'start', returnType: 'void' } },
+  creation_status_decision: { event: 'start', startNodeType: 'node_graph_begins', handler: { params: [], shape: 'start', returnType: 'void' } },
+  bool_filter: { event: 'start', startNodeType: 'node_graph_begins', handler: { params: [], shape: 'filter', returnType: 'bool' } },
+  int_filter: { event: 'start', startNodeType: 'node_graph_begins', handler: { params: [], shape: 'filter', returnType: 'int' } }
 } as const
 `
 )
@@ -561,7 +547,7 @@ Modify `package.json` scripts:
 
 ```json
 {
-  "gen:client": "node --import tsx ./scripts/client-nodegraph/extract-client-node-metadata.ts && node --import tsx ./scripts/client-nodegraph/generate-client-nodegraph-modules.ts && prettier --write src/definitions/client_*.ts src/compiler/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_*.ts",
+  "gen:client": "node --import tsx ./scripts/client-nodegraph/extract-client-node-metadata.ts && node --import tsx ./scripts/client-nodegraph/generate-client-nodegraph-modules.ts && prettier --write src/definitions/client_*.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_*.ts",
   "smoke:client": "npm run build && node ./scripts/smoke-client-capability.mjs"
 }
 ```
@@ -586,7 +572,7 @@ Expected:
 Run:
 
 ```powershell
-rg -n "graphType|graphWhich" src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts
+rg -n "graphType|graphWhich" src/definitions/client_graph_modes.ts src/definitions/nodes.ts
 ```
 
 Expected: no matches.
@@ -604,7 +590,7 @@ Expected: build passes and `smoke-client-capability.mjs` prints an `[ok]` line.
 - [ ] **Step 6: Commit**
 
 ```powershell
-git add package.json scripts/client-nodegraph/generate-client-nodegraph-modules.ts src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/compiler/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts
+git add package.json scripts/client-nodegraph/generate-client-nodegraph-modules.ts src/definitions/client_graph_modes.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts
 git commit -m "chore: generate client nodegraph modules"
 ```
 
@@ -755,12 +741,11 @@ import {
   ClientCreationStatusExecutionFlowFunctions,
   ClientIntFilterExecutionFlowFunctions
 } from '../definitions/nodes.js'
-import { CLIENT_GRAPH_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
+import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
-import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
-import type { ClientGraphMode, ClientGraphSubType, Variable } from './IR.js'
-import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
-import { bool, int, localVariable, type value } from './value.js'
+import type { ExecutionFlowRegistry } from './core.js'
+import type { ClientGraphMode, ClientGraphSubType } from './IR.js'
+import { bool, int } from './value.js'
 
 export type ClientGraphOptions = {
   id?: number
@@ -771,24 +756,6 @@ export type ClientGraphOptions = {
 
 export type ClientStartEvent = Record<string, never>
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>
-
-export type ClientExecutionFlowRegistry = {
-  registerNode(record: MetaCallRecord): MetaCallRecordRef
-  withExecBranch(fromNodeId: number, sourceIndex: number, fn: () => void): {
-    tailEndpoints: ExecTailEndpoint[]
-    headNodeId?: number
-    terminatedByReturn?: boolean
-  }
-  markLinkNextExecFrom(fromNodeId: number, sourceIndex: number): void
-  setCurrentExecTailEndpoints(tailEndpoints: ExecTailEndpoint[]): void
-  returnFromCurrentExecPath(opts?: { countReturn?: boolean }): void
-  getOrCreateReturnGateLocalVariable(): { localVariable: localVariable; value: bool }
-  withLoop(loopNodeId: number, fn: () => void): void
-  getActiveLoopNodeIds(): number[]
-  getReturnCallCounter(): number
-  ensureVariable(variable: Variable): void
-  connectExecBranchOutput(fromNodeId: number, sourceIndex: number, headNodeId: number): void
-}
 
 export type ClientFlowFunctionClass<T extends ClientGraphSubType> =
   T extends 'character_skill'
@@ -805,7 +772,14 @@ export type ClientFlowFunctionClass<T extends ClientGraphSubType> =
 
 export type ClientStartHandler<F> = (evt: ClientStartEvent, f: F) => void
 export type ClientFilterHandler<F, R> = (evt: ClientStartEvent, f: F) => R
-export type ClientHandlerArray<T> = T | T[]
+
+export type ClientStartEventName = 'start'
+export type ClientStartGraphApi<F> = {
+  on(eventName: ClientStartEventName, handler: ClientStartHandler<F>): ClientStartGraphApi<F>
+}
+export type ClientFilterGraphApi<F, R> = {
+  on(eventName: ClientStartEventName, handler: ClientFilterHandler<F, R>): ClientFilterGraphApi<F, R>
+}
 
 export function assertClientGraphMode(mode?: ClientGraphMode): ClientGraphMode {
   const resolved = mode ?? 'beyond'
@@ -816,7 +790,7 @@ export function assertClientGraphMode(mode?: ClientGraphMode): ClientGraphMode {
 }
 
 export function assertClientGraphSubType(subType: ClientGraphSubType): ClientGraphSubType {
-  if (!(subType in CLIENT_GRAPH_SPEC_BY_SUB_TYPE)) {
+  if (!(subType in CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE)) {
     throw clientNodegraphError(CLIENT_ERROR_CODES.MODE_UNAVAILABLE, `invalid client graph subtype: ${String(subType)}`)
   }
   return subType
@@ -844,6 +818,26 @@ export const CLIENT_FILTER_END_NODE_TYPES = {
   bool_filter: 'node_graph_end_boolean',
   int_filter: 'node_graph_end_integer'
 } as const
+
+export function createClientFlowFunctions<T extends ClientGraphSubType>(
+  subType: T,
+  registry: ExecutionFlowRegistry
+): ClientFlowFunctionClass<T> {
+  switch (subType) {
+    case 'character_skill':
+      return new ClientCharacterSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+    case 'creation_skill':
+      return new ClientCreationSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+    case 'creation_status':
+      return new ClientCreationStatusExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+    case 'creation_status_decision':
+      return new ClientCreationStatusDecisionExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+    case 'bool_filter':
+      return new ClientBoolFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+    case 'int_filter':
+      return new ClientIntFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+  }
+}
 ```
 
 - [ ] **Step 2: Add client execution-flow classes**
@@ -918,7 +912,31 @@ export const g = {
 }
 ```
 
-Implement `characterSkill`, `creationSkill`, `creationStatus`, `creationStatusDecision`, `boolFilter`, and `intFilter` by delegating handler normalization and filter return conversion to `src/runtime/client_graph_support.ts`.
+Implement a shared `createClientGraphApi(subType, options)` helper in `src/runtime/core.ts`, following the same shape as `server(options).on(eventName, handler)`. `characterSkill`, `creationSkill`, `creationStatus`, `creationStatusDecision`, `boolFilter`, and `intFilter` should be thin graph-selector wrappers around that helper.
+
+Do not add positional handler overloads such as `g.characterSkill(options, handler)`.
+
+Formal API shape:
+
+```ts
+g.characterSkill(options?).on('start', handler)
+g.creationSkill(options?).on('start', handler)
+g.creationStatus(options?).on('start', handler)
+g.creationStatusDecision(options?).on('start', handler)
+g.boolFilter(options?).on('start', handler)
+g.intFilter(options?).on('start', handler)
+```
+
+The public event name is `start`. The internal client GIA start node remains `node_graph_begins`, read from `CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[subType].startNodeType`.
+
+`createClientGraphApi` should:
+
+1. Resolve and validate `ClientGraphSubType` and `ClientGraphMode`.
+2. Create a `MetaCallRegistry` with client subtype/mode/id/name metadata.
+3. Return an object with `.on('start', handler)`.
+4. Inside `.on`, register the internal start node from `CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[subType].startNodeType`.
+5. Bind the matching client flow-function class for the handler.
+6. For filter graph families, normalize the handler return into the matching filter end node.
 
 - [ ] **Step 5: Add all registry build function**
 
@@ -956,15 +974,15 @@ Create `tests/client_smoke/basic_client_graphs.ts`:
 ```ts
 import { g } from '../../src/runtime/core.js'
 
-g.characterSkill({ id: 1073741825, name: 'ClientSkill' }, (_evt, f) => {
+g.characterSkill({ id: 1073741825, name: 'ClientSkill' }).on('start', (_evt, f) => {
   f.printString('client skill')
 })
 
-g.boolFilter({ id: 1073741826, name: 'ClientBoolFilter' }, () => {
+g.boolFilter({ id: 1073741826, name: 'ClientBoolFilter' }).on('start', () => {
   return true
 })
 
-g.intFilter({ id: 1073741827, name: 'ClientIntFilter' }, () => {
+g.intFilter({ id: 1073741827, name: 'ClientIntFilter' }).on('start', () => {
   return 1n
 })
 ```
@@ -1327,6 +1345,11 @@ export {
   node_connect_from as client_node_connect_from,
   node_connect_to as client_node_connect_to
 } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.js'
+
+export {
+  getClientGraphEncoding,
+  CLIENT_GRAPH_ENCODING_BY_SUB_TYPE
+} from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js'
 ```
 
 - [ ] **Step 2: Create client graph transform**
@@ -1344,7 +1367,7 @@ import {
   wrap_gia,
   type Root as GiaRoot
 } from '../gia_vendor.js'
-import { getClientGraphEncoding } from '../client_graph_encoding.js'
+import { getClientGraphEncoding } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { resolveClientNodeMetadata } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
@@ -1796,14 +1819,14 @@ Create `scripts/smoke-client-import-validation.mjs`:
 ```js
 const runtime = await import('../dist/src/runtime/core.js')
 const modes = await import('../dist/src/definitions/client_graph_modes.js')
-const encoding = await import('../dist/src/compiler/client_graph_encoding.js')
+const encoding = await import('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js')
 const metadata = await import('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js')
 
 for (const key of ['characterSkill', 'creationSkill', 'creationStatus', 'creationStatusDecision', 'boolFilter', 'intFilter']) {
   if (typeof runtime.g[key] !== 'function') throw new Error(`missing g.${key}`)
 }
 
-if (!modes.CLIENT_GRAPH_SPEC_BY_SUB_TYPE.character_skill) throw new Error('missing character_skill graph spec')
+if (!modes.CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE.character_skill) throw new Error('missing character_skill graph entry spec')
 if (!encoding.CLIENT_GRAPH_ENCODING_BY_SUB_TYPE.character_skill) throw new Error('missing character_skill encoding')
 if (!Array.isArray(metadata.CLIENT_NODE_METADATA)) throw new Error('missing metadata array')
 
@@ -1975,7 +1998,7 @@ Expected: existing server graph tests pass.
 If final verification exposes small integration fixes, stage only the planned implementation files that were changed by the fix:
 
 ```powershell
-git add scripts/client-nodegraph scripts/smoke-client-capability.mjs scripts/check-client-definitions-consistency.ts scripts/smoke-client-user-graphs.ts scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.mjs src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts src/runtime/IR.d.ts src/runtime/execution_flow_types.ts src/runtime/ir_builder.ts src/runtime/core.ts src/runtime/client_graph_support.ts src/shared/client_capability_errors.ts src/compiler/client_graph_encoding.ts src/compiler/gs_to_ir_json_transform/runner.ts src/compiler/ir_merge.ts src/compiler/ir_to_gia_transform src/compiler/gia_vendor.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts tests/client_generated tests/client_smoke
+git add scripts/client-nodegraph scripts/smoke-client-capability.mjs scripts/check-client-definitions-consistency.ts scripts/smoke-client-user-graphs.ts scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.mjs src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts src/runtime/IR.d.ts src/runtime/execution_flow_types.ts src/runtime/ir_builder.ts src/runtime/core.ts src/runtime/client_graph_support.ts src/shared/client_capability_errors.ts src/compiler/gs_to_ir_json_transform/runner.ts src/compiler/ir_merge.ts src/compiler/ir_to_gia_transform src/compiler/gia_vendor.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts tests/client_generated tests/client_smoke
 git commit -m "fix: harden client nodegraph support"
 ```
 
