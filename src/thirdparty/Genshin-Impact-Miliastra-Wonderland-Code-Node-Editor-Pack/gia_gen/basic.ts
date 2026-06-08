@@ -131,8 +131,8 @@ export function graph_body(body: GraphBody_): Root {
   if (body.modeFlag !== undefined) {
     gia.modeFlag = body.modeFlag
   }
-  // 填充 compositePins 和 affiliations（注意：graph!.inner!.graph 一定存在）
-  const innerGraph = gia.graph!.inner!.graph!
+  // 填充 compositePins 和 affiliations（注意：graph.graph.inner.graph 一定存在）
+  const innerGraph = gia.graph!.graph!.inner!.graph!
   if (body.compositePins) innerGraph.compositePins = body.compositePins
   if (body.affiliations) innerGraph.affiliations = body.affiliations
   return gia

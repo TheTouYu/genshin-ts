@@ -1,0 +1,4 @@
+- [编译管线架构 ADR-001](architecture_compilation_pipeline.md) — TS→GIA 四阶段编译管线。搜：编译流程、pipeline、gsts、编译阶段、ts_to_gs、gs_to_ir、ir_to_gia、injector
+- [GIA格式解析 ADR-002](architecture_compilation_pipeline.md) — GIA二进制格式、protobuf schema、NodeType类型系统、编解码、对比方案。搜：gia格式、proto、解码、对比、diff、decode_gia_file、Graph.decode、node_pin_records
+- [复合节点支持](architecture_compilation_pipeline.md) — 复合节点(CompositeNode)已在 Pipeline 级别实现：g.defineComposite / f.callComposite / CompositeRegistry / CompositeDefIR → GIA accessories。搜：composite、复合节点、defineComposite、callComposite、CompositeRegistry、CompositeDefIR、compositePins、accessories
+- [复合节点测试结果](composite_node_testing.md) — 2026-06-08 完整测试：Part1 48/48、Part2 20/20+4pending、Part3 42/42。搜：测试、composite测试、basic.ts bug
