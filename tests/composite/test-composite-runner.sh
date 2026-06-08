@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
 
 echo ""
@@ -41,13 +41,13 @@ run_part() {
 }
 
 # Part 3 先跑（快速单元测试）
-run_part "Part 3: 单元级行为验证" "scripts/test-composite-part3.ts"
+run_part "Part 3: 单元级行为验证" "tests/composite/test-composite-part3.ts"
 
 # Part 1（GIA 对比，可能有路径依赖）
-run_part "Part 1: 复合定义 GIA 精确对比" "scripts/test-composite-part1.ts"
+run_part "Part 1: 复合定义 GIA 精确对比" "tests/composite/test-composite-part1.ts"
 
 # Part 2（最重型，设施图测试）
-run_part "Part 2: 完整设施图（定义+调用）" "scripts/test-composite-part2.ts"
+run_part "Part 2: 完整设施图（定义+调用）" "tests/composite/test-composite-part2.ts"
 
 echo ""
 echo "========================================="

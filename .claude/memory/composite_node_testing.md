@@ -25,8 +25,8 @@ type: project
 4. 嵌套复合（复合内 callComposite）的 GIA 结构
 
 ### 测试脚本
-- `scripts/test-composite-part3.ts` — 单元级验证（快速，无管线依赖）
-- `scripts/test-composite-part1.ts` — GIA 对比（依赖参考文件）
-- `scripts/test-composite-part2.ts` — 设施图测试（标记 @pending_ref）
-- `scripts/test-composite-runner.sh` — 运行器
+- `tests/composite/test-composite-part3.ts` — 单元级验证（快速，无管线依赖）
+- `tests/composite/test-composite-part1.ts` — GIA 对比（依赖参考文件）
+- `tests/composite/test-composite-part2.ts` — 设施图测试（标记 @pending_ref）
+- `tests/composite/test-composite-runner.sh` — 运行器
 - 所有脚本含 `// @ts-nocheck`，独立进程运行避免注册表污染

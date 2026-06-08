@@ -8,13 +8,13 @@
  * 不依赖 GIA 管线，快速反馈。
  */
 
-import { defineComposite } from '../dist/src/index.js'
-import { compositeRegistry } from '../dist/src/runtime/composite_registry.js'
-import { g, buildServerGraphRegistriesIRDocuments } from '../dist/src/runtime/core.js'
+import { defineComposite } from '../../dist/src/index.js'
+import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
+import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
 import {
   composite_pin_body,
   graph_affiliation_body
-} from '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.js'
+} from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.js'
 
 let passed = 0
 let failed = 0

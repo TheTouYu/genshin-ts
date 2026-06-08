@@ -20,13 +20,13 @@
  */
 
 import { writeFileSync, existsSync, mkdirSync } from 'fs'
-import { defineComposite } from '../dist/src/index.js'
-import { g, buildServerGraphRegistriesIRDocuments } from '../dist/src/runtime/core.js'
-import { irToGia } from '../dist/src/compiler/ir_to_gia_transform/index.js'
-import { int, bool, str } from '../dist/src/runtime/value.js'
-import { decode_gia_file } from '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { defineComposite } from '../../dist/src/index.js'
+import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
+import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { int, bool, str } from '../../dist/src/runtime/value.js'
+import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
-const PROTO_PATH = new URL('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 const OUT_DIR = '/tmp/composite-game-demo'
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 

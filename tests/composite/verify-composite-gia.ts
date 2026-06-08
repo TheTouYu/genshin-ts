@@ -3,7 +3,7 @@
  * 复合节点 GIA 文件比对工具
  *
  * 用法:
- *   npx tsx scripts/verify-composite-gia.ts <参考.gia> <生成.gia> [--verbose]
+ *   npx tsx tests/composite/verify-composite-gia.ts <参考.gia> <生成.gia> [--verbose]
  *
  * 功能:
  *   对两个 CompositeDef 类型的 GIA 文件做结构化比对
@@ -13,14 +13,14 @@
  */
 
 import { readFileSync } from 'fs'
-import { decode_gia_file } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const refPath = process.argv[2]
 const genPath = process.argv[3]
 const verbose = process.argv.includes('--verbose')
 
 if (!refPath || !genPath) {
-  console.error('用法: npx tsx scripts/verify-composite-gia.ts <参考.gia> <生成.gia> [--verbose]')
+  console.error('用法: npx tsx tests/composite/verify-composite-gia.ts <参考.gia> <生成.gia> [--verbose]')
   process.exit(1)
 }
 
