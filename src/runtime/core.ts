@@ -28,10 +28,13 @@ import {
   dict,
   ensureLiteralStr,
   enumeration,
+  generic,
   list,
   localVariable,
   value,
-  type DictValueType
+  type DictValueType,
+  type RuntimeParameterValueTypeMap,
+  type RuntimeReturnValueTypeMap
 } from './value.js'
 import {
   parseVariableDefinitions,
@@ -41,6 +44,152 @@ import {
 } from './variables.js'
 
 export type { MetaCallRecord, MetaCallRecordRef, MetaCallRecordType } from './meta_call_types.js'
+
+export type SignalParamType =
+  | 'bool'
+  | 'int'
+  | 'float'
+  | 'str'
+  | 'vec3'
+  | 'guid'
+  | 'entity'
+  | 'prefab_id'
+  | 'config_id'
+  | 'faction'
+  | 'bool_list'
+  | 'int_list'
+  | 'float_list'
+  | 'str_list'
+  | 'vec3_list'
+  | 'guid_list'
+  | 'entity_list'
+  | 'prefab_id_list'
+  | 'config_id_list'
+  | 'faction_list'
+  | 'unknown'
+
+export type SignalParamEntry = readonly [name: string, type: SignalParamType]
+export type SignalParamEntries = readonly SignalParamEntry[]
+
+export type SignalDefinition<
+  Name extends string = string,
+  Params extends SignalParamEntries = SignalParamEntries
+> = {
+  readonly __gstsSignal: true
+  readonly name: Name
+  readonly params: Params
+}
+
+export type SignalParamValue<T extends SignalParamType> =
+  T extends keyof RuntimeParameterValueTypeMap ? RuntimeParameterValueTypeMap[T] : unknown
+
+export type SignalParamReturnValue<T extends SignalParamType> =
+  T extends keyof RuntimeReturnValueTypeMap ? RuntimeReturnValueTypeMap[T] : unknown
+
+type SignalParamValuesFromEntries<Params extends SignalParamEntries> =
+  number extends Params['length']
+    ? SignalParamValue<Params[number][1]>[]
+    : Params extends readonly [infer First, ...infer Rest]
+      ? First extends readonly [string, infer T extends SignalParamType]
+        ? Rest extends SignalParamEntries
+          ? [SignalParamValue<T>, ...SignalParamValuesFromEntries<Rest>]
+          : [SignalParamValue<T>]
+        : []
+      : []
+
+export type SignalParamValues<S extends SignalDefinition> = SignalParamValuesFromEntries<
+  S['params']
+>
+
+export type SignalParamObject<S extends SignalDefinition> = {
+  [P in S['params'][number] as P[0]]: SignalParamReturnValue<P[1]>
+}
+
+export type SignalEventPayload<
+  Mode extends ServerGraphMode,
+  S extends SignalDefinition
+> = ServerEventPayloadsByMode<Mode>['monitorSignal'] & {
+  params: SignalParamObject<S>
+}
+
+export function defineSignal<const Name extends string, const Params extends SignalParamEntries>(
+  name: Name,
+  params: Params
+): SignalDefinition<Name, Params> {
+  return {
+    __gstsSignal: true,
+    name,
+    params
+  }
+}
+
+export function isSignalDefinition(value: unknown): value is SignalDefinition {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    (value as { __gstsSignal?: unknown }).__gstsSignal === true &&
+    typeof (value as { name?: unknown }).name === 'string' &&
+    Array.isArray((value as { params?: unknown }).params)
+  )
+}
+
+function resolveSignalInput(signal: string | SignalDefinition): {
+  name: string
+  params: SignalParamEntries
+  typed: boolean
+} {
+  if (isSignalDefinition(signal)) {
+    return { name: signal.name, params: signal.params, typed: true }
+  }
+  return { name: signal, params: [], typed: false }
+}
+
+function asSignalParamValue(paramValue: generic, type: SignalParamType): unknown {
+  switch (type) {
+    case 'bool':
+      return paramValue.asType('bool')
+    case 'int':
+      return paramValue.asType('int')
+    case 'float':
+      return paramValue.asType('float')
+    case 'str':
+      return paramValue.asType('str')
+    case 'vec3':
+      return paramValue.asType('vec3')
+    case 'guid':
+      return paramValue.asType('guid')
+    case 'entity':
+      return paramValue.asType('entity')
+    case 'prefab_id':
+      return paramValue.asType('prefab_id')
+    case 'config_id':
+      return paramValue.asType('config_id')
+    case 'faction':
+      return paramValue.asType('faction')
+    case 'bool_list':
+      return paramValue.asType('bool_list')
+    case 'int_list':
+      return paramValue.asType('int_list')
+    case 'float_list':
+      return paramValue.asType('float_list')
+    case 'str_list':
+      return paramValue.asType('str_list')
+    case 'vec3_list':
+      return paramValue.asType('vec3_list')
+    case 'guid_list':
+      return paramValue.asType('guid_list')
+    case 'entity_list':
+      return paramValue.asType('entity_list')
+    case 'prefab_id_list':
+      return paramValue.asType('prefab_id_list')
+    case 'config_id_list':
+      return paramValue.asType('config_id_list')
+    case 'faction_list':
+      return paramValue.asType('faction_list')
+    case 'unknown':
+      return paramValue
+  }
+}
 
 export type IRBuildOptions = {
   optimizeA?: boolean
@@ -178,7 +327,18 @@ export type ServerGraphApi<
    * GSTS Note: You still need to register the signal in the signal manager in the editor; Using signal distribution can avoid some large loop triggering load limits, which can be used for performance optimization
    *
    * GSTS 注: 你仍然需要在编辑器内的信号管理器注册信号; 使用信号分发能够避免一些大循环触发负载限制, 可用于性能优化
+   *
+   * @param signalName Signal name literal or extracted Signal.xxx definition. Signal.xxx enables typed evt.params access.
+   *
+   * 信号名字面量或提取出的 Signal.xxx 定义。使用 Signal.xxx 时可通过 evt.params 获取类型化参数。
    */
+  onSignal<S extends SignalDefinition>(
+    signalName: S,
+    handler: (
+      evt: SignalEventPayload<Mode, S>,
+      f: ServerExecutionFlowFunctionsForLang<Vars, Lang, Mode>
+    ) => void
+  ): ServerGraphApi<Vars, Lang, Mode>
   onSignal(
     signalName: string,
     handler: (
@@ -435,7 +595,11 @@ export class MetaCallRegistry {
 
   runServerHandler<E extends ServerEventName>(
     eventName: E,
-    handler: (evt: ServerEventPayloads[E], f: ServerExecutionFlowFunctions) => void,
+    handler: (
+      evt: ServerEventPayloads[E],
+      f: ServerExecutionFlowFunctions,
+      eventNode: MetaCallRecord
+    ) => void,
     inputArgs: value[] = []
   ) {
     this.ensureBootstrapFlow()
@@ -447,13 +611,14 @@ export class MetaCallRegistry {
     const prevLoopStack = this.loopNodeStack
     const prevReturnCounter = this.returnCallCounter
     const flowIndex = this.flows.length - 1
+    const eventNode = this.flows[flowIndex].eventNode
     const restoreScopedGlobals = installScopedServerGlobals()
     this.flowStack = [...prevFlowStack, flowIndex]
     this.loopNodeStack = []
     this.returnCallCounter = 0
     gsts[kServerF] = fns
     try {
-      gsts.ctx.withCtx('server_handler', () => handler(evt, fns as never))
+      gsts.ctx.withCtx('server_handler', () => handler(evt, fns as never, eventNode))
     } finally {
       restoreScopedGlobals()
       gsts[kServerF] = prevF
@@ -817,19 +982,22 @@ function server<Vars extends VariablesDefinition = VariablesDefinition>(
     eventName: E,
     handler: (
       evt: ServerEventPayloadsByMode<ResolvedMode>[ServerEventNameToEn<E>],
-      f: ServerExecutionFlowFunctionsForLang<Vars, ResolvedLang, ResolvedMode>
+      f: ServerExecutionFlowFunctionsForLang<Vars, ResolvedLang, ResolvedMode>,
+      eventNode: MetaCallRecord
     ) => void,
     inputArgs: value[] = []
   ) => {
     const resolvedEventName = resolveEventName(eventName) as ServerEventNameToEn<E>
     const wrappedHandler = (
       evt: ServerEventPayloadsByMode<ResolvedMode>[ServerEventNameToEn<E>],
-      f: ServerExecutionFlowFunctions
+      f: ServerExecutionFlowFunctions,
+      eventNode: MetaCallRecord
     ) => {
       if (useZhAliases) applyZhAliases(f)
       handler(
         evt,
-        f as unknown as ServerExecutionFlowFunctionsForLang<Vars, ResolvedLang, ResolvedMode>
+        f as unknown as ServerExecutionFlowFunctionsForLang<Vars, ResolvedLang, ResolvedMode>,
+        eventNode
       )
     }
     registry.runServerHandler(resolvedEventName, wrappedHandler, inputArgs)
@@ -847,14 +1015,31 @@ function server<Vars extends VariablesDefinition = VariablesDefinition>(
       return this
     },
     onSignal(
-      signalName: string,
+      signalName: string | SignalDefinition,
       handler: (
         evt: ServerEventPayloadsByMode<ResolvedMode>['monitorSignal'],
         f: ServerExecutionFlowFunctionsForLang<Vars, ResolvedLang, ResolvedMode>
       ) => void
     ) {
-      const signalNameObj = ensureLiteralStr(signalName, 'signalName')
-      runHandler('monitorSignal', handler, [signalNameObj])
+      const signalInfo = resolveSignalInput(signalName)
+      const signalNameObj = ensureLiteralStr(signalInfo.name, 'signalName')
+      const wrappedHandler = signalInfo.typed
+        ? (
+            evt: ServerEventPayloadsByMode<ResolvedMode>['monitorSignal'],
+            f: ServerExecutionFlowFunctionsForLang<Vars, ResolvedLang, ResolvedMode>,
+            eventNode: MetaCallRecord
+          ) => {
+            const params: Record<string, unknown> = {}
+            signalInfo.params.forEach(([paramName, paramType], i) => {
+              const paramValue = new generic()
+              paramValue.markPin(eventNode, paramName, 3 + i)
+              params[paramName] = asSignalParamValue(paramValue, paramType)
+            })
+            ;(evt as any).params = params
+            handler(evt, f)
+          }
+        : handler
+      runHandler('monitorSignal', wrappedHandler, [signalNameObj])
       return this
     }
   }

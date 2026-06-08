@@ -13,7 +13,7 @@ import { isListValueInfo, type ListValueInfo } from '../../runtime/variables.js'
 import type { NodeType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js'
 import { Graph, Node, NodeIdFor, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
-import { buildConnTypeIndex, resolveGiaNodeId } from './node_id.js'
+import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
 import { expandListLiterals } from './preprocess.js'
@@ -85,6 +85,14 @@ function valueTypeToNodeType(type: ValueType | DictKeyType | DictValueType): Nod
 
 function dictNodeType(k: DictKeyType, v: DictValueType): NodeType {
   return { t: 'd', k: valueTypeToNodeType(k), v: valueTypeToNodeType(v) }
+}
+
+function connTypeInfoToNodeType(info: ConnTypeInfo): NodeType {
+  if (info.type === 'dict') return dictNodeType(info.dict.k, info.dict.v)
+  if (info.type === 'enum') {
+    throw new Error('[error] enum signal parameters are not supported in GIA conversion')
+  }
+  return valueTypeToNodeType(info.type)
 }
 
 function expandListValueInfo(info: ListValueInfo): unknown[] {
@@ -325,6 +333,34 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       if (nameArg) {
         setClientExecLiteralArgValue(giaNode, 0, 0, nodeType, nameArg.type, nameArg.value)
       }
+      // Create input pins for signal parameters so graph.connect can find them
+      // Signal name is an exec literal (not a data pin), so data pins start at index 0
+      if (nodeType === 'send_signal') {
+        const args = irNode.args ?? []
+        for (let i = 1; i < args.length; i++) {
+          const arg = args[i]
+          if (!arg) continue
+          if (arg.type === 'conn') {
+            const connType = (arg as ConnectionArgument).value.type as ScalarType
+            const pinType = baseNodeType(connType)
+            if (pinType) {
+              const p = new Pin(giaNode.ConcreteId!, 3, i - 1)
+              p.setType(pinType)
+              giaNode.pins.push(p)
+            }
+          } else if (isValueArg(arg)) {
+            setArgValue(giaNode, i - 1, i, nodeType, arg)
+          }
+        }
+      } else {
+        const signalParams = connIndex.get(irNode.id)
+        signalParams?.forEach((info, pinIndex) => {
+          if (pinIndex < 3) return
+          const p = new Pin(giaNode.ConcreteId!, 4, pinIndex)
+          p.setType(connTypeInfoToNodeType(info))
+          giaNode.pins.push(p)
+        })
+      }
       return true
     }
 
@@ -396,6 +432,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       case 'create_prefab':
       case 'create_prefab_group':
         return idx >= 4 ? idx + 1 : idx // hole at 4
+      case 'send_signal':
+        return idx > 0 ? idx - 1 : idx // signal name is exec literal, data pins shift by -1
       default:
         return idx
     }

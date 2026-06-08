@@ -1,6 +1,8 @@
 import ts from 'typescript'
 
 import { inferConcreteTypeFromType, inferListTypeFromType } from '../../shared/ts_list_utils.js'
+import { isEntityLikeType as isSharedEntityLikeType } from '../../shared/ts_type_utils.js'
+import { isConstEvaluableExpression, tryEvaluateConstExpression } from './const_eval.js'
 import { fail } from './errors.js'
 import {
   extractTimerHandleMeta,
@@ -11,6 +13,7 @@ import {
 } from './expr.js'
 import { isArrayLikeExpression } from './list_utils.js'
 import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
+import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   transformDoStatement,
   transformForOfStatement,
@@ -18,7 +21,7 @@ import {
   transformWhileStatement
 } from './loops.js'
 import { isAssignmentLikeOperator } from './ops.js'
-import type { Env, VarPlan, VarPlanEntry } from './types.js'
+import type { CollectionSourceKind, Env, VarPlan, VarPlanEntry } from './types.js'
 import { asBlock, makeFCall, withSameRange } from './utils.js'
 
 function inferListConcreteType(env: Env, t: ts.Type, declTypeNode?: ts.TypeNode): ListType | null {
@@ -49,6 +52,46 @@ function isCollectionType(env: Env, t: ts.Type): boolean {
   return false
 }
 
+function unwrapCollectionSourceExpression(expr: ts.Expression): ts.Expression {
+  let cur = expr
+  while (true) {
+    if (ts.isParenthesizedExpression(cur)) {
+      cur = cur.expression
+      continue
+    }
+    if (ts.isAsExpression(cur)) {
+      cur = cur.expression
+      continue
+    }
+    if (ts.isTypeAssertionExpression(cur)) {
+      cur = cur.expression
+      continue
+    }
+    if (ts.isSatisfiesExpression(cur)) {
+      cur = cur.expression
+      continue
+    }
+    return cur
+  }
+}
+
+function isListWrapperCallExpression(expr: ts.Expression): expr is ts.CallExpression {
+  const unwrapped = unwrapCollectionSourceExpression(expr)
+  return (
+    ts.isCallExpression(unwrapped) &&
+    ts.isIdentifier(unwrapped.expression) &&
+    unwrapped.expression.text === 'list'
+  )
+}
+
+function needsCollectionRebindSnapshot(env: Env, expr: ts.Expression): boolean {
+  const unwrapped = unwrapCollectionSourceExpression(expr)
+  if (isListWrapperCallExpression(unwrapped)) return true
+  if (isFMethodCall(env, unwrapped, ['copyList', 'assemblyList'])) return true
+  if (ts.isArrayLiteralExpression(unwrapped)) return true
+  return false
+}
+
 function inferBasicType(env: Env, t: ts.Type): ListType | null {
   if (t.flags & ts.TypeFlags.Union) {
     const u = t as ts.UnionType
@@ -72,7 +115,7 @@ function inferBasicType(env: Env, t: ts.Type): ListType | null {
     }
     return base
   }
-  return inferConcreteTypeFromType(env.checker, t, env.file)
+  return inferConcreteTypeFromType(env.checker, env.checker.getBaseTypeOfLiteralType(t), env.file)
 }
 
 function makeLocalVarTypeString(
@@ -97,7 +140,7 @@ function makeLocalVarTypeString(
     return `${ct}_list`
   }
 
-  const base = inferConcreteTypeFromType(env.checker, t, env.file)
+  const base = inferBasicType(env, t)
   if (base) return base
   fail(env, decl, `cannot infer type, please add type annotation`)
 }
@@ -111,14 +154,27 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
     inLoop: boolean
   }
   type Usage = {
+    // 变量是否发生了会改变后续观测结果的修改, 包括绑定赋值和集合元素修改。
     modified: boolean
+    // 变量类型是否为列表或字典等集合类型。
     isCollection: boolean
+    // 变量类型是否为可以映射到千星奇域局部变量的基础值类型。
     isBasic: boolean
+    // 变量声明或后续代码中是否出现过对该变量的写入。
     hasWrite: boolean
+    // 变量绑定本身是否被赋值或重新赋值, 例如 `x = ...`。
+    // 集合元素修改, 例如 `x[idx] = ...` 或 `x.set(...)`, 不应设置该标记。
+    hasBindingWrite: boolean
+    // 变量是否在 exec 主体中被写入, 用于区分顶层初始化和运行期写入。
     wroteInExec: boolean
+    // 变量写入表达式中是否包含随机值, 随机写入通常需要局部变量稳定结果。
     hasRandomWrite: boolean
+    // 变量被读取的次数, 用于判断多次读取是否需要保持同一个快照。
     readCount: number
+    // 变量是否在循环体内被读取, 循环读取通常需要保持单次迭代内的稳定语义。
     readInLoop: boolean
+    // 集合变量的来源类型: 实时引用、显式复制、临时集合或未知来源。
+    collectionSourceKind?: CollectionSourceKind
   }
 
   const decls = new Map<ts.Symbol, Decl>()
@@ -132,6 +188,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         isCollection: false,
         isBasic: false,
         hasWrite: false,
+        hasBindingWrite: false,
         wroteInExec: false,
         hasRandomWrite: false,
         readCount: 0,
@@ -199,35 +256,82 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
     return false
   }
 
-  const getGstsFCall = (call: ts.CallExpression): { method: string } | null => {
-    const callee = call.expression
-    if (!ts.isPropertyAccessExpression(callee)) return null
-    const method = callee.name.text
-    const left = callee.expression
-    // 形态 1：gsts.f.xxx(...) / globalThis.gsts.f.xxx(...)
-    if (ts.isPropertyAccessExpression(left) && left.name.text === 'f') {
-      const root = left.expression
-      // 兼容 gsts / __gsts / globalThis.gsts
-      if (ts.isIdentifier(root) && (root.text === env.gstsIdent || root.text === 'gsts')) {
-        return { method }
-      }
-      if (
-        ts.isPropertyAccessExpression(root) &&
-        ts.isIdentifier(root.expression) &&
-        root.expression.text === 'globalThis' &&
-        root.name.text === 'gsts'
-      ) {
-        return { method }
-      }
-      return null
+  const isEntityReceiverType = (t: ts.Type, location: ts.Node): boolean => {
+    if (t.flags & ts.TypeFlags.Union) {
+      return (t as ts.UnionType).types.some((tt) => isEntityReceiverType(tt, location))
+    }
+    if (t.flags & ts.TypeFlags.Intersection) {
+      return (t as ts.IntersectionType).types.some((tt) => isEntityReceiverType(tt, location))
+    }
+    return isSharedEntityLikeType(env.checker, t, location)
+  }
+
+  const isEntityCustomVariableGetCall = (expr: ts.Expression): expr is ts.CallExpression => {
+    if (!ts.isCallExpression(expr)) return false
+    if (!ts.isPropertyAccessExpression(expr.expression)) return false
+    if (expr.expression.name.text !== 'get' && expr.expression.name.text !== 'getCustomVariable') {
+      return false
+    }
+    const receiver = unwrapCollectionSourceExpression(expr.expression.expression)
+    return isEntityReceiverType(env.checker.getTypeAtLocation(receiver), receiver)
+  }
+
+  const isListWrapperCall = (expr: ts.Expression): expr is ts.CallExpression => {
+    return ts.isCallExpression(expr) && ts.isIdentifier(expr.expression) && expr.expression.text === 'list'
+  }
+
+  const classifyCollectionSource = (expr: ts.Expression | undefined): CollectionSourceKind => {
+    if (!expr) return 'unknown'
+    const unwrapped = unwrapCollectionSourceExpression(expr)
+
+    if (ts.isIdentifier(unwrapped)) {
+      const sourceSym = env.checker.getSymbolAtLocation(unwrapped)
+      const sourceKind = sourceSym ? usage.get(sourceSym)?.collectionSourceKind : undefined
+      if (sourceKind) return sourceKind
     }
 
-    // 形态 2：回调参数 f.xxx(...)
-    if (ts.isIdentifier(left) && env.fIdent && left.text === env.fIdent) {
-      return { method }
+    // `f.get(...)` 已经带有节点图变量元数据推断, 裸调用就应视为实时引用,
+    // 不应依赖用户再手动追加 `.asType(...)` / `.asDict(...)`。
+    if (isFMethodCall(env, unwrapped, ['get'])) return 'liveRef'
+
+    if (ts.isCallExpression(unwrapped) && ts.isPropertyAccessExpression(unwrapped.expression)) {
+      const method = unwrapped.expression.name.text
+      if (method === 'asType' || method === 'asDict') {
+        const base = unwrapCollectionSourceExpression(unwrapped.expression.expression)
+        // `getNodeGraphVariable` / `getCustomVariable` 返回 generic, 需要通过 asType/asDict
+        // 确认集合类型。这里保留 `get` 仅用于兼容 `f.get(...).asType(...)` 这种冗余写法。
+        if (isFMethodCall(env, base, ['getNodeGraphVariable', 'get', 'getCustomVariable'])) {
+          return 'liveRef'
+        }
+        if (isEntityCustomVariableGetCall(base)) return 'liveRef'
+      }
     }
 
-    return null
+    if (isFMethodCall(env, unwrapped, ['copyList'])) {
+      return 'copy'
+    }
+
+    if (isFMethodCall(env, unwrapped, ['assemblyList'])) {
+      const firstArg = unwrapped.arguments[0]
+      if (firstArg) {
+        const firstArgType = env.checker.getTypeAtLocation(firstArg)
+        if (isCollectionType(env, firstArgType)) return 'copy'
+      }
+      return 'temporary'
+    }
+
+    if (isFMethodCall(env, unwrapped, ['createDictionary', 'assemblyDictionary'])) {
+      return 'temporary'
+    }
+    if (
+      isListWrapperCall(unwrapped) ||
+      ts.isArrayLiteralExpression(unwrapped) ||
+      ts.isObjectLiteralExpression(unwrapped)
+    ) {
+      return 'temporary'
+    }
+
+    return 'unknown'
   }
 
   const hasRandomCall = (expr: ts.Expression): boolean => {
@@ -236,7 +340,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
       if (found) return
       if (ts.isFunctionLike(node)) return
       if (ts.isCallExpression(node)) {
-        const f = getGstsFCall(node)
+        const f = getFMethodCall(env, node)
         if (f) {
           const method = f.method.toLowerCase()
           if (method.includes('random') || method.includes('query')) {
@@ -327,6 +431,9 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         const t = env.checker.getTypeAtLocation(d.name)
         const u = ensureUsage(symbol)
         u.isCollection = isCollectionType(env, t)
+        if (u.isCollection) {
+          u.collectionSourceKind = classifyCollectionSource(d.initializer)
+        }
         u.isBasic = inferBasicType(env, t) !== null
         if (d.initializer) {
           u.hasWrite = true
@@ -374,6 +481,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
     if (!symbol) return
     const u = ensureUsage(symbol)
     u.hasWrite = true
+    u.hasBindingWrite = true
     if (inExec) u.wroteInExec = true
     if (hasRandom) u.hasRandomWrite = true
     u.modified = true
@@ -458,7 +566,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         if (u?.isCollection) markModified(sym)
       }
 
-      const f = getGstsFCall(n)
+      const f = getFMethodCall(env, n)
       if (f) {
         n.arguments.forEach((arg, idx) => {
           if (!ts.isIdentifier(arg)) return
@@ -529,20 +637,40 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
     const u = ensureUsage(symbol)
     let needsLocalVar = false
     if (u.isCollection) {
-      needsLocalVar = u.modified
+      if (u.collectionSourceKind === 'copy') {
+        needsLocalVar = u.readCount > 0 || u.modified
+      } else if (u.collectionSourceKind === 'liveRef') {
+        // 顺序代码里的 live collection 绑定重赋值可以保持 JS 变量重绑定语义:
+        //   let xs = f.get(...)
+        //   xs[0] = 1n      // 写回原始 live list
+        //   xs = list(...)
+        //   xs[0] = 2n      // 写入新的 list
+        //
+        // 但如果绑定重赋值发生在 if/loop/switch 等运行期控制流中, 后续引用需要在运行期
+        // 根据实际分支结果决定指向哪个集合, 只能用 LocalVariable 作为统一状态承载。
+        needsLocalVar = u.modified && u.hasBindingWrite && u.wroteInExec
+      } else {
+        needsLocalVar = u.modified
+      }
     } else if (u.isBasic) {
       if (decl.isLet || u.wroteInExec) {
         needsLocalVar = true
       } else {
         const initExpr = decl.decl.initializer
-        const isPureInit = initExpr ? isPureLiteralExpression(initExpr) : false
+        const isPureInit = initExpr
+          ? isPureLiteralExpression(initExpr) || isConstEvaluableExpression(env, initExpr)
+          : false
         const readsMultiple = u.readCount > 1 || (u.readInLoop && !decl.inLoop)
         const promoteConstReads = decl.isConst && readsMultiple && !isPureInit
         const promoteRandom = u.hasRandomWrite && readsMultiple
         needsLocalVar = promoteConstReads || promoteRandom
       }
     }
-    out.set(symbol, { needsLocalVar, isCollection: u.isCollection })
+    out.set(symbol, {
+      needsLocalVar,
+      isCollection: u.isCollection,
+      collectionSourceKind: u.collectionSourceKind
+    })
   }
 
   return out
@@ -551,7 +679,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
 type SwitchControlKind = 'int' | 'str'
 
 function inferSwitchControlKind(env: Env, expr: ts.Expression): SwitchControlKind {
-  const unwrapped = unwrapCaseExpression(expr)
+  const unwrapped = unwrapCaseExpression(tryEvaluateConstExpression(env, expr) ?? expr)
   if (ts.isStringLiteral(unwrapped) || ts.isNoSubstitutionTemplateLiteral(unwrapped)) {
     return 'str'
   }
@@ -646,7 +774,7 @@ function caseKeyFromExpression(
   expr: ts.Expression,
   controlKind: SwitchControlKind
 ): string {
-  const n = unwrapCaseExpression(expr)
+  const n = unwrapCaseExpression(tryEvaluateConstExpression(env, expr) ?? expr)
 
   if (controlKind === 'str') {
     if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) return n.text
@@ -782,6 +910,70 @@ function collectLocalVarSymbols(plan: VarPlan): Set<ts.Symbol> {
     if (entry.needsLocalVar) out.add(sym)
   }
   return out
+}
+
+function tryTransformCollectionRebindSnapshot(
+  env: Env,
+  context: ts.TransformationContext,
+  stmt: ts.ExpressionStatement
+): ts.Statement[] | null {
+  const expr = stmt.expression
+  if (!ts.isBinaryExpression(expr)) return null
+  if (expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return null
+  if (!ts.isIdentifier(expr.left)) return null
+
+  const sym = env.checker.getSymbolAtLocation(expr.left)
+  const plan = sym ? env.varPlan?.get(sym) : undefined
+  const captureInfo = sym ? env.timerCaptureMap?.get(sym) : undefined
+  if (captureInfo?.useLocalVar) return null
+  if (!plan?.isCollection || plan.needsLocalVar) return null
+  if (!needsCollectionRebindSnapshot(env, expr.right)) return null
+
+  const concreteType = inferListConcreteType(env, env.checker.getTypeAtLocation(expr.left))
+  if (!concreteType) return null
+
+  const localId = ts.factory.createIdentifier(`__gsts_collection_rebind_${env.tempCounter++}`)
+  const rhs = transformExpression(env, context, expr.right)
+
+  return [
+    withSameRange(
+      ts.factory.createVariableStatement(
+        undefined,
+        ts.factory.createVariableDeclarationList(
+          [
+            ts.factory.createVariableDeclaration(
+              localId,
+              undefined,
+              undefined,
+              makeFCall(env, 'initLocalVariable', [
+                ts.factory.createStringLiteral(`${concreteType}_list`)
+              ])
+            )
+          ],
+          ts.NodeFlags.Const
+        )
+      ),
+      stmt
+    ),
+    withSameRange(
+      ts.factory.createExpressionStatement(
+        makeFCall(env, 'setLocalVariable', [
+          ts.factory.createPropertyAccessExpression(localId, 'localVariable'),
+          rhs
+        ])
+      ),
+      stmt
+    ),
+    withSameRange(
+      ts.factory.createExpressionStatement(
+        ts.factory.createAssignment(
+          ts.factory.createIdentifier(expr.left.text),
+          ts.factory.createPropertyAccessExpression(localId, 'value')
+        )
+      ),
+      stmt
+    )
+  ]
 }
 
 export function transformBlockStatements(
@@ -1130,6 +1322,11 @@ export function transformBlockStatements(
     }
 
     if (ts.isExpressionStatement(s)) {
+      const collectionRebind = tryTransformCollectionRebindSnapshot(env, context, s)
+      if (collectionRebind) {
+        out.push(...collectionRebind)
+        continue
+      }
       out.push(
         withSameRange(
           ts.factory.updateExpressionStatement(s, transformExpression(env, context, s.expression)),
