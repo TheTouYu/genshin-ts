@@ -1,4 +1,4 @@
-import type { CompositeDefIR, ParamFlowDef } from './IR.js'
+import type { CompositeDefIR, NextConnection, ParamFlowDef } from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
 import type { value } from './value.js'
 
@@ -9,7 +9,20 @@ export type CompositeParamType = string
 export type CompositeParamDef = { type: CompositeParamType }
 
 /**
- * 复合节点定义（存储类型声明 + build 回调）
+ * 复合节点实现图捕获结果
+ */
+export type CompositeCapture = {
+  execNodes: MetaCallRecord[]
+  dataNodes: MetaCallRecord[]
+  edges: Record<number, NextConnection[]>
+  /** build 返回的输出值（含 pin 元数据） */
+  outputValues: Record<string, value>
+  /** 是否为纯函数（无 exec 节点）—— 用于优化 */
+  isPureData: boolean
+}
+
+/**
+ * 复合节点定义（存储类型声明 + build 回调 + 捕获结果）
  */
 export type CompositeDefinition = {
   readonly name: string
@@ -17,20 +30,13 @@ export type CompositeDefinition = {
   readonly inputs: Record<string, CompositeParamDef>
   readonly outputs: Record<string, CompositeParamDef>
   readonly build: (...args: any[]) => any
+  /** 捕获后的内部节点和连线 */
+  captured: CompositeCapture | null
   /**
    * 将定义转换为 IR。
-   * implFlows: 可选，由外部传入的实现图执行流（在 IR 构建阶段从 MetaCallRegistry 提取）
+   * implFlows: 可选，由外部传入的实现图执行流
    */
-  toCompositeDefIR(implFlows?: CompositeImplIR): CompositeDefIR
-}
-
-/**
- * 复合节点实现图 IR（由 MetaCallRegistry 在 IR 构建阶段产生）
- */
-export type CompositeImplIR = {
-  nodes: { id: number; type: string; args: any[] }[]
-  edges: Record<number, any>
-  variables?: any[]
+  toCompositeDefIR(implFlows?: CompositeCapture): CompositeDefIR
 }
 
 /**
@@ -70,7 +76,8 @@ export class CompositeRegistry {
       inputs: def.inputs,
       outputs: def.outputs,
       build: def.build,
-      toCompositeDefIR: (impl?: CompositeImplIR): CompositeDefIR => {
+      captured: null,
+      toCompositeDefIR: (capture?: CompositeCapture): CompositeDefIR => {
         const inputList: ParamFlowDef[] = Object.entries(def.inputs).map(([n, pd], i) => ({
           name: n,
           visible: true,
@@ -86,6 +93,8 @@ export class CompositeRegistry {
           pinIndex: 200 + i
         }))
 
+        const impl = capture ?? definition.captured
+
         return {
           name,
           id,
@@ -94,10 +103,17 @@ export class CompositeRegistry {
           outflows: [],
           inputs: inputList,
           outputs: outputList,
-          implNodes: impl?.nodes ?? [],
+          implNodes: [
+            ...(impl?.execNodes ?? []),
+            ...(impl?.dataNodes ?? [])
+          ].map((r) => ({
+            id: r.id,
+            type: r.nodeType,
+            args: r.args.map((a) => a.toIRLiteral())
+          })),
           implEdges: impl?.edges ?? {},
           compositePins: [],
-          implVariables: impl?.variables
+          implVariables: undefined
         }
       }
     }

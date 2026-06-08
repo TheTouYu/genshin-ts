@@ -28,9 +28,12 @@ import {
   dict,
   ensureLiteralStr,
   enumeration,
+  float,
   generic,
+  int,
   list,
   localVariable,
+  str,
   value,
   type DictValueType,
   type RuntimeParameterValueTypeMap,
@@ -42,7 +45,7 @@ import {
   type NodeGraphVariableMeta,
   type VariablesDefinition
 } from './variables.js'
-import { compositeRegistry, type CompositeHandle, type CompositeImplIR } from './composite_registry.js'
+import { compositeRegistry, type CompositeHandle, type CompositeCapture } from './composite_registry.js'
 
 export type { MetaCallRecord, MetaCallRecordRef, MetaCallRecordType } from './meta_call_types.js'
 
@@ -906,6 +909,24 @@ export class MetaCallRegistry {
   getReturnCallCounter(): number {
     return this.returnCallCounter
   }
+
+  /**
+   * 创建一个捕获流，用于复合节点实现图的捕获。
+   * 替代 registerEvent 的最小化方案，只设置 flow 结构不创建事件 payload。
+   */
+  startCaptureFlow(): ExecutionFlow {
+    const eventId = this.currentRecordId
+    const flow: ExecutionFlow = {
+      eventNode: { id: eventId, type: 'event', nodeType: '__composite_capture__', args: [] },
+      eventArgs: [],
+      execNodes: [],
+      dataNodes: [],
+      edges: {},
+      execContextStack: [{ tailEndpoints: [{ nodeId: eventId }] }]
+    }
+    this.flows.push(flow)
+    return flow
+  }
 }
 
 const serverRegistries: MetaCallRegistry[] = []
@@ -1045,6 +1066,37 @@ function server<Vars extends VariablesDefinition = VariablesDefinition>(
     }
   }
   return api as ServerGraphApi<Vars, ResolvedLang, ResolvedMode>
+}
+
+/**
+ * 根据类型名创建对应的 value 对象（用于复合节点捕获时的输入占位）
+ */
+function createTypedValue(type: string): value {
+  switch (type) {
+    case 'bool':
+      return new bool()
+    case 'int':
+      return new int()
+    case 'float':
+      return new float()
+    case 'str':
+      return new str()
+    case 'vec3':
+      return new generic() // vec3 类型用 generic 占位可被 parseValue 接受
+    case 'entity':
+      return new generic()
+    case 'guid':
+      return new generic()
+    case 'prefab_id':
+      return new generic()
+    case 'config_id':
+      return new generic()
+    case 'faction':
+      return new generic()
+    default:
+      if (type.endsWith('_list')) return new generic()
+      return new generic()
+  }
 }
 
 export const g = {
@@ -1194,12 +1246,43 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
     })
   })
 
-  // 收集所有复合节点定义并构建 IR
+  // 收集所有复合节点定义，运行时捕获实现节点
   const allCompositeDefs: CompositeDefIR[] = []
-  // 注意：此时无法运行 build() 来捕获实现图（需要 ServerExecutionFlowFunctions），
-  // 真实 impl 节点将在 callComposite() 时被内联注册到主 flow 中，
-  // implNodes 可在 GIA 转换阶段通过 tracing compositeCalls 重新构建。
   for (const def of compositeRegistry.getAll()) {
+    if (!def.captured) {
+      // 创建临时注册表来捕获实现节点
+      const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+      captureRegistry.startCaptureFlow()
+      const fns = new ServerExecutionFlowFunctions(captureRegistry)
+
+      // 创建输入值对象
+      const inputs: Record<string, value> = {}
+      for (const [name, param] of Object.entries(def.inputs)) {
+        inputs[name] = createTypedValue(param.type as string)
+      }
+
+      // 设置 gsts 上下文，使 build 内可访问 gsts.f
+      const gsts = ensureGsts() as unknown as GstsInternal
+      const prevF = gsts[kServerF]
+      gsts[kServerF] = fns
+
+      try {
+        const outputs = gsts.ctx.withCtx('server_handler', () => {
+          return def.build(inputs, fns)
+        })
+
+        const flow = captureRegistry.getFlows()[0]
+        def.captured = {
+          execNodes: flow.execNodes,
+          dataNodes: flow.dataNodes,
+          edges: flow.edges,
+          outputValues: (outputs ?? {}) as Record<string, value>,
+          isPureData: flow.execNodes.length === 0
+        }
+      } finally {
+        gsts[kServerF] = prevF
+      }
+    }
     allCompositeDefs.push(def.toCompositeDefIR())
   }
 
