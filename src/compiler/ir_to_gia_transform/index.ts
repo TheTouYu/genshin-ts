@@ -13,6 +13,12 @@ import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { isListValueInfo, type ListValueInfo } from '../../runtime/variables.js'
 import type { NodeType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js'
 import { Graph, Node, NodeIdFor, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
+import {
+  GraphUnit_Id_Class,
+  NodeGraph_Id_Class,
+  NodeGraph_Id_Kind,
+  NodeProperty_Type
+} from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
@@ -154,6 +160,28 @@ function applyGraphVariables(graph: GiaGraph, variables: Variable[]) {
 export type ServerGraphMode = 'server' | 'status' | 'class' | 'item'
 export type GiaGraph = Graph<ServerGraphMode>
 export type GiaNode = Node<ServerGraphMode>
+
+function extractCompositeIdFromArgs(args: Argument[] | undefined): number | undefined {
+  const arg = args?.[0]
+  if (!arg || arg.type === 'conn') return undefined
+  return Number(arg.value)
+}
+
+function compositeTypeToBaseTag(type: string): 'Str' | 'Bol' | 'Int' | 'Flt' | 'Vec' | 'Ety' | 'Gid' | 'Cfg' | 'Fct' | 'Pfb' | null {
+  switch (type) {
+    case 'bool': return 'Bol'
+    case 'int': return 'Int'
+    case 'float': return 'Flt'
+    case 'str': return 'Str'
+    case 'vec3': return 'Vec'
+    case 'guid': return 'Gid'
+    case 'entity': return 'Ety'
+    case 'faction': return 'Fct'
+    case 'config_id': return 'Cfg'
+    case 'prefab_id': return 'Pfb'
+    default: return null
+  }
+}
 
 function resolveServerGraphMode(graphType: ServerGraphSubType | undefined): ServerGraphMode {
   switch (graphType) {
@@ -452,8 +480,58 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const irNodeTypeById = new Map<NodeId, string>()
   const assemblyDictMeta = new Map<NodeId, { keyConn: boolean[] }>()
+  const calledCompositeIds: number[] = []
+  const compositeCallNodeIndices = new Map<number, number>() // nodeIndex → compositeId
+
+  // 构建 compositeId → CompositeDefIR 查找表（用于添加 pins 和 compositePinIndex）
+  const compositeDefById = new Map<number, CompositeDefIR>()
+  for (const cd of ((ir as any).compositeDefs ?? []) as CompositeDefIR[]) {
+    compositeDefById.set(cd.id, cd)
+  }
+
   ir.nodes!.forEach((irNode) => {
     const nodeType = irNode.type
+
+    // 复合调用标记节点
+    if (nodeType === '__composite_call__') {
+      const compositeId = extractCompositeIdFromArgs(irNode.args)
+      if (compositeId !== undefined) {
+        calledCompositeIds.push(compositeId)
+        compositeCallNodeIndices.set(irNode.id, compositeId)
+      }
+      const giaNode: GiaNode = new Node<ServerGraphMode>(
+        irNode.id,
+        serverMode,
+        0 as NodeIdFor<ServerGraphMode>
+      )
+      const layoutPos = positions.get(irNode.id)!
+      giaNode.setPos(layoutPos[0] / 300, layoutPos[1] / 200)
+
+      // 添加 InParam/OutParam pins（带 compositePinIndex）
+      const cdef = compositeId !== undefined ? compositeDefById.get(compositeId) : undefined
+      if (cdef) {
+        for (const input of cdef.inputs) {
+          const p = new Pin(giaNode.ConcreteId!, 3, input.index) // InParam
+          const bt = compositeTypeToBaseTag(input.type as string)
+          if (bt) p.setType({ t: 'b', b: bt })
+          // @ts-ignore compositePinIndex on pin (field 7 in NodePin proto)
+          ;(p as any).compositePinIndex = input.pinIndex
+          giaNode.pins.push(p)
+        }
+        for (const output of cdef.outputs) {
+          const p = new Pin(giaNode.ConcreteId!, 4, output.index) // OutParam
+          const bt = compositeTypeToBaseTag(output.type as string)
+          if (bt) p.setType({ t: 'b', b: bt })
+          giaNode.pins.push(p)
+        }
+      }
+
+      irNodeTypeById.set(irNode.id, nodeType)
+      nodesById.set(irNode.id, giaNode)
+      graph.add_node(giaNode)
+      return
+    }
+
     const nodeId = resolveGiaNodeId(irNode, connIndex, varsByName, resolvedRuntimeMode)
 
     irNodeTypeById.set(irNode.id, nodeType)
@@ -513,9 +591,87 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     graph.connect(from, to, mappedFromIndex, mappedToIndex)
   }
 
+  // 应用复合节点之间的数据连线
+  const compositeDataEdges = (ir as any).compositeDataEdges as Array<{
+    fromNodeId: number; fromPinIndex: number; toMarkerId: number; toPinIndex: number
+  }> | undefined
+  if (compositeDataEdges) {
+    for (const edge of compositeDataEdges) {
+      const from = nodesById.get(edge.fromNodeId)
+      const to = nodesById.get(edge.toMarkerId)
+      if (from && to) {
+        graph.connect(from, to, edge.fromPinIndex, edge.toPinIndex)
+      }
+    }
+  }
+
   let root: GiaRoot
   try {
     root = graph.encode()
+
+    // 修正 composite call 节点的 kind 为 SysGraph(22001) 并设置正确的 nodeId + compositePinIndex
+    if (compositeCallNodeIndices.size > 0) {
+      const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
+      if (mainNodes) {
+        for (const node of mainNodes) {
+          const cid = compositeCallNodeIndices.get(node.nodeIndex)
+          if (cid !== undefined) {
+            if (node.genericId) {
+              node.genericId.kind = NodeGraph_Id_Kind.SysGraph
+              node.genericId.nodeId = cid
+            }
+            if (node.concreteId) {
+              node.concreteId.kind = NodeGraph_Id_Kind.SysGraph
+              node.concreteId.nodeId = cid
+            }
+            // 为 InParam pins 设置 compositePinIndex，修正 exec flow 路由
+            const cdef = compositeDefById.get(cid)
+            if (cdef && node.pins) {
+              const isPureData = cdef.inflows.length === 0
+              if (isPureData) {
+                // 纯数据复合：移除所有 flow pins
+                node.pins = node.pins.filter((pin: any) => pin.i1?.kind !== 2)
+              }
+              for (const pin of node.pins) {
+                if (pin.i1?.kind === 3) { // InParam
+                  const inputIdx = pin.i1.index ?? 0
+                  if (inputIdx < cdef.inputs.length) {
+                    pin.compositePinIndex = cdef.inputs[inputIdx].pinIndex
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // 修正 exec flow：event OutFlow 必须指向 exec 复合（有 inflows），跳过纯数据复合
+        if (mainNodes && mainNodes.length > 1) {
+          const eventNode = mainNodes.find((n: any) => n.genericId?.kind === 22000)
+          const execCallNodes = mainNodes.filter((n: any) => {
+            const cid = compositeCallNodeIndices.get(n.nodeIndex)
+            const cdef = cid !== undefined ? compositeDefById.get(cid) : undefined
+            return cdef && cdef.inflows.length > 0
+          })
+          if (eventNode && execCallNodes.length > 0) {
+            const targetExecIdx = execCallNodes[0].nodeIndex
+            for (const pin of eventNode.pins ?? []) {
+              if (pin.i1?.kind === 2 && pin.connects?.length > 0) {
+                pin.connects[0].id = targetExecIdx
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 为主图添加 relatedIds 指向被调用的复合定义
+    if (calledCompositeIds.length > 0) {
+      ;(root.graph as any).relatedIds = calledCompositeIds.map((id) => ({
+        class: GraphUnit_Id_Class.AffiliatedNode,
+        type: 0,
+        id
+      }))
+    }
   } catch (e) {
     for (const n of graph.get_nodes()) {
       for (const p of n.pins ?? []) {

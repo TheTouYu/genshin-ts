@@ -27,7 +27,17 @@ import { int, bool, str } from '../../dist/src/runtime/value.js'
 import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
-const OUT_DIR = '/tmp/composite-game-demo'
+
+// 游戏 Beyond_Local_Export 导出目录（游戏导入 GIA 时从此目录加载）
+function resolveExportDir(): string {
+  const localAppData = process.env.LOCALAPPDATA
+  if (localAppData) {
+    return localAppData.replace(/\\/g, '/').replace(/\/Local$/, '/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export')
+  }
+  // WSL/Linux fallback
+  return '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+}
+const OUT_DIR = resolveExportDir()
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
 let passed = 0
@@ -148,7 +158,7 @@ g.server({ name: 'pA' })
   })
 
 const docsA = buildServerGraphRegistriesIRDocuments({ defaultName: 'pA' })
-const docA = docsA[0]
+const docA = docsA[docsA.length - 1]
 test('主图A: 有节点', () => (docA.nodes?.length ?? 0) >= 1)
 encodeAndSave(docA, 1073741882, 'demo_A_basic_call')
 
@@ -165,7 +175,7 @@ g.server({ name: 'pB' })
   })
 
 const docsB = buildServerGraphRegistriesIRDocuments({ defaultName: 'pB' })
-const docB = docsB[0]
+const docB = docsB[docsB.length - 1]
 test('主图B: 有节点', () => (docB.nodes?.length ?? 0) >= 1)
 encodeAndSave(docB, 1073741883, 'demo_B_exec_call')
 
@@ -184,7 +194,7 @@ g.server({ name: 'pC' })
   })
 
 const docsC = buildServerGraphRegistriesIRDocuments({ defaultName: 'pC' })
-const docC = docsC[0]
+const docC = docsC[docsC.length - 1]
 test('主图C: 有节点', () => (docC.nodes?.length ?? 0) >= 1)
 encodeAndSave(docC, 1073741884, 'demo_C_nested_call')
 

@@ -16474,8 +16474,9 @@ export class ServerExecutionFlowFunctions {
    */
   callComposite(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
     const def = handle.definition
-    const outputs = def.build(inputs, this)
-    return outputs
+    return this.registry.runCompositeCall(handle.id, inputs, (captureFns, captureInputs) => {
+      return def.build(captureInputs, captureFns)
+    })
   }
 }
 

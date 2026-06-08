@@ -25,14 +25,19 @@ import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
 import {
   bool,
+  configId,
   dict,
   ensureLiteralStr,
+  entity,
   enumeration,
+  faction,
   float,
   generic,
+  guid,
   int,
   list,
   localVariable,
+  prefabId,
   str,
   value,
   type DictValueType,
@@ -927,6 +932,125 @@ export class MetaCallRegistry {
     this.flows.push(flow)
     return flow
   }
+
+  /**
+   * 复合调用追踪：记录每个在主图中发生的复合节点调用。
+   * 用于后续过滤 accessories 和生成 compositeCalls IR 元数据。
+   */
+  private compositeCallMetas: Array<{ compositeId: number; markerNodeId: number }> = []
+
+  trackCompositeCall(compositeId: number, markerNodeId: number): void {
+    this.compositeCallMetas.push({ compositeId, markerNodeId })
+  }
+
+  getCompositeCallMetas(): ReadonlyArray<{ compositeId: number; markerNodeId: number }> {
+    return this.compositeCallMetas
+  }
+
+  /**
+   * 在主 flow 中注册复合调用标记节点，并在独立 capture registry 中运行 build。
+   * 返回 build 的 outputs（调用方透明使用）。
+   *
+   * 对纯数据复合：marker 注册为 data 类型（无 exec flow），返回代理 output 值。
+   * 对 exec 复合：marker 注册为 exec 类型，输出值也代理到主图 marker 的 OutParam。
+   */
+  runCompositeCall(
+    compositeId: number,
+    inputs: Record<string, any>,
+    build: (fns: ServerExecutionFlowFunctions, captureInputs: Record<string, any>) => Record<string, any>
+  ): Record<string, any> {
+    const def = compositeRegistry.getById(compositeId)
+    const isPureData = def?.captured?.isPureData ?? false
+
+    // 1. 注册标记节点（纯数据 → data 类型，exec → exec 类型）
+    const markerRecord = this.registerNode({
+      id: 0,
+      nodeType: '__composite_call__',
+      type: isPureData ? 'data' : 'exec',
+      args: [new int(BigInt(compositeId))]
+    })
+    this.trackCompositeCall(compositeId, markerRecord.id!)
+
+    // 2. 检测输入值中的 pin metadata，记录数据连线到主图
+    const captureInputs: Record<string, any> = {}
+    let inIdx = 0
+    for (const [name, val] of Object.entries(inputs)) {
+      const v = val as value
+      const meta = v?.getMetadata?.()
+      if (meta && meta.kind === 'pin') {
+        // 此输入来自另一个 composite 调用，记录数据连线
+        this.recordCompositeDataEdge({
+          fromNodeId: meta.record.id,
+          fromPinIndex: meta.pinIndex,
+          toMarkerId: markerRecord.id!,
+          toPinIndex: inIdx
+        })
+        // capture 用 placeholder
+        if (def?.inputs?.[name]) {
+          captureInputs[name] = createTypedValue(def.inputs[name].type as string)
+        }
+      } else {
+        captureInputs[name] = val
+      }
+      inIdx++
+    }
+
+    // 3. 创建独立 capture registry 运行 build
+    const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+    captureRegistry.startCaptureFlow()
+    const captureFns = new ServerExecutionFlowFunctions(captureRegistry)
+
+    const gsts = ensureGsts() as unknown as GstsInternal
+    const prevF = gsts[kServerF]
+    gsts[kServerF] = captureFns
+
+    try {
+      build(captureFns, captureInputs)
+
+      // 4. 构建代理输出值（引用主图 marker 的 OutParam pins）
+      const outputs: Record<string, any> = {}
+      if (def?.outputs) {
+        let outIdx = 0
+        for (const [name, param] of Object.entries(def.outputs)) {
+          const outVal = createTypedValue(param.type as string)
+          outVal.markPin(markerRecord, 'output', outIdx)
+          outputs[name] = outVal
+          outIdx++
+        }
+      }
+      return outputs
+    } finally {
+      gsts[kServerF] = prevF
+    }
+  }
+
+  /**
+   * 复合调用之间的数据连线（一个复合的输出 → 另一个复合的输入）
+   */
+  private compositeDataEdges: Array<{
+    fromNodeId: number
+    fromPinIndex: number
+    toMarkerId: number
+    toPinIndex: number
+  }> = []
+
+  private recordCompositeDataEdge(edge: {
+    fromNodeId: number
+    fromPinIndex: number
+    toMarkerId: number
+    toPinIndex: number
+  }): void {
+    this.compositeDataEdges.push(edge)
+  }
+
+  getCompositeDataEdges(): ReadonlyArray<{
+    fromNodeId: number
+    fromPinIndex: number
+    toMarkerId: number
+    toPinIndex: number
+  }> {
+    return this.compositeDataEdges
+  }
 }
 
 const serverRegistries: MetaCallRegistry[] = []
@@ -1080,19 +1204,19 @@ function createTypedValue(type: string): value {
     case 'float':
       return new float()
     case 'str':
-      return new str()
+      return new str('')
     case 'vec3':
-      return new generic() // vec3 类型用 generic 占位可被 parseValue 接受
+      return new generic()
     case 'entity':
-      return new generic()
+      return new entity()
     case 'guid':
-      return new generic()
+      return new guid()
     case 'prefab_id':
-      return new generic()
+      return new prefabId()
     case 'config_id':
-      return new generic()
+      return new configId()
     case 'faction':
-      return new generic()
+      return new faction()
     default:
       if (type.endsWith('_list')) return new generic()
       return new generic()
@@ -1161,7 +1285,8 @@ function removeUnusedNodesFromFlow(flow: ExecutionFlow): ExecutionFlow | null {
     })
   }
 
-  if (reachableExecIds.size === 0) {
+  const hasCompositeCallData = flow.dataNodes.some((n) => n.nodeType === '__composite_call__')
+  if (reachableExecIds.size === 0 && !hasCompositeCallData) {
     return null
   }
 
@@ -1179,6 +1304,13 @@ function removeUnusedNodesFromFlow(flow: ExecutionFlow): ExecutionFlow | null {
       if (!meta || meta.kind !== 'pin') continue
       const depId = meta.record.id
       if (dataById.has(depId)) enqueueData(depId)
+    }
+  }
+
+  // 纯数据流（无 exec 节点）或 __composite_call__ data 节点：始终保留
+  for (const n of flow.dataNodes) {
+    if (reachableExecIds.size === 0 || n.nodeType === '__composite_call__') {
+      usedDataIds.add(n.id)
     }
   }
 
@@ -1286,9 +1418,37 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
     allCompositeDefs.push(def.toCompositeDefIR())
   }
 
-  for (const doc of list) {
-    if (allCompositeDefs.length > 0) {
-      ;(doc as any).compositeDefs = allCompositeDefs
+  for (let di = 0; di < list.length; di++) {
+    const doc = list[di]
+    if (allCompositeDefs.length === 0) continue
+
+    // 扫描此 doc 的节点，收集被调用的 composite ID
+    const calledIds = new Set<number>()
+    for (const node of doc.nodes ?? []) {
+      if (node.type === '__composite_call__') {
+        // args[0] 是 int(BigInt(compositeId)) → value 是 bigint
+        const arg = node.args?.[0]
+        if (arg && arg.type !== 'conn') {
+          calledIds.add(Number(arg.value))
+        }
+      }
+    }
+
+    // 只附加被此图实际调用的复合定义
+    if (calledIds.size > 0) {
+      const filtered = allCompositeDefs.filter((d) => calledIds.has(d.id))
+      if (filtered.length > 0) {
+        ;(doc as any).compositeDefs = filtered
+      }
+    }
+
+    // 附加复合数据连线（用于 irToGia 建立 graph.connect）
+    const registry = serverRegistries[di]
+    if (registry) {
+      const edges = registry.getCompositeDataEdges()
+      if (edges.length > 0) {
+        ;(doc as any).compositeDataEdges = [...edges]
+      }
     }
   }
 

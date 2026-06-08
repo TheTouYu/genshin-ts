@@ -18,6 +18,7 @@ import {
   type NodeGraph,
   type CompositeDef
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -25,55 +26,10 @@ import {
 export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   const accessories: GraphUnit[] = []
 
-  // 1. 构建 impl NodeGraph（实现图）
-  const implGraphId = def.id + 10000 // impl 图使用偏移 ID
+  const implGraphId = def.id + 10000
   const implNodes = buildImplGraphNodes(def.implNodes)
 
-  const implGraphUnit: GraphUnit = {
-    id: {
-      class: GraphUnit_Id_Class.Basic,
-      type: GraphUnit_Id_Type.ServerGraph,
-      id: implGraphId
-    },
-    relatedIds: [],
-    name: `${def.name}_impl`,
-    which: GraphUnit_Which.EntityNode,
-    graph: {
-      inner: {
-        graph: {
-          id: {
-            class: NodeGraph_Id_Class.UserDefined,
-            type: NodeGraph_Id_Type.BasicNode,
-            kind: NodeGraph_Id_Kind.NodeGraph,
-            id: implGraphId
-          },
-          name: `${def.name}_impl`,
-          nodes: implNodes,
-          compositePins: def.compositePins.map((entry) => ({
-            outerPin: {
-              kind: entry.outerPinKind as NodePin_Index_Kind,
-              index: entry.outerPinIndex
-            },
-            innerNodeId: entry.innerNodeId,
-            innerPin: {
-              kind: entry.innerPinKind as NodePin_Index_Kind,
-              index: entry.innerPinIndex
-            },
-            innerPin2: {
-              kind: entry.innerPinKind as NodePin_Index_Kind,
-              index: entry.innerPinIndex
-            }
-          })),
-          comments: [],
-          graphValues: [],
-          affiliations: []
-        }
-      }
-    }
-  }
-  accessories.push(implGraphUnit)
-
-  // 2. 构建 CompositeDef（定义 + 接口）
+  // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
     id: {
       genericId: {
@@ -138,7 +94,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
     },
     name: def.name,
     description: '',
-    xxx: 0
+    xxx: 6
   }
 
   const defGraphUnit: GraphUnit = {
@@ -147,7 +103,9 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
       type: GraphUnit_Id_Type.ServerGraph,
       id: def.id
     },
-    relatedIds: [],
+    relatedIds: [
+      { class: GraphUnit_Id_Class.Basic, type: 0, id: implGraphId }
+    ],
     name: def.name,
     which: GraphUnit_Which.CompositeGraph,
     compositeDef: {
@@ -158,26 +116,200 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   }
   accessories.push(defGraphUnit)
 
+  // 2. impl NodeGraph（实现图）
+  const implGraphUnit: GraphUnit = {
+    id: {
+      class: GraphUnit_Id_Class.Basic,
+      type: GraphUnit_Id_Type.ServerGraph,
+      id: implGraphId
+    },
+    relatedIds: [],
+    name: '',
+    which: GraphUnit_Which.EntityNode,
+    graph: {
+      inner: {
+        graph: {
+          id: {
+            class: NodeGraph_Id_Class.UserDefined,
+            type: NodeGraph_Id_Type.BasicNode,
+            kind: NodeGraph_Id_Kind.CompositeGraph,
+            id: implGraphId
+          },
+          name: '',
+          nodes: implNodes,
+          compositePins: def.compositePins.map((entry) => ({
+            outerPin: {
+              kind: entry.outerPinKind as NodePin_Index_Kind,
+              index: entry.outerPinIndex
+            },
+            innerNodeId: entry.innerNodeId,
+            innerPin: {
+              kind: entry.innerPinKind as NodePin_Index_Kind,
+              index: entry.innerPinIndex
+            },
+            innerPin2: {
+              kind: entry.innerPinKind as NodePin_Index_Kind,
+              index: entry.innerPinIndex
+            }
+          })),
+          comments: [],
+          graphValues: [],
+          affiliations: []
+        }
+      }
+    }
+  }
+  accessories.push(implGraphUnit)
+
   return accessories
 }
 
 /**
- * 从 IR 节点构建 GIA GraphNode 列表（impl 图的简易版本）
+ * 从 IR 节点构建 GIA GraphNode 列表（impl 图）
+ *
+ * 为每个 impl 节点解析正确的 GIA node ID、构建带类型/值的 pins、并添加 concreteId。
  */
 function buildImplGraphNodes(implNodes: CompositeDefIR['implNodes']): GraphNode[] {
-  return implNodes.map((node, i) => ({
-    nodeIndex: node.id,
-    genericId: {
+  return implNodes.map((node) => {
+    const nodeId = resolveImplNodeId(node.type)
+    const genericId = {
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
       kind: NodeGraph_Id_Kind.SysCall,
-      nodeId: 0
-    },
-    pins: [],
-    x: 100 + i * 200 + Math.random() * 10,
-    y: 100 + Math.random() * 10,
-    usingStruct: []
-  }))
+      nodeId
+    }
+    const pins = buildImplNodePins(node)
+    return {
+      nodeIndex: node.id,
+      genericId,
+      concreteId: { ...genericId },
+      pins,
+      x: 0,
+      y: 0,
+      usingStruct: []
+    }
+  })
+}
+
+/**
+ * 解析 impl 节点的 GIA node ID
+ */
+function resolveImplNodeId(nodeType: string): number {
+  const special = SPECIAL_NODE_IDS[nodeType]
+  if (special) return special
+
+  const mapped = SPECIAL_NODE_MAPPINGS[nodeType]
+  const key = (mapped ?? nodeType).toLowerCase()
+  const nodeIdLower = getNodeIdLowerMap()
+  const direct = nodeIdLower.get(key)
+  if (direct) return direct
+  const generic = nodeIdLower.get(`${key}__generic`)
+  if (generic) return generic
+
+  return 0
+}
+
+/**
+ * 将 arg 的 IR literal type 映射为 VarBase_Class
+ */
+function argVarBaseClass(argType: string): number {
+  switch (argType) {
+    case 'int': return VarBase_Class.IntBase
+    case 'float': return VarBase_Class.FloatBase
+    case 'bool': return VarBase_Class.EnumBase
+    case 'str': return VarBase_Class.StringBase
+    case 'vec3': return VarBase_Class.VectorBase
+    default: return 0
+  }
+}
+
+/**
+ * 将 arg 的 IR literal type 映射为 VarType
+ */
+function argVarType(argType: string): number {
+  switch (argType) {
+    case 'bool': return VarType.Boolean
+    case 'int': return VarType.Integer
+    case 'float': return VarType.Float
+    case 'str': return VarType.String
+    case 'vec3': return VarType.Vector
+    case 'guid': return VarType.GUID
+    case 'entity': return VarType.Entity
+    case 'faction': return VarType.Faction
+    case 'prefab_id': return VarType.Prefab
+    case 'config_id': return VarType.Configuration
+    default: return 0
+  }
+}
+
+/**
+ * 为 impl 节点构建带类型/值的 pins
+ */
+function buildImplNodePins(node: CompositeDefIR['implNodes'][number]): NodePin[] {
+  const args = node.args ?? []
+  const pins: NodePin[] = []
+  let pinIndex = 0
+  for (const arg of args) {
+    if (arg && arg.type === 'conn') continue
+    if (arg) {
+      pins.push(buildLiteralPin(pinIndex, arg.type, arg.value))
+    } else {
+      // null/undefined arg：创建占位 pin（类型从 node type 推断）
+      pins.push(buildPlaceholderPin(pinIndex, node.type))
+    }
+    pinIndex++
+  }
+  return pins
+}
+
+/** 为 null arg 创建占位 pin（类型从节点类型推断） */
+function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
+  // print_string → str, addition → int, etc.
+  let varType = 0
+  let varClass = 0
+  if (nodeType === 'print_string') {
+    varType = VarType.String; varClass = VarBase_Class.StringBase
+  }
+  const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
+  const pinValue = varClass === VarBase_Class.StringBase
+    ? { class: varClass, alreadySetVal: true, itemType, bString: { val: '' } }
+    : { class: varClass, alreadySetVal: true, itemType }
+
+  return {
+    i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+    i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+    value: pinValue as any,
+    type: varType
+  }
+}
+
+function buildLiteralPin(pinIndex: number, argType: string, value: unknown): NodePin {
+  const kind = NodePin_Index_Kind.InParam
+  const varType = argVarType(argType)
+  const varClass = argVarBaseClass(argType)
+
+  const itemType = {
+    classBase: 1,
+    type_server: { type: varType, kind: 0 }
+  }
+
+  let pinValue: Record<string, unknown> = {}
+  if (varClass === VarBase_Class.IntBase) {
+    pinValue = { class: varClass, alreadySetVal: true, itemType, bInt: { val: Number(value) } }
+  } else if (varClass === VarBase_Class.FloatBase) {
+    pinValue = { class: varClass, alreadySetVal: true, itemType, bFloat: { val: Number(value) } }
+  } else if (varClass === VarBase_Class.EnumBase) {
+    pinValue = { class: varClass, alreadySetVal: true, itemType, bBool: { val: Boolean(value) } }
+  } else if (varClass === VarBase_Class.StringBase) {
+    pinValue = { class: varClass, alreadySetVal: true, itemType, bString: { val: String(value) } }
+  }
+
+  return {
+    i1: { kind, index: pinIndex },
+    i2: { kind, index: pinIndex },
+    value: pinValue as any,
+    type: varType
+  }
 }
 
 // ============== 类型映射辅助 ==============
