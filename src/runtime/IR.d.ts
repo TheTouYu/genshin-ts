@@ -20,6 +20,10 @@ export type ServerIRDocument = SimplifyDeep<
   BaseIRDocument & {
     graph: ServerGraphInfo
     nodes?: ServerNode[]
+    /** 复合节点定义列表（按需嵌入） */
+    compositeDefs?: CompositeDefIR[]
+    /** 复合节点调用元数据 */
+    compositeCalls?: CompositeCallMeta[]
   }
 >
 
@@ -220,6 +224,70 @@ export interface LocalVariableValueTypeMap {
 export interface CustomVariableSnapshotValueTypeMap {
   custom_variable_snapshot: any
 }
+
+// ============== Composite Node Types ==============
+
+/**
+ * 复合节点定义的中间表示
+ */
+export interface CompositeDefIR {
+  name: string
+  id: number
+  type: 'composite'
+  inflows: ControlFlowDef[]
+  outflows: ControlFlowDef[]
+  inputs: ParamFlowDef[]
+  outputs: ParamFlowDef[]
+  /** 复合节点实现图的节点列表 */
+  implNodes: ServerNode[]
+  /** 复合节点实现图的执行连线 */
+  implEdges: Record<number, NextConnection[]>
+  /** 内外引脚映射 */
+  compositePins: CompositePinEntry[]
+  /** 实现图的变量 */
+  implVariables?: Variable[]
+}
+
+export interface ControlFlowDef {
+  name: string
+  visible: boolean
+  index: number
+  pinIndex: number
+}
+
+export interface ParamFlowDef {
+  name: string
+  visible: boolean
+  index: number
+  type: ValueType
+  pinIndex: number
+  dict?: { k: DictKeyType; v: DictValueType }
+  enum?: string
+}
+
+/**
+ * 复合节点调用的元数据（运行时注册后产出）
+ */
+export interface CompositeCallMeta {
+  /** 引用的复合定义 ID */
+  compositeId: number
+  /** 边界标记节点的 ID（主图中的 data node） */
+  markerNodeId: number
+  /** 从复合定义复制到主图的实现节点 ID 列表 */
+  implNodeIds: number[]
+  /** 内外引脚映射条目 */
+  compositePinEntries: CompositePinEntry[]
+}
+
+export interface CompositePinEntry {
+  outerPinKind: number
+  outerPinIndex: number
+  innerNodeId: number
+  innerPinKind: number
+  innerPinIndex: number
+}
+
+// ==================================================
 
 export type ValueType = SimplifyDeep<keyof ValueTypeMap>
 

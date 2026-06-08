@@ -25,3 +25,8 @@ export type {
 } from './injector/index.js'
 
 export * from './definitions/prefabs.js'
+
+// 复合节点支持
+export { defineComposite } from './runtime/core.js'
+export type { CompositeHandle, CompositeDefinition } from './runtime/composite_registry.js'
+export type { CompositeDefIR, CompositeCallMeta, CompositePinEntry, ParamFlowDef, ControlFlowDef } from './runtime/IR.js'

@@ -11,6 +11,8 @@ import { CLIENT_NODE_ID, NODE_ID } from '../node_data/node_id.js'
 import { type SingleNodeData } from '../node_data/node_pin_records.js'
 import type {
   Comments,
+  CompositePin,
+  GraphAffiliation,
   GraphNode,
   NodeConnection,
   NodePin,
@@ -69,6 +71,8 @@ export class Graph<M extends AllModes = 'server'> {
   private flows: Map<Node<M>, Connect[][]>
   private comments: Set<Comment>
   private graph_var: Map<string, GraphVar>
+  private composite_pins: CompositePin[] = []
+  private affiliations: GraphAffiliation[] = []
 
   constructor(mode: M = 'server' as M, uid?: number, name?: string, graph_id?: number) {
     this.mode = mode
@@ -298,6 +302,22 @@ export class Graph<M extends AllModes = 'server'> {
     v.val = new_val
   }
 
+  add_composite_pin(pin: CompositePin) {
+    this.composite_pins.push(pin)
+  }
+
+  add_affiliation(affiliation: GraphAffiliation) {
+    this.affiliations.push(affiliation)
+  }
+
+  get_composite_pins(): CompositePin[] {
+    return this.composite_pins
+  }
+
+  get_affiliations(): GraphAffiliation[] {
+    return this.affiliations
+  }
+
   encode(opt?: EncodeOptions): Root {
     opt ??= new EncodeOptions()
     const nodes = [...this.nodes].map((n) =>
@@ -317,6 +337,8 @@ export class Graph<M extends AllModes = 'server'> {
       mode: this.mode,
       comments: this.get_graph_comments().map((c) => c.encode()),
       graphValues: graphValues,
+      compositePins: this.composite_pins,
+      affiliations: this.affiliations,
       modeFlag: this.rootModeFlag
     })
   }

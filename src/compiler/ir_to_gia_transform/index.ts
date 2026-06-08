@@ -1,6 +1,7 @@
 import { loadGiaProto } from '../../injector/proto.js'
 import type {
   Argument,
+  CompositeDefIR,
   ConnectionArgument,
   IRDocument,
   ServerGraphMode as ServerGraphRuntimeMode,
@@ -18,6 +19,7 @@ import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
+import { buildCompositeAccessories } from './composite.js'
 
 type IrToGiaOptimizeOptions = {
   timerDispatchAggregate?: boolean
@@ -531,6 +533,17 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       }
     }
     throw e
+  }
+
+  // 将复合节点定义编码为 accessories
+  try {
+    const compositeDefs: CompositeDefIR[] = (ir as any).compositeDefs ?? []
+    for (const def of compositeDefs) {
+      const accs = buildCompositeAccessories(def)
+      root.accessories.push(...accs)
+    }
+  } catch (e) {
+    console.error('[composite] failed to build composite accessories:', e)
   }
 
   if (assemblyDictMeta.size > 0) {

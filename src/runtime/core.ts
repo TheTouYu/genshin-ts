@@ -19,7 +19,7 @@ import {
 } from '../definitions/zh_aliases.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
 import { buildIRDocument } from './ir_builder.js'
-import type { ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
+import type { CompositeDefIR, ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
 import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
@@ -42,6 +42,7 @@ import {
   type NodeGraphVariableMeta,
   type VariablesDefinition
 } from './variables.js'
+import { compositeRegistry, type CompositeHandle, type CompositeImplIR } from './composite_registry.js'
 
 export type { MetaCallRecord, MetaCallRecordRef, MetaCallRecordType } from './meta_call_types.js'
 
@@ -1047,7 +1048,38 @@ function server<Vars extends VariablesDefinition = VariablesDefinition>(
 }
 
 export const g = {
-  server
+  server,
+  defineComposite
+}
+
+/**
+ * 定义一个复合节点
+ *
+ * @example
+ * const add = g.defineComposite('整数加法', {
+ *   inputs: { a: { type: 'int' }, b: { type: 'int' } },
+ *   outputs: { sum: { type: 'int' } },
+ *   build: ({ a, b }, f) => {
+ *     const sum = f.add(a, b)
+ *     return { sum }
+ *   }
+ * })
+ */
+export function defineComposite<
+  Inputs extends Record<string, { type: any }>,
+  Outputs extends Record<string, { type: any }>
+>(
+  name: string,
+  def: {
+    inputs: Inputs
+    outputs: Outputs
+    build: (
+      inputs: { [K in keyof Inputs]: any },
+      f: ServerExecutionFlowFunctions
+    ) => { [K in keyof Outputs]: any }
+  }
+): CompositeHandle {
+  return compositeRegistry.define(name, def)
 }
 
 export function printServerGraphRegistries() {
@@ -1161,5 +1193,21 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       graphName: resolveName(registry)
     })
   })
+
+  // 收集所有复合节点定义并构建 IR
+  const allCompositeDefs: CompositeDefIR[] = []
+  // 注意：此时无法运行 build() 来捕获实现图（需要 ServerExecutionFlowFunctions），
+  // 真实 impl 节点将在 callComposite() 时被内联注册到主 flow 中，
+  // implNodes 可在 GIA 转换阶段通过 tracing compositeCalls 重新构建。
+  for (const def of compositeRegistry.getAll()) {
+    allCompositeDefs.push(def.toCompositeDefIR())
+  }
+
+  for (const doc of list) {
+    if (allCompositeDefs.length > 0) {
+      ;(doc as any).compositeDefs = allCompositeDefs
+    }
+  }
+
   return list
 }

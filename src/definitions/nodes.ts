@@ -7,6 +7,7 @@ import {
   type SignalDefinition,
   type SignalParamValues
 } from '../runtime/core.js'
+import type { CompositeHandle } from '../runtime/composite_registry.js'
 import {
   CommonLiteralValueListTypeMap,
   CommonLiteralValueTypeMap,
@@ -16459,6 +16460,23 @@ export class ServerExecutionFlowFunctions {
     return ret as unknown as boolean
   }
   // === AUTO-GENERATED END ===
+
+  /**
+   * @gsts
+   *
+   * Call a composite node defined via g.defineComposite()
+   *
+   * 调用复合节点
+   *
+   * @param handle CompositeHandle returned by defineComposite()
+   * @param inputs Input values matching the composite's input declarations
+   * @returns Output values matching the composite's output declarations
+   */
+  callComposite(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
+    const def = handle.definition
+    const outputs = def.build(inputs, this)
+    return outputs
+  }
 }
 
 type NodeTypeByMethod = typeof NODE_TYPE_BY_METHOD

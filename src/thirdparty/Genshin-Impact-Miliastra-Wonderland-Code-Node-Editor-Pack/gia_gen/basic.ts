@@ -50,6 +50,8 @@ export interface GraphBody_ {
   nodes?: GraphNode[]
   comments?: Comments[]
   graphValues?: GraphVariable[]
+  compositePins?: CompositePin[]     // 新增
+  affiliations?: GraphAffiliation[] // 新增
   mode?: GraphMode
   /** Root#4: observed as 1 for classic mode */
   modeFlag?: number
@@ -129,6 +131,10 @@ export function graph_body(body: GraphBody_): Root {
   if (body.modeFlag !== undefined) {
     gia.modeFlag = body.modeFlag
   }
+  // 填充 compositePins 和 affiliations（注意：graph!.inner!.graph 一定存在）
+  const innerGraph = gia.graph!.inner!.graph!
+  if (body.compositePins) innerGraph.compositePins = body.compositePins
+  if (body.affiliations) innerGraph.affiliations = body.affiliations
   return gia
 }
 
@@ -1036,5 +1042,41 @@ export function encode_node_graph_var(v: GraphVar): GraphVariable {
     structId: 0,
     keyType: v.type.t === 'd' ? (get_id(v.type.k) as VarType) : 6,
     valueType: v.type.t === 'd' ? (get_id(v.type.v) as VarType) : 6
+  }
+}
+
+// ======================== Composite Node Helpers ========================
+
+export function composite_pin_body(entry: {
+  outerPinKind: number
+  outerPinIndex: number
+  innerNodeId: number
+  innerPinKind: number
+  innerPinIndex: number
+}): CompositePin {
+  return {
+    outerPin: { kind: entry.outerPinKind as NodePin_Index_Kind, index: entry.outerPinIndex },
+    innerNodeId: entry.innerNodeId,
+    innerPin: { kind: entry.innerPinKind as NodePin_Index_Kind, index: entry.innerPinIndex },
+    innerPin2: { kind: entry.innerPinKind as NodePin_Index_Kind, index: entry.innerPinIndex }
+  }
+}
+
+export function graph_affiliation_body(
+  sourceGraphId: number,
+  typeXxx: number = 0
+): GraphAffiliation {
+  return {
+    info: {
+      source: {
+        class: NodeGraph_Id_Class.UserDefined,
+        type: NodeGraph_Id_Type.BasicNode,
+        kind: NodeGraph_Id_Kind.NodeGraph,
+        id: sourceGraphId
+      },
+      typeXxx,
+      alwaysOneXxxx: 1
+    },
+    type: { type: 1 }
   }
 }
