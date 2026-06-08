@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_10 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741839 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741834 }).on('whenEntityIsCreated', (_evt, f) => {
   // setPlayerSettlementScoreboardDataDisplay :: float
   f.setPlayerSettlementScoreboardDataDisplay(f.getSelfEntity(), 2n, "3", 4.25)
   // setPlayerSettlementScoreboardDataDisplay :: int

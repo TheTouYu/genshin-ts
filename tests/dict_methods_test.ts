@@ -1,7 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  id: 1073741870,
+  id: 1073741860,
   variables: {
     d_str_int: dict([
       { k: 'a', v: 1n },

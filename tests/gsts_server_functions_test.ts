@@ -25,7 +25,7 @@ function gstsServerDouble(base: bigint) {
 }
 
 g.server({
-  id: 1073741872
+  id: 1073741862
 }).on('whenEntityIsCreated', (_evt, f) => {
   const total = gstsServerDouble(5n)
   f.printString(str(total))

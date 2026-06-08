@@ -1,12 +1,12 @@
 import { g } from 'genshin-ts/runtime/core'
 
-g.server({ id: 1073741861 }).on('whenCustomVariableChanges', (evt, f) => {
+g.server({ id: 1073741851 }).on('whenCustomVariableChanges', (evt, f) => {
   const pre = evt.preChangeValue.asType('int')
   const post = evt.postChangeValue.asType('int')
   f.addition(pre, post)
 })
 
-g.server({ id: 1073741862 }).on('whenNodeGraphVariableChanges', (evt, f) => {
+g.server({ id: 1073741852 }).on('whenNodeGraphVariableChanges', (evt, f) => {
   const preDict = evt.preChangeValue.asDict('str', 'int')
   const postDict = evt.postChangeValue.asDict('str', 'int')
   const preVal = f.queryDictionaryValueByKey(preDict, 'k')

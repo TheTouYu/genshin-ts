@@ -20,8 +20,8 @@ import { g, buildServerGraphRegistriesIRDocuments } from '../dist/src/runtime/co
 import { irToGia } from '../dist/src/compiler/ir_to_gia_transform/index.js'
 import { buildCompositeAccessories } from '../dist/src/compiler/ir_to_gia_transform/composite.js'
 
-const PROTO_PATH = '/Users/wonder/Desktop/explore/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
-const REF_DIR = '/Users/wonder/Desktop/explore/Beyond_Local_Export/真-测试通过'
+const PROTO_PATH = new URL('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const REF_DIR = process.env.COMPOSITE_REF_DIR || ''
 const OUT_DIR = '/tmp/composite-test-output/part1'
 
 let passed = 0

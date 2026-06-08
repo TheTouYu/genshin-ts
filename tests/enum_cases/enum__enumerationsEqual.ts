@@ -4,7 +4,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED enum coverage for enumerationsEqual
 // Run: npx tsx scripts/generate-enum-gia-tests.ts
 
-g.server({ id: 1073741858 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741849 }).on('whenEntityIsCreated', (_evt, f) => {
   // SortBy
   f.enumerationsEqual(E.SortBy.Ascending, E.SortBy.Ascending)
   f.enumerationsEqual(E.SortBy.Ascending, E.SortBy.Descending)

@@ -2,7 +2,7 @@ import { CharacterSkillSlot } from 'genshin-ts/definitions/enum'
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  id: 1073741868,
+  id: 1073741858,
   lang: 'zh'
 }).on('whenHpIsRecovered', (_evt, f) => {
   const a = 12

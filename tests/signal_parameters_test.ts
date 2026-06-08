@@ -15,7 +15,7 @@ const Signal = {
 } as const
 
 const graph = g
-  .server({ id: 1073741888 })
+  .server({ id: 1073741866 })
   .on('whenEntityIsCreated', (_evt, f) => {
     f.sendSignal(Signal.signal_param_literal, int(2 + 3 + 43534), 'ready', true)
     f.sendSignal(

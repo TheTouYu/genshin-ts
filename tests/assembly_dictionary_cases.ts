@@ -2,7 +2,7 @@ import { g } from 'genshin-ts/runtime/core'
 import { guid } from 'genshin-ts/runtime/value'
 
 g.server({
-  id: 1073741867,
+  id: 1073741857,
   variables: {
     merge_v_test: [1, 2, 3]
   }

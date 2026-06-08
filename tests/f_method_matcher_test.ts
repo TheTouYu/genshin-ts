@@ -5,7 +5,7 @@ enum Vars {
 }
 
 g.server({
-  id: 1073741892,
+  id: 1073741869,
   variables: {
     [Vars.IntValue]: 1n
   }

@@ -1,7 +1,7 @@
 import { buildServerGraphRegistriesIRDocuments, g } from 'genshin-ts/runtime/core'
 
 g.server({
-  id: 1073741841
+  id: 1073741836
 }).on('whenEntityIsCreated', (_evt, f) => {
   // 空数组（需要类型标注）
   const xs: bigint[] = []

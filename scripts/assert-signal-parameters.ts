@@ -19,7 +19,7 @@ const outDir = path.join(repoRoot, 'dist-signal-parameter-assert')
 const fixture = './tests/signal_parameters_test.ts'
 const signalsResourcePath = path.join(repoRoot, 'src/resources/signals.ts')
 
-const GRAPH_SEND_AND_WIRED_MONITOR = 1073741888
+const GRAPH_SEND_AND_WIRED_MONITOR = 1073741866
 const SEND_SIGNAL_NODE_ID = 300000
 const MONITOR_SIGNAL_NODE_ID = 300001
 

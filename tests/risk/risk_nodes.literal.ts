@@ -1,7 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { guid } from 'genshin-ts/runtime/value'
 
-g.server({ id: 1073741865 })
+g.server({ id: 1073741855 })
   .on('whenEntityIsCreated', (_evt, f) => {
     const e = f.getSelfEntity()
 

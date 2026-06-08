@@ -5,7 +5,7 @@ import { configId, faction, guid, prefabId } from 'genshin-ts/runtime/value'
 // AUTO-GENERATED: other (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741842 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741837 }).on('whenEntityIsCreated', (_evt, f) => {
   f.return()
   f.emptyList('int')
   f.emptyLocalVariableList('int')

@@ -5,7 +5,7 @@ import { g } from 'genshin-ts/runtime/core'
 // Manual import/export verification for the newly added server nodes/events from the 2026-04 update.
 
 g.server({
-  id: 1073742201,
+  id: 1073741878,
   lang: 'en',
   mode: 'beyond'
 })

@@ -76,7 +76,7 @@ function main() {
   const mkBucket = (): Bucket => ({ literal: [], wire: [] })
   const bucket = mkBucket()
 
-  const BASE_GRAPH_ID = 1073741900
+  const BASE_GRAPH_ID = 1073741873
 
   for (const m of picked) {
     if (m.nodeType && !canResolveNodeType(m.nodeType, vendorKeysLower)) {

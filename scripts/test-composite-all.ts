@@ -27,8 +27,8 @@ import {
 
 // ============== 工具函数 ==============
 
-const PROTO_PATH = '/Users/wonder/Desktop/explore/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
-const REF_DIR = '/Users/wonder/Desktop/explore/Beyond_Local_Export/真-测试通过'
+const PROTO_PATH = new URL('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const REF_DIR = process.env.COMPOSITE_REF_DIR || ''
 const OUT_DIR = '/tmp/composite-test-output'
 
 let totalPassed = 0

@@ -5,7 +5,7 @@ import { configId, faction, guid, prefabId } from 'genshin-ts/runtime/value'
 // AUTO-GENERATED: final all nodes/events
 // Run: npx tsx scripts/generate-final-gia-test.ts
 
-g.server({ id: 1073741866, name: 'my_final_test' }).on('whenEntityIsCreated', (evt, f) => {
+g.server({ id: 1073741856, name: 'my_final_test' }).on('whenEntityIsCreated', (evt, f) => {
   const evtS1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(evtS1)
   const evtS2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1430,7 +1430,7 @@ g.server({ id: 1073741866, name: 'my_final_test' }).on('whenEntityIsCreated', (e
   f.return()
 })
 
-g.server({ id: 1073741866 }).onSignal('monitor_signal', (evt, f) => {
+g.server({ id: 1073741856 }).onSignal('monitor_signal', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1439,7 +1439,7 @@ g.server({ id: 1073741866 }).onSignal('monitor_signal', (evt, f) => {
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenAggroTargetChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenAggroTargetChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1450,7 +1450,7 @@ g.server({ id: 1073741866 }).on('whenAggroTargetChanges', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenAllPlayerSCharactersAreDown', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenAllPlayerSCharactersAreDown', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.playerEntity, 'str')
   f.printString(s1)
   const enumEq2 = f.enumerationsEqual(evt.reason, evt.reason)
@@ -1458,12 +1458,12 @@ g.server({ id: 1073741866 }).on('whenAllPlayerSCharactersAreDown', (evt, f) => {
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenAllPlayerSCharactersAreRevived', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenAllPlayerSCharactersAreRevived', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.playerEntity, 'str')
   f.printString(s1)
 })
 
-g.server({ id: 1073741866 }).on('whenAttackHits', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenAttackHits', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1482,7 +1482,7 @@ g.server({ id: 1073741866 }).on('whenAttackHits', (evt, f) => {
   f.printString(s9)
 })
 
-g.server({ id: 1073741866 }).on('whenAttacked', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenAttacked', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1501,7 +1501,7 @@ g.server({ id: 1073741866 }).on('whenAttacked', (evt, f) => {
   f.printString(s9)
 })
 
-g.server({ id: 1073741866 }).on('whenBasicMotionDeviceStops', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenBasicMotionDeviceStops', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1509,7 +1509,7 @@ g.server({ id: 1073741866 }).on('whenBasicMotionDeviceStops', (evt, f) => {
   f.printString(evt.motionDeviceName)
 })
 
-g.server({ id: 1073741866 }).on('whenCharacterMovementSpdMeetsCondition', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCharacterMovementSpdMeetsCondition', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1526,26 +1526,26 @@ g.server({ id: 1073741866 }).on('whenCharacterMovementSpdMeetsCondition', (evt, 
   f.printString(s8)
 })
 
-g.server({ id: 1073741866 }).on('whenCharacterRevives', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCharacterRevives', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.characterEntity, 'str')
   f.printString(s1)
 })
 
-g.server({ id: 1073741866 }).on('whenCreationEntersCombat', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCreationEntersCombat', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
   f.printString(s2)
 })
 
-g.server({ id: 1073741866 }).on('whenCreationLeavesCombat', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCreationLeavesCombat', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
   f.printString(s2)
 })
 
-g.server({ id: 1073741866 }).on('whenCreationReachesPatrolWaypoint', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCreationReachesPatrolWaypoint', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.creationEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.creationGuid, 'str')
@@ -1560,7 +1560,7 @@ g.server({ id: 1073741866 }).on('whenCreationReachesPatrolWaypoint', (evt, f) =>
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenCustomShopItemIsSold', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCustomShopItemIsSold', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.shopOwner, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.shopOwnerGuid, 'str')
@@ -1575,7 +1575,7 @@ g.server({ id: 1073741866 }).on('whenCustomShopItemIsSold', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenCustomVariableChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenCustomVariableChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1589,7 +1589,7 @@ g.server({ id: 1073741866 }).on('whenCustomVariableChanges', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenDeckSelectorIsComplete', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenDeckSelectorIsComplete', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.targetPlayer, 'str')
   f.printString(s1)
   const len2 = f.getListLength(evt.selectionResultList)
@@ -1602,7 +1602,7 @@ g.server({ id: 1073741866 }).on('whenDeckSelectorIsComplete', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenElementalReactionEventOccurs', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenElementalReactionEventOccurs', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1616,7 +1616,7 @@ g.server({ id: 1073741866 }).on('whenElementalReactionEventOccurs', (evt, f) => 
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenEnteringAnInterruptibleState', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEnteringAnInterruptibleState', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1625,7 +1625,7 @@ g.server({ id: 1073741866 }).on('whenEnteringAnInterruptibleState', (evt, f) => 
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenEnteringCollisionTrigger', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEnteringCollisionTrigger', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.enteringEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.enteringEntityGuid, 'str')
@@ -1638,7 +1638,7 @@ g.server({ id: 1073741866 }).on('whenEnteringCollisionTrigger', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenEntityFactionChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEntityFactionChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1649,14 +1649,14 @@ g.server({ id: 1073741866 }).on('whenEntityFactionChanges', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenEntityIsCreated', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEntityIsCreated', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
   f.printString(s2)
 })
 
-g.server({ id: 1073741866 }).on('whenEntityIsDestroyed', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEntityIsDestroyed', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1680,12 +1680,12 @@ g.server({ id: 1073741866 }).on('whenEntityIsDestroyed', (evt, f) => {
   f.printString(s12)
 })
 
-g.server({ id: 1073741866 }).on('whenEntityIsRemovedDestroyed', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEntityIsRemovedDestroyed', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
   f.printString(s1)
 })
 
-g.server({ id: 1073741866 }).on('whenEquipmentAffixValueChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEquipmentAffixValueChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.equipmentOwner, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.equipmentOwnerGuid, 'str')
@@ -1700,7 +1700,7 @@ g.server({ id: 1073741866 }).on('whenEquipmentAffixValueChanges', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenEquipmentIsEquipped', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEquipmentIsEquipped', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.equipmentHolderEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.equipmentHolderGuid, 'str')
@@ -1709,7 +1709,7 @@ g.server({ id: 1073741866 }).on('whenEquipmentIsEquipped', (evt, f) => {
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenEquipmentIsInitialized', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEquipmentIsInitialized', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.equipmentOwner, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.equipmentOwnerGuid, 'str')
@@ -1718,7 +1718,7 @@ g.server({ id: 1073741866 }).on('whenEquipmentIsInitialized', (evt, f) => {
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenEquipmentIsUnequipped', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenEquipmentIsUnequipped', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.equipmentOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.equipmentOwnerGuid, 'str')
@@ -1727,7 +1727,7 @@ g.server({ id: 1073741866 }).on('whenEquipmentIsUnequipped', (evt, f) => {
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenExitingCollisionTrigger', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenExitingCollisionTrigger', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.exitingEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.exitingEntityGuid, 'str')
@@ -1740,7 +1740,7 @@ g.server({ id: 1073741866 }).on('whenExitingCollisionTrigger', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenGlobalTimerIsTriggered', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenGlobalTimerIsTriggered', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1748,7 +1748,7 @@ g.server({ id: 1073741866 }).on('whenGlobalTimerIsTriggered', (evt, f) => {
   f.printString(evt.timerName)
 })
 
-g.server({ id: 1073741866 }).on('whenHpIsRecovered', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenHpIsRecovered', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1762,7 +1762,7 @@ g.server({ id: 1073741866 }).on('whenHpIsRecovered', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenInitiatingHpRecovery', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenInitiatingHpRecovery', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1776,7 +1776,7 @@ g.server({ id: 1073741866 }).on('whenInitiatingHpRecovery', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenItemIsAddedToInventory', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenItemIsAddedToInventory', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.itemOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.itemOwnerGuid, 'str')
@@ -1788,7 +1788,7 @@ g.server({ id: 1073741866 }).on('whenItemIsAddedToInventory', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenItemIsLostFromInventory', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenItemIsLostFromInventory', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.itemOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.itemOwnerGuid, 'str')
@@ -1800,7 +1800,7 @@ g.server({ id: 1073741866 }).on('whenItemIsLostFromInventory', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenItemsInTheInventoryAreUsed', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenItemsInTheInventoryAreUsed', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.itemOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.itemOwnerGuid, 'str')
@@ -1812,7 +1812,7 @@ g.server({ id: 1073741866 }).on('whenItemsInTheInventoryAreUsed', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenNodeGraphVariableChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenNodeGraphVariableChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1826,7 +1826,7 @@ g.server({ id: 1073741866 }).on('whenNodeGraphVariableChanges', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenOnHitDetectionIsTriggered', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenOnHitDetectionIsTriggered', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1839,7 +1839,7 @@ g.server({ id: 1073741866 }).on('whenOnHitDetectionIsTriggered', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenPathReachesWaypoint', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPathReachesWaypoint', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1849,7 +1849,7 @@ g.server({ id: 1073741866 }).on('whenPathReachesWaypoint', (evt, f) => {
   f.printString(s3)
 })
 
-g.server({ id: 1073741866 }).on('whenPlayerClassChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPlayerClassChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1862,7 +1862,7 @@ g.server({ id: 1073741866 }).on('whenPlayerClassChanges', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenPlayerClassIsRemoved', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPlayerClassIsRemoved', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1875,7 +1875,7 @@ g.server({ id: 1073741866 }).on('whenPlayerClassIsRemoved', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenPlayerClassLevelChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPlayerClassLevelChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1886,19 +1886,19 @@ g.server({ id: 1073741866 }).on('whenPlayerClassLevelChanges', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenPlayerIsAbnormallyDownedAndRevives', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPlayerIsAbnormallyDownedAndRevives', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.playerEntity, 'str')
   f.printString(s1)
 })
 
-g.server({ id: 1073741866 }).on('whenPlayerTeleportCompletes', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPlayerTeleportCompletes', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.playerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.playerGuid, 'str')
   f.printString(s2)
 })
 
-g.server({ id: 1073741866 }).on('whenPresetStatusChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenPresetStatusChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1911,21 +1911,21 @@ g.server({ id: 1073741866 }).on('whenPresetStatusChanges', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenSelfEntersCombat', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenSelfEntersCombat', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
   f.printString(s2)
 })
 
-g.server({ id: 1073741866 }).on('whenSelfLeavesCombat', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenSelfLeavesCombat', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
   f.printString(s2)
 })
 
-g.server({ id: 1073741866 }).on('whenSellingInventoryItemsInTheShop', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenSellingInventoryItemsInTheShop', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.shopOwner, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.shopOwnerGuid, 'str')
@@ -1941,7 +1941,7 @@ g.server({ id: 1073741866 }).on('whenSellingInventoryItemsInTheShop', (evt, f) =
   f.printString(s7)
 })
 
-g.server({ id: 1073741866 }).on('whenSellingItemsToTheShop', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenSellingItemsToTheShop', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.shopOwner, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.shopOwnerGuid, 'str')
@@ -1955,7 +1955,7 @@ g.server({ id: 1073741866 }).on('whenSellingItemsToTheShop', (evt, f) => {
   f.printString(s6)
 })
 
-g.server({ id: 1073741866 }).on('whenShieldIsAttacked', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenShieldIsAttacked', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1977,7 +1977,7 @@ g.server({ id: 1073741866 }).on('whenShieldIsAttacked', (evt, f) => {
   f.printString(s10)
 })
 
-g.server({ id: 1073741866 }).on('whenSkillNodeIsCalled', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenSkillNodeIsCalled', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.callerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.callerGuid, 'str')
@@ -1987,7 +1987,7 @@ g.server({ id: 1073741866 }).on('whenSkillNodeIsCalled', (evt, f) => {
   f.printString(evt.parameter3)
 })
 
-g.server({ id: 1073741866 }).on('whenTabIsSelected', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenTabIsSelected', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -1998,7 +1998,7 @@ g.server({ id: 1073741866 }).on('whenTabIsSelected', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenTextBubbleIsCompleted', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenTextBubbleIsCompleted', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.bubbleOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.characterEntity, 'str')
@@ -2010,7 +2010,7 @@ g.server({ id: 1073741866 }).on('whenTextBubbleIsCompleted', (evt, f) => {
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenTheCharacterIsDown', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenTheCharacterIsDown', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.characterEntity, 'str')
   f.printString(s1)
   const enumEq2 = f.enumerationsEqual(evt.reason, evt.reason)
@@ -2020,7 +2020,7 @@ g.server({ id: 1073741866 }).on('whenTheCharacterIsDown', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenTheQuantityOfInventoryCurrencyChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenTheQuantityOfInventoryCurrencyChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.currencyOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.currencyOwnerGuid, 'str')
@@ -2032,7 +2032,7 @@ g.server({ id: 1073741866 }).on('whenTheQuantityOfInventoryCurrencyChanges', (ev
   f.printString(s5)
 })
 
-g.server({ id: 1073741866 }).on('whenTheQuantityOfInventoryItemChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenTheQuantityOfInventoryItemChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.itemOwnerEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.itemOwnerGuid, 'str')
@@ -2049,7 +2049,7 @@ g.server({ id: 1073741866 }).on('whenTheQuantityOfInventoryItemChanges', (evt, f
   f.printString(s8)
 })
 
-g.server({ id: 1073741866 }).on('whenTimerIsTriggered', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenTimerIsTriggered', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -2061,7 +2061,7 @@ g.server({ id: 1073741866 }).on('whenTimerIsTriggered', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenUiControlGroupIsTriggered', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenUiControlGroupIsTriggered', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -2072,7 +2072,7 @@ g.server({ id: 1073741866 }).on('whenUiControlGroupIsTriggered', (evt, f) => {
   f.printString(s4)
 })
 
-g.server({ id: 1073741866 }).on('whenUnitStatusChanges', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenUnitStatusChanges', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')
@@ -2094,7 +2094,7 @@ g.server({ id: 1073741866 }).on('whenUnitStatusChanges', (evt, f) => {
   f.printString(s10)
 })
 
-g.server({ id: 1073741866 }).on('whenUnitStatusEnds', (evt, f) => {
+g.server({ id: 1073741856 }).on('whenUnitStatusEnds', (evt, f) => {
   const s1 = f.dataTypeConversion(evt.eventSourceEntity, 'str')
   f.printString(s1)
   const s2 = f.dataTypeConversion(evt.eventSourceGuid, 'str')

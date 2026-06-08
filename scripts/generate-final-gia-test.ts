@@ -308,7 +308,7 @@ function main() {
   lines.push(`// Run: npx tsx scripts/generate-final-gia-test.ts`)
   lines.push(``)
 
-  const graphId = 1073741866
+  const graphId = 1073741856
 
   const nodeLines: string[] = []
   const ctx: NameCtx = { n: 0 }

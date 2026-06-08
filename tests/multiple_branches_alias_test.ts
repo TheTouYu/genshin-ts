@@ -3,7 +3,7 @@ import { g } from 'genshin-ts/runtime/core'
 // Expected:
 // - multipleBranches supports aliasing cases to a shared branch body
 g.server({
-  id: 1073741868
+  id: 1073741858
 }).on('whenEntityIsCreated', (_evt, f) => {
   const key = 'b'
   f.multipleBranches(key, {

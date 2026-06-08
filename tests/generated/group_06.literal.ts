@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_06 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741835 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741830 }).on('whenEntityIsCreated', (_evt, f) => {
   // setLocalVariable :: bool
   f.setLocalVariable(f.getLocalVariable(1n).localVariable, true)
   // setLocalVariable :: configId

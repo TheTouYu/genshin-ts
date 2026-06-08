@@ -5,7 +5,7 @@ import { configId, faction, guid, prefabId } from 'genshin-ts/runtime/value'
 // AUTO-GENERATED: group_08 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741837 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741832 }).on('whenEntityIsCreated', (_evt, f) => {
   // dataTypeConversion :: dict<bool, int>
   f.dataTypeConversion(true, 'int')
   // dataTypeConversion :: dict<bool, str>

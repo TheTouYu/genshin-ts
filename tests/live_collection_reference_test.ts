@@ -10,7 +10,7 @@ function makeTemporaryList() {
 }
 
 g.server({
-  id: 1073741890,
+  id: 1073741867,
   variables: {
     [Vars.LiveList]: list('int', [0n, 0n, 0n]),
     [Vars.LiveDict]: dict([{ k: 'a', v: 1n }])

@@ -14,7 +14,7 @@ function makeUnknownList() {
 }
 
 g.server({
-  id: 1073741891,
+  id: 1073741868,
   variables: {
     [Vars.IntValue]: 1n,
     [Vars.FloatValue]: 1.5,

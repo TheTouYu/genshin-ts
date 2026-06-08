@@ -60,7 +60,7 @@ function main() {
   lines.push(`// AUTO-GENERATED: enumerationsEqual wired enum returns/events`)
   lines.push(`// Run: npx tsx scripts/generate-enum-equal-wired-tests.ts`)
   lines.push(``)
-  lines.push(`g.server({ id: 1073741863 }).on('whenEntityIsCreated', (_evt, f) => {`)
+  lines.push(`g.server({ id: 1073741853 }).on('whenEntityIsCreated', (_evt, f) => {`)
 
   let functionCount = 0
   for (const m of methods) {
@@ -95,7 +95,7 @@ function main() {
   for (const [eventName, params] of Object.entries(ServerEventMetadata)) {
     const enumParams = params.filter((p) => p.typeBase === enumeration)
     if (!enumParams.length) continue
-    lines.push(`g.server({ id: 1073741864 }).on(${JSON.stringify(eventName)}, (evt, f) => {`)
+    lines.push(`g.server({ id: 1073741854 }).on(${JSON.stringify(eventName)}, (evt, f) => {`)
     for (const p of enumParams) {
       lines.push(`  // ${eventName}.${p.name} :: ${p.typeName}`)
       lines.push(`  f.enumerationsEqual(evt.${p.name}, evt.${p.name})`)

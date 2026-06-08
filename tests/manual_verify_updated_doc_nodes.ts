@@ -5,7 +5,7 @@ import { g } from 'genshin-ts/runtime/core'
 // refreshed node definitions.
 
 g.server({
-  id: 1073742310,
+  id: 1073741881,
   lang: 'en',
   mode: 'beyond'
 }).on('whenEntityIsCreated', (_evt, f) => {

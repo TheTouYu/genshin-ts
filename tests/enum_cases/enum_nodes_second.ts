@@ -4,7 +4,7 @@ import * as E from 'genshin-ts/definitions/enum'
 
 // Enum param test: all enum arguments use the 2nd value.
 
-g.server({ id: 1073741862 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741852 }).on('whenEntityIsCreated', (_evt, f) => {
   // sortDictionaryByKey :: dict<int, bool>
   f.sortDictionaryByKey(f.assemblyDictionary([{ k: 2n, v: true }, { k: 4n, v: true }]), E.SortBy.Descending)
   // sortDictionaryByValue :: dict<configId, float>

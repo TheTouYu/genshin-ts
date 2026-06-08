@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED enum coverage for CharacterSkillSlot
 // Run: npx tsx scripts/generate-enum-gia-tests.ts
 
-g.server({ id: 1073741854 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741845 }).on('whenEntityIsCreated', (_evt, f) => {
   const e = f.getSelfEntity()
   f.initializeCharacterSkill(e, E.CharacterSkillSlot.NormalAttack)
   f.initializeCharacterSkill(e, E.CharacterSkillSlot.Skill1E)

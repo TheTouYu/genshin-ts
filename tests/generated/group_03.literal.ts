@@ -5,7 +5,7 @@ import { configId, faction, guid, prefabId } from 'genshin-ts/runtime/value'
 // AUTO-GENERATED: group_03 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741932 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741874 }).on('whenEntityIsCreated', (_evt, f) => {
   // setCustomVariable :: bool
   f.setCustomVariable(f.getSelfEntity(), '2', true, false)
   // setCustomVariable :: configId

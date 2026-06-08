@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_02 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741831 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741829 }).on('whenEntityIsCreated', (_evt, f) => {
   // equal :: bool
   f.equal(true, false)
   // equal :: configId

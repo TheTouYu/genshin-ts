@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED enum coverage for DamagePopUpType
 // Run: npx tsx scripts/generate-enum-gia-tests.ts
 
-g.server({ id: 1073741850 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741841 }).on('whenEntityIsCreated', (_evt, f) => {
   const e = f.getSelfEntity()
   f.hpLoss(e, 1.25, true, true, true, E.DamagePopUpType.NoPopUp)
   f.hpLoss(e, 1.25, true, true, true, E.DamagePopUpType.NormalPopUp)
