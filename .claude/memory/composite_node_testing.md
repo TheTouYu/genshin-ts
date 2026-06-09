@@ -4,7 +4,25 @@ description: 复合节点完整测试结果记录，包括发现的 bug 和待�
 type: project
 ---
 
-## 测试结果（2026-06-08）
+## 测试结果（2026-06-09）
+
+P0-P4 + 纯数据复合 + 数据连线 + impl pin 编码全部修复。游戏验证通过：
+
+- `basic_call.gia` (exec-only) ✅
+- `basic_call_param.gia` (带参数) ✅
+- `两个复合节点_gen.gia` (exec+data) — 待验证
+- `two_simple.gia` (addition数据+printString exec) — 待验证
+- `two_exec.gia` (双exec串行) — 待验证
+
+### 新增测试脚本
+- `tests/composite/test-simple-basic-call.ts` — 最简单 exec-only 复合
+- `tests/composite/test-basic-call-param.ts` — 带 str 参数复合
+- `tests/composite/test-two-composites.ts` — exec+data 双复合(使用 data_type_conversion)
+- `tests/composite/test-two-composites-simple.ts` — 双数据+exec(使用 addition)
+- `tests/composite/test-simple-ref-compare.ts` — 结构化对比参考 vs 生成
+- `tests/composite/test-type-conversion.ts` — 复现类型转化.gia(非复合)
+
+### 之前（2026-06-08）
 
 三次提交（984fc68 + 0d2877f + 工作区）的复合节点功能全部验证通过。
 

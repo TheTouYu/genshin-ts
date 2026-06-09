@@ -171,7 +171,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
  */
 function buildImplGraphNodes(implNodes: CompositeDefIR['implNodes']): GraphNode[] {
   return implNodes.map((node) => {
-    const nodeId = resolveImplNodeId(node.type)
+    const nodeId = resolveImplNodeId(node.type, node.args as any)
     const genericId = {
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
@@ -194,9 +194,28 @@ function buildImplGraphNodes(implNodes: CompositeDefIR['implNodes']): GraphNode[
 /**
  * 解析 impl 节点的 GIA node ID
  */
-function resolveImplNodeId(nodeType: string): number {
+function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value: unknown } | null>): number {
   const special = SPECIAL_NODE_IDS[nodeType]
   if (special) return special
+
+  // data_type_conversion_<outType> 需要组合 inType 查询
+  if (nodeType.startsWith('data_type_conversion_')) {
+    const outKey = nodeType.slice('data_type_conversion_'.length).trim()
+    const nodeIdLower = getNodeIdLowerMap()
+    // 尝试从第一个 arg 推断 inType
+    const firstArg = args?.[0]
+    if (firstArg && firstArg.type !== 'conn') {
+      const inType = firstArg.type as string
+      if (inType && inType !== 'dict') {
+        const inKey = inType === 'vec3' ? 'vec' : inType
+        const direct = nodeIdLower.get(`data_type_conversion__${inKey}_${outKey}`)
+        if (direct) return direct
+      }
+    }
+    const generic = nodeIdLower.get('data_type_conversion__generic')
+    if (generic) return generic
+    return 0
+  }
 
   const mapped = SPECIAL_NODE_MAPPINGS[nodeType]
   const key = (mapped ?? nodeType).toLowerCase()
@@ -219,6 +238,12 @@ function argVarBaseClass(argType: string): number {
     case 'bool': return VarBase_Class.EnumBase
     case 'str': return VarBase_Class.StringBase
     case 'vec3': return VarBase_Class.VectorBase
+    case 'entity':
+    case 'guid':
+    case 'faction':
+    case 'prefab_id':
+    case 'config_id':
+      return VarBase_Class.IdBase
     default: return 0
   }
 }
@@ -252,14 +277,58 @@ function buildImplNodePins(node: CompositeDefIR['implNodes'][number]): NodePin[]
   for (const arg of args) {
     if (arg && arg.type === 'conn') continue
     if (arg) {
-      pins.push(buildLiteralPin(pinIndex, arg.type, arg.value))
+      pins.push(buildLiteralPin(pinIndex, arg.type, arg.value, node.type))
     } else {
-      // null/undefined arg：创建占位 pin（类型从 node type 推断）
       pins.push(buildPlaceholderPin(pinIndex, node.type))
     }
     pinIndex++
   }
+  // data_type_conversion_<out> 需要输出 OutParam pin
+  if (node.type.startsWith('data_type_conversion_')) {
+    const outType = node.type.slice('data_type_conversion_'.length)
+    const outVarType = argVarType(outType)
+    const outVarClass = argVarBaseClass(outType)
+    pins.push({
+      i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+      i2: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+      value: wrapConcreteValue(1, outVarClass, outVarType, '') as any,
+      type: outVarType
+    })
+  }
   return pins
+}
+
+/** bConcreteValue 包裹（data_type_conversion 等节点需要） */
+function wrapConcreteValue(
+  indexOfConcrete: number,
+  varClass: number,
+  varType: number,
+  strVal: string
+): Record<string, unknown> {
+  const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
+  let innerValue: Record<string, unknown> = {}
+  if (varClass === VarBase_Class.StringBase) {
+    innerValue = { class: varClass, alreadySetVal: false, itemType, bString: { val: strVal } }
+  } else if (varClass === VarBase_Class.IdBase) {
+    innerValue = { class: varClass, alreadySetVal: false, itemType }
+  } else {
+    innerValue = { class: varClass, alreadySetVal: false, itemType }
+  }
+  return {
+    class: 10000, // ConcreteBase
+    alreadySetVal: true,
+    bConcreteValue: {
+      indexOfConcrete,
+      value: innerValue
+    }
+  }
+}
+
+/**
+ * 判断节点类型是否需要 bConcreteValue 包裹
+ */
+function needsConcreteWrapping(nodeType: string): boolean {
+  return nodeType.startsWith('data_type_conversion_')
 }
 
 /** 为 null arg 创建占位 pin（类型从节点类型推断） */
@@ -283,15 +352,12 @@ function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
   }
 }
 
-function buildLiteralPin(pinIndex: number, argType: string, value: unknown): NodePin {
+function buildLiteralPin(pinIndex: number, argType: string, value: unknown, nodeType: string): NodePin {
   const kind = NodePin_Index_Kind.InParam
   const varType = argVarType(argType)
   const varClass = argVarBaseClass(argType)
 
-  const itemType = {
-    classBase: 1,
-    type_server: { type: varType, kind: 0 }
-  }
+  const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
 
   let pinValue: Record<string, unknown> = {}
   if (varClass === VarBase_Class.IntBase) {
@@ -302,6 +368,21 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown): Nod
     pinValue = { class: varClass, alreadySetVal: true, itemType, bBool: { val: Boolean(value) } }
   } else if (varClass === VarBase_Class.StringBase) {
     pinValue = { class: varClass, alreadySetVal: true, itemType, bString: { val: String(value) } }
+  } else if (varClass === VarBase_Class.IdBase) {
+    pinValue = { class: varClass, alreadySetVal: false, itemType }
+  }
+
+  // data_type_conversion 等节点需要 bConcreteValue 包裹
+  if (needsConcreteWrapping(nodeType)) {
+    const innerValue = pinValue
+    pinValue = {
+      class: 10000, // ConcreteBase
+      alreadySetVal: true,
+      bConcreteValue: {
+        indexOfConcrete: pinIndex + 1,
+        value: innerValue
+      }
+    }
   }
 
   return {

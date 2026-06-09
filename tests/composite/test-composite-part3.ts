@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 // @ts-nocheck — 复合节点测试脚本
 
 /**
@@ -14,7 +13,7 @@ import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime
 import {
   composite_pin_body,
   graph_affiliation_body
-} from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.js'
+} from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.js'
 
 let passed = 0
 let failed = 0

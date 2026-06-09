@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 // @ts-nocheck — 复合节点测试脚本
 
 /**
@@ -9,14 +8,14 @@
  */
 
 import { writeFileSync, existsSync, mkdirSync } from 'fs'
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { defineComposite } from '../../dist/src/index.js'
 import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { int, str } from '../../dist/src/runtime/value.js'
 
-const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 const OUT_DIR = '/tmp/composite-test-output/part2'
 
 let passed = 0
