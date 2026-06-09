@@ -644,19 +644,45 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
           }
         }
 
-        // 修正 exec flow：event OutFlow 必须指向 exec 复合（有 inflows），跳过纯数据复合
+        // 修正 exec flow：event OutFlow fork 到所有 exec 复合 + 复合下游的非复合节点
         if (mainNodes && mainNodes.length > 1) {
+          // 收集复合节点 OutFlow 连接的非复合下游节点（复合移除 OutFlow 后会断连）
+          const orphanedTargets: number[] = []
+          for (const n of mainNodes) {
+            if (!compositeCallNodeIndices.has(n.nodeIndex)) continue
+            for (const pin of n.pins ?? []) {
+              if (pin.i1?.kind === 2) { // OutFlow
+                for (const conn of pin.connects ?? []) {
+                  if (!compositeCallNodeIndices.has(conn.id)) {
+                    orphanedTargets.push(conn.id)
+                  }
+                }
+              }
+            }
+          }
+          // 所有复合节点移除 OutFlow（exec flow 由 event fork 统一分发）
+          for (const n of mainNodes) {
+            if (compositeCallNodeIndices.has(n.nodeIndex)) {
+              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 2)
+            }
+          }
           const eventNode = mainNodes.find((n: any) => n.genericId?.kind === 22000)
           const execCallNodes = mainNodes.filter((n: any) => {
             const cid = compositeCallNodeIndices.get(n.nodeIndex)
             const cdef = cid !== undefined ? compositeDefById.get(cid) : undefined
             return cdef && cdef.inflows.length > 0
           })
-          if (eventNode && execCallNodes.length > 0) {
-            const targetExecIdx = execCallNodes[0].nodeIndex
+          if (eventNode && (execCallNodes.length > 0 || orphanedTargets.length > 0)) {
+            const allTargets = [...new Set([
+              ...execCallNodes.map((n: any) => n.nodeIndex),
+              ...orphanedTargets
+            ])]
             for (const pin of eventNode.pins ?? []) {
-              if (pin.i1?.kind === 2 && pin.connects?.length > 0) {
-                pin.connects[0].id = targetExecIdx
+              if (pin.i1?.kind === 2) {
+                pin.connects = allTargets.map((id: number) => ({
+                  id,
+                  connect: { kind: 1, index: 0 }
+                }))
               }
             }
           }
