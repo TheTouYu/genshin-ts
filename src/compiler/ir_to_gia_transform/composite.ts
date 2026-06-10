@@ -27,7 +27,12 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   const accessories: GraphUnit[] = []
 
   const implGraphId = def.id + 10000
-  const implNodes = buildImplGraphNodes(def.implNodes)
+
+  // 将 impl 节点 ID 重新编号为从 1 开始的连续序列
+  const nodeIndexMap = new Map<number, number>()
+  def.implNodes.forEach((n, i) => nodeIndexMap.set(n.id, i + 1))
+
+  const implNodes = buildImplGraphNodes(def.implNodes, nodeIndexMap, def.implEdges)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
@@ -142,7 +147,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
               kind: entry.outerPinKind as NodePin_Index_Kind,
               index: entry.outerPinIndex
             },
-            innerNodeId: entry.innerNodeId,
+            innerNodeId: nodeIndexMap.get(entry.innerNodeId) ?? entry.innerNodeId,
             innerPin: {
               kind: entry.innerPinKind as NodePin_Index_Kind,
               index: entry.innerPinIndex
@@ -169,7 +174,11 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
  *
  * 为每个 impl 节点解析正确的 GIA node ID、构建带类型/值的 pins、并添加 concreteId。
  */
-function buildImplGraphNodes(implNodes: CompositeDefIR['implNodes']): GraphNode[] {
+function buildImplGraphNodes(
+  implNodes: CompositeDefIR['implNodes'],
+  nodeIndexMap: Map<number, number>,
+  implEdges: Record<number, any[]>
+): GraphNode[] {
   return implNodes.map((node) => {
     const nodeId = resolveImplNodeId(node.type, node.args as any)
     const genericId = {
@@ -178,9 +187,26 @@ function buildImplGraphNodes(implNodes: CompositeDefIR['implNodes']): GraphNode[
       kind: NodeGraph_Id_Kind.SysCall,
       nodeId
     }
-    const pins = buildImplNodePins(node)
+    const pins = buildImplNodePins(node, implEdges)
+
+    // 为分叉源节点的 OutFlow pin 填充 connects（指向下游叶子节点）
+    const outEdges = implEdges[node.id]
+    if (outEdges && outEdges.length > 0 && noPinSystemNodes.has(node.type)) {
+      const outFlowPin = pins.find((p: any) => p.i1?.kind === NodePin_Index_Kind.OutFlow)
+      if (outFlowPin) {
+        ;(outFlowPin as any).connects = outEdges.map((edge: any) => {
+          const targetId = typeof edge === 'number' ? edge : edge.node_id
+          return {
+            id: nodeIndexMap.get(targetId) ?? targetId,
+            connect: { kind: NodePin_Index_Kind.InFlow, index: 0 },
+            connect2: { kind: NodePin_Index_Kind.InFlow, index: 0 }
+          }
+        })
+      }
+    }
+
     return {
-      nodeIndex: node.id,
+      nodeIndex: nodeIndexMap.get(node.id) ?? node.id,
       genericId,
       concreteId: { ...genericId },
       pins,
@@ -270,7 +296,30 @@ function argVarType(argType: string): number {
 /**
  * 为 impl 节点构建带类型/值的 pins
  */
-function buildImplNodePins(node: CompositeDefIR['implNodes'][number]): NodePin[] {
+/** 系统内置节点，在 impl 图中不需要生成 InParam/OutParam pin */
+const noPinSystemNodes = new Set([
+  'double_branch', 'finite_loop', 'multiple_branches',
+  'break_loop'
+])
+
+function buildImplNodePins(
+  node: CompositeDefIR['implNodes'][number],
+  implEdges: Record<number, any[]>
+): NodePin[] {
+  // 系统节点只生成必要的 OutFlow pin（如果该节点有 outgoing exec edges）
+  if (noPinSystemNodes.has(node.type)) {
+    const outEdges = implEdges[node.id]
+    if (outEdges && outEdges.length > 0) {
+      return [{
+        i1: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
+        i2: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
+        type: 0,
+        value: undefined as any
+      }]
+    }
+    return []
+  }
+
   const args = node.args ?? []
   const pins: NodePin[] = []
   let pinIndex = 0

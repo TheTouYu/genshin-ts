@@ -539,12 +539,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
             giaNode.pins.push(p)
           }
         }
-        // 非终端复合：添加 OutFlow pin（带 compositePinIndex）
-        for (const outflow of cdef.outflows) {
-          const p = new Pin(giaNode.ConcreteId!, 2, outflow.index) // OutFlow
-          ;(p as any).compositePinIndex = outflow.pinIndex
-          giaNode.pins.push(p)
-        }
+        // 不在此处添加 OutFlow pin。graph.flow() 为有连接的 outflow 创建 pin，
+        // 未连接的 OutFlow pin 在 post-encoding 中补充。
       }
 
       irNodeTypeById.set(irNode.id, nodeType)
