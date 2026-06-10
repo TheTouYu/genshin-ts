@@ -812,6 +812,85 @@ export class MetaCallRegistry {
     if (opts?.countReturn !== false) this.returnCallCounter += 1
   }
 
+  /**
+   * 从当前 tail 分叉注册一个执行节点（不推进 tail endpoints）。
+   * 用于多 OutFlow 场景：从同一 fork 源创建多个叶子分支。
+   *
+   * @param sourceIndex 从 fork 源的哪个执行输出引脚出发（0,1,2,...）
+   * @param record 要注册的节点
+   */
+  branchExec(sourceIndex: number, record: MetaCallRecord): MetaCallRecordRef {
+    const current = this.currentFlow
+    if (!record.id) {
+      record.id = this.currentRecordId
+    }
+    if (record.type !== 'exec') {
+      throw new Error(`branchExec: record type must be "exec", got "${record.type}"`)
+    }
+    current.execNodes.push(record)
+    const ctx = this.getCurrentExecContext(current)
+    const tails = ctx.tailEndpoints
+    if (tails.length === 0) {
+      throw new Error('branchExec: no tail endpoints available; register a fork node first')
+    }
+    for (const ep of tails) {
+      this.addEdge(current, ep.nodeId, record.id, sourceIndex)
+    }
+    return record
+  }
+
+  /**
+   * 注册一个任意类型的 exec 节点，自动串联到当前 tail 并推进 tail。
+   * 供复合节点 build() 使用，替代高层 API（如 printString）来直接注册特定 nodeType。
+   */
+  registerExecNode(nodeType: string, args: value[]): MetaCallRecordRef {
+    return this.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType,
+      args
+    })
+  }
+
+  /**
+   * 标记当前 tail 为 OutFlow[outflowIndex] 的出口。
+   * 多次调用同一 index 会覆盖，不同 index 可指向同一节点。
+   * 供复合节点 build() 中使用 leaf()。
+   */
+  leaf(outflowIndex: number): void {
+    const current = this.currentFlow
+    const ctx = this.getCurrentExecContext(current)
+    const tails = ctx.tailEndpoints
+    if (tails.length === 0) {
+      throw new Error('leaf: no tail endpoints available')
+    }
+    // 记录到当前 flow 的临时存储中，供捕获时收集
+    ;(current as any).__leafMarks ??= {}
+    ;(current as any).__leafMarks[outflowIndex] = tails[0].nodeId
+  }
+
+  /**
+   * 从指定标记节点的 OutFlow 分支执行回调。
+   * 回调中注册的 exec 节点会从标记节点的该 OutFlow 索引连接。
+   *
+   * @param markerNodeId 标记节点 ID（__composite_call__ 的 ID）
+   * @param outflowIdx OutFlow 索引
+   * @param callback 要在此分支执行的操作
+   */
+  connectOutFlowBranch(markerNodeId: number, outflowIdx: number, callback: () => void): void {
+    const current = this.currentFlow
+    // 推入新上下文，从 marker 的指定 outflow 开始
+    current.execContextStack.push({
+      tailEndpoints: [{ nodeId: markerNodeId, sourceIndex: outflowIdx }],
+      headNodeId: undefined
+    })
+    try {
+      callback()
+    } finally {
+      current.execContextStack.pop()
+    }
+  }
+
   registerNode(record: MetaCallRecord): MetaCallRecordRef {
     const current = this.currentFlow
     if (!record.id) {
@@ -944,6 +1023,16 @@ export class MetaCallRegistry {
     this.compositeCallMetas.push({ compositeId, markerNodeId })
   }
 
+  /**
+   * 创建 OutParam 值并标记到指定节点。
+   * 供复合 build() 中使用，使返回值能正确映射为 OutParam compositePin。
+   */
+  createOutParamValue(type: string, record: MetaCallRecordRef, pinIndex: number): value {
+    const v = createTypedValue(type)
+    v.markPin(record, 'output', pinIndex)
+    return v
+  }
+
   getCompositeCallMetas(): ReadonlyArray<{ compositeId: number; markerNodeId: number }> {
     return this.compositeCallMetas
   }
@@ -1025,7 +1114,13 @@ export class MetaCallRegistry {
           outIdx++
         }
       }
-      return outputs
+      // 附加 markerNodeId，供 connectOutFlow 使用
+      return Object.defineProperty(outputs, '__markerNodeId', {
+        value: markerRecord.id,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      }) as Record<string, any> & { readonly __markerNodeId: number }
     } finally {
       gsts[kServerF] = prevF
     }
@@ -1415,12 +1510,32 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
         })
 
         const flow = captureRegistry.getFlows()[0]
+        const leafMarks = (flow as any).__leafMarks as Record<number, number> | undefined
+
+        // 出口节点检测：优先用 leafMarks，无显式标记时才自动检测叶子节点
+        let outflowExitNodes: number[] | undefined
+        if (!leafMarks) {
+          const sourceNodeIds = new Set<number>()
+          for (const src of Object.keys(flow.edges)) {
+            if ((flow.edges[Number(src)] as any[]).length > 0) {
+              sourceNodeIds.add(Number(src))
+            }
+          }
+          const exits: number[] = []
+          for (const en of flow.execNodes) {
+            if (!sourceNodeIds.has(en.id)) exits.push(en.id)
+          }
+          outflowExitNodes = exits.length > 1 ? exits : undefined
+        }
+
         def.captured = {
           execNodes: flow.execNodes,
           dataNodes: flow.dataNodes,
           edges: flow.edges,
           outputValues: (outputs ?? {}) as Record<string, value>,
-          isPureData: flow.execNodes.length === 0
+          isPureData: flow.execNodes.length === 0,
+          outflowExitNodes,
+          leafMarks
         }
       } finally {
         gsts[kServerF] = prevF

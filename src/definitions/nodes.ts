@@ -7,6 +7,7 @@ import {
   type SignalDefinition,
   type SignalParamValues
 } from '../runtime/core.js'
+import type { MetaCallRecord, MetaCallRecordRef } from '../runtime/meta_call_types.js'
 import type { CompositeHandle } from '../runtime/composite_registry.js'
 import {
   CommonLiteralValueListTypeMap,
@@ -698,6 +699,57 @@ export type DataTypeConversionMap = {
 
 export class ServerExecutionFlowFunctions {
   constructor(private registry: MetaCallRegistry) {}
+
+  /**
+   * @internal 供复合节点 build() 使用：从当前 tail 分叉注册一个执行节点作为 OutFlow 分支。
+   * @param sourceIndex OutFlow 分支索引 (0, 1, 2, ...)
+   * @param record 要注册的叶子执行节点
+   */
+  branchExec(sourceIndex: number, record: MetaCallRecord): MetaCallRecordRef {
+    return this.registry.branchExec(sourceIndex, record)
+  }
+
+  /**
+   * @internal 供复合节点 build() 使用：注册一个任意 nodeType 的执行节点。
+   */
+  registerExecNode(nodeType: string, args: value[]): MetaCallRecordRef {
+    return this.registry.registerExecNode(nodeType, args)
+  }
+
+  /**
+   * @internal 供复合节点 build() 使用：标记当前节点为 OutFlow[outflowIndex] 的出口。
+   */
+  leaf(outflowIndex: number): void {
+    this.registry.leaf(outflowIndex)
+  }
+
+  /**
+   * @internal 创建 OutParam 返回值并标记到指定节点。
+   * 供复合 build() 中使用，使返回值能映射为 OutParam compositePin。
+   */
+  createOutParamValue(type: string, ref: MetaCallRecordRef, pinIndex: number): value {
+    return this.registry.createOutParamValue(type, ref, pinIndex)
+  }
+
+  /**
+   * @internal 从复合调用结果的 OutFlow 分支执行回调。
+   * 回调中注册的 exec 节点会连接到该 OutFlow 之后。
+   *
+   * @param result callComposite 的返回值（含 __markerNodeId）
+   * @param outflowIdx OutFlow 索引
+   * @param callback 在该 OutFlow 之后执行的代码
+   */
+  connectOutFlow(
+    result: Record<string, any> & { __markerNodeId: number },
+    outflowIdx: number,
+    callback: () => void
+  ): void {
+    const markerNodeId = (result as any).__markerNodeId
+    if (markerNodeId === undefined) {
+      throw new Error('connectOutFlow: result must come from callComposite()')
+    }
+    this.registry.connectOutFlowBranch(markerNodeId, outflowIdx, callback)
+  }
 
   private resolveLiteralVarName(input: StrValue): string | null {
     if (typeof input === 'string') return input
