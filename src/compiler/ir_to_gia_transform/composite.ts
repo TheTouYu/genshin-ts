@@ -73,7 +73,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
         class: typeClassFromValueType(param.type as any),
         type1: typeIdFromValueType(param.type as any),
         type2: typeIdFromValueType(param.type as any),
-        valueId: { id: 0 }
+        valueId: null
       },
       pinIndex: param.pinIndex
     })),
@@ -85,7 +85,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
         class: typeClassFromValueType(param.type as any),
         type1: typeIdFromValueType(param.type as any),
         type2: typeIdFromValueType(param.type as any),
-        valueId: { id: 0 }
+        valueId: null
       },
       pinIndex: param.pinIndex
     })),
@@ -295,7 +295,42 @@ function buildImplNodePins(node: CompositeDefIR['implNodes'][number]): NodePin[]
       type: outVarType
     })
   }
+  // 其他数据节点（addition 等）需要 OutParam pin 暴露输出，供 compositePins 的 OutParam 映射使用
+  if (!node.type.startsWith('data_type_conversion_') && pins.length > 0 && node.type !== 'print_string') {
+    const outType = pins[0].type
+    const outClass = pins[0].value?.bConcreteValue?.value?.class ?? pins[0].value?.class ?? 0
+    const innerValue = makeVarBaseValue(outClass, outType, false)
+    let outValue: Record<string, unknown> = innerValue
+    if (needsConcreteWrapping(node.type)) {
+      outValue = {
+        class: 10000,
+        alreadySetVal: true,
+        bConcreteValue: { indexOfConcrete: 0, value: innerValue }
+      }
+    }
+    pins.push({
+      i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+      i2: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+      value: outValue as any,
+      type: outType
+    })
+  }
   return pins
+}
+
+/** 构建 VarBase 值结构（bInt/bFloat/bString 等） */
+function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): Record<string, unknown> {
+  const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
+  if (varClass === VarBase_Class.IntBase) {
+    return { class: varClass, alreadySetVal: setVal, itemType, bInt: { val: 0 } }
+  }
+  if (varClass === VarBase_Class.FloatBase) {
+    return { class: varClass, alreadySetVal: setVal, itemType, bFloat: { val: 0 } }
+  }
+  if (varClass === VarBase_Class.StringBase) {
+    return { class: varClass, alreadySetVal: setVal, itemType, bString: { val: '' } }
+  }
+  return { class: varClass, alreadySetVal: setVal, itemType }
 }
 
 /** bConcreteValue 包裹（data_type_conversion 等节点需要） */
@@ -324,25 +359,40 @@ function wrapConcreteValue(
   }
 }
 
-/**
- * 判断节点类型是否需要 bConcreteValue 包裹
- */
+// impl graph 中需要 bConcreteValue 包裹的数据节点类型集合
+const concreteWrappedNodeTypes = new Set([
+  'addition', 'subtraction', 'multiplication', 'division', 'modulo_operation', 'exponentiation',
+  'equal', 'greater_than', 'less_than', 'greater_than_or_equal_to', 'less_than_or_equal_to',
+  'logical_and_operation', 'logical_or_operation', 'logical_not_operation', 'logical_xor_operation',
+  'absolute_value_operation', 'sign_operation', 'arithmetic_square_root_operation',
+  'round_to_integer_operation', 'range_limiting_operation',
+  'take_larger_value', 'take_smaller_value',
+  'enumerations_equal',
+])
+
+/** 判断节点类型是否需要 bConcreteValue 包裹 */
 function needsConcreteWrapping(nodeType: string): boolean {
-  return nodeType.startsWith('data_type_conversion_')
+  return nodeType.startsWith('data_type_conversion_') || concreteWrappedNodeTypes.has(nodeType)
 }
 
 /** 为 null arg 创建占位 pin（类型从节点类型推断） */
 function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
-  // print_string → str, addition → int, etc.
   let varType = 0
   let varClass = 0
   if (nodeType === 'print_string') {
     varType = VarType.String; varClass = VarBase_Class.StringBase
+  } else if (concreteWrappedNodeTypes.has(nodeType)) {
+    varType = VarType.Integer; varClass = VarBase_Class.IntBase
   }
-  const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
-  const pinValue = varClass === VarBase_Class.StringBase
-    ? { class: varClass, alreadySetVal: true, itemType, bString: { val: '' } }
-    : { class: varClass, alreadySetVal: true, itemType }
+  let pinValue = makeVarBaseValue(varClass, varType, false)
+
+  if (needsConcreteWrapping(nodeType)) {
+    pinValue = {
+      class: 10000,
+      alreadySetVal: true,
+      bConcreteValue: { indexOfConcrete: 0, value: pinValue }
+    }
+  }
 
   return {
     i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
@@ -372,15 +422,13 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
     pinValue = { class: varClass, alreadySetVal: false, itemType }
   }
 
-  // data_type_conversion 等节点需要 bConcreteValue 包裹
   if (needsConcreteWrapping(nodeType)) {
-    const innerValue = pinValue
     pinValue = {
-      class: 10000, // ConcreteBase
+      class: 10000,
       alreadySetVal: true,
       bConcreteValue: {
-        indexOfConcrete: pinIndex + 1,
-        value: innerValue
+        indexOfConcrete: 0,
+        value: pinValue
       }
     }
   }

@@ -40,6 +40,7 @@ import {
   prefabId,
   str,
   value,
+  vec3,
   type DictValueType,
   type RuntimeParameterValueTypeMap,
   type RuntimeReturnValueTypeMap
@@ -967,7 +968,11 @@ export class MetaCallRegistry {
       id: 0,
       nodeType: '__composite_call__',
       type: isPureData ? 'data' : 'exec',
-      args: [new int(BigInt(compositeId))]
+      args: (() => {
+        const a: value[] = [new int(BigInt(compositeId))]
+        for (const val of Object.values(inputs)) a.push(val as value)
+        return a
+      })()
     })
     this.trackCompositeCall(compositeId, markerRecord.id!)
 
@@ -978,13 +983,15 @@ export class MetaCallRegistry {
       const v = val as value
       const meta = v?.getMetadata?.()
       if (meta && meta.kind === 'pin') {
-        // 此输入来自另一个 composite 调用，记录数据连线
-        this.recordCompositeDataEdge({
-          fromNodeId: meta.record.id,
-          fromPinIndex: meta.pinIndex,
-          toMarkerId: markerRecord.id!,
-          toPinIndex: inIdx
-        })
+        // 仅当来源是复合调用节点时才记录 compositeDataEdge（普通节点的数据连线由 IR dataConnections 处理）
+        if ((meta.record as any).nodeType === '__composite_call__') {
+          this.recordCompositeDataEdge({
+            fromNodeId: meta.record.id,
+            fromPinIndex: meta.pinIndex,
+            toMarkerId: markerRecord.id!,
+            toPinIndex: inIdx
+          })
+        }
         // capture 用 placeholder
         if (def?.inputs?.[name]) {
           captureInputs[name] = createTypedValue(def.inputs[name].type as string)
@@ -1206,7 +1213,7 @@ function createTypedValue(type: string): value {
     case 'str':
       return new str('')
     case 'vec3':
-      return new generic()
+      return new vec3([0, 0, 0])
     case 'entity':
       return new entity()
     case 'guid':
@@ -1217,6 +1224,8 @@ function createTypedValue(type: string): value {
       return new configId()
     case 'faction':
       return new faction()
+    case 'local_variable':
+      return new localVariable()
     default:
       if (type.endsWith('_list')) return new generic()
       return new generic()
@@ -1387,10 +1396,12 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       captureRegistry.startCaptureFlow()
       const fns = new ServerExecutionFlowFunctions(captureRegistry)
 
-      // 创建输入值对象
+      // 创建输入值对象（标记 __captureInputName 供 compositePin 映射使用）
       const inputs: Record<string, value> = {}
       for (const [name, param] of Object.entries(def.inputs)) {
-        inputs[name] = createTypedValue(param.type as string)
+        const v = createTypedValue(param.type as string)
+        ;(v as any).__captureInputName = name
+        inputs[name] = v
       }
 
       // 设置 gsts 上下文，使 build 内可访问 gsts.f

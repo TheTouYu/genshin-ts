@@ -108,26 +108,58 @@ export class CompositeRegistry {
             innerPinKind: 1, // InFlow
             innerPinIndex: 0
           })
+          // exec flow: outer OutFlow(2,0) → 最后一个 exec node 的 OutFlow(2,0)
+          pins.push({
+            outerPinKind: 2, // OutFlow
+            outerPinIndex: 0,
+            innerNodeId: impl!.execNodes[impl!.execNodes.length - 1].id,
+            innerPinKind: 2, // OutFlow
+            innerPinIndex: 0
+          })
         }
-        // 输入参数 data pin 映射（exec 复合也需要，因为入口参数从 exec node 消费）
-        if (inputList.length > 0) {
-          const collectInnerRecords = (): MetaCallRecord[] => [
-            ...(impl?.execNodes ?? []),
-            ...(impl?.dataNodes ?? [])
-          ]
-          const allInner = collectInnerRecords()
+        // 输入参数 data pin 映射：扫描内部节点 arg，匹配 __captureInputName
+        // 同一输入可在多处消费（如 addition(input,input)），每个消费点一条 compositePin
+        if (inputList.length > 0 && impl) {
+          const inputNameToIndex = new Map<string, number>()
           for (let i = 0; i < inputList.length; i++) {
-            // 找第一个有 args 的内部节点来承载此输入（启发式：跳过 event 节点）
-            const target = allInner.find(
-              (r) => r.nodeType !== '__composite_capture__' && r.nodeType !== '__composite_call__'
-            )
-            if (target) {
+            inputNameToIndex.set(inputList[i].name, i)
+          }
+          const allInner: MetaCallRecord[] = [
+            ...(impl.execNodes ?? []),
+            ...(impl.dataNodes ?? [])
+          ]
+          for (const inner of allInner) {
+            if (inner.nodeType === '__composite_capture__' || inner.nodeType === '__composite_call__') continue
+            for (let argIdx = 0; argIdx < inner.args.length; argIdx++) {
+              const arg = inner.args[argIdx]
+              if (!arg) continue
+              const inputName = (arg as any).__captureInputName as string | undefined
+              if (!inputName) continue
+              const inputIdx = inputNameToIndex.get(inputName)
+              if (inputIdx === undefined) continue
               pins.push({
                 outerPinKind: 3, // InParam
-                outerPinIndex: i,
-                innerNodeId: target.id,
+                outerPinIndex: inputIdx,
+                innerNodeId: inner.id!,
                 innerPinKind: 3, // InParam
-                innerPinIndex: 0
+                innerPinIndex: argIdx
+              })
+            }
+          }
+        }
+        // 输出参数 data pin 映射：复合 OutParam → 产生该输出的 impl node 的 OutParam
+        if (outputList.length > 0 && impl) {
+          for (let i = 0; i < outputList.length; i++) {
+            const outputValue = impl.outputValues[outputList[i].name]
+            if (!outputValue) continue
+            const meta = outputValue.getMetadata()
+            if (meta && meta.kind === 'pin') {
+              pins.push({
+                outerPinKind: 4, // OutParam
+                outerPinIndex: i,
+                innerNodeId: meta.record.id,
+                innerPinKind: 4, // OutParam
+                innerPinIndex: meta.pinIndex
               })
             }
           }
@@ -140,7 +172,9 @@ export class CompositeRegistry {
           inflows: hasExec
             ? [{ name: '', visible: true, index: 0, pinIndex: 1974 }]
             : [],
-          outflows: [],
+          outflows: hasExec
+            ? [{ name: '', visible: true, index: 0, pinIndex: 4 }]
+            : [],
           inputs: inputList,
           outputs: outputList,
           implNodes: [

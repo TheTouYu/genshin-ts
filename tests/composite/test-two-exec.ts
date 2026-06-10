@@ -64,34 +64,51 @@ mainNodes.forEach((n: any) => {
   console.log(`  node[${n.nodeIndex}]: kind=${n.genericId?.kind} nodeId=${n.genericId?.nodeId} pins=${n.pins?.length ?? 0}`)
   n.pins?.forEach((p: any, j: number) => {
     const conns = (p.connects ?? []).map((c: any) => `→node${c.id}(${c.connect?.kind}:${c.connect?.index})`)
-    console.log(`    pin[${j}]: kind=${p.i1?.kind}/${p.i2?.kind} idx=${p.i1?.index}/${p.i2?.index} connects=${JSON.stringify(conns)}`)
+    const kname = {1:'InFlow',2:'OutFlow',3:'InParam',4:'OutParam'}[p.i1?.kind] ?? '?'
+    console.log(`    pin[${j}] ${kname}: idx=${p.i1?.index} connects=${JSON.stringify(conns)}`)
   })
   if (n.genericId?.kind === 22000) eventNode = n
   if (n.genericId?.kind === 22001) execNodes.push(n)
 })
 
-// 验证 event fork 到所有 exec 节点
+// 验证非终端复合链: event → comp1 → comp2
 console.log('\n验证:')
+let ok = true
+
+// event 只连到第一个节点 (comp1)
 if (eventNode) {
   const outFlowPin = eventNode.pins?.find((p: any) => p.i1?.kind === 2)
   const targets = outFlowPin?.connects?.map((c: any) => c.id) ?? []
-  const allExecConnected = execNodes.every((n: any) => targets.includes(n.nodeIndex))
-  console.log(`  event OutFlow → [${targets.join(',')}] execNodes=[${execNodes.map((n:any) => n.nodeIndex).join(',')}]`)
-  if (allExecConnected && targets.length === execNodes.length) {
-    console.log('  ✅ event fork 到所有 exec 节点')
+  if (targets.length === 1 && targets[0] === execNodes[0]?.nodeIndex) {
+    console.log(`  ✅ event OutFlow → [${targets.join(',')}] (仅第一个复合)`)
   } else {
-    console.log('  ❌ event fork 不完整')
+    console.log(`  ❌ event OutFlow → [${targets.join(',')}]  期望 → [${execNodes[0]?.nodeIndex}]`)
+    ok = false
   }
 }
 
-// 验证 exec 节点无 OutFlow
-for (const n of execNodes) {
-  const hasOutFlow = n.pins?.some((p: any) => p.i1?.kind === 2)
-  if (hasOutFlow) {
-    console.log(`  ❌ exec node[${n.nodeIndex}] 有 OutFlow（不应该有）`)
+// comp1 非终端：有 OutFlow → comp2
+const gComp1 = execNodes[0]
+const comp1OutFlow = gComp1?.pins?.find((p: any) => p.i1?.kind === 2)
+if (comp1OutFlow) {
+  const cfwd = comp1OutFlow.connects?.map((c: any) => c.id) ?? []
+  if (cfwd.includes(execNodes[1]?.nodeIndex)) {
+    console.log(`  ✅ comp1[${gComp1.nodeIndex}] OutFlow → [${cfwd.join(',')}] (非终端转发)`)
+  } else {
+    console.log(`  ❌ comp1[${gComp1.nodeIndex}] OutFlow 未连到 comp2`)
+    ok = false
   }
 }
-console.log('  ✅ exec 节点无 OutFlow')
+
+// comp2 终端：无 OutFlow
+const gComp2 = execNodes[1]
+const hasOutFlow2 = gComp2?.pins?.some((p: any) => p.i1?.kind === 2)
+if (!hasOutFlow2) {
+  console.log(`  ✅ comp2[${gComp2.nodeIndex}] 无 OutFlow (终端)`)
+} else {
+  console.log(`  ❌ comp2[${gComp2.nodeIndex}] 有 OutFlow (应为终端)`)
+  ok = false
+}
 
 // 验证 accessories 结构
 const accs = gen.accessories ?? []
@@ -100,10 +117,18 @@ accs.forEach((a: any, i: number) => {
   if (a.which === 12) {
     const d = a.compositeDef?.inner?.def
     console.log(`  [${i}] CompositeDef: name=${d?.name} inflows=${d?.inflows?.length} outflows=${d?.outflows?.length}`)
-    if (d?.outflows?.length !== 0) console.log(`  ❌ ${d?.name} outflows 应为 0`)
+    if (d?.outflows?.length !== 1) { console.log(`  ❌ ${d?.name} outflows 应为 1`); ok = false }
   }
   if (a.which === 9 && a.graph) {
     const g = a.graph?.inner?.graph
     console.log(`  [${i}] impl: nodes=${g?.nodes?.length} compositePins=${g?.compositePins?.length}`)
+    if (g?.compositePins?.length !== 2) { console.log(`  ❌ compositePins 应为 2`); ok = false }
   }
 })
+
+if (ok) {
+  console.log('\n🏆 全部验证通过')
+} else {
+  console.log('\n💥 存在失败项')
+  process.exit(1)
+}

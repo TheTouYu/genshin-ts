@@ -89,35 +89,36 @@ mainNodes.forEach((n: any) => {
 
 let ok = true
 
-// 验证 1: event OutFlow fork 到所有 exec 节点（复合 + 普通第一个）
+// 验证 1: 非终端复合链 — event → comp1 → comp2 → printString_1 → printString_2
 console.log('\n── 验证 ──')
 const outFlowPin = eventNode?.pins?.find((p: any) => p.i1?.kind === 2)
 const targets = outFlowPin?.connects?.map((c: any) => c.id) ?? []
-const allExecTargets = [...compNodes.map((n: any) => n.nodeIndex)]
-// 如果有普通节点，第一个普通节点也应该在 event 的 fork 中
-if (normalNodes.length > 0) {
-  allExecTargets.push(normalNodes[0].nodeIndex)
-}
-const allConnected = allExecTargets.every((t: number) => targets.includes(t))
-console.log(`  event OutFlow → [${targets.join(',')}]  期望 → [${allExecTargets.join(',')}]`)
-if (allConnected && targets.length >= compNodes.length + 1) {
-  console.log('  ✅ event fork 到所有 exec 节点（复合 + 普通）')
+if (targets.length === 1 && targets[0] === compNodes[0]?.nodeIndex) {
+  console.log(`  ✅ event OutFlow → [${targets.join(',')}] (仅链头复合)`)
 } else {
-  console.log('  ❌ event fork 不完整')
+  console.log(`  ❌ event OutFlow → [${targets.join(',')}]  期望 → [${compNodes[0]?.nodeIndex}]`)
   ok = false
 }
 
-// 验证 2: 复合节点无 OutFlow
-for (const n of compNodes) {
-  const hasOutFlow = n.pins?.some((p: any) => p.i1?.kind === 2)
-  if (hasOutFlow) {
-    console.log(`  ❌ composite node[${n.nodeIndex}] 有 OutFlow`)
-    ok = false
-  }
+// 验证 2: comp1 非终端 → comp2
+const c1Out = compNodes[0]?.pins?.find((p: any) => p.i1?.kind === 2)
+if (c1Out?.connects?.[0]?.id === compNodes[1]?.nodeIndex) {
+  console.log(`  ✅ comp1[${compNodes[0].nodeIndex}] OutFlow → comp2[${compNodes[1].nodeIndex}]`)
+} else {
+  console.log(`  ❌ comp1 OutFlow 未连到 comp2`)
+  ok = false
 }
-console.log('  ✅ 复合节点无 OutFlow')
 
-// 验证 3: 普通节点之间的串行连线正常
+// 验证 3: comp2 非终端 → printString_1
+const c2Out = compNodes[1]?.pins?.find((p: any) => p.i1?.kind === 2)
+if (c2Out?.connects?.[0]?.id === normalNodes[0]?.nodeIndex) {
+  console.log(`  ✅ comp2[${compNodes[1].nodeIndex}] OutFlow → printString[${normalNodes[0].nodeIndex}]`)
+} else {
+  console.log(`  ❌ comp2 OutFlow 未连到 printString`)
+  ok = false
+}
+
+// 验证 4: 普通节点串行连线正常
 let normalFlowOk = true
 for (let i = 0; i < normalNodes.length - 1; i++) {
   const curr = normalNodes[i]
@@ -134,14 +135,18 @@ for (let i = 0; i < normalNodes.length - 1; i++) {
 }
 if (normalFlowOk) console.log('  ✅ 普通节点串行连线正常')
 
-// 验证 4: accessories
+// 验证 5: accessories
 const accs = gen.accessories ?? []
 console.log(`\n  accessories: ${accs.length}`)
 accs.forEach((a: any) => {
   if (a.which === 12) {
     const d = a.compositeDef?.inner?.def
     console.log(`  CompositeDef: ${d?.name} inflows=${d?.inflows?.length} outflows=${d?.outflows?.length}`)
-    if (d?.outflows?.length !== 0) { console.log(`  ❌ outflows!=0`); ok = false }
+    if (d?.outflows?.length !== 1) { console.log(`  ❌ outflows!=1`); ok = false }
+  }
+  if (a.which === 9 && a.graph) {
+    const g = a.graph?.inner?.graph
+    if (g?.compositePins?.length !== 2) { console.log(`  ❌ compositePins!=2`); ok = false }
   }
 })
 

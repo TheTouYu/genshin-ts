@@ -510,18 +510,39 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       // 添加 InParam/OutParam pins（带 compositePinIndex）
       const cdef = compositeId !== undefined ? compositeDefById.get(compositeId) : undefined
       if (cdef) {
-        for (const input of cdef.inputs) {
+        const callArgs = irNode.args ?? []
+        for (let i = 0; i < cdef.inputs.length; i++) {
+          const input = cdef.inputs[i]
+          const ai = i + 1
+          const arg: Argument | null = ai < callArgs.length ? (callArgs[ai] ?? null) : null
           const p = new Pin(giaNode.ConcreteId!, 3, input.index) // InParam
+          ;(p as any).compositePinIndex = input.pinIndex
           const bt = compositeTypeToBaseTag(input.type as string)
           if (bt) p.setType({ t: 'b', b: bt })
-          // @ts-ignore compositePinIndex on pin (field 7 in NodePin proto)
-          ;(p as any).compositePinIndex = input.pinIndex
           giaNode.pins.push(p)
         }
-        for (const output of cdef.outputs) {
-          const p = new Pin(giaNode.ConcreteId!, 4, output.index) // OutParam
-          const bt = compositeTypeToBaseTag(output.type as string)
-          if (bt) p.setType({ t: 'b', b: bt })
+        // 从 IR args[1..] 填充 InParam 字面量值（args[0] 是 compositeId）
+        for (let ai = 1; ai < callArgs.length; ai++) {
+          const arg = callArgs[ai]
+          const pinIdx = ai - 1
+          if (!arg || arg.type === 'conn') continue
+          if (pinIdx < cdef.inputs.length) {
+            setLiteralArgValue(giaNode, pinIdx, ai, nodeType, arg.type, arg.value)
+          }
+        }
+        // 纯数据复合不添加 OutParam pin——输出由 CompositeDef 隐式定义
+        if (cdef.inflows.length > 0) {
+          for (const output of cdef.outputs) {
+            const p = new Pin(giaNode.ConcreteId!, 4, output.index) // OutParam
+            const bt = compositeTypeToBaseTag(output.type as string)
+            if (bt) p.setType({ t: 'b', b: bt })
+            giaNode.pins.push(p)
+          }
+        }
+        // 非终端复合：添加 OutFlow pin（带 compositePinIndex）
+        for (const outflow of cdef.outflows) {
+          const p = new Pin(giaNode.ConcreteId!, 2, outflow.index) // OutFlow
+          ;(p as any).compositePinIndex = outflow.pinIndex
           giaNode.pins.push(p)
         }
       }
@@ -595,8 +616,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   const compositeDataEdges = (ir as any).compositeDataEdges as Array<{
     fromNodeId: number; fromPinIndex: number; toMarkerId: number; toPinIndex: number
   }> | undefined
+  // 构建已存在连接的集合，避免 compositeDataEdges 重复连接
+  const existingConnections = new Set(graphInfo.dataConnections.map(
+    (c: { fromId: number; toId: number; fromIndex: number; toIndex: number }) =>
+      `${c.fromId}-${c.fromIndex}-${c.toId}-${c.toIndex}`
+  ))
   if (compositeDataEdges) {
     for (const edge of compositeDataEdges) {
+      const key = `${edge.fromNodeId}-${edge.fromPinIndex}-${edge.toMarkerId}-${edge.toPinIndex}`
+      if (existingConnections.has(key)) continue
       const from = nodesById.get(edge.fromNodeId)
       const to = nodesById.get(edge.toMarkerId)
       if (from && to) {
@@ -637,6 +665,16 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
                   const inputIdx = pin.i1.index ?? 0
                   if (inputIdx < cdef.inputs.length) {
                     pin.compositePinIndex = cdef.inputs[inputIdx].pinIndex
+                  // 数据连线输入的 InParam：值来自上游，自身应 null
+                  if (pin.connects?.length > 0) {
+                    pin.value = null
+                  }
+                  }
+                }
+                if (pin.i1?.kind === 2) { // OutFlow
+                  const outflowIdx = pin.i1.index ?? 0
+                  if (outflowIdx < cdef.outflows.length) {
+                    pin.compositePinIndex = cdef.outflows[outflowIdx].pinIndex
                   }
                 }
               }
@@ -644,46 +682,52 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
           }
         }
 
-        // 修正 exec flow：event OutFlow fork 到所有 exec 复合 + 复合下游的非复合节点
+        // 修正 exec flow：区分终端/非终端复合
+        //   - 非终端复合（OutFlow 有 connects）：保留，由 graph.flow() 自然转发
+        //   - 终端复合（OutFlow 无 connects 或无 OutFlow）：移除，断连下游收归 event fork
         if (mainNodes && mainNodes.length > 1) {
-          // 收集复合节点 OutFlow 连接的非复合下游节点（复合移除 OutFlow 后会断连）
+          const eventNode = mainNodes.find((n: any) => n.genericId?.kind === 22000)
+          // 收集因终端复合移除 OutFlow 而断连的目标
           const orphanedTargets: number[] = []
           for (const n of mainNodes) {
             if (!compositeCallNodeIndices.has(n.nodeIndex)) continue
-            for (const pin of n.pins ?? []) {
-              if (pin.i1?.kind === 2) { // OutFlow
-                for (const conn of pin.connects ?? []) {
-                  if (!compositeCallNodeIndices.has(conn.id)) {
+            // 终端检测：OutFlow pin 有 connects → 非终端，否则 → 终端
+            const hasOutFlowConnects = n.pins?.some((pin: any) =>
+              pin.i1?.kind === 2 && (pin.connects?.length ?? 0) > 0
+            )
+            if (!hasOutFlowConnects) {
+              // 终端复合：收集 orphaned 目标并移除 OutFlow
+              for (const pin of n.pins ?? []) {
+                if (pin.i1?.kind === 2) {
+                  for (const conn of pin.connects ?? []) {
                     orphanedTargets.push(conn.id)
+                  }
+                }
+              }
+              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 2)
+            }
+            // 非终端复合：保留 OutFlow + connects（不做处理）
+          }
+          // event OutFlow 保留原始 connects，追加被断连的目标
+          if (eventNode && orphanedTargets.length > 0) {
+            for (const pin of eventNode.pins ?? []) {
+              if (pin.i1?.kind === 2) {
+                const existingIds = new Set((pin.connects ?? []).map((c: any) => c.id))
+                for (const id of orphanedTargets) {
+                  if (!existingIds.has(id)) {
+                    pin.connects = [...(pin.connects ?? []), { id, connect: { kind: 1, index: 0 } }]
                   }
                 }
               }
             }
           }
-          // 所有复合节点移除 OutFlow（exec flow 由 event fork 统一分发）
+        }
+
+        // 过滤 event 节点多余的 OutParam pins（参考文件中 event 仅有 OutFlow pin）
+        if (mainNodes) {
           for (const n of mainNodes) {
-            if (compositeCallNodeIndices.has(n.nodeIndex)) {
-              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 2)
-            }
-          }
-          const eventNode = mainNodes.find((n: any) => n.genericId?.kind === 22000)
-          const execCallNodes = mainNodes.filter((n: any) => {
-            const cid = compositeCallNodeIndices.get(n.nodeIndex)
-            const cdef = cid !== undefined ? compositeDefById.get(cid) : undefined
-            return cdef && cdef.inflows.length > 0
-          })
-          if (eventNode && (execCallNodes.length > 0 || orphanedTargets.length > 0)) {
-            const allTargets = [...new Set([
-              ...execCallNodes.map((n: any) => n.nodeIndex),
-              ...orphanedTargets
-            ])]
-            for (const pin of eventNode.pins ?? []) {
-              if (pin.i1?.kind === 2) {
-                pin.connects = allTargets.map((id: number) => ({
-                  id,
-                  connect: { kind: 1, index: 0 }
-                }))
-              }
+            if (n.genericId?.kind === 22000 && n.genericId?.nodeId === 71) {
+              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 4)
             }
           }
         }
@@ -699,21 +743,6 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       }))
     }
   } catch (e) {
-    for (const n of graph.get_nodes()) {
-      for (const p of n.pins ?? []) {
-        // only check input pins with a resolved type
-        if (!p || p.kind !== 3 || !p.type) continue
-        // base string pin
-        if (p.type.t === 'b' && p.type.b === 'Str') {
-          const v = p.value
-          if (v !== null && v !== undefined && typeof v !== 'string') {
-            console.error(
-              `[debug] bad Str pin value: nodeIndex=${n.NodeIndex} concreteId=${String(n.ConcreteId)} genericId=${n.GenericId} pin=${p.index} value=${JSON.stringify(v)}`
-            )
-          }
-        }
-      }
-    }
     throw e
   }
 
