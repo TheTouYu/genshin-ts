@@ -11,6 +11,20 @@ const PIN_INDEX_OUTFLOW_MULTI_BASE = 8
 const PIN_INDEX_INPUT_BASE = 100
 const PIN_INDEX_OUTPUT_BASE = 200
 
+// 运行时值类名 → GIA 类型字符串映射
+const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
+  int: 'int',
+  float_number: 'float',
+  text: 'string',
+  bool: 'bool',
+  vec3: 'vec3',
+  entity: 'entity',
+  guid: 'guid',
+  prefabId: 'prefab_id',
+  configId: 'config_id',
+  faction: 'faction',
+}
+
 // ============== Types ==============
 
 export type CompositeParamType = string
@@ -210,7 +224,22 @@ export class CompositeRegistry {
           ].map((r) => ({
             id: r.id,
             type: r.nodeType,
-            args: r.args.map((a) => a.toIRLiteral())
+            args: r.args.map((a) => {
+              const meta = a.getMetadata()
+              if (meta?.kind === 'pin') {
+                const typeName = (a as any).constructor?.name ?? ''
+                const giaType = RUNTIME_TO_GIA_TYPE[typeName] ?? typeName
+                return {
+                  type: 'conn' as const,
+                  value: {
+                    node_id: meta.record.id,
+                    index: meta.pinIndex,
+                    type: giaType
+                  } as any
+                }
+              }
+              return a.toIRLiteral()
+            })
           })),
           implEdges: impl?.edges ?? {},
           compositePins: pins,

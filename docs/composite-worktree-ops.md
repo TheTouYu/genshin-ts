@@ -119,13 +119,12 @@ Accessories 对比已支持语义匹配（按 CompositeDef 名称配对），准
   ⑤ 主图 connected InParam value=null
   ⑥ buildPlaceholderPin 类型推断
 
-### [ ] T06: 数据节点类型覆盖 (float/bool/vec3)
-- **状态**: 待开始
-- **参考**: 需要用户提供含 float/bool/vec3 数据节点的复合 GIA
-- **改动**: `composite.ts` — concreteWrappedNodeTypes, buildPlaceholderPin, makeVarBaseValue
+### ✅ T06: 数据节点类型覆盖 (float/bool/vec3)
+- **状态**: 已完成 ✅ (2026-06-11)
+- **游戏验证**: ✅ `两个复合节点.gia` 通过
+- **参考**: 用户提供 vec3 复合（向量加法 + 求模）
+- **改动**: `core.ts` — createTypedValue 修复（vec3/str 占位符不创建 literal 元数据）；`composite.ts` — vec3NodeTypes/vec3ToFloatNodeTypes 集合, buildPlaceholderPin/makeVarBaseValue/wrapConcreteValue 支持 VectorBase, isDataProducerNode 识别 vec3 节点, 自动 OutParam 对 vec3→float 节点修正输出类型
 - **文档**: `composite-full-scenario-gaps.md` 问题 2/3/4
-- **工作量**: 小（单文件，扩集合+映射表）
-- **需要用户提供**: 一个包含 float 或 bool 或 vec3 数据节点的复合 GIA 参考文件
 
 ### [ ] T07: local_variable + *_list 类型支持
 - **状态**: 待开始
@@ -136,12 +135,12 @@ Accessories 对比已支持语义匹配（按 CompositeDef 名称配对），准
 - **需要用户提供**: 含 local_variable 或 _list 的复合 GIA 参考
 
 ### [ ] T08: 嵌套复合
-- **状态**: 待开始
-- **参考**: 需要用户提供嵌套复合的 GIA（复合 A 的 build 内调用复合 B）
-- **改动**: `composite.ts` buildImplGraphNodes + `composite_registry.ts` implNodes 过滤
-- **文档**: `composite-full-scenario-gaps.md` 问题 1
-- **工作量**: 中（需处理 __composite_call__ 在 impl graph 中的编码）
-- **需要用户提供**: 嵌套复合的 GIA 参考（至少一层嵌套）
+- **状态**: 调研完成（三文件交叉验证 ✅），待实现
+- **参考**: `嵌套.gia`（2层嵌套）、弹球/传球/物理运动（共 90 个嵌套节点）
+- **改动**: `composite.ts` buildImplGraphNodes + buildImplNodePins + resolveImplNodeId；`composite_registry.ts` compositePins 不再跳过 `__composite_call__`
+- **文档**: `composite-nested-composite-guide.md`（完整编码规则 + 三文件统计）
+- **工具**: `analyze-nested-composites.ts`（统计 pin 模式）
+- **工作量**: 中
 
 ### [ ] T09: impl 特殊节点 pin 布局
 - **状态**: 待开始
@@ -158,17 +157,26 @@ Accessories 对比已支持语义匹配（按 CompositeDef 名称配对），准
 - **工作量**: 小
 - **需要用户提供**: 待 T06-T09 完成后统一修
 
-### [ ] T11: 多 OutFlow 复合节点
-- **状态**: 待开始（重大功能）
-- **参考**: `user_edit/纯复合节点-顺序执行.gia`, `user_edit/顺序执行.gia`, `user_edit/顺序执行2.gia`
-- **改动**: 6 个文件，架构级变更
-- **文档**: `multi-outflow-composite-guide.md`
-- **工作量**: 大（API 设计 + 捕获重构 + IR DAG）
-- **需要用户提供**: 已有参考文件，无需额外
+### ✅ T11: 多 OutFlow 复合节点
+- **状态**: Phase 1 + Phase 2 完成
+- **Phase 1**: 系统节点包装（double_branch / finite_loop / 顺序执行）— 已对齐参考文件
+- **Phase 2**: 普通节点组合 + 混合执行数据 + 纯数据算术链 + 输入扇出
+- **参考**: `user_edit/顺序执行-比对.gia`, `complex_gia/弹球.gia`, `传球.gia`, `物理运动.gia`
+- **改动文件**: `composite.ts`（重写 buildImplNodePins）、`composite_registry.ts`（toIRLiteral 修复）、`core.ts`、`nodes.ts`、`layout.ts`、`index.ts`
+- **关键修复（本轮）**:
+  1. 移除 `noPinSystemNodes` → 所有节点统一按捕获数据编码 pin
+  2. OutFlow 按 source_index 拆分、connects 对全部节点生效
+  3. `toIRLiteral()` pin metadata → conn 序列化（数据连线修复）
+  4. branchExec sourceIndex 校正（无条件分叉全部 sourceIndex=0）
+  5. double_branch 无参默认走 OutFlow[1]（false），显式 true 走 OutFlow[0]
+  6. finite_loop 分支语义区分（body vs complete）
+  7. impl 图节点布局：exec BFS + 数据拓扑网格
+- **新工具**: `tests/composite/gia-inspect.ts`（模块化 GIA 检查）、`tests/composite/gia-compare.ts`（8 维度语义对比）
+- **Phase 3 待做**: 嵌套复合、vec3 类型、游戏验证未通过的边缘 case
 
 ### [ ] T12: GIA 定义文件格式 (which=12)
 - **状态**: 待开始
-- **依赖**: T11 完成后
+- **依赖**: T11 游戏验证通过后
 - **改动**: `index.ts` irToGia 模式切换
 - **文档**: `multi-outflow-composite-guide.md`
 

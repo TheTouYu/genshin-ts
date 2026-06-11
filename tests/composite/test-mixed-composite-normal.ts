@@ -19,7 +19,7 @@ import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Milias
 import { writeFileSync } from 'fs'
 
 const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
-const OUT_DIR = '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+const OUT_DIR = './tests/composite/output'
 
 // ── 复合1: exec-only ──
 const comp1 = g.defineComposite('复合第一步', {

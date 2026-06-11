@@ -1306,9 +1306,9 @@ function createTypedValue(type: string): value {
     case 'float':
       return new float()
     case 'str':
-      return new str('')
+      return new str()
     case 'vec3':
-      return new vec3([0, 0, 0])
+      return new vec3()
     case 'entity':
       return new entity()
     case 'guid':

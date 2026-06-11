@@ -32,7 +32,7 @@ const doc = docs[docs.length - 1]
 
 const bytes = irToGia(doc, { graphId: 1073741828, name: 'basic_call', protoPath: PROTO_PATH })
 
-const OUT_DIR = '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+const OUT_DIR = './tests/composite/output'
 const outPath = `${OUT_DIR}/basic_call.gia`
 writeFileSync(outPath, Buffer.from(bytes))
 

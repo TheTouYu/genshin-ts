@@ -17,7 +17,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs'
 
 const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 
-const OUT_DIR = '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+const OUT_DIR = './tests/composite/output'
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
 // ── 复合1: 向量加法 (pure data) ──
