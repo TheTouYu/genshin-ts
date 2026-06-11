@@ -1,221 +1,260 @@
-import { readFileSync, writeFileSync } from 'fs'
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+#!/usr/bin/env npx tsx
+// @ts-nocheck
+/**
+ * 嵌套复合节点编码规则分析工具
+ *
+ * 用法:
+ *   npx tsx tests/composite/analyze-nested-composites.ts <file.gia>
+ *
+ * 对 GIA 文件中所有复合定义的 impl 图的嵌套复合节点进行深度分析。
+ */
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
-const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO = '/home/h/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
 
-const file = process.argv[2]
-if (!file) { console.error('用法: npx tsx explore-nested.ts <path-to-gia>'); process.exit(1) }
+const PinKindNames: Record<number, string> = {
+  0: 'Unknown', 1: 'InFlow', 2: 'OutFlow', 3: 'InParam', 4: 'OutParam',
+  5: 'ClientExecNode', 6: 'ClientSignal'
+}
 
-const ref = decode_gia_file(file, PROTO_PATH)
-const km: Record<number,string> = {0:'Unk',1:'InFlow',2:'OutFlow',3:'InParam',4:'OutParam',5:'CliExec',6:'CliSignal'}
+interface CompositeAcc {
+  idx: number
+  def: any
+  implIdx: number
+  impl: any
+  name: string
+}
 
-// 建立 composite/signal def 索引
-const defById = new Map<number, any>()
-for (const acc of ref.accessories ?? []) {
-  if (acc.which === 12 || acc.which === 13) {
-    const def = acc.compositeDef?.inner?.def
+function findComposites(accessories: any[]): CompositeAcc[] {
+  const result: CompositeAcc[] = []
+  for (let i = 0; i < accessories.length; i++) {
+    const a = accessories[i]
+    if (a?.which === 12 && a?.compositeDef?.inner?.def) {
+      // Found a CompositeDef, look for the next impl (which===9)
+      let implIdx = -1
+      // Check if next accessory is the impl graph
+      if (i + 1 < accessories.length && accessories[i + 1]?.which === 9) {
+        implIdx = i + 1
+      }
+      result.push({
+        idx: i,
+        def: a.compositeDef.inner.def,
+        implIdx: implIdx,
+        impl: implIdx >= 0 ? accessories[implIdx] : null,
+        name: a.compositeDef.inner.def.name || a.name || '?'
+      })
+    }
+  }
+  return result
+}
+
+function analyzeFile(filePath: string) {
+  console.log(`\n${'='.repeat(80)}`)
+  console.log(`分析文件: ${filePath}`)
+  console.log('='.repeat(80))
+
+  const root = decode_gia_file(filePath, PROTO)
+  const accessories = root.accessories ?? []
+  const rootGraph = root.graph
+
+  console.log(`accessories 总数: ${accessories.length}`)
+  console.log(`主图 which: ${rootGraph?.which} (${rootGraph?.which === 12 ? 'CompositeGraph' : 'other'})`)
+
+  // ── 主图分析 ──
+  if (rootGraph?.which === 9) {
+    const mainNodes = rootGraph.graph?.inner?.graph?.nodes ?? []
+    const mainPins = rootGraph.graph?.inner?.graph?.compositePins ?? []
+    console.log(`主图节点数: ${mainNodes.length}, compositePins: ${mainPins.length}`)
+
+    // 找主图中的嵌套复合节点 (kind=22001)
+    const nestedInMain = mainNodes.filter((n: any) => n.genericId?.kind === 22001)
+    console.log(`主图中嵌套复合节点: ${nestedInMain.length}`)
+    for (const n of nestedInMain) {
+      console.log(`  n[${n.nodeIndex}] genericId.nodeId=${n.genericId?.nodeId} pins=${n.pins?.length}`)
+      for (const p of (n.pins ?? [])) {
+        const kind = p.i1?.kind ?? 0
+        const idx = p.i1?.index ?? 0
+        const valCls = p.value?.class
+        const cpi = p.compositePinIndex
+        const bConcreteIdx = p.value?.bConcreteValue?.indexOfConcrete
+        const parts = [`kind=${kind}(${PinKindNames[kind] || '?'})`, `index=${idx}`]
+        if (valCls) parts.push(`valClass=${valCls}`)
+        if (cpi !== undefined) parts.push(`compositePinIdx=${cpi}`)
+        if (bConcreteIdx !== undefined) parts.push(`bConcreteIdx=${bConcreteIdx}`)
+        console.log(`    pin[${(p as any).__idx ?? '?'}]: ${parts.join(', ')}`)
+      }
+      // 显示关联的 compositePins
+      const relatedPins = mainPins.filter((cp: any) => cp.innerNodeId === n.nodeIndex)
+      if (relatedPins.length > 0) {
+        console.log(`    compositePins (innerNodeId=${n.nodeIndex}):`)
+        for (const cp of relatedPins) {
+          console.log(`      outerPin.kind=${cp.outerPin?.kind}(${PinKindNames[cp.outerPin?.kind] || '?'}) outerPin.index=${cp.outerPin?.index}`)
+          console.log(`      innerPin.kind=${cp.innerPin?.kind}(${PinKindNames[cp.innerPin?.kind] || '?'}) innerPin.index=${cp.innerPin?.index}`)
+        }
+      }
+    }
+  } else if (rootGraph?.which === 12) {
+    // 主图是 CompositeDef（嵌套.gia 可能是这种格式）
+    console.log(`主图是 CompositeDef，name=${rootGraph.compositeDef?.inner?.def?.name}`)
+    const def = rootGraph.compositeDef?.inner?.def
     if (def) {
-      defById.set(acc.id?.id ?? 0, {
-        name: def.name,
-        inflows: def.inflows?.length ?? 0,
-        outflows: def.outflows?.length ?? 0,
-        inputs: def.inputs?.length ?? 0,
-        outputs: def.outputs?.length ?? 0,
-        inPinIndexes: (def.inputs ?? []).map((i: any) => i.pinIndex),
-        outPinIndexes: (def.outputs ?? []).map((i: any) => i.pinIndex),
-        outflowPinIndexes: (def.outflows ?? []).map((i: any) => i.pinIndex),
-        inflowPinIndex: def.inflows?.[0]?.pinIndex,
-      })
+      console.log(`  inflows: ${def.inflows?.length ?? 0}, outflows: ${def.outflows?.length ?? 0}`)
+      console.log(`  inputs: ${def.inputs?.length ?? 0}, outputs: ${def.outputs?.length ?? 0}`)
+    }
+  } else {
+    console.log(`主图类型: which=${rootGraph?.which}`)
+  }
+
+  // ── accessories 分析 ──
+  const composites = findComposites(accessories)
+  console.log(`\naccessories 中的复合定义: ${composites.length} 个`)
+
+  for (const comp of composites) {
+    console.log(`\n${'-'.repeat(60)}`)
+    console.log(`复合: acc[${comp.idx}] "${comp.name}"`)
+    console.log(`  inflows=${comp.def.inflows?.length ?? 0}, outflows=${comp.def.outflows?.length ?? 0}`)
+    console.log(`  inputs=${comp.def.inputs?.length ?? 0}, outputs=${comp.def.outputs?.length ?? 0}`)
+
+    if (comp.impl) {
+      const nodes = comp.impl.graph?.inner?.graph?.nodes ?? []
+      const compositePins = comp.impl.graph?.inner?.graph?.compositePins ?? []
+      console.log(`  impl 节点数: ${nodes.length}, compositePins: ${compositePins.length}`)
+
+      // 标记每个 pin 的数组索引
+      for (const n of nodes) {
+        for (let j = 0; j < (n.pins ?? []).length; j++) {
+          n.pins[j].__idx = j
+        }
+      }
+
+      // 找嵌套复合节点 (kind=22001 即 SysGraph)
+      const nestedNodes = nodes.filter((n: any) => n.genericId?.kind === 22001)
+      console.log(`  impl 中嵌套复合节点: ${nestedNodes.length}`)
+
+      for (const n of nestedNodes) {
+        const nid = n.genericId?.nodeId
+        console.log(`\n  📦 n[${n.nodeIndex}] genericId.class=${n.genericId?.class} kind=${n.genericId?.kind} nodeId=${nid} pins=${n.pins?.length}`)
+
+        for (const p of (n.pins ?? [])) {
+          const kind = p.i1?.kind ?? 0
+          const idx = p.i1?.index ?? 0
+          const valCls = p.value?.class
+          const cpi = p.compositePinIndex
+          const bConcreteIdx = p.value?.bConcreteValue?.indexOfConcrete
+          const bConcreteValCls = p.value?.bConcreteValue?.value?.class
+          const connects = p.connects?.length ?? 0
+
+          const parts = [`kind=${kind}(${PinKindNames[kind] || '?'})`, `index=${idx}`]
+          if (valCls) parts.push(`valClass=${valCls}`)
+          if (cpi !== undefined) parts.push(`compositePinIdx=${cpi}`)
+          if (bConcreteIdx !== undefined) parts.push(`bConcreteIdx=${bConcreteIdx}`)
+          if (bConcreteValCls) parts.push(`bConcreteValClass=${bConcreteValCls}`)
+          if (connects > 0) parts.push(`connects=${connects}`)
+
+          // 显示连接目标
+          for (const conn of (p.connects ?? [])) {
+            parts.push(`  -> n[${conn.id}] kind=${conn.connect?.kind}(${PinKindNames[conn.connect?.kind] || '?'}) idx=${conn.connect?.index}`)
+          }
+
+          console.log(`    pin[${p.__idx}]: ${parts.join(', ')}`)
+        }
+
+        // 显示关联的 compositePins
+        const relatedPins = compositePins.filter((cp: any) => cp.innerNodeId === n.nodeIndex)
+        if (relatedPins.length > 0) {
+          console.log(`    compositePins (innerNodeId=${n.nodeIndex}):`)
+          for (const cp of relatedPins) {
+            console.log(`      outerPin.kind=${cp.outerPin?.kind}(${PinKindNames[cp.outerPin?.kind] || '?'}) outerPin.index=${cp.outerPin?.index}`)
+            console.log(`      innerPin.kind=${cp.innerPin?.kind}(${PinKindNames[cp.innerPin?.kind] || '?'}) innerPin.index=${cp.innerPin?.index}`)
+            if (cp.innerPin2?.kind !== cp.innerPin?.kind || cp.innerPin2?.index !== cp.innerPin?.index) {
+              console.log(`      innerPin2.kind=${cp.innerPin2?.kind}(${PinKindNames[cp.innerPin2?.kind] || '?'}) innerPin2.index=${cp.innerPin2?.index}`)
+            }
+          }
+        }
+      }
+
+      // 检查所有 compositePins 的 outerPin.kind 分布
+      if (compositePins.length > 0) {
+        console.log(`\n  compositePins outerPin 种类分布:`)
+        const kindCount: Record<string, number> = {}
+        for (const cp of compositePins) {
+          const k = `${cp.outerPin?.kind}(${PinKindNames[cp.outerPin?.kind] || '?'})`
+          kindCount[k] = (kindCount[k] ?? 0) + 1
+        }
+        for (const [k, v] of Object.entries(kindCount)) {
+          console.log(`    ${k}: ${v}`)
+        }
+      }
+    } else {
+      console.log(`  ⚠️  没有 impl (可能是引用外部复合)`)
     }
   }
-  if (acc.which === 14) {
-    const sdef = acc.signalDef?.inner?.def
-    if (sdef) {
-      defById.set(acc.id?.id ?? 0, {
-        name: sdef.name,
-        isSignal: true,
-        inflows: sdef.inflows?.length ?? 0,
-        outflows: sdef.outflows?.length ?? 0,
-        inputs: sdef.inputs?.length ?? 0,
-        outputs: sdef.outputs?.length ?? 0,
-        inPinIndexes: (sdef.inputs ?? []).map((i: any) => i.pinIndex),
-        outPinIndexes: (sdef.outputs ?? []).map((i: any) => i.pinIndex),
-        outflowPinIndexes: (sdef.outflows ?? []).map((i: any) => i.pinIndex),
-      })
+
+  // ── 全局统计 ──
+  console.log(`\n${'─'.repeat(60)}`)
+  console.log('全局统计:')
+
+  // 统计所有 impl 图中的嵌套复合节点
+  let totalNested = 0
+  const nestedByComposite: Record<string, Array<{nodeIndex: number, nodeId: number, pins: any[]}>> = {}
+
+  for (const comp of composites) {
+    if (!comp.impl) continue
+    const nodes = comp.impl.graph?.inner?.graph?.nodes ?? []
+    const nested = nodes.filter((n: any) => n.genericId?.kind === 22001)
+    if (nested.length > 0) {
+      totalNested += nested.length
+      nestedByComposite[comp.name] = nested.map(n => ({
+        nodeIndex: n.nodeIndex,
+        nodeId: n.genericId?.nodeId,
+        pins: (n.pins ?? []).map((p: any) => ({
+          kind: p.i1?.kind ?? 0,
+          index: p.i1?.index ?? 0,
+          valClass: p.value?.class,
+          compositePinIdx: p.compositePinIndex,
+          bConcreteIdx: p.value?.bConcreteValue?.indexOfConcrete,
+          connects: (p.connects ?? []).map((c: any) => ({ to: c.id, kind: c.connect?.kind }))
+        }))
+      }))
     }
   }
-}
 
-console.log('=== 嵌套复合分析: ' + file.split('/').pop() + ' ===')
-console.log('总 accessory: ' + (ref.accessories?.length ?? 0))
-console.log('已索引 def: ' + defById.size)
-
-// 统计分类
-const nestedNodes: any[] = []
-
-for (let ai = 0; ai < (ref.accessories ?? []).length; ai++) {
-  const acc = ref.accessories![ai]
-  const g = acc.graph?.inner?.graph
-  if (!g) continue
-
-  for (const n of g.nodes ?? []) {
-    if ((n.genericId as any)?.kind !== 22001) continue
-
-    const gid = n.genericId as any
-    const def = defById.get(gid?.nodeId)
-
-    const pins = (n.pins ?? []).map((p: any) => ({
-      kind: p.i1?.kind ?? 0,
-      kindName: km[p.i1?.kind] ?? '?',
-      index: p.i1?.index ?? 0,
-      cpi: p.compositePinIndex ?? 0,
-      hasConnects: (p.connects?.length ?? 0) > 0,
-      connectTargets: (p.connects ?? []).map((c: any) => c.id + ':' + km[c.connect?.kind] + ':' + c.connect?.index)
-    }))
-
-    // 判断此 pin 是否有对应的 compositePin
-    const compositePins = (g.compositePins ?? []).filter((cp: any) => cp.innerNodeId === n.nodeIndex)
-    const cpKinds = new Set(compositePins.map((cp: any) => km[cp.innerPin?.kind]))
-
-    nestedNodes.push({
-      nodeIndex: n.nodeIndex,
-      compositeId: gid?.nodeId,
-      compositeName: def?.name ?? '?',
-      isSignal: def?.isSignal ?? false,
-      isExec: (def?.inflows ?? 0) > 0,
-      inflows: def?.inflows ?? 0,
-      outflows: def?.outflows ?? 0,
-      inputs: def?.inputs ?? 0,
-      outputs: def?.outputs ?? 0,
-      pins,
-      compositePinsKinds: [...cpKinds],
-      accIndex: ai,
-      parentName: (() => {
-        const defAcc = ref.accessories![ai % 2 === 1 ? ai - 1 : ai + 1]
-        return defAcc?.compositeDef?.inner?.def?.name ?? defAcc?.signalDef?.inner?.def?.name ?? '?'
-      })(),
-    })
+  console.log(`总嵌套复合节点数: ${totalNested}`)
+  for (const [name, nodes] of Object.entries(nestedByComposite)) {
+    console.log(`  "${name}": ${nodes.length} 个嵌套`)
   }
-}
 
-// === 统计 ===
-console.log('\n总共 kind=22001 节点: ' + nestedNodes.length)
-
-// 按 exec/数据分类
-const execNodes = nestedNodes.filter(n => n.isExec)
-const dataNodes = nestedNodes.filter(n => !n.isExec)
-const signalNodes = nestedNodes.filter(n => n.isSignal)
-console.log('Exec 型: ' + execNodes.length + ', 纯数据型: ' + dataNodes.length + ', 信号型: ' + signalNodes.length)
-
-// Pin 统计
-const execWithPins = execNodes.filter(n => n.pins.length > 0)
-const execWith0Pins = execNodes.filter(n => n.pins.length === 0)
-console.log('\nExec 型: ' + execWithPins.length + ' 个有 pin, ' + execWith0Pins.length + ' 个 0 pin')
-
-// 按 pin 种类统计
-const pinKindStats = new Map<string, number>()
-const zeroPinExecNames = new Set(execWith0Pins.map(n => n.compositeName))
-for (const n of nestedNodes) {
-  for (const p of n.pins) {
-    const key = p.kindName
-    pinKindStats.set(key, (pinKindStats.get(key) ?? 0) + 1)
+  // 统计 InFlow 在 compositePins outerPin 的出现
+  let outerInFlowCount = 0
+  for (const comp of composites) {
+    if (!comp.impl) continue
+    const compositePins = comp.impl.graph?.inner?.graph?.compositePins ?? []
+    outerInFlowCount += compositePins.filter((cp: any) => cp.outerPin?.kind === 1).length
   }
-}
-console.log('Pin 种类分布:', Object.fromEntries(pinKindStats))
-if (zeroPinExecNames.size > 0) console.log('0-pin exec 复合:', [...zeroPinExecNames])
+  console.log(`\ncompositePins 中 outerPin.kind=InFlow(1) 的总数: ${outerInFlowCount}`)
 
-// Exec 复合的 InParam 模式
-console.log('\n--- Exec 复合 InParam 编码模式 ---')
-let fullInParamCount = 0, partialInParamCount = 0, noInParamCount = 0
-for (const n of execNodes) {
-  const inParamPins = n.pins.filter((p: any) => p.kindName === 'InParam')
-  if (n.inputs === 0) continue // 无输入
-  if (inParamPins.length === n.inputs) fullInParamCount++
-  else if (inParamPins.length > 0) { partialInParamCount++; console.log('  部分 InParam: n[' + n.nodeIndex + '] "' + n.compositeName + '" 有' + inParamPins.length + '/' + n.inputs + ' InParam, pins=' + JSON.stringify(n.pins.map((p: any) => p.kindName + ':' + p.index + ' cpi=' + p.cpi))) }
-  else { noInParamCount++; console.log('  无 InParam: n[' + n.nodeIndex + '] "' + n.compositeName + '" exec(' + n.inflows + '/' + n.outflows + ' out) inputs=' + n.inputs + ', pins=' + JSON.stringify(n.pins.map((p: any) => p.kindName + ':' + p.index + ' cpi=' + p.cpi))) }
-}
-console.log('  全量 InParam: ' + fullInParamCount + ', 部分: ' + partialInParamCount + ', 零: ' + noInParamCount)
-
-// Exec 复合的 OutFlow 模式
-console.log('\n--- Exec 复合 OutFlow 编码模式 ---')
-let fullOutflowCount = 0, partialOutflowCount = 0, noOutflowCount = 0
-for (const n of execNodes) {
-  const ofPins = n.pins.filter((p: any) => p.kindName === 'OutFlow')
-  if (n.outflows === 0) { noOutflowCount++; continue }
-  if (ofPins.length === n.outflows) fullOutflowCount++
-  else if (ofPins.length > 0) partialOutflowCount++
-  else noOutflowCount++
-  
-  if (ofPins.length > 0 && ofPins.length !== n.outflows) {
-    console.log('  部分 OutFlow: n[' + n.nodeIndex + '] "' + n.compositeName + '" ' + ofPins.length + '/' + n.outflows + ' OutFlows: ' + JSON.stringify(ofPins.map((p: any) => ({idx: p.index, cpi: p.cpi, hasCs: p.hasConnects}))))
-  }
-}
-console.log('  全量: ' + fullOutflowCount + ', 部分: ' + partialOutflowCount + ', 零: ' + noOutflowCount)
-
-// CliExec 模式
-console.log('\n--- ClientExecNode (kind=5) 出现模式 ---')
-const cliExecNodes = nestedNodes.filter(n => n.pins.some((p: any) => p.kind === 5))
-console.log('  共 ' + cliExecNodes.length + ' 个节点有 ClientExecNode pin')
-for (const n of cliExecNodes) {
-  const ce = n.pins.find((p: any) => p.kind === 5)
-  console.log('  n[' + n.nodeIndex + '] "' + n.compositeName + '" isSignal=' + n.isSignal + ' exec=' + n.isExec + ' cpi=' + ce.cpi + ' parent=' + n.parentName)
-}
-
-// 纯数据复合 pin 检查
-const dataWithPins = dataNodes.filter(n => n.pins.length > 0)
-console.log('\n--- 纯数据复合 pin 检查 ---')
-console.log('  纯数据复合总数: ' + dataNodes.length + ', 有 pin 的: ' + dataWithPins.length)
-for (const n of dataWithPins) {
-  console.log('  n[' + n.nodeIndex + '] "' + n.compositeName + '" pins=' + JSON.stringify(n.pins.map((p: any) => p.kindName + ':' + p.index + ' cpi=' + p.cpi + (p.hasConnects ? ' CONNECTED' : ''))))
-}
-
-// OutParam 检查（所有类型）
-console.log('\n--- OutParam (kind=4) 在嵌套节点上的出现 ---')
-const outParamNodes = nestedNodes.filter(n => n.pins.some((p: any) => p.kind === 4))
-console.log('  有 OutParam pin 的节点: ' + outParamNodes.length)
-for (const n of outParamNodes) {
-  const op = n.pins.filter((p: any) => p.kind === 4)
-  console.log('  n[' + n.nodeIndex + '] "' + n.compositeName + '" exec=' + n.isExec + ': ' + JSON.stringify(op.map((p: any) => ({idx: p.index, cpi: p.cpi, hasCs: p.hasConnects}))))
-}
-
-// InFlow 检查
-console.log('\n--- InFlow (kind=1) 在嵌套节点上的出现 ---')
-const inFlowNodes = nestedNodes.filter(n => n.pins.some((p: any) => p.kind === 1))
-console.log('  有 InFlow pin 的节点: ' + inFlowNodes.length)
-for (const n of inFlowNodes) {
-  console.log('  n[' + n.nodeIndex + '] "' + n.compositeName + '" exec=' + n.isExec + ': ' + JSON.stringify(n.pins.filter((p: any) => p.kind === 1).map((p: any) => p.index)))
-}
-
-// OutParam 通过 compositePins 的模式
-console.log('\n--- OutParam compositePins 映射 ---')
-for (const n of nestedNodes) {
-  const outParamCPs = n.compositePinsKinds.filter(k => k === 'OutParam')
-  if (outParamCPs.length > 0) {
-    const hasOutParamPin = n.pins.some((p: any) => p.kind === 4)
-    if (!hasOutParamPin) {
-      // OutParam 仅通过 compositePins，节点上无 pin
-      // console.log('  n[' + n.nodeIndex + '] "' + n.compositeName + '": ' + outParamCPs.length + ' OutParam via compositePins only')
+  // 自引用检测
+  console.log(`\n自引用检测:`)
+  for (const comp of composites) {
+    if (!comp.impl) continue
+    const nodes = comp.impl.graph?.inner?.graph?.nodes ?? []
+    const selfRef = nodes.filter((n: any) =>
+      n.genericId?.kind === 22001 && n.genericId?.nodeId === comp.def.id?.genericId?.id
+    )
+    if (selfRef.length > 0) {
+      console.log(`  🔄 "${comp.name}" 自引用! genericId.nodeId=${comp.def.id?.genericId?.id}`)
+      for (const n of selfRef) {
+        console.log(`    n[${n.nodeIndex}] pins=${n.pins?.length}`)
+      }
     }
   }
 }
 
-// 边缘 case：相同 composite 多次实例化
-console.log('\n--- 同 composite 多实例 ---')
-const idCounts = new Map<number, number>()
-for (const n of nestedNodes) idCounts.set(n.compositeId, (idCounts.get(n.compositeId) ?? 0) + 1)
-const multiInstance = [...idCounts.entries()].filter(([_, c]) => c > 1).sort((a, b) => b[1] - a[1])
-for (const [id, count] of multiInstance.slice(0, 15)) {
-  const instances = nestedNodes.filter(n => n.compositeId === id)
-  const pinCounts = instances.map(n => n.pins.length)
-  const allSame = new Set(pinCounts).size === 1
-  console.log('  "' + instances[0].compositeName + '" (id=' + id + '): ' + count + ' 实例, pins=' + pinCounts.join(',') + (allSame ? '' : ' ← 不一致!'))
+// ── main ──
+const filePath = process.argv[2]
+if (!filePath) {
+  console.error('用法: npx tsx tests/composite/analyze-nested-composites.ts <file.gia>')
+  process.exit(1)
 }
 
-// Unknown kind (0) pins
-console.log('\n--- Unknown kind=0 pins ---')
-const unkNodes = nestedNodes.filter(n => n.pins.some((p: any) => p.kind === 0))
-console.log('  共 ' + unkNodes.length + ' 个节点有 kind=0 pin')
-for (const n of unkNodes.slice(0, 10)) {
-  const up = n.pins.filter((p: any) => p.kind === 0)
-  console.log('  n[' + n.nodeIndex + '] "' + n.compositeName + '" isSignal=' + n.isSignal + ': ' + JSON.stringify(up.map((p: any) => ({idx: p.index, cpi: p.cpi}))))
-}
+analyzeFile(filePath)
