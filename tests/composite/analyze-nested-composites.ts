@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
-const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 
 const file = process.argv[2]
 if (!file) { console.error('用法: npx tsx explore-nested.ts <path-to-gia>'); process.exit(1) }
