@@ -3,4 +3,5 @@
 *.gia
 graph.svg
 node_modules/
+dist/
 tests/composite/output/
