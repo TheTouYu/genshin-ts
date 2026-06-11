@@ -15,7 +15,7 @@ import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Milias
 import { writeFileSync } from 'fs'
 
 const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
-const OUT_DIR = '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+const OUT_DIR = './tests/composite/output'
 
 // ═══════════════════════════════════════════════
 // 模式 1: 双分支 — 条件判定
@@ -59,13 +59,13 @@ const sequentialExec = g.defineComposite('顺序执行', {
   outputs: {},
   build(_inputs: any, f: any) {
     // 入口节点 — 作为分叉源
-    f.registerExecNode('double_branch', [])
+    f.registerExecNode('double_branch', [new bool(true)])
 
     // 4 个出口分支
     f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
-    f.branchExec(1, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
-    f.branchExec(2, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
-    f.branchExec(3, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
 
     return {}
   }

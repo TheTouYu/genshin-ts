@@ -29,21 +29,12 @@
 
 ## 问题 2: 数据节点类型覆盖不全
 
-**场景**：复合的 `build()` 中调用 `f._3dVectorAddition(...)` 等非 arithmetic 数据节点
+**现状（Phase 2 改进）**：已新增 `isDataProducerNode()` 函数，覆盖 `concreteWrappedNodeTypes` + `data_type_conversion_*` + `get_*` 查询节点。但以下仍未覆盖：
+- `_3d_vector_*` (vec3 类型)
+- `bitwise_*`, `logarithm_*`, 三角函数
+- `assembly_list`, `assembly_dictionary`
 
-**现状**：
-- `concreteWrappedNodeTypes` 只覆盖 22 个算术/比较/逻辑节点
-- 还有 **183 个**数据节点类型未覆盖，包括：
-  - `_3d_vector_*` (10 个，vec3 类型)
-  - `bitwise_*`, `logarithm_*`, 三角函数等数学节点
-  - `get_*`, `query_*` 查询类节点
-  - `assembly_list`, `assembly_dictionary`
-
-**影响**：未覆盖的数据节点在 impl graph 中缺少 bConcreteValue 包裹 → 值路由失败
-
-**涉及文件**：`src/compiler/ir_to_gia_transform/composite.ts` — `concreteWrappedNodeTypes` Set
-
-**判断规则**：节点是否需要 bConcreteValue = 该节点在 impl graph 中被 compositePins 引用（有输入或输出映射）。理论上所有可能出现在复合 `build()` 中的数据节点都需要。更稳健的做法：将所有 `type:'data'` 且非 `assembly_*` / `__composite_*` 的节点都纳入，或在 `resolveImplNodeId` 返回非 0 时自动判定为需要。
+**涉及文件**：`src/compiler/ir_to_gia_transform/composite.ts` — `isDataProducerNode()`, `concreteWrappedNodeTypes`
 
 ---
 
@@ -85,16 +76,7 @@
 
 ## 问题 5: Normal → Composite 数据流
 
-**场景**：普通数据节点（非复合调用）的输出作为复合节点的输入
-
-```
-f.addition(a, b)           // 普通节点
-f.callComposite(comp, { x: result })  // result 来自普通节点
-```
-
-**现状**：`core.ts` line 987: `compositeDataEdge` 仅在来源为 `__composite_call__` 时记录。普通数据节点的输出通过 IR `dataConnections` 处理，已在 `layout.ts` 中增加了 `__composite_call__` 的 `toIndex` 修正（`toIndex - 1`，因为 args[0] 是 compositeId）。
-
-**状态**：layout.ts 的修正逻辑是正确的，但**未经实际测试验证**。需构造主图中普通节点输出 → 复合输入的 case。
+**现状（Phase 2 改进）**：impl 图内部数据连线已修复（toIRLiteral pin metadata → conn 序列化）。主图中普通节点输出 → 复合输入的数据流经 `layout.ts` 的 `toIndex - 1` 修正，**仍待实际测试验证**。
 
 ---
 

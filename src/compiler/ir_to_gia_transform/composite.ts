@@ -32,7 +32,16 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   const nodeIndexMap = new Map<number, number>()
   def.implNodes.forEach((n, i) => nodeIndexMap.set(n.id, i + 1))
 
-  const implNodes = buildImplGraphNodes(def.implNodes, nodeIndexMap, def.implEdges)
+  // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
+  const implOutParamMap = new Map<number, Array<{ pinIndex: number; type: string }>>()
+  for (const cp of def.compositePins) {
+    if (cp.outerPinKind !== 4) continue // 只取 OutParam
+    const arr = implOutParamMap.get(cp.innerNodeId) ?? []
+    arr.push({ pinIndex: cp.innerPinIndex, type: def.outputs[cp.outerPinIndex]?.type ?? 'int' })
+    implOutParamMap.set(cp.innerNodeId, arr)
+  }
+
+  const implNodes = buildImplGraphNodes(def.implNodes, nodeIndexMap, def.implEdges, implOutParamMap)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
@@ -169,17 +178,44 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   return accessories
 }
 
+type ImplEdge = number | { node_id: number; source_index?: number }
+
+function getEdgeTarget(edge: ImplEdge): number {
+  return typeof edge === 'number' ? edge : edge.node_id
+}
+
+function getEdgeSourceIndex(edge: ImplEdge): number {
+  return typeof edge === 'number' ? 0 : (edge.source_index ?? 0)
+}
+
+function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
+  const bySourceIndex = new Map<number, ImplEdge[]>()
+  for (const edge of edges) {
+    const si = getEdgeSourceIndex(edge)
+    const arr = bySourceIndex.get(si) ?? []
+    arr.push(edge)
+    bySourceIndex.set(si, arr)
+  }
+  return bySourceIndex
+}
+
+// impl 图布局间距常量
+const LAYOUT_EXEC_H_STEP = 800
+const LAYOUT_EXEC_V_STEP = 300
+const LAYOUT_DATA_H_STEP = 800
+const LAYOUT_DATA_Y_OFFSET = -400
+
 /**
  * 从 IR 节点构建 GIA GraphNode 列表（impl 图）
- *
- * 为每个 impl 节点解析正确的 GIA node ID、构建带类型/值的 pins、并添加 concreteId。
  */
 function buildImplGraphNodes(
   implNodes: CompositeDefIR['implNodes'],
   nodeIndexMap: Map<number, number>,
-  implEdges: Record<number, any[]>
+  implEdges: Record<number, any[]>,
+  implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>
 ): GraphNode[] {
-  return implNodes.map((node) => {
+  const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+  const nodeResults = implNodes.map((node) => {
     const nodeId = resolveImplNodeId(node.type, node.args as any)
     const genericId = {
       class: NodeGraph_Id_Class.SystemDefined,
@@ -187,34 +223,162 @@ function buildImplGraphNodes(
       kind: NodeGraph_Id_Kind.SysCall,
       nodeId
     }
-    const pins = buildImplNodePins(node, implEdges)
+    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap)
+    allDataConns.push(...dataConns)
+    return { node, nodeId, genericId, pins, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
+  })
 
-    // 为分叉源节点的 OutFlow pin 填充 connects（指向下游叶子节点）
+  for (const dc of allDataConns) {
+    const mappedUpstreamId = nodeIndexMap.get(dc.upstreamNodeId) ?? dc.upstreamNodeId
+    ;(dc.pin as any).connects = [{
+      id: mappedUpstreamId,
+      connect: { kind: NodePin_Index_Kind.OutParam, index: dc.upstreamPinIndex },
+      connect2: { kind: NodePin_Index_Kind.OutParam, index: dc.upstreamPinIndex }
+    }]
+  }
+
+  const layout = computeImplLayout(nodeResults, implNodes, implEdges)
+
+  return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex }) => {
     const outEdges = implEdges[node.id]
-    if (outEdges && outEdges.length > 0 && noPinSystemNodes.has(node.type)) {
-      const outFlowPin = pins.find((p: any) => p.i1?.kind === NodePin_Index_Kind.OutFlow)
-      if (outFlowPin) {
-        ;(outFlowPin as any).connects = outEdges.map((edge: any) => {
-          const targetId = typeof edge === 'number' ? edge : edge.node_id
-          return {
-            id: nodeIndexMap.get(targetId) ?? targetId,
-            connect: { kind: NodePin_Index_Kind.InFlow, index: 0 },
-            connect2: { kind: NodePin_Index_Kind.InFlow, index: 0 }
-          }
-        })
+    if (outEdges && outEdges.length > 0) {
+      for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
+        const outFlowPin = pins.find((p: any) =>
+          p.i1?.kind === NodePin_Index_Kind.OutFlow && p.i1?.index === srcIdx
+        )
+        if (outFlowPin) {
+          ;(outFlowPin as any).connects = edges.map((edge) => {
+            const targetId = getEdgeTarget(edge)
+            return {
+              id: nodeIndexMap.get(targetId) ?? targetId,
+              connect: { kind: NodePin_Index_Kind.InFlow, index: 0 },
+              connect2: { kind: NodePin_Index_Kind.InFlow, index: 0 }
+            }
+          })
+        }
       }
     }
 
+    const pos = layout.get(node.id) ?? { x: 0, y: 0 }
     return {
-      nodeIndex: nodeIndexMap.get(node.id) ?? node.id,
+      nodeIndex,
       genericId,
       concreteId: { ...genericId },
       pins,
-      x: 0,
-      y: 0,
+      x: pos.x,
+      y: pos.y,
       usingStruct: []
     }
   })
+}
+
+/** 为 impl 图节点计算布局坐标。exec 节点 BFS，数据节点按 Kahn 拓扑深度分列。 */
+function computeImplLayout(
+  nodeResults: Array<{ node: CompositeDefIR['implNodes'][number] }>,
+  implNodes: CompositeDefIR['implNodes'],
+  implEdges: Record<number, any[]>
+): Map<number, { x: number; y: number }> {
+  const pos = new Map<number, { x: number; y: number }>()
+
+  const hasExecOut = new Set<number>()
+  const execChildren = new Map<number, number[]>()
+  for (const [fromIdStr, edges] of Object.entries(implEdges)) {
+    const fromId = Number(fromIdStr)
+    hasExecOut.add(fromId)
+    execChildren.set(fromId, edges.map(e => getEdgeTarget(e)))
+  }
+
+  const hasExecIn = new Set<number>()
+  for (const children of execChildren.values()) {
+    for (const c of children) hasExecIn.add(c)
+  }
+  const entryNodes = implNodes.filter(n => hasExecOut.has(n.id) && !hasExecIn.has(n.id))
+
+  const visited = new Set<number>()
+  type QueueEntry = { id: number; x: number; y: number }
+  const queue: QueueEntry[] = entryNodes.map(id => ({ id: id.id, x: 0, y: 0 }))
+  let qi = 0
+
+  while (qi < queue.length) {
+    const { id, x, y } = queue[qi++]
+    if (visited.has(id)) continue
+    visited.add(id)
+    pos.set(id, { x, y })
+
+    const children = execChildren.get(id) ?? []
+    children.forEach((childId, i) => {
+      if (!visited.has(childId)) {
+        queue.push({ id: childId, x: x + LAYOUT_EXEC_H_STEP, y: y + i * LAYOUT_EXEC_V_STEP })
+      }
+    })
+  }
+
+  // 环中节点放远一点
+  let orphanX = -400
+  let orphanY = -400
+  for (const id of hasExecOut) {
+    if (visited.has(id)) continue
+    pos.set(id, { x: orphanX, y: orphanY })
+    orphanX -= 400
+    if (orphanX < -2000) { orphanX = -400; orphanY += 400 }
+  }
+
+  const dataNodeIds = implNodes.filter(n => !hasExecOut.has(n.id)).map(n => n.id)
+  const dataNodeIdSet = new Set(dataNodeIds)
+  const dataEdges = new Map<number, number[]>()
+  const dataInDegree = new Map<number, number>()
+  for (const id of dataNodeIds) dataInDegree.set(id, 0)
+  for (const nr of nodeResults) {
+    const args = nr.node.args ?? []
+    for (const arg of args) {
+      if (arg && (arg as any).type === 'conn') {
+        const v = (arg as any).value as { node_id?: number } | undefined
+        if (v?.node_id && dataNodeIdSet.has(v.node_id)) {
+          const deps = dataEdges.get(v.node_id) ?? []
+          deps.push(nr.node.id)
+          dataEdges.set(v.node_id, deps)
+          dataInDegree.set(nr.node.id, (dataInDegree.get(nr.node.id) ?? 0) + 1)
+        }
+      }
+    }
+  }
+
+  const dataDepth = new Map<number, number>()
+  const kahnQ: number[] = []
+  let kahnQi = 0
+  for (const id of dataNodeIds) {
+    if ((dataInDegree.get(id) ?? 0) === 0) {
+      kahnQ.push(id)
+      dataDepth.set(id, 0)
+    }
+  }
+  while (kahnQi < kahnQ.length) {
+    const cur = kahnQ[kahnQi++]
+    const curDepth = dataDepth.get(cur) ?? 0
+    for (const child of dataEdges.get(cur) ?? []) {
+      const newDeg = (dataInDegree.get(child) ?? 1) - 1
+      dataInDegree.set(child, newDeg)
+      dataDepth.set(child, Math.max(dataDepth.get(child) ?? 0, curDepth + 1))
+      if (newDeg === 0) kahnQ.push(child)
+    }
+  }
+
+  const dataCols = new Map<number, number[]>()
+  for (const id of dataNodeIds) {
+    const d = dataDepth.get(id) ?? 0
+    const col = dataCols.get(d) ?? []
+    col.push(id)
+    dataCols.set(d, col)
+  }
+  const maxDepth = Math.max(...dataNodeIds.map(id => dataDepth.get(id) ?? 0), 0)
+  for (let d = 0; d <= maxDepth; d++) {
+    const col = dataCols.get(d) ?? []
+    col.forEach((id, row) => {
+      pos.set(id, { x: d * LAYOUT_DATA_H_STEP, y: row * LAYOUT_EXEC_V_STEP + LAYOUT_DATA_Y_OFFSET })
+    })
+  }
+
+  return pos
 }
 
 /**
@@ -294,37 +458,37 @@ function argVarType(argType: string): number {
 }
 
 /**
- * 为 impl 节点构建带类型/值的 pins
+ * 为 impl 节点构建 pins。由捕获数据驱动：args → InParam、outputValues → OutParam、edges → OutFlow。
+ * dataConns 数组中持有对 pins 内 pin 对象的引用，供调用方填充 connects。
  */
-/** 系统内置节点，在 impl 图中不需要生成 InParam/OutParam pin */
-const noPinSystemNodes = new Set([
-  'double_branch', 'finite_loop', 'multiple_branches',
-  'break_loop'
-])
-
 function buildImplNodePins(
   node: CompositeDefIR['implNodes'][number],
-  implEdges: Record<number, any[]>
-): NodePin[] {
-  // 系统节点只生成必要的 OutFlow pin（如果该节点有 outgoing exec edges）
-  if (noPinSystemNodes.has(node.type)) {
-    const outEdges = implEdges[node.id]
-    if (outEdges && outEdges.length > 0) {
-      return [{
-        i1: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
-        i2: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
-        type: 0,
-        value: undefined as any
-      }]
-    }
-    return []
+  implEdges: Record<number, any[]>,
+  implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>
+): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
+  const pins: NodePin[] = []
+  const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+
+  if (node.type === '__composite_capture__' || node.type === '__composite_call__') {
+    return { pins, dataConns }
   }
 
   const args = node.args ?? []
-  const pins: NodePin[] = []
   let pinIndex = 0
   for (const arg of args) {
-    if (arg && arg.type === 'conn') continue
+    if (arg && arg.type === 'conn') {
+      const pin = buildPlaceholderPin(pinIndex, node.type)
+      pins.push(pin)
+      const conn = arg.value as { node_id: number; index: number }
+      dataConns.push({
+        nodeId: node.id,
+        pin,
+        upstreamNodeId: conn.node_id,
+        upstreamPinIndex: conn.index
+      })
+      pinIndex++
+      continue
+    }
     if (arg) {
       pins.push(buildLiteralPin(pinIndex, arg.type, arg.value, node.type))
     } else {
@@ -332,22 +496,30 @@ function buildImplNodePins(
     }
     pinIndex++
   }
-  // data_type_conversion_<out> 需要输出 OutParam pin
-  if (node.type.startsWith('data_type_conversion_')) {
-    const outType = node.type.slice('data_type_conversion_'.length)
-    const outVarType = argVarType(outType)
-    const outVarClass = argVarBaseClass(outType)
-    pins.push({
-      i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
-      i2: { kind: NodePin_Index_Kind.OutParam, index: 0 },
-      value: wrapConcreteValue(1, outVarClass, outVarType, '') as any,
-      type: outVarType
-    })
+
+  const outParams = implOutParamMap.get(node.id)
+  if (outParams) {
+    for (const op of outParams) {
+      const outVarType = argVarType(op.type)
+      const outVarClass = argVarBaseClass(op.type)
+      pins.push({
+        i1: { kind: NodePin_Index_Kind.OutParam, index: op.pinIndex },
+        i2: { kind: NodePin_Index_Kind.OutParam, index: op.pinIndex },
+        value: wrapConcreteValue(op.pinIndex, outVarClass, outVarType, '') as any,
+        type: outVarType
+      })
+    }
   }
-  // 其他数据节点（addition 等）需要 OutParam pin 暴露输出，供 compositePins 的 OutParam 映射使用
-  if (!node.type.startsWith('data_type_conversion_') && pins.length > 0 && node.type !== 'print_string') {
-    const outType = pins[0].type
-    const outClass = pins[0].value?.bConcreteValue?.value?.class ?? pins[0].value?.class ?? 0
+
+  const hasExplicitOutParam = outParams && outParams.length > 0
+  if (!hasExplicitOutParam && pins.length > 0 && isDataProducerNode(node.type)) {
+    let outType = pins[0].type
+    let outClass = pins[0].value?.bConcreteValue?.value?.class ?? pins[0].value?.class ?? 0
+    // vec3→float 节点：输出是 float 而非 vec3
+    if (vec3ToFloatNodeTypes.has(node.type)) {
+      outType = VarType.Float
+      outClass = VarBase_Class.FloatBase
+    }
     const innerValue = makeVarBaseValue(outClass, outType, false)
     let outValue: Record<string, unknown> = innerValue
     if (needsConcreteWrapping(node.type)) {
@@ -364,7 +536,27 @@ function buildImplNodePins(
       type: outType
     })
   }
-  return pins
+
+  const outEdges = implEdges[node.id]
+  if (outEdges && outEdges.length > 0) {
+    for (const [srcIdx] of groupEdgesBySourceIndex(outEdges)) {
+      pins.push({
+        i1: { kind: NodePin_Index_Kind.OutFlow, index: srcIdx },
+        i2: { kind: NodePin_Index_Kind.OutFlow, index: srcIdx },
+        type: 0,
+        value: undefined as any
+      })
+    }
+  }
+
+  return { pins, dataConns }
+}
+
+function isDataProducerNode(nodeType: string): boolean {
+  if (needsConcreteWrapping(nodeType)) return true
+  if (vec3NodeTypes.has(nodeType)) return true
+  if (nodeType.startsWith('get_') && !nodeType.startsWith('get_node_graph_variable')) return true
+  return false
 }
 
 /** 构建 VarBase 值结构（bInt/bFloat/bString 等） */
@@ -378,6 +570,9 @@ function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): R
   }
   if (varClass === VarBase_Class.StringBase) {
     return { class: varClass, alreadySetVal: setVal, itemType, bString: { val: '' } }
+  }
+  if (varClass === VarBase_Class.VectorBase) {
+    return { class: varClass, alreadySetVal: setVal, itemType, bVector: { val: { x: 0, y: 0, z: 0 } } }
   }
   return { class: varClass, alreadySetVal: setVal, itemType }
 }
@@ -393,6 +588,8 @@ function wrapConcreteValue(
   let innerValue: Record<string, unknown> = {}
   if (varClass === VarBase_Class.StringBase) {
     innerValue = { class: varClass, alreadySetVal: false, itemType, bString: { val: strVal } }
+  } else if (varClass === VarBase_Class.VectorBase) {
+    innerValue = { class: varClass, alreadySetVal: false, itemType, bVector: { val: { x: 0, y: 0, z: 0 } } }
   } else if (varClass === VarBase_Class.IdBase) {
     innerValue = { class: varClass, alreadySetVal: false, itemType }
   } else {
@@ -419,6 +616,20 @@ const concreteWrappedNodeTypes = new Set([
   'enumerations_equal',
 ])
 
+// vec3 输入节点：InParam placeholder 需要 VectorBase 类型
+const vec3NodeTypes = new Set([
+  '_3d_vector_addition', '_3d_vector_subtraction', '_3d_vector_cross_product',
+  '_3d_vector_zoom', '_3d_vector_rotation',
+  '_3d_vector_modulo_operation', '_3d_vector_dot_product',
+  '_3d_vector_angle', '_3d_vector_normalization',
+  'split_3d_vector', 'create_3d_vector',
+])
+
+// vec3→float 输出节点：输入 vec3 但输出 float，自动 OutParam 需特殊处理
+const vec3ToFloatNodeTypes = new Set([
+  '_3d_vector_modulo_operation', '_3d_vector_dot_product', '_3d_vector_angle',
+])
+
 /** 判断节点类型是否需要 bConcreteValue 包裹 */
 function needsConcreteWrapping(nodeType: string): boolean {
   return nodeType.startsWith('data_type_conversion_') || concreteWrappedNodeTypes.has(nodeType)
@@ -432,6 +643,8 @@ function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
     varType = VarType.String; varClass = VarBase_Class.StringBase
   } else if (concreteWrappedNodeTypes.has(nodeType)) {
     varType = VarType.Integer; varClass = VarBase_Class.IntBase
+  } else if (vec3NodeTypes.has(nodeType)) {
+    varType = VarType.Vector; varClass = VarBase_Class.VectorBase
   }
   let pinValue = makeVarBaseValue(varClass, varType, false)
 

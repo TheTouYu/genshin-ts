@@ -11,10 +11,10 @@
 
 ## P0 — 阻塞基本功能
 
-### 1. 数据节点 bConcreteValue 类型覆盖
+### 1. 数据节点 bConcreteValue 类型覆盖（部分完成）
 **文档**: `composite-full-scenario-gaps.md` 问题 2, 3, 4
-**现状**: `concreteWrappedNodeTypes` + `buildPlaceholderPin` + `makeVarBaseValue` 仅覆盖 IntBase
-**缺失**: FloatBase (15 节点), EnumBase/bool (18 节点), VectorBase/vec3 (10 节点), StringBase (3 节点), IdBase
+**已完成**: VectorBase/vec3 (10 节点) — 2026-06-11 游戏验证通过 ✅
+**仍缺失**: FloatBase (15 节点), EnumBase/bool (18 节点), StringBase (3 节点), IdBase
 **改动**: `composite.ts` — 扩展 `concreteWrappedNodeTypes`, `buildPlaceholderPin` 类型推断, `makeVarBaseValue` 值构建
 
 ### 2. `local_variable` + `*_list` 类型 InParam/OutParam 支持
@@ -60,11 +60,11 @@
 
 ## P3 — 重大新功能
 
-### 8. 多 OutFlow 复合节点
-**文档**: `multi-outflow-composite-guide.md`
-**难度**: 高（API 设计 + 捕获重构 + IR DAG 化）
-**改动**: 6 个文件，架构级变更
-**参考**: `user_edit/纯复合节点-顺序执行.gia`, `user_edit/顺序执行.gia`
+### 8. 多 OutFlow 复合节点 ✅ Phase 1+2 完成
+**文档**: `multi-outflow-composite-guide.md`, `composite-phase1-api-guide.md`
+**改动**: `composite.ts`（重写 buildImplNodePins）、`composite_registry.ts`（toIRLiteral 修复）、测试文件 × 3
+**关键修复**: 移除 noPinSystemNodes、OutFlow 按 source_index 拆分、数据连线修复、branchExec 校正、impl 布局
+**参考**: `复杂gia/弹球.gia`, `传球.gia`, `物理运动.gia`
 
 ### 9. GIA 定义文件格式 (which=12)
 **文档**: `multi-outflow-composite-guide.md` 两种文件格式
@@ -92,5 +92,9 @@
 | 带参数 exec 复合 | `basic_call_param.gia` |
 | 双 exec 串行 (终端+非终端) | `two_exec.gia` |
 | 双复合+普通节点混合 | `mixed_composite_and_normal.gia` |
-| 纯数据复合 (1 input used twice) | `two_simple.gia` (待重新验证) |
-| exec + data_type_conversion 复合 | `两个复合节点_gen.gia` (待验证) |
+| 纯数据复合 (1 input used twice) | `two_simple.gia` |
+| 多 OutFlow 系统节点 | `phase1_system_nodes.gia` |
+| 多 OutFlow 普通节点 | `phase2_normal_nodes.gia` |
+| 参考模式（5 种） | `phase2_reference_patterns.gia` |
+| mul3 vs 参考完全一致 | `replicate_mul3.gia` |
+| 双复合(vec3加法+带参打印) | `两个复合节点.gia` |

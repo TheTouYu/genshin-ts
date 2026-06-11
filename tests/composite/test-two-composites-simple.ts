@@ -10,7 +10,7 @@ import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { writeFileSync } from 'fs'
 
 const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
-const OUT_DIR = '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+const OUT_DIR = './tests/composite/output'
 
 // ── 复合1: 纯数据 — int 翻倍 ──
 const add1 = g.defineComposite('翻倍', {

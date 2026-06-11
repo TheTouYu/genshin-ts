@@ -9,7 +9,7 @@ import { writeFileSync } from 'fs'
 import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
-const OUT_DIR = '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/user_edit'
+const OUT_DIR = './tests/composite/output'
 const REF_PATH = `${OUT_DIR}/类型转化.gia`
 
 g.server({ name: 'type_conv', graphId: 1073741857 })

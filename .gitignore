@@ -3,9 +3,4 @@
 *.gia
 graph.svg
 node_modules/
-dist/
-out/
-__pycache__/
-*.pyc
-examples/test.json
-*.tgz
+tests/composite/output/
