@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_12 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741841 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741836 }).on('whenEntityIsCreated', (_evt, f) => {
   // sortDictionaryByValue :: dict<configId, float>
   f.sortDictionaryByValue(f.assemblyDictionary([{ k: new configId(2n), v: 3.25 }, { k: new configId(4n), v: 5.25 }]), E.SortBy.Ascending)
   // sortDictionaryByValue :: dict<configId, int>

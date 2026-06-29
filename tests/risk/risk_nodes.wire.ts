@@ -1,6 +1,6 @@
 import { g } from 'genshin-ts/runtime/core'
 
-g.server({ id: 1073741865 })
+g.server({ id: 1073741855 })
   .on('whenEntityIsCreated', (_evt, f) => {
     const e = f.getSelfEntity()
     const vInt = f.addition(1n, 2n)

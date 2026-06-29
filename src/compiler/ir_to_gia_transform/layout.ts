@@ -65,9 +65,12 @@ export function buildExecutionGraph(irNodes: IRNode[]) {
         // 特殊节点的 GIA pin 布局与 IR args 索引不一致：
         // - assembly_list: GIA pin0 为元素数量，元素从 pin1 开始
         // - assembly_dictionary: GIA pin0 为 kv 参数数量（k/v 总数），k/v 从 pin1 开始
+        // __composite_call__ 的 args[0] 是 compositeId，真正的参数从 args[1] 开始
         const toIndexPatched =
           node.type === 'assembly_list' || node.type === 'assembly_dictionary'
             ? toIndex + 1
+            : node.type === '__composite_call__'
+            ? toIndex - 1
             : toIndex
         dataConnections.push({
           fromId: dataNodeId,

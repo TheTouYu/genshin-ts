@@ -333,7 +333,7 @@ function main() {
   }
   fs.mkdirSync(outDir, { recursive: true })
 
-  const BASE_GRAPH_ID = 1073741850
+  const BASE_GRAPH_ID = 1073741841
   let outFileIndex = 0
   const allocGraphId = () => BASE_GRAPH_ID + Math.floor(outFileIndex++ / 2)
 

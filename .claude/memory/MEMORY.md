@@ -2,3 +2,4 @@
 - [GIA格式解析 ADR-002](architecture_compilation_pipeline.md) — GIA二进制格式、protobuf schema、NodeType类型系统、编解码、对比方案。搜：gia格式、proto、解码、对比、diff、decode_gia_file、Graph.decode、node_pin_records
 - [复合节点支持](architecture_compilation_pipeline.md) — 复合节点(CompositeNode)已在 Pipeline 级别实现：g.defineComposite / f.callComposite / CompositeRegistry / CompositeDefIR → GIA accessories。搜：composite、复合节点、defineComposite、callComposite、CompositeRegistry、CompositeDefIR、compositePins、accessories
 - [复合节点测试结果](composite_node_testing.md) — 2026-06-08 完整测试：Part1 48/48、Part2 20/20+4pending、Part3 42/42。搜：测试、composite测试、basic.ts bug
+- [复合节点 GIA 差异分析](composite_gia_diff_analysis.md) — 2026-06-08 对比游戏参考文件 vs 生成文件的结构差异，列出 P0-P4 修复清单。搜：GIA差异、diff、对比、fix

@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 // @ts-nocheck — 复合节点测试脚本
 
 /**
@@ -14,21 +13,21 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
-import { decode_gia_file } from '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
-import { defineComposite } from '../dist/src/index.js'
-import { compositeRegistry } from '../dist/src/runtime/composite_registry.js'
-import { g, buildServerGraphRegistriesIRDocuments } from '../dist/src/runtime/core.js'
-import { irToGia } from '../dist/src/compiler/ir_to_gia_transform/index.js'
-import { buildCompositeAccessories } from '../dist/src/compiler/ir_to_gia_transform/composite.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { defineComposite } from '../../dist/src/index.js'
+import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
+import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
+import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { buildCompositeAccessories } from '../../dist/src/compiler/ir_to_gia_transform/composite.js'
 import {
   composite_pin_body,
   graph_affiliation_body
-} from '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.js'
+} from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/basic.js'
 
 // ============== 工具函数 ==============
 
-const PROTO_PATH = '/Users/wonder/Desktop/explore/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
-const REF_DIR = '/Users/wonder/Desktop/explore/Beyond_Local_Export/真-测试通过'
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const REF_DIR = process.env.COMPOSITE_REF_DIR || ''
 const OUT_DIR = '/tmp/composite-test-output'
 
 let totalPassed = 0

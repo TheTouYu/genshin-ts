@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_09 (wire)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741838 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741833 }).on('whenEntityIsCreated', (_evt, f) => {
 const e = f.getSelfEntity()
 const vInt = f.addition(1n, 2n)
 const vFloat = f.pi()

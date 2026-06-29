@@ -5,7 +5,7 @@ import { configId, faction, guid, prefabId } from 'genshin-ts/runtime/value'
 // AUTO-GENERATED: group_04 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741933 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741875 }).on('whenEntityIsCreated', (_evt, f) => {
   // assemblyDictionary :: dict<configId, bool>
   f.assemblyDictionary([
     { k: new configId(1n), v: false },

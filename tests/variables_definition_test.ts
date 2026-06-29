@@ -1,7 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  id: 1073741867,
+  id: 1073741857,
   variables: {
     v_bool: true,
     v_int: 42n,

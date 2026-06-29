@@ -4,7 +4,7 @@ import { g } from 'genshin-ts/runtime/core'
 // Manual import/export verification for nodes resolved after v0.1.9.
 
 g.server({
-  id: 1073742301,
+  id: 1073741879,
   lang: 'en',
   mode: 'beyond'
 }).on('whenEntityIsCreated', (_evt, f) => {
@@ -23,7 +23,7 @@ g.server({
 })
 
 g.server({
-  id: 1073742302,
+  id: 1073741880,
   lang: 'en',
   mode: 'classic'
 })

@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 // @ts-nocheck — 复合节点测试脚本
 
 /**
@@ -9,14 +8,14 @@
  */
 
 import { writeFileSync, existsSync, mkdirSync } from 'fs'
-import { decode_gia_file } from '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
-import { defineComposite } from '../dist/src/index.js'
-import { compositeRegistry } from '../dist/src/runtime/composite_registry.js'
-import { g, buildServerGraphRegistriesIRDocuments } from '../dist/src/runtime/core.js'
-import { irToGia } from '../dist/src/compiler/ir_to_gia_transform/index.js'
-import { int, str } from '../dist/src/runtime/value.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { defineComposite } from '../../dist/src/index.js'
+import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
+import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
+import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { int, str } from '../../dist/src/runtime/value.js'
 
-const PROTO_PATH = '/Users/wonder/Desktop/explore/genshin-ts/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 const OUT_DIR = '/tmp/composite-test-output/part2'
 
 let passed = 0
@@ -86,7 +85,7 @@ g.server({ name: 'p2a' }).on('whenEntityIsCreated', (e, f) => { f.printString('k
 const docsA = buildServerGraphRegistriesIRDocuments({ defaultName: 'p2a', optimizeA: true })
 
 test('captured.dataNodes 含 addition', () => addHandle.definition.captured?.dataNodes.some(n => n.nodeType === 'addition'))
-encodeGia('2A 编码', docsA[0], 1073741840, 'p2a_simple_capture')
+encodeGia('2A 编码', docsA[0], 1073741835, 'p2a_simple_capture')
 
 // ═══ 2B: exec-only 复合 ═══
 console.log('\n▸ 2B: exec-only 复合')
@@ -102,7 +101,7 @@ const docsB = buildServerGraphRegistriesIRDocuments({ defaultName: 'p2b' })
 test('printHandle 捕获 execNodes 含 print_string', () =>
   printHandle.definition.captured?.execNodes.some(n => n.nodeType === 'print_string'))
 test('printHandle isPureData = false', () => printHandle.definition.captured?.isPureData === false)
-encodeGia('2B 编码', docsB[0], 1073741841, 'p2b_exec_only')
+encodeGia('2B 编码', docsB[0], 1073741836, 'p2b_exec_only')
 
 // ═══ 2C: callComposite 主图调用 ═══
 console.log('\n▸ 2C: callComposite 主图调用')
@@ -116,7 +115,7 @@ g.server({ name: 'p2c' })
 const docsC = buildServerGraphRegistriesIRDocuments({ defaultName: 'p2c' })
 const docC = docsC[0]
 test('2C 主图有节点', () => (docC.nodes?.length ?? 0) >= 1)
-encodeGia('2C 编码', docC, 1073741842, 'p2c_call_composite')
+encodeGia('2C 编码', docC, 1073741837, 'p2c_call_composite')
 
 // ═══ 2D: callComposite 返回值连线 ═══
 console.log('\n▸ 2D: callComposite 返回值连线')
@@ -132,7 +131,7 @@ g.server({ name: 'p2d' })
 const docsD = buildServerGraphRegistriesIRDocuments({ defaultName: 'p2d' })
 const docD = docsD[0]
 test('2D 主图有节点', () => (docD.nodes?.length ?? 0) >= 1)
-encodeGia('2D 编码', docD, 1073741843, 'p2d_return_wiring')
+encodeGia('2D 编码', docD, 1073741838, 'p2d_return_wiring')
 pendingRef('callComposite 返回值连线 GIA 精确对比')
 
 // ═══ 2E: 多次调用同一复合 ═══
@@ -156,7 +155,7 @@ g.server({ name: 'p2e' })
 const docsE = buildServerGraphRegistriesIRDocuments({ defaultName: 'p2e' })
 const docE = docsE[0]
 test('2E 主图有节点', () => (docE.nodes?.length ?? 0) >= 1)
-encodeGia('2E 编码', docE, 1073741844, 'p2e_multi_call')
+encodeGia('2E 编码', docE, 1073741839, 'p2e_multi_call')
 pendingRef('多次调用 GIA 精确对比')
 
 // ═══ 2F: 空复合 ═══

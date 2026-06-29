@@ -6,7 +6,7 @@ enum Vars {
 }
 
 g.server({
-  id: 1073741893,
+  id: 1073741870,
   variables: {
     [Vars.LiveA]: list('int', [0n, 0n, 0n]),
     [Vars.LiveB]: list('int', [9n, 9n, 9n])

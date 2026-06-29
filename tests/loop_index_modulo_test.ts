@@ -1,7 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  id: 1073741895
+  id: 1073741872
 }).on('whenEntityIsCreated', (_evt, f) => {
   f.printString('__CASE__:loop_index_modulo:start')
 

@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_09 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741838 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741833 }).on('whenEntityIsCreated', (_evt, f) => {
   // enumerationsEqual :: e<10>
   f.enumerationsEqual(E.SortBy.Ascending, E.SortBy.Ascending)
   // enumerationsEqual :: e<11>

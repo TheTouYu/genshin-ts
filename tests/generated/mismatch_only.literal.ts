@@ -5,7 +5,7 @@ import { configId, faction, guid, prefabId } from 'genshin-ts/runtime/value'
 // AUTO-GENERATED: mismatch_only (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741860 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741850 }).on('whenEntityIsCreated', (_evt, f) => {
   // setCustomVariable :: bool
   f.setCustomVariable(f.getSelfEntity(), '2', true, false)
   // getCustomVariable :: bool

@@ -16,7 +16,7 @@ setTimeout(() => {
 // - cross-file gstsServer* can be resolved in dev incremental program
 // - gstsServer* call is allowed inside handler
 g.server({
-  id: 1073741872
+  id: 1073741862
 }).on('whenEntityIsCreated', (_evt, f) => {
   const total = gstsServerCrossAdd(5n, 6n)
   f.printString(str(total))

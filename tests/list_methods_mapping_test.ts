@@ -1,7 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  id: 1073741869
+  id: 1073741859
 }).on('whenEntityIsCreated', (evt, f) => {
   const ints = list('int', [1n, 2n, 3n])
   const ints2 = list('int', [1n, 2n, 3n])

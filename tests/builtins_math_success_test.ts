@@ -2,7 +2,7 @@ import { g } from 'genshin-ts/runtime/core'
 
 const graph = g
   .server({
-    id: 1073741871
+    id: 1073741861
   })
   .on('whenEntityIsCreated', (evt, f) => {
     const a = 3.5

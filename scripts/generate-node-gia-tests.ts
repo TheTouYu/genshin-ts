@@ -43,7 +43,7 @@ function main() {
   cleanDir(outDir)
 
   // 需求：每 4 个“生成文件”使用同一个 graph id，然后递增（便于合并后按 id 聚合查看）
-  const BASE_GRAPH_ID = 1073741830
+  const BASE_GRAPH_ID = 1073741828
   let outFileIndex = 0
   const allocGraphId = () => BASE_GRAPH_ID + Math.floor(outFileIndex++ / 2)
 

@@ -4,7 +4,7 @@ import { g } from 'genshin-ts/runtime/core'
 // - compile warning for setInterval(100)
 // - timer prints from setTimeout/setInterval and loop captures
 g.server({
-  id: 1073741868
+  id: 1073741858
 }).on('whenEntityIsCreated', (evt, f) => {
   const tag = 'timeout_a'
   const idx = 7n

@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED: group_01 (literal)
 // Run: npx tsx scripts/generate-node-gia-tests.ts
 
-g.server({ id: 1073741830 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741828 }).on('whenEntityIsCreated', (_evt, f) => {
   // listSorting :: float
   f.listSorting(f.assemblyList([1.25, 2.25, 3.25], "float"), E.SortBy.Ascending)
   // listSorting :: int

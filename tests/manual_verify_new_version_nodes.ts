@@ -9,7 +9,7 @@ import { g } from 'genshin-ts/runtime/core'
 // Manual import/export verification for the 2026-04 node-definition update.
 
 g.server({
-  id: 1073742101,
+  id: 1073741877,
   lang: 'en',
   mode: 'beyond'
 }).on('whenEntityIsCreated', (_evt, f) => {

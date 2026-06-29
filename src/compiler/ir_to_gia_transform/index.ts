@@ -13,6 +13,12 @@ import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { isListValueInfo, type ListValueInfo } from '../../runtime/variables.js'
 import type { NodeType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js'
 import { Graph, Node, NodeIdFor, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
+import {
+  GraphUnit_Id_Class,
+  NodeGraph_Id_Class,
+  NodeGraph_Id_Kind,
+  NodeProperty_Type
+} from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
@@ -154,6 +160,28 @@ function applyGraphVariables(graph: GiaGraph, variables: Variable[]) {
 export type ServerGraphMode = 'server' | 'status' | 'class' | 'item'
 export type GiaGraph = Graph<ServerGraphMode>
 export type GiaNode = Node<ServerGraphMode>
+
+function extractCompositeIdFromArgs(args: Argument[] | undefined): number | undefined {
+  const arg = args?.[0]
+  if (!arg || arg.type === 'conn') return undefined
+  return Number(arg.value)
+}
+
+function compositeTypeToBaseTag(type: string): 'Str' | 'Bol' | 'Int' | 'Flt' | 'Vec' | 'Ety' | 'Gid' | 'Cfg' | 'Fct' | 'Pfb' | null {
+  switch (type) {
+    case 'bool': return 'Bol'
+    case 'int': return 'Int'
+    case 'float': return 'Flt'
+    case 'str': return 'Str'
+    case 'vec3': return 'Vec'
+    case 'guid': return 'Gid'
+    case 'entity': return 'Ety'
+    case 'faction': return 'Fct'
+    case 'config_id': return 'Cfg'
+    case 'prefab_id': return 'Pfb'
+    default: return null
+  }
+}
 
 function resolveServerGraphMode(graphType: ServerGraphSubType | undefined): ServerGraphMode {
   switch (graphType) {
@@ -452,8 +480,75 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const irNodeTypeById = new Map<NodeId, string>()
   const assemblyDictMeta = new Map<NodeId, { keyConn: boolean[] }>()
+  const calledCompositeIds: number[] = []
+  const compositeCallNodeIndices = new Map<number, number>() // nodeIndex → compositeId
+
+  // 构建 compositeId → CompositeDefIR 查找表（用于添加 pins 和 compositePinIndex）
+  const compositeDefById = new Map<number, CompositeDefIR>()
+  for (const cd of ((ir as any).compositeDefs ?? []) as CompositeDefIR[]) {
+    compositeDefById.set(cd.id, cd)
+  }
+
   ir.nodes!.forEach((irNode) => {
     const nodeType = irNode.type
+
+    // 复合调用标记节点
+    if (nodeType === '__composite_call__') {
+      const compositeId = extractCompositeIdFromArgs(irNode.args)
+      if (compositeId !== undefined) {
+        calledCompositeIds.push(compositeId)
+        compositeCallNodeIndices.set(irNode.id, compositeId)
+      }
+      const giaNode: GiaNode = new Node<ServerGraphMode>(
+        irNode.id,
+        serverMode,
+        0 as NodeIdFor<ServerGraphMode>
+      )
+      const layoutPos = positions.get(irNode.id)!
+      giaNode.setPos(layoutPos[0] / 300, layoutPos[1] / 200)
+
+      // 添加 InParam/OutParam pins（带 compositePinIndex）
+      const cdef = compositeId !== undefined ? compositeDefById.get(compositeId) : undefined
+      if (cdef) {
+        const callArgs = irNode.args ?? []
+        for (let i = 0; i < cdef.inputs.length; i++) {
+          const input = cdef.inputs[i]
+          const ai = i + 1
+          const arg: Argument | null = ai < callArgs.length ? (callArgs[ai] ?? null) : null
+          const p = new Pin(giaNode.ConcreteId!, 3, input.index) // InParam
+          ;(p as any).compositePinIndex = input.pinIndex
+          const bt = compositeTypeToBaseTag(input.type as string)
+          if (bt) p.setType({ t: 'b', b: bt })
+          giaNode.pins.push(p)
+        }
+        // 从 IR args[1..] 填充 InParam 字面量值（args[0] 是 compositeId）
+        for (let ai = 1; ai < callArgs.length; ai++) {
+          const arg = callArgs[ai]
+          const pinIdx = ai - 1
+          if (!arg || arg.type === 'conn') continue
+          if (pinIdx < cdef.inputs.length) {
+            setLiteralArgValue(giaNode, pinIdx, ai, nodeType, arg.type, arg.value)
+          }
+        }
+        // 纯数据复合不添加 OutParam pin——输出由 CompositeDef 隐式定义
+        if (cdef.inflows.length > 0) {
+          for (const output of cdef.outputs) {
+            const p = new Pin(giaNode.ConcreteId!, 4, output.index) // OutParam
+            const bt = compositeTypeToBaseTag(output.type as string)
+            if (bt) p.setType({ t: 'b', b: bt })
+            giaNode.pins.push(p)
+          }
+        }
+        // 不在此处添加 OutFlow pin。graph.flow() 为有连接的 outflow 创建 pin，
+        // 未连接的 OutFlow pin 在 post-encoding 中补充。
+      }
+
+      irNodeTypeById.set(irNode.id, nodeType)
+      nodesById.set(irNode.id, giaNode)
+      graph.add_node(giaNode)
+      return
+    }
+
     const nodeId = resolveGiaNodeId(irNode, connIndex, varsByName, resolvedRuntimeMode)
 
     irNodeTypeById.set(irNode.id, nodeType)
@@ -513,25 +608,137 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     graph.connect(from, to, mappedFromIndex, mappedToIndex)
   }
 
+  // 应用复合节点之间的数据连线
+  const compositeDataEdges = (ir as any).compositeDataEdges as Array<{
+    fromNodeId: number; fromPinIndex: number; toMarkerId: number; toPinIndex: number
+  }> | undefined
+  // 构建已存在连接的集合，避免 compositeDataEdges 重复连接
+  const existingConnections = new Set(graphInfo.dataConnections.map(
+    (c: { fromId: number; toId: number; fromIndex: number; toIndex: number }) =>
+      `${c.fromId}-${c.fromIndex}-${c.toId}-${c.toIndex}`
+  ))
+  if (compositeDataEdges) {
+    for (const edge of compositeDataEdges) {
+      const key = `${edge.fromNodeId}-${edge.fromPinIndex}-${edge.toMarkerId}-${edge.toPinIndex}`
+      if (existingConnections.has(key)) continue
+      const from = nodesById.get(edge.fromNodeId)
+      const to = nodesById.get(edge.toMarkerId)
+      if (from && to) {
+        graph.connect(from, to, edge.fromPinIndex, edge.toPinIndex)
+      }
+    }
+  }
+
   let root: GiaRoot
   try {
     root = graph.encode()
-  } catch (e) {
-    for (const n of graph.get_nodes()) {
-      for (const p of n.pins ?? []) {
-        // only check input pins with a resolved type
-        if (!p || p.kind !== 3 || !p.type) continue
-        // base string pin
-        if (p.type.t === 'b' && p.type.b === 'Str') {
-          const v = p.value
-          if (v !== null && v !== undefined && typeof v !== 'string') {
-            console.error(
-              `[debug] bad Str pin value: nodeIndex=${n.NodeIndex} concreteId=${String(n.ConcreteId)} genericId=${n.GenericId} pin=${p.index} value=${JSON.stringify(v)}`
+
+    // 修正 composite call 节点的 kind 为 SysGraph(22001) 并设置正确的 nodeId + compositePinIndex
+    if (compositeCallNodeIndices.size > 0) {
+      const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
+      if (mainNodes) {
+        for (const node of mainNodes) {
+          const cid = compositeCallNodeIndices.get(node.nodeIndex)
+          if (cid !== undefined) {
+            if (node.genericId) {
+              node.genericId.kind = NodeGraph_Id_Kind.SysGraph
+              node.genericId.nodeId = cid
+            }
+            if (node.concreteId) {
+              node.concreteId.kind = NodeGraph_Id_Kind.SysGraph
+              node.concreteId.nodeId = cid
+            }
+            // 为 InParam pins 设置 compositePinIndex，修正 exec flow 路由
+            const cdef = compositeDefById.get(cid)
+            if (cdef && node.pins) {
+              const isPureData = cdef.inflows.length === 0
+              if (isPureData) {
+                // 纯数据复合：移除所有 flow pins
+                node.pins = node.pins.filter((pin: any) => pin.i1?.kind !== 2)
+              }
+              for (const pin of node.pins) {
+                if (pin.i1?.kind === 3) { // InParam
+                  const inputIdx = pin.i1.index ?? 0
+                  if (inputIdx < cdef.inputs.length) {
+                    pin.compositePinIndex = cdef.inputs[inputIdx].pinIndex
+                  // 数据连线输入的 InParam：值来自上游，自身应 null
+                  if (pin.connects?.length > 0) {
+                    pin.value = null
+                  }
+                  }
+                }
+                if (pin.i1?.kind === 2) { // OutFlow
+                  const outflowIdx = pin.i1.index ?? 0
+                  if (outflowIdx < cdef.outflows.length) {
+                    pin.compositePinIndex = cdef.outflows[outflowIdx].pinIndex
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // 修正 exec flow：区分终端/非终端复合
+        //   - 非终端复合（OutFlow 有 connects）：保留，由 graph.flow() 自然转发
+        //   - 终端复合（OutFlow 无 connects 或无 OutFlow）：移除，断连下游收归 event fork
+        if (mainNodes && mainNodes.length > 1) {
+          const eventNode = mainNodes.find((n: any) => n.genericId?.kind === 22000)
+          // 收集因终端复合移除 OutFlow 而断连的目标
+          const orphanedTargets: number[] = []
+          for (const n of mainNodes) {
+            if (!compositeCallNodeIndices.has(n.nodeIndex)) continue
+            // 终端检测：OutFlow pin 有 connects → 非终端，否则 → 终端
+            const hasOutFlowConnects = n.pins?.some((pin: any) =>
+              pin.i1?.kind === 2 && (pin.connects?.length ?? 0) > 0
             )
+            if (!hasOutFlowConnects) {
+              // 终端复合：收集 orphaned 目标并移除 OutFlow
+              for (const pin of n.pins ?? []) {
+                if (pin.i1?.kind === 2) {
+                  for (const conn of pin.connects ?? []) {
+                    orphanedTargets.push(conn.id)
+                  }
+                }
+              }
+              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 2)
+            }
+            // 非终端复合：保留 OutFlow + connects（不做处理）
+          }
+          // event OutFlow 保留原始 connects，追加被断连的目标
+          if (eventNode && orphanedTargets.length > 0) {
+            for (const pin of eventNode.pins ?? []) {
+              if (pin.i1?.kind === 2) {
+                const existingIds = new Set((pin.connects ?? []).map((c: any) => c.id))
+                for (const id of orphanedTargets) {
+                  if (!existingIds.has(id)) {
+                    pin.connects = [...(pin.connects ?? []), { id, connect: { kind: 1, index: 0 } }]
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // 过滤 event 节点多余的 OutParam pins（参考文件中 event 仅有 OutFlow pin）
+        if (mainNodes) {
+          for (const n of mainNodes) {
+            if (n.genericId?.kind === 22000 && n.genericId?.nodeId === 71) {
+              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 4)
+            }
           }
         }
       }
     }
+
+    // 为主图添加 relatedIds 指向被调用的复合定义
+    if (calledCompositeIds.length > 0) {
+      ;(root.graph as any).relatedIds = calledCompositeIds.map((id) => ({
+        class: GraphUnit_Id_Class.AffiliatedNode,
+        type: 0,
+        id
+      }))
+    }
+  } catch (e) {
     throw e
   }
 
