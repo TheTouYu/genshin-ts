@@ -271,10 +271,10 @@ export function layoutPositions(
   graphInfo: ReturnType<typeof buildExecutionGraph>
 ): Map<NodeId, Position> {
   const config: LayoutConfig = {
-    columnWidth: 400,
-    rowHeight: 300,
-    maxColumns: 50,
-    wrapHeight: 300,
+    columnWidth: 350,
+    rowHeight: 280,
+    maxColumns: 8,
+    wrapHeight: 280,
     eventGap: 300
   }
 

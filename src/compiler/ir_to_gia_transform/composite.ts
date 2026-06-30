@@ -199,11 +199,10 @@ function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
   return bySourceIndex
 }
 
-// impl 图布局间距常量（基于编辑器 3 个复杂文件的布局分析）
-// X 步进集中在 300-400，Y 分支偏移集中在 150-300
-const LAYOUT_EXEC_H_STEP = 400
+// impl 图布局间距常量（小图紧凑：复合内部通常 ≤8 节点）
+const LAYOUT_EXEC_H_STEP = 350
 const LAYOUT_EXEC_V_STEP = 150
-const LAYOUT_DATA_H_STEP = 400
+const LAYOUT_DATA_H_STEP = 350
 const LAYOUT_DATA_Y_OFFSET = -250
 
 /**
