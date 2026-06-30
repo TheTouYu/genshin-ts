@@ -563,7 +563,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       assemblyDictMeta.set(irNode.id, { keyConn })
     }
     const giaNode: GiaNode = new Node<ServerGraphMode>(
-      irNode.id,
+      // 事件节点强制 nodeIndex=1（编辑器兼容）
+      nodeType.startsWith('when_') ? 1 : irNode.id,
       serverMode,
       nodeId as NodeIdFor<ServerGraphMode>
     )

@@ -30,7 +30,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
 
   // 将 impl 节点 ID 重新编号为从 1 开始的连续序列
   const nodeIndexMap = new Map<number, number>()
-  def.implNodes.forEach((n, i) => nodeIndexMap.set(n.id, i + 1))
+  def.implNodes.forEach((n, i) => nodeIndexMap.set(n.id, i + 2))
 
   // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
   const implOutParamMap = new Map<number, Array<{ pinIndex: number; type: string }>>()

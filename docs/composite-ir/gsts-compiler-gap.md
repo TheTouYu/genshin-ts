@@ -25,8 +25,8 @@
 |:-|:----|:----------------|:----------------|:----|:--------|
 | ~~1~~ | ~~**gameVersion**~~ | ~~`6.6.0`~~ | ~~`6.3.0`~~ | ~~低版本 GIA 可能被游戏拒绝~~ | ~~`src/thirdparty/.../gia_gen/basic.ts:33`~~ |
 | 2 | **graphId 分配规则** | 编辑器：**不遵从** `id+10000`，使用独立分配的 graphId（如 `1610612928` 对应 CompositeDef id `1610613021`） | gsts：`graphId = def.id + 10000`（如 `1610710000` → `1610710000`） | **高**——graphId 在 `relatedIds` 中引用，不一致时 injector 无法正确关联 impl 图 | `src/compiler/ir_to_gia_transform/composite.ts` graphId 派生逻辑 |
-| 3 | **event nodeIndex** | `1`（user_edit 全部文件） | `2` | 影响 `relatedIds` 中的节点引用——部分游戏逻辑依赖 event 的 nodeIndex | `src/compiler/ir_to_gia_transform/index.ts` 节点编号 |
-| 4 | **nodeIndex 编序规则** | **非连续、非 1-based**（从 1 或 2 开始，跳跃，如 `基本调用节点.gia` 有 `nodeIndex=1` 和 `3`） | 连续 1-based（`2,3`）或断续 | 游戏引擎可能根据 nodeIndex 判断图结构合法性 | `src/compiler/ir_to_gia_transform/layout.ts` 或 `index.ts` 节点映射 |
+| ~~3~~ | ~~**event nodeIndex**~~ | ~~`1`（user_edit 全部文件）~~ | ~~`2`~~ | ~~影响 `relatedIds` 中的节点引用——部分游戏逻辑依赖 event 的 nodeIndex~~ | ~~`src/compiler/ir_to_gia_transform/index.ts` 事件节点编号~~ |
+| 4 | **nodeIndex 编序规则** | **非连续、非 1-based**（从 1 或 2 开始，跳跃，如 `基本调用节点.gia` 有 `nodeIndex=1` 和 `3`） | ~~连续 1-based（`2,3`）或断续~~ → ✅ 已修复为 `1,3`（匹配编辑器） | 游戏引擎可能根据 nodeIndex 判断图结构合法性 | `src/compiler/ir_to_gia_transform/index.ts` 节点编号 |
 
 ### P1 — 影响文件结构一致性但不一定阻塞运行
 
@@ -34,7 +34,7 @@
 |:-|:----|:----------|:---------|:----|:--------|
 | 5 | **终端复合 OutFlow pin** | 终端复合**没有** OutFlow pin（compositePins 中也无 OutFlow 条目） | 终端复合**有** OutFlow pin（pi=4），只是 connects 为空 | gsts 生成了编辑器不存在的字段——反编译/审查工具可能报差异 | `src/compiler/ir_to_gia_transform/index.ts` 后处理逻辑 |
 | 6 | **compositePins 数量** | 终端：仅 InFlow（1条） | 终端：InFlow + OutFlow（2条） | 同上 | 同上 |
-| 7 | **Impl 图 nodeIndex 起始** | 从 `2` 开始（带编号偏移） | 从 `1` 开始 | 可能与编辑器 layout 编号规则不同 | `src/compiler/ir_to_gia_transform/composite.ts` nodeIndex 映射 |
+| ~~7~~ | ~~**Impl 图 nodeIndex 起始**~~ | ~~从 `2` 开始（带编号偏移）~~ | ~~从 `1` 开始~~ | ~~可能与编辑器 layout 编号规则不同~~ | ~~`src/compiler/ir_to_gia_transform/composite.ts` nodeIndex 映射~~ |
 | 8 | **布局坐标** | 编辑器人工/自动布局值 | gsts 布局算法值 | 编辑器打开后可能自动重排；不影响运行 | `src/compiler/ir_to_gia_transform/layout.ts` |
 
 ### P2 — 尚未验证但已知可能差异的领域
@@ -51,9 +51,11 @@
 
 ## 已修复的差异
 
-| # | 字段 | 修复 PR | 验证方式 |
-|:-|:----|:-------|:--------|
-| 1 | gameVersion (`6.3.0` → `6.6.0`) | 修改 `basic.ts:33` | `npm run build && npx tsx tests/composite/verify-game-version.ts` |
+| # | 字段 | 修复 | 验证方式 |
+|:-|:----|:----|:--------|
+| 1 | gameVersion (`6.3.0` → `6.6.0`) | `basic.ts:33` | `npm run build && npx tsx tests/composite/verify-game-version.ts` |
+| 3 | event nodeIndex (`2` → `1`) | `index.ts:565-566`：事件节点强制 nodeIndex=1 | `npx tsx tests/composite/dump-nodes.ts` 检查 event nodeIndex |
+| 7 | Impl 图 nodeIndex 起始 (`1` → `2`) | `composite.ts:33`：`i+1` → `i+2` | `npx tsx tests/composite/dump-nodes.ts` 检查 impl 图 nodeIndex |
 
 ---
 
