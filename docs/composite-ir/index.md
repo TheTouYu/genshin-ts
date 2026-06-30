@@ -16,6 +16,7 @@
 | **检查还有哪些文档缺口** | → [todo.md §3（文档更新计划）](todo.md#3-文档更新计划下一轮) |
 | **查看待验证的疑点** | → [todo.md §6（需后续验证的疑点）](todo.md#-需后续验证的疑点) |
 | **判断我的发现是否已有记录** | → 见下方文件列表 + todo.md §6 疑点表 |
+| **gsts 编译器要改什么才能匹配编辑器输出** | → [gsts-compiler-gap.md](gsts-compiler-gap.md)（合规清单） |
 | **我感觉思路跑偏了** | → 在对话中键入 `/think-check` |
 
 ---
@@ -31,7 +32,8 @@
 | [`05-gia-encoding`](05-gia-encoding.md) | **GIA 编码** — 从 IR JSON 到 GIA 的数据流 + 代码位置速查 + which=14/29 编码规则 | 编译器代码 + 真实文件验证 |
 | [`06-advanced-patterns`](06-advanced-patterns.md) | **高级模式** — structureDef、SignalDef、编排器、物理引擎流水线、大规模信号网络、向量运算复合族、下沉式复合、**信号驱动架构**、**共享复合库**、**三种架构风格分类** | logSystem + 物理运动 + 弹球+传球 |
 | [`analyze-workflow`](analyze-workflow.md) | **分析工作流** — 反馈系统组件 ①，定义 5 Phase 执行顺序和守卫条件 | 自参考（自我进化） |
-| [`todo`](todo.md) | **待办清单** — 覆盖状态、P0/P1 优先级、文档更新计划、核验发现 | logSystem + 物理运动 |
+| [`gsts-compiler-gap`](gsts-compiler-gap.md) | **编译器合规清单** — gsts 输出 vs 编辑器的逐字段差异、优先级、代码位置 | 首次 gsts 编译对比 2026-06-30 |
+| [`todo`](todo.md) | **待办清单** — 覆盖状态、P0/P1 优先级、文档更新计划、核验发现 | logSystem + 物理运动 + 弹球+传球 |
 
 ---
 
@@ -55,7 +57,24 @@
 
 ---
 
-## 核心认知
+## 与 docs/architecture 的关系
+
+本目录（`docs/composite-ir/`）与 `docs/architecture/` 构成**对比验证关系**：
+
+| 维度 | 本目录 `docs/composite-ir/` | `docs/architecture/` |
+|:----|:--------------------------|:--------------------|
+| 视角 | **逆向**（从真实 GIA 文件倒推规律） | **正向**（从编译器代码描述输出） |
+| 方法 | 分析 ~50 个真实 GIA 文件的模式 | 追踪三阶段编译管线的源代码 |
+| 覆盖 | 模式分类、跨文件对比、架构风格 | Capture 机制、DSL API、管线流水线 |
+| 假设 | 每个 GIA 文件可独立分析 | gsts 编译器产生所有 GIA 文件 |
+| 验证 | 用真实文件做 cross-check | 部分断言（graphId、pinIndex）与真实文件**冲突** |
+
+**经验教训（2026-06-30）**：
+- `docs/architecture/` 的主要假设是"gsts 编译器产生所有输出"，但 `复杂gia/` 的 3 个文件中 **97 个复合无一在 gsts ID 空间 (1610700000+)**——它们来自游戏编辑器
+- `graphId = def.id + 10000`、`pinIndex 常量(1974/4/8+idx)` 等核心断言在真实数据中 **0% 通过率**（85/85 和 36/36 FAIL）
+- 两套文档的正确关系是**互相验证**而非互相引用：arch 文档描述 gsts 编译器行为，本目录描述真实 GIA 文件规律
+
+交叉引用均标注了验证结果和适用范围。
 
 - **CompositeDefIR** 是 IR JSON 中的复合节点定义结构（接口声明 + 实现图 + 引脚映射）
 - **compositePins** 是最核心的路由表，定义外部引脚和内部节点引脚之间的映射

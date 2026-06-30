@@ -7,7 +7,7 @@ import { str } from '../../dist/src/runtime/value.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { writeFileSync } from 'fs'
 
-const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 
 // ── 定义复合节点（带字符串参数） ──
 const handle = g.defineComposite('带参打印', {

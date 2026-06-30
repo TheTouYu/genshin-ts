@@ -11,10 +11,10 @@
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
 import { int, str, bool } from '../../dist/src/runtime/value.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { writeFileSync } from 'fs'
 
-const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 const OUT_DIR = './tests/composite/output'
 
 // ═══════════════════════════════════════════════

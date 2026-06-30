@@ -31,7 +31,6 @@
     "scripts",
     "examples",
     "tests",
-    "tools",
     "resources/**/*.json",
     "gsts.config.ts",
     "gsts.test.config.ts"

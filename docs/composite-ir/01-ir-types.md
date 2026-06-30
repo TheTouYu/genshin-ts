@@ -44,7 +44,15 @@ interface ControlFlowDef {
 | 多 OutFlow | `[{ pinIndex:6 }]` | `[{ pinIndex:8 }, { pinIndex:9 }, ...]` |
 | 信号型（inflows=0, outflows>0） | `[]` | `[{ ... }]` |
 
-> ⚠️ 上述 pinIndex 值（1974/4/8-11/6）是 `toCompositeDefIR()` 的硬编码默认值。游戏编辑器创建的复合使用编辑器分配的值，如 `01.gia` 中 InFlow=47、OutFlow=66/67、InParam=51。**关键约束是两端的值必须一致，而非具体数值**。
+> ⚠️ **2026-06-30 更新**：上述 pinIndex 值（1974/4/8-11/6）是 `toCompositeDefIR()` 的硬编码默认值**仅对 gsts 生成的复合有效**。游戏编辑器创建或用户编辑的复合使用编辑器分配的值：
+> - `docs/architecture/composite/ir-representation.md` 中的常量表描述的是 **gsts 编译器的默认值**
+> - 我们用 3 个真实 GIA 文件（传球/弹球/物理运动）验证：**所有 97 个复合无一个使用这些默认值**
+> - 例如 传球.gia 中 InFlow 实际值: 982, 1280, 1291, 1316, 2514（非 1974 或 6）
+> - 三条源码 `complexgia/` 文件中无任何复合 ID 在 `1610700000+` 空间——它们都来自游戏编辑器，非 gsts 生成
+>
+> **关键约束是两端的值必须一致，而非具体数值。**
+
+> 见 [docs/architecture/composite/ir-representation.md](../architecture/composite/ir-representation.md) §1 ControlFlowDef（gsts 默认值）和验证脚本 `tools/_verify-arch-claims.ts`。
 
 #### ParamFlowDef（数据引脚）
 

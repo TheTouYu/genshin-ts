@@ -98,6 +98,16 @@
 #### index.md 更新
 
 - [x] 文档描述：增加 第 2 轮 + 三种架构风格 + 共享复合库
+- [x] 交叉引用：增加与 `docs/architecture/` 的关系说明表
+
+### 3.5 交叉引用 `docs/architecture/`（新任务，已完成）
+
+> 2026-06-30 完成。作者 jack.li 在 `docs/architecture/composite/` 中新增了 7 个文档（capture-mechanism, dsl-api, ir-representation, gia-encoding, json-walkthrough, pipeline-flow, testing），从编译器源码正向描述了复合节点全链路。
+
+- [x] `01-ir-types.md`：引用作者确认的 pinIndex 常量（1974/4/8+idx/100+idx/200+idx）
+- [x] `05-gia-encoding.md`：引用作者确认的 graphId 推导规则（def.id + 10000）
+- [x] `06-advanced-patterns.md` §16.3：用 ID 空间 1610700000+ 确认共享复合非 gsts 生成
+- [x] `index.md`：新增"与 docs/architecture 的关系"对照表
 - [x] 覆盖表：增加 弹球.gia + 传球.gia
 - [x] 核心认知：增加 架构风格 + 共享复合库
 
@@ -151,3 +161,24 @@
 - [ ] 覆盖实用/ + 复杂gia/ 目录
 - [ ] 建立"已知架构模式库"——不仅是复合模式，还有完整 GIA 的架构风格分类
 - [ ] 验证 gsts 编译器的输出是否与游戏编辑器的输出在结构上一致
+
+### 🔧 编译器合规（新增，2026-06-30）
+
+> gsts 首次编译出 basic_call.gia 后 vs 编辑器 基本调用节点.gia 的对比。完整差异清单见 [gsts-compiler-gap.md](gsts-compiler-gap.md)。
+
+**P0**（影响 inject 运行）：
+- [ ] 修复 `gameVersion` 硬编码（gsts=6.3.0，编辑器=6.6.0）
+- [ ] 修复 `graphId` 分配规则（gsts 用 id+10000，编辑器独立分配）
+- [ ] 修复 event `nodeIndex`（gsts=2，编辑器=1）
+- [ ] 修复 nodeIndex 编序为其非连续、非 1-based（匹配编辑器）
+
+**P1**（影响结构一致性）：
+- [ ] 终端复合不输出 OutFlow pin 和 compositePins 条目
+- [ ] Impl nodeIndex 起始偏移（编辑器从 2 开始）
+- [ ] 布局坐标对齐
+
+**P2**（待验证）：
+- [ ] SignalDef 编码支持
+- [ ] structureDef 编码支持
+- [ ] 多 OutFlow pinIndex 对齐
+- [ ] ClientExec 信号触发支持

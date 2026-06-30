@@ -24,9 +24,9 @@ import { defineComposite } from '../../dist/src/index.js'
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { int, bool, str } from '../../dist/src/runtime/value.js'
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
-const PROTO_PATH = new URL('../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
 
 // 游戏 Beyond_Local_Export 导出目录（游戏导入 GIA 时从此目录加载）
 function resolveExportDir(): string {

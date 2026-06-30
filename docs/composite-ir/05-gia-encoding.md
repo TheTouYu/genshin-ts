@@ -55,6 +55,13 @@ GIA Protobuf (CompositeDef + impl NodeGraph, 作为 accessories)
 | nodeId | CompositeDef.id（对复合调用节点） |
 | genericId / concreteId | 完全一致 |
 | graphId | 实现图的 ID（CompositeGraph 种类） |
+| compositePins nodeIndex | IR 节点 ID 重新编号（gsts 生成时为 1-based；编辑器文件使用原值） |
+
+> ⚠️ **2026-06-30 验证**：`docs/architecture/composite/pipeline-flow.md` 声称 `implGraphId = def.id + 10000` 且 nodeIndex 重新编号为 1-based 连续。我们使用 3 个真实 GIA 文件验证：
+> - **graphId 公式完全错误**：85/85 个非内置复合不符此公式（0% 通过率）
+> - **nodeIndex 1-based 连续也错误**：大部分 impl 图使用非连续、非 1 起始的 nodeIndex
+>
+> 上述规则仅对 gsts 生成的复合文件有效。游戏编辑器创建的文件使用不同的 ID 分配和编号策略。
 
 ## 3. 代码位置速查
 
