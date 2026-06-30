@@ -30,7 +30,7 @@ import type { AnyType, GraphVar } from './graph.js'
 import { get_id, get_type, type NodePins, type NodeType } from './nodes.js'
 import { assert, counter_dynamic_id, counter_index, randomInt, todo } from './utils.js'
 
-const gameVersion = '6.3.0'
+const gameVersion = '6.6.0'
 
 type GraphMode = 'server' | 'status' | 'class' | 'item' | 'composite'
 

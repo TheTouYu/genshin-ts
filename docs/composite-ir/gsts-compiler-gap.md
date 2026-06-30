@@ -23,7 +23,7 @@
 
 | # | 字段 | 编辑器产出（正确） | gsts 产出（当前） | 影响 | 涉及代码 |
 |:-|:----|:----------------|:----------------|:----|:--------|
-| 1 | **gameVersion** | `6.6.0` | `6.3.0` | 低版本 GIA 可能被游戏拒绝 | `src/injector/proto.ts` 或 GIA 构建处——硬编码 |
+| ~~1~~ | ~~**gameVersion**~~ | ~~`6.6.0`~~ | ~~`6.3.0`~~ | ~~低版本 GIA 可能被游戏拒绝~~ | ~~`src/thirdparty/.../gia_gen/basic.ts:33`~~ |
 | 2 | **graphId 分配规则** | 编辑器：**不遵从** `id+10000`，使用独立分配的 graphId（如 `1610612928` 对应 CompositeDef id `1610613021`） | gsts：`graphId = def.id + 10000`（如 `1610710000` → `1610710000`） | **高**——graphId 在 `relatedIds` 中引用，不一致时 injector 无法正确关联 impl 图 | `src/compiler/ir_to_gia_transform/composite.ts` graphId 派生逻辑 |
 | 3 | **event nodeIndex** | `1`（user_edit 全部文件） | `2` | 影响 `relatedIds` 中的节点引用——部分游戏逻辑依赖 event 的 nodeIndex | `src/compiler/ir_to_gia_transform/index.ts` 节点编号 |
 | 4 | **nodeIndex 编序规则** | **非连续、非 1-based**（从 1 或 2 开始，跳跃，如 `基本调用节点.gia` 有 `nodeIndex=1` 和 `3`） | 连续 1-based（`2,3`）或断续 | 游戏引擎可能根据 nodeIndex 判断图结构合法性 | `src/compiler/ir_to_gia_transform/layout.ts` 或 `index.ts` 节点映射 |
@@ -46,6 +46,14 @@
 | 11 | **多 OutFlow 复合** | gsts 的 pinIndex（8+idx）vs 编辑器自定义值 | 编译一个多出口复合 + 对比顺序执行.gia |
 | 12 | **多个复合定义（跨文件共享）** | gsts 使用 `1610700000+` 空间；编辑器使用 `16106128xx` | inject 到真实游戏环境后 gsts 的 ID 是否冲突 |
 | 13 | **ClientExec 信号触发** | gsts 是否支持信号驱动架构（无 event） | 编译一个 `event.monitorSignal` 测试用例 |
+
+---
+
+## 已修复的差异
+
+| # | 字段 | 修复 PR | 验证方式 |
+|:-|:----|:-------|:--------|
+| 1 | gameVersion (`6.3.0` → `6.6.0`) | 修改 `basic.ts:33` | `npm run build && npx tsx tests/composite/verify-game-version.ts` |
 
 ---
 
@@ -81,6 +89,9 @@ npx tsx tools/analyze-composite-gia.ts "/mnt/c/.../user_edit/基本调用节点.
 #  - event nodeIndex: 1?
 #  - 终端复合: OutFlow pin 数 0?
 #  - graphId: 不适用 id+10000?
+
+# 4. 专用验证脚本（自动检查 gameVersion）
+npm run build && npx tsx tests/composite/verify-game-version.ts
 ```
 
 ---
