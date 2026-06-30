@@ -6,4 +6,9 @@ node_modules/
 dist/
 tests/composite/output/
 .claude/worktrees/
+.claude/worktrees/
 worktrees/
+
+# Local AI/agent artifacts
+.agents/
+.claude/
