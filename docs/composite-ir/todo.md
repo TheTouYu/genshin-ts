@@ -114,6 +114,8 @@
 ## 4. 工具改进
 
 - [x] `tools/topology.ts` — 无 event 节点时输出根节点遍历 + 数据连线拓扑（已实现，弹球.gia 72 条连线）[2026-06-30]
+- [x] `tools/coverage.ts` — 修复 which=12 主图漏检 Bug（只搜 accessories，漏了 data.graph 自身）[2026-06-30]
+- [x] `tools/coverage.ts` — 增加"终端下沉型"（I=1/O=0）基本模式分类 [2026-06-30]
 - [ ] `tools/topology.ts` — 数据连线超过 50 条时增加分组/聚合显示
 - [ ] `tools/coverage.ts` — 增加跨文件对比模式（同时分析多个 .gia 比较模式分布）
 - [ ] 考虑创建 `tools/signal-topology.ts` — SignalDef 关联网络可视化
@@ -129,6 +131,14 @@
 | 1 | 01-ir-types.md §1.3 | InFlow compositePins = "1 条" | 改为 "1~N 条（可扇出）" | 物理运动：设置物理参数 1 InFlow → 10 条 compositePins |
 | 2 | 03-validation-basics.md 规律 16 | "有限循环包含了迄今最完整的 compositePins（7 条映射）" | 增加上下文说明：仅限 user_edit | 物理运动：物理运动控制器 35 条 |
 | 3 | 04-validation-signal.md §7.2 | CompositeDef relatedIds "❌ 通常为空" | 改为 "指向 impl 图附件或关联信号" | 物理运动：所有 50 个 CompositeDef 均有 relatedIds |
+| **4** | **01-ir-types.md §1.1** | **缺少 I=1/O=0（终端下沉）基本复合类型** | **新增一行到基本类型表，定义"终端下沉型"模式** | **user_edit 9 个复合实例（two_exec/两个复合节点/基本调用节点/复杂_exec 等）** |
+
+### ✅ 已修复合工具错误
+
+| # | 工具 | 错误 | 修正 |
+|:-|:----|:----|:----|
+| 1 | coverage.ts | 只搜 `accessories` 找 which=12，漏了 `data.graph` 自身为 which=12 | 改为搜 `allUnits = [r.graph, ...accessories]` |
+| 2 | coverage.ts | 缺少 I=1/O=0 终端下沉模式 → 被标记为"未覆盖" | 新增 "终端下沉型" pattern |
 
 ### ⚠️ 已标记的推测内容
 
@@ -155,9 +165,18 @@
 | 6 | **弹球.gia 0 入边执行入口**：无 event + 0 个无入边的可执行节点 → 推导出所有执行流最终由 ClientExec 信号触发启动。纯信号触发图是否有特殊的数据耦合模式？ | 03-validation-basics | 需要另一个信号驱动 GIA 做对比 |
 | 7 | **物理运动.gia vs 弹球.gia 的物理计算对比**：两者都涉及物理运动但架构完全不同（物理运动=纯数据流水线，弹球=信号驱动编排器）。同一领域的不同架构风格是否有规律？ | 06-advanced-patterns §§11-14 | 需要更多物理相关的 GIA |
 
+### 📌 新发现的疑点（user_edit 40 文件第 3 轮，2026-06-30）
+
+| # | 疑点 | 涉及 | 需要什么数据 |
+|:-|:----|:----|:-----------|
+| 8 | **user_edit 中 监听信号/发送信号的 ID 每个文件不同**：复杂gia/中共享复合库的 ID 跨文件一致，但 user_edit 中同名的信号复合有不同 ID。是否表明 user_edit 是 gsts 独立编译产物（每个文件自行定义），而复杂gia/是编辑器保存产物（引用全局库）？ | 01-ir-types | 对比 gsts 输出与编辑器输出的 ID 分配策略 |
+| 9 | **类型转化.gia 和 类型转化_gen.gia 是唯二空复合文件**：没有 CompositeDef，只有原始节点图。这是测试边界用例，还是 gsts 编译器在无复合定义时的退化输出？ | 01-ir-types / gsts-compiler-gap | 确认 gsts 何时产出空复合 GIA |
+| 10 | **I=1/O=0 终端下沉型是纯 gsts 产物还是通用模式？**：user_edit 中 9 个实例全是小文件（1-3 节点），物理运动.gia 的"设置物理参数"（30 节点，I=1/O=0）规模差异极大。终端下沉型是否应再细分"基础终端"和"大型下沉"？ | 06-advanced-patterns §14 | 更多 medium 规模（10-30 节点）的 I=1/O=0 复合 |
+
 ### 长期 TODO
 
-- [ ] 覆盖 user_edit 全部 40 个 GIA 文件的系统分析
+- [x] 覆盖 user_edit 全部 40 个 GIA 文件的系统分析（2026-06-30）
+  → 71 个 CompositeDef 全部 100% 覆盖。发现终端下沉模式缺口并修正。
 - [ ] 覆盖实用/ + 复杂gia/ 目录
 - [ ] 建立"已知架构模式库"——不仅是复合模式，还有完整 GIA 的架构风格分类
 - [ ] 验证 gsts 编译器的输出是否与游戏编辑器的输出在结构上一致

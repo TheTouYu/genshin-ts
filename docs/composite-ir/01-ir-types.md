@@ -40,9 +40,10 @@ interface ControlFlowDef {
 | 场景 | inflows | outflows |
 |------|---------|----------|
 | 纯数据复合（无 exec 节点） | `[]` | `[]` |
-| 单 OutFlow | `[{ pinIndex:1974 }]` | `[{ pinIndex:4 }]` |
+| 基本执行型（单 InFlow + 单 OutFlow） | `[{ pinIndex:1974 }]` | `[{ pinIndex:4 }]` |
 | 多 OutFlow | `[{ pinIndex:6 }]` | `[{ pinIndex:8 }, { pinIndex:9 }, ...]` |
 | 信号型（inflows=0, outflows>0） | `[]` | `[{ ... }]` |
+| **终端下沉型**（inflows>0, outflows=0） | `[{ ... }]` | `[]` |
 
 > ⚠️ **2026-06-30 更新**：上述 pinIndex 值（1974/4/8-11/6）是 `toCompositeDefIR()` 的硬编码默认值**仅对 gsts 生成的复合有效**。游戏编辑器创建或用户编辑的复合使用编辑器分配的值：
 > - `docs/architecture/composite/ir-representation.md` 中的常量表描述的是 **gsts 编译器的默认值**

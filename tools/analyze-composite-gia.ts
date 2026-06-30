@@ -1,15 +1,19 @@
 /**
- * Cross-file CompositeDef & SignalDef analysis for 3 GIA files.
- * Run with: npx tsx tools/analyze-composite-gia.ts
+ * CompositeDef & SignalDef analysis for GIA files.
+ * Run with:
+ *   npx tsx tools/analyze-composite-gia.ts <file.gia>           # single-file mode (basic info + CPI)
+ *   npx tsx tools/analyze-composite-gia.ts <file1.gia> <file2.gia> [...]  # cross-file comparison
  */
 import { decode_gia_file } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.ts'
 import type { Root, GraphUnit, CompositeDef, CompositeDef_ControlFlow, CompositeDef_ParameterFlow } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.ts'
 
-const FILES = [
-  '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/复杂gia/传球.gia',
-  '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/复杂gia/弹球.gia',
-  '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/复杂gia/物理运动.gia',
-]
+function die(msg: string): never {
+  console.error(msg)
+  process.exit(1)
+}
+
+const FILES: string[] = process.argv.slice(2)
+if (FILES.length === 0) die('Usage: npx tsx tools/analyze-composite-gia.ts <file.gia> [<file2.gia> ...]')
 
 function shortName(p: string): string {
   const m = p.match(/\/([^/]+)\.gia$/)
@@ -62,7 +66,7 @@ function main() {
     }
   }
 
-  // Per-file signal def collection: try which=14, also check structureDef
+  // Per-file signal def collection: try which=14
   const perFileSignal: Record<string, Map<number, GraphUnit>> = {}
   for (const { name, data } of decoded) {
     perFileSignal[name] = new Map()
@@ -74,6 +78,116 @@ function main() {
       }
     }
   }
+
+  if (FILES.length === 1) {
+    showSingleFile(decoded[0], perFile[fileNames[0]], perFileSignal[fileNames[0]])
+  } else {
+    showCrossFileComparison(decoded, fileNames, perFile, perFileSignal)
+  }
+}
+
+function showSingleFile(
+  { name: fname, data }: { name: string; data: Root },
+  composites: Map<number, { unit: GraphUnit; def: CompositeDef }>,
+  signals: Map<number, GraphUnit>,
+) {
+  console.log('='.repeat(80))
+  console.log(`  File: ${fname}`)
+  console.log('='.repeat(80))
+
+  // === Basic info ===
+  const mainUnit = data.graph
+  console.log(`\n  GraphUnit.which: ${mainUnit?.which ?? '?'}`)
+  console.log(`  GraphUnit.id:   ${mainUnit?.id?.id ?? '?'}`)
+  console.log(`  GameVersion:    ${data.gameVersion ?? '?'}`)
+  console.log(`  Accessories:    ${(data.accessories ?? []).length}`)
+  console.log(`  CompositeDefs:  ${composites.size}`)
+  console.log(`  SignalDefs:     ${signals.size}`)
+
+  // === Impl graph (if main graph has one) ===
+  const mg = mainUnit?.graph?.inner?.graph
+  if (mg) {
+    console.log(`\n  Main graph: id=${mg.id?.id ?? '?'}, nodes=${mg.nodes?.length ?? 0}, edges=${mg.edges?.length ?? 0}`)
+    const rootNodes = (mg.nodes ?? []).filter((n: any) => !n.hasOwnProperty('type') || n.type !== undefined)
+    // count root-level event nodes or nodes with no incoming edges
+    const incomingEdges = new Set<number>()
+    for (const e of (mg.edges ?? [])) incomingEdges.add(e.to?.nodeIndex ?? -1)
+    const entryNodes = (mg.nodes ?? []).filter((n: any) => n.type === 2 || n.nodeIndex === 0 || !incomingEdges.has(n.nodeIndex))
+    console.log(`  Entry hints:  nodes not targeted by any edge = ${entryNodes.length}`)
+  }
+
+  // === CPI check ===
+  let cpiFail = 0
+  // CPI-1: every composite def has a name
+  for (const [id, { def }] of composites) {
+    if (!def.name && id !== 0) {
+      console.log(`  CPI FAIL: composite ID ${id} has no name`)
+      cpiFail++
+    }
+  }
+
+  // CPI-2: every signal def has a non-empty signal list
+  for (const [id, unit] of signals) {
+    if (!unit.structureDef) {
+      console.log(`  CPI note: SignalDef ID ${id} has no structureDef — proxy signal?`)
+    }
+  }
+
+  if (cpiFail === 0) console.log(`  CPI: OK — ${composites.size} composites passed CPI check`)
+
+  // === Composite list ===
+  console.log(`\n  ── Composites (${composites.size}) ──`)
+  const sorted = [...composites.entries()].sort(([a], [b]) => a - b)
+  for (const [id, { def }] of sorted) {
+    const iface = formatInterface(def)
+    const hasImpl = findImplNodeCount(data, def)
+    const impl = hasImpl > 0 ? ` (impl: ${hasImpl}n)` : ''
+    const name = def.name ?? '(unnamed)'
+    console.log(`    ${String(id).padEnd(12)} "${name}"${impl}`)
+    const lines = iface.match(/.{1,72}/g) ?? [iface]
+    for (const line of lines) console.log(`    ${' '.repeat(12)} ${line}`)
+  }
+
+  // === Signal list ===
+  if (signals.size > 0) {
+    console.log(`\n  ── Signals (${signals.size}) ──`)
+    for (const [id, unit] of signals) {
+      const sd = unit.structureDef?.def
+      const vars = sd?.genericField?.vars?.length ?? 0
+      const conns = sd?.connectField?.vars?.length ?? 0
+      console.log(`    ID ${id}: "${unit.name ?? ''}"  structVars=${vars} conns=${conns}`)
+    }
+  }
+
+  // === Which values ===
+  const allWhich = new Set<number>()
+  for (const unit of [data.graph, ...(data.accessories ?? [])]) {
+    if (unit?.which !== undefined) allWhich.add(unit.which)
+  }
+  console.log(`\n  GraphUnit.which values: ${[...allWhich].sort((a, b) => a - b).join(', ')}`)
+
+  // === which=14 details ===
+  for (const unit of [data.graph, ...(data.accessories ?? [])]) {
+    if (unit && unit.which === 14) {
+      console.log(`\n  which=14 detail: id=${unit.id?.id} name="${unit.name ?? ''}"`)
+      console.log(`    compositeDef=${!!unit.compositeDef}  graph=${!!unit.graph}  structureDef=${!!unit.structureDef}`)
+    }
+  }
+}
+
+function findImplNodeCount(data: Root, def: CompositeDef): number {
+  const implUnit = (data.accessories ?? []).find(
+    (a: GraphUnit) => a.graph?.inner?.graph?.id?.id === def.id?.graphId?.id
+  )
+  return implUnit?.graph?.inner?.graph?.nodes?.length ?? 0
+}
+
+function showCrossFileComparison(
+  decoded: { name: string; data: Root }[],
+  fileNames: string[],
+  perFile: Record<string, Map<number, { unit: GraphUnit; def: CompositeDef }>>,
+  perFileSignal: Record<string, Map<number, GraphUnit>>,
+) {
 
   // Explore all which values
   const allWhichSeen = new Set<number>()

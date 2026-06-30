@@ -54,6 +54,12 @@ const PATTERNS: PatternMatch[] = [
     docRef: '01-ir-types.md §1.1 / 03-validation-basics.md #1',
   },
   {
+    name: '终端下沉型',
+    matches: d => d.inflows === 1 && d.outflows === 0,
+    documented: true,
+    docRef: '01-ir-types.md §1.1 / 03-validation-basics.md #1',
+  },
+  {
     name: '多 OutFlow',
     matches: d => d.inflows === 1 && d.outflows >= 2,
     documented: true,
@@ -174,8 +180,8 @@ async function main() {
     process.exit(1)
   }
 
-  const accs = r.accessories ?? []
-  const compositeDefs = accs.filter((a: any) => a.which === 12)
+  const allUnits = [r.graph, ...(r.accessories ?? [])]
+  const compositeDefs = allUnits.filter((a: any) => a && a.which === 12)
 
   if (compositeDefs.length === 0) {
     console.log(`⚠️  ${file} 中未找到 CompositeDef（which=12）`)
@@ -183,6 +189,7 @@ async function main() {
   }
 
   // 构建 impl graph 查找表（which=9 → 节点列表）
+  const accs = r.accessories ?? []
   const implGraphs = buildImplGraphs(accs)
 
   console.log(`═══ 覆盖率报告: ${file} ═══\n`)
