@@ -22,7 +22,8 @@
 | `faction` | `'Fct'` | `new faction()` | yes | ✅ |
 | `config_id` | `'Cfg'` | `new configId()` | yes | ✅ |
 | `prefab_id` | `'Pfb'` | `new prefabId()` | yes | ✅ |
-| `local_variable` | **null** | `new localVariable()` | yes | ❌ |
+| `local_variable` | **null** | `new localVariable()` | yes | ❌（实现层面）→ ✅ （**真实 GIA 文件已验证**） |
+| `*_list` (10 种) | **null** | `new generic()` | yes | ⚠️ 部分列表类型有真实案例 |
 | `*_list` (10 种) | **null** | `new generic()` | yes | ❌ |
 | `struct` | **null** | 不支持 | yes | ❌ |
 | `dict` | **null** | 不支持 | yes | ❌ |
@@ -31,7 +32,7 @@
 
 **根因** (`index.ts:515-516`): 当 `compositeTypeToBaseTag()` 返回 `null` 时，InParam pin 仍然被创建并 push 到 `giaNode.pins`，但 **不设 type**。`filterUnkPins` 会将其移除。
 
-**影响**: `local_variable` 和所有 `_list` 类型的复合输入参数无法正常工作。
+**影响**: `local_variable` 类型已被真实 GIA 文件（`两个复合节点.gia`）验证可正常使用，但其 GIA 编码路径可能绕过 `filterUnkPins`。`_list` 类型的复合输入参数仍可能存在兼容性问题。
 
 ### 数据连接偏移
 

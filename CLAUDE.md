@@ -2,74 +2,80 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Commands
 
-genshin-ts (gsts) is a TypeScript toolchain that compiles TypeScript into Genshin Impact UGC (Miliastra Wonderland) node graphs. It transforms TS source into `.gia` binary files that can be injected into the game's `.gil` level files.
+```sh
+# Build (TypeScript compilation)
+npm run build
 
-## Build & Test Commands
+# Full test cycle: build → generate test GIA → run compiler tests
+npm test
 
-```bash
-npm run build          # TypeScript compilation (tsc -p tsconfig.json)
-npm test               # Full test suite: build → generate tests → compile test entries
-npm run quicktest      # Build + compile test entries (skip test generation)
-npm run gen            # Regenerate definitions from vendor sources
-npm run example        # Build + compile example entries
-npm run dev            # Build + watch mode (incremental)
+# Quick test (skip test generation, run compiler tests only)
+npm run quicktest
+
+# Run ESLint
+npx eslint .
+
+# Generate definition files from node definitions JSON
+npm run gen
+
+# Build + inject (dev mode with file watching)
+npm run dev
+
+# Build + just compile entries (no inject)
+npm run example
+
+# Generate enums/lists tests
+tsx scripts/generate-enum-gia-tests.ts
+tsx scripts/generate-node-gia-tests.ts
 ```
 
-`npm test` runs: `build` → `generate-node-gia-tests.ts` → `generate-enum-gia-tests.ts` → `gsts -c gsts.test.config.ts`. There is no Jest/Vitest — tests are `.ts` files under `tests/` that get compiled by gsts itself; pass/fail is determined by whether compilation succeeds.
+Config file: `gsts.config.ts` (project), `gsts.test.config.ts` (testing).
 
-## Compilation Pipeline
+## Architecture — Three-Stage Compilation Pipeline
 
-The pipeline has three stages:
+Input: TypeScript files using the `g.server(...).on(...)` DSL or `gstsServer*` functions.
 
-1. **TS → .gs.ts** — `src/compiler/ts_to_gs_pipeline.ts` + `ts_to_gs_transform/`  
-   Transforms TypeScript source into "graph script" (.gs.ts) files. Uses the TS compiler API to parse source, then a custom transform that rewrites `g.server(...).on(...)` chains and `gstsServer*` functions into node function calls (builtins, operations, control flow, list methods, loops, expressions, etc.).
+### Stage 1: TS → `.gs.ts` (`src/compiler/ts_to_gs_transform/`)
+- A TypeScript AST transform (not emit).
+- Transforms `g.server(...).on(...)` handler bodies, `gstsServer*` function bodies, and `setTimeout`/`setInterval` calls into node function call form (`.gs.ts`).
+- Sub-transformers: `stmt.ts` (statements/control flow), `expr.ts` (expressions), `loops.ts` (for/while), `lists.ts` (list operations), `builtins.ts` (math/string/random builtins), `const_eval.ts` (constant folding).
+- Runs per entry file via `ts_to_gs_pipeline.ts`.
 
-2. **.gs.ts → IR JSON** — `src/compiler/gs_to_ir_json_transform/`  
-   Executes the `.gs.ts` files to produce IR JSON — an intermediate representation with explicit nodes and connections. This is the primary debugging output.
+### Stage 2: `.gs.ts` → IR JSON (`src/compiler/gs_to_ir_json_transform/`)
+- Executes the compiled `.gs.ts` via `runner.ts` in Node.js.
+- The runtime (`src/runtime/`) defines the DSL primitives: `g.server()` creates a `MetaCallRegistry`, `.on(event, handler)` registers event handlers. Inside handlers, `f.*` functions (from `nodes.ts`, via `ServerExecutionFlowFunctions`) emit `MetaCallRecord` nodes.
+- `ir_builder.ts` converts the registry's raw `ExecutionFlow[]` into an `IRDocument` JSON (nodes, connections, variables).
+- Output: IR JSON files in `dist/` alongside `.gs.ts`.
 
-3. **IR JSON → .gia** — `src/compiler/ir_to_gia_transform/`  
-   Converts IR JSON into binary `.gia` files. Sub-steps: preprocess, mappings (TS→GIA node type), node ID/vendor resolution, pin layout, composite handling, timer optimization, JSON output.
+### Stage 3: IR JSON → GIA (`src/compiler/ir_to_gia_transform/`)
+- Converts IR JSON to GIA protobuf binary (`.gia` files), the format the game can inject.
+- `runner.ts` orchestrates, `mappings.ts` maps IR types → GIA node types, `pins.ts` handles argument encoding, `layout.ts` generates editor layout positions.
+- `optimize_timer_dispatch.ts` aggregates multiple `whenTimerIsTriggered` handlers into a single switch.
+- `composite.ts` expands composite node definitions into accessories.
 
-### Entry Points
-
-- CLI: `bin/gsts.mjs` → `src/cli/gsts.ts` (commander.js-based)
-- Library: `src/index.ts` — exports `compileTsToGs`, `emitIrJsonForEntries`, `writeGiaFromIrJsonFile`, `createInjector`, `defineComposite`
-
-### Configuration
-
-`gsts.config.ts` at project root. Fields: `compileRoot`, `entries` (glob patterns), `outDir`, `inject` (gameRegion, playerId, mapId), `options.optimize` (precompileExpression, removeUnusedNodes, timerPool, timerDispatchAggregate).
+### Injection (`src/injector/`)
+- `index.ts`: reads `.gia` files and patches them into game `.gil` binary files via protobuf (GIA is a protobuf wrapper).
+- `binary.ts`: low-level binary patching of GIL files.
+- `proto.ts`: loads the protobuf schema (`.gia.proto`).
+- `node_graph.ts`: node graph structure manipulation.
+- `signal_nodes.ts`, `folder.ts`: signal and folder management in GIL.
 
 ## Key Source Directories
 
 | Directory | Purpose |
 |---|---|
-| `src/compiler/` | Pipeline orchestration, config loader, IR merge |
-| `src/compiler/ts_to_gs_transform/` | Stage 1: TS AST → .gs.ts transform |
-| `src/compiler/gs_to_ir_json_transform/` | Stage 2: .gs.ts → IR JSON (execution) |
-| `src/compiler/ir_to_gia_transform/` | Stage 3: IR JSON → .gia (mappings, pins, layout, composites, timer opt) |
-| `src/runtime/` | DSL layer — `core.ts` (g.server/gstsServer API), `value.ts` (type system), `ir_builder.ts`, `composite_registry.ts`, `server_globals.ts` |
-| `src/definitions/` | Game type definitions — `nodes.ts`, `events.ts`, `enums.ts`, entity helpers, Chinese aliases, prefab IDs |
-| `src/injector/` | Binary injection — parse/edit .gil files, protobuf encode/decode, signal patching |
-| `src/cli/` | CLI commands — build, inject, dev/watch, checks, GIL resource extraction, state |
-| `src/eslint/` | Custom ESLint rules for semantic constraints |
-| `src/thirdparty/` | Node editor pack — GIA code generation from vendor source data, protobuf schemas (`gia.proto.ts`) |
-| `tests/` | Test cases (compiled by gsts itself). Subdirs: `composite/`, `generated/`, `enum_cases/`, `risk/`, `other/` |
-| `scripts/` | Build helpers: code generation, assertions, test generation, postbuild, release |
-| `scripts/testgen/` | Test generation engine — extracts server F methods, emits calls with value producers and output consumers |
-
-## Value Type System
-
-Defined in `src/runtime/value.ts`. Core types: `bool`, `int`, `float`, `str`, `vec3`, `guid`, `entity`, `prefabId`, `configId`, `faction`, `struct`, `dict`, `enum`. Each has a corresponding list variant (`bool_list`, `int_list`, etc.). Factory functions: `int(42)`, `str("hello")`, `vec3(x,y,z)`, `entity(id)`, etc.
-
-## Composite Node Support
-
-Reusable sub-graphs defined via `g.defineComposite(name, def)` and invoked via `f.callComposite(handle, params)`. Runtime capture in `src/runtime/composite_registry.ts`, IR embedding via `CompositeDefIR` / `CompositeCallMeta` types, GIA transform in `src/compiler/ir_to_gia_transform/composite.ts`.
-
-## Test Architecture
-
-- **Generated tests** (`tests/generated/`): Auto-generated from node definitions by `scripts/generate-node-gia-tests.ts`. Each generated file exercises a subset of server F methods with typed arguments.
-- **Manual tests** (`tests/` root): Hand-written tests for specific features — composite nodes, timers, loops, variable semantics, collection rebinding, list methods, bitwise operators, ESLint rules, etc.
-- **Assertion scripts** (`scripts/assert-*.ts`): Run separately via `tsx` to verify specific compilation behaviors.
-- The test config (`gsts.test.config.ts`) points compileRoot at `.` and entries at `./tests`.
+| Directory | Purpose |
+|---|---|
+| `src/compiler/ts_to_gs_transform/` | TS AST → node function calls (Stage 1) |
+| `src/compiler/gs_to_ir_json_transform/` | .gs.ts execution → IR JSON (Stage 2) |
+| `src/compiler/ir_to_gia_transform/` | IR JSON → GIA binary (Stage 3) |
+| `src/runtime/` | DSL runtime: `g.server()`, `g.defineComposite()`, `f.*` flow functions, typed values (`value.ts`), variables (`variables.ts`), IR builder (`ir_builder.ts`), composite nodes (`composite_registry.ts`) |
+| `src/definitions/` | Auto-generated type definitions from `resources/node_definitions.json`: events (`events.ts`), nodes (`nodes.ts`), enums (`enum.ts`), entity helpers, Chinese aliases (`zh_aliases.ts`), prefabs (`prefabs.ts`) |
+| `src/injector/` | GIA → GIL injection and binary patching |
+| `src/cli/` | `gsts` CLI tool (compile, dev, inject, GIL resource extraction) |
+| `src/eslint/` | ~40 custom ESLint rules for UGC DSL constraints |
+| `src/thirdparty/` | Wu-Yijun's reverse-engineered node data (node IDs, pin records, enum IDs, protobuf schema) |
+| `scripts/` | Build scripts, test generators, definition generators |
+| `tests/` | Test `.ts` files compiled by the test pipeline |
