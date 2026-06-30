@@ -553,10 +553,25 @@ export class MetaCallRegistry {
     if (this.recordCounter !== 1) {
       throw new Error('[error] bootstrap flow must be created before any other nodes')
     }
-    this.registerEvent('whenEntityIsCreated', ServerEventMetadata, [])
-    const flow = this.flows[this.flows.length - 1]
-    this.bootstrapFlow = flow
-    return flow
+    // 创建引导流但不消耗 recordCounter（id=1 留给真实事件）。
+    // 引导流没有 execNodes，在 buildServerGraphRegistriesIRDocuments 中被
+    // removeUnusedNodesFromFlow 自动过滤。
+    const bootstrapEvent: MetaCallRecord = {
+      id: 0, // sentinel，不会被 emit
+      type: 'event',
+      nodeType: 'when_entity_is_created',
+      args: []
+    }
+    this.flows.push({
+      eventNode: bootstrapEvent,
+      eventArgs: [],
+      execNodes: [],
+      dataNodes: [],
+      edges: {},
+      execContextStack: [{ tailEndpoints: [], pendingSourceIndex: undefined }]
+    })
+    this.bootstrapFlow = this.flows[this.flows.length - 1]
+    return this.bootstrapFlow
   }
 
   withFlow<T>(flow: ExecutionFlow, fn: () => T): T {

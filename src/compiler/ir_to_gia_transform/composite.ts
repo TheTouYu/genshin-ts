@@ -199,11 +199,11 @@ function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
   return bySourceIndex
 }
 
-// impl 图布局间距常量
-const LAYOUT_EXEC_H_STEP = 800
-const LAYOUT_EXEC_V_STEP = 300
-const LAYOUT_DATA_H_STEP = 800
-const LAYOUT_DATA_Y_OFFSET = -400
+// impl 图布局间距常量（与 layout.ts 保持一致）
+const LAYOUT_EXEC_H_STEP = 500
+const LAYOUT_EXEC_V_STEP = 200
+const LAYOUT_DATA_H_STEP = 500
+const LAYOUT_DATA_Y_OFFSET = -300
 
 /**
  * 从 IR 节点构建 GIA GraphNode 列表（impl 图）
