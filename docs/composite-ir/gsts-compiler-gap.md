@@ -35,7 +35,7 @@
 | 5 | **终端复合 OutFlow pin** | 终端复合**没有** OutFlow pin（compositePins 中也无 OutFlow 条目） | 终端复合**有** OutFlow pin（pi=4），只是 connects 为空 | gsts 生成了编辑器不存在的字段——反编译/审查工具可能报差异 | `src/compiler/ir_to_gia_transform/index.ts` 后处理逻辑 |
 | 6 | **compositePins 数量** | 终端：仅 InFlow（1条） | 终端：InFlow + OutFlow（2条） | 同上 | 同上 |
 | ~~7~~ | ~~**Impl 图 nodeIndex 起始**~~ | ~~从 `2` 开始（带编号偏移）~~ | ~~从 `1` 开始~~ | ~~可能与编辑器 layout 编号规则不同~~ | ~~`src/compiler/ir_to_gia_transform/composite.ts` nodeIndex 映射~~ |
-| 8 | **布局坐标** | 编辑器人工/自动布局值 | gsts 布局算法值 | 编辑器打开后可能自动重排；不影响运行 | `src/compiler/ir_to_gia_transform/layout.ts` |
+| 8 | **布局坐标** | 编辑器人工调整，无固定步进 | gsts 布局算法值 | 编辑器打开后可能自动重排；不影响运行 | `src/compiler/ir_to_gia_transform/layout.ts` + `composite.ts` |
 
 ### P2 — 尚未验证但已知可能差异的领域
 
