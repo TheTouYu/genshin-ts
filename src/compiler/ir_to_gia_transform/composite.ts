@@ -201,7 +201,7 @@ function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
 
 // impl 图布局间距常量（小图紧凑：复合内部通常 ≤8 节点）
 const LAYOUT_EXEC_H_STEP = 350
-const LAYOUT_EXEC_V_STEP = 150
+const LAYOUT_EXEC_V_STEP = 200
 const LAYOUT_DATA_H_STEP = 350
 const LAYOUT_DATA_Y_OFFSET = -250
 

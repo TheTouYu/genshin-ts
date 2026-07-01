@@ -188,7 +188,7 @@ function layoutExecutionChain(
   state.unplacedNodes.delete(nodeId)
 
   const children = execChildrenMap.get(nodeId) ?? []
-  const branchGap = Math.trunc(config.rowHeight * 0.6)
+  const branchGap = Math.trunc(config.rowHeight * 0.9)
   children.forEach((child, idx) =>
     layoutExecutionChain(
       child,
@@ -244,20 +244,22 @@ function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: 
   if (state.unplacedNodes.size === 0) return
 
   const count = state.unplacedNodes.size
-  const maxCols = 50
-  const cols = Math.min(count, maxCols)
-  const rows = Math.ceil(count / maxCols)
+  const cols = Math.min(count, 50)
+  const rows = Math.ceil(count / cols)
 
-  // 以左上角为起点，向右、向下排布；整体放在已放置区域的左上方，避免接触
-  const left = -cols * config.columnWidth
-  const top = -rows * config.rowHeight
+  // 放在 exec 流下方，避免覆盖
+  let maxY = 0
+  for (const pos of state.positions.values()) {
+    if (pos[1] > maxY) maxY = pos[1]
+  }
+  const baseY = maxY + config.eventGap
 
   let idx = 0
   for (const nodeId of state.unplacedNodes.keys()) {
     const col = idx % cols
     const row = Math.floor(idx / cols)
-    const x = left + col * config.columnWidth
-    const y = top + row * config.rowHeight
+    const x = col * config.columnWidth
+    const y = baseY + row * config.rowHeight
 
     state.positions.set(nodeId, [x, y])
     idx += 1
