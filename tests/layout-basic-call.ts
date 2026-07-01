@@ -11,7 +11,7 @@ const handle = g.defineComposite('简单复合', {
   }
 })
 
-g.server({ name: 'main', id: 1073741828 })
+g.server({ name: 'R1基本调用', id: 1073741828 })
   .on('whenEntityIsCreated', (_e, f) => {
     f.callComposite(handle, {})
   })

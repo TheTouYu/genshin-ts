@@ -17,7 +17,7 @@ const comp2 = g.defineComposite('第二个执行', {
   }
 })
 
-g.server({ name: 'main', id: 1073741870 })
+g.server({ name: 'R1twoExec', id: 1073741870 })
   .on('whenEntityIsCreated', (_e, f) => {
     f.fork(
       () => f.callComposite(comp1, {}),

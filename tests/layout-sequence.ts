@@ -17,7 +17,7 @@ const comp = g.defineComposite('顺序执行', {
   }
 })
 
-g.server({ name: 'main', id: 1073741828 })
+g.server({ name: 'R2顺序执行', id: 1073741828 })
   .on('whenEntityIsCreated', (_e, f) => {
     f.callComposite(comp, {})
   })

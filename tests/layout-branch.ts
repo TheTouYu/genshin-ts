@@ -20,7 +20,7 @@ const compB = g.defineComposite('分支B', {
   }
 })
 
-g.server({ name: 'main_simple', id: 1073741828 })
+g.server({ name: 'R3分支A', id: 1073741828 })
   .on('whenEntityIsCreated', (_e, f) => {
     f.fork(
       () => f.callComposite(compA, {}),
@@ -45,7 +45,7 @@ const compC2 = g.defineComposite('链2复合', {
   }
 })
 
-g.server({ name: 'main_chain', id: 1073741829 })
+g.server({ name: 'R3分支B', id: 1073741829 })
   .on('whenEntityIsCreated', (_e, f) => {
     // 双链并行：每链是一个复合调用 + 一个打印终端
     f.fork(

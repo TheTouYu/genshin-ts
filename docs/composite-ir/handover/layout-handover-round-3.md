@@ -141,10 +141,19 @@ LAYOUT_DATA_Y_OFFSET = -250
 | 各种flow.gia 主图节点全游离，gsts 无法精确复现 | 对比不可直接进行 | ✅ 已知——信号/数据依赖 vs exec 拓扑差异 |
 | 两个复合节点.gia 含"自定义输入"（nid=18）游离节点 | gsts 不生成此类型节点 | ✅ 已知，非阻塞 |
 
+### 游戏内测试发现
+
+| 问题 | 说明 | 文件 |
+|------|------|------|
+| 主图名称 `_GSTS_` 前缀 | `g.server({name:'main'})` 生成 `_GSTS_main`，游戏内显示不美观 | `src/runtime/core.ts:1510` |
+| Impl 图名称为空 | `buildCompositeAccessories` 中 implGraphUnit.name = ''，游戏内可能显示为未命名 | `composite.ts:141` |
+| 兜底名 `_GSTS_Generated_Graph` | 当无名称时使用，不够友好 | `core.ts:1518` |
+
 ### 剩余待处理
 
 | 优先级 | 任务 | 说明 |
 |--------|------|------|
+| P1 | 节点图命名 | 主图 `_GSTS_` 前缀、impl 图空名称、兜底名不友好（本轮游戏测试反馈） |
 | P1 | 主图多 outflow 终端节点 | 复合调用有多 outflow 时，主图不生成终端节点（参考文件中存在，gsts 缺失） |
 | P1 | 复合嵌套布局验证 | 复合内部调用另一个复合时，`computeImplLayout` 需要处理嵌套 |
 | P2 | 布局 ASCII/SVG 可视化 | 目前只能看坐标数字，可视化提升对比效率 |
@@ -189,6 +198,28 @@ LAYOUT_DATA_Y_OFFSET = -250
 **解决方向：** 在 main graph 编码阶段，检测复合调用的 outflow 数量，为每个 outflow 出口生成一个 `end` node（nid=2，顺序执行/终端），并添加连边。
 
 **涉及文件：** `src/compiler/ir_to_gia_transform/` — 可能是 `runner.ts` 或单独的文件。
+
+#### 主图命名去重（P0 修复）
+
+**问题：** 游戏测试发现多个测试文件都用 `name: 'main'`，结果全显示为 `_GSTS_main`、`_GSTS_main_1`、`_GSTS_main_2`…无法区分。
+
+**修复：** 给每个 `g.server()` 分配唯一描述性名称：
+
+| 文件 | 原名称 | 新名称 | 游戏内显示 |
+|------|--------|--------|-----------|
+| layout-basic-call.ts | `main` | `R1基本调用` | `_GSTS_R1基本调用` |
+| layout-two-exec.ts | `main` | `R1twoExec` | `_GSTS_R1twoExec` |
+| layout-sequence.ts | `main` | `R2顺序执行` | `_GSTS_R2顺序执行` |
+| layout-branch.ts (场景A) | `main_simple` | `R3分支A` | `_GSTS_R3分支A` |
+| layout-branch.ts (场景B) | `main_chain` | `R3分支B` | `_GSTS_R3分支B` |
+| layout-two-composites.ts (主) | `main` | `R3两复合A` | `_GSTS_R3两复合A` |
+| layout-two-composites.ts (次) | `second` | `R3两复合B` | `_GSTS_R3两复合B` |
+| layout-various.ts (主) | `main` | `R3各种flowA` | `_GSTS_R3各种flowA` |
+| layout-various.ts (次) | `second` | `R3各种flowB` | `_GSTS_R3各种flowB` |
+
+**注意：** Impl 图（复合内部图）不需要单独命名——主图名称足够识别。`_GSTS_` 前缀保留不变。（参考文件中也用空名称。）
+
+**涉及文件：** 仅 `.ts` 测试文件，无需改动代码。
 
 #### 复合嵌套布局验证（P1）
 

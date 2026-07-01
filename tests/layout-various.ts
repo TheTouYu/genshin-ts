@@ -46,14 +46,14 @@ const compSingle = g.defineComposite('单节点复合', {
 })
 
 // 主事件：调用线性复合和分支复合
-g.server({ name: 'main', id: 1073741828 })
+g.server({ name: 'R3各种flowA', id: 1073741828 })
   .on('whenEntityIsCreated', (_e, f) => {
     f.callComposite(compLinear, {})
     f.callComposite(compBranch, {})
   })
 
 // 第二事件：调用多出口复合和单节点复合
-g.server({ name: 'second', id: 1073741829 })
+g.server({ name: 'R3各种flowB', id: 1073741829 })
   .on('whenEntityIsCreated', (_e, f) => {
     f.callComposite(compMultiOut, {})
     f.callComposite(compSingle, {})
