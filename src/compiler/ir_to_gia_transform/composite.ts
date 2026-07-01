@@ -344,7 +344,7 @@ function computeImplLayout(
     if (orphanX < -2000) { orphanX = -400; orphanY += 400 }
   }
 
-  const dataNodeIds = implNodes.filter(n => !hasExecOut.has(n.id) && !isTerminal.has(n.id)).map(n => n.id)
+  const dataNodeIds = implNodes.filter(n => !hasExecOut.has(n.id) && !visited.has(n.id)).map(n => n.id)
   const dataNodeIdSet = new Set(dataNodeIds)
   const dataEdges = new Map<number, number[]>()
   const dataInDegree = new Map<number, number>()
@@ -490,9 +490,12 @@ function buildImplNodePins(
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
 
-  if (node.type === '__composite_capture__' || node.type === '__composite_call__') {
+  if (node.type === '__composite_call__') {
     return { pins, dataConns }
   }
+
+  // __composite_capture__: 跳过数据 pin 但保留 OutFlow pin 生成
+  if (node.type !== '__composite_capture__') {
 
   const args = node.args ?? []
   let pinIndex = 0
@@ -557,6 +560,7 @@ function buildImplNodePins(
       type: outType
     })
   }
+  } // end if (node.type !== '__composite_capture__')
 
   const outEdges = implEdges[node.id]
   if (outEdges && outEdges.length > 0) {

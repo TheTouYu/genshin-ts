@@ -422,7 +422,8 @@ export const SPECIAL_NODE_IDS: Record<string, number> = {
   monitor_signal: 300001,
   assemble_structure: 300002,
   split_structure: 300003,
-  modify_structure: 300004
+  modify_structure: 300004,
+  __composite_capture__: 2
 }
 
 export const SPECIAL_NODE_MAPPINGS: Record<string, string> = {

@@ -35,6 +35,8 @@ export type CompositeParamDef = { type: CompositeParamType }
  * 复合节点实现图捕获结果
  */
 export type CompositeCapture = {
+  /** 捕获流入口节点 ID（__composite_capture__，作为 impl 图的执行入口） */
+  captureNodeId: number
   execNodes: MetaCallRecord[]
   dataNodes: MetaCallRecord[]
   edges: Record<number, NextConnection[]>
@@ -134,11 +136,11 @@ export class CompositeRegistry {
 
         // 计算 compositePins：outer pin → inner node pin 映射
         const pins: CompositePinEntry[] = []
-        if (hasExec) {
+        if (hasExec && impl?.captureNodeId) {
           pins.push({
             outerPinKind: 1, // InFlow
             outerPinIndex: 0,
-            innerNodeId: impl!.execNodes[0].id,
+            innerNodeId: impl.captureNodeId,
             innerPinKind: 1, // InFlow
             innerPinIndex: 0
           })
@@ -219,6 +221,11 @@ export class CompositeRegistry {
           inputs: inputList,
           outputs: outputList,
           implNodes: [
+            ...(impl ? [{
+              id: impl.captureNodeId,
+              nodeType: '__composite_capture__',
+              args: [] as value[]
+            }] : []),
             ...(impl?.execNodes ?? []),
             ...(impl?.dataNodes ?? [])
           ].map((r) => ({

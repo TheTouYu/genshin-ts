@@ -93,7 +93,29 @@ LAYOUT_DATA_Y_OFFSET = -250
 
 ---
 
-## 四、`fork` API 设计
+## 四、本次改动
+
+### compositeCapture 入口节点修复
+
+在实现 顺序执行.gia 对比时发现复合节点实现图中 capture 入口节点缺失的问题。
+
+**修复前：**
+- `toCompositeDefIR` 中 `implNodes` 只包含 `execNodes + dataNodes`，capture 节点（`__composite_capture__`）被遗漏
+- InFlow composite pin 指向第一个 exec 节点而非 capture 节点
+- edges 引用 capture 节点 ID，但该节点不在 impl graph 中 → 子节点孤立
+
+**修复内容：**
+
+1. **`composite_registry.ts`**: `CompositeCapture` 新增 `captureNodeId` 字段
+2. **`core.ts`**: 捕获 capture 时保存 `flow.eventNode.id` 到 `captureNodeId`
+3. **`composite_registry.ts` (`toCompositeDefIR`)**:
+   - 在 `implNodes` 数组头部加入 capture 节点（type=`__composite_capture__`）
+   - InFlow composite pin 改为指向 `captureNodeId`
+4. **`mappings.ts`**: `SPECIAL_NODE_IDS` 新增 `__composite_capture__: 2`
+5. **`composite.ts` (`buildImplNodePins`)**: `__composite_capture__` 跳过 data pin 生成但仍然生成 OutFlow pin
+6. **`composite.ts` (`computeImplLayout`)**: data 节点过滤改用 `!visited` 而非 `!isTerminal`，避免 BFS 已放置的 terminal 节点被 data 布局覆盖
+
+## 五、`fork` API 设计
 
 ### 语法
 
@@ -137,12 +159,13 @@ f.printString('后续')
 
 ---
 
-## 五、已完成对比
+## 六、已完成对比
 
 | 参考文件 | gsts 入口 | 状态 | 差异 |
 |---------|-----------|------|------|
 | 基本调用节点.gia | `tests/layout-basic-call.ts` | ✅ | 间距 356 vs 335，Y 水平对齐 vs 斜线 |
 | two_exec.gia | `tests/layout-two-exec.ts` | ✅ | 用 `fork` 实现分支拓扑，间距合理 |
+| 顺序执行.gia | `tests/layout-sequence.ts` | ✅ | impl 图拓扑匹配（entry→[4分支]），间距均匀 |
 
 ### 对比结果汇总
 
@@ -156,16 +179,21 @@ impl 终端(0,0)              impl 终端(0,0)  ✅
 事件(3,4) → [A(802,0),     事件(10,1) → [A(355,4),
             B(781,192)]                  B(356,174)]
 Y 分支偏移: 192              Y 分支偏移: 170
+
+参考 顺序执行.impl          gsts（顺序执行.impl）
+entry(-145,-81)→[4节点]     entry(0,0)→[4节点]
+子节点 X≈269-287, Y分散      子节点 (350,0/150/300/450)
+间距：~414 非均匀            间距：350 均匀步进
 ```
 
 ---
 
-## 六、待做任务
+## 七、待做任务
 
 ### 1. 继续对比 user_edit 文件
 
 优先级建议：
-1. `顺序执行.gia` — 事件→复合→两个出口（分支链混合）
+1. ~~`顺序执行.gia` — 事件→复合→两个出口（分支链混合）~~ ✅
 2. `分支.gia` / `分支2.gia` — 显式分支场景
 3. `两个复合节点.gia` — 多事件+复合混合
 4. `各种flow.gia` — 最大文件（7节点），测试边界
@@ -186,13 +214,15 @@ Y 分支偏移: 192              Y 分支偏移: 170
 
 ---
 
-## 七、关键文件索引
+## 八、关键文件索引
 
 | 文件 | 用途 |
 |------|------|
 | `src/compiler/ir_to_gia_transform/layout.ts` | 主图布局算法 |
 | `src/compiler/ir_to_gia_transform/composite.ts` | impl 图布局（`computeImplLayout`） |
-| `src/runtime/core.ts` | `MetaCallRegistry`（`fork` 实现，`ensureBootstrapFlow`） |
+| `src/runtime/core.ts` | `MetaCallRegistry`（`fork` 实现，`ensureBootstrapFlow`，captureNodeId） |
+| `src/runtime/composite_registry.ts` | 复合节点注册（captureNodeId 存储，implNodes 包含 capture） |
+| `src/compiler/ir_to_gia_transform/mappings.ts` | Special node IDs（`__composite_capture__`） |
 | `src/definitions/nodes.ts` | `ServerExecutionFlowFunctions`（`fork` 暴露） |
 | `docs/composite-ir/layout-patterns.md` | 布局规律文档 |
 | `tests/composite/audit-layout.ts` | 布局质量审计 |
@@ -200,10 +230,11 @@ Y 分支偏移: 192              Y 分支偏移: 170
 | `tests/composite/analyze-editor-layout.ts` | 编辑器布局统计分析 |
 | `tests/layout-basic-call.ts` | 基础调用对比 |
 | `tests/layout-two-exec.ts` | 分支调用对比 |
+| `tests/layout-sequence.ts` | 顺序执行（多分支+多OutFlow）对比 |
 
 ---
 
-## 八、参考文件路径
+## 九、参考文件路径
 
 ```
 user_edit 文件: /mnt/c/.../Beyond_Local_Export/user_edit/

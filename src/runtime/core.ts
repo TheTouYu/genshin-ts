@@ -1580,6 +1580,7 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
         }
 
         def.captured = {
+          captureNodeId: flow.eventNode.id,
           execNodes: flow.execNodes,
           dataNodes: flow.dataNodes,
           edges: flow.edges,
