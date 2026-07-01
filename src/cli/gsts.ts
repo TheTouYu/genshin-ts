@@ -20,6 +20,7 @@ import { writeGiaFromIrJsonFile, writeGiaFromIrJsonFiles } from '../compiler/ir_
 import { compileTsToGs } from '../compiler/ts_to_gs_pipeline.js'
 import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
+import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
 import { resolveGilFolder, resolveGilTarget } from './gil_paths.js'
@@ -49,9 +50,8 @@ type CachedConfig = { mtimeMs: number; cfg: GstsConfig }
 const configCache = new Map<string, CachedConfig>()
 
 function getGraphIdFromIrDocLike(doc: unknown): number {
-  const g = (doc as { graph?: { id?: unknown } } | undefined)?.graph
-  const id = g && typeof g === 'object' ? (g as { id?: unknown }).id : undefined
-  return typeof id === 'number' && Number.isFinite(id) ? id : 1073741825
+  const graph = (doc as { graph?: { id?: unknown; type?: unknown } } | undefined)?.graph
+  return resolveGraphIdForGraph(graph)
 }
 
 function isMergedJsonFile(p: string): boolean {

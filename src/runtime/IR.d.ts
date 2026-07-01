@@ -31,7 +31,16 @@ export type ClientIRDocument = SimplifyDeep<
 >
 
 export type ServerGraphSubType = 'entity' | 'status' | 'class' | 'item'
-export type ServerGraphMode = 'beyond' | 'classic'
+export type GraphMode = 'beyond' | 'classic'
+export type ServerGraphMode = GraphMode
+export type ClientGraphMode = GraphMode
+export type ClientGraphSubType =
+  | 'character_skill'
+  | 'creation_skill'
+  | 'creation_status'
+  | 'creation_status_decision'
+  | 'bool_filter'
+  | 'int_filter'
 
 export interface ServerGraphInfo {
   // 默认基于脚本文件名
@@ -47,6 +56,8 @@ export interface ClientGraphInfo {
   name?: string
   id?: number
   type: 'client'
+  mode?: ClientGraphMode
+  sub_type: ClientGraphSubType
 }
 
 export type Variable =

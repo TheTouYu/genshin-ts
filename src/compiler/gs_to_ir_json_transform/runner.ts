@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { buildServerGraphRegistriesIRDocuments } from '../../runtime/core.js'
+import { buildAllGraphRegistriesIRDocuments } from '../../runtime/core.js'
 import { setRuntimeOptions } from '../../runtime/runtime_config.js'
 
 function defaultGraphNameFromEntryFile(entryFile: string): string {
@@ -35,7 +35,7 @@ async function main() {
   const json =
     JSON.stringify(
       // defaultName：当脚本内未传 g.server({ name }) 时，用入口文件名自动命名
-      buildServerGraphRegistriesIRDocuments({
+      buildAllGraphRegistriesIRDocuments({
         defaultName: defaultGraphNameFromEntryFile(entryFile)
       }),
       null,

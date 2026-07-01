@@ -1,4 +1,5 @@
 import type { ExecutionFlow, IRBuildInput } from './execution_flow_types.js'
+import { CLIENT_DEFAULT_GRAPH_ID, SERVER_DEFAULT_GRAPH_ID } from './graph_defaults.js'
 import type {
   Argument,
   ConnectionArgument,
@@ -187,6 +188,23 @@ function buildNodesFromFlow(flow: ExecutionFlow): ServerNode[] {
 export function buildIRDocument(input: IRBuildInput): IRDocument {
   const nodes = input.flows.flatMap(buildNodesFromFlow)
 
+  if (input.clientSubType) {
+    return {
+      ir_version: 1,
+      ir_type: 'node_graph',
+      graph: {
+        type: 'client',
+        mode: input.clientMode ?? 'beyond',
+        sub_type: input.clientSubType,
+        id: input.graphId ?? CLIENT_DEFAULT_GRAPH_ID,
+        name: input.graphName
+      },
+      // 客户端节点图当前不支持节点图变量；保留这一行作为未来支持时的落点，但不要写入 client IR。
+      // variables: input.variables,
+      nodes
+    }
+  }
+
   return {
     ir_version: 1,
     ir_type: 'node_graph',
@@ -194,7 +212,7 @@ export function buildIRDocument(input: IRBuildInput): IRDocument {
       type: 'server',
       mode: input.serverMode ?? 'beyond',
       sub_type: input.serverSubType ?? 'entity',
-      id: input.graphId,
+      id: input.graphId ?? SERVER_DEFAULT_GRAPH_ID,
       name: input.graphName
     },
     variables: input.variables,

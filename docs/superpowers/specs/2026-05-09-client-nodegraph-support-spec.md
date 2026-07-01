@@ -21,7 +21,7 @@ The user-facing API must match the existing design direction:
 ```ts
 import { g } from 'genshin-ts'
 
-g.characterSkill({ id: 1073741825, name: 'Skill' }).on('start', (_evt, f) => {
+g.characterSkill({ id: 1082130433, name: 'Skill' }).on('start', (_evt, f) => {
   f.printString('hello')
 })
 

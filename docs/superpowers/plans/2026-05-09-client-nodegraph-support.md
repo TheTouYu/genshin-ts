@@ -32,7 +32,9 @@ Create these files:
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts`: client metadata lookup helpers.
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts`: client graph/node/pin/value body helpers when server helpers cannot be reused cleanly.
 - `tests/client_generated/.gitkeep`: keeps the report output directory present.
-- `tests/client_smoke/basic_client_graphs.ts`: source fixtures for smoke scripts.
+- `scripts/client-nodegraph/fixtures/basic_client_graphs.ts`: source fixture for runtime/IR smoke scripts.
+- `scripts/client-nodegraph/fixtures/default_client_id.ts`: source fixture proving omitted client graph id defaults to `1082130433`.
+- `scripts/client-nodegraph/fixtures/duplicate_server_client_id.ts`: source fixture proving server/client graph ids cannot overlap.
 
 Modify these files:
 
@@ -66,6 +68,7 @@ Stop for user review after this phase.
 ### Task 1: Add Client Metadata Types And Error Codes
 
 **Files:**
+
 - Create: `src/shared/client_capability_errors.ts`
 - Create: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`
 - Create: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts`
@@ -147,7 +150,11 @@ export type ClientNodeMetadata = {
   inputs: ClientPinMetadata[]
   outputs: ClientPinMetadata[]
   flows?: ClientPinMetadata[]
-  reflectMap?: Array<{ concreteId: number | string; variantKey: string; pins?: ClientPinMetadata[] }>
+  reflectMap?: Array<{
+    concreteId: number | string
+    variantKey: string
+    pins?: ClientPinMetadata[]
+  }>
   pinFlags?: string[]
   specialKind?: ClientSpecialKind
   isStart?: boolean
@@ -254,6 +261,7 @@ git commit -m "chore: add client nodegraph metadata foundations"
 ### Task 2: Extract Client Metadata From Samples
 
 **Files:**
+
 - Create: `scripts/client-nodegraph/extract-client-node-metadata.ts`
 - Create: `tests/client_generated/.gitkeep`
 - Output: `resources/client_node_metadata.json`
@@ -281,12 +289,12 @@ type ClientGraphSubType =
 const DEFAULT_SAMPLE_ROOT = 'D:\\_S2\\mypy_test\\client_nodes'
 
 const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
-  '角色技能节点图': 'character_skill',
-  '造物技能节点图': 'creation_skill',
-  '造物状态节点图': 'creation_status',
-  '造物状态决策节点图': 'creation_status_decision',
-  '布尔过滤器节点': 'bool_filter',
-  '整数过滤器节点': 'int_filter'
+  角色技能节点图: 'character_skill',
+  造物技能节点图: 'creation_skill',
+  造物状态节点图: 'creation_status',
+  造物状态决策节点图: 'creation_status_decision',
+  布尔过滤器节点: 'bool_filter',
+  整数过滤器节点: 'int_filter'
 }
 
 function walkGiaFiles(dir: string): string[] {
@@ -359,10 +367,7 @@ function main() {
   writeJson('resources/client_graph_capability.json', capability)
   writeJson('resources/client_execution_flow_metadata.json', [])
   writeJson('tests/client_generated/_coverage_gaps.json', {
-    unsupportedSpecialKinds: [
-      'inline_var_type_hint',
-      'structure_list_unknown_binding'
-    ],
+    unsupportedSpecialKinds: ['inline_var_type_hint', 'structure_list_unknown_binding'],
     missingMetadata: []
   })
   writeJson('tests/client_generated/_report.json', report)
@@ -428,6 +433,7 @@ git commit -m "chore: extract client nodegraph source caches"
 ### Task 3: Generate TypeScript Modules From Client Source Caches
 
 **Files:**
+
 - Create: `scripts/client-nodegraph/generate-client-nodegraph-modules.ts`
 - Modify: `package.json`
 - Output: `src/definitions/client_graph_modes.ts`
@@ -611,6 +617,7 @@ Stop for user review after this phase.
 ### Task 4: Add Client IR Types
 
 **Files:**
+
 - Modify: `src/runtime/IR.d.ts`
 - Modify: `src/runtime/execution_flow_types.ts`
 - Modify: `src/runtime/ir_builder.ts`
@@ -723,6 +730,7 @@ git commit -m "feat: add client graph IR shape"
 ### Task 5: Add Runtime Client Graph Support Module
 
 **Files:**
+
 - Create: `src/runtime/client_graph_support.ts`
 - Modify: `src/runtime/core.ts`
 - Modify: `src/definitions/nodes.ts`
@@ -733,6 +741,7 @@ git commit -m "feat: add client graph IR shape"
 Create `src/runtime/client_graph_support.ts`:
 
 ```ts
+import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
 import {
   ClientBoolFilterExecutionFlowFunctions,
   ClientCharacterSkillExecutionFlowFunctions,
@@ -741,57 +750,146 @@ import {
   ClientCreationStatusExecutionFlowFunctions,
   ClientIntFilterExecutionFlowFunctions
 } from '../definitions/nodes.js'
-import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
 import type { ExecutionFlowRegistry } from './core.js'
 import type { ClientGraphMode, ClientGraphSubType } from './IR.js'
 import { bool, int } from './value.js'
 
-export type ClientGraphOptions = {
+export type ClientLang = 'en' | 'zh'
+
+type ClientGraphOptionsBase = {
+  /**
+   * [ZH] 客户端节点图 ID（NodeGraph.id）。
+   *
+   * 对应要注入/替换的目标客户端 NodeGraph ID。客户端节点图默认值为 1082130433。
+   *
+   * [EN] Client node graph id (NodeGraph.id).
+   *
+   * The target client NodeGraph id to inject/replace. The client graph default value is 1082130433.
+   */
   id?: number
+  /**
+   * [ZH] 客户端节点图显示名称（NodeGraph.name）。
+   *
+   * 若不指定：默认使用入口文件名（由 gsts runner 注入 defaultName）。
+   *
+   * [EN] Display name inside the client node editor (NodeGraph.name).
+   *
+   * If omitted: defaults to the entry file name (provided by the gsts runner as defaultName).
+   */
   name?: string
+  /**
+   * [ZH] 是否自动加 `_GSTS` 前缀（默认 true）。
+   * - true: 若 name/defaultName 不以 `_GSTS` 开头，则自动补 `_GSTS_` 前缀
+   * - false: 不做任何前缀处理
+   *
+   * [EN] Whether to auto prefix with `_GSTS` (default true).
+   */
   prefix?: boolean
-  mode?: ClientGraphMode
+  /**
+   * [ZH] 语言偏好（仅影响类型提示与中文别名解析）。
+   *
+   * 设置为 `zh` 时，客户端节点图 API 使用中文事件名与中文 f 函数别名提示；
+   * 默认 `en` 使用英文事件名与英文 f 函数名。
+   *
+   * [EN] Language hint (affects type hints and zh alias resolution only).
+   *
+   * Use `zh` for Chinese event names and Chinese f-function alias hints; the default `en` uses
+   * English event names and English f-function names.
+   */
+  lang?: ClientLang
 }
+
+export type ClientGraphOptions<Mode extends ClientGraphMode = ClientGraphMode> =
+  Mode extends 'classic'
+    ? ClientGraphOptionsBase & {
+        /**
+         * [ZH] 客户端节点图模式（经典模式 Classic Mode）。
+         *
+         * 使用经典模式构建该客户端节点图；事件与 f 函数类型提示会匹配 classic 模式可用能力。
+         *
+         * [EN] Client graph mode (Classic Mode).
+         *
+         * Builds this client node graph in Classic Mode; event and f-function type hints match
+         * classic-compatible capabilities.
+         */
+        mode: 'classic'
+      }
+    : ClientGraphOptionsBase & {
+        /**
+         * [ZH] 客户端节点图模式（默认超限模式 Beyond Mode）。
+         *
+         * 使用超限模式构建该客户端节点图；事件与 f 函数类型提示会匹配 beyond 模式可用能力。
+         *
+         * [EN] Client graph mode (default: Beyond Mode).
+         *
+         * Builds this client node graph in Beyond Mode; event and f-function type hints match
+         * beyond-compatible capabilities.
+         */
+        mode?: 'beyond'
+      }
 
 export type ClientStartEvent = Record<string, never>
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>
 
-export type ClientFlowFunctionClass<T extends ClientGraphSubType> =
-  T extends 'character_skill'
-    ? ClientCharacterSkillExecutionFlowFunctions
-    : T extends 'creation_skill'
-      ? ClientCreationSkillExecutionFlowFunctions
-      : T extends 'creation_status'
-        ? ClientCreationStatusExecutionFlowFunctions
-        : T extends 'creation_status_decision'
-          ? ClientCreationStatusDecisionExecutionFlowFunctions
-          : T extends 'bool_filter'
-            ? ClientBoolFilterExecutionFlowFunctions
-            : ClientIntFilterExecutionFlowFunctions
+export type ClientFlowFunctionClass<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode = 'beyond'
+> = T extends 'character_skill'
+  ? ClientCharacterSkillExecutionFlowFunctions
+  : T extends 'creation_skill'
+    ? ClientCreationSkillExecutionFlowFunctions
+    : T extends 'creation_status'
+      ? ClientCreationStatusExecutionFlowFunctions
+      : T extends 'creation_status_decision'
+        ? ClientCreationStatusDecisionExecutionFlowFunctions
+        : T extends 'bool_filter'
+          ? ClientBoolFilterExecutionFlowFunctions
+          : ClientIntFilterExecutionFlowFunctions
 
 export type ClientStartHandler<F> = (evt: ClientStartEvent, f: F) => void
 export type ClientFilterHandler<F, R> = (evt: ClientStartEvent, f: F) => R
 
 export type ClientStartEventName = 'start'
-export type ClientStartGraphApi<F> = {
-  on(eventName: ClientStartEventName, handler: ClientStartHandler<F>): ClientStartGraphApi<F>
+export type ClientStartGraphApi<
+  F,
+  Lang extends ClientLang = 'en',
+  Mode extends ClientGraphMode = 'beyond'
+> = {
+  on(
+    eventName: ClientStartEventName,
+    handler: ClientStartHandler<F>
+  ): ClientStartGraphApi<F, Lang, Mode>
 }
-export type ClientFilterGraphApi<F, R> = {
-  on(eventName: ClientStartEventName, handler: ClientFilterHandler<F, R>): ClientFilterGraphApi<F, R>
+export type ClientFilterGraphApi<
+  F,
+  R,
+  Lang extends ClientLang = 'en',
+  Mode extends ClientGraphMode = 'beyond'
+> = {
+  on(
+    eventName: ClientStartEventName,
+    handler: ClientFilterHandler<F, R>
+  ): ClientFilterGraphApi<F, R, Lang, Mode>
 }
 
 export function assertClientGraphMode(mode?: ClientGraphMode): ClientGraphMode {
   const resolved = mode ?? 'beyond'
   if (resolved !== 'beyond' && resolved !== 'classic') {
-    throw clientNodegraphError(CLIENT_ERROR_CODES.MODE_UNAVAILABLE, `invalid client mode: ${String(mode)}`)
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.MODE_UNAVAILABLE,
+      `invalid client mode: ${String(mode)}`
+    )
   }
   return resolved
 }
 
 export function assertClientGraphSubType(subType: ClientGraphSubType): ClientGraphSubType {
   if (!(subType in CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE)) {
-    throw clientNodegraphError(CLIENT_ERROR_CODES.MODE_UNAVAILABLE, `invalid client graph subtype: ${String(subType)}`)
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.MODE_UNAVAILABLE,
+      `invalid client graph subtype: ${String(subType)}`
+    )
   }
   return subType
 }
@@ -799,7 +897,10 @@ export function assertClientGraphSubType(subType: ClientGraphSubType): ClientGra
 export function normalizeClientBoolFilterReturn(result: boolean | bool): bool {
   if (result instanceof bool) return result
   if (typeof result === 'boolean') return new bool(result)
-  throw clientNodegraphError(CLIENT_ERROR_CODES.FILTER_RETURN_TYPE, 'bool_filter handler must return boolean or bool')
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.FILTER_RETURN_TYPE,
+    'bool_filter handler must return boolean or bool'
+  )
 }
 
 export function normalizeClientIntFilterReturn(result: bigint | number | int): int {
@@ -807,11 +908,17 @@ export function normalizeClientIntFilterReturn(result: bigint | number | int): i
   if (typeof result === 'bigint') return new int(result)
   if (typeof result === 'number') {
     if (!Number.isSafeInteger(result)) {
-      throw clientNodegraphError(CLIENT_ERROR_CODES.FILTER_RETURN_RANGE, 'int_filter number return must be a safe integer')
+      throw clientNodegraphError(
+        CLIENT_ERROR_CODES.FILTER_RETURN_RANGE,
+        'int_filter number return must be a safe integer'
+      )
     }
     return new int(result)
   }
-  throw clientNodegraphError(CLIENT_ERROR_CODES.FILTER_RETURN_TYPE, 'int_filter handler must return safe integer number, bigint, or int')
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.FILTER_RETURN_TYPE,
+    'int_filter handler must return safe integer number, bigint, or int'
+  )
 }
 
 export const CLIENT_FILTER_END_NODE_TYPES = {
@@ -831,7 +938,9 @@ export function createClientFlowFunctions<T extends ClientGraphSubType>(
     case 'creation_status':
       return new ClientCreationStatusExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'creation_status_decision':
-      return new ClientCreationStatusDecisionExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+      return new ClientCreationStatusDecisionExecutionFlowFunctions(
+        registry
+      ) as ClientFlowFunctionClass<T>
     case 'bool_filter':
       return new ClientBoolFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'int_filter':
@@ -875,7 +984,11 @@ Modify `src/runtime/core.ts` so:
 ```ts
 export interface ExecutionFlowRegistry {
   registerNode(record: MetaCallRecord): MetaCallRecordRef
-  withExecBranch(fromNodeId: number, sourceIndex: number, fn: () => void): {
+  withExecBranch(
+    fromNodeId: number,
+    sourceIndex: number,
+    fn: () => void
+  ): {
     tailEndpoints: ExecTailEndpoint[]
     headNodeId?: number
     terminatedByReturn?: boolean
@@ -969,20 +1082,20 @@ buildAllGraphRegistriesIRDocuments({
 
 - [ ] **Step 7: Add runtime smoke fixture**
 
-Create `tests/client_smoke/basic_client_graphs.ts`:
+Create `scripts/client-nodegraph/fixtures/basic_client_graphs.ts`:
 
 ```ts
 import { g } from '../../src/runtime/core.js'
 
-g.characterSkill({ id: 1073741825, name: 'ClientSkill' }).on('start', (_evt, f) => {
+g.characterSkill({ id: 1082130433, name: 'ClientSkill' }).on('start', (_evt, f) => {
   f.printString('client skill')
 })
 
-g.boolFilter({ id: 1073741826, name: 'ClientBoolFilter' }).on('start', () => {
+g.boolFilter({ id: 1082130437, name: 'ClientBoolFilter' }).on('start', () => {
   return true
 })
 
-g.intFilter({ id: 1073741827, name: 'ClientIntFilter' }).on('start', () => {
+g.intFilter({ id: 1082130438, name: 'ClientIntFilter' }).on('start', () => {
   return 1n
 })
 ```
@@ -993,21 +1106,60 @@ Run:
 
 ```powershell
 npm run build
-node dist/src/compiler/gs_to_ir_json_transform/runner.js tests/client_smoke/basic_client_graphs.ts
+node --import tsx dist/src/compiler/gs_to_ir_json_transform/runner.js scripts/client-nodegraph/fixtures/basic_client_graphs.ts tests/client_generated/basic_client_graphs.ir.json
 ```
 
 Expected: generated JSON contains three documents with `graph.type` equal to `client`.
 
+- [ ] **Step 8a: Add client API type smoke**
+
+Create `scripts/client-nodegraph/fixtures/client_api_types.ts` to compile-check that `mode` and
+`lang` flow through the public client API type:
+
+```ts
+g.characterSkill({ mode: 'classic', lang: 'zh' })
+g.intFilter({ lang: 'zh' })
+g.boolFilter({ mode: 'classic' })
+```
+
+Expected: `npm run build` type-checks `ClientStartGraphApi` / `ClientFilterGraphApi` with
+`SubType + Lang + Mode` preserved.
+
+- [ ] **Step 8b: Check default client graph id**
+
+Create `scripts/client-nodegraph/fixtures/default_client_id.ts` with a client graph that omits `id`.
+
+Run:
+
+```powershell
+node --import tsx dist/src/compiler/gs_to_ir_json_transform/runner.js scripts/client-nodegraph/fixtures/default_client_id.ts tests/client_generated/default_client_id.ir.json
+```
+
+Expected: generated JSON contains `graph.id` equal to `1082130433`.
+
+- [ ] **Step 8c: Reject duplicate server/client graph ids**
+
+Create `scripts/client-nodegraph/fixtures/duplicate_server_client_id.ts` with one server graph and one client graph sharing the same id.
+
+Run:
+
+```powershell
+node --import tsx dist/src/compiler/gs_to_ir_json_transform/runner.js scripts/client-nodegraph/fixtures/duplicate_server_client_id.ts tests/client_generated/duplicate_server_client_id.ir.json
+```
+
+Expected: command fails with a clear `server/client graph id cannot be duplicated` error.
+
 - [ ] **Step 9: Commit**
 
 ```powershell
-git add src/runtime/client_graph_support.ts src/runtime/core.ts src/definitions/nodes.ts src/compiler/gs_to_ir_json_transform/runner.ts tests/client_smoke/basic_client_graphs.ts
+git add src/runtime/client_graph_support.ts src/runtime/core.ts src/runtime/graph_defaults.ts src/definitions/nodes.ts src/compiler/gs_to_ir_json_transform/runner.ts scripts/client-nodegraph/fixtures/basic_client_graphs.ts scripts/client-nodegraph/fixtures/default_client_id.ts scripts/client-nodegraph/fixtures/duplicate_server_client_id.ts
 git commit -m "feat: build client graph IR from runtime APIs"
 ```
 
 ### Task 6: Add Client IR Merge Compatibility
 
 **Files:**
+
 - Modify: `src/compiler/ir_merge.ts`
 - Modify: `src/i18n/locales/en-US/main.json`
 - Modify: `src/i18n/locales/zh-CN/main.json`
@@ -1096,6 +1248,7 @@ Stop for user review after this phase.
 ### Task 7: Add Client Compiler Resolver
 
 **Files:**
+
 - Create: `src/compiler/ir_to_gia_transform/client_nodes.ts`
 - Modify: `src/compiler/ir_to_gia_transform/types.ts`
 
@@ -1104,8 +1257,8 @@ Stop for user review after this phase.
 Create `src/compiler/ir_to_gia_transform/client_nodes.ts`:
 
 ```ts
-import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import type { ClientGraphSubType } from '../../runtime/IR.js'
+import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import {
   requireClientNodeMetadata,
   type ClientNodeMetadata
@@ -1164,6 +1317,7 @@ git commit -m "feat: resolve client nodes from client metadata"
 ### Task 8: Add Client GIA Body Helpers
 
 **Files:**
+
 - Create: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts`
 - Modify: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts`
 
@@ -1174,6 +1328,7 @@ Create `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack
 ```ts
 // @ts-nocheck thirdparty
 
+import type { ClientNodeMetadata, ClientPinMetadata } from '../node_data/client_node_metadata.js'
 import {
   GraphUnit_Id_Class,
   GraphUnit_Id_Type,
@@ -1188,7 +1343,6 @@ import {
   type Root,
   type VarBase
 } from '../protobuf/gia.proto.js'
-import type { ClientNodeMetadata, ClientPinMetadata } from '../node_data/client_node_metadata.js'
 import { graph_body, node_connect_from, node_connect_to } from './basic.js'
 
 export function client_graph_body(body: {
@@ -1289,7 +1443,10 @@ export function client_node_body(body: {
     y: body.y * 200,
     usingStruct: []
   }
-  if (body.metadata.specialKind === 'start' && body.metadata.subType.startsWith('creation_status')) {
+  if (
+    body.metadata.specialKind === 'start' &&
+    body.metadata.subType.startsWith('creation_status')
+  ) {
     node.statusNodeExtension = { type: 1, inner: { value: 1 } }
   }
   return node
@@ -1330,6 +1487,7 @@ git commit -m "feat: add client GIA body helpers"
 ### Task 9: Add Client IR To GIA Transform
 
 **Files:**
+
 - Create: `src/compiler/ir_to_gia_transform/client_graph.ts`
 - Modify: `src/compiler/ir_to_gia_transform/index.ts`
 - Modify: `src/compiler/gia_vendor.ts`
@@ -1364,17 +1522,17 @@ import {
   client_node_body,
   client_node_connect_from,
   client_node_connect_to,
+  getClientGraphEncoding,
   wrap_gia,
   type Root as GiaRoot
 } from '../gia_vendor.js'
-import { getClientGraphEncoding } from '../gia_vendor.js'
-import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { resolveClientNodeMetadata } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
+import { buildExecutionGraph, layoutPositions } from './layout.js'
 import type { NodeId } from './types.js'
 
 export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8Array {
-  const graphId = opts.graphId ?? ir.graph.id ?? 1073741825
+  const graphId = opts.graphId ?? ir.graph.id ?? 1082130433
   const name = opts.name ?? ir.graph.name ?? '_GSTS_Generated_Client_Graph'
   const uid = opts.uid ?? 100000001
   const nodes = ir.nodes ?? []
@@ -1497,6 +1655,7 @@ Stop for user review after this phase.
 ### Task 10: Replace Placeholder Extraction With Real Node Metadata Extraction
 
 **Files:**
+
 - Modify: `scripts/client-nodegraph/extract-client-node-metadata.ts`
 - Output: `resources/client_node_metadata.json`
 - Output: `tests/client_generated/_coverage_gaps.json`
@@ -1572,10 +1731,7 @@ Write those nodes to `tests/client_generated/_coverage_gaps.json`:
 
 ```json
 {
-  "unsupportedSpecialKinds": [
-    "inline_var_type_hint",
-    "structure_list_unknown_binding"
-  ],
+  "unsupportedSpecialKinds": ["inline_var_type_hint", "structure_list_unknown_binding"],
   "nodes": []
 }
 ```
@@ -1601,6 +1757,7 @@ git commit -m "feat: extract client node metadata from samples"
 ### Task 11: Generate Client Method Modes And Definitions
 
 **Files:**
+
 - Modify: `scripts/client-nodegraph/generate-client-nodegraph-modules.ts`
 - Modify: `src/definitions/nodes.ts`
 - Output: `resources/client_execution_flow_metadata.json`
@@ -1648,9 +1805,8 @@ Replace the literal arrays with generated values from metadata.
 Modify `src/definitions/nodes.ts` so client classes remain empty runtime shells but expose type maps:
 
 ```ts
-export type ClientExecutionFlowFunctionsBySubTypeMode<
-  T extends ClientGraphSubType
-> = ClientExecutionFlowFunctionsBySubType[T]
+export type ClientExecutionFlowFunctionsBySubTypeMode<T extends ClientGraphSubType> =
+  ClientExecutionFlowFunctionsBySubType[T]
 ```
 
 - [ ] **Step 4: Add consistency check script**
@@ -1718,6 +1874,7 @@ Stop for user review after this phase.
 ### Task 12: Add User Graph Smoke
 
 **Files:**
+
 - Create: `scripts/smoke-client-user-graphs.ts`
 - Modify: `package.json`
 
@@ -1739,7 +1896,13 @@ const docs: ClientIRDocument[] = [
   {
     ir_version: 1,
     ir_type: 'node_graph',
-    graph: { type: 'client', sub_type: 'character_skill', mode: 'beyond', id: 1073741825, name: '_GSTS_ClientSmoke' },
+    graph: {
+      type: 'client',
+      sub_type: 'character_skill',
+      mode: 'beyond',
+      id: 1082130433,
+      name: '_GSTS_ClientSmoke'
+    },
     variables: [],
     nodes: [{ id: 1, type: 'node_graph_begins', args: [], next: [] }]
   }
@@ -1783,6 +1946,7 @@ git commit -m "test: add client user graph smoke"
 ### Task 13: Add CLI And Import Validation Smokes
 
 **Files:**
+
 - Create: `scripts/smoke-client-cli-e2e.mjs`
 - Create: `scripts/smoke-client-import-validation.mjs`
 - Modify: `package.json`
@@ -1792,10 +1956,10 @@ git commit -m "test: add client user graph smoke"
 Create `scripts/smoke-client-cli-e2e.mjs`:
 
 ```js
-import fs from 'node:fs'
 import { spawnSync } from 'node:child_process'
+import fs from 'node:fs'
 
-const fixture = 'tests/client_smoke/basic_client_graphs.ts'
+const fixture = 'scripts/client-nodegraph/fixtures/basic_client_graphs.ts'
 if (!fs.existsSync(fixture)) {
   throw new Error(`missing fixture: ${fixture}`)
 }
@@ -1819,15 +1983,28 @@ Create `scripts/smoke-client-import-validation.mjs`:
 ```js
 const runtime = await import('../dist/src/runtime/core.js')
 const modes = await import('../dist/src/definitions/client_graph_modes.js')
-const encoding = await import('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js')
-const metadata = await import('../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js')
+const encoding = await import(
+  '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js'
+)
+const metadata = await import(
+  '../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+)
 
-for (const key of ['characterSkill', 'creationSkill', 'creationStatus', 'creationStatusDecision', 'boolFilter', 'intFilter']) {
+for (const key of [
+  'characterSkill',
+  'creationSkill',
+  'creationStatus',
+  'creationStatusDecision',
+  'boolFilter',
+  'intFilter'
+]) {
   if (typeof runtime.g[key] !== 'function') throw new Error(`missing g.${key}`)
 }
 
-if (!modes.CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE.character_skill) throw new Error('missing character_skill graph entry spec')
-if (!encoding.CLIENT_GRAPH_ENCODING_BY_SUB_TYPE.character_skill) throw new Error('missing character_skill encoding')
+if (!modes.CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE.character_skill)
+  throw new Error('missing character_skill graph entry spec')
+if (!encoding.CLIENT_GRAPH_ENCODING_BY_SUB_TYPE.character_skill)
+  throw new Error('missing character_skill encoding')
 if (!Array.isArray(metadata.CLIENT_NODE_METADATA)) throw new Error('missing metadata array')
 
 console.log('[ok] client import validation')
@@ -1890,6 +2067,7 @@ Stop for final user review after this phase.
 ### Task 14: Enforce No Server Fallback In Client Path
 
 **Files:**
+
 - Modify: `scripts/check-client-definitions-consistency.ts`
 - Modify: `src/compiler/ir_to_gia_transform/client_graph.ts`
 - Modify: `src/compiler/ir_to_gia_transform/client_nodes.ts`
@@ -1946,6 +2124,7 @@ git commit -m "test: guard client path against server fallback"
 ### Task 15: Final Verification
 
 **Files:**
+
 - Modify only files required by failures from this task.
 
 - [ ] **Step 1: Run final build**
@@ -1998,7 +2177,7 @@ Expected: existing server graph tests pass.
 If final verification exposes small integration fixes, stage only the planned implementation files that were changed by the fix:
 
 ```powershell
-git add scripts/client-nodegraph scripts/smoke-client-capability.mjs scripts/check-client-definitions-consistency.ts scripts/smoke-client-user-graphs.ts scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.mjs src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts src/runtime/IR.d.ts src/runtime/execution_flow_types.ts src/runtime/ir_builder.ts src/runtime/core.ts src/runtime/client_graph_support.ts src/shared/client_capability_errors.ts src/compiler/gs_to_ir_json_transform/runner.ts src/compiler/ir_merge.ts src/compiler/ir_to_gia_transform src/compiler/gia_vendor.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts tests/client_generated tests/client_smoke
+git add scripts/client-nodegraph scripts/smoke-client-capability.mjs scripts/check-client-definitions-consistency.ts scripts/smoke-client-user-graphs.ts scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.mjs src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts src/runtime/IR.d.ts src/runtime/execution_flow_types.ts src/runtime/ir_builder.ts src/runtime/core.ts src/runtime/client_graph_support.ts src/runtime/graph_defaults.ts src/shared/client_capability_errors.ts src/compiler/gs_to_ir_json_transform/runner.ts src/compiler/ir_merge.ts src/compiler/ir_to_gia_transform src/compiler/gia_vendor.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts tests/client_generated
 git commit -m "fix: harden client nodegraph support"
 ```
 

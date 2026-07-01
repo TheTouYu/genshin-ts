@@ -1,3 +1,4 @@
+import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
 import { EnumerationType } from '../definitions/enum.js'
 import type { ServerEventPayloadsByMode } from '../definitions/events-payload-mode.js'
 import type { ServerEventPayloads } from '../definitions/events-payload.js'
@@ -17,9 +18,34 @@ import {
   SERVER_F_ZH_TO_EN,
   type ServerEventNameZh
 } from '../definitions/zh_aliases.js'
+import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
+import {
+  assertClientGraphMode,
+  assertClientGraphSubType,
+  CLIENT_FILTER_END_NODE_TYPES,
+  createClientFlowFunctions,
+  normalizeClientBoolFilterReturn,
+  normalizeClientIntFilterReturn,
+  type ClientFilterGraphApi,
+  type ClientFlowFunctionClass,
+  type ClientGraphOptions,
+  type ClientLang,
+  type ClientStartEvent,
+  type ClientStartEventName,
+  type ClientStartGraphApi
+} from './client_graph_support.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
+import { resolveGraphIdForGraph } from './graph_defaults.js'
 import { buildIRDocument } from './ir_builder.js'
-import type { ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
+import type {
+  ClientGraphMode,
+  ClientGraphSubType,
+  GraphMode,
+  IRDocument,
+  ServerGraphMode,
+  ServerGraphSubType,
+  Variable
+} from './IR.js'
 import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
@@ -29,6 +55,7 @@ import {
   ensureLiteralStr,
   enumeration,
   generic,
+  int,
   list,
   localVariable,
   value,
@@ -207,11 +234,11 @@ type ServerGraphOptionsBase<Vars extends VariablesDefinition = VariablesDefiniti
   /**
    * [ZH] 节点图 ID（NodeGraph.id）。
    *
-   * 对应要注入/替换的目标 NodeGraph ID。 起始值为 1073741825
+   * 对应要注入/替换的目标 NodeGraph ID。服务器节点图默认值为 1073741825。
    *
    * [EN] Node graph id (NodeGraph.id).
    *
-   * The target NodeGraph id to inject/replace. The default value is 1073741825.
+   * The target NodeGraph id to inject/replace. The server graph default value is 1073741825.
    */
   id?: number
   /**
@@ -375,6 +402,7 @@ function assertServerGraphModeCompatible(mode: ServerGraphMode, type: ServerGrap
 
 export type GstsCtxType =
   | 'javascript'
+  | 'client_handler'
   | 'server_handler'
   | 'server_if'
   | 'server_loop'
@@ -499,12 +527,42 @@ function processDictParam(param: ServerEventMetadataType[ServerEventName][number
   }
 }
 
-export class MetaCallRegistry {
+export interface ExecutionFlowRegistry {
+  registerNode(record: MetaCallRecord): MetaCallRecordRef
+  withExecBranch(
+    fromNodeId: number,
+    sourceIndex: number,
+    fn: () => void
+  ): {
+    tailEndpoints: ExecTailEndpoint[]
+    headNodeId?: number
+    terminatedByReturn?: boolean
+  }
+  markLinkNextExecFrom(fromNodeId: number, sourceIndex: number): void
+  setCurrentExecTailEndpoints(tailEndpoints: ExecTailEndpoint[]): void
+  returnFromCurrentExecPath(opts?: { countReturn?: boolean }): void
+  getOrCreateReturnGateLocalVariable(): { localVariable: localVariable; value: bool }
+  withLoop(loopNodeId: number, fn: () => void): void
+  getActiveLoopNodeIds(): number[]
+  getReturnCallCounter(): number
+  ensureVariable(variable: Variable, meta?: NodeGraphVariableMeta): void
+  getVariableMeta(name: string): NodeGraphVariableMeta | undefined
+  registerTimerCaptureDict(name: string, valueType: DictValueType): void
+  runServerHandler<E extends ServerEventName>(
+    eventName: E,
+    handler: (evt: ServerEventPayloads[E], f: ServerExecutionFlowFunctions) => void,
+    inputArgs?: value[]
+  ): void
+  connectExecBranchOutput(fromNodeId: number, sourceIndex: number, headNodeId: number): void
+}
+
+export class MetaCallRegistry implements ExecutionFlowRegistry {
   private recordCounter = 1
   private flows: ExecutionFlow[] = []
   private flowStack: number[] = []
-  private readonly graphType: ServerGraphSubType
-  private readonly graphMode: ServerGraphMode
+  private readonly graphDocumentType: 'server' | 'client'
+  private readonly graphType: ServerGraphSubType | ClientGraphSubType
+  private readonly graphMode: GraphMode
   private readonly graphId?: number
   private readonly graphName?: string
   private readonly prefixName: boolean
@@ -521,14 +579,16 @@ export class MetaCallRegistry {
   private loopNodeStack: number[] = []
 
   constructor(
-    graphType: ServerGraphSubType = 'entity',
-    graphMode: ServerGraphMode = 'beyond',
+    graphType: ServerGraphSubType | ClientGraphSubType = 'entity',
+    graphMode: GraphMode = 'beyond',
     graphId?: number,
     graphName?: string,
     prefixName: boolean = true,
     variables: Variable[] = [],
-    variableMetaByName: Map<string, NodeGraphVariableMeta> = new Map()
+    variableMetaByName: Map<string, NodeGraphVariableMeta> = new Map(),
+    graphDocumentType: 'server' | 'client' = 'server'
   ) {
+    this.graphDocumentType = graphDocumentType
     this.graphType = graphType
     this.graphMode = graphMode
     this.graphId = graphId
@@ -622,6 +682,60 @@ export class MetaCallRegistry {
     } finally {
       restoreScopedGlobals()
       gsts[kServerF] = prevF
+      this.flowStack = prevFlowStack
+      this.loopNodeStack = prevLoopStack
+      this.returnCallCounter = prevReturnCounter
+    }
+  }
+
+  runClientStartHandler<F, R>(
+    startNodeType: string,
+    handler: (evt: ClientStartEvent, f: F) => R,
+    fns: F,
+    normalizeReturn?: (value: R) => value,
+    endNodeType?: string
+  ) {
+    const eventNode: MetaCallRecord = {
+      id: this.currentRecordId,
+      type: 'event',
+      nodeType: startNodeType,
+      args: []
+    }
+
+    this.flows.push({
+      eventNode,
+      eventArgs: [],
+      execNodes: [],
+      dataNodes: [],
+      edges: {},
+      execContextStack: [
+        {
+          tailEndpoints: [{ nodeId: eventNode.id }]
+        }
+      ]
+    })
+
+    const prevFlowStack = this.flowStack
+    const prevLoopStack = this.loopNodeStack
+    const prevReturnCounter = this.returnCallCounter
+    const flowIndex = this.flows.length - 1
+    this.flowStack = [...prevFlowStack, flowIndex]
+    this.loopNodeStack = []
+    this.returnCallCounter = 0
+    try {
+      ensureGsts().ctx.withCtx('client_handler', () => {
+        const result = handler({}, fns)
+        if (normalizeReturn && endNodeType) {
+          const normalized = normalizeReturn(result)
+          this.registerNode({
+            id: 0,
+            type: 'exec',
+            nodeType: endNodeType,
+            args: [normalized]
+          })
+        }
+      })
+    } finally {
       this.flowStack = prevFlowStack
       this.loopNodeStack = prevLoopStack
       this.returnCallCounter = prevReturnCounter
@@ -853,11 +967,15 @@ export class MetaCallRegistry {
     return this.variableMetaByName.get(name)
   }
 
-  getGraphType(): ServerGraphSubType {
+  getGraphDocumentType(): 'server' | 'client' {
+    return this.graphDocumentType
+  }
+
+  getGraphType(): ServerGraphSubType | ClientGraphSubType {
     return this.graphType
   }
 
-  getGraphMode(): ServerGraphMode {
+  getGraphMode(): GraphMode {
     return this.graphMode
   }
 
@@ -908,6 +1026,7 @@ export class MetaCallRegistry {
 }
 
 const serverRegistries: MetaCallRegistry[] = []
+const clientRegistries: MetaCallRegistry[] = []
 
 type ServerGraphOptionsClassic<Vars extends VariablesDefinition> = Extract<
   ServerGraphOptions<Vars>,
@@ -1046,8 +1165,195 @@ function server<Vars extends VariablesDefinition = VariablesDefinition>(
   return api as ServerGraphApi<Vars, ResolvedLang, ResolvedMode>
 }
 
+type ClientStartApi<
+  T extends ClientGraphSubType,
+  Lang extends ClientLang = 'en',
+  Mode extends ClientGraphMode = 'beyond'
+> = ClientStartGraphApi<ClientFlowFunctionClass<T, Mode>, Lang, Mode>
+type ClientBoolFilterApi<
+  Lang extends ClientLang = 'en',
+  Mode extends ClientGraphMode = 'beyond'
+> = ClientFilterGraphApi<ClientFlowFunctionClass<'bool_filter', Mode>, boolean | bool, Lang, Mode>
+type ClientIntFilterApi<
+  Lang extends ClientLang = 'en',
+  Mode extends ClientGraphMode = 'beyond'
+> = ClientFilterGraphApi<
+  ClientFlowFunctionClass<'int_filter', Mode>,
+  bigint | number | int,
+  Lang,
+  Mode
+>
+
+type ClientGraphOptionsInput = ClientGraphOptions<ClientGraphMode>
+
+type ResolvedClientLang<Options> = Options extends { lang: infer Lang extends ClientLang }
+  ? Lang
+  : 'en'
+
+type ResolvedClientMode<Options> = Options extends { mode: infer Mode extends ClientGraphMode }
+  ? Mode
+  : 'beyond'
+
+type ClientGraphApiForSubType<
+  T extends ClientGraphSubType,
+  Lang extends ClientLang,
+  Mode extends ClientGraphMode
+> = T extends 'bool_filter'
+  ? ClientBoolFilterApi<Lang, Mode>
+  : T extends 'int_filter'
+    ? ClientIntFilterApi<Lang, Mode>
+    : ClientStartApi<T, Lang, Mode>
+
+type ClientGraphApiForOptions<T extends ClientGraphSubType, Options> = ClientGraphApiForSubType<
+  T,
+  ResolvedClientLang<Options>,
+  ResolvedClientMode<Options>
+>
+
+function createClientGraphApi<T extends ClientGraphSubType>(
+  subType: T
+): ClientGraphApiForSubType<T, 'en', 'beyond'>
+function createClientGraphApi<
+  T extends ClientGraphSubType,
+  Options extends ClientGraphOptionsInput
+>(subType: T, options: Options): ClientGraphApiForOptions<T, Options>
+function createClientGraphApi<T extends ClientGraphSubType>(
+  subType: T,
+  options?: ClientGraphOptionsInput
+): ClientGraphApiForSubType<T, ClientLang, ClientGraphMode> {
+  const graphType = assertClientGraphSubType(subType)
+  const graphMode = assertClientGraphMode(options?.mode)
+  const registry = new MetaCallRegistry(
+    graphType,
+    graphMode,
+    options?.id,
+    options?.name,
+    options?.prefix !== false,
+    [],
+    new Map(),
+    'client'
+  )
+  clientRegistries.push(registry)
+  const entrySpec = CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[graphType]
+  const fns = createClientFlowFunctions(graphType, registry)
+
+  const api = {
+    on(
+      eventName: ClientStartEventName,
+      handler: (evt: ClientStartEvent, f: typeof fns) => unknown
+    ) {
+      if (eventName !== entrySpec.event) {
+        throw clientNodegraphError(
+          CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
+          `unsupported client event: ${eventName}`
+        )
+      }
+
+      if (graphType === 'bool_filter') {
+        registry.runClientStartHandler(
+          entrySpec.startNodeType,
+          handler as (evt: ClientStartEvent, f: typeof fns) => boolean | bool,
+          fns,
+          normalizeClientBoolFilterReturn,
+          CLIENT_FILTER_END_NODE_TYPES.bool_filter
+        )
+      } else if (graphType === 'int_filter') {
+        registry.runClientStartHandler(
+          entrySpec.startNodeType,
+          handler as (evt: ClientStartEvent, f: typeof fns) => bigint | number | int,
+          fns,
+          normalizeClientIntFilterReturn,
+          CLIENT_FILTER_END_NODE_TYPES.int_filter
+        )
+      } else {
+        registry.runClientStartHandler(entrySpec.startNodeType, handler, fns)
+      }
+      return this
+    }
+  }
+  return api as ClientGraphApiForSubType<T, ClientLang, ClientGraphMode>
+}
+
+function characterSkill(): ClientStartApi<'character_skill', 'en', 'beyond'>
+function characterSkill<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'character_skill', Options>
+function characterSkill(
+  options?: ClientGraphOptionsInput
+): ClientStartApi<'character_skill', ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('character_skill')
+    : createClientGraphApi('character_skill', options)
+}
+
+function creationSkill(): ClientStartApi<'creation_skill', 'en', 'beyond'>
+function creationSkill<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'creation_skill', Options>
+function creationSkill(
+  options?: ClientGraphOptionsInput
+): ClientStartApi<'creation_skill', ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('creation_skill')
+    : createClientGraphApi('creation_skill', options)
+}
+
+function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
+function creationStatus<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'creation_status', Options>
+function creationStatus(
+  options?: ClientGraphOptionsInput
+): ClientStartApi<'creation_status', ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('creation_status')
+    : createClientGraphApi('creation_status', options)
+}
+
+function creationStatusDecision(): ClientStartApi<'creation_status_decision', 'en', 'beyond'>
+function creationStatusDecision<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'creation_status_decision', Options>
+function creationStatusDecision(
+  options?: ClientGraphOptionsInput
+): ClientStartApi<'creation_status_decision', ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('creation_status_decision')
+    : createClientGraphApi('creation_status_decision', options)
+}
+
+function boolFilter(): ClientBoolFilterApi<'en', 'beyond'>
+function boolFilter<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'bool_filter', Options>
+function boolFilter(
+  options?: ClientGraphOptionsInput
+): ClientBoolFilterApi<ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('bool_filter')
+    : createClientGraphApi('bool_filter', options)
+}
+
+function intFilter(): ClientIntFilterApi<'en', 'beyond'>
+function intFilter<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'int_filter', Options>
+function intFilter(
+  options?: ClientGraphOptionsInput
+): ClientIntFilterApi<ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('int_filter')
+    : createClientGraphApi('int_filter', options)
+}
+
 export const g = {
-  server
+  server,
+  characterSkill,
+  creationSkill,
+  creationStatus,
+  creationStatusDecision,
+  boolFilter,
+  intFilter
 }
 
 export function printServerGraphRegistries() {
@@ -1155,11 +1461,61 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
     return buildIRDocument({
       flows: optimizedFlows,
       variables: registry.getVariables(),
-      serverSubType: registry.getGraphType(),
-      serverMode: registry.getGraphMode(),
+      serverSubType: registry.getGraphType() as ServerGraphSubType,
+      serverMode: registry.getGraphMode() as ServerGraphMode,
       graphId: registry.getGraphId(),
       graphName: resolveName(registry)
     })
   })
   return list
+}
+
+export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {}) {
+  const prefixName = (raw: string, enable: boolean) => {
+    if (!enable) return raw
+    if (raw.startsWith('_GSTS')) return raw
+    return `_GSTS_${raw}`
+  }
+
+  const resolveName = (registry: MetaCallRegistry): string | undefined => {
+    const raw = registry.getGraphName()
+    if (typeof raw === 'string' && raw.length) return prefixName(raw, registry.shouldPrefixName())
+    const def = opts.defaultName
+    if (typeof def === 'string' && def.length) return prefixName(def, registry.shouldPrefixName())
+    return '_GSTS_Generated_Client_Graph'
+  }
+
+  return clientRegistries.map((registry) =>
+    buildIRDocument({
+      flows: registry.getFlows(),
+      variables: registry.getVariables(),
+      clientSubType: registry.getGraphType() as ClientGraphSubType,
+      clientMode: registry.getGraphMode() as ClientGraphMode,
+      graphId: registry.getGraphId(),
+      graphName: resolveName(registry)
+    })
+  )
+}
+
+function assertNoServerClientGraphIdCollisions(docs: IRDocument[]) {
+  const typeById = new Map<number, 'server' | 'client'>()
+  for (const doc of docs) {
+    const id = resolveGraphIdForGraph(doc.graph)
+    const existingType = typeById.get(id)
+    if (existingType && existingType !== doc.graph.type) {
+      throw new Error(
+        `[error] server/client graph id cannot be duplicated: id=${id}, ${existingType} vs ${doc.graph.type}`
+      )
+    }
+    typeById.set(id, doc.graph.type)
+  }
+}
+
+export function buildAllGraphRegistriesIRDocuments(opts: IRBuildOptions = {}) {
+  const docs = [
+    ...buildServerGraphRegistriesIRDocuments(opts),
+    ...buildClientGraphRegistriesIRDocuments(opts)
+  ]
+  assertNoServerClientGraphIdCollisions(docs)
+  return docs
 }

@@ -1,4 +1,11 @@
-import type { NextConnection, ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
+import type {
+  ClientGraphMode,
+  ClientGraphSubType,
+  NextConnection,
+  ServerGraphMode,
+  ServerGraphSubType,
+  Variable
+} from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
 import type { value } from './value.js'
 
@@ -62,6 +69,8 @@ export type IRBuildInput = {
   variables: Variable[]
   serverSubType?: ServerGraphSubType
   serverMode?: ServerGraphMode
+  clientSubType?: ClientGraphSubType
+  clientMode?: ClientGraphMode
   graphId?: number
   graphName?: string
 }

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { t } from '../i18n/index.js'
+import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import type {
   Argument,
   ClientIRDocument,
@@ -22,6 +23,7 @@ type IrSource = {
 
 type AnyIRDocument = ServerIRDocument | ClientIRDocument
 type AnyIRNode = ServerNode | ClientNode
+type AnyGraphInfo = IRDocument['graph']
 
 type GstsMergeMeta = {
   merged: true
@@ -40,10 +42,6 @@ function isMergedMarker(v: unknown): boolean {
   const meta = v.__gsts
   if (!isRecord(meta)) return false
   return meta.merged === true
-}
-
-function isFiniteNumber(v: unknown): v is number {
-  return typeof v === 'number' && Number.isFinite(v)
 }
 
 function sanitizeFileName(name: string): string {
@@ -200,12 +198,40 @@ function remapNodeIdsInNode(node: AnyIRNode, map: Map<number, number>) {
   if (node.next?.length) node.next = node.next.map((n) => remapNextConn(n, map))
 }
 
+function normalizeGraphModeCompatibility(a: AnyGraphInfo, b: AnyGraphInfo) {
+  const ma = a.mode
+  const mb = b.mode
+  if (ma && mb && ma !== mb) {
+    throw new Error(
+      t(a.type === 'server' ? 'err_mergeServerModeMismatch' : 'err_mergeClientModeMismatch', {
+        id: String(a.id),
+        a: String(ma),
+        b: String(mb)
+      })
+    )
+  }
+  if (!ma && mb) {
+    a.mode = mb
+  }
+}
+
 function normalizeGraphCompatibility(base: IRDocument, next: IRDocument, _sourceJsonPath: string) {
   const a = base.graph
   const b = next.graph
   if (a.type !== b.type) {
-    throw new Error(t('err_mergeGraphTypeMismatch', { a: String(a.type), b: String(b.type) }))
+    throw new Error(
+      t('err_mergeGraphIdTypeCollision', {
+        id: String(resolveGraphIdForGraph(a)),
+        a: String(a.type),
+        b: String(b.type)
+      })
+    )
   }
+  // server/client 都遵守同一条 mode 规则：
+  // - 双方都有 mode 时必须一致
+  // - 只有一方有 mode 时，用显式填写的一方补齐合并结果
+  normalizeGraphModeCompatibility(a, b)
+
   if (a.type === 'server' && b.type === 'server') {
     // 规则：
     // - 若只有一个显式填写 sub_type：用填写的那个
@@ -224,23 +250,19 @@ function normalizeGraphCompatibility(base: IRDocument, next: IRDocument, _source
     if (!sa && sb) {
       a.sub_type = sb
     }
-
-    // 规则：
-    // - 若只有一个显式填写 mode：用填写的那个
-    // - 若多个显式填写且不一致：报错
-    const ma = a.mode
-    const mb = b.mode
-    if (ma && mb && ma !== mb) {
+    return
+  }
+  if (a.type === 'client' && b.type === 'client') {
+    const sa = a.sub_type
+    const sb = b.sub_type
+    if (sa !== sb) {
       throw new Error(
-        t('err_mergeServerModeMismatch', {
+        t('err_mergeClientSubTypeMismatch', {
           id: String(a.id),
-          a: String(ma),
-          b: String(mb)
+          a: String(sa),
+          b: String(sb)
         })
       )
-    }
-    if (!ma && mb) {
-      a.mode = mb
     }
   }
 }
@@ -270,8 +292,8 @@ export function mergeIrJsonFilesByGraphId(params: {
 
   const groups = new Map<number, IrSource[]>()
   for (const it of items) {
-    // 用户未指定 id 时，运行时默认会落到 1073741825；合并也按同样规则分组。
-    const gid = isFiniteNumber(it.doc.graph.id) ? it.doc.graph.id : 1073741825
+    // 用户未指定 id 时，按节点图类型使用默认 id；合并也按同样规则分组。
+    const gid = resolveGraphIdForGraph(it.doc.graph)
     const arr = groups.get(gid) ?? []
     arr.push(it)
     groups.set(gid, arr)

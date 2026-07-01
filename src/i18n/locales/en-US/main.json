@@ -51,8 +51,11 @@
   "err_intListLikelyFloatList": "Expected int_list, but got {{actual}}. Did you pass a normal number[] and it was inferred as a float list? Use bigint literals to force an int list, e.g. [123n, 456, 789, ...], or explicitly specify the list type with the `list` helper function.",
   "err_dataTypeConversionFactionMustBeWired": "dataTypeConversion faction input must be a wired value (no literal).",
   "err_mergeGraphTypeMismatch": "[error] cannot merge different graph.type: {{a}} vs {{b}}",
+  "err_mergeGraphIdTypeCollision": "[error] server/client graph id cannot be duplicated (id={{id}}): {{a}} vs {{b}}",
   "err_mergeServerSubTypeMismatch": "[error] cannot merge different server sub_type (id={{id}}): {{a}} vs {{b}}",
   "err_mergeServerModeMismatch": "[error] cannot merge different server mode (id={{id}}): {{a}} vs {{b}}",
+  "err_mergeClientSubTypeMismatch": "[error] cannot merge different client sub_type (id={{id}}): {{a}} vs {{b}}",
+  "err_mergeClientModeMismatch": "[error] cannot merge different client mode (id={{id}}): {{a}} vs {{b}}",
   "err_mergeDuplicateVarsByName": "[error] duplicate variables by name after merge ({{count}}).\\n{{lines}}\\n{{truncated}}{{hint}}",
   "err_mergeTruncated": "... (truncated)\\n",
   "err_mergeDuplicateVarsHint": "[hint] rename variables"

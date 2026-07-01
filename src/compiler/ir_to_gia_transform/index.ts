@@ -1,4 +1,5 @@
 import { loadGiaProto } from '../../injector/proto.js'
+import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type {
   Argument,
   ConnectionArgument,
@@ -190,7 +191,7 @@ function assertServerGraphRuntimeModeCompatible(
 }
 
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
-  const graphId = opts.graphId ?? ir.graph?.id ?? 1073741825
+  const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph?.name ?? '_GSTS_Generated_Graph'
   const uid = opts.uid ?? 100000001
 

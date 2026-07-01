@@ -51,8 +51,11 @@
   "err_intListLikelyFloatList": "期望的类型是 int_list，但实际得到的是 {{actual}}。你是否使用了常规的 number 数组作为参数，导致被识别为了 float 列表？你可以使用 bigint 字面量来强制将其处理为 int 列表，例如 [123n, 456, 789, ...]，或使用 `list` 辅助函数显式指定类型。",
   "err_dataTypeConversionFactionMustBeWired": "dataTypeConversion 的 faction 输入必须是连线类型，不能是字面量。",
   "err_mergeGraphTypeMismatch": "[error] 无法合并不同 graph.type：{{a}} vs {{b}}",
+  "err_mergeGraphIdTypeCollision": "[error] server/client graph id 不能重复（id={{id}}）：{{a}} vs {{b}}",
   "err_mergeServerSubTypeMismatch": "[error] 无法合并不同 server sub_type（id={{id}}）：{{a}} vs {{b}}",
   "err_mergeServerModeMismatch": "[error] 无法合并不同 server mode（id={{id}}）：{{a}} vs {{b}}",
+  "err_mergeClientSubTypeMismatch": "[error] 无法合并不同 client sub_type（id={{id}}）：{{a}} vs {{b}}",
+  "err_mergeClientModeMismatch": "[error] 无法合并不同 client mode（id={{id}}）：{{a}} vs {{b}}",
   "err_mergeDuplicateVarsByName": "[error] 合并后变量名重复（{{count}} 个）。\\n{{lines}}\\n{{truncated}}{{hint}}",
   "err_mergeTruncated": "...（已截断）\\n",
   "err_mergeDuplicateVarsHint": "[hint] 请重命名变量"

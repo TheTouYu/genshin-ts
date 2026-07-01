@@ -3,6 +3,7 @@ import * as z from 'zod'
 import { t } from '../i18n/index.js'
 import {
   isSignalDefinition,
+  type ExecutionFlowRegistry,
   type MetaCallRegistry,
   type SignalDefinition,
   type SignalParamValues
@@ -696,7 +697,7 @@ export type DataTypeConversionMap = {
 }
 
 export class ServerExecutionFlowFunctions {
-  constructor(private registry: MetaCallRegistry) {}
+  constructor(private registry: ExecutionFlowRegistry) {}
 
   private resolveLiteralVarName(input: StrValue): string | null {
     if (typeof input === 'string') return input
@@ -16473,4 +16474,24 @@ export type ServerExecutionFlowFunctionsByMode<M extends ServerGraphMode> = {
     M,
     K
   >]: ServerExecutionFlowFunctions[K]
+}
+
+class ClientExecutionFlowFunctionsBase {
+  constructor(protected registry: ExecutionFlowRegistry) {}
+}
+
+export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
+export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
+export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
+export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
+export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
+export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
+
+export type ClientExecutionFlowFunctionsBySubType = {
+  character_skill: ClientCharacterSkillExecutionFlowFunctions
+  creation_skill: ClientCreationSkillExecutionFlowFunctions
+  creation_status: ClientCreationStatusExecutionFlowFunctions
+  creation_status_decision: ClientCreationStatusDecisionExecutionFlowFunctions
+  bool_filter: ClientBoolFilterExecutionFlowFunctions
+  int_filter: ClientIntFilterExecutionFlowFunctions
 }
