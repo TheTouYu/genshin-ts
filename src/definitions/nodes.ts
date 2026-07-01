@@ -16524,6 +16524,26 @@ export class ServerExecutionFlowFunctions {
    * @param inputs Input values matching the composite's input declarations
    * @returns Output values matching the composite's output declarations
    */
+  /**
+   * 从当前执行点分叉，同时执行多个分支。
+   * 所有分支从同一父节点出发，生成分支拓扑而非链式串联。
+   * 后续代码从最后一个分支继续执行。
+   *
+   * 示例：
+   * ```ts
+   * .on('whenEntityIsCreated', (e, f) => {
+   *   f.fork([
+   *     () => f.callComposite(comp1, {}),
+   *     () => f.callComposite(comp2, {})
+   *   ])
+   * })
+   * ```
+   * 生成的图结构：event ─→ [comp1, comp2]（分支），而非 event → comp1 → comp2（链）。
+   */
+  fork(...branches: Array<() => void>): void {
+    this.registry.fork(...branches)
+  }
+
   callComposite(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
     const def = handle.definition
     return this.registry.runCompositeCall(handle.id, inputs, (captureFns, captureInputs) => {

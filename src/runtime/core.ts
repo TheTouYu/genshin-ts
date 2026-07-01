@@ -548,30 +548,30 @@ export class MetaCallRegistry {
     this.variableMetaByName = variableMetaByName
   }
 
+  /**
+   * 创建/获取引导流。
+   *
+   * 引导流是一个最小执行流，用于在真实事件注册前搭建执行上下文（如 stage 初始化）。
+   * 其事件节点使用特殊标记 __bootstrap__，在 IR 中可以被识别并跳过。
+   * 当 removeUnusedNodes=true 时（默认），引导流被 removeUnusedNodesFromFlow 自动过滤；
+   * 当 removeUnusedNodes=false 时（调试模式），__bootstrap__ 标记防止其污染 GIA 输出。
+   */
   ensureBootstrapFlow(): ExecutionFlow {
     if (this.bootstrapFlow) return this.bootstrapFlow
     if (this.recordCounter !== 1) {
       throw new Error('[error] bootstrap flow must be created before any other nodes')
     }
-    // 创建引导流但不消耗 recordCounter（id=1 留给真实事件）。
-    // 引导流没有 execNodes，在 buildServerGraphRegistriesIRDocuments 中被
-    // removeUnusedNodesFromFlow 自动过滤。
-    const bootstrapEvent: MetaCallRecord = {
-      id: 0, // sentinel，不会被 emit
-      type: 'event',
-      nodeType: 'when_entity_is_created',
-      args: []
-    }
-    this.flows.push({
-      eventNode: bootstrapEvent,
+    const flow: ExecutionFlow = {
+      eventNode: { id: 0, type: 'event', nodeType: '__bootstrap__', args: [] },
       eventArgs: [],
       execNodes: [],
       dataNodes: [],
       edges: {},
       execContextStack: [{ tailEndpoints: [], pendingSourceIndex: undefined }]
-    })
-    this.bootstrapFlow = this.flows[this.flows.length - 1]
-    return this.bootstrapFlow
+    }
+    this.flows.push(flow)
+    this.bootstrapFlow = flow
+    return flow
   }
 
   withFlow<T>(flow: ExecutionFlow, fn: () => T): T {
@@ -892,6 +892,42 @@ export class MetaCallRegistry {
    * @param outflowIdx OutFlow 索引
    * @param callback 要在此分支执行的操作
    */
+  /**
+   * 从当前执行点分叉，同时执行多个分支。
+   * 所有分支共享同一父节点，生成分支拓扑，而非链式串联。
+   * 后续代码从最后一个分支继续执行。
+   *
+   * @param branches 分支回调数组，每个回调注册一组节点
+   */
+  fork(...branches: Array<() => void>): void {
+    if (branches.length === 0) return
+    const current = this.currentFlow
+    const ctx = this.getCurrentExecContext(current)
+    const parentEndpoints = [...ctx.tailEndpoints]
+    let lastTail: { nodeId: number; sourceIndex?: number } | undefined
+
+    for (const branch of branches) {
+      current.execContextStack.push({
+        tailEndpoints: [...parentEndpoints],
+        headNodeId: undefined
+      })
+      try {
+        branch()
+        const branchCtx = this.getCurrentExecContext(current)
+        if (branchCtx.tailEndpoints.length > 0) {
+          lastTail = branchCtx.tailEndpoints[0]
+        }
+      } finally {
+        current.execContextStack.pop()
+      }
+    }
+
+    // fork 后 tail 推进到最后一个分支的末节点，使后续代码从该处继续
+    if (lastTail) {
+      ctx.tailEndpoints = [lastTail]
+    }
+  }
+
   connectOutFlowBranch(markerNodeId: number, outflowIdx: number, callback: () => void): void {
     const current = this.currentFlow
     // 推入新上下文，从 marker 的指定 outflow 开始

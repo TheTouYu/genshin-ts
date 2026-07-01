@@ -313,6 +313,27 @@ function computeImplLayout(
     })
   }
 
+  // 终端节点：有 exec 入边但无 exec 出边的节点（执行链末端）。
+  // 放在其父节点右侧同一行，不归入数据节点布局。
+  const isTerminal = new Set<number>()
+  for (const node of implNodes) {
+    const id = node.id
+    if (hasExecIn.has(id) && !hasExecOut.has(id) && !visited.has(id)) {
+      isTerminal.add(id)
+      // 找到父节点：遍历 implEdges 找出指向该节点的边
+      for (const [fromIdStr, edges] of Object.entries(implEdges)) {
+        const targets = edges.map(e => getEdgeTarget(e))
+        const idx = targets.indexOf(id)
+        if (idx !== -1 && pos.has(Number(fromIdStr))) {
+          const parentPos = pos.get(Number(fromIdStr))!
+          pos.set(id, { x: parentPos.x + LAYOUT_EXEC_H_STEP, y: parentPos.y + idx * LAYOUT_EXEC_V_STEP })
+          visited.add(id)
+          break
+        }
+      }
+    }
+  }
+
   // 环中节点放远一点
   let orphanX = -400
   let orphanY = -400
@@ -323,7 +344,7 @@ function computeImplLayout(
     if (orphanX < -2000) { orphanX = -400; orphanY += 400 }
   }
 
-  const dataNodeIds = implNodes.filter(n => !hasExecOut.has(n.id)).map(n => n.id)
+  const dataNodeIds = implNodes.filter(n => !hasExecOut.has(n.id) && !isTerminal.has(n.id)).map(n => n.id)
   const dataNodeIdSet = new Set(dataNodeIds)
   const dataEdges = new Map<number, number[]>()
   const dataInDegree = new Map<number, number>()

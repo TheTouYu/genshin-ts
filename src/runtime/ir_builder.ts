@@ -167,6 +167,11 @@ function buildNodeFromRecord(record: MetaCallRecord, next?: NextConnection[]): S
 }
 
 function buildNodesFromFlow(flow: ExecutionFlow): ServerNode[] {
+  // __bootstrap__ 流：仅用于搭建执行上下文（如 stage 初始化），
+  // 不产生实际 IR 节点。当 removeUnusedNodes=false 时仍需此处跳过，
+  // 防止引导节点污染 GIA 输出。
+  if (flow.eventNode.nodeType === '__bootstrap__') return []
+
   const nodes: ServerNode[] = []
 
   const getNext = (id: number) => flow.edges[id]
