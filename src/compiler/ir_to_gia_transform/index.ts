@@ -12,7 +12,7 @@ import type {
 import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { isListValueInfo, type ListValueInfo } from '../../runtime/variables.js'
 import type { NodeType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js'
-import { Graph, Node, NodeIdFor, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
+import { Graph, Node, NodeIdFor, NODE_ID, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
 import {
   GraphUnit_Id_Class,
   NodeGraph_Id_Class,
@@ -539,8 +539,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
             giaNode.pins.push(p)
           }
         }
-        // 不在此处添加 OutFlow pin。graph.flow() 为有连接的 outflow 创建 pin，
-        // 未连接的 OutFlow pin 在 post-encoding 中补充。
+        // 不在此处添加 OutFlow pin。graph.flow() 在循环中为有下游连接的 outflow 创建 pin，
+        // 无下游连接的 outflow 在终端节点生成阶段通过连接 Print_String 节点创建 pin。
       }
 
       irNodeTypeById.set(irNode.id, nodeType)
@@ -591,6 +591,47 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       )
     }
     graph.flow(from, to, fromIndex, toIndex)
+  }
+
+  // === 为未连接下游的复合 outflow 生成终端 Print_String 节点 ===
+  // 参考文件（顺序执行.gia 等）中，每个无下游的 outflow 出口都有一个 Print_String 终端节点
+  let nextTerminalId = Math.max(...ir.nodes!.map(n => n.id)) + 1
+
+  for (const [compositeNodeId, compositeId] of compositeCallNodeIndices) {
+    const cdef = compositeDefById.get(compositeId)
+    if (!cdef || cdef.outflows.length === 0 || cdef.inflows.length === 0) continue
+
+    // 收集已连接的 outflow 索引
+    const connectedOutflows = new Set<number>()
+    for (const fc of graphInfo.flowConnections) {
+      if (fc.fromId === compositeNodeId) {
+        connectedOutflows.add(fc.fromIndex)
+      }
+    }
+
+    const compositeNode = nodesById.get(compositeNodeId)
+    const compositePos = positions.get(compositeNodeId)
+    if (!compositeNode || !compositePos) continue
+
+    for (const outflow of cdef.outflows) {
+      if (connectedOutflows.has(outflow.index)) continue
+
+      // 创建 Print_String 终端节点（NODE_ID=1）
+      const terminalId = nextTerminalId++
+      const terminalNode = new Node<ServerGraphMode>(
+        terminalId,
+        serverMode,
+        NODE_ID.Print_String as NodeIdFor<ServerGraphMode>
+      )
+      // 位置：复合节点右侧 1 列，按 outflow 索引纵向偏移（参考顺序执行.gia 中的布局）
+      const rawX = compositePos[0] + 350  // columnWidth
+      const rawY = compositePos[1] + outflow.index * 252  // branchGap = rowHeight * 0.9
+      terminalNode.setPos(rawX / 300, rawY / 200)
+
+      nodesById.set(terminalId, terminalNode)
+      graph.add_node(terminalNode)
+      graph.flow(compositeNode, terminalNode, outflow.index, 0)
+    }
   }
 
   for (const { fromId, toId, fromIndex, toIndex } of graphInfo.dataConnections) {
@@ -678,47 +719,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
           }
         }
 
-        // 修正 exec flow：区分终端/非终端复合
-        //   - 非终端复合（OutFlow 有 connects）：保留，由 graph.flow() 自然转发
-        //   - 终端复合（OutFlow 无 connects 或无 OutFlow）：移除，断连下游收归 event fork
-        if (mainNodes && mainNodes.length > 1) {
-          const eventNode = mainNodes.find((n: any) => n.genericId?.kind === 22000)
-          // 收集因终端复合移除 OutFlow 而断连的目标
-          const orphanedTargets: number[] = []
-          for (const n of mainNodes) {
-            if (!compositeCallNodeIndices.has(n.nodeIndex)) continue
-            // 终端检测：OutFlow pin 有 connects → 非终端，否则 → 终端
-            const hasOutFlowConnects = n.pins?.some((pin: any) =>
-              pin.i1?.kind === 2 && (pin.connects?.length ?? 0) > 0
-            )
-            if (!hasOutFlowConnects) {
-              // 终端复合：收集 orphaned 目标并移除 OutFlow
-              for (const pin of n.pins ?? []) {
-                if (pin.i1?.kind === 2) {
-                  for (const conn of pin.connects ?? []) {
-                    orphanedTargets.push(conn.id)
-                  }
-                }
-              }
-              n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 2)
-            }
-            // 非终端复合：保留 OutFlow + connects（不做处理）
-          }
-          // event OutFlow 保留原始 connects，追加被断连的目标
-          if (eventNode && orphanedTargets.length > 0) {
-            for (const pin of eventNode.pins ?? []) {
-              if (pin.i1?.kind === 2) {
-                const existingIds = new Set((pin.connects ?? []).map((c: any) => c.id))
-                for (const id of orphanedTargets) {
-                  if (!existingIds.has(id)) {
-                    pin.connects = [...(pin.connects ?? []), { id, connect: { kind: 1, index: 0 } }]
-                  }
-                }
-              }
-            }
-          }
-        }
-
+        // 终端节点已在上游显式生成（Print_String），无需再检测终端/非终端复合。
         // 过滤 event 节点多余的 OutParam pins（参考文件中 event 仅有 OutFlow pin）
         if (mainNodes) {
           for (const n of mainNodes) {
