@@ -112,13 +112,27 @@ Branch 输出引脚名的解析优先级（5 级）：
 
 ### 第 4 级：其他系统节点
 
-从 `NODE_PIN_RECORDS.outputs[]` 中取 pin 名：
-- `When Entity Is Created` (nid=71) → `Ety`（Entity）
-- `When Node Graph Variable Changes` (nid=351) → 同
+系统节点（kind=22000）的 `NODE_PIN_RECORDS.outputs[]` 存储的是**数据输出引脚名**（OutParam），其索引**不对应** Branch pin 索引。
+因此直接从 `outputs[srcBranchIdx]` 取名会拿到数据输出名（如 `Ety`、`Gid`）而不是执行流输出名。
+
+所以系统节点统一使用第 5 级数字命名（见下方）。
 
 ### 第 5 级：无名字 → 数字 1 索引
 
 兜底：`String(srcBranchIdx + 1)` 显示为 `1`, `2`, `3`...
+
+> 旧版曾在第 4 级尝试从 `NODE_PIN_RECORDS.outputs[]` 取系统节点的 Branch 名，但由于索引不对齐导致 "Ety" 等数据输出名被误作为 Branch 名。自 P0 修复后统一使用数字命名。
+
+### 事件起点信息行显示输出参数
+
+对于系统节点的事件起点，额外在信息行显示完整输出参数名列表 `(...)`：
+
+```
+n=38 [系统] When Entity Is Created
+   Branch×1 纯执行流触发  (Ety, Gid)
+```
+
+这帮助理解事件源产生的数据（如 Entity 引用、Group ID 等），这些数据可以被下游节点的 InParam 消费。
 
 ---
 
@@ -187,17 +201,17 @@ compiledHasFlowInput: Map<compiledId, boolean> // 1610612765 → true (print 4 v
 
 ## 六、已知问题与限制
 
-### 1. 分支数显示为 "×N 下游" 而不是 "×N 分支"
+### 1. ~~分支数显示为 "×N~~下游" 而不是 "×N 分支"
 
-当前 `condition` 的 `×6 下游` 实际是 5 个 Branch 引脚 × 部分连到多个目标。正确显示应该是 ×5 分支（按 unique branch index 计数），当前按 edge 数计数。
+~~✅ 已修复（P0）：改用 `unique srcBranchIdx` 计数，显示 ×N 分支~~
 
-### 2. 嵌套分支树的展开仍可读性差
+### 2. ~~嵌套分支树的展开仍可读性差~~
 
-多级分支时（条件branch → 继续 → Double Branch → 物理运动控制器），树形显示会变得混乱。需要更清晰的树形渲染。
+~~✅ 已修复（P0）：改用 `buildTree` + `printTree` 树形渲染，├─/└─/│ 对齐 + 正确缩进~~
 
-### 3. `--json` 输出只列出第一层
+### 3. ~~`--json` 输出只列出第一层~~
 
-JSON 模式只列出事件起点的直接下游，没有递归链。需要添加 `depth` 参数支持多层展开。
+~~✅ 已修复（P0）：新增 `--depth=N` 参数，0=扁平，省略=全部展开~~
 
 ### 4. 没有可视化
 
@@ -207,23 +221,21 @@ JSON 模式只列出事件起点的直接下游，没有递归链。需要添加
 
 只能分析主图。虽然可以在复合内部用 `trace-dataflow.ts` 追溯数据流，但事件起点工具不分析编译体内部的执行流。
 
-### 6. "Ety" 作为 Branch 名
+### 6. ~~"Ety" 作为 Branch 名~~
 
-系统事件节点如 `When Entity Is Created` 的 Branch 输出名显示为 `Ety`（Entity 缩写），这是从 `NODE_PIN_RECORDS.outputs` 取到的。可能在某些上下文中不是理想显示。
+~~✅ 已修复（P0）：系统节点统一使用数字 `1, 2, 3...` 作为 Branch 名（`NODE_PIN_RECORDS.outputs[]` 是数据输出名，索引不对应 Branch 索引）。同时事件起点信息行显示完整输出参数列表 `(Ety, Gid, ...)`。~~
 
 ### 7. 没有信号连接分析
 
 `监听信号` / `发送信号` 的信号通道连接不在我们当前分析范围内。这些事件起点通过信号机制触发，但信号发射方的连接关系没有展示。
 
+### 8. 复合节点事件起点不显示输出参数
+
+目前只有系统节点（kind=22000）的事件起点显示输出参数名列表。复合节点（kind=22001）的信息从 `compositeDef.outputs[]` 获取，尚未集成。
+
 ---
 
 ## 七、下一轮可能的优化方向
-
-### P0 级
-
-1. **修复分支计数**：用 `unique branch index` 代替 `edge count` 显示分支数
-2. **树形渲染优化**：引入更好的分支+缩进逻辑，减少嵌套混乱
-3. **JSON 递归深度**：`--json` 支持 `--depth=N` 参数
 
 ### P1 级
 

@@ -11,6 +11,7 @@
 import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { NODE_PIN_RECORDS } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
 import { NODE_ID } from '../../dist/src/compiler/gia_vendor.js'
+import { SERVER_EVENT_ZH_TO_EN } from '../../dist/src/definitions/zh_aliases.js'
 
 // ============================================================
 // 名称工具
@@ -38,6 +39,25 @@ function getSystemBranchName(nid: number | null, branchIdx: number): string | nu
   const rec = NODE_PIN_RECORDS.find(r => r.id === nid)
   if (!rec?.outputs) return null
   return rec.outputs[branchIdx] ?? null
+}
+
+/** 获取系统节点的所有输出参数名（供事件起点信息行显示） */
+function getNodeOutputNames(nid: number | null): string[] | null {
+  if (nid == null) return null
+  const rec = NODE_PIN_RECORDS.find(r => r.id === nid)
+  return rec?.outputs?.length ? rec.outputs : null
+}
+
+/** camelCase → Title Case with spaces: "monitorSignal" → "Monitor Signal" */
+function camelToDisplay(name: string): string {
+  return name.replace(/^[a-z]/, c => c.toUpperCase()).replace(/([A-Z])/g, ' $1').trim()
+}
+
+/** 从中文复合名查对应的英文系统节点显示名 */
+function getSystemNodeDisplayName(zhName: string): string | null {
+  const enKey = (SERVER_EVENT_ZH_TO_EN as Record<string, string>)[zhName]
+  if (!enKey) return null
+  return camelToDisplay(enKey)
 }
 
 /** 提取字面值 */
@@ -74,6 +94,98 @@ interface FlowEdge {
   tgtOutFlowName: string    // target 的 OutFlow 输入名
 }
 
+/** 按 srcBranchIdx 分组 edges */
+function groupEdgesByBranch(edges: FlowEdge[]): { branchIdx: number; branchName: string; edges: FlowEdge[] }[] {
+  const groups = new Map<number, { branchIdx: number; branchName: string; edges: FlowEdge[] }>()
+  for (const e of edges) {
+    if (!groups.has(e.srcBranchIdx)) {
+      groups.set(e.srcBranchIdx, { branchIdx: e.srcBranchIdx, branchName: e.srcBranchName, edges: [] })
+    }
+    groups.get(e.srcBranchIdx)!.edges.push(e)
+  }
+  return Array.from(groups.values())
+}
+
+// ============================================================
+// 树形结构构建 + 渲染
+// ============================================================
+
+interface TreeNode {
+  edge: FlowEdge
+  name: string
+  kind: number | null
+  children: TreeNode[]
+}
+
+function buildTree(
+  edge: FlowEdge,
+  nodeMap: Map<number, any>,
+  downstreamOf: Map<number, FlowEdge[]>,
+  compNames: Map<number, string>,
+  visited: Set<number>,
+): TreeNode {
+  const n = nodeMap.get(edge.tgtIdx)
+  const name = n ? resolveName(n, compNames) : '?'
+  const kind = n?.genericId?.kind ?? null
+  const children: TreeNode[] = []
+
+  if (!visited.has(edge.tgtIdx)) {
+    const newVisited = new Set(visited)
+    newVisited.add(edge.tgtIdx)
+    const outEdges = downstreamOf.get(edge.tgtIdx) ?? []
+    for (const oe of outEdges) {
+      children.push(buildTree(oe, nodeMap, downstreamOf, compNames, newVisited))
+    }
+  }
+
+  return { edge, name, kind, children }
+}
+
+function printTree(
+  node: TreeNode,
+  prefix: string,
+  isLast: boolean,
+) {
+  const e = node.edge
+  const connector = isLast ? '└─ ' : '├─ '
+  const childPrefix = prefix + (isLast ? '   ' : '│  ')
+
+  // 终端节点（复合节点不标记为终端——它有内部执行流）
+  if (node.children.length === 0) {
+    const isComposite = node.kind === 22001
+    const terminalMark = isComposite ? '' : ' → (终端)'
+    console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})${terminalMark}`)
+    return
+  }
+
+  // 按 unique branch index 分组子节点
+  const childGroups = groupEdgesByBranch(node.children.map(c => c.edge))
+  const uniqueBranchCount = childGroups.length
+  const totalEdgeCount = node.children.length
+
+  // 单直链 (1 branch, 1 target)
+  if (uniqueBranchCount === 1 && totalEdgeCount === 1) {
+    console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})`)
+    printTree(node.children[0], childPrefix, true)
+    return
+  }
+
+  // 多分支 / 扇出
+  const summary = uniqueBranchCount > 1 ? `— ×${uniqueBranchCount} 分支` : `— ×${totalEdgeCount} 目标`
+  console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName}) ${summary}`)
+
+  // 按分支分组展示子节点
+  let childIdx = 0
+  for (const group of childGroups) {
+    for (const child of node.children) {
+      if (child.edge.srcBranchIdx !== group.branchIdx) continue
+      const isLastChild = childIdx === node.children.length - 1
+      printTree(child, childPrefix, isLastChild)
+      childIdx++
+    }
+  }
+}
+
 // ============================================================
 // 主逻辑
 // ============================================================
@@ -89,10 +201,18 @@ function analyze(filePath: string) {
   // ===== 复合定义索引 =====
   // which=12 是定义体，which=9 是编译体
   const compNames = new Map<number, string>()
-  const defToCompiled = new Map<number, number>()
+  const defToCompiled = new Map<number, number>()     // defId → compiledId（从 def.relatedIds[0] 建立，需验证 which=9）
   const compInflows = new Map<number, Map<number, string>>()   // defId → { outFlowIdx → name }
   const compOutflows = new Map<number, Map<number, string>>()  // defId → { branchIdx → name }
+  const compInputs = new Map<number, string[]>()               // defId → [inputName0, inputName1, ...]
+  const compOutputs = new Map<number, string[]>()              // defId → [outputName0, outputName1, ...]
   const caseValues = new Map<number, string[]>()  // nodeIndex → Branch case labels (Multiple Branches)
+
+  // 预扫 which=9 的编译体集合
+  const compiledBodyIds = new Set<number>()
+  for (const a of data.accessories ?? []) {
+    if (a.which === 9 && a.id?.id != null) compiledBodyIds.add(a.id.id)
+  }
 
   for (const a of data.accessories ?? []) {
     const def = a.compositeDef?.inner?.def
@@ -100,8 +220,11 @@ function analyze(filePath: string) {
     const id = a.id.id
     compNames.set(id, def.name)
 
-    const compiledId = a.relatedIds?.[0]?.id
-    if (compiledId != null) defToCompiled.set(id, compiledId)
+    // 从 def.relatedIds[0] 找编译体，需验证目标确实是 which=9
+    const maybeCompiledId = a.relatedIds?.[0]?.id
+    if (maybeCompiledId != null && compiledBodyIds.has(maybeCompiledId)) {
+      defToCompiled.set(id, maybeCompiledId)
+    }
 
     // 执行流输入引脚名（OutFlow/kind=1）
     const inflowMap = new Map<number, string>()
@@ -116,6 +239,20 @@ function analyze(filePath: string) {
       if (f.index?.kind === 2 && f.name) outflowMap.set(f.index.index, f.name)
     }
     if (outflowMap.size > 0) compOutflows.set(id, outflowMap)
+
+    // 数据输入引脚名（InParam/kind=3）
+    const inputNames: string[] = []
+    for (const f of (def.inputs ?? [])) {
+      if (f.index?.kind === 3 && f.name) inputNames.push(f.name)
+    }
+    if (inputNames.length > 0) compInputs.set(id, inputNames)
+
+    // 数据输出引脚名（OutParam/kind=4）
+    const outputNames: string[] = []
+    for (const f of (def.outputs ?? [])) {
+      if (f.index?.kind === 4 && f.name) outputNames.push(f.name)
+    }
+    if (outputNames.length > 0) compOutputs.set(id, outputNames)
   }
 
   // ===== 复合节点是否定义执行流输入（通过 compositePins） =====
@@ -162,8 +299,7 @@ function analyze(filePath: string) {
       //   1. 复合节点: def.outflows[] 中的 name
       //   2. Multiple Branches: InParam[1] 中的 case 值 (Branch[n] = case[n-1])
       //   3. Double Branch: 约定 Branch[0]=是/True, Branch[1]=否/False
-      //   4. 其他系统节点: NODE_PIN_RECORDS.outputs[]
-      //   5. 都没有: 数字 [0], [1], [2]...
+      //   4. 系统节点/其他: 数字 1, 2, 3...（NODE_PIN_RECORDS.outputs[] 是数据输出名，不对应 Branch 索引）
       let srcBranchName: string
 
       if (kind === 22001 && nid != null) {
@@ -176,8 +312,7 @@ function analyze(filePath: string) {
       } else if (nid === 2) {
         srcBranchName = srcBranchIdx === 0 ? '是' : '否'
       } else {
-        const sysName = getSystemBranchName(nid, srcBranchIdx)
-        srcBranchName = sysName ?? String(srcBranchIdx + 1)
+        srcBranchName = String(srcBranchIdx + 1)
       }
 
       for (const c of (p.connects ?? [])) {
@@ -251,12 +386,16 @@ function analyze(filePath: string) {
 
     const isEvent = !isCalled && hasBranchOutput && !hasOutflowPin && !compositeDefHasFlowInput
 
+    // 系统节点从 NODE_PIN_RECORDS 获取输出参数名，复合节点从 compInputs 获取输入参数名
+    const outputNames = kind === 22000 ? getNodeOutputNames(nid) : null
+    const inputNames = (kind === 22001 && nid != null) ? compInputs.get(nid) ?? null : null
+
     allNodes.push({
       idx: n.nodeIndex, name, nid, kind,
       hasOutflowPin, branchCount,
       compositeDefHasFlowInput,
       inParamTotal, inParamConnected, isCalled,
-      isEvent,
+      isEvent, outputNames, inputNames,
     })
   }
 
@@ -265,8 +404,45 @@ function analyze(filePath: string) {
   const jsonMode = args.includes('--json')
   const detailIdxArg = args.find(a => a.startsWith('--detail='))
   const detailIdx = detailIdxArg ? parseInt(detailIdxArg.split('=')[1], 10) : null
+  const depthArg = args.find(a => a.startsWith('--depth='))
+  const jsonDepth = depthArg !== undefined ? Math.max(parseInt(depthArg.split('=')[1], 10), 0) : -1  // -1 = unlimited
+  const expandArg = args.find(a => a.startsWith('--expand='))
+  const expandValue = expandArg ? expandArg.split('=', 2)[1] : null
+  let expandIdx: number | null = null
+  let expandName: string | null = null
+  if (expandValue != null) {
+    const parsed = parseInt(expandValue, 10)
+    expandIdx = !isNaN(parsed) && String(parsed) === expandValue ? parsed : null
+    expandName = expandIdx == null ? expandValue : null
+  }
+
+  // --expand 模式下跳过主图输出，直接显示展开内容
+  if ((expandIdx != null || expandName != null) && !jsonMode) {
+    const idx = resolveExpandTarget(expandIdx, expandName, allNodes)
+    if (idx == null) return
+    showExpand(idx, allNodes, data, defToCompiled, compNames, compInputs, compOutputs)
+    return
+  }
 
   if (jsonMode) {
+    /** 递归构建下游 JSON 树 */
+    function buildJsonDownstream(idx: number, remainingDepth: number, visited: Set<number>): any[] {
+      if (remainingDepth <= 0) return []
+      const outEdges = downstreamOf.get(idx) ?? []
+      const newVisited = new Set(visited)
+      if (newVisited.has(idx)) return [{ cycle: true }]  // 安全兜底
+      newVisited.add(idx)
+      return outEdges.map((e: FlowEdge) => {
+        const tn = nodeMap.get(e.tgtIdx)
+        const name = tn ? resolveName(tn, compNames) : '?'
+        return {
+          idx: e.tgtIdx, name,
+          branch: e.srcBranchName, inflow: e.tgtOutFlowName,
+          downstream: buildJsonDownstream(e.tgtIdx, remainingDepth - 1, newVisited),
+        }
+      })
+    }
+
     const result: any = {
       file: filePath,
       total_nodes: mainGraph.nodes.length,
@@ -274,10 +450,9 @@ function analyze(filePath: string) {
         idx: n.idx, name: n.name, nid: n.nid, kind: n.kind,
         branch_count: n.branchCount,
         in_params: { total: n.inParamTotal, connected: n.inParamConnected },
-        downstream: (downstreamOf.get(n.idx) ?? []).map((e: FlowEdge) => {
-          const tn = nodeMap.get(e.tgtIdx)
-          return { idx: e.tgtIdx, name: tn ? resolveName(tn, compNames) : '?', branch: e.srcBranchName, inflow: e.tgtOutFlowName }
-        }),
+        ...(n.outputNames ? { output_names: n.outputNames } : {}),
+        ...(n.inputNames ? { input_names: n.inputNames } : {}),
+        downstream: buildJsonDownstream(n.idx, jsonDepth >= 0 ? jsonDepth : Infinity, new Set()),
       })),
       orphan_nodes: allNodes.filter((n: any) => !n.isCalled && !(n.branchCount > 0) && n.hasOutflowPin).map((n: any) => ({
         idx: n.idx, name: n.name,
@@ -328,15 +503,18 @@ function analyze(filePath: string) {
   for (const e of events) {
     const kindLabel = e.kind === 22000 ? '系统' : '复合'
     const inInfo = e.inParamTotal > 0 ? ` 数据输入:${e.inParamConnected}/${e.inParamTotal}` : ' 纯执行流触发'
+    const outSuffix = e.outputNames ? `  (${e.outputNames.join(', ')})` : ''
+    const inSuffix = e.inputNames ? `  [${e.inputNames.join(', ')}]` : ''
     console.log(`n=${String(e.idx).padStart(2)} [${kindLabel}] ${e.name}`)
-    console.log(`   Branch×${e.branchCount}${inInfo}`)
+    console.log(`   Branch×${e.branchCount}${inInfo}${outSuffix}${inSuffix}`)
 
     const outEdges = downstreamOf.get(e.idx) ?? []
     if (outEdges.length === 0) {
       console.log(`   → (无下游)`)
     } else {
-      for (const edge of outEdges) {
-        showChain(edge, nodeMap, downstreamOf, compNames, '')
+      for (let ei = 0; ei < outEdges.length; ei++) {
+        const root = buildTree(outEdges[ei], nodeMap, downstreamOf, compNames, new Set())
+        printTree(root, '', ei === outEdges.length - 1)
       }
     }
     console.log()
@@ -352,57 +530,217 @@ function analyze(filePath: string) {
     }
     console.log()
   }
+
+  // ===== --expand=N: 展开复合节点内部 =====
+  if (expandIdx != null || expandName != null) {
+    const idx = resolveExpandTarget(expandIdx, expandName, allNodes)
+    if (idx != null) showExpand(idx, allNodes, data, defToCompiled, compNames, compInputs, compOutputs)
+  }
 }
 
 // ============================================================
-// 执行流链展示
+// --expand=N 入口
 // ============================================================
 
-function showChain(
-  edge: FlowEdge,
-  nodeMap: Map<number, any>,
-  downstreamOf: Map<number, FlowEdge[]>,
-  compNames: Map<number, string>,
-  indent: string,
-  visited = new Set<number>(),
-) {
-  const n = nodeMap.get(edge.tgtIdx)
-  const name = n ? resolveName(n, compNames) : '?'
+/** 解析 --expand 参数：数字索引 or 复合名称 */
+function resolveExpandTarget(
+  expandIdx: number | null,
+  expandName: string | null,
+  allNodes: any[],
+): number | null {
+  if (expandIdx != null) return expandIdx
 
-  if (visited.has(edge.tgtIdx)) {
-    console.log(`${indent}↳ ${edge.srcBranchName} → n=${edge.tgtIdx} ${name} (循环)`)
-    return
+  const name = expandName!
+  // 精确匹配
+  let target = allNodes.find(n => n.kind === 22001 && (n.name === name || n.name === `复合:${name}`))
+  // 部分匹配（子串）
+  if (!target) {
+    target = allNodes.find(n => n.kind === 22001 && n.name.includes(name))
   }
-  visited.add(edge.tgtIdx)
+  if (!target) {
+    console.log(`⚠ 未找到名为 "${name}" 的复合节点`)
+    return null
+  }
+  return target.idx
+}
 
-  const outEdges = downstreamOf.get(edge.tgtIdx) ?? []
+function showExpand(
+  expandIdx: number,
+  allNodes: any[],
+  data: any,
+  defToCompiled: Map<number, number>,
+  compNames: Map<number, string>,
+  compInputs: Map<number, string[]>,
+  compOutputs: Map<number, string[]>,
+) {
+  const expandTarget = allNodes.find((n: any) => n.idx === expandIdx)
+  if (!expandTarget) { console.log(`⚠ 未找到节点 n=${expandIdx}`); return }
+  if (expandTarget.kind !== 22001) { console.log(`⚠ n=${expandIdx} 不是复合节点（kind=${expandTarget.kind}）`); return }
+  const nid = expandTarget.nid
+  const compiledId = defToCompiled.get(nid)
+  if (compiledId == null) { console.log(`⚠ ${expandTarget.name}（n=${expandIdx}）没有编译体（可能是信号驱动复合）`); return }
+  // 查找 compiled body 的 accessories (which=9)
+  let compiledGraph: any = null
+  let compiledPins: any[] = []
+  for (const acc of data.accessories ?? []) {
+    if (acc.which === 9 && acc.id?.id === compiledId) {
+      compiledGraph = acc.graph?.inner?.graph
+      compiledPins = acc.graph?.inner?.graph?.compositePins ?? []
+      break
+    }
+  }
+  if (!compiledGraph) { console.log(`⚠ 未找到编译体 compiledId=${compiledId}`); return }
+  expandSubGraph(compiledGraph, expandTarget.name, compiledPins, compNames, compInputs, compOutputs, defToCompiled)
+}
 
-  if (outEdges.length === 0) {
-    console.log(`${indent}↳ ${edge.srcBranchName} → n=${edge.tgtIdx} ${name} (${edge.tgtOutFlowName}) → (终端)`)
-  } else if (outEdges.length === 1) {
-    console.log(`${indent}↳ ${edge.srcBranchName} → n=${edge.tgtIdx} ${name} (${edge.tgtOutFlowName})`)
-    showChain(outEdges[0], nodeMap, downstreamOf, compNames, indent + '  ', new Set(visited))
-  } else {
-    // 多分支：先输出当前节点
-    console.log(`${indent}↳ ${edge.srcBranchName} → n=${edge.tgtIdx} ${name}`)
-    for (const subEdge of outEdges) {
-      const tgtName2 = nodeMap.get(subEdge.tgtIdx)
-        ? resolveName(nodeMap.get(subEdge.tgtIdx)!, compNames) : '?'
-      const sub2 = downstreamOf.get(subEdge.tgtIdx) ?? []
-      if (sub2.length === 0) {
-        console.log(`${indent}   ${subEdge.srcBranchName} → n=${subEdge.tgtIdx} ${tgtName2} (${subEdge.tgtOutFlowName}) → (终端)`)
-      } else if (sub2.length === 1) {
-        console.log(`${indent}   ${subEdge.srcBranchName} → n=${subEdge.tgtIdx} ${tgtName2} (${subEdge.tgtOutFlowName})`)
-        showChain(sub2[0], nodeMap, downstreamOf, compNames, indent + '   ', new Set(visited))
+// ============================================================
+// --expand=N: 子图事件源分析
+// ============================================================
+
+function expandSubGraph(
+  graph: any,
+  compositeName: string,
+  compositePins: any[],
+  compNames: Map<number, string>,
+  compInputs: Map<number, string[]>,
+  compOutputs: Map<number, string[]>,
+  defToCompiled: Map<number, number>,
+) {
+  const nodeMap = new Map<number, any>()
+  for (const n of graph.nodes) nodeMap.set(n.nodeIndex, n)
+
+  // 子图内判断是否为真复合（有编译体）还是系统伪复合
+  const _hasCompiledBody = (nid: number | null) => nid != null && defToCompiled.has(nid)
+
+  // 哪些内部 Branch pin 映射到复合的外部 outflow？
+  const outflowMappedBranches = new Set<string>()
+  // 哪些内部 OutFlow pin 来自复合的外部 inflow？
+  const inflowMappedOutflows = new Set<string>()
+  for (const cp of (compositePins ?? [])) {
+    if (cp.innerPin?.kind === 2) outflowMappedBranches.add(`${cp.innerNodeId}:${cp.innerPin.index}`)
+    if (cp.innerPin?.kind === 1) inflowMappedOutflows.add(`${cp.innerNodeId}:${cp.innerPin.index}`)
+  }
+
+  // 构建子图执行流连接
+  const upstreamOf = new Map<number, FlowEdge[]>()
+  const downstreamOf = new Map<number, FlowEdge[]>()
+
+  for (const n of graph.nodes) {
+    for (const p of (n.pins ?? [])) {
+      if (p.i1?.kind !== 2) continue
+      const srcBranchIdx = p.i1.index
+      // 子图内仅用数字命名 Branch（无复合 outflows/case 值上下文）
+      let srcBranchName: string
+      if (n.genericId?.nodeId === 2) {
+        srcBranchName = srcBranchIdx === 0 ? '是' : '否'
       } else {
-        console.log(`${indent}   ${subEdge.srcBranchName} → n=${subEdge.tgtIdx} ${tgtName2} → ×${sub2.length} 下游`)
-        for (const st of sub2) {
-          const stName = nodeMap.get(st.tgtIdx)
-            ? resolveName(nodeMap.get(st.tgtIdx)!, compNames) : '?'
-          console.log(`${indent}      ${st.srcBranchName} → n=${st.tgtIdx} ${stName} (${st.tgtOutFlowName})`)
+        srcBranchName = String(srcBranchIdx + 1)
+      }
+      for (const c of (p.connects ?? [])) {
+        const tgtIdx = c.id
+        const tgtOutFlowIdx = c.connect2?.index ?? c.connect?.index ?? 0
+        const edge: FlowEdge = {
+          srcIdx: n.nodeIndex, srcBranchIdx, srcBranchName,
+          tgtIdx, tgtOutFlowIdx, tgtOutFlowName: `InFlow[${tgtOutFlowIdx}]`,
+        }
+        if (!upstreamOf.has(tgtIdx)) upstreamOf.set(tgtIdx, [])
+        upstreamOf.get(tgtIdx)!.push(edge)
+        if (!downstreamOf.has(n.nodeIndex)) downstreamOf.set(n.nodeIndex, [])
+        downstreamOf.get(n.nodeIndex)!.push(edge)
+      }
+    }
+  }
+
+  // 扫描子图事件起点
+  interface SubNodeInfo {
+    idx: number; name: string; kind: number; nid: number | null
+    branchCount: number
+    isCalled: boolean; inflowFromOutside: boolean
+    isEvent: boolean
+  }
+  const subNodes: SubNodeInfo[] = []
+
+  for (const n of graph.nodes) {
+    const nid = n.genericId?.nodeId
+    const kind = n.genericId?.kind
+    const name = resolveName(n, compNames)
+    const pins = n.pins ?? []
+
+    let branchCount = 0
+    let hasOutflowPin = false
+    for (const p of pins) {
+      const pk = p.i1?.kind
+      if (pk === 1) hasOutflowPin = true
+      if (pk === 2) branchCount++
+    }
+    const idx = n.nodeIndex
+    const isCalled = (upstreamOf.get(idx)?.length ?? 0) > 0
+
+    // 有未映射到外部 outflow 的 Branch pin？
+    const hasInternalBranch = pins.some(p =>
+      p.i1?.kind === 2 && !outflowMappedBranches.has(`${idx}:${p.i1.index}`)
+    )
+
+    // 有来自外部 inflow 的 OutFlow pin？
+    const inflowFromOutside = pins.some(p =>
+      p.i1?.kind === 1 && inflowMappedOutflows.has(`${idx}:${p.i1.index}`)
+    )
+
+    // 事件起点条件：有内部 Branch + 未被内部调用 + 不从外部 inflow 触发
+    const isEvent = hasInternalBranch && !isCalled && !inflowFromOutside
+
+    subNodes.push({ idx, name, kind, nid, branchCount, isCalled, inflowFromOutside, isEvent })
+  }
+
+  const events = subNodes.filter(s => s.isEvent)
+  console.log(`\n📡 ${compositeName} — 内部事件起点 (${events.length} 个)`)
+  console.log('-'.repeat(60))
+
+  for (const e of events) {
+    const isPseudo = e.kind === 22001 && !_hasCompiledBody(e.nid)
+    // 输出参数：系统节点用 NODE_PIN_RECORDS，伪复合用 def.outputs
+    const outNames = e.kind === 22000 ? getNodeOutputNames(e.nid) :
+                     isPseudo && e.nid != null ? compOutputs.get(e.nid) ?? null : null
+    // 输入参数：真复合用 def.inputs（伪复合无 inputs）
+    const inNames = (e.kind === 22001 && e.nid != null && !isPseudo) ? compInputs.get(e.nid) ?? null : null
+    const outSuffix = outNames ? `  (${outNames.join(', ')})` : ''
+    const inSuffix = inNames ? `  [${inNames.join(', ')}]` : ''
+    // 伪复合标 system，真复合标 复合
+    const kindLabel = isPseudo ? '系统' : (e.kind === 22001 ? '复合' : '系统')
+    // 对伪复合，尝试查英文系统名，中英文一起显示
+    let effectiveName = e.name
+    let extraSuffix = ''
+    if (isPseudo && e.nid != null) {
+      const mapName = nameMap.get(e.nid)
+      const sysName = mapName ?? getSystemNodeDisplayName(e.name.replace(/^复合:/, ''))
+      if (sysName) {
+        const zhName = e.name.replace(/^复合:/, '')
+        effectiveName = zhName !== sysName ? `${sysName} (${zhName})` : sysName
+      } else {
+        effectiveName = e.name.replace(/^复合:/, '')
+      }
+      // 从 kind=5 的 pin 提取信号名
+      const n = nodeMap.get(e.idx)
+      if (n) {
+        const sigPins = (n.pins ?? []).filter(p => p.i1?.kind === 5 && p.value?.bString?.val)
+        if (sigPins.length > 0) {
+          extraSuffix = `  "${sigPins.map(p => p.value.bString.val).join(', ')}"`
         }
       }
     }
+    console.log(`n=${String(e.idx).padStart(2)} [${kindLabel}] ${effectiveName}${extraSuffix}`)
+    console.log(`   Branch×${e.branchCount}${outSuffix}${inSuffix}`)
+    const outEdges = downstreamOf.get(e.idx) ?? []
+    if (outEdges.length === 0) {
+      console.log(`   → (无下游)`)
+    } else {
+      // 使用 buildTree + printTree 渲染子图树（单独 visited，不混入主图）
+      for (let ei = 0; ei < outEdges.length; ei++) {
+        const root = buildTree(outEdges[ei], nodeMap, downstreamOf, compNames, new Set())
+        printTree(root, '', ei === outEdges.length - 1)
+      }
+    }
+    console.log()
   }
 }
 
@@ -410,10 +748,12 @@ function showChain(
 const cliArgs = process.argv.slice(2)
 const filePath = cliArgs[0]
 if (!filePath || filePath.startsWith('--')) {
-  console.error(`用法: npx tsx tests/composite/find-event-sources.ts <文件.gia> [--json] [--detail=N]`)
+  console.error(`用法: npx tsx tests/composite/find-event-sources.ts <文件.gia> [--json] [--detail=N] [--depth=N] [--expand=N]`)
   console.error(`  默认: 输出人类可读的事件起点分析（含执行流引脚名）`)
-  console.error(`  --json: JSON 格式`)
+  console.error(`  --json: JSON 格式（含 --depth=N 控制递归层数，默认仅第一层）`)
   console.error(`  --detail=N: 显示节点 N 的完整引脚信息`)
+  console.error(`  --depth=N: 配合 --json 使用，递归展开 N 层下游（0=仅第一层，空=全部展开）`)
+  console.error(`  --expand=N 或 --expand=<名称>: 展开复合节点的内部执行流事件源（可指定索引或名称）`)
   process.exit(1)
 }
 
