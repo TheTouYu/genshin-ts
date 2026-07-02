@@ -597,15 +597,25 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   // 参考文件（顺序执行.gia 等）中，每个无下游的 outflow 出口都有一个 Print_String 终端节点
   let nextTerminalId = Math.max(...ir.nodes!.map(n => n.id)) + 1
 
+  // 构建执行子图邻接表，用于下游节点递归搜索
+  const execChildren = new Map<number, number[]>()
+  for (const fc of graphInfo.flowConnections) {
+    const children = execChildren.get(fc.fromId) ?? []
+    children.push(fc.toId)
+    execChildren.set(fc.fromId, children)
+  }
+
   for (const [compositeNodeId, compositeId] of compositeCallNodeIndices) {
     const cdef = compositeDefById.get(compositeId)
     if (!cdef || cdef.outflows.length === 0 || cdef.inflows.length === 0) continue
 
     // 收集已连接的 outflow 索引
     const connectedOutflows = new Set<number>()
+    const downstreamTargets: number[] = []
     for (const fc of graphInfo.flowConnections) {
       if (fc.fromId === compositeNodeId) {
         connectedOutflows.add(fc.fromIndex)
+        downstreamTargets.push(fc.toId)
       }
     }
 
@@ -613,6 +623,27 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     const compositePos = positions.get(compositeNodeId)
     if (!compositeNode || !compositePos) continue
 
+    // 计算所有已连接 outflow 的下游节点（递归）的最大 Y 坐标
+    // 确保未连接的 outflow 终端放在所有下游节点之下，避免边交叉
+    let maxDownstreamY = -Infinity
+    const visited = new Set<number>()
+    const queue = [...downstreamTargets]
+    while (queue.length > 0) {
+      const nid = queue.shift()!
+      if (visited.has(nid)) continue
+      visited.add(nid)
+      const pos = positions.get(nid)
+      if (pos && pos[1] > maxDownstreamY) maxDownstreamY = pos[1]
+      const children = execChildren.get(nid)
+      if (children) {
+        for (const child of children) {
+          if (!visited.has(child)) queue.push(child)
+        }
+      }
+    }
+
+    const hasDownstream = downstreamTargets.length > 0 && maxDownstreamY > -Infinity
+    let unconnectedIdx = 0
     for (const outflow of cdef.outflows) {
       if (connectedOutflows.has(outflow.index)) continue
 
@@ -623,14 +654,18 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
         serverMode,
         NODE_ID.Print_String as NodeIdFor<ServerGraphMode>
       )
-      // 位置：复合节点右侧 1 列，按 outflow 索引纵向偏移（参考顺序执行.gia 中的布局）
+      // 位置：复合节点右侧 1 列
       const rawX = compositePos[0] + 350  // columnWidth
-      const rawY = compositePos[1] + outflow.index * 252  // branchGap = rowHeight * 0.9
+      // 有下游节点时放在所有下游节点之下；无下游节点时按 outflow 索引纵向偏移
+      const rawY = hasDownstream
+        ? maxDownstreamY + 252 + unconnectedIdx * 252
+        : compositePos[1] + outflow.index * 252  // branchGap = rowHeight * 0.9
       terminalNode.setPos(rawX / 300, rawY / 200)
 
       nodesById.set(terminalId, terminalNode)
       graph.add_node(terminalNode)
       graph.flow(compositeNode, terminalNode, outflow.index, 0)
+      unconnectedIdx++
     }
   }
 
