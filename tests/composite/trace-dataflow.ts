@@ -79,10 +79,30 @@ function extractLiteral(v: any): string {
     if (cv.value?.bFloat?.val != null) return String(cv.value.bFloat.val)
     if (cv.value?.bString?.val != null) return `"${cv.value.bString.val}"`
     if (cv.value?.bInt?.val != null) return String(cv.value.bInt.val)
-    if (cv.value?.bArray?.entries) return `[${cv.value.bArray.entries.length} items]`
+    if (cv.value?.bArray?.entries) {
+      const entries = cv.value.bArray.entries
+      if (entries.length > 5) {
+        // 折叠大数组：检测是否全是同一值
+        const folded = foldUniformArray(entries)
+        if (folded) return folded
+        return `[${entries.length} items]`
+      }
+      return `[${entries.map((e: any) => extractLiteral(e)).join(', ')}]`
+    }
     return '(预设值)'
   }
   return '(预设值)'
+}
+
+/** 检测大数组是否全为同一常量，如果是则返回折叠显示 */
+function foldUniformArray(entries: any[]): string | null {
+  if (entries.length <= 5) return null
+  const first = extractLiteral(entries[0])
+  for (let i = 1; i < Math.min(entries.length, 10); i++) {
+    if (extractLiteral(entries[i]) !== first) return null
+  }
+  // 前10个全相同 → 假设全数组一致
+  return `${first} 重复 ×${entries.length}`
 }
 
 // ============================================================
@@ -117,6 +137,7 @@ interface InParamBranch {
   parentInputRef: ParentInputRef | null  // 来自父复合输入参数（编译体直通）
   subBranches: InParamBranch[]      // 来源节点的输入参数（继续追溯）
   truncated: boolean                // 是否因深度限制被截断
+  _foldedCount?: number             // 折叠数组时连续重复计数（仅用于显示）
 }
 
 /** 父复合输入索引 */
@@ -336,7 +357,8 @@ function traceInParam(
 
 function renderBranch(b: InParamBranch, indent: string, depth: number): string[] {
   const lines: string[] = []
-  const label = `InParam[${b.inParamIndex}] "${b.inParamName}" (${b.inParamType})`
+  const foldSuffix = b._foldedCount ? `  ×${b._foldedCount}` : ''
+  const label = `InParam[${b.inParamIndex}] "${b.inParamName}" (${b.inParamType})${foldSuffix}`
 
   // 来自父复合输入参数（编译体直通）
   if (b.parentInputRef) {
@@ -397,6 +419,7 @@ function branchToJson(b: InParamBranch): any {
     name: b.inParamName,
     type: b.inParamType,
   }
+  if (b._foldedCount) obj.folded_count = b._foldedCount
 
   // 父输入直通
   if (b.parentInputRef) {
@@ -576,17 +599,24 @@ function searchGraph(
 
 function main(): void {
   const args = process.argv.slice(2)
-  if (args.length < 2) {
-    console.error('用法: npx tsx tests/composite/trace-dataflow.ts <文件.gia> <节点索引|节点名> [参数索引...] [--composite <复合名>] [--json] [--max-depth N] [--all-params]')
+
+  // Early scan for --list-nodes (无需节点参数)
+  const hasListNodes = args.includes('--list-nodes') || args.includes('-l')
+
+  if (args.length < 1) {
+    console.error('用法: npx tsx tests/composite/trace-dataflow.ts <文件.gia> <节点索引|节点名> [参数索引...] [--composite <复合名>] [--json] [--max-depth N] [--all-params] [--list-nodes] [--quiet]')
     console.error('  省略 -c:        自动在所有图中按名称唯一匹配')
     console.error('  省略参数索引:   默认追溯前 N 个输入参数')
     console.error('  --json:         输出嵌套 JSON（适用于模型消费）')
     console.error('  --max-depth N   设置最大追溯深度（默认 5，0=无限制）')
     console.error('  --all-params    追溯目标节点所有输入参数')
+    console.error('  --list-nodes/-l:列出当前图所有节点（无需节点参数）')
+    console.error('  提示: 用 NODE_OPTIONS=\'--no-deprecation\' 屏蔽 tsx 的 deprecation warning')
     console.error('  例子:')
-    console.error('    npx tsx .../物理运动.gia 计算合力          (全局自动匹配)')
-    console.error('    npx tsx .../物理运动.gia 计算合力 --json  (嵌套 JSON)')
-    console.error('    npx tsx .../物理运动.gia 5 0 1            (指定参数)')
+    console.error('    npx tsx .../物理运动.gia --list-nodes          (列出节点)')
+    console.error('    npx tsx .../物理运动.gia 计算合力              (全局自动匹配)')
+    console.error('    npx tsx .../物理运动.gia 计算合力 --json      (嵌套 JSON)')
+    console.error('    npx tsx .../物理运动.gia 5 0 1                (指定参数)')
     console.error('    npx tsx .../物理运动.gia 3 -c slip_velocity --max-depth 10')
     process.exit(1)
   }
@@ -600,6 +630,7 @@ function main(): void {
   let jsonMode = false
   let maxDepth = 5
   let allParams = false
+  let listNodes = false
 
   for (let i = 2; i < args.length; i++) {
     if (args[i] === '--composite' || args[i] === '-c') {
@@ -614,6 +645,8 @@ function main(): void {
       i++
     } else if (args[i] === '--all-params') {
       allParams = true
+    } else if (args[i] === '--list-nodes' || args[i] === '-l') {
+      listNodes = true
     } else if (/^\d+$/.test(args[i])) {
       paramIdxs.push(parseInt(args[i], 10))
     }
@@ -625,6 +658,39 @@ function main(): void {
   try { data = decode_gia_file(filePath) } catch (e: any) { console.error(`❌ 解码失败: ${e.message}`); process.exit(1) }
 
   const ci = buildCompIdx(data)
+
+  // ── --list-nodes: 列出主图所有节点 ──
+  if (hasListNodes || listNodes) {
+    const mainGraph = data.graph?.graph?.inner?.graph
+    if (!mainGraph) { console.error('❌ 未找到主图'); process.exit(1) }
+    if (jsonMode) {
+      const nodeList = mainGraph.nodes.map((n: any) => {
+        const term = isTerminalNode(n)
+        return {
+          index: n.nodeIndex,
+          name: resolveName(n, ci),
+          nid: n.genericId?.nodeId ?? null,
+          kind: n.genericId?.kind ?? null,
+          pins: (n.pins ?? []).length,
+          terminal: term.yes,
+          note: term.note,
+        }
+      })
+      console.log(JSON.stringify(nodeList, null, 2))
+    } else {
+      const sorted = [...mainGraph.nodes].sort((a: any, b: any) => a.nodeIndex - b.nodeIndex)
+      for (const n of sorted) {
+        const name = resolveName(n, ci)
+        const nid = n.genericId?.nodeId
+        const kind = n.genericId?.kind
+        const pins = (n.pins ?? []).length
+        const term = isTerminalNode(n)
+        const termMark = term.yes ? term.note ? `  term(${term.note})` : '  term' : ''
+        console.log(`${String(n.nodeIndex).padStart(3)}  ${String(name).padEnd(36)}  nid=${String(nid ?? '?').padEnd(12)}  kind=${String(kind ?? '?').padEnd(7)}  pins=${pins}${termMark}`)
+      }
+    }
+    process.exit(0)
+  }
 
   // Determine which graph to use: main graph or composite impl graph
   let nodeMap: Map<number, any>
@@ -817,12 +883,8 @@ function main(): void {
   }
 
   // Trace each requested param
-  // Build graph label for JSON output
-  const graphLabel = compositeName ? `复合:${compositeName}` : '主图'
-
-  // Trace each requested param
   let foundPassthrough = false
-  const paramResults: any[] = []
+  const paramBranches: { idx: number; branch: InParamBranch }[] = []
 
   for (const inParamIdx of paramIdxs) {
     if (!compositeName) {
@@ -831,7 +893,50 @@ function main(): void {
     }
 
     const branch = traceInParam(targetNode, inParamIdx, nodeMap, ci, 0, maxDepth, parentInputs, compositePinsIdx)
+    paramBranches.push({ idx: inParamIdx, branch })
+    if (branch.parentInputRef) foundPassthrough = true
+  }
 
+  // 折叠连续相同的字面值参数（如 Assembly List 的 99 个 0）
+  const FOLD_THRESHOLD = 5
+  function isLiteralEqual(a: InParamBranch, b: InParamBranch): boolean {
+    return a.literalValue != null && b.literalValue != null && a.literalValue === b.literalValue
+  }
+  const foldedBranches: { idx: number; branch: InParamBranch }[] = []
+  let i = 0
+  while (i < paramBranches.length) {
+    let j = i + 1
+    while (j < paramBranches.length && isLiteralEqual(paramBranches[i].branch, paramBranches[j].branch)) j++
+    if (j - i >= FOLD_THRESHOLD) {
+      // 折叠
+      const rep = paramBranches[i]
+      const count = j - i
+      // 创建一个合成分支代表整个折叠
+      const folded: InParamBranch = {
+        inParamIndex: rep.branch.inParamIndex,
+        inParamName: `${rep.branch.inParamName}[${count}]`,
+        inParamType: rep.branch.inParamType,
+        literalValue: rep.branch.literalValue,
+        source: null,
+        parentInputRef: null,
+        subBranches: [],
+        truncated: false,
+        _foldedCount: count,
+      }
+      foldedBranches.push({ idx: rep.idx, branch: folded })
+      i = j
+    } else {
+      foldedBranches.push(paramBranches[i])
+      i++
+    }
+  }
+
+  // Build graph label for JSON output
+  const graphLabel = compositeName ? `复合:${compositeName}` : '主图'
+
+  // Render folded results
+  const paramResults: any[] = []
+  for (const { idx, branch } of foldedBranches) {
     if (jsonMode) {
       paramResults.push(branchToJson(branch))
     } else {
@@ -839,8 +944,6 @@ function main(): void {
       const lines = renderBranch(branch, '', 0)
       for (const l of lines) console.log(l)
     }
-
-    if (branch.parentInputRef) foundPassthrough = true
   }
 
   // --json: 输出完整嵌套 JSON
@@ -861,6 +964,10 @@ function main(): void {
         node: s.nodeIndex,
         node_name: s.nodeName,
       }))
+    }
+    // 无参节点提示（避免误判为"工具不兼容"）
+    if (paramResults.length === 0) {
+      output._info = '该节点没有输入参数（InParam），通常是终端节点（事件上下文、图变量读取、纯执行流节点）。使用 --list-nodes 查看节点列表。'
     }
     console.log(JSON.stringify(output, null, 2))
     return
