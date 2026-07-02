@@ -120,6 +120,7 @@ interface DataSource {
   isTerminal: boolean
   isComposite: boolean
   compositeId: number | null
+  crossGraphEntry?: CrossGraphEntry    // 跨图追溯：复合 OutParam 进入编译体后的追踪
 }
 
 interface ParentInputRef {
@@ -138,6 +139,23 @@ interface InParamBranch {
   subBranches: InParamBranch[]      // 来源节点的输入参数（继续追溯）
   truncated: boolean                // 是否因深度限制被截断
   _foldedCount?: number             // 折叠数组时连续重复计数（仅用于显示）
+}
+
+/** 跨图追溯：复合 OutParam 进入编译体后，内部节点的追溯信息 */
+interface CrossGraphEntry {
+  compositeName: string              // 复合名，如 "计算物理运动状态"
+  innerNodeIndex: number             // 编译体内内部节点索引 n=27
+  innerNodeName: string              // 编译体内内部节点名
+  innerOutParamIndex: number | null  // 内部 OutParam 索引
+  innerOutParamName: string | null   // 内部 OutParam 名
+  branches: InParamBranch[]          // 内部节点的 InParam 追溯
+}
+
+/** 跨图追溯上下文（全局构建一次，递归传递） */
+interface CrossGraphContext {
+  defToCompiled: Map<number, number>   // defId → compiledId
+  compiledBodies: Map<number, any>     // compiledId → which=9 accessory
+  signalSources: Map<number, string>   // defId → 信号通道名（无编译体的 which=14 信号复合）
 }
 
 /** 父复合输入索引 */
@@ -162,6 +180,70 @@ function buildCompositePinsIndex(graph: any): CompositePinsIndex {
     idx.get(innerNodeId)!.set(innerKey, { outerKind: cp.outerPin?.kind, outerIndex: cp.outerPin?.index })
   }
   return idx
+}
+
+/** 构建跨图追溯上下文 */
+function buildCrossGraphContext(data: any): CrossGraphContext {
+  const defToCompiled = new Map<number, number>()
+  const compiledBodies = new Map<number, any>()
+  const signalSources = new Map<number, string>()
+
+  // 预扫描所有 which=9 编译体
+  for (const a of data.accessories ?? []) {
+    if (a.which === 9 && a.id?.id != null) {
+      compiledBodies.set(a.id.id, a)
+    }
+  }
+
+  // 从定义体（有 compositeDef）的 relatedIds[0] 建立 def → compiled 映射
+  for (const a of data.accessories ?? []) {
+    const def = a.compositeDef?.inner?.def
+    if (!def || a.id?.id == null) continue
+    const maybeCompiledId = a.relatedIds?.[0]?.id
+    if (maybeCompiledId != null && compiledBodies.has(maybeCompiledId)) {
+      defToCompiled.set(a.id.id, maybeCompiledId)
+    }
+  }
+
+  // 建立 which=14 信号 accessory 的 id → 名称映射
+  const which14Names = new Map<number, string>()
+  for (const a of data.accessories ?? []) {
+    if (a.which === 14 && a.id?.id != null && a.compositeDef?.inner?.def?.name) {
+      which14Names.set(a.id.id, a.compositeDef.inner.def.name)
+    }
+  }
+
+  // 对没有编译体的复合定义，检查 relatedIds 是否指向 which=14 信号
+  for (const a of data.accessories ?? []) {
+    const def = a.compositeDef?.inner?.def
+    if (!def || a.id?.id == null) continue
+    // 跳过已有编译体的
+    if (defToCompiled.has(a.id.id)) continue
+    // 遍历 relatedIds 找 which=14 信号名称
+    for (const rid of (a.relatedIds ?? [])) {
+      const signalName = which14Names.get(rid.id)
+      if (signalName) {
+        signalSources.set(a.id.id, signalName)
+        break
+      }
+    }
+  }
+
+  return { defToCompiled, compiledBodies, signalSources }
+}
+
+/** 从复合定义构建 ParentInputMap */
+function buildParentInputs(def: any, parentName: string): ParentInputMap {
+  const nameToIdx = new Map<string, { index: number; pinIndex: number }>()
+  const idxToName = new Map<number, string>()
+  for (let i = 0; i < (def.inputs ?? []).length; i++) {
+    const inp = def.inputs[i]
+    if (inp?.name) {
+      nameToIdx.set(inp.name, { index: i, pinIndex: inp.pinIndex })
+      idxToName.set(i, inp.name)
+    }
+  }
+  return { nameToIdx, idxToName, parentName }
 }
 
 // ============================================================
@@ -214,6 +296,7 @@ function traceInParam(
   maxDepth: number,
   parentInputs?: ParentInputMap,
   compositePinsIdx?: CompositePinsIndex,
+  crossGraphCtx?: CrossGraphContext,
 ): InParamBranch {
   const nid = node.genericId?.nodeId
   const types = nid != null ? getInputTypes(nid) : []
@@ -308,6 +391,74 @@ function traceInParam(
   // If depth < maxDepth and source is not terminal, trace its InParams
   let subBranches: InParamBranch[] = []
   let truncated = false
+
+  // 跨图追溯：若来源是复合 OutParam 且 depth 未达限制，自动进入 compiled body
+  if (depth < maxDepth && isComp && crossGraphCtx && srcNid != null && srcOutIdx != null && srcOutIdx >= 0) {
+    const compiledId = crossGraphCtx.defToCompiled.get(srcNid)
+    if (compiledId != null) {
+      const compiledAcc = crossGraphCtx.compiledBodies.get(compiledId)
+      if (compiledAcc) {
+        const implGraph = compiledAcc.graph?.inner?.graph
+        if (implGraph) {
+          // 在 compositePins 中搜索 outerPin.kind=4 (OutParam) 匹配当前出口
+          let innerNodeId: number | null = null
+          let innerPinIndex: number | null = null
+          for (const cp of implGraph.compositePins ?? []) {
+            if (cp.outerPin?.kind === 4 && cp.outerPin?.index === srcOutIdx) {
+              innerNodeId = cp.innerNodeId
+              innerPinIndex = cp.innerPin?.index ?? null
+              break
+            }
+          }
+
+          if (innerNodeId != null) {
+            // 建立编译体节点空间
+            const innerNodeMap = new Map<number, any>()
+            for (const n of implGraph.nodes) innerNodeMap.set(n.nodeIndex, n)
+
+            const innerNode = innerNodeMap.get(innerNodeId)
+            if (innerNode) {
+              // 为编译体建立 parentInputs（供内部借 InParam 直通检测用）
+              const compName = ci.compNames.get(srcNid) ?? '?'
+              const def = ci.compDefs.get(srcNid)
+              const innerParentInputs = def ? buildParentInputs(def, compName) : undefined
+              const innerCompositePinsIdx = buildCompositePinsIndex(implGraph)
+
+              // 收集内部节点的 InParam 索引
+              const innerInParams = new Set<number>()
+              for (const p of innerNode.pins ?? []) {
+                if (p.i1?.kind === 3) innerInParams.add(p.i1.index)
+              }
+
+              const innerBranches: InParamBranch[] = []
+              for (const innerIdx of [...innerInParams].sort()) {
+                const sub = traceInParam(
+                  innerNode, innerIdx, innerNodeMap, ci,
+                  depth + 1, maxDepth, innerParentInputs, innerCompositePinsIdx, crossGraphCtx,
+                )
+                innerBranches.push(sub)
+              }
+
+              const innerOutParamName = getOutParamName(innerNode, innerPinIndex ?? 0, ci)
+              dataSource.crossGraphEntry = {
+                compositeName: compName,
+                innerNodeIndex: innerNodeId,
+                innerNodeName: resolveName(innerNode, ci),
+                innerOutParamIndex: innerPinIndex,
+                innerOutParamName,
+                branches: innerBranches,
+              }
+            }
+          }
+        }
+      }
+    } else if (isComp && term.yes && dataSource.note == null) {
+      // 信号驱动复合：有 OutParam 但没有编译体，数据来自游戏信号系统
+      const sigName = crossGraphCtx?.signalSources?.get(srcNid!)
+      dataSource.note = sigName ? `信号源: ${sigName}` : '信号源'
+    }
+  }
+
   if (depth < maxDepth && !term.yes) {
     // Collect existing pins
     const existing = new Set<number>()
@@ -340,7 +491,7 @@ function traceInParam(
     for (const idx of [...srcInParams, ...missingPassthrough]) {
       if (seen.has(idx)) continue
       seen.add(idx)
-      const sub = traceInParam(src, idx, allNodes, ci, depth + 1, maxDepth, parentInputs, compositePinsIdx)
+      const sub = traceInParam(src, idx, allNodes, ci, depth + 1, maxDepth, parentInputs, compositePinsIdx, crossGraphCtx)
       subBranches.push(sub)
     }
   } else if (!term.yes) {
@@ -401,6 +552,20 @@ function renderBranch(b: InParamBranch, indent: string, depth: number): string[]
     for (const l of subLines) lines.push(l)
   }
 
+  // 跨图追溯分支（进入编译体内部）
+  if (s.crossGraphEntry) {
+    const xg = s.crossGraphEntry
+    const innerLabel = xg.innerOutParamIndex != null
+      ? `内部节点 n=${xg.innerNodeIndex}  ${xg.innerNodeName}  OutParam[${xg.innerOutParamIndex}]`
+      : `内部节点 n=${xg.innerNodeIndex}  ${xg.innerNodeName}`
+    lines.push(`${indent}    ── ⤷ 进入 ${xg.compositeName} 编译体  ${innerLabel} ──`)
+    const xgChildIndent = indent + '      '
+    for (const sub of xg.branches) {
+      const subLines = renderBranch(sub, xgChildIndent, depth + 1)
+      for (const l of subLines) lines.push(l)
+    }
+  }
+
   // 截断标记
   if (b.truncated) {
     lines.push(`${indent}  ... (达到追溯深度限制 ${depth + 1}, 使用 --max-depth N 继续)`)
@@ -457,6 +622,19 @@ function branchToJson(b: InParamBranch): any {
   // 来源节点的子分支
   if (b.subBranches.length > 0) {
     obj.source.inputs = b.subBranches.map(sub => branchToJson(sub))
+  }
+
+  // 跨图追溯信息（进入编译体内部）
+  if (s.crossGraphEntry) {
+    const xg = s.crossGraphEntry
+    obj.source.cross_graph = {
+      composite: xg.compositeName,
+      inner_node: xg.innerNodeIndex,
+      inner_node_name: xg.innerNodeName,
+      inner_out_index: xg.innerOutParamIndex,
+      inner_out_name: xg.innerOutParamName,
+      inputs: xg.branches.map(sub => branchToJson(sub)),
+    }
   }
 
   // 截断标记
@@ -632,10 +810,25 @@ function main(): void {
   let allParams = false
   let listNodes = false
 
-  for (let i = 2; i < args.length; i++) {
+  // 确定标志参数的起始索引。
+  // args[0] = 文件路径
+  // args[1] 可能是节点规约（数字/名称）或标志（以 - 开头）
+  // args[2..N] = 其余标志和参数索引
+  let flagStart = 2
+  if (args.length > 1 && (hasListNodes || args[1].startsWith('-'))) {
+    flagStart = 1  // args[1] 是标志不是节点规约
+  }
+  for (let i = flagStart; i < args.length; i++) {
     if (args[i] === '--composite' || args[i] === '-c') {
       compositeName = args[i + 1] ?? null
+      if (compositeName == null || compositeName.startsWith('-')) {
+        console.error('❌ --composite / -c 需要指定复合名称'); process.exit(1)
+      }
       i++  // skip the value
+    } else if (args[i].startsWith('--composite=')) {
+      compositeName = args[i].slice('--composite='.length)
+    } else if (args[i].startsWith('-c=')) {
+      compositeName = args[i].slice('-c='.length)
     } else if (args[i] === '--json') {
       jsonMode = true
     } else if (args[i] === '--max-depth' || args[i] === '-d') {
@@ -643,6 +836,10 @@ function main(): void {
       if (isNaN(n) || n < 0) { console.error('❌ --max-depth 需要非负整数'); process.exit(1) }
       maxDepth = n
       i++
+    } else if (args[i].startsWith('--max-depth=')) {
+      const n = parseInt(args[i].slice('--max-depth='.length), 10)
+      if (isNaN(n) || n < 0) { console.error('❌ --max-depth 需要非负整数'); process.exit(1) }
+      maxDepth = n
     } else if (args[i] === '--all-params') {
       allParams = true
     } else if (args[i] === '--list-nodes' || args[i] === '-l') {
@@ -658,13 +855,39 @@ function main(): void {
   try { data = decode_gia_file(filePath) } catch (e: any) { console.error(`❌ 解码失败: ${e.message}`); process.exit(1) }
 
   const ci = buildCompIdx(data)
+  const crossGraphCtx = buildCrossGraphContext(data)
 
-  // ── --list-nodes: 列出主图所有节点 ──
+  // ── --list-nodes: 列出节点 ──
   if (hasListNodes || listNodes) {
-    const mainGraph = data.graph?.graph?.inner?.graph
-    if (!mainGraph) { console.error('❌ 未找到主图'); process.exit(1) }
+    let graphNodes: any[]
+    let graphLabel: string
+
+    if (compositeName) {
+      // 找到复合定义
+      let defAcc: any = null
+      for (const a of data.accessories ?? []) {
+        const d = a.compositeDef?.inner?.def
+        if (d?.name === compositeName) defAcc = a
+      }
+      if (!defAcc) { console.error(`❌ 未找到复合定义 "${compositeName}"`); process.exit(1) }
+      const compiledId = defAcc.relatedIds?.[0]?.id
+      if (compiledId == null) { console.error(`❌ 复合 "${compositeName}" 没有关联编译体`); process.exit(1) }
+      let compiledAcc: any = null
+      for (const a of data.accessories ?? []) { if (a.id?.id === compiledId) compiledAcc = a }
+      if (!compiledAcc) { console.error(`❌ 未找到编译体 id=${compiledId}`); process.exit(1) }
+      const implGraph = compiledAcc.graph?.inner?.graph
+      if (!implGraph) { console.error(`❌ 编译体 "${compositeName}" 没有 impl 图`); process.exit(1) }
+      graphNodes = implGraph.nodes
+      graphLabel = `复合:${compositeName}`
+    } else {
+      graphNodes = data.graph?.graph?.inner?.graph?.nodes
+      if (!graphNodes) { console.error('❌ 未找到主图'); process.exit(1) }
+      graphLabel = '主图'
+    }
+
+    console.log(`📋 ${graphLabel} 节点列表:`)
     if (jsonMode) {
-      const nodeList = mainGraph.nodes.map((n: any) => {
+      const nodeList = graphNodes.map((n: any) => {
         const term = isTerminalNode(n)
         return {
           index: n.nodeIndex,
@@ -678,7 +901,7 @@ function main(): void {
       })
       console.log(JSON.stringify(nodeList, null, 2))
     } else {
-      const sorted = [...mainGraph.nodes].sort((a: any, b: any) => a.nodeIndex - b.nodeIndex)
+      const sorted = [...graphNodes].sort((a: any, b: any) => a.nodeIndex - b.nodeIndex)
       for (const n of sorted) {
         const name = resolveName(n, ci)
         const nid = n.genericId?.nodeId
@@ -892,7 +1115,7 @@ function main(): void {
       if (!hasPin) { continue }
     }
 
-    const branch = traceInParam(targetNode, inParamIdx, nodeMap, ci, 0, maxDepth, parentInputs, compositePinsIdx)
+    const branch = traceInParam(targetNode, inParamIdx, nodeMap, ci, 0, maxDepth, parentInputs, compositePinsIdx, crossGraphCtx)
     paramBranches.push({ idx: inParamIdx, branch })
     if (branch.parentInputRef) foundPassthrough = true
   }
