@@ -155,16 +155,18 @@ branchGap: 252        // 终端 Y 步进 = rowHeight * 0.9
 
 ## 八、下一轮方向
 
-### 布局交叉优化（P2）
+### ✅ 已完成 — 见 [layout-handover-round-5.md](layout-handover-round-5.md)
 
-`layout-various_1` 中出现的边交叉问题：复合多 outflow 中的部分连接下游、部分未连接时，未连接 outflow 的终端位置可能与其他下游节点的边交叉。
+- 布局交叉优化（P2）→ 已修复并提交（69649e4）
+- 复合嵌套布局验证（P1）
+- 布局 ASCII 可视化（P2）→ 已完成（`tests/composite/ascii-layout.ts`）
 
-**解决方向：** 终端节点位置计算时，先收集该复合节点的所有下游节点（来自 flowConnections），找到其中的最大 Y 坐标，将终端放在 `maxDownstreamY + 252` 之下，而非简单的 `compositeY + outflowIndex * 252`。
+### 本轮遗留（转为 R5）
 
-### 复合嵌套布局验证（P1）
+| 任务 | 新进展 |
+|------|--------|
+| 边交叉优化 | ✅ 已修复（`layout-various_1` 1→0） |
+| 复合嵌套布局验证 | ➡️ **R5 核心任务** |
+| ASCII 可视化 | ✅ 已完成 |
 
-复合 A 调用复合 B 时，A 的 impl 图中会出现对 B 的调用节点。`computeImplLayout` 需要处理这种嵌套。
-
-### 布局 ASCII 可视化（P2）
-
-不依赖游戏测试，直接在终端输出 ASCII 图，提升对比效率。
+详情见 [layout-handover-round-5.md：复合嵌套布局验证方案](layout-handover-round-5.md#五-嵌套复合布局验证方案)。
