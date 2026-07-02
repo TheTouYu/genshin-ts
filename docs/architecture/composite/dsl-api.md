@@ -1,7 +1,7 @@
 # DSL API：复合节点的语法糖与类型系统
 
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
-> 参见：[捕获机制](./composite/capture-mechanism.md) | [IR 表示](./composite/ir-representation.md) | [管线追踪](./composite/pipeline-flow.md)
+> 参见：[捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md)
 
 ---
 
@@ -147,7 +147,42 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 
 ---
 
-## 4. 复合中调用复合
+## 4. 低层 build API（`registerExecNode` / `leaf` / `branchExec` / `createOutParamValue`）
+
+以下 API 在 `build()` 内部使用，提供比 `f.xxx()` 语法糖更低层的控制。
+
+| API | 作用 | 示例 |
+|-----|------|------|
+| `f.registerExecNode(type, args)` | 注册执行节点，自动串联到当前 tail | `f.registerExecNode('print_string', [new str('hello')])` |
+| `f.leaf(outflowIdx)` | 标记当前 tail 节点为 OutFlow[outflowIdx] 出口 | `f.leaf(0)` |
+| `f.branchExec(sourceIdx, record)` | 从当前 tail 分叉创建叶子，不推进 tail | `f.branchExec(0, { type: 'exec', nodeType: 'print_string', args: [new str('出口0')] })` |
+| `f.createOutParamValue(type, ref, idx)` | 创建 OutParam 返回值绑定到节点 | `f.createOutParamValue('int', ref, 0)` |
+
+### branchExec 的 record 格式
+
+```typescript
+{
+  id: 0,                    // 必须为 0（系统自动分配）
+  type: 'exec',             // 必须为 'exec'
+  nodeType: 'print_string', // 任意节点类型（不仅限于控制流节点）
+  args: [new str('文本')]   // 节点参数（value 类型）
+}
+```
+
+### 关键实现细节
+
+1. **compositePins 是独立路由表** — outer pin 到 inner node pin 是多对多映射，不要求 inner pin 在 impl 图中实际存在
+2. **节点 pin 由角色决定** — 同一个 double_branch 在入口处有 OutFlow:0+1+InParam:0，在叶子处只有 0 pin
+3. **OutFlow 索引不固定** — 可以是 0/1/2/3...，取决于 edge 的 source_index
+4. **impl 节点 ID 自动从 1 重新编号**（捕获 event 节点占 ID 1）
+5. **入口节点的 OutFlow pin 自动填充 connects**（按 source_index 拆分为多个 OutFlow pin）
+6. **主图 OutFlow pin 由 `graph.flow()` 创建**，不要手动添加
+7. **一个 outer InParam 可以 fanout 到多个 inner 节点**（同一输入多处消费）
+8. **嵌套复合在 impl 图中为 kind=22001 节点**，执行型有 OutFlow pin，数据型 0 pin
+
+---
+
+## 5. 复合中调用复合
 
 build 回调中可以调用其他复合节点。此时需要**嵌套的独立捕获**：
 
@@ -176,7 +211,7 @@ const B = g.defineComposite('B', {
 
 ---
 
-## 5. 代码示例
+## 6. 代码示例
 
 ### 5.1 简单 exec-only 复合
 

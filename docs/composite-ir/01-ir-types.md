@@ -53,7 +53,7 @@ interface ControlFlowDef {
 >
 > **关键约束是两端的值必须一致，而非具体数值。**
 
-> 见 [docs/architecture/composite/ir-representation.md](../architecture/composite/ir-representation.md) §1 ControlFlowDef（gsts 默认值）和验证脚本 `tools/_verify-arch-claims.ts`。
+> 见 [docs/architecture/composite/ir-representation.md](../architecture/composite/ir-representation.md) §1 ControlFlowDef（gsts 默认值）和验证脚本 `tools/gap-scan.ts`。
 
 #### ParamFlowDef（数据引脚）
 

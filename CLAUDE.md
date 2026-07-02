@@ -79,3 +79,18 @@ Input: TypeScript files using the `g.server(...).on(...)` DSL or `gstsServer*` f
 | `src/thirdparty/` | Wu-Yijun's reverse-engineered node data (node IDs, pin records, enum IDs, protobuf schema) |
 | `scripts/` | Build scripts, test generators, definition generators |
 | `tests/` | Test `.ts` files compiled by the test pipeline |
+
+## 知识体系（文档 → 工具 → 技能 → 记忆）
+
+### 文档入口
+- `docs/composite-ir/index.md` — 复合 IR 知识体系总入口（最活跃）
+- `docs/architecture/` — 编译管线架构文档
+
+### 分析工具
+`tools/` 目录包含 7 个分析脚本：`decode-gia.ts`、`analyze-gia-arch.ts`、`analyze-composite-gia.ts`、`gap-scan.ts`、`coverage.ts`、`topology.ts`、`preview_markdown.ts`
+
+### 技能
+- `/think-check` — 思维纠偏技能，分析复杂问题时务必使用（基于以往 4 轮纠正经验设计）
+
+### 跨会话记忆
+项目 `.claude/memory/` 记录经验和教训。新会话先读 `MEMORY.md` 了解跨会话背景。

@@ -1,7 +1,7 @@
 # GIA 编码：复合节点的二进制/JSON 结构
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
-> 参见：[IR 表示](./composite/ir-representation.md) | [管线追踪](./composite/pipeline-flow.md) | [阶段三 GIA 编码](../stage3-ir-to-gia.md)
+> 参见：[IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | [阶段三 GIA 编码](../stage3-ir-to-gia.md) | [关键 ID 对照（composite-ir/05）](../../composite-ir/05-gia-encoding.md)
 
 ---
 

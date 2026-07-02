@@ -1,5 +1,7 @@
 # 多 OutFlow 复合节点实现指南
 
+> **API 设计部分已合并到** [`dsl-api.md`](dsl-api.md)。本文档专注于参考文件结构分析和修改文件清单。
+
 ## 背景
 
 当前复合节点实现仅支持 0 或 1 个 OutFlow。游戏支持有**多个命名 OutFlow** 的控制流复合节点（如"顺序执行"：1 个入口 → 4 个出口，每个出口可连不同下游）。
@@ -161,28 +163,6 @@ for (const outflow of cdef.outflows) {
 - 保留所有合法的 OutFlow pins（与 CompositeDef.outflows 对应）
 - 只为"多余的" OutFlow（flow 连接产生但 CompositeDef 未声明）做处理
 
-### 5. `src/runtime/core.ts` — 运行时与 API
-
-**`callComposite()` 返回值路由**：
-
-当前 `callComposite` 返回 `outputs` 对象，调用方通过 `result.输出名` 消费数据。对于控制流复合，还需要表达"在哪个 OutFlow 后继续执行"。
-
-可能需要新的 API 模式：
-```typescript
-// 假设的 API：指定 OutFlow index
-const branch = f.callComposite(seqComp, {})
-branch.on('是', 0, () => { /* 第1个出口之后 */ })
-branch.on('是', 1, () => { /* 第2个出口之后 */ })
-```
-
-这是 API 层最大的设计挑战。
-
-### 6. `src/definitions/nodes.ts` — callComposite 实现
-
-**ServerExecutionFlowFunctions.callComposite**：
-
-当前实现将 `__composite_call__` 作为单个标记节点插入 flow。需要支持：调用方在不同 OutFlow 后插入不同节点的能力。
-
 ## 实现难点
 
 ### 难点 1：API 设计
@@ -194,6 +174,8 @@ f.printString(...)             // 继续在线性 flow 中
 ```
 
 多 OutFlow 复合打破了线性假设——执行流分裂为多个分支。需要新的 API 来表达分支语义。这与现有所有节点的模型都不兼容。
+
+详见 [`dsl-api.md`](dsl-api.md) §多 OutFlow。
 
 ### 难点 2：捕获阶段识别出口节点
 

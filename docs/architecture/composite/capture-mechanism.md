@@ -1,7 +1,7 @@
 # 捕获机制：复合节点的核心创新
 
 > 本文档详细描述复合节点在阶段二执行期间如何通过"捕获"（Capture）机制将 build 回调中的节点创建操作记录为独立的子图结构。
-> 参见：[DSL API](./composite/dsl-api.md) | [IR 表示](./composite/ir-representation.md) | [管线追踪](./composite/pipeline-flow.md)
+> 参见：[DSL API](./dsl-api.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md)
 
 ---
 

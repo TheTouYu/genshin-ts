@@ -1,40 +1,22 @@
 # IR 中间表示：复合节点定义与调用
 
+> ⚠️ **pinIndex 值注意事项**
+> 本文档描述的 pinIndex 常量（InFlow=1974, OutFlow=4/8+index, InFlowOut=6）是 `toCompositeDefIR()` 的硬编码默认值，**仅对 gsts 编译器生成的复合有效**。
+> 游戏编辑器创建或用户编辑的复合使用编辑器分配的值。验证发现 97 个真实复合（复杂gia/ 目录）无一使用这些默认值。
+> 详情见 [`docs/composite-ir/01-ir-types.md`](../../composite-ir/01-ir-types.md) §pinIndex 真实值。
+
 > 本文档描述复合节点在 IR JSON 中的表示——`CompositeDefIR`、`CompositeCallMeta`、`CompositePinEntry` 等类型及其在阶段二产物中的具体结构。
-> 参见：[DSL API](./composite/dsl-api.md) | [捕获机制](./composite/capture-mechanism.md) | [管线追踪](./composite/pipeline-flow.md) | [阶段二 IR](../stage2-gs-to-ir.md)
+> 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [管线追踪](./pipeline-flow.md) | [阶段二 IR](../stage2-gs-to-ir.md) | [复合 IR 类型参考（权威）](../../composite-ir/01-ir-types.md)
 
 ---
 
 ## 1. CompositeDefIR 完整类型
 
-```typescript
-interface CompositeDefIR {
-  name: string                     // 复合节点名称
-  id: number                       // 唯一 ID（1610700000+）
-  type: 'composite'                // 固定标识
-  inflows: ControlFlowDef[]        // 执行流入引脚
-  outflows: ControlFlowDef[]       // 执行流出引脚
-  inputs: ParamFlowDef[]           // 数据输入引脚
-  outputs: ParamFlowDef[]          // 数据输出引脚
-  implNodes: ServerNode[]          // 内部实现节点列表
-  implEdges: Record<number, NextConnection[]>  // 内部执行连线
-  compositePins: CompositePinEntry[]  // 内外引脚映射
-  implVariables?: Variable[]       // 内部变量（当前未使用）
-}
-```
+复合 IR 的类型定义（`CompositeDefIR`、`ControlFlowDef`、`ParamFlowDef`、`CompositePinEntry`、`CompositeCallMeta`、`compositeDataEdges`、`CompositeCapture`）见 [`docs/composite-ir/01-ir-types.md`](../../composite-ir/01-ir-types.md) — 包含来自 97 个真实复合验证的权威定义。
 
-### ControlFlowDef
+### 编译器默认 pinIndex
 
-```typescript
-interface ControlFlowDef {
-  name: string      // 引脚名（当前为空字符串）
-  visible: boolean  // 可见性
-  index: number     // 逻辑序号
-  pinIndex: number  // GIA pin index 字面量
-}
-```
-
-引脚索引常量（`composite_registry.ts`）：
+以下是 gsts 编译器在 `toCompositeDefIR()` 中使用的硬编码默认值（注意：见上方 ⚠️ caveat，这些值**仅对 gsts 生成的复合有效**，游戏编辑器使用不同的值）：
 
 | 常量名 | 单 OutFlow | 多 OutFlow |
 |--------|-----------|------------|
@@ -43,64 +25,9 @@ interface ControlFlowDef {
 | InParam pinIndex base | 100 | 100 + index |
 | OutParam pinIndex base | 200 | 200 + index |
 
-### ParamFlowDef
+### implNodes 的 arg 表示
 
-```typescript
-interface ParamFlowDef {
-  name: string
-  visible: boolean
-  index: number
-  type: ValueType          // 'int' | 'float' | 'str' | 'bool' | 'vec3' | ...
-  pinIndex: number         // InParam 基=100, OutParam 基=200
-}
-```
-
----
-
-## 2. CompositePinEntry：四种 kind
-
-```typescript
-interface CompositePinEntry {
-  outerPinKind: number   // 1=InFlow, 2=OutFlow, 3=InParam, 4=OutParam
-  outerPinIndex: number  // 复合外部的引脚索引
-  innerNodeId: number    // 对应内部节点的 ID
-  innerPinKind: number   // 内部引脚种类（与 outerPinKind 同值）
-  innerPinIndex: number  // 内部节点的引脚索引
-}
-```
-
-### 映射举例
-
-```
-假设复合定义有输入 x (index=0)，内部使用方式为:
-  f.add(args.x, args.x)
-                                  ┌─────────────────┐
-                                  │ CompositeDefIR    │
-                                  │ inputs: [x: int] │
-                                  └────────┬────────┘
-                                           │ outerPinKind: 3 (InParam)
-                                           │ outerPinIndex: 0
-                                           ▼
-  ┌───────────────────────────────────────────────────┐
-  │ implNodes (内部节点图)                              │
-  │                                                    │
-  │  Node 5: addition                                  │
-  │    args: [                                         │
-  │      { __captureInputName: 'x' },  ← argIdx=0      │
-  │      { __captureInputName: 'x' }   ← argIdx=1      │
-  │    ]                                                │
-  └───────────────────────────────────────────────────┘
-                           │
-  生成两条 compositePins:   │
-  [0]: { outerPinKind:3, outerPinIndex:0,              │
-         innerNodeId:5,   innerPinKind:3, innerPinIndex:0 }
-  [1]: { outerPinKind:3, outerPinIndex:0,              │
-         innerNodeId:5,   innerPinKind:3, innerPinIndex:1 }
-```
-
----
-
-## 3. implNodes 的 arg 表示
+内部节点的 args 有两种形态：
 
 内部节点的 args 有两种形态：
 
@@ -129,7 +56,7 @@ interface CompositePinEntry {
 
 ---
 
-## 4. implEdges：控制流连线
+## 2. implEdges：控制流连线
 
 ```typescript
 // implEdges: source node ID → target connections
@@ -143,24 +70,7 @@ interface CompositePinEntry {
 
 ---
 
-## 5. CompositeCallMeta
-
-在主图中，每个 `f.callComposite()` 调用被记录为：
-
-```typescript
-interface CompositeCallMeta {
-  compositeId: number       // 对应 CompositeDefIR.id
-  markerNodeId: number      // __composite_call__ 标记节点 ID
-}
-```
-
-这个元数据在 `buildServerGraphRegistriesIRDocuments()` 中被嵌入到 `IRDocument.compositeCalls` 数组中（通过 `registry.getCompositeCallMetas()` 收集）。
-
-但当前 IR JSON 输出中 `compositeCalls` 主要用于内部追踪，GIA 编码阶段从节点扫描 `__composite_call__` 类型提取 compositeId。
-
----
-
-## 6. `__composite_call__` 标记节点
+## 3. `__composite_call__` 标记节点
 
 在主图中的表现形式：
 
@@ -182,7 +92,7 @@ interface CompositeCallMeta {
 
 ---
 
-## 7. compositeDataEdges
+## 4. compositeDataEdges
 
 跨复合边界的数据连线记录（`server_globals.ts`）：
 
@@ -207,7 +117,7 @@ type CompositeDataEdge = {
 
 ---
 
-## 8. IR JSON 完整结构示例
+## 5. IR JSON 完整结构示例
 
 ```json
 [

@@ -1,7 +1,7 @@
 # 复合节点 IR JSON 产物解读
 
 > 本文档教你如何阅读和理解复合节点编译产生的 IR JSON 文件——这是调试和验证复合节点正确性的核心工具。
-> 参见：[IR 表示](./composite/ir-representation.md)（类型定义参考） | [捕获机制](./composite/capture-mechanism.md) | [DSL API](./composite/dsl-api.md)
+> 参见：[IR 表示](./ir-representation.md)（类型定义参考） | [捕获机制](./capture-mechanism.md) | [DSL API](./dsl-api.md)
 
 ---
 

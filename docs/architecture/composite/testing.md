@@ -1,7 +1,7 @@
 # 测试体系：复合节点的验证策略
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
-> 参见：[DSL API](./composite/dsl-api.md) | [捕获机制](./composite/capture-mechanism.md) | [管线追踪](./composite/pipeline-flow.md)
+> 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [管线追踪](./pipeline-flow.md)
 
 ---
 

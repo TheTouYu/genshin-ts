@@ -116,9 +116,9 @@
 - [x] `tools/topology.ts` — 无 event 节点时输出根节点遍历 + 数据连线拓扑（已实现，弹球.gia 72 条连线）[2026-06-30]
 - [x] `tools/coverage.ts` — 修复 which=12 主图漏检 Bug（只搜 accessories，漏了 data.graph 自身）[2026-06-30]
 - [x] `tools/coverage.ts` — 增加"终端下沉型"（I=1/O=0）基本模式分类 [2026-06-30]
-- [ ] `tools/topology.ts` — 数据连线超过 50 条时增加分组/聚合显示
-- [ ] `tools/coverage.ts` — 增加跨文件对比模式（同时分析多个 .gia 比较模式分布）
-- [ ] 考虑创建 `tools/signal-topology.ts` — SignalDef 关联网络可视化
+- [ ] `tools/topology.ts` — 数据连线超过 50 条时增加分组/聚合显示（2026-06-30 → 待完成）
+- [ ] `tools/coverage.ts` — 增加跨文件对比模式（同时分析多个 .gia 比较模式分布）（2026-06-30 → 待完成）
+- [ ] 考虑创建 `tools/signal-topology.ts` — SignalDef 关联网络可视化（2026-06-30 → 延迟评估）
 
 ## 6. 核验发现
 
@@ -177,27 +177,27 @@
 
 - [x] 覆盖 user_edit 全部 40 个 GIA 文件的系统分析（2026-06-30）
   → 71 个 CompositeDef 全部 100% 覆盖。发现终端下沉模式缺口并修正。
-- [ ] 覆盖实用/ + 复杂gia/ 目录
-- [ ] 建立"已知架构模式库"——不仅是复合模式，还有完整 GIA 的架构风格分类
-- [ ] 验证 gsts 编译器的输出是否与游戏编辑器的输出在结构上一致
+- [ ] 覆盖实用/ + 复杂gia/ 目录（DEFERRED: 2026-06-30，100% 模式覆盖率已达，剩余文件补充已非必要）
+- [ ] 建立"已知架构模式库"——不仅是复合模式，还有完整 GIA 的架构风格分类（DEFERRED: 2026-06-30，三种架构风格已分类于 §17，扩展至整个库需要更系统的跨目录分析）
+- [ ] 验证 gsts 编译器的输出是否与游戏编辑器的输出在结构上一致（DEFERRED: 2026-06-30，gsts-compiler-gap.md 已有完整差异清单，P0-P2 逐步修复中）
 
-### 🔧 编译器合规（新增，2026-06-30）
+### 🔧 编译器合规（新增，2026-06-30；最后审核 2026-07-02）
 
 > gsts 首次编译出 basic_call.gia 后 vs 编辑器 基本调用节点.gia 的对比。完整差异清单见 [gsts-compiler-gap.md](gsts-compiler-gap.md)。
 
 **P0**（影响 inject 运行）：
-- [ ] 修复 `gameVersion` 硬编码（gsts=6.3.0，编辑器=6.6.0）
-- [ ] 修复 `graphId` 分配规则（gsts 用 id+10000，编辑器独立分配）
+- [ ] 修复 `gameVersion` 硬编码（gsts=6.3.0，编辑器=6.6.0）← gap.md §1.1
+- [ ] 修复 `graphId` 分配规则（gsts 用 id+10000，编辑器独立分配）← gap.md §2.1
 - [ ] 修复 event `nodeIndex`（gsts=2，编辑器=1）
 - [ ] 修复 nodeIndex 编序为其非连续、非 1-based（匹配编辑器）
 
 **P1**（影响结构一致性）：
-- [ ] 终端复合不输出 OutFlow pin 和 compositePins 条目
+- [ ] 终端复合不输出 OutFlow pin 和 compositePins 条目 ← 当前已支持（`buildImplNodePins` 处理）
 - [ ] Impl nodeIndex 起始偏移（编辑器从 2 开始）
-- [ ] 布局坐标对齐
+- [ ] 布局坐标对齐 ← impl 图布局已完成（BFS+Kahn）
 
 **P2**（待验证）：
-- [ ] SignalDef 编码支持
-- [ ] structureDef 编码支持
+- [ ] SignalDef 编码支持（which=14 编码器尚不输出）
+- [ ] structureDef 编码支持（which=29 编码器尚不输出）
 - [ ] 多 OutFlow pinIndex 对齐
 - [ ] ClientExec 信号触发支持

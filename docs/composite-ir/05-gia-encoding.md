@@ -1,5 +1,7 @@
 # 编码为 GIA 的数据流 + 代码位置
 
+> 参见：[二进制/JSON 结构详解（architecture）](../architecture/composite/gia-encoding.md)
+
 ## 1. 数据流
 
 ```
