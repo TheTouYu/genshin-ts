@@ -29,8 +29,13 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   const implGraphId = def.id + 10000
 
   // 将 impl 节点 ID 重新编号为从 1 开始的连续序列
+  // __composite_capture__ 是 IR 层输入占位符，由 compositePins 路由，GIA 中不需要物理节点
+  // 但只在无 exec 出边时跳过（纯数据复合安全；exec 复合如用到 capture 出边则保留）
+  const implNodesForEncoding = def.implNodes.filter(
+    n => n.type !== '__composite_capture__' || (def.implEdges[n.id]?.length ?? 0) > 0
+  )
   const nodeIndexMap = new Map<number, number>()
-  def.implNodes.forEach((n, i) => nodeIndexMap.set(n.id, i + 2))
+  implNodesForEncoding.forEach((n, i) => nodeIndexMap.set(n.id, i + 2))
 
   // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
   const implOutParamMap = new Map<number, Array<{ pinIndex: number; type: string }>>()
@@ -41,7 +46,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
-  const implNodes = buildImplGraphNodes(def.implNodes, nodeIndexMap, def.implEdges, implOutParamMap)
+  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, def.implEdges, implOutParamMap)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
