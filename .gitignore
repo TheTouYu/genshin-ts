@@ -12,3 +12,5 @@ worktrees/
 # Local AI/agent artifacts
 .agents/
 .claude/
+/tests/enum_cases
+/.reasonix/truncated-results
