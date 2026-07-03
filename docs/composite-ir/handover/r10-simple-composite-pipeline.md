@@ -131,17 +131,30 @@ const dummy = buildServerGraphRegistriesIRDocuments({ defaultName: '__precapture
 __composite_capture__: 2  // GIA nodeId=2 = Double Branch（条件分支！）
 ```
 
-`__composite_capture__` 是 IR 层的输入占位符（通过 compositePins 路由），纯数据复合不需要它在 GIA 中存在。但 `resolveImplNodeId` 把所有 implNodes 都编码进 GIA，capture 节点被赋予 nodeId=2（Double Branch）——一个控制流节点。
+`__composite_capture__` 是 IR 层的输入占位符（通过 compositePins 路由），不需要在 GIA 中存在物理节点。但 `resolveImplNodeId` 把所有 implNodes 都编码进 GIA，capture 节点被赋予 nodeId=2（Double Branch）——一个控制流节点。
 
-**修复**: 在 `src/compiler/ir_to_gia_transform/composite.ts` 的 `buildCompositeAccessories` 中过滤：
+**r10 修复（有缺陷）**: 只在无 exec 出边时跳过 capture，exec 复合中 capture 有出边所以仍被编码为 Double Branch。
+
+**r11 完全修复（当前有效）**: 在 `src/compiler/ir_to_gia_transform/composite.ts` 的 `buildCompositeAccessories` 中：
+
+1. **始终**过滤 `__composite_capture__`，不关心是否有 exec 出边
+2. 找到 capture 的第一个 exec 子节点（`implEdges[captureId][0]`）
+3. 将 `compositePins` 中对 capture 的引用（InFlow）重定向到该子节点
+4. 从 `implEdges` 中移除 capture 的出边，避免布局引擎看到已删除节点的入边
 
 ```typescript
+// 始终过滤 capture 节点
 const implNodesForEncoding = def.implNodes.filter(
-  n => n.type !== '__composite_capture__' || (def.implEdges[n.id]?.length ?? 0) > 0
+  n => n.type !== '__composite_capture__'
 )
+
+// 重定向 compositePins：指向 capture 的 pin 改为指向首个 exec 子节点
+const actualNodeId = captureNodeId !== undefined && entry.innerNodeId === captureNodeId && captureFirstChildId !== undefined
+  ? captureFirstChildId
+  : entry.innerNodeId
 ```
 
-只在无 exec 出边时跳过（纯数据复合安全；exec 复合如用到 capture 出边则保留）。
+**验证**: ascii-layout 显示 impl 图无 Double Branch 节点，游戏编辑器内复合内部无多余节点。
 
 ### 3.3 Bug 3：字符串拼接产生 `[object Object]`
 
@@ -192,7 +205,7 @@ TS 源码
 | 概念 | Stage 2 (IR) | Stage 3 (GIA) |
 |------|-------------|---------------|
 | 复合调用标记 | `__composite_call__` (type: data/exec) | `nodeId` + compositePins |
-| 输入占位符 | `__composite_capture__` (implNode) | **不存在**（纯数据跳过） |
+| 输入占位符 | `__composite_capture__` (implNode) | 不存在（始终跳过，compositePins 重定向至首个 exec 子节点） |
 | 引脚连接 | `{ type: "conn", value: { node_id, index, type } }` | `NodePin.connects` 数组 |
 | 类型转换 | `data_type_conversion_str` | `data_type_conversion__int_str` (nodeId 查找) |
 | 字面量 | `{ type: "int", value: 7 }` | `bInt: { val: 7 }` |
@@ -253,13 +266,21 @@ compositePins 映射使用这四种 kind 在外部引脚和内部引脚之间建
 
 | 问题 | 优先级 | 位置 | 说明 |
 |------|--------|------|------|
-| `LAYOUT_DATA_Y_OFFSET = -250` | P1 | `composite.ts:206` | 纯数据复合内部节点 Y 坐标为负。主图布局引擎（`layout.ts`）使用 `placeDetachedGrid` 保证 `maxY ≥ 300`，但复合内部用不同的布局路径。需对照参考 GIA 确认编辑器是否能消化负坐标 |
+| `LAYOUT_DATA_Y_OFFSET = -250` | P1 | `composite.ts` | 纯数据复合内部节点 Y 坐标为负。主图布局引擎（`layout.ts`）使用 `placeDetachedGrid` 保证 `maxY ≥ 300`，但复合内部用不同的布局路径。需对照参考 GIA 确认编辑器是否能消化负坐标 |
+| 主图控制流三节点未平齐 | P1 | `layout.ts` | event → composite_call → printString，Y 坐标略有不齐；间距偏小 |
 | 预捕获 hack | P2 | 测试脚本 | 当前用 dummy `buildServerGraphRegistriesIRDocuments` 调用触发 Phase A。应改为只跑 Phase A 的 API，或让 `.on()` handler 注册推迟到 Phase B |
-| `demo_addsub2.ts` 的字符串拼接 | P2 | `tests/composite/demo_addsub2.ts` | `'和=' + 和` 同样会产生 `[object Object]`，需改为 `dataTypeConversion` |
 | 纯数据复合的 exec 边编码 | P2 | `ir_to_gia_transform/` | `__composite_call__` type='data' 时，IR 中 `next` 边不应存在（当前由注册时序间接解决，未根治） |
 | `trace-dataflow` 与 `trace-exec-flow` 的 `--json` 格式 | P3 | `tests/composite/` | 两工具输出 schema 不统一，无法管道组合 |
 | handover 文档引用旧文件名 | P3 | `docs/composite-ir/handover/` | `find-event-sources-handover.md` 等引用已重命名的 `trace-exec-flow.ts` |
 | 复合节点测试覆盖 | P3 | `tests/composite/` | 大多数复合定义测试只验证 IR 层，未走完整 GIA 编码 + 工具链验证 |
+
+### r11 已修复
+
+| 问题 | 修复位置 |
+|------|----------|
+| `__composite_capture__` 在 exec 复合中被映射为 Double Branch | `composite.ts`: 始终过滤 capture + remap compositePins |
+| `test-two-exec.ts` 事件检测变量被覆盖、链尾终端断言错误 | `test-two-exec.ts`: 用 `nodeId===71` 检测事件，终端断言改检查 OutFlow→terminal |
+| `demo_addsub2.ts` 字符串拼接 `[object Object]` | `demo_addsub2.ts`: 改为 `dataTypeConversion` |
 
 ---
 

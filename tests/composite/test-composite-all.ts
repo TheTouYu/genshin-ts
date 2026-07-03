@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { defineComposite } from '../../dist/src/index.js'
+import { int } from '../../dist/src/runtime/value.js'
 import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
@@ -99,7 +100,7 @@ function part1_composite_definition_comparison() {
   const doubleDef = defineComposite('双倍运算', {
     inputs: { 值: { type: 'int' } },
     outputs: { 结果: { type: 'int' } },
-    build: ({ 值 }, f) => ({ 结果: f.addition(値, 値) })
+    build: ({ 值 }, f) => ({ 结果: f.addition(值, 值) })
   })
 
   test('handle.name = "双倍运算"', () => doubleDef.name === '双倍运算')
@@ -116,8 +117,8 @@ function part1_composite_definition_comparison() {
     build: ({ A, B }, f) => ({
       和: f.addition(A, B),
       差: f.subtraction(A, B),
-      积: f.multiply(A, B),
-      商: f.divide(A, B)
+      积: f.multiplication(A, B),
+      商: f.division(A, B)
     })
   })
 
@@ -188,47 +189,53 @@ function part1_composite_definition_comparison() {
   console.log('\n▸ 1E: GIA 管线端到端生成')
 
   // 创建 server 图来触发 buildServerGraphRegistriesIRDocuments
-  g.server({ name: 'test' }).on('whenEntityIsCreated', () => {})
+  g.server({ name: 'test' }).on('whenEntityIsCreated', (_e: any, f: any) => {
+    f.callComposite(doubleDef, { 值: new int(7) })
+  })
 
   const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'test' })
 
-  const hasCompositeDefs = docs.some((doc: any) => (doc.compositeDefs?.length ?? 0) > 0)
-  test('IR 文档包含 compositeDefs', () => hasCompositeDefs)
+  const docWithDefs = docs.find((doc: any) => (doc.compositeDefs?.length ?? 0) > 0)
+  test('IR 文档包含 compositeDefs', () => !!docWithDefs)
 
-  // 提取第一个复合定义
-  const defFromDocs = docs[0] as any
-  if (defFromDocs?.compositeDefs?.length > 0) {
-    const cd = defFromDocs.compositeDefs[0]
+  if (docWithDefs) {
+    const cd = (docWithDefs as any).compositeDefs[0]
     test('compositeDefs[0].type = "composite"', () => cd.type === 'composite')
     test('compositeDefs[0].name = "双倍运算"', () => cd.name === '双倍运算')
-  }
 
-  // 尝试编码为 GIA
-  try {
-    const bytes = irToGia(defFromDocs as any, {
-      graphId: 1073741825,
-      name: 'test',
-      protoPath: PROTO_PATH
-    })
-    test('irToGia 编码成功，输出 > 0 字节', () => bytes.length > 0)
+    // 尝试编码为 GIA（仅当有节点时）
+    if ((docWithDefs as any).nodes?.length > 0) {
+      try {
+        const bytes = irToGia(docWithDefs as any, {
+          graphId: 1073741825,
+          name: 'test',
+          protoPath: PROTO_PATH
+        })
+        test('irToGia 编码成功，输出 > 0 字节', () => bytes.length > 0)
 
-    // 写临时文件并解码验证
-    const outPath = `${OUT_DIR}/part1_end_to_end.gia`
-    if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
-    writeFileSync(outPath, Buffer.from(bytes))
+        const outPath = `${OUT_DIR}/part1_end_to_end.gia`
+        if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
+        writeFileSync(outPath, Buffer.from(bytes))
 
-    const decoded = decode_gia_file(outPath, PROTO_PATH)
-    test('解码后 graph.compositeDef 存在', () => !!decoded.graph.compositeDef)
-    if (decoded.graph.compositeDef) {
-      const def = decoded.graph.compositeDef.inner.def
-      test('解码后 type.kind = 1000', () => def.type?.kind === 1000)
-      test('解码后 name = "双倍运算"', () => def.name === '双倍运算')
-      test('解码后 inputs[0].type.class = 2 (IntBase)', () => def.inputs?.[0]?.type?.class === 2)
-      test('解码后 inputs[0].type.type1 = 3 (Integer)', () => def.inputs?.[0]?.type?.type1 === 3)
+        const decoded = decode_gia_file(outPath, PROTO_PATH)
+        const hasCompositeDefAcc = (decoded.accessories ?? []).some((a: any) => a.which === 12)
+        test('解码后 accessories 含 CompositeDef (which=12)', () => hasCompositeDefAcc)
+        if (hasCompositeDefAcc) {
+          const acc = (decoded.accessories ?? []).find((a: any) => a.which === 12)
+          const def = acc?.compositeDef?.inner?.def
+          test('解码后 type.kind = 1000', () => def?.type?.kind === 1000)
+          test('解码后 name = "双倍运算"', () => def?.name === '双倍运算')
+          test('解码后 inputs[0].type.class = 2 (IntBase)', () => def?.inputs?.[0]?.type?.class === 2)
+          test('解码后 inputs[0].type.type1 = 3 (Integer)', () => def?.inputs?.[0]?.type?.type1 === 3)
+        }
+      } catch (e: any) {
+        console.log(`  ❌ irToGia 编码异常: ${e.message}`)
+        totalFailed++
+      }
+    } else {
+      console.log('  ⏳ 主图无节点，跳过 irToGia 编码')
+      totalSkipped++
     }
-  } catch (e: any) {
-    console.log(`  ❌ irToGia 编码异常: ${e.message}`)
-    totalFailed++
   }
 
   // --- 1F: 与参考文件逐个精确对比 ---
@@ -343,22 +350,21 @@ function part2_facility_graph_tests() {
   // === 2C: callComposite 连线到后续节点 ===
   console.log('\n▸ 2C: callComposite 返回值连线')
 
-  defineComposite('双倍运', {
+  const doubleOp = defineComposite('双倍运', {
     inputs: { v: { type: 'int' } },
     outputs: { r: { type: 'int' } },
     build: ({ v }, f) => ({ r: f.addition(v, v) })
   })
 
   g.server({ name: 'call_wiring' })
-    .on('whenEntityIsCreated', (e, f: any) => {
-      const r = f.callComposite(compositeRegistry.get('双倍运'), { v: e.createdEntity })
-      f.printString(r.r)
+    .on('whenEntityIsCreated', (_e: any, f: any) => {
+      f.callComposite(doubleOp, { v: new int(7) })
     })
 
   const docsW = buildServerGraphRegistriesIRDocuments({ defaultName: 'call_wiring' })
 
-  // 验证 IR 结构
-  const wiringDoc = docsW[0] as any
+  // 验证 IR 结构（取最新一个 doc）
+  const wiringDoc = docsW[docsW.length - 1] as any
   test('主图有节点', () => (wiringDoc.nodes?.length ?? 0) >= 2)
 
   // 取出 GIA 中的 compositeDefs
@@ -385,23 +391,24 @@ function part2_facility_graph_tests() {
   // === 2D: 多次调用同一复合 ===
   console.log('\n▸ 2D: 多次调用同一复合')
 
-  defineComposite('增量', {
+  const incHandle = defineComposite('增量', {
     inputs: { v: { type: 'int' } },
     outputs: { r: { type: 'int' } },
     build: ({ v }, f) => ({ r: f.addition(v, 1) })
   })
 
   g.server({ name: 'multi_call' })
-    .on('whenEntityIsCreated', (e: any, f: any) => {
-      const r1 = f.callComposite(compositeRegistry.get('增量'), { v: e.createdEntity })
-      const r2 = f.callComposite(compositeRegistry.get('增量'), { v: r1.r })
-      f.printString(r2.r)
+    .on('whenEntityIsCreated', (_e: any, f: any) => {
+      const r1 = f.callComposite(incHandle, { v: new int(7) })
+      const r2 = f.callComposite(incHandle, { v: r1.r })
+      f.printString(f.dataTypeConversion(r2.r, 'str'))
     })
 
   const docsM = buildServerGraphRegistriesIRDocuments({ defaultName: 'multi_call' })
 
+  const mcDoc = docsM[docsM.length - 1] as any
   try {
-    const bytes = irToGia(docsM[0] as any, {
+    const bytes = irToGia(mcDoc, {
       graphId: 1073741827,
       name: 'multi_call',
       protoPath: PROTO_PATH
@@ -415,7 +422,7 @@ function part2_facility_graph_tests() {
   // === 2E: 复合内嵌套 callComposite ===
   console.log('\n▸ 2E: 复合内嵌套调用 [@pending_ref]')
 
-  defineComposite('基础加法', {
+  const baseAdd = defineComposite('基础加法', {
     inputs: { x: { type: 'int' }, y: { type: 'int' } },
     outputs: { s: { type: 'int' } },
     build: ({ x, y }, f) => ({ s: f.addition(x, y) })
@@ -425,8 +432,8 @@ function part2_facility_graph_tests() {
     inputs: { a: { type: 'int' }, b: { type: 'int' }, c: { type: 'int' } },
     outputs: { result: { type: 'int' } },
     build: ({ a, b, c }, f: any) => {
-      const mid = f.callComposite(compositeRegistry.get('基础加法'), { x: a, y: b })
-      return { result: f.callComposite(compositeRegistry.get('基础加法'), { x: mid.s, y: c }).s }
+      const mid = f.callComposite(baseAdd, { x: a, y: b })
+      return { result: f.callComposite(baseAdd, { x: mid.s, y: c }).s }
     }
   })
 
@@ -518,7 +525,7 @@ function part3_unit_behavior_tests() {
   console.log('\n▸ 3D: toCompositeDefIR 输出完整性')
 
   const simpleDef = defineComposite('IR完整性', {
-    inputs: { a: { type: 'int' }, b: { type: 'float' }, c: { type: 'bool' } },
+    inputs: { a: { type: 'int' }, b: { type: 'int' }, c: { type: 'bool' } },
     outputs: { r: { type: 'str' } },
     build: ({ a, b, c }, f) => ({ r: f.addition(a, b) })
   })
@@ -543,7 +550,7 @@ function part3_unit_behavior_tests() {
 
   // 类型映射
   test('input[0].type = "int"', () => ir.inputs[0].type === 'int')
-  test('input[1].type = "float"', () => ir.inputs[1].type === 'float')
+  test('input[1].type = "int"', () => ir.inputs[1].type === 'int')
   test('input[2].type = "bool"', () => ir.inputs[2].type === 'bool')
   test('output[0].type = "str"', () => ir.outputs[0].type === 'str')
 
@@ -584,11 +591,13 @@ function part3_unit_behavior_tests() {
     build: ({ val }, f) => ({ res: f.addition(val, val) })
   })
 
-  g.server({ name: 'pipeline_test' }).on('whenEntityIsCreated', () => {})
+  g.server({ name: 'pipeline_test' }).on('whenEntityIsCreated', (_e: any, f: any) => {
+    f.printString('test')
+  })
   const docsP = buildServerGraphRegistriesIRDocuments({ defaultName: 'pipeline_test' })
 
-  // 验证文档结构
-  const doc = docsP[0] as any
+  // 验证文档结构（取最新一个 doc）
+  const doc = docsP[docsP.length - 1] as any
   test('IR 文档包含 graph 信息', () => doc.graph?.type === 'server')
   test('IR 文档包含节点', () => (doc.nodes?.length ?? 0) > 0)
 

@@ -223,9 +223,10 @@ function placeDataNearConsumers(
     const [cx, cy] = position
     const stackCount = state.consumerStackCount.get(placedConsumer) ?? 0
     const isExecConsumer = execNodes.has(placedConsumer)
-    const y = isExecConsumer ? cy + (stackCount + 1) * 250 : cy + stackCount * 250
 
-    state.positions.set(nodeId, [cx - 300, y])
+    // 数据节点放在消费者左下方：水平偏移 400px，垂直偏移 150px 堆叠
+    const y = isExecConsumer ? cy + (stackCount + 1) * 150 : cy + stackCount * 150
+    state.positions.set(nodeId, [cx - 400, y])
     state.consumerStackCount.set(placedConsumer, stackCount + 1)
 
     const eventIndex = state.nodeToEventIndex.get(placedConsumer) ?? 0
@@ -273,10 +274,10 @@ export function layoutPositions(
   graphInfo: ReturnType<typeof buildExecutionGraph>
 ): Map<NodeId, Position> {
   const config: LayoutConfig = {
-    columnWidth: 350,
-    rowHeight: 280,
+    columnWidth: 800,
+    rowHeight: 350,
     maxColumns: 8,
-    wrapHeight: 280,
+    wrapHeight: 350,
     eventGap: 300
   }
 

@@ -67,7 +67,7 @@ mainNodes.forEach((n: any) => {
     const kname = {1:'InFlow',2:'OutFlow',3:'InParam',4:'OutParam'}[p.i1?.kind] ?? '?'
     console.log(`    pin[${j}] ${kname}: idx=${p.i1?.index} connects=${JSON.stringify(conns)}`)
   })
-  if (n.genericId?.kind === 22000) eventNode = n
+  if (n.genericId?.nodeId === 71) eventNode = n
   if (n.genericId?.kind === 22001) execNodes.push(n)
 })
 
@@ -100,13 +100,21 @@ if (comp1OutFlow) {
   }
 }
 
-// comp2 终端：无 OutFlow
+// comp2 终端：OutFlow → terminal print_string
 const gComp2 = execNodes[1]
 const hasOutFlow2 = gComp2?.pins?.some((p: any) => p.i1?.kind === 2)
-if (!hasOutFlow2) {
-  console.log(`  ✅ comp2[${gComp2.nodeIndex}] 无 OutFlow (终端)`)
+if (hasOutFlow2) {
+  const outFlowPin = gComp2.pins.find((p: any) => p.i1?.kind === 2)
+  const targets = outFlowPin?.connects?.map((c: any) => c.id) ?? []
+  const terminalNode = mainNodes.find((n: any) => targets.includes(n.nodeIndex))
+  if (terminalNode && terminalNode.genericId?.nodeId === 1) {
+    console.log(`  ✅ comp2[${gComp2.nodeIndex}] OutFlow → terminal[${targets.join(',')}]`)
+  } else {
+    console.log(`  ❌ comp2[${gComp2.nodeIndex}] OutFlow 未连到终端`)
+    ok = false
+  }
 } else {
-  console.log(`  ❌ comp2[${gComp2.nodeIndex}] 有 OutFlow (应为终端)`)
+  console.log(`  ❌ comp2[${gComp2.nodeIndex}] 无 OutFlow (应有终端)`)
   ok = false
 }
 

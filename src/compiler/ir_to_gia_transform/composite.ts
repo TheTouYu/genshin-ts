@@ -28,14 +28,36 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
 
   const implGraphId = def.id + 10000
 
-  // 将 impl 节点 ID 重新编号为从 1 开始的连续序列
-  // __composite_capture__ 是 IR 层输入占位符，由 compositePins 路由，GIA 中不需要物理节点
-  // 但只在无 exec 出边时跳过（纯数据复合安全；exec 复合如用到 capture 出边则保留）
+  // === 识别 __composite_capture__ 节点 ===
+  // capture 是 IR 层输入占位符，由 compositePins 路由，GIA 中不需要物理节点
+  // 始终过滤掉，并将其引出边从 implEdges 中移除
+  const captureNodeId = def.implNodes.find(
+    n => n.type === '__composite_capture__'
+  )?.id
+
+  // capture 的第一个 exec 子节点（如有），用于重定向 compositePins 引用
+  let captureFirstChildId: number | undefined
+  if (captureNodeId !== undefined) {
+    const captureEdges = def.implEdges[captureNodeId]
+    if (captureEdges && captureEdges.length > 0) {
+      captureFirstChildId = getEdgeTarget(captureEdges[0])
+    }
+  }
+
+  // 过滤 capture 节点
   const implNodesForEncoding = def.implNodes.filter(
-    n => n.type !== '__composite_capture__' || (def.implEdges[n.id]?.length ?? 0) > 0
+    n => n.type !== '__composite_capture__'
   )
   const nodeIndexMap = new Map<number, number>()
   implNodesForEncoding.forEach((n, i) => nodeIndexMap.set(n.id, i + 2))
+
+  // 过滤后的 edges：移除 capture 的引出边，避免布局引擎看到已删除节点的入边
+  const filteredEdges: Record<number, ImplEdge[]> = {}
+  for (const [fromIdStr, edges] of Object.entries(def.implEdges)) {
+    const fromId = Number(fromIdStr)
+    if (fromId === captureNodeId) continue
+    filteredEdges[fromId] = edges as ImplEdge[]
+  }
 
   // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
   const implOutParamMap = new Map<number, Array<{ pinIndex: number; type: string }>>()
@@ -46,7 +68,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
-  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, def.implEdges, implOutParamMap)
+  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
@@ -156,21 +178,28 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
           },
           name: '',
           nodes: implNodes,
-          compositePins: def.compositePins.map((entry) => ({
-            outerPin: {
-              kind: entry.outerPinKind as NodePin_Index_Kind,
-              index: entry.outerPinIndex
-            },
-            innerNodeId: nodeIndexMap.get(entry.innerNodeId) ?? entry.innerNodeId,
-            innerPin: {
-              kind: entry.innerPinKind as NodePin_Index_Kind,
-              index: entry.innerPinIndex
-            },
-            innerPin2: {
-              kind: entry.innerPinKind as NodePin_Index_Kind,
-              index: entry.innerPinIndex
+          compositePins: def.compositePins.map((entry) => {
+            // remap: 指向 capture 的 compositePin 重定向到其首个 exec 子节点
+            const actualNodeId =
+              captureNodeId !== undefined && entry.innerNodeId === captureNodeId && captureFirstChildId !== undefined
+                ? captureFirstChildId
+                : entry.innerNodeId
+            return {
+              outerPin: {
+                kind: entry.outerPinKind as NodePin_Index_Kind,
+                index: entry.outerPinIndex
+              },
+              innerNodeId: nodeIndexMap.get(actualNodeId) ?? actualNodeId,
+              innerPin: {
+                kind: entry.innerPinKind as NodePin_Index_Kind,
+                index: entry.innerPinIndex
+              },
+              innerPin2: {
+                kind: entry.innerPinKind as NodePin_Index_Kind,
+                index: entry.innerPinIndex
+              }
             }
-          })),
+          }),
           comments: [],
           graphValues: [],
           affiliations: []

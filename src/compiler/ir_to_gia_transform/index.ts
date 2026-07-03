@@ -655,11 +655,11 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
         NODE_ID.Print_String as NodeIdFor<ServerGraphMode>
       )
       // 位置：复合节点右侧 1 列
-      const rawX = compositePos[0] + 350  // columnWidth
+      const rawX = compositePos[0] + 800  // columnWidth
       // 有下游节点时放在所有下游节点之下；无下游节点时按 outflow 索引纵向偏移
       const rawY = hasDownstream
-        ? maxDownstreamY + 252 + unconnectedIdx * 252
-        : compositePos[1] + outflow.index * 252  // branchGap = rowHeight * 0.9
+        ? maxDownstreamY + 315 + unconnectedIdx * 315
+        : compositePos[1] + outflow.index * 315  // branchGap = rowHeight * 0.9
       terminalNode.setPos(rawX / 300, rawY / 200)
 
       nodesById.set(terminalId, terminalNode)

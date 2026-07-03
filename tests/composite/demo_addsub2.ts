@@ -65,8 +65,8 @@ const AddSub2 = g.defineComposite('加减运算2', {
 g.server({ name: 'demo', graphId: 1073741828 })
   .on('whenEntityIsCreated', (_e, f) => {
     const { 和, 差 } = f.callComposite(AddSub2, { a: new int(10), b: new int(3) })
-    f.printString('和=' + 和)
-    f.printString('差=' + 差)
+    f.printString(f.dataTypeConversion(和, 'str'))
+    f.printString(f.dataTypeConversion(差, 'str'))
   })
 
 // ================================================================
