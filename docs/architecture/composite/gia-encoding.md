@@ -96,6 +96,33 @@ inputs: [{
 
 ## 3. impl NodeGraph 内部结构
 
+### 3.1 一对 GraphUnit 的 ID 关联
+
+每个复合定义在 `accessories` 中占用连续的两个 GraphUnit：
+
+| Index | which | 内容 | id 规则 | relatedIds |
+|-------|-------|------|---------|------------|
+| 0 | `CompositeGraph` (12) | CompositeDef 定义 | `class=23, id=<def.id>` | `[{class=5, id=<implGraphId>}]` ← 指向 impl 图 |
+| 1 | `EntityNode` (9) | impl 节点图 | `class=5, id=<implGraphId>` | **`[{class=23, id=<calledDef.id>}, ...]`** ← **指向被调用的子复合** |
+
+**关键约束**：`CompositeDef.graphId.id` 必须等于 `EntityNode` 的 `id.id`，否则游戏无法定位 impl 图。
+
+`EntityNode` 的 `relatedIds` 必须列出该 impl 图内所有 `kind=22001 (SysGraph)` 节点所指向的 CompositeDef ID。这是游戏识别"这个复合调用了哪些子复合"的唯一依据。缺失此链接会导致子复合调用节点在编辑器中显示为"空壳"。
+
+参考示例（来自 `user_edit/嵌套.gia`）：
+
+```json
+// 创建复合节点 的 impl GraphUnit
+{
+  "id": { "class": 5, "type": 0, "id": 1610612738 },
+  "relatedIds": [
+    { "class": 23, "type": 0, "id": 1610612737 }  // ← "加法" 的 CompositeDef.id
+  ],
+  "which": 9,
+  "graph": { ... }
+}
+```
+
 ### GraphNode 列表
 
 ```typescript
@@ -156,7 +183,30 @@ compositePins: [{
   //   connect2: { kind: OutParam, index: <upstreamPinIndex> } }]
   ```
 
-### 4.2 bConcreteValue 包裹
+### 4.2 VarBase 值字段命名规则
+
+构建 VarBase 值时，protobuf 字段名由 `varClass` 决定（对应 `gia.proto` 中 `oneof value` 的字段名）：
+
+| varClass | VarBase 枚举值 | protobuf 字段名 | proto 行号 | 示例 |
+|----------|----------------|----------------|-----------|------|
+| `IdBase` | 1 | `bId` | 101 | `bId: { val: 0 }` |
+| `IntBase` | 2 | `bInt` | 102 | `bInt: { val: 42 }` |
+| `FloatBase` | 4 | `bFloat` | 104 | `bFloat: { val: 3.14 }` |
+| `StringBase` | 5 | `bString` | 105 | `bString: { val: "hello" }` |
+| `EnumBase` | **6** | **`bEnum`** | **106** | `bEnum: { val: 1 }` — **不是 `bBool`!** |
+| `VectorBase` | 7 | `bVector` | 107 | `bVector: { val: { x:0, y:0, z:0 } }` |
+| `StructBase` | 10001 | `bStruct` | 108 | `bStruct: { items: [] }` |
+| `ArrayBase` | 10002 | `bArray` | 109 | `bArray: { entries: [] }` |
+
+当前 `makeVarBaseValue` 已覆盖：IdBase(1)、IntBase(2)、FloatBase(4)、StringBase(5)、EnumBase(6)、VectorBase(7)。
+**StructBase(10001)、ArrayBase(10002)、MapBase(10003) 尚未覆盖** — 遇到这些类型时需补全对应的 `bStruct`/`bArray` 字段，否则值会丢失。
+
+> 注意：VarBase.Class 枚举值不连续（1,2,4,5,6,7），`FloatBase=4` 而非 3。
+| `VectorBase` (8) | `VarType.Vector` (12) | `bVector` | `bVector: { val: { x: 0, y: 0, z: 0 } }` |
+
+**关键陷阱**：EnumBase（bool）的 protobuf 字段名是 **`bEnum`**（`gia.proto:396`），不是 `bBool`。`buildLiteralPin` 和 `makeVarBaseValue` 都必须使用字段名 `bEnum`。
+
+### 4.3 bConcreteValue 包裹
 
 特定节点类型（`data_type_conversion_*`、`addition`、`equal`、比较运算、逻辑运算等）需要 InParam 的 value 被 `bConcreteValue` 包裹：
 

@@ -229,7 +229,43 @@ function buildPinsForNestedComposite(node, nestedDef, implEdges, dataConns) {
 
 ---
 
-## 七、关键代码位置
+## 七、impl GraphUnit 的 relatedIds
+
+每个复合的 impl 图（`which=9` 的 GraphUnit）的 `relatedIds` 字段**必须**列出该 impl 图内所有 `kind=22001` 节点（复合调用）所指向的 CompositeDef ID。
+
+参考 `user_edit/嵌套.gia`：
+
+```json
+// "创建复合节点" 的 impl GraphUnit
+{
+  "id": { "class": 5, "id": 1610612738 },
+  "relatedIds": [
+    { "class": 23, "type": 0, "id": 1610612737 }  // ← 指向 "加法" CompositeDef
+  ],
+  "which": 9,
+  ...
+}
+```
+
+**缺失后果**：游戏编辑器无法识别复合调用节点，显示为"空壳"。`class=23` 对应 `GraphUnit_Id_Class.AffiliatedNode`，`class=5` 对应 `GraphUnit_Id_Class.Basic`。
+
+---
+
+## 八、VarBase 值字段名：bEnum 不是 bBool
+
+`gia.proto:396` 定义 `EnumBaseValue bEnum = 106;` — 布尔/枚举类型的 VarBase 字段名是 **`bEnum`**，**不是 `bBool`**。
+
+`buildLiteralPin` 和 `makeVarBaseValue` 中为 `EnumBase`（class=6）创建默认值时必须使用：
+
+```typescript
+{ class: 6, alreadySetVal: true, itemType: {...}, bEnum: { val: 0 } }
+```
+
+错误的 `bBool: { val: true }` 会被 protobuf 编码器静默忽略，导致值丢失。
+
+---
+
+## 九、关键代码位置
 
 | 文件 | 行号 | 改动 |
 |------|------|------|

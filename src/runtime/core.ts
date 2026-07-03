@@ -1612,9 +1612,31 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       }
     }
 
-    // 只附加被此图实际调用的复合定义
-    if (calledIds.size > 0) {
-      const filtered = allCompositeDefs.filter((d) => calledIds.has(d.id))
+    // 递归展开：被调复合内部可能还调用其他复合
+    const expandedIds = new Set(calledIds)
+    const queue = [...calledIds]
+    const defById = new Map(allCompositeDefs.map((d) => [d.id, d]))
+    while (queue.length > 0) {
+      const id = queue.pop()!
+      const def = defById.get(id)
+      if (!def || !def.implNodes) continue
+      for (const node of def.implNodes) {
+        if (node.type === '__composite_call__') {
+          const arg = node.args?.[0]
+          if (arg && (arg as any).type !== 'conn') {
+            const innerId = Number((arg as any).value)
+            if (innerId && !expandedIds.has(innerId)) {
+              expandedIds.add(innerId)
+              queue.push(innerId)
+            }
+          }
+        }
+      }
+    }
+
+    // 只附加被此图实际调用的复合定义（含递归展开）
+    if (expandedIds.size > 0) {
+      const filtered = allCompositeDefs.filter((d) => expandedIds.has(d.id))
       if (filtered.length > 0) {
         ;(doc as any).compositeDefs = filtered
       }

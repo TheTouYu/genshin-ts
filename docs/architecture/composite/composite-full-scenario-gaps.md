@@ -64,7 +64,7 @@
 **场景**：`buildImplNodePins` 中 OutParam pin 构建，以及 `buildPlaceholderPin` 中占位值构建
 
 **现状**：`makeVarBaseValue` 只处理 IntBase/FloatBase/StringBase，缺少：
-- EnumBase → `bBool: { val: false }`
+- EnumBase → `bEnum: { val: 0 }`（protobuf 字段名是 `bEnum`，不是 `bBool` — 见 `gia.proto:396`）
 - VectorBase → `bVector: { val: {x:0,y:0,z:0} }`  
 - IdBase → 仅 class+itemType，无特定字段
 

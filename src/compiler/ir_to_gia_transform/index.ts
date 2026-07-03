@@ -781,8 +781,11 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   // 将复合节点定义编码为 accessories
   try {
     const compositeDefs: CompositeDefIR[] = (ir as any).compositeDefs ?? []
+    const compositeDefById = new Map<number, CompositeDefIR>(
+      compositeDefs.map((d) => [d.id, d])
+    )
     for (const def of compositeDefs) {
-      const accs = buildCompositeAccessories(def)
+      const accs = buildCompositeAccessories(def, compositeDefById)
       root.accessories.push(...accs)
     }
   } catch (e) {

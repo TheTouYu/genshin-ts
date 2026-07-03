@@ -163,7 +163,7 @@ export class CompositeRegistry {
             ...(impl.dataNodes ?? [])
           ]
           for (const inner of allInner) {
-            if (inner.nodeType === '__composite_capture__' || inner.nodeType === '__composite_call__') continue
+            if (inner.nodeType === '__composite_capture__') continue
             for (let argIdx = 0; argIdx < inner.args.length; argIdx++) {
               const arg = inner.args[argIdx]
               if (!arg) continue
@@ -171,12 +171,14 @@ export class CompositeRegistry {
               if (!inputName) continue
               const inputIdx = inputNameToIndex.get(inputName)
               if (inputIdx === undefined) continue
+              // __composite_call__ 的 args[0] 是 compositeId，实际输入从 args[1] 开始
+              const callArgOffset = inner.nodeType === '__composite_call__' ? 1 : 0
               pins.push({
                 outerPinKind: 3, // InParam
                 outerPinIndex: inputIdx,
                 innerNodeId: inner.id!,
                 innerPinKind: 3, // InParam
-                innerPinIndex: argIdx
+                innerPinIndex: argIdx - callArgOffset
               })
             }
           }

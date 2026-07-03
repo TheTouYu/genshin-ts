@@ -23,7 +23,10 @@ import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './ma
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
  */
-export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
+export function buildCompositeAccessories(
+  def: CompositeDefIR,
+  compositeDefById?: Map<number, CompositeDefIR>
+): GraphUnit[] {
   const accessories: GraphUnit[] = []
 
   const implGraphId = def.id + 10000
@@ -68,7 +71,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
-  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap)
+  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, compositeDefById)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
@@ -157,6 +160,28 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
   }
   accessories.push(defGraphUnit)
 
+  // 收集此 impl 调用的子复合 ID（用于 relatedIds）
+  const calledCompositeIds: Array<{ class: number; type: number; id: number }> = []
+  if (compositeDefById) {
+    const seen = new Set<number>()
+    for (const node of def.implNodes) {
+      if (node.type === '__composite_call__') {
+        const arg0 = (node.args as any)?.[0]
+        if (arg0 && arg0.type !== 'conn') {
+          const cid = Number(arg0.value)
+          if (cid && !seen.has(cid)) {
+            seen.add(cid)
+            calledCompositeIds.push({
+              class: GraphUnit_Id_Class.AffiliatedNode,
+              type: 0,
+              id: cid
+            })
+          }
+        }
+      }
+    }
+  }
+
   // 2. impl NodeGraph（实现图）
   const implGraphUnit: GraphUnit = {
     id: {
@@ -164,7 +189,7 @@ export function buildCompositeAccessories(def: CompositeDefIR): GraphUnit[] {
       type: GraphUnit_Id_Type.ServerGraph,
       id: implGraphId
     },
-    relatedIds: [],
+    relatedIds: calledCompositeIds,
     name: '',
     which: GraphUnit_Which.EntityNode,
     graph: {
@@ -246,18 +271,31 @@ function buildImplGraphNodes(
   implNodes: CompositeDefIR['implNodes'],
   nodeIndexMap: Map<number, number>,
   implEdges: Record<number, any[]>,
-  implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>
+  implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
+  compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
   const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
   const nodeResults = implNodes.map((node) => {
-    const nodeId = resolveImplNodeId(node.type, node.args as any)
+    let nodeId = resolveImplNodeId(node.type, node.args as any)
+    // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
+    let compositeId: number | undefined
+    let calledDef: CompositeDefIR | undefined
+    if (node.type === '__composite_call__') {
+      const arg0 = (node.args as any)?.[0]
+      if (arg0 && arg0.type !== 'conn') {
+        compositeId = Number(arg0.value)
+        if (compositeDefById) calledDef = compositeDefById.get(compositeId)
+        nodeId = compositeId
+      }
+    }
+    const isCompositeCall = node.type === '__composite_call__'
     const genericId = {
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
-      kind: NodeGraph_Id_Kind.SysCall,
+      kind: isCompositeCall ? NodeGraph_Id_Kind.SysGraph : NodeGraph_Id_Kind.SysCall,
       nodeId
     }
-    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap)
+    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, calledDef)
     allDataConns.push(...dataConns)
     return { node, nodeId, genericId, pins, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
   })
@@ -515,16 +553,46 @@ function argVarType(argType: string): number {
 /**
  * 为 impl 节点构建 pins。由捕获数据驱动：args → InParam、outputValues → OutParam、edges → OutFlow。
  * dataConns 数组中持有对 pins 内 pin 对象的引用，供调用方填充 connects。
+ * 对 __composite_call__ 节点，根据子复合的 input/output 定义生成 InParam/OutParam pins。
  */
 function buildImplNodePins(
   node: CompositeDefIR['implNodes'][number],
   implEdges: Record<number, any[]>,
-  implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>
+  implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
+  calledDef?: CompositeDefIR
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
 
+  // __composite_call__ 节点：仅创建有内部数据连线的 pin（conn 类型 arg）
+  // 外层输入由 compositePins 路由，不创建物理 pin
   if (node.type === '__composite_call__') {
+    if (calledDef) {
+      const callArgs = (node.args as any) ?? []
+      for (let ai = 1; ai < callArgs.length; ai++) {
+        const arg = callArgs[ai]
+        if (arg && arg.type === 'conn') {
+          const inputIdx = ai - 1
+          // 从子复合的输入定义中取类型和 pinIndex
+          let cpi: number | undefined
+          let typeName = 'int'
+          if (inputIdx < calledDef.inputs.length) {
+            cpi = calledDef.inputs[inputIdx].pinIndex
+            typeName = calledDef.inputs[inputIdx].type as string
+          }
+          const pin = buildConnPin(inputIdx, typeName) as NodePin & { compositePinIndex?: number }
+          if (cpi !== undefined) pin.compositePinIndex = cpi
+          pins.push(pin)
+          const conn = arg.value as { node_id: number; index: number }
+          dataConns.push({
+            nodeId: node.id,
+            pin,
+            upstreamNodeId: conn.node_id,
+            upstreamPinIndex: conn.index
+          })
+        }
+      }
+    }
     return { pins, dataConns }
   }
 
@@ -633,6 +701,12 @@ function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): R
   if (varClass === VarBase_Class.VectorBase) {
     return { class: varClass, alreadySetVal: setVal, itemType, bVector: { val: { x: 0, y: 0, z: 0 } } }
   }
+  if (varClass === VarBase_Class.EnumBase) {
+    return { class: varClass, alreadySetVal: setVal, itemType, bEnum: { val: 0 } }
+  }
+  if (varClass === VarBase_Class.IdBase) {
+    return { class: varClass, alreadySetVal: setVal, itemType, bId: { val: 0 } }
+  }
   return { class: varClass, alreadySetVal: setVal, itemType }
 }
 
@@ -723,6 +797,20 @@ function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
   }
 }
 
+/**
+ * 为连线输入创建占位 pin（基于类型字符串如 'int'/'float'，而非 nodeType）
+ */
+function buildConnPin(pinIndex: number, typeName: string): NodePin {
+  const varType = argVarType(typeName)
+  const varClass = argVarBaseClass(typeName)
+  return {
+    i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+    i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+    value: makeVarBaseValue(varClass, varType, false),
+    type: varType
+  }
+}
+
 function buildLiteralPin(pinIndex: number, argType: string, value: unknown, nodeType: string): NodePin {
   const kind = NodePin_Index_Kind.InParam
   const varType = argVarType(argType)
@@ -736,7 +824,7 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
   } else if (varClass === VarBase_Class.FloatBase) {
     pinValue = { class: varClass, alreadySetVal: true, itemType, bFloat: { val: Number(value) } }
   } else if (varClass === VarBase_Class.EnumBase) {
-    pinValue = { class: varClass, alreadySetVal: true, itemType, bBool: { val: Boolean(value) } }
+    pinValue = { class: varClass, alreadySetVal: true, itemType, bEnum: { val: Number(Boolean(value)) } }
   } else if (varClass === VarBase_Class.StringBase) {
     pinValue = { class: varClass, alreadySetVal: true, itemType, bString: { val: String(value) } }
   } else if (varClass === VarBase_Class.IdBase) {
