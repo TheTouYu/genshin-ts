@@ -289,15 +289,19 @@ function buildImplGraphNodes(
       }
     }
     const isCompositeCall = node.type === '__composite_call__'
+    const isDTC = node.type.startsWith('data_type_conversion_')
+    // data_type_conversion 节点：genericId 固定为 180（通用类型），
+    // concreteId 为具体变种 ID（如 182=int→str, 186=bool→str 等）
+    const dtcGenericId = isDTC ? getNodeIdLowerMap().get('data_type_conversion__generic') ?? 180 : undefined
     const genericId = {
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
       kind: isCompositeCall ? NodeGraph_Id_Kind.SysGraph : NodeGraph_Id_Kind.SysCall,
-      nodeId
+      nodeId: dtcGenericId ?? nodeId
     }
     const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, calledDef)
     allDataConns.push(...dataConns)
-    return { node, nodeId, genericId, pins, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
+    return { node, nodeId, genericId, pins, isDTC: isDTC || false, dtcConcreteNid: isDTC ? nodeId : undefined, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
   })
 
   for (const dc of allDataConns) {
@@ -311,7 +315,7 @@ function buildImplGraphNodes(
 
   const layout = computeImplLayout(nodeResults, implNodes, implEdges)
 
-  return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex }) => {
+  return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex, isDTC, dtcConcreteNid }) => {
     const outEdges = implEdges[node.id]
     if (outEdges && outEdges.length > 0) {
       for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
@@ -335,7 +339,8 @@ function buildImplGraphNodes(
     return {
       nodeIndex,
       genericId,
-      concreteId: { ...genericId },
+      // data_type_conversion: concreteId 使用具体变种 nid，其他节点与 genericId 相同
+      concreteId: isDTC && dtcConcreteNid ? { ...genericId, nodeId: dtcConcreteNid } : { ...genericId },
       pins,
       x: pos.x,
       y: pos.y,
@@ -485,15 +490,18 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
   if (nodeType.startsWith('data_type_conversion_')) {
     const outKey = nodeType.slice('data_type_conversion_'.length).trim()
     const nodeIdLower = getNodeIdLowerMap()
-    // 尝试从第一个 arg 推断 inType
+    
     const firstArg = args?.[0]
-    if (firstArg && firstArg.type !== 'conn') {
-      const inType = firstArg.type as string
-      if (inType && inType !== 'dict') {
-        const inKey = inType === 'vec3' ? 'vec' : inType
-        const direct = nodeIdLower.get(`data_type_conversion__${inKey}_${outKey}`)
-        if (direct) return direct
-      }
+    let inType: string | undefined
+    if (firstArg) {
+      inType = firstArg.type === 'conn'
+        ? (firstArg.value as any)?.type as string | undefined
+        : firstArg.type as string
+    }
+    if (inType && inType !== 'dict') {
+      const inKey = inType === 'vec3' ? 'vec' : inType
+      const direct = nodeIdLower.get(`data_type_conversion__${inKey}_${outKey}`)
+      if (direct) return direct
     }
     const generic = nodeIdLower.get('data_type_conversion__generic')
     if (generic) return generic
@@ -603,19 +611,75 @@ function buildImplNodePins(
   let pinIndex = 0
   for (const arg of args) {
     if (arg && arg.type === 'conn') {
+      const conn = arg.value as { node_id: number; index: number; type?: string }
+      const connType = (conn as any).type as string | undefined
+      // data_type_conversion 节点：用 concrete map 查找正确的 indexOfConcrete 和类型
+      if (node.type.startsWith('data_type_conversion_') && connType) {
+        const dtcInfo = getDtcInParamInfo(connType)
+        if (dtcInfo) {
+          const innerValue = makeVarBaseValue(dtcInfo.varClass, dtcInfo.varType, false)
+          const pin = {
+            i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+            i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+            value: {
+              class: 10000,
+              alreadySetVal: true,
+              bConcreteValue: { indexOfConcrete: dtcInfo.indexOfConcrete, value: innerValue }
+            } as any,
+            type: dtcInfo.varType
+          }
+          pins.push(pin)
+          dataConns.push({
+            nodeId: node.id,
+            pin: pin as any,
+            upstreamNodeId: conn.node_id,
+            upstreamPinIndex: conn.index
+          })
+          pinIndex++
+          continue
+        }
+      }
+      // 其他 conn arg：用 buildPlaceholderPin 从 nodeType 推断类型
       const pin = buildPlaceholderPin(pinIndex, node.type)
+      // data_type_conversion 需要 bConcreteValue 包裹
+      if (needsConcreteWrapping(node.type) && pin.value) {
+        pin.value = {
+          class: 10000,
+          alreadySetVal: true,
+          bConcreteValue: { indexOfConcrete: 0, value: pin.value }
+        } as any
+      }
       pins.push(pin)
-      const conn = arg.value as { node_id: number; index: number }
+      const connNum = arg.value as { node_id: number; index: number }
       dataConns.push({
         nodeId: node.id,
         pin,
-        upstreamNodeId: conn.node_id,
-        upstreamPinIndex: conn.index
+        upstreamNodeId: connNum.node_id,
+        upstreamPinIndex: connNum.index
       })
       pinIndex++
       continue
     }
     if (arg) {
+      // data_type_conversion 节点的 literal arg：用 concrete map 的正确 indexOfConcrete
+      if (node.type.startsWith('data_type_conversion_') && arg.type && arg.type !== 'dict') {
+        const dtcInfo = getDtcInParamInfo(arg.type)
+        if (dtcInfo) {
+          const innerValue = makeVarBaseValue(dtcInfo.varClass, dtcInfo.varType, true)
+          pins.push({
+            i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+            i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+            value: {
+              class: 10000,
+              alreadySetVal: true,
+              bConcreteValue: { indexOfConcrete: dtcInfo.indexOfConcrete, value: innerValue }
+            } as any,
+            type: dtcInfo.varType
+          })
+          pinIndex++
+          continue
+        }
+      }
       pins.push(buildLiteralPin(pinIndex, arg.type, arg.value, node.type))
     } else {
       pins.push(buildPlaceholderPin(pinIndex, node.type))
@@ -641,6 +705,13 @@ function buildImplNodePins(
   if (!hasExplicitOutParam && pins.length > 0 && isDataProducerNode(node.type)) {
     let outType = pins[0].type
     let outClass = pins[0].value?.bConcreteValue?.value?.class ?? pins[0].value?.class ?? 0
+    // data_type_conversion 节点：InParam 用了正确类型，但 OutParam 需要独立设置
+    // OutParam 类型 = 目标类型（str=6），indexOfConcrete 固定为 2（M17[2]=6=String）
+    if (node.type.startsWith('data_type_conversion_')) {
+      const outKey = node.type.slice('data_type_conversion_'.length).trim()
+      outType = argVarType(outKey)
+      outClass = argVarBaseClass(outKey)
+    }
     // vec3→float 节点：输出是 float 而非 vec3
     if (vec3ToFloatNodeTypes.has(node.type)) {
       outType = VarType.Float
@@ -649,10 +720,12 @@ function buildImplNodePins(
     const innerValue = makeVarBaseValue(outClass, outType, false)
     let outValue: Record<string, unknown> = innerValue
     if (needsConcreteWrapping(node.type)) {
+      // DTC OutParam 的 indexOfConcrete 固定为 2（M17[2]=6=String）
+      const outIdx = node.type.startsWith('data_type_conversion_') ? 2 : 0
       outValue = {
         class: 10000,
         alreadySetVal: true,
-        bConcreteValue: { indexOfConcrete: 0, value: innerValue }
+        bConcreteValue: { indexOfConcrete: outIdx, value: innerValue }
       }
     }
     pins.push({
@@ -684,6 +757,36 @@ function isDataProducerNode(nodeType: string): boolean {
   if (vec3NodeTypes.has(nodeType)) return true
   if (nodeType.startsWith('get_') && !nodeType.startsWith('get_node_graph_variable')) return true
   return false
+}
+
+/**
+ * data_type_conversion 节点的 DTC 具体序列（M16 = 第 16 号 concrete map）
+ * 每个条目对应一个 DTC 变种的 InParam VarType，indexOfConcrete = 在序列中的位置
+ */
+const DTC_IN_PARAM_VARTYPE_SEQUENCE = [
+  VarType.Integer,  // 0: int→str
+  VarType.Entity,   // 1: entity→str
+  VarType.GUID,     // 2: guid→str
+  VarType.Boolean,  // 3: bool→str
+  VarType.Float,    // 4: float→str
+  VarType.Vector,   // 5: vec→str
+  VarType.Faction,  // 6: faction→str
+]
+
+/**
+ * 查 data_type_conversion 节点 InParam 的 concrete 信息
+ * @returns { indexOfConcrete, varType, varClass } 或 null（非 DTC 节点）
+ */
+function getDtcInParamInfo(inType: string): { indexOfConcrete: number; varType: number; varClass: number } | null {
+  const varType = argVarType(inType)
+  if (varType === 0) return null
+  const idx = DTC_IN_PARAM_VARTYPE_SEQUENCE.indexOf(varType)
+  if (idx === -1) return null
+  return {
+    indexOfConcrete: idx,
+    varType,
+    varClass: argVarBaseClass(inType)
+  }
 }
 
 /** 构建 VarBase 值结构（bInt/bFloat/bString 等） */

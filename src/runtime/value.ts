@@ -175,7 +175,7 @@ export class bool extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return null
+    if (this.value === undefined) return { type: 'bool', value: null as any }
     return { type: 'bool', value: this.value }
   }
 }
@@ -193,7 +193,7 @@ export class int extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return null
+    if (this.value === undefined) return { type: 'int', value: null as any }
     return { type: 'int', value: Number(this.value) }
   }
 }
@@ -209,7 +209,7 @@ export class float extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return null
+    if (this.value === undefined) return { type: 'float', value: null as any }
     return { type: 'float', value: this.value }
   }
 }
@@ -225,7 +225,7 @@ export class str extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return null
+    if (this.value === undefined) return { type: 'str', value: null as any }
     return { type: 'str', value: this.value }
   }
 }
@@ -252,7 +252,7 @@ export class vec3 extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return null
+    if (this.value === undefined) return { type: 'vec3', value: null as any }
     return { type: 'vec3', value: this.value }
   }
 
@@ -283,7 +283,7 @@ export class guid extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return null
+    if (raw === undefined) return { type: 'guid', value: null as any }
     return { type: 'guid', value: Number(raw) }
   }
 }
@@ -334,7 +334,7 @@ export class prefabId extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return null
+    if (raw === undefined) return { type: 'prefab_id', value: null as any }
     return { type: 'prefab_id', value: Number(raw) }
   }
 }
@@ -353,7 +353,7 @@ export class configId extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return null
+    if (raw === undefined) return { type: 'config_id', value: null as any }
     return { type: 'config_id', value: Number(raw) }
   }
 }
@@ -372,7 +372,7 @@ export class faction extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return null
+    if (raw === undefined) return { type: 'faction', value: null as any }
     return { type: 'faction', value: Number(raw) }
   }
 }
