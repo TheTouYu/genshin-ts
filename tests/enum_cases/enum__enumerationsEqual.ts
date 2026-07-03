@@ -4,7 +4,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED enum coverage for enumerationsEqual
 // Run: npx tsx scripts/generate-enum-gia-tests.ts
 
-g.server({ id: 1073741849 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741850 }).on('whenEntityIsCreated', (_evt, f) => {
   // SortBy
   f.enumerationsEqual(E.SortBy.Ascending, E.SortBy.Ascending)
   f.enumerationsEqual(E.SortBy.Ascending, E.SortBy.Descending)
@@ -25,7 +25,7 @@ g.server({ id: 1073741849 }).on('whenEntityIsCreated', (_evt, f) => {
   f.enumerationsEqual(E.DisruptorDeviceOrientation.AssociateCharacterOrientation, E.DisruptorDeviceOrientation.FixedUnidirectional)
   // CharacterSkillSlot
   f.enumerationsEqual(E.CharacterSkillSlot.NormalAttack, E.CharacterSkillSlot.NormalAttack)
-  f.enumerationsEqual(E.CharacterSkillSlot.NormalAttack, E.CharacterSkillSlot.Skill1E)
+  f.enumerationsEqual(E.CharacterSkillSlot.NormalAttack, E.CharacterSkillSlot.DashSkill)
   // SoundAttenuationMode
   f.enumerationsEqual(E.SoundAttenuationMode.LinearAttenuation, E.SoundAttenuationMode.LinearAttenuation)
   f.enumerationsEqual(E.SoundAttenuationMode.LinearAttenuation, E.SoundAttenuationMode.FastThenSlow)

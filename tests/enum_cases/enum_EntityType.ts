@@ -5,7 +5,7 @@ import * as E from 'genshin-ts/definitions/enum'
 // AUTO-GENERATED enum coverage for EntityType
 // Run: npx tsx scripts/generate-enum-gia-tests.ts
 
-g.server({ id: 1073741848 }).on('whenEntityIsCreated', (_evt, f) => {
+g.server({ id: 1073741849 }).on('whenEntityIsCreated', (_evt, f) => {
   const e = f.getSelfEntity()
   f.getSpecifiedTypeOfEntitiesOnTheField(E.EntityType.Stage)
   f.getSpecifiedTypeOfEntitiesOnTheField(E.EntityType.Object)

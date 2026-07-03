@@ -8,6 +8,7 @@ import * as E from 'genshin-ts/definitions/enum'
 g.server({ id: 1073741845 }).on('whenEntityIsCreated', (_evt, f) => {
   const e = f.getSelfEntity()
   f.initializeCharacterSkill(e, E.CharacterSkillSlot.NormalAttack)
+  f.initializeCharacterSkill(e, E.CharacterSkillSlot.DashSkill)
   f.initializeCharacterSkill(e, E.CharacterSkillSlot.Skill1E)
   f.initializeCharacterSkill(e, E.CharacterSkillSlot.Skill2Q)
   f.initializeCharacterSkill(e, E.CharacterSkillSlot.Skill3R)

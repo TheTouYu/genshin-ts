@@ -200,7 +200,7 @@ function pickMethodForEnum(methods: MethodSig[], enumType: string): MethodSig | 
 
 function litOfParam(t: string): string {
   const type = t.trim()
-  if (type === 'EntityValue') return 'e'
+  if (type === 'EntityValue' || /^[A-Z]\w*Entity$/.test(type)) return 'e'
   if (type === 'IntValue') return '1n'
   if (type === 'FloatValue') return '1.25'
   if (type === 'BoolValue' || type === 'boolean') return 'true'
