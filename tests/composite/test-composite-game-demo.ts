@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 // @ts-nocheck — 复合节点游戏内验证脚本
 
 /**

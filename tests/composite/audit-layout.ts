@@ -6,7 +6,7 @@
  *   npx tsx tests/composite/audit-layout.ts <file.gia> [file2.gia ...]
  *   npx tsx tests/composite/audit-layout.ts tests/composite/output/*.gia
  */
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { readFileSync } from 'fs'
 
 const FILES = process.argv.slice(2)

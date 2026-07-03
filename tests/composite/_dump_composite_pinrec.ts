@@ -1,4 +1,4 @@
-import { NODE_PIN_RECORDS } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
+import { NODE_PIN_RECORDS } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
 
 // Check pin records for composite IDs used in this file
 const compositeIds = [1610612902, 1610612905, 1610612956, 1073742225, 1610612834,

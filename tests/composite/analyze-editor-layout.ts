@@ -4,7 +4,7 @@
  *
  * 用法: npx tsx tests/composite/analyze-editor-layout.ts <file.gia> [files...]
  */
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const FILES = process.argv.slice(2)
 if (FILES.length === 0) { console.error('用法: ... <file.gia> ...'); process.exit(1) }

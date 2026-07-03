@@ -33,11 +33,20 @@ const outPath = `${OUT_DIR}/类型转化_gen.gia`
 writeFileSync(outPath, Buffer.from(bytes))
 console.log(`\n✅ 已生成: ${outPath}  (${bytes.length} 字节)`)
 
-// 对比
-const ref = decode_gia_file(REF_PATH, PROTO_PATH)
+// 对比（参考文件可能不存在）
+let rn: any[] = []
+try {
+  const ref = decode_gia_file(REF_PATH, PROTO_PATH)
+  rn = ref.graph?.graph?.inner?.graph?.nodes ?? []
+} catch {
+  console.log('  ⚠ 参考文件不存在，跳过对比')
+}
 const gen = decode_gia_file(outPath, PROTO_PATH)
-const rn = ref.graph?.graph?.inner?.graph?.nodes ?? []
 const gn = gen.graph?.graph?.inner?.graph?.nodes ?? []
+
+if (rn.length === 0) {
+  process.exit(0)
+}
 
 function dp(p: any) {
   let s = 'k=' + p.i1?.kind + ' i=' + p.i1?.index + ' t=' + p.type

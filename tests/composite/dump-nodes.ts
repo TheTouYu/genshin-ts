@@ -1,5 +1,5 @@
 // @ts-nocheck 调试：dump 所有 GIA 节点坐标
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const FILE = process.argv[2] ?? './tests/composite/output/basic_call.gia'
 const data = decode_gia_file(FILE)

@@ -8,7 +8,7 @@
  *   npx tsx tests/composite/gia-diff.ts <ref.gia> <gen.gia> -q        安静模式：仅输出差异数和退出码
  *   npx tsx tests/composite/gia-diff.ts <ref.gia> <gen.gia> -v        详细模式：包括上下文信息
  */
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { readFileSync } from 'fs'
 
 const PROTO = '/home/h/genshin-ts/dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'

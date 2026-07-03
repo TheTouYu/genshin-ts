@@ -13,7 +13,7 @@
  *   npx tsx tests/composite/gia-inspect.ts <file.gia> -s <N> -c                显示第 N 个 accessory 的 compositePins
  *   npx tsx tests/composite/gia-inspect.ts <file.gia> -t                       统计: 节点类型分布
  */
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { readFileSync } from 'fs'
 
 const PROTO = '/home/h/genshin-ts/dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'

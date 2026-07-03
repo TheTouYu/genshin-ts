@@ -29,7 +29,7 @@ import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { writeFileSync } from 'fs'
 
 const PROTO_PATH = new URL(
-  '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
+  '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
   import.meta.url
 ).pathname
 
@@ -128,7 +128,7 @@ console.log(`\n✅ GIA: dist/tests/demo_addsub2.gia (${giaBytes.length} bytes)`)
 // ================================================================
 // 第 6 步：解码 GIA 验证结构（确认 Producer 正确性）
 // ================================================================
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 const decoded = decode_gia_file('./dist/tests/demo_addsub2.gia', PROTO_PATH)
 
 console.log('\n====== GIA 结构验证 ======')

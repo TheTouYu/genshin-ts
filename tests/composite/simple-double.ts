@@ -10,7 +10,7 @@ import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
 import { getRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
 
 const PROTO_PATH = new URL(
-  '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
+  '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
   import.meta.url
 ).pathname
 

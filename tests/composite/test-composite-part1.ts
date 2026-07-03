@@ -16,6 +16,7 @@ import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-W
 import { defineComposite } from '../../dist/src/index.js'
 import { compositeRegistry } from '../../dist/src/runtime/composite_registry.js'
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
+import { int } from '../../dist/src/runtime/value.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { buildCompositeAccessories } from '../../dist/src/compiler/ir_to_gia_transform/composite.js'
 
@@ -214,12 +215,14 @@ console.log('\n▸ 1G: 管线端到端编码')
 
 g.server({ name: 'part1_test' })
   .on('whenEntityIsCreated', (e: any, f: any) => {
-    f.printString('test') // 确保主图至少有一个节点
+    f.callComposite(jiafa, { 加数A: new int(7), 加数B: new int(3) })
+    f.callComposite(floatDef, { A: new int(10), B: new int(3) })
   })
 const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'part1_test' })
 
-// 检查 compositeDefs 是否存在于文档中
-const defsInDocs = (docs[0] as any)?.compositeDefs ?? []
+// 查找有 compositeDefs 的 doc
+const docWithDefs = docs.find((d: any) => (d.compositeDefs?.length ?? 0) > 0)
+const defsInDocs = (docWithDefs as any)?.compositeDefs ?? []
 test('IR 文档含 compositeDefs', () => defsInDocs.length > 0)
 
 // 按名称查找定义的复合
@@ -234,7 +237,10 @@ test('IR compositeDefs 含 "浮点四则运算"', () => !!foundFloat)
 
 // GIA 编码
 try {
-  const bytes = irToGia(docs[0] as any, {
+  if (!docWithDefs || !(docWithDefs as any).nodes?.length) {
+    throw new Error('主图无节点')
+  }
+  const bytes = irToGia(docWithDefs as any, {
     graphId: 1073741825,
     name: 'part1_test',
     protoPath: PROTO_PATH

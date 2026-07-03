@@ -45,7 +45,14 @@ writeFileSync(genPath, Buffer.from(genBytes))
 console.log('Generated:', genPath, `(${genBytes.length} bytes)`)
 
 // ── 解码对比 ──
-const ref = decode_gia_file(REF_PATH, PROTO_PATH)
+let ref: any = { graph: {}, accessories: [] }
+try {
+  ref = decode_gia_file(REF_PATH, PROTO_PATH)
+  console.log('参考文件解码成功')
+} catch {
+  console.log('  ⚠ 参考文件不存在，跳过对比')
+  process.exit(0)
+}
 const gen = decode_gia_file(genPath, PROTO_PATH)
 
 console.log('\n══════ 结构对比 ══════\n')

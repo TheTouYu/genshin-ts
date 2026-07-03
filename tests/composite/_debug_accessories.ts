@@ -2,7 +2,7 @@
 /**
  * Debug: Dump accessory structure and composite-to-impl mapping
  */
-import { decode_gia_file } from '../../dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const file = process.argv[2]
 const data = decode_gia_file(file)
