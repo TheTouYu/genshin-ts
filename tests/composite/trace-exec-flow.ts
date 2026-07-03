@@ -1,5 +1,5 @@
 /**
- * find-event-sources.ts — 查找 GIA 文件的事件起点（独立执行流触发源）
+ * trace-exec-flow.ts — GIA 执行流分析：事件源识别、执行链树渲染、复合节点穿透展开
  *
  * 事件起点的定义:
  *   1. 有 Branch 输出（执行流出口, kind=2）
@@ -748,7 +748,7 @@ function expandSubGraph(
 const cliArgs = process.argv.slice(2)
 const filePath = cliArgs[0]
 if (!filePath || filePath.startsWith('--')) {
-  console.error(`用法: npx tsx tests/composite/find-event-sources.ts <文件.gia> [--json] [--detail=N] [--depth=N] [--expand=N]`)
+  console.error(`用法: npx tsx tests/composite/trace-exec-flow.ts <文件.gia> [--json] [--detail=N] [--depth=N] [--expand=N]`)
   console.error(`  默认: 输出人类可读的事件起点分析（含执行流引脚名）`)
   console.error(`  --json: JSON 格式（含 --depth=N 控制递归层数，默认仅第一层）`)
   console.error(`  --detail=N: 显示节点 N 的完整引脚信息`)
