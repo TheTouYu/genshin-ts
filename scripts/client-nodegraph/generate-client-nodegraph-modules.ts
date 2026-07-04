@@ -142,6 +142,267 @@ export const CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE = {
   )
 }
 
+// ---------------------------------------------------------------------------
+// Scoped helper globals capability (evidence: resources/client_node_metadata.json)
+// ---------------------------------------------------------------------------
+
+type ClientGraphMode = 'beyond' | 'classic'
+
+type MetadataRecord = {
+  subType: ClientGraphSubType
+  nodeType: string
+  sampleFile: string
+}
+
+type HelperMemberSpec = {
+  helper: string
+  member?: string
+  /** server f method names whose snake_case nodeType must exist as evidence */
+  requiredMethods?: string[]
+  /** if set, member is needs_developer_confirmation and never implemented */
+  confirm?: string
+  note?: string
+}
+
+type ClientScopedGlobalCapability = {
+  helper: string
+  member?: string
+  subTypes: ClientGraphSubType[]
+  modes: ClientGraphMode[]
+  backedBy: Array<{
+    subType: ClientGraphSubType
+    nodeType: string
+    methodName: string
+    sampleFile: string
+  }>
+  status: 'supported' | 'partial' | 'needs_developer_confirmation' | 'gap'
+  note?: string
+}
+
+const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
+  {
+    helper: 'send',
+    confirm:
+      'client signal nodes (向服务器节点图发送信号/通知服务器节点图) are not proven equivalent to server send()'
+  },
+  {
+    helper: 'player',
+    confirm:
+      'no client get_player_guid_by_player_id node; 获取指定玩家的角色实体 returns a character entity, not proven equivalent to server player(id)'
+  },
+  { helper: 'self', requiredMethods: ['getSelfEntity'] },
+  {
+    helper: 'stage',
+    confirm:
+      'client graphs have no get_node_graph_variable node for the stage bootstrap; 获取关卡实体 exists only in creation_status families and its mapping is unconfirmed'
+  },
+  {
+    helper: 'level',
+    confirm: 'same evidence gap as stage'
+  },
+  { helper: 'Mathf', member: 'Abs', requiredMethods: ['absoluteValueOperation'] },
+  { helper: 'Mathf', member: 'FloorToInt', requiredMethods: ['roundToIntegerOperation'] },
+  { helper: 'Mathf', member: 'CeilToInt', requiredMethods: ['roundToIntegerOperation'] },
+  { helper: 'Mathf', member: 'RoundToInt', requiredMethods: ['roundToIntegerOperation'] },
+  { helper: 'Mathf', member: 'Sqrt', requiredMethods: ['arithmeticSquareRootOperation'] },
+  { helper: 'Mathf', member: 'Pow', requiredMethods: ['exponentiation'] },
+  { helper: 'Mathf', member: 'Log', requiredMethods: ['logarithmOperation'] },
+  { helper: 'Mathf', member: 'Sin', requiredMethods: ['sineFunction'] },
+  { helper: 'Mathf', member: 'Cos', requiredMethods: ['cosineFunction'] },
+  { helper: 'Mathf', member: 'Tan', requiredMethods: ['tangentFunction'] },
+  {
+    helper: 'Random',
+    member: 'Range',
+    confirm:
+      'client only has a generic 获取随机数 node without english mapping; int/float Range semantics unproven'
+  },
+  {
+    helper: 'Random',
+    member: 'value',
+    confirm: 'same evidence gap as Random.Range'
+  },
+  ...['zero', 'one', 'up', 'down', 'left', 'right', 'forward', 'back'].map((member) => ({
+    helper: 'Vector3',
+    member,
+    requiredMethods: ['create3dVector'],
+    note: 'constant vector built via client create3d_vector node'
+  })),
+  { helper: 'Vector3', member: 'Dot', requiredMethods: ['_3dVectorDotProduct'] },
+  { helper: 'Vector3', member: 'Cross', requiredMethods: ['_3dVectorCrossProduct'] },
+  {
+    helper: 'Vector3',
+    member: 'Distance',
+    requiredMethods: ['distanceBetweenTwoCoordinatePoints']
+  },
+  { helper: 'Vector3', member: 'Angle', requiredMethods: ['_3dVectorAngle'] },
+  { helper: 'Vector3', member: 'Normalize', requiredMethods: ['_3dVectorNormalization'] },
+  { helper: 'Vector3', member: 'Magnitude', requiredMethods: ['_3dVectorModuloOperation'] },
+  { helper: 'Vector3', member: 'Add', requiredMethods: ['_3dVectorAddition'] },
+  { helper: 'Vector3', member: 'Sub', requiredMethods: ['_3dVectorSubtraction'] },
+  { helper: 'Vector3', member: 'Scale', requiredMethods: ['_3dVectorZoom'] },
+  { helper: 'Vector3', member: 'Rotation', requiredMethods: ['_3dVectorRotation'] },
+  {
+    helper: 'Vector3',
+    member: 'Lerp',
+    requiredMethods: ['_3dVectorSubtraction', '_3dVectorZoom', '_3dVectorAddition']
+  },
+  {
+    helper: 'Vector3',
+    member: 'ClampMagnitude',
+    requiredMethods: [
+      'initLocalVariable',
+      'setLocalVariable',
+      'greaterThan',
+      'doubleBranch',
+      '_3dVectorModuloOperation',
+      '_3dVectorNormalization',
+      '_3dVectorZoom'
+    ]
+  },
+  { helper: 'GameObject', member: 'Find', requiredMethods: ['queryEntityByGuid'] },
+  {
+    helper: 'GameObject',
+    member: 'FindWithTag',
+    requiredMethods: ['getEntityListByUnitTag', 'getCorrespondingValueFromList']
+  },
+  {
+    helper: 'GameObject',
+    member: 'FindGameObjectsWithTag',
+    requiredMethods: ['getEntityListByUnitTag']
+  },
+  {
+    helper: 'GameObject',
+    member: 'FindByPrefabId',
+    requiredMethods: ['getEntitiesWithSpecifiedPrefabOnTheField']
+  },
+  ...['setTimeout', 'setInterval', 'clearTimeout', 'clearInterval'].map((helper) => ({
+    helper,
+    confirm:
+      'no client timer feature proven by resource JSON; server timer globals must not leak into client handlers'
+  }))
+]
+
+// keep leading underscores: `_3dVectorDotProduct` -> `_3d_vector_dot_product`
+function camelToSnake(name: string): string {
+  return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
+}
+
+function deriveScopedGlobalsCapability(metadata: MetadataRecord[]): ClientScopedGlobalCapability[] {
+  const bySubType = new Map<ClientGraphSubType, Map<string, MetadataRecord>>()
+  for (const record of metadata) {
+    const map = bySubType.get(record.subType) ?? new Map<string, MetadataRecord>()
+    bySubType.set(record.subType, map)
+    if (!map.has(record.nodeType)) map.set(record.nodeType, record)
+  }
+
+  return HELPER_MEMBER_SPECS.map((spec) => {
+    if (spec.confirm) {
+      return {
+        helper: spec.helper,
+        ...(spec.member ? { member: spec.member } : {}),
+        subTypes: [],
+        modes: [],
+        backedBy: [],
+        status: 'needs_developer_confirmation' as const,
+        note: spec.confirm
+      }
+    }
+    const required = spec.requiredMethods ?? []
+    const subTypes: ClientGraphSubType[] = []
+    const backedBy: ClientScopedGlobalCapability['backedBy'] = []
+    for (const subType of SUB_TYPES) {
+      const nodeTypes = bySubType.get(subType)
+      if (!nodeTypes) continue
+      const records = required.map((method) => nodeTypes.get(camelToSnake(method)))
+      if (records.some((r) => !r)) continue
+      subTypes.push(subType)
+      required.forEach((method, i) => {
+        backedBy.push({
+          subType,
+          nodeType: records[i]!.nodeType,
+          methodName: method,
+          sampleFile: records[i]!.sampleFile
+        })
+      })
+    }
+    const status =
+      subTypes.length === 0 ? 'gap' : subTypes.length === SUB_TYPES.length ? 'supported' : 'partial'
+    return {
+      helper: spec.helper,
+      ...(spec.member ? { member: spec.member } : {}),
+      subTypes,
+      // classic mode capability is still unknown; only beyond is claimed
+      modes: subTypes.length ? (['beyond'] as ClientGraphMode[]) : [],
+      backedBy,
+      status,
+      ...(spec.note ? { note: spec.note } : {})
+    }
+  })
+}
+
+function emitClientScopedGlobals(capability: ClientScopedGlobalCapability[]) {
+  const membersBySubType: Record<string, Record<string, string[]>> = {}
+  for (const subType of SUB_TYPES) membersBySubType[subType] = {}
+  for (const entry of capability) {
+    if (entry.status !== 'supported' && entry.status !== 'partial') continue
+    for (const subType of entry.subTypes) {
+      const helpers = membersBySubType[subType]
+      const members = (helpers[entry.helper] ??= [])
+      if (entry.member) members.push(entry.member)
+    }
+  }
+
+  write(
+    'resources/client_scoped_globals_capability.json',
+    JSON.stringify(capability, null, 2)
+  )
+  write(
+    'src/definitions/client_scoped_globals.ts',
+    `${generatedHeader()}import type { ClientGraphSubType } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+
+export type ClientScopedGlobalStatus =
+  | 'supported'
+  | 'partial'
+  | 'needs_developer_confirmation'
+  | 'gap'
+
+export type ClientScopedGlobalCapability = {
+  helper: string
+  member?: string
+  subTypes: ClientGraphSubType[]
+  modes: ('beyond' | 'classic')[]
+  backedBy: Array<{
+    subType: ClientGraphSubType
+    nodeType: string
+    methodName: string
+    sampleFile: string
+  }>
+  status: ClientScopedGlobalStatus
+  note?: string
+}
+
+export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapability[] = ${jsonConst(capability)}
+
+/**
+ * helper -> supported member names per sub type (empty array marks a bare
+ * helper like \`self\` that is itself supported).
+ */
+export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
+  ClientGraphSubType,
+  Readonly<Record<string, readonly string[]>>
+> = ${jsonConst(membersBySubType)}
+
+/** helper names that must never resolve to server implementations in client handlers */
+export const CLIENT_BLOCKED_SERVER_HELPERS = [
+  'setTimeout',
+  'setInterval',
+  'clearTimeout',
+  'clearInterval'
+] as const
+`
+  )
+}
+
 function emitClientNodeMetadata(metadata: readonly unknown[]) {
   const metadataPath =
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts'
@@ -166,6 +427,7 @@ function main() {
   emitClientGraphEncoding()
   emitClientGraphModes(capability as ClientGraphCapability)
   emitClientNodeMetadata(metadata)
+  emitClientScopedGlobals(deriveScopedGlobalsCapability(metadata as MetadataRecord[]))
 
   console.log('[ok] generated client nodegraph modules')
 }

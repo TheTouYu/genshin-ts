@@ -47,6 +47,7 @@ import type {
   Variable
 } from './IR.js'
 import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
+import { installScopedClientGlobals } from './client_scoped_globals.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
 import {
@@ -887,6 +888,10 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     this.loopNodeStack = []
     this.returnCallCounter = 0
     clientBindings[clientSubType] = fns
+    const restoreScopedGlobals = installScopedClientGlobals(
+      clientSubType,
+      this.graphMode as ClientGraphMode
+    )
     try {
       gsts.ctx.withCtx(`client_${clientSubType}_handler`, () => {
         const result = handler({}, fns)
@@ -901,6 +906,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
         }
       })
     } finally {
+      restoreScopedGlobals()
       if (prevClientF === undefined) {
         delete clientBindings[clientSubType]
       } else {

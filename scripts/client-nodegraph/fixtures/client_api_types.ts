@@ -58,3 +58,15 @@ gsts.ctx.assertClientGraphCtx('bool_filter')
 gsts.ctx.withCtx('client_bool_filter_if', () => {})
 gsts.ctx.withCtx('client_bool_filter_loop', () => {})
 gsts.ctx.withCtx('client_bool_filter_switch', () => {})
+
+// scoped client helper globals capability tables are generated and typed
+import {
+  CLIENT_BLOCKED_SERVER_HELPERS,
+  CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE,
+  CLIENT_SCOPED_GLOBALS_CAPABILITY
+} from '../../../src/definitions/client_scoped_globals.js'
+
+expectType<readonly string[]>(CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE.character_skill.Vector3)
+expectType<readonly string[]>(CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE.bool_filter.Mathf)
+expectType<'setTimeout'>(CLIENT_BLOCKED_SERVER_HELPERS[0])
+expectType<number>(CLIENT_SCOPED_GLOBALS_CAPABILITY.length)

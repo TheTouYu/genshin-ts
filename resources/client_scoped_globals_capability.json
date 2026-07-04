@@ -1,0 +1,1581 @@
+[
+  {
+    "helper": "send",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "client signal nodes (向服务器节点图发送信号/通知服务器节点图) are not proven equivalent to server send()"
+  },
+  {
+    "helper": "player",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "no client get_player_guid_by_player_id node; 获取指定玩家的角色实体 returns a character entity, not proven equivalent to server player(id)"
+  },
+  {
+    "helper": "self",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "get_self_entity",
+        "methodName": "getSelfEntity",
+        "sampleFile": "角色技能节点图\\字典_Entity到Integer_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_self_entity",
+        "methodName": "getSelfEntity",
+        "sampleFile": "造物技能节点图\\查询复杂造物的预设状态值_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "get_self_entity",
+        "methodName": "getSelfEntity",
+        "sampleFile": "造物状态节点图\\获取自身实体_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "get_self_entity",
+        "methodName": "getSelfEntity",
+        "sampleFile": "造物状态决策节点图\\查询字典是否包含特定值_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "get_self_entity",
+        "methodName": "getSelfEntity",
+        "sampleFile": "布尔过滤器节点\\获取单位攻击目标_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "get_self_entity",
+        "methodName": "getSelfEntity",
+        "sampleFile": "整数过滤器节点\\查询实体是否在场_连线.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "stage",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "client graphs have no get_node_graph_variable node for the stage bootstrap; 获取关卡实体 exists only in creation_status families and its mapping is unconfirmed"
+  },
+  {
+    "helper": "level",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "same evidence gap as stage"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Abs",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "absolute_value_operation",
+        "methodName": "absoluteValueOperation",
+        "sampleFile": "角色技能节点图\\绝对值运算_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "absolute_value_operation",
+        "methodName": "absoluteValueOperation",
+        "sampleFile": "造物技能节点图\\恢复生命值_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "absolute_value_operation",
+        "methodName": "absoluteValueOperation",
+        "sampleFile": "造物状态节点图\\绝对值运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "absolute_value_operation",
+        "methodName": "absoluteValueOperation",
+        "sampleFile": "造物状态决策节点图\\绝对值运算_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "absolute_value_operation",
+        "methodName": "absoluteValueOperation",
+        "sampleFile": "布尔过滤器节点\\是否大于_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "absolute_value_operation",
+        "methodName": "absoluteValueOperation",
+        "sampleFile": "整数过滤器节点\\绝对值运算_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Mathf",
+    "member": "FloorToInt",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Mathf",
+    "member": "CeilToInt",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Mathf",
+    "member": "RoundToInt",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Sqrt",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Pow",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Log",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Sin",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "sine_function",
+        "methodName": "sineFunction",
+        "sampleFile": "角色技能节点图\\正弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "sine_function",
+        "methodName": "sineFunction",
+        "sampleFile": "造物技能节点图\\正弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "sine_function",
+        "methodName": "sineFunction",
+        "sampleFile": "造物状态节点图\\正弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "sine_function",
+        "methodName": "sineFunction",
+        "sampleFile": "造物状态决策节点图\\正弦函数_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "sine_function",
+        "methodName": "sineFunction",
+        "sampleFile": "布尔过滤器节点\\三维向量内积_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "sine_function",
+        "methodName": "sineFunction",
+        "sampleFile": "整数过滤器节点\\正弦函数_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Cos",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "cosine_function",
+        "methodName": "cosineFunction",
+        "sampleFile": "角色技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "cosine_function",
+        "methodName": "cosineFunction",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "cosine_function",
+        "methodName": "cosineFunction",
+        "sampleFile": "造物状态节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "cosine_function",
+        "methodName": "cosineFunction",
+        "sampleFile": "造物状态决策节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "cosine_function",
+        "methodName": "cosineFunction",
+        "sampleFile": "布尔过滤器节点\\余弦函数_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "cosine_function",
+        "methodName": "cosineFunction",
+        "sampleFile": "整数过滤器节点\\余弦函数_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Mathf",
+    "member": "Tan",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "tangent_function",
+        "methodName": "tangentFunction",
+        "sampleFile": "角色技能节点图\\正切函数_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "tangent_function",
+        "methodName": "tangentFunction",
+        "sampleFile": "造物技能节点图\\正切函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "tangent_function",
+        "methodName": "tangentFunction",
+        "sampleFile": "造物状态节点图\\正切函数_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "tangent_function",
+        "methodName": "tangentFunction",
+        "sampleFile": "造物状态决策节点图\\正切函数_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "tangent_function",
+        "methodName": "tangentFunction",
+        "sampleFile": "布尔过滤器节点\\正切函数_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "tangent_function",
+        "methodName": "tangentFunction",
+        "sampleFile": "整数过滤器节点\\正切函数_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Random",
+    "member": "Range",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "client only has a generic 获取随机数 node without english mapping; int/float Range semantics unproven"
+  },
+  {
+    "helper": "Random",
+    "member": "value",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "same evidence gap as Random.Range"
+  },
+  {
+    "helper": "Vector3",
+    "member": "zero",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "one",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "up",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "down",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "left",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "right",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "forward",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "back",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物技能节点图\\余弦函数_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态节点图\\乘法运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "布尔过滤器节点\\创建三维向量_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "create3d_vector",
+        "methodName": "create3dVector",
+        "sampleFile": "整数过滤器节点\\创建三维向量_填值.gia"
+      }
+    ],
+    "status": "supported",
+    "note": "constant vector built via client create3d_vector node"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Dot",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_dot_product",
+        "methodName": "_3dVectorDotProduct",
+        "sampleFile": "角色技能节点图\\三维向量内积_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_dot_product",
+        "methodName": "_3dVectorDotProduct",
+        "sampleFile": "造物技能节点图\\三维向量内积_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_dot_product",
+        "methodName": "_3dVectorDotProduct",
+        "sampleFile": "造物状态节点图\\三维向量内积_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_dot_product",
+        "methodName": "_3dVectorDotProduct",
+        "sampleFile": "造物状态决策节点图\\三维向量内积_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_dot_product",
+        "methodName": "_3dVectorDotProduct",
+        "sampleFile": "布尔过滤器节点\\三维向量内积_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_dot_product",
+        "methodName": "_3dVectorDotProduct",
+        "sampleFile": "整数过滤器节点\\三维向量内积_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Cross",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_cross_product",
+        "methodName": "_3dVectorCrossProduct",
+        "sampleFile": "角色技能节点图\\三维向量外积_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_cross_product",
+        "methodName": "_3dVectorCrossProduct",
+        "sampleFile": "造物技能节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_cross_product",
+        "methodName": "_3dVectorCrossProduct",
+        "sampleFile": "造物状态节点图\\三维向量外积_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_cross_product",
+        "methodName": "_3dVectorCrossProduct",
+        "sampleFile": "造物状态决策节点图\\三维向量外积_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_cross_product",
+        "methodName": "_3dVectorCrossProduct",
+        "sampleFile": "布尔过滤器节点\\三维向量外积_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_cross_product",
+        "methodName": "_3dVectorCrossProduct",
+        "sampleFile": "整数过滤器节点\\三维向量外积_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Distance",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Angle",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_angle",
+        "methodName": "_3dVectorAngle",
+        "sampleFile": "角色技能节点图\\三维向量夹角_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_angle",
+        "methodName": "_3dVectorAngle",
+        "sampleFile": "造物技能节点图\\三维向量夹角_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_angle",
+        "methodName": "_3dVectorAngle",
+        "sampleFile": "造物状态节点图\\三维向量夹角_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_angle",
+        "methodName": "_3dVectorAngle",
+        "sampleFile": "造物状态决策节点图\\三维向量夹角_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_angle",
+        "methodName": "_3dVectorAngle",
+        "sampleFile": "布尔过滤器节点\\三维向量夹角_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_angle",
+        "methodName": "_3dVectorAngle",
+        "sampleFile": "整数过滤器节点\\三维向量夹角_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Normalize",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_normalization",
+        "methodName": "_3dVectorNormalization",
+        "sampleFile": "角色技能节点图\\三维向量归一化_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_normalization",
+        "methodName": "_3dVectorNormalization",
+        "sampleFile": "造物技能节点图\\三维向量归一化_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_normalization",
+        "methodName": "_3dVectorNormalization",
+        "sampleFile": "造物状态节点图\\三维向量归一化_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_normalization",
+        "methodName": "_3dVectorNormalization",
+        "sampleFile": "造物状态决策节点图\\三维向量归一化_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_normalization",
+        "methodName": "_3dVectorNormalization",
+        "sampleFile": "布尔过滤器节点\\三维向量外积_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_normalization",
+        "methodName": "_3dVectorNormalization",
+        "sampleFile": "整数过滤器节点\\三维向量归一化_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Magnitude",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_modulo_operation",
+        "methodName": "_3dVectorModuloOperation",
+        "sampleFile": "角色技能节点图\\三维向量模运算_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_modulo_operation",
+        "methodName": "_3dVectorModuloOperation",
+        "sampleFile": "造物技能节点图\\三维向量模运算_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_modulo_operation",
+        "methodName": "_3dVectorModuloOperation",
+        "sampleFile": "造物状态节点图\\三维向量模运算_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_modulo_operation",
+        "methodName": "_3dVectorModuloOperation",
+        "sampleFile": "造物状态决策节点图\\三维向量模运算_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_modulo_operation",
+        "methodName": "_3dVectorModuloOperation",
+        "sampleFile": "布尔过滤器节点\\三维向量外积_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_modulo_operation",
+        "methodName": "_3dVectorModuloOperation",
+        "sampleFile": "整数过滤器节点\\三维向量模运算_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Add",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "造物技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "造物状态节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "造物状态决策节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "布尔过滤器节点\\三维向量加法_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "整数过滤器节点\\三维向量加法_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Sub",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "角色技能节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "造物技能节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "造物状态节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "造物状态决策节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "布尔过滤器节点\\三维向量减法_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "整数过滤器节点\\三维向量减法_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Scale",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "角色技能节点图\\三维向量缩放_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "造物技能节点图\\三维向量夹角_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "造物状态节点图\\三维向量缩放_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "造物状态决策节点图\\三维向量缩放_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "布尔过滤器节点\\三维向量归一化_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "整数过滤器节点\\三维向量缩放_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Rotation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_rotation",
+        "methodName": "_3dVectorRotation",
+        "sampleFile": "角色技能节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_rotation",
+        "methodName": "_3dVectorRotation",
+        "sampleFile": "造物技能节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_rotation",
+        "methodName": "_3dVectorRotation",
+        "sampleFile": "造物状态节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_rotation",
+        "methodName": "_3dVectorRotation",
+        "sampleFile": "造物状态决策节点图\\三维向量旋转_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_rotation",
+        "methodName": "_3dVectorRotation",
+        "sampleFile": "布尔过滤器节点\\三维向量内积_连线.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_rotation",
+        "methodName": "_3dVectorRotation",
+        "sampleFile": "整数过滤器节点\\三维向量旋转_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "Lerp",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "角色技能节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "角色技能节点图\\三维向量缩放_连线.gia"
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "角色技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "造物技能节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "造物技能节点图\\三维向量夹角_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "造物技能节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "造物状态节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "造物状态节点图\\三维向量缩放_连线.gia"
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "造物状态节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "造物状态决策节点图\\三维向量减法_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "造物状态决策节点图\\三维向量缩放_连线.gia"
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "造物状态决策节点图\\三维向量加法_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "布尔过滤器节点\\三维向量减法_填值.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "布尔过滤器节点\\三维向量归一化_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "布尔过滤器节点\\三维向量加法_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_subtraction",
+        "methodName": "_3dVectorSubtraction",
+        "sampleFile": "整数过滤器节点\\三维向量减法_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_zoom",
+        "methodName": "_3dVectorZoom",
+        "sampleFile": "整数过滤器节点\\三维向量缩放_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "_3d_vector_addition",
+        "methodName": "_3dVectorAddition",
+        "sampleFile": "整数过滤器节点\\三维向量加法_填值.gia"
+      }
+    ],
+    "status": "supported"
+  },
+  {
+    "helper": "Vector3",
+    "member": "ClampMagnitude",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "GameObject",
+    "member": "Find",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "query_entity_by_guid",
+        "methodName": "queryEntityByGuid",
+        "sampleFile": "角色技能节点图\\以GUID查询实体_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "query_entity_by_guid",
+        "methodName": "queryEntityByGuid",
+        "sampleFile": "造物技能节点图\\以GUID查询实体_连线.gia"
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "query_entity_by_guid",
+        "methodName": "queryEntityByGuid",
+        "sampleFile": "布尔过滤器节点\\以GUID查询实体_填值.gia"
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "query_entity_by_guid",
+        "methodName": "queryEntityByGuid",
+        "sampleFile": "整数过滤器节点\\以GUID查询实体_填值.gia"
+      }
+    ],
+    "status": "partial"
+  },
+  {
+    "helper": "GameObject",
+    "member": "FindWithTag",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "get_entity_list_by_unit_tag",
+        "methodName": "getEntityListByUnitTag",
+        "sampleFile": "角色技能节点图\\获取单位标签的实体列表_连线.gia"
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "get_corresponding_value_from_list",
+        "methodName": "getCorrespondingValueFromList",
+        "sampleFile": "角色技能节点图\\列表_Entity_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_entity_list_by_unit_tag",
+        "methodName": "getEntityListByUnitTag",
+        "sampleFile": "造物技能节点图\\获取单位标签的实体列表_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_corresponding_value_from_list",
+        "methodName": "getCorrespondingValueFromList",
+        "sampleFile": "造物技能节点图\\复杂造物定点位移_连线.gia"
+      }
+    ],
+    "status": "partial"
+  },
+  {
+    "helper": "GameObject",
+    "member": "FindGameObjectsWithTag",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "backedBy": [
+      {
+        "subType": "character_skill",
+        "nodeType": "get_entity_list_by_unit_tag",
+        "methodName": "getEntityListByUnitTag",
+        "sampleFile": "角色技能节点图\\获取单位标签的实体列表_连线.gia"
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_entity_list_by_unit_tag",
+        "methodName": "getEntityListByUnitTag",
+        "sampleFile": "造物技能节点图\\获取单位标签的实体列表_连线.gia"
+      }
+    ],
+    "status": "partial"
+  },
+  {
+    "helper": "GameObject",
+    "member": "FindByPrefabId",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "gap"
+  },
+  {
+    "helper": "setTimeout",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "no client timer feature proven by resource JSON; server timer globals must not leak into client handlers"
+  },
+  {
+    "helper": "setInterval",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "no client timer feature proven by resource JSON; server timer globals must not leak into client handlers"
+  },
+  {
+    "helper": "clearTimeout",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "no client timer feature proven by resource JSON; server timer globals must not leak into client handlers"
+  },
+  {
+    "helper": "clearInterval",
+    "subTypes": [],
+    "modes": [],
+    "backedBy": [],
+    "status": "needs_developer_confirmation",
+    "note": "no client timer feature proven by resource JSON; server timer globals must not leak into client handlers"
+  }
+]

@@ -24,6 +24,22 @@ g.characterSkill({ id: 1082130433, name: 'ClientSkill' }).on('start', (_evt, f) 
 g.creationSkill({ id: 1082130434, name: 'ClientCreationSkill' }).on('start', (_evt, f) => {
   gsts.ctx.assertClientGraphCtx('creation_skill')
   gsts.fCreationSkill
+  // scoped helper globals: unsupported helpers/members must reject dynamically
+  const expectHelperRejection = (label: string, run: () => void) => {
+    try {
+      run()
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('[client scoped globals]')) return
+      throw error
+    }
+    throw new Error(`expected scoped-global rejection for ${label}`)
+  }
+  /* eslint-disable gsts/client-scoped-globals -- runtime rejection smoke needs these references */
+  expectHelperRejection('stage', () => void (stage as unknown))
+  expectHelperRejection('player', () => void (player as unknown))
+  expectHelperRejection('setTimeout', () => (setTimeout as unknown as () => void)())
+  expectHelperRejection('Mathf.Sqrt', () => (Mathf as { Sqrt?: unknown }).Sqrt)
+  /* eslint-enable gsts/client-scoped-globals */
   f
 })
 

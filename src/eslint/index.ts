@@ -3,6 +3,7 @@ import bigintIndexInServer from './rules/bigint-index-in-server.js'
 import builtinConsoleLogArity from './rules/builtin-console-log-arity.js'
 import builtinMathSupport from './rules/builtin-math-support.js'
 import builtinWrapperArity from './rules/builtin-wrapper-arity.js'
+import clientScopedGlobals from './rules/client-scoped-globals.js'
 import forStructure from './rules/for-structure.js'
 import gstsserverCallScope from './rules/gstsserver-call-scope.js'
 import gstsserverParams from './rules/gstsserver-params.js'
@@ -43,6 +44,7 @@ export const rules = {
   'builtin-console-log-arity': builtinConsoleLogArity,
   'builtin-math-support': builtinMathSupport,
   'builtin-wrapper-arity': builtinWrapperArity,
+  'client-scoped-globals': clientScopedGlobals,
   'for-structure': forStructure,
   'gstsserver-call-scope': gstsserverCallScope,
   'gstsserver-params': gstsserverParams,
@@ -119,7 +121,8 @@ export const configs = {
       'gsts/timer-outer-capture': ['warn', { allowOuterEventParam: false }],
       'gsts/builtin-math-support': 'error',
       'gsts/builtin-console-log-arity': 'error',
-      'gsts/builtin-wrapper-arity': 'error'
+      'gsts/builtin-wrapper-arity': 'error',
+      'gsts/client-scoped-globals': 'error'
     }
   }
 }
