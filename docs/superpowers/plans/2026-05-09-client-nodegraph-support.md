@@ -4,9 +4,18 @@
 
 **Goal:** Build complete client nodegraph support through the same TypeScript -> IR -> GIA -> CLI pipeline used by server graphs, while allowing explicit first-pass gaps for poorly understood special nodes.
 
-**Architecture:** Implement a server-parity client path with separate client metadata, capability, graph encoding, resolver, and builder modules. Keep the public API in `g` and `nodes.ts`, keep runtime IR readable, and branch in compiler/thirdparty only where client GIA encoding differs from server GIA encoding.
+**Architecture:** Implement a server-parity client path with separate client metadata, capability, graph encoding, resolver, and builder modules. Keep the public API in `g` and `nodes.ts`, keep runtime IR readable, keep client GIA graph header encoding facts in thirdparty `node_data` beside generated client node metadata (mirroring server graph header encoding owned by thirdparty `gia_gen/basic.ts`), and touch thirdparty code only for generated node metadata/helpers or narrow schema-backed helpers. The compiler consumes encoding facts through `gia_vendor.ts` only.
 
 **Tech Stack:** TypeScript 5.9, Node.js ESM, protobufjs-generated GIA schema, existing `tsx` scripts, existing `npm run build`, existing CLI pipeline.
+
+**Execution Status (2026-07-04):** Phase 1 and Phase 2 are complete and committed on
+branch `client-support` (`0771b78`, `c321cfc`, `17a5a3c`, `81e61de`; hashes may change on
+rebase). Phase 3 has not started; the next work is Phase 3 Task 7 Step 0. This revision
+also added Task 10 (minimal Phase 3 metadata + GIA smoke), Task 12 (literal value
+encoding), and Task 13 (reflect variant resolution), renumbering later tasks to 14-25.
+The generated `client_graph_encoding.ts` lives in thirdparty `node_data` (server-parity
+with `gia_gen/basic.ts` owning server graph header encoding), not under
+`src/compiler/ir_to_gia_transform/`.
 
 ---
 
@@ -25,7 +34,7 @@ Create these files:
 - `src/definitions/client_method_modes.ts`: generated method-to-subtype/mode maps; created only after real client node metadata extraction can populate it.
 - `src/runtime/client_graph_support.ts`: runtime client graph validation, registry helpers, filter normalization, and stable errors.
 - `src/shared/client_capability_errors.ts`: stable client error codes and helpers.
-- `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`: generated client GIA graph header encoding data.
+- `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`: generated client GIA graph header encoding data, consumed by the compiler through `gia_vendor.ts` only.
 - `src/compiler/ir_to_gia_transform/client_graph.ts`: client IR -> GIA implementation.
 - `src/compiler/ir_to_gia_transform/client_nodes.ts`: client node resolver and argument/connection mapping.
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`: generated metadata table.
@@ -1326,6 +1335,24 @@ Stop for user review after this phase.
 
 - Create: `src/compiler/ir_to_gia_transform/client_nodes.ts`
 - Modify: `src/compiler/ir_to_gia_transform/types.ts`
+- Modify: `src/compiler/ir_to_gia_transform/index.ts`
+
+- [ ] **Step 0: Add client IR fail-fast guard**
+
+Since Phase 2, the runner already emits client IR documents, but `irToGia` still routes
+everything through the server path. Before any other Phase 3 work, add a fail-fast guard
+at the start of `irToGia` in `src/compiler/ir_to_gia_transform/index.ts`:
+
+```ts
+if (ir.graph.type === 'client') {
+  throw new Error(
+    '[error] client IR to GIA compilation is not available yet; it lands later in this phase'
+  )
+}
+```
+
+This guard is replaced by the real client dispatch in Task 9. Client IR must never
+silently enter the server transform path.
 
 - [ ] **Step 1: Add client node resolver**
 
@@ -1385,7 +1412,7 @@ Expected: build passes.
 - [ ] **Step 4: Commit**
 
 ```powershell
-git add src/compiler/ir_to_gia_transform/client_nodes.ts src/compiler/ir_to_gia_transform/types.ts
+git add src/compiler/ir_to_gia_transform/client_nodes.ts src/compiler/ir_to_gia_transform/types.ts src/compiler/ir_to_gia_transform/index.ts
 git commit -m "feat: resolve client nodes from client metadata"
 ```
 
@@ -1530,7 +1557,6 @@ export function client_node_body(body: {
 export { node_connect_from, node_connect_to }
 ```
 
-- [ ] **Step 2: Add client dictionary mapping support**
 - [ ] **Step 2: Add client dictionary and faction-list mapping support**
 
 Modify `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts` in `get_id_client`:
@@ -1591,6 +1617,7 @@ Create `src/compiler/ir_to_gia_transform/client_graph.ts`:
 
 ```ts
 import { loadGiaProto } from '../../injector/proto.js'
+import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type { ClientIRDocument } from '../../runtime/IR.js'
 import {
   client_graph_body,
@@ -1607,7 +1634,7 @@ import { buildExecutionGraph, layoutPositions } from './layout.js'
 import type { NodeId } from './types.js'
 
 export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8Array {
-  const graphId = opts.graphId ?? ir.graph.id ?? 1082130433
+  const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph.name ?? '_GSTS_Generated_Client_Graph'
   const uid = opts.uid ?? 100000001
   const nodes = ir.nodes ?? []
@@ -1682,7 +1709,8 @@ export interface IrToGiaOptions {
 
 - [ ] **Step 4: Dispatch client IR**
 
-Modify the start of `irToGia` in `src/compiler/ir_to_gia_transform/index.ts`:
+Replace the Task 7 fail-fast guard at the start of `irToGia` in
+`src/compiler/ir_to_gia_transform/index.ts` with the real dispatch:
 
 ```ts
 if (ir.graph.type === 'client') {
@@ -1713,11 +1741,81 @@ git add src/compiler/gia_vendor.ts src/compiler/ir_to_gia_transform/client_graph
 git commit -m "feat: compile client IR to GIA"
 ```
 
+### Task 10: Extract Minimal Start/End Metadata And Compile A Minimal Client GIA
+
+Without this task, Phase 3 can only be reviewed structurally, because
+`CLIENT_NODE_METADATA` is still empty and `resolveClientNodeMetadata` cannot resolve even
+`node_graph_begins`. This task extracts just enough real metadata to prove the Phase 3
+transform end to end.
+
+**Files:**
+
+- Modify: `scripts/client-nodegraph/extract-client-node-metadata.ts`
+- Create: `scripts/client-nodegraph/smoke-minimal-client-gia.ts`
+- Output: `resources/client_node_metadata.json`
+- Output: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`
+- Output: `tests/client_generated/minimal_*.gia`
+
+- [ ] **Step 1: Extract minimal metadata records**
+
+Extend the extractor with a minimal pass that decodes samples and emits metadata records
+for exactly these nodes, per family where they exist:
+
+- the graph start node (`node_graph_begins`) for all six families, including the observed
+  `statusNodeExtension` payload for `creation_status` and `creation_status_decision`
+- `node_graph_end_boolean` for `bool_filter`
+- `node_graph_end_integer` for `int_filter`
+
+Each record must carry real `genericId`, `concreteId`, `graphType`, pins, and
+`sampleFile`, following the `ClientNodeMetadata` shape. Write them to
+`resources/client_node_metadata.json`. Full extraction of all other nodes stays in
+Phase 4.
+
+- [ ] **Step 2: Regenerate modules**
+
+Run:
+
+```powershell
+npm run gen:client
+npm run build
+```
+
+Expected: `client_node_metadata.ts` now contains the minimal records (metadata count > 0).
+
+- [ ] **Step 3: Add minimal GIA smoke with header round-trip**
+
+Create `scripts/client-nodegraph/smoke-minimal-client-gia.ts` that:
+
+1. Builds one hand-written start-node-only `ClientIRDocument` per family (six documents).
+2. Compiles each through `irToGia`.
+3. Decodes each produced `.gia` back with the proto and asserts the graph header matches
+   the family encoding: `GraphUnit.id.type = ClientGraph`, `which`, and inner
+   `NodeGraph.id.type` equal the values in `CLIENT_GRAPH_ENCODING_BY_SUB_TYPE`, and the
+   start node `genericId`/`concreteId` match the metadata record.
+4. Writes outputs to `tests/client_generated/minimal_<sub_type>.gia` and prints one `[ok]`
+   line per family.
+
+Run:
+
+```powershell
+node --import tsx ./scripts/client-nodegraph/smoke-minimal-client-gia.ts
+```
+
+Expected: six `[ok]` lines, no server-path imports involved.
+
+- [ ] **Step 4: Commit**
+
+```powershell
+git add scripts/client-nodegraph/extract-client-node-metadata.ts scripts/client-nodegraph/smoke-minimal-client-gia.ts resources/client_node_metadata.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts tests/client_generated
+git commit -m "feat: compile minimal client graphs from extracted start metadata"
+```
+
 ### Phase 3 Review Gate
 
 - [ ] Present client compiler branch diff.
 - [ ] Present confirmation that client compiler does not import server `node_id.ts`.
 - [ ] Present current unsupported special-node behavior.
+- [ ] Present minimal client `.gia` smoke output and decoded header round-trip result.
 - [ ] Present build result.
 - [ ] Wait for user approval before Phase 4.
 
@@ -1727,7 +1825,7 @@ git commit -m "feat: compile client IR to GIA"
 
 Stop for user review after this phase.
 
-### Task 10: Replace Placeholder Extraction With Real Node Metadata Extraction
+### Task 11: Replace Placeholder Extraction With Real Node Metadata Extraction
 
 **Files:**
 
@@ -1829,7 +1927,271 @@ git add scripts/client-nodegraph/extract-client-node-metadata.ts resources/clien
 git commit -m "feat: extract client node metadata from samples"
 ```
 
-### Task 11: Generate Client Method Modes And Definitions
+### Task 12: Add Client Literal Value Encoding With Round-Trip Verification
+
+Typed literal input pins are first-pass supported behavior, but `client_basic.ts` only
+writes empty values so far. This task makes literal `VarBase` encoding per
+`ClientVarType` explicit, evidence-driven, and verified by decode round-trip.
+
+**Files:**
+
+- Modify: `scripts/client-nodegraph/extract-client-node-metadata.ts`
+- Modify: `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts`
+- Modify: `src/shared/client_capability_errors.ts`
+- Create: `scripts/client-nodegraph/check-client-value-roundtrip.ts`
+- Output: `tests/client_generated/_value_shapes.json`
+- Output: `tests/client_generated/_value_roundtrip.json`
+
+- [ ] **Step 1: Collect observed literal value shapes**
+
+Extend the extractor to record, for every input pin with `alreadySetVal = true`, the
+observed `VarBase` structure grouped by `clientVarType` (bool, int, float, string,
+vector3, entity-like references, dictionary `24`, faction list `25`, and any others
+found). Write the per-type shape census with sample references to
+`tests/client_generated/_value_shapes.json`.
+
+- [ ] **Step 2: Implement client literal value encoding**
+
+Add `client_literal_value(pin, value)` to `client_basic.ts` covering exactly the
+`ClientVarType` values whose shapes are proven by `_value_shapes.json`. Wire it into
+`client_pin_body` for pins that carry literal arguments.
+
+Add a stable error code `VALUE_TYPE_UNAVAILABLE: 'CLIENT_VALUE_TYPE_UNAVAILABLE'` to
+`CLIENT_ERROR_CODES` and throw it for any `ClientVarType` without proven shape evidence.
+Do not borrow server `VarBase` construction for unproven client types.
+
+- [ ] **Step 3: Add round-trip check**
+
+Create `scripts/client-nodegraph/check-client-value-roundtrip.ts` that, for each
+supported `ClientVarType`, builds a literal pin via `client_pin_body` +
+`client_literal_value`, encodes it with the proto, decodes it back, and compares the
+structure field-by-field against the observed sample shape (ignoring the literal value
+itself). Write results to `tests/client_generated/_value_roundtrip.json`; the script must
+fail on any mismatch or on a supported type without a round-trip case.
+
+Run:
+
+```powershell
+node --import tsx ./scripts/client-nodegraph/check-client-value-roundtrip.ts
+```
+
+Expected: one `[ok]` line per supported `ClientVarType`.
+
+- [ ] **Step 4: Commit**
+
+```powershell
+git add scripts/client-nodegraph/extract-client-node-metadata.ts scripts/client-nodegraph/check-client-value-roundtrip.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/shared/client_capability_errors.ts tests/client_generated
+git commit -m "feat: encode client literal pin values from sample evidence"
+```
+
+### Task 13: Define Reflect/Generic Variant Resolution Rules
+
+Client nodes carry a `genericId`/`concreteId` pair, and reflective nodes have multiple
+concrete variants per generic node. The resolver must pick variants deterministically
+from metadata instead of guessing.
+
+**Files:**
+
+- Modify: `scripts/client-nodegraph/extract-client-node-metadata.ts`
+- Modify: `src/compiler/ir_to_gia_transform/client_nodes.ts`
+- Output: `tests/client_generated/_reflect_resolution.json`
+
+- [ ] **Step 1: Derive variant records from samples**
+
+Extend the extractor to group decoded nodes by `subType + genericId`. When one generic id
+appears with multiple concrete ids, emit a `reflectMap` on the metadata record where each
+entry carries the `concreteId`, a `variantKey` derived from the ordered pin
+`clientVarType` vector (or the reflective pin's concrete type), and the variant pins.
+
+- [ ] **Step 2: Implement deterministic resolution**
+
+In `resolveClientNodeMetadata` (or a dedicated `resolveClientConcreteVariant` beside it),
+apply these rules in order:
+
+1. Exact `subType + nodeType` lookup; if the record has no `reflectMap`, use its
+   `concreteId` directly.
+2. If the record has a `reflectMap`, compute the variant key from the IR node's argument
+   types and select the matching entry.
+3. No match or multiple matches: throw a stable client error that includes the
+   `genericId`, the computed key, and the candidate variant keys. Never fall back to
+   server tables and never pick a "closest" variant.
+
+- [ ] **Step 3: Report resolution coverage**
+
+Write `tests/client_generated/_reflect_resolution.json` from the extractor: every
+multi-variant generic id, its derivable variant keys, and any node marked
+`needs_developer_confirmation` because a variant key cannot be derived mechanically from
+samples. For those nodes, stop and ask the developer instead of guessing; the compiler
+must reject them with a stable error until confirmed.
+
+- [ ] **Step 4: Run build and targeted verification**
+
+Run:
+
+```powershell
+npm run gen:client
+npm run build
+```
+
+Expected: build passes; `_reflect_resolution.json` lists no silent unresolved variants.
+
+- [ ] **Step 5: Commit**
+
+```powershell
+git add scripts/client-nodegraph/extract-client-node-metadata.ts src/compiler/ir_to_gia_transform/client_nodes.ts tests/client_generated
+git commit -m "feat: resolve client reflect variants deterministically"
+```
+
+### Task 14: Derive Client Scoped Helper Global Capability
+
+**Files:**
+
+- Modify: `scripts/client-nodegraph/generate-client-nodegraph-modules.ts`
+- Output: `resources/client_scoped_globals_capability.json`
+- Output: `src/definitions/client_scoped_globals.ts`
+- Create: `src/runtime/client_scoped_globals.ts`
+- Modify: `src/runtime/core.ts`
+- Create: `src/eslint/rules/client-scoped-globals.ts`
+- Modify: `src/eslint/index.ts`
+- Modify: `scripts/client-nodegraph/fixtures/client_api_types.ts`
+- Modify: `scripts/client-nodegraph/fixtures/basic_client_graphs.ts`
+
+- [ ] **Step 1: Generate helper capability from resource JSON**
+
+After `resources/client_node_metadata.json` and
+`resources/client_execution_flow_metadata.json` are populated, derive a dedicated
+helper capability report:
+
+```ts
+type ClientScopedGlobalCapability = {
+  helper:
+    | 'send'
+    | 'player'
+    | 'self'
+    | 'stage'
+    | 'level'
+    | 'Mathf'
+    | 'Random'
+    | 'Vector3'
+    | 'GameObject'
+  member?: string
+  subTypes: ClientGraphSubType[]
+  modes: ClientGraphMode[]
+  backedBy: Array<{
+    subType: ClientGraphSubType
+    nodeType: string
+    methodName: string
+    sampleFile: string
+  }>
+  status: 'supported' | 'partial' | 'needs_developer_confirmation' | 'gap'
+  note?: string
+}
+```
+
+The generator must use generated resource JSON as evidence. File names, server
+method names, and manual guesses may help investigation, but cannot be accepted
+as implementation proof.
+
+- [ ] **Step 2: Include all planned helper families**
+
+The capability report must cover:
+
+```text
+send(...)
+player(id)
+self
+stage / level
+Mathf
+Random
+Vector3
+GameObject
+```
+
+Partial support is allowed and expected. For example, `Mathf` and `Vector3` may
+only expose members backed by actual client nodes, and `stage` / `level` may only
+exist in client graph families where a compatible "get level/stage entity" node
+is proven.
+
+- [ ] **Step 3: Stop on uncertain semantic equivalence**
+
+If a resource JSON entry has a similar name but the parameter list, return type,
+or runtime meaning is not clearly equivalent to the proposed helper member, mark
+it as `needs_developer_confirmation` and do not implement the member yet.
+
+Examples that require explicit confirmation if metadata does not prove
+equivalence:
+
+- `player(id)` when client nodes return character/player-related entities but
+  not the same entity concept as server `player(id)`.
+- `GameObject.FindWithTag` when only a list-returning tag query is proven.
+- Any timer-like or cooldown-like node that is not equivalent to JavaScript-style
+  `setTimeout` / `setInterval`.
+
+- [ ] **Step 4: Generate type-facing helper definitions**
+
+Generate `src/definitions/client_scoped_globals.ts` from the capability report.
+The generated types must expose helper members only for supported
+`SubType + Mode` combinations. Unsupported helpers should be absent from the
+type surface instead of present with unusable overloads.
+
+- [ ] **Step 5: Install scoped client helper globals at runtime**
+
+Implement `installScopedClientGlobals(subType, mode)` in
+`src/runtime/client_scoped_globals.ts` and call it from the client handler path in
+`src/runtime/core.ts`.
+
+Runtime behavior:
+
+- Install only helpers supported by the current `ClientGraphSubType + mode`.
+- Restore previous globals after the handler exits, matching server scoped global
+  restoration behavior.
+- Reject dynamically reached unsupported helper/member calls with stable client
+  errors that include helper name, current subType, and current mode.
+- Do not install server-only timer helpers unless resource JSON proves a
+  compatible client timer feature and the developer confirms the mapping.
+
+- [ ] **Step 6: Add ESLint guards for unsupported helper patterns**
+
+Add a client scoped globals ESLint rule for source patterns that TypeScript
+cannot reliably prevent. The rule must reject helper use when the current client
+graph family or mode cannot support it, including partial helper members such as
+unsupported `Mathf.*`, `Vector3.*`, `Random.*`, or `GameObject.*` members.
+
+The rule should produce actionable messages:
+
+```text
+[client scoped globals] Vector3.ClampMagnitude is not available in bool_filter classic mode
+```
+
+- [ ] **Step 7: Add type and runtime smokes**
+
+Update client API fixtures so they cover:
+
+- supported helpers in at least one compatible graph family
+- partial helpers omitted in incompatible families
+- dynamic runtime rejection for unsupported helpers
+- no server timer globals in client handlers unless explicitly proven later
+
+- [ ] **Step 8: Run generation and checks**
+
+Run:
+
+```powershell
+npm run gen:client
+npm run build
+node --import tsx dist/src/compiler/gs_to_ir_json_transform/runner.js scripts/client-nodegraph/fixtures/basic_client_graphs.ts tests/client_generated/basic_client_graphs.ir.json
+```
+
+Do not run `npm test` in this phase unless the developer explicitly asks for it.
+
+- [ ] **Step 9: Commit**
+
+```powershell
+git add scripts/client-nodegraph/generate-client-nodegraph-modules.ts resources/client_scoped_globals_capability.json src/definitions/client_scoped_globals.ts src/runtime/client_scoped_globals.ts src/runtime/core.ts src/eslint/rules/client-scoped-globals.ts src/eslint/index.ts scripts/client-nodegraph/fixtures/client_api_types.ts scripts/client-nodegraph/fixtures/basic_client_graphs.ts
+git commit -m "feat: add client scoped helper globals capability"
+```
+
+### Task 15: Generate Client Method Modes And Definitions
 
 **Files:**
 
@@ -1936,17 +2298,530 @@ git commit -m "feat: generate client method availability"
 
 - [ ] Present metadata count.
 - [ ] Present method count per subtype.
+- [ ] Present literal value shape census and round-trip check result per `ClientVarType`.
+- [ ] Present reflect variant resolution report and any `needs_developer_confirmation` variants.
+- [ ] Present client scoped helper globals capability report.
+- [ ] Present helper gaps and any `needs_developer_confirmation` entries.
 - [ ] Present gap report.
 - [ ] Present consistency check result.
 - [ ] Wait for user approval before Phase 5.
 
 ---
 
-## Phase 5: End-To-End Smokes
+## Phase 5: Client TS Transform And Entry Detection
 
 Stop for user review after this phase.
 
-### Task 12: Add User Graph Smoke
+### Task 16: Add Client TS Transform And Entry Detection
+
+**Files:**
+
+- Modify: `src/compiler/ts_to_gs_transform/matcher.ts`
+- Modify: `src/compiler/ts_to_gs_transform/index.ts`
+- Modify: `src/compiler/ts_to_gs_pipeline.ts`
+- Modify: `src/compiler/ts_to_gs_transform/types.ts`
+- Modify shared transform files only where client handler support needs existing statement/expression lowering.
+- Create: `scripts/client-nodegraph/fixtures/client_ts_transform.ts`
+
+- [ ] **Step 1: Generalize graph entry detection**
+
+Replace server-only entry detection with graph-entry detection that recognizes:
+
+```ts
+g.server(...).on(event, handler)
+g.server(...).onSignal(signal, handler)
+g.characterSkill(options?).on('start', handler)
+g.creationSkill(options?).on('start', handler)
+g.creationStatus(options?).on('start', handler)
+g.creationStatusDecision(options?).on('start', handler)
+g.boolFilter(options?).on('start', handler)
+g.intFilter(options?).on('start', handler)
+```
+
+The public client shape must stay `.on('start', handler)`. If another shape looks
+useful while implementing, stop and ask the developer to confirm before adding it.
+
+- [ ] **Step 2: Transform supported TypeScript inside client handlers**
+
+Route client handlers through the existing statement/expression transform so
+supported `if`, `for`, `switch`, `break`, `continue`, `return`, list operations,
+and local variable lowering work in client graph code.
+
+The transform must carry client graph context:
+
+```ts
+graphDocumentType: 'client'
+clientSubType: ClientGraphSubType
+clientMode: ClientGraphMode
+```
+
+Use that context to reject unsupported client capabilities instead of silently
+emitting server-only calls.
+
+- [ ] **Step 3: Preserve server-only semantics**
+
+Keep `gstsServer*` support server-only unless a separate client reusable-function
+design is approved. If users call `gstsServer*` from client handlers, emit a
+clear transform error.
+
+Do not introduce a `gstsClient*` function family in this phase. If reusable
+client functions are needed, pause and ask the developer to confirm syntax,
+subtype/mode behavior, and review scope.
+
+- [ ] **Step 4: Entry marker support**
+
+Update `hasEntryMarker` producers by ensuring `.gs.ts` files containing only
+client entries still receive `// @gsts:entry`. Mixed server/client files should
+produce one entry-marked `.gs.ts` file and later emit all registered IR documents.
+
+- [ ] **Step 5: Add transform fixture**
+
+Create a fixture that uses client entry APIs with:
+
+- an `if` lowered to the client `doubleBranch` path where supported
+- a loop lowered only in client graph families that support loop nodes
+- a bool filter return
+- an int filter return
+- a rejected server-only `gstsServer*` use from a client handler
+
+For any uncertain supported control-flow form, leave the fixture pending and ask
+the developer to confirm before implementing that form.
+
+- [ ] **Step 6: Run targeted transform verification**
+
+Run:
+
+```powershell
+npm run build
+node ./bin/gsts.mjs scripts/client-nodegraph/fixtures/client_ts_transform.ts --noinject
+```
+
+Do not run `npm test` unless the developer explicitly asks for it.
+
+- [ ] **Step 7: Commit**
+
+```powershell
+git add src/compiler/ts_to_gs_transform src/compiler/ts_to_gs_pipeline.ts scripts/client-nodegraph/fixtures/client_ts_transform.ts
+git commit -m "feat: compile client graph handlers through ts transform"
+```
+
+### Phase 5 Review Gate
+
+- [ ] Present TS transform fixture output.
+- [ ] Present entry marker behavior for client-only and mixed server/client files.
+- [ ] Present any unsupported client syntax still pending developer confirmation.
+- [ ] Wait for user approval before Phase 6.
+
+---
+
+## Phase 6: Client CLI Batch And Dev Workflow
+
+Stop for user review after this phase.
+
+### Task 17: Add Client CLI Batch And Dev Integration
+
+**Files:**
+
+- Modify: `src/cli/gsts.ts`
+- Modify: `src/compiler/gs_to_ir_json_transform/index.ts`
+- Modify: `src/compiler/gs_to_ir_json_transform/runner.ts`
+- Modify: `src/compiler/ir_merge.ts` only if mixed server/client batch behavior needs a discovered fix.
+- Create: `scripts/client-nodegraph/fixtures/mixed_server_client_entries.ts`
+
+- [ ] **Step 1: Verify batch mode with client-only entries**
+
+Ensure `gsts -c ... --noinject` compiles client-only entries from TS source to
+`.gs.ts`, `.json`, and `.gia` through the same batch path as server entries.
+
+- [ ] **Step 2: Verify mixed server/client files**
+
+Ensure a file containing both `g.server(...)` and client graph entries emits all
+IR documents and that merge rules preserve:
+
+- no duplicate server/client graph id
+- no incompatible client subtype merge
+- no incompatible client mode merge
+
+- [ ] **Step 3: Verify dev watch dependency behavior**
+
+Ensure dev watch tracks client entries and their local imports. A dependency
+change should recompile and re-emit affected client GIA files the same way it
+does for server entries.
+
+- [ ] **Step 4: Keep no separate client workflow**
+
+Do not add a separate `gsts client ...` command unless the developer explicitly
+requests it. Client graph support should work through the existing compile,
+build, dev, and injection flow.
+
+- [ ] **Step 5: Add CLI fixtures and smoke**
+
+Add a mixed server/client fixture and a focused smoke command. The smoke should
+not require injection.
+
+- [ ] **Step 6: Commit**
+
+```powershell
+git add src/cli/gsts.ts src/compiler/gs_to_ir_json_transform scripts/client-nodegraph/fixtures/mixed_server_client_entries.ts package.json
+git commit -m "feat: support client graphs in cli batch flow"
+```
+
+### Phase 6 Review Gate
+
+- [ ] Present client-only CLI batch smoke output.
+- [ ] Present mixed server/client entry smoke output.
+- [ ] Present dev watch dependency behavior evidence or the reason it needs manual follow-up.
+- [ ] Wait for user approval before Phase 7.
+
+---
+
+## Phase 7: Client Injection And Signal Integration
+
+Stop for user review after this phase.
+
+### Task 18: Add Client Injector, Graph Type, And Signal Patch Support
+
+**Files:**
+
+- Modify: `src/injector/index.ts`
+- Modify: `src/injector/folder.ts`
+- Modify: `src/injector/signal_nodes.ts`
+- Modify: `src/cli/gil_signals.ts`
+- Modify: `src/i18n/locales/en-US/main.json`
+- Modify: `src/i18n/locales/zh-CN/main.json`
+- Create or update focused injector/signal smoke fixtures.
+
+- [ ] **Step 1: Add client graph type names and safety checks**
+
+Teach injector warnings and folder-category checks about client graph types:
+
+```text
+20001 bool_filter
+20002 character_skill
+20006 int_filter
+20007 creation_status_decision
+20008 creation_skill
+20009 creation_status
+```
+
+If folder category values for these graph types are uncertain, stop and verify
+from local map data or ask the developer to confirm before hard-coding them.
+
+- [ ] **Step 2: Verify target graph replacement path**
+
+Ensure client GIA injection can locate and replace a saved client graph by id
+without tripping the server-only path expectation check.
+
+- [ ] **Step 3: Verify client-to-server signal node id patching**
+
+For client `send(...)` / "send to server node graph" support, prove the signal
+node id patch path using resource JSON and map signal data. Do not assume server
+`send_signal` or `monitor_signal` placeholders are valid for client send-server
+nodes without evidence.
+
+- [ ] **Step 4: Verify signal resource extraction**
+
+Confirm `src/cli/gil_signals.ts` extracts signal definitions needed by client
+send-server nodes and that `Signal.xxx` typing works for client helper usage.
+
+If signal parameter encoding differs for client send-server nodes, mark it as a
+gap and ask the developer to confirm expected behavior before implementation.
+
+- [ ] **Step 5: Commit**
+
+```powershell
+git add src/injector src/cli/gil_signals.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json
+git commit -m "feat: support client graph injection metadata"
+```
+
+### Phase 7 Review Gate
+
+- [ ] Present client graph type/folder mapping evidence.
+- [ ] Present target graph replacement result.
+- [ ] Present signal patch and signal resource extraction result, or list cases needing developer confirmation.
+- [ ] Wait for user approval before Phase 8.
+
+---
+
+## Phase 8: Published Types, Zh Aliases, And Client Scoped Globals
+
+Stop for user review after this phase.
+
+### Task 19: Add Client Published Types And Zh Aliases
+
+**Files:**
+
+- Modify: `src/runtime/server_globals.d.ts` only if shared declarations need wording updates.
+- Create: `src/runtime/client_globals.d.ts`
+- Modify: `scripts/postbuild.mjs`
+- Modify: `types/gsts/index.d.ts`
+- Modify: `scripts/generate-zh-aliases.mjs`
+- Modify: `src/definitions/zh_aliases.ts`
+- Modify: client generated definitions as needed.
+
+- [ ] **Step 1: Add client global/helper declaration file**
+
+Add a client-facing declaration file for:
+
+- `gsts.fCharacterSkill`
+- `gsts.fCreationSkill`
+- `gsts.fCreationStatus`
+- `gsts.fCreationStatusDecision`
+- `gsts.fBoolFilter`
+- `gsts.fIntFilter`
+- client scoped helper globals proven by capability (`send`, `self`, `Mathf`, etc.)
+
+Do not silently reuse server-only global declarations for client helper support.
+
+- [ ] **Step 2: Update published type entry**
+
+Update `postbuild.mjs` and `types/gsts/index.d.ts` so package consumers receive
+client global declarations after build/pack.
+
+- [ ] **Step 3: Generate client zh aliases**
+
+Extend zh alias generation to include client method aliases and client start
+event aliases from client metadata. If a Chinese display name cannot be
+converted to a stable identifier, write it to the alias report and ask the
+developer before choosing a manual alias.
+
+- [ ] **Step 4: Add import/type smoke**
+
+Add a package-style type smoke proving client globals and aliases are visible to
+consumers through `genshin-ts`.
+
+- [ ] **Step 5: Commit**
+
+```powershell
+git add src/runtime/client_globals.d.ts scripts/postbuild.mjs types/gsts/index.d.ts scripts/generate-zh-aliases.mjs src/definitions/zh_aliases.ts
+git commit -m "feat: publish client graph global types"
+```
+
+### Phase 8 Review Gate
+
+- [ ] Present client global declaration paths and generated package type entry.
+- [ ] Present client zh alias generation report.
+- [ ] Present helper global runtime/type smoke output.
+- [ ] Present any helper syntax, parameter, or semantic cases left pending developer confirmation.
+- [ ] Wait for user approval before Phase 9.
+
+---
+
+## Phase 9: Client ESLint Parity
+
+Stop for user review after this phase.
+
+### Task 20: Add Client ESLint Parity Rules
+
+**Files:**
+
+- Create: `src/eslint/rules/client-graph-entry-shape.ts`
+- Create: `src/eslint/rules/client-graph-scoped-f.ts`
+- Create: `src/eslint/rules/client-graph-capability-usage.ts`
+- Create: `src/eslint/rules/client-filter-return.ts`
+- Modify: `src/eslint/index.ts`
+- Create: `tests/eslint/client-graph-rules.test.ts` or the nearest existing ESLint test fixture file.
+
+- [ ] **Step 1: Inventory server ESLint rules and classify reuse**
+
+Review existing server/nodegraph rules and classify them as:
+
+- reusable for both server and client without changes
+- reusable after adding client graph detection
+- server-only
+- client-only
+
+At minimum, evaluate:
+
+```text
+gstsserver-*
+no-gsts-f-outside-server
+timer-*
+no-unsupported-statement
+switch-restrictions
+for-structure
+require-boolean-condition
+list-*
+builtin-math-support
+builtin-wrapper-arity
+assignment-restrictions
+```
+
+- [ ] **Step 2: Add client graph entry shape rule**
+
+Reject unsupported client entry forms. The accepted public shape is:
+
+```ts
+g.characterSkill(options?).on('start', handler)
+g.creationSkill(options?).on('start', handler)
+g.creationStatus(options?).on('start', handler)
+g.creationStatusDecision(options?).on('start', handler)
+g.boolFilter(options?).on('start', handler)
+g.intFilter(options?).on('start', handler)
+```
+
+If implementation discovers an ambiguous alternate shape, stop and ask the
+developer to confirm before adding lint support.
+
+- [ ] **Step 3: Add scoped f namespace rule**
+
+In client handlers, reject default server shorthand usage when it is not valid:
+
+```ts
+gsts.f.xxx // server shorthand; not a client f namespace
+gsts.fServer.xxx // explicit server namespace; not a client f namespace
+```
+
+Require the matching client namespace instead:
+
+```ts
+gsts.fCharacterSkill
+gsts.fCreationSkill
+gsts.fCreationStatus
+gsts.fCreationStatusDecision
+gsts.fBoolFilter
+gsts.fIntFilter
+```
+
+The rule should catch obvious subtype mismatches, for example
+`g.characterSkill(...).on(... => gsts.fBoolFilter.xxx())`.
+
+- [ ] **Step 4: Add capability usage rule**
+
+Using generated metadata/capability resources, reject unsupported client graph
+features by `ClientGraphSubType + mode`:
+
+- unsupported execution-flow methods (`doubleBranch`, `finiteLoop`,
+  `listIterationLoop`, `multipleBranches`, `breakLoop`)
+- unsupported client scoped helper globals and helper members
+- server-only timer helpers unless client resources prove compatible timer
+  behavior and the developer has confirmed the mapping
+- node graph variable APIs in client graphs, because client node graphs do not
+  support node graph variables in the current plan
+
+For any uncertain method name, parameter shape, callback shape, or semantic
+equivalence, mark the rule case as pending and ask the developer to confirm
+before implementing it.
+
+- [ ] **Step 5: Add filter return rule**
+
+For `g.boolFilter(...).on('start', handler)` and
+`g.intFilter(...).on('start', handler)`, lint handler bodies so obvious invalid
+returns are caught early:
+
+- bool filter should return a boolean-compatible value.
+- int filter should return an integer-compatible value.
+- missing return in a block-bodied handler should be rejected.
+
+If metadata later proves additional accepted return forms, add them only after
+developer confirmation.
+
+- [ ] **Step 6: Wire rules into the recommended config**
+
+Register the new rules in `src/eslint/index.ts`. Recommended config should make
+client graph entry shape, scoped f namespace, capability usage, and filter return
+violations errors.
+
+- [ ] **Step 7: Add ESLint fixtures**
+
+Add passing/failing fixtures for:
+
+- valid six client entry APIs
+- old array-handler or direct callback shapes rejected
+- `gsts.f` / `gsts.fServer` rejected in client handlers
+- mismatched `gsts.f*` rejected by subtype
+- unsupported control flow rejected by family/mode
+- unsupported helper members rejected by family/mode
+- node graph variable APIs rejected in client graphs
+- invalid bool/int filter returns rejected
+
+- [ ] **Step 8: Run targeted ESLint verification**
+
+Run the existing ESLint test command if one exists. If no targeted test command
+exists, add or run a focused script for the client ESLint fixtures. Do not run
+`npm test` unless the developer explicitly asks for it.
+
+- [ ] **Step 9: Commit**
+
+```powershell
+git add src/eslint/rules/client-graph-entry-shape.ts src/eslint/rules/client-graph-scoped-f.ts src/eslint/rules/client-graph-capability-usage.ts src/eslint/rules/client-filter-return.ts src/eslint/index.ts tests/eslint/client-graph-rules.test.ts
+git commit -m "feat: add client graph eslint rules"
+```
+
+### Phase 9 Review Gate
+
+- [ ] Present client ESLint rule inventory and any server rules intentionally reused or left server-only.
+- [ ] Present ESLint guard behavior for entry shape, scoped f namespaces, control flow, helper usage, node graph variable usage, and filter returns.
+- [ ] Present targeted ESLint verification output.
+- [ ] Wait for user approval before Phase 10.
+
+---
+
+## Phase 10: Docs, Coverage, And End-To-End Smokes
+
+Stop for user review after this phase.
+
+### Task 21: Add Client Docs, Examples, And Coverage Checks
+
+**Files:**
+
+- Modify: `docs/docs/en/doc/events/_meta.json`
+- Create: `docs/docs/en/doc/events/client-graphs.md`
+- Modify: `docs/docs/zh/doc/events/_meta.json`
+- Create: `docs/docs/zh/doc/events/client-graphs.md`
+- Modify: `docs/docs/en/doc/globals/types.md`
+- Modify: `docs/docs/zh/doc/globals/types.md`
+- Create or modify client coverage/check scripts under `scripts/client-nodegraph`.
+- Modify: `package.json`
+
+- [ ] **Step 1: Add user docs**
+
+Document:
+
+- six client graph families and official entry APIs
+- mode/lang behavior
+- no client node graph variables in the current plan
+- scoped `gsts.f*` namespaces
+- partial helper globals and metadata-backed limitations
+- injection requirements for saved client graphs
+- known gaps and developer-confirmation cases
+
+- [ ] **Step 2: Add client examples**
+
+Add examples for:
+
+- character skill
+- creation skill
+- creation status
+- creation status decision
+- bool filter
+- int filter
+- mixed server/client project file
+
+- [ ] **Step 3: Add coverage checks**
+
+Add checks that report:
+
+- metadata sample count and family count
+- method count by subtype/mode
+- helper global capability count
+- unsupported special kind count
+- sample nodes not mapped to generated method definitions
+- golden round-trip: decode self-produced client `.gia` outputs with the extractor
+  decoding path and compare node identity, pin layout, and literal value structure
+  against sample-derived metadata
+
+The check must fail for silent regressions such as metadata count dropping to
+zero, but it may allow documented explicit gaps.
+
+- [ ] **Step 4: Commit**
+
+```powershell
+git add docs/docs scripts/client-nodegraph package.json
+git commit -m "docs: add client graph user documentation"
+```
+
+### Task 22: Add User Graph Smoke
 
 **Files:**
 
@@ -2018,7 +2893,7 @@ git add scripts/smoke-client-user-graphs.ts package.json tests/client_generated
 git commit -m "test: add client user graph smoke"
 ```
 
-### Task 13: Add CLI And Import Validation Smokes
+### Task 23: Add CLI And Import Validation Smokes
 
 **Files:**
 
@@ -2126,20 +3001,21 @@ git add scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.
 git commit -m "test: add client CLI and import smokes"
 ```
 
-### Phase 5 Review Gate
+### Phase 10 Review Gate
 
-- [ ] Present all smoke outputs.
-- [ ] Present generated `.gia` file paths.
+- [ ] Present docs/examples paths and client coverage report.
+- [ ] Present all end-to-end smoke outputs.
+- [ ] Present generated client `.gia` file paths.
 - [ ] Present unresolved special gaps.
-- [ ] Wait for user approval before Phase 6.
+- [ ] Wait for user approval before Phase 11.
 
 ---
 
-## Phase 6: Cleanup And Hardening
+## Phase 11: Cleanup And Hardening
 
 Stop for final user review after this phase.
 
-### Task 14: Enforce No Server Fallback In Client Path
+### Task 24: Enforce No Server Fallback In Client Path
 
 **Files:**
 
@@ -2196,7 +3072,7 @@ git add scripts/check-client-definitions-consistency.ts
 git commit -m "test: guard client path against server fallback"
 ```
 
-### Task 15: Final Verification
+### Task 25: Final Verification
 
 **Files:**
 
@@ -2237,26 +3113,24 @@ npm run smoke:client:all
 
 Expected: all client smoke scripts pass.
 
-- [ ] **Step 4: Run existing test suite if runtime/compiler shared code changed**
+- [ ] **Step 4: Decide whether to run the existing test suite**
 
-Run:
-
-```powershell
-npm test
-```
-
-Expected: existing server graph tests pass.
+Do not run `npm test` by default, because the current project test command may
+trigger generation scripts and overwrite generated files. If runtime/compiler
+shared code changed, first ask the developer whether this overwrite behavior is
+acceptable. If approved, run the existing test suite and record any generated
+file changes separately from implementation changes.
 
 - [ ] **Step 5: Commit final fixes**
 
 If final verification exposes small integration fixes, stage only the planned implementation files that were changed by the fix:
 
 ```powershell
-git add scripts/client-nodegraph scripts/smoke-client-capability.mjs scripts/check-client-definitions-consistency.ts scripts/smoke-client-user-graphs.ts scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.mjs src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts src/runtime/IR.d.ts src/runtime/execution_flow_types.ts src/runtime/ir_builder.ts src/runtime/core.ts src/runtime/client_graph_support.ts src/runtime/graph_defaults.ts src/shared/client_capability_errors.ts src/compiler/gs_to_ir_json_transform/runner.ts src/compiler/ir_merge.ts src/compiler/ir_to_gia_transform src/compiler/gia_vendor.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts tests/client_generated
+git add scripts/client-nodegraph scripts/smoke-client-capability.mjs scripts/check-client-definitions-consistency.ts scripts/smoke-client-user-graphs.ts scripts/smoke-client-cli-e2e.mjs scripts/smoke-client-import-validation.mjs src/definitions/client_graph_modes.ts src/definitions/client_method_modes.ts src/definitions/nodes.ts src/runtime/IR.d.ts src/runtime/execution_flow_types.ts src/runtime/ir_builder.ts src/runtime/core.ts src/runtime/client_graph_support.ts src/runtime/graph_defaults.ts src/shared/client_capability_errors.ts src/compiler/gs_to_ir_json_transform/runner.ts src/compiler/ir_merge.ts src/compiler/ir_to_gia_transform src/compiler/gia_vendor.ts src/i18n/locales/en-US/main.json src/i18n/locales/zh-CN/main.json src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.ts tests/client_generated
 git commit -m "fix: harden client nodegraph support"
 ```
 
-### Phase 6 Review Gate
+### Phase 11 Review Gate
 
 - [ ] Present final build output.
 - [ ] Present client generation output.
@@ -2268,7 +3142,8 @@ git commit -m "fix: harden client nodegraph support"
 
 ## Self-Review
 
-- Spec coverage: The plan covers public API, metadata generation, runtime IR, merge, compiler dispatch, client resolver, client builder, smokes, and no-server-fallback checks.
+- Spec coverage: The plan covers public API, metadata generation, runtime IR, merge, compiler dispatch, client resolver, client builder, literal value encoding with round-trip verification, deterministic reflect variant resolution, smokes, and no-server-fallback checks.
+- Phase 3 reviewability: Task 7 Step 0 guarantees client IR fails fast before the client transform exists, and Task 10 extracts minimal start/end metadata so Phase 3 ends with a decodable minimal client `.gia` instead of a build-only review.
 - Explicit gaps: The plan preserves `inline_var_type_hint` as an observed first-pass unsupported detail and treats `structure_list_unknown_binding` as a conditional extractor finding, not a predeclared gap. `ClientVarType = 25` is treated as the observed faction-list type, not as a gap.
 - Type consistency: The plan consistently uses `ClientGraphSubType`, `ClientGraphMode`, `ClientNodeMetadata`, `CLIENT_GRAPH_ENCODING_BY_SUB_TYPE`, and `CLIENT_NODE_METADATA`.
 - Review model: Each phase ends with a user review gate before continuing.
