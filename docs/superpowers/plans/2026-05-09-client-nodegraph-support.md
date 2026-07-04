@@ -2265,12 +2265,16 @@ nodes per section (never across sections, never by index):
 
 - [ ] **Step 1: Regenerate metadata with English nodeTypes**
 
-Wire the alignment table into the extractor's `englishNodeType` chain (official client
-en name first, then existing server zh->en fallbacks). `nodeType` normalization keeps
-the existing rules including the leading-underscore digit rule
-(`3D Vector Subtraction` -> `_3d_vector_subtraction`). Regenerate
-`resources/client_node_metadata.json` and rerun `npm run gen:client`; the missing
-English-name report must shrink to exactly the unresolved list from Step 0.
+Wire the alignment table into the extractor's `englishNodeType` chain. Server
+alias-derived names keep priority for records that already resolved through
+`SERVER_F_ZH_TO_EN`/`SERVER_EVENT_ZH_TO_EN` (server-parity method names and stability
+for everything already generated on top of them, e.g. `queryDictionarySLength` vs the
+client doc's "Check Dictionary Length"); official doc en names fill every remaining
+gap. Records where the two sources disagree textually are listed in the alignment
+report for review. `nodeType` normalization keeps the existing rules including the
+leading-underscore digit rule (`3D Vector Subtraction` -> `_3d_vector_subtraction`).
+Regenerate `resources/client_node_metadata.json` and rerun `npm run gen:client`; the
+missing English-name report must shrink to exactly the unresolved list from Step 0.
 
 - [ ] **Step 2: Generate the full execution-flow metadata**
 

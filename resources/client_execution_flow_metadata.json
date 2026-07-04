@@ -770,7 +770,9 @@
     "nodeType": "get_list_of_keys_from_dictionary",
     "subTypes": [
       "character_skill",
-      "creation_skill"
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
     ],
     "modes": [
       "beyond"
@@ -809,7 +811,9 @@
     "nodeType": "get_list_of_values_from_dictionary",
     "subTypes": [
       "character_skill",
-      "creation_skill"
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
     ],
     "modes": [
       "beyond"
@@ -1001,6 +1005,98 @@
     "returnType": "entity",
     "typeParams": [],
     "docs": "/**\n   * Get Aggro Target of Specific Entity\n   *\n   * 获取指定实体的仇恨目标: 获取指定实体的仇恨目标\n   *\n   * @param aggroOwner\n   *\n   * 仇恨拥有者\n   *\n   * @returns\n   *\n   * 仇恨目标\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "greaterThan",
+    "nodeType": "greater_than",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "leftValue: FloatValue",
+      "rightValue: FloatValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Returns whether the left value is greater than the right value\n   *\n   * 数值大于: 返回左值是否大于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "greaterThanOrEqualTo",
+    "nodeType": "greater_than_or_equal_to",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "leftValue: FloatValue",
+      "rightValue: FloatValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Returns whether the left value is greater than or equal to the right value\n   *\n   * 数值大于等于: 返回左值是否大于等于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "lessThan",
+    "nodeType": "less_than",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "leftValue: FloatValue",
+      "rightValue: FloatValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Returns whether the left value is less than the right value\n   *\n   * 数值小于: 返回左值是否小于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "lessThanOrEqualTo",
+    "nodeType": "less_than_or_equal_to",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "leftValue: FloatValue",
+      "rightValue: FloatValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Returns whether the left value is less than or equal to the right value\n   *\n   * 数值小于等于: 返回左值是否小于等于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
     "requiresLocalVariableSpecialization": false
   },
   {
@@ -1385,6 +1481,24 @@
     "returnType": "boolean",
     "typeParams": [],
     "docs": "/**\n   * Searches whether two Factions are hostile to each other\n   *\n   * 查询阵营是否敌对: 查询两个阵营是否敌对\n   *\n   * @param faction1\n   *\n   * 阵营1\n   * @param faction2\n   *\n   * 阵营2\n   *\n   * @returns\n   *\n   * 是否敌对\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryIfSpecifiedEntityIsInCombat",
+    "nodeType": "query_if_specified_entity_is_in_combat",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "queryTarget: EntityValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Searches whether the specified Entity has entered battle\n   *\n   * 查询指定实体是否已入战: 查询指定实体是否已经入战\n   *\n   * @param queryTarget\n   *\n   * 查询目标\n   *\n   * @returns\n   *\n   * 是否入战\n   */",
     "requiresLocalVariableSpecialization": false
   },
   {

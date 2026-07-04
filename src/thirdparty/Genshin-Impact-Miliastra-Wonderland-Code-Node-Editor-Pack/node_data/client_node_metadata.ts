@@ -702,6 +702,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'enumeration_match',
+    displayName: '枚举匹配',
+    graphType: 20001,
+    genericId: 200005,
+    concreteId: 10,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\枚举匹配_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'equal',
     displayName: '是否相等',
     graphType: 20001,
@@ -807,6 +831,90 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'filter_entity_list_within_spherical_range',
+    displayName: '筛选球体范围内的实体列表',
+    graphType: 20001,
+    genericId: 200043,
+    concreteId: 1019,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\筛选球体范围内的实体列表_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'filter_entity_list_within_square_range',
+    displayName: '筛选方形范围内的实体列表',
+    graphType: 20001,
+    genericId: 200044,
+    concreteId: 1018,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'get_all_entities_within_the_collision_trigger',
     displayName: '获取碰撞触发器内所有实体',
     graphType: 20001,
@@ -828,6 +936,35 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\获取碰撞触发器内所有实体_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_all_valid_entities_that_are_scannable_by_scan_component',
+    displayName: '获取扫描组件可扫描的所有合法对象',
+    graphType: 20001,
+    genericId: 200119,
+    concreteId: 1040,
+    inputs: [],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_character_entity_of_specified_player',
+    displayName: '获取指定玩家的角色实体',
+    graphType: 20001,
+    genericId: 200024,
+    concreteId: 1002,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取指定玩家的角色实体_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -889,6 +1026,17 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'get_current_character',
+    displayName: '获取当前角色',
+    graphType: 20001,
+    genericId: 200076,
+    concreteId: 1032,
+    inputs: [],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\以实体查询GUID_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'get_custom_variable',
     displayName: '获取自定义变量',
     graphType: 20001,
@@ -919,6 +1067,185 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '布尔过滤器节点\\列表是否包含该值_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_currently_scanned_by_scan_component',
+    displayName: '获取扫描组件当前扫描到的实体',
+    graphType: 20001,
+    genericId: 200118,
+    concreteId: 1039,
+    inputs: [],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_location',
+    displayName: '获取实体位置',
+    graphType: 20001,
+    genericId: 200030,
+    concreteId: 1008,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\筛选球体范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_rotation',
+    displayName: '获取实体旋转',
+    graphType: 20001,
+    genericId: 200031,
+    concreteId: 1009,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_s_current_active_scan_tags',
+    displayName: '获取实体当前生效的扫描标签',
+    graphType: 20001,
+    genericId: 200121,
+    concreteId: 1042,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_s_scan_status',
+    displayName: '获取实体扫描状态',
+    graphType: 20001,
+    genericId: 200120,
+    concreteId: 1041,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取实体扫描状态_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_s_type',
+    displayName: '获取实体的类型',
+    graphType: 20001,
+    genericId: 200045,
+    concreteId: 1020,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\以GUID查询实体_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_entity_type_list',
+    displayName: '获取实体类型列表',
+    graphType: 20001,
+    genericId: 200050,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取实体类型列表_填值.gia'
   },
   {
     subType: 'bool_filter',
@@ -1081,6 +1408,169 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'get_random_number',
+    displayName: '获取随机数',
+    graphType: 20001,
+    genericId: 200032,
+    concreteId: 1011,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_ray_detection_result',
+    displayName: '获取射线检测结果',
+    graphType: 20001,
+    genericId: 200109,
+    concreteId: 1047,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取实体旋转_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_ray_filter_type_list',
+    displayName: '获取射线筛选类型列表',
+    graphType: 20001,
+    genericId: 200110,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取射线筛选类型列表_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'get_self_entity',
     displayName: '获取自身实体',
     graphType: 20001,
@@ -1089,6 +1579,242 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_target_attachment_point_location',
+    displayName: '获取目标挂接点位置',
+    graphType: 20001,
+    genericId: 200047,
+    concreteId: 1022,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_target_attachment_point_rotation',
+    displayName: '获取目标挂接点旋转',
+    graphType: 20001,
+    genericId: 200048,
+    concreteId: 1023,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取目标挂接点旋转_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_target_entity',
+    displayName: '获取目标实体',
+    graphType: 20001,
+    genericId: 200034,
+    concreteId: 1014,
+    inputs: [],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\获取目标实体_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_unit_attack_target',
+    displayName: '获取单位攻击目标',
+    graphType: 20001,
+    genericId: 200035,
+    concreteId: 1015,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'greater_than',
+    displayName: '是否大于',
+    graphType: 20001,
+    genericId: 200007,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\是否大于_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'greater_than_or_equal_to',
+    displayName: '是否大于等于',
+    graphType: 20001,
+    genericId: 200010,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\是否大于等于_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'less_than',
+    displayName: '是否小于',
+    graphType: 20001,
+    genericId: 200008,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\是否小于_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'less_than_or_equal_to',
+    displayName: '是否小于等于',
+    graphType: 20001,
+    genericId: 200009,
+    concreteId: null,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\余弦函数_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1381,6 +2107,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'orientation_to_rotation',
+    displayName: '朝向转旋转',
+    graphType: 20001,
+    genericId: 200074,
+    concreteId: 139,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'query_entity_by_guid',
     displayName: '以GUID查询实体',
     graphType: 20001,
@@ -1474,6 +2224,17 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\查询阵营是否敌对_填值.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_if_self_is_in_combat',
+    displayName: '查询自身是否已入战',
+    graphType: 20001,
+    genericId: 200037,
+    concreteId: 1017,
+    inputs: [],
+    outputs: [],
+    sampleFile: '布尔过滤器节点\\查询自身是否已入战_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -1601,767 +2362,6 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\正切函数_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '是否大于',
-    displayName: '是否大于',
-    graphType: 20001,
-    genericId: 200007,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '是否大于等于',
-    displayName: '是否大于等于',
-    graphType: 20001,
-    genericId: 200010,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于等于_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '是否小于',
-    displayName: '是否小于',
-    graphType: 20001,
-    genericId: 200008,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\是否小于_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '是否小于等于',
-    displayName: '是否小于等于',
-    graphType: 20001,
-    genericId: 200009,
-    concreteId: null,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\余弦函数_连线.gia',
-    reflectMap: [
-      {
-        concreteId: 12,
-        variantKey: '3,3',
-        pins: [
-          {
-            index: 1,
-            kind: 'input',
-            type: 'int',
-            clientVarType: 3
-          },
-          {
-            index: 2,
-            kind: 'input',
-            type: 'int',
-            clientVarType: 3
-          }
-        ]
-      },
-      {
-        concreteId: 13,
-        variantKey: '7,7',
-        pins: [
-          {
-            index: 1,
-            kind: 'input',
-            type: 'float',
-            clientVarType: 7
-          },
-          {
-            index: 2,
-            kind: 'input',
-            type: 'float',
-            clientVarType: 7
-          }
-        ]
-      }
-    ],
-    specialKind: 'reflect'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '朝向转旋转',
-    displayName: '朝向转旋转',
-    graphType: 20001,
-    genericId: 200074,
-    concreteId: 139,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '枚举匹配',
-    displayName: '枚举匹配',
-    graphType: 20001,
-    genericId: 200005,
-    concreteId: 10,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\枚举匹配_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '查询自身是否已入战',
-    displayName: '查询自身是否已入战',
-    graphType: 20001,
-    genericId: 200037,
-    concreteId: 1017,
-    inputs: [],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\查询自身是否已入战_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '筛选方形范围内的实体列表',
-    displayName: '筛选方形范围内的实体列表',
-    graphType: 20001,
-    genericId: 200044,
-    concreteId: 1018,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '筛选球体范围内的实体列表',
-    displayName: '筛选球体范围内的实体列表',
-    graphType: 20001,
-    genericId: 200043,
-    concreteId: 1019,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选球体范围内的实体列表_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取单位攻击目标',
-    displayName: '获取单位攻击目标',
-    graphType: 20001,
-    genericId: 200035,
-    concreteId: 1015,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取实体位置',
-    displayName: '获取实体位置',
-    graphType: 20001,
-    genericId: 200030,
-    concreteId: 1008,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选球体范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取实体当前生效的扫描标签',
-    displayName: '获取实体当前生效的扫描标签',
-    graphType: 20001,
-    genericId: 200121,
-    concreteId: 1042,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取实体扫描状态',
-    displayName: '获取实体扫描状态',
-    graphType: 20001,
-    genericId: 200120,
-    concreteId: 1041,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体扫描状态_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取实体旋转',
-    displayName: '获取实体旋转',
-    graphType: 20001,
-    genericId: 200031,
-    concreteId: 1009,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取实体的类型',
-    displayName: '获取实体的类型',
-    graphType: 20001,
-    genericId: 200045,
-    concreteId: 1020,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\以GUID查询实体_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取实体类型列表',
-    displayName: '获取实体类型列表',
-    graphType: 20001,
-    genericId: 200050,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体类型列表_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取射线检测结果',
-    displayName: '获取射线检测结果',
-    graphType: 20001,
-    genericId: 200109,
-    concreteId: 1047,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体旋转_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取射线筛选类型列表',
-    displayName: '获取射线筛选类型列表',
-    graphType: 20001,
-    genericId: 200110,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取射线筛选类型列表_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取当前角色',
-    displayName: '获取当前角色',
-    graphType: 20001,
-    genericId: 200076,
-    concreteId: 1032,
-    inputs: [],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\以实体查询GUID_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取扫描组件可扫描的所有合法对象',
-    displayName: '获取扫描组件可扫描的所有合法对象',
-    graphType: 20001,
-    genericId: 200119,
-    concreteId: 1040,
-    inputs: [],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取扫描组件当前扫描到的实体',
-    displayName: '获取扫描组件当前扫描到的实体',
-    graphType: 20001,
-    genericId: 200118,
-    concreteId: 1039,
-    inputs: [],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取指定玩家的角色实体',
-    displayName: '获取指定玩家的角色实体',
-    graphType: 20001,
-    genericId: 200024,
-    concreteId: 1002,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取指定玩家的角色实体_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取目标实体',
-    displayName: '获取目标实体',
-    graphType: 20001,
-    genericId: 200034,
-    concreteId: 1014,
-    inputs: [],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标实体_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取目标挂接点位置',
-    displayName: '获取目标挂接点位置',
-    graphType: 20001,
-    genericId: 200047,
-    concreteId: 1022,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_填值.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取目标挂接点旋转',
-    displayName: '获取目标挂接点旋转',
-    graphType: 20001,
-    genericId: 200048,
-    concreteId: 1023,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标挂接点旋转_连线.gia'
-  },
-  {
-    subType: 'bool_filter',
-    nodeType: '获取随机数',
-    displayName: '获取随机数',
-    graphType: 20001,
-    genericId: 200032,
-    concreteId: 1011,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
   },
   {
     subType: 'character_skill',
@@ -3834,6 +3834,129 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'camera_orientation_detection_data',
+    displayName: '镜头朝向检测数据',
+    graphType: 20002,
+    genericId: 200062,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+    displayName: '查询复杂造物的预设状态值',
+    graphType: 20002,
+    genericId: 200244,
+    concreteId: 1066,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'clear_the_aggro_list_of_the_specified_entity',
+    displayName: '清空指定实体的仇恨列表',
+    graphType: 20002,
+    genericId: 200087,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\将目标实体移除出仇恨列表_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'cosine_function',
     displayName: '余弦函数',
     graphType: 20002,
@@ -4137,6 +4260,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'enumeration_match',
+    displayName: '枚举匹配',
+    graphType: 20002,
+    genericId: 200005,
+    concreteId: 10,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\枚举匹配_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'equal',
     displayName: '是否相等',
     graphType: 20002,
@@ -4213,6 +4367,104 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'filter_entity_list_within_spherical_range',
+    displayName: '筛选球体范围内的实体列表',
+    graphType: 20002,
+    genericId: 200043,
+    concreteId: 1019,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'filter_entity_list_within_square_range',
+    displayName: '筛选方形范围内的实体列表',
+    graphType: 20002,
+    genericId: 200044,
+    concreteId: 1018,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '角色技能节点图\\筛选方形范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'finite_loop',
     displayName: '有限循环',
     graphType: 20002,
@@ -4262,6 +4514,140 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'fixed_point_displacement',
+    displayName: '定点位移',
+    graphType: 20002,
+    genericId: 200053,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'fixed_point_projectile_launch',
+    displayName: '定点发射投射物',
+    graphType: 20002,
+    genericId: 200052,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'prefab_id',
+        clientVarType: 19
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'faction',
+        clientVarType: 16
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia',
+    specialKind: 'inline_var_type_hint'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'force_exit_aiming_state',
+    displayName: '强制退出瞄准状态',
+    graphType: 20002,
+    genericId: 200108,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\强制退出瞄准状态_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'get_all_entities_within_the_collision_trigger',
     displayName: '获取碰撞触发器内所有实体',
     graphType: 20002,
@@ -4290,6 +4676,49 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\获取碰撞触发器内所有实体_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_all_valid_entities_that_are_scannable_by_scan_component',
+    displayName: '获取扫描组件可扫描的所有合法对象',
+    graphType: 20002,
+    genericId: 200119,
+    concreteId: 1040,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取扫描组件可扫描的所有合法对象_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_character_entity_of_specified_player',
+    displayName: '获取指定玩家的角色实体',
+    graphType: 20002,
+    genericId: 200024,
+    concreteId: 1002,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取指定玩家的角色实体_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -4387,6 +4816,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'get_current_character',
+    displayName: '获取当前角色',
+    graphType: 20002,
+    genericId: 200076,
+    concreteId: 1032,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色技能节点图\\以实体查询GUID_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'get_custom_variable',
     displayName: '获取自定义变量',
     graphType: 20002,
@@ -4418,6 +4865,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'get_entity_currently_scanned_by_scan_component',
+    displayName: '获取扫描组件当前扫描到的实体',
+    graphType: 20002,
+    genericId: 200118,
+    concreteId: 1039,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'get_entity_list_by_unit_tag',
     displayName: '获取单位标签的实体列表',
     graphType: 20002,
@@ -4440,6 +4911,241 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\获取单位标签的实体列表_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_location',
+    displayName: '获取实体位置',
+    graphType: 20002,
+    genericId: 200030,
+    concreteId: 1008,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取实体位置_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_rotation',
+    displayName: '获取实体旋转',
+    graphType: 20002,
+    genericId: 200031,
+    concreteId: 1009,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色技能节点图\\筛选方形范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_s_current_active_scan_tags',
+    displayName: '获取实体当前生效的扫描标签',
+    graphType: 20002,
+    genericId: 200121,
+    concreteId: 1042,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_s_scan_status',
+    displayName: '获取实体扫描状态',
+    graphType: 20002,
+    genericId: 200120,
+    concreteId: 1041,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '角色技能节点图\\枚举匹配_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_s_type',
+    displayName: '获取实体的类型',
+    graphType: 20002,
+    genericId: 200045,
+    concreteId: 1020,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取实体的类型_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_s_unit_tag_list',
+    displayName: '获取实体的单位标签列表',
+    graphType: 20002,
+    genericId: 200077,
+    concreteId: 1035,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取实体的单位标签列表_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_entity_type_list',
+    displayName: '获取实体类型列表',
+    graphType: 20002,
+    genericId: 200050,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取实体的类型_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -4739,6 +5445,189 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'get_random_number',
+    displayName: '获取随机数',
+    graphType: 20002,
+    genericId: 200032,
+    concreteId: 1012,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取随机数_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_ray_detection_result',
+    displayName: '获取射线检测结果',
+    graphType: 20002,
+    genericId: 200109,
+    concreteId: 1047,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询实体阵营_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_ray_filter_type_list',
+    displayName: '获取射线筛选类型列表',
+    graphType: 20002,
+    genericId: 200110,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'get_self_entity',
     displayName: '获取自身实体',
     graphType: 20002,
@@ -4754,6 +5643,86 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\字典_Entity到Integer_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_target_attachment_point_location',
+    displayName: '获取目标挂接点位置',
+    graphType: 20002,
+    genericId: 200047,
+    concreteId: 1022,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_target_attachment_point_rotation',
+    displayName: '获取目标挂接点旋转',
+    graphType: 20002,
+    genericId: 200048,
+    concreteId: 1023,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色技能节点图\\获取目标挂接点旋转_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_target_entity',
+    displayName: '获取目标实体',
+    graphType: 20002,
+    genericId: 200034,
+    concreteId: 1014,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -4804,6 +5773,222 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_unit_attack_target',
+    displayName: '获取单位攻击目标',
+    graphType: 20002,
+    genericId: 200035,
+    concreteId: 1015,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'greater_than',
+    displayName: '是否大于',
+    graphType: 20002,
+    genericId: 200007,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\是否大于_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'greater_than_or_equal_to',
+    displayName: '是否大于等于',
+    graphType: 20002,
+    genericId: 200010,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'increase_the_aggro_value_of_the_specified_entity',
+    displayName: '增加指定实体的仇恨值',
+    graphType: 20002,
+    genericId: 200084,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\增加指定实体的仇恨值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'less_than',
+    displayName: '是否小于',
+    graphType: 20002,
+    genericId: 200008,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\是否小于_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'less_than_or_equal_to',
+    displayName: '是否小于等于',
+    graphType: 20002,
+    genericId: 200009,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\是否小于等于_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -5124,6 +6309,80 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'notify_server_node_graph',
+    displayName: '通知服务器节点图',
+    graphType: 20002,
+    genericId: 200039,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\通知服务器节点图_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'orientation_to_rotation',
+    displayName: '朝向转旋转',
+    graphType: 20002,
+    genericId: 200074,
+    concreteId: 139,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色技能节点图\\三维向量内积_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'play_timed_effects',
     displayName: '播放限时特效',
     graphType: 20002,
@@ -5182,6 +6441,68 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\指定挂接点打矩形攻击盒_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'player_turning',
+    displayName: '玩家转向',
+    graphType: 20002,
+    genericId: 200040,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\玩家转向_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'player_turns_to_face_set_direction',
+    displayName: '玩家转向指定朝向',
+    graphType: 20002,
+    genericId: 200105,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\玩家转向指定朝向_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -5434,6 +6755,49 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'query_if_self_is_in_combat',
+    displayName: '查询自身是否已入战',
+    graphType: 20002,
+    genericId: 200037,
+    concreteId: 1017,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询自身是否已入战_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_if_specified_entity_is_in_combat',
+    displayName: '查询指定实体是否入战',
+    graphType: 20002,
+    genericId: 200092,
+    concreteId: 3003,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'radians_to_degrees',
     displayName: '弧度转角度',
     graphType: 20002,
@@ -5462,6 +6826,132 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\弧度转角度_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'recover_character_s_hp',
+    displayName: '恢复生命值',
+    graphType: 20002,
+    genericId: 200075,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'str_list',
+        clientVarType: 10
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 11,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\定点发射投射物_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'remove_specified_character_disruptor_device',
+    displayName: '移除指定角色扰动装置',
+    graphType: 20002,
+    genericId: 200060,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\移除指定角色扰动装置_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -5539,6 +7029,96 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'reset_skill_target',
+    displayName: '重置技能目标',
+    graphType: 20002,
+    genericId: 200106,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\重置技能目标_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'send_signal_to_server_node_graph',
+    displayName: '向服务器节点图发送信号',
+    graphType: 20002,
+    genericId: 200124,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'client_exec',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\双分支_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'set_attack_weight',
+    displayName: '设置攻击权重',
+    graphType: 20002,
+    genericId: 200061,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\设置攻击权重_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'set_local_variable',
     displayName: '设置局部变量',
     graphType: 20002,
@@ -5573,6 +7153,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\建立字典_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'set_own_attack_target',
+    displayName: '设置自身攻击目标',
+    graphType: 20002,
+    genericId: 200041,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\设置自身攻击目标_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -5616,6 +7233,49 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\设置指定实体的仇恨值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'set_the_aggro_value_of_the_specified_entity_proportionally',
+    displayName: '按比例设置指定实体的仇恨值',
+    graphType: 20002,
+    genericId: 200085,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -5810,40 +7470,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '向服务器节点图发送信号',
-    displayName: '向服务器节点图发送信号',
+    nodeType: 'transfer_the_aggro_value_of_the_specified_entity_proportionally',
+    displayName: '按比例转移指定实体的仇恨值',
     graphType: 20002,
-    genericId: 200124,
-    concreteId: 2000,
-    inputs: [],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'client_exec',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\双分支_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '增加指定实体的仇恨值',
-    displayName: '增加指定实体的仇恨值',
-    graphType: 20002,
-    genericId: 200084,
+    genericId: 200086,
     concreteId: 2000,
     inputs: [
       {
@@ -5861,63 +7491,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 2,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\增加指定实体的仇恨值_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '定点位移',
-    displayName: '定点位移',
-    graphType: 20002,
-    genericId: 200053,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'entity',
+        clientVarType: 1
       },
       {
         index: 3,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       }
     ],
     outputs: [],
@@ -5934,200 +7515,31 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\按比例转移指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_skill',
-    nodeType: '定点发射投射物',
-    displayName: '定点发射投射物',
+    nodeType: 'traverse_entity_list',
+    displayName: '遍历实体列表',
     graphType: 20002,
-    genericId: 200052,
+    genericId: 200055,
     concreteId: 2000,
     inputs: [
       {
         index: 0,
         kind: 'input',
-        type: 'prefab_id',
-        clientVarType: 19
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'faction',
-        clientVarType: 16
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia',
-    specialKind: 'inline_var_type_hint'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '实体是否携带指定单位状态',
-    displayName: '实体是否携带指定单位状态',
-    graphType: 20002,
-    genericId: 200243,
-    concreteId: 1068,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'config_id',
-        clientVarType: 18
+        type: 'entity_list',
+        clientVarType: 2
       }
     ],
     outputs: [
       {
         index: 0,
         kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '强制退出瞄准状态',
-    displayName: '强制退出瞄准状态',
-    graphType: 20002,
-    genericId: 200108,
-    concreteId: 2000,
-    inputs: [],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\强制退出瞄准状态_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '恢复生命值',
-    displayName: '恢复生命值',
-    graphType: 20002,
-    genericId: 200075,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
         type: 'entity',
         clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'str_list',
-        clientVarType: 10
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 11,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
       }
     ],
-    outputs: [],
     flows: [
       {
         index: 0,
@@ -6138,16 +7550,21 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'out_flow',
         type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点发射投射物_连线.gia'
+    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia'
   },
   {
     subType: 'character_skill',
-    nodeType: '指定挂接点打扇形攻击盒',
-    displayName: '指定挂接点打扇形攻击盒',
+    nodeType: 'trigger_hitbox_at_specific_location',
+    displayName: '特定位置打攻击盒',
     graphType: 20002,
-    genericId: 200116,
+    genericId: 200051,
     concreteId: 2000,
     inputs: [
       {
@@ -6159,8 +7576,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 2,
@@ -6171,8 +7588,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 4,
@@ -6183,44 +7600,44 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 6,
-        kind: 'input',
         type: 'enum_list',
         clientVarType: 17
       },
       {
-        index: 7,
+        index: 6,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 8,
+        index: 7,
         kind: 'input',
         type: 'int',
         clientVarType: 3
       },
       {
-        index: 9,
+        index: 8,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 10,
+        index: 9,
         kind: 'input',
         type: 'vec3',
         clientVarType: 11
       },
       {
+        index: 10,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
         index: 11,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 12,
@@ -6243,8 +7660,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 15,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 16,
@@ -6255,26 +7672,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 17,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 18,
-        kind: 'input',
         type: 'str_list',
         clientVarType: 10
       },
       {
-        index: 19,
+        index: 18,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 20,
+        index: 19,
         kind: 'input',
         type: 'float',
         clientVarType: 7
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 21,
@@ -6285,14 +7702,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 22,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 23,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 24,
@@ -6303,14 +7720,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 25,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 26,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 27,
@@ -6321,20 +7738,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 28,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 29,
-        kind: 'input',
         type: 'bool',
         clientVarType: 5
       },
       {
-        index: 30,
+        index: 29,
         kind: 'input',
         type: 'str',
         clientVarType: 9
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 31,
@@ -6345,8 +7762,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 32,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 33,
@@ -6357,20 +7774,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 34,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 35,
-        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 36,
+        index: 35,
         kind: 'input',
         type: 'str',
         clientVarType: 9
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 37,
@@ -6381,8 +7798,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 38,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 39,
@@ -6393,8 +7810,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 40,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 41,
@@ -6405,14 +7822,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 42,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 43,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 44,
@@ -6423,17 +7840,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 45,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 46,
-        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 47,
+        index: 46,
         kind: 'input',
         type: 'float',
         clientVarType: 7
@@ -6453,11 +7864,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\定点位移_连线.gia'
   },
   {
     subType: 'character_skill',
-    nodeType: '指定挂接点打攻击盒',
+    nodeType: 'trigger_hitbox_at_specified_attachment_point',
     displayName: '指定挂接点打攻击盒',
     graphType: 20002,
     genericId: 200059,
@@ -6770,10 +8181,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '指定挂接点打球形攻击盒',
-    displayName: '指定挂接点打球形攻击盒',
+    nodeType: 'trigger_rectangular_hitbox_at_specific_location',
+    displayName: '特定位置打矩形攻击盒',
     graphType: 20002,
-    genericId: 200114,
+    genericId: 200112,
     concreteId: 2000,
     inputs: [
       {
@@ -6785,8 +8196,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 2,
@@ -6797,8 +8208,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 4,
@@ -6809,38 +8220,38 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 6,
-        kind: 'input',
         type: 'enum_list',
         clientVarType: 17
       },
       {
-        index: 7,
+        index: 6,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 8,
+        index: 7,
         kind: 'input',
         type: 'int',
         clientVarType: 3
       },
       {
-        index: 9,
+        index: 8,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 10,
+        index: 9,
         kind: 'input',
         type: 'vec3',
         clientVarType: 11
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 11,
@@ -6869,8 +8280,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 15,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 16,
@@ -6881,26 +8292,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 17,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 18,
-        kind: 'input',
         type: 'str_list',
         clientVarType: 10
       },
       {
-        index: 19,
+        index: 18,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 20,
+        index: 19,
         kind: 'input',
         type: 'float',
         clientVarType: 7
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 21,
@@ -6911,14 +8322,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 22,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 23,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 24,
@@ -6929,14 +8340,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 25,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 26,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 27,
@@ -6947,20 +8358,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 28,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 29,
-        kind: 'input',
         type: 'bool',
         clientVarType: 5
       },
       {
-        index: 30,
+        index: 29,
         kind: 'input',
         type: 'str',
         clientVarType: 9
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 31,
@@ -6971,8 +8382,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 32,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 33,
@@ -6983,20 +8394,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 34,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 35,
-        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 36,
+        index: 35,
         kind: 'input',
         type: 'str',
         clientVarType: 9
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 37,
@@ -7007,8 +8418,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 38,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 39,
@@ -7019,8 +8430,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 40,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 41,
@@ -7031,14 +8442,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 42,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 43,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 44,
@@ -7049,17 +8460,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 45,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 46,
-        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 47,
+        index: 46,
         kind: 'input',
         type: 'float',
         clientVarType: 7
@@ -7079,11 +8484,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\特定位置打矩形攻击盒_连线.gia'
   },
   {
     subType: 'character_skill',
-    nodeType: '指定挂接点打矩形攻击盒',
+    nodeType: 'trigger_rectangular_hitbox_at_specified_attachment_point',
     displayName: '指定挂接点打矩形攻击盒',
     graphType: 20002,
     genericId: 200115,
@@ -7396,414 +8801,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '按比例设置指定实体的仇恨值',
-    displayName: '按比例设置指定实体的仇恨值',
-    graphType: 20002,
-    genericId: 200085,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '按比例转移指定实体的仇恨值',
-    displayName: '按比例转移指定实体的仇恨值',
-    graphType: 20002,
-    genericId: 200086,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\按比例转移指定实体的仇恨值_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '是否大于',
-    displayName: '是否大于',
-    graphType: 20002,
-    genericId: 200007,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\是否大于_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '是否大于等于',
-    displayName: '是否大于等于',
-    graphType: 20002,
-    genericId: 200010,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '是否小于',
-    displayName: '是否小于',
-    graphType: 20002,
-    genericId: 200008,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\是否小于_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '是否小于等于',
-    displayName: '是否小于等于',
-    graphType: 20002,
-    genericId: 200009,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\是否小于等于_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '朝向转旋转',
-    displayName: '朝向转旋转',
-    graphType: 20002,
-    genericId: 200074,
-    concreteId: 139,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '角色技能节点图\\三维向量内积_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '枚举匹配',
-    displayName: '枚举匹配',
-    graphType: 20002,
-    genericId: 200005,
-    concreteId: 10,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\枚举匹配_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '查询复杂造物的预设状态值',
-    displayName: '查询复杂造物的预设状态值',
-    graphType: 20002,
-    genericId: 200244,
-    concreteId: 1066,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '查询指定实体是否入战',
-    displayName: '查询指定实体是否入战',
-    graphType: 20002,
-    genericId: 200092,
-    concreteId: 3003,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '查询自身是否已入战',
-    displayName: '查询自身是否已入战',
-    graphType: 20002,
-    genericId: 200037,
-    concreteId: 1017,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询自身是否已入战_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '清空指定实体的仇恨列表',
-    displayName: '清空指定实体的仇恨列表',
-    graphType: 20002,
-    genericId: 200087,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\将目标实体移除出仇恨列表_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '特定位置打扇形攻击盒',
+    nodeType: 'trigger_sector_hitbox_at_specific_location',
     displayName: '特定位置打扇形攻击盒',
     graphType: 20002,
     genericId: 200113,
@@ -8110,10 +9108,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '特定位置打攻击盒',
-    displayName: '特定位置打攻击盒',
+    nodeType: 'trigger_sector_hitbox_at_specified_attachment_point',
+    displayName: '指定挂接点打扇形攻击盒',
     graphType: 20002,
-    genericId: 200051,
+    genericId: 200116,
     concreteId: 2000,
     inputs: [
       {
@@ -8125,8 +9123,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 2,
@@ -8137,8 +9135,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 4,
@@ -8149,44 +9147,44 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 6,
+        kind: 'input',
         type: 'enum_list',
         clientVarType: 17
       },
       {
-        index: 6,
+        index: 7,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 7,
+        index: 8,
         kind: 'input',
         type: 'int',
         clientVarType: 3
       },
       {
-        index: 8,
+        index: 9,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 9,
+        index: 10,
         kind: 'input',
         type: 'vec3',
         clientVarType: 11
       },
       {
-        index: 10,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
         index: 11,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 12,
@@ -8209,8 +9207,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 15,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 16,
@@ -8221,26 +9219,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 17,
         kind: 'input',
-        type: 'str_list',
-        clientVarType: 10
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 18,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'str_list',
+        clientVarType: 10
       },
       {
         index: 19,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 20,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 21,
@@ -8251,14 +9249,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 22,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 23,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 24,
@@ -8269,14 +9267,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 25,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 26,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 27,
@@ -8287,20 +9285,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 28,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 29,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 30,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 31,
@@ -8311,8 +9309,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 32,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 33,
@@ -8323,20 +9321,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 34,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 35,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 36,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 37,
@@ -8347,8 +9345,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 38,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 39,
@@ -8359,8 +9357,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 40,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 41,
@@ -8371,14 +9369,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 42,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 43,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 44,
@@ -8389,11 +9387,17 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 45,
         kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 46,
+        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 46,
+        index: 47,
         kind: 'input',
         type: 'float',
         clientVarType: 7
@@ -8413,11 +9417,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
   },
   {
     subType: 'character_skill',
-    nodeType: '特定位置打球形攻击盒',
+    nodeType: 'trigger_spherical_hitbox_at_specific_location',
     displayName: '特定位置打球形攻击盒',
     graphType: 20002,
     genericId: 200111,
@@ -8724,10 +9728,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '特定位置打矩形攻击盒',
-    displayName: '特定位置打矩形攻击盒',
+    nodeType: 'trigger_spherical_hitbox_at_specified_attachment_point',
+    displayName: '指定挂接点打球形攻击盒',
     graphType: 20002,
-    genericId: 200112,
+    genericId: 200114,
     concreteId: 2000,
     inputs: [
       {
@@ -8739,8 +9743,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 2,
@@ -8751,8 +9755,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 4,
@@ -8763,38 +9767,38 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 6,
+        kind: 'input',
         type: 'enum_list',
         clientVarType: 17
       },
       {
-        index: 6,
+        index: 7,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 7,
+        index: 8,
         kind: 'input',
         type: 'int',
         clientVarType: 3
       },
       {
-        index: 8,
+        index: 9,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 9,
+        index: 10,
         kind: 'input',
         type: 'vec3',
         clientVarType: 11
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
       },
       {
         index: 11,
@@ -8823,8 +9827,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 15,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 16,
@@ -8835,26 +9839,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 17,
         kind: 'input',
-        type: 'str_list',
-        clientVarType: 10
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 18,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'str_list',
+        clientVarType: 10
       },
       {
         index: 19,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 20,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 21,
@@ -8865,14 +9869,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 22,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 23,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 24,
@@ -8883,14 +9887,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 25,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 26,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 27,
@@ -8901,20 +9905,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 28,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 29,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 30,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 31,
@@ -8925,8 +9929,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 32,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 33,
@@ -8937,20 +9941,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 34,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 35,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 36,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 37,
@@ -8961,8 +9965,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 38,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 39,
@@ -8973,8 +9977,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 40,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 41,
@@ -8985,14 +9989,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 42,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 43,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 44,
@@ -9003,1072 +10007,68 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 45,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
         clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
       },
       {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\特定位置打矩形攻击盒_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '玩家转向',
-    displayName: '玩家转向',
-    graphType: 20002,
-    genericId: 200040,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\玩家转向_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '玩家转向指定朝向',
-    displayName: '玩家转向指定朝向',
-    graphType: 20002,
-    genericId: 200105,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\玩家转向指定朝向_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '移除指定角色扰动装置',
-    displayName: '移除指定角色扰动装置',
-    graphType: 20002,
-    genericId: 200060,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\移除指定角色扰动装置_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '筛选方形范围内的实体列表',
-    displayName: '筛选方形范围内的实体列表',
-    graphType: 20002,
-    genericId: 200044,
-    concreteId: 1018,
-    inputs: [
-      {
-        index: 0,
+        index: 47,
         kind: 'input',
         type: 'float',
         clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'whether_the_entity_has_the_specified_unit_status',
+    displayName: '实体是否携带指定单位状态',
+    graphType: 20002,
+    genericId: 200243,
+    concreteId: 1068,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
       },
       {
         index: 1,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    sampleFile: '角色技能节点图\\筛选方形范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '筛选球体范围内的实体列表',
-    displayName: '筛选球体范围内的实体列表',
-    graphType: 20002,
-    genericId: 200043,
-    concreteId: 1019,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取单位攻击目标',
-    displayName: '获取单位攻击目标',
-    graphType: 20002,
-    genericId: 200035,
-    concreteId: 1015,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体位置',
-    displayName: '获取实体位置',
-    graphType: 20002,
-    genericId: 200030,
-    concreteId: 1008,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取实体位置_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体当前生效的扫描标签',
-    displayName: '获取实体当前生效的扫描标签',
-    graphType: 20002,
-    genericId: 200121,
-    concreteId: 1042,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
         type: 'config_id',
         clientVarType: 18
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
       }
     ],
     sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体扫描状态',
-    displayName: '获取实体扫描状态',
-    graphType: 20002,
-    genericId: 200120,
-    concreteId: 1041,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    sampleFile: '角色技能节点图\\枚举匹配_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体旋转',
-    displayName: '获取实体旋转',
-    graphType: 20002,
-    genericId: 200031,
-    concreteId: 1009,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '角色技能节点图\\筛选方形范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体的单位标签列表',
-    displayName: '获取实体的单位标签列表',
-    graphType: 20002,
-    genericId: 200077,
-    concreteId: 1035,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int_list',
-        clientVarType: 4
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取实体的单位标签列表_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体的类型',
-    displayName: '获取实体的类型',
-    graphType: 20002,
-    genericId: 200045,
-    concreteId: 1020,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取实体的类型_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取实体类型列表',
-    displayName: '获取实体类型列表',
-    graphType: 20002,
-    genericId: 200050,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取实体的类型_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取射线检测结果',
-    displayName: '获取射线检测结果',
-    graphType: 20002,
-    genericId: 200109,
-    concreteId: 1047,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询实体阵营_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取射线筛选类型列表',
-    displayName: '获取射线筛选类型列表',
-    graphType: 20002,
-    genericId: 200110,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取当前角色',
-    displayName: '获取当前角色',
-    graphType: 20002,
-    genericId: 200076,
-    concreteId: 1032,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '角色技能节点图\\以实体查询GUID_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取扫描组件可扫描的所有合法对象',
-    displayName: '获取扫描组件可扫描的所有合法对象',
-    graphType: 20002,
-    genericId: 200119,
-    concreteId: 1040,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取扫描组件可扫描的所有合法对象_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取扫描组件当前扫描到的实体',
-    displayName: '获取扫描组件当前扫描到的实体',
-    graphType: 20002,
-    genericId: 200118,
-    concreteId: 1039,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'config_id',
-        clientVarType: 18
-      }
-    ],
-    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取指定玩家的角色实体',
-    displayName: '获取指定玩家的角色实体',
-    graphType: 20002,
-    genericId: 200024,
-    concreteId: 1002,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取指定玩家的角色实体_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取目标实体',
-    displayName: '获取目标实体',
-    graphType: 20002,
-    genericId: 200034,
-    concreteId: 1014,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取目标挂接点位置',
-    displayName: '获取目标挂接点位置',
-    graphType: 20002,
-    genericId: 200047,
-    concreteId: 1022,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取目标挂接点旋转',
-    displayName: '获取目标挂接点旋转',
-    graphType: 20002,
-    genericId: 200048,
-    concreteId: 1023,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取目标挂接点旋转_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '获取随机数',
-    displayName: '获取随机数',
-    graphType: 20002,
-    genericId: 200032,
-    concreteId: 1012,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '角色技能节点图\\获取随机数_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '设置攻击权重',
-    displayName: '设置攻击权重',
-    graphType: 20002,
-    genericId: 200061,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\设置攻击权重_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '设置自身攻击目标',
-    displayName: '设置自身攻击目标',
-    graphType: 20002,
-    genericId: 200041,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\设置自身攻击目标_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '通知服务器节点图',
-    displayName: '通知服务器节点图',
-    graphType: 20002,
-    genericId: 200039,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\通知服务器节点图_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '遍历实体列表',
-    displayName: '遍历实体列表',
-    graphType: 20002,
-    genericId: 200055,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      },
-      {
-        index: 1,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '重置技能目标',
-    displayName: '重置技能目标',
-    graphType: 20002,
-    genericId: 200106,
-    concreteId: 2000,
-    inputs: [],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\重置技能目标_连线.gia'
-  },
-  {
-    subType: 'character_skill',
-    nodeType: '镜头朝向检测数据',
-    displayName: '镜头朝向检测数据',
-    graphType: 20002,
-    genericId: 200062,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -11463,6 +11463,154 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+    displayName: '查询复杂造物的预设状态值',
+    graphType: 20002,
+    genericId: 200244,
+    concreteId: 1066,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'clear_the_aggro_list_of_the_specified_entity',
+    displayName: '清空指定实体的仇恨列表',
+    graphType: 20002,
+    genericId: 200087,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\清空指定实体的仇恨列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'complex_creation_directed_movement',
+    displayName: '复杂造物定点位移',
+    graphType: 20002,
+    genericId: 200248,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'complex_creation_teleport',
+    displayName: '复杂造物瞬移',
+    graphType: 20002,
+    genericId: 200247,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\复杂造物瞬移_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'cosine_function',
     displayName: '余弦函数',
     graphType: 20002,
@@ -11559,6 +11707,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'creation_turns_to_face_set_direction',
+    displayName: '造物转向指定朝向',
+    graphType: 20002,
+    genericId: 200245,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\造物转向指定朝向_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -11727,6 +11906,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'enumeration_match',
+    displayName: '枚举匹配',
+    graphType: 20002,
+    genericId: 200005,
+    concreteId: 10,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物技能节点图\\双分支_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'equal',
     displayName: '是否相等',
     graphType: 20002,
@@ -11803,6 +12013,104 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'filter_entity_list_within_spherical_range',
+    displayName: '筛选球体范围内的实体列表',
+    graphType: 20002,
+    genericId: 200043,
+    concreteId: 1019,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'filter_entity_list_within_square_range',
+    displayName: '筛选方形范围内的实体列表',
+    graphType: 20002,
+    genericId: 200044,
+    concreteId: 1018,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'finite_loop',
     displayName: '有限循环',
     graphType: 20002,
@@ -11849,6 +12157,61 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\增加指定实体的仇恨值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'fixed_point_projectile_launch',
+    displayName: '定点发射投射物',
+    graphType: 20002,
+    genericId: 200052,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'prefab_id',
+        clientVarType: 19
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'faction',
+        clientVarType: 16
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\定点发射投射物_连线.gia',
+    specialKind: 'inline_var_type_hint'
   },
   {
     subType: 'creation_skill',
@@ -12031,6 +12394,191 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\获取单位标签的实体列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_entity_location',
+    displayName: '获取实体位置',
+    graphType: 20002,
+    genericId: 200030,
+    concreteId: 1008,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_entity_rotation',
+    displayName: '获取实体旋转',
+    graphType: 20002,
+    genericId: 200031,
+    concreteId: 1009,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物技能节点图\\筛选方形范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_entity_s_type',
+    displayName: '获取实体的类型',
+    graphType: 20002,
+    genericId: 200045,
+    concreteId: 1020,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '造物技能节点图\\枚举匹配_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_entity_s_unit_tag_list',
+    displayName: '获取实体的单位标签列表',
+    graphType: 20002,
+    genericId: 200077,
+    concreteId: 1035,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取实体的单位标签列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_entity_type_list',
+    displayName: '获取实体类型列表',
+    graphType: 20002,
+    genericId: 200050,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取实体的类型_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -12312,6 +12860,189 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'get_random_number',
+    displayName: '获取随机数',
+    graphType: 20002,
+    genericId: 200032,
+    concreteId: 1011,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取随机数_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_ray_detection_result',
+    displayName: '获取射线检测结果',
+    graphType: 20002,
+    genericId: 200109,
+    concreteId: 1047,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_ray_filter_type_list',
+    displayName: '获取射线筛选类型列表',
+    graphType: 20002,
+    genericId: 200110,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'get_self_entity',
     displayName: '获取自身实体',
     graphType: 20002,
@@ -12327,6 +13058,93 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_sub_entity_list',
+    displayName: '获取子实体列表',
+    graphType: 20002,
+    genericId: 200214,
+    concreteId: 3006,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取子实体列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_target_attachment_point_location',
+    displayName: '获取目标挂接点位置',
+    graphType: 20002,
+    genericId: 200047,
+    concreteId: 1022,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取目标挂接点位置_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_target_attachment_point_rotation',
+    displayName: '获取目标挂接点旋转',
+    graphType: 20002,
+    genericId: 200048,
+    concreteId: 1023,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取目标挂接点旋转_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -12377,6 +13195,279 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_the_complex_creation_s_current_using_skill',
+    displayName: '获取复杂造物当前释放的技能',
+    graphType: 20002,
+    genericId: 200213,
+    concreteId: 3005,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_unit_attack_target',
+    displayName: '获取单位攻击目标',
+    graphType: 20002,
+    genericId: 200035,
+    concreteId: 1015,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'greater_than',
+    displayName: '是否大于',
+    graphType: 20002,
+    genericId: 200007,
+    concreteId: null,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物技能节点图\\是否大于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'greater_than_or_equal_to',
+    displayName: '是否大于等于',
+    graphType: 20002,
+    genericId: 200010,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'increase_the_aggro_value_of_the_specified_entity',
+    displayName: '增加指定实体的仇恨值',
+    graphType: 20002,
+    genericId: 200084,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\增加指定实体的仇恨值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'less_than',
+    displayName: '是否小于',
+    graphType: 20002,
+    genericId: 200008,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物技能节点图\\是否小于_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'less_than_or_equal_to',
+    displayName: '是否小于等于',
+    graphType: 20002,
+    genericId: 200009,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物技能节点图\\是否小于等于_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -12619,6 +13710,80 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     },
     specialKind: 'start',
     isStart: true
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'notify_server_node_graph',
+    displayName: '通知服务器节点图',
+    graphType: 20002,
+    genericId: 200039,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\设置局部变量_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'orientation_to_rotation',
+    displayName: '朝向转旋转',
+    graphType: 20002,
+    genericId: 200074,
+    concreteId: 139,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物技能节点图\\三维向量内积_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -12932,6 +14097,31 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'query_if_specified_entity_is_in_combat',
+    displayName: '查询指定实体是否入战',
+    graphType: 20002,
+    genericId: 200092,
+    concreteId: 3003,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'radians_to_degrees',
     displayName: '弧度转角度',
     graphType: 20002,
@@ -12960,6 +14150,132 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\弧度转角度_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'recover_creation_s_hp',
+    displayName: '恢复生命值',
+    graphType: 20002,
+    genericId: 200075,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'str_list',
+        clientVarType: 10
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 11,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\恢复生命值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'remove_specified_character_disruptor_device',
+    displayName: '移除指定角色扰动装置',
+    graphType: 20002,
+    genericId: 200060,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\移除指定角色扰动装置_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -13034,6 +14350,67 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\移除单位状态_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'resets_the_creation_s_skill_cd',
+    displayName: '造物的技能冷却清零',
+    graphType: 20002,
+    genericId: 200215,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\造物的技能冷却清零_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'send_signal_to_server_node_graph',
+    displayName: '向服务器节点图发送信号',
+    graphType: 20002,
+    genericId: 200124,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'client_exec',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\双分支_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -13114,6 +14491,240 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\设置指定实体的仇恨值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_the_aggro_value_of_the_specified_entity_proportionally',
+    displayName: '按比例设置指定实体的仇恨值',
+    graphType: 20002,
+    genericId: 200085,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\将目标实体移除出仇恨列表_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_the_cd_of_the_creation_skill',
+    displayName: '设置造物技能的冷却时间',
+    graphType: 20002,
+    genericId: 200217,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\设置造物技能的冷却时间_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_the_current_cd_of_the_creation_skill',
+    displayName: '设置造物技能的当前冷却时间',
+    graphType: 20002,
+    genericId: 200216,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\设置造物技能的当前冷却时间_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_the_current_time_of_the_creation_cooldown_group',
+    displayName: '设置造物冷却组的当前时间',
+    graphType: 20002,
+    genericId: 200218,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\设置造物冷却组的当前时间_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_the_global_cd_of_the_creation',
+    displayName: '设置造物的公共冷却时间',
+    graphType: 20002,
+    genericId: 200220,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\设置造物的公共冷却时间_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_the_time_of_the_creation_cooldown_group',
+    displayName: '设置造物冷却组的时间',
+    graphType: 20002,
+    genericId: 200219,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\设置造物冷却组的时间_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -13347,40 +14958,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '向服务器节点图发送信号',
-    displayName: '向服务器节点图发送信号',
+    nodeType: 'transfer_the_aggro_value_of_the_specified_entity_proportionally',
+    displayName: '按比例转移指定实体的仇恨值',
     graphType: 20002,
-    genericId: 200124,
-    concreteId: 2000,
-    inputs: [],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'client_exec',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\双分支_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '增加指定实体的仇恨值',
-    displayName: '增加指定实体的仇恨值',
-    graphType: 20002,
-    genericId: 200084,
+    genericId: 200086,
     concreteId: 2000,
     inputs: [
       {
@@ -13398,57 +14979,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 2,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\增加指定实体的仇恨值_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '复杂造物定点位移',
-    displayName: '复杂造物定点位移',
-    graphType: 20002,
-    genericId: 200248,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'entity',
+        clientVarType: 1
       },
       {
         index: 3,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       }
     ],
     outputs: [],
@@ -13465,213 +15003,31 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia'
+    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'creation_skill',
-    nodeType: '复杂造物瞬移',
-    displayName: '复杂造物瞬移',
+    nodeType: 'traverse_entity_list',
+    displayName: '遍历实体列表',
     graphType: 20002,
-    genericId: 200247,
+    genericId: 200055,
     concreteId: 2000,
     inputs: [
       {
         index: 0,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\复杂造物瞬移_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '定点发射投射物',
-    displayName: '定点发射投射物',
-    graphType: 20002,
-    genericId: 200052,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'prefab_id',
-        clientVarType: 19
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'faction',
-        clientVarType: 16
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\定点发射投射物_连线.gia',
-    specialKind: 'inline_var_type_hint'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '实体是否携带指定单位状态',
-    displayName: '实体是否携带指定单位状态',
-    graphType: 20002,
-    genericId: 200243,
-    concreteId: 1068,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'config_id',
-        clientVarType: 18
+        type: 'entity_list',
+        clientVarType: 2
       }
     ],
     outputs: [
       {
         index: 0,
         kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\实体是否携带指定单位状态_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '恢复生命值',
-    displayName: '恢复生命值',
-    graphType: 20002,
-    genericId: 200075,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
         type: 'entity',
         clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'str_list',
-        clientVarType: 10
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 11,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
       }
     ],
-    outputs: [],
     flows: [
       {
         index: 0,
@@ -13682,16 +15038,21 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'out_flow',
         type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\恢复生命值_连线.gia'
+    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia'
   },
   {
     subType: 'creation_skill',
-    nodeType: '指定挂接点打扇形攻击盒',
-    displayName: '指定挂接点打扇形攻击盒',
+    nodeType: 'trigger_hitbox_at_specific_location',
+    displayName: '特定位置打攻击盒',
     graphType: 20002,
-    genericId: 200116,
+    genericId: 200051,
     concreteId: 2000,
     inputs: [
       {
@@ -13703,8 +15064,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 2,
@@ -13715,8 +15076,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 4,
@@ -13727,44 +15088,44 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 6,
-        kind: 'input',
         type: 'enum_list',
         clientVarType: 17
       },
       {
-        index: 7,
+        index: 6,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 8,
+        index: 7,
         kind: 'input',
         type: 'int',
         clientVarType: 3
       },
       {
-        index: 9,
+        index: 8,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 10,
+        index: 9,
         kind: 'input',
         type: 'vec3',
         clientVarType: 11
       },
       {
+        index: 10,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
         index: 11,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 12,
@@ -13787,8 +15148,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 15,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 16,
@@ -13799,26 +15160,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 17,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 18,
-        kind: 'input',
         type: 'str_list',
         clientVarType: 10
       },
       {
-        index: 19,
+        index: 18,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 20,
+        index: 19,
         kind: 'input',
         type: 'float',
         clientVarType: 7
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 21,
@@ -13829,14 +15190,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 22,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 23,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 24,
@@ -13847,14 +15208,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 25,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 26,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 27,
@@ -13865,20 +15226,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 28,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 29,
-        kind: 'input',
         type: 'bool',
         clientVarType: 5
       },
       {
-        index: 30,
+        index: 29,
         kind: 'input',
         type: 'str',
         clientVarType: 9
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 31,
@@ -13889,8 +15250,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 32,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 33,
@@ -13901,20 +15262,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 34,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 35,
-        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 36,
+        index: 35,
         kind: 'input',
         type: 'str',
         clientVarType: 9
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 37,
@@ -13925,8 +15286,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 38,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 39,
@@ -13937,8 +15298,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 40,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 41,
@@ -13949,14 +15310,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 42,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 43,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 44,
@@ -13967,17 +15328,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 45,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 46,
-        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 47,
+        index: 46,
         kind: 'input',
         type: 'float',
         clientVarType: 7
@@ -13997,11 +15352,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\特定位置打攻击盒_连线.gia'
   },
   {
     subType: 'creation_skill',
-    nodeType: '指定挂接点打攻击盒',
+    nodeType: 'trigger_hitbox_at_specified_attachment_point',
     displayName: '指定挂接点打攻击盒',
     graphType: 20002,
     genericId: 200059,
@@ -14314,7 +15669,314 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '指定挂接点打矩形攻击盒',
+    nodeType: 'trigger_rectangular_hitbox_at_specific_location',
+    displayName: '特定位置打矩形攻击盒',
+    graphType: 20002,
+    genericId: 200112,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 11,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 12,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 13,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 14,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 15,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 16,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 17,
+        kind: 'input',
+        type: 'str_list',
+        clientVarType: 10
+      },
+      {
+        index: 18,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 19,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 21,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 22,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 23,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 24,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 25,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 26,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 27,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 28,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 29,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 31,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 32,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 33,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 34,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 35,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 37,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 38,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 39,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 40,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 41,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 42,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 43,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 44,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 45,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 46,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物技能节点图\\特定位置打矩形攻击盒_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'trigger_rectangular_hitbox_at_specified_attachment_point',
     displayName: '指定挂接点打矩形攻击盒',
     graphType: 20002,
     genericId: 200115,
@@ -14627,435 +16289,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '按比例设置指定实体的仇恨值',
-    displayName: '按比例设置指定实体的仇恨值',
-    graphType: 20002,
-    genericId: 200085,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\将目标实体移除出仇恨列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '按比例转移指定实体的仇恨值',
-    displayName: '按比例转移指定实体的仇恨值',
-    graphType: 20002,
-    genericId: 200086,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '是否大于',
-    displayName: '是否大于',
-    graphType: 20002,
-    genericId: 200007,
-    concreteId: null,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\是否大于_连线.gia',
-    reflectMap: [
-      {
-        concreteId: 12,
-        variantKey: '3,3',
-        pins: [
-          {
-            index: 1,
-            kind: 'input',
-            type: 'int',
-            clientVarType: 3
-          },
-          {
-            index: 2,
-            kind: 'input',
-            type: 'int',
-            clientVarType: 3
-          }
-        ]
-      },
-      {
-        concreteId: 13,
-        variantKey: '7,7',
-        pins: [
-          {
-            index: 1,
-            kind: 'input',
-            type: 'float',
-            clientVarType: 7
-          },
-          {
-            index: 2,
-            kind: 'input',
-            type: 'float',
-            clientVarType: 7
-          }
-        ]
-      }
-    ],
-    specialKind: 'reflect'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '是否大于等于',
-    displayName: '是否大于等于',
-    graphType: 20002,
-    genericId: 200010,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '是否小于',
-    displayName: '是否小于',
-    graphType: 20002,
-    genericId: 200008,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\是否小于_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '是否小于等于',
-    displayName: '是否小于等于',
-    graphType: 20002,
-    genericId: 200009,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\是否小于等于_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '朝向转旋转',
-    displayName: '朝向转旋转',
-    graphType: 20002,
-    genericId: 200074,
-    concreteId: 139,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物技能节点图\\三维向量内积_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '枚举匹配',
-    displayName: '枚举匹配',
-    graphType: 20002,
-    genericId: 200005,
-    concreteId: 10,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\双分支_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '查询复杂造物的预设状态值',
-    displayName: '查询复杂造物的预设状态值',
-    graphType: 20002,
-    genericId: 200244,
-    concreteId: 1066,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '查询指定实体是否入战',
-    displayName: '查询指定实体是否入战',
-    graphType: 20002,
-    genericId: 200092,
-    concreteId: 3003,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '清空指定实体的仇恨列表',
-    displayName: '清空指定实体的仇恨列表',
-    graphType: 20002,
-    genericId: 200087,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\清空指定实体的仇恨列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '特定位置打扇形攻击盒',
+    nodeType: 'trigger_sector_hitbox_at_specific_location',
     displayName: '特定位置打扇形攻击盒',
     graphType: 20002,
     genericId: 200113,
@@ -15362,10 +16596,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '特定位置打攻击盒',
-    displayName: '特定位置打攻击盒',
+    nodeType: 'trigger_sector_hitbox_at_specified_attachment_point',
+    displayName: '指定挂接点打扇形攻击盒',
     graphType: 20002,
-    genericId: 200051,
+    genericId: 200116,
     concreteId: 2000,
     inputs: [
       {
@@ -15377,8 +16611,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 2,
@@ -15389,8 +16623,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 4,
@@ -15401,44 +16635,44 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 6,
+        kind: 'input',
         type: 'enum_list',
         clientVarType: 17
       },
       {
-        index: 6,
+        index: 7,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 7,
+        index: 8,
         kind: 'input',
         type: 'int',
         clientVarType: 3
       },
       {
-        index: 8,
+        index: 9,
         kind: 'input',
         type: 'enum',
         clientVarType: 13
       },
       {
-        index: 9,
+        index: 10,
         kind: 'input',
         type: 'vec3',
         clientVarType: 11
       },
       {
-        index: 10,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
         index: 11,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 12,
@@ -15461,8 +16695,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 15,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 16,
@@ -15473,26 +16707,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 17,
         kind: 'input',
-        type: 'str_list',
-        clientVarType: 10
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 18,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'str_list',
+        clientVarType: 10
       },
       {
         index: 19,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 20,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 21,
@@ -15503,14 +16737,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 22,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 23,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 24,
@@ -15521,14 +16755,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 25,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 26,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 27,
@@ -15539,20 +16773,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 28,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'enum',
+        clientVarType: 13
       },
       {
         index: 29,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 30,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 31,
@@ -15563,8 +16797,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 32,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 33,
@@ -15575,20 +16809,20 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 34,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 35,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 36,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'str',
+        clientVarType: 9
       },
       {
         index: 37,
@@ -15599,8 +16833,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 38,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 39,
@@ -15611,8 +16845,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 40,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'vec3',
+        clientVarType: 11
       },
       {
         index: 41,
@@ -15623,14 +16857,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 42,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 43,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'int',
+        clientVarType: 3
       },
       {
         index: 44,
@@ -15641,11 +16875,17 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 45,
         kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 46,
+        kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 46,
+        index: 47,
         kind: 'input',
         type: 'float',
         clientVarType: 7
@@ -15665,11 +16905,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
   },
   {
     subType: 'creation_skill',
-    nodeType: '特定位置打球形攻击盒',
+    nodeType: 'trigger_spherical_hitbox_at_specific_location',
     displayName: '特定位置打球形攻击盒',
     graphType: 20002,
     genericId: 200111,
@@ -15976,1274 +17216,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '特定位置打矩形攻击盒',
-    displayName: '特定位置打矩形攻击盒',
+    nodeType: 'whether_the_entity_has_the_specified_unit_status',
+    displayName: '实体是否携带指定单位状态',
     graphType: 20002,
-    genericId: 200112,
-    concreteId: 2000,
+    genericId: 200243,
+    concreteId: 1068,
     inputs: [
       {
         index: 0,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'entity',
+        clientVarType: 1
       },
       {
         index: 1,
         kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    outputs: [
       {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 10,
-        kind: 'input',
+        index: 0,
+        kind: 'output',
         type: 'bool',
         clientVarType: 5
-      },
-      {
-        index: 11,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 12,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 13,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 14,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 15,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 16,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 17,
-        kind: 'input',
-        type: 'str_list',
-        clientVarType: 10
-      },
-      {
-        index: 18,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 19,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 20,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 21,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 22,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 23,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 24,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 25,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 26,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 27,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 28,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 29,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 30,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 31,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 32,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 33,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 34,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 35,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 36,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 37,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 38,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 39,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 40,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 41,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 42,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 43,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 44,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 45,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 46,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
       }
     ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\特定位置打矩形攻击盒_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '移除指定角色扰动装置',
-    displayName: '移除指定角色扰动装置',
-    graphType: 20002,
-    genericId: 200060,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\移除指定角色扰动装置_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '筛选方形范围内的实体列表',
-    displayName: '筛选方形范围内的实体列表',
-    graphType: 20002,
-    genericId: 200044,
-    concreteId: 1018,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '筛选球体范围内的实体列表',
-    displayName: '筛选球体范围内的实体列表',
-    graphType: 20002,
-    genericId: 200043,
-    concreteId: 1019,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取单位攻击目标',
-    displayName: '获取单位攻击目标',
-    graphType: 20002,
-    genericId: 200035,
-    concreteId: 1015,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取复杂造物当前释放的技能',
-    displayName: '获取复杂造物当前释放的技能',
-    graphType: 20002,
-    genericId: 200213,
-    concreteId: 3005,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取子实体列表',
-    displayName: '获取子实体列表',
-    graphType: 20002,
-    genericId: 200214,
-    concreteId: 3006,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取子实体列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取实体位置',
-    displayName: '获取实体位置',
-    graphType: 20002,
-    genericId: 200030,
-    concreteId: 1008,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取实体旋转',
-    displayName: '获取实体旋转',
-    graphType: 20002,
-    genericId: 200031,
-    concreteId: 1009,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物技能节点图\\筛选方形范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取实体的单位标签列表',
-    displayName: '获取实体的单位标签列表',
-    graphType: 20002,
-    genericId: 200077,
-    concreteId: 1035,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int_list',
-        clientVarType: 4
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取实体的单位标签列表_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取实体的类型',
-    displayName: '获取实体的类型',
-    graphType: 20002,
-    genericId: 200045,
-    concreteId: 1020,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    sampleFile: '造物技能节点图\\枚举匹配_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取实体类型列表',
-    displayName: '获取实体类型列表',
-    graphType: 20002,
-    genericId: 200050,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取实体的类型_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取射线检测结果',
-    displayName: '获取射线检测结果',
-    graphType: 20002,
-    genericId: 200109,
-    concreteId: 1047,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取射线筛选类型列表',
-    displayName: '获取射线筛选类型列表',
-    graphType: 20002,
-    genericId: 200110,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取目标挂接点位置',
-    displayName: '获取目标挂接点位置',
-    graphType: 20002,
-    genericId: 200047,
-    concreteId: 1022,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取目标挂接点位置_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取目标挂接点旋转',
-    displayName: '获取目标挂接点旋转',
-    graphType: 20002,
-    genericId: 200048,
-    concreteId: 1023,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取目标挂接点旋转_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '获取随机数',
-    displayName: '获取随机数',
-    graphType: 20002,
-    genericId: 200032,
-    concreteId: 1011,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物技能节点图\\获取随机数_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '设置造物冷却组的当前时间',
-    displayName: '设置造物冷却组的当前时间',
-    graphType: 20002,
-    genericId: 200218,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\设置造物冷却组的当前时间_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '设置造物冷却组的时间',
-    displayName: '设置造物冷却组的时间',
-    graphType: 20002,
-    genericId: 200219,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\设置造物冷却组的时间_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '设置造物技能的冷却时间',
-    displayName: '设置造物技能的冷却时间',
-    graphType: 20002,
-    genericId: 200217,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\设置造物技能的冷却时间_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '设置造物技能的当前冷却时间',
-    displayName: '设置造物技能的当前冷却时间',
-    graphType: 20002,
-    genericId: 200216,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\设置造物技能的当前冷却时间_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '设置造物的公共冷却时间',
-    displayName: '设置造物的公共冷却时间',
-    graphType: 20002,
-    genericId: 200220,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\设置造物的公共冷却时间_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '通知服务器节点图',
-    displayName: '通知服务器节点图',
-    graphType: 20002,
-    genericId: 200039,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\设置局部变量_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '造物的技能冷却清零',
-    displayName: '造物的技能冷却清零',
-    graphType: 20002,
-    genericId: 200215,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\造物的技能冷却清零_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '造物转向指定朝向',
-    displayName: '造物转向指定朝向',
-    graphType: 20002,
-    genericId: 200245,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\造物转向指定朝向_连线.gia'
-  },
-  {
-    subType: 'creation_skill',
-    nodeType: '遍历实体列表',
-    displayName: '遍历实体列表',
-    graphType: 20002,
-    genericId: 200055,
-    concreteId: 2000,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity_list',
-        clientVarType: 2
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    flows: [
-      {
-        index: 0,
-        kind: 'client_exec',
-        type: 'unknown'
-      },
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      },
-      {
-        index: 1,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物技能节点图\\实体是否携带指定单位状态_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -18583,6 +18583,209 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
+    nodeType: 'check_if_self_is_in_the_territory',
+    displayName: '查询自身是否在领地中',
+    graphType: 20007,
+    genericId: 200151,
+    concreteId: 4109,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身是否在领地中_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_target_position_pathfinding_availability',
+    displayName: '查询目标点是否寻路可达',
+    graphType: 20007,
+    genericId: 200148,
+    concreteId: 4106,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询目标点是否寻路可达_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_the_coordinates_when_entering_battle',
+    displayName: '查询入战时的坐标点',
+    graphType: 20007,
+    genericId: 200162,
+    concreteId: 4110,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询入战时的坐标点_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_the_distance_from_self_to_target',
+    displayName: '查询自身距离目标的距离',
+    graphType: 20007,
+    genericId: 200147,
+    concreteId: 4105,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身距离目标的距离_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_the_horizontal_angle_from_self_to_target',
+    displayName: '查询自身距离目标的水平角度',
+    graphType: 20007,
+    genericId: 200143,
+    concreteId: 4101,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身距离目标的水平角度_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_the_horizontal_distance_from_self_to_target',
+    displayName: '查询自身距离目标的水平距离',
+    graphType: 20007,
+    genericId: 200145,
+    concreteId: 4103,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身距离目标的水平距离_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_the_vertical_angle_from_self_to_target',
+    displayName: '查询自身距离目标的垂直角度',
+    graphType: 20007,
+    genericId: 200144,
+    concreteId: 4102,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身距离目标的垂直角度_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_the_vertical_distance_from_self_to_target',
+    displayName: '查询自身距离目标的垂直距离',
+    graphType: 20007,
+    genericId: 200146,
+    concreteId: 4104,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身距离目标的垂直距离_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_whether_self_is_in_battle',
+    displayName: '查询自身是否处于交战中',
+    graphType: 20007,
+    genericId: 200150,
+    concreteId: 4108,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身是否处于交战中_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'check_whether_self_is_using_a_skill',
+    displayName: '查询自身是否正在释放技能',
+    graphType: 20007,
+    genericId: 200149,
+    concreteId: 4107,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'continue_executing_previous_frame_behavior',
+    displayName: '继续执行前一帧行为',
+    graphType: 20007,
+    genericId: 200253,
+    concreteId: 4100,
+    inputs: [],
+    outputs: [],
+    sampleFile: '造物状态节点图\\继续执行前一帧行为_连线.gia'
+  },
+  {
+    subType: 'creation_status',
     nodeType: 'cosine_function',
     displayName: '余弦函数',
     graphType: 20007,
@@ -18881,6 +19084,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
+    nodeType: 'enumeration_match',
+    displayName: '枚举匹配',
+    graphType: 20007,
+    genericId: 200178,
+    concreteId: 10,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\双分支_连线.gia'
+  },
+  {
+    subType: 'creation_status',
     nodeType: 'equal',
     displayName: '是否相等',
     graphType: 20007,
@@ -18993,6 +19227,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
+    nodeType: 'execute_skill',
+    displayName: '执行技能',
+    graphType: 20007,
+    genericId: 200129,
+    concreteId: 4012,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物状态节点图\\最小图_单节点.gia'
+  },
+  {
+    subType: 'creation_status',
     nodeType: 'get_corresponding_value_from_list',
     displayName: '获取列表对应值',
     graphType: 20007,
@@ -19051,6 +19316,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
+    nodeType: 'get_current_execution_status',
+    displayName: '获取自身当前执行状态',
+    graphType: 20007,
+    genericId: 200142,
+    concreteId: 4122,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取自身当前执行状态_连线.gia'
+  },
+  {
+    subType: 'creation_status',
     nodeType: 'get_custom_variable',
     displayName: '获取自定义变量',
     graphType: 20007,
@@ -19082,6 +19365,81 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
+    nodeType: 'get_entity_location',
+    displayName: '获取实体位置',
+    graphType: 20007,
+    genericId: 200169,
+    concreteId: 4117,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取实体位置_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_entity_rotation',
+    displayName: '获取实体旋转',
+    graphType: 20007,
+    genericId: 200170,
+    concreteId: 4118,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取实体旋转_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_entity_s_type',
+    displayName: '获取实体的类型',
+    graphType: 20007,
+    genericId: 200168,
+    concreteId: 4116,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取实体的类型_连线.gia'
+  },
+  {
+    subType: 'creation_status',
     nodeType: 'get_list_length',
     displayName: '获取列表长度',
     graphType: 20007,
@@ -19104,6 +19462,56 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_list_of_keys_from_dictionary',
+    displayName: '查询字典中键组成的列表',
+    graphType: 20007,
+    genericId: 200235,
+    concreteId: 1054,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_list_of_values_from_dictionary',
+    displayName: '查询字典中值组成的列表',
+    graphType: 20007,
+    genericId: 200234,
+    concreteId: 1055,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询字典中值组成的列表_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -19211,6 +19619,110 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
+    nodeType: 'get_object_preset_status',
+    displayName: '获取物件预设状态',
+    graphType: 20007,
+    genericId: 200172,
+    concreteId: 4120,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_previous_frame_execution_status',
+    displayName: '获取前一帧执行状态',
+    graphType: 20007,
+    genericId: 200250,
+    concreteId: 4121,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取前一帧执行状态_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_previous_frame_execution_tactic',
+    displayName: '获取前一帧执行战术',
+    graphType: 20007,
+    genericId: 200252,
+    concreteId: 4123,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    sampleFile: '造物状态节点图\\枚举匹配_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_random_number',
+    displayName: '获取随机数',
+    graphType: 20007,
+    genericId: 200190,
+    concreteId: 1012,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+  },
+  {
+    subType: 'creation_status',
     nodeType: 'get_self_entity',
     displayName: '获取自身实体',
     graphType: 20007,
@@ -19226,6 +19738,332 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\获取自身实体_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_self_preset_status_value',
+    displayName: '获取自身预设状态值',
+    graphType: 20007,
+    genericId: 200241,
+    concreteId: 4226,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取物件预设状态_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_spawn_point_location_information',
+    displayName: '获取出生点位置信息',
+    graphType: 20007,
+    genericId: 200163,
+    concreteId: 4111,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取出生点位置信息_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_stage_entity',
+    displayName: '获取关卡实体',
+    graphType: 20007,
+    genericId: 200166,
+    concreteId: 4114,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取关卡实体_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_target_atk',
+    displayName: '获取目标攻击力',
+    graphType: 20007,
+    genericId: 200240,
+    concreteId: 4225,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取目标攻击力_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_target_entity',
+    displayName: '获取目标实体',
+    graphType: 20007,
+    genericId: 200165,
+    concreteId: 4113,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取目标实体_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_target_hp',
+    displayName: '获取目标生命值',
+    graphType: 20007,
+    genericId: 200238,
+    concreteId: 4223,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取目标生命值_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'get_target_level',
+    displayName: '获取目标等级',
+    graphType: 20007,
+    genericId: 200239,
+    concreteId: 4224,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态节点图\\获取目标等级_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'greater_than',
+    displayName: '是否大于',
+    graphType: 20007,
+    genericId: 200180,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'greater_than_or_equal_to',
+    displayName: '是否大于等于',
+    graphType: 20007,
+    genericId: 200183,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'less_than',
+    displayName: '是否小于',
+    graphType: 20007,
+    genericId: 200181,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'less_than_or_equal_to',
+    displayName: '是否小于等于',
+    graphType: 20007,
+    genericId: 200182,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -19502,6 +20340,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '造物状态节点图\\三维向量内积_连线.gia',
     specialKind: 'start',
     isStart: true
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'orientation_to_rotation',
+    displayName: '朝向转旋转',
+    graphType: 20007,
+    genericId: 200203,
+    concreteId: 139,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态节点图\\三维向量内积_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -19897,38 +20766,68 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: 'tangent_function',
-    displayName: '正切函数',
+    nodeType: 'tactic_execute_patrol',
+    displayName: '战术：执行巡逻',
     graphType: 20007,
-    genericId: 200206,
-    concreteId: 35,
+    genericId: 200141,
+    concreteId: 4023,
     inputs: [
       {
         index: 0,
         kind: 'input',
-        type: 'enum',
-        clientVarType: 13
+        type: 'bool',
+        clientVarType: 5
       },
       {
         index: 1,
         kind: 'input',
-        type: 'float',
-        clientVarType: 7
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
       }
     ],
-    outputs: [
+    outputs: [],
+    flows: [
       {
         index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
+        kind: 'out_flow',
+        type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\正切函数_连线.gia'
+    sampleFile: '造物状态节点图\\战术：执行巡逻_连线.gia'
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_地面对峙',
+    nodeType: 'tactic_ground_confrontation',
     displayName: '战术：地面对峙',
     graphType: 20007,
     genericId: 200140,
@@ -20043,92 +20942,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_地面追击',
-    displayName: '战术：地面追击',
-    graphType: 20007,
-    genericId: 200131,
-    concreteId: 4018,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '战术_地面逃跑',
+    nodeType: 'tactic_ground_escape',
     displayName: '战术：地面逃跑',
     graphType: 20007,
     genericId: 200138,
@@ -20225,7 +21039,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_地面闲逛',
+    nodeType: 'tactic_ground_idle_roaming',
     displayName: '战术：地面闲逛',
     graphType: 20007,
     genericId: 200130,
@@ -20298,11 +21112,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_执行巡逻',
-    displayName: '战术：执行巡逻',
+    nodeType: 'tactic_ground_pursuit',
+    displayName: '战术：地面追击',
     graphType: 20007,
-    genericId: 200141,
-    concreteId: 4023,
+    genericId: 200131,
+    concreteId: 4018,
     inputs: [
       {
         index: 0,
@@ -20313,69 +21127,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：执行巡逻_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '战术_旋转到指定朝向',
-    displayName: '战术：旋转到指定朝向',
-    graphType: 20007,
-    genericId: 200136,
-    concreteId: 4016,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 2,
@@ -20386,8 +21139,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 3,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 4,
@@ -20398,66 +21151,35 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 5,
         kind: 'input',
-        type: 'str',
-        clientVarType: 9
+        type: 'float',
+        clientVarType: 7
       },
       {
         index: 6,
         kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面闲逛_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '战术_旋转指定角度',
-    displayName: '战术：旋转指定角度',
-    graphType: 20007,
-    genericId: 200137,
-    concreteId: 4017,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
+        type: 'enum',
+        clientVarType: 13
       },
       {
-        index: 1,
+        index: 7,
         kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 2,
+        index: 8,
         kind: 'input',
         type: 'float',
         clientVarType: 7
       },
       {
-        index: 3,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 4,
+        index: 9,
         kind: 'input',
         type: 'str',
         clientVarType: 9
       },
       {
-        index: 5,
+        index: 10,
         kind: 'input',
         type: 'bool',
         clientVarType: 5
@@ -20471,66 +21193,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：旋转指定角度_连线.gia'
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_旋转朝向目标实体',
-    displayName: '战术：旋转朝向目标实体',
-    graphType: 20007,
-    genericId: 200246,
-    concreteId: 4024,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：旋转朝向目标实体_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '战术_移动到目标实体',
+    nodeType: 'tactic_move_to_the_target_entity',
     displayName: '战术：移动到目标实体',
     graphType: 20007,
     genericId: 200135,
@@ -20591,7 +21258,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_移动到目标点',
+    nodeType: 'tactic_move_to_the_target_position',
     displayName: '战术：移动到目标点',
     graphType: 20007,
     genericId: 200134,
@@ -20652,7 +21319,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_脱战后返回出生点',
+    nodeType: 'tactic_return_to_spawn_point_after_leaving_battle',
     displayName: '战术：脱战后返回出生点',
     graphType: 20007,
     genericId: 200139,
@@ -20719,7 +21386,178 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '战术_静止不动',
+    nodeType: 'tactic_rotate_by_specified_angle',
+    displayName: '战术：旋转指定角度',
+    graphType: 20007,
+    genericId: 200137,
+    concreteId: 4017,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：旋转指定角度_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'tactic_rotate_to_the_specified_direction',
+    displayName: '战术：旋转到指定朝向',
+    graphType: 20007,
+    genericId: 200136,
+    concreteId: 4016,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：地面闲逛_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'tactic_rotate_to_the_target_entity',
+    displayName: '战术：旋转朝向目标实体',
+    graphType: 20007,
+    genericId: 200246,
+    concreteId: 4024,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '造物状态节点图\\战术：旋转朝向目标实体_连线.gia'
+  },
+  {
+    subType: 'creation_status',
+    nodeType: 'tactic_stand_still',
     displayName: '战术：静止不动',
     graphType: 20007,
     genericId: 200133,
@@ -20756,42 +21594,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '执行技能',
-    displayName: '执行技能',
+    nodeType: 'tangent_function',
+    displayName: '正切函数',
     graphType: 20007,
-    genericId: 200129,
-    concreteId: 4012,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [],
-    flows: [
-      {
-        index: 0,
-        kind: 'out_flow',
-        type: 'flow'
-      }
-    ],
-    sampleFile: '造物状态节点图\\最小图_单节点.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '是否大于',
-    displayName: '是否大于',
-    graphType: 20007,
-    genericId: 200180,
-    concreteId: 13,
+    genericId: 200206,
+    concreteId: 35,
     inputs: [
       {
         index: 0,
@@ -20802,359 +21609,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
+        type: 'float',
+        clientVarType: 7
       }
     ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '是否大于等于',
-    displayName: '是否大于等于',
-    graphType: 20007,
-    genericId: 200183,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '是否小于',
-    displayName: '是否小于',
-    graphType: 20007,
-    genericId: 200181,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '是否小于等于',
-    displayName: '是否小于等于',
-    graphType: 20007,
-    genericId: 200182,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '朝向转旋转',
-    displayName: '朝向转旋转',
-    graphType: 20007,
-    genericId: 200203,
-    concreteId: 139,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态节点图\\三维向量内积_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '枚举匹配',
-    displayName: '枚举匹配',
-    graphType: 20007,
-    genericId: 200178,
-    concreteId: 10,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\双分支_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询入战时的坐标点',
-    displayName: '查询入战时的坐标点',
-    graphType: 20007,
-    genericId: 200162,
-    concreteId: 4110,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询入战时的坐标点_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询字典中值组成的列表',
-    displayName: '查询字典中值组成的列表',
-    graphType: 20007,
-    genericId: 200234,
-    concreteId: 1055,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询字典中值组成的列表_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询字典中键组成的列表',
-    displayName: '查询字典中键组成的列表',
-    graphType: 20007,
-    genericId: 200235,
-    concreteId: 1054,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询目标点是否寻路可达',
-    displayName: '查询目标点是否寻路可达',
-    graphType: 20007,
-    genericId: 200148,
-    concreteId: 4106,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询目标点是否寻路可达_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身是否在领地中',
-    displayName: '查询自身是否在领地中',
-    graphType: 20007,
-    genericId: 200151,
-    concreteId: 4109,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身是否在领地中_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身是否处于交战中',
-    displayName: '查询自身是否处于交战中',
-    graphType: 20007,
-    genericId: 200150,
-    concreteId: 4108,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身是否处于交战中_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身是否正在释放技能',
-    displayName: '查询自身是否正在释放技能',
-    graphType: 20007,
-    genericId: 200149,
-    concreteId: 4107,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身距离目标的垂直角度',
-    displayName: '查询自身距离目标的垂直角度',
-    graphType: 20007,
-    genericId: 200144,
-    concreteId: 4102,
-    inputs: [],
     outputs: [
       {
         index: 0,
@@ -21163,465 +21621,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的垂直角度_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身距离目标的垂直距离',
-    displayName: '查询自身距离目标的垂直距离',
-    graphType: 20007,
-    genericId: 200146,
-    concreteId: 4104,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的垂直距离_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身距离目标的水平角度',
-    displayName: '查询自身距离目标的水平角度',
-    graphType: 20007,
-    genericId: 200143,
-    concreteId: 4101,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的水平角度_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身距离目标的水平距离',
-    displayName: '查询自身距离目标的水平距离',
-    graphType: 20007,
-    genericId: 200145,
-    concreteId: 4103,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的水平距离_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '查询自身距离目标的距离',
-    displayName: '查询自身距离目标的距离',
-    graphType: 20007,
-    genericId: 200147,
-    concreteId: 4105,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的距离_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '继续执行前一帧行为',
-    displayName: '继续执行前一帧行为',
-    graphType: 20007,
-    genericId: 200253,
-    concreteId: 4100,
-    inputs: [],
-    outputs: [],
-    sampleFile: '造物状态节点图\\继续执行前一帧行为_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取关卡实体',
-    displayName: '获取关卡实体',
-    graphType: 20007,
-    genericId: 200166,
-    concreteId: 4114,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取关卡实体_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取出生点位置信息',
-    displayName: '获取出生点位置信息',
-    graphType: 20007,
-    genericId: 200163,
-    concreteId: 4111,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取出生点位置信息_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取前一帧执行战术',
-    displayName: '获取前一帧执行战术',
-    graphType: 20007,
-    genericId: 200252,
-    concreteId: 4123,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    sampleFile: '造物状态节点图\\枚举匹配_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取前一帧执行状态',
-    displayName: '获取前一帧执行状态',
-    graphType: 20007,
-    genericId: 200250,
-    concreteId: 4121,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'config_id',
-        clientVarType: 18
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取前一帧执行状态_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取实体位置',
-    displayName: '获取实体位置',
-    graphType: 20007,
-    genericId: 200169,
-    concreteId: 4117,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取实体位置_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取实体旋转',
-    displayName: '获取实体旋转',
-    graphType: 20007,
-    genericId: 200170,
-    concreteId: 4118,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取实体旋转_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取实体的类型',
-    displayName: '获取实体的类型',
-    graphType: 20007,
-    genericId: 200168,
-    concreteId: 4116,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取实体的类型_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取物件预设状态',
-    displayName: '获取物件预设状态',
-    graphType: 20007,
-    genericId: 200172,
-    concreteId: 4120,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取目标实体',
-    displayName: '获取目标实体',
-    graphType: 20007,
-    genericId: 200165,
-    concreteId: 4113,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取目标实体_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取目标攻击力',
-    displayName: '获取目标攻击力',
-    graphType: 20007,
-    genericId: 200240,
-    concreteId: 4225,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取目标攻击力_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取目标生命值',
-    displayName: '获取目标生命值',
-    graphType: 20007,
-    genericId: 200238,
-    concreteId: 4223,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取目标生命值_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取目标等级',
-    displayName: '获取目标等级',
-    graphType: 20007,
-    genericId: 200239,
-    concreteId: 4224,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取目标等级_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取自身当前执行状态',
-    displayName: '获取自身当前执行状态',
-    graphType: 20007,
-    genericId: 200142,
-    concreteId: 4122,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'config_id',
-        clientVarType: 18
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取自身当前执行状态_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取自身预设状态值',
-    displayName: '获取自身预设状态值',
-    graphType: 20007,
-    genericId: 200241,
-    concreteId: 4226,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态节点图\\获取物件预设状态_连线.gia'
-  },
-  {
-    subType: 'creation_status',
-    nodeType: '获取随机数',
-    displayName: '获取随机数',
-    graphType: 20007,
-    genericId: 200190,
-    concreteId: 1012,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\正切函数_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -22922,6 +22922,198 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
+    nodeType: 'check_if_self_is_in_the_territory',
+    displayName: '查询自身是否在领地中',
+    graphType: 20007,
+    genericId: 200151,
+    concreteId: 4109,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身是否在领地中_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_target_position_pathfinding_availability',
+    displayName: '查询目标点是否寻路可达',
+    graphType: 20007,
+    genericId: 200148,
+    concreteId: 4106,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询目标点是否寻路可达_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_the_coordinates_when_entering_battle',
+    displayName: '查询入战时的坐标点',
+    graphType: 20007,
+    genericId: 200162,
+    concreteId: 4110,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询入战时的坐标点_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_the_distance_from_self_to_target',
+    displayName: '查询自身距离目标的距离',
+    graphType: 20007,
+    genericId: 200147,
+    concreteId: 4105,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的距离_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_the_horizontal_angle_from_self_to_target',
+    displayName: '查询自身距离目标的水平角度',
+    graphType: 20007,
+    genericId: 200143,
+    concreteId: 4101,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平角度_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_the_horizontal_distance_from_self_to_target',
+    displayName: '查询自身距离目标的水平距离',
+    graphType: 20007,
+    genericId: 200145,
+    concreteId: 4103,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平距离_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_the_vertical_angle_from_self_to_target',
+    displayName: '查询自身距离目标的垂直角度',
+    graphType: 20007,
+    genericId: 200144,
+    concreteId: 4102,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直角度_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_the_vertical_distance_from_self_to_target',
+    displayName: '查询自身距离目标的垂直距离',
+    graphType: 20007,
+    genericId: 200146,
+    concreteId: 4104,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直距离_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_whether_self_is_in_battle',
+    displayName: '查询自身是否处于交战中',
+    graphType: 20007,
+    genericId: 200150,
+    concreteId: 4108,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询自身是否处于交战中_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'check_whether_self_is_using_a_skill',
+    displayName: '查询自身是否正在释放技能',
+    graphType: 20007,
+    genericId: 200149,
+    concreteId: 4107,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
     nodeType: 'cosine_function',
     displayName: '余弦函数',
     graphType: 20007,
@@ -23181,6 +23373,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
+    nodeType: 'enumeration_match',
+    displayName: '枚举匹配',
+    graphType: 20007,
+    genericId: 200178,
+    concreteId: 10,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\双分支_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
     nodeType: 'equal',
     displayName: '是否相等',
     graphType: 20007,
@@ -23333,6 +23556,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
+    nodeType: 'get_current_execution_status',
+    displayName: '获取自身当前执行状态',
+    graphType: 20007,
+    genericId: 200142,
+    concreteId: 4122,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取自身当前执行状态_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
     nodeType: 'get_custom_variable',
     displayName: '获取自定义变量',
     graphType: 20007,
@@ -23366,6 +23607,81 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
+    nodeType: 'get_entity_location',
+    displayName: '获取实体位置',
+    graphType: 20007,
+    genericId: 200169,
+    concreteId: 4117,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取实体位置_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_entity_rotation',
+    displayName: '获取实体旋转',
+    graphType: 20007,
+    genericId: 200170,
+    concreteId: 4118,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取实体旋转_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_entity_s_type',
+    displayName: '获取实体的类型',
+    graphType: 20007,
+    genericId: 200168,
+    concreteId: 4116,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取实体的类型_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
     nodeType: 'get_list_length',
     displayName: '获取列表长度',
     graphType: 20007,
@@ -23385,6 +23701,56 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         kind: 'output',
         type: 'int',
         clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_list_of_keys_from_dictionary',
+    displayName: '查询字典中键组成的列表',
+    graphType: 20007,
+    genericId: 200235,
+    concreteId: 1054,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询字典中键组成的列表_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_list_of_values_from_dictionary',
+    displayName: '查询字典中值组成的列表',
+    graphType: 20007,
+    genericId: 200234,
+    concreteId: 1055,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
       }
     ],
     sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia'
@@ -23441,6 +23807,110 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
+    nodeType: 'get_object_preset_status',
+    displayName: '获取物件预设状态',
+    graphType: 20007,
+    genericId: 200172,
+    concreteId: 4120,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_previous_frame_execution_status',
+    displayName: '获取前一帧执行状态',
+    graphType: 20007,
+    genericId: 200250,
+    concreteId: 4121,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_previous_frame_execution_tactic',
+    displayName: '获取前一帧执行战术',
+    graphType: 20007,
+    genericId: 200252,
+    concreteId: 4123,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\枚举匹配_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_random_number',
+    displayName: '获取随机数',
+    graphType: 20007,
+    genericId: 200190,
+    concreteId: 1011,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取随机数_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
     nodeType: 'get_self_entity',
     displayName: '获取自身实体',
     graphType: 20007,
@@ -23456,6 +23926,332 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\查询字典是否包含特定值_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_self_preset_status_value',
+    displayName: '获取自身预设状态值',
+    graphType: 20007,
+    genericId: 200241,
+    concreteId: 4226,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_spawn_point_location_information',
+    displayName: '获取出生点位置信息',
+    graphType: 20007,
+    genericId: 200163,
+    concreteId: 4111,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取出生点位置信息_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_stage_entity',
+    displayName: '获取关卡实体',
+    graphType: 20007,
+    genericId: 200166,
+    concreteId: 4114,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取关卡实体_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_target_atk',
+    displayName: '获取目标攻击力',
+    graphType: 20007,
+    genericId: 200240,
+    concreteId: 4225,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取目标攻击力_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_target_entity',
+    displayName: '获取目标实体',
+    graphType: 20007,
+    genericId: 200165,
+    concreteId: 4113,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_target_hp',
+    displayName: '获取目标生命值',
+    graphType: 20007,
+    genericId: 200238,
+    concreteId: 4223,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取目标生命值_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'get_target_level',
+    displayName: '获取目标等级',
+    graphType: 20007,
+    genericId: 200239,
+    concreteId: 4224,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'greater_than',
+    displayName: '是否大于',
+    graphType: 20007,
+    genericId: 200180,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\是否大于_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'greater_than_or_equal_to',
+    displayName: '是否大于等于',
+    graphType: 20007,
+    genericId: 200183,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\是否大于等于_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'less_than',
+    displayName: '是否小于',
+    graphType: 20007,
+    genericId: 200181,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\是否小于_连线.gia'
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'less_than_or_equal_to',
+    displayName: '是否小于等于',
+    graphType: 20007,
+    genericId: 200182,
+    concreteId: 13,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\是否小于等于_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -23771,6 +24567,37 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia',
     specialKind: 'start',
     isStart: true
+  },
+  {
+    subType: 'creation_status_decision',
+    nodeType: 'orientation_to_rotation',
+    displayName: '朝向转旋转',
+    graphType: 20007,
+    genericId: 200203,
+    concreteId: 139,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -24127,38 +24954,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: 'tangent_function',
-    displayName: '正切函数',
-    graphType: 20007,
-    genericId: 200206,
-    concreteId: 35,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\正切函数_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '切换自身执行状态',
+    nodeType: 'switch_to_self_execution_status',
     displayName: '切换自身执行状态',
     graphType: 20007,
     genericId: 200128,
@@ -24196,11 +24992,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '是否大于',
-    displayName: '是否大于',
+    nodeType: 'tangent_function',
+    displayName: '正切函数',
     graphType: 20007,
-    genericId: 200180,
-    concreteId: 13,
+    genericId: 200206,
+    concreteId: 35,
     inputs: [
       {
         index: 0,
@@ -24211,359 +25007,10 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       {
         index: 1,
         kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
+        type: 'float',
+        clientVarType: 7
       }
     ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\是否大于_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '是否大于等于',
-    displayName: '是否大于等于',
-    graphType: 20007,
-    genericId: 200183,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\是否大于等于_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '是否小于',
-    displayName: '是否小于',
-    graphType: 20007,
-    genericId: 200181,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\是否小于_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '是否小于等于',
-    displayName: '是否小于等于',
-    graphType: 20007,
-    genericId: 200182,
-    concreteId: 13,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\是否小于等于_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '朝向转旋转',
-    displayName: '朝向转旋转',
-    graphType: 20007,
-    genericId: 200203,
-    concreteId: 139,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '枚举匹配',
-    displayName: '枚举匹配',
-    graphType: 20007,
-    genericId: 200178,
-    concreteId: 10,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\双分支_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询入战时的坐标点',
-    displayName: '查询入战时的坐标点',
-    graphType: 20007,
-    genericId: 200162,
-    concreteId: 4110,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询入战时的坐标点_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询字典中值组成的列表',
-    displayName: '查询字典中值组成的列表',
-    graphType: 20007,
-    genericId: 200234,
-    concreteId: 1055,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询字典中键组成的列表',
-    displayName: '查询字典中键组成的列表',
-    graphType: 20007,
-    genericId: 200235,
-    concreteId: 1054,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询字典中键组成的列表_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询目标点是否寻路可达',
-    displayName: '查询目标点是否寻路可达',
-    graphType: 20007,
-    genericId: 200148,
-    concreteId: 4106,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询目标点是否寻路可达_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身是否在领地中',
-    displayName: '查询自身是否在领地中',
-    graphType: 20007,
-    genericId: 200151,
-    concreteId: 4109,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询自身是否在领地中_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身是否处于交战中',
-    displayName: '查询自身是否处于交战中',
-    graphType: 20007,
-    genericId: 200150,
-    concreteId: 4108,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询自身是否处于交战中_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身是否正在释放技能',
-    displayName: '查询自身是否正在释放技能',
-    graphType: 20007,
-    genericId: 200149,
-    concreteId: 4107,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'bool',
-        clientVarType: 5
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身距离目标的垂直角度',
-    displayName: '查询自身距离目标的垂直角度',
-    graphType: 20007,
-    genericId: 200144,
-    concreteId: 4102,
-    inputs: [],
     outputs: [
       {
         index: 0,
@@ -24572,454 +25019,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直角度_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身距离目标的垂直距离',
-    displayName: '查询自身距离目标的垂直距离',
-    graphType: 20007,
-    genericId: 200146,
-    concreteId: 4104,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直距离_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身距离目标的水平角度',
-    displayName: '查询自身距离目标的水平角度',
-    graphType: 20007,
-    genericId: 200143,
-    concreteId: 4101,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平角度_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身距离目标的水平距离',
-    displayName: '查询自身距离目标的水平距离',
-    graphType: 20007,
-    genericId: 200145,
-    concreteId: 4103,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平距离_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '查询自身距离目标的距离',
-    displayName: '查询自身距离目标的距离',
-    graphType: 20007,
-    genericId: 200147,
-    concreteId: 4105,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的距离_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取关卡实体',
-    displayName: '获取关卡实体',
-    graphType: 20007,
-    genericId: 200166,
-    concreteId: 4114,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取关卡实体_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取出生点位置信息',
-    displayName: '获取出生点位置信息',
-    graphType: 20007,
-    genericId: 200163,
-    concreteId: 4111,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取出生点位置信息_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取前一帧执行战术',
-    displayName: '获取前一帧执行战术',
-    graphType: 20007,
-    genericId: 200252,
-    concreteId: 4123,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\枚举匹配_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取前一帧执行状态',
-    displayName: '获取前一帧执行状态',
-    graphType: 20007,
-    genericId: 200250,
-    concreteId: 4121,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'config_id',
-        clientVarType: 18
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取实体位置',
-    displayName: '获取实体位置',
-    graphType: 20007,
-    genericId: 200169,
-    concreteId: 4117,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取实体位置_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取实体旋转',
-    displayName: '获取实体旋转',
-    graphType: 20007,
-    genericId: 200170,
-    concreteId: 4118,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取实体旋转_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取实体的类型',
-    displayName: '获取实体的类型',
-    graphType: 20007,
-    genericId: 200168,
-    concreteId: 4116,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取实体的类型_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取物件预设状态',
-    displayName: '获取物件预设状态',
-    graphType: 20007,
-    genericId: 200172,
-    concreteId: 4120,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取目标实体',
-    displayName: '获取目标实体',
-    graphType: 20007,
-    genericId: 200165,
-    concreteId: 4113,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取目标攻击力',
-    displayName: '获取目标攻击力',
-    graphType: 20007,
-    genericId: 200240,
-    concreteId: 4225,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取目标攻击力_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取目标生命值',
-    displayName: '获取目标生命值',
-    graphType: 20007,
-    genericId: 200238,
-    concreteId: 4223,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'output',
-        type: 'float',
-        clientVarType: 7
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取目标生命值_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取目标等级',
-    displayName: '获取目标等级',
-    graphType: 20007,
-    genericId: 200239,
-    concreteId: 4224,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取自身当前执行状态',
-    displayName: '获取自身当前执行状态',
-    graphType: 20007,
-    genericId: 200142,
-    concreteId: 4122,
-    inputs: [],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'config_id',
-        clientVarType: 18
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取自身当前执行状态_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取自身预设状态值',
-    displayName: '获取自身预设状态值',
-    graphType: 20007,
-    genericId: 200241,
-    concreteId: 4226,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia'
-  },
-  {
-    subType: 'creation_status_decision',
-    nodeType: '获取随机数',
-    displayName: '获取随机数',
-    graphType: 20007,
-    genericId: 200190,
-    concreteId: 1011,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    sampleFile: '造物状态决策节点图\\获取随机数_连线.gia'
+    sampleFile: '造物状态决策节点图\\正切函数_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -25868,6 +25868,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'enumeration_match',
+    displayName: '枚举匹配',
+    graphType: 20001,
+    genericId: 200005,
+    concreteId: 10,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\枚举匹配_填值.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'equal',
     displayName: '是否相等',
     graphType: 20001,
@@ -25991,6 +26015,90 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'filter_entity_list_within_spherical_range',
+    displayName: '筛选球体范围内的实体列表',
+    graphType: 20001,
+    genericId: 200043,
+    concreteId: 1019,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'filter_entity_list_within_square_range',
+    displayName: '筛选方形范围内的实体列表',
+    graphType: 20001,
+    genericId: 200044,
+    concreteId: 1018,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\筛选方形范围内的实体列表_填值.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'get_all_entities_within_the_collision_trigger',
     displayName: '获取碰撞触发器内所有实体',
     graphType: 20001,
@@ -26012,6 +26120,35 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\获取碰撞触发器内所有实体_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_all_valid_entities_that_are_scannable_by_scan_component',
+    displayName: '获取扫描组件可扫描的所有合法对象',
+    graphType: 20001,
+    genericId: 200119,
+    concreteId: 1040,
+    inputs: [],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_character_entity_of_specified_player',
+    displayName: '获取指定玩家的角色实体',
+    graphType: 20001,
+    genericId: 200024,
+    concreteId: 1002,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取指定玩家的角色实体_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -26073,6 +26210,17 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'get_current_character',
+    displayName: '获取当前角色',
+    graphType: 20001,
+    genericId: 200076,
+    concreteId: 1032,
+    inputs: [],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\以实体查询GUID_连线.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'get_custom_variable',
     displayName: '获取自定义变量',
     graphType: 20001,
@@ -26101,6 +26249,185 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '整数过滤器节点\\获取自定义变量_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_currently_scanned_by_scan_component',
+    displayName: '获取扫描组件当前扫描到的实体',
+    graphType: 20001,
+    genericId: 200118,
+    concreteId: 1039,
+    inputs: [],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_location',
+    displayName: '获取实体位置',
+    graphType: 20001,
+    genericId: 200030,
+    concreteId: 1008,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_rotation',
+    displayName: '获取实体旋转',
+    graphType: 20001,
+    genericId: 200031,
+    concreteId: 1009,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_s_current_active_scan_tags',
+    displayName: '获取实体当前生效的扫描标签',
+    graphType: 20001,
+    genericId: 200121,
+    concreteId: 1042,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_s_scan_status',
+    displayName: '获取实体扫描状态',
+    graphType: 20001,
+    genericId: 200120,
+    concreteId: 1041,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取实体扫描状态_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_s_type',
+    displayName: '获取实体的类型',
+    graphType: 20001,
+    genericId: 200045,
+    concreteId: 1020,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\以GUID查询实体_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_entity_type_list',
+    displayName: '获取实体类型列表',
+    graphType: 20001,
+    genericId: 200050,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取实体类型列表_填值.gia'
   },
   {
     subType: 'int_filter',
@@ -26236,6 +26563,169 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'get_random_number',
+    displayName: '获取随机数',
+    graphType: 20001,
+    genericId: 200032,
+    concreteId: 1011,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_ray_detection_result',
+    displayName: '获取射线检测结果',
+    graphType: 20001,
+    genericId: 200109,
+    concreteId: 1047,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\查询实体阵营_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_ray_filter_type_list',
+    displayName: '获取射线筛选类型列表',
+    graphType: 20001,
+    genericId: 200110,
+    concreteId: 1031,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取射线筛选类型列表_填值.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'get_self_entity',
     displayName: '获取自身实体',
     graphType: 20001,
@@ -26244,6 +26734,203 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_target_attachment_point_location',
+    displayName: '获取目标挂接点位置',
+    graphType: 20001,
+    genericId: 200047,
+    concreteId: 1022,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取目标挂接点位置_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_target_attachment_point_rotation',
+    displayName: '获取目标挂接点旋转',
+    graphType: 20001,
+    genericId: 200048,
+    concreteId: 1023,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_target_entity',
+    displayName: '获取目标实体',
+    graphType: 20001,
+    genericId: 200034,
+    concreteId: 1014,
+    inputs: [],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_unit_attack_target',
+    displayName: '获取单位攻击目标',
+    graphType: 20001,
+    genericId: 200035,
+    concreteId: 1015,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'greater_than',
+    displayName: '是否大于',
+    graphType: 20001,
+    genericId: 200007,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\是否大于_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'greater_than_or_equal_to',
+    displayName: '是否大于等于',
+    graphType: 20001,
+    genericId: 200010,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\是否大于等于_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'less_than',
+    displayName: '是否小于',
+    graphType: 20001,
+    genericId: 200008,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\是否小于_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'less_than_or_equal_to',
+    displayName: '是否小于等于',
+    graphType: 20001,
+    genericId: 200009,
+    concreteId: 12,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\是否小于等于_填值.gia'
   },
   {
     subType: 'int_filter',
@@ -26500,6 +27187,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'orientation_to_rotation',
+    displayName: '朝向转旋转',
+    graphType: 20001,
+    genericId: 200074,
+    concreteId: 139,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'query_entity_by_guid',
     displayName: '以GUID查询实体',
     graphType: 20001,
@@ -26593,6 +27304,17 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\查询阵营是否敌对_填值.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_if_self_is_in_combat',
+    displayName: '查询自身是否已入战',
+    graphType: 20001,
+    genericId: 200037,
+    concreteId: 1017,
+    inputs: [],
+    outputs: [],
+    sampleFile: '整数过滤器节点\\查询自身是否已入战_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -26720,727 +27442,5 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\正切函数_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '是否大于',
-    displayName: '是否大于',
-    graphType: 20001,
-    genericId: 200007,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '是否大于等于',
-    displayName: '是否大于等于',
-    graphType: 20001,
-    genericId: 200010,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于等于_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '是否小于',
-    displayName: '是否小于',
-    graphType: 20001,
-    genericId: 200008,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\是否小于_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '是否小于等于',
-    displayName: '是否小于等于',
-    graphType: 20001,
-    genericId: 200009,
-    concreteId: 12,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\是否小于等于_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '朝向转旋转',
-    displayName: '朝向转旋转',
-    graphType: 20001,
-    genericId: 200074,
-    concreteId: 139,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '枚举匹配',
-    displayName: '枚举匹配',
-    graphType: 20001,
-    genericId: 200005,
-    concreteId: 10,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\枚举匹配_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '查询自身是否已入战',
-    displayName: '查询自身是否已入战',
-    graphType: 20001,
-    genericId: 200037,
-    concreteId: 1017,
-    inputs: [],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\查询自身是否已入战_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '筛选方形范围内的实体列表',
-    displayName: '筛选方形范围内的实体列表',
-    graphType: 20001,
-    genericId: 200044,
-    concreteId: 1018,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\筛选方形范围内的实体列表_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '筛选球体范围内的实体列表',
-    displayName: '筛选球体范围内的实体列表',
-    graphType: 20001,
-    genericId: 200043,
-    concreteId: 1019,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取单位攻击目标',
-    displayName: '获取单位攻击目标',
-    graphType: 20001,
-    genericId: 200035,
-    concreteId: 1015,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取实体位置',
-    displayName: '获取实体位置',
-    graphType: 20001,
-    genericId: 200030,
-    concreteId: 1008,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取实体当前生效的扫描标签',
-    displayName: '获取实体当前生效的扫描标签',
-    graphType: 20001,
-    genericId: 200121,
-    concreteId: 1042,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取实体扫描状态',
-    displayName: '获取实体扫描状态',
-    graphType: 20001,
-    genericId: 200120,
-    concreteId: 1041,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体扫描状态_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取实体旋转',
-    displayName: '获取实体旋转',
-    graphType: 20001,
-    genericId: 200031,
-    concreteId: 1009,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取实体的类型',
-    displayName: '获取实体的类型',
-    graphType: 20001,
-    genericId: 200045,
-    concreteId: 1020,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\以GUID查询实体_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取实体类型列表',
-    displayName: '获取实体类型列表',
-    graphType: 20001,
-    genericId: 200050,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体类型列表_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取射线检测结果',
-    displayName: '获取射线检测结果',
-    graphType: 20001,
-    genericId: 200109,
-    concreteId: 1047,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'vec3',
-        clientVarType: 11
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'float',
-        clientVarType: 7
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum_list',
-        clientVarType: 17
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\查询实体阵营_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取射线筛选类型列表',
-    displayName: '获取射线筛选类型列表',
-    graphType: 20001,
-    genericId: 200110,
-    concreteId: 1031,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'int',
-        clientVarType: 3
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 2,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 3,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 4,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 5,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 6,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 7,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 8,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 9,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      },
-      {
-        index: 10,
-        kind: 'input',
-        type: 'enum',
-        clientVarType: 13
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取射线筛选类型列表_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取当前角色',
-    displayName: '获取当前角色',
-    graphType: 20001,
-    genericId: 200076,
-    concreteId: 1032,
-    inputs: [],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\以实体查询GUID_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取扫描组件可扫描的所有合法对象',
-    displayName: '获取扫描组件可扫描的所有合法对象',
-    graphType: 20001,
-    genericId: 200119,
-    concreteId: 1040,
-    inputs: [],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取扫描组件当前扫描到的实体',
-    displayName: '获取扫描组件当前扫描到的实体',
-    graphType: 20001,
-    genericId: 200118,
-    concreteId: 1039,
-    inputs: [],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取指定玩家的角色实体',
-    displayName: '获取指定玩家的角色实体',
-    graphType: 20001,
-    genericId: 200024,
-    concreteId: 1002,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取指定玩家的角色实体_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取目标实体',
-    displayName: '获取目标实体',
-    graphType: 20001,
-    genericId: 200034,
-    concreteId: 1014,
-    inputs: [],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取目标挂接点位置',
-    displayName: '获取目标挂接点位置',
-    graphType: 20001,
-    genericId: 200047,
-    concreteId: 1022,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点位置_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取目标挂接点旋转',
-    displayName: '获取目标挂接点旋转',
-    graphType: 20001,
-    genericId: 200048,
-    concreteId: 1023,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'entity',
-        clientVarType: 1
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'str',
-        clientVarType: 9
-      }
-    ],
-    outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_填值.gia'
-  },
-  {
-    subType: 'int_filter',
-    nodeType: '获取随机数',
-    displayName: '获取随机数',
-    graphType: 20001,
-    genericId: 200032,
-    concreteId: 1011,
-    inputs: [
-      {
-        index: 0,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      },
-      {
-        index: 1,
-        kind: 'input',
-        type: 'generic',
-        reflective: true
-      }
-    ],
-    outputs: [
-      {
-        index: 0,
-        kind: 'output',
-        type: 'int',
-        clientVarType: 3
-      }
-    ],
-    sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
   }
 ] as const

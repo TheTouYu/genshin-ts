@@ -17,7 +17,7 @@
     },
     {
       "subType": "bool_filter",
-      "nodeType": "是否小于等于",
+      "nodeType": "less_than_or_equal_to",
       "genericId": 200009,
       "variantKeys": {
         "3,3": 12,
@@ -198,7 +198,7 @@
     },
     {
       "subType": "creation_skill",
-      "nodeType": "是否大于",
+      "nodeType": "greater_than",
       "genericId": 200007,
       "variantKeys": {
         "3,3": 12,

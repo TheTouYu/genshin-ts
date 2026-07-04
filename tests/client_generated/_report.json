@@ -64,7 +64,12 @@
       "int_filter": 76
     },
     "withReflectMap": 47,
-    "missingEnglishName": 239
+    "missingEnglishName": 0,
+    "nodeTypeSources": {
+      "server_alias": 348,
+      "official_doc": 239
+    },
+    "serverAliasDivergenceCount": 18
   },
   "unknownFamily": [],
   "decodeFailures": [],

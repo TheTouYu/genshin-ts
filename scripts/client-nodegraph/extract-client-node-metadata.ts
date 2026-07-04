@@ -8,6 +8,7 @@ import {
   decode_gia_file,
   unwrap_gia
 } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { buildDocNameAlignment, lookupDocNode, type DocAlignment } from './doc_name_alignment.js'
 
 type ClientGraphSubType =
   | 'character_skill'
@@ -160,11 +161,43 @@ function camelToSnake(name: string): string {
   return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
 }
 
-function englishNodeType(displayName: string): string | undefined {
-  const en =
+/** official doc en name -> snake nodeType, keeping the leading-digit underscore rule */
+function docEnToSnake(name: string): string {
+  const snake = normalizeNodeType(name)
+  return /^\d/.test(snake) ? `_${snake}` : snake
+}
+
+type EnglishNodeTypeResult = {
+  nodeType: string
+  source: 'server_alias' | 'official_doc'
+  /** set when both sources resolve but disagree; server alias wins for parity */
+  docDivergence?: string
+}
+
+/**
+ * Server alias names keep priority (server-parity method names for shared
+ * nodes); official client doc names fill every remaining gap.
+ */
+function englishNodeType(
+  alignment: DocAlignment,
+  subType: string,
+  displayName: string
+): EnglishNodeTypeResult | undefined {
+  const serverEn =
     (SERVER_F_ZH_TO_EN as Record<string, string>)[displayName] ??
     (SERVER_EVENT_ZH_TO_EN as Record<string, string>)[displayName]
-  return en ? camelToSnake(en) : undefined
+  const doc = lookupDocNode(alignment, subType, displayName)
+  if (serverEn) {
+    const serverSnake = camelToSnake(serverEn)
+    const docSnake = doc ? docEnToSnake(doc.enName) : undefined
+    return {
+      nodeType: serverSnake,
+      source: 'server_alias',
+      ...(docSnake && docSnake !== serverSnake ? { docDivergence: doc!.enName } : {})
+    }
+  }
+  if (doc) return { nodeType: docEnToSnake(doc.enName), source: 'official_doc' }
+  return undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -694,9 +727,17 @@ function main() {
       .map((hit) => `${hit.subType}:${hit.genericId}`)
   )
 
+  const docAlignment = buildDocNameAlignment()
   const records: NodeRecord[] = []
   const nodeTypeSeen = new Map<string, string>()
   const missingEnglishNames: Array<{ subType: string; displayName: string; nodeType: string; genericId: number }> = []
+  const nodeTypeSources: Record<string, number> = {}
+  const serverAliasDivergences: Array<{
+    subType: string
+    displayName: string
+    nodeType: string
+    officialDocEnName: string
+  }> = []
   const reflectReport: Array<{
     subType: string
     nodeType: string
@@ -716,8 +757,10 @@ function main() {
         `[error] ${agg.subType}:${agg.genericId} has no demonstrating base sample (seen in ${agg.exampleFile})`
       )
     }
-    const english = fixedNodeType ?? englishNodeType(displayName)
-    const nodeType = english ?? normalizeNodeType(displayName)
+    const english = fixedNodeType
+      ? undefined
+      : englishNodeType(docAlignment, agg.subType, displayName)
+    const nodeType = fixedNodeType ?? english?.nodeType ?? normalizeNodeType(displayName)
     if (!english && !fixedNodeType) {
       missingEnglishNames.push({
         subType: agg.subType,
@@ -725,6 +768,16 @@ function main() {
         nodeType,
         genericId: agg.genericId
       })
+    } else if (english) {
+      nodeTypeSources[english.source] = (nodeTypeSources[english.source] ?? 0) + 1
+      if (english.docDivergence) {
+        serverAliasDivergences.push({
+          subType: agg.subType,
+          displayName,
+          nodeType,
+          officialDocEnName: english.docDivergence
+        })
+      }
     }
 
     const dupKey = `${agg.subType}:${nodeType}`
@@ -889,7 +942,9 @@ function main() {
         return acc
       }, {}),
       withReflectMap: records.filter((r) => r.reflectMap).length,
-      missingEnglishName: missingEnglishNames.length
+      missingEnglishName: missingEnglishNames.length,
+      nodeTypeSources,
+      serverAliasDivergenceCount: serverAliasDivergences.length
     },
     unknownFamily,
     decodeFailures,
@@ -921,7 +976,25 @@ function main() {
 
   writeJson('resources/client_node_metadata.json', records)
   writeJson('resources/client_graph_capability.json', capability)
-  writeJson('resources/client_execution_flow_metadata.json', [])
+  writeJson('tests/client_generated/_doc_name_alignment.json', {
+    description:
+      'zh<->en alignment of resources/node_definitions.json client/detail pages (index-based pairing is forbidden; see doc_name_alignment.ts)',
+    pagePairs: docAlignment.report.pagePairs,
+    zhEntries: docAlignment.report.zhEntries,
+    matchRate: docAlignment.report.matchRate,
+    provenance: docAlignment.report.provenance,
+    nodeTypeSources,
+    serverAliasDivergences,
+    spellingVariants: docAlignment.report.conflicts,
+    unresolved: docAlignment.report.unresolved,
+    sectionLeftovers: docAlignment.report.sectionLeftovers,
+    seedMisses: docAlignment.report.seedMisses,
+    zhToEn: Object.fromEntries(
+      [...docAlignment.byZhName.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([zh, info]) => [zh, info.enName])
+    )
+  })
   writeJson('tests/client_generated/_value_shapes.json', {
     description:
       'Observed VarBase shapes for literal input pins (alreadySetVal=true) grouped by clientVarType',
