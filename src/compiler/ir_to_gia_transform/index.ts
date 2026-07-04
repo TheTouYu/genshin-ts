@@ -191,6 +191,11 @@ function assertServerGraphRuntimeModeCompatible(
 }
 
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
+  if (ir.graph.type === 'client') {
+    throw new Error(
+      '[error] client IR to GIA compilation is not available yet; it lands later in this phase'
+    )
+  }
   const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph?.name ?? '_GSTS_Generated_Graph'
   const uid = opts.uid ?? 100000001
