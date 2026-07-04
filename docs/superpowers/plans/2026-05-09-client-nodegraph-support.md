@@ -17,6 +17,20 @@ The generated `client_graph_encoding.ts` lives in thirdparty `node_data` (server
 with `gia_gen/basic.ts` owning server graph header encoding), not under
 `src/compiler/ir_to_gia_transform/`.
 
+**Execution Status (2026-07-05):** Phase 3 and Tasks 11-14 are complete and committed
+(through `5a21b3c`). Task 15 was executed once as a server-intersection projection
+(`12e04e9`) and is superseded: that approach missed every client-only node (27-57 per
+family) and left client-only `nodeType` values as normalized Chinese display names,
+because `resources/node_definitions.json` (official bilingual client node docs) was not
+used as a source. Task 15 below is rewritten to generate full client method definitions
+(real signatures, bilingual JSDoc, real `registerNode` bodies) from official docs plus
+sample metadata, with server signatures demoted to a drift cross-check. Empirical note
+for Step 0: the official zh-cn and en-us page node arrays are misordered relative to
+each other (same pitfall documented in `docs/maintenance/routine-node-maintenance.md`),
+so index-based zh/en alignment is forbidden; probing shows section-scoped parameter
+fingerprints uniquely align ~58 of the 104 Chinese-typed names, the rest need
+elimination plus a validated seed dictionary.
+
 ---
 
 ## File Structure
@@ -32,6 +46,7 @@ Create these files:
 - `scripts/smoke-client-import-validation.mjs`: package-style import validation for client modules.
 - `src/definitions/client_graph_modes.ts`: generated client graph family, mode, event, handler, and capability maps.
 - `src/definitions/client_method_modes.ts`: generated method-to-subtype/mode maps; created only after real client node metadata extraction can populate it.
+- `src/definitions/client_nodes.ts`: generated full client execution-flow classes with real signatures, bilingual JSDoc from `resources/node_definitions.json`, and real `registerNode` bodies.
 - `src/runtime/client_graph_support.ts`: runtime client graph validation, registry helpers, filter normalization, and stable errors.
 - `src/shared/client_capability_errors.ts`: stable client error codes and helpers.
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`: generated client GIA graph header encoding data, consumed by the compiler through `gia_vendor.ts` only.
@@ -53,7 +68,7 @@ Modify these files:
 - `src/runtime/ir_builder.ts`: emit client graph IR when given client subtype.
 - `src/runtime/core.ts`: expose client graph APIs through `g` and delegate client-specific logic to `client_graph_support.ts`.
 - `src/runtime/server_globals.ts`: expose scoped `gsts.f`, `gsts.fServer`, and client `gsts.f*` namespaces with user-facing JSDoc.
-- `src/definitions/nodes.ts`: add client execution-flow classes and generated method map types.
+- `src/definitions/nodes.ts`: host client class integration points; full client classes live in generated `src/definitions/client_nodes.ts` (real methods, not server-projected shells).
 - `src/compiler/gs_to_ir_json_transform/runner.ts`: emit all server and client registries.
 - `src/compiler/ir_merge.ts`: enforce client merge compatibility.
 - `src/compiler/ir_to_gia_transform/index.ts`: dispatch server and client IR to separate paths.
@@ -2191,87 +2206,145 @@ git add scripts/client-nodegraph/generate-client-nodegraph-modules.ts resources/
 git commit -m "feat: add client scoped helper globals capability"
 ```
 
-### Task 15: Generate Client Method Modes And Definitions
+### Task 15: Generate Full Client Method Definitions From Official Docs And Sample Metadata
+
+Supersedes the original "server-intersection projection" Task 15 (`12e04e9`). Sources of
+truth, in order:
+
+1. `resources/client_node_metadata.json`: sample-proven pins, `clientVarType`, flows,
+   `genericId`/`concreteId`, `reflectMap`. Owns everything the compiler needs.
+2. `resources/node_definitions.json` `client_*` and `detail_*` categories: official
+   bilingual names, descriptions, and parameter docs. Owns method naming (en-us) and
+   user-facing JSDoc (both languages).
+3. Server signatures in `src/definitions/nodes.ts`: drift cross-check only, never a
+   generation source.
+
+Rules inherited from `docs/maintenance/routine-node-maintenance.md` (server maintenance
+learned these the hard way; the client generator must obey them from day one):
+
+- Never align zh-cn and en-us doc arrays by index; the arrays are misordered.
+- Official zh names verbatim; no re-translation.
+- Pin names are wire identifiers, not user documentation; JSDoc text comes from doc
+  `description`/`functions`, with type-aware manual wording only where docs are empty.
+- Doc `Generic` params keep project value-type wrappers (`T[]`, `dict<K, V>`) derived
+  from metadata evidence, not degraded to `generic` for the sake of matching docs.
 
 **Files:**
 
+- Modify: `scripts/client-nodegraph/extract-client-node-metadata.ts`
 - Modify: `scripts/client-nodegraph/generate-client-nodegraph-modules.ts`
-- Modify: `src/definitions/nodes.ts`
-- Output: `resources/client_execution_flow_metadata.json`
-- Output: `src/definitions/client_method_modes.ts`
+- Create: `src/definitions/client_nodes.ts` (generated full client classes)
+- Modify: `src/definitions/nodes.ts` (remove empty client shells / `ClientMethodsOf`)
+- Modify: `src/runtime/client_graph_support.ts` and other client class import sites
+- Modify: `scripts/check-client-definitions-consistency.ts`
+- Output: `resources/client_node_metadata.json` (regenerated with English nodeTypes)
+- Output: `resources/client_execution_flow_metadata.json` (full whitelist, doc-backed)
+- Output: `src/definitions/client_method_modes.ts` (regenerated)
+- Output: `tests/client_generated/_doc_name_alignment.json`
+- Output: `tests/client_generated/_server_drift.json`
 
-- [ ] **Step 1: Generate execution-flow metadata**
+- [ ] **Step 0: Build the official zh/en name alignment table**
 
-Extend generator to derive method metadata from `src/definitions/nodes.ts` server signatures and client capability:
+For every `*_zh-cn` / `*_en-us` page pair in `client_*` and `detail_*` categories, align
+nodes per section (never across sections, never by index):
+
+1. Compute a parameter fingerprint per node (ordered `io + normalized data_type`,
+   tolerant of doc typos like `Emtity`, `Paraneter`, `Enumerationd`).
+2. Match nodes whose fingerprint is unique within the section; repeat by elimination
+   until a fixpoint.
+3. Aggregate matches globally across page pairs with majority vote; near-duplicate en
+   spellings (curly quotes, casing) normalize to one canonical form.
+4. Remaining groups with identical fingerprints (comparator/logic/trig clusters) may be
+   resolved by a small seed dictionary committed in the script; every seed entry must be
+   validated against the section's unmatched en pool and fail loudly when absent, so a
+   wrong seed cannot silently mis-map.
+5. Write `tests/client_generated/_doc_name_alignment.json` with the zh->en table, match
+   provenance (fingerprint / elimination / seed), match rate, and an unresolved list.
+   Unresolved names stay `needs_developer_confirmation`: keep their Chinese `nodeType`,
+   generate no method, and let the compiler keep rejecting them.
+
+- [ ] **Step 1: Regenerate metadata with English nodeTypes**
+
+Wire the alignment table into the extractor's `englishNodeType` chain (official client
+en name first, then existing server zh->en fallbacks). `nodeType` normalization keeps
+the existing rules including the leading-underscore digit rule
+(`3D Vector Subtraction` -> `_3d_vector_subtraction`). Regenerate
+`resources/client_node_metadata.json` and rerun `npm run gen:client`; the missing
+English-name report must shrink to exactly the unresolved list from Step 0.
+
+- [ ] **Step 2: Generate the full execution-flow metadata**
+
+Rewrite `deriveClientExecutionFlowMetadata` to walk metadata records (not server
+signatures). For every record that is not `specialKind: start` and not an unsupported
+special kind, emit:
 
 ```ts
 type ClientExecutionFlowMetadata = {
-  methodName: string
+  methodName: string // camelCase of the en nodeType
   nodeType: string
-  subTypes: string[]
-  modes: string[]
-  params: string[]
-  returnType: string
-  typeParams: string[]
-  docs: string
-  requiresLocalVariableSpecialization: boolean
+  subTypes: ClientGraphSubType[]
+  modes: ClientGraphMode[] // still ['beyond'] until classic evidence exists
+  kind: 'data' | 'exec' | 'control_flow'
+  params: Array<{ name: string; irType: string; docZh: string; docEn: string }>
+  returns: Array<{ name: string; irType: string; docZh: string; docEn: string }> | null
+  docs: { en: string; zh: string } // from official doc name + functions/description
+  reflect?: { variantKeys: string[] }
 }
 ```
 
-- [ ] **Step 2: Generate method maps**
+Param mapping: metadata input pins are the signature source (`clientVarType` -> IR value
+type via the existing table); doc parameters contribute names and descriptions. Leading
+selector `enum` pins that docs do not list are skipped from the public signature but
+recorded. When pin count and doc param count cannot be reconciled mechanically, write
+the record to the alignment gap report and mark it `needs_developer_confirmation`
+instead of guessing.
 
-Generate `src/definitions/client_method_modes.ts`:
+- [ ] **Step 3: Generate full client classes**
 
-```ts
-export const CLIENT_NODE_METHODS_BY_SUB_TYPE = {
-  character_skill: ['printString'],
-  creation_skill: ['printString'],
-  creation_status: ['printString'],
-  creation_status_decision: ['printString'],
-  bool_filter: [],
-  int_filter: []
-} as const
+Generate `src/definitions/client_nodes.ts` containing six family classes with real
+methods, replacing the empty shells and the `ClientMethodsOf` server projection in
+`nodes.ts` (update import sites such as `client_graph_support.ts`). Every method has:
 
-export type ClientNodeMethodBySubType = typeof CLIENT_NODE_METHODS_BY_SUB_TYPE
-```
+- bilingual JSDoc from official docs (en text, zh text, `@param`/`@returns` both
+  languages), server-JSDoc formatting conventions
+- a real signature using project value types (`IntValue`, `FloatValue`, `Vec3Value`,
+  entity/list/dict wrappers); reflect records emit typed overloads per proven
+  `reflectMap` variant keys, mirroring server `addition`-style overloads
+- a real body: `parseValue` per arg, `this.registry.registerNode({ id: 0, type,
+  nodeType, args })`, `markPin` on the first output pin, matching server body style
+- control-flow nodes (`double_branch`, `finite_loop`, `traverse_entity_list`,
+  `multiple_branches`, `break_loop`) generated with callback params and
+  `withExecBranch` + `client_<sub_type>_if` / `client_<sub_type>_loop` /
+  `client_<sub_type>_switch` ctx names per the spec, not server ctx names
 
-Replace the literal arrays with generated values from metadata.
+Methods whose params/returns need types without proven runtime wrappers stay ungenerated
+and land in the gap report. `client_method_modes.ts` regenerates from the full
+metadata so ESLint/runtime maps stay in sync.
 
-- [ ] **Step 3: Connect client classes to method maps**
+- [ ] **Step 4: Server drift cross-check**
 
-Modify `src/definitions/nodes.ts` so client classes remain empty runtime shells but expose type maps:
+For every client method whose `nodeType` also exists as a server method, compare param
+count, param IR types, and return IR type against the server signature. Write
+`tests/client_generated/_server_drift.json` listing agreements and divergences with
+sample/doc references. Divergences are informational (client docs + samples win), but
+each one must be visible for review, not silently absorbed.
 
-```ts
-export type ClientExecutionFlowFunctionsBySubTypeMode<T extends ClientGraphSubType> =
-  ClientExecutionFlowFunctionsBySubType[T]
-```
+- [ ] **Step 5: Re-derive Task 14 scoped-globals capability**
 
-- [ ] **Step 4: Add consistency check script**
+Rerun the scoped-globals derivation on the regenerated metadata. Newly English-named
+client-only nodes may flip `needs_developer_confirmation` entries (for example
+`获取随机数` -> `get_random_number`) to evidence-backed; update
+`resources/client_scoped_globals_capability.json` and generated definitions, and list
+every status change in the review gate.
 
-Create `scripts/check-client-definitions-consistency.ts`:
+- [ ] **Step 6: Update consistency checks and verify**
 
-```ts
-import { CLIENT_NODE_METHODS_BY_SUB_TYPE } from '../src/definitions/client_method_modes.js'
-import { CLIENT_NODE_METADATA } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+Update `scripts/check-client-definitions-consistency.ts` to assert:
 
-const metadataTypes = new Set(CLIENT_NODE_METADATA.map((item) => item.nodeType))
-const missing: string[] = []
-
-for (const [subType, methods] of Object.entries(CLIENT_NODE_METHODS_BY_SUB_TYPE)) {
-  for (const method of methods as readonly string[]) {
-    const nodeType = method.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
-    if (!metadataTypes.has(nodeType)) missing.push(`${subType}.${method} -> ${nodeType}`)
-  }
-}
-
-if (missing.length) {
-  throw new Error(`client definitions missing metadata:\n${missing.join('\n')}`)
-}
-
-console.log('[ok] client definitions consistency')
-```
-
-- [ ] **Step 5: Run generation and consistency**
+- every generated method maps to a metadata record per subType (existing check)
+- every non-start, non-gap metadata record with an English nodeType has a generated
+  method (new inverse check)
+- no Chinese-typed record is exposed as a method
 
 Run:
 
@@ -2279,25 +2352,28 @@ Run:
 npm run gen:client
 npm run build
 node --import tsx ./scripts/check-client-definitions-consistency.ts
+node --import tsx ./scripts/client-nodegraph/smoke-minimal-client-gia.ts
 ```
 
-Expected:
+Extend the smoke (or add a sibling) so each family compiles at least one graph calling a
+doc-named client-only method (for example an attachment-point hitbox node) through
+IR -> GIA -> decode with node identity assertions.
 
-```text
-[ok] client definitions consistency
-```
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```powershell
-git add scripts/client-nodegraph/generate-client-nodegraph-modules.ts scripts/check-client-definitions-consistency.ts resources/client_execution_flow_metadata.json src/definitions/client_method_modes.ts src/definitions/nodes.ts
-git commit -m "feat: generate client method availability"
+git add scripts/client-nodegraph scripts/check-client-definitions-consistency.ts resources/client_node_metadata.json resources/client_execution_flow_metadata.json resources/client_scoped_globals_capability.json src/definitions/client_nodes.ts src/definitions/client_method_modes.ts src/definitions/client_scoped_globals.ts src/definitions/nodes.ts src/runtime/client_graph_support.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts tests/client_generated
+git commit -m "feat: generate full client method definitions from official docs"
 ```
 
 ### Phase 4 Review Gate
 
 - [ ] Present metadata count.
 - [ ] Present method count per subtype.
+- [ ] Present the doc name alignment report: match rate, provenance split
+      (fingerprint/elimination/seed), and the unresolved `needs_developer_confirmation` list.
+- [ ] Present the server drift report and each divergence.
+- [ ] Present scoped-globals capability status changes caused by re-derivation.
 - [ ] Present literal value shape census and round-trip check result per `ClientVarType`.
 - [ ] Present reflect variant resolution report and any `needs_developer_confirmation` variants.
 - [ ] Present client scoped helper globals capability report.
@@ -2581,9 +2657,12 @@ client global declarations after build/pack.
 - [ ] **Step 3: Generate client zh aliases**
 
 Extend zh alias generation to include client method aliases and client start
-event aliases from client metadata. If a Chinese display name cannot be
-converted to a stable identifier, write it to the alias report and ask the
-developer before choosing a manual alias.
+event aliases. The zh name source is the official bilingual alignment table
+(`tests/client_generated/_doc_name_alignment.json` backed by
+`resources/node_definitions.json`), not sample file names and not index-based
+zh/en array pairing. If a Chinese display name cannot be converted to a stable
+identifier, write it to the alias report and ask the developer before choosing
+a manual alias.
 
 - [ ] **Step 4: Add import/type smoke**
 
@@ -2807,6 +2886,9 @@ Add checks that report:
 - helper global capability count
 - unsupported special kind count
 - sample nodes not mapped to generated method definitions
+- official doc coverage: every `client_*`/`detail_*` node in
+  `resources/node_definitions.json` is either mapped to a generated client method or
+  listed in a documented gap/`needs_developer_confirmation` report
 - golden round-trip: decode self-produced client `.gia` outputs with the extractor
   decoding path and compare node identity, pin layout, and literal value structure
   against sample-derived metadata

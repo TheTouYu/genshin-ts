@@ -129,6 +129,18 @@ D:\_S2\mypy_test\client_nodes
 
 The first generator must accept this default path and a CLI override. No runtime, compiler, or published package code may depend on this path.
 
+`resources/node_definitions.json` (`client_*` and `detail_*` categories) is the official
+bilingual client node documentation and the naming/documentation source of truth:
+
+- Client method/`nodeType` English names come from official en-us node names.
+- User-facing JSDoc (en and zh) comes from official descriptions; zh text is official
+  verbatim, never re-translated.
+- zh-cn and en-us page arrays may be misordered; alignment must use section-scoped
+  content evidence (parameter fingerprints, elimination, validated seeds), never array
+  indexes. Unalignable nodes stay `needs_developer_confirmation` and unexposed.
+- Server method signatures in `nodes.ts` are a drift cross-check for client
+  definitions, never a generation source.
+
 Generated source caches:
 
 - `resources/client_node_metadata.json`
@@ -137,6 +149,8 @@ Generated source caches:
 - `resources/client_scoped_globals_capability.json`
 - `tests/client_generated/_coverage_gaps.json`
 - `tests/client_generated/_report.json`
+- `tests/client_generated/_doc_name_alignment.json`
+- `tests/client_generated/_server_drift.json`
 
 Client scoped helper globals must be generated from these resources only. File
 names, server node names, and manual intuition are acceptable for investigation,
@@ -145,6 +159,7 @@ but not as implementation evidence.
 Generated TypeScript modules:
 
 - `src/definitions/client_graph_modes.ts`
+- `src/definitions/client_nodes.ts`
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.ts`
 - `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts`
 
@@ -226,6 +241,8 @@ These gaps must be visible in coverage reports and must not silently fall back t
 - Client control-flow methods (`doubleBranch`, `finiteLoop`, `listIterationLoop`, `multipleBranches`, and `breakLoop`) must be generated from client metadata/capability maps. A client graph family must expose only the control-flow methods supported by that family and mode; unsupported control-flow use must fail with stable client errors if reached dynamically.
 - Client literal pin values must be encoded per `ClientVarType` from observed sample `VarBase` shapes and verified by encode/decode round-trip against those shapes. A `ClientVarType` without proven shape evidence must fail with a stable client error instead of borrowing server `VarBase` construction.
 - Client generic-to-concrete (reflect) variant resolution must be deterministic and metadata-driven: exact lookup first, then variant-key matching from IR argument types. Ambiguous or unmatched variants must fail with stable errors listing the candidates; the compiler must never pick a "closest" variant or fall back to server tables.
+- Client execution-flow classes must carry full generated implementations: real signatures from sample pin metadata, bilingual JSDoc from official client docs, and real `registerNode` bodies. Client classes must not be empty runtime shells projected from server signatures, and client-only nodes (no server counterpart) must be first-class methods.
+- Client method English names must derive from official en-us client doc names; nodes whose zh/en alignment cannot be proven mechanically or by validated seeds must stay unexposed `needs_developer_confirmation` gaps instead of receiving guessed names.
 - Client helper globals (`send`, `player`, `self`, `stage`, `level`, `Mathf`, `Random`, `Vector3`, and `GameObject`) must be metadata-driven, family/mode filtered, and allowed to expose partial APIs. Unsupported helper use must be rejected by type definitions where possible, by ESLint rules for source patterns that TypeScript cannot express, and by stable runtime errors when reached dynamically.
 - No client helper global may be implemented from server behavior alone. If resource JSON cannot prove equivalent client behavior, the helper entry must remain a documented gap until the developer confirms it.
 - Client graph ESLint rules must be planned as a parity layer beside TypeScript types and runtime checks. Rules must be generated from or validated against client metadata/capability resources where they depend on client node availability. Before implementing any rule for uncertain syntax, arguments, callback shape, helper semantics, or graph-family behavior, the implementer must stop and ask the developer to confirm the intended form instead of guessing.
