@@ -1,0 +1,87 @@
+import { loadGiaProto } from '../../injector/proto.js'
+import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
+import type { ClientIRDocument } from '../../runtime/IR.js'
+import {
+  client_graph_body,
+  client_node_body,
+  client_node_connect_from,
+  client_node_connect_to,
+  getClientGraphEncoding,
+  wrap_gia,
+  type Root as GiaRoot
+} from '../gia_vendor.js'
+import { resolveClientNodeMetadata } from './client_nodes.js'
+import type { IrToGiaOptions } from './index.js'
+import { buildExecutionGraph, layoutPositions } from './layout.js'
+import type { NodeId } from './types.js'
+
+// NodePin_Index_Kind values from gia.proto: 2 = OutFlow, 3 = InParam
+const PIN_KIND_OUT_FLOW = 2
+const PIN_KIND_IN_PARAM = 3
+
+type ClientGiaNode = ReturnType<typeof client_node_body>
+
+export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8Array {
+  const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
+  const name = opts.name ?? ir.graph.name ?? '_GSTS_Generated_Client_Graph'
+  const uid = opts.uid ?? 100000001
+  const nodes = ir.nodes ?? []
+  if (!nodes.length) throw new Error('IR document must have at least one node')
+
+  const graphInfo = buildExecutionGraph(nodes)
+  const positions = layoutPositions(nodes, graphInfo)
+  const builtById = new Map<NodeId, ClientGiaNode>()
+
+  for (const irNode of nodes) {
+    const metadata = resolveClientNodeMetadata(ir.graph.sub_type, irNode)
+    const pos = positions.get(irNode.id) ?? [0, 0]
+    const node = client_node_body({
+      metadata,
+      unique_index: irNode.id,
+      x: pos[0] / 300,
+      y: pos[1] / 200
+    })
+    builtById.set(irNode.id, node)
+  }
+
+  for (const { fromId, toId, fromIndex, toIndex } of graphInfo.flowConnections) {
+    const from = builtById.get(fromId)
+    const to = builtById.get(toId)
+    if (!from || !to) throw new Error(`[error] bad client flow connection ${fromId}->${toId}`)
+    const connect = client_node_connect_to(to.nodeIndex, toIndex)
+    const existing = from.pins.find(
+      (p) => p.i1?.kind === PIN_KIND_OUT_FLOW && p.i1.index === fromIndex
+    )
+    if (existing) {
+      existing.connects.push(connect)
+    } else {
+      from.pins.push({
+        i1: { kind: PIN_KIND_OUT_FLOW, index: fromIndex },
+        i2: { kind: PIN_KIND_OUT_FLOW, index: fromIndex },
+        connects: [connect]
+      } as (typeof from.pins)[number])
+    }
+  }
+
+  for (const { fromId, toId, fromIndex, toIndex } of graphInfo.dataConnections) {
+    const from = builtById.get(fromId)
+    const to = builtById.get(toId)
+    if (!from || !to) throw new Error(`[error] bad client data connection ${fromId}->${toId}`)
+    const pin = to.pins.find((p) => p.i1?.kind === PIN_KIND_IN_PARAM && p.i1.index === toIndex)
+    if (!pin) throw new Error(`[error] missing client input pin ${toId}.${toIndex}`)
+    pin.connects = [client_node_connect_from(from.nodeIndex, fromIndex)]
+  }
+
+  const encoding = getClientGraphEncoding(ir.graph.sub_type)
+  const root: GiaRoot = client_graph_body({
+    uid,
+    graph_id: graphId,
+    graph_name: name,
+    graphType: encoding.graphType,
+    graphWhich: encoding.graphWhich,
+    nodes: [...builtById.values()]
+  })
+
+  const { rootMessage } = loadGiaProto(opts.protoPath)
+  return new Uint8Array(wrap_gia(rootMessage, root))
+}

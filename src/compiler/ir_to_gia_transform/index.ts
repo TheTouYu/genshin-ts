@@ -2,6 +2,7 @@ import { loadGiaProto } from '../../injector/proto.js'
 import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type {
   Argument,
+  ClientIRDocument,
   ConnectionArgument,
   IRDocument,
   ServerGraphMode as ServerGraphRuntimeMode,
@@ -13,6 +14,7 @@ import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { isListValueInfo, type ListValueInfo } from '../../runtime/variables.js'
 import type { NodeType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js'
 import { Graph, Node, NodeIdFor, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
+import { clientIrToGia } from './client_graph.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
@@ -192,9 +194,8 @@ function assertServerGraphRuntimeModeCompatible(
 
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   if (ir.graph.type === 'client') {
-    throw new Error(
-      '[error] client IR to GIA compilation is not available yet; it lands later in this phase'
-    )
+    // TS cannot narrow the IRDocument union through the nested graph.type discriminant
+    return clientIrToGia(ir as ClientIRDocument, opts)
   }
   const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph?.name ?? '_GSTS_Generated_Graph'

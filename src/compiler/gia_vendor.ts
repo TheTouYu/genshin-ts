@@ -18,3 +18,15 @@ export { NODE_ID } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-
 export { wrap_gia } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 export type { Root } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+
+export {
+  client_graph_body,
+  client_node_body,
+  node_connect_from as client_node_connect_from,
+  node_connect_to as client_node_connect_to
+} from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.js'
+
+export {
+  CLIENT_GRAPH_ENCODING_BY_SUB_TYPE,
+  getClientGraphEncoding
+} from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js'
