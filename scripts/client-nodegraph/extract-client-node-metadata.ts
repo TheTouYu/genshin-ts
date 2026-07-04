@@ -115,6 +115,182 @@ function findStatusExtensions(root: DecodedRoot, relFile: string, subType: Clien
     }))
 }
 
+type DecodedNode = ReturnType<typeof graphNodes>[number]
+
+type MinimalPinRecord = {
+  index: number
+  kind: 'input' | 'output' | 'in_flow' | 'out_flow' | 'client_exec' | 'client_signal'
+  type: string
+  clientVarType?: number
+}
+
+type MinimalNodeRecord = {
+  subType: ClientGraphSubType
+  nodeType: string
+  displayName: string
+  graphType: number
+  genericId: number
+  concreteId: number
+  inputs: MinimalPinRecord[]
+  outputs: MinimalPinRecord[]
+  flows?: MinimalPinRecord[]
+  specialKind?: 'start'
+  isStart?: boolean
+  sampleFile: string
+}
+
+// Phase 3 minimal pass: only the node that appears in every sample of a family.
+// Skill/status families share a pinless begins node; filter families instead share
+// the result end node that consumes the final value.
+const MINIMAL_NODE_TYPE_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
+  character_skill: 'node_graph_begins',
+  creation_skill: 'node_graph_begins',
+  creation_status: 'node_graph_begins',
+  creation_status_decision: 'node_graph_begins',
+  bool_filter: 'node_graph_end_boolean',
+  int_filter: 'node_graph_end_integer'
+}
+
+const EXPECTED_STATUS_EXTENSION = JSON.stringify({ type: 1, inner: { value: 1 } })
+
+const CLIENT_VAR_TYPE_NAMES: Record<number, string> = {
+  1: 'entity',
+  2: 'entity_list',
+  3: 'int',
+  4: 'int_list',
+  5: 'bool',
+  6: 'bool_list',
+  7: 'float',
+  8: 'float_list',
+  9: 'str',
+  10: 'str_list',
+  11: 'vec3',
+  12: 'vec3_list',
+  13: 'enum',
+  14: 'guid',
+  15: 'guid_list',
+  16: 'faction',
+  17: 'enum_list',
+  18: 'config_id',
+  19: 'prefab_id',
+  20: 'config_id_list',
+  21: 'prefab_id_list',
+  22: 'local_variable',
+  24: 'dict',
+  25: 'faction_list'
+}
+
+const PIN_KIND_NAMES: Record<number, MinimalPinRecord['kind']> = {
+  1: 'in_flow',
+  2: 'out_flow',
+  3: 'input',
+  4: 'output',
+  5: 'client_exec',
+  6: 'client_signal'
+}
+
+type MinimalFamilyCollector = {
+  decoded: number
+  byGid: Map<number, { samples: number; best?: { node: DecodedNode; relFile: string } }>
+}
+
+function collectMinimalNodes(
+  collector: Map<ClientGraphSubType, MinimalFamilyCollector>,
+  root: DecodedRoot,
+  relFile: string,
+  subType: ClientGraphSubType
+) {
+  const family = collector.get(subType) ?? { decoded: 0, byGid: new Map() }
+  collector.set(subType, family)
+  family.decoded += 1
+  const seen = new Set<number>()
+  for (const node of graphNodes(root)) {
+    const gid = Number(node.genericId?.nodeId)
+    const entry = family.byGid.get(gid) ?? { samples: 0 }
+    family.byGid.set(gid, entry)
+    if (!seen.has(gid)) {
+      entry.samples += 1
+      seen.add(gid)
+    }
+    if (!entry.best || (node.pins?.length ?? 0) > (entry.best.node.pins?.length ?? 0)) {
+      entry.best = { node, relFile }
+    }
+  }
+}
+
+function minimalPinRecords(node: DecodedNode): {
+  inputs: MinimalPinRecord[]
+  outputs: MinimalPinRecord[]
+  flows: MinimalPinRecord[]
+} {
+  const inputs: MinimalPinRecord[] = []
+  const outputs: MinimalPinRecord[] = []
+  const flows: MinimalPinRecord[] = []
+  for (const pin of node.pins ?? []) {
+    const kind = PIN_KIND_NAMES[Number(pin.i1?.kind)]
+    if (!kind) throw new Error(`[error] unknown pin kind ${pin.i1?.kind}`)
+    const clientVarType = Number(pin.type ?? 0)
+    const record: MinimalPinRecord = {
+      index: Number(pin.i1?.index ?? 0),
+      kind,
+      type:
+        kind === 'in_flow' || kind === 'out_flow'
+          ? 'flow'
+          : (CLIENT_VAR_TYPE_NAMES[clientVarType] ?? `client_${clientVarType}`),
+      clientVarType
+    }
+    if (kind === 'input') inputs.push(record)
+    else if (kind === 'output') outputs.push(record)
+    else flows.push(record)
+  }
+  return { inputs, outputs, flows }
+}
+
+function buildMinimalMetadata(
+  collector: Map<ClientGraphSubType, MinimalFamilyCollector>
+): MinimalNodeRecord[] {
+  const records: MinimalNodeRecord[] = []
+  for (const [subType, family] of [...collector.entries()].sort()) {
+    const universal = [...family.byGid.entries()].filter(
+      ([, entry]) => entry.samples === family.decoded
+    )
+    if (universal.length !== 1) {
+      throw new Error(
+        `[error] ${subType}: expected exactly one universal node, got ${universal.length} (${universal
+          .map(([gid]) => gid)
+          .join(', ')})`
+      )
+    }
+    const [genericId, entry] = universal[0]
+    const { node, relFile } = entry.best!
+    const nodeType = MINIMAL_NODE_TYPE_BY_SUB_TYPE[subType]
+    const isStart = nodeType === 'node_graph_begins'
+    if (subType.startsWith('creation_status')) {
+      const observed = JSON.stringify(node.statusNodeExtension)
+      if (observed !== EXPECTED_STATUS_EXTENSION) {
+        throw new Error(
+          `[error] ${subType}: statusNodeExtension mismatch, observed ${observed}, expected ${EXPECTED_STATUS_EXTENSION}`
+        )
+      }
+    }
+    const { inputs, outputs, flows } = minimalPinRecords(node)
+    records.push({
+      subType,
+      nodeType,
+      displayName: nodeType,
+      graphType: Number(node.genericId?.type),
+      genericId,
+      concreteId: Number(node.concreteId?.nodeId),
+      inputs,
+      outputs,
+      ...(flows.length ? { flows } : {}),
+      ...(isStart ? { specialKind: 'start' as const, isStart: true } : {}),
+      sampleFile: relFile
+    })
+  }
+  return records
+}
+
 type VarBaseField3Hit = {
   path: string
   byteOffset: number
@@ -228,6 +404,7 @@ function main() {
   const clientVarType25Hits: ReturnType<typeof findClientVarType25> = []
   const statusExtensionHits: ReturnType<typeof findStatusExtensions> = []
   const inlineVarTypeHintHits: ReturnType<typeof annotateInlineVarTypeHintHits> = []
+  const minimalCollector = new Map<ClientGraphSubType, MinimalFamilyCollector>()
 
   for (const file of files) {
     const relFile = path.relative(sampleRoot, file)
@@ -253,6 +430,7 @@ function main() {
     graphIdentities.set(identityKey, (graphIdentities.get(identityKey) ?? 0) + 1)
     clientVarType25Hits.push(...findClientVarType25(root, relFile, subType))
     statusExtensionHits.push(...findStatusExtensions(root, relFile, subType))
+    collectMinimalNodes(minimalCollector, root, relFile, subType)
 
     inlineVarTypeHintHits.push(
       ...annotateInlineVarTypeHintHits(
@@ -322,7 +500,9 @@ function main() {
     }
   }
 
-  writeJson('resources/client_node_metadata.json', [])
+  const minimalMetadata = buildMinimalMetadata(minimalCollector)
+
+  writeJson('resources/client_node_metadata.json', minimalMetadata)
   writeJson('resources/client_graph_capability.json', capability)
   writeJson('resources/client_execution_flow_metadata.json', [])
   writeJson('tests/client_generated/_coverage_gaps.json', {
@@ -340,6 +520,11 @@ function main() {
   writeJson('tests/client_generated/_report.json', report)
 
   console.log(`[ok] scanned ${files.length} client gia samples`)
+  console.log(
+    `[ok] extracted ${minimalMetadata.length} minimal node metadata records: ${minimalMetadata
+      .map((r) => `${r.subType}.${r.nodeType}=${r.genericId}/${r.concreteId}`)
+      .join(', ')}`
+  )
 }
 
 main()
