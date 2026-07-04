@@ -10,7 +10,7 @@ import {
   wrap_gia,
   type Root as GiaRoot
 } from '../gia_vendor.js'
-import { resolveClientNodeMetadata } from './client_nodes.js'
+import { resolveClientConcreteVariant, resolveClientNodeMetadata } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import type { NodeId } from './types.js'
@@ -34,12 +34,14 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
 
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, irNode)
+    const concreteId = resolveClientConcreteVariant(metadata, irNode)
     const pos = positions.get(irNode.id) ?? [0, 0]
     const node = client_node_body({
       metadata,
       unique_index: irNode.id,
       x: pos[0] / 300,
-      y: pos[1] / 200
+      y: pos[1] / 200,
+      concrete_id: concreteId
     })
     builtById.set(irNode.id, node)
   }

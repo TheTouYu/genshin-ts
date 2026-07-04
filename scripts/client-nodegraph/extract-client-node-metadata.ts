@@ -781,16 +781,21 @@ function main() {
 
     if (concreteIds.size > 1) {
       const { variants, conflicts, underived } = deriveReflectMap(agg, reflectiveInputIndexes)
-      record.reflectMap = variants.map((v) => ({
-        concreteId: v.concreteId,
-        variantKey: v.variantKey,
-        ...(v.pins ? { pins: v.pins } : {})
-      }))
-      record.specialKind = 'reflect'
       const status =
         conflicts.length || underived.length || variants.length === 0
           ? 'needs_developer_confirmation'
           : 'resolved'
+      // Unconfirmed variant rules must not be silently applied: publish an
+      // empty reflectMap so the resolver rejects the node with a stable error.
+      record.reflectMap =
+        status === 'resolved'
+          ? variants.map((v) => ({
+              concreteId: v.concreteId,
+              variantKey: v.variantKey,
+              ...(v.pins ? { pins: v.pins } : {})
+            }))
+          : []
+      record.specialKind = 'reflect'
       reflectReport.push({
         subType: agg.subType,
         nodeType,

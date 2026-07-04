@@ -210,6 +210,8 @@ export function client_node_body(body: {
   unique_index: number
   x: number
   y: number
+  /** resolved concrete id; required when metadata carries a reflectMap */
+  concrete_id?: number | string
 }): GraphNode {
   const pins = [
     ...body.metadata.inputs.map((p) => client_pin_body(p)),
@@ -229,7 +231,7 @@ export function client_node_body(body: {
       class: NodeGraph_Id_Class.SystemDefined,
       type: body.metadata.graphType,
       kind: NodeGraph_Id_Kind.SysCall,
-      nodeId: Number(body.metadata.concreteId)
+      nodeId: Number(body.concrete_id ?? body.metadata.concreteId)
     },
     pins,
     x: body.x * 300,

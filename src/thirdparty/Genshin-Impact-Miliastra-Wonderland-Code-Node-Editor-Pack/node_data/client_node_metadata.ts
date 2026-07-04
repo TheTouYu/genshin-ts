@@ -917,12 +917,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '布尔过滤器节点\\列表是否包含该值_连线.gia',
-    reflectMap: [
-      {
-        concreteId: 41,
-        variantKey: ''
-      }
-    ],
+    reflectMap: [],
     specialKind: 'reflect'
   },
   {
@@ -23366,12 +23361,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\查询字典是否包含特定值_连线.gia',
-    reflectMap: [
-      {
-        concreteId: 4201,
-        variantKey: ''
-      }
-    ],
+    reflectMap: [],
     specialKind: 'reflect'
   },
   {
