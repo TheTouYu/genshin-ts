@@ -400,9 +400,12 @@ function assertServerGraphModeCompatible(mode: ServerGraphMode, type: ServerGrap
   }
 }
 
+export type ClientGstsCtxKind = 'handler' | 'if' | 'loop' | 'switch'
+export type ClientGstsCtxType = `client_${ClientGraphSubType}_${ClientGstsCtxKind}`
+
 export type GstsCtxType =
   | 'javascript'
-  | 'client_handler'
+  | ClientGstsCtxType
   | 'server_handler'
   | 'server_if'
   | 'server_loop'
@@ -412,7 +415,11 @@ export type GstsCtxApi = {
   readonly ctxType: GstsCtxType
   withCtx<T>(ctxType: GstsCtxType, fn: () => T): T
   isServerCtx(): boolean
+  isClientCtx(): boolean
+  isClientGraphCtx(subType: ClientGraphSubType): boolean
   assertServerCtx(): void
+  assertClientCtx(): void
+  assertClientGraphCtx(subType: ClientGraphSubType): void
   assertCtx(expected: GstsCtxType): void
 }
 
@@ -424,11 +431,86 @@ export type GstsPublic = {
    */
   readonly ctx: GstsCtxApi
   /**
-   * only available in g.server().on() handler
+   * Server node graph function namespace shorthand.
    *
-   * 仅允许在 g.server().on() 下访问，否则 throw
+   * This is equivalent to `gsts.fServer`. It is only available inside `g.server().on(...)`
+   * handlers.
+   *
+   * 服务器节点图函数命名空间简写。
+   *
+   * 等价于 `gsts.fServer`。仅允许在 `g.server().on(...)` handler 内访问，否则 throw。
    */
   readonly f: ServerExecutionFlowFunctions
+  /**
+   * Server node graph function namespace.
+   *
+   * Only available inside `g.server().on(...)` handlers.
+   *
+   * 服务器节点图函数命名空间。
+   *
+   * 仅允许在 `g.server().on(...)` handler 内访问，否则 throw。
+   */
+  readonly fServer: ServerExecutionFlowFunctions
+  /**
+   * Character skill client node graph function namespace.
+   *
+   * Only available inside `g.characterSkill(...).on(...)` handlers.
+   *
+   * 角色技能客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.characterSkill(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fCharacterSkill: ClientFlowFunctionClass<'character_skill'>
+  /**
+   * Creation skill client node graph function namespace.
+   *
+   * Only available inside `g.creationSkill(...).on(...)` handlers.
+   *
+   * 造物技能客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.creationSkill(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fCreationSkill: ClientFlowFunctionClass<'creation_skill'>
+  /**
+   * Creation status client node graph function namespace.
+   *
+   * Only available inside `g.creationStatus(...).on(...)` handlers.
+   *
+   * 造物状态客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.creationStatus(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fCreationStatus: ClientFlowFunctionClass<'creation_status'>
+  /**
+   * Creation status decision client node graph function namespace.
+   *
+   * Only available inside `g.creationStatusDecision(...).on(...)` handlers.
+   *
+   * 造物状态决策客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.creationStatusDecision(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fCreationStatusDecision: ClientFlowFunctionClass<'creation_status_decision'>
+  /**
+   * Boolean filter client node graph function namespace.
+   *
+   * Only available inside `g.boolFilter(...).on(...)` handlers.
+   *
+   * 布尔过滤器客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.boolFilter(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fBoolFilter: ClientFlowFunctionClass<'bool_filter'>
+  /**
+   * Integer filter client node graph function namespace.
+   *
+   * Only available inside `g.intFilter(...).on(...)` handlers.
+   *
+   * 整数过滤器客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.intFilter(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fIntFilter: ClientFlowFunctionClass<'int_filter'>
 }
 
 declare global {
@@ -440,10 +522,45 @@ declare global {
 
 const kCtxStack: unique symbol = Symbol('gsts_ctxStack')
 const kServerF: unique symbol = Symbol('gsts_serverF')
+const kClientF: unique symbol = Symbol('gsts_clientF')
 
 type GstsInternal = GstsPublic & {
   [kCtxStack]?: GstsCtxType[]
   [kServerF]?: ServerExecutionFlowFunctions
+  [kClientF]?: Partial<Record<ClientGraphSubType, unknown>>
+}
+
+const CLIENT_F_GLOBAL_NAMES = {
+  character_skill: 'fCharacterSkill',
+  creation_skill: 'fCreationSkill',
+  creation_status: 'fCreationStatus',
+  creation_status_decision: 'fCreationStatusDecision',
+  bool_filter: 'fBoolFilter',
+  int_filter: 'fIntFilter'
+} as const satisfies Record<ClientGraphSubType, keyof GstsPublic>
+
+function getBoundServerF(g: GstsInternal, ctx: GstsCtxApi, name: 'gsts.f' | 'gsts.fServer') {
+  ctx.assertServerCtx()
+  if (!g[kServerF]) {
+    throw new Error(`[error] ${name} is not bound (did you call it outside g.server().on handler?)`)
+  }
+  return g[kServerF]
+}
+
+function getBoundClientF<T extends ClientGraphSubType>(
+  g: GstsInternal,
+  ctx: GstsCtxApi,
+  subType: T
+): ClientFlowFunctionClass<T> {
+  ctx.assertClientGraphCtx(subType)
+  const value = g[kClientF]?.[subType]
+  if (!value) {
+    const name = CLIENT_F_GLOBAL_NAMES[subType]
+    throw new Error(
+      `[error] gsts.${name} is not bound (did you call it outside matching client graph handler?)`
+    )
+  }
+  return value as ClientFlowFunctionClass<T>
 }
 
 function ensureGsts(): GstsPublic {
@@ -472,10 +589,30 @@ function ensureGsts(): GstsPublic {
     isServerCtx() {
       return this.ctxType.startsWith('server_')
     },
+    isClientCtx() {
+      return this.ctxType.startsWith('client_')
+    },
+    isClientGraphCtx(subType: ClientGraphSubType) {
+      return this.ctxType.startsWith(`client_${subType}_`)
+    },
     assertServerCtx() {
       if (!this.isServerCtx()) {
         throw new Error(
           `[error] gsts.f is only available in server_* ctxType (current: ${this.ctxType})`
+        )
+      }
+    },
+    assertClientCtx() {
+      if (!this.isClientCtx()) {
+        throw new Error(
+          `[error] client scoped f is only available in client_* ctxType (current: ${this.ctxType})`
+        )
+      }
+    },
+    assertClientGraphCtx(subType: ClientGraphSubType) {
+      if (!this.isClientGraphCtx(subType)) {
+        throw new Error(
+          `[error] gsts.${CLIENT_F_GLOBAL_NAMES[subType]} is only available in client_${subType}_* ctxType (current: ${this.ctxType})`
         )
       }
     },
@@ -493,16 +630,39 @@ function ensureGsts(): GstsPublic {
       configurable: false,
       enumerable: true,
       get() {
-        ctx.assertServerCtx()
-        if (!g[kServerF]) {
-          throw new Error(
-            '[error] gsts.f is not bound (did you call it outside g.server().on handler?)'
-          )
-        }
-        return g[kServerF]
+        return getBoundServerF(g, ctx, 'gsts.f')
       }
     })
   }
+
+  if (!Object.getOwnPropertyDescriptor(g, 'fServer')) {
+    Object.defineProperty(g, 'fServer', {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return getBoundServerF(g, ctx, 'gsts.fServer')
+      }
+    })
+  }
+
+  const installClientFGetter = <T extends ClientGraphSubType>(subType: T) => {
+    const name = CLIENT_F_GLOBAL_NAMES[subType]
+    if (Object.getOwnPropertyDescriptor(g, name)) return
+    Object.defineProperty(g, name, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return getBoundClientF(g, ctx, subType)
+      }
+    })
+  }
+
+  installClientFGetter('character_skill')
+  installClientFGetter('creation_skill')
+  installClientFGetter('creation_status')
+  installClientFGetter('creation_status_decision')
+  installClientFGetter('bool_filter')
+  installClientFGetter('int_filter')
 
   return g
 }
@@ -719,11 +879,16 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     const prevLoopStack = this.loopNodeStack
     const prevReturnCounter = this.returnCallCounter
     const flowIndex = this.flows.length - 1
+    const clientSubType = this.graphType as ClientGraphSubType
+    const gsts = ensureGsts() as unknown as GstsInternal
+    const clientBindings = (gsts[kClientF] ??= {})
+    const prevClientF = clientBindings[clientSubType]
     this.flowStack = [...prevFlowStack, flowIndex]
     this.loopNodeStack = []
     this.returnCallCounter = 0
+    clientBindings[clientSubType] = fns
     try {
-      ensureGsts().ctx.withCtx('client_handler', () => {
+      gsts.ctx.withCtx(`client_${clientSubType}_handler`, () => {
         const result = handler({}, fns)
         if (normalizeReturn && endNodeType) {
           const normalized = normalizeReturn(result)
@@ -736,6 +901,11 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
         }
       })
     } finally {
+      if (prevClientF === undefined) {
+        delete clientBindings[clientSubType]
+      } else {
+        clientBindings[clientSubType] = prevClientF
+      }
       this.flowStack = prevFlowStack
       this.loopNodeStack = prevLoopStack
       this.returnCallCounter = prevReturnCounter
@@ -1471,6 +1641,7 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
 }
 
 export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {}) {
+  const removeUnusedNodes = getRuntimeOptions().optimize.removeUnusedNodes
   const prefixName = (raw: string, enable: boolean) => {
     if (!enable) return raw
     if (raw.startsWith('_GSTS')) return raw
@@ -1485,16 +1656,20 @@ export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
     return '_GSTS_Generated_Client_Graph'
   }
 
-  return clientRegistries.map((registry) =>
-    buildIRDocument({
-      flows: registry.getFlows(),
+  return clientRegistries.map((registry) => {
+    const flows = registry.getFlows()
+    const optimizedFlows = removeUnusedNodes
+      ? flows.map(removeUnusedNodesFromFlow).filter((flow) => flow !== null)
+      : flows
+    return buildIRDocument({
+      flows: optimizedFlows,
       variables: registry.getVariables(),
       clientSubType: registry.getGraphType() as ClientGraphSubType,
       clientMode: registry.getGraphMode() as ClientGraphMode,
       graphId: registry.getGraphId(),
       graphName: resolveName(registry)
     })
-  )
+  })
 }
 
 function assertNoServerClientGraphIdCollisions(docs: IRDocument[]) {

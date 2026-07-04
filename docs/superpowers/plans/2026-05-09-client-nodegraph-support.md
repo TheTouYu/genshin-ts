@@ -43,6 +43,7 @@ Modify these files:
 - `src/runtime/execution_flow_types.ts`: allow IR builder inputs to carry client subtype/mode.
 - `src/runtime/ir_builder.ts`: emit client graph IR when given client subtype.
 - `src/runtime/core.ts`: expose client graph APIs through `g` and delegate client-specific logic to `client_graph_support.ts`.
+- `src/runtime/server_globals.ts`: expose scoped `gsts.f`, `gsts.fServer`, and client `gsts.f*` namespaces with user-facing JSDoc.
 - `src/definitions/nodes.ts`: add client execution-flow classes and generated method map types.
 - `src/compiler/gs_to_ir_json_transform/runner.ts`: emit all server and client registries.
 - `src/compiler/ir_merge.ts`: enforce client merge compatibility.
@@ -733,6 +734,7 @@ git commit -m "feat: add client graph IR shape"
 
 - Create: `src/runtime/client_graph_support.ts`
 - Modify: `src/runtime/core.ts`
+- Modify: `src/runtime/server_globals.ts`
 - Modify: `src/definitions/nodes.ts`
 - Modify: `src/compiler/gs_to_ir_json_transform/runner.ts`
 
@@ -832,10 +834,7 @@ export type ClientGraphOptions<Mode extends ClientGraphMode = ClientGraphMode> =
 export type ClientStartEvent = Record<string, never>
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>
 
-export type ClientFlowFunctionClass<
-  T extends ClientGraphSubType,
-  Mode extends ClientGraphMode = 'beyond'
-> = T extends 'character_skill'
+export type ClientFlowFunctionClass<T extends ClientGraphSubType> = T extends 'character_skill'
   ? ClientCharacterSkillExecutionFlowFunctions
   : T extends 'creation_skill'
     ? ClientCreationSkillExecutionFlowFunctions
@@ -1009,6 +1008,44 @@ export interface ExecutionFlowRegistry {
 
 Then make `MetaCallRegistry implements ExecutionFlowRegistry`.
 
+`runClientStartHandler(...)` should:
+
+1. Register the internal client start node as the event node.
+2. Run the handler under a subtype-specific client ctx type: `client_<subType>_handler`.
+3. Bind the matching client flow-function class.
+4. Bind the matching scoped global f namespace during the handler.
+5. For filter graph families, normalize the handler return into the matching filter end execution node.
+6. Restore the previous scoped global bindings after the handler exits.
+
+Filter end nodes are intentionally modeled as execution nodes in runtime IR. They are the graph
+exit point that carries the return value as an argument, and they let the existing unused-node
+optimizer preserve the parameter/data dependency chain used by the returned value.
+
+Extend `GstsCtxApi` with client ctx helpers:
+
+```ts
+isClientCtx(): boolean
+assertClientCtx(): void
+isClientGraphCtx(subType: ClientGraphSubType): boolean
+assertClientGraphCtx(subType: ClientGraphSubType): void
+```
+
+Client scoped global getters must call `assertClientGraphCtx(subType)` before returning their
+bound f namespace, so `gsts.fBoolFilter` is unavailable inside `g.characterSkill(...).on(...)`.
+
+Client control-flow callbacks must keep the same subtype in their ctx names:
+
+```ts
+client_ < subType > _if
+client_ < subType > _loop
+client_ < subType > _switch
+```
+
+Future generated client control-flow methods must enter those ctx names when running callbacks.
+Do not expose `doubleBranch`, `finiteLoop`, `listIterationLoop`, `multipleBranches`, or `breakLoop`
+on every client family by default. They must be generated from client metadata/capability maps and
+filtered by `SubType + Mode`; unsupported dynamic use must fail with stable client errors.
+
 - [ ] **Step 4: Add client API entry points**
 
 Modify `src/runtime/core.ts` to export `g` with:
@@ -1040,6 +1077,31 @@ g.boolFilter(options?).on('start', handler)
 g.intFilter(options?).on('start', handler)
 ```
 
+Scoped global f access must also be supported:
+
+```ts
+gsts.f.printString('server shorthand') // equivalent to gsts.fServer.printString(...)
+gsts.fServer.printString('explicit server')
+
+gsts.fCharacterSkill.printString('character skill')
+gsts.fCreationSkill.printString('creation skill')
+gsts.fCreationStatus.printString('creation status')
+gsts.fCreationStatusDecision.printString('creation status decision')
+gsts.fBoolFilter.greaterThan(2, 1)
+gsts.fIntFilter.add(1, 2)
+```
+
+Rules:
+
+- `gsts.f` remains the existing server shorthand and is equivalent to `gsts.fServer`.
+- `gsts.fServer` is the explicit server namespace.
+- Each client graph family uses a dedicated top-level namespace:
+  `gsts.fCharacterSkill`, `gsts.fCreationSkill`, `gsts.fCreationStatus`,
+  `gsts.fCreationStatusDecision`, `gsts.fBoolFilter`, and `gsts.fIntFilter`.
+- Client namespaces must not be nested under `gsts.f`.
+- Accessing an unbound scoped namespace outside the matching handler should fail with a clear error.
+- User-facing JSDoc for `gsts.f` must explain that it is the server shorthand and is equivalent to `gsts.fServer`.
+
 The public event name is `start`. The internal client GIA start node remains `node_graph_begins`, read from `CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[subType].startNodeType`.
 
 `createClientGraphApi` should:
@@ -1049,7 +1111,8 @@ The public event name is `start`. The internal client GIA start node remains `no
 3. Return an object with `.on('start', handler)`.
 4. Inside `.on`, register the internal start node from `CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[subType].startNodeType`.
 5. Bind the matching client flow-function class for the handler.
-6. For filter graph families, normalize the handler return into the matching filter end node.
+6. Bind and restore the matching `gsts.f*` scoped global namespace for the handler.
+7. For filter graph families, normalize the handler return into the matching filter end execution node.
 
 - [ ] **Step 5: Add all registry build function**
 
@@ -1063,6 +1126,10 @@ export function buildAllGraphRegistriesIRDocuments(opts: IRBuildOptions = {}) {
   ]
 }
 ```
+
+Client graph IR generation must honor `getRuntimeOptions().optimize.removeUnusedNodes` in the same
+way as server graph IR generation. The bool/int filter end execution node is the reachable anchor
+that keeps the returned parameter/data dependency chain alive.
 
 - [ ] **Step 6: Make runner emit all registries**
 
@@ -1120,10 +1187,18 @@ Create `scripts/client-nodegraph/fixtures/client_api_types.ts` to compile-check 
 g.characterSkill({ mode: 'classic', lang: 'zh' })
 g.intFilter({ lang: 'zh' })
 g.boolFilter({ mode: 'classic' })
+gsts.fServer
+gsts.fCharacterSkill
+gsts.fCreationSkill
+gsts.fCreationStatus
+gsts.fCreationStatusDecision
+gsts.fBoolFilter
+gsts.fIntFilter
 ```
 
 Expected: `npm run build` type-checks `ClientStartGraphApi` / `ClientFilterGraphApi` with
-`SubType + Lang + Mode` preserved.
+`SubType + Lang + Mode` preserved, and the scoped global f namespaces are visible in the
+published type surface.
 
 - [ ] **Step 8b: Check default client graph id**
 

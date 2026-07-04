@@ -46,6 +46,25 @@ g.intFilter().on('start', () => {
 })
 ```
 
+Scoped global `f` access must also be available:
+
+```ts
+gsts.f.printString('server shorthand')
+gsts.fServer.printString('explicit server')
+
+gsts.fCharacterSkill.printString('character skill')
+gsts.fCreationSkill.printString('creation skill')
+gsts.fCreationStatus.printString('creation status')
+gsts.fCreationStatusDecision.printString('creation status decision')
+gsts.fBoolFilter.greaterThan(2, 1)
+gsts.fIntFilter.add(1, 2)
+```
+
+`gsts.f.xxx` is the existing server shorthand and must remain equivalent to `gsts.fServer.xxx`.
+Client graph APIs must use their own top-level namespaces (`gsts.fCharacterSkill`,
+`gsts.fCreationSkill`, `gsts.fCreationStatus`, `gsts.fCreationStatusDecision`,
+`gsts.fBoolFilter`, and `gsts.fIntFilter`) instead of nesting under `gsts.f`.
+
 The public API must not expose GIA encoding details such as `graphType`, `graphWhich`, `genericId`, `concreteId`, protobuf field names, or sample paths.
 
 ## Architecture
@@ -127,10 +146,11 @@ Each family needs:
 The first end-to-end pass must implement:
 
 - client graph start nodes
-- bool filter end normalization
-- int filter end normalization
+- bool filter return normalization into a filter end execution node
+- int filter return normalization into a filter end execution node
 - execution flow connections
 - data flow connections
+- client unused-node pruning through the same reachable-execution-node model used by server graphs
 - typed literal input pins
 - reflect/concrete node variants when metadata provides enough information
 - dictionaries using `ClientVarType.Dictionary_ = 24`
@@ -162,6 +182,14 @@ These gaps must be visible in coverage reports and must not silently fall back t
 - Formal GIA generation must not clone whole sample node protos.
 - Client graph errors must use stable error codes.
 - Server graph behavior must remain unchanged unless a shared helper is intentionally extracted and covered by existing tests.
+- `gsts.f` must remain the server shorthand, and its user-facing documentation must explain that it is equivalent to `gsts.fServer`.
+- Client scoped globals must use dedicated top-level names (`gsts.fCharacterSkill`, `gsts.fCreationSkill`, `gsts.fCreationStatus`, `gsts.fCreationStatusDecision`, `gsts.fBoolFilter`, `gsts.fIntFilter`) to avoid mixing client namespaces into `gsts.f`.
+- Client handlers must run under subtype-specific ctx names: `client_<sub_type>_handler`.
+- Client control-flow callbacks must use the same subtype-specific ctx family:
+  `client_<sub_type>_if`, `client_<sub_type>_loop`, and `client_<sub_type>_switch`.
+- `GstsCtxApi` must expose `isClientCtx()`, `assertClientCtx()`, `isClientGraphCtx(subType)`, and `assertClientGraphCtx(subType)`.
+- Client scoped globals must assert the matching client graph ctx before returning the bound f namespace.
+- Client control-flow methods (`doubleBranch`, `finiteLoop`, `listIterationLoop`, `multipleBranches`, and `breakLoop`) must be generated from client metadata/capability maps. A client graph family must expose only the control-flow methods supported by that family and mode; unsupported control-flow use must fail with stable client errors if reached dynamically.
 
 ## Review Model
 

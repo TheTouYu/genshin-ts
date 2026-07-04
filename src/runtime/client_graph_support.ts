@@ -92,7 +92,7 @@ export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' 
 
 export type ClientFlowFunctionClass<
   T extends ClientGraphSubType,
-  Mode extends ClientGraphMode = 'beyond'
+  Mode extends ClientGraphMode = ClientGraphMode
 > = Mode extends ClientGraphMode
   ? T extends 'character_skill'
     ? ClientCharacterSkillExecutionFlowFunctions
@@ -189,36 +189,21 @@ export const CLIENT_FILTER_END_NODE_TYPES = {
 export function createClientFlowFunctions<T extends ClientGraphSubType>(
   subType: T,
   registry: ExecutionFlowRegistry
-): ClientFlowFunctionClass<T, ClientGraphMode> {
+): ClientFlowFunctionClass<T> {
   switch (subType) {
     case 'character_skill':
-      return new ClientCharacterSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<
-        T,
-        ClientGraphMode
-      >
+      return new ClientCharacterSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'creation_skill':
-      return new ClientCreationSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<
-        T,
-        ClientGraphMode
-      >
+      return new ClientCreationSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'creation_status':
-      return new ClientCreationStatusExecutionFlowFunctions(registry) as ClientFlowFunctionClass<
-        T,
-        ClientGraphMode
-      >
+      return new ClientCreationStatusExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'creation_status_decision':
       return new ClientCreationStatusDecisionExecutionFlowFunctions(
         registry
-      ) as ClientFlowFunctionClass<T, ClientGraphMode>
+      ) as ClientFlowFunctionClass<T>
     case 'bool_filter':
-      return new ClientBoolFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<
-        T,
-        ClientGraphMode
-      >
+      return new ClientBoolFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'int_filter':
-      return new ClientIntFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<
-        T,
-        ClientGraphMode
-      >
+      return new ClientIntFilterExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
   }
 }
