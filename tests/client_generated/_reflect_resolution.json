@@ -1,0 +1,500 @@
+{
+  "description": "Reflect/generic variant resolution coverage derived from samples",
+  "multiVariantGenericIds": 47,
+  "needsDeveloperConfirmation": 2,
+  "entries": [
+    {
+      "subType": "bool_filter",
+      "nodeType": "equal",
+      "genericId": 200006,
+      "variantKeys": {
+        "5,5": 11,
+        "3,3": 12,
+        "14,14": 15,
+        "11,11": 17
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "是否小于等于",
+      "genericId": 200009,
+      "variantKeys": {
+        "3,3": 12,
+        "7,7": 13
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "multiplication",
+      "genericId": 200013,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "division",
+      "genericId": 200014,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "get_custom_variable",
+      "genericId": 200016,
+      "variantKeys": {
+        "": 41
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 41 and 47",
+        "variant key \"\" maps to concreteIds 41 and 50"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "get_corresponding_value_from_list",
+      "genericId": 200017,
+      "variantKeys": {
+        "2": 65,
+        "15": 64
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "get_list_length",
+      "genericId": 200018,
+      "variantKeys": {
+        "2": 85,
+        "4": 81
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "list_includes_this_value",
+      "genericId": 200019,
+      "variantKeys": {
+        "3,4": 101,
+        "14,15": 104,
+        "1,2": 105,
+        "18,20": 107
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "equal",
+      "genericId": 200006,
+      "variantKeys": {
+        "5,5": 11,
+        "3,3": 12
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "addition",
+      "genericId": 200011,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "multiplication",
+      "genericId": 200013,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "division",
+      "genericId": 200014,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "get_corresponding_value_from_list",
+      "genericId": 200017,
+      "variantKeys": {
+        "2": 65,
+        "6": 60,
+        "8": 62,
+        "12": 66,
+        "25": 70
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "list_includes_this_value",
+      "genericId": 200019,
+      "variantKeys": {
+        "5,6": 100,
+        "3,4": 101,
+        "1,2": 105,
+        "11,12": 106
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "get_maximum_value_from_list",
+      "genericId": 200020,
+      "variantKeys": {
+        "4": 120,
+        "8": 121
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "get_minimum_value_from_list",
+      "genericId": 200021,
+      "variantKeys": {
+        "4": 122,
+        "8": 123
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "assembly_list",
+      "genericId": 200049,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1": 1025,
+        "3,3,3,3,3,3,3,3,3,3": 1026,
+        "11,11,11,11,11,11,11,11,11,11": 1030
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "equal",
+      "genericId": 200006,
+      "variantKeys": {
+        "5,5": 11,
+        "3,3": 12
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "是否大于",
+      "genericId": 200007,
+      "variantKeys": {
+        "3,3": 12,
+        "7,7": 13
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "subtraction",
+      "genericId": 200012,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "absolute_value_operation",
+      "genericId": 200015,
+      "variantKeys": {
+        "3": 32,
+        "7": 33
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "get_corresponding_value_from_list",
+      "genericId": 200017,
+      "variantKeys": {
+        "2": 65,
+        "8": 62,
+        "12": 66
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "list_includes_this_value",
+      "genericId": 200019,
+      "variantKeys": {
+        "3,4": 101,
+        "1,2": 105
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "get_maximum_value_from_list",
+      "genericId": 200020,
+      "variantKeys": {
+        "4": 120,
+        "8": 121
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "get_minimum_value_from_list",
+      "genericId": 200021,
+      "variantKeys": {
+        "4": 122,
+        "8": 123
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "assembly_list",
+      "genericId": 200049,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1": 1025,
+        "7,7,7,7,7,7,7,7,7,7": 1028
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "equal",
+      "genericId": 200179,
+      "variantKeys": {
+        "5,5": 11,
+        "3,3": 12,
+        "1,1": 16,
+        "11,11": 17
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "addition",
+      "genericId": 200184,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "subtraction",
+      "genericId": 200185,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "multiplication",
+      "genericId": 200186,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "division",
+      "genericId": 200187,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "assembly_list",
+      "genericId": 200191,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1": 1025,
+        "7,7,7,7,7,7,7,7,7,7": 1028
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "get_corresponding_value_from_list",
+      "genericId": 200222,
+      "variantKeys": {
+        "2": 65,
+        "6": 60
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "get_maximum_value_from_list",
+      "genericId": 200225,
+      "variantKeys": {
+        "4": 120,
+        "8": 121
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "get_minimum_value_from_list",
+      "genericId": 200226,
+      "variantKeys": {
+        "4": 122,
+        "8": 123
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "get_custom_variable",
+      "genericId": 200173,
+      "variantKeys": {
+        "": 4201
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 4201 and 4220"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "equal",
+      "genericId": 200179,
+      "variantKeys": {
+        "5,5": 11,
+        "3,3": 12,
+        "16,16": 18
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "multiplication",
+      "genericId": 200186,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "assembly_list",
+      "genericId": 200191,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1": 1025,
+        "7,7,7,7,7,7,7,7,7,7": 1028
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "get_corresponding_value_from_list",
+      "genericId": 200222,
+      "variantKeys": {
+        "2": 65,
+        "4": 61
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "list_includes_this_value",
+      "genericId": 200224,
+      "variantKeys": {
+        "3,4": 101,
+        "1,2": 105
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "equal",
+      "genericId": 200006,
+      "variantKeys": {
+        "5,5": 11,
+        "3,3": 12,
+        "14,14": 15,
+        "11,11": 17,
+        "18,18": 19
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "multiplication",
+      "genericId": 200013,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "division",
+      "genericId": 200014,
+      "variantKeys": {
+        "3,3": 30,
+        "7,7": 31
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "get_corresponding_value_from_list",
+      "genericId": 200017,
+      "variantKeys": {
+        "2": 65,
+        "4": 61
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "list_includes_this_value",
+      "genericId": 200019,
+      "variantKeys": {
+        "3,4": 101,
+        "1,2": 105
+      },
+      "status": "resolved"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "assembly_list",
+      "genericId": 200049,
+      "variantKeys": {
+        "3,3,3,3,3,3,3,3,3,3": 1026,
+        "5,5,5,5,5,5,5,5,5,5": 1027,
+        "18,18,18,18,18,18,18,18,18,18": 1044
+      },
+      "status": "resolved"
+    }
+  ]
+}

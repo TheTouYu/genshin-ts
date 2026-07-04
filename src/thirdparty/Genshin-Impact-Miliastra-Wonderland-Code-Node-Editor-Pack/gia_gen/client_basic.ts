@@ -121,6 +121,9 @@ export function client_node_body(body: {
   ) {
     node.statusNodeExtension = { type: 1, inner: { value: 1 } }
   }
+  if (body.metadata.contextDeclaration) {
+    node.contextDeclaration = body.metadata.contextDeclaration
+  }
   return node
 }
 

@@ -53,6 +53,19 @@
       "count": 199
     }
   ],
+  "metadataCounts": {
+    "total": 593,
+    "bySubType": {
+      "bool_filter": 76,
+      "character_skill": 130,
+      "creation_skill": 124,
+      "creation_status": 100,
+      "creation_status_decision": 87,
+      "int_filter": 76
+    },
+    "withReflectMap": 47,
+    "missingEnglishName": 239
+  },
   "unknownFamily": [],
   "decodeFailures": [],
   "clientVarType25": {

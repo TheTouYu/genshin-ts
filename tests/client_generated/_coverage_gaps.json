@@ -71,5 +71,1468 @@
       "count": 1
     }
   ],
+  "missingEnglishName": [
+    {
+      "subType": "bool_filter",
+      "displayName": "枚举匹配",
+      "nodeType": "枚举匹配",
+      "genericId": 200005
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "是否大于",
+      "nodeType": "是否大于",
+      "genericId": 200007
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "是否小于",
+      "nodeType": "是否小于",
+      "genericId": 200008
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "是否小于等于",
+      "nodeType": "是否小于等于",
+      "genericId": 200009
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "是否大于等于",
+      "nodeType": "是否大于等于",
+      "genericId": 200010
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取指定玩家的角色实体",
+      "nodeType": "获取指定玩家的角色实体",
+      "genericId": 200024
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取实体位置",
+      "nodeType": "获取实体位置",
+      "genericId": 200030
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取实体旋转",
+      "nodeType": "获取实体旋转",
+      "genericId": 200031
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取随机数",
+      "nodeType": "获取随机数",
+      "genericId": 200032
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取目标实体",
+      "nodeType": "获取目标实体",
+      "genericId": 200034
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取单位攻击目标",
+      "nodeType": "获取单位攻击目标",
+      "genericId": 200035
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "查询自身是否已入战",
+      "nodeType": "查询自身是否已入战",
+      "genericId": 200037
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "筛选球体范围内的实体列表",
+      "nodeType": "筛选球体范围内的实体列表",
+      "genericId": 200043
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "筛选方形范围内的实体列表",
+      "nodeType": "筛选方形范围内的实体列表",
+      "genericId": 200044
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取实体的类型",
+      "nodeType": "获取实体的类型",
+      "genericId": 200045
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取目标挂接点位置",
+      "nodeType": "获取目标挂接点位置",
+      "genericId": 200047
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取目标挂接点旋转",
+      "nodeType": "获取目标挂接点旋转",
+      "genericId": 200048
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取实体类型列表",
+      "nodeType": "获取实体类型列表",
+      "genericId": 200050
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "朝向转旋转",
+      "nodeType": "朝向转旋转",
+      "genericId": 200074
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取当前角色",
+      "nodeType": "获取当前角色",
+      "genericId": 200076
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取射线检测结果",
+      "nodeType": "获取射线检测结果",
+      "genericId": 200109
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取射线筛选类型列表",
+      "nodeType": "获取射线筛选类型列表",
+      "genericId": 200110
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取扫描组件当前扫描到的实体",
+      "nodeType": "获取扫描组件当前扫描到的实体",
+      "genericId": 200118
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取扫描组件可扫描的所有合法对象",
+      "nodeType": "获取扫描组件可扫描的所有合法对象",
+      "genericId": 200119
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取实体扫描状态",
+      "nodeType": "获取实体扫描状态",
+      "genericId": 200120
+    },
+    {
+      "subType": "bool_filter",
+      "displayName": "获取实体当前生效的扫描标签",
+      "nodeType": "获取实体当前生效的扫描标签",
+      "genericId": 200121
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "枚举匹配",
+      "nodeType": "枚举匹配",
+      "genericId": 200005
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "是否大于",
+      "nodeType": "是否大于",
+      "genericId": 200007
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "是否小于",
+      "nodeType": "是否小于",
+      "genericId": 200008
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "是否小于等于",
+      "nodeType": "是否小于等于",
+      "genericId": 200009
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "是否大于等于",
+      "nodeType": "是否大于等于",
+      "genericId": 200010
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取指定玩家的角色实体",
+      "nodeType": "获取指定玩家的角色实体",
+      "genericId": 200024
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体位置",
+      "nodeType": "获取实体位置",
+      "genericId": 200030
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体旋转",
+      "nodeType": "获取实体旋转",
+      "genericId": 200031
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取随机数",
+      "nodeType": "获取随机数",
+      "genericId": 200032
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取目标实体",
+      "nodeType": "获取目标实体",
+      "genericId": 200034
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取单位攻击目标",
+      "nodeType": "获取单位攻击目标",
+      "genericId": 200035
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "查询自身是否已入战",
+      "nodeType": "查询自身是否已入战",
+      "genericId": 200037
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "通知服务器节点图",
+      "nodeType": "通知服务器节点图",
+      "genericId": 200039
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "玩家转向",
+      "nodeType": "玩家转向",
+      "genericId": 200040
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "设置自身攻击目标",
+      "nodeType": "设置自身攻击目标",
+      "genericId": 200041
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "筛选球体范围内的实体列表",
+      "nodeType": "筛选球体范围内的实体列表",
+      "genericId": 200043
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "筛选方形范围内的实体列表",
+      "nodeType": "筛选方形范围内的实体列表",
+      "genericId": 200044
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体的类型",
+      "nodeType": "获取实体的类型",
+      "genericId": 200045
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取目标挂接点位置",
+      "nodeType": "获取目标挂接点位置",
+      "genericId": 200047
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取目标挂接点旋转",
+      "nodeType": "获取目标挂接点旋转",
+      "genericId": 200048
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体类型列表",
+      "nodeType": "获取实体类型列表",
+      "genericId": 200050
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "特定位置打攻击盒",
+      "nodeType": "特定位置打攻击盒",
+      "genericId": 200051
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "定点发射投射物",
+      "nodeType": "定点发射投射物",
+      "genericId": 200052
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "定点位移",
+      "nodeType": "定点位移",
+      "genericId": 200053
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "遍历实体列表",
+      "nodeType": "遍历实体列表",
+      "genericId": 200055
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "指定挂接点打攻击盒",
+      "nodeType": "指定挂接点打攻击盒",
+      "genericId": 200059
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "移除指定角色扰动装置",
+      "nodeType": "移除指定角色扰动装置",
+      "genericId": 200060
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "设置攻击权重",
+      "nodeType": "设置攻击权重",
+      "genericId": 200061
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "镜头朝向检测数据",
+      "nodeType": "镜头朝向检测数据",
+      "genericId": 200062
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "朝向转旋转",
+      "nodeType": "朝向转旋转",
+      "genericId": 200074
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "恢复生命值",
+      "nodeType": "恢复生命值",
+      "genericId": 200075
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取当前角色",
+      "nodeType": "获取当前角色",
+      "genericId": 200076
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体的单位标签列表",
+      "nodeType": "获取实体的单位标签列表",
+      "genericId": 200077
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "增加指定实体的仇恨值",
+      "nodeType": "增加指定实体的仇恨值",
+      "genericId": 200084
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "按比例设置指定实体的仇恨值",
+      "nodeType": "按比例设置指定实体的仇恨值",
+      "genericId": 200085
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "按比例转移指定实体的仇恨值",
+      "nodeType": "按比例转移指定实体的仇恨值",
+      "genericId": 200086
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "清空指定实体的仇恨列表",
+      "nodeType": "清空指定实体的仇恨列表",
+      "genericId": 200087
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "查询指定实体是否入战",
+      "nodeType": "查询指定实体是否入战",
+      "genericId": 200092
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "玩家转向指定朝向",
+      "nodeType": "玩家转向指定朝向",
+      "genericId": 200105
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "重置技能目标",
+      "nodeType": "重置技能目标",
+      "genericId": 200106
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "强制退出瞄准状态",
+      "nodeType": "强制退出瞄准状态",
+      "genericId": 200108
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取射线检测结果",
+      "nodeType": "获取射线检测结果",
+      "genericId": 200109
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取射线筛选类型列表",
+      "nodeType": "获取射线筛选类型列表",
+      "genericId": 200110
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "特定位置打球形攻击盒",
+      "nodeType": "特定位置打球形攻击盒",
+      "genericId": 200111
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "特定位置打矩形攻击盒",
+      "nodeType": "特定位置打矩形攻击盒",
+      "genericId": 200112
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "特定位置打扇形攻击盒",
+      "nodeType": "特定位置打扇形攻击盒",
+      "genericId": 200113
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "指定挂接点打球形攻击盒",
+      "nodeType": "指定挂接点打球形攻击盒",
+      "genericId": 200114
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "指定挂接点打矩形攻击盒",
+      "nodeType": "指定挂接点打矩形攻击盒",
+      "genericId": 200115
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "指定挂接点打扇形攻击盒",
+      "nodeType": "指定挂接点打扇形攻击盒",
+      "genericId": 200116
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取扫描组件当前扫描到的实体",
+      "nodeType": "获取扫描组件当前扫描到的实体",
+      "genericId": 200118
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取扫描组件可扫描的所有合法对象",
+      "nodeType": "获取扫描组件可扫描的所有合法对象",
+      "genericId": 200119
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体扫描状态",
+      "nodeType": "获取实体扫描状态",
+      "genericId": 200120
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "获取实体当前生效的扫描标签",
+      "nodeType": "获取实体当前生效的扫描标签",
+      "genericId": 200121
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "向服务器节点图发送信号",
+      "nodeType": "向服务器节点图发送信号",
+      "genericId": 200124
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "实体是否携带指定单位状态",
+      "nodeType": "实体是否携带指定单位状态",
+      "genericId": 200243
+    },
+    {
+      "subType": "character_skill",
+      "displayName": "查询复杂造物的预设状态值",
+      "nodeType": "查询复杂造物的预设状态值",
+      "genericId": 200244
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "枚举匹配",
+      "nodeType": "枚举匹配",
+      "genericId": 200005
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "是否大于",
+      "nodeType": "是否大于",
+      "genericId": 200007
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "是否小于",
+      "nodeType": "是否小于",
+      "genericId": 200008
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "是否小于等于",
+      "nodeType": "是否小于等于",
+      "genericId": 200009
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "是否大于等于",
+      "nodeType": "是否大于等于",
+      "genericId": 200010
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取实体位置",
+      "nodeType": "获取实体位置",
+      "genericId": 200030
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取实体旋转",
+      "nodeType": "获取实体旋转",
+      "genericId": 200031
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取随机数",
+      "nodeType": "获取随机数",
+      "genericId": 200032
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取单位攻击目标",
+      "nodeType": "获取单位攻击目标",
+      "genericId": 200035
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "通知服务器节点图",
+      "nodeType": "通知服务器节点图",
+      "genericId": 200039
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "筛选球体范围内的实体列表",
+      "nodeType": "筛选球体范围内的实体列表",
+      "genericId": 200043
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "筛选方形范围内的实体列表",
+      "nodeType": "筛选方形范围内的实体列表",
+      "genericId": 200044
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取实体的类型",
+      "nodeType": "获取实体的类型",
+      "genericId": 200045
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取目标挂接点位置",
+      "nodeType": "获取目标挂接点位置",
+      "genericId": 200047
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取目标挂接点旋转",
+      "nodeType": "获取目标挂接点旋转",
+      "genericId": 200048
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取实体类型列表",
+      "nodeType": "获取实体类型列表",
+      "genericId": 200050
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "特定位置打攻击盒",
+      "nodeType": "特定位置打攻击盒",
+      "genericId": 200051
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "定点发射投射物",
+      "nodeType": "定点发射投射物",
+      "genericId": 200052
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "遍历实体列表",
+      "nodeType": "遍历实体列表",
+      "genericId": 200055
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "指定挂接点打攻击盒",
+      "nodeType": "指定挂接点打攻击盒",
+      "genericId": 200059
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "移除指定角色扰动装置",
+      "nodeType": "移除指定角色扰动装置",
+      "genericId": 200060
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "朝向转旋转",
+      "nodeType": "朝向转旋转",
+      "genericId": 200074
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "恢复生命值",
+      "nodeType": "恢复生命值",
+      "genericId": 200075
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取实体的单位标签列表",
+      "nodeType": "获取实体的单位标签列表",
+      "genericId": 200077
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "增加指定实体的仇恨值",
+      "nodeType": "增加指定实体的仇恨值",
+      "genericId": 200084
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "按比例设置指定实体的仇恨值",
+      "nodeType": "按比例设置指定实体的仇恨值",
+      "genericId": 200085
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "按比例转移指定实体的仇恨值",
+      "nodeType": "按比例转移指定实体的仇恨值",
+      "genericId": 200086
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "清空指定实体的仇恨列表",
+      "nodeType": "清空指定实体的仇恨列表",
+      "genericId": 200087
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "查询指定实体是否入战",
+      "nodeType": "查询指定实体是否入战",
+      "genericId": 200092
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取射线检测结果",
+      "nodeType": "获取射线检测结果",
+      "genericId": 200109
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取射线筛选类型列表",
+      "nodeType": "获取射线筛选类型列表",
+      "genericId": 200110
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "特定位置打球形攻击盒",
+      "nodeType": "特定位置打球形攻击盒",
+      "genericId": 200111
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "特定位置打矩形攻击盒",
+      "nodeType": "特定位置打矩形攻击盒",
+      "genericId": 200112
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "特定位置打扇形攻击盒",
+      "nodeType": "特定位置打扇形攻击盒",
+      "genericId": 200113
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "指定挂接点打矩形攻击盒",
+      "nodeType": "指定挂接点打矩形攻击盒",
+      "genericId": 200115
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "指定挂接点打扇形攻击盒",
+      "nodeType": "指定挂接点打扇形攻击盒",
+      "genericId": 200116
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "向服务器节点图发送信号",
+      "nodeType": "向服务器节点图发送信号",
+      "genericId": 200124
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取复杂造物当前释放的技能",
+      "nodeType": "获取复杂造物当前释放的技能",
+      "genericId": 200213
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "获取子实体列表",
+      "nodeType": "获取子实体列表",
+      "genericId": 200214
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "造物的技能冷却清零",
+      "nodeType": "造物的技能冷却清零",
+      "genericId": 200215
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "设置造物技能的当前冷却时间",
+      "nodeType": "设置造物技能的当前冷却时间",
+      "genericId": 200216
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "设置造物技能的冷却时间",
+      "nodeType": "设置造物技能的冷却时间",
+      "genericId": 200217
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "设置造物冷却组的当前时间",
+      "nodeType": "设置造物冷却组的当前时间",
+      "genericId": 200218
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "设置造物冷却组的时间",
+      "nodeType": "设置造物冷却组的时间",
+      "genericId": 200219
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "设置造物的公共冷却时间",
+      "nodeType": "设置造物的公共冷却时间",
+      "genericId": 200220
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "实体是否携带指定单位状态",
+      "nodeType": "实体是否携带指定单位状态",
+      "genericId": 200243
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "查询复杂造物的预设状态值",
+      "nodeType": "查询复杂造物的预设状态值",
+      "genericId": 200244
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "造物转向指定朝向",
+      "nodeType": "造物转向指定朝向",
+      "genericId": 200245
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "复杂造物瞬移",
+      "nodeType": "复杂造物瞬移",
+      "genericId": 200247
+    },
+    {
+      "subType": "creation_skill",
+      "displayName": "复杂造物定点位移",
+      "nodeType": "复杂造物定点位移",
+      "genericId": 200248
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "执行技能",
+      "nodeType": "执行技能",
+      "genericId": 200129
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：地面闲逛",
+      "nodeType": "战术_地面闲逛",
+      "genericId": 200130
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：地面追击",
+      "nodeType": "战术_地面追击",
+      "genericId": 200131
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：静止不动",
+      "nodeType": "战术_静止不动",
+      "genericId": 200133
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：移动到目标点",
+      "nodeType": "战术_移动到目标点",
+      "genericId": 200134
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：移动到目标实体",
+      "nodeType": "战术_移动到目标实体",
+      "genericId": 200135
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：旋转到指定朝向",
+      "nodeType": "战术_旋转到指定朝向",
+      "genericId": 200136
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：旋转指定角度",
+      "nodeType": "战术_旋转指定角度",
+      "genericId": 200137
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：地面逃跑",
+      "nodeType": "战术_地面逃跑",
+      "genericId": 200138
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：脱战后返回出生点",
+      "nodeType": "战术_脱战后返回出生点",
+      "genericId": 200139
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：地面对峙",
+      "nodeType": "战术_地面对峙",
+      "genericId": 200140
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：执行巡逻",
+      "nodeType": "战术_执行巡逻",
+      "genericId": 200141
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取自身当前执行状态",
+      "nodeType": "获取自身当前执行状态",
+      "genericId": 200142
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身距离目标的水平角度",
+      "nodeType": "查询自身距离目标的水平角度",
+      "genericId": 200143
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身距离目标的垂直角度",
+      "nodeType": "查询自身距离目标的垂直角度",
+      "genericId": 200144
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身距离目标的水平距离",
+      "nodeType": "查询自身距离目标的水平距离",
+      "genericId": 200145
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身距离目标的垂直距离",
+      "nodeType": "查询自身距离目标的垂直距离",
+      "genericId": 200146
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身距离目标的距离",
+      "nodeType": "查询自身距离目标的距离",
+      "genericId": 200147
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询目标点是否寻路可达",
+      "nodeType": "查询目标点是否寻路可达",
+      "genericId": 200148
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身是否正在释放技能",
+      "nodeType": "查询自身是否正在释放技能",
+      "genericId": 200149
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身是否处于交战中",
+      "nodeType": "查询自身是否处于交战中",
+      "genericId": 200150
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询自身是否在领地中",
+      "nodeType": "查询自身是否在领地中",
+      "genericId": 200151
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询入战时的坐标点",
+      "nodeType": "查询入战时的坐标点",
+      "genericId": 200162
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取出生点位置信息",
+      "nodeType": "获取出生点位置信息",
+      "genericId": 200163
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取目标实体",
+      "nodeType": "获取目标实体",
+      "genericId": 200165
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取关卡实体",
+      "nodeType": "获取关卡实体",
+      "genericId": 200166
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取实体的类型",
+      "nodeType": "获取实体的类型",
+      "genericId": 200168
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取实体位置",
+      "nodeType": "获取实体位置",
+      "genericId": 200169
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取实体旋转",
+      "nodeType": "获取实体旋转",
+      "genericId": 200170
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取物件预设状态",
+      "nodeType": "获取物件预设状态",
+      "genericId": 200172
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "枚举匹配",
+      "nodeType": "枚举匹配",
+      "genericId": 200178
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "是否大于",
+      "nodeType": "是否大于",
+      "genericId": 200180
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "是否小于",
+      "nodeType": "是否小于",
+      "genericId": 200181
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "是否小于等于",
+      "nodeType": "是否小于等于",
+      "genericId": 200182
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "是否大于等于",
+      "nodeType": "是否大于等于",
+      "genericId": 200183
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取随机数",
+      "nodeType": "获取随机数",
+      "genericId": 200190
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "朝向转旋转",
+      "nodeType": "朝向转旋转",
+      "genericId": 200203
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询字典中值组成的列表",
+      "nodeType": "查询字典中值组成的列表",
+      "genericId": 200234
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "查询字典中键组成的列表",
+      "nodeType": "查询字典中键组成的列表",
+      "genericId": 200235
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取目标生命值",
+      "nodeType": "获取目标生命值",
+      "genericId": 200238
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取目标等级",
+      "nodeType": "获取目标等级",
+      "genericId": 200239
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取目标攻击力",
+      "nodeType": "获取目标攻击力",
+      "genericId": 200240
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取自身预设状态值",
+      "nodeType": "获取自身预设状态值",
+      "genericId": 200241
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "战术：旋转朝向目标实体",
+      "nodeType": "战术_旋转朝向目标实体",
+      "genericId": 200246
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取前一帧执行状态",
+      "nodeType": "获取前一帧执行状态",
+      "genericId": 200250
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "获取前一帧执行战术",
+      "nodeType": "获取前一帧执行战术",
+      "genericId": 200252
+    },
+    {
+      "subType": "creation_status",
+      "displayName": "继续执行前一帧行为",
+      "nodeType": "继续执行前一帧行为",
+      "genericId": 200253
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "切换自身执行状态",
+      "nodeType": "切换自身执行状态",
+      "genericId": 200128
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取自身当前执行状态",
+      "nodeType": "获取自身当前执行状态",
+      "genericId": 200142
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身距离目标的水平角度",
+      "nodeType": "查询自身距离目标的水平角度",
+      "genericId": 200143
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身距离目标的垂直角度",
+      "nodeType": "查询自身距离目标的垂直角度",
+      "genericId": 200144
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身距离目标的水平距离",
+      "nodeType": "查询自身距离目标的水平距离",
+      "genericId": 200145
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身距离目标的垂直距离",
+      "nodeType": "查询自身距离目标的垂直距离",
+      "genericId": 200146
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身距离目标的距离",
+      "nodeType": "查询自身距离目标的距离",
+      "genericId": 200147
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询目标点是否寻路可达",
+      "nodeType": "查询目标点是否寻路可达",
+      "genericId": 200148
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身是否正在释放技能",
+      "nodeType": "查询自身是否正在释放技能",
+      "genericId": 200149
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身是否处于交战中",
+      "nodeType": "查询自身是否处于交战中",
+      "genericId": 200150
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询自身是否在领地中",
+      "nodeType": "查询自身是否在领地中",
+      "genericId": 200151
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询入战时的坐标点",
+      "nodeType": "查询入战时的坐标点",
+      "genericId": 200162
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取出生点位置信息",
+      "nodeType": "获取出生点位置信息",
+      "genericId": 200163
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取目标实体",
+      "nodeType": "获取目标实体",
+      "genericId": 200165
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取关卡实体",
+      "nodeType": "获取关卡实体",
+      "genericId": 200166
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取实体的类型",
+      "nodeType": "获取实体的类型",
+      "genericId": 200168
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取实体位置",
+      "nodeType": "获取实体位置",
+      "genericId": 200169
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取实体旋转",
+      "nodeType": "获取实体旋转",
+      "genericId": 200170
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取物件预设状态",
+      "nodeType": "获取物件预设状态",
+      "genericId": 200172
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "枚举匹配",
+      "nodeType": "枚举匹配",
+      "genericId": 200178
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "是否大于",
+      "nodeType": "是否大于",
+      "genericId": 200180
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "是否小于",
+      "nodeType": "是否小于",
+      "genericId": 200181
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "是否小于等于",
+      "nodeType": "是否小于等于",
+      "genericId": 200182
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "是否大于等于",
+      "nodeType": "是否大于等于",
+      "genericId": 200183
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取随机数",
+      "nodeType": "获取随机数",
+      "genericId": 200190
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "朝向转旋转",
+      "nodeType": "朝向转旋转",
+      "genericId": 200203
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询字典中值组成的列表",
+      "nodeType": "查询字典中值组成的列表",
+      "genericId": 200234
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "查询字典中键组成的列表",
+      "nodeType": "查询字典中键组成的列表",
+      "genericId": 200235
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取目标生命值",
+      "nodeType": "获取目标生命值",
+      "genericId": 200238
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取目标等级",
+      "nodeType": "获取目标等级",
+      "genericId": 200239
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取目标攻击力",
+      "nodeType": "获取目标攻击力",
+      "genericId": 200240
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取自身预设状态值",
+      "nodeType": "获取自身预设状态值",
+      "genericId": 200241
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取前一帧执行状态",
+      "nodeType": "获取前一帧执行状态",
+      "genericId": 200250
+    },
+    {
+      "subType": "creation_status_decision",
+      "displayName": "获取前一帧执行战术",
+      "nodeType": "获取前一帧执行战术",
+      "genericId": 200252
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "枚举匹配",
+      "nodeType": "枚举匹配",
+      "genericId": 200005
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "是否大于",
+      "nodeType": "是否大于",
+      "genericId": 200007
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "是否小于",
+      "nodeType": "是否小于",
+      "genericId": 200008
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "是否小于等于",
+      "nodeType": "是否小于等于",
+      "genericId": 200009
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "是否大于等于",
+      "nodeType": "是否大于等于",
+      "genericId": 200010
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取指定玩家的角色实体",
+      "nodeType": "获取指定玩家的角色实体",
+      "genericId": 200024
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取实体位置",
+      "nodeType": "获取实体位置",
+      "genericId": 200030
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取实体旋转",
+      "nodeType": "获取实体旋转",
+      "genericId": 200031
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取随机数",
+      "nodeType": "获取随机数",
+      "genericId": 200032
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取目标实体",
+      "nodeType": "获取目标实体",
+      "genericId": 200034
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取单位攻击目标",
+      "nodeType": "获取单位攻击目标",
+      "genericId": 200035
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "查询自身是否已入战",
+      "nodeType": "查询自身是否已入战",
+      "genericId": 200037
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "筛选球体范围内的实体列表",
+      "nodeType": "筛选球体范围内的实体列表",
+      "genericId": 200043
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "筛选方形范围内的实体列表",
+      "nodeType": "筛选方形范围内的实体列表",
+      "genericId": 200044
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取实体的类型",
+      "nodeType": "获取实体的类型",
+      "genericId": 200045
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取目标挂接点位置",
+      "nodeType": "获取目标挂接点位置",
+      "genericId": 200047
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取目标挂接点旋转",
+      "nodeType": "获取目标挂接点旋转",
+      "genericId": 200048
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取实体类型列表",
+      "nodeType": "获取实体类型列表",
+      "genericId": 200050
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "朝向转旋转",
+      "nodeType": "朝向转旋转",
+      "genericId": 200074
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取当前角色",
+      "nodeType": "获取当前角色",
+      "genericId": 200076
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取射线检测结果",
+      "nodeType": "获取射线检测结果",
+      "genericId": 200109
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取射线筛选类型列表",
+      "nodeType": "获取射线筛选类型列表",
+      "genericId": 200110
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取扫描组件当前扫描到的实体",
+      "nodeType": "获取扫描组件当前扫描到的实体",
+      "genericId": 200118
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取扫描组件可扫描的所有合法对象",
+      "nodeType": "获取扫描组件可扫描的所有合法对象",
+      "genericId": 200119
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取实体扫描状态",
+      "nodeType": "获取实体扫描状态",
+      "genericId": 200120
+    },
+    {
+      "subType": "int_filter",
+      "displayName": "获取实体当前生效的扫描标签",
+      "nodeType": "获取实体当前生效的扫描标签",
+      "genericId": 200121
+    }
+  ],
+  "reflectNeedsConfirmation": [
+    {
+      "subType": "bool_filter",
+      "nodeType": "get_custom_variable",
+      "genericId": 200016,
+      "variantKeys": {
+        "": 41
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 41 and 47",
+        "variant key \"\" maps to concreteIds 41 and 50"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "get_custom_variable",
+      "genericId": 200173,
+      "variantKeys": {
+        "": 4201
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 4201 and 4220"
+      ],
+      "status": "needs_developer_confirmation"
+    }
+  ],
   "missingMetadata": []
 }
