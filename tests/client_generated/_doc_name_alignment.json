@@ -143,7 +143,6 @@
       "zhName": "查询实体是否在场",
       "enNames": [
         "Query If Entity Is on the Field",
-        "Check If Entity Is on the Field",
         "Query if Entity Is on the Field"
       ],
       "chosen": "Query If Entity Is on the Field"
@@ -155,14 +154,6 @@
         "Check the preset status value of the complex creation"
       ],
       "chosen": "Check the Preset Status Value of the Complex Creation"
-    },
-    {
-      "zhName": "查询实体阵营",
-      "enNames": [
-        "Query Entity Faction",
-        "Check Entity Faction"
-      ],
-      "chosen": "Query Entity Faction"
     },
     {
       "zhName": "查询指定实体是否入战",

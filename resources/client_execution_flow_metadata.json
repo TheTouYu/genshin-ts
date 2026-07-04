@@ -3,251 +3,457 @@
     "methodName": "_3dVectorAddition",
     "nodeType": "_3d_vector_addition",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector1: Vec3Value",
-      "_3dVector2: Vec3Value"
+      {
+        "name": "_3DVector1",
+        "irType": "vec3",
+        "docZh": "三维向量1",
+        "docEn": "3D Vector 1"
+      },
+      {
+        "name": "_3DVector2",
+        "irType": "vec3",
+        "docZh": "三维向量2",
+        "docEn": "3D Vector 2"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the sum of two 3D Vectors\n   *\n   * 三维向量加法: 计算两个三维向量的加法\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "calculationResult",
+        "irType": "vec3",
+        "docZh": "计算结果",
+        "docEn": "Calculation Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the sum of two 3D Vectors",
+      "zh": "计算两个三维向量的加法"
+    }
   },
   {
     "methodName": "_3dVectorAngle",
     "nodeType": "_3d_vector_angle",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector1: Vec3Value",
-      "_3dVector2: Vec3Value"
+      {
+        "name": "_3DVector1",
+        "irType": "vec3",
+        "docZh": "三维向量1",
+        "docEn": "3D Vector 1"
+      },
+      {
+        "name": "_3DVector2",
+        "irType": "vec3",
+        "docZh": "三维向量2",
+        "docEn": "3D Vector 2"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the angle between two 3D Vectors and outputs it in radians\n   *\n   * 三维向量夹角: 计算两个三维向量之间的夹角，以弧度输出\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 夹角(弧度)\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "angle",
+        "irType": "float",
+        "docZh": "夹角(角度)",
+        "docEn": "Angle (°)"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the angle between two 3D Vectors and outputs the value in degrees",
+      "zh": "计算两个三维向量之间的夹角，以角度输出"
+    }
   },
   {
     "methodName": "_3dVectorCrossProduct",
     "nodeType": "_3d_vector_cross_product",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector1: Vec3Value",
-      "_3dVector2: Vec3Value"
+      {
+        "name": "_3DVector1",
+        "irType": "vec3",
+        "docZh": "三维向量1",
+        "docEn": "3D Vector 1"
+      },
+      {
+        "name": "_3DVector2",
+        "irType": "vec3",
+        "docZh": "三维向量2",
+        "docEn": "3D Vector 2"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the cross product of two 3D Vectors\n   *\n   * 三维向量外积: 计算两个三维向量的外积（叉乘）\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "calculationResult",
+        "irType": "vec3",
+        "docZh": "计算结果",
+        "docEn": "Calculation Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the cross product of two 3D Vectors",
+      "zh": "计算两个三维向量的外积（叉乘）"
+    }
   },
   {
     "methodName": "_3dVectorDotProduct",
     "nodeType": "_3d_vector_dot_product",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector1: Vec3Value",
-      "_3dVector2: Vec3Value"
+      {
+        "name": "_3DVector1",
+        "irType": "vec3",
+        "docZh": "三维向量1",
+        "docEn": "3D Vector 1"
+      },
+      {
+        "name": "_3DVector2",
+        "irType": "vec3",
+        "docZh": "三维向量2",
+        "docEn": "3D Vector 2"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the dot product of two input 3D Vectors\n   *\n   * 三维向量内积: 计算两个输入三维向量的内积（点乘）\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "calculationResult",
+        "irType": "float",
+        "docZh": "计算结果",
+        "docEn": "Calculation Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the dot product of two input 3D Vectors",
+      "zh": "计算两个输入三维向量的内积（点乘）"
+    }
   },
   {
     "methodName": "_3dVectorModuloOperation",
     "nodeType": "_3d_vector_modulo_operation",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector: Vec3Value"
+      {
+        "name": "_3DVector",
+        "irType": "vec3",
+        "docZh": "三维向量",
+        "docEn": "3D Vector"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the magnitude of the input 3D Vector\n   *\n   * 三维向量模运算: 计算输入的三维向量的模\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the magnitude of the input 3D Vector",
+      "zh": "计算输入三维向量的模"
+    }
   },
   {
     "methodName": "_3dVectorNormalization",
     "nodeType": "_3d_vector_normalization",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector: Vec3Value"
+      {
+        "name": "_3DVector",
+        "irType": "vec3",
+        "docZh": "三维向量",
+        "docEn": "3D Vector"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Normalizes the length of a 3D Vector and outputs the result\n   *\n   * 三维向量归一化: 将三维向量的长度归一化后输出\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "vec3",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Normalizes the length of a 3D Vector and outputs the result",
+      "zh": "将三维向量的长度归一化后输出"
+    }
   },
   {
     "methodName": "_3dVectorRotation",
     "nodeType": "_3d_vector_rotation",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "rotate: Vec3Value",
-      "rotated3dVector: Vec3Value"
+      {
+        "name": "rotated3DVector",
+        "irType": "vec3",
+        "docZh": "被旋转的三维向量",
+        "docEn": "Rotated 3D Vector"
+      },
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Rotates the input 3D Vector by the Euler Angles specified by the rotation and returns the result. Note: The Rotated 3D Vector is the one you want to rotate. The Rotated Euler Angles define how the vector should be rotated. The resulting output vector shows the position of the original 3D Vector after applying the rotation.\n   *\n   * 三维向量旋转: 将输入三维向量按旋转所表示的欧拉角进行旋转后返回结果。注意：被旋转三维向量是你希望旋转的向量；旋转欧拉角定义该向量应如何旋转；输出向量表示原三维向量应用该旋转后的结果位置\n   *\n   * @param rotate This 3D input vector represents a specific rotation in Euler angles\n   *\n   * 旋转: 该输入的三维向量指代一个特定的旋转欧拉角\n   * @param rotated3dVector\n   *\n   * 被旋转的三维向量\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "vec3",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Rotates the input 3D Vector by the Euler Angles specified by the rotation and returns the result",
+      "zh": "将被旋转的三维向量，按照旋转所表示的欧拉角进行旋转后返回结果"
+    }
   },
   {
     "methodName": "_3dVectorSubtraction",
     "nodeType": "_3d_vector_subtraction",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector1: Vec3Value",
-      "_3dVector2: Vec3Value"
+      {
+        "name": "_3DVector1",
+        "irType": "vec3",
+        "docZh": "三维向量1",
+        "docEn": "3D Vector 1"
+      },
+      {
+        "name": "_3DVector2",
+        "irType": "vec3",
+        "docZh": "三维向量2",
+        "docEn": "3D Vector 2"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the difference of two 3D Vectors\n   *\n   * 三维向量减法: 计算两个三维向量的减法\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "calculationResult",
+        "irType": "vec3",
+        "docZh": "计算结果",
+        "docEn": "Calculation Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the difference of two 3D Vectors",
+      "zh": "计算两个三维向量的减法"
+    }
   },
   {
     "methodName": "_3dVectorZoom",
     "nodeType": "_3d_vector_zoom",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector: Vec3Value",
-      "zoomMultiplier: FloatValue"
+      {
+        "name": "zoomMultiplier",
+        "irType": "float",
+        "docZh": "缩放倍率",
+        "docEn": "Zoom Multiplier"
+      },
+      {
+        "name": "_3DVector",
+        "irType": "vec3",
+        "docZh": "三维向量",
+        "docEn": "3D Vector"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Scales the input 3D Vector (scalar multiplication) and outputs the result\n   *\n   * 三维向量缩放: 将输入的三维向量缩放后输出（三维向量数乘）\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   * @param zoomMultiplier\n   *\n   * 缩放倍率\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "vec3",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Scales the input 3D Vector (scalar multiplication) and outputs the result",
+      "zh": "将输入的三维向量缩放后输出（三维向量数乘）"
+    }
   },
   {
     "methodName": "absoluteValueOperation",
     "nodeType": "absolute_value_operation",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input: FloatValue"
+      {
+        "name": "input",
+        "irType": "float | int",
+        "docZh": "输入",
+        "docEn": "Input"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the absolute value of the input\n   *\n   * 绝对值运算: 返回输入的绝对值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float | int",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns the absolute value of the input",
+      "zh": "返回输入的绝对值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float",
+        "int"
+      ]
+    }
   },
   {
     "methodName": "addition",
     "nodeType": "addition",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input1: FloatValue",
-      "input2: FloatValue"
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Adds two Floating Point Numbers or Integers\n   *\n   * 加法运算: 计算两个浮点数或整数的加法\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float | int",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Adds two Floating Point Numbers or Integers",
+      "zh": "计算两个浮点数或整数的加法"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
   },
   {
     "methodName": "addUnitStatus",
@@ -259,143 +465,140 @@
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "applierEntity: EntityValue",
-      "applicationTargetEntity: EntityValue",
-      "unitStatusConfigId: ConfigIdValue",
-      "appliedStacks: IntValue",
-      "unitStatusParameterDictionary: dict<'str', 'float'>"
+      {
+        "name": "applicationTarget",
+        "irType": "entity",
+        "docZh": "施加目标",
+        "docEn": "Application Target"
+      },
+      {
+        "name": "stacks",
+        "irType": "int",
+        "docZh": "层数",
+        "docEn": "Stacks"
+      },
+      {
+        "name": "unitStatusConfigID",
+        "irType": "config_id",
+        "docZh": "单位状态配置ID",
+        "docEn": "Unit Status Config ID"
+      }
     ],
-    "returnType": "{ /** * Failed, other exceptionsFailed: Yielded to another status. A yielding relationship exists between the Target's current Unit Status and the one being appliedFailed: Maximum coexistence limit reached. The specified Unit Status on the Target Entity has reached its Coexistence LimitFailed: Unable to add additional stack. Stack addition failedSuccess: New status applied. Successfully applied new Unit StatusSuccess: Slot stacking. Target already has this Unit Status, stacking applied * * 施加结果: 失败，其他异常失败，让位于其他状态：目标上已有的单位状态与尝试施加的状态之间有让位关系失败，超出并存上限：超出目标实体上的指定单位状态的并存上限失败，附加叠层未成功：叠层失败成功，施加新状态：成功附加新状态成功，槽位叠层：目标上已有该单位状态，叠层 */ applicationResult: UnitStatusAdditionResult /** * If application succeeds, returns the Unit Status Slot ID containing the instance * * 槽位序号: 如果施加成功，则返回一个该单位状态实例所在的单位状态槽位序号 */ slotId: bigint }",
-    "typeParams": [],
-    "docs": "/**\n   * Add a specified Stack Count of Unit Status to the Target Entity\n   *\n   * 添加单位状态: 向指定目标实体添加一定层数的单位状态\n   *\n   * @param applierEntity Determines the Applier Entity for this action. Defaults to the Entity associated with this Node Graph\n   *\n   * 施加者实体: 决定了该次行为的施加者实体，默认为该节点图所关联的实体\n   * @param applicationTargetEntity The Entity that actually receives this Unit Status\n   *\n   * 施加目标实体: 实际被添加该单位状态的实体\n   * @param unitStatusConfigId Identifier for this Unit Status\n   *\n   * 单位状态配置ID: 该单位状态的标识\n   * @param appliedStacks The Stack Count for this Unit Status\n   *\n   * 施加层数: 该单位状态的层数\n   * @param unitStatusParameterDictionary Can carry a set of parameters to overwrite parameters defined in the Unit Status. Currently, only parameters within shield templates can be overwritten.\n   *\n   * 单位状态参数字典: 可以携带一组参数，用于覆写单位状态中的参数，目前仅支持对护盾中护盾模板的参数覆写\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Applies the Unit Status defined by the configuration ID to the Target",
+      "zh": "为施加目标添加配置ID对应的单位状态"
+    }
   },
   {
     "methodName": "arccosineFunction",
     "nodeType": "arccosine_function",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input: FloatValue"
+      {
+        "name": "input",
+        "irType": "float",
+        "docZh": "输入",
+        "docEn": "Input"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the arccosine of the input and returns the value in radians\n   *\n   * 反余弦函数: 计算输入的反余弦值，返回为弧度值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 弧度\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the arccosine of the input and returns the value in radians",
+      "zh": "计算输入的反余弦值，返回为弧度值"
+    }
   },
   {
     "methodName": "arcsineFunction",
     "nodeType": "arcsine_function",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input: FloatValue"
+      {
+        "name": "input",
+        "irType": "float",
+        "docZh": "输入",
+        "docEn": "Input"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the arcsine of the input and returns the value in radians\n   *\n   * 反正弦函数: 计算输入的反正弦值，返回为弧度值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 弧度\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the arcsine of the input and returns the value in radians",
+      "zh": "计算输入的反正弦值，返回为弧度值"
+    }
   },
   {
     "methodName": "arctangentFunction",
     "nodeType": "arctangent_function",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input: FloatValue"
+      {
+        "name": "input",
+        "irType": "float",
+        "docZh": "输入",
+        "docEn": "Input"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the arctangent of the input and returns the value in radians\n   *\n   * 反正切函数: 计算输入的反正切值，返回为弧度值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 弧度\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "assembleStructure",
-    "nodeType": "assemble_structure",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision"
+    "returns": [
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
     ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Combines multiple parameters into a single Structure-type value\n   *\n   * 拼装结构体: 将多个参数拼合为一个结构体类型的值\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "assemblyDictionary",
-    "nodeType": "assembly_dictionary",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "pairs: { k: IntValue; v: FloatValue }[]"
-    ],
-    "returnType": "ReadonlyDict<'int', 'float'>",
-    "typeParams": [],
-    "docs": "/**\n   * Combines up to 50 Key-Value Pairs into one Dictionary\n   *\n   * 拼装字典: 将至多50个键值对拼合为一个字典\n   *\n   * GSTS Note: The dictionary declared by this method cannot be modified, and a node graph variable dictionary must be declared if modification is required.\n   *\n   * GSTS 注: 该方法声明的字典无法进行修改, 需要修改时必须声明节点图变量字典\n   *\n   * @returns\n   *\n   * 字典\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "assemblyList",
-    "nodeType": "assembly_list",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "_0to99: FloatValue[]"
-    ],
-    "returnType": "number[]",
-    "typeParams": [],
-    "docs": "/**\n   * Assembles multiple Input Parameters of the same type (up to 100) into a single List\n   *\n   * 拼装列表: 将多个类型相同的入参(至多100个)拼装为一个列表\n   *\n   * @param _0to99 Assembles up to 100 parameters into a list\n   *\n   * 0~99: 将至多100个参数拼装为一个列表\n   *\n   * @returns The assembled list\n   *\n   * 列表: 拼装成的列表\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Calculates the arctangent of the input and returns the value in radians",
+      "zh": "计算输入的反正切值，返回为弧度值"
+    }
   },
   {
     "methodName": "breakLoop",
@@ -407,174 +610,716 @@
     "modes": [
       "beyond"
     ],
-    "params": [
-      "...loopNodeIds: IntValue[]"
-    ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Break out of a Finite Loop or List Iteration Loop. The output pin must connect to the [Break Loop] input parameter of the corresponding loop Node\n   *\n   * 跳出循环: 从有限循环或列表遍历循环中跳出。出引脚需要与对应循环节点的【跳出循环】入参相连\n   */",
-    "requiresLocalVariableSpecialization": false
+    "kind": "control_flow",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "Break out of a Finite Loop. The output pin must connect to the [Break Loop] input parameter of the [Finite Loop] Node",
+      "zh": "从有限循环中跳出。出引脚需要与节点【有限循环】的【跳出循环】入参相连"
+    }
   },
   {
-    "methodName": "cosineFunction",
-    "nodeType": "cosine_function",
+    "methodName": "cameraOrientationDetectionData",
+    "nodeType": "camera_orientation_detection_data",
     "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
+      "character_skill"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "radian: FloatValue"
+      {
+        "name": "targetType",
+        "irType": "enum",
+        "docZh": "目标类型",
+        "docEn": "Target Type"
+      },
+      {
+        "name": "launchLocation",
+        "irType": "vec3",
+        "docZh": "出射位置",
+        "docEn": "Launch Location"
+      },
+      {
+        "name": "nearestDistance",
+        "irType": "float",
+        "docZh": "最近距离",
+        "docEn": "Nearest Distance"
+      },
+      {
+        "name": "furthestDistance",
+        "irType": "float",
+        "docZh": "最远距离",
+        "docEn": "Furthest Distance"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the cosine of the input in radians\n   *\n   * 余弦函数: 计算输入弧度的余弦\n   *\n   * @param radian\n   *\n   * 弧度\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "targetRotation",
+        "irType": "vec3",
+        "docZh": "目标旋转",
+        "docEn": "Target Rotation"
+      },
+      {
+        "name": "targetLocation",
+        "irType": "vec3",
+        "docZh": "目标位置",
+        "docEn": "Target Location"
+      }
+    ],
+    "docs": {
+      "en": "Casts a ray from the Camera to the emission Location and returns the Rotation and Location of valid Targets along the path",
+      "zh": "镜头朝向检测数据，从镜头向出射位置打射线，返回路线上合法目标的旋转与位置"
+    }
   },
   {
-    "methodName": "create3dVector",
-    "nodeType": "create3d_vector",
+    "methodName": "checkIfSelfIsInTheTerritory",
+    "nodeType": "check_if_self_is_in_the_territory",
     "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "xComponent: FloatValue",
-      "yComponent: FloatValue",
-      "zComponent: FloatValue"
-    ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Creates a 3D Vector from x, y, and z components\n   *\n   * 创建三维向量: 根据x、y、z分量创建一个三维向量\n   *\n   * @param xComponent\n   *\n   * X分量\n   * @param yComponent\n   *\n   * Y分量\n   * @param zComponent\n   *\n   * Z分量\n   *\n   * @returns\n   *\n   * 三维向量\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "createDictionary",
-    "nodeType": "create_dictionary",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
       "creation_status",
       "creation_status_decision"
     ],
     "modes": [
       "beyond"
     ],
-    "params": [
-      "keyList: IntValue[]",
-      "valueList: FloatValue[]"
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "isInTheTerritory",
+        "irType": "bool",
+        "docZh": "是否在领地中",
+        "docEn": "Is in the Territory"
+      }
     ],
-    "returnType": "ReadonlyDict<'int', 'float'>",
-    "typeParams": [],
-    "docs": "/**\n   * Creates Key-Value Pairs sequentially from the input key and value lists; This node builds the Dictionary using the shorter of the key and value lists; extra items are truncated; If duplicate keys are found in the key list, creation fails and returns an empty Dictionary\n   *\n   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典\n   *\n   * GSTS Note: The dictionary declared by this method cannot be modified, and a node graph variable dictionary must be declared if modification is required.\n   *\n   * GSTS 注: 该方法声明的字典无法进行修改, 需要修改时必须声明节点图变量字典\n   *\n   * @param keyList\n   *\n   * 键列表\n   * @param valueList\n   *\n   * 值列表\n   *\n   * @returns\n   *\n   * 字典\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Check whether this Creation's current location is within the Territory",
+      "zh": "查询造物自身当前所处位置是否在领地中"
+    }
   },
   {
-    "methodName": "dataTypeConversion",
-    "nodeType": "data_type_conversion",
+    "methodName": "checkTargetPositionPathfindingAvailability",
+    "nodeType": "check_target_position_pathfinding_availability",
     "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "isPathfindingAchievable",
+        "irType": "bool",
+        "docZh": "是否寻路可达",
+        "docEn": "Is Pathfinding Achievable?"
+      }
+    ],
+    "docs": {
+      "en": "Check whether a Creation can reach the current Target Point using normal pathfinding",
+      "zh": "查询造物当前的目标点是否可以正常寻路到达"
+    }
+  },
+  {
+    "methodName": "checkTheCoordinatesWhenEnteringBattle",
+    "nodeType": "check_the_coordinates_when_entering_battle",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "enteringBattlePosition",
+        "irType": "vec3",
+        "docZh": "入战位置",
+        "docEn": "Entering Battle Position"
+      },
+      {
+        "name": "enteringBattleRotation",
+        "irType": "vec3",
+        "docZh": "入战旋转",
+        "docEn": "Entering Battle Rotation"
+      }
+    ],
+    "docs": {
+      "en": "Query the Coordinate Points when a Creation enters battle",
+      "zh": "查询造物入战时的坐标点"
+    }
+  },
+  {
+    "methodName": "checkTheDistanceFromSelfToTarget",
+    "nodeType": "check_the_distance_from_self_to_target",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "distance",
+        "irType": "float",
+        "docZh": "距离",
+        "docEn": "Distance"
+      }
+    ],
+    "docs": {
+      "en": "Query the distance from this Creation to its Target Entity. Valid only when the Creation has a Target",
+      "zh": "查询造物自身距离目标实体的距离，当且仅当造物存在目标时有效"
+    }
+  },
+  {
+    "methodName": "checkTheHorizontalAngleFromSelfToTarget",
+    "nodeType": "check_the_horizontal_angle_from_self_to_target",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "horizontalAngle",
+        "irType": "float",
+        "docZh": "水平角度",
+        "docEn": "Horizontal Angle"
+      }
+    ],
+    "docs": {
+      "en": "Query the horizontal angle between this Creation and the Target Entity. Valid only when the Creation has a Target",
+      "zh": "查询造物自身距离目标实体的水平角度，当且仅当造物存在目标时有效"
+    }
+  },
+  {
+    "methodName": "checkTheHorizontalDistanceFromSelfToTarget",
+    "nodeType": "check_the_horizontal_distance_from_self_to_target",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "horizontalDistance",
+        "irType": "float",
+        "docZh": "水平距离",
+        "docEn": "Horizontal Distance"
+      }
+    ],
+    "docs": {
+      "en": "Query the horizontal distance from this Creation to the Target Entity. Valid only when the Creation has a Target",
+      "zh": "查询造物自身距离目标实体的水平距离，当且仅当造物存在目标时有效"
+    }
+  },
+  {
+    "methodName": "checkThePresetStatusValueOfTheComplexCreation",
+    "nodeType": "check_the_preset_status_value_of_the_complex_creation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetCreation",
+        "irType": "entity",
+        "docZh": "目标造物",
+        "docEn": "Target Creation"
+      },
+      {
+        "name": "presetStatusIndex",
+        "irType": "int",
+        "docZh": "预设状态索引",
+        "docEn": "Preset Status Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "presetStatusValue",
+        "irType": "int",
+        "docZh": "预设状态值",
+        "docEn": "Preset Status Value"
+      }
+    ],
+    "docs": {
+      "en": "Query the preset state value of the target creation corresponding to the preset state index.",
+      "zh": "查询目标造物对应预设状态索引下的预设状态值"
+    }
+  },
+  {
+    "methodName": "checkTheVerticalAngleFromSelfToTarget",
+    "nodeType": "check_the_vertical_angle_from_self_to_target",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "verticalAngle",
+        "irType": "float",
+        "docZh": "垂直角度",
+        "docEn": "Vertical Angle"
+      }
+    ],
+    "docs": {
+      "en": "Query the vertical angle between the Creation and the Target Entity. Valid only when the Creation has a Target",
+      "zh": "查询造物自身距离目标实体的垂直角度，当且仅当造物存在目标时有效"
+    }
+  },
+  {
+    "methodName": "checkTheVerticalDistanceFromSelfToTarget",
+    "nodeType": "check_the_vertical_distance_from_self_to_target",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "verticalDistance",
+        "irType": "float",
+        "docZh": "垂直距离",
+        "docEn": "Vertical Distance"
+      }
+    ],
+    "docs": {
+      "en": "Query the vertical distance from this Creation to its Target Entity. Valid only when the Creation has a Target",
+      "zh": "查询造物自身距离目标实体的垂直距离，当且仅当造物存在目标时有效"
+    }
+  },
+  {
+    "methodName": "checkWhetherSelfIsInBattle",
+    "nodeType": "check_whether_self_is_in_battle",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "whetherInBattle",
+        "irType": "bool",
+        "docZh": "是否交战中",
+        "docEn": "Whether in Battle"
+      }
+    ],
+    "docs": {
+      "en": "Check whether the Creation is currently in battle",
+      "zh": "查询造物自身当前是否在交战"
+    }
+  },
+  {
+    "methodName": "checkWhetherSelfIsUsingASkill",
+    "nodeType": "check_whether_self_is_using_a_skill",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "isTheUnitUsingASkill",
+        "irType": "bool",
+        "docZh": "是否正在释放技能",
+        "docEn": "Is The Unit Using a Skill?"
+      },
+      {
+        "name": "skillID",
+        "irType": "int",
+        "docZh": "技能序号",
+        "docEn": "Skill ID"
+      }
+    ],
+    "docs": {
+      "en": "Check whether a Creation is currently casting a Skill. If so, returns the index of the Skill being cast",
+      "zh": "查询造物当前是否正在释放技能，如果正在释放技能，可以返回当前释放技能的序号"
+    }
+  },
+  {
+    "methodName": "clearTheAggroListOfTheSpecifiedEntity",
+    "nodeType": "clear_the_aggro_list_of_the_specified_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; Clears the Aggro List of the specified Entity; this usually causes the Target to leave battle",
+      "zh": "仅自定义仇恨模式可用; 清空指定实体的仇恨列表，这通常会导致该目标脱战"
+    }
+  },
+  {
+    "methodName": "complexCreationDirectedMovement",
+    "nodeType": "complex_creation_directed_movement",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetLocation",
+        "irType": "vec3",
+        "docZh": "目标位置",
+        "docEn": "Target Location"
+      },
+      {
+        "name": "displacementDuration",
+        "irType": "float",
+        "docZh": "位移时长",
+        "docEn": "Displacement Duration"
+      },
+      {
+        "name": "maxDistance",
+        "irType": "float",
+        "docZh": "最大距离",
+        "docEn": "Max Distance"
+      },
+      {
+        "name": "ignoreCollision",
+        "irType": "bool",
+        "docZh": "是否忽视碰撞",
+        "docEn": "Ignore Collision"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Moves from the current Location to the Target Location; You can configure the Maximum Distance. If this value is too small, the object may not be able to move to the Target Location",
+      "zh": "定点位移，从当前位置向目标位置位移; 可配置最大距离，当该值较小时，可能无法位移到目标位置"
+    }
+  },
+  {
+    "methodName": "complexCreationTeleport",
+    "nodeType": "complex_creation_teleport",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetLocation",
+        "irType": "vec3",
+        "docZh": "目标位置",
+        "docEn": "Target Location"
+      },
+      {
+        "name": "targetRotation",
+        "irType": "vec3",
+        "docZh": "目标旋转",
+        "docEn": "Target Rotation"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Teleport from your current location to the Target Location",
+      "zh": "从当前位置瞬移到目标位置"
+    }
+  },
+  {
+    "methodName": "continueExecutingPreviousFrameBehavior",
+    "nodeType": "continue_executing_previous_frame_behavior",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "If the Tactic executed in the previous frame has not finished, execution will continue until it completes; If the skill was executed in the previous frame, no process will happen",
+      "zh": "若前一帧执行战术未执行完毕，会继续执行，直到完毕; 若前一帧执行技能，则不做处理"
+    }
+  },
+  {
+    "methodName": "cosineFunction",
+    "nodeType": "cosine_function",
+    "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input: RuntimeParameterValueTypeMap[T]",
-      "type: U"
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
     ],
-    "returnType": "RuntimeReturnValueTypeMap[U]",
-    "typeParams": [
-      "T extends keyof DataTypeConversionMap",
-      "U extends DataTypeConversionMap[T]"
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
     ],
-    "docs": "/**\n   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]. Floating point numbers are rounded to integers when converted\n   *\n   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】。浮点数转换为整数时会进行四舍五入\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 输出\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Calculates the cosine of the input in radians",
+      "zh": "计算输入弧度的余弦"
+    }
+  },
+  {
+    "methodName": "create3dVector",
+    "nodeType": "create3d_vector",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "xComponent",
+        "irType": "float",
+        "docZh": "X分量",
+        "docEn": "X-Component"
+      },
+      {
+        "name": "yComponent",
+        "irType": "float",
+        "docZh": "Y分量",
+        "docEn": "Y-Component"
+      },
+      {
+        "name": "zComponent",
+        "irType": "float",
+        "docZh": "Z分量",
+        "docEn": "Z-Component"
+      }
+    ],
+    "returns": [
+      {
+        "name": "_3DVector",
+        "irType": "vec3",
+        "docZh": "三维向量",
+        "docEn": "3D Vector"
+      }
+    ],
+    "docs": {
+      "en": "Creates a 3D Vector from x, y, and z components",
+      "zh": "根据x、y、z分量创建一个三维向量"
+    }
+  },
+  {
+    "methodName": "creationTurnsToFaceSetDirection",
+    "nodeType": "creation_turns_to_face_set_direction",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "orientation",
+        "irType": "vec3",
+        "docZh": "朝向",
+        "docEn": "Orientation"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Rotates the Creation to face the orientation of the specified 3D Vector",
+      "zh": "造物转向指定三维向量的朝向"
+    }
   },
   {
     "methodName": "degreesToRadians",
     "nodeType": "degrees_to_radians",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "angleValue: FloatValue"
+      {
+        "name": "angle",
+        "irType": "float",
+        "docZh": "角度",
+        "docEn": "Angle"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Converts degrees to radians\n   *\n   * 角度转弧度: 将角度值转为弧度值\n   *\n   * @param angleValue\n   *\n   * 角度值\n   *\n   * @returns\n   *\n   * 弧度值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
+    ],
+    "docs": {
+      "en": "Converts degrees to radians",
+      "zh": "将角度值转为弧度值"
+    }
   },
   {
     "methodName": "directionVectorToRotation",
     "nodeType": "direction_vector_to_rotation",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "forwardVector: Vec3Value",
-      "upwardVector: Vec3Value"
+      {
+        "name": "forwardVector",
+        "irType": "vec3",
+        "docZh": "向前向量",
+        "docEn": "Forward Vector"
+      },
+      {
+        "name": "upwardVector",
+        "irType": "vec3",
+        "docZh": "向上向量",
+        "docEn": "Upward Vector"
+      }
     ],
-    "returnType": "vec3",
-    "typeParams": [],
-    "docs": "/**\n   * Converts the Forward Vector and Upward Vector to Euler Angles. Example: For a Character, suppose it has an initial orientation in 3D space. To rotate the character to a desired orientation: The Forward Vector indicates the direction we want the Character's nose to face. The Upward Vector indicates the direction we want the Character's head to point. Output: A 3D Euler rotation vector representing the rotation the Character must undergo to move from its initial orientation to the specified target orientation. Note: Ensure the Forward and Upward Vectors are normalized. Using non-normalized vectors can produce unintended scaling and inaccurate rotation results.\n   *\n   * 方向向量转旋转: 将向前向量和向上向量转换为欧拉角。例如角色在三维空间中有初始朝向，要旋转到目标朝向时，向前向量表示希望角色面朝的方向，向上向量表示希望角色头顶指向的方向。输出为角色从初始朝向旋转到目标朝向所需的三维欧拉角。注意：请确保向前向量和向上向量已归一化，未归一化向量可能导致非预期缩放和不准确的旋转结果\n   *\n   * @param forwardVector Represents the desired Orientation of the Unit\n   *\n   * 向前向量: 表示单位期望的朝向\n   * @param upwardVector Defines the Unit's Up direction (used to determine the rotation angle). Default is the positive Y-axis of the World Coordinate System\n   *\n   * 向上向量: 定义单位的上方向（用于确定旋转的旋转角度），默认值为世界坐标系Y轴正方向\n   *\n   * @returns\n   *\n   * 旋转\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      }
+    ],
+    "docs": {
+      "en": "Converts the Forward Vector and Upward Vector to Euler Angles",
+      "zh": "给定向前向量和向上向量，转化为欧拉角"
+    }
   },
   {
     "methodName": "division",
     "nodeType": "division",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input1: FloatValue",
-      "input2: FloatValue"
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Performs division, supporting Floating Point division and Integer division. Integer division returns the quotient result; The divisor should not be 0, otherwise it may return an illegal value\n   *\n   * 除法运算: 除法运算，支持浮点数除法和整数除法。整数除法返回整除结果; 除数不应为0，否则可能返回非法值\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float | int",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Performs division, supporting Floating Point division and Integer division. Integer division returns the quotient result; The divisor should not be 0, otherwise it may return an illegal value",
+      "zh": "除法运算，支持浮点数除法和整数除法。整数除法返回整除结果; 除数不应为0，否则可能返回非法值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
   },
   {
     "methodName": "doubleBranch",
@@ -588,38 +1333,309 @@
     "modes": [
       "beyond"
     ],
+    "kind": "control_flow",
     "params": [
-      "condition: BoolValue",
-      "trueBranch: () => void",
-      "falseBranch: () => void"
+      {
+        "name": "condition",
+        "irType": "bool",
+        "docZh": "条件",
+        "docEn": "Condition"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Branches into True or False based on the evaluated condition; When the Boolean is True, the [True] execution flow runs; when it is False, the [False] execution flow runs\n   *\n   * 双分支: 根据输入条件的判断结果可以分出“是”与“否”两个不同的分支; 当布尔值为“是”时，后续会执行【是】对应的执行流；布尔值为“否”时，会执行【否】对应的执行流\n   *\n   * @param condition\n   *\n   * 条件\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Branches into True or False based on the evaluated condition; When the Boolean is True, the [True] execution flow runs; when it is False, the [False] execution flow runs",
+      "zh": "根据输入条件的判断结果可以分出“是”与“否”两个不同的分支; 当布尔值为“是”时，后续会执行【是】对应的执行流；布尔值为“否”时，会执行【否】对应的执行流"
+    }
   },
   {
-    "methodName": "equal",
-    "nodeType": "equal",
+    "methodName": "enumerationMatch",
+    "nodeType": "enumeration_match",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input1: FloatValue",
-      "input2: FloatValue"
+      {
+        "name": "enumeration1",
+        "irType": "enum",
+        "docZh": "枚举1",
+        "docEn": "Enumeration 1"
+      },
+      {
+        "name": "enumeration2",
+        "irType": "enum",
+        "docZh": "枚举2",
+        "docEn": "Enumeration 2"
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Determines whether two inputs are equal; Some Parameter Types have special comparison rules:; Floating Point Numbers: Floating Point Numbers are compared using approximate equality. When the difference between two Floating Point Numbers is less than an extremely small value, the two numbers are considered equal. For example: 2.0000001 and 2.0 are considered equal; 3D Vector: The x, y, and z components of a 3D Vector are compared using Floating Point approximate equality\n   *\n   * 是否相等: 判断两个输入是否相等; 部分参数类型有较为特殊的判定规则：; 浮点数：浮点数采用近似相等进行比较，当两个浮点数小于一个极小值时，这两个浮点数认为相等。例如：2.0000001与2.0认为相等; 三维向量：三维向量的x、y、z分别采用浮点数近似相等比较\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns Output True if equal, False if not equal\n   *\n   * 结果: 相等输出“是”，不相等输出“否”\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "After confirming the Enumeration type, determines whether the two input values are equal",
+      "zh": "确认枚举的类型后，判断两个输入的值是否相等"
+    },
+    "reflect": {
+      "variantKeys": [
+        "enum|enum"
+      ]
+    }
+  },
+  {
+    "methodName": "equal",
+    "nodeType": "equal",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "int | bool | config_id | guid | vec3",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "int | bool | config_id | guid | vec3",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Determines whether two inputs are equal; Some Parameter Types have special comparison rules:; Floating Point Numbers: Floating Point Numbers are compared using approximate equality. When the difference between two Floating Point Numbers is less than an extremely small value, the two numbers are considered equal. For example: 2.0000001 and 2.0 are considered equal; 3D Vector: The x, y, and z components of a 3D Vector are compared using Floating Point approximate equality",
+      "zh": "判断两个输入是否相等; 部分参数类型有较为特殊的判定规则：; 浮点数：浮点数采用近似相等进行比较，当两个浮点数小于一个极小值时，这两个浮点数认为相等。例如：2.0000001与2.0认为相等; 三维向量：三维向量的x、y、z分别采用浮点数近似相等比较"
+    },
+    "reflect": {
+      "variantKeys": [
+        "int|int",
+        "bool|bool",
+        "config_id|config_id",
+        "guid|guid",
+        "vec3|vec3"
+      ]
+    }
+  },
+  {
+    "methodName": "equal",
+    "nodeType": "equal",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "int | bool | entity | faction | vec3",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "int | bool | entity | faction | vec3",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Determines whether two inputs are equal; Some Parameter Types have special comparison rules:; Floating Point Numbers: Floating Point Numbers are compared using approximate equality. When the difference between two Floating Point Numbers is less than an extremely small value, the two numbers are considered equal. For example: 2.0000001 and 2.0 are considered equal; 3D Vector: The x, y, and z components of a 3D Vector are compared using Floating Point approximate equality",
+      "zh": "判断两个输入是否相等; 部分参数类型有较为特殊的判定规则：; 浮点数：浮点数采用近似相等进行比较，当两个浮点数小于一个极小值时，这两个浮点数认为相等。例如：2.0000001与2.0认为相等; 三维向量：三维向量的x、y、z分别采用浮点数近似相等比较"
+    },
+    "reflect": {
+      "variantKeys": [
+        "int|int",
+        "bool|bool",
+        "entity|entity",
+        "faction|faction",
+        "vec3|vec3"
+      ]
+    }
+  },
+  {
+    "methodName": "executeSkill",
+    "nodeType": "execute_skill",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "skillID",
+        "irType": "int",
+        "docZh": "技能序号",
+        "docEn": "Skill ID"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Execute the skill with the specified skill sequence number",
+      "zh": "执行技能序号对应的技能"
+    }
+  },
+  {
+    "methodName": "filterEntityListWithinSphericalRange",
+    "nodeType": "filter_entity_list_within_spherical_range",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "radius",
+        "irType": "float",
+        "docZh": "半径",
+        "docEn": "Radius"
+      },
+      {
+        "name": "centralLocation",
+        "irType": "vec3",
+        "docZh": "中心位置",
+        "docEn": "Central Location"
+      },
+      {
+        "name": "maximumFilterQuantity",
+        "irType": "int",
+        "docZh": "筛选数量上限",
+        "docEn": "Maximum Filter Quantity"
+      },
+      {
+        "name": "filterRules",
+        "irType": "enum",
+        "docZh": "筛选规则",
+        "docEn": "Filter Rules"
+      }
+    ],
+    "returns": [
+      {
+        "name": "filterResults",
+        "irType": "entity_list",
+        "docZh": "筛选结果",
+        "docEn": "Filter Results"
+      }
+    ],
+    "docs": {
+      "en": "Filters Entities within a spherical range according to specific rules and a maximum count, and returns a list of Entities that meet the conditions",
+      "zh": "以特定的规则和数量上限筛选在球形范围内的实体，满足条件的实体会组成实体列表输出"
+    }
+  },
+  {
+    "methodName": "filterEntityListWithinSquareRange",
+    "nodeType": "filter_entity_list_within_square_range",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "width",
+        "irType": "float",
+        "docZh": "宽度",
+        "docEn": "Width"
+      },
+      {
+        "name": "height",
+        "irType": "float",
+        "docZh": "高度",
+        "docEn": "Height"
+      },
+      {
+        "name": "length",
+        "irType": "float",
+        "docZh": "长度",
+        "docEn": "Length"
+      },
+      {
+        "name": "centralLocation",
+        "irType": "vec3",
+        "docZh": "中心位置",
+        "docEn": "Central Location"
+      },
+      {
+        "name": "maximumFilterQuantity",
+        "irType": "int",
+        "docZh": "筛选数量上限",
+        "docEn": "Maximum Filter Quantity"
+      },
+      {
+        "name": "filterRules",
+        "irType": "enum",
+        "docZh": "筛选规则",
+        "docEn": "Filter Rules"
+      }
+    ],
+    "returns": [
+      {
+        "name": "filterResults",
+        "irType": "entity_list",
+        "docZh": "筛选结果",
+        "docEn": "Filter Results"
+      }
+    ],
+    "docs": {
+      "en": "Filters Entities within a square range according to specified rules and a maximum count, and returns a list of Entities that meet the conditions",
+      "zh": "以特定的规则和数量上限筛选在方形范围内的实体，满足条件的实体会组成实体列表输出"
+    }
   },
   {
     "methodName": "finiteLoop",
@@ -631,59 +1647,293 @@
     "modes": [
       "beyond"
     ],
+    "kind": "control_flow",
     "params": [
-      "loopStartValue: IntValue",
-      "loopEndValue: IntValue",
-      "loopBody: (loopValue: bigint, breakLoop: () => void) => void"
+      {
+        "name": "loopStartValue",
+        "irType": "int",
+        "docZh": "循环起始值",
+        "docEn": "Loop Start Value"
+      },
+      {
+        "name": "loopEndValue",
+        "irType": "int",
+        "docZh": "循环终止值",
+        "docEn": "Loop End Value"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * From the [Loop Start Value] to the [Loop End Value], the loop iterates, incrementing the Integer by 1 each time. On each iteration, it executes the Nodes connected to [Loop Body]. After a full iteration, it executes the Nodes connected to [Loop Complete].; Use [Break Loop] to end the iteration early. After exiting the loop, the logic connected to the [Loop Complete] node will also be executed.\n   *\n   * 有限循环: 从【循环起始值】开始到【循环终止值】结束，会遍历其中的循环值，每次整数加一。每次循环会执行一次【循环体】后连接的节点逻辑。完成一次完整遍历后，会执行【循环完成】后连接的节点逻辑; 可以使用【跳出循环】来提前结束该循环值遍历，跳出循环后也会执行【循环完成】后连接的节点逻辑\n   *\n   * @param loopStartValue Starting integer value for iteration. The loop includes this value\n   *\n   * 循环起始值: 遍历开始的整数值，循环包含该值\n   * @param loopEndValue Integer value at which the iteration ends. The loop includes this value\n   *\n   * 循环终止值: 遍历结束的整数值，循环包含该值\n   *\n   * @returns Integer value of the current execution logic\n   *\n   * 当前循环值: 当次执行逻辑的整数值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "currentLoopValue",
+        "irType": "int",
+        "docZh": "当前循环值",
+        "docEn": "Current Loop Value"
+      }
+    ],
+    "docs": {
+      "en": "From the [Loop Start Value] to the [Loop End Value], the loop iterates, incrementing the Integer by 1 each time. On each iteration, it executes the Nodes connected to [Loop Body]. After a full iteration, it executes the Nodes connected to [Loop Complete].; Use [Break Loop] to end the iteration early",
+      "zh": "从【循环起始值】开始到【循环终止值】结束，会遍历其中的循环值，每次整数加一。每次循环会执行一次【循环体】后连接的节点逻辑。完成一次完整遍历后，会执行【循环完成】后连接的节点逻辑。; 可以使用【跳出循环】来提前结束该循环值遍历"
+    }
+  },
+  {
+    "methodName": "fixedPointDisplacement",
+    "nodeType": "fixed_point_displacement",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "displacementDuration",
+        "irType": "float",
+        "docZh": "位移时长",
+        "docEn": "Displacement Duration"
+      },
+      {
+        "name": "displacementAttenuationDuration",
+        "irType": "float",
+        "docZh": "位移衰减时长",
+        "docEn": "Displacement Attenuation Duration"
+      },
+      {
+        "name": "displacementSpeed",
+        "irType": "float",
+        "docZh": "位移速度",
+        "docEn": "Displacement Speed"
+      },
+      {
+        "name": "displacementTargetLocation",
+        "irType": "vec3",
+        "docZh": "位移目标位置",
+        "docEn": "Displacement Target Location"
+      },
+      {
+        "name": "terminateDisplacementOnCollision",
+        "irType": "bool",
+        "docZh": "碰撞是否终止位移",
+        "docEn": "Terminate Displacement on Collision"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Moves from the current Location to the Target Location; Supports configuring movement duration and speed; if both are small, the movement may not reach the Target Location",
+      "zh": "定点位移，从当前位置向目标位置位移; 可配置位移时长与位移速度，当这二者都比较小时，可能无法位移到目标位置"
+    }
+  },
+  {
+    "methodName": "forceExitAimingState",
+    "nodeType": "force_exit_aiming_state",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "When the character is in the aiming state, they will be forced to exit the aiming state.",
+      "zh": "当角色处于瞄准状态时，会强制退出瞄准状态"
+    }
   },
   {
     "methodName": "getAllEntitiesWithinTheCollisionTrigger",
     "nodeType": "get_all_entities_within_the_collision_trigger",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "targetEntity: EntityValue",
-      "triggerId: IntValue"
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "triggerID",
+        "irType": "int",
+        "docZh": "触发器序号",
+        "docEn": "Trigger ID"
+      }
     ],
-    "returnType": "entity[]",
-    "typeParams": [],
-    "docs": "/**\n   * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity\n   *\n   * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param triggerId\n   *\n   * 触发器序号\n   *\n   * @returns\n   *\n   * 实体列表\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "entityList",
+        "irType": "entity_list",
+        "docZh": "实体列表",
+        "docEn": "Entity List"
+      }
+    ],
+    "docs": {
+      "en": "Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity",
+      "zh": "获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体"
+    }
+  },
+  {
+    "methodName": "getAllValidEntitiesThatAreScannableByScanComponent",
+    "nodeType": "get_all_valid_entities_that_are_scannable_by_scan_component",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "objectList",
+        "irType": "entity_list",
+        "docZh": "对象列表",
+        "docEn": "Object List"
+      }
+    ],
+    "docs": {
+      "en": "Returns all Units carrying a Scan Component whose Filter returns True, regardless of the Unit's scannable status",
+      "zh": "获取扫描组件可扫描的所有合法对象，此处的合法对象指代所有携带扫描组件且过滤器返回为“是”的单位，与单位的可扫描状态无关"
+    }
+  },
+  {
+    "methodName": "getCharacterEntityOfSpecifiedPlayer",
+    "nodeType": "get_character_entity_of_specified_player",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "playerEntity",
+        "irType": "entity",
+        "docZh": "玩家实体",
+        "docEn": "Player Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "characterEntity",
+        "irType": "entity",
+        "docZh": "角色实体",
+        "docEn": "Character Entity"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Character Entity of the specified Player Entity",
+      "zh": "获取指定玩家实体的角色实体"
+    }
   },
   {
     "methodName": "getCorrespondingValueFromList",
     "nodeType": "get_corresponding_value_from_list",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "list: FloatValue[]",
-      "id: IntValue"
+      {
+        "name": "iD",
+        "irType": "int",
+        "docZh": "序号",
+        "docEn": "ID"
+      },
+      {
+        "name": "dataList",
+        "irType": "float_list | int_list | bool_list | entity_list | faction_list | guid_list | vec3_list",
+        "docZh": "数据列表",
+        "docEn": "Data List"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the value at the specified ID in the list (0-based)\n   *\n   * 获取列表对应值: 返回列表中指定序号对应的值，序号从0开始\n   *\n   * @param list\n   *\n   * 列表\n   * @param id\n   *\n   * 序号\n   *\n   * @returns\n   *\n   * 值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float | int | bool | entity | faction | guid | vec3",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns the value at the specified ID in the List. IDs start at 0",
+      "zh": "返回列表中指定序号对应的值。列表中序号从0开始"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float_list",
+        "int_list",
+        "bool_list",
+        "entity_list",
+        "faction_list",
+        "guid_list",
+        "vec3_list"
+      ]
+    }
+  },
+  {
+    "methodName": "getCorrespondingValueFromList",
+    "nodeType": "get_corresponding_value_from_list",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "iD",
+        "irType": "int",
+        "docZh": "序号",
+        "docEn": "ID"
+      },
+      {
+        "name": "dataList",
+        "irType": "int_list | bool_list | entity_list",
+        "docZh": "数据列表",
+        "docEn": "Data List"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "int | bool | entity",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns the value at the specified ID in the List. IDs start at 0",
+      "zh": "返回列表中指定序号对应的值。列表中序号从0开始"
+    },
+    "reflect": {
+      "variantKeys": [
+        "int_list",
+        "bool_list",
+        "entity_list"
+      ]
+    }
   },
   {
     "methodName": "getCreationSCurrentTarget",
@@ -694,36 +1944,147 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "creationEntity: CreationEntity"
+      {
+        "name": "creation",
+        "irType": "entity",
+        "docZh": "造物",
+        "docEn": "Creation"
+      }
     ],
-    "returnType": "entity",
-    "typeParams": [],
-    "docs": "/**\n   * The Target Entity varies with the Creation's current behavior; For example, when a Creation is attacking, its Target is the specified enemy Entity; For example, when a Creation is healing allies, its Target is the specified allied Entity\n   *\n   * 获取造物当前目标: 根据造物当前行为的不同，目标实体也不尽相同。; 例如当造物在攻击敌方时，造物的目标为敌方指定实体。; 例如当造物在对友方进行治疗时，造物的目标为友方指定实体。\n   *\n   * @param creationEntity Runtime Creation Entity\n   *\n   * 造物实体: 运行时的造物实体\n   *\n   * @returns Current intelligently selected Target Entity of the Creation\n   *\n   * 目标实体: 造物当前的智能选取目标实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "docs": {
+      "en": "Return to the specified Creation's current target",
+      "zh": "返回指定造物当前的目标"
+    }
   },
   {
-    "methodName": "getCustomVariable",
-    "nodeType": "get_custom_variable",
+    "methodName": "getCurrentCharacter",
+    "nodeType": "get_current_character",
     "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
       "bool_filter",
+      "character_skill",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
-    "params": [
-      "targetEntity: EntityValue",
-      "variableName: StrValue"
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "characterEntity",
+        "irType": "entity",
+        "docZh": "角色实体",
+        "docEn": "Character Entity"
+      }
     ],
-    "returnType": "generic",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value\n   *\n   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param variableName\n   *\n   * 变量名\n   *\n   * @returns\n   *\n   * 变量值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Returns the Character Entity currently controlled by this Player's client",
+      "zh": "获取该玩家客户端当前控制的角色实体"
+    }
+  },
+  {
+    "methodName": "getCurrentExecutionStatus",
+    "nodeType": "get_current_execution_status",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "statusNodeGraphConfigurationID",
+        "irType": "config_id",
+        "docZh": "状态节点图配置ID",
+        "docEn": "Status Node Graph Configuration ID"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the config ID of the [Creation Status Node Graph] currently being executed by this Creation",
+      "zh": "获取造物自身当前正在执行的【造物状态节点图】的配置ID"
+    }
+  },
+  {
+    "methodName": "getCustomVariable",
+    "nodeType": "get_custom_variable",
+    "subTypes": [
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "variableName",
+        "irType": "str",
+        "docZh": "变量名",
+        "docEn": "Variable Name"
+      }
+    ],
+    "returns": [
+      {
+        "name": "variableValue",
+        "irType": "entity",
+        "docZh": "变量值",
+        "docEn": "Variable Value"
+      }
+    ],
+    "docs": {
+      "en": "Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value",
+      "zh": "获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值"
+    }
+  },
+  {
+    "methodName": "getEntityCurrentlyScannedByScanComponent",
+    "nodeType": "get_entity_currently_scanned_by_scan_component",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "correspondingEntity",
+        "irType": "entity",
+        "docZh": "对应实体",
+        "docEn": "Corresponding Entity"
+      },
+      {
+        "name": "scanTagConfigID",
+        "irType": "config_id",
+        "docZh": "扫描标签配置ID",
+        "docEn": "Scan Tag Config ID"
+      }
+    ],
+    "docs": {
+      "en": "Returns Entities currently detected by the Scan Component; these are Entities in the Active State",
+      "zh": "获取扫描组件当前扫描到的实体，指扫描状态为“激活状态”的实体"
+    }
   },
   {
     "methodName": "getEntityListByUnitTag",
@@ -735,35 +2096,400 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "unitTagIndex: IntValue"
+      {
+        "name": "unitTagIndex",
+        "irType": "int",
+        "docZh": "单位标签索引",
+        "docEn": "Unit Tag Index"
+      }
     ],
-    "returnType": "entity[]",
-    "typeParams": [],
-    "docs": "/**\n   * Returns a list of all Entities in the scene that carry this Unit Tag\n   *\n   * 获取单位标签的实体列表: 获取在场所有携带该单位标签的实体列表\n   *\n   * @param unitTagIndex\n   *\n   * 单位标签索引\n   *\n   * @returns\n   *\n   * 实体列表\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "entityList",
+        "irType": "entity_list",
+        "docZh": "实体列表",
+        "docEn": "Entity List"
+      }
+    ],
+    "docs": {
+      "en": "Returns a list of all Entities in the scene that carry this Unit Tag",
+      "zh": "获取在场所有携带该单位标签的实体列表"
+    }
   },
   {
-    "methodName": "getListLength",
-    "nodeType": "get_list_length",
+    "methodName": "getEntityLocation",
+    "nodeType": "get_entity_location",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "list: FloatValue[]"
+      {
+        "name": "entity",
+        "irType": "entity",
+        "docZh": "实体",
+        "docEn": "Entity"
+      }
     ],
-    "returnType": "bigint",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the length of the list (number of elements)\n   *\n   * 获取列表长度: 获取列表长度（列表中的元素个数）\n   *\n   * @param list\n   *\n   * 列表\n   *\n   * @returns\n   *\n   * 长度\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Location of the specified Entity",
+      "zh": "获取指定实体的位置"
+    }
+  },
+  {
+    "methodName": "getEntityLocation",
+    "nodeType": "get_entity_location",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Target Entity's Location",
+      "zh": "获取目标实体的位置"
+    }
+  },
+  {
+    "methodName": "getEntityRotation",
+    "nodeType": "get_entity_rotation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "entity",
+        "irType": "entity",
+        "docZh": "实体",
+        "docEn": "Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Rotation of the specified Entity in Euler Angles",
+      "zh": "获取指定实体以欧拉角表示的旋转"
+    }
+  },
+  {
+    "methodName": "getEntityRotation",
+    "nodeType": "get_entity_rotation",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "rotation",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotation"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Target Entity's Rotation",
+      "zh": "获取目标实体的旋转"
+    }
+  },
+  {
+    "methodName": "getEntitySCurrentActiveScanTags",
+    "nodeType": "get_entity_s_current_active_scan_tags",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "scanTagConfigID",
+        "irType": "config_id",
+        "docZh": "扫描标签配置ID",
+        "docEn": "Scan Tag Config ID"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Target Entity's Current Active Scan Tags",
+      "zh": "获取目标实体当前生效的扫描标签"
+    }
+  },
+  {
+    "methodName": "getEntitySScanStatus",
+    "nodeType": "get_entity_s_scan_status",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "scanStatus",
+        "irType": "enum",
+        "docZh": "扫描状态",
+        "docEn": "Scan Status"
+      }
+    ],
+    "docs": {
+      "en": "Get Entity Scan Status",
+      "zh": "获取实体扫描状态"
+    }
+  },
+  {
+    "methodName": "getEntitySType",
+    "nodeType": "get_entity_s_type",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "entityType",
+        "irType": "enum",
+        "docZh": "实体类型",
+        "docEn": "Entity Type"
+      }
+    ],
+    "docs": {
+      "en": "Returns the type of the specified Entity",
+      "zh": "获取指定实体的类型"
+    }
+  },
+  {
+    "methodName": "getEntitySType",
+    "nodeType": "get_entity_s_type",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "entityType",
+        "irType": "enum",
+        "docZh": "实体类型",
+        "docEn": "Entity Type"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Target Entity's Type",
+      "zh": "获取目标实体的类型"
+    }
+  },
+  {
+    "methodName": "getEntitySUnitTagList",
+    "nodeType": "get_entity_s_unit_tag_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "list",
+        "irType": "int_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
+    ],
+    "docs": {
+      "en": "Returns a list of all Unit Tags carried by the Target Entity",
+      "zh": "获取目标实体上携带的所有单位标签组成的列表"
+    }
+  },
+  {
+    "methodName": "getListLength",
+    "nodeType": "get_list_length",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "inputList",
+        "irType": "int_list | entity_list",
+        "docZh": "输入列表",
+        "docEn": "Input List"
+      }
+    ],
+    "returns": [
+      {
+        "name": "length",
+        "irType": "int",
+        "docZh": "长度",
+        "docEn": "Length"
+      }
+    ],
+    "docs": {
+      "en": "Returns the length of the list (number of elements)",
+      "zh": "获取列表长度（列表中的元素个数）"
+    },
+    "reflect": {
+      "variantKeys": [
+        "int_list",
+        "entity_list"
+      ]
+    }
+  },
+  {
+    "methodName": "getListLength",
+    "nodeType": "get_list_length",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "inputList",
+        "irType": "bool_list",
+        "docZh": "输入列表",
+        "docEn": "Input List"
+      }
+    ],
+    "returns": [
+      {
+        "name": "length",
+        "irType": "int",
+        "docZh": "长度",
+        "docEn": "Length"
+      }
+    ],
+    "docs": {
+      "en": "Returns the length of the list (number of elements)",
+      "zh": "获取列表长度（列表中的元素个数）"
+    },
+    "reflect": {
+      "variantKeys": [
+        "bool_list"
+      ]
+    }
   },
   {
     "methodName": "getListOfKeysFromDictionary",
@@ -777,34 +2503,59 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "dictionary: dict<K, V>"
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      }
     ],
-    "returnType": "RuntimeReturnValueTypeMap[`${K}_list`]",
-    "typeParams": [
-      "K extends DictKeyType",
-      "V extends DictValueType"
+    "returns": [
+      {
+        "name": "keyList",
+        "irType": "entity_list",
+        "docZh": "键列表",
+        "docEn": "Key List"
+      }
     ],
-    "docs": "/**\n   * Returns a list of all Keys in the Dictionary. Because Key-Value Pairs are unordered, the Keys may not be returned in insertion order\n   *\n   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列\n   *\n   * @param dictionary\n   *\n   * 字典\n   *\n   * @returns\n   *\n   * 键列表\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.",
+      "zh": "获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict"
+      ]
+    }
   },
   {
     "methodName": "getListOfPlayerEntitiesOnTheField",
     "nodeType": "get_list_of_player_entities_on_the_field",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [],
-    "returnType": "PlayerEntity[]",
-    "typeParams": [],
-    "docs": "/**\n   * Returns a list of all Player Entities present in the scene\n   *\n   * 获取在场玩家实体列表: 获取在场所有玩家实体组成的列表\n   *\n   * @returns\n   *\n   * 玩家实体列表\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "playerEntityList",
+        "irType": "entity_list",
+        "docZh": "玩家实体列表",
+        "docEn": "Player Entity List"
+      }
+    ],
+    "docs": {
+      "en": "Returns a list of all Player Entities present in the scene",
+      "zh": "获取在场所有玩家实体组成的列表"
+    }
   },
   {
     "methodName": "getListOfValuesFromDictionary",
@@ -818,158 +2569,728 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "dictionary: dict<K, V>"
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      }
     ],
-    "returnType": "RuntimeReturnValueTypeMap[`${V}_list`]",
-    "typeParams": [
-      "K extends DictKeyType",
-      "V extends keyof CommonLiteralValueTypeMap"
+    "returns": [
+      {
+        "name": "valueList",
+        "irType": "entity_list",
+        "docZh": "值列表",
+        "docEn": "Value List"
+      }
     ],
-    "docs": "/**\n   * Returns a list of all Values in the Dictionary. Because Key-Value Pairs are unordered, the Values may not be returned in insertion order\n   *\n   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列\n   *\n   * @param dictionary\n   *\n   * 字典\n   *\n   * @returns\n   *\n   * 值列表\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "getLocalVariable",
-    "nodeType": "get_local_variable",
-    "subTypes": [
-      "character_skill",
-      "creation_skill"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "initialValue: FloatValue"
-    ],
-    "returnType": "{ localVariable: localVariable; value: number }",
-    "typeParams": [],
-    "docs": "/**\n   * Retrieves a Local Variable and optionally sets its [Initial Value]; After setting the [Initial Value], the [Value] output parameter will be equal to the input [Initial Value]; When the output [Local Variable] is connected to the [Set Local Variable] Execution Node's input [Local Variable], the input [Value] of [Set Local Variable] overwrites this Search Node's output [Value]. The next time you use [Get Local Variable], the output [Value] is the overwritten value\n   *\n   * 获取局部变量: 可以获取局部变量，也可以设置该局部变量的【初始值】; 设置【初始值】以后，出参的【值】输出即为输入的【初始值】; 当出参【局部变量】与执行节点【设置局部变量】的入参【局部变量】连接后，执行节点【设置局部变量】的入参【值】会覆写该查询节点的出参【值】，再次使用【获取局部变量】节点时，出参【值】为覆写后的值\n   *\n   * @param initialValue Allows you to set the default initial value for local variables\n   *\n   * 初始值: 可以设置局部变量的初始默认值\n   */",
-    "requiresLocalVariableSpecialization": true
+    "docs": {
+      "en": "Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.",
+      "zh": "获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict"
+      ]
+    }
   },
   {
     "methodName": "getMaximumValueFromList",
     "nodeType": "get_maximum_value_from_list",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "list: FloatValue[]"
+      {
+        "name": "listValue",
+        "irType": "float_list | int_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Applies only to Floating Point Number or Integer lists; returns the maximum value\n   *\n   * 获取列表最大值: 仅对浮点数列表和整数列表有意义，返回列表中的最大值\n   *\n   * @param list\n   *\n   * 列表\n   *\n   * @returns\n   *\n   * 最大值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "maximumValue",
+        "irType": "float | int",
+        "docZh": "最大值",
+        "docEn": "Maximum Value"
+      }
+    ],
+    "docs": {
+      "en": "Applies only to Floating Point Number or Integer lists; returns the maximum value",
+      "zh": "仅对浮点数列表和整数列表有意义，返回列表中的最大值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float_list",
+        "int_list"
+      ]
+    }
   },
   {
     "methodName": "getMinimumValueFromList",
     "nodeType": "get_minimum_value_from_list",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "list: FloatValue[]"
+      {
+        "name": "listValue",
+        "irType": "float_list | int_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Applies only to Floating Point Number or Integer lists; returns the minimum value\n   *\n   * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值\n   *\n   * @param list\n   *\n   * 列表\n   *\n   * @returns\n   *\n   * 最小值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "minimumValue",
+        "irType": "float | int",
+        "docZh": "最小值",
+        "docEn": "Minimum Value"
+      }
+    ],
+    "docs": {
+      "en": "Applies only to Floating Point Number or Integer lists; returns the minimum value",
+      "zh": "仅对浮点数列表和整数列表有意义，返回列表中的最小值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float_list",
+        "int_list"
+      ]
+    }
+  },
+  {
+    "methodName": "getObjectPresetStatus",
+    "nodeType": "get_object_preset_status",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "presetStatusIndex",
+        "irType": "int",
+        "docZh": "预设状态索引",
+        "docEn": "Preset Status Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "presetStatusValue",
+        "irType": "int",
+        "docZh": "预设状态值",
+        "docEn": "Preset Status Value"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Preset Status Value at the specified Preset Status index from the Target Entity. If the Entity does not have the specified Preset Status, return 0",
+      "zh": "获取目标实体的指定预设状态索引的预设状态值。如果该实体没有指定的预设状态，则返回0"
+    }
   },
   {
     "methodName": "getPlayerClientInputDeviceType",
     "nodeType": "get_player_client_input_device_type",
     "subTypes": [
-      "character_skill",
       "bool_filter",
+      "character_skill",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
-    "params": [
-      "playerEntity: PlayerEntity"
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "inputDeviceType",
+        "irType": "enum",
+        "docZh": "输入设备类型",
+        "docEn": "Input Device Type"
+      }
     ],
-    "returnType": "InputDeviceType",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the Player's local input device type, as determined by the Interface mapping method\n   *\n   * 获得玩家客户端输入设备类型: 获得玩家的客户端输入设备类型，根据用户界面的映射方式决定\n   *\n   * @param playerEntity\n   *\n   * 玩家实体\n   *\n   * @returns Includes keyboard/mouse, gamepad, touchscreen\n   *\n   * 输入设备类型: 分为键盘鼠标、手柄、触屏\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Returns the Player's local input device type, as determined by the Interface mapping method",
+      "zh": "获得玩家的客户端输入设备类型，根据用户界面的映射方式决定"
+    }
   },
   {
     "methodName": "getPlayerEntityToWhichTheCharacterBelongs",
     "nodeType": "get_player_entity_to_which_the_character_belongs",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "characterEntity: CharacterEntity"
+      {
+        "name": "characterEntity",
+        "irType": "entity",
+        "docZh": "角色实体",
+        "docEn": "Character Entity"
+      }
     ],
-    "returnType": "PlayerEntity",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the Player Entity that owns the Character Entity\n   *\n   * 获取角色归属的玩家实体: 获取角色实体所归属的玩家实体\n   *\n   * @param characterEntity\n   *\n   * 角色实体\n   *\n   * @returns\n   *\n   * 所属玩家实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "affiliatedPlayerEntity",
+        "irType": "entity",
+        "docZh": "所属玩家实体",
+        "docEn": "Affiliated Player Entity"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Player Entity that owns the Character Entity",
+      "zh": "获取角色实体所归属的玩家实体"
+    }
   },
   {
     "methodName": "getPresetStatus",
     "nodeType": "get_preset_status",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "targetEntity: EntityValue",
-      "presetStatusIndex: IntValue"
+      {
+        "name": "entity",
+        "irType": "entity",
+        "docZh": "实体",
+        "docEn": "Entity"
+      },
+      {
+        "name": "presetStatusIndex",
+        "irType": "int",
+        "docZh": "预设状态索引",
+        "docEn": "Preset Status Index"
+      }
     ],
-    "returnType": "bigint",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the value of the specified Preset Status for the Target Entity. Returns 0 if the Entity does not have that Preset Status\n   *\n   * 获取预设状态: 获取目标实体的指定预设状态的预设状态值。如果该实体没有指定的预设状态，则返回0\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param presetStatusIndex\n   *\n   * 预设状态索引\n   *\n   * @returns\n   *\n   * 预设状态值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "presetStatusValue",
+        "irType": "int",
+        "docZh": "预设状态值",
+        "docEn": "Preset Status Value"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Preset Status value of the specified Entity. Returns 0 if the Entity does not have the specified Preset Status",
+      "zh": "获取指定实体的预设状态值。如果该实体没有指定的预设状态，则返回0"
+    }
+  },
+  {
+    "methodName": "getPreviousFrameExecutionStatus",
+    "nodeType": "get_previous_frame_execution_status",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "statusNodeGraphConfigurationID",
+        "irType": "config_id",
+        "docZh": "状态节点图配置ID",
+        "docEn": "Status Node Graph Configuration ID"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Config ID of the [Creation Status Node Graph] executed in the previous frame",
+      "zh": "获取造物前一帧执行的【造物状态节点图】的配置ID"
+    }
+  },
+  {
+    "methodName": "getPreviousFrameExecutionTactic",
+    "nodeType": "get_previous_frame_execution_tactic",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "tacticType",
+        "irType": "enum",
+        "docZh": "战术类型",
+        "docEn": "Tactic Type"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Tactic executed by Creations in the previous frame",
+      "zh": "获取造物前一帧执行的战术"
+    }
+  },
+  {
+    "methodName": "getRandomNumber",
+    "nodeType": "get_random_number",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "lowerLimit",
+        "irType": "float | int",
+        "docZh": "下限",
+        "docEn": "Lower Limit"
+      },
+      {
+        "name": "upperLimit",
+        "irType": "float | int",
+        "docZh": "上限",
+        "docEn": "Upper Limit"
+      }
+    ],
+    "returns": [
+      {
+        "name": "randomNumber",
+        "irType": "float | int",
+        "docZh": "随机数",
+        "docEn": "Random Number"
+      }
+    ],
+    "docs": {
+      "en": "Returns a random number in [Lower Limit, Upper Limit] (inclusive)",
+      "zh": "获取一个大于等于下限，小于等于上限的随机数。注意该节点生成的随机数包含上下限"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
   },
   {
     "methodName": "getSelfEntity",
     "nodeType": "get_self_entity",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [],
-    "returnType": "entity",
-    "typeParams": [],
-    "docs": "/**\n   * Returns the Entity associated with this Node Graph\n   *\n   * 获取自身实体: 返回该节点图所关联的实体\n   *\n   * @returns\n   *\n   * 自身实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "selfEntity",
+        "irType": "entity",
+        "docZh": "自身实体",
+        "docEn": "Self Entity"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Entity associated with this Node Graph",
+      "zh": "返回该节点图所关联的实体"
+    }
+  },
+  {
+    "methodName": "getSelfPresetStatusValue",
+    "nodeType": "get_self_preset_status_value",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "presetStatusIndex",
+        "irType": "int",
+        "docZh": "预设状态索引",
+        "docEn": "Preset Status Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "presetStatusValue",
+        "irType": "int",
+        "docZh": "预设状态值",
+        "docEn": "Preset Status Value"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Preset Status Value at the specified Preset Status index for this Entity. If the Entity does not have the specified Preset Status index, return 0",
+      "zh": "获取自身的指定预设状态索引的预设状态值。如果该实体没有指定的预设状态索引，则返回0"
+    }
+  },
+  {
+    "methodName": "getSpawnPointLocationInformation",
+    "nodeType": "get_spawn_point_location_information",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "spawnPointCoordinates",
+        "irType": "vec3",
+        "docZh": "出生点坐标",
+        "docEn": "Spawn Point Coordinates"
+      },
+      {
+        "name": "spawnPointRotation",
+        "irType": "vec3",
+        "docZh": "出生点旋转",
+        "docEn": "Spawn Point Rotation"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Creation's own Spawn Point information",
+      "zh": "获取造物自身的出生点信息"
+    }
+  },
+  {
+    "methodName": "getStageEntity",
+    "nodeType": "get_stage_entity",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "stageEntity",
+        "irType": "entity",
+        "docZh": "关卡实体",
+        "docEn": "Stage Entity"
+      }
+    ],
+    "docs": {
+      "en": "Obtain Stage Entities",
+      "zh": "获取关卡实体"
+    }
+  },
+  {
+    "methodName": "getSubEntityList",
+    "nodeType": "get_sub_entity_list",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "subEntityList",
+        "irType": "entity_list",
+        "docZh": "子实体列表",
+        "docEn": "Sub-Entity List"
+      }
+    ],
+    "docs": {
+      "en": "Return to the Target Entity's Sub-Entity List",
+      "zh": "返回目标实体的子实体列表"
+    }
+  },
+  {
+    "methodName": "getTargetAtk",
+    "nodeType": "get_target_atk",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "baseATK",
+        "irType": "float",
+        "docZh": "基础攻击力",
+        "docEn": "Base ATK"
+      },
+      {
+        "name": "currentATK",
+        "irType": "float",
+        "docZh": "当前攻击力",
+        "docEn": "Current ATK"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Target Entity's ATK parameters",
+      "zh": "获取目标实体的攻击力相关参数"
+    }
+  },
+  {
+    "methodName": "getTargetAttachmentPointLocation",
+    "nodeType": "get_target_attachment_point_location",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "attachmentPointName",
+        "irType": "str",
+        "docZh": "挂接点名称",
+        "docEn": "Attachment Point Name"
+      }
+    ],
+    "returns": [
+      {
+        "name": "attachmentPointLocation",
+        "irType": "vec3",
+        "docZh": "挂接点位置",
+        "docEn": "Attachment Point Location"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Attachment Point Location corresponding to the specified Attachment Point Name on the Target Entity",
+      "zh": "获取指定目标实体上对应挂接点名称的挂接点位置"
+    }
+  },
+  {
+    "methodName": "getTargetAttachmentPointRotation",
+    "nodeType": "get_target_attachment_point_rotation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "attachmentPointName",
+        "irType": "str",
+        "docZh": "挂接点名称",
+        "docEn": "Attachment Point Name"
+      }
+    ],
+    "returns": [
+      {
+        "name": "attachmentPointRotation",
+        "irType": "vec3",
+        "docZh": "挂接点旋转",
+        "docEn": "Attachment Point Rotation"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Attachment Point Rotation corresponding to the specified Attachment Point Name on the Target Entity",
+      "zh": "获取指定目标实体上对应挂接点名称的挂接点旋转"
+    }
+  },
+  {
+    "methodName": "getTargetEntity",
+    "nodeType": "get_target_entity",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Target Entity. The meaning of this output varies depending on the functional module that references the Filter Node Graph",
+      "zh": "获取目标实体，根据过滤器节点图被引用的功能模块不同，其指代含义会有区别"
+    }
+  },
+  {
+    "methodName": "getTargetHp",
+    "nodeType": "get_target_hp",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "baseHP",
+        "irType": "float",
+        "docZh": "基础生命值",
+        "docEn": "Base HP"
+      },
+      {
+        "name": "maxHP",
+        "irType": "float",
+        "docZh": "最大生命值",
+        "docEn": "Max HP"
+      },
+      {
+        "name": "currentHPPercentage",
+        "irType": "float",
+        "docZh": "当前生命值百分比",
+        "docEn": "Current HP Percentage"
+      }
+    ],
+    "docs": {
+      "en": "Obtain HP-related parameters for the Target Entity",
+      "zh": "获取目标实体的生命值相关参数"
+    }
+  },
+  {
+    "methodName": "getTargetLevel",
+    "nodeType": "get_target_level",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "currentLevel",
+        "irType": "int",
+        "docZh": "当前等级",
+        "docEn": "Current Level"
+      }
+    ],
+    "docs": {
+      "en": "Obtain the Target Entity's current level",
+      "zh": "获取目标实体的当前等级"
+    }
   },
   {
     "methodName": "getTheAggroListOfTheSpecifiedEntity",
@@ -981,13 +3302,27 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "targetEntity: EntityValue"
+      {
+        "name": "specifiedEntity",
+        "irType": "entity",
+        "docZh": "指定实体",
+        "docEn": "Specified Entity"
+      }
     ],
-    "returnType": "entity[]",
-    "typeParams": [],
-    "docs": "/**\n   * Get Specific Entity's Aggro List\n   *\n   * 获取指定实体的仇恨列表: 获取指定实体的仇恨列表\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   *\n   * @returns\n   *\n   * 仇恨列表\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "aggroList",
+        "irType": "entity_list",
+        "docZh": "仇恨列表",
+        "docEn": "Aggro List"
+      }
+    ],
+    "docs": {
+      "en": "Available only for Custom Aggro Mode; Gets Specific Entity's Aggro List",
+      "zh": "仅自定义仇恨模式可用; 获取指定实体的仇恨列表"
+    }
   },
   {
     "methodName": "getTheAggroTargetOfTheSpecifiedEntity",
@@ -999,223 +3334,135 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "aggroOwner: EntityValue"
+      {
+        "name": "specifiedEntity",
+        "irType": "entity",
+        "docZh": "指定实体",
+        "docEn": "Specified Entity"
+      }
     ],
-    "returnType": "entity",
-    "typeParams": [],
-    "docs": "/**\n   * Get Aggro Target of Specific Entity\n   *\n   * 获取指定实体的仇恨目标: 获取指定实体的仇恨目标\n   *\n   * @param aggroOwner\n   *\n   * 仇恨拥有者\n   *\n   * @returns\n   *\n   * 仇恨目标\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "aggroTarget",
+        "irType": "entity",
+        "docZh": "仇恨目标",
+        "docEn": "Aggro Target"
+      }
+    ],
+    "docs": {
+      "en": "Available only for Custom Aggro Mode; Gets Aggro Target of Specific Entity",
+      "zh": "仅自定义仇恨模式可用; 获取指定实体的仇恨目标"
+    }
+  },
+  {
+    "methodName": "getTheComplexCreationSCurrentUsingSkill",
+    "nodeType": "get_the_complex_creation_s_current_using_skill",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "skillID",
+        "irType": "int",
+        "docZh": "技能序号",
+        "docEn": "Skill ID"
+      }
+    ],
+    "docs": {
+      "en": "Return to the ID of the Skill currently being cast by the current Complex Creation",
+      "zh": "返回复杂造物当前正在施放的技能的序号"
+    }
+  },
+  {
+    "methodName": "getUnitAttackTarget",
+    "nodeType": "get_unit_attack_target",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "unitEntity",
+        "irType": "entity",
+        "docZh": "单位实体",
+        "docEn": "Unit Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "attackTargetEntity",
+        "irType": "entity",
+        "docZh": "攻击目标实体",
+        "docEn": "Attack Target Entity"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Target Entity that the Unit Entity is currently attacking",
+      "zh": "获取单位实体当前正在攻击的目标实体"
+    }
   },
   {
     "methodName": "greaterThan",
     "nodeType": "greater_than",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "leftValue: FloatValue",
-      "rightValue: FloatValue"
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Returns whether the left value is greater than the right value\n   *\n   * 数值大于: 返回左值是否大于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is greater than the right value",
+      "zh": "返回左值是否大于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
   },
   {
-    "methodName": "greaterThanOrEqualTo",
-    "nodeType": "greater_than_or_equal_to",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "leftValue: FloatValue",
-      "rightValue: FloatValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Returns whether the left value is greater than or equal to the right value\n   *\n   * 数值大于等于: 返回左值是否大于等于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "lessThan",
-    "nodeType": "less_than",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "leftValue: FloatValue",
-      "rightValue: FloatValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Returns whether the left value is less than the right value\n   *\n   * 数值小于: 返回左值是否小于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "lessThanOrEqualTo",
-    "nodeType": "less_than_or_equal_to",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "leftValue: FloatValue",
-      "rightValue: FloatValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Returns whether the left value is less than or equal to the right value\n   *\n   * 数值小于等于: 返回左值是否小于等于右值\n   *\n   * @param leftValue\n   *\n   * 左值\n   * @param rightValue\n   *\n   * 右值\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "listIncludesThisValue",
-    "nodeType": "list_includes_this_value",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "list: FloatValue[]",
-      "value: FloatValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Returns whether the list contains the specified value\n   *\n   * 列表是否包含该值: 返回列表中是否包含指定值\n   *\n   * @param list\n   *\n   * 列表\n   * @param value\n   *\n   * 值\n   *\n   * @returns\n   *\n   * 是否包含\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "logicalAndOperation",
-    "nodeType": "logical_and_operation",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "input1: BoolValue",
-      "input2: BoolValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Performs a logical AND operation on the two input Boolean values and returns the result\n   *\n   * 逻辑与运算: 对输入的两个布尔值进行与运算后输出\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "logicalNotOperation",
-    "nodeType": "logical_not_operation",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "input: BoolValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Performs a logical NOT operation on the input Boolean value and returns the result\n   *\n   * 逻辑非运算: 对输入的布尔值进行非运算后输出\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "logicalOrOperation",
-    "nodeType": "logical_or_operation",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "input1: BoolValue",
-      "input2: BoolValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Performs a logical OR operation on the two input Boolean values and returns the result\n   *\n   * 逻辑或运算: 对输入的两个布尔值进行或运算后输出\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "logicalXorOperation",
-    "nodeType": "logical_xor_operation",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [
-      "input1: BoolValue",
-      "input2: BoolValue"
-    ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Performs a logical XOR operation on the two input Boolean values and returns the result\n   *\n   * 逻辑异或运算: 对输入的两个布尔值进行异或运算后输出\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "multipleBranches",
-    "nodeType": "multiple_branches",
+    "methodName": "greaterThan",
+    "nodeType": "greater_than",
     "subTypes": [
       "creation_status",
       "creation_status_decision"
@@ -1223,37 +3470,726 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "controlExpression: IntValue",
-      "branches: Record<number, (() => void) | number> & { default?: (() => void) | number }"
+      {
+        "name": "input1",
+        "irType": "float",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float",
+        "docZh": "",
+        "docEn": ""
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Accepts one input parameter as the control expression (supports Integer or String). Branches into multiple paths based on its value; When the value on an Output Pin equals the control expression, execution continues along that Output Pin. If no pin matches, the [Default] pin is taken\n   *\n   * 多分支: 接受一个输入参数作为控制表达式(支持整数或字符串)，根据控制表达式的值可以分出多个不同的分支; 当出引脚上的值与控制表达式的值相等时，会沿该出引脚向后执行逻辑。如果没有找到匹配的引脚，则会走【默认】引脚\n   *\n   * @param controlExpression Only supports Integers or Strings\n   *\n   * 控制表达式: 仅支持整数或字符串\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is greater than the right value",
+      "zh": "返回左值是否大于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float"
+      ]
+    }
   },
   {
-    "methodName": "multiplication",
-    "nodeType": "multiplication",
+    "methodName": "greaterThanOrEqualTo",
+    "nodeType": "greater_than_or_equal_to",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input1: FloatValue",
-      "input2: FloatValue"
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Performs multiplication, supporting Floating Point and Integer multiplication\n   *\n   * 乘法运算: 乘法运算，支持浮点数乘法和整数乘法\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is greater than or equal to the right value",
+      "zh": "返回左值是否大于等于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
+  },
+  {
+    "methodName": "greaterThanOrEqualTo",
+    "nodeType": "greater_than_or_equal_to",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "float",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is greater than or equal to the right value",
+      "zh": "返回左值是否大于等于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float"
+      ]
+    }
+  },
+  {
+    "methodName": "increaseTheAggroValueOfTheSpecifiedEntity",
+    "nodeType": "increase_the_aggro_value_of_the_specified_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "aggroOwnerEntity",
+        "irType": "entity",
+        "docZh": "仇恨拥有者实体",
+        "docEn": "Aggro Owner Entity"
+      },
+      {
+        "name": "increaseValue",
+        "irType": "int",
+        "docZh": "增加值",
+        "docEn": "Increase Value"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; Modify the aggro value of the specified entity for the aggro owner entity; the increase value can be negative.",
+      "zh": "仅自定义仇恨模式可用; 修改指定实体在仇恨拥有者实体上的仇恨值，增加值可以为负"
+    }
+  },
+  {
+    "methodName": "lessThan",
+    "nodeType": "less_than",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is less than the right value",
+      "zh": "返回左值是否小于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
+  },
+  {
+    "methodName": "lessThanOrEqualTo",
+    "nodeType": "less_than_or_equal_to",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is less than or equal to the right value",
+      "zh": "返回左值是否小于等于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
+  },
+  {
+    "methodName": "lessThanOrEqualTo",
+    "nodeType": "less_than_or_equal_to",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "float",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the left value is less than or equal to the right value",
+      "zh": "返回左值是否小于等于右值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float"
+      ]
+    }
+  },
+  {
+    "methodName": "listIncludesThisValue",
+    "nodeType": "list_includes_this_value",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "value",
+        "irType": "int | bool | config_id | entity | guid | vec3",
+        "docZh": "值",
+        "docEn": "Value"
+      },
+      {
+        "name": "list",
+        "irType": "int_list | bool_list | config_id_list | entity_list | guid_list | vec3_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the list contains the specified value",
+      "zh": "返回列表中是否包含指定值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "int|int_list",
+        "bool|bool_list",
+        "config_id|config_id_list",
+        "entity|entity_list",
+        "guid|guid_list",
+        "vec3|vec3_list"
+      ]
+    }
+  },
+  {
+    "methodName": "listIncludesThisValue",
+    "nodeType": "list_includes_this_value",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "value",
+        "irType": "int | entity",
+        "docZh": "值",
+        "docEn": "Value"
+      },
+      {
+        "name": "list",
+        "irType": "int_list | entity_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Returns whether the list contains the specified value",
+      "zh": "返回列表中是否包含指定值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "int|int_list",
+        "entity|entity_list"
+      ]
+    }
+  },
+  {
+    "methodName": "logicalAndOperation",
+    "nodeType": "logical_and_operation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "condition1",
+        "irType": "bool",
+        "docZh": "条件1",
+        "docEn": "Condition 1"
+      },
+      {
+        "name": "condition2",
+        "irType": "bool",
+        "docZh": "条件2",
+        "docEn": "Condition 2"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Performs a logical AND operation on the two input Boolean values and returns the result",
+      "zh": "对输入的两个布尔值进行与运算后输出"
+    }
+  },
+  {
+    "methodName": "logicalNotOperation",
+    "nodeType": "logical_not_operation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "condition",
+        "irType": "bool",
+        "docZh": "条件",
+        "docEn": "Condition"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Performs a logical NOT operation on the input Boolean value and returns the result",
+      "zh": "对输入的布尔值进行非运算后输出"
+    }
+  },
+  {
+    "methodName": "logicalOrOperation",
+    "nodeType": "logical_or_operation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "condition1",
+        "irType": "bool",
+        "docZh": "条件1",
+        "docEn": "Condition 1"
+      },
+      {
+        "name": "condition2",
+        "irType": "bool",
+        "docZh": "条件2",
+        "docEn": "Condition 2"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Performs a logical OR operation on the two input Boolean values and returns the result",
+      "zh": "对输入的两个布尔值进行或运算后输出"
+    }
+  },
+  {
+    "methodName": "logicalXorOperation",
+    "nodeType": "logical_xor_operation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "condition1",
+        "irType": "bool",
+        "docZh": "条件1",
+        "docEn": "Condition 1"
+      },
+      {
+        "name": "condition2",
+        "irType": "bool",
+        "docZh": "条件2",
+        "docEn": "Condition 2"
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "bool",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Performs a logical XOR operation on the two input Boolean values and returns the result",
+      "zh": "对输入的两个布尔值进行异或运算后输出"
+    }
+  },
+  {
+    "methodName": "multiplication",
+    "nodeType": "multiplication",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
+    ],
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float | int",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Performs multiplication, supporting Floating Point and Integer multiplication",
+      "zh": "乘法运算，支持浮点数乘法和整数乘法"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
+  },
+  {
+    "methodName": "notifyServerNodeGraph",
+    "nodeType": "notify_server_node_graph",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "string1",
+        "irType": "str",
+        "docZh": "字符串1",
+        "docEn": "String 1"
+      },
+      {
+        "name": "string2",
+        "irType": "str",
+        "docZh": "字符串2",
+        "docEn": "String 2"
+      },
+      {
+        "name": "string3",
+        "irType": "str",
+        "docZh": "字符串3",
+        "docEn": "String 3"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Notifies the Server Node Graph; supports up to three String parameters; At runtime, forwards logic to the Server Node Graph and triggers the [On Skill Node Call] Event on the Server Node Graph",
+      "zh": "通知服务器节点图，支持携带三个字符串参数; 该节点运行时可以将逻辑传到服务器节点图上，在服务器节点图上会触发【技能节点调用时】事件"
+    }
+  },
+  {
+    "methodName": "orientationToRotation",
+    "nodeType": "orientation_to_rotation",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "orientation",
+        "irType": "vec3",
+        "docZh": "朝向",
+        "docEn": "Orientation"
+      }
+    ],
+    "returns": [
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      }
+    ],
+    "docs": {
+      "en": "Converts a Direction Vector to Euler Angles",
+      "zh": "将方向向量转化为欧拉角"
+    }
+  },
+  {
+    "methodName": "playerTurning",
+    "nodeType": "player_turning",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "turningMode",
+        "irType": "enum",
+        "docZh": "转向模式",
+        "docEn": "Turning Mode"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Turns the Player using the configured turning mode",
+      "zh": "可以让玩家按照配置的转向模式转向"
+    }
+  },
+  {
+    "methodName": "playerTurnsToFaceSetDirection",
+    "nodeType": "player_turns_to_face_set_direction",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "orientation",
+        "irType": "vec3",
+        "docZh": "朝向",
+        "docEn": "Orientation"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Turns the Player toward the direction specified by the 3D Vector configuration",
+      "zh": "玩家转向三维向量配置的方向"
+    }
   },
   {
     "methodName": "playTimedEffects",
@@ -1265,21 +4201,44 @@
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "specialEffectsAsset: ConfigIdValue",
-      "targetEntity: EntityValue",
-      "attachmentPointName: StrValue",
-      "moveWithTheTarget: BoolValue",
-      "rotateWithTheTarget: BoolValue",
-      "locationOffset: Vec3Value",
-      "rotationOffset: Vec3Value",
-      "zoomMultiplier: FloatValue",
-      "playBuiltInSoundEffect: BoolValue"
+      {
+        "name": "specialEffectsAssetConfigurationID",
+        "irType": "config_id",
+        "docZh": "特效资产配置ID",
+        "docEn": "Special Effects Asset Configuration ID"
+      },
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      },
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      },
+      {
+        "name": "zoomMultiplier",
+        "irType": "float",
+        "docZh": "缩放倍率",
+        "docEn": "Zoom Multiplier"
+      },
+      {
+        "name": "playDefaultSoundEffects",
+        "irType": "bool",
+        "docZh": "是否播放默认音效",
+        "docEn": "Play Default Sound Effects?"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Play a Timed Effect relative to the Target Entity. A valid Target Entity and Attachment Point are required\n   *\n   * 播放限时特效: 以目标实体为基准，播放一个限时特效。需要有合法的目标实体以及挂接点\n   *\n   * @param specialEffectsAsset Identifier for this Effect\n   *\n   * 特效资产: 该特效的标识\n   * @param targetEntity If the Entity does not exist, the Effect will not play\n   *\n   * 目标实体: 实体不存在会导致特效无法播放\n   * @param attachmentPointName If the Attachment Point Name does not exist, the Special Effect will not play\n   *\n   * 挂接点名称: 挂接点名称不存在会导致特效无法播放\n   * @param moveWithTheTarget If set to True, follows the Target Entity's Motion\n   *\n   * 是否跟随目标运动: “是”会跟随目标实体运动\n   * @param rotateWithTheTarget If set to True, follows the Target Entity's Rotation\n   *\n   * 是否跟随目标旋转: “是”会跟随目标实体旋转\n   * @param locationOffset Location Offset relative to the Target Entity's specified Attachment Point\n   *\n   * 位置偏移: 相对于目标实体指定挂接点的位置偏移\n   * @param rotationOffset Rotation offset relative to the Target Entity's specified Attachment Point\n   *\n   * 旋转偏移: 相对于目标实体指定挂接点的旋转偏移\n   * @param zoomMultiplier The Zoom Multiplier of this Effect\n   *\n   * 缩放倍率: 该特效的缩放倍率\n   * @param playBuiltInSoundEffect If set to True, plays the built-in Sound Effect as well\n   *\n   * 是否播放自带的音效: “是”则会同时播放自带的音效\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Plays Timed Effects at the specified World Location",
+      "zh": "在指定的世界坐标位置播放限时特效"
+    }
   },
   {
     "methodName": "queryDictionarySLength",
@@ -1293,126 +4252,252 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "dictionary: dict<K, V>"
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      }
     ],
-    "returnType": "bigint",
-    "typeParams": [
-      "K extends DictKeyType",
-      "V extends DictValueType"
+    "returns": [
+      {
+        "name": "length",
+        "irType": "int",
+        "docZh": "长度",
+        "docEn": "Length"
+      }
     ],
-    "docs": "/**\n   * Searches the number of Key-Value Pairs in the Dictionary\n   *\n   * 查询字典长度: 查询字典中键值对的数量\n   *\n   * @param dictionary\n   *\n   * 字典\n   *\n   * @returns\n   *\n   * 长度\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Query the number of key-value pairs in a dictionary",
+      "zh": "查询字典中键值对的数量"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict"
+      ]
+    }
   },
   {
     "methodName": "queryDictionaryValueByKey",
     "nodeType": "query_dictionary_value_by_key",
     "subTypes": [
-      "character_skill",
-      "creation_skill",
       "creation_status",
       "creation_status_decision"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "dictionary: dict<K, V>",
-      "key: RuntimeParameterValueTypeMap[K]"
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      },
+      {
+        "name": "key",
+        "irType": "entity",
+        "docZh": "键",
+        "docEn": "Key"
+      }
     ],
-    "returnType": "RuntimeReturnValueTypeMap[V]",
-    "typeParams": [
-      "K extends DictKeyType",
-      "V extends DictValueType"
+    "returns": [
+      {
+        "name": "value",
+        "irType": "entity",
+        "docZh": "值",
+        "docEn": "Value"
+      }
     ],
-    "docs": "/**\n   * Searches the corresponding Value in the Dictionary by Key. If the Key does not exist, returns the type's default value\n   *\n   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值\n   *\n   * @param dictionary\n   *\n   * 字典\n   * @param key\n   *\n   * 键\n   *\n   * @returns\n   *\n   * 值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.",
+      "zh": "根据键查询字典中对应的值，如果键不存在，则返回类型默认值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict|entity"
+      ]
+    }
   },
   {
     "methodName": "queryEntityByGuid",
     "nodeType": "query_entity_by_guid",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "guid: GuidValue"
+      {
+        "name": "gUID",
+        "irType": "guid",
+        "docZh": "GUID",
+        "docEn": "GUID"
+      }
     ],
-    "returnType": "entity",
-    "typeParams": [],
-    "docs": "/**\n   * Searches for an Entity by GUID\n   *\n   * 以GUID查询实体: 根据GUID查询实体\n   *\n   * @param guid\n   *\n   * GUID\n   *\n   * @returns\n   *\n   * 实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "entity",
+        "irType": "entity",
+        "docZh": "实体",
+        "docEn": "Entity"
+      }
+    ],
+    "docs": {
+      "en": "Searches for an Entity by GUID",
+      "zh": "根据GUID查询实体"
+    }
   },
   {
     "methodName": "queryEntityFaction",
     "nodeType": "query_entity_faction",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "targetEntity: EntityValue"
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
     ],
-    "returnType": "faction",
-    "typeParams": [],
-    "docs": "/**\n   * Searches the Faction of the specified Entity\n   *\n   * 查询实体阵营: 查询指定实体的阵营\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   *\n   * @returns\n   *\n   * 阵营\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "faction",
+        "irType": "faction",
+        "docZh": "阵营",
+        "docEn": "Faction"
+      }
+    ],
+    "docs": {
+      "en": "Searches Target Entity's Faction",
+      "zh": "查询目标实体的阵营"
+    }
+  },
+  {
+    "methodName": "queryEntityFaction",
+    "nodeType": "query_entity_faction",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "faction",
+        "irType": "faction",
+        "docZh": "阵营",
+        "docEn": "Faction"
+      }
+    ],
+    "docs": {
+      "en": "Search for Target Entity's Faction",
+      "zh": "查询目标实体的阵营"
+    }
   },
   {
     "methodName": "queryGuidByEntity",
     "nodeType": "query_guid_by_entity",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "entity: EntityValue"
+      {
+        "name": "entity",
+        "irType": "entity",
+        "docZh": "实体",
+        "docEn": "Entity"
+      }
     ],
-    "returnType": "guid",
-    "typeParams": [],
-    "docs": "/**\n   * Searches for the GUID of the specified Entity\n   *\n   * 以实体查询GUID: 查询指定实体的GUID\n   *\n   * @param entity\n   *\n   * 实体\n   *\n   * @returns\n   *\n   * GUID\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "gUID",
+        "irType": "guid",
+        "docZh": "GUID",
+        "docEn": "GUID"
+      }
+    ],
+    "docs": {
+      "en": "Searches for the GUID of the specified Entity",
+      "zh": "查询指定实体的GUID"
+    }
   },
   {
     "methodName": "queryIfDictionaryContainsSpecificKey",
     "nodeType": "query_if_dictionary_contains_specific_key",
     "subTypes": [
       "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision"
+      "creation_skill"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "dictionary: dict<K, V>",
-      "key: RuntimeParameterValueTypeMap[K]"
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      },
+      {
+        "name": "key",
+        "irType": "entity",
+        "docZh": "键",
+        "docEn": "Key"
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [
-      "K extends DictKeyType",
-      "V extends DictValueType"
+    "returns": [
+      {
+        "name": "include",
+        "irType": "bool",
+        "docZh": "是否包含",
+        "docEn": "Include"
+      }
     ],
-    "docs": "/**\n   * Searches whether the specified Dictionary contains the specified Key\n   *\n   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键\n   *\n   * @param dictionary\n   *\n   * 字典\n   * @param key\n   *\n   * 键\n   *\n   * @returns\n   *\n   * 是否包含\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Query if the specified dictionary contains a specific key",
+      "zh": "查询指定字典是否包含特定的键"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict|entity"
+      ]
+    }
   },
   {
     "methodName": "queryIfDictionaryContainsSpecificValue",
@@ -1426,62 +4511,172 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "dictionary: dict<K, V>",
-      "value: RuntimeParameterValueTypeMap[V]"
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      },
+      {
+        "name": "value",
+        "irType": "entity",
+        "docZh": "值",
+        "docEn": "Value"
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [
-      "K extends DictKeyType",
-      "V extends keyof CommonLiteralValueTypeMap"
+    "returns": [
+      {
+        "name": "include",
+        "irType": "bool",
+        "docZh": "是否包含",
+        "docEn": "Include"
+      }
     ],
-    "docs": "/**\n   * Searches whether the specified Dictionary contains the specified Value\n   *\n   * 查询字典是否包含特定值: 查询指定字典是否包含特定的值\n   *\n   * @param dictionary\n   *\n   * 字典\n   * @param value\n   *\n   * 值\n   *\n   * @returns\n   *\n   * 是否包含\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Query if the specified dictionary contains a specific value",
+      "zh": "查询指定字典是否包含特定的值"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict|entity"
+      ]
+    }
   },
   {
     "methodName": "queryIfEntityIsOnTheField",
     "nodeType": "query_if_entity_is_on_the_field",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
-      "creation_status",
-      "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "targetEntity: EntityValue"
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Searches whether the specified Entity is present; Note that Character Entities are still considered present even when Downed\n   *\n   * 查询实体是否在场: 查询指定实体是否在场; 注意角色实体即使处于倒下状态，仍然认为在场\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   *\n   * @returns\n   *\n   * 是否在场\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "onTheField",
+        "irType": "bool",
+        "docZh": "是否在场",
+        "docEn": "On the Field"
+      }
+    ],
+    "docs": {
+      "en": "Searches whether the specified Entity is present; Note that Character Entities are still considered present even when Downed",
+      "zh": "查询指定实体是否在场; 注意角色实体即使处于倒下状态，仍然认为在场"
+    }
+  },
+  {
+    "methodName": "queryIfEntityIsOnTheField",
+    "nodeType": "query_if_entity_is_on_the_field",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "enum",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "onTheField",
+        "irType": "bool",
+        "docZh": "是否在场",
+        "docEn": "On the Field"
+      }
+    ],
+    "docs": {
+      "en": "Check whether the Target Entity is present. Note: even if a Character Entity is in a Down state, it is still considered present",
+      "zh": "查询目标实体是否在场，注意角色实体即使处于倒下状态，仍然认为在场"
+    }
   },
   {
     "methodName": "queryIfFactionIsHostile",
     "nodeType": "query_if_faction_is_hostile",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "faction1: FactionValue",
-      "faction2: FactionValue"
+      {
+        "name": "faction1",
+        "irType": "faction",
+        "docZh": "阵营1",
+        "docEn": "Faction 1"
+      },
+      {
+        "name": "faction2",
+        "irType": "faction",
+        "docZh": "阵营2",
+        "docEn": "Faction 2"
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Searches whether two Factions are hostile to each other\n   *\n   * 查询阵营是否敌对: 查询两个阵营是否敌对\n   *\n   * @param faction1\n   *\n   * 阵营1\n   * @param faction2\n   *\n   * 阵营2\n   *\n   * @returns\n   *\n   * 是否敌对\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "hostile",
+        "irType": "bool",
+        "docZh": "是否敌对",
+        "docEn": "Hostile"
+      }
+    ],
+    "docs": {
+      "en": "Searches whether Faction 1 and Faction 2 are hostile",
+      "zh": "查询阵营1和阵营2是否敌对"
+    }
+  },
+  {
+    "methodName": "queryIfSelfIsInCombat",
+    "nodeType": "query_if_self_is_in_combat",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "inCombat",
+        "irType": "bool",
+        "docZh": "是否入战",
+        "docEn": "In Combat"
+      }
+    ],
+    "docs": {
+      "en": "Searches whether the Entity associated with this Node Graph has entered battle",
+      "zh": "查询该节点图关联的实体是否入战"
+    }
   },
   {
     "methodName": "queryIfSpecifiedEntityIsInCombat",
@@ -1493,35 +4688,172 @@
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "queryTarget: EntityValue"
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
     ],
-    "returnType": "boolean",
-    "typeParams": [],
-    "docs": "/**\n   * Searches whether the specified Entity has entered battle\n   *\n   * 查询指定实体是否已入战: 查询指定实体是否已经入战\n   *\n   * @param queryTarget\n   *\n   * 查询目标\n   *\n   * @returns\n   *\n   * 是否入战\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "inCombat",
+        "irType": "bool",
+        "docZh": "是否入战",
+        "docEn": "In Combat"
+      }
+    ],
+    "docs": {
+      "en": "Available only for Custom Aggro Mode; Searches whether the specified Entity has entered battle",
+      "zh": "仅自定义仇恨模式可用; 查询指定实体是否已经入战"
+    }
   },
   {
     "methodName": "radiansToDegrees",
     "nodeType": "radians_to_degrees",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "radianValue: FloatValue"
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Converts radians to degrees\n   *\n   * 弧度转角度: 将弧度值转为角度值\n   *\n   * @param radianValue\n   *\n   * 弧度值\n   *\n   * @returns\n   *\n   * 角度值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "angle",
+        "irType": "float",
+        "docZh": "角度",
+        "docEn": "Angle"
+      }
+    ],
+    "docs": {
+      "en": "Converts radians to degrees",
+      "zh": "将弧度值转为角度值"
+    }
+  },
+  {
+    "methodName": "recoverCharacterSHp",
+    "nodeType": "recover_character_s_hp",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "recoveryAmount",
+        "irType": "float",
+        "docZh": "恢复量",
+        "docEn": "Recovery Amount"
+      },
+      {
+        "name": "ignoreRecoveryAdjustmentEffect",
+        "irType": "bool",
+        "docZh": "是否忽略恢复调整效果",
+        "docEn": "Ignore Recovery Adjustment Effect"
+      },
+      {
+        "name": "aggroMultiplierForThisHealing",
+        "irType": "float",
+        "docZh": "本次治疗的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Healing"
+      },
+      {
+        "name": "aggroIncrementForThisHealing",
+        "irType": "int",
+        "docZh": "本次治疗的仇恨增量",
+        "docEn": "Aggro Increment for This Healing"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiates a one-time HP restoration for the Target Entity",
+      "zh": "为目标实体发起一次恢复生命值"
+    }
+  },
+  {
+    "methodName": "recoverCreationSHp",
+    "nodeType": "recover_creation_s_hp",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "recoveryAmount",
+        "irType": "float",
+        "docZh": "恢复量",
+        "docEn": "Recovery Amount"
+      },
+      {
+        "name": "ignoreRecoveryAdjustmentEffect",
+        "irType": "bool",
+        "docZh": "是否忽略恢复调整效果",
+        "docEn": "Ignore Recovery Adjustment Effect"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiates a one-time HP restoration for the Target Entity",
+      "zh": "为目标实体发起一次恢复生命值"
+    }
+  },
+  {
+    "methodName": "removeSpecifiedCharacterDisruptorDevice",
+    "nodeType": "remove_specified_character_disruptor_device",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "disruptorDeviceType",
+        "irType": "enum",
+        "docZh": "扰动装置类型",
+        "docEn": "Disruptor Device Type"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Removes the specified type of Character Disruptor Device",
+      "zh": "移除指定类型的角色扰动装置"
+    }
   },
   {
     "methodName": "removeTargetEntityFromAggroList",
@@ -1533,14 +4865,26 @@
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "targetEntity: EntityValue",
-      "aggroOwnerEntity: EntityValue"
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "aggroOwnerEntity",
+        "irType": "entity",
+        "docZh": "仇恨拥有者实体",
+        "docEn": "Aggro Owner Entity"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Available only in Custom Aggro Mode; Remove the Target Entity from the Aggro Owner's Aggro List; this may cause the target to leave battle\n   *\n   * 将目标实体移除出仇恨列表: 仅自定义仇恨模式可用; 将目标实体从仇恨拥有者的仇恨列表中移除，可能会导致目标实体脱战\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param aggroOwnerEntity\n   *\n   * 仇恨拥有者实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; Removes the Target Entity from the Aggro Owner Entity's Aggro List; this may cause the Target Entity to leave battle",
+      "zh": "仅自定义仇恨模式可用; 将目标实体移出仇恨拥有者实体的仇恨列表，这可能导致目标实体脱战"
+    }
   },
   {
     "methodName": "removeUnitStatus",
@@ -1552,37 +4896,127 @@
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "removeTargetEntity: EntityValue",
-      "unitStatusConfigId: ConfigIdValue",
-      "removalMethod: RemovalMethod",
-      "removerEntity: EntityValue"
+      {
+        "name": "removalTarget",
+        "irType": "entity",
+        "docZh": "移除目标",
+        "docEn": "Removal Target"
+      },
+      {
+        "name": "unitStatusConfigID",
+        "irType": "config_id",
+        "docZh": "单位状态配置ID",
+        "docEn": "Unit Status Config ID"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Remove a specified Unit Status from the Target Entity. Either all stacks or a single stack can be removed\n   *\n   * 移除单位状态: 从目标实体上移除指定单位状态。可以选择全部移除，或移除其中一层\n   *\n   * @param removeTargetEntity The Entity from which the Unit Status will be removed\n   *\n   * 移除目标实体: 被移除该单位状态的实体\n   * @param unitStatusConfigId Identifier for this Unit Status\n   *\n   * 单位状态配置ID: 该单位状态的标识\n   * @param removalMethod All Coexisting Statuses with the Same Name: Removes all statuses applied with this Config ID that share the same nameStatus With Fastest Stack Loss: Removes one stack from the status that loses stacks the fastest\n   *\n   * 移除方式: 所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态\n   * @param removerEntity Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph\n   *\n   * 移除者实体: 决定了该次行为的移除者实体，默认为该节点图所关联的实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Removes the Unit Status corresponding to the specified configuration ID from the Target Entity",
+      "zh": "移除目标实体上指定配置ID对应的单位状态"
+    }
   },
   {
-    "methodName": "setLocalVariable",
-    "nodeType": "set_local_variable",
+    "methodName": "resetSkillTarget",
+    "nodeType": "reset_skill_target",
     "subTypes": [
-      "character_skill",
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "Resets the Skill Target and reruns the Skill selection logic to choose a new Target",
+      "zh": "重置技能目标，重新运行一次技能选取逻辑，选择一个新的目标"
+    }
+  },
+  {
+    "methodName": "resetsTheCreationSSkillCd",
+    "nodeType": "resets_the_creation_s_skill_cd",
+    "subTypes": [
       "creation_skill"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "localVariable: LocalVariableValue",
-      "value: RuntimeParameterValueTypeMap[T]"
+      {
+        "name": "skillID",
+        "irType": "int",
+        "docZh": "技能序号",
+        "docEn": "Skill ID"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [
-      "T extends | 'bool' | 'config_id' | 'entity' | 'faction' | 'float' | 'guid' | 'int' | 'prefab_id' | 'str' | 'vec3' | 'bool_list' | 'config_id_list' | 'entity_list' | 'faction_list' | 'float_list' | 'guid_list' | 'int_list' | 'prefab_id_list' | 'str_list' | 'vec3_list'"
+    "returns": null,
+    "docs": {
+      "en": "Resets the Skill CD to 0. If the conditions are met, the Skill can be cast immediately",
+      "zh": "技能冷却清零，若满足条件，技能可立即释放"
+    }
+  },
+  {
+    "methodName": "setAttackWeight",
+    "nodeType": "set_attack_weight",
+    "subTypes": [
+      "character_skill"
     ],
-    "docs": "/**\n   * When connected to the Query Node [Get Local Variable], this overwrites the value of that Local Variable\n   *\n   * 设置局部变量: 与查询节点【获取局部变量】连接后可以覆写该局部变量的值\n   *\n   * @param localVariable Container for data storage\n   *\n   * 局部变量: 存储数据的载体\n   * @param value Value used to overwrite this local variable\n   *\n   * 值: 所要覆写该局部变量的值\n   */",
-    "requiresLocalVariableSpecialization": true
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "currentAttackTargetWeight",
+        "irType": "float",
+        "docZh": "当前攻击目标的权重",
+        "docEn": "Current Attack Target Weight"
+      },
+      {
+        "name": "forciblySelectATargetOnce",
+        "irType": "bool",
+        "docZh": "是否强制选一次目标",
+        "docEn": "Forcibly Select a Target Once"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "You can set the weight of the current attack target",
+      "zh": "可以设置当前攻击目标的权重"
+    }
+  },
+  {
+    "methodName": "setOwnAttackTarget",
+    "nodeType": "set_own_attack_target",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "whetherToTurnImmediately",
+        "irType": "bool",
+        "docZh": "是否立即转向",
+        "docEn": "Whether to Turn Immediately"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Sets the Target Entity as its Attack Target",
+      "zh": "将目标实体设置为自身的攻击目标"
+    }
   },
   {
     "methodName": "setTheAggroValueOfSpecifiedEntity",
@@ -1594,122 +5028,1203 @@
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "targetEntity: EntityValue",
-      "aggroOwnerEntity: EntityValue",
-      "aggroValue: IntValue"
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "aggroOwnerEntity",
+        "irType": "entity",
+        "docZh": "仇恨拥有者实体",
+        "docEn": "Aggro Owner Entity"
+      },
+      {
+        "name": "aggroValue",
+        "irType": "int",
+        "docZh": "仇恨值",
+        "docEn": "Aggro Value"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Available only in Custom Aggro Mode; Set the Aggro Value of the specified Target Entity on the specified Aggro Owner\n   *\n   * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定目标实体在指定仇恨拥有者上的仇恨值\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param aggroOwnerEntity\n   *\n   * 仇恨拥有者实体\n   * @param aggroValue\n   *\n   * 仇恨值\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity",
+      "zh": "仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值"
+    }
+  },
+  {
+    "methodName": "setTheAggroValueOfTheSpecifiedEntityProportionally",
+    "nodeType": "set_the_aggro_value_of_the_specified_entity_proportionally",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "aggroOwnerEntity",
+        "irType": "entity",
+        "docZh": "仇恨拥有者实体",
+        "docEn": "Aggro Owner Entity"
+      },
+      {
+        "name": "aggroValueRatio",
+        "irType": "float",
+        "docZh": "仇恨值比例",
+        "docEn": "Aggro Value Ratio"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; Set the aggro value of the target entity for the specified aggro owner proportionally.",
+      "zh": "仅自定义仇恨模式可用; 按比例设置目标实体在指定仇恨拥有者上的仇恨值"
+    }
+  },
+  {
+    "methodName": "setTheCdOfTheCreationSkill",
+    "nodeType": "set_the_cd_of_the_creation_skill",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "skillID",
+        "irType": "int",
+        "docZh": "技能序号",
+        "docEn": "Skill ID"
+      },
+      {
+        "name": "cooldownCD",
+        "irType": "float",
+        "docZh": "冷却时间",
+        "docEn": "Cooldown (CD)"
+      },
+      {
+        "name": "cDVariationRange",
+        "irType": "float",
+        "docZh": "冷却时间上浮范围",
+        "docEn": "CD Variation Range"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Permanently changes the Creation's Skill CD for this stage run; Note:; For example:",
+      "zh": "在关卡本次运行期间内，永久更改造物的技能冷却时间; 需要注意：; 例如："
+    }
+  },
+  {
+    "methodName": "setTheCurrentCdOfTheCreationSkill",
+    "nodeType": "set_the_current_cd_of_the_creation_skill",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "skillID",
+        "irType": "int",
+        "docZh": "技能序号",
+        "docEn": "Skill ID"
+      },
+      {
+        "name": "currentCooldown",
+        "irType": "float",
+        "docZh": "当前冷却时间",
+        "docEn": "Current Cooldown"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Adjusts only the CD for this Creation Skill for this use. This is a one-time change and will not be saved; Note: When this Node runs, if the Target Skill is currently casting and is configured to trigger its CD when the Skill ends, the CD will be reset to the Skill's configured CD at End. Even if this Node successfully sets the Current CD, it will be overwritten by the CD triggered at Skill End.",
+      "zh": "仅调整本次造物技能的冷却时间，只影响一次，不会记录; 需要注意：该节点执行时，若目标技能正在施放且配置为技能结束时触发冷却时间，会在技能结束时被重新设置为技能配置的冷却时间。虽然该节点成功设置了当前冷却时间，但会被技能结束时触发的冷却时间覆盖掉"
+    }
+  },
+  {
+    "methodName": "setTheCurrentTimeOfTheCreationCooldownGroup",
+    "nodeType": "set_the_current_time_of_the_creation_cooldown_group",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "cDGroupID",
+        "irType": "int",
+        "docZh": "冷却时间组序号",
+        "docEn": "CD Group ID"
+      },
+      {
+        "name": "currentCooldown",
+        "irType": "float",
+        "docZh": "当前冷却时间",
+        "docEn": "Current Cooldown"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Adjusts only this Creation's Skill Group CD for this session; changes are not saved",
+      "zh": "仅调整本次造物的技能组冷却时间，不会记录"
+    }
+  },
+  {
+    "methodName": "setTheGlobalCdOfTheCreation",
+    "nodeType": "set_the_global_cd_of_the_creation",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "cooldown",
+        "irType": "float",
+        "docZh": "冷却时间",
+        "docEn": "Cooldown"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Permanently changes the Creation's Global CD for this stage run",
+      "zh": "在关卡本次运行期间内，永久更改造物的公共冷却时间"
+    }
+  },
+  {
+    "methodName": "setTheTimeOfTheCreationCooldownGroup",
+    "nodeType": "set_the_time_of_the_creation_cooldown_group",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "cDGroupID",
+        "irType": "int",
+        "docZh": "冷却时间组序号",
+        "docEn": "CD Group ID"
+      },
+      {
+        "name": "cooldownCD",
+        "irType": "float",
+        "docZh": "冷却时间",
+        "docEn": "Cooldown (CD)"
+      },
+      {
+        "name": "cDVariationRange",
+        "irType": "float",
+        "docZh": "冷却时间上浮范围",
+        "docEn": "CD Variation Range"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Permanently changes the Creation's Skill Group CD for this stage run",
+      "zh": "在关卡本次运行期间内，永久更改造物的技能组冷却时间"
+    }
   },
   {
     "methodName": "sineFunction",
     "nodeType": "sine_function",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "radian: FloatValue"
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the sine of the input in radians\n   *\n   * 正弦函数: 计算输入弧度的正弦\n   *\n   * @param radian\n   *\n   * 弧度\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the sine of the input in radians",
+      "zh": "计算输入弧度的正弦"
+    }
   },
   {
     "methodName": "split3dVector",
     "nodeType": "split3d_vector",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "_3dVector: Vec3Value"
+      {
+        "name": "_3DVector",
+        "irType": "vec3",
+        "docZh": "三维向量",
+        "docEn": "3D Vector"
+      }
     ],
-    "returnType": "{ /** * * X分量 */ xComponent: number /** * * Y分量 */ yComponent: number /** * * Z分量 */ zComponent: number }",
-    "typeParams": [],
-    "docs": "/**\n   * Outputs the x, y, and z components of a 3D Vector as three Floating Point Numbers\n   *\n   * 拆分三维向量: 将三维向量的x、y、z分量输出为三个浮点数\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   */",
-    "requiresLocalVariableSpecialization": false
-  },
-  {
-    "methodName": "splitStructure",
-    "nodeType": "split_structure",
-    "subTypes": [
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision"
+    "returns": [
+      {
+        "name": "xComponent",
+        "irType": "float",
+        "docZh": "X分量",
+        "docEn": "X-Component"
+      },
+      {
+        "name": "yComponent",
+        "irType": "float",
+        "docZh": "Y分量",
+        "docEn": "Y-Component"
+      },
+      {
+        "name": "zComponent",
+        "irType": "float",
+        "docZh": "Z分量",
+        "docEn": "Z-Component"
+      }
     ],
-    "modes": [
-      "beyond"
-    ],
-    "params": [],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Returns all parameters of the specified Structure\n   *\n   * 拆分结构体: 获取指定结构体的所有参数\n   */",
-    "requiresLocalVariableSpecialization": false
+    "docs": {
+      "en": "Outputs the x, y, and z components of a 3D Vector as three Floating Point Numbers",
+      "zh": "将三维向量的x、y、z分量输出为三个浮点数"
+    }
   },
   {
     "methodName": "subtraction",
     "nodeType": "subtraction",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "input1: FloatValue",
-      "input2: FloatValue"
+      {
+        "name": "input1",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float | int",
+        "docZh": "",
+        "docEn": ""
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Subtracts two Floating Point Numbers or Integers\n   *\n   * 减法运算: 计算两个浮点数或整数的减法\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float | int",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Subtracts two Floating Point Numbers or Integers",
+      "zh": "计算两个浮点数或整数的减法"
+    },
+    "reflect": {
+      "variantKeys": [
+        "float|float",
+        "int|int"
+      ]
+    }
+  },
+  {
+    "methodName": "tacticExecutePatrol",
+    "nodeType": "tactic_execute_patrol",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "patrolTemplateID",
+        "irType": "int",
+        "docZh": "巡逻模板序号",
+        "docEn": "Patrol Template ID"
+      },
+      {
+        "name": "startFromTheNearestWaypoint",
+        "irType": "bool",
+        "docZh": "是否从最近路点开始",
+        "docEn": "Start From the Nearest Waypoint?"
+      },
+      {
+        "name": "setEndPointAsSpawnPoint",
+        "irType": "bool",
+        "docZh": "结束时点位设置为出生点",
+        "docEn": "Set End Point as Spawn Point"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "A tactic setting where the Creation executes its patrol , using its configured Patrol Template to drive its motion.; Execution Conditions:",
+      "zh": "造物执行巡逻行为，依据造物自身配置的巡逻模板来进行移动表现的战术。; 执行条件："
+    }
+  },
+  {
+    "methodName": "tacticGroundConfrontation",
+    "nodeType": "tactic_ground_confrontation",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "innerRadiusOfConfrontationDistance",
+        "irType": "float",
+        "docZh": "对峙距离内圈半径",
+        "docEn": "Inner Radius of Confrontation Distance"
+      },
+      {
+        "name": "outerRadiusOfConfrontationDistance",
+        "irType": "float",
+        "docZh": "对峙距离外圈半径",
+        "docEn": "Outer Radius of Confrontation Distance"
+      },
+      {
+        "name": "directionChangeInterval",
+        "irType": "float",
+        "docZh": "改变方向时间间隔",
+        "docEn": "Direction Change Interval"
+      },
+      {
+        "name": "minimumRestInterval",
+        "irType": "float",
+        "docZh": "休息间隔时间最小值",
+        "docEn": "Minimum Rest Interval"
+      },
+      {
+        "name": "maximumRestInterval",
+        "irType": "float",
+        "docZh": "休息间隔时间最大值",
+        "docEn": "Maximum Rest Interval"
+      },
+      {
+        "name": "isPathfindingAlwaysAchievable",
+        "irType": "bool",
+        "docZh": "是否一定寻路可达",
+        "docEn": "Is Pathfinding Always Achievable?"
+      },
+      {
+        "name": "whetherRestrictedByTerritory",
+        "irType": "bool",
+        "docZh": "是否受到领地限制",
+        "docEn": "Whether Restricted by Territory"
+      },
+      {
+        "name": "cancelTriggerWeightByMovement",
+        "irType": "float",
+        "docZh": "移动取消触发权重",
+        "docEn": "Cancel Trigger Weight by Movement"
+      },
+      {
+        "name": "forwardMovementWeight",
+        "irType": "float",
+        "docZh": "往前移动权重",
+        "docEn": "Forward Movement Weight"
+      },
+      {
+        "name": "backwardMovementWeight",
+        "irType": "float",
+        "docZh": "往后移动权重",
+        "docEn": "Backward Movement Weight"
+      },
+      {
+        "name": "leftwardMovementWeight",
+        "irType": "float",
+        "docZh": "往左移动权重",
+        "docEn": "Leftward Movement Weight"
+      },
+      {
+        "name": "rightwardMovementWeight",
+        "irType": "float",
+        "docZh": "往右移动权重",
+        "docEn": "Rightward Movement Weight"
+      },
+      {
+        "name": "lateralObstacleAvoidanceDistance",
+        "irType": "float",
+        "docZh": "左右避障距离",
+        "docEn": "Lateral Obstacle Avoidance Distance"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation executes a Paving Standoff. It uses four-direction Motion Tactics, with five directions: idle/forward/backward/left/right. Use this to simulate a sustained face-off with the Player.; You can use probability settings to create motion behaviors such as moving left and right around the Player, or preferring to move forward and avoiding moving backward. It also includes settings for adjusting distance to the Player and for obstacle avoidance.; Essentially, it just decides a direction; there is no specific Target Point; Execution Conditions:",
+      "zh": "造物执行地面对峙行为，四向移动战术，包括静止/前/后/左/右五种方向，可用于来营造与玩家的相持对峙感。; 可以通过概率配置创造出只左右绕玩家移动/喜好前进厌恶后退等移动行为，也包含一些与玩家距离调整和避障的配置。; 本质上是决策出一个方向，并不会有一个具体的目标点; 执行条件："
+    }
+  },
+  {
+    "methodName": "tacticGroundEscape",
+    "nodeType": "tactic_ground_escape",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "escapeTriggerDistance",
+        "irType": "float",
+        "docZh": "逃跑触发距离",
+        "docEn": "Escape Trigger Distance"
+      },
+      {
+        "name": "movementSpeed",
+        "irType": "enum",
+        "docZh": "移动速度",
+        "docEn": "Movement Speed"
+      },
+      {
+        "name": "maximumEscapeAngle",
+        "irType": "float",
+        "docZh": "逃跑最大角度",
+        "docEn": "Maximum Escape Angle"
+      },
+      {
+        "name": "minimumEscapeSegments",
+        "irType": "int",
+        "docZh": "逃跑最少段数",
+        "docEn": "Minimum Escape Segments"
+      },
+      {
+        "name": "maximumEscapeSegments",
+        "irType": "int",
+        "docZh": "逃跑最多段数",
+        "docEn": "Maximum Escape Segments"
+      },
+      {
+        "name": "minimumEscapeDistance",
+        "irType": "float",
+        "docZh": "逃跑距离最小值",
+        "docEn": "Minimum Escape Distance"
+      },
+      {
+        "name": "maximumEscapeDistance",
+        "irType": "float",
+        "docZh": "逃跑距离最大值",
+        "docEn": "Maximum Escape Distance"
+      },
+      {
+        "name": "escapeTriggerCD",
+        "irType": "float",
+        "docZh": "逃离触发冷却时间",
+        "docEn": "Escape Trigger CD"
+      },
+      {
+        "name": "clearAggroAndCancelTacticAfterCountdown",
+        "irType": "float",
+        "docZh": "计时清除仇恨并退出战术",
+        "docEn": "Clear Aggro and Cancel Tactic After Countdown"
+      },
+      {
+        "name": "whetherRestrictedByTerritory",
+        "irType": "bool",
+        "docZh": "是否受到领地限制",
+        "docEn": "Whether Restricted by Territory"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation executes a Paving Escape, a tactic for fleeing from the Target. It attempts to turn its back to the Target and move farther away.; Allows you to configure multiple segments of Escape Motion. Each segment/run calculates one escape point.; Execution Conditions:",
+      "zh": "造物执行地面逃跑行为，逃离目标的战术，试图背对目标并向远处移动。; 允许配置多段逃跑移动，每段/每次会计算一个逃跑点位。; 执行条件："
+    }
+  },
+  {
+    "methodName": "tacticGroundIdleRoaming",
+    "nodeType": "tactic_ground_idle_roaming",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "speed",
+        "irType": "enum",
+        "docZh": "速度",
+        "docEn": "Speed"
+      },
+      {
+        "name": "idleRoamingRadius",
+        "irType": "float",
+        "docZh": "闲逛半径",
+        "docEn": "Idle Roaming Radius"
+      },
+      {
+        "name": "minimumIdleRoamingInterval",
+        "irType": "float",
+        "docZh": "闲逛最小间隔时长",
+        "docEn": "Minimum Idle Roaming Interval"
+      },
+      {
+        "name": "maximumIdleRoamingInterval",
+        "irType": "float",
+        "docZh": "闲逛最大间隔时长",
+        "docEn": "Maximum Idle Roaming Interval"
+      },
+      {
+        "name": "singleMinimumIdleRoamingDistance",
+        "irType": "float",
+        "docZh": "单次最小闲逛距离",
+        "docEn": "Single Minimum Idle Roaming Distance"
+      },
+      {
+        "name": "singleMaximumIdleRoamingDistance",
+        "irType": "float",
+        "docZh": "单次最大闲逛距离",
+        "docEn": "Single Maximum Idle Roaming Distance"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation executes a Paving Roam, walking randomly within the AoE; Execution Conditions:; Point Selection Rules:; Because choosing the right Target Point is one of the requirements for entering this Tactic",
+      "zh": "造物执行地面闲逛行为，在范围内随机行走; 执行条件：; 选点规则：; 因为选到合适的目标点是进入战术的条件之一"
+    }
+  },
+  {
+    "methodName": "tacticGroundPursuit",
+    "nodeType": "tactic_ground_pursuit",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "input1",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": ""
+      },
+      {
+        "name": "input2",
+        "irType": "float",
+        "docZh": "触发追击的最小距离",
+        "docEn": ""
+      },
+      {
+        "name": "input3",
+        "irType": "float",
+        "docZh": "触发追击的最大距离",
+        "docEn": ""
+      },
+      {
+        "name": "input4",
+        "irType": "float",
+        "docZh": "停止追击距离",
+        "docEn": ""
+      },
+      {
+        "name": "input5",
+        "irType": "enum",
+        "docZh": "外圈追击速度",
+        "docEn": ""
+      },
+      {
+        "name": "input6",
+        "irType": "float",
+        "docZh": "内圈半径",
+        "docEn": ""
+      },
+      {
+        "name": "input7",
+        "irType": "enum",
+        "docZh": "内圈追击速度",
+        "docEn": ""
+      },
+      {
+        "name": "input8",
+        "irType": "float",
+        "docZh": "单次追击持续时间",
+        "docEn": ""
+      },
+      {
+        "name": "input9",
+        "irType": "float",
+        "docZh": "战术实例冷却时间",
+        "docEn": ""
+      },
+      {
+        "name": "input10",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": ""
+      },
+      {
+        "name": "input11",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": ""
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation executes a Paving Pursuit; Target Pursuit Tactic automatically selects a suitable location near the Target as the Target Point; Execution Conditions:; [Required]; [Meet any one of the Conditions]",
+      "zh": "造物执行地面追击行为; 追击目标战术，会自主选择目标周围合适的位置做目标点; 执行条件：; 【必须满足】; 【任一满足】"
+    }
+  },
+  {
+    "methodName": "tacticMoveToTheTargetEntity",
+    "nodeType": "tactic_move_to_the_target_entity",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "arrivalDetectionRange",
+        "irType": "float",
+        "docZh": "到达判定距离",
+        "docEn": "Arrival Detection Range"
+      },
+      {
+        "name": "movementSpeed",
+        "irType": "enum",
+        "docZh": "移动速度",
+        "docEn": "Movement Speed"
+      },
+      {
+        "name": "turnSpeed",
+        "irType": "float",
+        "docZh": "转向速度",
+        "docEn": "Turn Speed"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation moves to the Target Entity",
+      "zh": "造物执行移动到目标实体行为"
+    }
+  },
+  {
+    "methodName": "tacticMoveToTheTargetPosition",
+    "nodeType": "tactic_move_to_the_target_position",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "targetPosition",
+        "irType": "vec3",
+        "docZh": "目标点位置",
+        "docEn": "Target Position"
+      },
+      {
+        "name": "arrivalDetectionRange",
+        "irType": "float",
+        "docZh": "到达判定距离",
+        "docEn": "Arrival Detection Range"
+      },
+      {
+        "name": "movementSpeed",
+        "irType": "enum",
+        "docZh": "移动速度",
+        "docEn": "Movement Speed"
+      },
+      {
+        "name": "turnSpeed",
+        "irType": "float",
+        "docZh": "转向速度",
+        "docEn": "Turn Speed"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation moves to the Target Point",
+      "zh": "造物执行移动到目标点行为"
+    }
+  },
+  {
+    "methodName": "tacticReturnToSpawnPointAfterLeavingBattle",
+    "nodeType": "tactic_return_to_spawn_point_after_leaving_battle",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "movementSpeed",
+        "irType": "enum",
+        "docZh": "移动速度",
+        "docEn": "Movement Speed"
+      },
+      {
+        "name": "teleportBackToSpawnPoint",
+        "irType": "bool",
+        "docZh": "是否传送回出生点",
+        "docEn": "Teleport Back to Spawn Point?"
+      },
+      {
+        "name": "forceTeleportTriggerDistance",
+        "irType": "float",
+        "docZh": "强制触发传送距离",
+        "docEn": "Force Teleport Trigger Distance"
+      },
+      {
+        "name": "forceTeleportTriggerTime",
+        "irType": "float",
+        "docZh": "强制触发传送时间",
+        "docEn": "Force Teleport Trigger Time"
+      },
+      {
+        "name": "disableHPRecoveryAfterLeavingBattle",
+        "irType": "bool",
+        "docZh": "屏蔽脱战恢复生命值",
+        "docEn": "Disable HP Recovery After Leaving Battle"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation returns to the Spawn Point after leaving battle; A tactic that makes a unit return to the initial point when leaving battle. While this tactic is running, the Aggro system is disabled and will not be re-enabled until the tactic ends.; Execution Conditions:; Select Target Points:; The Target Point is selected on the frame you enter the Tactic, and it will not be edited while the Tactic is being executed; Check the following conditions in order. When a condition is met, set the Target Point based on that item.",
+      "zh": "造物执行脱战后返回出生点行为; 脱离战斗时，回初始点位的战术。战术执行期间，仇恨系统是关闭的， 直到战术结束才会重新打开。; 执行条件：; 目标点选择：; 目标点选择时机为进入战术那一帧， 不会在战术执行期间修改目标; 以下条件从前往后顺序检查， 若满足对应条件， 则按该条内容确定目标点"
+    }
+  },
+  {
+    "methodName": "tacticRotateBySpecifiedAngle",
+    "nodeType": "tactic_rotate_by_specified_angle",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "specifiedAngle",
+        "irType": "float",
+        "docZh": "指定角度",
+        "docEn": "Specified Angle"
+      },
+      {
+        "name": "horizontalRotationAngularVelocity",
+        "irType": "float",
+        "docZh": "水平旋转角速度",
+        "docEn": "Horizontal Rotation Angular Velocity"
+      },
+      {
+        "name": "useRotationAnimation",
+        "irType": "bool",
+        "docZh": "是否使用旋转动画",
+        "docEn": "Use Rotation Animation?"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation rotates by the specified angle, and the Angular Velocity may have minor deviations during actual operation",
+      "zh": "造物执行旋转指定角度行为，角速度在实际运行中会有一定误差"
+    }
+  },
+  {
+    "methodName": "tacticRotateToTheSpecifiedDirection",
+    "nodeType": "tactic_rotate_to_the_specified_direction",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "targetOrientation",
+        "irType": "vec3",
+        "docZh": "目标朝向",
+        "docEn": "Target Orientation"
+      },
+      {
+        "name": "horizontalRotationAngularVelocity",
+        "irType": "float",
+        "docZh": "水平旋转角速度",
+        "docEn": "Horizontal Rotation Angular Velocity"
+      },
+      {
+        "name": "useRotationAnimation",
+        "irType": "bool",
+        "docZh": "是否使用旋转动画",
+        "docEn": "Use Rotation Animation?"
+      },
+      {
+        "name": "rotationDirection",
+        "irType": "enum",
+        "docZh": "旋转方向",
+        "docEn": "Rotation Direction"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation rotates to the Specified Orientation",
+      "zh": "造物执行旋转到指定朝向行为"
+    }
+  },
+  {
+    "methodName": "tacticRotateToTheTargetEntity",
+    "nodeType": "tactic_rotate_to_the_target_entity",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "horizontalRotationAngularVelocity",
+        "irType": "float",
+        "docZh": "水平旋转角速度",
+        "docEn": "Horizontal Rotation Angular Velocity"
+      },
+      {
+        "name": "useRotationAnimation",
+        "irType": "bool",
+        "docZh": "是否使用旋转动画",
+        "docEn": "Use Rotation Animation"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation rotates to face the Target Entity",
+      "zh": "造物执行旋转朝向目标实体行为"
+    }
+  },
+  {
+    "methodName": "tacticStandStill",
+    "nodeType": "tactic_stand_still",
+    "subTypes": [
+      "creation_status"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "execute",
+        "irType": "bool",
+        "docZh": "是否执行",
+        "docEn": "Execute"
+      },
+      {
+        "name": "tacticalContext",
+        "irType": "str",
+        "docZh": "战术上下文",
+        "docEn": "Tactical Context"
+      },
+      {
+        "name": "canSkillBeInterrupted",
+        "irType": "bool",
+        "docZh": "是否可以打断技能",
+        "docEn": "Can Skill be Interrupted"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "The Creation executes the Idle behavior",
+      "zh": "造物执行静止不动行为"
+    }
   },
   {
     "methodName": "tangentFunction",
     "nodeType": "tangent_function",
     "subTypes": [
+      "bool_filter",
       "character_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision",
-      "bool_filter",
       "int_filter"
     ],
     "modes": [
       "beyond"
     ],
+    "kind": "data",
     "params": [
-      "radian: FloatValue"
+      {
+        "name": "radian",
+        "irType": "float",
+        "docZh": "弧度",
+        "docEn": "Radian"
+      }
     ],
-    "returnType": "number",
-    "typeParams": [],
-    "docs": "/**\n   * Calculates the tangent of the input in radians\n   *\n   * 正切函数: 计算输入弧度的正切\n   *\n   * @param radian\n   *\n   * 弧度\n   *\n   * @returns\n   *\n   * 结果\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": [
+      {
+        "name": "result",
+        "irType": "float",
+        "docZh": "结果",
+        "docEn": "Result"
+      }
+    ],
+    "docs": {
+      "en": "Calculates the tangent of the input in radians",
+      "zh": "计算输入弧度的正切"
+    }
   },
   {
     "methodName": "tauntTarget",
@@ -1721,13 +6236,138 @@
     "modes": [
       "beyond"
     ],
+    "kind": "exec",
     "params": [
-      "taunterEntity: EntityValue",
-      "targetEntity: EntityValue"
+      {
+        "name": "taunterEntity",
+        "irType": "entity",
+        "docZh": "嘲讽者实体",
+        "docEn": "Taunter Entity"
+      },
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      }
     ],
-    "returnType": "void",
-    "typeParams": [],
-    "docs": "/**\n   * Available only in Custom Aggro Mode; Make the Taunter Entity taunt the specified Target Entity\n   *\n   * 嘲讽目标: 仅自定义仇恨模式可用; 使嘲讽者实体嘲讽指定目标实体\n   *\n   * @param taunterEntity\n   *\n   * 嘲讽者实体\n   * @param targetEntity\n   *\n   * 目标实体\n   */",
-    "requiresLocalVariableSpecialization": false
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; The Taunter Entity taunts the specified Target Entity",
+      "zh": "仅自定义仇恨模式可用; 嘲讽者实体嘲讽指定目标实体"
+    }
+  },
+  {
+    "methodName": "transferTheAggroValueOfTheSpecifiedEntityProportionally",
+    "nodeType": "transfer_the_aggro_value_of_the_specified_entity_proportionally",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "transferTargetEntity",
+        "irType": "entity",
+        "docZh": "转移目标实体",
+        "docEn": "Transfer Target Entity"
+      },
+      {
+        "name": "transferSourceEntity",
+        "irType": "entity",
+        "docZh": "转移来源实体",
+        "docEn": "Transfer Source Entity"
+      },
+      {
+        "name": "aggroOwnerEntity",
+        "irType": "entity",
+        "docZh": "仇恨拥有者实体",
+        "docEn": "Aggro Owner Entity"
+      },
+      {
+        "name": "transferRatio",
+        "irType": "float",
+        "docZh": "转移比例",
+        "docEn": "Transfer Ratio"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Available only in Custom Aggro Mode; Transfers a percentage of Aggro on the Aggro Owner from the Source Entity to the Target Entity",
+      "zh": "仅自定义仇恨模式可用; 将仇恨拥有者上对转移来源实体一定比例的仇恨转移到转移目标实体上"
+    }
+  },
+  {
+    "methodName": "traverseEntityList",
+    "nodeType": "traverse_entity_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "control_flow",
+    "params": [
+      {
+        "name": "entityList",
+        "irType": "entity_list",
+        "docZh": "实体列表",
+        "docEn": "Entity List"
+      }
+    ],
+    "returns": [
+      {
+        "name": "currentEntity",
+        "irType": "entity",
+        "docZh": "当前实体",
+        "docEn": "Current Entity"
+      }
+    ],
+    "docs": {
+      "en": "Iterates through each Entity in the input Entity List",
+      "zh": "遍历输入实体列表中的每个实体"
+    }
+  },
+  {
+    "methodName": "whetherTheEntityHasTheSpecifiedUnitStatus",
+    "nodeType": "whether_the_entity_has_the_specified_unit_status",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetEntity",
+        "irType": "entity",
+        "docZh": "目标实体",
+        "docEn": "Target Entity"
+      },
+      {
+        "name": "unitStatus",
+        "irType": "config_id",
+        "docZh": "单位状态",
+        "docEn": "Unit Status"
+      }
+    ],
+    "returns": [
+      {
+        "name": "hasTheStatus",
+        "irType": "bool",
+        "docZh": "是否携带",
+        "docEn": "Has the Status"
+      }
+    ],
+    "docs": {
+      "en": "Query whether the entity has the specified unit status",
+      "zh": "查询目标实体是否携带指定的单位状态"
+    }
   }
 ]

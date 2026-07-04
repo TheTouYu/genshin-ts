@@ -1,7 +1,6 @@
 import * as z from 'zod'
 
 import { t } from '../i18n/index.js'
-import type { ClientNodeMethodBySubType } from './client_method_modes.js'
 import {
   isSignalDefinition,
   type ExecutionFlowRegistry,
@@ -450,7 +449,7 @@ function matchType(
   }
 }
 
-function matchTypes<T extends keyof (ListableValueTypeMap & SpecialValueTypeMap)>(
+export function matchTypes<T extends keyof (ListableValueTypeMap & SpecialValueTypeMap)>(
   types: T[],
   ...values: readonly unknown[]
 ): T {
@@ -16477,46 +16476,19 @@ export type ServerExecutionFlowFunctionsByMode<M extends ServerGraphMode> = {
   >]: ServerExecutionFlowFunctions[K]
 }
 
-class ClientExecutionFlowFunctionsBase {
-  constructor(protected registry: ExecutionFlowRegistry) {}
-}
-
-/**
- * Server method signatures projected onto a client graph family, driven by the
- * generated `CLIENT_NODE_METHODS_BY_SUB_TYPE` availability map. Client classes
- * stay empty runtime shells; interface merging exposes the typed surface.
- */
-type ClientMethodsOf<T extends keyof ClientNodeMethodBySubType> = Pick<
-  ServerExecutionFlowFunctions,
-  Extract<ClientNodeMethodBySubType[T][number], keyof ServerExecutionFlowFunctions>
->
-
-export interface ClientCharacterSkillExecutionFlowFunctions
-  extends ClientMethodsOf<'character_skill'> {}
-export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
-export interface ClientCreationSkillExecutionFlowFunctions
-  extends ClientMethodsOf<'creation_skill'> {}
-export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
-export interface ClientCreationStatusExecutionFlowFunctions
-  extends ClientMethodsOf<'creation_status'> {}
-export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
-export interface ClientCreationStatusDecisionExecutionFlowFunctions
-  extends ClientMethodsOf<'creation_status_decision'> {}
-export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
-export interface ClientBoolFilterExecutionFlowFunctions extends ClientMethodsOf<'bool_filter'> {}
-export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
-export interface ClientIntFilterExecutionFlowFunctions extends ClientMethodsOf<'int_filter'> {}
-export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {}
-
-export type ClientExecutionFlowFunctionsBySubType = {
-  character_skill: ClientCharacterSkillExecutionFlowFunctions
-  creation_skill: ClientCreationSkillExecutionFlowFunctions
-  creation_status: ClientCreationStatusExecutionFlowFunctions
-  creation_status_decision: ClientCreationStatusDecisionExecutionFlowFunctions
-  bool_filter: ClientBoolFilterExecutionFlowFunctions
-  int_filter: ClientIntFilterExecutionFlowFunctions
-}
+// Client execution flow classes live in ./client_nodes.js (generated with
+// full method definitions from official docs + sample metadata); re-exported
+// here to keep the definitions entrypoint stable.
+export {
+  ClientBoolFilterExecutionFlowFunctions,
+  ClientCharacterSkillExecutionFlowFunctions,
+  ClientCreationSkillExecutionFlowFunctions,
+  ClientCreationStatusDecisionExecutionFlowFunctions,
+  ClientCreationStatusExecutionFlowFunctions,
+  ClientIntFilterExecutionFlowFunctions,
+  type ClientExecutionFlowFunctionsBySubType
+} from './client_nodes.js'
 
 export type ClientExecutionFlowFunctionsBySubTypeMode<
-  T extends keyof ClientExecutionFlowFunctionsBySubType
-> = ClientExecutionFlowFunctionsBySubType[T]
+  T extends keyof import('./client_nodes.js').ClientExecutionFlowFunctionsBySubType
+> = import('./client_nodes.js').ClientExecutionFlowFunctionsBySubType[T]

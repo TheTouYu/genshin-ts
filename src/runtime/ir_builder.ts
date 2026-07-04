@@ -122,20 +122,20 @@ function buildArgument(record: MetaCallRecord, arg: value): Argument {
   return arg.toIRLiteral()
 }
 
-type NodeBuilder = (record: MetaCallRecord, next?: NextConnection[]) => ServerNode
+type NodeBuilder = (record: MetaCallRecord, next?: NextConnection[], isClient?: boolean) => ServerNode
 
 const buildDefaultNode: NodeBuilder = (record, next) => {
   const node: ServerNode = {
     id: record.id,
     type: record.nodeType
   }
-  const args = record.args.map((arg) => buildArgument(record, arg))
+  const args = record.args.map((arg) => (arg === null ? null : buildArgument(record, arg)))
   if (args.length) node.args = args
   if (next?.length) node.next = next
   return node
 }
 
-const buildBreakLoopNode: NodeBuilder = (record, next) => {
+const buildBreakLoopNode: NodeBuilder = (record, next, isClient) => {
   const node: ServerNode = {
     id: record.id,
     type: record.nodeType
@@ -145,13 +145,18 @@ const buildBreakLoopNode: NodeBuilder = (record, next) => {
   // break_loop has no exec output; only connect to loop break input pins.
   // if (next?.length) out.push(...next)
 
+  // Server loop nodes take the break signal on InFlow index 1; client loop
+  // nodes receive it on InFlow index 0 (sample: 跳出循环_连线.gia).
+  const breakTargetIndex = isClient ? 0 : 1
+
   for (const arg of record.args) {
+    if (!arg) continue
     const lit = arg.toIRLiteral()
     if (!lit) continue
     if (lit.type !== 'int' || typeof lit.value !== 'number') {
       throw new Error(`Error in break_loop - Invalid loop node id literal: ${JSON.stringify(lit)}`)
     }
-    out.push({ node_id: lit.value, target_index: 1 })
+    out.push({ node_id: lit.value, target_index: breakTargetIndex })
   }
 
   if (out.length) node.next = out
@@ -162,31 +167,46 @@ const NODE_BUILDERS: Record<string, NodeBuilder> = {
   break_loop: buildBreakLoopNode
 }
 
-function buildNodeFromRecord(record: MetaCallRecord, next?: NextConnection[]): ServerNode {
+function buildNodeFromRecord(
+  record: MetaCallRecord,
+  next: NextConnection[] | undefined,
+  isClient: boolean
+): ServerNode {
   const builder = NODE_BUILDERS[record.nodeType] ?? buildDefaultNode
-  return builder(record, next)
+  return builder(record, next, isClient)
 }
 
-function buildNodesFromFlow(flow: ExecutionFlow): ServerNode[] {
+function buildNodesFromFlow(
+  flow: ExecutionFlow,
+  isClient: boolean,
+  skipEventNode: boolean
+): ServerNode[] {
   const nodes: ServerNode[] = []
 
   const getNext = (id: number) => flow.edges[id]
 
-  nodes.push(buildNodeFromRecord(flow.eventNode, getNext(flow.eventNode.id)))
+  // client filter graphs have no begins node in real GIA samples; the start
+  // event is a runtime-only anchor and must not be emitted (nor its edges)
+  if (!skipEventNode) {
+    nodes.push(buildNodeFromRecord(flow.eventNode, getNext(flow.eventNode.id), isClient))
+  }
 
   flow.execNodes.forEach((execNode) => {
-    nodes.push(buildNodeFromRecord(execNode, getNext(execNode.id)))
+    nodes.push(buildNodeFromRecord(execNode, getNext(execNode.id), isClient))
   })
 
   flow.dataNodes.forEach((dataNode) => {
-    nodes.push(buildNodeFromRecord(dataNode))
+    nodes.push(buildNodeFromRecord(dataNode, undefined, isClient))
   })
 
   return nodes
 }
 
 export function buildIRDocument(input: IRBuildInput): IRDocument {
-  const nodes = input.flows.flatMap(buildNodesFromFlow)
+  const isClient = !!input.clientSubType
+  const skipEventNode =
+    input.clientSubType === 'bool_filter' || input.clientSubType === 'int_filter'
+  const nodes = input.flows.flatMap((flow) => buildNodesFromFlow(flow, isClient, skipEventNode))
 
   if (input.clientSubType) {
     return {

@@ -25,6 +25,8 @@ export type ClientPinMetadata = {
   reflective?: boolean
   indexOfConcrete?: number
   clientVarType?: number
+  /** single consistent literal payload observed across all set sample instances */
+  defaultValue?: number | string | boolean | [number, number, number]
 }
 
 export type ClientNodeMetadata = {
@@ -68,19 +70,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -98,13 +103,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -122,13 +129,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -146,13 +155,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -170,7 +181,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -188,7 +200,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -206,13 +219,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -230,19 +245,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -260,13 +278,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -295,7 +315,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\是否大于_连线.gia'
+    sampleFile: '布尔过滤器节点\\是否大于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 32,
+        variantKey: '3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 33,
+        variantKey: '7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -309,7 +368,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
@@ -332,7 +392,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\乘法运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\乘法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -346,13 +457,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1703
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -370,13 +483,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1704
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -394,13 +509,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1705
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -418,7 +535,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -489,7 +607,442 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 4
       }
     ],
-    sampleFile: '布尔过滤器节点\\拼装列表_填值.gia'
+    sampleFile: '布尔过滤器节点\\拼装列表_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 1025,
+        variantKey: '1,1,1,1,1,1,1,1,1,1',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      },
+      {
+        concreteId: 1026,
+        variantKey: '3,3,3,3,3,3,3,3,3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 1027,
+        variantKey: '5,5,5,5,5,5,5,5,5,5',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      },
+      {
+        concreteId: 1028,
+        variantKey: '7,7,7,7,7,7,7,7,7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float_list',
+            clientVarType: 8
+          }
+        ]
+      },
+      {
+        concreteId: 1030,
+        variantKey: '11,11,11,11,11,11,11,11,11,11',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3_list',
+            clientVarType: 12
+          }
+        ]
+      },
+      {
+        concreteId: 1044,
+        variantKey: '18,18,18,18,18,18,18,18,18,18',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'config_id_list',
+            clientVarType: 20
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -503,13 +1056,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1700
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -527,19 +1082,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -574,7 +1132,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '布尔过滤器节点\\拼装列表_连线.gia'
+    sampleFile: '布尔过滤器节点\\拼装列表_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -588,13 +1148,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1707
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -612,13 +1174,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -636,7 +1200,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 303
       },
       {
         index: 1,
@@ -676,6 +1241,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -692,6 +1263,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -722,7 +1299,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\枚举匹配_填值.gia'
+    sampleFile: '布尔过滤器节点\\枚举匹配_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 10,
+        variantKey: '13,13',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -736,7 +1334,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 100
       },
       {
         index: 1,
@@ -825,6 +1424,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 11
           }
         ]
+      },
+      {
+        concreteId: 19,
+        variantKey: '18,18',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -841,25 +1458,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -877,37 +1498,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -931,7 +1558,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -978,7 +1606,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
@@ -998,6 +1627,60 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '布尔过滤器节点\\获取列表对应值_填值.gia',
     reflectMap: [
       {
+        concreteId: 60,
+        variantKey: '6',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool',
+            clientVarType: 5
+          }
+        ]
+      },
+      {
+        concreteId: 61,
+        variantKey: '4',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 62,
+        variantKey: '8',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      },
+      {
         concreteId: 64,
         variantKey: '15',
         pins: [
@@ -1006,6 +1689,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'guid_list',
             clientVarType: 15
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'guid',
+            clientVarType: 14
           }
         ]
       },
@@ -1018,6 +1707,48 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity_list',
             clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      },
+      {
+        concreteId: 66,
+        variantKey: '12',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3_list',
+            clientVarType: 12
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3',
+            clientVarType: 11
+          }
+        ]
+      },
+      {
+        concreteId: 70,
+        variantKey: '25',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'faction_list',
+            clientVarType: 25
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'faction',
+            clientVarType: 16
           }
         ]
       }
@@ -1053,7 +1784,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -1181,67 +1913,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -1326,7 +2069,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\获取列表最大值_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取列表最大值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 120,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 121,
+        variantKey: '8',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1351,7 +2133,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\获取列表最小值_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取列表最小值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 122,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 123,
+        variantKey: '8',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1400,7 +2221,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -1435,7 +2257,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取随机数_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 1011,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 1012,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1455,25 +2328,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -1503,67 +2380,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -1598,7 +2486,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [],
@@ -1622,7 +2511,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [],
@@ -1669,7 +2559,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 103
       },
       {
         index: 1,
@@ -1685,7 +2576,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于_填值.gia'
+    sampleFile: '布尔过滤器节点\\是否大于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1699,7 +2629,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 102
       },
       {
         index: 1,
@@ -1715,7 +2646,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于等于_填值.gia'
+    sampleFile: '布尔过滤器节点\\是否大于等于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1729,7 +2699,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 101
       },
       {
         index: 1,
@@ -1745,7 +2716,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否小于_填值.gia'
+    sampleFile: '布尔过滤器节点\\是否小于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1759,7 +2769,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 104
       },
       {
         index: 1,
@@ -1841,6 +2852,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '布尔过滤器节点\\列表是否包含该值_填值.gia',
     reflectMap: [
       {
+        concreteId: 100,
+        variantKey: '5,6',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      },
+      {
         concreteId: 101,
         variantKey: '3,4',
         pins: [
@@ -1895,6 +2924,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       },
       {
+        concreteId: 106,
+        variantKey: '11,12',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3_list',
+            clientVarType: 12
+          }
+        ]
+      },
+      {
         concreteId: 107,
         variantKey: '18,20',
         pins: [
@@ -1927,13 +2974,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -1951,7 +3000,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -1969,13 +3019,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -1993,13 +3045,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2017,7 +3071,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 302
       },
       {
         index: 1,
@@ -2057,6 +3112,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -2073,6 +3134,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -2093,13 +3160,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1000010
       }
     ],
     outputs: [],
@@ -2117,13 +3186,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 1, 0]
       }
     ],
     outputs: [],
@@ -2141,7 +3212,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'guid',
-        clientVarType: 14
+        clientVarType: 14,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2213,13 +3285,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2248,13 +3322,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1706
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2272,13 +3348,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1701
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2296,7 +3374,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -2314,7 +3393,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
@@ -2337,7 +3417,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\乘法运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\乘法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -2351,13 +3482,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1702
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2375,19 +3508,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2412,13 +3548,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2443,13 +3581,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2474,13 +3614,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2505,7 +3647,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2530,7 +3673,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2555,13 +3699,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2586,19 +3732,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2623,13 +3772,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -2665,7 +3816,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\绝对值运算_连线.gia'
+    sampleFile: '角色技能节点图\\绝对值运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 32,
+        variantKey: '3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 33,
+        variantKey: '7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -2685,13 +3875,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -2722,7 +3914,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
@@ -2762,6 +3955,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -2778,6 +3977,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -2798,13 +4003,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1703
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -2829,13 +4036,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1704
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -2860,13 +4069,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1705
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -2909,7 +4120,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 2
       },
       {
         index: 1,
@@ -3520,7 +4732,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -3534,7 +4748,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -3670,6 +4885,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity',
             clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
           }
         ]
       },
@@ -3736,6 +4957,156 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 1027,
+        variantKey: '5,5,5,5,5,5,5,5,5,5',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      },
+      {
+        concreteId: 1028,
+        variantKey: '7,7,7,7,7,7,7,7,7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float_list',
+            clientVarType: 8
           }
         ]
       },
@@ -3802,6 +5173,84 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'vec3',
             clientVarType: 11
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3_list',
+            clientVarType: 12
+          }
+        ]
+      },
+      {
+        concreteId: 1044,
+        variantKey: '18,18,18,18,18,18,18,18,18,18',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'config_id_list',
+            clientVarType: 20
           }
         ]
       }
@@ -3844,25 +5293,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -3911,7 +5364,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -3967,13 +5421,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1700
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4015,7 +5471,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\建立字典_连线.gia'
+    sampleFile: '角色技能节点图\\建立字典_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1049,
+        variantKey: '2,2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -4029,19 +5512,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4083,7 +5569,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -4097,13 +5585,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1707
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4128,13 +5618,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -4159,7 +5651,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 303
       },
       {
         index: 1,
@@ -4199,6 +5692,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -4215,6 +5714,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -4235,7 +5740,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -4287,7 +5793,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\枚举匹配_连线.gia'
+    sampleFile: '角色技能节点图\\枚举匹配_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 10,
+        variantKey: '13,13',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -4301,7 +5828,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 100
       },
       {
         index: 1,
@@ -4361,6 +5889,60 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 3
           }
         ]
+      },
+      {
+        concreteId: 15,
+        variantKey: '14,14',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          }
+        ]
+      },
+      {
+        concreteId: 17,
+        variantKey: '11,11',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          }
+        ]
+      },
+      {
+        concreteId: 19,
+        variantKey: '18,18',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -4377,25 +5959,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4420,37 +6006,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4475,13 +6067,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4524,31 +6118,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -4579,19 +6178,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'prefab_id',
-        clientVarType: 19
+        clientVarType: 19,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
@@ -4603,7 +6205,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 4,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -4664,7 +6267,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -4732,7 +6336,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
@@ -4760,6 +6365,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'bool_list',
             clientVarType: 6
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool',
+            clientVarType: 5
+          }
+        ]
+      },
+      {
+        concreteId: 61,
+        variantKey: '4',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -4772,6 +6401,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      },
+      {
+        concreteId: 64,
+        variantKey: '15',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid_list',
+            clientVarType: 15
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'guid',
+            clientVarType: 14
           }
         ]
       },
@@ -4784,6 +6437,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity_list',
             clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
           }
         ]
       },
@@ -4796,6 +6455,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'vec3_list',
             clientVarType: 12
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3',
+            clientVarType: 11
           }
         ]
       },
@@ -4808,6 +6473,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'faction_list',
             clientVarType: 25
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'faction',
+            clientVarType: 16
           }
         ]
       }
@@ -4850,7 +6521,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -4899,7 +6571,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -5074,67 +6747,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -5170,7 +6854,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 81,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 85,
+        variantKey: '2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5195,7 +6906,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\获取列表最大值_连线.gia'
+    sampleFile: '角色技能节点图\\获取列表最大值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1054,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5238,7 +6970,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\获取列表对应值_连线.gia'
+    sampleFile: '角色技能节点图\\获取列表对应值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1055,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5252,7 +7005,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -5299,6 +7053,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -5311,6 +7071,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
           }
         ]
       }
@@ -5351,6 +7117,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -5363,6 +7135,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
           }
         ]
       }
@@ -5430,7 +7208,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -5472,7 +7251,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\获取随机数_连线.gia'
+    sampleFile: '角色技能节点图\\获取随机数_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1011,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 1012,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5492,25 +7322,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -5553,67 +7387,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -5662,7 +7507,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -5693,7 +7539,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -5811,7 +7658,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 103
       },
       {
         index: 1,
@@ -5834,7 +7682,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\是否大于_连线.gia'
+    sampleFile: '角色技能节点图\\是否大于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5848,7 +7735,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 102
       },
       {
         index: 1,
@@ -5871,7 +7759,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\定点位移_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5897,7 +7824,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -5928,7 +7856,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 101
       },
       {
         index: 1,
@@ -5951,7 +7880,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\是否小于_连线.gia'
+    sampleFile: '角色技能节点图\\是否小于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -5965,7 +7933,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 104
       },
       {
         index: 1,
@@ -5988,7 +7957,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\是否小于等于_连线.gia'
+    sampleFile: '角色技能节点图\\是否小于等于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -6058,6 +8066,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       },
       {
+        concreteId: 104,
+        variantKey: '14,15',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid_list',
+            clientVarType: 15
+          }
+        ]
+      },
+      {
         concreteId: 105,
         variantKey: '1,2',
         pins: [
@@ -6092,6 +8118,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 12
           }
         ]
+      },
+      {
+        concreteId: 107,
+        variantKey: '18,20',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id_list',
+            clientVarType: 20
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -6108,13 +8152,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6139,7 +8185,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6164,13 +8211,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6195,13 +8244,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6226,7 +8277,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 302
       },
       {
         index: 1,
@@ -6266,6 +8318,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -6282,6 +8340,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -6319,19 +8383,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [],
@@ -6362,13 +8429,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 1, 0]
       }
     ],
     outputs: [
@@ -6393,37 +8462,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       }
     ],
     outputs: [],
@@ -6454,7 +8529,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -6485,7 +8561,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -6527,7 +8604,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色技能节点图\\查询字典长度_连线.gia'
+    sampleFile: '角色技能节点图\\查询字典长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1053,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -6558,7 +8650,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -6572,7 +8666,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'guid',
-        clientVarType: 14
+        clientVarType: 14,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6664,7 +8759,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1051,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -6695,7 +8811,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1052,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -6734,13 +8871,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6808,13 +8947,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1706
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -6845,43 +8986,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 8,
@@ -6893,19 +9041,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 9,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       }
     ],
     outputs: [],
@@ -6935,7 +9086,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7008,7 +9160,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7093,13 +9246,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7129,7 +9284,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 1,
@@ -7152,7 +9308,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\建立字典_连线.gia'
+    sampleFile: '角色技能节点图\\建立字典_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -7172,7 +9330,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7215,7 +9374,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7258,7 +9418,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7289,13 +9450,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1701
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -7338,7 +9501,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -7375,7 +9539,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
@@ -7398,7 +9563,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\减法运算_连线.gia'
+    sampleFile: '角色技能节点图\\减法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -7412,13 +9628,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1702
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -7498,7 +9716,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7571,31 +9790,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -7607,67 +9831,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -7679,175 +9914,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -7878,37 +10142,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -7920,67 +10190,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -7992,175 +10273,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -8191,31 +10501,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -8227,67 +10542,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 400
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -8299,175 +10625,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -8498,37 +10853,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -8540,67 +10901,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 400
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -8612,175 +10984,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -8811,31 +11212,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -8847,67 +11253,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 402
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -8919,175 +11336,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -9118,37 +11564,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -9160,67 +11612,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 402
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -9232,175 +11695,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -9431,31 +11923,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -9467,67 +11964,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 401
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -9539,175 +12047,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -9738,37 +12275,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -9780,67 +12323,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 401
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -9852,175 +12406,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -10057,7 +12640,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -10082,19 +12666,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10119,13 +12706,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10150,13 +12739,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10181,13 +12772,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10212,7 +12805,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10237,7 +12831,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10262,13 +12857,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10293,19 +12890,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10330,13 +12930,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -10383,6 +12985,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -10393,6 +13001,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 0,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -10419,13 +13033,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -10456,7 +13072,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
@@ -10479,7 +13096,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\加法运算_连线.gia'
+    sampleFile: '造物技能节点图\\加法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -10493,13 +13161,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1703
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -10524,13 +13194,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1704
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -10555,13 +13227,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1705
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -10604,7 +13278,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 2
       },
       {
         index: 1,
@@ -11215,7 +13890,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -11229,7 +13906,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -11365,6 +14043,156 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity',
             clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      },
+      {
+        concreteId: 1026,
+        variantKey: '3,3,3,3,3,3,3,3,3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 1027,
+        variantKey: '5,5,5,5,5,5,5,5,5,5',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool_list',
+            clientVarType: 6
           }
         ]
       },
@@ -11431,6 +14259,156 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float',
             clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float_list',
+            clientVarType: 8
+          }
+        ]
+      },
+      {
+        concreteId: 1030,
+        variantKey: '11,11,11,11,11,11,11,11,11,11',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3_list',
+            clientVarType: 12
+          }
+        ]
+      },
+      {
+        concreteId: 1044,
+        variantKey: '18,18,18,18,18,18,18,18,18,18',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'config_id_list',
+            clientVarType: 20
           }
         ]
       }
@@ -11479,7 +14457,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -11535,25 +14514,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -11584,13 +14567,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -11621,13 +14606,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1700
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -11669,7 +14656,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\建立字典_连线.gia'
+    sampleFile: '造物技能节点图\\建立字典_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1049,
+        variantKey: '2,2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -11683,19 +14697,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -11720,7 +14737,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -11768,7 +14786,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
+    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -11782,13 +14802,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1707
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -11813,13 +14835,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -11844,7 +14868,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 303
       },
       {
         index: 1,
@@ -11867,7 +14892,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\反正切函数_连线.gia'
+    sampleFile: '造物技能节点图\\反正切函数_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -11881,7 +14957,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -11933,7 +15010,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\双分支_连线.gia'
+    sampleFile: '造物技能节点图\\双分支_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 10,
+        variantKey: '13,13',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -11947,7 +15045,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 100
       },
       {
         index: 1,
@@ -12007,6 +15106,60 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 3
           }
         ]
+      },
+      {
+        concreteId: 15,
+        variantKey: '14,14',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          }
+        ]
+      },
+      {
+        concreteId: 17,
+        variantKey: '11,11',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          }
+        ]
+      },
+      {
+        concreteId: 19,
+        variantKey: '18,18',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -12023,25 +15176,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12066,37 +15223,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12121,13 +15284,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12170,19 +15335,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'prefab_id',
-        clientVarType: 19
+        clientVarType: 19,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
@@ -12194,7 +15362,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 4,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -12231,7 +15400,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12256,7 +15426,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
@@ -12276,6 +15447,42 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia',
     reflectMap: [
       {
+        concreteId: 60,
+        variantKey: '6',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool',
+            clientVarType: 5
+          }
+        ]
+      },
+      {
+        concreteId: 61,
+        variantKey: '4',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
         concreteId: 62,
         variantKey: '8',
         pins: [
@@ -12284,6 +15491,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      },
+      {
+        concreteId: 64,
+        variantKey: '15',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid_list',
+            clientVarType: 15
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'guid',
+            clientVarType: 14
           }
         ]
       },
@@ -12296,6 +15527,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity_list',
             clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
           }
         ]
       },
@@ -12308,6 +15545,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'vec3_list',
             clientVarType: 12
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3',
+            clientVarType: 11
+          }
+        ]
+      },
+      {
+        concreteId: 70,
+        variantKey: '25',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'faction_list',
+            clientVarType: 25
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'faction',
+            clientVarType: 16
           }
         ]
       }
@@ -12357,7 +15618,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -12382,7 +15644,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12507,67 +15770,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12603,7 +15877,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 81,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 85,
+        variantKey: '2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -12628,7 +15929,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\获取字典中键组成的列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取字典中键组成的列表_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1054,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -12671,7 +15993,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\获取字典中值组成的列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取字典中值组成的列表_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1055,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -12685,7 +16028,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -12732,6 +16076,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -12744,6 +16094,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
           }
         ]
       }
@@ -12784,6 +16140,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -12796,6 +16158,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
           }
         ]
       }
@@ -12845,7 +16213,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -12887,7 +16256,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\获取随机数_连线.gia'
+    sampleFile: '造物技能节点图\\获取随机数_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1011,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 1012,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -12907,25 +16327,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -12968,67 +16392,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -13102,7 +16537,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -13133,7 +16569,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -13251,7 +16688,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 103
       },
       {
         index: 1,
@@ -13327,7 +16765,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 102
       },
       {
         index: 1,
@@ -13350,7 +16789,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -13376,7 +16854,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -13407,7 +16886,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 101
       },
       {
         index: 1,
@@ -13430,7 +16910,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\是否小于_连线.gia'
+    sampleFile: '造物技能节点图\\是否小于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -13444,7 +16963,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 104
       },
       {
         index: 1,
@@ -13467,7 +16987,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\是否小于等于_连线.gia'
+    sampleFile: '造物技能节点图\\是否小于等于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -13501,6 +17060,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '造物技能节点图\\列表是否包含该值_连线.gia',
     reflectMap: [
       {
+        concreteId: 100,
+        variantKey: '5,6',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      },
+      {
         concreteId: 101,
         variantKey: '3,4',
         pins: [
@@ -13515,6 +17092,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 104,
+        variantKey: '14,15',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid_list',
+            clientVarType: 15
           }
         ]
       },
@@ -13535,6 +17130,42 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 2
           }
         ]
+      },
+      {
+        concreteId: 106,
+        variantKey: '11,12',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3_list',
+            clientVarType: 12
+          }
+        ]
+      },
+      {
+        concreteId: 107,
+        variantKey: '18,20',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id_list',
+            clientVarType: 20
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -13551,13 +17182,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -13582,7 +17215,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -13607,13 +17241,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -13638,13 +17274,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -13669,7 +17307,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 302
       },
       {
         index: 1,
@@ -13692,7 +17331,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量内积_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -13723,19 +17413,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [],
@@ -13766,13 +17459,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 1, 0]
       }
     ],
     outputs: [
@@ -13797,37 +17492,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       }
     ],
     outputs: [],
@@ -13869,7 +17570,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物技能节点图\\查询字典长度_连线.gia'
+    sampleFile: '造物技能节点图\\查询字典长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1053,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -13900,7 +17616,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '造物技能节点图\\以GUID查询实体_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -13914,7 +17632,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'guid',
-        clientVarType: 14
+        clientVarType: 14,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -14006,7 +17725,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\查询字典是否包含特定键_连线.gia'
+    sampleFile: '造物技能节点图\\查询字典是否包含特定键_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1051,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -14037,7 +17777,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1052,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -14076,13 +17837,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -14132,13 +17895,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1706
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -14169,43 +17934,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 8,
@@ -14217,19 +17989,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 9,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       }
     ],
     outputs: [],
@@ -14259,7 +18034,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14332,7 +18108,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14363,7 +18140,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14424,7 +18202,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 1,
@@ -14447,7 +18226,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\向服务器节点图发送信号_连线.gia'
+    sampleFile: '造物技能节点图\\向服务器节点图发送信号_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_skill',
@@ -14473,7 +18254,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14516,7 +18298,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14547,19 +18330,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14590,13 +18376,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14627,13 +18415,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14664,7 +18454,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14695,19 +18486,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -14738,13 +18532,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1701
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -14787,7 +18583,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -14824,7 +18621,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
@@ -14864,6 +18662,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -14880,6 +18684,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -14900,13 +18710,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1702
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -14986,7 +18798,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -15059,31 +18872,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -15095,67 +18913,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -15167,175 +18996,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -15366,37 +19224,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -15408,67 +19272,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -15480,175 +19355,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -15679,31 +19583,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -15715,67 +19624,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 400
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -15787,175 +19707,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -15986,37 +19935,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -16028,67 +19983,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 400
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -16100,175 +20066,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -16299,31 +20294,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -16335,67 +20335,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 402
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -16407,175 +20418,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -16606,37 +20646,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
@@ -16648,67 +20694,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 402
       },
       {
         index: 10,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 11,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 18,
@@ -16720,175 +20777,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 19,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 30,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 35,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 36,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 45,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 47,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -16919,31 +21005,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -16955,67 +21046,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 401
       },
       {
         index: 9,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 10,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 15,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 16,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 17,
@@ -17027,175 +21129,204 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 18,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 19,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 20,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 21,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 22,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 23,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 24,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 25,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 26,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 27,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 28,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 29,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 30,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 31,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 32,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 33,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 34,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 35,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 36,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 37,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 38,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 39,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 40,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 41,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 42,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 43,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3200
       },
       {
         index: 44,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 45,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 46,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -17232,7 +21363,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -17257,19 +21389,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17294,13 +21429,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17325,13 +21462,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17356,13 +21495,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17387,7 +21528,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17412,7 +21554,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17437,13 +21580,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17468,19 +21613,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17505,13 +21653,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -17547,7 +21697,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\绝对值运算_连线.gia'
+    sampleFile: '造物状态节点图\\绝对值运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 32,
+        variantKey: '3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 33,
+        variantKey: '7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -17561,7 +21750,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
@@ -17601,6 +21791,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -17617,6 +21813,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -17637,13 +21839,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1703
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -17668,13 +21872,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1704
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -17699,13 +21905,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1705
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -17748,7 +21956,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 2
       },
       {
         index: 1,
@@ -18359,7 +22568,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -18373,7 +22584,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -18509,6 +22721,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity',
             clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
           }
         ]
       },
@@ -18575,6 +22793,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float',
             clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float_list',
+            clientVarType: 8
           }
         ]
       }
@@ -18796,13 +23020,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1700
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -18844,7 +23070,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\建立字典_连线.gia'
+    sampleFile: '造物状态节点图\\建立字典_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1049,
+        variantKey: '2,2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -18858,19 +23111,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -18912,7 +23168,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\多分支_连线.gia'
+    sampleFile: '造物状态节点图\\多分支_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -18926,13 +23184,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1707
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -18957,13 +23217,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -18988,7 +23250,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 303
       },
       {
         index: 1,
@@ -19028,6 +23291,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -19044,6 +23313,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -19064,7 +23339,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -19111,7 +23387,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\双分支_连线.gia'
+    sampleFile: '造物状态节点图\\双分支_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 10,
+        variantKey: '13,13',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -19125,7 +23422,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 100
       },
       {
         index: 1,
@@ -19221,6 +23519,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 11
           }
         ]
+      },
+      {
+        concreteId: 18,
+        variantKey: '16,16',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'faction',
+            clientVarType: 16
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'faction',
+            clientVarType: 16
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -19237,13 +23553,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -19268,7 +23586,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
@@ -19296,6 +23615,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'bool_list',
             clientVarType: 6
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool',
+            clientVarType: 5
+          }
+        ]
+      },
+      {
+        concreteId: 61,
+        variantKey: '4',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -19308,6 +23651,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity_list',
             clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
           }
         ]
       }
@@ -19344,13 +23693,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -19375,7 +23726,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19400,7 +23752,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19425,7 +23778,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19461,7 +23815,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 80,
+        variantKey: '6',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -19486,7 +23855,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1054,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -19511,7 +23901,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\查询字典中值组成的列表_连线.gia'
+    sampleFile: '造物状态节点图\\查询字典中值组成的列表_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1055,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -19547,6 +23958,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -19559,6 +23976,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
           }
         ]
       }
@@ -19599,6 +24022,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -19611,6 +24040,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float_list',
             clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
           }
         ]
       }
@@ -19629,13 +24064,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19719,7 +24156,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1011,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 1012,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -19751,7 +24239,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19818,7 +24307,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19867,7 +24357,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19904,7 +24395,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -19929,7 +24421,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 103
       },
       {
         index: 1,
@@ -19952,7 +24445,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -19966,7 +24480,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 102
       },
       {
         index: 1,
@@ -19989,7 +24504,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20003,7 +24539,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 101
       },
       {
         index: 1,
@@ -20026,7 +24563,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20040,7 +24616,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 104
       },
       {
         index: 1,
@@ -20063,7 +24640,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20094,7 +24692,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 101,
+        variantKey: '3,4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 105,
+        variantKey: '1,2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20108,13 +24745,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20139,7 +24778,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20164,13 +24804,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20195,13 +24837,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20243,7 +24887,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\双分支_连线.gia'
+    sampleFile: '造物状态节点图\\双分支_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 4002,
+        variantKey: '3,4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20257,7 +24922,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 302
       },
       {
         index: 1,
@@ -20297,6 +24963,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -20313,6 +24985,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -20353,13 +25031,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 1, 0]
       }
     ],
     outputs: [
@@ -20395,7 +25075,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\查询字典长度_连线.gia'
+    sampleFile: '造物状态节点图\\查询字典长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1053,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20426,7 +25121,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1050,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20440,7 +25162,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20482,7 +25205,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\建立字典_连线.gia'
+    sampleFile: '造物状态节点图\\建立字典_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20513,7 +25238,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1052,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status',
@@ -20527,7 +25273,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20552,13 +25299,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20583,13 +25332,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1706
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20614,13 +25365,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1701
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -20663,7 +25416,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -20700,7 +25454,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
@@ -20740,6 +25495,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -20756,6 +25517,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -20776,43 +25543,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 3,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 5,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -20837,97 +25611,113 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 8,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 11,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 12,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 13,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 14,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 15,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -20952,79 +25742,92 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 1
       },
       {
         index: 9,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 11,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 12,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21049,55 +25852,64 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 8,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21122,67 +25934,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 5,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 7,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 10,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21207,7 +26030,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -21219,31 +26043,36 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21268,43 +26097,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21329,49 +26165,57 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 3601
       },
       {
         index: 2,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 999
       },
       {
         index: 5,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 7,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21396,37 +26240,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 4,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 5,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21451,43 +26301,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 6100
       },
       {
         index: 5,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 6,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21512,7 +26369,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -21524,25 +26382,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 4,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 5,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21567,19 +26429,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       },
       {
         index: 2,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -21604,13 +26469,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1702
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -21635,19 +26502,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21672,13 +26542,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21703,13 +26575,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21734,13 +26608,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21765,7 +26641,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21790,7 +26667,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21815,13 +26693,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21846,19 +26726,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21883,13 +26766,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -21925,7 +26810,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\绝对值运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\绝对值运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 32,
+        variantKey: '3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 33,
+        variantKey: '7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -21939,7 +26863,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
@@ -21962,7 +26887,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\加法运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\加法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -21976,13 +26952,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1703
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -22007,13 +26985,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1704
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -22038,13 +27018,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1705
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -22087,7 +27069,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 2
       },
       {
         index: 1,
@@ -22698,7 +27681,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -22712,7 +27697,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -22848,6 +27834,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity',
             clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
           }
         ]
       },
@@ -22914,6 +27906,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'float',
             clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float_list',
+            clientVarType: 8
           }
         ]
       }
@@ -23124,13 +28122,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1700
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23172,7 +28172,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\建立字典_连线.gia'
+    sampleFile: '造物状态决策节点图\\建立字典_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1049,
+        variantKey: '2,2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23186,19 +28213,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23240,7 +28270,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\多分支_连线.gia'
+    sampleFile: '造物状态决策节点图\\多分支_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23254,13 +28286,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1707
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23285,13 +28319,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -23316,7 +28352,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 303
       },
       {
         index: 1,
@@ -23339,7 +28376,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\乘法运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\乘法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23353,7 +28441,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -23400,7 +28489,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\双分支_连线.gia'
+    sampleFile: '造物状态决策节点图\\双分支_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 10,
+        variantKey: '13,13',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23414,7 +28524,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 100
       },
       {
         index: 1,
@@ -23476,6 +28587,42 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       },
       {
+        concreteId: 16,
+        variantKey: '1,1',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      },
+      {
+        concreteId: 17,
+        variantKey: '11,11',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          }
+        ]
+      },
+      {
         concreteId: 18,
         variantKey: '16,16',
         pins: [
@@ -23508,7 +28655,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
@@ -23528,6 +28676,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
     reflectMap: [
       {
+        concreteId: 60,
+        variantKey: '6',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool',
+            clientVarType: 5
+          }
+        ]
+      },
+      {
         concreteId: 61,
         variantKey: '4',
         pins: [
@@ -23536,6 +28702,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -23548,6 +28720,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity_list',
             clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
           }
         ]
       }
@@ -23584,13 +28762,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -23617,7 +28797,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23642,7 +28823,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23667,7 +28849,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23703,7 +28886,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 80,
+        variantKey: '6',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23728,7 +28926,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询字典中键组成的列表_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询字典中键组成的列表_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1054,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23753,7 +28972,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1055,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23778,7 +29018,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取列表最大值_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取列表最大值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 120,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 121,
+        variantKey: '8',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23803,7 +29082,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取列表最小值_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取列表最小值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 122,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 123,
+        variantKey: '8',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23817,13 +29135,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -23907,7 +29227,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取随机数_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取随机数_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1011,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 1012,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -23939,7 +29310,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24006,7 +29378,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24055,7 +29428,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24092,7 +29466,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24117,7 +29492,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 103
       },
       {
         index: 1,
@@ -24140,7 +29516,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\是否大于_连线.gia'
+    sampleFile: '造物状态决策节点图\\是否大于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24154,7 +29551,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 102
       },
       {
         index: 1,
@@ -24177,7 +29575,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\是否大于等于_连线.gia'
+    sampleFile: '造物状态决策节点图\\是否大于等于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24191,7 +29610,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 101
       },
       {
         index: 1,
@@ -24214,7 +29634,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\是否小于_连线.gia'
+    sampleFile: '造物状态决策节点图\\是否小于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24228,7 +29687,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 104
       },
       {
         index: 1,
@@ -24251,7 +29711,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\是否小于等于_连线.gia'
+    sampleFile: '造物状态决策节点图\\是否小于等于_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24335,13 +29816,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24366,7 +29849,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24391,13 +29875,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24422,13 +29908,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24470,7 +29958,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 4002,
+        variantKey: '3,4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24484,7 +29993,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 302
       },
       {
         index: 1,
@@ -24524,6 +30034,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -24540,6 +30056,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -24580,13 +30102,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 1, 0]
       }
     ],
     outputs: [
@@ -24622,7 +30146,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\拼装字典_连线.gia'
+    sampleFile: '造物状态决策节点图\\拼装字典_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1053,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24653,7 +30192,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1050,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24667,7 +30233,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24709,7 +30276,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\建立字典_连线.gia'
+    sampleFile: '造物状态决策节点图\\建立字典_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24740,7 +30309,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia'
+    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1052,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24754,7 +30344,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24779,13 +30370,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24810,13 +30403,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1706
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24841,13 +30436,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1701
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -24890,7 +30487,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [
@@ -24927,7 +30525,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
@@ -24950,7 +30549,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\减法运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\减法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'creation_status_decision',
@@ -24964,19 +30614,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'config_id',
-        clientVarType: 18
+        clientVarType: 18,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25002,13 +30655,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1702
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [
@@ -25033,19 +30688,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25063,13 +30721,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25087,13 +30747,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25111,13 +30773,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25135,7 +30799,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25153,7 +30818,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25171,13 +30837,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25195,19 +30863,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25225,13 +30896,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25260,7 +30933,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\绝对值运算_填值.gia'
+    sampleFile: '整数过滤器节点\\绝对值运算_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 32,
+        variantKey: '3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 33,
+        variantKey: '7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -25274,7 +30986,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 300
       },
       {
         index: 1,
@@ -25297,7 +31010,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\乘法运算_连线.gia'
+    sampleFile: '整数过滤器节点\\乘法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -25311,13 +31075,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1703
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25335,13 +31101,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1704
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25359,13 +31127,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1705
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25383,7 +31153,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
@@ -25457,6 +31228,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '整数过滤器节点\\列表是否包含该值_连线.gia',
     reflectMap: [
       {
+        concreteId: 1025,
+        variantKey: '1,1,1,1,1,1,1,1,1,1',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      },
+      {
         concreteId: 1026,
         variantKey: '3,3,3,3,3,3,3,3,3,3',
         pins: [
@@ -25519,6 +31362,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int_list',
+            clientVarType: 4
           }
         ]
       },
@@ -25585,6 +31434,156 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'bool',
             clientVarType: 5
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      },
+      {
+        concreteId: 1028,
+        variantKey: '7,7,7,7,7,7,7,7,7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float_list',
+            clientVarType: 8
+          }
+        ]
+      },
+      {
+        concreteId: 1030,
+        variantKey: '11,11,11,11,11,11,11,11,11,11',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 3,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 4,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 5,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 6,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 7,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 8,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 9,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 10,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3_list',
+            clientVarType: 12
           }
         ]
       },
@@ -25651,6 +31650,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'config_id',
             clientVarType: 18
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'config_id_list',
+            clientVarType: 20
           }
         ]
       }
@@ -25669,13 +31674,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1700
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25693,19 +31700,22 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25740,7 +31750,9 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\数据类型转换_填值.gia'
+    sampleFile: '整数过滤器节点\\数据类型转换_填值.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -25754,13 +31766,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1707
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -25778,13 +31792,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -25802,7 +31818,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 303
       },
       {
         index: 1,
@@ -25842,6 +31859,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -25858,6 +31881,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -25888,7 +31917,28 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\枚举匹配_填值.gia'
+    sampleFile: '整数过滤器节点\\枚举匹配_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 10,
+        variantKey: '13,13',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'enum',
+            clientVarType: 13
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -25902,7 +31952,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 100
       },
       {
         index: 1,
@@ -26025,25 +32076,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -26061,37 +32116,43 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 4,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -26115,7 +32176,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -26162,7 +32224,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
@@ -26182,6 +32245,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '整数过滤器节点\\列表是否包含该值_连线.gia',
     reflectMap: [
       {
+        concreteId: 60,
+        variantKey: '6',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'bool',
+            clientVarType: 5
+          }
+        ]
+      },
+      {
         concreteId: 61,
         variantKey: '4',
         pins: [
@@ -26190,6 +32271,48 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 62,
+        variantKey: '8',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      },
+      {
+        concreteId: 64,
+        variantKey: '15',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid_list',
+            clientVarType: 15
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'guid',
+            clientVarType: 14
           }
         ]
       },
@@ -26202,6 +32325,48 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'entity_list',
             clientVarType: 2
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      },
+      {
+        concreteId: 66,
+        variantKey: '12',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3_list',
+            clientVarType: 12
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'vec3',
+            clientVarType: 11
+          }
+        ]
+      },
+      {
+        concreteId: 70,
+        variantKey: '25',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'faction_list',
+            clientVarType: 25
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'faction',
+            clientVarType: 16
           }
         ]
       }
@@ -26237,7 +32402,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [
@@ -26363,67 +32529,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 1
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -26445,7 +32622,34 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取列表长度_连线.gia'
+    sampleFile: '整数过滤器节点\\获取列表长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 81,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 85,
+        variantKey: '2',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26481,7 +32685,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\获取列表最大值_连线.gia'
+    sampleFile: '整数过滤器节点\\获取列表最大值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 120,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 121,
+        variantKey: '8',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26506,7 +32749,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\获取列表最小值_连线.gia'
+    sampleFile: '整数过滤器节点\\获取列表最小值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 122,
+        variantKey: '4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 123,
+        variantKey: '8',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float_list',
+            clientVarType: 8
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26555,7 +32837,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -26590,7 +32873,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
+    sampleFile: '整数过滤器节点\\获取随机数_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 1011,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 1012,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26610,25 +32944,29 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 2,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 3,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
@@ -26658,67 +32996,78 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 2,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 3,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 4,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 5,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 6,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 7,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 8,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 9,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       },
       {
         index: 10,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -26753,7 +33102,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [],
@@ -26777,7 +33127,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 1,
         kind: 'input',
         type: 'str',
-        clientVarType: 9
+        clientVarType: 9,
+        defaultValue: ''
       }
     ],
     outputs: [],
@@ -26824,7 +33175,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 103
       },
       {
         index: 1,
@@ -26840,7 +33192,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于_填值.gia'
+    sampleFile: '整数过滤器节点\\是否大于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26854,7 +33245,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 102
       },
       {
         index: 1,
@@ -26870,7 +33262,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于等于_填值.gia'
+    sampleFile: '整数过滤器节点\\是否大于等于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26884,7 +33315,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 101
       },
       {
         index: 1,
@@ -26900,7 +33332,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否小于_填值.gia'
+    sampleFile: '整数过滤器节点\\是否小于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26914,7 +33385,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 104
       },
       {
         index: 1,
@@ -26930,7 +33402,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否小于等于_填值.gia'
+    sampleFile: '整数过滤器节点\\是否小于等于_填值.gia',
+    reflectMap: [
+      {
+        concreteId: 12,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 13,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -26957,6 +33468,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '整数过滤器节点\\列表是否包含该值_填值.gia',
     reflectMap: [
       {
+        concreteId: 100,
+        variantKey: '5,6',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'bool',
+            clientVarType: 5
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'bool_list',
+            clientVarType: 6
+          }
+        ]
+      },
+      {
         concreteId: 101,
         variantKey: '3,4',
         pins: [
@@ -26971,6 +33500,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int_list',
             clientVarType: 4
+          }
+        ]
+      },
+      {
+        concreteId: 104,
+        variantKey: '14,15',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'guid',
+            clientVarType: 14
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'guid_list',
+            clientVarType: 15
           }
         ]
       },
@@ -26991,6 +33538,42 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             clientVarType: 2
           }
         ]
+      },
+      {
+        concreteId: 106,
+        variantKey: '11,12',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'vec3',
+            clientVarType: 11
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'vec3_list',
+            clientVarType: 12
+          }
+        ]
+      },
+      {
+        concreteId: 107,
+        variantKey: '18,20',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'config_id',
+            clientVarType: 18
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'config_id_list',
+            clientVarType: 20
+          }
+        ]
       }
     ],
     specialKind: 'reflect'
@@ -27007,13 +33590,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27031,7 +33616,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27049,13 +33635,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27073,13 +33661,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'bool',
-        clientVarType: 5
+        clientVarType: 5,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27097,7 +33687,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 302
       },
       {
         index: 1,
@@ -27137,6 +33728,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'int',
             clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
           }
         ]
       },
@@ -27153,6 +33750,12 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
           {
             index: 2,
             kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
             type: 'float',
             clientVarType: 7
           }
@@ -27173,13 +33776,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'int',
-        clientVarType: 3
+        clientVarType: 3,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 10000011
       }
     ],
     outputs: [],
@@ -27197,13 +33802,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       },
       {
         index: 1,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 1, 0]
       }
     ],
     outputs: [],
@@ -27221,7 +33828,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'guid',
-        clientVarType: 14
+        clientVarType: 14,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27293,13 +33901,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       },
       {
         index: 1,
         kind: 'input',
         type: 'faction',
-        clientVarType: 16
+        clientVarType: 16,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27328,13 +33938,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1706
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27352,13 +33964,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1701
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],
@@ -27376,7 +33990,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'vec3',
-        clientVarType: 11
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
       }
     ],
     outputs: [],
@@ -27394,7 +34009,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 301
       },
       {
         index: 1,
@@ -27417,7 +34033,58 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\乘法运算_连线.gia'
+    sampleFile: '整数过滤器节点\\乘法运算_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 30,
+        variantKey: '3,3',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'int',
+            clientVarType: 3
+          }
+        ]
+      },
+      {
+        concreteId: 31,
+        variantKey: '7,7',
+        pins: [
+          {
+            index: 1,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 2,
+            kind: 'input',
+            type: 'float',
+            clientVarType: 7
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'float',
+            clientVarType: 7
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -27431,13 +34098,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'input',
         type: 'enum',
-        clientVarType: 13
+        clientVarType: 13,
+        defaultValue: 1702
       },
       {
         index: 1,
         kind: 'input',
         type: 'float',
-        clientVarType: 7
+        clientVarType: 7,
+        defaultValue: 0
       }
     ],
     outputs: [],

@@ -21,7 +21,10 @@ export type { Root } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Cod
 
 export {
   client_graph_body,
+  client_literal_value,
   client_node_body,
+  client_value_base,
+  client_wrapped_value,
   node_connect_from as client_node_connect_from,
   node_connect_to as client_node_connect_to
 } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.js'

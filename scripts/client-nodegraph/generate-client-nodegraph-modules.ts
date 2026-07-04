@@ -3,6 +3,9 @@ import path from 'node:path'
 
 import ts from 'typescript'
 
+import { generateClientNodes, type FlowMetadataEntry, type MetaRecord } from './client_nodes_codegen.js'
+import { buildDocNameAlignment } from './doc_name_alignment.js'
+
 type ClientGraphSubType =
   | 'character_skill'
   | 'creation_skill'
@@ -417,18 +420,6 @@ type ServerMethodSignature = {
   docs: string
 }
 
-type ClientExecutionFlowMetadata = {
-  methodName: string
-  nodeType: string
-  subTypes: ClientGraphSubType[]
-  modes: ClientGraphMode[]
-  params: string[]
-  returnType: string
-  typeParams: string[]
-  docs: string
-  requiresLocalVariableSpecialization: boolean
-}
-
 function extractServerMethodSignatures(): Map<string, ServerMethodSignature> {
   const filePath = 'src/definitions/nodes.ts'
   const source = ts.createSourceFile(
@@ -467,48 +458,10 @@ function extractServerMethodSignatures(): Map<string, ServerMethodSignature> {
   return result
 }
 
-function deriveClientExecutionFlowMetadata(
-  metadata: MetadataRecord[],
-  signatures: Map<string, ServerMethodSignature>
-): ClientExecutionFlowMetadata[] {
-  const nodeTypesBySubType = new Map<ClientGraphSubType, Set<string>>()
-  for (const record of metadata) {
-    const set = nodeTypesBySubType.get(record.subType) ?? new Set<string>()
-    nodeTypesBySubType.set(record.subType, set)
-    set.add(record.nodeType)
-  }
-
-  const entries: ClientExecutionFlowMetadata[] = []
-  for (const signature of [...signatures.values()].sort((a, b) =>
-    a.methodName.localeCompare(b.methodName)
-  )) {
-    const nodeType = camelToSnake(signature.methodName)
-    const subTypes = SUB_TYPES.filter((subType) => nodeTypesBySubType.get(subType)?.has(nodeType))
-    if (!subTypes.length) continue
-    const signatureText = [...signature.params, signature.returnType].join(' ')
-    entries.push({
-      methodName: signature.methodName,
-      nodeType,
-      subTypes,
-      // classic mode support is not proven yet; only beyond is claimed
-      modes: ['beyond'],
-      params: signature.params,
-      returnType: signature.returnType,
-      typeParams: signature.typeParams,
-      docs: signature.docs,
-      requiresLocalVariableSpecialization: /LocalVariable/i.test(signatureText)
-    })
-  }
-  return entries
-}
-
-function emitClientMethodModes(flowMetadata: ClientExecutionFlowMetadata[]) {
-  const methodsBySubType: Record<string, string[]> = {}
-  for (const subType of SUB_TYPES) methodsBySubType[subType] = []
-  for (const entry of flowMetadata) {
-    for (const subType of entry.subTypes) methodsBySubType[subType].push(entry.methodName)
-  }
-
+function emitClientMethodModes(
+  flowMetadata: FlowMetadataEntry[],
+  methodsBySubType: Record<string, string[]>
+) {
   write('resources/client_execution_flow_metadata.json', JSON.stringify(flowMetadata, null, 2))
   write(
     'src/definitions/client_method_modes.ts',
@@ -517,6 +470,47 @@ function emitClientMethodModes(flowMetadata: ClientExecutionFlowMetadata[]) {
 export type ClientNodeMethodBySubType = typeof CLIENT_NODE_METHODS_BY_SUB_TYPE
 `
   )
+}
+
+/**
+ * Cross-check generated client signatures against same-named server methods.
+ * Pure report: differences are expected (client pins differ), but every drift
+ * should be explainable from metadata/doc evidence.
+ */
+function deriveServerSignatureDrift(
+  flowMetadata: FlowMetadataEntry[],
+  signatures: Map<string, ServerMethodSignature>
+) {
+  const drift: Array<{
+    methodName: string
+    nodeType: string
+    server: { params: string[]; returnType: string }
+    client: { params: string[]; returns: string[] | null }
+    notes: string[]
+  }> = []
+  let shared = 0
+  for (const entry of flowMetadata) {
+    const server = signatures.get(entry.methodName)
+    if (!server) continue
+    shared += 1
+    const clientParams = entry.params.map((p) => `${p.name}: ${p.irType}`)
+    const clientReturns = entry.returns?.map((r) => `${r.name}: ${r.irType}`) ?? null
+    const notes: string[] = []
+    // callbacks (control flow) are part of the server param list; compare counts loosely
+    const serverValueParams = server.params.filter((p) => !/=>/.test(p))
+    if (serverValueParams.length !== entry.params.length) notes.push('param_count_mismatch')
+    const serverVoid = server.returnType === 'void'
+    if (serverVoid !== (clientReturns === null)) notes.push('return_shape_mismatch')
+    if (!notes.length) continue
+    drift.push({
+      methodName: entry.methodName,
+      nodeType: entry.nodeType,
+      server: { params: server.params, returnType: server.returnType },
+      client: { params: clientParams, returns: clientReturns },
+      notes
+    })
+  }
+  return { shared, drift }
 }
 
 function emitClientNodeMetadata(metadata: readonly unknown[]) {
@@ -544,11 +538,24 @@ function main() {
   emitClientGraphModes(capability as ClientGraphCapability)
   emitClientNodeMetadata(metadata)
   emitClientScopedGlobals(deriveScopedGlobalsCapability(metadata as MetadataRecord[]))
-  emitClientMethodModes(
-    deriveClientExecutionFlowMetadata(metadata as MetadataRecord[], extractServerMethodSignatures())
-  )
 
-  console.log('[ok] generated client nodegraph modules')
+  const alignment = buildDocNameAlignment()
+  const generated = generateClientNodes(metadata as MetaRecord[], alignment)
+  write('src/definitions/client_nodes.ts', generated.classFileBody)
+  emitClientMethodModes(generated.flowMetadata, generated.methodsBySubType)
+  write('tests/client_generated/_generation_gaps.json', JSON.stringify(generated.gaps, null, 2))
+
+  const { shared, drift } = deriveServerSignatureDrift(
+    generated.flowMetadata,
+    extractServerMethodSignatures()
+  )
+  write('tests/client_generated/_server_drift.json', JSON.stringify({ shared, drift }, null, 2))
+
+  const methodCount = Object.values(generated.methodsBySubType).reduce((n, m) => n + m.length, 0)
+  console.log(
+    `[ok] generated client nodegraph modules (${methodCount} methods, ` +
+      `${generated.gaps.length} gaps, ${drift.length}/${shared} drifted shared methods)`
+  )
 }
 
 main()

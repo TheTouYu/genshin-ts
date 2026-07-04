@@ -1573,6 +1573,7 @@ function removeUnusedNodesFromFlow(flow: ExecutionFlow): ExecutionFlow | null {
 
   const collectDataDeps = (record: MetaCallRecord) => {
     for (const arg of record.args) {
+      if (!arg) continue
       const meta = arg.getMetadata()
       if (!meta || meta.kind !== 'pin') continue
       const depId = meta.record.id

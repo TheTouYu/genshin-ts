@@ -89,8 +89,13 @@ function client_item_type(clientVarType: number) {
   }
 }
 
-/** typed-but-unset pin value, matching sample pins with alreadySetVal=false */
-export function client_value_base(clientVarType: number): VarBase {
+/**
+ * typed-but-unset pin value, matching sample pins with alreadySetVal=false.
+ * Editor defaults (e.g. operator-selector enums carrying bEnum val 300/301)
+ * are written as payloads while keeping alreadySetVal=false, exactly as
+ * observed in samples.
+ */
+export function client_value_base(clientVarType: number, defaultValue?: unknown): VarBase {
   const scalarClass = SCALAR_CLASS_BY_CLIENT_TYPE[clientVarType]
   const cls = scalarClass ?? (LIST_CLIENT_TYPES.has(clientVarType) ? VarBase_Class.ArrayBase : 0)
   const value: VarBase = {
@@ -101,7 +106,35 @@ export function client_value_base(clientVarType: number): VarBase {
   if (cls === VarBase_Class.ArrayBase) {
     value.bArray = { entries: [] }
   }
+  if (defaultValue !== undefined && scalarClass !== undefined) {
+    write_scalar_payload(value, scalarClass, defaultValue)
+  }
   return value
+}
+
+function write_scalar_payload(value: VarBase, scalarClass: number, literal: unknown) {
+  switch (scalarClass) {
+    case VarBase_Class.IntBase:
+      value.bInt = { val: Number(literal) }
+      break
+    case VarBase_Class.FloatBase:
+      value.bFloat = { val: Number(literal) }
+      break
+    case VarBase_Class.StringBase:
+      value.bString = { val: String(literal) }
+      break
+    case VarBase_Class.EnumBase:
+      value.bEnum = { val: typeof literal === 'boolean' ? (literal ? 1 : 0) : Number(literal) }
+      break
+    case VarBase_Class.VectorBase: {
+      const [x, y, z] = literal as [number, number, number]
+      value.bVector = { val: { x, y, z } }
+      break
+    }
+    case VarBase_Class.IdBase:
+      value.bId = { val: Number(literal) }
+      break
+  }
 }
 
 /** literal pin value with alreadySetVal=true, per proven sample shapes */
@@ -115,28 +148,7 @@ export function client_literal_value(clientVarType: number, literal: unknown): V
       alreadySetVal: true,
       itemType: client_item_type(clientVarType)
     }
-    switch (scalarClass) {
-      case VarBase_Class.IntBase:
-        value.bInt = { val: Number(literal) }
-        break
-      case VarBase_Class.FloatBase:
-        value.bFloat = { val: Number(literal) }
-        break
-      case VarBase_Class.StringBase:
-        value.bString = { val: String(literal) }
-        break
-      case VarBase_Class.EnumBase:
-        value.bEnum = { val: typeof literal === 'boolean' ? (literal ? 1 : 0) : Number(literal) }
-        break
-      case VarBase_Class.VectorBase: {
-        const [x, y, z] = literal as [number, number, number]
-        value.bVector = { val: { x, y, z } }
-        break
-      }
-      case VarBase_Class.IdBase:
-        value.bId = { val: Number(literal) }
-        break
-    }
+    write_scalar_payload(value, scalarClass, literal)
     return value
   }
   // List pins only appear with alreadySetVal=false placeholders in samples,
@@ -193,7 +205,7 @@ export function client_pin_body(pin: ClientPinMetadata, literal?: unknown): Node
       }
       value = client_literal_value(pin.clientVarType ?? 0, literal)
     } else {
-      value = client_value_base(pin.clientVarType ?? 0)
+      value = client_value_base(pin.clientVarType ?? 0, pin.defaultValue)
     }
   }
   return {

@@ -6,7 +6,8 @@ export interface MetaCallRecord {
   id: number
   type: MetaCallRecordType
   nodeType: string
-  args: value[]
+  /** null marks an intentionally-unset pin (client hidden pins keep editor defaults) */
+  args: Array<value | null>
 }
 
 export type MetaCallRecordRef = Readonly<MetaCallRecord>

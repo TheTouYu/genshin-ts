@@ -91,6 +91,8 @@ type PinRecord = {
   type: string
   reflective?: boolean
   clientVarType?: number
+  /** single consistent literal payload observed across all set instances */
+  defaultValue?: number | string | boolean | [number, number, number]
 }
 
 type NodeRecord = {
@@ -211,6 +213,29 @@ type PinInstance = {
   // ConcreteBase wrapper with indexOfConcrete === -1 marks an unresolved reflective pin
   unresolvedReflective: boolean
   wrappedConcrete: boolean
+  /** scalar payload observed on this pin (unwrapped b* field) */
+  literal?: { payload: PinLiteral; set: boolean }
+}
+
+type PinLiteral = number | string | boolean | [number, number, number]
+
+/**
+ * Extract the scalar payload carried by a pin value. Editor defaults are
+ * stored with alreadySetVal=false but still carry the b* payload, so set-ness
+ * is not required. Wrapped ConcreteBase and list payloads return undefined.
+ */
+function pinLiteralPayload(value: any): PinLiteral | undefined {
+  if (!value || Number(value.class) === 10000) return undefined
+  if (value.bInt !== undefined) return Number(value.bInt.val ?? 0)
+  if (value.bFloat !== undefined) return Number(value.bFloat.val ?? 0)
+  if (value.bString !== undefined) return String(value.bString.val ?? '')
+  if (value.bEnum !== undefined) return Number(value.bEnum.val ?? 0)
+  if (value.bId !== undefined) return Number(value.bId.val ?? 0)
+  if (value.bVector !== undefined) {
+    const v = value.bVector.val ?? {}
+    return [Number(v.x ?? 0), Number(v.y ?? 0), Number(v.z ?? 0)]
+  }
+  return undefined
 }
 
 type NodeInstance = {
@@ -232,12 +257,16 @@ type GidAggregate = {
 function pinInstances(node: DecodedNode): PinInstance[] {
   return (node.pins ?? []).map((pin) => {
     const ioc = pin.value?.bConcreteValue?.indexOfConcrete
+    const payload = pinLiteralPayload(pin.value)
     return {
       kind: Number(pin.i1?.kind ?? 0),
       index: Number(pin.i1?.index ?? 0),
       type: Number(pin.type ?? 0),
       unresolvedReflective: Number(pin.value?.class) === 10000 && Number(ioc ?? 0) === -1,
-      wrappedConcrete: Number(pin.value?.class) === 10000
+      wrappedConcrete: Number(pin.value?.class) === 10000,
+      ...(payload !== undefined
+        ? { literal: { payload, set: Boolean(pin.value?.alreadySetVal) } }
+        : {})
     }
   })
 }
@@ -245,12 +274,15 @@ function pinInstances(node: DecodedNode): PinInstance[] {
 function mergePins(agg: GidAggregate): {
   records: Map<string, PinRecord>
   reflectiveInputIndexes: number[]
+  reflectiveOutputIndexes: number[]
 } {
   type Merged = {
     kind: number
     index: number
     types: Set<number>
     sawUnresolved: boolean
+    /** payloads carried by pins the sample author did not touch (editor defaults) */
+    unsetPayloads: Set<string>
   }
   const merged = new Map<string, Merged>()
   for (const inst of agg.instances) {
@@ -260,16 +292,21 @@ function mergePins(agg: GidAggregate): {
         kind: pin.kind,
         index: pin.index,
         types: new Set<number>(),
-        sawUnresolved: false
+        sawUnresolved: false,
+        unsetPayloads: new Set<string>()
       }
       merged.set(key, m)
       if (pin.type !== 0) m.types.add(pin.type)
       if (pin.unresolvedReflective) m.sawUnresolved = true
+      if (pin.literal !== undefined && !pin.literal.set) {
+        m.unsetPayloads.add(JSON.stringify(pin.literal.payload))
+      }
     }
   }
 
   const records = new Map<string, PinRecord>()
   const reflectiveInputIndexes: number[] = []
+  const reflectiveOutputIndexes: number[] = []
   for (const [key, m] of merged) {
     const kind = PIN_KIND_NAMES[m.kind]
     if (!kind) {
@@ -291,11 +328,18 @@ function mergePins(agg: GidAggregate): {
     }
     if (reflective) record.reflective = true
     if (!isFlow && !reflective && singleType !== undefined) record.clientVarType = singleType
+    // A pin whose untouched instances all carry the same payload documents the
+    // editor default (e.g. hidden operator-selector enums: bEnum val 300/301).
+    if (kind === 'input' && !reflective && m.unsetPayloads.size === 1) {
+      record.defaultValue = JSON.parse([...m.unsetPayloads][0])
+    }
     records.set(key, record)
     if (reflective && kind === 'input') reflectiveInputIndexes.push(m.index)
+    if (reflective && kind === 'output') reflectiveOutputIndexes.push(m.index)
   }
   reflectiveInputIndexes.sort((a, b) => a - b)
-  return { records, reflectiveInputIndexes }
+  reflectiveOutputIndexes.sort((a, b) => a - b)
+  return { records, reflectiveInputIndexes, reflectiveOutputIndexes }
 }
 
 type ReflectVariant = {
@@ -306,7 +350,8 @@ type ReflectVariant = {
 
 function deriveReflectMap(
   agg: GidAggregate,
-  reflectiveInputIndexes: number[]
+  reflectiveInputIndexes: number[],
+  reflectiveOutputIndexes: number[]
 ): { variants: ReflectVariant[]; conflicts: string[]; underived: number[] } {
   const byConcrete = new Map<number, Map<string, number>>()
   for (const inst of agg.instances) {
@@ -357,19 +402,36 @@ function deriveReflectMap(
     }
     keyToConcrete.set(key, cid)
     const variantPins: PinRecord[] = []
-    const inst = agg.instances.find(
+    const candidates = agg.instances.filter(
       (i) =>
         i.concreteId === cid &&
         reflectiveInputIndexes.every((idx) =>
           i.pins.some((p) => p.kind === 3 && p.index === idx && p.type !== 0)
         )
     )
+    // prefer an instance whose reflective output pins are also concretely typed
+    const inst =
+      candidates.find((i) =>
+        reflectiveOutputIndexes.every((idx) =>
+          i.pins.some((p) => p.kind === 4 && p.index === idx && p.type !== 0)
+        )
+      ) ?? candidates[0]
     if (inst) {
       for (const idx of reflectiveInputIndexes) {
         const pin = inst.pins.find((p) => p.kind === 3 && p.index === idx)!
         variantPins.push({
           index: idx,
           kind: 'input',
+          type: CLIENT_VAR_TYPE_NAMES[pin.type] ?? `client_${pin.type}`,
+          clientVarType: pin.type
+        })
+      }
+      for (const idx of reflectiveOutputIndexes) {
+        const pin = inst.pins.find((p) => p.kind === 4 && p.index === idx)
+        if (!pin || pin.type === 0) continue
+        variantPins.push({
+          index: idx,
+          kind: 'output',
           type: CLIENT_VAR_TYPE_NAMES[pin.type] ?? `client_${pin.type}`,
           clientVarType: pin.type
         })
@@ -745,8 +807,18 @@ function main() {
     variantKeys: Record<string, number | string>
     conflicts?: string[]
     underivedConcreteIds?: number[]
+    provenance?: 'family' | 'generic_id_union'
     status: 'resolved' | 'needs_developer_confirmation'
   }> = []
+
+  type ReflectDerivation = {
+    record: NodeRecord
+    reflectiveInputIndexes: number[]
+    observedConcreteIds: number[]
+    variants: ReflectVariant[]
+    conflicts: string[]
+  }
+  const reflectDerivations: ReflectDerivation[] = []
 
   function buildRecord(agg: GidAggregate, fixedNodeType?: string): NodeRecord {
     // Prefer the non-minimal base name as the display name
@@ -803,7 +875,7 @@ function main() {
       )
     }
 
-    const { records: pinRecords, reflectiveInputIndexes } = mergePins(agg)
+    const { records: pinRecords, reflectiveInputIndexes, reflectiveOutputIndexes } = mergePins(agg)
     const inputs: PinRecord[] = []
     const outputs: PinRecord[] = []
     const flows: PinRecord[] = []
@@ -833,31 +905,21 @@ function main() {
       sampleFile: agg.exampleFile
     }
 
-    if (concreteIds.size > 1) {
-      const { variants, conflicts, underived } = deriveReflectMap(agg, reflectiveInputIndexes)
-      const status =
-        conflicts.length || underived.length || variants.length === 0
-          ? 'needs_developer_confirmation'
-          : 'resolved'
-      // Unconfirmed variant rules must not be silently applied: publish an
-      // empty reflectMap so the resolver rejects the node with a stable error.
-      record.reflectMap =
-        status === 'resolved'
-          ? variants.map((v) => ({
-              concreteId: v.concreteId,
-              variantKey: v.variantKey,
-              ...(v.pins ? { pins: v.pins } : {})
-            }))
-          : []
-      record.specialKind = 'reflect'
-      reflectReport.push({
-        subType: agg.subType,
-        nodeType,
-        genericId: agg.genericId,
-        variantKeys: Object.fromEntries(variants.map((v) => [v.variantKey, v.concreteId])),
-        ...(conflicts.length ? { conflicts } : {}),
-        ...(underived.length ? { underivedConcreteIds: underived } : {}),
-        status
+    if (concreteIds.size > 1 || reflectiveInputIndexes.length > 0) {
+      const { variants, conflicts } = deriveReflectMap(
+        agg,
+        reflectiveInputIndexes,
+        reflectiveOutputIndexes
+      )
+      // Final reflectMap assignment happens in the cross-family union pass
+      // below; concrete variant evidence for the same genericId is shared
+      // between families (same node definition, same concrete id space).
+      reflectDerivations.push({
+        record,
+        reflectiveInputIndexes,
+        observedConcreteIds: [...concreteIds].sort((a, b) => a - b),
+        variants,
+        conflicts
       })
     }
 
@@ -894,6 +956,105 @@ function main() {
   for (const key of [...gidAggregates.keys()].sort()) {
     records.push(buildRecord(gidAggregates.get(key)!))
   }
+
+  // -------------------------------------------------------------------------
+  // Cross-family reflect union: the same genericId denotes the same node
+  // definition in every family, so per-family variant evidence is merged and
+  // validated globally before being attached to each family's record.
+  // -------------------------------------------------------------------------
+
+  const derivationsByGid = new Map<number, ReflectDerivation[]>()
+  for (const derivation of reflectDerivations) {
+    const list = derivationsByGid.get(derivation.record.genericId) ?? []
+    list.push(derivation)
+    derivationsByGid.set(derivation.record.genericId, list)
+  }
+
+  for (const [gid, group] of derivationsByGid) {
+    const conflicts = group.flatMap((d) => d.conflicts)
+    const indexSets = new Set(group.map((d) => d.reflectiveInputIndexes.join(',')))
+    if (indexSets.size > 1) {
+      conflicts.push(
+        `genericId ${gid} reflective input indexes differ across families: ${[...indexSets].join(' | ')}`
+      )
+    }
+
+    const union = new Map<string, ReflectVariant>()
+    const cidToKey = new Map<number | string, string>()
+    const contributors = new Set<string>()
+    for (const d of group) {
+      for (const v of d.variants) {
+        const priorCid = union.get(v.variantKey)?.concreteId
+        if (priorCid !== undefined && priorCid !== v.concreteId) {
+          conflicts.push(
+            `genericId ${gid} key "${v.variantKey}" maps to concreteIds ${priorCid} and ${v.concreteId}`
+          )
+          continue
+        }
+        const priorKey = cidToKey.get(v.concreteId)
+        if (priorKey !== undefined && priorKey !== v.variantKey) {
+          conflicts.push(
+            `genericId ${gid} concreteId ${v.concreteId} maps to keys "${priorKey}" and "${v.variantKey}"`
+          )
+          continue
+        }
+        cidToKey.set(v.concreteId, v.variantKey)
+        const existing = union.get(v.variantKey)
+        // prefer the variant carrying the most pin evidence (inputs + outputs)
+        if (!existing || (v.pins?.length ?? 0) > (existing.pins?.length ?? 0)) {
+          union.set(v.variantKey, v)
+        }
+        contributors.add(d.record.subType)
+      }
+    }
+
+    const observedCids = [...new Set(group.flatMap((d) => d.observedConcreteIds))].sort(
+      (a, b) => a - b
+    )
+    const underived = observedCids.filter((cid) => !cidToKey.has(cid))
+    const unionVariants = [...union.values()].sort((a, b) =>
+      Number(a.concreteId) - Number(b.concreteId)
+    )
+
+    for (const d of group) {
+      const record = d.record
+      const status =
+        conflicts.length ||
+        underived.length ||
+        unionVariants.length === 0 ||
+        d.reflectiveInputIndexes.length === 0
+          ? 'needs_developer_confirmation'
+          : 'resolved'
+      const provenance =
+        status !== 'resolved'
+          ? undefined
+          : d.variants.length === unionVariants.length
+            ? ('family' as const)
+            : ('generic_id_union' as const)
+      // Unconfirmed variant rules must not be silently applied: publish an
+      // empty reflectMap so the resolver rejects the node with a stable error.
+      record.reflectMap =
+        status === 'resolved'
+          ? unionVariants.map((v) => ({
+              concreteId: v.concreteId,
+              variantKey: v.variantKey,
+              ...(v.pins ? { pins: v.pins } : {})
+            }))
+          : []
+      record.specialKind = 'reflect'
+      reflectReport.push({
+        subType: record.subType,
+        nodeType: record.nodeType,
+        genericId: gid,
+        variantKeys: Object.fromEntries(unionVariants.map((v) => [v.variantKey, v.concreteId])),
+        ...(conflicts.length ? { conflicts: [...new Set(conflicts)] } : {}),
+        ...(underived.length ? { underivedConcreteIds: underived } : {}),
+        ...(provenance ? { provenance } : {}),
+        status
+      })
+    }
+  }
+
   records.sort(
     (a, b) => a.subType.localeCompare(b.subType) || a.nodeType.localeCompare(b.nodeType)
   )

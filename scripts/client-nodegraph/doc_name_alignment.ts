@@ -53,6 +53,13 @@ export type DocAlignmentReport = {
 export type DocAlignment = {
   /** official zh node name -> aligned doc info */
   byZhName: Map<string, AlignedDocNode>
+  /**
+   * official zh node name -> all distinct doc variants (primary first). Some
+   * names describe different nodes per graph family (e.g. 获取实体位置 takes an
+   * entity in skill/filter graphs but a target-selector enum in creation
+   * status graphs); consumers pick the variant matching their pin evidence.
+   */
+  variantsByZhName: Map<string, AlignedDocNode[]>
   report: DocAlignmentReport
 }
 
@@ -199,6 +206,19 @@ export function lookupDocNode(
   return alignment.byZhName.get(docZh)
 }
 
+/** all doc shape variants for a metadata displayName (primary variant first) */
+export function lookupDocNodeVariants(
+  alignment: DocAlignment,
+  subType: string,
+  displayName: string
+): AlignedDocNode[] {
+  const docZh =
+    METADATA_ZH_TO_DOC_ZH[`${subType}:${displayName}`] ??
+    METADATA_ZH_TO_DOC_ZH[displayName] ??
+    displayName
+  return alignment.variantsByZhName.get(docZh) ?? []
+}
+
 const TYPE_TAGS: Array<[RegExp, string]> = [
   [/布尔值?列表|boolean list/gi, 'BL'],
   [/整数列表|integer list/gi, 'IL'],
@@ -227,6 +247,11 @@ const TYPE_TAGS: Array<[RegExp, string]> = [
   [/结构体?|structure/gi, 'T'],
   [/阵营|faction/gi, 'A']
 ]
+
+/** doc data_type text -> single-letter tag ('' empty, '?' unknown) */
+export function docTypeTag(dataType: string): string {
+  return typeTag(dataType)
+}
 
 function typeTag(dataType: string): string {
   let s = String(dataType ?? '').trim()
@@ -410,7 +435,9 @@ export function buildDocNameAlignment(
 
   // global aggregation; official pages carry spelling variants of the same en
   // name (casing, Query/Check drift), resolved by majority vote with client_*
-  // pages preferred, and every variant group reported for review
+  // pages preferred, and every variant group reported for review. Matches are
+  // first split by zh parameter fingerprint: some zh names describe different
+  // node shapes per graph family (e.g. 获取实体位置 entity vs selector-enum).
   const matchesByZh = new Map<string, SectionMatch[]>()
   for (const match of allMatches) {
     const list = matchesByZh.get(match.zh.name) ?? []
@@ -419,38 +446,51 @@ export function buildDocNameAlignment(
   }
 
   const byZhName = new Map<string, AlignedDocNode>()
+  const variantsByZhName = new Map<string, AlignedDocNode[]>()
   const conflicts: DocAlignmentReport['conflicts'] = []
   for (const [zhName, matches] of matchesByZh) {
-    const votes = new Map<string, { count: number; clientPage: boolean; matches: SectionMatch[] }>()
+    const byFingerprint = new Map<string, SectionMatch[]>()
     for (const m of matches) {
-      const enName = canonicalEnName(m.en.name)
-      const vote = votes.get(enName) ?? { count: 0, clientPage: false, matches: [] }
-      vote.count++
-      vote.clientPage ||= m.zh.page.startsWith('client_')
-      vote.matches.push(m)
-      votes.set(enName, vote)
+      const key = fingerprint(m.zh.params)
+      byFingerprint.set(key, [...(byFingerprint.get(key) ?? []), m])
     }
-    const ranked = [...votes.entries()].sort(
-      (a, b) =>
-        b[1].count - a[1].count ||
-        Number(b[1].clientPage) - Number(a[1].clientPage) ||
-        a[0].localeCompare(b[0])
-    )
-    const [enName, vote] = ranked[0]
-    if (ranked.length > 1) {
-      conflicts.push({ zhName, enNames: ranked.map(([n]) => n), chosen: enName })
+    const groups = [...byFingerprint.values()].sort((a, b) => b.length - a.length)
+
+    const variants: AlignedDocNode[] = []
+    for (const [groupIndex, group] of groups.entries()) {
+      const votes = new Map<string, { count: number; clientPage: boolean; matches: SectionMatch[] }>()
+      for (const m of group) {
+        const enName = canonicalEnName(m.en.name)
+        const vote = votes.get(enName) ?? { count: 0, clientPage: false, matches: [] }
+        vote.count++
+        vote.clientPage ||= m.zh.page.startsWith('client_')
+        vote.matches.push(m)
+        votes.set(enName, vote)
+      }
+      const ranked = [...votes.entries()].sort(
+        (a, b) =>
+          b[1].count - a[1].count ||
+          Number(b[1].clientPage) - Number(a[1].clientPage) ||
+          a[0].localeCompare(b[0])
+      )
+      const [enName, vote] = ranked[0]
+      if (ranked.length > 1 && groupIndex === 0) {
+        conflicts.push({ zhName, enNames: ranked.map(([n]) => n), chosen: enName })
+      }
+      const representative = vote.matches.reduce((best, m) =>
+        m.zh.functions.length > best.zh.functions.length ? m : best
+      )
+      variants.push({
+        zhName,
+        enName,
+        provenance: representative.provenance,
+        pages: group.map((m) => m.zh.page),
+        zh: representative.zh,
+        en: representative.en
+      })
     }
-    const representative = vote.matches.reduce((best, m) =>
-      m.zh.functions.length > best.zh.functions.length ? m : best
-    )
-    byZhName.set(zhName, {
-      zhName,
-      enName,
-      provenance: representative.provenance,
-      pages: matches.map((m) => m.zh.page),
-      zh: representative.zh,
-      en: representative.en
-    })
+    variantsByZhName.set(zhName, variants)
+    byZhName.set(zhName, variants[0])
   }
 
   const provenance: Record<string, number> = {}
@@ -470,5 +510,5 @@ export function buildDocNameAlignment(
     seedMisses
   }
 
-  return { byZhName, report }
+  return { byZhName, variantsByZhName, report }
 }
