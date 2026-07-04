@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import ts from 'typescript'
+
 type ClientGraphSubType =
   | 'character_skill'
   | 'creation_skill'
@@ -403,6 +405,120 @@ export const CLIENT_BLOCKED_SERVER_HELPERS = [
   )
 }
 
+// ---------------------------------------------------------------------------
+// Client method modes and execution flow metadata (Task 15)
+// ---------------------------------------------------------------------------
+
+type ServerMethodSignature = {
+  methodName: string
+  params: string[]
+  returnType: string
+  typeParams: string[]
+  docs: string
+}
+
+type ClientExecutionFlowMetadata = {
+  methodName: string
+  nodeType: string
+  subTypes: ClientGraphSubType[]
+  modes: ClientGraphMode[]
+  params: string[]
+  returnType: string
+  typeParams: string[]
+  docs: string
+  requiresLocalVariableSpecialization: boolean
+}
+
+function extractServerMethodSignatures(): Map<string, ServerMethodSignature> {
+  const filePath = 'src/definitions/nodes.ts'
+  const source = ts.createSourceFile(
+    filePath,
+    fs.readFileSync(filePath, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true
+  )
+  const result = new Map<string, ServerMethodSignature>()
+
+  const serverClass = source.statements.find(
+    (stmt): stmt is ts.ClassDeclaration =>
+      ts.isClassDeclaration(stmt) && stmt.name?.text === 'ServerExecutionFlowFunctions'
+  )
+  if (!serverClass) throw new Error('ServerExecutionFlowFunctions class not found in nodes.ts')
+
+  for (const member of serverClass.members) {
+    if (!ts.isMethodDeclaration(member) || !ts.isIdentifier(member.name)) continue
+    const methodName = member.name.text
+    if (methodName.startsWith('__')) continue
+    const jsDocs = ts.getJSDocCommentsAndTags(member)
+    const docs = jsDocs
+      .map((doc) => doc.getText())
+      .join('\n')
+      .trim()
+    const signature: ServerMethodSignature = {
+      methodName,
+      params: member.parameters.map((p) => p.getText().replace(/\s+/g, ' ')),
+      returnType: member.type ? member.type.getText().replace(/\s+/g, ' ') : 'void',
+      typeParams: (member.typeParameters ?? []).map((tp) => tp.getText().replace(/\s+/g, ' ')),
+      docs
+    }
+    // keep the first overload/implementation only
+    if (!result.has(methodName)) result.set(methodName, signature)
+  }
+  return result
+}
+
+function deriveClientExecutionFlowMetadata(
+  metadata: MetadataRecord[],
+  signatures: Map<string, ServerMethodSignature>
+): ClientExecutionFlowMetadata[] {
+  const nodeTypesBySubType = new Map<ClientGraphSubType, Set<string>>()
+  for (const record of metadata) {
+    const set = nodeTypesBySubType.get(record.subType) ?? new Set<string>()
+    nodeTypesBySubType.set(record.subType, set)
+    set.add(record.nodeType)
+  }
+
+  const entries: ClientExecutionFlowMetadata[] = []
+  for (const signature of [...signatures.values()].sort((a, b) =>
+    a.methodName.localeCompare(b.methodName)
+  )) {
+    const nodeType = camelToSnake(signature.methodName)
+    const subTypes = SUB_TYPES.filter((subType) => nodeTypesBySubType.get(subType)?.has(nodeType))
+    if (!subTypes.length) continue
+    const signatureText = [...signature.params, signature.returnType].join(' ')
+    entries.push({
+      methodName: signature.methodName,
+      nodeType,
+      subTypes,
+      // classic mode support is not proven yet; only beyond is claimed
+      modes: ['beyond'],
+      params: signature.params,
+      returnType: signature.returnType,
+      typeParams: signature.typeParams,
+      docs: signature.docs,
+      requiresLocalVariableSpecialization: /LocalVariable/i.test(signatureText)
+    })
+  }
+  return entries
+}
+
+function emitClientMethodModes(flowMetadata: ClientExecutionFlowMetadata[]) {
+  const methodsBySubType: Record<string, string[]> = {}
+  for (const subType of SUB_TYPES) methodsBySubType[subType] = []
+  for (const entry of flowMetadata) {
+    for (const subType of entry.subTypes) methodsBySubType[subType].push(entry.methodName)
+  }
+
+  write('resources/client_execution_flow_metadata.json', JSON.stringify(flowMetadata, null, 2))
+  write(
+    'src/definitions/client_method_modes.ts',
+    `${generatedHeader()}export const CLIENT_NODE_METHODS_BY_SUB_TYPE = ${jsonConst(methodsBySubType)} as const
+
+export type ClientNodeMethodBySubType = typeof CLIENT_NODE_METHODS_BY_SUB_TYPE
+`
+  )
+}
+
 function emitClientNodeMetadata(metadata: readonly unknown[]) {
   const metadataPath =
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts'
@@ -428,6 +544,9 @@ function main() {
   emitClientGraphModes(capability as ClientGraphCapability)
   emitClientNodeMetadata(metadata)
   emitClientScopedGlobals(deriveScopedGlobalsCapability(metadata as MetadataRecord[]))
+  emitClientMethodModes(
+    deriveClientExecutionFlowMetadata(metadata as MetadataRecord[], extractServerMethodSignatures())
+  )
 
   console.log('[ok] generated client nodegraph modules')
 }

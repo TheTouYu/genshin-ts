@@ -1,1 +1,1619 @@
-[]
+[
+  {
+    "methodName": "_3dVectorAddition",
+    "nodeType": "_3d_vector_addition",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector1: Vec3Value",
+      "_3dVector2: Vec3Value"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the sum of two 3D Vectors\n   *\n   * 三维向量加法: 计算两个三维向量的加法\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorAngle",
+    "nodeType": "_3d_vector_angle",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector1: Vec3Value",
+      "_3dVector2: Vec3Value"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the angle between two 3D Vectors and outputs it in radians\n   *\n   * 三维向量夹角: 计算两个三维向量之间的夹角，以弧度输出\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 夹角(弧度)\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorCrossProduct",
+    "nodeType": "_3d_vector_cross_product",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector1: Vec3Value",
+      "_3dVector2: Vec3Value"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the cross product of two 3D Vectors\n   *\n   * 三维向量外积: 计算两个三维向量的外积（叉乘）\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorDotProduct",
+    "nodeType": "_3d_vector_dot_product",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector1: Vec3Value",
+      "_3dVector2: Vec3Value"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the dot product of two input 3D Vectors\n   *\n   * 三维向量内积: 计算两个输入三维向量的内积（点乘）\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorModuloOperation",
+    "nodeType": "_3d_vector_modulo_operation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector: Vec3Value"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the magnitude of the input 3D Vector\n   *\n   * 三维向量模运算: 计算输入的三维向量的模\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorNormalization",
+    "nodeType": "_3d_vector_normalization",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector: Vec3Value"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Normalizes the length of a 3D Vector and outputs the result\n   *\n   * 三维向量归一化: 将三维向量的长度归一化后输出\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorRotation",
+    "nodeType": "_3d_vector_rotation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "rotate: Vec3Value",
+      "rotated3dVector: Vec3Value"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Rotates the input 3D Vector by the Euler Angles specified by the rotation and returns the result. Note: The Rotated 3D Vector is the one you want to rotate. The Rotated Euler Angles define how the vector should be rotated. The resulting output vector shows the position of the original 3D Vector after applying the rotation.\n   *\n   * 三维向量旋转: 将输入三维向量按旋转所表示的欧拉角进行旋转后返回结果。注意：被旋转三维向量是你希望旋转的向量；旋转欧拉角定义该向量应如何旋转；输出向量表示原三维向量应用该旋转后的结果位置\n   *\n   * @param rotate This 3D input vector represents a specific rotation in Euler angles\n   *\n   * 旋转: 该输入的三维向量指代一个特定的旋转欧拉角\n   * @param rotated3dVector\n   *\n   * 被旋转的三维向量\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorSubtraction",
+    "nodeType": "_3d_vector_subtraction",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector1: Vec3Value",
+      "_3dVector2: Vec3Value"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the difference of two 3D Vectors\n   *\n   * 三维向量减法: 计算两个三维向量的减法\n   *\n   * @param _3dVector1\n   *\n   * 三维向量1\n   * @param _3dVector2\n   *\n   * 三维向量2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "_3dVectorZoom",
+    "nodeType": "_3d_vector_zoom",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector: Vec3Value",
+      "zoomMultiplier: FloatValue"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Scales the input 3D Vector (scalar multiplication) and outputs the result\n   *\n   * 三维向量缩放: 将输入的三维向量缩放后输出（三维向量数乘）\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   * @param zoomMultiplier\n   *\n   * 缩放倍率\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "absoluteValueOperation",
+    "nodeType": "absolute_value_operation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the absolute value of the input\n   *\n   * 绝对值运算: 返回输入的绝对值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "addition",
+    "nodeType": "addition",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: FloatValue",
+      "input2: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Adds two Floating Point Numbers or Integers\n   *\n   * 加法运算: 计算两个浮点数或整数的加法\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "addUnitStatus",
+    "nodeType": "add_unit_status",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "applierEntity: EntityValue",
+      "applicationTargetEntity: EntityValue",
+      "unitStatusConfigId: ConfigIdValue",
+      "appliedStacks: IntValue",
+      "unitStatusParameterDictionary: dict<'str', 'float'>"
+    ],
+    "returnType": "{ /** * Failed, other exceptionsFailed: Yielded to another status. A yielding relationship exists between the Target's current Unit Status and the one being appliedFailed: Maximum coexistence limit reached. The specified Unit Status on the Target Entity has reached its Coexistence LimitFailed: Unable to add additional stack. Stack addition failedSuccess: New status applied. Successfully applied new Unit StatusSuccess: Slot stacking. Target already has this Unit Status, stacking applied * * 施加结果: 失败，其他异常失败，让位于其他状态：目标上已有的单位状态与尝试施加的状态之间有让位关系失败，超出并存上限：超出目标实体上的指定单位状态的并存上限失败，附加叠层未成功：叠层失败成功，施加新状态：成功附加新状态成功，槽位叠层：目标上已有该单位状态，叠层 */ applicationResult: UnitStatusAdditionResult /** * If application succeeds, returns the Unit Status Slot ID containing the instance * * 槽位序号: 如果施加成功，则返回一个该单位状态实例所在的单位状态槽位序号 */ slotId: bigint }",
+    "typeParams": [],
+    "docs": "/**\n   * Add a specified Stack Count of Unit Status to the Target Entity\n   *\n   * 添加单位状态: 向指定目标实体添加一定层数的单位状态\n   *\n   * @param applierEntity Determines the Applier Entity for this action. Defaults to the Entity associated with this Node Graph\n   *\n   * 施加者实体: 决定了该次行为的施加者实体，默认为该节点图所关联的实体\n   * @param applicationTargetEntity The Entity that actually receives this Unit Status\n   *\n   * 施加目标实体: 实际被添加该单位状态的实体\n   * @param unitStatusConfigId Identifier for this Unit Status\n   *\n   * 单位状态配置ID: 该单位状态的标识\n   * @param appliedStacks The Stack Count for this Unit Status\n   *\n   * 施加层数: 该单位状态的层数\n   * @param unitStatusParameterDictionary Can carry a set of parameters to overwrite parameters defined in the Unit Status. Currently, only parameters within shield templates can be overwritten.\n   *\n   * 单位状态参数字典: 可以携带一组参数，用于覆写单位状态中的参数，目前仅支持对护盾中护盾模板的参数覆写\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "arccosineFunction",
+    "nodeType": "arccosine_function",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the arccosine of the input and returns the value in radians\n   *\n   * 反余弦函数: 计算输入的反余弦值，返回为弧度值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 弧度\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "arcsineFunction",
+    "nodeType": "arcsine_function",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the arcsine of the input and returns the value in radians\n   *\n   * 反正弦函数: 计算输入的反正弦值，返回为弧度值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 弧度\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "arctangentFunction",
+    "nodeType": "arctangent_function",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the arctangent of the input and returns the value in radians\n   *\n   * 反正切函数: 计算输入的反正切值，返回为弧度值\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 弧度\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "assembleStructure",
+    "nodeType": "assemble_structure",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Combines multiple parameters into a single Structure-type value\n   *\n   * 拼装结构体: 将多个参数拼合为一个结构体类型的值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "assemblyDictionary",
+    "nodeType": "assembly_dictionary",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "pairs: { k: IntValue; v: FloatValue }[]"
+    ],
+    "returnType": "ReadonlyDict<'int', 'float'>",
+    "typeParams": [],
+    "docs": "/**\n   * Combines up to 50 Key-Value Pairs into one Dictionary\n   *\n   * 拼装字典: 将至多50个键值对拼合为一个字典\n   *\n   * GSTS Note: The dictionary declared by this method cannot be modified, and a node graph variable dictionary must be declared if modification is required.\n   *\n   * GSTS 注: 该方法声明的字典无法进行修改, 需要修改时必须声明节点图变量字典\n   *\n   * @returns\n   *\n   * 字典\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "assemblyList",
+    "nodeType": "assembly_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_0to99: FloatValue[]"
+    ],
+    "returnType": "number[]",
+    "typeParams": [],
+    "docs": "/**\n   * Assembles multiple Input Parameters of the same type (up to 100) into a single List\n   *\n   * 拼装列表: 将多个类型相同的入参(至多100个)拼装为一个列表\n   *\n   * @param _0to99 Assembles up to 100 parameters into a list\n   *\n   * 0~99: 将至多100个参数拼装为一个列表\n   *\n   * @returns The assembled list\n   *\n   * 列表: 拼装成的列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "breakLoop",
+    "nodeType": "break_loop",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "...loopNodeIds: IntValue[]"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Break out of a Finite Loop or List Iteration Loop. The output pin must connect to the [Break Loop] input parameter of the corresponding loop Node\n   *\n   * 跳出循环: 从有限循环或列表遍历循环中跳出。出引脚需要与对应循环节点的【跳出循环】入参相连\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "cosineFunction",
+    "nodeType": "cosine_function",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "radian: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the cosine of the input in radians\n   *\n   * 余弦函数: 计算输入弧度的余弦\n   *\n   * @param radian\n   *\n   * 弧度\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "create3dVector",
+    "nodeType": "create3d_vector",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "xComponent: FloatValue",
+      "yComponent: FloatValue",
+      "zComponent: FloatValue"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Creates a 3D Vector from x, y, and z components\n   *\n   * 创建三维向量: 根据x、y、z分量创建一个三维向量\n   *\n   * @param xComponent\n   *\n   * X分量\n   * @param yComponent\n   *\n   * Y分量\n   * @param zComponent\n   *\n   * Z分量\n   *\n   * @returns\n   *\n   * 三维向量\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "createDictionary",
+    "nodeType": "create_dictionary",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "keyList: IntValue[]",
+      "valueList: FloatValue[]"
+    ],
+    "returnType": "ReadonlyDict<'int', 'float'>",
+    "typeParams": [],
+    "docs": "/**\n   * Creates Key-Value Pairs sequentially from the input key and value lists; This node builds the Dictionary using the shorter of the key and value lists; extra items are truncated; If duplicate keys are found in the key list, creation fails and returns an empty Dictionary\n   *\n   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典\n   *\n   * GSTS Note: The dictionary declared by this method cannot be modified, and a node graph variable dictionary must be declared if modification is required.\n   *\n   * GSTS 注: 该方法声明的字典无法进行修改, 需要修改时必须声明节点图变量字典\n   *\n   * @param keyList\n   *\n   * 键列表\n   * @param valueList\n   *\n   * 值列表\n   *\n   * @returns\n   *\n   * 字典\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "dataTypeConversion",
+    "nodeType": "data_type_conversion",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input: RuntimeParameterValueTypeMap[T]",
+      "type: U"
+    ],
+    "returnType": "RuntimeReturnValueTypeMap[U]",
+    "typeParams": [
+      "T extends keyof DataTypeConversionMap",
+      "U extends DataTypeConversionMap[T]"
+    ],
+    "docs": "/**\n   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]. Floating point numbers are rounded to integers when converted\n   *\n   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】。浮点数转换为整数时会进行四舍五入\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 输出\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "degreesToRadians",
+    "nodeType": "degrees_to_radians",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "angleValue: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Converts degrees to radians\n   *\n   * 角度转弧度: 将角度值转为弧度值\n   *\n   * @param angleValue\n   *\n   * 角度值\n   *\n   * @returns\n   *\n   * 弧度值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "directionVectorToRotation",
+    "nodeType": "direction_vector_to_rotation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "forwardVector: Vec3Value",
+      "upwardVector: Vec3Value"
+    ],
+    "returnType": "vec3",
+    "typeParams": [],
+    "docs": "/**\n   * Converts the Forward Vector and Upward Vector to Euler Angles. Example: For a Character, suppose it has an initial orientation in 3D space. To rotate the character to a desired orientation: The Forward Vector indicates the direction we want the Character's nose to face. The Upward Vector indicates the direction we want the Character's head to point. Output: A 3D Euler rotation vector representing the rotation the Character must undergo to move from its initial orientation to the specified target orientation. Note: Ensure the Forward and Upward Vectors are normalized. Using non-normalized vectors can produce unintended scaling and inaccurate rotation results.\n   *\n   * 方向向量转旋转: 将向前向量和向上向量转换为欧拉角。例如角色在三维空间中有初始朝向，要旋转到目标朝向时，向前向量表示希望角色面朝的方向，向上向量表示希望角色头顶指向的方向。输出为角色从初始朝向旋转到目标朝向所需的三维欧拉角。注意：请确保向前向量和向上向量已归一化，未归一化向量可能导致非预期缩放和不准确的旋转结果\n   *\n   * @param forwardVector Represents the desired Orientation of the Unit\n   *\n   * 向前向量: 表示单位期望的朝向\n   * @param upwardVector Defines the Unit's Up direction (used to determine the rotation angle). Default is the positive Y-axis of the World Coordinate System\n   *\n   * 向上向量: 定义单位的上方向（用于确定旋转的旋转角度），默认值为世界坐标系Y轴正方向\n   *\n   * @returns\n   *\n   * 旋转\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "division",
+    "nodeType": "division",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: FloatValue",
+      "input2: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Performs division, supporting Floating Point division and Integer division. Integer division returns the quotient result; The divisor should not be 0, otherwise it may return an illegal value\n   *\n   * 除法运算: 除法运算，支持浮点数除法和整数除法。整数除法返回整除结果; 除数不应为0，否则可能返回非法值\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "doubleBranch",
+    "nodeType": "double_branch",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "condition: BoolValue",
+      "trueBranch: () => void",
+      "falseBranch: () => void"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Branches into True or False based on the evaluated condition; When the Boolean is True, the [True] execution flow runs; when it is False, the [False] execution flow runs\n   *\n   * 双分支: 根据输入条件的判断结果可以分出“是”与“否”两个不同的分支; 当布尔值为“是”时，后续会执行【是】对应的执行流；布尔值为“否”时，会执行【否】对应的执行流\n   *\n   * @param condition\n   *\n   * 条件\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "equal",
+    "nodeType": "equal",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: FloatValue",
+      "input2: FloatValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Determines whether two inputs are equal; Some Parameter Types have special comparison rules:; Floating Point Numbers: Floating Point Numbers are compared using approximate equality. When the difference between two Floating Point Numbers is less than an extremely small value, the two numbers are considered equal. For example: 2.0000001 and 2.0 are considered equal; 3D Vector: The x, y, and z components of a 3D Vector are compared using Floating Point approximate equality\n   *\n   * 是否相等: 判断两个输入是否相等; 部分参数类型有较为特殊的判定规则：; 浮点数：浮点数采用近似相等进行比较，当两个浮点数小于一个极小值时，这两个浮点数认为相等。例如：2.0000001与2.0认为相等; 三维向量：三维向量的x、y、z分别采用浮点数近似相等比较\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns Output True if equal, False if not equal\n   *\n   * 结果: 相等输出“是”，不相等输出“否”\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "finiteLoop",
+    "nodeType": "finite_loop",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "loopStartValue: IntValue",
+      "loopEndValue: IntValue",
+      "loopBody: (loopValue: bigint, breakLoop: () => void) => void"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * From the [Loop Start Value] to the [Loop End Value], the loop iterates, incrementing the Integer by 1 each time. On each iteration, it executes the Nodes connected to [Loop Body]. After a full iteration, it executes the Nodes connected to [Loop Complete].; Use [Break Loop] to end the iteration early. After exiting the loop, the logic connected to the [Loop Complete] node will also be executed.\n   *\n   * 有限循环: 从【循环起始值】开始到【循环终止值】结束，会遍历其中的循环值，每次整数加一。每次循环会执行一次【循环体】后连接的节点逻辑。完成一次完整遍历后，会执行【循环完成】后连接的节点逻辑; 可以使用【跳出循环】来提前结束该循环值遍历，跳出循环后也会执行【循环完成】后连接的节点逻辑\n   *\n   * @param loopStartValue Starting integer value for iteration. The loop includes this value\n   *\n   * 循环起始值: 遍历开始的整数值，循环包含该值\n   * @param loopEndValue Integer value at which the iteration ends. The loop includes this value\n   *\n   * 循环终止值: 遍历结束的整数值，循环包含该值\n   *\n   * @returns Integer value of the current execution logic\n   *\n   * 当前循环值: 当次执行逻辑的整数值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getAllEntitiesWithinTheCollisionTrigger",
+    "nodeType": "get_all_entities_within_the_collision_trigger",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue",
+      "triggerId: IntValue"
+    ],
+    "returnType": "entity[]",
+    "typeParams": [],
+    "docs": "/**\n   * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity\n   *\n   * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param triggerId\n   *\n   * 触发器序号\n   *\n   * @returns\n   *\n   * 实体列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getCorrespondingValueFromList",
+    "nodeType": "get_corresponding_value_from_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "list: FloatValue[]",
+      "id: IntValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the value at the specified ID in the list (0-based)\n   *\n   * 获取列表对应值: 返回列表中指定序号对应的值，序号从0开始\n   *\n   * @param list\n   *\n   * 列表\n   * @param id\n   *\n   * 序号\n   *\n   * @returns\n   *\n   * 值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getCreationSCurrentTarget",
+    "nodeType": "get_creation_s_current_target",
+    "subTypes": [
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "creationEntity: CreationEntity"
+    ],
+    "returnType": "entity",
+    "typeParams": [],
+    "docs": "/**\n   * The Target Entity varies with the Creation's current behavior; For example, when a Creation is attacking, its Target is the specified enemy Entity; For example, when a Creation is healing allies, its Target is the specified allied Entity\n   *\n   * 获取造物当前目标: 根据造物当前行为的不同，目标实体也不尽相同。; 例如当造物在攻击敌方时，造物的目标为敌方指定实体。; 例如当造物在对友方进行治疗时，造物的目标为友方指定实体。\n   *\n   * @param creationEntity Runtime Creation Entity\n   *\n   * 造物实体: 运行时的造物实体\n   *\n   * @returns Current intelligently selected Target Entity of the Creation\n   *\n   * 目标实体: 造物当前的智能选取目标实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getCustomVariable",
+    "nodeType": "get_custom_variable",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue",
+      "variableName: StrValue"
+    ],
+    "returnType": "generic",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value\n   *\n   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param variableName\n   *\n   * 变量名\n   *\n   * @returns\n   *\n   * 变量值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getEntityListByUnitTag",
+    "nodeType": "get_entity_list_by_unit_tag",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "unitTagIndex: IntValue"
+    ],
+    "returnType": "entity[]",
+    "typeParams": [],
+    "docs": "/**\n   * Returns a list of all Entities in the scene that carry this Unit Tag\n   *\n   * 获取单位标签的实体列表: 获取在场所有携带该单位标签的实体列表\n   *\n   * @param unitTagIndex\n   *\n   * 单位标签索引\n   *\n   * @returns\n   *\n   * 实体列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getListLength",
+    "nodeType": "get_list_length",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "list: FloatValue[]"
+    ],
+    "returnType": "bigint",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the length of the list (number of elements)\n   *\n   * 获取列表长度: 获取列表长度（列表中的元素个数）\n   *\n   * @param list\n   *\n   * 列表\n   *\n   * @returns\n   *\n   * 长度\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getListOfKeysFromDictionary",
+    "nodeType": "get_list_of_keys_from_dictionary",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "dictionary: dict<K, V>"
+    ],
+    "returnType": "RuntimeReturnValueTypeMap[`${K}_list`]",
+    "typeParams": [
+      "K extends DictKeyType",
+      "V extends DictValueType"
+    ],
+    "docs": "/**\n   * Returns a list of all Keys in the Dictionary. Because Key-Value Pairs are unordered, the Keys may not be returned in insertion order\n   *\n   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列\n   *\n   * @param dictionary\n   *\n   * 字典\n   *\n   * @returns\n   *\n   * 键列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getListOfPlayerEntitiesOnTheField",
+    "nodeType": "get_list_of_player_entities_on_the_field",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [],
+    "returnType": "PlayerEntity[]",
+    "typeParams": [],
+    "docs": "/**\n   * Returns a list of all Player Entities present in the scene\n   *\n   * 获取在场玩家实体列表: 获取在场所有玩家实体组成的列表\n   *\n   * @returns\n   *\n   * 玩家实体列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getListOfValuesFromDictionary",
+    "nodeType": "get_list_of_values_from_dictionary",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "dictionary: dict<K, V>"
+    ],
+    "returnType": "RuntimeReturnValueTypeMap[`${V}_list`]",
+    "typeParams": [
+      "K extends DictKeyType",
+      "V extends keyof CommonLiteralValueTypeMap"
+    ],
+    "docs": "/**\n   * Returns a list of all Values in the Dictionary. Because Key-Value Pairs are unordered, the Values may not be returned in insertion order\n   *\n   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列\n   *\n   * @param dictionary\n   *\n   * 字典\n   *\n   * @returns\n   *\n   * 值列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getLocalVariable",
+    "nodeType": "get_local_variable",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "initialValue: FloatValue"
+    ],
+    "returnType": "{ localVariable: localVariable; value: number }",
+    "typeParams": [],
+    "docs": "/**\n   * Retrieves a Local Variable and optionally sets its [Initial Value]; After setting the [Initial Value], the [Value] output parameter will be equal to the input [Initial Value]; When the output [Local Variable] is connected to the [Set Local Variable] Execution Node's input [Local Variable], the input [Value] of [Set Local Variable] overwrites this Search Node's output [Value]. The next time you use [Get Local Variable], the output [Value] is the overwritten value\n   *\n   * 获取局部变量: 可以获取局部变量，也可以设置该局部变量的【初始值】; 设置【初始值】以后，出参的【值】输出即为输入的【初始值】; 当出参【局部变量】与执行节点【设置局部变量】的入参【局部变量】连接后，执行节点【设置局部变量】的入参【值】会覆写该查询节点的出参【值】，再次使用【获取局部变量】节点时，出参【值】为覆写后的值\n   *\n   * @param initialValue Allows you to set the default initial value for local variables\n   *\n   * 初始值: 可以设置局部变量的初始默认值\n   */",
+    "requiresLocalVariableSpecialization": true
+  },
+  {
+    "methodName": "getMaximumValueFromList",
+    "nodeType": "get_maximum_value_from_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "list: FloatValue[]"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Applies only to Floating Point Number or Integer lists; returns the maximum value\n   *\n   * 获取列表最大值: 仅对浮点数列表和整数列表有意义，返回列表中的最大值\n   *\n   * @param list\n   *\n   * 列表\n   *\n   * @returns\n   *\n   * 最大值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getMinimumValueFromList",
+    "nodeType": "get_minimum_value_from_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "list: FloatValue[]"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Applies only to Floating Point Number or Integer lists; returns the minimum value\n   *\n   * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值\n   *\n   * @param list\n   *\n   * 列表\n   *\n   * @returns\n   *\n   * 最小值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getPlayerClientInputDeviceType",
+    "nodeType": "get_player_client_input_device_type",
+    "subTypes": [
+      "character_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "playerEntity: PlayerEntity"
+    ],
+    "returnType": "InputDeviceType",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the Player's local input device type, as determined by the Interface mapping method\n   *\n   * 获得玩家客户端输入设备类型: 获得玩家的客户端输入设备类型，根据用户界面的映射方式决定\n   *\n   * @param playerEntity\n   *\n   * 玩家实体\n   *\n   * @returns Includes keyboard/mouse, gamepad, touchscreen\n   *\n   * 输入设备类型: 分为键盘鼠标、手柄、触屏\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getPlayerEntityToWhichTheCharacterBelongs",
+    "nodeType": "get_player_entity_to_which_the_character_belongs",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "characterEntity: CharacterEntity"
+    ],
+    "returnType": "PlayerEntity",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the Player Entity that owns the Character Entity\n   *\n   * 获取角色归属的玩家实体: 获取角色实体所归属的玩家实体\n   *\n   * @param characterEntity\n   *\n   * 角色实体\n   *\n   * @returns\n   *\n   * 所属玩家实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getPresetStatus",
+    "nodeType": "get_preset_status",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue",
+      "presetStatusIndex: IntValue"
+    ],
+    "returnType": "bigint",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the value of the specified Preset Status for the Target Entity. Returns 0 if the Entity does not have that Preset Status\n   *\n   * 获取预设状态: 获取目标实体的指定预设状态的预设状态值。如果该实体没有指定的预设状态，则返回0\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param presetStatusIndex\n   *\n   * 预设状态索引\n   *\n   * @returns\n   *\n   * 预设状态值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getSelfEntity",
+    "nodeType": "get_self_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [],
+    "returnType": "entity",
+    "typeParams": [],
+    "docs": "/**\n   * Returns the Entity associated with this Node Graph\n   *\n   * 获取自身实体: 返回该节点图所关联的实体\n   *\n   * @returns\n   *\n   * 自身实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getTheAggroListOfTheSpecifiedEntity",
+    "nodeType": "get_the_aggro_list_of_the_specified_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue"
+    ],
+    "returnType": "entity[]",
+    "typeParams": [],
+    "docs": "/**\n   * Get Specific Entity's Aggro List\n   *\n   * 获取指定实体的仇恨列表: 获取指定实体的仇恨列表\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   *\n   * @returns\n   *\n   * 仇恨列表\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "getTheAggroTargetOfTheSpecifiedEntity",
+    "nodeType": "get_the_aggro_target_of_the_specified_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "aggroOwner: EntityValue"
+    ],
+    "returnType": "entity",
+    "typeParams": [],
+    "docs": "/**\n   * Get Aggro Target of Specific Entity\n   *\n   * 获取指定实体的仇恨目标: 获取指定实体的仇恨目标\n   *\n   * @param aggroOwner\n   *\n   * 仇恨拥有者\n   *\n   * @returns\n   *\n   * 仇恨目标\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "listIncludesThisValue",
+    "nodeType": "list_includes_this_value",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "list: FloatValue[]",
+      "value: FloatValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Returns whether the list contains the specified value\n   *\n   * 列表是否包含该值: 返回列表中是否包含指定值\n   *\n   * @param list\n   *\n   * 列表\n   * @param value\n   *\n   * 值\n   *\n   * @returns\n   *\n   * 是否包含\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "logicalAndOperation",
+    "nodeType": "logical_and_operation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: BoolValue",
+      "input2: BoolValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Performs a logical AND operation on the two input Boolean values and returns the result\n   *\n   * 逻辑与运算: 对输入的两个布尔值进行与运算后输出\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "logicalNotOperation",
+    "nodeType": "logical_not_operation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input: BoolValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Performs a logical NOT operation on the input Boolean value and returns the result\n   *\n   * 逻辑非运算: 对输入的布尔值进行非运算后输出\n   *\n   * @param input\n   *\n   * 输入\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "logicalOrOperation",
+    "nodeType": "logical_or_operation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: BoolValue",
+      "input2: BoolValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Performs a logical OR operation on the two input Boolean values and returns the result\n   *\n   * 逻辑或运算: 对输入的两个布尔值进行或运算后输出\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "logicalXorOperation",
+    "nodeType": "logical_xor_operation",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: BoolValue",
+      "input2: BoolValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Performs a logical XOR operation on the two input Boolean values and returns the result\n   *\n   * 逻辑异或运算: 对输入的两个布尔值进行异或运算后输出\n   *\n   * @param input1\n   *\n   * 输入1\n   * @param input2\n   *\n   * 输入2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "multipleBranches",
+    "nodeType": "multiple_branches",
+    "subTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "controlExpression: IntValue",
+      "branches: Record<number, (() => void) | number> & { default?: (() => void) | number }"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Accepts one input parameter as the control expression (supports Integer or String). Branches into multiple paths based on its value; When the value on an Output Pin equals the control expression, execution continues along that Output Pin. If no pin matches, the [Default] pin is taken\n   *\n   * 多分支: 接受一个输入参数作为控制表达式(支持整数或字符串)，根据控制表达式的值可以分出多个不同的分支; 当出引脚上的值与控制表达式的值相等时，会沿该出引脚向后执行逻辑。如果没有找到匹配的引脚，则会走【默认】引脚\n   *\n   * @param controlExpression Only supports Integers or Strings\n   *\n   * 控制表达式: 仅支持整数或字符串\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "multiplication",
+    "nodeType": "multiplication",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: FloatValue",
+      "input2: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Performs multiplication, supporting Floating Point and Integer multiplication\n   *\n   * 乘法运算: 乘法运算，支持浮点数乘法和整数乘法\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "playTimedEffects",
+    "nodeType": "play_timed_effects",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "specialEffectsAsset: ConfigIdValue",
+      "targetEntity: EntityValue",
+      "attachmentPointName: StrValue",
+      "moveWithTheTarget: BoolValue",
+      "rotateWithTheTarget: BoolValue",
+      "locationOffset: Vec3Value",
+      "rotationOffset: Vec3Value",
+      "zoomMultiplier: FloatValue",
+      "playBuiltInSoundEffect: BoolValue"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Play a Timed Effect relative to the Target Entity. A valid Target Entity and Attachment Point are required\n   *\n   * 播放限时特效: 以目标实体为基准，播放一个限时特效。需要有合法的目标实体以及挂接点\n   *\n   * @param specialEffectsAsset Identifier for this Effect\n   *\n   * 特效资产: 该特效的标识\n   * @param targetEntity If the Entity does not exist, the Effect will not play\n   *\n   * 目标实体: 实体不存在会导致特效无法播放\n   * @param attachmentPointName If the Attachment Point Name does not exist, the Special Effect will not play\n   *\n   * 挂接点名称: 挂接点名称不存在会导致特效无法播放\n   * @param moveWithTheTarget If set to True, follows the Target Entity's Motion\n   *\n   * 是否跟随目标运动: “是”会跟随目标实体运动\n   * @param rotateWithTheTarget If set to True, follows the Target Entity's Rotation\n   *\n   * 是否跟随目标旋转: “是”会跟随目标实体旋转\n   * @param locationOffset Location Offset relative to the Target Entity's specified Attachment Point\n   *\n   * 位置偏移: 相对于目标实体指定挂接点的位置偏移\n   * @param rotationOffset Rotation offset relative to the Target Entity's specified Attachment Point\n   *\n   * 旋转偏移: 相对于目标实体指定挂接点的旋转偏移\n   * @param zoomMultiplier The Zoom Multiplier of this Effect\n   *\n   * 缩放倍率: 该特效的缩放倍率\n   * @param playBuiltInSoundEffect If set to True, plays the built-in Sound Effect as well\n   *\n   * 是否播放自带的音效: “是”则会同时播放自带的音效\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryDictionarySLength",
+    "nodeType": "query_dictionary_s_length",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "dictionary: dict<K, V>"
+    ],
+    "returnType": "bigint",
+    "typeParams": [
+      "K extends DictKeyType",
+      "V extends DictValueType"
+    ],
+    "docs": "/**\n   * Searches the number of Key-Value Pairs in the Dictionary\n   *\n   * 查询字典长度: 查询字典中键值对的数量\n   *\n   * @param dictionary\n   *\n   * 字典\n   *\n   * @returns\n   *\n   * 长度\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryDictionaryValueByKey",
+    "nodeType": "query_dictionary_value_by_key",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "dictionary: dict<K, V>",
+      "key: RuntimeParameterValueTypeMap[K]"
+    ],
+    "returnType": "RuntimeReturnValueTypeMap[V]",
+    "typeParams": [
+      "K extends DictKeyType",
+      "V extends DictValueType"
+    ],
+    "docs": "/**\n   * Searches the corresponding Value in the Dictionary by Key. If the Key does not exist, returns the type's default value\n   *\n   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值\n   *\n   * @param dictionary\n   *\n   * 字典\n   * @param key\n   *\n   * 键\n   *\n   * @returns\n   *\n   * 值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryEntityByGuid",
+    "nodeType": "query_entity_by_guid",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "guid: GuidValue"
+    ],
+    "returnType": "entity",
+    "typeParams": [],
+    "docs": "/**\n   * Searches for an Entity by GUID\n   *\n   * 以GUID查询实体: 根据GUID查询实体\n   *\n   * @param guid\n   *\n   * GUID\n   *\n   * @returns\n   *\n   * 实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryEntityFaction",
+    "nodeType": "query_entity_faction",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue"
+    ],
+    "returnType": "faction",
+    "typeParams": [],
+    "docs": "/**\n   * Searches the Faction of the specified Entity\n   *\n   * 查询实体阵营: 查询指定实体的阵营\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   *\n   * @returns\n   *\n   * 阵营\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryGuidByEntity",
+    "nodeType": "query_guid_by_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "entity: EntityValue"
+    ],
+    "returnType": "guid",
+    "typeParams": [],
+    "docs": "/**\n   * Searches for the GUID of the specified Entity\n   *\n   * 以实体查询GUID: 查询指定实体的GUID\n   *\n   * @param entity\n   *\n   * 实体\n   *\n   * @returns\n   *\n   * GUID\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryIfDictionaryContainsSpecificKey",
+    "nodeType": "query_if_dictionary_contains_specific_key",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "dictionary: dict<K, V>",
+      "key: RuntimeParameterValueTypeMap[K]"
+    ],
+    "returnType": "boolean",
+    "typeParams": [
+      "K extends DictKeyType",
+      "V extends DictValueType"
+    ],
+    "docs": "/**\n   * Searches whether the specified Dictionary contains the specified Key\n   *\n   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键\n   *\n   * @param dictionary\n   *\n   * 字典\n   * @param key\n   *\n   * 键\n   *\n   * @returns\n   *\n   * 是否包含\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryIfDictionaryContainsSpecificValue",
+    "nodeType": "query_if_dictionary_contains_specific_value",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "dictionary: dict<K, V>",
+      "value: RuntimeParameterValueTypeMap[V]"
+    ],
+    "returnType": "boolean",
+    "typeParams": [
+      "K extends DictKeyType",
+      "V extends keyof CommonLiteralValueTypeMap"
+    ],
+    "docs": "/**\n   * Searches whether the specified Dictionary contains the specified Value\n   *\n   * 查询字典是否包含特定值: 查询指定字典是否包含特定的值\n   *\n   * @param dictionary\n   *\n   * 字典\n   * @param value\n   *\n   * 值\n   *\n   * @returns\n   *\n   * 是否包含\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryIfEntityIsOnTheField",
+    "nodeType": "query_if_entity_is_on_the_field",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Searches whether the specified Entity is present; Note that Character Entities are still considered present even when Downed\n   *\n   * 查询实体是否在场: 查询指定实体是否在场; 注意角色实体即使处于倒下状态，仍然认为在场\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   *\n   * @returns\n   *\n   * 是否在场\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "queryIfFactionIsHostile",
+    "nodeType": "query_if_faction_is_hostile",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "faction1: FactionValue",
+      "faction2: FactionValue"
+    ],
+    "returnType": "boolean",
+    "typeParams": [],
+    "docs": "/**\n   * Searches whether two Factions are hostile to each other\n   *\n   * 查询阵营是否敌对: 查询两个阵营是否敌对\n   *\n   * @param faction1\n   *\n   * 阵营1\n   * @param faction2\n   *\n   * 阵营2\n   *\n   * @returns\n   *\n   * 是否敌对\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "radiansToDegrees",
+    "nodeType": "radians_to_degrees",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "radianValue: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Converts radians to degrees\n   *\n   * 弧度转角度: 将弧度值转为角度值\n   *\n   * @param radianValue\n   *\n   * 弧度值\n   *\n   * @returns\n   *\n   * 角度值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "removeTargetEntityFromAggroList",
+    "nodeType": "remove_target_entity_from_aggro_list",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue",
+      "aggroOwnerEntity: EntityValue"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Available only in Custom Aggro Mode; Remove the Target Entity from the Aggro Owner's Aggro List; this may cause the target to leave battle\n   *\n   * 将目标实体移除出仇恨列表: 仅自定义仇恨模式可用; 将目标实体从仇恨拥有者的仇恨列表中移除，可能会导致目标实体脱战\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param aggroOwnerEntity\n   *\n   * 仇恨拥有者实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "removeUnitStatus",
+    "nodeType": "remove_unit_status",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "removeTargetEntity: EntityValue",
+      "unitStatusConfigId: ConfigIdValue",
+      "removalMethod: RemovalMethod",
+      "removerEntity: EntityValue"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Remove a specified Unit Status from the Target Entity. Either all stacks or a single stack can be removed\n   *\n   * 移除单位状态: 从目标实体上移除指定单位状态。可以选择全部移除，或移除其中一层\n   *\n   * @param removeTargetEntity The Entity from which the Unit Status will be removed\n   *\n   * 移除目标实体: 被移除该单位状态的实体\n   * @param unitStatusConfigId Identifier for this Unit Status\n   *\n   * 单位状态配置ID: 该单位状态的标识\n   * @param removalMethod All Coexisting Statuses with the Same Name: Removes all statuses applied with this Config ID that share the same nameStatus With Fastest Stack Loss: Removes one stack from the status that loses stacks the fastest\n   *\n   * 移除方式: 所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态\n   * @param removerEntity Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph\n   *\n   * 移除者实体: 决定了该次行为的移除者实体，默认为该节点图所关联的实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "setLocalVariable",
+    "nodeType": "set_local_variable",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "localVariable: LocalVariableValue",
+      "value: RuntimeParameterValueTypeMap[T]"
+    ],
+    "returnType": "void",
+    "typeParams": [
+      "T extends | 'bool' | 'config_id' | 'entity' | 'faction' | 'float' | 'guid' | 'int' | 'prefab_id' | 'str' | 'vec3' | 'bool_list' | 'config_id_list' | 'entity_list' | 'faction_list' | 'float_list' | 'guid_list' | 'int_list' | 'prefab_id_list' | 'str_list' | 'vec3_list'"
+    ],
+    "docs": "/**\n   * When connected to the Query Node [Get Local Variable], this overwrites the value of that Local Variable\n   *\n   * 设置局部变量: 与查询节点【获取局部变量】连接后可以覆写该局部变量的值\n   *\n   * @param localVariable Container for data storage\n   *\n   * 局部变量: 存储数据的载体\n   * @param value Value used to overwrite this local variable\n   *\n   * 值: 所要覆写该局部变量的值\n   */",
+    "requiresLocalVariableSpecialization": true
+  },
+  {
+    "methodName": "setTheAggroValueOfSpecifiedEntity",
+    "nodeType": "set_the_aggro_value_of_specified_entity",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "targetEntity: EntityValue",
+      "aggroOwnerEntity: EntityValue",
+      "aggroValue: IntValue"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Available only in Custom Aggro Mode; Set the Aggro Value of the specified Target Entity on the specified Aggro Owner\n   *\n   * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定目标实体在指定仇恨拥有者上的仇恨值\n   *\n   * @param targetEntity\n   *\n   * 目标实体\n   * @param aggroOwnerEntity\n   *\n   * 仇恨拥有者实体\n   * @param aggroValue\n   *\n   * 仇恨值\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "sineFunction",
+    "nodeType": "sine_function",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "radian: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the sine of the input in radians\n   *\n   * 正弦函数: 计算输入弧度的正弦\n   *\n   * @param radian\n   *\n   * 弧度\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "split3dVector",
+    "nodeType": "split3d_vector",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "_3dVector: Vec3Value"
+    ],
+    "returnType": "{ /** * * X分量 */ xComponent: number /** * * Y分量 */ yComponent: number /** * * Z分量 */ zComponent: number }",
+    "typeParams": [],
+    "docs": "/**\n   * Outputs the x, y, and z components of a 3D Vector as three Floating Point Numbers\n   *\n   * 拆分三维向量: 将三维向量的x、y、z分量输出为三个浮点数\n   *\n   * @param _3dVector\n   *\n   * 三维向量\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "splitStructure",
+    "nodeType": "split_structure",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Returns all parameters of the specified Structure\n   *\n   * 拆分结构体: 获取指定结构体的所有参数\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "subtraction",
+    "nodeType": "subtraction",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "input1: FloatValue",
+      "input2: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Subtracts two Floating Point Numbers or Integers\n   *\n   * 减法运算: 计算两个浮点数或整数的减法\n   *\n   * @param input1\n   * @param input2\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "tangentFunction",
+    "nodeType": "tangent_function",
+    "subTypes": [
+      "character_skill",
+      "creation_skill",
+      "creation_status",
+      "creation_status_decision",
+      "bool_filter",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "radian: FloatValue"
+    ],
+    "returnType": "number",
+    "typeParams": [],
+    "docs": "/**\n   * Calculates the tangent of the input in radians\n   *\n   * 正切函数: 计算输入弧度的正切\n   *\n   * @param radian\n   *\n   * 弧度\n   *\n   * @returns\n   *\n   * 结果\n   */",
+    "requiresLocalVariableSpecialization": false
+  },
+  {
+    "methodName": "tauntTarget",
+    "nodeType": "taunt_target",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "params": [
+      "taunterEntity: EntityValue",
+      "targetEntity: EntityValue"
+    ],
+    "returnType": "void",
+    "typeParams": [],
+    "docs": "/**\n   * Available only in Custom Aggro Mode; Make the Taunter Entity taunt the specified Target Entity\n   *\n   * 嘲讽目标: 仅自定义仇恨模式可用; 使嘲讽者实体嘲讽指定目标实体\n   *\n   * @param taunterEntity\n   *\n   * 嘲讽者实体\n   * @param targetEntity\n   *\n   * 目标实体\n   */",
+    "requiresLocalVariableSpecialization": false
+  }
+]
