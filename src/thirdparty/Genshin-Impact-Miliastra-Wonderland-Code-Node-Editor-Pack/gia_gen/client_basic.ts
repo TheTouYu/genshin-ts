@@ -46,23 +46,128 @@ export function client_graph_body(body: {
   return root
 }
 
-function emptyClientValue(pin: ClientPinMetadata): VarBase {
+// ---------------------------------------------------------------------------
+// Client literal value encoding
+//
+// All shapes below are proven by tests/client_generated/_value_shapes.json,
+// extracted from vendor samples. Scalars use their VarBase_Class directly;
+// lists are ArrayBase with client item types (only empty lists observed);
+// entity pins never carry literal values in any sample.
+// ---------------------------------------------------------------------------
+
+/** VarBase_Class per ClientVarType, used for typed-but-unset pin values */
+const SCALAR_CLASS_BY_CLIENT_TYPE: Record<number, number> = {
+  3: VarBase_Class.IntBase, // int
+  7: VarBase_Class.FloatBase, // float
+  9: VarBase_Class.StringBase, // str
+  5: VarBase_Class.EnumBase, // bool (encoded as EnumBase 0/1)
+  13: VarBase_Class.EnumBase, // enum
+  11: VarBase_Class.VectorBase, // vec3
+  14: VarBase_Class.IdBase, // guid
+  16: VarBase_Class.IdBase, // faction
+  18: VarBase_Class.IdBase, // config_id
+  19: VarBase_Class.IdBase // prefab_id
+}
+
+/**
+ * Types with sample-proven literal payloads (alreadySetVal=true plus a b* value
+ * field observed in _value_shapes.json). config_id/prefab_id pins appear in
+ * samples but never with an actual literal payload, so they are excluded.
+ */
+const LITERAL_PROVEN_CLIENT_TYPES = new Set([3, 5, 7, 9, 11, 13, 14, 16])
+
+/** list client types with observed (empty) ArrayBase literal shapes */
+const LIST_CLIENT_TYPES = new Set([2, 4, 6, 8, 12, 15, 20, 25])
+
+/** client types whose pins exist but never carry literal values in samples */
+const NEVER_LITERAL_CLIENT_TYPES = new Set([1]) // entity
+
+function client_item_type(clientVarType: number) {
+  return {
+    classBase: VarBase_ItemType_ClassBase.Client,
+    type_client: { type: clientVarType }
+  }
+}
+
+/** typed-but-unset pin value, matching sample pins with alreadySetVal=false */
+export function client_value_base(clientVarType: number): VarBase {
+  const scalarClass = SCALAR_CLASS_BY_CLIENT_TYPE[clientVarType]
+  const cls = scalarClass ?? (LIST_CLIENT_TYPES.has(clientVarType) ? VarBase_Class.ArrayBase : 0)
+  const value: VarBase = {
+    class: cls,
+    alreadySetVal: false,
+    itemType: client_item_type(clientVarType)
+  }
+  if (cls === VarBase_Class.ArrayBase) {
+    value.bArray = { entries: [] }
+  }
+  return value
+}
+
+/** literal pin value with alreadySetVal=true, per proven sample shapes */
+export function client_literal_value(clientVarType: number, literal: unknown): VarBase {
+  const scalarClass = LITERAL_PROVEN_CLIENT_TYPES.has(clientVarType)
+    ? SCALAR_CLASS_BY_CLIENT_TYPE[clientVarType]
+    : undefined
+  if (scalarClass !== undefined) {
+    const value: VarBase = {
+      class: scalarClass,
+      alreadySetVal: true,
+      itemType: client_item_type(clientVarType)
+    }
+    switch (scalarClass) {
+      case VarBase_Class.IntBase:
+        value.bInt = { val: Number(literal) }
+        break
+      case VarBase_Class.FloatBase:
+        value.bFloat = { val: Number(literal) }
+        break
+      case VarBase_Class.StringBase:
+        value.bString = { val: String(literal) }
+        break
+      case VarBase_Class.EnumBase:
+        value.bEnum = { val: typeof literal === 'boolean' ? (literal ? 1 : 0) : Number(literal) }
+        break
+      case VarBase_Class.VectorBase: {
+        const [x, y, z] = literal as [number, number, number]
+        value.bVector = { val: { x, y, z } }
+        break
+      }
+      case VarBase_Class.IdBase:
+        value.bId = { val: Number(literal) }
+        break
+    }
+    return value
+  }
+  // List pins only appear with alreadySetVal=false placeholders in samples,
+  // so list literals (and dict/entity/other types) have no proven encoding.
+  throw new Error(
+    `[CLIENT_VALUE_TYPE_UNAVAILABLE] literal encoding for client type ${clientVarType} has no sample evidence`
+  )
+}
+
+/** ConcreteBase wrapper observed on reflective pins */
+export function client_wrapped_value(indexOfConcrete: number, inner: VarBase): VarBase {
+  return {
+    class: VarBase_Class.ConcreteBase,
+    alreadySetVal: true,
+    bConcreteValue: {
+      indexOfConcrete: indexOfConcrete === 0 ? undefined : indexOfConcrete,
+      value: inner
+    }
+  }
+}
+
+/** unresolved reflective pin placeholder (indexOfConcrete = -1) */
+export function client_unresolved_reflective_value(): VarBase {
   return {
     class: VarBase_Class.ConcreteBase,
     alreadySetVal: false,
-    itemType: {
-      classBase: VarBase_ItemType_ClassBase.Client,
-      type_client: {
-        type: pin.clientVarType ?? 0
-      }
-    },
-    bConcreteValue: {
-      value: {}
-    }
-  } as VarBase
+    bConcreteValue: { indexOfConcrete: -1, value: {} }
+  }
 }
 
-export function client_pin_body(pin: ClientPinMetadata): NodePin {
+export function client_pin_body(pin: ClientPinMetadata, literal?: unknown): NodePin {
   const kind =
     pin.kind === 'input'
       ? NodePin_Index_Kind.InParam
@@ -75,11 +180,27 @@ export function client_pin_body(pin: ClientPinMetadata): NodePin {
             : pin.kind === 'in_flow'
               ? NodePin_Index_Kind.InFlow
               : NodePin_Index_Kind.OutFlow
+  const isParam = pin.kind === 'input' || pin.kind === 'output'
+  let value: VarBase | undefined
+  if (isParam) {
+    if (pin.reflective) {
+      value = client_unresolved_reflective_value()
+    } else if (literal !== undefined) {
+      if (NEVER_LITERAL_CLIENT_TYPES.has(pin.clientVarType ?? 0)) {
+        throw new Error(
+          `[CLIENT_VALUE_TYPE_UNAVAILABLE] client type ${pin.clientVarType} pins never carry literal values in samples`
+        )
+      }
+      value = client_literal_value(pin.clientVarType ?? 0, literal)
+    } else {
+      value = client_value_base(pin.clientVarType ?? 0)
+    }
+  }
   return {
     i1: { kind, index: pin.index },
     i2: { kind, index: pin.index },
     type: pin.clientVarType ?? 0,
-    value: pin.kind === 'input' ? emptyClientValue(pin) : undefined,
+    value,
     connects: []
   }
 }
@@ -91,9 +212,9 @@ export function client_node_body(body: {
   y: number
 }): GraphNode {
   const pins = [
-    ...body.metadata.inputs.map(client_pin_body),
-    ...body.metadata.outputs.map(client_pin_body),
-    ...(body.metadata.flows ?? []).map(client_pin_body)
+    ...body.metadata.inputs.map((p) => client_pin_body(p)),
+    ...body.metadata.outputs.map((p) => client_pin_body(p)),
+    ...(body.metadata.flows ?? []).map((p) => client_pin_body(p))
   ]
   const node: GraphNode = {
     nodeIndex: body.unique_index,
