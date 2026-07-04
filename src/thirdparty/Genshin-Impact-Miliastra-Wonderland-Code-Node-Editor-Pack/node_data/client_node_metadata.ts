@@ -58,7 +58,7 @@ export type ClientNodeMetadata = {
 export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_addition',
+    nodeType: '_3d_vector_addition',
     displayName: '三维向量加法',
     graphType: 20001,
     genericId: 200071,
@@ -88,7 +88,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_angle',
+    nodeType: '_3d_vector_angle',
     displayName: '三维向量夹角',
     graphType: 20001,
     genericId: 200067,
@@ -112,7 +112,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_cross_product',
+    nodeType: '_3d_vector_cross_product',
     displayName: '三维向量外积',
     graphType: 20001,
     genericId: 200064,
@@ -136,7 +136,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_dot_product',
+    nodeType: '_3d_vector_dot_product',
     displayName: '三维向量内积',
     graphType: 20001,
     genericId: 200063,
@@ -160,7 +160,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_modulo_operation',
+    nodeType: '_3d_vector_modulo_operation',
     displayName: '三维向量模运算',
     graphType: 20001,
     genericId: 200069,
@@ -178,7 +178,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_normalization',
+    nodeType: '_3d_vector_normalization',
     displayName: '三维向量归一化',
     graphType: 20001,
     genericId: 200100,
@@ -196,7 +196,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_rotation',
+    nodeType: '_3d_vector_rotation',
     displayName: '三维向量旋转',
     graphType: 20001,
     genericId: 200068,
@@ -220,7 +220,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_subtraction',
+    nodeType: '_3d_vector_subtraction',
     displayName: '三维向量减法',
     graphType: 20001,
     genericId: 200072,
@@ -250,7 +250,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
-    nodeType: '3d_vector_zoom',
+    nodeType: '_3d_vector_zoom',
     displayName: '三维向量缩放',
     graphType: 20001,
     genericId: 200066,
@@ -2365,7 +2365,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_addition',
+    nodeType: '_3d_vector_addition',
     displayName: '三维向量加法',
     graphType: 20002,
     genericId: 200071,
@@ -2402,7 +2402,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_angle',
+    nodeType: '_3d_vector_angle',
     displayName: '三维向量夹角',
     graphType: 20002,
     genericId: 200067,
@@ -2433,7 +2433,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_cross_product',
+    nodeType: '_3d_vector_cross_product',
     displayName: '三维向量外积',
     graphType: 20002,
     genericId: 200064,
@@ -2464,7 +2464,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_dot_product',
+    nodeType: '_3d_vector_dot_product',
     displayName: '三维向量内积',
     graphType: 20002,
     genericId: 200063,
@@ -2495,7 +2495,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_modulo_operation',
+    nodeType: '_3d_vector_modulo_operation',
     displayName: '三维向量模运算',
     graphType: 20002,
     genericId: 200069,
@@ -2520,7 +2520,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_normalization',
+    nodeType: '_3d_vector_normalization',
     displayName: '三维向量归一化',
     graphType: 20002,
     genericId: 200100,
@@ -2545,7 +2545,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_rotation',
+    nodeType: '_3d_vector_rotation',
     displayName: '三维向量旋转',
     graphType: 20002,
     genericId: 200068,
@@ -2576,7 +2576,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_subtraction',
+    nodeType: '_3d_vector_subtraction',
     displayName: '三维向量减法',
     graphType: 20002,
     genericId: 200072,
@@ -2613,7 +2613,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
-    nodeType: '3d_vector_zoom',
+    nodeType: '_3d_vector_zoom',
     displayName: '三维向量缩放',
     graphType: 20002,
     genericId: 200066,
@@ -10072,7 +10072,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_addition',
+    nodeType: '_3d_vector_addition',
     displayName: '三维向量加法',
     graphType: 20002,
     genericId: 200071,
@@ -10109,7 +10109,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_angle',
+    nodeType: '_3d_vector_angle',
     displayName: '三维向量夹角',
     graphType: 20002,
     genericId: 200067,
@@ -10140,7 +10140,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_cross_product',
+    nodeType: '_3d_vector_cross_product',
     displayName: '三维向量外积',
     graphType: 20002,
     genericId: 200064,
@@ -10171,7 +10171,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_dot_product',
+    nodeType: '_3d_vector_dot_product',
     displayName: '三维向量内积',
     graphType: 20002,
     genericId: 200063,
@@ -10202,7 +10202,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_modulo_operation',
+    nodeType: '_3d_vector_modulo_operation',
     displayName: '三维向量模运算',
     graphType: 20002,
     genericId: 200069,
@@ -10227,7 +10227,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_normalization',
+    nodeType: '_3d_vector_normalization',
     displayName: '三维向量归一化',
     graphType: 20002,
     genericId: 200100,
@@ -10252,7 +10252,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_rotation',
+    nodeType: '_3d_vector_rotation',
     displayName: '三维向量旋转',
     graphType: 20002,
     genericId: 200068,
@@ -10283,7 +10283,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_subtraction',
+    nodeType: '_3d_vector_subtraction',
     displayName: '三维向量减法',
     graphType: 20002,
     genericId: 200072,
@@ -10320,7 +10320,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
-    nodeType: '3d_vector_zoom',
+    nodeType: '_3d_vector_zoom',
     displayName: '三维向量缩放',
     graphType: 20002,
     genericId: 200066,
@@ -17247,7 +17247,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_addition',
+    nodeType: '_3d_vector_addition',
     displayName: '三维向量加法',
     graphType: 20007,
     genericId: 200200,
@@ -17284,7 +17284,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_angle',
+    nodeType: '_3d_vector_angle',
     displayName: '三维向量夹角',
     graphType: 20007,
     genericId: 200196,
@@ -17315,7 +17315,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_cross_product',
+    nodeType: '_3d_vector_cross_product',
     displayName: '三维向量外积',
     graphType: 20007,
     genericId: 200193,
@@ -17346,7 +17346,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_dot_product',
+    nodeType: '_3d_vector_dot_product',
     displayName: '三维向量内积',
     graphType: 20007,
     genericId: 200192,
@@ -17377,7 +17377,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_modulo_operation',
+    nodeType: '_3d_vector_modulo_operation',
     displayName: '三维向量模运算',
     graphType: 20007,
     genericId: 200198,
@@ -17402,7 +17402,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_normalization',
+    nodeType: '_3d_vector_normalization',
     displayName: '三维向量归一化',
     graphType: 20007,
     genericId: 200210,
@@ -17427,7 +17427,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_rotation',
+    nodeType: '_3d_vector_rotation',
     displayName: '三维向量旋转',
     graphType: 20007,
     genericId: 200197,
@@ -17458,7 +17458,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_subtraction',
+    nodeType: '_3d_vector_subtraction',
     displayName: '三维向量减法',
     graphType: 20007,
     genericId: 200201,
@@ -17495,7 +17495,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status',
-    nodeType: '3d_vector_zoom',
+    nodeType: '_3d_vector_zoom',
     displayName: '三维向量缩放',
     graphType: 20007,
     genericId: 200195,
@@ -21625,7 +21625,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_addition',
+    nodeType: '_3d_vector_addition',
     displayName: '三维向量加法',
     graphType: 20007,
     genericId: 200200,
@@ -21662,7 +21662,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_angle',
+    nodeType: '_3d_vector_angle',
     displayName: '三维向量夹角',
     graphType: 20007,
     genericId: 200196,
@@ -21693,7 +21693,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_cross_product',
+    nodeType: '_3d_vector_cross_product',
     displayName: '三维向量外积',
     graphType: 20007,
     genericId: 200193,
@@ -21724,7 +21724,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_dot_product',
+    nodeType: '_3d_vector_dot_product',
     displayName: '三维向量内积',
     graphType: 20007,
     genericId: 200192,
@@ -21755,7 +21755,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_modulo_operation',
+    nodeType: '_3d_vector_modulo_operation',
     displayName: '三维向量模运算',
     graphType: 20007,
     genericId: 200198,
@@ -21780,7 +21780,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_normalization',
+    nodeType: '_3d_vector_normalization',
     displayName: '三维向量归一化',
     graphType: 20007,
     genericId: 200210,
@@ -21805,7 +21805,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_rotation',
+    nodeType: '_3d_vector_rotation',
     displayName: '三维向量旋转',
     graphType: 20007,
     genericId: 200197,
@@ -21836,7 +21836,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_subtraction',
+    nodeType: '_3d_vector_subtraction',
     displayName: '三维向量减法',
     graphType: 20007,
     genericId: 200201,
@@ -21873,7 +21873,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_status_decision',
-    nodeType: '3d_vector_zoom',
+    nodeType: '_3d_vector_zoom',
     displayName: '三维向量缩放',
     graphType: 20007,
     genericId: 200195,
@@ -25023,7 +25023,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_addition',
+    nodeType: '_3d_vector_addition',
     displayName: '三维向量加法',
     graphType: 20001,
     genericId: 200071,
@@ -25053,7 +25053,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_angle',
+    nodeType: '_3d_vector_angle',
     displayName: '三维向量夹角',
     graphType: 20001,
     genericId: 200067,
@@ -25077,7 +25077,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_cross_product',
+    nodeType: '_3d_vector_cross_product',
     displayName: '三维向量外积',
     graphType: 20001,
     genericId: 200064,
@@ -25101,7 +25101,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_dot_product',
+    nodeType: '_3d_vector_dot_product',
     displayName: '三维向量内积',
     graphType: 20001,
     genericId: 200063,
@@ -25125,7 +25125,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_modulo_operation',
+    nodeType: '_3d_vector_modulo_operation',
     displayName: '三维向量模运算',
     graphType: 20001,
     genericId: 200069,
@@ -25143,7 +25143,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_normalization',
+    nodeType: '_3d_vector_normalization',
     displayName: '三维向量归一化',
     graphType: 20001,
     genericId: 200100,
@@ -25161,7 +25161,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_rotation',
+    nodeType: '_3d_vector_rotation',
     displayName: '三维向量旋转',
     graphType: 20001,
     genericId: 200068,
@@ -25185,7 +25185,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_subtraction',
+    nodeType: '_3d_vector_subtraction',
     displayName: '三维向量减法',
     graphType: 20001,
     genericId: 200072,
@@ -25215,7 +25215,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
-    nodeType: '3d_vector_zoom',
+    nodeType: '_3d_vector_zoom',
     displayName: '三维向量缩放',
     graphType: 20001,
     genericId: 200066,

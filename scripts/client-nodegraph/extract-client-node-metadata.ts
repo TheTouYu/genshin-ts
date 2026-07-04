@@ -155,8 +155,9 @@ function normalizeNodeType(name: string): string {
     .toLowerCase()
 }
 
+// keep leading underscores: server method `_3dVectorDotProduct` -> `_3d_vector_dot_product`
 function camelToSnake(name: string): string {
-  return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`).replace(/^_/, '')
+  return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
 }
 
 function englishNodeType(displayName: string): string | undefined {
