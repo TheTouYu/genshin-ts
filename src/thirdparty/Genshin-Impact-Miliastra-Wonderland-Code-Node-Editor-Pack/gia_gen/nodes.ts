@@ -711,6 +711,9 @@ export function get_id_client(node: NodeType): number {
               return ClientVarType.PrefabList_
             case 'Cfg':
               return ClientVarType.ConfigurationList_
+            case 'Fct':
+              // observed faction-list client type in 角色技能节点图/定点发射投射物_连线.gia
+              return 25
           }
           break
         case 'e':
@@ -720,8 +723,7 @@ export function get_id_client(node: NodeType): number {
       }
       break
     case 'd':
-      // 客户端没有 Dictionary 类型，使用错误处理
-      break
+      return ClientVarType.Dictionary_
     case 'r':
       break
     case 's':
