@@ -1,6 +1,6 @@
 # 多 OutFlow 复合节点实现指南
 
-> **API 设计部分已合并到** [`dsl-api.md`](dsl-api.md)。本文档专注于参考文件结构分析和修改文件清单。
+> **API 设计部分已合并到** [`dsl-api.md`](dsl-api.md) 和 **[`control-flow-api-cookbook.md`](./control-flow-api-cookbook.md)** (新增, 含顺序执行 / 物理运动控制器等真实样本对照)。本文档专注于参考文件结构分析和修改文件清单。
 
 ## 背景
 

@@ -16550,6 +16550,37 @@ export class ServerExecutionFlowFunctions {
       return def.build(captureInputs, captureFns)
     })
   }
+
+  /**
+   * 创建复合调用 marker 但不自动串联到当前 tail。
+   * 用于 fan-in 场景：先 detached 创建多个 marker，再用 linkTo 连边。
+   */
+  declareDetached(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
+    const def = handle.definition
+    return this.registry.runDetachedCompositeCall(handle.id, inputs, (captureFns, captureInputs) => {
+      return def.build(captureInputs, captureFns)
+    })
+  }
+
+  /**
+   * 在两个已存在的 exec marker 之间添加一条 OutFlow→InFlow 边。
+   * 支持 fan-in: 同一 target 可被多个 source 引用。
+   * 支持 fan-out: 同一 source 可通过多次 linkTo 接多个 target。
+   */
+  linkTo(
+    source: Record<string, any> & { readonly __markerNodeId: number },
+    sourceOutflowIdx: number,
+    target: Record<string, any> & { readonly __markerNodeId: number }
+  ): void {
+    this.registry.linkOutflowToMarker(source.__markerNodeId, sourceOutflowIdx, target.__markerNodeId)
+  }
+
+  /**
+   * 返回 event 节点的 marker (供 linkTo 作为源用)。
+   */
+  eventMarker(): { readonly __markerNodeId: number } {
+    return { __markerNodeId: this.registry.getEventMarkerId() }
+  }
 }
 
 type NodeTypeByMethod = typeof NODE_TYPE_BY_METHOD

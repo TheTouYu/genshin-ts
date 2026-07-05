@@ -1,7 +1,7 @@
 # DSL API：复合节点的语法糖与类型系统
 
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
-> 参见：[捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md)
+> 参见：[捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | **[控制流 API 实战速查](./control-flow-api-cookbook.md)** (顺序执行 / 多 OutFlow 派发 / 真实 GIA 样本对照)
 
 ---
 

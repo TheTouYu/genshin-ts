@@ -1188,6 +1188,131 @@ export class MetaCallRegistry {
   }
 
   /**
+   * 在两个已存在的 exec marker 之间添加一条 OutFlow→InFlow 边（fan-in 支持）。
+   * 不创建新节点，不修改 tailEndpoints。
+   *
+   * @param sourceMarkerId 源 marker 的 nodeId（来自 __markerNodeId）
+   * @param sourceOutflowIdx 源 marker 的 OutFlow 索引
+   * @param targetMarkerId 目标 marker 的 nodeId
+   */
+  linkOutflowToMarker(
+    sourceMarkerId: number,
+    sourceOutflowIdx: number,
+    targetMarkerId: number
+  ): void {
+    this.addEdge(this.currentFlow, sourceMarkerId, targetMarkerId, sourceOutflowIdx)
+  }
+
+  /**
+   * 返回当前 flow 的 event node id（作为 linkTo 的源用）。
+   */
+  getEventMarkerId(): number {
+    return this.currentFlow.eventNode.id
+  }
+
+  /**
+   * 创建复合调用 marker 但**不**自动串联到当前 tail（detached 模式）。
+   * 与 runCompositeCall 相同，但跳过 connectFromEndpoints 这一步。
+   * 仍会把新 marker 设为当前 tail（用于后续 declareDetached 链）。
+   */
+  runDetachedCompositeCall(
+    compositeId: number,
+    inputs: Record<string, any>,
+    build: (fns: ServerExecutionFlowFunctions, captureInputs: Record<string, any>) => Record<string, any>
+  ): Record<string, any> {
+    const def = compositeRegistry.getById(compositeId)
+    const isPureData = def?.captured?.isPureData ?? false
+
+    // 1. 直接 push 标记节点，绕过 registerNode 的 auto-chain
+    const current = this.currentFlow
+    const markerRecord: MetaCallRecord = {
+      id: this.currentRecordId,
+      nodeType: '__composite_call__',
+      type: isPureData ? 'data' : 'exec',
+      args: (() => {
+        const a: value[] = [new int(BigInt(compositeId))]
+        for (const val of Object.values(inputs)) a.push(val as value)
+        return a
+      })()
+    }
+    if (isPureData) {
+      current.dataNodes.push(markerRecord)
+    } else {
+      current.execNodes.push(markerRecord)
+    }
+    this.trackCompositeCall(compositeId, markerRecord.id!)
+
+    // 设置 head/tail（不调 connectFromEndpoints）
+    const ctx = this.getCurrentExecContext(current)
+    if (!ctx.headNodeId) ctx.headNodeId = markerRecord.id!
+    ctx.tailEndpoints = [{ nodeId: markerRecord.id! }]
+    ctx.pendingSourceIndex = undefined
+
+    // 2. 记录数据连线（同 runCompositeCall）
+    const captureInputs: Record<string, any> = {}
+    let inIdx = 0
+    for (const [name, val] of Object.entries(inputs)) {
+      const v = val as value
+      const meta = v?.getMetadata?.()
+      if (meta && meta.kind === 'pin') {
+        if ((meta.record as any).nodeType === '__composite_call__') {
+          this.recordCompositeDataEdge({
+            fromNodeId: meta.record.id,
+            fromPinIndex: meta.pinIndex,
+            toMarkerId: markerRecord.id!,
+            toPinIndex: inIdx
+          })
+        }
+        if (def?.inputs?.[name]) {
+          captureInputs[name] = createTypedValue(def.inputs[name].type as string)
+        }
+      } else {
+        captureInputs[name] = val
+      }
+      inIdx++
+    }
+
+    // 3. capture build
+    const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+    captureRegistry.startCaptureFlow()
+    const captureFns = new ServerExecutionFlowFunctions(captureRegistry)
+    if (def?.variables) {
+      for (const v of def.variables) {
+        const meta: NodeGraphVariableMeta = v.type === 'dict'
+          ? { type: 'dict', dict: v.dict }
+          : { type: v.type as LiteralValueType }
+        captureRegistry.ensureVariable(v, meta)
+      }
+    }
+
+    const gsts = ensureGsts() as unknown as GstsInternal
+    const prevF = gsts[kServerF]
+    gsts[kServerF] = captureFns
+
+    try {
+      build(captureFns, captureInputs)
+      const outputs: Record<string, any> = {}
+      if (def?.outputs) {
+        let outIdx = 0
+        for (const [name, param] of Object.entries(def.outputs)) {
+          const outVal = createTypedValue(param.type as string)
+          outVal.markPin(markerRecord, 'output', outIdx)
+          outputs[name] = outVal
+          outIdx++
+        }
+      }
+      return Object.defineProperty(outputs, '__markerNodeId', {
+        value: markerRecord.id,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      }) as Record<string, any> & { readonly __markerNodeId: number }
+    } finally {
+      gsts[kServerF] = prevF
+    }
+  }
+
+  /**
    * 复合调用之间的数据连线（一个复合的输出 → 另一个复合的输入）
    */
   private compositeDataEdges: Array<{

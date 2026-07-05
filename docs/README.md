@@ -18,6 +18,9 @@
 - 分析工作流、编译器合规检查
 - 跨轮 handover 记录
 
+### 复合 DSL 实战（architecture/composite/）
+- [`architecture/composite/control-flow-api-cookbook.md`](architecture/composite/control-flow-api-cookbook.md) — **新增**：控制流复合 API 实战速查 (顺序执行 / 多 OutFlow 派发 / 真实 GIA 样本对照) — **2026-07-05**
+
 ### 维护记录 (maintenance/)
 - 节点例行维护、一致性风险审查
 

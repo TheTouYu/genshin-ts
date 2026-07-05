@@ -213,3 +213,45 @@
 - [ ] structureDef 编码支持（which=29 编码器尚不输出）
 - [ ] 多 OutFlow pinIndex 对齐
 - [ ] ClientExec 信号触发支持
+
+### 📝 文档：控制流 API 实战速查（2026-07-05 新增）
+
+> 新增文档 [`docs/architecture/composite/control-flow-api-cookbook.md`](../../architecture/composite/control-flow-api-cookbook.md)
+
+**背景**: 用户 2026-07-05 在分析 `复杂gia/物理运动.gia` 时发现现有的"多 OutFlow 复合"文档**没有覆盖 DSL 层的实际 API 用法**, 且**之前的"并行 fork"理解是错的**。
+
+**核心内容**:
+- 关键概念纠正: 顺序执行 ≠ 并行, 而是**严格串行** (按 impl 内 connects 数组顺序)
+- 4 种控制流复合的触发行为对照 (顺序执行 / Multiple Branches / Double Branch / Multi-InFlow)
+- 6 个 f.* API 的完整实战写法 (f.fork, f.connectOutFlow, f.doubleBranch, f.multipleBranches, f.registerExecNode, f.branchExec, f.leaf)
+- 物理运动.gia 真实样本的 GIA 形态 ↔ 感觉正确的 API 写法对照
+- **"感觉正确"标注**: 8 项未验证的 API 行为 + 已知可能存在的 gap
+- 与现有 `dsl-api.md` / `multi-outflow-composite-guide.md` 的引用关系
+
+**标注 "感觉正确" 的部分** (需手动在游戏中验证):
+- f.multipleBranches 的 default 分支行为
+- 顺序执行 复合的"等待"语义 (等下游完全终止 vs 等下游触发到 terminal)
+- 顺序执行 复合的 OutFlow 闲置时的引擎行为
+- Multi-InFlow 复合 (10 InFlow) 在 gsts 中的支持情况
+- f.connectOutFlow 的 outflowIdx 越界处理
+- f.fork 嵌套
+- f.branchExec 后的 tail 状态
+- 多 OutFlow 复合在 gsts 编译器内部的实现完整性 (multi-outflow-composite-guide.md:7 提到"当前仅支持 0/1 个 OutFlow")
+
+### 🔧 gsts 新增 API (2026-07-05 fan-in 支持)
+
+**修改文件**:
+- `src/runtime/core.ts`: 新增 `linkOutflowToMarker`, `getEventMarkerId`, `runDetachedCompositeCall` 3 个内部方法 (~120 行)
+- `src/definitions/nodes.ts`: 新增 `f.declareDetached`, `f.linkTo`, `f.eventMarker` 3 个用户面 API (~30 行)
+
+**新增 API 能力**:
+- **fan-in 共享节点** (1 节点被多源触发): `f.declareDetached()` + `f.linkTo()` 组合
+- **detached 复合调用** (不自动串联): `f.declareDetached(handle, inputs)`
+- **从 event 显式连边**: `f.linkTo(f.eventMarker(), 0, target)`
+
+**复刻成功案例**: `tests/composite/recreate-debug4-v2.ts` 用新 API 复刻 `user_edit/分支/debug4.gia`:
+- 节点数 6/6 ✅ 完全匹配
+- exec 边 8/8 ✅ 完全匹配 (含 fan-in n=5/n=6)
+- data 边 1/1 ✅
+
+**Regression 测试**: 3 个新方法没引入新 regression. 3 个 pre-existing fail (phase1 P2-S2, mixed_composite, exec-with-data) 跟我改动无关, 是 gsts 既有 bug.
