@@ -6,12 +6,17 @@
  * - 复合节点：1 个 bool 输入 → doubleBranch → printString
  * - 主图：相同的 doubleBranch + printString（方便对比）
  */
-import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
-import { bool } from '../../dist/src/runtime/value.js'
-import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
 
-const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+import { existsSync, mkdirSync, writeFileSync } from 'fs'
+
+import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
+import { bool, str } from '../../dist/src/runtime/value.js'
+
+const PROTO_PATH = new URL(
+  '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
+  import.meta.url
+).pathname
 const OUT_DIR = './tests/composite/output'
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
@@ -20,15 +25,15 @@ if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 // ═══════════════════════════════════════════════════════════════
 const BoolComposite = g.defineComposite('bool复合测试', {
   inputs: {
-    条件: { type: 'bool' },
+    条件: { type: 'bool' }
   },
   outputs: {},
   build({ 条件 }, f) {
-    f.doubleBranch(
-      条件,
-      () => { f.printString('是') },
-      () => {},
-    )
+    const db = f.registerExecNode('double_branch', [条件])
+    const ps = f.registerExecNode('print_string', [new str('是')])
+    f.connect(db, 0, ps)
+    f.outflow('是', ps, 0)
+    f.outflow('否', db, 1)
     return {}
   }
 })
@@ -45,21 +50,23 @@ buildServerGraphRegistriesIRDocuments({ defaultName: 'prep' })
 // ═══════════════════════════════════════════════════════════════
 g.server({
   name: 'main',
-  graphId: 1073741840,
+  graphId: 1073741840
 }).on('whenEntityIsCreated', (_e, f) => {
   f.fork(
     () => {
       f.callComposite(BoolComposite, {
-        条件: new bool(true),
+        条件: new bool(true)
       })
     },
     () => {
       f.doubleBranch(
         new bool(true),
-        () => { f.printString('是-来自主图') },
-        () => {},
+        () => {
+          f.printString('是-来自主图')
+        },
+        () => {}
       )
-    },
+    }
   )
 })
 

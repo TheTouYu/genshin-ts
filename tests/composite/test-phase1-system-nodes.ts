@@ -8,13 +8,18 @@
  *   3. 顺序执行 (multiple_branches) — 1 InFlow, 4 OutFlow
  *
  */
-import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
-import { int, str, bool } from '../../dist/src/runtime/value.js'
-import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
-import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+
 import { writeFileSync } from 'fs'
 
-const PROTO_PATH = new URL('../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto', import.meta.url).pathname
+import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
+import { bool, int, str } from '../../dist/src/runtime/value.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+
+const PROTO_PATH = new URL(
+  '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
+  import.meta.url
+).pathname
 const OUT_DIR = './tests/composite/output'
 
 // ═══════════════════════════════════════════════
@@ -26,8 +31,8 @@ const doubleBranch = g.defineComposite('双分支', {
   outputs: {},
   build(inputs: any, f: any) {
     f.registerExecNode('double_branch', [inputs['条件']])
-    f.leaf(0)   // OutFlow[0] = "是"
-    f.leaf(1)   // OutFlow[1] = "否"
+    f.leaf(0) // OutFlow[0] = "是"
+    f.leaf(1) // OutFlow[1] = "否"
     return {}
   }
 })
@@ -43,8 +48,8 @@ const finiteLoop = g.defineComposite('有限循环', {
   build(inputs: any, f: any) {
     const ref = f.registerExecNode('finite_loop', [inputs['循环起始值'], inputs['循环终止值']])
     const loopValue = f.createOutParamValue('int', ref, 0)
-    f.leaf(0)   // OutFlow[0] = 循环体
-    f.leaf(1)   // OutFlow[1] = 循环完成
+    f.leaf(0) // OutFlow[0] = 循环体
+    f.leaf(1) // OutFlow[1] = 循环完成
     return { 当前循环值: loopValue }
   }
 })
@@ -62,10 +67,14 @@ const sequentialExec = g.defineComposite('顺序执行', {
     f.registerExecNode('double_branch', [new bool(true)])
 
     // 4 个出口分支
-    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
-    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
-    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
-    f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    const s1 = f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    const s2 = f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    const s3 = f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    const s4 = f.branchExec(0, { id: 0, type: 'exec', nodeType: 'double_branch', args: [] })
+    f.outflow('步骤1', s1, 0)
+    f.outflow('步骤2', s2, 0)
+    f.outflow('步骤3', s3, 0)
+    f.outflow('步骤4', s4, 0)
 
     return {}
   }
@@ -83,31 +92,48 @@ buildServerGraphRegistriesIRDocuments({ defaultName: 'trigger' })
 // 主图 — 调用所有三个复合，展示多分支连接
 // ═══════════════════════════════════════════════
 
-g.server({ name: 'main', graphId: 1073741911 })
-  .on('whenEntityIsCreated', (_e: any, f: any) => {
-    // 先调双分支 — 条件判定
-    const br = f.callComposite(doubleBranch, { '条件': new bool(true) })
-    f.connectOutFlow(br, 0, () => { f.printString('分支-是') })
-    f.connectOutFlow(br, 1, () => { f.printString('分支-否') })
-
-    // 调循环
-    const lr = f.callComposite(finiteLoop, { '循环起始值': new int(1n), '循环终止值': new int(10n) })
-    f.connectOutFlow(lr, 0, () => { f.printString('循环体执行') })
-    f.connectOutFlow(lr, 1, () => { f.printString('循环完成') })
-
-    // 调顺序执行
-    const sr = f.callComposite(sequentialExec, {})
-    f.connectOutFlow(sr, 0, () => { f.printString('步骤1结果') })
-    f.connectOutFlow(sr, 1, () => { f.printString('步骤2结果') })
-    // OutFlow[2] 和 OutFlow[3] 不用
+g.server({ name: 'main', graphId: 1073741911 }).on('whenEntityIsCreated', (_e: any, f: any) => {
+  // 先调双分支 — 条件判定
+  const br = f.callComposite(doubleBranch, { 条件: new bool(true) })
+  f.connectOutFlow(br, 0, () => {
+    f.printString('分支-是')
   })
+  f.connectOutFlow(br, 1, () => {
+    f.printString('分支-否')
+  })
+
+  // 调循环
+  const lr = f.callComposite(finiteLoop, { 循环起始值: new int(1n), 循环终止值: new int(10n) })
+  f.connectOutFlow(lr, 0, () => {
+    f.printString('循环体执行')
+  })
+  f.connectOutFlow(lr, 1, () => {
+    f.printString('循环完成')
+  })
+
+  // 调顺序执行
+  const sr = f.callComposite(sequentialExec, {})
+  f.connectOutFlow(sr, 0, () => {
+    f.printString('步骤1结果')
+  })
+  f.connectOutFlow(sr, 1, () => {
+    f.printString('步骤2结果')
+  })
+  // OutFlow[2] 和 OutFlow[3] 不用
+})
 
 const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'main' })
 const doc = docs[docs.length - 1]
 console.log('IR nodes:', doc.nodes?.length)
 doc.nodes?.forEach((n: any) => {
   const nextStr = Array.isArray(n.next)
-    ? '[' + n.next.map((x: any) => typeof x === 'number' ? x : '{n:' + x.node_id + ',s:' + x.source_index + '}').join(',') + ']'
+    ? '[' +
+      n.next
+        .map((x: any) =>
+          typeof x === 'number' ? x : '{n:' + x.node_id + ',s:' + x.source_index + '}'
+        )
+        .join(',') +
+      ']'
     : n.next
   console.log(`  id=${n.id} type=${n.type} next=${nextStr}`)
 })
@@ -129,28 +155,47 @@ const accs = gen.accessories ?? []
 let ok = true
 
 // 检查 accessories — 应该有三个 CompositeDef
-console.log(`\naccessories: ${accs.length}, compositeDefs: ${accs.filter((a: any) => a.which === 12).length}`)
+console.log(
+  `\naccessories: ${accs.length}, compositeDefs: ${accs.filter((a: any) => a.which === 12).length}`
+)
 
 for (const a of accs) {
   if (a.which !== 12) continue
   const d = a.compositeDef?.inner?.def
   console.log(`\n  ${d?.name}:`)
-  console.log(`    inflows=${d?.inflows?.length} outflows=${d?.outflows?.length} inputs=${d?.inputs?.length}`)
-  console.log(`    inflows: ${(d?.inflows||[]).map((f: any) => `pinIndex=${f.pinIndex}`).join(', ')}`)
-  console.log(`    outflows: ${(d?.outflows||[]).map((f: any) => `idx=${f.index?.index} pinIndex=${f.pinIndex}`).join(', ')}`)
-  if (d?.name === '双分支' && d?.outflows?.length !== 2) { console.log('    ❌ 双分支应有 2 OutFlows'); ok = false }
-  if (d?.name === '有限循环' && d?.outflows?.length !== 2) { console.log('    ❌ 有限循环应有 2 OutFlows'); ok = false }
-  if (d?.name === '顺序执行' && d?.outflows?.length !== 4) { console.log('    ❌ 顺序执行应有 4 OutFlows'); ok = false }
+  console.log(
+    `    inflows=${d?.inflows?.length} outflows=${d?.outflows?.length} inputs=${d?.inputs?.length}`
+  )
+  console.log(
+    `    inflows: ${(d?.inflows || []).map((f: any) => `pinIndex=${f.pinIndex}`).join(', ')}`
+  )
+  console.log(
+    `    outflows: ${(d?.outflows || []).map((f: any) => `idx=${f.index?.index} pinIndex=${f.pinIndex}`).join(', ')}`
+  )
+  if (d?.name === '双分支' && d?.outflows?.length !== 2) {
+    console.log('    ❌ 双分支应有 2 OutFlows')
+    ok = false
+  }
+  if (d?.name === '有限循环' && d?.outflows?.length !== 2) {
+    console.log('    ❌ 有限循环应有 2 OutFlows')
+    ok = false
+  }
+  if (d?.name === '顺序执行' && d?.outflows?.length !== 4) {
+    console.log('    ❌ 顺序执行应有 4 OutFlows')
+    ok = false
+  }
 }
 
 // 检查 impl 图 compositePins
 for (const a of accs) {
   if (a.which !== 9 || !a.graph) continue
   const ig = a.graph?.inner?.graph
-  const kname: Record<number,string> = {1:'InFlow',2:'OutFlow',3:'InParam',4:'OutParam'}
+  const kname: Record<number, string> = { 1: 'InFlow', 2: 'OutFlow', 3: 'InParam', 4: 'OutParam' }
   console.log(`\n  impl (${ig?.nodes?.length} nodes, ${ig?.compositePins?.length} pins):`)
   ig?.compositePins?.forEach((cp: any) => {
-    console.log(`    ${kname[cp.outerPin?.kind] || '?'}[${cp.outerPin?.index}] -> nodeId=${cp.innerNodeId}`)
+    console.log(
+      `    ${kname[cp.outerPin?.kind] || '?'}[${cp.outerPin?.index}] -> nodeId=${cp.innerNodeId}`
+    )
   })
 }
 
@@ -161,10 +206,13 @@ mainNodes.forEach((n: any) => {
   const op = (n.pins || []).filter((p: any) => p.i1?.kind === 2)
   console.log(`  node[${n.nodeIndex}] (nodeId=${n.genericId?.nodeId}): ${op.length} OutFlow pins`)
   op.forEach((p: any) => {
-    const targets = (p.connects||[]).map((c: any) => '→node'+c.id).join(', ')
+    const targets = (p.connects || []).map((c: any) => '→node' + c.id).join(', ')
     console.log(`    OutFlow[${p.i1?.index}] cpi=${p.compositePinIndex} → ${targets || '(none)'}`)
   })
 })
 
 if (ok) console.log('\n🏆 Phase 1 验证通过')
-else { console.log('\n💥 存在失败项'); process.exit(1) }
+else {
+  console.log('\n💥 存在失败项')
+  process.exit(1)
+}
