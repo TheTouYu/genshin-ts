@@ -18,6 +18,7 @@ import {
   type NodeGraph,
   type CompositeDef
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import { Graph, Node } from '../gia_vendor.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
 
 /**
@@ -321,8 +322,12 @@ function buildImplGraphNodes(
             suffix = 'prefab'
           } else if (vt.endsWith('_list')) {
             const base = vt.slice(0, -5)
-            if (['bool', 'int', 'float', 'str', 'guid', 'entity'].includes(base)) {
-              suffix = `list_${base}`
+            if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'vec3', 'config_id', 'prefab_id', 'faction'].includes(base)) {
+              if (base === 'vec3') suffix = 'list_vec'
+              else if (base === 'config_id') suffix = 'list_config'
+              else if (base === 'prefab_id') suffix = 'list_prefab'
+              else if (base === 'faction') suffix = 'list_faction'
+              else suffix = `list_${base}`
             }
           }
           if (suffix) {
@@ -340,7 +345,7 @@ function buildImplGraphNodes(
         }
       }
     }
-    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, implVariables, calledDef)
+    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, implVariables, calledDef, gvConcreteNid)
     allDataConns.push(...dataConns)
     return { node, nodeId, genericId, pins, isDTC: isDTC || false, dtcConcreteNid: isDTC ? nodeId : undefined, gvConcreteNid, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
   })
@@ -624,10 +629,44 @@ function buildImplNodePins(
   implEdges: Record<number, any[]>,
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
   implVariables: CompositeDefIR['implVariables'],
-  calledDef?: CompositeDefIR
+  calledDef?: CompositeDefIR,
+  gvConcreteNid?: number
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+
+  // get_node_graph_variable：临时用 Graph+Node 编码，100% 复用 vendor 的 pin 生成逻辑
+  if (node.type === 'get_node_graph_variable' && gvConcreteNid) {
+    const tmpGraph = new Graph('server', 0, '', 0)
+    const tmpNode = new Node(0, 'server', gvConcreteNid, undefined as any)
+
+    // vendor 自动创建了 pins，找到 InParam pin 并设置变量名
+    const nameArg = (node.args ?? [])[0]
+    if (nameArg && nameArg.type === 'str') {
+      for (const pin of tmpNode.pins) {
+        if (pin.kind === 3 && pin.index === 0) {
+          pin.setVal(nameArg.value)
+        }
+      }
+    }
+
+    // 过滤 Unk pins（和主图完全一致）
+    tmpNode.pins = (tmpNode.pins ?? []).filter(
+      (p: any) => !((p?.kind === 3 || p?.kind === 4) && p?.type?.t === 'b' && p?.type?.b === 'Unk')
+    )
+
+    tmpGraph.add_node(tmpNode)
+    const tmpRoot = tmpGraph.encode() as any
+    const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
+    const vendorPins = encodedNode?.pins ?? []
+
+    // 临时 Graph 没有连线，vendor 不会生成 connects；清理以防万一
+    for (const p of vendorPins) {
+      p.connects = undefined
+    }
+
+    return { pins: vendorPins, dataConns: [] }
+  }
 
   // __composite_call__ 节点：仅创建有内部数据连线的 pin（conn 类型 arg）
   // 外层输入由 compositePins 路由，不创建物理 pin
