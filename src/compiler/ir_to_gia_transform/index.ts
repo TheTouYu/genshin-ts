@@ -179,7 +179,12 @@ function compositeTypeToBaseTag(type: string): 'Str' | 'Bol' | 'Int' | 'Flt' | '
     case 'faction': return 'Fct'
     case 'config_id': return 'Cfg'
     case 'prefab_id': return 'Pfb'
-    default: return null
+    default:
+      if (type.endsWith('_list')) {
+        const elementType = type.slice(0, -5)
+        return compositeTypeToBaseTag(elementType)
+      }
+      return null
   }
 }
 
@@ -248,7 +253,21 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   const positions = layoutPositions(ir.nodes!, graphInfo)
   const connIndex = buildConnTypeIndex(ir)
   const varsByName = buildVarsByName(ir)
-  applyGraphVariables(graph, ir.variables ?? [])
+  // 合并复合节点声明的图变量到主图（compositeDefs 仅 ServerIRDocument 有）
+  const irDoc = ir as { compositeDefs?: CompositeDefIR[]; variables?: Variable[] }
+  const mainVarNames = new Set(irDoc.variables?.map((v) => v.name) ?? [])
+  const allVars = [...(irDoc.variables ?? [])]
+  for (const cd of irDoc.compositeDefs ?? []) {
+    if (cd.implVariables) {
+      for (const v of cd.implVariables) {
+        if (!mainVarNames.has(v.name)) {
+          mainVarNames.add(v.name)
+          allVars.push(v)
+        }
+      }
+    }
+  }
+  applyGraphVariables(graph, allVars)
 
   // 以下为引脚设置逻辑
   type ValueArgument = Exclude<Argument, ConnectionArgument | null>
@@ -485,7 +504,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   // 构建 compositeId → CompositeDefIR 查找表（用于添加 pins 和 compositePinIndex）
   const compositeDefById = new Map<number, CompositeDefIR>()
-  for (const cd of ((ir as any).compositeDefs ?? []) as CompositeDefIR[]) {
+  for (const cd of (irDoc.compositeDefs ?? []) as CompositeDefIR[]) {
     compositeDefById.set(cd.id, cd)
   }
 
@@ -780,7 +799,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   // 将复合节点定义编码为 accessories
   try {
-    const compositeDefs: CompositeDefIR[] = (ir as any).compositeDefs ?? []
+    const compositeDefs: CompositeDefIR[] = irDoc.compositeDefs ?? []
     const compositeDefById = new Map<number, CompositeDefIR>(
       compositeDefs.map((d) => [d.id, d])
     )

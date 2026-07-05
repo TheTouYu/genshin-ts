@@ -535,13 +535,15 @@ function argVarBaseClass(argType: string): number {
     case 'prefab_id':
     case 'config_id':
       return VarBase_Class.IdBase
-    default: return 0
+    default:
+      if (argType.endsWith('_list')) {
+        const elementType = argType.slice(0, -5)
+        return argVarBaseClass(elementType)
+      }
+      return 0
   }
 }
 
-/**
- * 将 arg 的 IR literal type 映射为 VarType
- */
 function argVarType(argType: string): number {
   switch (argType) {
     case 'bool': return VarType.Boolean
@@ -554,7 +556,20 @@ function argVarType(argType: string): number {
     case 'faction': return VarType.Faction
     case 'prefab_id': return VarType.Prefab
     case 'config_id': return VarType.Configuration
-    default: return 0
+    default:
+      if (argType.endsWith('_list')) {
+        const elementType = argType.slice(0, -5)
+        switch (elementType) {
+          case 'int': return VarType.IntegerList
+          case 'bool': return VarType.BooleanList
+          case 'float': return VarType.FloatList
+          case 'str': return VarType.StringList
+          case 'guid': return VarType.GUIDList
+          case 'entity': return VarType.EntityList
+          default: return 0
+        }
+      }
+      return 0
   }
 }
 
@@ -608,7 +623,13 @@ function buildImplNodePins(
   if (node.type !== '__composite_capture__') {
 
   const args = node.args ?? []
-  let pinIndex = 0
+
+  // assembly_list 节点：第一个 pin 是 count（元素数量的 Int 字面量）
+  if (node.type === 'assembly_list') {
+    const countPin = buildLiteralPin(0, 'int', args.length, node.type)
+    pins.push(countPin)
+  }
+  let pinIndex = node.type === 'assembly_list' ? 1 : 0
   for (const arg of args) {
     if (arg && arg.type === 'conn') {
       const conn = arg.value as { node_id: number; index: number; type?: string }
@@ -712,7 +733,18 @@ function buildImplNodePins(
       outType = argVarType(outKey)
       outClass = argVarBaseClass(outKey)
     }
-    // vec3→float 节点：输出是 float 而非 vec3
+    // list_iteration_loop：OutParam 是元素类型，从 arg[0] 的 conn type 中推导
+    if (node.type === 'list_iteration_loop') {
+      const firstArg = (node.args ?? [])[0]
+      if (firstArg && firstArg.type === 'conn') {
+        const connType = (firstArg.value as any)?.type as string | undefined
+        if (connType && connType.endsWith('_list')) {
+          const elementType = connType.slice(0, -5)
+          outType = argVarType(elementType)
+          outClass = argVarBaseClass(elementType)
+        }
+      }
+    }
     if (vec3ToFloatNodeTypes.has(node.type)) {
       outType = VarType.Float
       outClass = VarBase_Class.FloatBase
@@ -720,7 +752,6 @@ function buildImplNodePins(
     const innerValue = makeVarBaseValue(outClass, outType, false)
     let outValue: Record<string, unknown> = innerValue
     if (needsConcreteWrapping(node.type)) {
-      // DTC OutParam 的 indexOfConcrete 固定为 2（M17[2]=6=String）
       const outIdx = node.type.startsWith('data_type_conversion_') ? 2 : 0
       outValue = {
         class: 10000,
@@ -735,7 +766,6 @@ function buildImplNodePins(
       type: outType
     })
   }
-  } // end if (node.type !== '__composite_capture__')
 
   const outEdges = implEdges[node.id]
   if (outEdges && outEdges.length > 0) {
@@ -748,13 +778,14 @@ function buildImplNodePins(
       })
     }
   }
-
   return { pins, dataConns }
+} // end if (node.type !== '__composite_capture__')
 }
 
 function isDataProducerNode(nodeType: string): boolean {
   if (needsConcreteWrapping(nodeType)) return true
   if (vec3NodeTypes.has(nodeType)) return true
+  if (nodeType === 'assembly_list' || nodeType === 'list_iteration_loop' || nodeType === 'get_node_graph_variable') return true
   if (nodeType.startsWith('get_') && !nodeType.startsWith('get_node_graph_variable')) return true
   return false
 }
@@ -957,42 +988,43 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
 
 function typeClassFromValueType(type: string): number {
   switch (type) {
-    case 'int': return VarBase_Class.IntBase    // 2
-    case 'float': return VarBase_Class.FloatBase  // 4
-    case 'bool': return VarBase_Class.EnumBase    // 6
-    case 'str': return VarBase_Class.StringBase   // 5
-    case 'vec3': return VarBase_Class.VectorBase  // 7
+    case 'int': return VarBase_Class.IntBase
+    case 'float': return VarBase_Class.FloatBase
+    case 'bool': return VarBase_Class.EnumBase
+    case 'str': return VarBase_Class.StringBase
+    case 'vec3': return VarBase_Class.VectorBase
     case 'entity':
     case 'guid':
     case 'faction':
     case 'prefab_id':
     case 'config_id':
-      return VarBase_Class.IdBase                 // 1
+      return VarBase_Class.IdBase
     default:
-      if (type.endsWith('_list')) return VarBase_Class.ArrayBase // 10002
+      if (type.endsWith('_list')) {
+        const elementType = type.slice(0, -5)
+        return typeClassFromValueType(elementType)
+      }
       return 0
   }
 }
 
 function typeIdFromValueType(type: string): number {
   switch (type) {
-    case 'bool': return VarType.Boolean          // 4
-    case 'int': return VarType.Integer           // 3
-    case 'float': return VarType.Float           // 5
-    case 'str': return VarType.String            // 6
-    case 'vec3': return VarType.Vector           // 12
-    case 'guid': return VarType.GUID             // 2
-    case 'entity': return VarType.Entity         // 1
-    case 'prefab_id': return VarType.Prefab      // 21
-    case 'config_id': return VarType.Configuration // 20
-    case 'faction': return VarType.Faction       // 17
+    case 'bool': return VarType.Boolean
+    case 'int': return VarType.Integer
+    case 'float': return VarType.Float
+    case 'str': return VarType.String
+    case 'vec3': return VarType.Vector
+    case 'guid': return VarType.GUID
+    case 'entity': return VarType.Entity
+    case 'prefab_id': return VarType.Prefab
+    case 'config_id': return VarType.Configuration
+    case 'faction': return VarType.Faction
     default:
-      if (type === 'bool_list') return VarType.BooleanList     // 9
-      if (type === 'int_list') return VarType.IntegerList      // 8
-      if (type === 'float_list') return VarType.FloatList      // 10
-      if (type === 'str_list') return VarType.StringList       // 11
-      if (type === 'entity_list') return VarType.EntityList    // 13
-      if (type === 'guid_list') return VarType.GUIDList        // 7
+      if (type.endsWith('_list')) {
+        const elementType = type.slice(0, -5)
+        return typeIdFromValueType(elementType)
+      }
       return 0
   }
 }

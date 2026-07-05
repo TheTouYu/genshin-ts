@@ -634,7 +634,8 @@ export class list<K extends keyof ListableValueTypeMap = keyof ListableValueType
   }
 
   override toIRLiteral(): Argument {
-    return null
+    const t = `${this.getConcreteType()}_list` as keyof CommonLiteralValueListTypeMap
+    return { type: t, value: null } as unknown as Argument
   }
 }
 

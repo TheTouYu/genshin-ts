@@ -19,7 +19,7 @@ import {
 } from '../definitions/zh_aliases.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
 import { buildIRDocument } from './ir_builder.js'
-import type { CompositeDefIR, ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
+import type { CompositeDefIR, ListableValueTypeMap, LiteralValueType, ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
 import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
@@ -1147,6 +1147,16 @@ export class MetaCallRegistry {
     captureRegistry.startCaptureFlow()
     const captureFns = new ServerExecutionFlowFunctions(captureRegistry)
 
+    // 注册复合声明的图变量，使 build() 内 f.get() 能查到变量类型
+    if (def?.variables) {
+      for (const v of def.variables) {
+        const meta: NodeGraphVariableMeta = v.type === 'dict'
+          ? { type: 'dict', dict: v.dict }
+          : { type: v.type as LiteralValueType }
+        captureRegistry.ensureVariable(v, meta)
+      }
+    }
+
     const gsts = ensureGsts() as unknown as GstsInternal
     const prevF = gsts[kServerF]
     gsts[kServerF] = captureFns
@@ -1373,7 +1383,10 @@ function createTypedValue(type: string): value {
     case 'local_variable':
       return new localVariable()
     default:
-      if (type.endsWith('_list')) return new generic()
+      if (type.endsWith('_list')) {
+        const baseType = type.slice(0, -5) as keyof ListableValueTypeMap
+        return new list(baseType)
+      }
       return new generic()
   }
 }
@@ -1550,7 +1563,15 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
         inputs[name] = v
       }
 
-      // 设置 gsts 上下文，使 build 内可访问 gsts.f
+      // 注册复合声明的图变量，使 build() 内 f.get() 能查到变量类型
+      if (def.variables) {
+        for (const v of def.variables) {
+          const meta: NodeGraphVariableMeta = v.type === 'dict'
+            ? { type: 'dict', dict: v.dict }
+            : { type: v.type as LiteralValueType }
+          captureRegistry.ensureVariable(v, meta)
+        }
+      }
       const gsts = ensureGsts() as unknown as GstsInternal
       const prevF = gsts[kServerF]
       gsts[kServerF] = fns
@@ -1563,21 +1584,8 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
         const flow = captureRegistry.getFlows()[0]
         const leafMarks = (flow as any).__leafMarks as Record<number, number> | undefined
 
-        // 出口节点检测：优先用 leafMarks，无显式标记时才自动检测叶子节点
+        // 出口节点：仅由显式 leaf() 标记产生，不自作主张
         let outflowExitNodes: number[] | undefined
-        if (!leafMarks) {
-          const sourceNodeIds = new Set<number>()
-          for (const src of Object.keys(flow.edges)) {
-            if ((flow.edges[Number(src)] as any[]).length > 0) {
-              sourceNodeIds.add(Number(src))
-            }
-          }
-          const exits: number[] = []
-          for (const en of flow.execNodes) {
-            if (!sourceNodeIds.has(en.id)) exits.push(en.id)
-          }
-          outflowExitNodes = exits.length > 1 ? exits : undefined
-        }
 
         def.captured = {
           captureNodeId: flow.eventNode.id,

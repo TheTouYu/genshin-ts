@@ -534,12 +534,7 @@ function makeFactories(): ServerGlobalFactories {
         throw new Error(`[error] list(): cannot convert list type`)
       }
       if (Array.isArray(items) && items.length === 0) {
-        // @ts-ignore allow
-        return gsts.f.initLocalVariable(
-          // @ts-ignore allow
-          `${listType}_list`
-          // @ts-ignore allow
-        ).value as RuntimeReturnValueTypeMap[`${T}_list`]
+        return new listLiteral(listType, []) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
       }
       // @ts-ignore allow
       return gsts.f.initLocalVariable(

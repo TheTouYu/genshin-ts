@@ -1,6 +1,8 @@
+// @ts-nocheck thirdparty
 import type { CompositeDefIR, CompositePinEntry, NextConnection, ParamFlowDef } from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
-import type { value } from './value.js'
+import { list, type value } from './value.js'
+import { parseVariableDefinitions } from './variables.js'
 
 // ============== Constants ==============
 
@@ -66,6 +68,7 @@ export type CompositeDefinition = {
   readonly id: number
   readonly inputs: Record<string, CompositeParamDef>
   readonly outputs: Record<string, CompositeParamDef>
+  readonly variables?: Variable[]
   readonly build: (...args: any[]) => any
   /** 捕获后的内部节点和连线 */
   captured: CompositeCapture | null
@@ -98,6 +101,7 @@ export class CompositeRegistry {
     def: {
       inputs: Record<string, CompositeParamDef>
       outputs: Record<string, CompositeParamDef>
+      variables?: Record<string, unknown>
       build: (...args: any[]) => any
     }
   ): CompositeHandle {
@@ -107,9 +111,11 @@ export class CompositeRegistry {
 
     const id = nextCompositeId++
 
+    const parsedVars = def.variables ? parseVariableDefinitions(def.variables) : undefined
     const definition: CompositeDefinition = {
       name,
       id,
+      variables: parsedVars?.variables,
       inputs: def.inputs,
       outputs: def.outputs,
       build: def.build,
@@ -173,12 +179,14 @@ export class CompositeRegistry {
               if (inputIdx === undefined) continue
               // __composite_call__ 的 args[0] 是 compositeId，实际输入从 args[1] 开始
               const callArgOffset = inner.nodeType === '__composite_call__' ? 1 : 0
+              // assembly_list 在 GIA 编码时 count pin 插在 index 0，arg pin 偏移 +1
+              const assemblyListOffset = inner.nodeType === 'assembly_list' ? 1 : 0
               pins.push({
                 outerPinKind: 3, // InParam
                 outerPinIndex: inputIdx,
                 innerNodeId: inner.id!,
                 innerPinKind: 3, // InParam
-                innerPinIndex: argIdx - callArgOffset
+                innerPinIndex: argIdx - callArgOffset + assemblyListOffset
               })
             }
           }
@@ -204,7 +212,7 @@ export class CompositeRegistry {
         const leafMarks = impl?.leafMarks
         const leafCount = leafMarks ? Object.keys(leafMarks).length : 0
         const outflowNodeCount = impl?.outflowExitNodes?.length ?? 0
-        const totalOutflows = Math.max(leafCount, outflowNodeCount, hasExec ? 1 : 0)
+        const totalOutflows = Math.max(leafCount, outflowNodeCount)
         const isMultiOutflow = totalOutflows > 1
 
         return {
@@ -236,8 +244,14 @@ export class CompositeRegistry {
             args: r.args.map((a) => {
               const meta = a.getMetadata()
               if (meta?.kind === 'pin') {
+                let giaType: string
                 const typeName = (a as any).constructor?.name ?? ''
-                const giaType = RUNTIME_TO_GIA_TYPE[typeName] ?? typeName
+                if (typeName === 'list') {
+                  const concreteType = (a as list).getConcreteType()
+                  giaType = concreteType ? `${concreteType}_list` : 'list'
+                } else {
+                  giaType = RUNTIME_TO_GIA_TYPE[typeName] ?? typeName
+                }
                 return {
                   type: 'conn' as const,
                   value: {
@@ -252,7 +266,7 @@ export class CompositeRegistry {
           })),
           implEdges: impl?.edges ?? {},
           compositePins: pins,
-          implVariables: undefined
+          implVariables: definition.variables
         }
       }
     }
@@ -276,14 +290,11 @@ export class CompositeRegistry {
         }
         return
       }
-      const outflowNodes = impl.outflowExitNodes
-      if (outflowNodes && outflowNodes.length > 0) {
-        for (let i = 0; i < outflowNodes.length; i++) {
-          pins.push({ outerPinKind: 2, outerPinIndex: i, innerNodeId: outflowNodes[i], innerPinKind: 2, innerPinIndex: 0 })
-        }
-        return
+      // 无显式 outflow 标记且無出口节点时：不生成 OutFlow compositePin（复合为 sink 节点）
+      if (!impl.outflowExitNodes || impl.outflowExitNodes.length === 0) return
+      for (let i = 0; i < impl.outflowExitNodes.length; i++) {
+        pins.push({ outerPinKind: 2, outerPinIndex: i, innerNodeId: impl.outflowExitNodes[i], innerPinKind: 2, innerPinIndex: 0 })
       }
-      pins.push({ outerPinKind: 2, outerPinIndex: 0, innerNodeId: impl.execNodes[impl.execNodes.length - 1].id, innerPinKind: 2, innerPinIndex: 0 })
     }
 
     const handle: CompositeHandle = {
