@@ -71,7 +71,7 @@ export function buildCompositeAccessories(
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
-  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, compositeDefById)
+  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, def.implVariables, compositeDefById)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
@@ -272,6 +272,7 @@ function buildImplGraphNodes(
   nodeIndexMap: Map<number, number>,
   implEdges: Record<number, any[]>,
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
+  implVariables: CompositeDefIR['implVariables'],
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
   const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
@@ -299,9 +300,49 @@ function buildImplGraphNodes(
       kind: isCompositeCall ? NodeGraph_Id_Kind.SysGraph : NodeGraph_Id_Kind.SysCall,
       nodeId: dtcGenericId ?? nodeId
     }
-    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, calledDef)
+    // get_node_graph_variable：根据变量类型解析 concreteId（如 str_list → 347）
+    let gvConcreteNid: number | undefined
+    if (node.type === 'get_node_graph_variable') {
+      const nameArg = (node.args ?? [])[0]
+      if (nameArg && nameArg.type === 'str' && typeof nameArg.value === 'string') {
+        const varName = nameArg.value
+        const implVar = implVariables?.find(v => v.name === varName)
+        if (implVar) {
+          // 从变量类型推导后缀（同 node_id.ts 中 suffixFromValueType 逻辑）
+          let suffix: string | undefined
+          const vt = implVar.type
+          if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(vt)) {
+            suffix = vt
+          } else if (vt === 'vec3') {
+            suffix = 'vec'
+          } else if (vt === 'config_id') {
+            suffix = 'config'
+          } else if (vt === 'prefab_id') {
+            suffix = 'prefab'
+          } else if (vt.endsWith('_list')) {
+            const base = vt.slice(0, -5)
+            if (['bool', 'int', 'float', 'str', 'guid', 'entity'].includes(base)) {
+              suffix = `list_${base}`
+            }
+          }
+          if (suffix) {
+            const nodeIdLower = getNodeIdLowerMap()
+            const direct = nodeIdLower.get(`get_node_graph_variable__${suffix}`)
+            if (direct) {
+              gvConcreteNid = direct
+            } else if (suffix.startsWith('list_')) {
+              // fallback：尝试元素级后缀（如 get_node_graph_variable__str）
+              const elemSuffix = suffix.slice(5)
+              const elemTyped = nodeIdLower.get(`get_node_graph_variable__${elemSuffix}`)
+              if (elemTyped) gvConcreteNid = elemTyped
+            }
+          }
+        }
+      }
+    }
+    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, implVariables, calledDef)
     allDataConns.push(...dataConns)
-    return { node, nodeId, genericId, pins, isDTC: isDTC || false, dtcConcreteNid: isDTC ? nodeId : undefined, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
+    return { node, nodeId, genericId, pins, isDTC: isDTC || false, dtcConcreteNid: isDTC ? nodeId : undefined, gvConcreteNid, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
   })
 
   for (const dc of allDataConns) {
@@ -315,7 +356,7 @@ function buildImplGraphNodes(
 
   const layout = computeImplLayout(nodeResults, implNodes, implEdges)
 
-  return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex, isDTC, dtcConcreteNid }) => {
+  return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex, isDTC, dtcConcreteNid, gvConcreteNid }) => {
     const outEdges = implEdges[node.id]
     if (outEdges && outEdges.length > 0) {
       for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
@@ -339,8 +380,8 @@ function buildImplGraphNodes(
     return {
       nodeIndex,
       genericId,
-      // data_type_conversion: concreteId 使用具体变种 nid，其他节点与 genericId 相同
-      concreteId: isDTC && dtcConcreteNid ? { ...genericId, nodeId: dtcConcreteNid } : { ...genericId },
+      // data_type_conversion / get_node_graph_variable: concreteId 使用具体变种 nid
+      concreteId: isDTC && dtcConcreteNid ? { ...genericId, nodeId: dtcConcreteNid } : gvConcreteNid ? { ...genericId, nodeId: gvConcreteNid } : { ...genericId },
       pins,
       x: pos.x,
       y: pos.y,
@@ -582,6 +623,7 @@ function buildImplNodePins(
   node: CompositeDefIR['implNodes'][number],
   implEdges: Record<number, any[]>,
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
+  implVariables: CompositeDefIR['implVariables'],
   calledDef?: CompositeDefIR
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
@@ -742,6 +784,18 @@ function buildImplNodePins(
           const elementType = connType.slice(0, -5)
           outType = argVarType(elementType)
           outClass = argVarBaseClass(elementType)
+        }
+      }
+    }
+    // get_node_graph_variable：OutParam 应从 implVariables 中取变量真实类型
+    if (node.type === 'get_node_graph_variable') {
+      const nameArg = (node.args ?? [])[0]
+      if (nameArg && nameArg.type === 'str' && typeof nameArg.value === 'string') {
+        const varName = nameArg.value
+        const implVar = implVariables?.find(v => v.name === varName)
+        if (implVar) {
+          outType = argVarType(implVar.type)
+          outClass = argVarBaseClass(implVar.type)
         }
       }
     }
