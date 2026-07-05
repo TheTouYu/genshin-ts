@@ -40,6 +40,12 @@ export type ClientNodeMetadata = {
   inputs: ClientPinMetadata[]
   outputs: ClientPinMetadata[]
   flows?: ClientPinMetadata[]
+  /**
+   * physical input pin index per public method arg (codegen-derived from doc
+   * alignment). Absent when identity; hidden pins (e.g. leading selector
+   * enums) keep their editor defaults and are skipped by this mapping.
+   */
+  argPins?: number[]
   reflectMap?: Array<{
     concreteId: number | string
     variantKey: string
@@ -89,7 +95,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量加法_填值.gia'
+    sampleFile: '布尔过滤器节点\\三维向量加法_填值.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -264,7 +271,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量减法_填值.gia'
+    sampleFile: '布尔过滤器节点\\三维向量减法_填值.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -443,7 +451,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -469,7 +478,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\反余弦函数_填值.gia'
+    sampleFile: '布尔过滤器节点\\反余弦函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -495,7 +505,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\反正弦函数_填值.gia'
+    sampleFile: '布尔过滤器节点\\反正弦函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -521,7 +532,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\反正切函数_填值.gia'
+    sampleFile: '布尔过滤器节点\\反正切函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -1068,7 +1080,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\余弦函数_填值.gia'
+    sampleFile: '布尔过滤器节点\\余弦函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -1160,7 +1173,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\角度转弧度_填值.gia'
+    sampleFile: '布尔过滤器节点\\角度转弧度_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -1275,7 +1289,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -1444,7 +1459,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -2615,7 +2631,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -2685,7 +2702,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -2755,7 +2773,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -2825,7 +2844,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -3146,7 +3166,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -3334,7 +3355,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\弧度转角度_填值.gia'
+    sampleFile: '布尔过滤器节点\\弧度转角度_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -3360,7 +3382,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'bool_filter',
@@ -3468,7 +3491,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'bool_filter',
@@ -3494,7 +3518,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\正切函数_填值.gia'
+    sampleFile: '布尔过滤器节点\\正切函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -3534,7 +3559,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量加法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -3758,7 +3784,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量减法_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量减法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -3989,7 +4016,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -4022,7 +4050,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\乘法运算_连线.gia'
+    sampleFile: '角色技能节点图\\乘法运算_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -4055,7 +4084,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\反正弦函数_连线.gia'
+    sampleFile: '角色技能节点图\\反正弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -4088,7 +4118,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\乘法运算_连线.gia'
+    sampleFile: '角色技能节点图\\乘法运算_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -5440,7 +5471,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\余弦函数_连线.gia'
+    sampleFile: '角色技能节点图\\余弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -5604,7 +5636,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\角度转弧度_连线.gia'
+    sampleFile: '角色技能节点图\\角度转弧度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -5726,7 +5759,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -5945,7 +5979,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -7721,7 +7756,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -7798,7 +7834,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -7919,7 +7956,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -7996,7 +8034,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -8352,7 +8391,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -8515,7 +8555,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打矩形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打矩形攻击盒_连线.gia',
+    argPins: [0, 1, 2, 3, 5]
   },
   {
     subType: 'character_skill',
@@ -8966,7 +9007,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\弧度转角度_连线.gia'
+    sampleFile: '角色技能节点图\\弧度转角度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -9072,7 +9114,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点发射投射物_连线.gia'
+    sampleFile: '角色技能节点图\\定点发射投射物_连线.gia',
+    argPins: [0, 1, 6, 9, 10]
   },
   {
     subType: 'character_skill',
@@ -9469,7 +9512,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\正弦函数_连线.gia'
+    sampleFile: '角色技能节点图\\正弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -9614,7 +9658,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'character_skill',
@@ -9647,7 +9692,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\正切函数_连线.gia'
+    sampleFile: '角色技能节点图\\正切函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'character_skill',
@@ -12692,7 +12738,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量加法_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量加法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -12916,7 +12963,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量减法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -13147,7 +13195,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -13180,7 +13229,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\乘法运算_连线.gia'
+    sampleFile: '造物技能节点图\\乘法运算_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -13213,7 +13263,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\乘法运算_连线.gia'
+    sampleFile: '造物技能节点图\\乘法运算_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -13246,7 +13297,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量夹角_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量夹角_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -14625,7 +14677,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+    sampleFile: '造物技能节点图\\余弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -14821,7 +14874,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -14943,7 +14997,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -15162,7 +15217,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -16751,7 +16807,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -16828,7 +16885,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -16949,7 +17007,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -17026,7 +17085,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -17382,7 +17442,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -17545,7 +17606,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia'
+    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia',
+    argPins: [0, 1, 2, 3, 5]
   },
   {
     subType: 'creation_skill',
@@ -17914,7 +17976,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\弧度转角度_连线.gia'
+    sampleFile: '造物技能节点图\\弧度转角度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -18020,7 +18083,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\恢复生命值_连线.gia'
+    sampleFile: '造物技能节点图\\恢复生命值_连线.gia',
+    argPins: [0, 1, 6]
   },
   {
     subType: 'creation_skill',
@@ -18551,7 +18615,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\正弦函数_连线.gia'
+    sampleFile: '造物技能节点图\\正弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -18696,7 +18761,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_skill',
@@ -18729,7 +18795,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\正切函数_连线.gia'
+    sampleFile: '造物技能节点图\\正切函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_skill',
@@ -21415,7 +21482,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量加法_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量加法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -21639,7 +21707,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量减法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -21825,7 +21894,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -21858,7 +21928,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\余弦函数_连线.gia'
+    sampleFile: '造物状态节点图\\余弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -21891,7 +21962,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\创建三维向量_连线.gia'
+    sampleFile: '造物状态节点图\\创建三维向量_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -21924,7 +21996,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\反正切函数_连线.gia'
+    sampleFile: '造物状态节点图\\反正切函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -23039,7 +23112,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\余弦函数_连线.gia'
+    sampleFile: '造物状态节点图\\余弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -23203,7 +23277,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\角度转弧度_连线.gia'
+    sampleFile: '造物状态节点图\\角度转弧度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -23325,7 +23400,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -23539,7 +23615,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -24466,7 +24543,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -24525,7 +24603,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -24602,7 +24681,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -24661,7 +24741,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -24997,7 +25078,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -25351,7 +25433,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\弧度转角度_连线.gia'
+    sampleFile: '造物状态节点图\\弧度转角度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -25384,7 +25467,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\正弦函数_连线.gia'
+    sampleFile: '造物状态节点图\\正弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status',
@@ -25529,7 +25613,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status',
@@ -25597,7 +25682,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：执行巡逻_连线.gia'
+    sampleFile: '造物状态节点图\\战术：执行巡逻_连线.gia',
+    argPins: [0, 1, 2, 3, 5, 6]
   },
   {
     subType: 'creation_status',
@@ -26488,7 +26574,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\正切函数_连线.gia'
+    sampleFile: '造物状态节点图\\正切函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -26528,7 +26615,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量加法_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量加法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -26752,7 +26840,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量减法_连线.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -26938,7 +27027,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -26971,7 +27061,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\反余弦函数_连线.gia'
+    sampleFile: '造物状态决策节点图\\反余弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -27004,7 +27095,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\反正弦函数_连线.gia'
+    sampleFile: '造物状态决策节点图\\反正弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -27037,7 +27129,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\反正切函数_连线.gia'
+    sampleFile: '造物状态决策节点图\\反正切函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -28141,7 +28234,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\余弦函数_连线.gia'
+    sampleFile: '造物状态决策节点图\\余弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -28305,7 +28399,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\角度转弧度_连线.gia'
+    sampleFile: '造物状态决策节点图\\角度转弧度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -28427,7 +28522,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -28641,7 +28737,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -29537,7 +29634,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -29596,7 +29694,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -29673,7 +29772,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -29732,7 +29832,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -30068,7 +30169,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -30422,7 +30524,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\弧度转角度_连线.gia'
+    sampleFile: '造物状态决策节点图\\弧度转角度_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -30455,7 +30558,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\正弦函数_连线.gia'
+    sampleFile: '造物状态决策节点图\\正弦函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'creation_status_decision',
@@ -30600,7 +30704,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'creation_status_decision',
@@ -30674,7 +30779,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\正切函数_连线.gia'
+    sampleFile: '造物状态决策节点图\\正切函数_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -30707,7 +30813,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量加法_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量加法_填值.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -30882,7 +30989,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量减法_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量减法_填值.gia',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -31061,7 +31169,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -31087,7 +31196,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\创建三维向量_连线.gia'
+    sampleFile: '整数过滤器节点\\创建三维向量_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -31113,7 +31223,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\创建三维向量_连线.gia'
+    sampleFile: '整数过滤器节点\\创建三维向量_连线.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -31139,7 +31250,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\反正切函数_填值.gia'
+    sampleFile: '整数过滤器节点\\反正切函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -31686,7 +31798,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\余弦函数_填值.gia'
+    sampleFile: '整数过滤器节点\\余弦函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -31778,7 +31891,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\角度转弧度_填值.gia'
+    sampleFile: '整数过滤器节点\\角度转弧度_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -31893,7 +32007,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -32062,7 +32177,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -33231,7 +33347,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -33301,7 +33418,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -33371,7 +33489,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -33441,7 +33560,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -33762,7 +33882,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -33950,7 +34071,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\弧度转角度_填值.gia'
+    sampleFile: '整数过滤器节点\\弧度转角度_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -33976,7 +34098,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\正弦函数_填值.gia'
+    sampleFile: '整数过滤器节点\\正弦函数_填值.gia',
+    argPins: [1]
   },
   {
     subType: 'int_filter',
@@ -34084,7 +34207,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    argPins: [1, 2]
   },
   {
     subType: 'int_filter',
@@ -34110,6 +34234,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\正切函数_填值.gia'
+    sampleFile: '整数过滤器节点\\正切函数_填值.gia',
+    argPins: [1]
   }
 ] as const

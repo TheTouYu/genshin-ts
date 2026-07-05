@@ -74,16 +74,21 @@ export function resolveClientConcreteVariant(
     .map((pin) => pin.index)
     .sort((a, b) => a - b)
 
+  // IR args are signature-ordered; argPins maps them onto physical pin indexes
+  const argIndexOfPin = (pinIndex: number) =>
+    metadata.argPins ? metadata.argPins.indexOf(pinIndex) : pinIndex
+
   const keyParts: string[] = []
   for (const index of reflectiveIndexes) {
-    const arg = node.args?.[index]
+    const argIndex = argIndexOfPin(index)
+    const arg = argIndex < 0 ? undefined : node.args?.[argIndex]
     const irType = arg == null ? undefined : arg.type === 'conn' ? arg.value.type : arg.type
     const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
     if (clientVarType === undefined) {
       throw clientNodegraphError(
         CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
         `${metadata.subType}.${metadata.nodeType} (genericId ${metadata.genericId}) cannot derive variant key: ` +
-          `input #${index} has unresolvable type "${irType ?? 'missing'}"`
+          `input pin #${index} has unresolvable type "${irType ?? 'missing'}"`
       )
     }
     keyParts.push(String(clientVarType))

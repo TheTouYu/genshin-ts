@@ -58,7 +58,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_addition',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -260,7 +260,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_subtraction',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -390,7 +390,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'addition',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -416,7 +416,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'arccosine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -442,7 +442,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'arcsine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -468,7 +468,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'arctangent_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -619,7 +619,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'cosine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -679,7 +679,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'degrees_to_radians',
-      args: [null, angleObj]
+      args: [angleObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -749,7 +749,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'division',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -861,7 +861,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'equal',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -1976,7 +1976,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'greater_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -2009,7 +2009,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'greater_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -2073,7 +2073,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'less_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -2106,7 +2106,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'less_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -2303,7 +2303,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'multiplication',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -2408,7 +2408,6 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
         locationObj,
         rotateObj,
         zoomMultiplierObj,
-        null,
         playDefaultSoundEffectsObj
       ]
     })
@@ -2746,7 +2745,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'radians_to_degrees',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
@@ -2793,13 +2792,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       args: [
         targetEntityObj,
         recoveryAmountObj,
-        null,
-        null,
-        null,
-        null,
         ignoreRecoveryAdjustmentEffectObj,
-        null,
-        null,
         aggroMultiplierForThisHealingObj,
         aggroIncrementForThisHealingObj
       ]
@@ -3015,7 +3008,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'sine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -3106,7 +3099,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'subtraction',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -3132,7 +3125,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'tangent_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -3301,7 +3294,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_addition',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -3503,7 +3496,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_subtraction',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -3633,7 +3626,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'addition',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -3659,7 +3652,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'arccosine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -3685,7 +3678,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'arcsine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -3711,7 +3704,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'arctangent_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -3865,7 +3858,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'cosine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -3944,7 +3937,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'degrees_to_radians',
-      args: [null, angleObj]
+      args: [angleObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -4014,7 +4007,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'division',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -4126,7 +4119,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'equal',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -5054,7 +5047,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'greater_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -5087,7 +5080,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'greater_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -5151,7 +5144,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'less_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -5184,7 +5177,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'less_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -5381,7 +5374,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'multiplication',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -5486,7 +5479,6 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
         locationObj,
         rotateObj,
         zoomMultiplierObj,
-        null,
         playDefaultSoundEffectsObj
       ]
     })
@@ -5765,7 +5757,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'radians_to_degrees',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
@@ -5799,15 +5791,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'exec',
       nodeType: 'recover_creation_s_hp',
-      args: [
-        targetEntityObj,
-        recoveryAmountObj,
-        null,
-        null,
-        null,
-        null,
-        ignoreRecoveryAdjustmentEffectObj
-      ]
+      args: [targetEntityObj, recoveryAmountObj, ignoreRecoveryAdjustmentEffectObj]
     })
   }
 
@@ -6106,7 +6090,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'sine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -6197,7 +6181,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'subtraction',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -6223,7 +6207,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'tangent_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -6392,7 +6376,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_addition',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -6594,7 +6578,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_subtraction',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -6693,7 +6677,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'addition',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -6719,7 +6703,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'arccosine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -6745,7 +6729,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'arcsine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -6771,7 +6755,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'arctangent_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -7050,7 +7034,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'cosine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -7110,7 +7094,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'degrees_to_radians',
-      args: [null, angleObj]
+      args: [angleObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -7180,7 +7164,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'division',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -7292,7 +7276,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'equal',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -8022,7 +8006,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'greater_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -8054,7 +8038,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'greater_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -8087,7 +8071,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'less_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -8119,7 +8103,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'less_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -8309,7 +8293,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'multiplication',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -8537,7 +8521,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'radians_to_degrees',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
@@ -8563,7 +8547,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'sine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -8654,7 +8638,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'subtraction',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -8708,7 +8692,6 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
         patrolTemplateIDObj,
         startFromTheNearestWaypointObj,
         setEndPointAsSpawnPointObj,
-        null,
         tacticalContextObj,
         canSkillBeInterruptedObj
       ]
@@ -9505,7 +9488,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'tangent_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -9537,7 +9520,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_addition',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -9739,7 +9722,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_subtraction',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -9838,7 +9821,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'addition',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -9864,7 +9847,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'arccosine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -9890,7 +9873,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'arcsine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -9916,7 +9899,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'arctangent_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -10181,7 +10164,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'cosine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -10241,7 +10224,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'degrees_to_radians',
-      args: [null, angleObj]
+      args: [angleObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -10311,7 +10294,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'division',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -10423,7 +10406,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'equal',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -11130,7 +11113,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'greater_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -11162,7 +11145,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'greater_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -11195,7 +11178,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'less_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -11227,7 +11210,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'less_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -11417,7 +11400,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'multiplication',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -11645,7 +11628,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'radians_to_degrees',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
@@ -11671,7 +11654,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'sine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -11762,7 +11745,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'subtraction',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -11788,7 +11771,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'tangent_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -11820,7 +11803,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_addition',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -12022,7 +12005,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_subtraction',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -12121,7 +12104,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'addition',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -12147,7 +12130,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'arccosine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -12173,7 +12156,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'arcsine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -12199,7 +12182,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'arctangent_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -12225,7 +12208,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'cosine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -12285,7 +12268,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'degrees_to_radians',
-      args: [null, angleObj]
+      args: [angleObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -12355,7 +12338,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'division',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -12426,7 +12409,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'equal',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -13275,7 +13258,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'greater_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -13308,7 +13291,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'greater_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -13341,7 +13324,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'less_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -13374,7 +13357,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'less_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -13571,7 +13554,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'multiplication',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -13778,7 +13761,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'radians_to_degrees',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
@@ -13804,7 +13787,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'sine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -13895,7 +13878,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'subtraction',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -13921,7 +13904,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'tangent_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -13953,7 +13936,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_addition',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -14155,7 +14138,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: '_3d_vector_subtraction',
-      args: [null, _3DVector1Obj, _3DVector2Obj]
+      args: [_3DVector1Obj, _3DVector2Obj]
     })
     const ret = new vec3()
     ret.markPin(ref, 'calculationResult', 0)
@@ -14254,7 +14237,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'addition',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -14280,7 +14263,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'arccosine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -14306,7 +14289,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'arcsine_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -14332,7 +14315,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'arctangent_function',
-      args: [null, inputObj]
+      args: [inputObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -14358,7 +14341,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'cosine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -14418,7 +14401,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'degrees_to_radians',
-      args: [null, angleObj]
+      args: [angleObj]
     })
     const ret = new float()
     ret.markPin(ref, 'radian', 0)
@@ -14488,7 +14471,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'division',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -14559,7 +14542,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'equal',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -15438,7 +15421,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'greater_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -15471,7 +15454,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'greater_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -15504,7 +15487,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'less_than',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -15537,7 +15520,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'less_than_or_equal_to',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
@@ -15734,7 +15717,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'multiplication',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -15941,7 +15924,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'radians_to_degrees',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
@@ -15967,7 +15950,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'sine_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)
@@ -16058,7 +16041,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'subtraction',
-      args: [null, input1Obj, input2Obj]
+      args: [input1Obj, input2Obj]
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
@@ -16084,7 +16067,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'tangent_function',
-      args: [null, radianObj]
+      args: [radianObj]
     })
     const ret = new float()
     ret.markPin(ref, 'result', 0)

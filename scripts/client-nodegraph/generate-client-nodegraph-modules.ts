@@ -513,7 +513,16 @@ function deriveServerSignatureDrift(
   return { shared, drift }
 }
 
-function emitClientNodeMetadata(metadata: readonly unknown[]) {
+function emitClientNodeMetadata(
+  metadata: readonly unknown[],
+  argPinsBySubType: Record<string, Record<string, number[]>>
+) {
+  // enrich extractor records with the codegen-derived arg->pin mapping so the
+  // IR->GIA transform can fill hidden pins while IR args stay signature-ordered
+  const enriched = (metadata as Array<{ subType: string; nodeType: string }>).map((record) => {
+    const argPins = argPinsBySubType[record.subType]?.[record.nodeType]
+    return argPins ? { ...record, argPins } : record
+  })
   const metadataPath =
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts'
   const metadataBody = fs.readFileSync(metadataPath, 'utf8')
@@ -525,7 +534,7 @@ function emitClientNodeMetadata(metadata: readonly unknown[]) {
   const nextMetadataBody = `${metadataBody.slice(
     0,
     markerIndex
-  )}${marker} ${jsonConst(metadata)} as const`
+  )}${marker} ${jsonConst(enriched)} as const`
   write(metadataPath, nextMetadataBody)
 }
 
@@ -536,11 +545,11 @@ function main() {
   assertCompleteCapability(capability)
   emitClientGraphEncoding()
   emitClientGraphModes(capability as ClientGraphCapability)
-  emitClientNodeMetadata(metadata)
   emitClientScopedGlobals(deriveScopedGlobalsCapability(metadata as MetadataRecord[]))
 
   const alignment = buildDocNameAlignment()
   const generated = generateClientNodes(metadata as MetaRecord[], alignment)
+  emitClientNodeMetadata(metadata, generated.argPinsBySubType)
   write('src/definitions/client_nodes.ts', generated.classFileBody)
   emitClientMethodModes(generated.flowMetadata, generated.methodsBySubType)
   write('tests/client_generated/_generation_gaps.json', JSON.stringify(generated.gaps, null, 2))

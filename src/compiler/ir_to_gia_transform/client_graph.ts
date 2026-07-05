@@ -38,6 +38,14 @@ function toPinLiteral(clientVarType: number, value: unknown, argIndex: number, n
 }
 
 /**
+ * IR args follow the generated method signature (no holes); metadata.argPins
+ * maps each arg to its physical input pin when hidden pins shift the layout.
+ */
+export function argPinIndex(metadata: ClientNodeMetadata, argIndex: number): number {
+  return metadata.argPins?.[argIndex] ?? argIndex
+}
+
+/**
  * Write literal IR args into the node's input pins. Non-reflective pins use
  * the sample-proven scalar shapes; reflective pins wrap the literal in a
  * ConcreteBase using the resolved variant's concrete pin type. Empty list
@@ -51,11 +59,12 @@ function applyLiteralArgs(
 ) {
   for (const [argIndex, arg] of (irNode.args ?? []).entries()) {
     if (arg == null || arg.type === 'conn') continue
-    const pinMeta = metadata.inputs.find((p) => p.index === argIndex)
+    const pinIndex = argPinIndex(metadata, argIndex)
+    const pinMeta = metadata.inputs.find((p) => p.index === pinIndex)
     if (!pinMeta) {
       throw clientNodegraphError(
         CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-        `${metadata.subType}.${metadata.nodeType} has no input pin #${argIndex} for literal arg`
+        `${metadata.subType}.${metadata.nodeType} has no input pin #${pinIndex} for literal arg #${argIndex}`
       )
     }
     if (Array.isArray(arg.value) && arg.type.endsWith('_list')) {
@@ -65,16 +74,16 @@ function applyLiteralArgs(
         `${metadata.subType}.${metadata.nodeType} input #${argIndex}: non-empty list literals have no sample-proven client encoding; build the list via nodes instead`
       )
     }
-    const pin = node.pins.find((p) => p.i1?.kind === PIN_KIND_IN_PARAM && p.i1.index === argIndex)
+    const pin = node.pins.find((p) => p.i1?.kind === PIN_KIND_IN_PARAM && p.i1.index === pinIndex)
     if (!pin) {
       throw clientNodegraphError(
         CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-        `${metadata.subType}.${metadata.nodeType} built node misses input pin #${argIndex}`
+        `${metadata.subType}.${metadata.nodeType} built node misses input pin #${pinIndex}`
       )
     }
     if (pinMeta.reflective) {
       const variant = metadata.reflectMap?.find((v) => v.concreteId === concreteId)
-      const variantPin = variant?.pins?.find((p) => p.kind === 'input' && p.index === argIndex)
+      const variantPin = variant?.pins?.find((p) => p.kind === 'input' && p.index === pinIndex)
       if (!variantPin?.clientVarType) {
         throw clientNodegraphError(
           CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
@@ -103,9 +112,11 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const graphInfo = buildExecutionGraph(nodes)
   const positions = layoutPositions(nodes, graphInfo)
   const builtById = new Map<NodeId, ClientGiaNode>()
+  const metadataById = new Map<NodeId, ClientNodeMetadata>()
 
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, irNode)
+    metadataById.set(irNode.id, metadata)
     const concreteId = resolveClientConcreteVariant(metadata, irNode)
     const pos = positions.get(irNode.id) ?? [0, 0]
     const node = client_node_body({
@@ -142,8 +153,10 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     const from = builtById.get(fromId)
     const to = builtById.get(toId)
     if (!from || !to) throw new Error(`[error] bad client data connection ${fromId}->${toId}`)
-    const pin = to.pins.find((p) => p.i1?.kind === PIN_KIND_IN_PARAM && p.i1.index === toIndex)
-    if (!pin) throw new Error(`[error] missing client input pin ${toId}.${toIndex}`)
+    // layout toIndex is the IR arg index; hidden pins shift the physical index
+    const toPinIndex = argPinIndex(metadataById.get(toId)!, toIndex)
+    const pin = to.pins.find((p) => p.i1?.kind === PIN_KIND_IN_PARAM && p.i1.index === toPinIndex)
+    if (!pin) throw new Error(`[error] missing client input pin ${toId}.${toPinIndex}`)
     pin.connects = [client_node_connect_from(from.nodeIndex, fromIndex)]
   }
 

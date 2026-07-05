@@ -129,7 +129,7 @@ const buildDefaultNode: NodeBuilder = (record, next) => {
     id: record.id,
     type: record.nodeType
   }
-  const args = record.args.map((arg) => (arg === null ? null : buildArgument(record, arg)))
+  const args = record.args.map((arg) => buildArgument(record, arg))
   if (args.length) node.args = args
   if (next?.length) node.next = next
   return node
@@ -150,7 +150,6 @@ const buildBreakLoopNode: NodeBuilder = (record, next, isClient) => {
   const breakTargetIndex = isClient ? 0 : 1
 
   for (const arg of record.args) {
-    if (!arg) continue
     const lit = arg.toIRLiteral()
     if (!lit) continue
     if (lit.type !== 'int' || typeof lit.value !== 'number') {

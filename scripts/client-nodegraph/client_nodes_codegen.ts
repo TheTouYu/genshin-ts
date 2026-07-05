@@ -70,6 +70,12 @@ export type CodegenResult = {
   flowMetadata: FlowMetadataEntry[]
   methodsBySubType: Record<string, string[]>
   gaps: GapEntry[]
+  /**
+   * subType -> nodeType -> physical input pin index per public method arg.
+   * Only present when not identity (hidden pins shift the mapping); consumed
+   * by the IR->GIA transform so IR args stay in signature order without holes.
+   */
+  argPinsBySubType: Record<string, Record<string, number[]>>
 }
 
 const SUB_TYPES = [
@@ -786,16 +792,15 @@ function buildJsdoc(spec: MethodSpec): string {
   return jsdocBlock(lines)
 }
 
-/** args array literal covering pins 0..max, null for hidden pins, trailing nulls trimmed */
+/** args array literal in signature order; hidden pins are the transform's job (argPins) */
 function buildArgsArray(spec: MethodSpec): string {
-  const maxIndex = Math.max(-1, ...spec.inputPins.map((p) => p.index))
-  const slots: string[] = []
-  for (let i = 0; i <= maxIndex; i++) {
-    const param = spec.params.find((p) => p.pinIndex === i)
-    slots.push(param ? `${param.ident}Obj` : 'null')
-  }
-  while (slots.length && slots[slots.length - 1] === 'null') slots.pop()
-  return `[${slots.join(', ')}]`
+  return `[${spec.params.map((p) => `${p.ident}Obj`).join(', ')}]`
+}
+
+/** physical input pin index per public arg; undefined when identity */
+function argPinsOf(spec: MethodSpec): number[] | undefined {
+  const argPins = spec.params.map((p) => p.pinIndex)
+  return argPins.some((pin, i) => pin !== i) ? argPins : undefined
 }
 
 function retConstruction(irTypeExpr: { kind: 'literal'; irType: string } | { kind: 'expr'; expr: string; isList: boolean }): string {
@@ -1217,6 +1222,7 @@ export function generateClientNodes(
   const gaps: GapEntry[] = []
   const methodTextsBySubType = new Map<string, string[]>()
   const methodNamesBySubType = new Map<string, string[]>()
+  const argPinsBySubType: Record<string, Record<string, number[]>> = {}
   for (const subType of SUB_TYPES) {
     methodTextsBySubType.set(subType, [])
     methodNamesBySubType.set(subType, [])
@@ -1344,6 +1350,10 @@ export function generateClientNodes(
     }
     methodTextsBySubType.get(record.subType)!.push(text)
     methodNamesBySubType.get(record.subType)!.push(spec.methodName)
+    const argPins = argPinsOf(spec)
+    if (argPins) {
+      ;(argPinsBySubType[record.subType] ??= {})[record.nodeType] = argPins
+    }
     pushFlowEntry(spec, spec.recordType === 'data' ? 'data' : 'exec', {
       en: spec.docsEn,
       zh: spec.docsZh
@@ -1467,5 +1477,5 @@ export type ClientExecutionFlowFunctionsBySubType = {
     methodsBySubType[subType] = [...new Set(methodNamesBySubType.get(subType)!)].sort()
   }
 
-  return { classFileBody, flowMetadata, methodsBySubType, gaps }
+  return { classFileBody, flowMetadata, methodsBySubType, gaps, argPinsBySubType }
 }

@@ -18,7 +18,9 @@ const PROTO_PATH =
 const OUT_DIR = 'tests/client_generated'
 
 g.characterSkill({ id: 1082130433, name: 'GenSkill' }).on('start', (_evt, f) => {
-  const target = f._3dVectorAddition([1, 2, 3], [4, 5, 6])
+  // nested call: the outer node takes a wired input on signature index 0,
+  // which must land on physical pin 1 (pin 0 is the hidden selector enum)
+  const target = f._3dVectorAddition(f._3dVectorAddition([1, 2, 3], [4, 5, 6]), [7, 8, 9])
   f.doubleBranch(
     f.equal(1n, 2n),
     () => f.fixedPointDisplacement(1.5, 0.5, 8, target, true),
@@ -54,6 +56,7 @@ g.intFilter({ id: 1082130438, name: 'GenIntFilter' }).on('start', (_evt, f) => {
 const EXPECTED_NODE_TYPES: Record<ClientGraphSubType, string[]> = {
   character_skill: [
     'node_graph_begins',
+    '_3d_vector_addition',
     '_3d_vector_addition',
     'equal',
     'double_branch',
