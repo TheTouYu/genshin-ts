@@ -212,7 +212,16 @@ export class CompositeRegistry {
         const leafMarks = impl?.leafMarks
         const leafCount = leafMarks ? Object.keys(leafMarks).length : 0
         const outflowNodeCount = impl?.outflowExitNodes?.length ?? 0
-        const totalOutflows = Math.max(leafCount, outflowNodeCount)
+        // 检测 double_branch 节点：自动为其两个分支创建 outflows
+        let doubleBranchOutflows = 0
+        if (impl?.execNodes) {
+          for (const n of impl.execNodes) {
+            if (n.nodeType === 'double_branch') {
+              doubleBranchOutflows = Math.max(doubleBranchOutflows, 2)
+            }
+          }
+        }
+        const totalOutflows = Math.max(leafCount, outflowNodeCount, doubleBranchOutflows)
         const isMultiOutflow = totalOutflows > 1
 
         return {
@@ -224,7 +233,9 @@ export class CompositeRegistry {
             : [],
           outflows: hasExec
             ? Array.from({ length: totalOutflows }, (_, i) => ({
-                name: '', visible: true, index: i,
+                // doubleBranch 的 outflow 名字为 "是" 和 "否"
+                name: doubleBranchOutflows > 0 ? (i === 0 ? '是' : '否') : '',
+                visible: true, index: i,
                 pinIndex: isMultiOutflow ? PIN_INDEX_OUTFLOW_MULTI_BASE + i : PIN_INDEX_OUTFLOW_SINGLE
               }))
             : [],

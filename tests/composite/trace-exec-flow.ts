@@ -81,6 +81,12 @@ function extractLiteral(v: any): string | null {
   return null
 }
 
+/** 检测 pin 值是否有 itemType 缺少 type_server 的异常 */
+function hasItemTypeAnomaly(v: any): boolean {
+  if (!v?.itemType) return false
+  return v.itemType.type_server == null
+}
+
 // ============================================================
 // 执行流连接记录
 // ============================================================
@@ -114,6 +120,8 @@ interface TreeNode {
   edge: FlowEdge
   name: string
   kind: number | null
+  outflowStr: string
+  anomaly: string  // 异常标记（如 itemType 缺少 type_server）
   children: TreeNode[]
 }
 
@@ -122,11 +130,22 @@ function buildTree(
   nodeMap: Map<number, any>,
   downstreamOf: Map<number, FlowEdge[]>,
   compNames: Map<number, string>,
+  compOutflows: Map<number, Map<number, string>>,
   visited: Set<number>,
 ): TreeNode {
   const n = nodeMap.get(edge.tgtIdx)
   const name = n ? resolveName(n, compNames) : '?'
   const kind = n?.genericId?.kind ?? null
+  const nid = n?.genericId?.nodeId ?? null
+  const outflowStr = (kind === 22001 && nid != null && compOutflows.has(nid))
+    ? ' [' + Array.from(compOutflows.get(nid)!.values()).join(', ') + ']'
+    : ''
+  // 检测 InParam pin 的 itemType 异常（缺少 type_server）
+  let anomaly = ''
+  if (n?.pins) {
+    const hasAnomaly = n.pins.some((p: any) => p.i1?.kind === 3 && hasItemTypeAnomaly(p.value))
+    if (hasAnomaly) anomaly = ' ⚠ itemType异常'
+  }
   const children: TreeNode[] = []
 
   if (!visited.has(edge.tgtIdx)) {
@@ -134,11 +153,11 @@ function buildTree(
     newVisited.add(edge.tgtIdx)
     const outEdges = downstreamOf.get(edge.tgtIdx) ?? []
     for (const oe of outEdges) {
-      children.push(buildTree(oe, nodeMap, downstreamOf, compNames, newVisited))
+      children.push(buildTree(oe, nodeMap, downstreamOf, compNames, compOutflows, newVisited))
     }
   }
 
-  return { edge, name, kind, children }
+  return { edge, name, kind, outflowStr, anomaly, children }
 }
 
 function printTree(
@@ -154,7 +173,7 @@ function printTree(
   if (node.children.length === 0) {
     const isComposite = node.kind === 22001
     const terminalMark = isComposite ? '' : ' → (终端)'
-    console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})${terminalMark}`)
+    console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})${node.outflowStr}${node.anomaly}${terminalMark}`)
     return
   }
 
@@ -165,14 +184,14 @@ function printTree(
 
   // 单直链 (1 branch, 1 target)
   if (uniqueBranchCount === 1 && totalEdgeCount === 1) {
-    console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})`)
+    console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})${node.outflowStr}${node.anomaly}`)
     printTree(node.children[0], childPrefix, true)
     return
   }
 
   // 多分支 / 扇出
   const summary = uniqueBranchCount > 1 ? `— ×${uniqueBranchCount} 分支` : `— ×${totalEdgeCount} 目标`
-  console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName}) ${summary}`)
+  console.log(`${prefix}${connector}${e.srcBranchName} → n=${e.tgtIdx} ${node.name} (${e.tgtOutFlowName})${node.outflowStr}${node.anomaly} ${summary}`)
 
   // 按分支分组展示子节点
   let childIdx = 0
@@ -513,7 +532,7 @@ function analyze(filePath: string) {
       console.log(`   → (无下游)`)
     } else {
       for (let ei = 0; ei < outEdges.length; ei++) {
-        const root = buildTree(outEdges[ei], nodeMap, downstreamOf, compNames, new Set())
+        const root = buildTree(outEdges[ei], nodeMap, downstreamOf, compNames, compOutflows, new Set())
         printTree(root, '', ei === outEdges.length - 1)
       }
     }
@@ -736,7 +755,7 @@ function expandSubGraph(
     } else {
       // 使用 buildTree + printTree 渲染子图树（单独 visited，不混入主图）
       for (let ei = 0; ei < outEdges.length; ei++) {
-        const root = buildTree(outEdges[ei], nodeMap, downstreamOf, compNames, new Set())
+        const root = buildTree(outEdges[ei], nodeMap, downstreamOf, compNames, compOutflows, new Set())
         printTree(root, '', ei === outEdges.length - 1)
       }
     }

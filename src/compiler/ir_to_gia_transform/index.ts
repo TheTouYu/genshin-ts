@@ -661,31 +661,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       }
     }
 
-    const hasDownstream = downstreamTargets.length > 0 && maxDownstreamY > -Infinity
-    let unconnectedIdx = 0
-    for (const outflow of cdef.outflows) {
-      if (connectedOutflows.has(outflow.index)) continue
-
-      // 创建 Print_String 终端节点（NODE_ID=1）
-      const terminalId = nextTerminalId++
-      const terminalNode = new Node<ServerGraphMode>(
-        terminalId,
-        serverMode,
-        NODE_ID.Print_String as NodeIdFor<ServerGraphMode>
-      )
-      // 位置：复合节点右侧 1 列
-      const rawX = compositePos[0] + 800  // columnWidth
-      // 有下游节点时放在所有下游节点之下；无下游节点时按 outflow 索引纵向偏移
-      const rawY = hasDownstream
-        ? maxDownstreamY + 315 + unconnectedIdx * 315
-        : compositePos[1] + outflow.index * 315  // branchGap = rowHeight * 0.9
-      terminalNode.setPos(rawX / 300, rawY / 200)
-
-      nodesById.set(terminalId, terminalNode)
-      graph.add_node(terminalNode)
-      graph.flow(compositeNode, terminalNode, outflow.index, 0)
-      unconnectedIdx++
-    }
+    // 不为未连接的 outflow 创建终端 PrintString 节点（匹配游戏编辑器行为）
+    // 游戏编辑器中 composite call 节点可以没有 OutFlow pin
   }
 
   for (const { fromId, toId, fromIndex, toIndex } of graphInfo.dataConnections) {
@@ -728,9 +705,10 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   try {
     root = graph.encode()
 
+    const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
+
     // 修正 composite call 节点的 kind 为 SysGraph(22001) 并设置正确的 nodeId + compositePinIndex
     if (compositeCallNodeIndices.size > 0) {
-      const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
       if (mainNodes) {
         for (const node of mainNodes) {
           const cid = compositeCallNodeIndices.get(node.nodeIndex)
@@ -781,6 +759,23 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
               n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 4)
             }
           }
+        }
+
+      }
+    }
+
+    // 重排序 pins：OutFlow (kind=2) 在前，InParam (kind=3) 在后（匹配游戏编辑器输出）
+    if (mainNodes) {
+      for (const n of mainNodes) {
+        if (n.pins && n.pins.length > 1) {
+          n.pins.sort((a: any, b: any) => {
+            const kindA = a.i1?.kind ?? 0
+            const kindB = b.i1?.kind ?? 0
+            // OutFlow (2) 排在 InParam (3) 和 OutParam (4) 之前
+            if (kindA === 2 && kindB !== 2) return -1
+            if (kindA !== 2 && kindB === 2) return 1
+            return 0
+          })
         }
       }
     }

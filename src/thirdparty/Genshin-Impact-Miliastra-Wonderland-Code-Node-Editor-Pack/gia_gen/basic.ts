@@ -317,8 +317,9 @@ export function wrapped_pin_value(body: PinValue_): VarBase {
 export function item_type(type: VarType): VarBase_ItemType {
   return {
     classBase: 1,
-    itemType: {
-      type: type
+    type_server: {
+      type: type,
+      kind: 0
     }
   }
 }
