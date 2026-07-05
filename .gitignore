@@ -16,3 +16,4 @@ worktrees/
 /.reasonix/truncated-results
 /.omp
 /.vscode
+/.omo/run-continuation
