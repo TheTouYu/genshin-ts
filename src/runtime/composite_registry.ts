@@ -1,4 +1,5 @@
 // @ts-nocheck thirdparty
+
 import type { CompositeDefIR, CompositePinEntry, NextConnection, ParamFlowDef } from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
 import { list, type value } from './value.js'
@@ -24,7 +25,7 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
   guid: 'guid',
   prefabId: 'prefab_id',
   configId: 'config_id',
-  faction: 'faction',
+  faction: 'faction'
 }
 
 // ============== Types ==============
@@ -47,17 +48,10 @@ export type CompositeCapture = {
   /** 是否为纯函数（无 exec 节点）—— 用于优化 */
   isPureData: boolean
   /**
-   * 多 OutFlow 出口节点 ID 列表（按 outflow index 顺序）。
-   * 每个出口节点对应 CompositeDef 的一个 OutFlow。
-   * 若为空或 undefined，则使用旧行为（0 或 1 OutFlow）。
+   * 显式 OutFlow 出口标记。
+   * build 中调用 f.outflow(name, ref, pinIndex) 时按调用顺序记录。
    */
-  outflowExitNodes?: number[]
-  /**
-   * 显式标记: outflowIndex → innerNodeId。
-   * build 中调用 leaf(outflowIndex) 时记录。
-   * 优先级高于 outflowExitNodes 自动检测。
-   */
-  leafMarks?: Record<number, number>
+  outflowMarks?: Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>
 }
 
 /**
@@ -152,7 +146,7 @@ export class CompositeRegistry {
           })
         }
 
-        // 多 OutFlow：优先用 leafMarks，否则自动检测叶子节点
+        // 多 OutFlow：仅由显式 f.outflow(...) 标记生成
         if (hasExec && impl) {
           addOutFlowCompositePins(pins, impl)
         }
@@ -164,10 +158,7 @@ export class CompositeRegistry {
           for (let i = 0; i < inputList.length; i++) {
             inputNameToIndex.set(inputList[i].name, i)
           }
-          const allInner: MetaCallRecord[] = [
-            ...(impl.execNodes ?? []),
-            ...(impl.dataNodes ?? [])
-          ]
+          const allInner: MetaCallRecord[] = [...(impl.execNodes ?? []), ...(impl.dataNodes ?? [])]
           for (const inner of allInner) {
             if (inner.nodeType === '__composite_capture__') continue
             for (let argIdx = 0; argIdx < inner.args.length; argIdx++) {
@@ -209,19 +200,8 @@ export class CompositeRegistry {
           }
         }
 
-        const leafMarks = impl?.leafMarks
-        const leafCount = leafMarks ? Object.keys(leafMarks).length : 0
-        const outflowNodeCount = impl?.outflowExitNodes?.length ?? 0
-        // 检测 double_branch 节点：自动为其两个分支创建 outflows
-        let doubleBranchOutflows = 0
-        if (impl?.execNodes) {
-          for (const n of impl.execNodes) {
-            if (n.nodeType === 'double_branch') {
-              doubleBranchOutflows = Math.max(doubleBranchOutflows, 2)
-            }
-          }
-        }
-        const totalOutflows = Math.max(leafCount, outflowNodeCount, doubleBranchOutflows)
+        const outflowMarks = impl?.outflowMarks ?? []
+        const totalOutflows = outflowMarks.length
         const isMultiOutflow = totalOutflows > 1
 
         return {
@@ -229,24 +209,37 @@ export class CompositeRegistry {
           id,
           type: 'composite',
           inflows: hasExec
-            ? [{ name: '', visible: true, index: 0, pinIndex: isMultiOutflow ? PIN_INDEX_INFLOW_MULTI : PIN_INDEX_INFLOW_SINGLE }]
+            ? [
+                {
+                  name: '',
+                  visible: true,
+                  index: 0,
+                  pinIndex: isMultiOutflow ? PIN_INDEX_INFLOW_MULTI : PIN_INDEX_INFLOW_SINGLE
+                }
+              ]
             : [],
           outflows: hasExec
-            ? Array.from({ length: totalOutflows }, (_, i) => ({
-                // doubleBranch 的 outflow 名字为 "是" 和 "否"
-                name: doubleBranchOutflows > 0 ? (i === 0 ? '是' : '否') : '',
-                visible: true, index: i,
-                pinIndex: isMultiOutflow ? PIN_INDEX_OUTFLOW_MULTI_BASE + i : PIN_INDEX_OUTFLOW_SINGLE
+            ? outflowMarks.map((m, i) => ({
+                name: m.name,
+                visible: true,
+                index: i,
+                pinIndex: isMultiOutflow
+                  ? PIN_INDEX_OUTFLOW_MULTI_BASE + i
+                  : PIN_INDEX_OUTFLOW_SINGLE
               }))
             : [],
           inputs: inputList,
           outputs: outputList,
           implNodes: [
-            ...(impl ? [{
-              id: impl.captureNodeId,
-              nodeType: '__composite_capture__',
-              args: [] as value[]
-            }] : []),
+            ...(impl
+              ? [
+                  {
+                    id: impl.captureNodeId,
+                    nodeType: '__composite_capture__',
+                    args: [] as value[]
+                  }
+                ]
+              : []),
             ...(impl?.execNodes ?? []),
             ...(impl?.dataNodes ?? [])
           ].map((r) => ({
@@ -254,6 +247,7 @@ export class CompositeRegistry {
             type: r.nodeType,
             args: r.args.map((a) => {
               const meta = a.getMetadata()
+              const isCaptureInput = !!(a as any).__captureInputName
               if (meta?.kind === 'pin') {
                 let giaType: string
                 const typeName = (a as any).constructor?.name ?? ''
@@ -269,10 +263,14 @@ export class CompositeRegistry {
                     node_id: meta.record.id,
                     index: meta.pinIndex,
                     type: giaType
-                  } as any
+                  } as any,
+                  ...(isCaptureInput ? { capture: true as const } : {})
                 }
               }
-              return a.toIRLiteral()
+              return {
+                ...a.toIRLiteral(),
+                ...(isCaptureInput ? { capture: true as const } : {})
+              }
             })
           })),
           implEdges: impl?.edges ?? {},
@@ -285,27 +283,17 @@ export class CompositeRegistry {
     this.definitions.set(name, definition)
 
     function addOutFlowCompositePins(pins: CompositePinEntry[], impl: CompositeCapture): void {
-      const leafMarks = impl.leafMarks
-      if (leafMarks) {
-        const flowsByNode = new Map<number, number[]>()
-        for (const [ofIdxStr, nodeId] of Object.entries(leafMarks)) {
-          const list = flowsByNode.get(nodeId) ?? []
-          list.push(Number(ofIdxStr))
-          flowsByNode.set(nodeId, list)
-        }
-        for (const [nodeId, outflowIndices] of flowsByNode) {
-          outflowIndices.sort((a, b) => a - b)
-          outflowIndices.forEach((outerIndex, localIdx) => {
-            pins.push({ outerPinKind: 2, outerPinIndex: outerIndex, innerNodeId: nodeId, innerPinKind: 2, innerPinIndex: localIdx })
-          })
-        }
-        return
-      }
-      // 无显式 outflow 标记且無出口节点时：不生成 OutFlow compositePin（复合为 sink 节点）
-      if (!impl.outflowExitNodes || impl.outflowExitNodes.length === 0) return
-      for (let i = 0; i < impl.outflowExitNodes.length; i++) {
-        pins.push({ outerPinKind: 2, outerPinIndex: i, innerNodeId: impl.outflowExitNodes[i], innerPinKind: 2, innerPinIndex: 0 })
-      }
+      const marks = impl.outflowMarks
+      if (!marks || marks.length === 0) return
+      marks.forEach((m, outerIndex) => {
+        pins.push({
+          outerPinKind: 2,
+          outerPinIndex: outerIndex,
+          innerNodeId: m.innerNodeId,
+          innerPinKind: 2,
+          innerPinIndex: m.outflowPinIndex
+        })
+      })
     }
 
     const handle: CompositeHandle = {

@@ -1,14 +1,13 @@
 import * as z from 'zod'
 
 import { t } from '../i18n/index.js'
+import type { CompositeHandle } from '../runtime/composite_registry.js'
 import {
   isSignalDefinition,
   type MetaCallRegistry,
   type SignalDefinition,
   type SignalParamValues
 } from '../runtime/core.js'
-import type { MetaCallRecord, MetaCallRecordRef } from '../runtime/meta_call_types.js'
-import type { CompositeHandle } from '../runtime/composite_registry.js'
 import {
   CommonLiteralValueListTypeMap,
   CommonLiteralValueTypeMap,
@@ -20,6 +19,7 @@ import {
   Variable,
   type ServerGraphMode
 } from '../runtime/IR.js'
+import type { MetaCallRecord, MetaCallRecordRef } from '../runtime/meta_call_types.js'
 import { getRuntimeOptions } from '../runtime/runtime_config.js'
 import {
   bool,
@@ -718,9 +718,28 @@ export class ServerExecutionFlowFunctions {
 
   /**
    * @internal 供复合节点 build() 使用：标记当前节点为 OutFlow[outflowIndex] 的出口。
+   * @deprecated 请改用 f.outflow(name, ref, outflowPinIndex)。
    */
   leaf(outflowIndex: number): void {
     this.registry.leaf(outflowIndex)
+  }
+
+  /**
+   * @internal 供复合节点 build() 使用：将指定节点的某个 OutFlow pin 标记为复合出口。
+   */
+  outflow(name: string, ref: MetaCallRecordRef, outflowPinIndex = 0): void {
+    this.registry.outflow(name, ref, outflowPinIndex)
+  }
+
+  /**
+   * @internal 供复合节点 build() 使用：将源节点的 OutFlow 连接到目标节点的 InFlow。
+   */
+  connect(
+    sourceRef: MetaCallRecordRef,
+    sourceOutflowPinIndex: number,
+    targetRef: MetaCallRecordRef
+  ): void {
+    this.registry.connect(sourceRef, sourceOutflowPinIndex, targetRef)
   }
 
   /**
@@ -16557,9 +16576,13 @@ export class ServerExecutionFlowFunctions {
    */
   declareDetached(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
     const def = handle.definition
-    return this.registry.runDetachedCompositeCall(handle.id, inputs, (captureFns, captureInputs) => {
-      return def.build(captureInputs, captureFns)
-    })
+    return this.registry.runDetachedCompositeCall(
+      handle.id,
+      inputs,
+      (captureFns, captureInputs) => {
+        return def.build(captureInputs, captureFns)
+      }
+    )
   }
 
   /**
@@ -16572,7 +16595,11 @@ export class ServerExecutionFlowFunctions {
     sourceOutflowIdx: number,
     target: Record<string, any> & { readonly __markerNodeId: number }
   ): void {
-    this.registry.linkOutflowToMarker(source.__markerNodeId, sourceOutflowIdx, target.__markerNodeId)
+    this.registry.linkOutflowToMarker(
+      source.__markerNodeId,
+      sourceOutflowIdx,
+      target.__markerNodeId
+    )
   }
 
   /**

@@ -17,9 +17,21 @@ import {
   SERVER_F_ZH_TO_EN,
   type ServerEventNameZh
 } from '../definitions/zh_aliases.js'
+import {
+  compositeRegistry,
+  type CompositeCapture,
+  type CompositeHandle
+} from './composite_registry.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
 import { buildIRDocument } from './ir_builder.js'
-import type { CompositeDefIR, ListableValueTypeMap, LiteralValueType, ServerGraphMode, ServerGraphSubType, Variable } from './IR.js'
+import type {
+  CompositeDefIR,
+  ListableValueTypeMap,
+  LiteralValueType,
+  ServerGraphMode,
+  ServerGraphSubType,
+  Variable
+} from './IR.js'
 import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
@@ -51,9 +63,10 @@ import {
   type NodeGraphVariableMeta,
   type VariablesDefinition
 } from './variables.js'
-import { compositeRegistry, type CompositeHandle, type CompositeCapture } from './composite_registry.js'
 
 export type { MetaCallRecord, MetaCallRecordRef, MetaCallRecordType } from './meta_call_types.js'
+
+let leafDeprecationWarned = false
 
 export type SignalParamType =
   | 'bool'
@@ -868,20 +881,95 @@ export class MetaCallRegistry {
   }
 
   /**
-   * 标记当前 tail 为 OutFlow[outflowIndex] 的出口。
-   * 多次调用同一 index 会覆盖，不同 index 可指向同一节点。
-   * 供复合节点 build() 中使用 leaf()。
+   * @deprecated 兼容旧写法：将当前 tail 的第一个端点标记为一个 OutFlow 出口。
+   * 等价于 f.outflow(`outflow_${outflowIndex}`, tailEndpoint, 0)。
    */
   leaf(outflowIndex: number): void {
+    if (!leafDeprecationWarned) {
+      leafDeprecationWarned = true
+      console.warn('[gsts] f.leaf(i) is deprecated; use f.outflow(name, ref, outflowPinIndex)')
+    }
     const current = this.currentFlow
     const ctx = this.getCurrentExecContext(current)
     const tails = ctx.tailEndpoints
     if (tails.length === 0) {
       throw new Error('leaf: no tail endpoints available')
     }
-    // 记录到当前 flow 的临时存储中，供捕获时收集
-    ;(current as any).__leafMarks ??= {}
-    ;(current as any).__leafMarks[outflowIndex] = tails[0].nodeId
+    const marks = ((current as any).__outflowMarks ??= []) as Array<{
+      name: string
+      innerNodeId: number
+      outflowPinIndex: number
+    }>
+    marks.push({
+      name: `outflow_${outflowIndex}`,
+      innerNodeId: tails[0].nodeId,
+      outflowPinIndex: 0
+    })
+  }
+
+  /**
+   * 将指定节点的某个 OutFlow pin 标记为复合节点的出口。
+   * 调用顺序决定复合节点 outflow 的 outer index。
+   */
+  outflow(name: string, ref: MetaCallRecordRef, outflowPinIndex = 0): void {
+    const current = this.currentFlow
+    if (!name || typeof name !== 'string') {
+      throw new Error('outflow: name must be a non-empty string')
+    }
+    if (!ref.id) {
+      throw new Error('outflow: ref is not a registered node')
+    }
+    const allNodes = new Set<number>([
+      ...current.execNodes.map((n) => n.id),
+      ...current.dataNodes.map((n) => n.id)
+    ])
+    if (!allNodes.has(ref.id)) {
+      throw new Error('outflow: ref is not a registered node in the current flow')
+    }
+    const marks = ((current as any).__outflowMarks ??= []) as Array<{
+      name: string
+      innerNodeId: number
+      outflowPinIndex: number
+    }>
+    if (marks.some((m) => m.name === name)) {
+      console.warn(
+        `[gsts] duplicate outflow name "${name}"; game allows it but this is usually a mistake`
+      )
+    }
+    marks.push({ name, innerNodeId: ref.id, outflowPinIndex })
+  }
+
+  /**
+   * 将源节点的 OutFlow[sourceOutflowPinIndex] 连接到目标节点的 InFlow[0]。
+   * 若已存在同 (source, target, sourceOutflowPinIndex) 的边，则去重替换。
+   * 不改变当前 tail。
+   */
+  connect(
+    sourceRef: MetaCallRecordRef,
+    sourceOutflowPinIndex: number,
+    targetRef: MetaCallRecordRef
+  ): void {
+    const current = this.currentFlow
+    if (!sourceRef.id || !targetRef.id) {
+      throw new Error('connect: both refs must be registered nodes')
+    }
+    const allNodes = new Set<number>([
+      ...current.execNodes.map((n) => n.id),
+      ...current.dataNodes.map((n) => n.id)
+    ])
+    if (!allNodes.has(sourceRef.id) || !allNodes.has(targetRef.id)) {
+      throw new Error('connect: refs must belong to the current flow')
+    }
+    const list = (current.edges[sourceRef.id] ??= [])
+    const targetId = targetRef.id
+    current.edges[sourceRef.id] = list.filter((conn) => {
+      if (typeof conn === 'number') {
+        // bare-number edge = default OutFlow[0]
+        return !(conn === targetId && sourceOutflowPinIndex === 0)
+      }
+      return !(conn.node_id === targetId && conn.source_index === sourceOutflowPinIndex)
+    })
+    this.addEdge(current, sourceRef.id, targetId, sourceOutflowPinIndex)
   }
 
   /**
@@ -1098,7 +1186,10 @@ export class MetaCallRegistry {
   runCompositeCall(
     compositeId: number,
     inputs: Record<string, any>,
-    build: (fns: ServerExecutionFlowFunctions, captureInputs: Record<string, any>) => Record<string, any>
+    build: (
+      fns: ServerExecutionFlowFunctions,
+      captureInputs: Record<string, any>
+    ) => Record<string, any>
   ): Record<string, any> {
     const def = compositeRegistry.getById(compositeId)
     const isPureData = def?.captured?.isPureData ?? false
@@ -1150,9 +1241,8 @@ export class MetaCallRegistry {
     // 注册复合声明的图变量，使 build() 内 f.get() 能查到变量类型
     if (def?.variables) {
       for (const v of def.variables) {
-        const meta: NodeGraphVariableMeta = v.type === 'dict'
-          ? { type: 'dict', dict: v.dict }
-          : { type: v.type as LiteralValueType }
+        const meta: NodeGraphVariableMeta =
+          v.type === 'dict' ? { type: 'dict', dict: v.dict } : { type: v.type as LiteralValueType }
         captureRegistry.ensureVariable(v, meta)
       }
     }
@@ -1218,7 +1308,10 @@ export class MetaCallRegistry {
   runDetachedCompositeCall(
     compositeId: number,
     inputs: Record<string, any>,
-    build: (fns: ServerExecutionFlowFunctions, captureInputs: Record<string, any>) => Record<string, any>
+    build: (
+      fns: ServerExecutionFlowFunctions,
+      captureInputs: Record<string, any>
+    ) => Record<string, any>
   ): Record<string, any> {
     const def = compositeRegistry.getById(compositeId)
     const isPureData = def?.captured?.isPureData ?? false
@@ -1278,9 +1371,8 @@ export class MetaCallRegistry {
     const captureFns = new ServerExecutionFlowFunctions(captureRegistry)
     if (def?.variables) {
       for (const v of def.variables) {
-        const meta: NodeGraphVariableMeta = v.type === 'dict'
-          ? { type: 'dict', dict: v.dict }
-          : { type: v.type as LiteralValueType }
+        const meta: NodeGraphVariableMeta =
+          v.type === 'dict' ? { type: 'dict', dict: v.dict } : { type: v.type as LiteralValueType }
         captureRegistry.ensureVariable(v, meta)
       }
     }
@@ -1691,9 +1783,10 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       // 注册复合声明的图变量，使 build() 内 f.get() 能查到变量类型
       if (def.variables) {
         for (const v of def.variables) {
-          const meta: NodeGraphVariableMeta = v.type === 'dict'
-            ? { type: 'dict', dict: v.dict }
-            : { type: v.type as LiteralValueType }
+          const meta: NodeGraphVariableMeta =
+            v.type === 'dict'
+              ? { type: 'dict', dict: v.dict }
+              : { type: v.type as LiteralValueType }
           captureRegistry.ensureVariable(v, meta)
         }
       }
@@ -1707,10 +1800,11 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
         })
 
         const flow = captureRegistry.getFlows()[0]
-        const leafMarks = (flow as any).__leafMarks as Record<number, number> | undefined
-
-        // 出口节点：仅由显式 leaf() 标记产生，不自作主张
-        let outflowExitNodes: number[] | undefined
+        const outflowMarks = ((flow as any).__outflowMarks ?? []) as Array<{
+          name: string
+          innerNodeId: number
+          outflowPinIndex: number
+        }>
 
         def.captured = {
           captureNodeId: flow.eventNode.id,
@@ -1719,8 +1813,7 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
           edges: flow.edges,
           outputValues: (outputs ?? {}) as Record<string, value>,
           isPureData: flow.execNodes.length === 0,
-          outflowExitNodes,
-          leafMarks
+          outflowMarks
         }
       } finally {
         gsts[kServerF] = prevF
