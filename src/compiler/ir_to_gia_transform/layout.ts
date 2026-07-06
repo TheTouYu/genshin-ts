@@ -224,9 +224,9 @@ function placeDataNearConsumers(
     const stackCount = state.consumerStackCount.get(placedConsumer) ?? 0
     const isExecConsumer = execNodes.has(placedConsumer)
 
-    // 数据节点放在消费者左下方：水平偏移 400px，垂直偏移 150px 堆叠
-    const y = isExecConsumer ? cy + (stackCount + 1) * 150 : cy + stackCount * 150
-    state.positions.set(nodeId, [cx - 400, y])
+    // 数据节点初放在消费者左下方；后续 expandExecGapsForDataChains 会按整条数据链重新锚定。
+    const y = isExecConsumer ? cy + (stackCount + 1) * 230 : cy + stackCount * 230
+    state.positions.set(nodeId, [cx - 450, y])
     state.consumerStackCount.set(placedConsumer, stackCount + 1)
 
     const eventIndex = state.nodeToEventIndex.get(placedConsumer) ?? 0
@@ -239,6 +239,127 @@ function placeDataNearConsumers(
 
   toDelete.forEach((id) => state.unplacedNodes.delete(id))
   return placedAny
+}
+
+function shiftExecChainFrom(
+  startId: NodeId,
+  deltaX: number,
+  execChildrenMap: Map<NodeId, NodeId[]>,
+  state: ReturnType<typeof createLayoutState>,
+  visited = new Set<NodeId>()
+) {
+  if (deltaX <= 0 || visited.has(startId)) return
+  visited.add(startId)
+
+  const pos = state.positions.get(startId)
+  if (pos) {
+    state.positions.set(startId, [pos[0] + deltaX, pos[1]])
+  }
+
+  for (const child of execChildrenMap.get(startId) ?? []) {
+    shiftExecChainFrom(child, deltaX, execChildrenMap, state, visited)
+  }
+}
+
+function collectDataAncestors(
+  nodeId: NodeId,
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  result = new Set<NodeId>()
+): Set<NodeId> {
+  for (const parent of dataParentsMap.get(nodeId) ?? []) {
+    if (result.has(parent)) continue
+    result.add(parent)
+    collectDataAncestors(parent, dataParentsMap, result)
+  }
+  return result
+}
+
+function computeDataDepths(
+  dataIds: NodeId[],
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  dataIdSet: Set<NodeId>
+): Map<NodeId, number> {
+  const memo = new Map<NodeId, number>()
+  const visit = (id: NodeId): number => {
+    const cached = memo.get(id)
+    if (cached !== undefined) return cached
+    const parents = (dataParentsMap.get(id) ?? []).filter((parent) => dataIdSet.has(parent))
+    const depth = parents.length === 0 ? 0 : Math.max(...parents.map((parent) => visit(parent))) + 1
+    memo.set(id, depth)
+    return depth
+  }
+  dataIds.forEach((id) => visit(id))
+  return memo
+}
+
+function buildExecParentsMap(execChildrenMap: Map<NodeId, NodeId[]>): Map<NodeId, NodeId[]> {
+  const parents = new Map<NodeId, NodeId[]>()
+  for (const [from, children] of execChildrenMap) {
+    for (const child of children) {
+      const list = parents.get(child) ?? []
+      list.push(from)
+      parents.set(child, list)
+    }
+  }
+  return parents
+}
+
+function expandExecGapsForDataChains(
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  execChildrenMap: Map<NodeId, NodeId[]>,
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>,
+  config: LayoutConfig
+) {
+  // 这些经验值来自真实正样本「主图布局1.gia」：
+  // - 数据链通常在消费者下方约 220-230px。
+  // - 最后一个数据节点到消费者左侧约 440-470px。
+  // - 2/3 个数据节点时，执行节点间距约为 1200/1600px。
+  const dataYBelowConsumer = 230
+  const dataNodeStepX = 450
+  const extraExecGapPerAdditionalDataNode = 400
+  const extraGapPerAdditionalInput = 260
+  const execParentsMap = buildExecParentsMap(execChildrenMap)
+
+  for (const consumerId of execNodes) {
+    const consumerPos = state.positions.get(consumerId)
+    if (!consumerPos) continue
+
+    const dataAncestors = [...collectDataAncestors(consumerId, dataParentsMap)].filter((id) =>
+      state.positions.has(id)
+    )
+    if (dataAncestors.length === 0) continue
+
+    const directDataInputs = (dataParentsMap.get(consumerId) ?? []).filter((id) => state.positions.has(id))
+    const dataDepths = computeDataDepths(dataAncestors, dataParentsMap, new Set(dataAncestors))
+    const maxDepth = Math.max(...dataAncestors.map((id) => dataDepths.get(id) ?? 0), 0)
+
+    const execParents = (execParentsMap.get(consumerId) ?? []).filter((id) => state.positions.has(id))
+    const parentX = execParents.length
+      ? Math.max(...execParents.map((id) => state.positions.get(id)![0]))
+      : consumerPos[0] - config.columnWidth
+    const desiredGap =
+      config.columnWidth +
+      Math.max(0, dataAncestors.length - 1) * extraExecGapPerAdditionalDataNode +
+      Math.max(0, directDataInputs.length - 1) * extraGapPerAdditionalInput
+    const desiredConsumerX = parentX + desiredGap
+    const deltaX = Math.ceil(desiredConsumerX - consumerPos[0])
+
+    if (deltaX > 0) {
+      shiftExecChainFrom(consumerId, deltaX, execChildrenMap, state)
+    }
+
+    const [cx, cy] = state.positions.get(consumerId)!
+    const rowCounts = new Map<number, number>()
+    for (const id of dataAncestors) {
+      const depth = dataDepths.get(id) ?? 0
+      const row = rowCounts.get(depth) ?? 0
+      rowCounts.set(depth, row + 1)
+      const x = cx - (maxDepth - depth + 1) * dataNodeStepX
+      const y = cy + dataYBelowConsumer + row * dataYBelowConsumer
+      state.positions.set(id, [x, y])
+    }
+  }
 }
 
 function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: LayoutConfig) {
@@ -281,7 +402,7 @@ export function layoutPositions(
     eventGap: 300
   }
 
-  const { execNodes, roots, execChildrenMap, dataConsumersMap } = graphInfo
+  const { execNodes, roots, execChildrenMap, dataConsumersMap, dataConnections } = graphInfo
   const state = createLayoutState(irNodes)
 
   let currentBaseY = 0
@@ -296,6 +417,14 @@ export function layoutPositions(
       // 继续迭代直到无法放置更多节点
     }
   })
+
+  const dataParentsMap = new Map<NodeId, NodeId[]>()
+  for (const conn of dataConnections) {
+    const parents = dataParentsMap.get(conn.toId) ?? []
+    parents.push(conn.fromId)
+    dataParentsMap.set(conn.toId, parents)
+  }
+  expandExecGapsForDataChains(dataParentsMap, execChildrenMap, execNodes, state, config)
 
   // 剩余游离节点（无消费者或无关联）统一放到左上角网格
   placeDetachedGrid(state, config)

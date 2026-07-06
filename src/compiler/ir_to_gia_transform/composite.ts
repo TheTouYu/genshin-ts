@@ -260,10 +260,10 @@ function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
 }
 
 // impl 图布局间距常量（小图紧凑：复合内部通常 ≤8 节点）
-const LAYOUT_EXEC_H_STEP = 350
-const LAYOUT_EXEC_V_STEP = 200
-const LAYOUT_DATA_H_STEP = 350
-const LAYOUT_DATA_Y_OFFSET = -250
+const LAYOUT_EXEC_H_STEP = 450
+const LAYOUT_EXEC_V_STEP = 260
+const LAYOUT_DATA_H_STEP = 450
+const LAYOUT_DATA_Y_OFFSET = 0
 
 /**
  * 从 IR 节点构建 GIA GraphNode 列表（impl 图）
