@@ -545,9 +545,7 @@ function ensureCompositeCaptured(def: CompositeDefinition): void {
   if (def.variables) {
     for (const v of def.variables) {
       const meta: NodeGraphVariableMeta =
-        v.type === 'dict'
-          ? { type: 'dict', dict: v.dict }
-          : { type: v.type as LiteralValueType }
+        v.type === 'dict' ? { type: 'dict', dict: v.dict } : { type: v.type as LiteralValueType }
       captureRegistry.ensureVariable(v, meta)
     }
   }
@@ -1442,7 +1440,13 @@ export class MetaCallRegistry {
     targetMarkerId: number,
     targetInflowIdx = 0
   ): void {
-    this.addEdge(this.currentFlow, sourceMarkerId, targetMarkerId, sourceOutflowIdx, targetInflowIdx)
+    this.addEdge(
+      this.currentFlow,
+      sourceMarkerId,
+      targetMarkerId,
+      sourceOutflowIdx,
+      targetInflowIdx
+    )
   }
 
   /**
@@ -1850,7 +1854,7 @@ function removeUnusedNodesFromFlow(flow: ExecutionFlow): ExecutionFlow | null {
   // 纯数据流（无 exec 节点）或 __composite_call__ data 节点：始终保留
   for (const n of flow.dataNodes) {
     if (reachableExecIds.size === 0 || n.nodeType === '__composite_call__') {
-      usedDataIds.add(n.id)
+      enqueueData(n.id)
     }
   }
 
@@ -1929,7 +1933,13 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
         if (def.captured) continue
         madeProgress = true
 
-        const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+        const captureRegistry = new MetaCallRegistry(
+          'entity',
+          'beyond',
+          undefined,
+          undefined,
+          false
+        )
         captureRegistry.startCaptureFlow()
         const fns = new ServerExecutionFlowFunctions(captureRegistry)
 
