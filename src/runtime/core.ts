@@ -20,6 +20,7 @@ import {
 import {
   compositeRegistry,
   type CompositeCapture,
+  type CompositeDefinition,
   type CompositeHandle
 } from './composite_registry.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
@@ -519,6 +520,71 @@ function processDictParam(param: ServerEventMetadataType[ServerEventName][number
       return new dict('config_id', 'int')
     default:
       throw new Error(`Unknown dict param: ${param.name}`)
+  }
+}
+
+/**
+ * 如果复合节点尚未捕获，则立即捕获。
+  在 server handler 执行过程中首次调用 runCompositeCall 时自动补捕获，
+  确保 def.captured.isPureData 正确可用。
+ */
+function ensureCompositeCaptured(def: CompositeDefinition): void {
+  if (def.captured) return
+
+  const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+  captureRegistry.startCaptureFlow()
+  const fns = new ServerExecutionFlowFunctions(captureRegistry)
+
+  const inputs: Record<string, value> = {}
+  for (const [name, param] of Object.entries(def.inputs)) {
+    const v = createTypedValue(param.type as string)
+    ;(v as any).__captureInputName = name
+    inputs[name] = v
+  }
+
+  if (def.variables) {
+    for (const v of def.variables) {
+      const meta: NodeGraphVariableMeta =
+        v.type === 'dict'
+          ? { type: 'dict', dict: v.dict }
+          : { type: v.type as LiteralValueType }
+      captureRegistry.ensureVariable(v, meta)
+    }
+  }
+
+  const gsts = ensureGsts() as unknown as GstsInternal
+  const prevF = gsts[kServerF]
+  gsts[kServerF] = fns
+
+  try {
+    const outputs = gsts.ctx.withCtx('server_handler', () => {
+      return def.build(inputs, fns)
+    })
+
+    const flow = captureRegistry.getFlows()[0]
+    const outflowMarks = ((flow as any).__outflowMarks ?? []) as Array<{
+      name: string
+      innerNodeId: number
+      outflowPinIndex: number
+    }>
+    const inflowMarks = ((flow as any).__inflowMarks ?? []) as Array<{
+      name: string
+      innerNodeId: number
+      inflowPinIndex: number
+    }>
+
+    def.captured = {
+      captureNodeId: flow.eventNode.id,
+      execNodes: flow.execNodes,
+      dataNodes: flow.dataNodes,
+      edges: flow.edges,
+      outputValues: (outputs ?? {}) as Record<string, value>,
+      isPureData: flow.execNodes.length === 0,
+      outflowMarks,
+      inflowMarks
+    }
+  } finally {
+    gsts[kServerF] = prevF
   }
 }
 
@@ -1239,6 +1305,7 @@ export class MetaCallRegistry {
     ) => Record<string, any>
   ): Record<string, any> {
     const def = compositeRegistry.getById(compositeId)
+    if (def) ensureCompositeCaptured(def)
     const isPureData = def?.captured?.isPureData ?? false
 
     // 1. 注册标记节点（纯数据 → data 类型，exec → exec 类型）
@@ -1399,6 +1466,7 @@ export class MetaCallRegistry {
     ) => Record<string, any>
   ): Record<string, any> {
     const def = compositeRegistry.getById(compositeId)
+    if (def) ensureCompositeCaptured(def)
     const isPureData = def?.captured?.isPureData ?? false
 
     // 1. 直接 push 标记节点，绕过 registerNode 的 auto-chain
@@ -1850,68 +1918,79 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
     })
   })
 
-  // 收集所有复合节点定义，运行时捕获实现节点
-  const allCompositeDefs: CompositeDefIR[] = []
-  for (const def of compositeRegistry.getAll()) {
-    if (!def.captured) {
-      // 创建临时注册表来捕获实现节点
-      const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
-      captureRegistry.startCaptureFlow()
-      const fns = new ServerExecutionFlowFunctions(captureRegistry)
+  // ===== 预捕获：在所有 server handler 执行之前捕获所有复合节点 =====
+  // 确保 runCompositeCall 能通过 def.captured.isPureData 正确分类纯数据复合。
+  // 迭代捕获以支持 build 中嵌套 f.callComposite 的场景。
+  {
+    let madeProgress = true
+    while (madeProgress) {
+      madeProgress = false
+      for (const def of compositeRegistry.getAll()) {
+        if (def.captured) continue
+        madeProgress = true
 
-      // 创建输入值对象（标记 __captureInputName 供 compositePin 映射使用）
-      const inputs: Record<string, value> = {}
-      for (const [name, param] of Object.entries(def.inputs)) {
-        const v = createTypedValue(param.type as string)
-        ;(v as any).__captureInputName = name
-        inputs[name] = v
-      }
+        const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+        captureRegistry.startCaptureFlow()
+        const fns = new ServerExecutionFlowFunctions(captureRegistry)
 
-      // 注册复合声明的图变量，使 build() 内 f.get() 能查到变量类型
-      if (def.variables) {
-        for (const v of def.variables) {
-          const meta: NodeGraphVariableMeta =
-            v.type === 'dict'
-              ? { type: 'dict', dict: v.dict }
-              : { type: v.type as LiteralValueType }
-          captureRegistry.ensureVariable(v, meta)
+        const inputs: Record<string, value> = {}
+        for (const [name, param] of Object.entries(def.inputs)) {
+          const v = createTypedValue(param.type as string)
+          ;(v as any).__captureInputName = name
+          inputs[name] = v
         }
-      }
-      const gsts = ensureGsts() as unknown as GstsInternal
-      const prevF = gsts[kServerF]
-      gsts[kServerF] = fns
 
-      try {
-        const outputs = gsts.ctx.withCtx('server_handler', () => {
-          return def.build(inputs, fns)
-        })
-
-        const flow = captureRegistry.getFlows()[0]
-        const outflowMarks = ((flow as any).__outflowMarks ?? []) as Array<{
-          name: string
-          innerNodeId: number
-          outflowPinIndex: number
-        }>
-        const inflowMarks = ((flow as any).__inflowMarks ?? []) as Array<{
-          name: string
-          innerNodeId: number
-          inflowPinIndex: number
-        }>
-
-        def.captured = {
-          captureNodeId: flow.eventNode.id,
-          execNodes: flow.execNodes,
-          dataNodes: flow.dataNodes,
-          edges: flow.edges,
-          outputValues: (outputs ?? {}) as Record<string, value>,
-          isPureData: flow.execNodes.length === 0,
-          outflowMarks,
-          inflowMarks
+        if (def.variables) {
+          for (const v of def.variables) {
+            const meta: NodeGraphVariableMeta =
+              v.type === 'dict'
+                ? { type: 'dict', dict: v.dict }
+                : { type: v.type as LiteralValueType }
+            captureRegistry.ensureVariable(v, meta)
+          }
         }
-      } finally {
-        gsts[kServerF] = prevF
+
+        const gsts = ensureGsts() as unknown as GstsInternal
+        const prevF = gsts[kServerF]
+        gsts[kServerF] = fns
+
+        try {
+          const outputs = gsts.ctx.withCtx('server_handler', () => {
+            return def.build(inputs, fns)
+          })
+
+          const flow = captureRegistry.getFlows()[0]
+          const outflowMarks = ((flow as any).__outflowMarks ?? []) as Array<{
+            name: string
+            innerNodeId: number
+            outflowPinIndex: number
+          }>
+          const inflowMarks = ((flow as any).__inflowMarks ?? []) as Array<{
+            name: string
+            innerNodeId: number
+            inflowPinIndex: number
+          }>
+
+          def.captured = {
+            captureNodeId: flow.eventNode.id,
+            execNodes: flow.execNodes,
+            dataNodes: flow.dataNodes,
+            edges: flow.edges,
+            outputValues: (outputs ?? {}) as Record<string, value>,
+            isPureData: flow.execNodes.length === 0,
+            outflowMarks,
+            inflowMarks
+          }
+        } finally {
+          gsts[kServerF] = prevF
+        }
       }
     }
+  }
+
+  // 收集所有复合节点定义，转为 IR（此时所有复合节点已预捕获）
+  const allCompositeDefs: CompositeDefIR[] = []
+  for (const def of compositeRegistry.getAll()) {
     allCompositeDefs.push(def.toCompositeDefIR())
   }
 
