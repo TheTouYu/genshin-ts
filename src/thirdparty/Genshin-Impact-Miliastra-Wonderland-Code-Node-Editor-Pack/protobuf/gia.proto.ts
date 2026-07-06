@@ -453,11 +453,19 @@ export interface GraphVariable {
   /** Index = 8 */
   valueType: VarType
 }
+export interface VarBase_ClientInlineVarBinding {
+  typeTag?: number
+  bindingInt?: IntBaseValue
+  bindingEnum?: EnumBaseValue
+}
+
 export interface VarBase {
   /** Index = 1 */
   class: VarBase_Class
   /** Index = 2 */
   alreadySetVal: boolean
+  /** Index = 3 — t18/t19 inline dropdown payload (round-3 evidence) */
+  clientInlineBinding?: VarBase_ClientInlineVarBinding
   /** Index = 4 */
   itemType?: VarBase_ItemType
   /** Index = 5 */

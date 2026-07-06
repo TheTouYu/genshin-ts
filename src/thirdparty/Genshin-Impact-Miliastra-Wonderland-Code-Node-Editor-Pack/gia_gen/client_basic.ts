@@ -10,11 +10,12 @@ import {
   VarBase_Class,
   VarBase_ItemType_ClassBase,
   type GraphNode,
+  type NodeConnection,
   type NodePin,
   type Root,
   type VarBase
 } from '../protobuf/gia.proto.js'
-import { graph_body, node_connect_from, node_connect_to } from './basic.js'
+import { graph_body } from './basic.js'
 
 export function client_graph_body(body: {
   uid: number
@@ -76,8 +77,20 @@ const SCALAR_CLASS_BY_CLIENT_TYPE: Record<number, number> = {
  */
 const LITERAL_PROVEN_CLIENT_TYPES = new Set([3, 5, 7, 9, 11, 13, 14, 16])
 
-/** list client types with observed (empty) ArrayBase literal shapes */
-const LIST_CLIENT_TYPES = new Set([2, 4, 6, 8, 12, 15, 20, 25])
+/** list client types with observed ArrayBase literal shapes (empty or bArray.entries) */
+const LIST_CLIENT_TYPES = new Set([2, 4, 6, 8, 10, 12, 15, 17, 20, 25])
+
+/** reflective indexOfConcrete for data_type_conversion pins (round-2 evidence) */
+export const CLIENT_REFLECT_IOC_BY_TYPE: Record<number, number> = {
+  5: 0, // bool
+  3: 1, // int
+  7: 2, // float
+  14: 3, // guid
+  1: 4, // entity
+  11: 5, // vec3
+  16: 6, // faction
+  9: 3 // str (output)
+}
 
 /** client types whose pins exist but never carry literal values in samples */
 const NEVER_LITERAL_CLIENT_TYPES = new Set([1]) // entity
@@ -137,6 +150,64 @@ function write_scalar_payload(value: VarBase, scalarClass: number, literal: unkn
   }
 }
 
+function list_elem_client_type(listClientType: number): number {
+  const map: Record<number, number> = {
+    2: 1,
+    4: 3,
+    6: 5,
+    8: 7,
+    10: 9,
+    12: 11,
+    15: 14,
+    17: 13,
+    20: 18,
+    25: 16
+  }
+  return map[listClientType] ?? listClientType
+}
+
+/** non-empty list literal: ArrayBase with bArray.entries (round-2 evidence) */
+export function client_list_literal_value(clientVarType: number, elements: unknown[]): VarBase {
+  if (!LIST_CLIENT_TYPES.has(clientVarType)) {
+    throw new Error(
+      `[CLIENT_VALUE_TYPE_UNAVAILABLE] list literal encoding for client type ${clientVarType} has no sample evidence`
+    )
+  }
+  const elemType = list_elem_client_type(clientVarType)
+  const entries = elements.map((el) => client_literal_value(elemType, el))
+  return {
+    class: VarBase_Class.ArrayBase,
+    alreadySetVal: true,
+    itemType: client_item_type(clientVarType),
+    bArray: { entries }
+  }
+}
+
+/** t18/t19 inline dropdown payload (round-3 varBaseField3 evidence) */
+export function client_inline_var_value(clientVarType: 18 | 19, literal: number): VarBase {
+  const typeTag = clientVarType === 19 ? 3 : 12
+  const binding =
+    clientVarType === 19
+      ? { bindingInt: { val: Number(literal) } }
+      : { bindingEnum: { val: Number(literal) } }
+  return {
+    class: VarBase_Class.IdBase,
+    alreadySetVal: false,
+    itemType: client_item_type(clientVarType),
+    bId: { val: 0 },
+    clientInlineBinding: { typeTag, ...binding }
+  }
+}
+
+/** client_signal pin literal (signal name on kind 5) */
+export function client_signal_name_value(name: string): VarBase {
+  return {
+    class: VarBase_Class.StringBase,
+    alreadySetVal: true,
+    bString: { val: name }
+  }
+}
+
 /** literal pin value with alreadySetVal=true, per proven sample shapes */
 export function client_literal_value(clientVarType: number, literal: unknown): VarBase {
   const scalarClass = LITERAL_PROVEN_CLIENT_TYPES.has(clientVarType)
@@ -151,8 +222,9 @@ export function client_literal_value(clientVarType: number, literal: unknown): V
     write_scalar_payload(value, scalarClass, literal)
     return value
   }
-  // List pins only appear with alreadySetVal=false placeholders in samples,
-  // so list literals (and dict/entity/other types) have no proven encoding.
+  if (LIST_CLIENT_TYPES.has(clientVarType) && Array.isArray(literal)) {
+    return client_list_literal_value(clientVarType, literal)
+  }
   throw new Error(
     `[CLIENT_VALUE_TYPE_UNAVAILABLE] literal encoding for client type ${clientVarType} has no sample evidence`
   )
@@ -210,7 +282,7 @@ export function client_pin_body(pin: ClientPinMetadata, literal?: unknown): Node
   }
   return {
     i1: { kind, index: pin.index },
-    i2: { kind, index: pin.index },
+    i2: { kind, index: pin.i2Index ?? pin.index },
     type: pin.clientVarType ?? 0,
     value,
     connects: []
@@ -262,4 +334,29 @@ export function client_node_body(body: {
   return node
 }
 
-export { node_connect_from, node_connect_to }
+// Client NodeConnection: connect carries the peer pin's i1, connect2 its i2
+// (round-3 wire census: connect2 mirrors the peer i2 on all remapped nodes).
+
+export function client_node_connect_from(
+  from: number,
+  from_index: number,
+  from_index2: number = from_index
+): NodeConnection {
+  return {
+    id: from,
+    connect: { kind: NodePin_Index_Kind.OutParam, index: from_index },
+    connect2: { kind: NodePin_Index_Kind.OutParam, index: from_index2 }
+  }
+}
+
+export function client_node_connect_to(
+  to: number,
+  to_index: number,
+  to_index2: number = to_index
+): NodeConnection {
+  return {
+    id: to,
+    connect: { kind: NodePin_Index_Kind.InFlow, index: to_index },
+    connect2: { kind: NodePin_Index_Kind.InFlow, index: to_index2 }
+  }
+}

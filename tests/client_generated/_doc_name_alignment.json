@@ -1,8 +1,8 @@
 {
   "description": "zh<->en alignment of resources/node_definitions.json client/detail pages (index-based pairing is forbidden; see doc_name_alignment.ts)",
-  "pagePairs": 26,
-  "zhEntries": 572,
-  "matchRate": "571/572",
+  "pagePairs": 27,
+  "zhEntries": 613,
+  "matchRate": "565/613",
   "provenance": {
     "fingerprint": 118,
     "seed": 83,
@@ -206,13 +206,319 @@
   ],
   "unresolved": [
     {
+      "page": "client_calc_zh-cn",
+      "section": 1,
+      "zhName": "创建三维向量",
+      "fingerprint": "iF,iF,iF,oV"
+    },
+    {
+      "page": "client_calc_zh-cn",
+      "section": 1,
+      "zhName": "屏幕坐标转视口坐标",
+      "fingerprint": "iF,iF,oF,oF"
+    },
+    {
+      "page": "client_calc_zh-cn",
+      "section": 1,
+      "zhName": "视口坐标转屏幕坐标",
+      "fingerprint": "iF,iF,oF,oF"
+    },
+    {
+      "page": "client_calc_zh-cn",
+      "section": 1,
+      "zhName": "屏幕坐标转世界坐标",
+      "fingerprint": "iF,iF,iF,oV"
+    },
+    {
+      "page": "client_calc_zh-cn",
+      "section": 1,
+      "zhName": "世界坐标转屏幕坐标",
+      "fingerprint": "iV,oF,oF"
+    },
+    {
+      "page": "client_calc_zh-cn",
+      "section": 2,
+      "zhName": "拼装列表",
+      "fingerprint": "oG,iG"
+    },
+    {
       "page": "client_exec_zh-cn",
       "section": 0,
       "zhName": "指定挂接点打攻击盒",
       "fingerprint": "iN,iS,iV,iV,iF,iF,iNL,iN,iI,iN,iV,iF,iF,iF,iF,iF,iN,iN,iSL,iN,iF,iN,iN,iF,iB,iI,iN,iB,iV,iV,iF,iV,iV,iF,iF,iI,iN,iF,iF"
+    },
+    {
+      "page": "client_exec_zh-cn",
+      "section": 4,
+      "zhName": "完成当前预瞄准",
+      "fingerprint": ""
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取指定预瞄准的基准对象",
+      "fingerprint": "iI,oE"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄结果",
+      "fingerprint": "iI,oV,oV,oE,oEL"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄持续时长",
+      "fingerprint": "iI,oF"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取当前生效的预瞄准序号",
+      "fingerprint": "oI"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄碰撞检测结果数量",
+      "fingerprint": "iI,oI"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄射线命中信息",
+      "fingerprint": "iI,oV,oE"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄准摇杆是否处于死区",
+      "fingerprint": "iI,oB"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zhName": "查询预瞄准结束原因",
+      "fingerprint": "iI,oN"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 7,
+      "zhName": "获取光标是否激活",
+      "fingerprint": "oB"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 7,
+      "zhName": "获取光标命中结果",
+      "fingerprint": "oEL,oVL,oI"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 7,
+      "zhName": "获取光标屏幕坐标",
+      "fingerprint": "oF,oF"
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 7,
+      "zhName": "获取光标视口坐标",
+      "fingerprint": "oF,oF"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取指定预瞄准的基准对象",
+      "fingerprint": "iI,oE"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄结果",
+      "fingerprint": "iI,oV,oV,oE,oEL"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄持续时长",
+      "fingerprint": "iI,oF"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取当前生效的预瞄准序号",
+      "fingerprint": "oI"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄碰撞检测结果数量",
+      "fingerprint": "iI,oI"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄射线命中信息",
+      "fingerprint": "iI,oV,oE"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "获取预瞄准摇杆是否处于死区",
+      "fingerprint": "iI,oB"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zhName": "查询预瞄准结束原因",
+      "fingerprint": "iI,oN"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 7,
+      "zhName": "获取光标是否激活",
+      "fingerprint": "oB"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 7,
+      "zhName": "获取光标命中结果",
+      "fingerprint": "oEL,oVL,oI"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 7,
+      "zhName": "获取光标屏幕坐标",
+      "fingerprint": "oF,oF"
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 7,
+      "zhName": "获取光标视口坐标",
+      "fingerprint": "oF,oF"
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 1,
+      "zhName": "创建三维向量",
+      "fingerprint": "iF,iF,iF,oV"
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 1,
+      "zhName": "屏幕坐标转视口坐标",
+      "fingerprint": "iF,iF,oF,oF"
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 1,
+      "zhName": "视口坐标转屏幕坐标",
+      "fingerprint": "iF,iF,oF,oF"
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 1,
+      "zhName": "屏幕坐标转世界坐标",
+      "fingerprint": "iF,iF,iF,oV"
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 1,
+      "zhName": "世界坐标转屏幕坐标",
+      "fingerprint": "iV,oF,oF"
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 2,
+      "zhName": "拼装列表",
+      "fingerprint": "oG,iG"
+    },
+    {
+      "page": "detail_mhpw06rvah3a_zh-cn",
+      "section": 6,
+      "zhName": "获取光标是否激活",
+      "fingerprint": "oB"
+    },
+    {
+      "page": "detail_mhpw06rvah3a_zh-cn",
+      "section": 6,
+      "zhName": "获取光标命中结果",
+      "fingerprint": "oEL,oVL,oI"
+    },
+    {
+      "page": "detail_mhpw06rvah3a_zh-cn",
+      "section": 6,
+      "zhName": "获取光标屏幕坐标",
+      "fingerprint": "oF,oF"
+    },
+    {
+      "page": "detail_mhpw06rvah3a_zh-cn",
+      "section": 6,
+      "zhName": "获取光标视口坐标",
+      "fingerprint": "oF,oF"
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 1,
+      "zhName": "创建三维向量",
+      "fingerprint": "iF,iF,iF,oV"
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 1,
+      "zhName": "屏幕坐标转视口坐标",
+      "fingerprint": "iF,iF,oF,oF"
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 1,
+      "zhName": "视口坐标转屏幕坐标",
+      "fingerprint": "iF,iF,oF,oF"
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 1,
+      "zhName": "屏幕坐标转世界坐标",
+      "fingerprint": "iF,iF,iF,oV"
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 1,
+      "zhName": "世界坐标转屏幕坐标",
+      "fingerprint": "iV,oF,oF"
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 2,
+      "zhName": "拼装列表",
+      "fingerprint": "oG,iG"
     }
   ],
   "sectionLeftovers": [
+    {
+      "page": "client_calc_zh-cn",
+      "section": 1,
+      "zh": [
+        "创建三维向量 [iF,iF,iF,oV]",
+        "屏幕坐标转视口坐标 [iF,iF,oF,oF]",
+        "视口坐标转屏幕坐标 [iF,iF,oF,oF]",
+        "屏幕坐标转世界坐标 [iF,iF,iF,oV]",
+        "世界坐标转屏幕坐标 [iV,oF,oF]"
+      ],
+      "en": [
+        "Create 3D Vector [iF,iF,iF,oV]"
+      ]
+    },
+    {
+      "page": "client_calc_zh-cn",
+      "section": 2,
+      "zh": [
+        "拼装列表 [oG,iG]"
+      ],
+      "en": [
+        "Assembly List [iG,oG]"
+      ]
+    },
     {
       "page": "client_exec_zh-cn",
       "section": 0,
@@ -225,11 +531,19 @@
     },
     {
       "page": "client_exec_zh-cn",
-      "section": 4,
+      "section": 3,
       "zh": [],
       "en": [
         "Send Signal to Server Node Graph [iS]"
       ]
+    },
+    {
+      "page": "client_exec_zh-cn",
+      "section": 4,
+      "zh": [
+        "完成当前预瞄准 []"
+      ],
+      "en": []
     },
     {
       "page": "client_other_zh-cn",
@@ -241,19 +555,140 @@
       ]
     },
     {
+      "page": "client_query_zh-cn",
+      "section": 6,
+      "zh": [
+        "获取指定预瞄准的基准对象 [iI,oE]",
+        "获取预瞄结果 [iI,oV,oV,oE,oEL]",
+        "获取预瞄持续时长 [iI,oF]",
+        "获取当前生效的预瞄准序号 [oI]",
+        "获取预瞄碰撞检测结果数量 [iI,oI]",
+        "获取预瞄射线命中信息 [iI,oV,oE]",
+        "获取预瞄准摇杆是否处于死区 [iI,oB]",
+        "查询预瞄准结束原因 [iI,oN]"
+      ],
+      "en": []
+    },
+    {
+      "page": "client_query_zh-cn",
+      "section": 7,
+      "zh": [
+        "获取光标是否激活 [oB]",
+        "获取光标命中结果 [oEL,oVL,oI]",
+        "获取光标屏幕坐标 [oF,oF]",
+        "获取光标视口坐标 [oF,oF]"
+      ],
+      "en": []
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 6,
+      "zh": [
+        "获取指定预瞄准的基准对象 [iI,oE]",
+        "获取预瞄结果 [iI,oV,oV,oE,oEL]",
+        "获取预瞄持续时长 [iI,oF]",
+        "获取当前生效的预瞄准序号 [oI]",
+        "获取预瞄碰撞检测结果数量 [iI,oI]",
+        "获取预瞄射线命中信息 [iI,oV,oE]",
+        "获取预瞄准摇杆是否处于死区 [iI,oB]",
+        "查询预瞄准结束原因 [iI,oN]"
+      ],
+      "en": []
+    },
+    {
+      "page": "detail_mh2crq9jzueq_zh-cn",
+      "section": 7,
+      "zh": [
+        "获取光标是否激活 [oB]",
+        "获取光标命中结果 [oEL,oVL,oI]",
+        "获取光标屏幕坐标 [oF,oF]",
+        "获取光标视口坐标 [oF,oF]"
+      ],
+      "en": []
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 1,
+      "zh": [
+        "创建三维向量 [iF,iF,iF,oV]",
+        "屏幕坐标转视口坐标 [iF,iF,oF,oF]",
+        "视口坐标转屏幕坐标 [iF,iF,oF,oF]",
+        "屏幕坐标转世界坐标 [iF,iF,iF,oV]",
+        "世界坐标转屏幕坐标 [iV,oF,oF]"
+      ],
+      "en": [
+        "Create 3D Vector [iF,iF,iF,oV]"
+      ]
+    },
+    {
+      "page": "detail_mh7ys59fhtvu_zh-cn",
+      "section": 2,
+      "zh": [
+        "拼装列表 [oG,iG]"
+      ],
+      "en": [
+        "Assembly List [iG,oG]"
+      ]
+    },
+    {
+      "page": "detail_mhpw06rvah3a_zh-cn",
+      "section": 6,
+      "zh": [
+        "获取光标是否激活 [oB]",
+        "获取光标命中结果 [oEL,oVL,oI]",
+        "获取光标屏幕坐标 [oF,oF]",
+        "获取光标视口坐标 [oF,oF]"
+      ],
+      "en": []
+    },
+    {
       "page": "detail_mhq1k3rzp6oe_zh-cn",
       "section": 0,
       "zh": [],
       "en": [
         "Multiple Branches [iG]"
       ]
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 1,
+      "zh": [
+        "创建三维向量 [iF,iF,iF,oV]",
+        "屏幕坐标转视口坐标 [iF,iF,oF,oF]",
+        "视口坐标转屏幕坐标 [iF,iF,oF,oF]",
+        "屏幕坐标转世界坐标 [iF,iF,iF,oV]",
+        "世界坐标转屏幕坐标 [iV,oF,oF]"
+      ],
+      "en": [
+        "Create 3D Vector [iF,iF,iF,oV]"
+      ]
+    },
+    {
+      "page": "detail_mhte5piu3it0_zh-cn",
+      "section": 2,
+      "zh": [
+        "拼装列表 [oG,iG]"
+      ],
+      "en": [
+        "Assembly List [iG,oG]"
+      ]
     }
   ],
   "seedMisses": [
     {
+      "zhName": "拼装列表",
+      "expectedEn": "Assembly List",
+      "page": "client_calc_zh-cn"
+    },
+    {
       "zhName": "获取字典中值组成的列表",
       "expectedEn": "Get List of Values From Dictionary",
       "page": "detail_mh1w3z96rpne_zh-cn"
+    },
+    {
+      "zhName": "拼装列表",
+      "expectedEn": "Assembly List",
+      "page": "detail_mh7ys59fhtvu_zh-cn"
     },
     {
       "zhName": "查询自身是否在领地中",
@@ -264,6 +699,33 @@
       "zhName": "获取字典中值组成的列表",
       "expectedEn": "Get List of Values From Dictionary",
       "page": "detail_mhk4furvds12_zh-cn"
+    },
+    {
+      "zhName": "拼装列表",
+      "expectedEn": "Assembly List",
+      "page": "detail_mhte5piu3it0_zh-cn"
+    }
+  ],
+  "zhOnlyPages": [
+    {
+      "page": "detail_mh65asiyhv2k_zh-cn",
+      "entries": 80
+    },
+    {
+      "page": "detail_mhf9gq9ssw9e_zh-cn",
+      "entries": 48
+    },
+    {
+      "page": "detail_mho82r0ip7v4_zh-cn",
+      "entries": 47
+    },
+    {
+      "page": "detail_mhodmo0n3xg8_zh-cn",
+      "entries": 1
+    },
+    {
+      "page": "detail_mhxc8ord091y_zh-cn",
+      "entries": 2
     }
   ],
   "zhToEn": {

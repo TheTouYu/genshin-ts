@@ -1,5 +1,5 @@
-import { IRDocument } from '../../runtime/IR'
+import type { ClientIRDocument } from '../../runtime/IR.js'
 
 export type Position = [number, number]
 export type NodeId = number
-export type IRNode = NonNullable<IRDocument['nodes']>[number]
+export type IRNode = NonNullable<ClientIRDocument['nodes']>[number]

@@ -1667,7 +1667,7 @@ export type ServerEventPayloads = {
   /**
    * This event is triggered when an Item is removed from the Inventory (its quantity becomes 0). The Owner of the Inventory Component will receive it
    *
-   * 背包道具失去时: 背包内该道具失去，即背包内该道具数量为0时触发该事件，背包组件的持有者可以收到
+   * 背包道具失去时: 背包内该道具失去，即背包内该道具数量为0时触发该事件，该道具关联的道具节点图会接收到
    */
   whenItemIsLostFromInventory: {
     /**
@@ -1694,7 +1694,7 @@ export type ServerEventPayloads = {
   /**
    * This event is triggered when the quantity of Items in the Inventory changes. The Owner of the Inventory Component will receive it
    *
-   * 背包道具数量变化时: 背包道具数量发生变化时触发该事件，背包组件的持有者可以收到
+   * 背包道具数量变化时: 背包道具数量发生变化时触发该事件，该道具关联的道具节点图会接收到
    */
   whenTheQuantityOfInventoryItemChanges: {
     /**
@@ -1731,7 +1731,7 @@ export type ServerEventPayloads = {
   /**
    * This event is triggered when a new Item is added to the Inventory. The Owner of the Inventory Component will receive it. This event is not triggered by quantity-only changes
    *
-   * 背包道具新增时: 背包内新增该道具时触发事件，背包组件的持有者可以收到。如果没有新增道具仅有数量变化则不会触发该事件
+   * 背包道具新增时: 背包内新增该道具时触发事件，该道具关联的道具节点图会接收到。如果没有新增道具仅有数量变化则不会触发该事件
    */
   whenItemIsAddedToInventory: {
     /**
@@ -1785,7 +1785,7 @@ export type ServerEventPayloads = {
   /**
    * This event is triggered when an Item in the Inventory is used. The Owner of the Inventory Component will receive it
    *
-   * 背包内道具被使用时: 背包内道具被使用时触发该事件，背包组件的持有者可以收到
+   * 背包内道具被使用时: 背包内道具被使用时触发该事件，该道具关联的道具节点图会接收到
    */
   whenItemsInTheInventoryAreUsed: {
     /**

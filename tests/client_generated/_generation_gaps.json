@@ -1,24 +1,6 @@
 [
   {
     "subType": "bool_filter",
-    "nodeType": "assembly_list",
-    "displayName": "拼装列表",
-    "reason": "dynamic_pins"
-  },
-  {
-    "subType": "bool_filter",
-    "nodeType": "data_type_conversion",
-    "displayName": "数据类型转换",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "bool_filter",
-    "nodeType": "get_custom_variable",
-    "displayName": "获取自定义变量",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "bool_filter",
     "nodeType": "get_entity_type_list",
     "displayName": "获取实体类型列表",
     "reason": "unsupported_return_type",
@@ -52,35 +34,10 @@
   },
   {
     "subType": "character_skill",
-    "nodeType": "assembly_list",
-    "displayName": "拼装列表",
-    "reason": "dynamic_pins"
-  },
-  {
-    "subType": "character_skill",
     "nodeType": "create_dictionary",
     "displayName": "建立字典",
     "reason": "unsupported_return_type",
     "detail": "Dictionary: dict"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "data_type_conversion",
-    "displayName": "数据类型转换",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "fixed_point_projectile_launch",
-    "displayName": "定点发射投射物",
-    "reason": "unsupported_special_kind",
-    "detail": "inline_var_type_hint"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "get_custom_variable",
-    "displayName": "获取自定义变量",
-    "reason": "reflect_no_variant_evidence"
   },
   {
     "subType": "character_skill",
@@ -114,13 +71,6 @@
     "nodeType": "query_dictionary_value_by_key",
     "displayName": "以键查询字典值",
     "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "send_signal_to_server_node_graph",
-    "displayName": "向服务器节点图发送信号",
-    "reason": "signal_pins_unproven",
-    "detail": "signal name rides client_signal pins; no input pin evidence"
   },
   {
     "subType": "character_skill",
@@ -204,35 +154,10 @@
   },
   {
     "subType": "creation_skill",
-    "nodeType": "assembly_list",
-    "displayName": "拼装列表",
-    "reason": "dynamic_pins"
-  },
-  {
-    "subType": "creation_skill",
     "nodeType": "create_dictionary",
     "displayName": "建立字典",
     "reason": "unsupported_return_type",
     "detail": "Dictionary: dict"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "data_type_conversion",
-    "displayName": "数据类型转换",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "fixed_point_projectile_launch",
-    "displayName": "定点发射投射物",
-    "reason": "unsupported_special_kind",
-    "detail": "inline_var_type_hint"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "get_custom_variable",
-    "displayName": "获取自定义变量",
-    "reason": "reflect_no_variant_evidence"
   },
   {
     "subType": "creation_skill",
@@ -266,13 +191,6 @@
     "nodeType": "query_dictionary_value_by_key",
     "displayName": "以键查询字典值",
     "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "send_signal_to_server_node_graph",
-    "displayName": "向服务器节点图发送信号",
-    "reason": "signal_pins_unproven",
-    "detail": "signal name rides client_signal pins; no input pin evidence"
   },
   {
     "subType": "creation_skill",
@@ -349,34 +267,10 @@
   },
   {
     "subType": "creation_status",
-    "nodeType": "assembly_list",
-    "displayName": "拼装列表",
-    "reason": "dynamic_pins"
-  },
-  {
-    "subType": "creation_status",
     "nodeType": "create_dictionary",
     "displayName": "建立字典",
     "reason": "unsupported_return_type",
     "detail": "Dictionary: dict"
-  },
-  {
-    "subType": "creation_status",
-    "nodeType": "data_type_conversion",
-    "displayName": "数据类型转换",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_status",
-    "nodeType": "get_custom_variable",
-    "displayName": "获取自定义变量",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_status",
-    "nodeType": "multiple_branches",
-    "displayName": "多分支",
-    "reason": "dynamic_pins"
   },
   {
     "subType": "creation_status",
@@ -404,34 +298,10 @@
   },
   {
     "subType": "creation_status_decision",
-    "nodeType": "assembly_list",
-    "displayName": "拼装列表",
-    "reason": "dynamic_pins"
-  },
-  {
-    "subType": "creation_status_decision",
     "nodeType": "create_dictionary",
     "displayName": "建立字典",
     "reason": "unsupported_return_type",
     "detail": "Dictionary: dict"
-  },
-  {
-    "subType": "creation_status_decision",
-    "nodeType": "data_type_conversion",
-    "displayName": "数据类型转换",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_status_decision",
-    "nodeType": "get_custom_variable",
-    "displayName": "获取自定义变量",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_status_decision",
-    "nodeType": "multiple_branches",
-    "displayName": "多分支",
-    "reason": "dynamic_pins"
   },
   {
     "subType": "creation_status_decision",
@@ -444,25 +314,6 @@
     "nodeType": "split_structure",
     "displayName": "拆分结构体",
     "reason": "local_variable_pins"
-  },
-  {
-    "subType": "creation_status_decision",
-    "nodeType": "switch_to_self_execution_status",
-    "displayName": "切换自身执行状态",
-    "reason": "unsupported_special_kind",
-    "detail": "inline_var_type_hint"
-  },
-  {
-    "subType": "int_filter",
-    "nodeType": "assembly_list",
-    "displayName": "拼装列表",
-    "reason": "dynamic_pins"
-  },
-  {
-    "subType": "int_filter",
-    "nodeType": "data_type_conversion",
-    "displayName": "数据类型转换",
-    "reason": "reflect_no_variant_evidence"
   },
   {
     "subType": "int_filter",

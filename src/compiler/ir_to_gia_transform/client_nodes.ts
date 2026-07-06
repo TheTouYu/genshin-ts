@@ -2,12 +2,13 @@ import type { ClientGraphSubType } from '../../runtime/IR.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import { requireClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+import varSpec from '../../../resources/client_variable_specialization_seed.json' with { type: 'json' }
 import type { IRNode } from './types.js'
 
-const UNSUPPORTED_SPECIAL_KINDS = new Set(['inline_var_type_hint', 'structure_list_unknown_binding'])
+const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
 
 /** IR value type -> ClientVarType id, mirroring the extractor's type name table */
-const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
+export const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   entity: 1,
   entity_list: 2,
   int: 3,
@@ -22,6 +23,7 @@ const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   vec3_list: 12,
   enum: 13,
   enumeration: 13,
+  enum_list: 17,
   guid: 14,
   guid_list: 15,
   faction: 16,
@@ -31,6 +33,78 @@ const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   prefab_id_list: 21,
   dict: 24,
   faction_list: 25
+}
+
+const TYPE_OFFSET_BY_IR = new Map(
+  (varSpec.typeOffsets as Array<{ type: string; clientVarType: number; offset: number }>).map((e) => [
+    e.type,
+    e
+  ])
+)
+
+function getCustomVariableFamily(subType: ClientGraphSubType) {
+  const cs = varSpec.getCustomVariable.characterSkillFamilies
+  if ((cs.appliesTo as string[]).includes(subType)) return cs
+  const st = varSpec.getCustomVariable.creationStatusFamilies
+  if ((st.appliesTo as string[]).includes(subType)) return st
+  return undefined
+}
+
+function assemblyListVariantKey(elementClientVarType: number): string {
+  return Array.from({ length: 10 }, () => String(elementClientVarType)).join(',')
+}
+
+function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: IRNode): number | string {
+  const firstArg = irNode.args?.[0]
+  const irType =
+    firstArg == null ? undefined : firstArg.type === 'conn' ? firstArg.value.type : firstArg.type
+  const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
+  if (clientVarType === undefined) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.assembly_list cannot derive element type from args`
+    )
+  }
+  const key = assemblyListVariantKey(clientVarType)
+  const match = metadata.reflectMap?.find((v) => v.variantKey === key)
+  if (!match) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.assembly_list has no reflect variant for key "${key}"`
+    )
+  }
+  return match.concreteId
+}
+
+function getCustomVariableConcreteId(
+  metadata: ClientNodeMetadata,
+  irNode: IRNode
+): number | string {
+  const outputIrType = irNode.clientHints?.outputIrType
+  if (!outputIrType) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.get_custom_variable requires clientHints.outputIrType (use typed overload)`
+    )
+  }
+  const family = getCustomVariableFamily(metadata.subType)
+  if (!family) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.get_custom_variable has no cid table for this family`
+    )
+  }
+  if (outputIrType === 'dict') {
+    return family.dictCid
+  }
+  const entry = TYPE_OFFSET_BY_IR.get(outputIrType)
+  if (!entry) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.get_custom_variable unknown output type "${outputIrType}"`
+    )
+  }
+  return family.cidBase + entry.offset
 }
 
 export function resolveClientNodeMetadata(
@@ -49,16 +123,30 @@ export function resolveClientNodeMetadata(
 
 /**
  * Deterministically resolve a node's concrete id.
- *
- * Non-reflective records use their single extracted concreteId. Reflective
- * records select the reflectMap entry whose variantKey (the ordered
- * ClientVarType vector of reflective input pins) matches the IR node's
- * argument types. No fallback and no closest-match: anything ambiguous throws.
  */
 export function resolveClientConcreteVariant(
   metadata: ClientNodeMetadata,
   node: IRNode
 ): number | string {
+  if (metadata.nodeType === 'data_type_conversion') {
+    return 130
+  }
+  if (metadata.nodeType === 'assembly_list') {
+    return assemblyListConcreteId(metadata, node)
+  }
+  if (metadata.nodeType === 'get_custom_variable') {
+    return getCustomVariableConcreteId(metadata, node)
+  }
+  if (metadata.nodeType === 'multiple_branches') {
+    return metadata.concreteId ?? 4002
+  }
+  if (metadata.specialKind === 'inline_var_type_hint') {
+    return metadata.concreteId ?? 2000
+  }
+  if (metadata.nodeType === 'send_signal_to_server_node_graph') {
+    return metadata.concreteId ?? 2000
+  }
+
   if (!metadata.reflectMap) {
     if (metadata.concreteId === null) {
       throw clientNodegraphError(
@@ -74,7 +162,6 @@ export function resolveClientConcreteVariant(
     .map((pin) => pin.index)
     .sort((a, b) => a - b)
 
-  // IR args are signature-ordered; argPins maps them onto physical pin indexes
   const argIndexOfPin = (pinIndex: number) =>
     metadata.argPins ? metadata.argPins.indexOf(pinIndex) : pinIndex
 

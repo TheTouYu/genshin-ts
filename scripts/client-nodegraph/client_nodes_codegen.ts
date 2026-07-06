@@ -8,6 +8,7 @@
  * output pins. Records that cannot be reconciled mechanically are written to
  * the gap report instead of guessed.
  */
+import type { ClientEnumBinding } from './client_enum_binding.js'
 import {
   docTypeTag,
   lookupDocNode,
@@ -103,16 +104,19 @@ const RUNTIME_INTERNAL_NODE_TYPES = new Set([
   'node_graph_end_integer'
 ])
 
-/** control-flow nodes emitted from hand templates, not the auto pipeline */
+/** nodes emitted from hand templates, not the auto pipeline (control flow +
+ * the three round-2-proven special encodings, task 四.3) */
 const HAND_NODE_TYPES = new Set([
   'double_branch',
   'finite_loop',
   'traverse_entity_list',
-  'break_loop'
+  'break_loop',
+  'assembly_list',
+  'multiple_branches',
+  'data_type_conversion',
+  'get_custom_variable',
+  'send_signal_to_server_node_graph'
 ])
-
-/** dynamic-pin nodes without a sample-proven variable-arity client encoding */
-const DYNAMIC_PIN_NODE_TYPES = new Set(['assembly_list', 'multiple_branches'])
 
 // ---------------------------------------------------------------------------
 // Type tables
@@ -178,6 +182,35 @@ const TYPE_PRIORITY = [
   'vec3',
   'dict'
 ]
+
+/** TypeConversion enum values 800..810 (client + server share the same ids) */
+const DATA_TYPE_CONVERSIONS: Record<string, number> = {
+  'int->bool': 800,
+  'int->float': 801,
+  'int->str': 802,
+  'entity->str': 803,
+  'guid->str': 804,
+  'bool->int': 805,
+  'bool->str': 806,
+  'float->int': 807,
+  'float->str': 808,
+  'vec3->str': 809,
+  'faction->str': 810
+}
+
+const DATA_TYPE_CONVERSION_ENUM_VALUE: Record<string, string> = {
+  'int->bool': 'type_conversion_integer_to_boolean',
+  'int->float': 'type_conversion_integer_to_floating_point',
+  'int->str': 'type_conversion_integer_to_string',
+  'entity->str': 'type_conversion_entity_to_string',
+  'guid->str': 'type_conversion_guid_to_string',
+  'bool->int': 'type_conversion_boolean_to_integer',
+  'bool->str': 'type_conversion_boolean_to_string',
+  'float->int': 'type_conversion_floating_point_to_integer',
+  'float->str': 'type_conversion_floating_point_to_string',
+  'vec3->str': 'type_conversion_vector_3_to_string',
+  'faction->str': 'type_conversion_faction_to_string'
+}
 
 /** doc data_type tags accepted for a pin IR type during doc<->pin alignment */
 const DOC_TAGS_BY_PIN_TYPE: Record<string, string[]> = {
@@ -412,6 +445,8 @@ type ParamSpec = {
   irType?: string
   reflective: boolean
   candidates?: string[]
+  /** concrete TS enum class bound from the enum seeds (four.1) */
+  enumClass?: string
   docEnName: string
   docEnDesc: string
   docZhName: string
@@ -520,7 +555,11 @@ function buildReflectSpec(record: MetaRecord): ReflectSpec | { gap: GapEntry } {
   return { pinIndexes, joint, candidatesByPin, variants }
 }
 
-function buildMethodSpec(record: MetaRecord, doc: AlignedDocNode): MethodSpec | GapEntry {
+function buildMethodSpec(
+  record: MetaRecord,
+  doc: AlignedDocNode,
+  enumBinding: ClientEnumBinding
+): MethodSpec | GapEntry {
   let firstGap: GapEntry | null = null
   const gap = (reason: string, detail?: string): GapEntry => {
     firstGap ??= {
@@ -533,12 +572,11 @@ function buildMethodSpec(record: MetaRecord, doc: AlignedDocNode): MethodSpec | 
     return firstGap
   }
 
-  if (record.specialKind === 'inline_var_type_hint' || record.specialKind === 'structure_list_unknown_binding') {
+  if (record.specialKind === 'structure_list_unknown_binding') {
     return gap('unsupported_special_kind', record.specialKind)
   }
-  if (DYNAMIC_PIN_NODE_TYPES.has(record.nodeType)) return gap('dynamic_pins')
-  if (record.nodeType === 'send_signal_to_server_node_graph') {
-    return gap('signal_pins_unproven', 'signal name rides client_signal pins; no input pin evidence')
+  if (record.nodeType === 'get_custom_variable' || record.nodeType === 'send_signal_to_server_node_graph') {
+    return gap('hand_template', record.nodeType)
   }
 
   const localVarPin = [...record.inputs, ...record.outputs].find((p) => p.type === 'local_variable')
@@ -718,11 +756,13 @@ function buildMethodSpec(record: MetaRecord, doc: AlignedDocNode): MethodSpec | 
     if (!SUPPORTED_PARAM_TYPES.has(b.pin.type)) {
       return gap(`unsupported_param_type`, `${b.doc.en.name}: ${b.pin.type}`)
     }
+    const enumClass = b.pin.type === 'enum' ? enumBinding.resolve(record, b.pin) : undefined
     params.push({
       pinIndex: b.pin.index,
       ident,
       irType: b.pin.type,
       reflective: false,
+      ...(enumClass ? { enumClass } : {}),
       docEnName: b.doc.en.name,
       docEnDesc: sanitizeDocText(b.doc.en.description),
       docZhName: b.doc.zh?.name ?? '',
@@ -806,7 +846,11 @@ function argPinsOf(spec: MethodSpec): number[] | undefined {
 function retConstruction(irTypeExpr: { kind: 'literal'; irType: string } | { kind: 'expr'; expr: string; isList: boolean }): string {
   if (irTypeExpr.kind === 'literal') {
     const t = irTypeExpr.irType
-    if (isListType(t)) return `new list('${elemType(t)}')`
+    if (isListType(t)) {
+      const elem = elemType(t)
+      if (elem === 'enum') return `new list('enum')`
+      return `new list('${elem}')`
+    }
     return `new ${CLASS_EXPR_BY_IR[t]}()`
   }
   return irTypeExpr.isList ? `new list(${irTypeExpr.expr})` : `new ValueClassMap[${irTypeExpr.expr}]()`
@@ -825,8 +869,12 @@ function emitSingleReturn(
   ]
 }
 
+function paramTsOf(p: ParamSpec): string {
+  return p.enumClass ?? paramTs(p.irType!)
+}
+
 function emitNonReflectMethod(spec: MethodSpec): string {
-  const sigParams = spec.params.map((p) => `${p.ident}: ${paramTs(p.irType!)}`).join(', ')
+  const sigParams = spec.params.map((p) => `${p.ident}: ${paramTsOf(p)}`).join(', ')
   const retTs =
     spec.returns.length === 0
       ? 'void'
@@ -883,7 +931,7 @@ function emitReflectMethod(spec: MethodSpec): string {
   for (const variant of reflect.variants) {
     const paramSig = spec.params
       .map((p) => {
-        if (!p.reflective) return `${p.ident}: ${paramTs(p.irType!)}`
+        if (!p.reflective) return `${p.ident}: ${paramTsOf(p)}`
         const slot = reflect.pinIndexes.indexOf(p.pinIndex)
         return `${p.ident}: ${paramTs(variant.inTypes[slot])}`
       })
@@ -898,7 +946,7 @@ function emitReflectMethod(spec: MethodSpec): string {
   const unionOf = (types: string[]) => [...new Set(types)].join(' | ')
   const implParams = spec.params
     .map((p) => {
-      if (!p.reflective) return `${p.ident}: ${paramTs(p.irType!)}`
+      if (!p.reflective) return `${p.ident}: ${paramTsOf(p)}`
       return `${p.ident}: ${unionOf(p.candidates!.map(paramTs))}`
     })
     .join(', ')
@@ -1211,13 +1259,371 @@ function emitTraverseEntityList(subType: string, doc: AlignedDocNode | undefined
   }`
 }
 
+/** family element IR types (matchTypes priority order) from the reflect map */
+function assemblyElemTypes(record: MetaRecord): string[] {
+  const types = record.reflectMap!.map((v) => v.pins!.find((p) => p.kind === 'input')!.type)
+  return [...new Set(types)].sort((a, b) => typePriority(a) - typePriority(b))
+}
+
+/**
+ * 拼装列表: fixed 12 pins (count + 10 element slots + list output), element
+ * type selects the concrete variant. Mirrors the server assemblyList surface
+ * capped at the editor's 10 slots; the element->pin(+1) shift and count/slot
+ * literal encoding live in the IR->GIA transform.
+ */
+function emitAssemblyList(record: MetaRecord, doc: AlignedDocNode | undefined): string {
+  const types = assemblyElemTypes(record)
+  const ins = doc?.zh.params.filter((p) => p.io !== 'out') ?? []
+  const outs = doc?.zh.params.filter((p) => p.io === 'out') ?? []
+  const enIns = doc?.en.params.filter((p) => p.io !== 'out') ?? []
+  const enOuts = doc?.en.params.filter((p) => p.io === 'out') ?? []
+  const p0 = {
+    en: sanitizeDocText(enIns[0]?.description ?? ''),
+    zh: ins[0] ? `${ins[0].name}${ins[0].description ? `: ${sanitizeDocText(ins[0].description)}` : ''}` : '0~9'
+  }
+  const r = {
+    en: sanitizeDocText(enOuts[0]?.description ?? ''),
+    zh: outs[0] ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}` : '列表'
+  }
+  const overloads = types.flatMap((t) => [
+    `  assemblyList(_0to9: ${paramTs(t)}[]): ${returnTs(`${t}_list`)}`,
+    `  assemblyList(_0to9: ${paramTs(t)}[], type: '${t}'): ${returnTs(`${t}_list`)}`
+  ])
+  const union = types.map((t) => `'${t}'`).join(' | ')
+  return `${controlFlowJsdoc(doc, '拼装列表', [{ ident: '_0to9', en: p0.en, zh: p0.zh }], r)}
+${overloads.join('\n')}
+  assemblyList<T extends ${union}>(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): RuntimeReturnValueTypeMap[\`\${T}_list\`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(\`[error] assemblyList: expected 1-10 elements, got \${_0to9.length}\`)
+    }
+    let genericType = matchTypes([${types.map((t) => `'${t}'`).join(', ')}], ..._0to9)
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[\`\${T}_list\`]
+  }`
+}
+
+/**
+ * 多分支: branch case values live in in[1] (int_list literal); flow-outs use
+ * the server convention (default = source 0, cases = 1..N). Ported from the
+ * server multipleBranches (int-only: the client node has a single int/int_list
+ * variant) so TS switch lowering keeps identical alias/join semantics.
+ */
+function emitMultipleBranches(subType: string, doc: AlignedDocNode | undefined): string {
+  const p = docParamText(doc, '控制表达式')
+  return `${controlFlowJsdoc(doc, '多分支', [{ ident: 'controlExpression', en: p.en, zh: p.zh }])}
+  multipleBranches(
+    controlExpression: IntValue,
+    branches: Record<number, (() => void) | number> & { default?: (() => void) | number }
+  ): void {
+    const controlExpressionObj = parseValue(controlExpression, 'int')
+
+    const rawBranches = branches as Record<string, unknown>
+    const caseKeys = Object.keys(rawBranches).filter((k) => k !== 'default')
+    const caseArgs = caseKeys.map((k) => new int(Number(k)))
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'multiple_branches',
+      args: [controlExpressionObj, ...caseArgs]
+    })
+
+    // 分支执行：按约定 default 的 source_index 固定为 0；其它分支按顺序从 1 开始递增
+    type BranchResult = {
+      terminatedByReturn?: boolean
+      tailEndpoints: Array<{ nodeId: number; sourceIndex?: number }>
+      headNodeId?: number
+    }
+    const branchResults: Array<{ sourceIndex: number } & BranchResult> = []
+
+    const defaultVal = rawBranches.default
+    let defaultResult: BranchResult | undefined
+    const emptyDefault: BranchResult = { terminatedByReturn: false, tailEndpoints: [] }
+
+    if (typeof defaultVal === 'function') {
+      const r = this.registry.withExecBranch(ref.id, 0, () =>
+        globalThis.gsts.ctx.withCtx('client_${subType}_switch', defaultVal as () => void)
+      )
+      defaultResult = r
+      branchResults.push({ sourceIndex: 0, ...r })
+    } else if (defaultVal === undefined) {
+      // 空默认分支视为“未 return 且无节点”，join 时需要从分支节点对应输出直接连出
+      branchResults.push({ sourceIndex: 0, ...emptyDefault })
+    }
+
+    const branchResultsByKey = new Map<string, BranchResult>()
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v !== 'function') return
+      const sourceIndex = i + 1
+      const r = this.registry.withExecBranch(ref.id, sourceIndex, () =>
+        globalThis.gsts.ctx.withCtx('client_${subType}_switch', v as () => void)
+      )
+      branchResultsByKey.set(k, r)
+      branchResults.push({ sourceIndex, ...r })
+    })
+
+    const resolveAliasKey = (input: unknown): string | null => {
+      if (typeof input === 'string') return input
+      if (typeof input === 'number') return String(input)
+      return null
+    }
+
+    const ensureCaseKey = (key: string, origin: string) => {
+      if (!caseKeys.includes(key)) {
+        throw new Error(\`[error] multipleBranches: "\${origin}" refers to missing case "\${key}"\`)
+      }
+    }
+
+    const resolveTarget = (
+      key: string,
+      stack: string[]
+    ): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (stack.includes(key)) {
+        throw new Error(
+          \`[error] multipleBranches: circular case alias "\${stack.join(' -> ')} -> \${key}"\`
+        )
+      }
+      const value = rawBranches[key]
+      if (typeof value === 'function') return { kind: 'case', key }
+      const alias = resolveAliasKey(value)
+      if (!alias) {
+        throw new Error(\`[error] multipleBranches: "\${key}" must be a function or case alias\`)
+      }
+      if (alias === 'default') return { kind: 'default' }
+      ensureCaseKey(alias, key)
+      return resolveTarget(alias, [...stack, key])
+    }
+
+    const resolveDefault = (): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (typeof defaultVal === 'function') return { kind: 'default' }
+      const alias = resolveAliasKey(defaultVal)
+      if (!alias) {
+        throw new Error('[error] multipleBranches: default must be a function or case alias')
+      }
+      if (alias === 'default') {
+        throw new Error('[error] multipleBranches: default alias cannot refer to itself')
+      }
+      ensureCaseKey(alias, 'default')
+      return resolveTarget(alias, ['default'])
+    }
+
+    const attachAlias = (sourceIndex: number, target: BranchResult | undefined) => {
+      const resolved = target ?? emptyDefault
+      if (resolved.headNodeId !== undefined) {
+        this.registry.connectExecBranchOutput(ref.id, sourceIndex, resolved.headNodeId)
+        return
+      }
+      branchResults.push({ sourceIndex, ...resolved })
+    }
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v === 'function') return
+      const target = resolveTarget(k, [])
+      if (target.kind === 'default') {
+        attachAlias(i + 1, defaultResult)
+      } else {
+        attachAlias(i + 1, branchResultsByKey.get(target.key))
+      }
+    })
+
+    if (defaultVal !== undefined && typeof defaultVal !== 'function') {
+      const target = resolveDefault()
+      if (target.kind === 'default') {
+        attachAlias(0, defaultResult)
+      } else {
+        attachAlias(0, branchResultsByKey.get(target.key))
+      }
+    }
+
+    // 启用 join：后续顺序代码连接到所有未 return 的分支尾部（空分支则从分支节点输出直接连出）
+    const joinEndpoints: Array<{ nodeId: number; sourceIndex?: number }> = []
+    branchResults.forEach((r) => {
+      if (r.terminatedByReturn) return
+      if (r.tailEndpoints.length) {
+        joinEndpoints.push(...r.tailEndpoints)
+      } else {
+        joinEndpoints.push({ nodeId: ref.id, sourceIndex: r.sourceIndex })
+      }
+    })
+    this.registry.setCurrentExecTailEndpoints(joinEndpoints)
+  }`
+}
+
+/**
+ * 数据类型转换: concrete id is constant (130); the variant is carried by the
+ * conversion enum on in[0] plus per-pin type/indexOfConcrete, all derived from
+ * the enum in the IR->GIA transform. Same conversion matrix as the server.
+ */
+function emitDataTypeConversion(doc: AlignedDocNode | undefined): string {
+  const p = docParamText(doc, '输入')
+  const outs = doc?.zh.params.filter((param) => param.io === 'out') ?? []
+  const enOuts = doc?.en.params.filter((param) => param.io === 'out') ?? []
+  const r = {
+    en: sanitizeDocText(enOuts[0]?.description ?? ''),
+    zh: outs[0] ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}` : '转换结果'
+  }
+  return `${controlFlowJsdoc(doc, '数据类型转换', [{ ident: 'input', en: p.en, zh: p.zh }], r)}
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[\`\${inputType}->\${String(type)}\`]
+    if (!conversion) {
+      throw new Error(
+        \`[error] dataTypeConversion: unsupported conversion \${inputType} -> \${String(type)}\`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[\`\${inputType}->\${String(type)}\`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
+  }`
+}
+
+const CUSTOM_VAR_TYPES = [
+  'bool',
+  'int',
+  'float',
+  'str',
+  'guid',
+  'entity',
+  'vec3',
+  'int_list',
+  'str_list',
+  'entity_list',
+  'guid_list',
+  'float_list',
+  'vec3_list',
+  'bool_list',
+  'config_id',
+  'prefab_id',
+  'config_id_list',
+  'prefab_id_list',
+  'faction',
+  'faction_list',
+  'dict'
+] as const
+
+function customVarFamilySubTypes(nodeType: string): string[] {
+  if (nodeType !== 'get_custom_variable') return []
+  return [
+    'character_skill',
+    'creation_skill',
+    'bool_filter',
+    'int_filter',
+    'creation_status',
+    'creation_status_decision'
+  ]
+}
+
+function emitGetCustomVariable(subType: string, doc: AlignedDocNode | undefined): string | null {
+  if (!customVarFamilySubTypes('get_custom_variable').includes(subType)) return null
+  const p0 = docParamText(doc, '目标实体')
+  const p1 = docParamText(doc, '变量名')
+  const overloads = CUSTOM_VAR_TYPES.flatMap((t) => [
+    `  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: '${t}'): ${returnTs(t)}`
+  ])
+  const union = CUSTOM_VAR_TYPES.map((t) => `'${t}'`).join(' | ')
+  return `${controlFlowJsdoc(
+    doc,
+    '获取自定义变量',
+    [
+      { ident: 'targetEntity', en: p0.en, zh: p0.zh },
+      { ident: 'variableName', en: p1.en, zh: p1.zh }
+    ],
+    { en: 'Variable value', zh: '变量值' }
+  )}
+${overloads.join('\n')}
+  getCustomVariable<T extends ${union}>(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: T
+  ): RuntimeReturnValueTypeMap[T] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
+    })
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
+  }`
+}
+
+function emitSendSignalToServer(doc: AlignedDocNode | undefined): string {
+  return `${controlFlowJsdoc(doc, '向服务器节点图发送信号', [{ ident: 'signalName', en: 'Signal name', zh: '信号名' }])}
+  sendSignalToServerNodeGraph(signalName: StrValue): void {
+    const signalNameObj = parseValue(signalName, 'str')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'send_signal_to_server_node_graph',
+      args: [signalNameObj]
+    })
+  }`
+}
+
 // ---------------------------------------------------------------------------
 // Main entry
 // ---------------------------------------------------------------------------
 
 export function generateClientNodes(
   metadata: MetaRecord[],
-  alignment: DocAlignment
+  alignment: DocAlignment,
+  enumBinding: ClientEnumBinding
 ): CodegenResult {
   const gaps: GapEntry[] = []
   const methodTextsBySubType = new Map<string, string[]>()
@@ -1302,6 +1708,30 @@ export function generateClientNodes(
           texts.push(emitBreakLoop(doc))
           names.push('breakLoop')
           break
+        case 'assembly_list':
+          texts.push(emitAssemblyList(record, doc))
+          names.push('assemblyList')
+          break
+        case 'multiple_branches':
+          texts.push(emitMultipleBranches(record.subType, doc))
+          names.push('multipleBranches')
+          break
+        case 'data_type_conversion':
+          texts.push(emitDataTypeConversion(doc))
+          names.push('dataTypeConversion')
+          break
+        case 'get_custom_variable': {
+          const t = emitGetCustomVariable(record.subType, doc)
+          if (t) {
+            texts.push(t)
+            names.push('getCustomVariable')
+          }
+          break
+        }
+        case 'send_signal_to_server_node_graph':
+          texts.push(emitSendSignalToServer(doc))
+          names.push('sendSignalToServerNodeGraph')
+          break
       }
       continue
     }
@@ -1322,7 +1752,7 @@ export function generateClientNodes(
     let spec: MethodSpec | null = null
     let firstGap: GapEntry | null = null
     for (const docVariant of docVariants) {
-      const built = buildMethodSpec(record, docVariant)
+      const built = buildMethodSpec(record, docVariant, enumBinding)
       if ('reason' in built) {
         firstGap ??= built
         continue
@@ -1434,14 +1864,26 @@ ${texts.join('\n\n')}
   const usesIdent = (name: string) => new RegExp(`\\b${name}\\b`).test(bodyText)
 
   const valueClassImports = [
-    'bool', 'configId', 'entity', 'enumeration', 'faction', 'float', 'guid', 'int', 'list',
+    'bool', 'configId', 'dict', 'entity', 'enumeration', 'faction', 'float', 'guid', 'int', 'list',
     'prefabId', 'str', 'vec3', 'ValueClassMap'
   ].filter(usesIdent)
   const valueTypeImports = [
     'BoolValue', 'ConfigIdValue', 'DictValue', 'EntityValue', 'EnumerationValue', 'FactionValue',
-    'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue', 'StrValue', 'Vec3Value'
+    'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue', 'StrValue', 'Vec3Value', 'value'
   ].filter(usesIdent)
   const nodesImports = ['matchTypes', 'parseValue'].filter(usesIdent)
+  const serverEnumImports = enumBinding.serverClasses.filter(usesIdent)
+  const clientEnumImports = enumBinding.clientOnlyClasses
+    .map((c) => c.className)
+    .filter(usesIdent)
+  const enumImportLines = [
+    serverEnumImports.length
+      ? `import type { ${serverEnumImports.join(', ')} } from './enum.js'`
+      : '',
+    clientEnumImports.length
+      ? `import type { ${clientEnumImports.join(', ')} } from './client_enums.js'`
+      : ''
+  ].filter(Boolean)
 
   const classFileBody = `// This file is generated by scripts/client-nodegraph/generate-client-nodegraph-modules.ts.
 // Source of truth: resources/client_node_metadata.json (sample-extracted pins)
@@ -1450,6 +1892,36 @@ import type { ExecutionFlowRegistry } from '../runtime/core.js'
 import {
 ${[...valueClassImports, ...valueTypeImports.map((t) => `type ${t}`)].map((s) => `  ${s}`).join(',\n')}
 } from '../runtime/value.js'
+const DATA_TYPE_CONVERSIONS: Record<string, number> = {
+  'int->bool': 800,
+  'int->float': 801,
+  'int->str': 802,
+  'entity->str': 803,
+  'guid->str': 804,
+  'bool->int': 805,
+  'bool->str': 806,
+  'float->int': 807,
+  'float->str': 808,
+  'vec3->str': 809,
+  'faction->str': 810
+}
+
+const DATA_TYPE_CONVERSION_ENUM_VALUE: Record<string, string> = {
+  'int->bool': 'type_conversion_integer_to_boolean',
+  'int->float': 'type_conversion_integer_to_floating_point',
+  'int->str': 'type_conversion_integer_to_string',
+  'entity->str': 'type_conversion_entity_to_string',
+  'guid->str': 'type_conversion_guid_to_string',
+  'bool->int': 'type_conversion_boolean_to_integer',
+  'bool->str': 'type_conversion_boolean_to_string',
+  'float->int': 'type_conversion_floating_point_to_integer',
+  'float->str': 'type_conversion_floating_point_to_string',
+  'vec3->str': 'type_conversion_vector_3_to_string',
+  'faction->str': 'type_conversion_faction_to_string'
+}
+
+${enumImportLines.length ? `${enumImportLines.join('\n')}\n` : ''}import type { RuntimeParameterValueTypeMap, RuntimeReturnValueTypeMap } from '../runtime/value.js'
+import type { DataTypeConversionMap } from './nodes.js'
 import { ${nodesImports.join(', ')} } from './nodes.js'
 
 class ClientExecutionFlowFunctionsBase {

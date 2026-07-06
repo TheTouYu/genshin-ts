@@ -78,6 +78,7 @@ export type RuntimeParameterValueTypeMap = {
   prefab_id_list: PrefabIdValue[]
   config_id_list: ConfigIdValue[]
   faction_list: FactionValue[]
+  enum_list: EnumerationValue[]
   struct_list: StructValue[]
 }
 
@@ -109,6 +110,7 @@ export type RuntimeReturnValueTypeMap = {
   prefab_id_list: prefabId[]
   config_id_list: configId[]
   faction_list: faction[]
+  enum_list: enumeration[]
   struct_list: struct[]
 }
 
@@ -608,7 +610,9 @@ export class generic extends value {
 // 目前不使用extends Array方案, 虽然很多语义和方法这样做会更好
 // 但是许多细节的复杂度会上升, 并且这个方案依然无法摆脱编译器处理, 比如下标相关, 编译成快速路径, 等等
 // 因此目前用数组伪装方案, 方便维护和简化开发
-export class list<K extends keyof ListableValueTypeMap = keyof ListableValueTypeMap> extends value {
+export type ListConcreteType = keyof ListableValueTypeMap | 'enum' | 'enumeration'
+
+export class list<K extends ListConcreteType = ListConcreteType> extends value {
   declare private readonly __brandList: 'list'
   private concreteType: K
   /**
@@ -644,7 +648,7 @@ export class list<K extends keyof ListableValueTypeMap = keyof ListableValueType
  * 用于在 IR JSON 中直接表达 `*_list` 字面量（包括空列表），后续可在 IR->GIA 阶段展开为 assembly_list 并连线。
  */
 export class listLiteral<
-  K extends keyof ListableValueTypeMap = keyof ListableValueTypeMap
+  K extends ListConcreteType = ListConcreteType
 > extends list<K> {
   private items: RuntimeReturnValueTypeMap[K][] | null
 

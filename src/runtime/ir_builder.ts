@@ -132,6 +132,7 @@ const buildDefaultNode: NodeBuilder = (record, next) => {
   const args = record.args.map((arg) => buildArgument(record, arg))
   if (args.length) node.args = args
   if (next?.length) node.next = next
+  if (record.clientHints) (node as { clientHints?: typeof record.clientHints }).clientHints = record.clientHints
   return node
 }
 

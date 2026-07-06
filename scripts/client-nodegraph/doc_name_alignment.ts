@@ -4,6 +4,10 @@
  *
  * The official zh and en page arrays are misordered relative to each other, so
  * index-based pairing is forbidden (see docs/maintenance/routine-node-maintenance.md).
+ * Section pairing is order-preserving but fingerprint-driven: zh pages carry
+ * untranslated extra sections (2026-07 pre-aiming/cursor additions) that shift
+ * raw section indexes, so zh/en sections are paired by maximizing node
+ * fingerprint overlap along the diagonal instead of by index.
  * Alignment uses, per section pair:
  *   1. parameter fingerprint matches unique on both sides
  *   2. seed dictionary entries validated against the unmatched en pool
@@ -48,6 +52,11 @@ export type DocAlignmentReport = {
   /** per section with unresolved zh entries: the leftover en candidate pool */
   sectionLeftovers: Array<{ page: string; section: number; zh: string[]; en: string[] }>
   seedMisses: Array<{ zhName: string; expectedEn: string; page: string }>
+  /**
+   * pages whose en counterpart has no node content (untranslated families such
+   * as 角色操控技能节点图); their zh entries can only get fallback names
+   */
+  zhOnlyPages: Array<{ page: string; entries: number }>
 }
 
 export type DocAlignment = {
@@ -175,7 +184,22 @@ const SEED_ZH_TO_EN: Record<string, string> = {
   设置造物技能的当前冷却时间: 'Set the Current CD of the Creation Skill',
   // tactics
   '战术：地面追击': 'Tactic: Ground Pursuit',
-  获取前一帧执行状态: 'Get Previous Frame Execution Status'
+  获取前一帧执行状态: 'Get Previous Frame Execution Status',
+  // pairs whose fingerprint uniqueness was broken by 2026-07 zh-only doc
+  // additions (pre-aiming/cursor/coordinate nodes share these fingerprints)
+  实体是否携带指定单位状态: 'Whether the Entity Has the Specified Unit Status',
+  查询指定实体是否入战: 'Query if Specified Entity is in Combat',
+  获取单位标签的实体列表: 'Get Entity List by Unit Tag',
+  获取实体当前生效的扫描标签: "Get Entity's Current Active Scan Tags",
+  获取实体扫描状态: "Get Entity's Scan Status",
+  获取实体的单位标签列表: "Get Entity's Unit Tag List",
+  获取射线检测结果: 'Get Ray Detection Result',
+  获取局部变量: 'Get Local Variable',
+  获取扫描组件可扫描的所有合法对象: 'Get All Valid Entities That Are Scannable by Scan Component',
+  获取扫描组件当前扫描到的实体: 'Get Entity Currently Scanned by Scan Component',
+  获取指定实体的仇恨列表: 'Get the Aggro List of the Specified Entity',
+  获取指定实体的仇恨目标: 'Get the Aggro Target of the Specified Entity',
+  获取碰撞触发器内所有实体: 'Get All Entities Within the Collision Trigger'
 }
 
 /**
@@ -322,6 +346,66 @@ type SectionMatch = {
   provenance: AlignedDocNode['provenance']
 }
 
+/** fingerprint-multiset overlap ratio between a zh and an en section */
+function sectionSimilarity(zh: DocNodeEntry[], en: DocNodeEntry[]): number {
+  if (!zh.length || !en.length) return 0
+  const counts = new Map<string, number>()
+  for (const n of zh) {
+    const k = fingerprint(n.params)
+    counts.set(k, (counts.get(k) ?? 0) + 1)
+  }
+  let overlap = 0
+  for (const n of en) {
+    const k = fingerprint(n.params)
+    const c = counts.get(k) ?? 0
+    if (c > 0) {
+      overlap++
+      counts.set(k, c - 1)
+    }
+  }
+  return overlap / Math.max(zh.length, en.length)
+}
+
+/**
+ * Order-preserving zh/en section pairing (LCS-style DP maximizing fingerprint
+ * overlap). Handles zh-only inserted sections without shifting later pairs.
+ */
+function pairSections(
+  zhSections: DocNodeEntry[][],
+  enSections: DocNodeEntry[][]
+): Array<[number, number]> {
+  const Z = zhSections.length
+  const E = enSections.length
+  const sim: number[][] = zhSections.map((zh) => enSections.map((en) => sectionSimilarity(zh, en)))
+  const dp: number[][] = Array.from({ length: Z + 1 }, () => new Array<number>(E + 1).fill(0))
+  for (let i = 1; i <= Z; i++) {
+    for (let j = 1; j <= E; j++) {
+      dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+      if (sim[i - 1][j - 1] > 0) {
+        dp[i][j] = Math.max(dp[i][j], dp[i - 1][j - 1] + sim[i - 1][j - 1])
+      }
+    }
+  }
+  const pairs: Array<[number, number]> = []
+  let i = Z
+  let j = E
+  while (i > 0 && j > 0) {
+    if (
+      sim[i - 1][j - 1] > 0 &&
+      Math.abs(dp[i][j] - (dp[i - 1][j - 1] + sim[i - 1][j - 1])) < 1e-9
+    ) {
+      pairs.push([i - 1, j - 1])
+      i--
+      j--
+    } else if (dp[i][j] === dp[i - 1][j]) {
+      i--
+    } else {
+      j--
+    }
+  }
+  return pairs.reverse()
+}
+
 function alignSection(
   zhNodes: DocNodeEntry[],
   enNodes: DocNodeEntry[],
@@ -389,6 +473,7 @@ export function buildDocNameAlignment(
   const allMatches: SectionMatch[] = []
   const unresolved: DocAlignmentReport['unresolved'] = []
   const sectionLeftovers: DocAlignmentReport['sectionLeftovers'] = []
+  const zhOnlyPages: DocAlignmentReport['zhOnlyPages'] = []
   let pagePairs = 0
   let zhEntries = 0
 
@@ -397,22 +482,36 @@ export function buildDocNameAlignment(
     if (!/^(client_|detail_)/.test(slug)) continue
     const enPage = defs[slug.replace(/_zh-cn$/, '_en-us')]
     if (!enPage) continue
-    pagePairs++
 
     const zhAll = parseEntries(page, slug)
     const enAll = parseEntries(enPage, slug.replace(/_zh-cn$/, '_en-us'))
+    if (zhAll.length && !enAll.length) {
+      // untranslated family (empty en shell page): nothing to align against
+      zhOnlyPages.push({ page: slug, entries: zhAll.length })
+      continue
+    }
+    pagePairs++
     zhEntries += zhAll.length
-    const sectionCount = Math.max(
-      ...zhAll.map((n) => n.section + 1),
-      ...enAll.map((n) => n.section + 1),
-      0
+    const zhSectionCount = Math.max(...zhAll.map((n) => n.section + 1), 0)
+    const enSectionCount = Math.max(...enAll.map((n) => n.section + 1), 0)
+    const zhSections = Array.from({ length: zhSectionCount }, (_, s) =>
+      zhAll.filter((n) => n.section === s)
     )
-    for (let s = 0; s < sectionCount; s++) {
+    const enSections = Array.from({ length: enSectionCount }, (_, s) =>
+      enAll.filter((n) => n.section === s)
+    )
+    const enSectionByZh = new Map(pairSections(zhSections, enSections))
+    const pairedEn = new Set(enSectionByZh.values())
+
+    for (let s = 0; s < Math.max(zhSectionCount, enSectionCount); s++) {
+      const enIndex = enSectionByZh.get(s)
       const { matches, unresolvedZh, unresolvedEn } = alignSection(
-        zhAll.filter((n) => n.section === s),
-        enAll.filter((n) => n.section === s),
+        zhSections[s] ?? [],
+        enIndex === undefined ? [] : enSections[enIndex],
         seedMisses
       )
+      // en sections with no zh partner are reported as pure leftovers
+      if (s < enSectionCount && !pairedEn.has(s)) unresolvedEn.push(...enSections[s])
       allMatches.push(...matches)
       for (const zh of unresolvedZh) {
         unresolved.push({
@@ -507,7 +606,8 @@ export function buildDocNameAlignment(
     conflicts,
     unresolved,
     sectionLeftovers,
-    seedMisses
+    seedMisses,
+    zhOnlyPages
   }
 
   return { byZhName, variantsByZhName, report }

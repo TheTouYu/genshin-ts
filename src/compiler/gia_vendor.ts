@@ -20,13 +20,17 @@ export { wrap_gia } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code
 export type { Root } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 export {
+  CLIENT_REFLECT_IOC_BY_TYPE,
   client_graph_body,
+  client_inline_var_value,
+  client_list_literal_value,
   client_literal_value,
   client_node_body,
+  client_node_connect_from,
+  client_node_connect_to,
+  client_signal_name_value,
   client_value_base,
-  client_wrapped_value,
-  node_connect_from as client_node_connect_from,
-  node_connect_to as client_node_connect_to
+  client_wrapped_value
 } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.js'
 
 export {

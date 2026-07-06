@@ -1,9 +1,10 @@
 import { SimplifyDeep } from 'type-fest'
 
 import { enumeration } from '../runtime/value.js'
+import type { ClientEnumerationTypeMap } from './client_enums.js'
 
 export type EnumerationType = SimplifyDeep<keyof EnumerationTypeMap>
-export type EnumerationTypeMap = {
+export type EnumerationTypeMap = ClientEnumerationTypeMap & {
   ComparisonOperator: ComparisonOperator
   SortBy: SortBy
   DamagePopUpType: DamagePopUpType

@@ -3546,7 +3546,7 @@ interface EntityHelperFromFirstParam {
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
    *
-   * 查询对应礼盒消耗数量: 查询玩家实体上指定礼盒的消耗数量
+   * 查询对应华丽演绎礼盒消耗数量: 查询玩家实体上华丽演绎礼盒的消耗数量(无法对其他类型的礼盒使用)
    *
    * @param giftBoxIndex
    *
@@ -6175,7 +6175,7 @@ interface EntityHelperMethodAliases {
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
    *
-   * 查询对应礼盒消耗数量: 查询玩家实体上指定礼盒的消耗数量
+   * 查询对应华丽演绎礼盒消耗数量: 查询玩家实体上华丽演绎礼盒的消耗数量(无法对其他类型的礼盒使用)
    *
    * @param giftBoxIndex
    *

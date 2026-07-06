@@ -6,6 +6,7 @@ import type { ExecutionFlowRegistry } from '../runtime/core.js'
 import {
   bool,
   configId,
+  dict,
   entity,
   enumeration,
   faction,
@@ -13,6 +14,7 @@ import {
   guid,
   int,
   list,
+  prefabId,
   str,
   ValueClassMap,
   vec3,
@@ -25,10 +27,50 @@ import {
   type FloatValue,
   type GuidValue,
   type IntValue,
+  type PrefabIdValue,
+  type RuntimeParameterValueTypeMap,
+  type RuntimeReturnValueTypeMap,
   type StrValue,
+  type value,
   type Vec3Value
 } from '../runtime/value.js'
-import { matchTypes, parseValue } from './nodes.js'
+import type {
+  RotationDirection,
+  RotationType,
+  TacticSpeed,
+  TargetEntity,
+  TargetSortingRules
+} from './client_enums.js'
+import type { DisruptorDeviceType, TargetType, TypeConversion } from './enum.js'
+import { matchTypes, parseValue, type DataTypeConversionMap } from './nodes.js'
+
+const DATA_TYPE_CONVERSIONS: Record<string, number> = {
+  'int->bool': 800,
+  'int->float': 801,
+  'int->str': 802,
+  'entity->str': 803,
+  'guid->str': 804,
+  'bool->int': 805,
+  'bool->str': 806,
+  'float->int': 807,
+  'float->str': 808,
+  'vec3->str': 809,
+  'faction->str': 810
+}
+
+const DATA_TYPE_CONVERSION_ENUM_VALUE: Record<string, string> = {
+  'int->bool': 'type_conversion_integer_to_boolean',
+  'int->float': 'type_conversion_integer_to_floating_point',
+  'int->str': 'type_conversion_integer_to_string',
+  'entity->str': 'type_conversion_entity_to_string',
+  'guid->str': 'type_conversion_guid_to_string',
+  'bool->int': 'type_conversion_boolean_to_integer',
+  'bool->str': 'type_conversion_boolean_to_string',
+  'float->int': 'type_conversion_floating_point_to_integer',
+  'float->str': 'type_conversion_floating_point_to_string',
+  'vec3->str': 'type_conversion_vector_3_to_string',
+  'faction->str': 'type_conversion_faction_to_string'
+}
 
 class ClientExecutionFlowFunctionsBase {
   constructor(protected registry: ExecutionFlowRegistry) {}
@@ -476,6 +518,58 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: BoolValue[]): boolean[]
+  assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
+  assemblyList(_0to9: ConfigIdValue[]): configId[]
+  assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: PrefabIdValue[]): prefabId[]
+  assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
+  assemblyList(_0to9: StrValue[]): string[]
+  assemblyList(_0to9: StrValue[], type: 'str'): string[]
+  assemblyList(_0to9: Vec3Value[]): vec3[]
+  assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
+  assemblyList<
+    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(
+      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ..._0to9
+    )
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
    * Break out of a Finite Loop. The output pin must connect to the [Break Loop] input parameter of the [Finite Loop] Node
    *
    * 跳出循环: 从有限循环中跳出。出引脚需要与节点【有限循环】的【跳出循环】入参相连
@@ -519,7 +613,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 目标位置
    */
   cameraOrientationDetectionData(
-    targetType: EnumerationValue,
+    targetType: TargetType,
     launchLocation: Vec3Value,
     nearestDistance: FloatValue,
     furthestDistance: FloatValue
@@ -658,6 +752,62 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new vec3()
     ret.markPin(ref, '_3DVector', 0)
     return ret as unknown as vec3
+  }
+
+  /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[`${inputType}->${String(type)}`]
+    if (!conversion) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[`${inputType}->${String(type)}`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
   }
 
   /**
@@ -894,7 +1044,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     radius: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
@@ -945,7 +1095,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     length: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
@@ -1064,6 +1214,53 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Spawns a Local Projectile at the specified Location in the World Coordinate System
+   *
+   * 定点发射投射物: 在世界坐标系的指定位置发射本地投射物
+   *
+   * @param projectilesPrefabID
+   *
+   * 投射物的元件ID
+   * @param createLocation
+   *
+   * 创建位置
+   * @param createRotation
+   *
+   * 创建旋转
+   * @param trackTarget
+   *
+   * 追踪目标
+   * @param projectileFaction
+   *
+   * 投射物阵营
+   */
+  fixedPointProjectileLaunch(
+    projectilesPrefabID: PrefabIdValue,
+    createLocation: Vec3Value,
+    createRotation: Vec3Value,
+    trackTarget: EntityValue,
+    projectileFaction: FactionValue
+  ): void {
+    const projectilesPrefabIDObj = parseValue(projectilesPrefabID, 'prefab_id')
+    const createLocationObj = parseValue(createLocation, 'vec3')
+    const createRotationObj = parseValue(createRotation, 'vec3')
+    const trackTargetObj = parseValue(trackTarget, 'entity')
+    const projectileFactionObj = parseValue(projectileFaction, 'faction')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'fixed_point_projectile_launch',
+      args: [
+        projectilesPrefabIDObj,
+        createLocationObj,
+        createRotationObj,
+        trackTargetObj,
+        projectileFactionObj
+      ]
+    })
+  }
+
+  /**
    * When the character is in the aiming state, they will be forced to exit the aiming state.
    *
    * 强制退出瞄准状态: 当角色处于瞄准状态时，会强制退出瞄准状态
@@ -1176,9 +1373,11 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   getCorrespondingValueFromList(iD: IntValue, dataList: FloatValue[]): number
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
+  getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
   getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
+  getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
   getCorrespondingValueFromList(iD: IntValue, dataList: Vec3Value[]): vec3
   getCorrespondingValueFromList(
     iD: IntValue,
@@ -1186,13 +1385,15 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       | FloatValue[]
       | IntValue[]
       | BoolValue[]
+      | ConfigIdValue[]
       | EntityValue[]
       | FactionValue[]
       | GuidValue[]
+      | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | entity | faction | guid | vec3 {
+  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
     const genericType = matchTypes(
-      ['float', 'int', 'bool', 'entity', 'faction', 'guid', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
     )
     const iDObj = parseValue(iD, 'int')
@@ -1203,13 +1404,24 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
         float_list: 'float',
         int_list: 'int',
         bool_list: 'bool',
+        config_id_list: 'config_id',
         entity_list: 'entity',
         faction_list: 'faction',
         guid_list: 'guid',
+        str_list: 'str',
         vec3_list: 'vec3'
       } as Record<
         string,
-        'float' | 'int' | 'bool' | 'entity' | 'faction' | 'guid' | 'vec3' | undefined
+        | 'float'
+        | 'int'
+        | 'bool'
+        | 'config_id'
+        | 'entity'
+        | 'faction'
+        | 'guid'
+        | 'str'
+        | 'vec3'
+        | undefined
       >
     )[variantKey]
     if (!outputIrType) {
@@ -1225,7 +1437,16 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
-    return ret as unknown as number | bigint | boolean | entity | faction | guid | vec3
+    return ret as unknown as
+      | number
+      | bigint
+      | boolean
+      | configId
+      | entity
+      | faction
+      | guid
+      | string
+      | vec3
   }
 
   /**
@@ -1247,6 +1468,104 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'entity_list'
+  ): entity[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'config_id_list'
+  ): configId[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'prefab_id_list'
+  ): prefabId[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'faction_list'
+  ): faction[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
+  getCustomVariable<
+    T extends
+      | 'bool'
+      | 'int'
+      | 'float'
+      | 'str'
+      | 'guid'
+      | 'entity'
+      | 'vec3'
+      | 'int_list'
+      | 'str_list'
+      | 'entity_list'
+      | 'guid_list'
+      | 'float_list'
+      | 'vec3_list'
+      | 'bool_list'
+      | 'config_id'
+      | 'prefab_id'
+      | 'config_id_list'
+      | 'prefab_id_list'
+      | 'faction'
+      | 'faction_list'
+      | 'dict'
+  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
+    })
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
   }
 
   /**
@@ -2129,18 +2448,70 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 结果
    */
+  listIncludesThisValue(value: FloatValue, list: FloatValue[]): boolean
   listIncludesThisValue(value: IntValue, list: IntValue[]): boolean
   listIncludesThisValue(value: BoolValue, list: BoolValue[]): boolean
   listIncludesThisValue(value: ConfigIdValue, list: ConfigIdValue[]): boolean
   listIncludesThisValue(value: EntityValue, list: EntityValue[]): boolean
+  listIncludesThisValue(value: FactionValue, list: FactionValue[]): boolean
   listIncludesThisValue(value: GuidValue, list: GuidValue[]): boolean
+  listIncludesThisValue(value: PrefabIdValue, list: PrefabIdValue[]): boolean
+  listIncludesThisValue(value: StrValue, list: StrValue[]): boolean
   listIncludesThisValue(value: Vec3Value, list: Vec3Value[]): boolean
   listIncludesThisValue(
-    value: IntValue | BoolValue | ConfigIdValue | EntityValue | GuidValue | Vec3Value,
-    list: IntValue[] | BoolValue[] | ConfigIdValue[] | EntityValue[] | GuidValue[] | Vec3Value[]
+    value:
+      | FloatValue
+      | IntValue
+      | BoolValue
+      | ConfigIdValue
+      | EntityValue
+      | FactionValue
+      | GuidValue
+      | PrefabIdValue
+      | StrValue
+      | Vec3Value,
+    list:
+      | FloatValue[]
+      | IntValue[]
+      | BoolValue[]
+      | ConfigIdValue[]
+      | EntityValue[]
+      | FactionValue[]
+      | GuidValue[]
+      | PrefabIdValue[]
+      | StrValue[]
+      | Vec3Value[]
   ): boolean {
-    const valueType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], value)
-    const listType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], list)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      value
+    )
+    const listType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      list
+    )
     const valueObj = parseValue(value, valueType)
     const listObj = parseValue(list, `${listType}_list` as const)
     const ref = this.registry.registerNode({
@@ -2422,7 +2793,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 转向模式: 分为先目标后输入、输入朝向、目标朝向、先目标后镜头、镜头朝向、先输入后目标
    */
-  playerTurning(turningMode: EnumerationValue): void {
+  playerTurning(turningMode: RotationType): void {
     const turningModeObj = parseValue(turningMode, 'enum')
     this.registry.registerNode({
       id: 0,
@@ -2808,7 +3179,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 扰动装置类型: 分为力场器、弹射器、牵引器
    */
-  removeSpecifiedCharacterDisruptorDevice(disruptorDeviceType: EnumerationValue): void {
+  removeSpecifiedCharacterDisruptorDevice(disruptorDeviceType: DisruptorDeviceType): void {
     const disruptorDeviceTypeObj = parseValue(disruptorDeviceType, 'enum')
     this.registry.registerNode({
       id: 0,
@@ -2875,6 +3246,25 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       type: 'exec',
       nodeType: 'reset_skill_target',
       args: []
+    })
+  }
+
+  /**
+   * Within the skill node graph, you can send a signal to the server node graph, and every server node graph can listen for that signal.
+   *
+   * 向服务器节点图发送信号: 在技能节点图中，可以向服务器节点图发送信号，所有服务器节点图都可以监听到该信号
+   *
+   * @param signalName Signal name
+   *
+   * 信号名
+   */
+  sendSignalToServerNodeGraph(signalName: StrValue): void {
+    const signalNameObj = parseValue(signalName, 'str')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'send_signal_to_server_node_graph',
+      args: [signalNameObj]
     })
   }
 
@@ -3712,6 +4102,58 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: BoolValue[]): boolean[]
+  assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
+  assemblyList(_0to9: ConfigIdValue[]): configId[]
+  assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: PrefabIdValue[]): prefabId[]
+  assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
+  assemblyList(_0to9: StrValue[]): string[]
+  assemblyList(_0to9: StrValue[], type: 'str'): string[]
+  assemblyList(_0to9: Vec3Value[]): vec3[]
+  assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
+  assemblyList<
+    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(
+      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ..._0to9
+    )
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
    * Break out of a Finite Loop. The output pin must connect to the [Break Loop] input parameter of the [Finite Loop] Node
    *
    * 跳出循环: 从有限循环中跳出。出引脚需要与节点【有限循环】的【跳出循环】入参相连
@@ -3916,6 +4358,62 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       nodeType: 'creation_turns_to_face_set_direction',
       args: [orientationObj]
     })
+  }
+
+  /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[`${inputType}->${String(type)}`]
+    if (!conversion) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[`${inputType}->${String(type)}`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
   }
 
   /**
@@ -4152,7 +4650,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     radius: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
@@ -4203,7 +4701,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     length: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
@@ -4275,6 +4773,53 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Spawns a Local Projectile at the specified Location in the World Coordinate System
+   *
+   * 定点发射投射物: 在世界坐标系的指定位置发射本地投射物
+   *
+   * @param projectilesPrefabID
+   *
+   * 投射物的元件ID
+   * @param createLocation
+   *
+   * 创建位置
+   * @param createRotation
+   *
+   * 创建旋转
+   * @param trackTarget
+   *
+   * 追踪目标
+   * @param projectileFaction
+   *
+   * 投射物阵营
+   */
+  fixedPointProjectileLaunch(
+    projectilesPrefabID: PrefabIdValue,
+    createLocation: Vec3Value,
+    createRotation: Vec3Value,
+    trackTarget: EntityValue,
+    projectileFaction: FactionValue
+  ): void {
+    const projectilesPrefabIDObj = parseValue(projectilesPrefabID, 'prefab_id')
+    const createLocationObj = parseValue(createLocation, 'vec3')
+    const createRotationObj = parseValue(createRotation, 'vec3')
+    const trackTargetObj = parseValue(trackTarget, 'entity')
+    const projectileFactionObj = parseValue(projectileFaction, 'faction')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'fixed_point_projectile_launch',
+      args: [
+        projectilesPrefabIDObj,
+        createLocationObj,
+        createRotationObj,
+        trackTargetObj,
+        projectileFactionObj
+      ]
+    })
+  }
+
+  /**
    * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity
    *
    * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体
@@ -4326,9 +4871,11 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   getCorrespondingValueFromList(iD: IntValue, dataList: FloatValue[]): number
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
+  getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
   getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
+  getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
   getCorrespondingValueFromList(iD: IntValue, dataList: Vec3Value[]): vec3
   getCorrespondingValueFromList(
     iD: IntValue,
@@ -4336,13 +4883,15 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       | FloatValue[]
       | IntValue[]
       | BoolValue[]
+      | ConfigIdValue[]
       | EntityValue[]
       | FactionValue[]
       | GuidValue[]
+      | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | entity | faction | guid | vec3 {
+  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
     const genericType = matchTypes(
-      ['float', 'int', 'bool', 'entity', 'faction', 'guid', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
     )
     const iDObj = parseValue(iD, 'int')
@@ -4353,13 +4902,24 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
         float_list: 'float',
         int_list: 'int',
         bool_list: 'bool',
+        config_id_list: 'config_id',
         entity_list: 'entity',
         faction_list: 'faction',
         guid_list: 'guid',
+        str_list: 'str',
         vec3_list: 'vec3'
       } as Record<
         string,
-        'float' | 'int' | 'bool' | 'entity' | 'faction' | 'guid' | 'vec3' | undefined
+        | 'float'
+        | 'int'
+        | 'bool'
+        | 'config_id'
+        | 'entity'
+        | 'faction'
+        | 'guid'
+        | 'str'
+        | 'vec3'
+        | undefined
       >
     )[variantKey]
     if (!outputIrType) {
@@ -4375,7 +4935,16 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
-    return ret as unknown as number | bigint | boolean | entity | faction | guid | vec3
+    return ret as unknown as
+      | number
+      | bigint
+      | boolean
+      | configId
+      | entity
+      | faction
+      | guid
+      | string
+      | vec3
   }
 
   /**
@@ -4402,6 +4971,104 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'entity_list'
+  ): entity[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'config_id_list'
+  ): configId[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'prefab_id_list'
+  ): prefabId[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'faction_list'
+  ): faction[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
+  getCustomVariable<
+    T extends
+      | 'bool'
+      | 'int'
+      | 'float'
+      | 'str'
+      | 'guid'
+      | 'entity'
+      | 'vec3'
+      | 'int_list'
+      | 'str_list'
+      | 'entity_list'
+      | 'guid_list'
+      | 'float_list'
+      | 'vec3_list'
+      | 'bool_list'
+      | 'config_id'
+      | 'prefab_id'
+      | 'config_id_list'
+      | 'prefab_id_list'
+      | 'faction'
+      | 'faction_list'
+      | 'dict'
+  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
+    })
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
   }
 
   /**
@@ -5200,18 +5867,70 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 结果
    */
+  listIncludesThisValue(value: FloatValue, list: FloatValue[]): boolean
   listIncludesThisValue(value: IntValue, list: IntValue[]): boolean
   listIncludesThisValue(value: BoolValue, list: BoolValue[]): boolean
   listIncludesThisValue(value: ConfigIdValue, list: ConfigIdValue[]): boolean
   listIncludesThisValue(value: EntityValue, list: EntityValue[]): boolean
+  listIncludesThisValue(value: FactionValue, list: FactionValue[]): boolean
   listIncludesThisValue(value: GuidValue, list: GuidValue[]): boolean
+  listIncludesThisValue(value: PrefabIdValue, list: PrefabIdValue[]): boolean
+  listIncludesThisValue(value: StrValue, list: StrValue[]): boolean
   listIncludesThisValue(value: Vec3Value, list: Vec3Value[]): boolean
   listIncludesThisValue(
-    value: IntValue | BoolValue | ConfigIdValue | EntityValue | GuidValue | Vec3Value,
-    list: IntValue[] | BoolValue[] | ConfigIdValue[] | EntityValue[] | GuidValue[] | Vec3Value[]
+    value:
+      | FloatValue
+      | IntValue
+      | BoolValue
+      | ConfigIdValue
+      | EntityValue
+      | FactionValue
+      | GuidValue
+      | PrefabIdValue
+      | StrValue
+      | Vec3Value,
+    list:
+      | FloatValue[]
+      | IntValue[]
+      | BoolValue[]
+      | ConfigIdValue[]
+      | EntityValue[]
+      | FactionValue[]
+      | GuidValue[]
+      | PrefabIdValue[]
+      | StrValue[]
+      | Vec3Value[]
   ): boolean {
-    const valueType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], value)
-    const listType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], list)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      value
+    )
+    const listType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      list
+    )
     const valueObj = parseValue(value, valueType)
     const listObj = parseValue(list, `${listType}_list` as const)
     const ref = this.registry.registerNode({
@@ -5804,7 +6523,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 扰动装置类型: 分为力场器、弹射器、牵引器
    */
-  removeSpecifiedCharacterDisruptorDevice(disruptorDeviceType: EnumerationValue): void {
+  removeSpecifiedCharacterDisruptorDevice(disruptorDeviceType: DisruptorDeviceType): void {
     const disruptorDeviceTypeObj = parseValue(disruptorDeviceType, 'enum')
     this.registry.registerNode({
       id: 0,
@@ -5876,6 +6595,25 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       type: 'exec',
       nodeType: 'resets_the_creation_s_skill_cd',
       args: [skillIDObj]
+    })
+  }
+
+  /**
+   * Within the skill node graph, you can send a signal to the server node graph, and every server node graph can listen for that signal.
+   *
+   * 向服务器节点图发送信号: 在技能节点图中，可以向服务器节点图发送信号，所有服务器节点图都可以监听到该信号
+   *
+   * @param signalName Signal name
+   *
+   * 信号名
+   */
+  sendSignalToServerNodeGraph(signalName: StrValue): void {
+    const signalNameObj = parseValue(signalName, 'str')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'send_signal_to_server_node_graph',
+      args: [signalNameObj]
     })
   }
 
@@ -6763,6 +7501,46 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList<T extends 'float' | 'int' | 'entity'>(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(['float', 'int', 'entity'], ..._0to9)
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
    * Check whether this Creation's current location is within the Territory
    *
    * 查询自身是否在领地中: 查询造物自身当前所处位置是否在领地中
@@ -7076,6 +7854,62 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[`${inputType}->${String(type)}`]
+    if (!conversion) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[`${inputType}->${String(type)}`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
+  }
+
+  /**
    * Converts degrees to radians
    *
    * 角度转弧度: 将角度值转为弧度值
@@ -7377,6 +8211,104 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'entity_list'
+  ): entity[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'config_id_list'
+  ): configId[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'prefab_id_list'
+  ): prefabId[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'faction_list'
+  ): faction[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
+  getCustomVariable<
+    T extends
+      | 'bool'
+      | 'int'
+      | 'float'
+      | 'str'
+      | 'guid'
+      | 'entity'
+      | 'vec3'
+      | 'int_list'
+      | 'str_list'
+      | 'entity_list'
+      | 'guid_list'
+      | 'float_list'
+      | 'vec3_list'
+      | 'bool_list'
+      | 'config_id'
+      | 'prefab_id'
+      | 'config_id_list'
+      | 'prefab_id_list'
+      | 'faction'
+      | 'faction_list'
+      | 'dict'
+  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
+    })
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
+  }
+
+  /**
    * Obtain the Target Entity's Location
    *
    * 获取实体位置: 获取目标实体的位置
@@ -7389,7 +8321,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 位置
    */
-  getEntityLocation(targetEntity: EnumerationValue): vec3 {
+  getEntityLocation(targetEntity: TargetEntity): vec3 {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -7415,7 +8347,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 旋转
    */
-  getEntityRotation(targetEntity: EnumerationValue): vec3 {
+  getEntityRotation(targetEntity: TargetEntity): vec3 {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -7441,7 +8373,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: EnumerationValue): enumeration {
+  getEntitySType(targetEntity: TargetEntity): enumeration {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -7630,7 +8562,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 预设状态值
    */
-  getObjectPresetStatus(targetEntity: EnumerationValue, presetStatusIndex: IntValue): bigint {
+  getObjectPresetStatus(targetEntity: TargetEntity, presetStatusIndex: IntValue): bigint {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const presetStatusIndexObj = parseValue(presetStatusIndex, 'int')
     const ref = this.registry.registerNode({
@@ -7861,7 +8793,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    * currentATK
    * 当前攻击力
    */
-  getTargetAtk(targetEntity: EnumerationValue): { baseATK: number; currentATK: number } {
+  getTargetAtk(targetEntity: TargetEntity): { baseATK: number; currentATK: number } {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -7924,7 +8856,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    * currentHPPercentage
    * 当前生命值百分比
    */
-  getTargetHp(targetEntity: EnumerationValue): {
+  getTargetHp(targetEntity: TargetEntity): {
     baseHP: number
     maxHP: number
     currentHPPercentage: number
@@ -7968,7 +8900,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 当前等级
    */
-  getTargetLevel(targetEntity: EnumerationValue): bigint {
+  getTargetLevel(targetEntity: TargetEntity): bigint {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -8261,6 +9193,155 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Takes an input parameter as a control expression (supports integers or strings). Multiple branches can be defined based on the value of the control expression.; Execution follows the output pin whose value matches the control expression. If no matching pin is found, it will proceed through the [Default] pin.
+   *
+   * 多分支: 接受一个输入参数作为控制表达式(支持整数或字符串)，根据控制表达式的值可以分出多个不同的分支; 当出引脚上的值与控制表达式的值相等时，会沿该出引脚向后执行逻辑。如果没有找到匹配的引脚，则会走【默认】引脚
+   *
+   * @param controlExpression Supports only integers or strings
+   *
+   * 控制表达式: 仅支持整数或字符串
+   */
+  multipleBranches(
+    controlExpression: IntValue,
+    branches: Record<number, (() => void) | number> & { default?: (() => void) | number }
+  ): void {
+    const controlExpressionObj = parseValue(controlExpression, 'int')
+
+    const rawBranches = branches as Record<string, unknown>
+    const caseKeys = Object.keys(rawBranches).filter((k) => k !== 'default')
+    const caseArgs = caseKeys.map((k) => new int(Number(k)))
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'multiple_branches',
+      args: [controlExpressionObj, ...caseArgs]
+    })
+
+    // 分支执行：按约定 default 的 source_index 固定为 0；其它分支按顺序从 1 开始递增
+    type BranchResult = {
+      terminatedByReturn?: boolean
+      tailEndpoints: Array<{ nodeId: number; sourceIndex?: number }>
+      headNodeId?: number
+    }
+    const branchResults: Array<{ sourceIndex: number } & BranchResult> = []
+
+    const defaultVal = rawBranches.default
+    let defaultResult: BranchResult | undefined
+    const emptyDefault: BranchResult = { terminatedByReturn: false, tailEndpoints: [] }
+
+    if (typeof defaultVal === 'function') {
+      const r = this.registry.withExecBranch(ref.id, 0, () =>
+        globalThis.gsts.ctx.withCtx('client_creation_status_switch', defaultVal as () => void)
+      )
+      defaultResult = r
+      branchResults.push({ sourceIndex: 0, ...r })
+    } else if (defaultVal === undefined) {
+      // 空默认分支视为“未 return 且无节点”，join 时需要从分支节点对应输出直接连出
+      branchResults.push({ sourceIndex: 0, ...emptyDefault })
+    }
+
+    const branchResultsByKey = new Map<string, BranchResult>()
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v !== 'function') return
+      const sourceIndex = i + 1
+      const r = this.registry.withExecBranch(ref.id, sourceIndex, () =>
+        globalThis.gsts.ctx.withCtx('client_creation_status_switch', v as () => void)
+      )
+      branchResultsByKey.set(k, r)
+      branchResults.push({ sourceIndex, ...r })
+    })
+
+    const resolveAliasKey = (input: unknown): string | null => {
+      if (typeof input === 'string') return input
+      if (typeof input === 'number') return String(input)
+      return null
+    }
+
+    const ensureCaseKey = (key: string, origin: string) => {
+      if (!caseKeys.includes(key)) {
+        throw new Error(`[error] multipleBranches: "${origin}" refers to missing case "${key}"`)
+      }
+    }
+
+    const resolveTarget = (
+      key: string,
+      stack: string[]
+    ): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (stack.includes(key)) {
+        throw new Error(
+          `[error] multipleBranches: circular case alias "${stack.join(' -> ')} -> ${key}"`
+        )
+      }
+      const value = rawBranches[key]
+      if (typeof value === 'function') return { kind: 'case', key }
+      const alias = resolveAliasKey(value)
+      if (!alias) {
+        throw new Error(`[error] multipleBranches: "${key}" must be a function or case alias`)
+      }
+      if (alias === 'default') return { kind: 'default' }
+      ensureCaseKey(alias, key)
+      return resolveTarget(alias, [...stack, key])
+    }
+
+    const resolveDefault = (): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (typeof defaultVal === 'function') return { kind: 'default' }
+      const alias = resolveAliasKey(defaultVal)
+      if (!alias) {
+        throw new Error('[error] multipleBranches: default must be a function or case alias')
+      }
+      if (alias === 'default') {
+        throw new Error('[error] multipleBranches: default alias cannot refer to itself')
+      }
+      ensureCaseKey(alias, 'default')
+      return resolveTarget(alias, ['default'])
+    }
+
+    const attachAlias = (sourceIndex: number, target: BranchResult | undefined) => {
+      const resolved = target ?? emptyDefault
+      if (resolved.headNodeId !== undefined) {
+        this.registry.connectExecBranchOutput(ref.id, sourceIndex, resolved.headNodeId)
+        return
+      }
+      branchResults.push({ sourceIndex, ...resolved })
+    }
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v === 'function') return
+      const target = resolveTarget(k, [])
+      if (target.kind === 'default') {
+        attachAlias(i + 1, defaultResult)
+      } else {
+        attachAlias(i + 1, branchResultsByKey.get(target.key))
+      }
+    })
+
+    if (defaultVal !== undefined && typeof defaultVal !== 'function') {
+      const target = resolveDefault()
+      if (target.kind === 'default') {
+        attachAlias(0, defaultResult)
+      } else {
+        attachAlias(0, branchResultsByKey.get(target.key))
+      }
+    }
+
+    // 启用 join：后续顺序代码连接到所有未 return 的分支尾部（空分支则从分支节点输出直接连出）
+    const joinEndpoints: Array<{ nodeId: number; sourceIndex?: number }> = []
+    branchResults.forEach((r) => {
+      if (r.terminatedByReturn) return
+      if (r.tailEndpoints.length) {
+        joinEndpoints.push(...r.tailEndpoints)
+      } else {
+        joinEndpoints.push({ nodeId: ref.id, sourceIndex: r.sourceIndex })
+      }
+    })
+    this.registry.setCurrentExecTailEndpoints(joinEndpoints)
+  }
+
+  /**
    * Performs multiplication, supporting Floating Point and Integer multiplication
    *
    * 乘法运算: 乘法运算，支持浮点数乘法和整数乘法
@@ -8400,7 +9481,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 阵营
    */
-  queryEntityFaction(targetEntity: EnumerationValue): faction {
+  queryEntityFaction(targetEntity: TargetEntity): faction {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -8459,7 +9540,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 是否在场
    */
-  queryIfEntityIsOnTheField(targetEntity: EnumerationValue): boolean {
+  queryIfEntityIsOnTheField(targetEntity: TargetEntity): boolean {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -8868,7 +9949,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   tacticGroundEscape(
     execute: BoolValue,
     escapeTriggerDistance: FloatValue,
-    movementSpeed: EnumerationValue,
+    movementSpeed: TacticSpeed,
     maximumEscapeAngle: FloatValue,
     minimumEscapeSegments: IntValue,
     maximumEscapeSegments: IntValue,
@@ -8953,7 +10034,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    */
   tacticGroundIdleRoaming(
     execute: BoolValue,
-    speed: EnumerationValue,
+    speed: TacticSpeed,
     idleRoamingRadius: FloatValue,
     minimumIdleRoamingInterval: FloatValue,
     maximumIdleRoamingInterval: FloatValue,
@@ -9039,9 +10120,9 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     input2: FloatValue,
     input3: FloatValue,
     input4: FloatValue,
-    input5: EnumerationValue,
+    input5: TacticSpeed,
     input6: FloatValue,
-    input7: EnumerationValue,
+    input7: TacticSpeed,
     input8: FloatValue,
     input9: FloatValue,
     input10: StrValue,
@@ -9109,7 +10190,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     execute: BoolValue,
     targetEntity: EntityValue,
     arrivalDetectionRange: FloatValue,
-    movementSpeed: EnumerationValue,
+    movementSpeed: TacticSpeed,
     turnSpeed: FloatValue,
     tacticalContext: StrValue,
     canSkillBeInterrupted: BoolValue
@@ -9168,7 +10249,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     execute: BoolValue,
     targetPosition: Vec3Value,
     arrivalDetectionRange: FloatValue,
-    movementSpeed: EnumerationValue,
+    movementSpeed: TacticSpeed,
     turnSpeed: FloatValue,
     tacticalContext: StrValue,
     canSkillBeInterrupted: BoolValue
@@ -9228,7 +10309,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    */
   tacticReturnToSpawnPointAfterLeavingBattle(
     execute: BoolValue,
-    movementSpeed: EnumerationValue,
+    movementSpeed: TacticSpeed,
     teleportBackToSpawnPoint: BoolValue,
     forceTeleportTriggerDistance: FloatValue,
     forceTeleportTriggerTime: FloatValue,
@@ -9352,7 +10433,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     targetOrientation: Vec3Value,
     horizontalRotationAngularVelocity: FloatValue,
     useRotationAnimation: BoolValue,
-    rotationDirection: EnumerationValue,
+    rotationDirection: RotationDirection,
     tacticalContext: StrValue,
     canSkillBeInterrupted: BoolValue
   ): void {
@@ -9907,6 +10988,46 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 
   /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList<T extends 'float' | 'int' | 'entity'>(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(['float', 'int', 'entity'], ..._0to9)
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
    * Check whether this Creation's current location is within the Territory
    *
    * 查询自身是否在领地中: 查询造物自身当前所处位置是否在领地中
@@ -10206,6 +11327,62 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 
   /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[`${inputType}->${String(type)}`]
+    if (!conversion) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[`${inputType}->${String(type)}`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
+  }
+
+  /**
    * Converts degrees to radians
    *
    * 角度转弧度: 将角度值转为弧度值
@@ -10484,6 +11661,104 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 
   /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'entity_list'
+  ): entity[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'config_id_list'
+  ): configId[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'prefab_id_list'
+  ): prefabId[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'faction_list'
+  ): faction[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
+  getCustomVariable<
+    T extends
+      | 'bool'
+      | 'int'
+      | 'float'
+      | 'str'
+      | 'guid'
+      | 'entity'
+      | 'vec3'
+      | 'int_list'
+      | 'str_list'
+      | 'entity_list'
+      | 'guid_list'
+      | 'float_list'
+      | 'vec3_list'
+      | 'bool_list'
+      | 'config_id'
+      | 'prefab_id'
+      | 'config_id_list'
+      | 'prefab_id_list'
+      | 'faction'
+      | 'faction_list'
+      | 'dict'
+  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
+    })
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
+  }
+
+  /**
    * Obtain the Target Entity's Location
    *
    * 获取实体位置: 获取目标实体的位置
@@ -10496,7 +11771,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 位置
    */
-  getEntityLocation(targetEntity: EnumerationValue): vec3 {
+  getEntityLocation(targetEntity: TargetEntity): vec3 {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10522,7 +11797,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 旋转
    */
-  getEntityRotation(targetEntity: EnumerationValue): vec3 {
+  getEntityRotation(targetEntity: TargetEntity): vec3 {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10548,7 +11823,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: EnumerationValue): enumeration {
+  getEntitySType(targetEntity: TargetEntity): enumeration {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10737,7 +12012,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 预设状态值
    */
-  getObjectPresetStatus(targetEntity: EnumerationValue, presetStatusIndex: IntValue): bigint {
+  getObjectPresetStatus(targetEntity: TargetEntity, presetStatusIndex: IntValue): bigint {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const presetStatusIndexObj = parseValue(presetStatusIndex, 'int')
     const ref = this.registry.registerNode({
@@ -10968,7 +12243,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    * currentATK
    * 当前攻击力
    */
-  getTargetAtk(targetEntity: EnumerationValue): { baseATK: number; currentATK: number } {
+  getTargetAtk(targetEntity: TargetEntity): { baseATK: number; currentATK: number } {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11031,7 +12306,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    * currentHPPercentage
    * 当前生命值百分比
    */
-  getTargetHp(targetEntity: EnumerationValue): {
+  getTargetHp(targetEntity: TargetEntity): {
     baseHP: number
     maxHP: number
     currentHPPercentage: number
@@ -11075,7 +12350,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 当前等级
    */
-  getTargetLevel(targetEntity: EnumerationValue): bigint {
+  getTargetLevel(targetEntity: TargetEntity): bigint {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11368,6 +12643,158 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 
   /**
+   * Takes an input parameter as a control expression (supports integers or strings). Multiple branches can be defined based on the value of the control expression.; Execution follows the output pin whose value matches the control expression. If no matching pin is found, it will proceed through the [Default] pin.
+   *
+   * 多分支: 接受一个输入参数作为控制表达式(支持整数或字符串)，根据控制表达式的值可以分出多个不同的分支; 当出引脚上的值与控制表达式的值相等时，会沿该出引脚向后执行逻辑。如果没有找到匹配的引脚，则会走【默认】引脚
+   *
+   * @param controlExpression Supports only integers or strings
+   *
+   * 控制表达式: 仅支持整数或字符串
+   */
+  multipleBranches(
+    controlExpression: IntValue,
+    branches: Record<number, (() => void) | number> & { default?: (() => void) | number }
+  ): void {
+    const controlExpressionObj = parseValue(controlExpression, 'int')
+
+    const rawBranches = branches as Record<string, unknown>
+    const caseKeys = Object.keys(rawBranches).filter((k) => k !== 'default')
+    const caseArgs = caseKeys.map((k) => new int(Number(k)))
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'multiple_branches',
+      args: [controlExpressionObj, ...caseArgs]
+    })
+
+    // 分支执行：按约定 default 的 source_index 固定为 0；其它分支按顺序从 1 开始递增
+    type BranchResult = {
+      terminatedByReturn?: boolean
+      tailEndpoints: Array<{ nodeId: number; sourceIndex?: number }>
+      headNodeId?: number
+    }
+    const branchResults: Array<{ sourceIndex: number } & BranchResult> = []
+
+    const defaultVal = rawBranches.default
+    let defaultResult: BranchResult | undefined
+    const emptyDefault: BranchResult = { terminatedByReturn: false, tailEndpoints: [] }
+
+    if (typeof defaultVal === 'function') {
+      const r = this.registry.withExecBranch(ref.id, 0, () =>
+        globalThis.gsts.ctx.withCtx(
+          'client_creation_status_decision_switch',
+          defaultVal as () => void
+        )
+      )
+      defaultResult = r
+      branchResults.push({ sourceIndex: 0, ...r })
+    } else if (defaultVal === undefined) {
+      // 空默认分支视为“未 return 且无节点”，join 时需要从分支节点对应输出直接连出
+      branchResults.push({ sourceIndex: 0, ...emptyDefault })
+    }
+
+    const branchResultsByKey = new Map<string, BranchResult>()
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v !== 'function') return
+      const sourceIndex = i + 1
+      const r = this.registry.withExecBranch(ref.id, sourceIndex, () =>
+        globalThis.gsts.ctx.withCtx('client_creation_status_decision_switch', v as () => void)
+      )
+      branchResultsByKey.set(k, r)
+      branchResults.push({ sourceIndex, ...r })
+    })
+
+    const resolveAliasKey = (input: unknown): string | null => {
+      if (typeof input === 'string') return input
+      if (typeof input === 'number') return String(input)
+      return null
+    }
+
+    const ensureCaseKey = (key: string, origin: string) => {
+      if (!caseKeys.includes(key)) {
+        throw new Error(`[error] multipleBranches: "${origin}" refers to missing case "${key}"`)
+      }
+    }
+
+    const resolveTarget = (
+      key: string,
+      stack: string[]
+    ): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (stack.includes(key)) {
+        throw new Error(
+          `[error] multipleBranches: circular case alias "${stack.join(' -> ')} -> ${key}"`
+        )
+      }
+      const value = rawBranches[key]
+      if (typeof value === 'function') return { kind: 'case', key }
+      const alias = resolveAliasKey(value)
+      if (!alias) {
+        throw new Error(`[error] multipleBranches: "${key}" must be a function or case alias`)
+      }
+      if (alias === 'default') return { kind: 'default' }
+      ensureCaseKey(alias, key)
+      return resolveTarget(alias, [...stack, key])
+    }
+
+    const resolveDefault = (): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (typeof defaultVal === 'function') return { kind: 'default' }
+      const alias = resolveAliasKey(defaultVal)
+      if (!alias) {
+        throw new Error('[error] multipleBranches: default must be a function or case alias')
+      }
+      if (alias === 'default') {
+        throw new Error('[error] multipleBranches: default alias cannot refer to itself')
+      }
+      ensureCaseKey(alias, 'default')
+      return resolveTarget(alias, ['default'])
+    }
+
+    const attachAlias = (sourceIndex: number, target: BranchResult | undefined) => {
+      const resolved = target ?? emptyDefault
+      if (resolved.headNodeId !== undefined) {
+        this.registry.connectExecBranchOutput(ref.id, sourceIndex, resolved.headNodeId)
+        return
+      }
+      branchResults.push({ sourceIndex, ...resolved })
+    }
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v === 'function') return
+      const target = resolveTarget(k, [])
+      if (target.kind === 'default') {
+        attachAlias(i + 1, defaultResult)
+      } else {
+        attachAlias(i + 1, branchResultsByKey.get(target.key))
+      }
+    })
+
+    if (defaultVal !== undefined && typeof defaultVal !== 'function') {
+      const target = resolveDefault()
+      if (target.kind === 'default') {
+        attachAlias(0, defaultResult)
+      } else {
+        attachAlias(0, branchResultsByKey.get(target.key))
+      }
+    }
+
+    // 启用 join：后续顺序代码连接到所有未 return 的分支尾部（空分支则从分支节点输出直接连出）
+    const joinEndpoints: Array<{ nodeId: number; sourceIndex?: number }> = []
+    branchResults.forEach((r) => {
+      if (r.terminatedByReturn) return
+      if (r.tailEndpoints.length) {
+        joinEndpoints.push(...r.tailEndpoints)
+      } else {
+        joinEndpoints.push({ nodeId: ref.id, sourceIndex: r.sourceIndex })
+      }
+    })
+    this.registry.setCurrentExecTailEndpoints(joinEndpoints)
+  }
+
+  /**
    * Performs multiplication, supporting Floating Point and Integer multiplication
    *
    * 乘法运算: 乘法运算，支持浮点数乘法和整数乘法
@@ -11507,7 +12934,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 阵营
    */
-  queryEntityFaction(targetEntity: EnumerationValue): faction {
+  queryEntityFaction(targetEntity: TargetEntity): faction {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11566,7 +12993,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 是否在场
    */
-  queryIfEntityIsOnTheField(targetEntity: EnumerationValue): boolean {
+  queryIfEntityIsOnTheField(targetEntity: TargetEntity): boolean {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11750,6 +13177,40 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number | bigint
+  }
+
+  /**
+   * Once the execution conditions are met, run the Status Node Graph linked to this config ID
+   *
+   * 切换自身执行状态: 满足执行条件时，执行该配置ID对应的状态节点图
+   *
+   * @param execute
+   *
+   * 是否执行
+   * @param statusNodeGraphConfigurationID Config ID for the Creation Status Node Graph
+   *
+   * 状态节点图配置ID: 造物状态节点图的配置ID
+   * @param autonomousLogicParameterID
+   *
+   * 自主逻辑参数序号
+   */
+  switchToSelfExecutionStatus(
+    execute: BoolValue,
+    statusNodeGraphConfigurationID: ConfigIdValue,
+    autonomousLogicParameterID: IntValue
+  ): void {
+    const executeObj = parseValue(execute, 'bool')
+    const statusNodeGraphConfigurationIDObj = parseValue(
+      statusNodeGraphConfigurationID,
+      'config_id'
+    )
+    const autonomousLogicParameterIDObj = parseValue(autonomousLogicParameterID, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'switch_to_self_execution_status',
+      args: [executeObj, statusNodeGraphConfigurationIDObj, autonomousLogicParameterIDObj]
+    })
   }
 
   /**
@@ -12190,6 +13651,58 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: BoolValue[]): boolean[]
+  assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
+  assemblyList(_0to9: ConfigIdValue[]): configId[]
+  assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: PrefabIdValue[]): prefabId[]
+  assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
+  assemblyList(_0to9: StrValue[]): string[]
+  assemblyList(_0to9: StrValue[], type: 'str'): string[]
+  assemblyList(_0to9: Vec3Value[]): vec3[]
+  assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
+  assemblyList<
+    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(
+      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ..._0to9
+    )
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
    * Calculates the cosine of the input in radians
    *
    * 余弦函数: 计算输入弧度的余弦
@@ -12247,6 +13760,62 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new vec3()
     ret.markPin(ref, '_3DVector', 0)
     return ret as unknown as vec3
+  }
+
+  /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[`${inputType}->${String(type)}`]
+    if (!conversion) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[`${inputType}->${String(type)}`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
   }
 
   /**
@@ -12442,7 +14011,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     radius: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
@@ -12493,7 +14062,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     length: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
@@ -12618,9 +14187,11 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   getCorrespondingValueFromList(iD: IntValue, dataList: FloatValue[]): number
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
+  getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
   getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
+  getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
   getCorrespondingValueFromList(iD: IntValue, dataList: Vec3Value[]): vec3
   getCorrespondingValueFromList(
     iD: IntValue,
@@ -12628,13 +14199,15 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       | FloatValue[]
       | IntValue[]
       | BoolValue[]
+      | ConfigIdValue[]
       | EntityValue[]
       | FactionValue[]
       | GuidValue[]
+      | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | entity | faction | guid | vec3 {
+  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
     const genericType = matchTypes(
-      ['float', 'int', 'bool', 'entity', 'faction', 'guid', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
     )
     const iDObj = parseValue(iD, 'int')
@@ -12645,13 +14218,24 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
         float_list: 'float',
         int_list: 'int',
         bool_list: 'bool',
+        config_id_list: 'config_id',
         entity_list: 'entity',
         faction_list: 'faction',
         guid_list: 'guid',
+        str_list: 'str',
         vec3_list: 'vec3'
       } as Record<
         string,
-        'float' | 'int' | 'bool' | 'entity' | 'faction' | 'guid' | 'vec3' | undefined
+        | 'float'
+        | 'int'
+        | 'bool'
+        | 'config_id'
+        | 'entity'
+        | 'faction'
+        | 'guid'
+        | 'str'
+        | 'vec3'
+        | undefined
       >
     )[variantKey]
     if (!outputIrType) {
@@ -12667,7 +14251,16 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
-    return ret as unknown as number | bigint | boolean | entity | faction | guid | vec3
+    return ret as unknown as
+      | number
+      | bigint
+      | boolean
+      | configId
+      | entity
+      | faction
+      | guid
+      | string
+      | vec3
   }
 
   /**
@@ -12689,6 +14282,104 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'entity_list'
+  ): entity[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'config_id_list'
+  ): configId[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'prefab_id_list'
+  ): prefabId[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'faction_list'
+  ): faction[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
+  getCustomVariable<
+    T extends
+      | 'bool'
+      | 'int'
+      | 'float'
+      | 'str'
+      | 'guid'
+      | 'entity'
+      | 'vec3'
+      | 'int_list'
+      | 'str_list'
+      | 'entity_list'
+      | 'guid_list'
+      | 'float_list'
+      | 'vec3_list'
+      | 'bool_list'
+      | 'config_id'
+      | 'prefab_id'
+      | 'config_id_list'
+      | 'prefab_id_list'
+      | 'faction'
+      | 'faction_list'
+      | 'dict'
+  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
+    })
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
   }
 
   /**
@@ -13380,18 +15071,70 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 结果
    */
+  listIncludesThisValue(value: FloatValue, list: FloatValue[]): boolean
   listIncludesThisValue(value: IntValue, list: IntValue[]): boolean
   listIncludesThisValue(value: BoolValue, list: BoolValue[]): boolean
   listIncludesThisValue(value: ConfigIdValue, list: ConfigIdValue[]): boolean
   listIncludesThisValue(value: EntityValue, list: EntityValue[]): boolean
+  listIncludesThisValue(value: FactionValue, list: FactionValue[]): boolean
   listIncludesThisValue(value: GuidValue, list: GuidValue[]): boolean
+  listIncludesThisValue(value: PrefabIdValue, list: PrefabIdValue[]): boolean
+  listIncludesThisValue(value: StrValue, list: StrValue[]): boolean
   listIncludesThisValue(value: Vec3Value, list: Vec3Value[]): boolean
   listIncludesThisValue(
-    value: IntValue | BoolValue | ConfigIdValue | EntityValue | GuidValue | Vec3Value,
-    list: IntValue[] | BoolValue[] | ConfigIdValue[] | EntityValue[] | GuidValue[] | Vec3Value[]
+    value:
+      | FloatValue
+      | IntValue
+      | BoolValue
+      | ConfigIdValue
+      | EntityValue
+      | FactionValue
+      | GuidValue
+      | PrefabIdValue
+      | StrValue
+      | Vec3Value,
+    list:
+      | FloatValue[]
+      | IntValue[]
+      | BoolValue[]
+      | ConfigIdValue[]
+      | EntityValue[]
+      | FactionValue[]
+      | GuidValue[]
+      | PrefabIdValue[]
+      | StrValue[]
+      | Vec3Value[]
   ): boolean {
-    const valueType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], value)
-    const listType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], list)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      value
+    )
+    const listType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      list
+    )
     const valueObj = parseValue(value, valueType)
     const listObj = parseValue(list, `${listType}_list` as const)
     const ref = this.registry.registerNode({
@@ -14323,6 +16066,58 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: BoolValue[]): boolean[]
+  assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
+  assemblyList(_0to9: ConfigIdValue[]): configId[]
+  assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: PrefabIdValue[]): prefabId[]
+  assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
+  assemblyList(_0to9: StrValue[]): string[]
+  assemblyList(_0to9: StrValue[], type: 'str'): string[]
+  assemblyList(_0to9: Vec3Value[]): vec3[]
+  assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
+  assemblyList<
+    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(
+      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ..._0to9
+    )
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
    * Calculates the cosine of the input in radians
    *
    * 余弦函数: 计算输入弧度的余弦
@@ -14380,6 +16175,62 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new vec3()
     ret.markPin(ref, '_3DVector', 0)
     return ret as unknown as vec3
+  }
+
+  /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    const conversion = DATA_TYPE_CONVERSIONS[`${inputType}->${String(type)}`]
+    if (!conversion) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[`${inputType}->${String(type)}`]
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'data_type_conversion',
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
+      clientHints: { outputIrType: String(type) }
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
   }
 
   /**
@@ -14575,7 +16426,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     radius: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
@@ -14626,7 +16477,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     length: FloatValue,
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
-    filterRules: EnumerationValue
+    filterRules: TargetSortingRules
   ): entity[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
@@ -14751,9 +16602,11 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   getCorrespondingValueFromList(iD: IntValue, dataList: FloatValue[]): number
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
+  getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
   getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
+  getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
   getCorrespondingValueFromList(iD: IntValue, dataList: Vec3Value[]): vec3
   getCorrespondingValueFromList(
     iD: IntValue,
@@ -14761,13 +16614,15 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       | FloatValue[]
       | IntValue[]
       | BoolValue[]
+      | ConfigIdValue[]
       | EntityValue[]
       | FactionValue[]
       | GuidValue[]
+      | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | entity | faction | guid | vec3 {
+  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
     const genericType = matchTypes(
-      ['float', 'int', 'bool', 'entity', 'faction', 'guid', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
     )
     const iDObj = parseValue(iD, 'int')
@@ -14778,13 +16633,24 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
         float_list: 'float',
         int_list: 'int',
         bool_list: 'bool',
+        config_id_list: 'config_id',
         entity_list: 'entity',
         faction_list: 'faction',
         guid_list: 'guid',
+        str_list: 'str',
         vec3_list: 'vec3'
       } as Record<
         string,
-        'float' | 'int' | 'bool' | 'entity' | 'faction' | 'guid' | 'vec3' | undefined
+        | 'float'
+        | 'int'
+        | 'bool'
+        | 'config_id'
+        | 'entity'
+        | 'faction'
+        | 'guid'
+        | 'str'
+        | 'vec3'
+        | undefined
       >
     )[variantKey]
     if (!outputIrType) {
@@ -14800,7 +16666,16 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
-    return ret as unknown as number | bigint | boolean | entity | faction | guid | vec3
+    return ret as unknown as
+      | number
+      | bigint
+      | boolean
+      | configId
+      | entity
+      | faction
+      | guid
+      | string
+      | vec3
   }
 
   /**
@@ -14834,24 +16709,92 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    * 目标实体
    * @param variableName
    *
-   * 变量名
+   * 目标实体
    *
-   * @returns
+   * @returns Variable value
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): entity {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'entity_list'
+  ): entity[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'config_id_list'
+  ): configId[]
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'prefab_id_list'
+  ): prefabId[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
+  getCustomVariable(
+    targetEntity: EntityValue,
+    variableName: StrValue,
+    type: 'faction_list'
+  ): faction[]
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
+  getCustomVariable<
+    T extends
+      | 'bool'
+      | 'int'
+      | 'float'
+      | 'str'
+      | 'guid'
+      | 'entity'
+      | 'vec3'
+      | 'int_list'
+      | 'str_list'
+      | 'entity_list'
+      | 'guid_list'
+      | 'float_list'
+      | 'vec3_list'
+      | 'bool_list'
+      | 'config_id'
+      | 'prefab_id'
+      | 'config_id_list'
+      | 'prefab_id_list'
+      | 'faction'
+      | 'faction_list'
+      | 'dict'
+  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj]
+      args: [targetEntityObj, variableNameObj],
+      clientHints: { outputIrType: type }
     })
-    const ret = new entity()
+    let ret: value
+    if (type === 'dict') {
+      ret = new dict('str', 'int')
+    } else if (type.endsWith('_list')) {
+      ret = new list(type.slice(0, -5) as 'bool')
+    } else {
+      ret = new (ValueClassMap as any)[type]()
+    }
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as entity
+    return ret as unknown as RuntimeReturnValueTypeMap[T]
   }
 
   /**
@@ -15543,18 +17486,70 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 结果
    */
+  listIncludesThisValue(value: FloatValue, list: FloatValue[]): boolean
   listIncludesThisValue(value: IntValue, list: IntValue[]): boolean
   listIncludesThisValue(value: BoolValue, list: BoolValue[]): boolean
   listIncludesThisValue(value: ConfigIdValue, list: ConfigIdValue[]): boolean
   listIncludesThisValue(value: EntityValue, list: EntityValue[]): boolean
+  listIncludesThisValue(value: FactionValue, list: FactionValue[]): boolean
   listIncludesThisValue(value: GuidValue, list: GuidValue[]): boolean
+  listIncludesThisValue(value: PrefabIdValue, list: PrefabIdValue[]): boolean
+  listIncludesThisValue(value: StrValue, list: StrValue[]): boolean
   listIncludesThisValue(value: Vec3Value, list: Vec3Value[]): boolean
   listIncludesThisValue(
-    value: IntValue | BoolValue | ConfigIdValue | EntityValue | GuidValue | Vec3Value,
-    list: IntValue[] | BoolValue[] | ConfigIdValue[] | EntityValue[] | GuidValue[] | Vec3Value[]
+    value:
+      | FloatValue
+      | IntValue
+      | BoolValue
+      | ConfigIdValue
+      | EntityValue
+      | FactionValue
+      | GuidValue
+      | PrefabIdValue
+      | StrValue
+      | Vec3Value,
+    list:
+      | FloatValue[]
+      | IntValue[]
+      | BoolValue[]
+      | ConfigIdValue[]
+      | EntityValue[]
+      | FactionValue[]
+      | GuidValue[]
+      | PrefabIdValue[]
+      | StrValue[]
+      | Vec3Value[]
   ): boolean {
-    const valueType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], value)
-    const listType = matchTypes(['int', 'bool', 'config_id', 'entity', 'guid', 'vec3'], list)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      value
+    )
+    const listType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      list
+    )
     const valueObj = parseValue(value, valueType)
     const listObj = parseValue(list, `${listType}_list` as const)
     const ref = this.registry.registerNode({

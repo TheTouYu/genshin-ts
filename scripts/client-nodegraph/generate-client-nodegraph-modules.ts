@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import ts from 'typescript'
 
+import { buildClientEnumBinding, type ClientEnumBinding } from './client_enum_binding.js'
 import { generateClientNodes, type FlowMetadataEntry, type MetaRecord } from './client_nodes_codegen.js'
 import { buildDocNameAlignment } from './doc_name_alignment.js'
 
@@ -198,12 +199,13 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
   { helper: 'self', requiredMethods: ['getSelfEntity'] },
   {
     helper: 'stage',
-    confirm:
-      'client graphs have no get_node_graph_variable node for the stage bootstrap; 获取关卡实体 exists only in creation_status families and its mapping is unconfirmed'
+    requiredMethods: ['getStageEntity'],
+    note: 'maps to getStageEntity in creation_status families only'
   },
   {
     helper: 'level',
-    confirm: 'same evidence gap as stage'
+    requiredMethods: ['getStageEntity'],
+    note: 'same mapping as stage'
   },
   { helper: 'Mathf', member: 'Abs', requiredMethods: ['absoluteValueOperation'] },
   { helper: 'Mathf', member: 'FloorToInt', requiredMethods: ['roundToIntegerOperation'] },
@@ -218,13 +220,12 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
   {
     helper: 'Random',
     member: 'Range',
-    confirm:
-      'client only has a generic 获取随机数 node without english mapping; int/float Range semantics unproven'
+    requiredMethods: ['getRandomNumber']
   },
   {
     helper: 'Random',
     member: 'value',
-    confirm: 'same evidence gap as Random.Range'
+    requiredMethods: ['getRandomNumber']
   },
   ...['zero', 'one', 'up', 'down', 'left', 'right', 'forward', 'back'].map((member) => ({
     helper: 'Vector3',
@@ -513,6 +514,59 @@ function deriveServerSignatureDrift(
   return { shared, drift }
 }
 
+// ---------------------------------------------------------------------------
+// Client-only enum classes (task 四.1, seeds: resources/client_enum_seed.*.json)
+// ---------------------------------------------------------------------------
+
+function emitClientEnums(binding: ClientEnumBinding) {
+  const classes = binding.clientOnlyClasses
+    .map((cls) => {
+      const members = cls.members
+        .map(
+          (m) => `  /**
+   * ${m.name}
+   *
+   * ${m.zhName}
+   */
+  static readonly ${m.name} = new enumeration('${cls.className}', '${m.key}') as ${cls.className}`
+        )
+        .join('\n')
+      return `/** ${cls.zhName} */
+export class ${cls.className} extends enumeration {
+  declare private readonly __brand${cls.className}: '${cls.className}'
+  private constructor() {
+    super('')
+    // 防止用户通过字符串传参构造枚举导致的意外行为
+    throw new Error('you should not create an enum instance')
+  }
+
+${members}
+}`
+    })
+    .join('\n\n')
+
+  write(
+    'src/definitions/client_enums.ts',
+    `${generatedHeader()}// Client-only enum classes derived from resources/client_enum_seed.*.json
+// (枚举匹配 dropdown census + node param samples). Server-shared classes live
+// in ./enum.ts; encoder values for these classes come from client_enum_values.ts.
+import { enumeration } from '../runtime/value.js'
+
+export type ClientEnumerationTypeMap = {
+${binding.clientOnlyClasses.map((c) => `  ${c.className}: ${c.className}`).join('\n')}
+}
+
+${classes}
+`
+  )
+  write(
+    'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.ts',
+    `${generatedHeader()}/** enumeration value string -> gia numeric value (client-only enum classes) */
+export const CLIENT_ENUM_VALUES: Record<string, number> = ${jsonConst(binding.valueByKey)}
+`
+  )
+}
+
 function emitClientNodeMetadata(
   metadata: readonly unknown[],
   argPinsBySubType: Record<string, Record<string, number[]>>
@@ -548,7 +602,9 @@ function main() {
   emitClientScopedGlobals(deriveScopedGlobalsCapability(metadata as MetadataRecord[]))
 
   const alignment = buildDocNameAlignment()
-  const generated = generateClientNodes(metadata as MetaRecord[], alignment)
+  const enumBinding = buildClientEnumBinding()
+  emitClientEnums(enumBinding)
+  const generated = generateClientNodes(metadata as MetaRecord[], alignment, enumBinding)
   emitClientNodeMetadata(metadata, generated.argPinsBySubType)
   write('src/definitions/client_nodes.ts', generated.classFileBody)
   emitClientMethodModes(generated.flowMetadata, generated.methodsBySubType)

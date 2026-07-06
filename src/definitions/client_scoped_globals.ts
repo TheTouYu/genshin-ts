@@ -93,19 +93,45 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   },
   {
     helper: 'stage',
-    subTypes: [],
-    modes: [],
-    backedBy: [],
-    status: 'needs_developer_confirmation',
-    note: 'client graphs have no get_node_graph_variable node for the stage bootstrap; 获取关卡实体 exists only in creation_status families and its mapping is unconfirmed'
+    subTypes: ['creation_status', 'creation_status_decision'],
+    modes: ['beyond'],
+    backedBy: [
+      {
+        subType: 'creation_status',
+        nodeType: 'get_stage_entity',
+        methodName: 'getStageEntity',
+        sampleFile: '造物状态节点图\\获取关卡实体_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: 'get_stage_entity',
+        methodName: 'getStageEntity',
+        sampleFile: '造物状态决策节点图\\获取关卡实体_连线.gia'
+      }
+    ],
+    status: 'partial',
+    note: 'maps to getStageEntity in creation_status families only'
   },
   {
     helper: 'level',
-    subTypes: [],
-    modes: [],
-    backedBy: [],
-    status: 'needs_developer_confirmation',
-    note: 'same evidence gap as stage'
+    subTypes: ['creation_status', 'creation_status_decision'],
+    modes: ['beyond'],
+    backedBy: [
+      {
+        subType: 'creation_status',
+        nodeType: 'get_stage_entity',
+        methodName: 'getStageEntity',
+        sampleFile: '造物状态节点图\\获取关卡实体_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: 'get_stage_entity',
+        methodName: 'getStageEntity',
+        sampleFile: '造物状态决策节点图\\获取关卡实体_连线.gia'
+      }
+    ],
+    status: 'partial',
+    note: 'same mapping as stage'
   },
   {
     helper: 'Mathf',
@@ -366,20 +392,106 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'Random',
     member: 'Range',
-    subTypes: [],
-    modes: [],
-    backedBy: [],
-    status: 'needs_developer_confirmation',
-    note: 'client only has a generic 获取随机数 node without english mapping; int/float Range semantics unproven'
+    subTypes: [
+      'character_skill',
+      'creation_skill',
+      'creation_status',
+      'creation_status_decision',
+      'bool_filter',
+      'int_filter'
+    ],
+    modes: ['beyond'],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '角色技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '造物技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '造物状态决策节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
+      }
+    ],
+    status: 'supported'
   },
   {
     helper: 'Random',
     member: 'value',
-    subTypes: [],
-    modes: [],
-    backedBy: [],
-    status: 'needs_developer_confirmation',
-    note: 'same evidence gap as Random.Range'
+    subTypes: [
+      'character_skill',
+      'creation_skill',
+      'creation_status',
+      'creation_status_decision',
+      'bool_filter',
+      'int_filter'
+    ],
+    modes: ['beyond'],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '角色技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '造物技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '造物状态决策节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
+      }
+    ],
+    status: 'supported'
   },
   {
     helper: 'Vector3',
@@ -1553,6 +1665,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   character_skill: {
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
     Vector3: [
       'zero',
       'one',
@@ -1578,6 +1691,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   creation_skill: {
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
     Vector3: [
       'zero',
       'one',
@@ -1602,7 +1716,10 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   },
   creation_status: {
     self: [],
+    stage: [],
+    level: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
     Vector3: [
       'zero',
       'one',
@@ -1626,7 +1743,10 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   },
   creation_status_decision: {
     self: [],
+    stage: [],
+    level: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
     Vector3: [
       'zero',
       'one',
@@ -1651,6 +1771,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   bool_filter: {
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
     Vector3: [
       'zero',
       'one',
@@ -1676,6 +1797,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   int_filter: {
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
     Vector3: [
       'zero',
       'one',

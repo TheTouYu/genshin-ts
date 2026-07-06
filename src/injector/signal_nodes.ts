@@ -27,7 +27,8 @@ const SIGNAL_NODE_TYPE_SKILLS = 20002
 
 const SIGNAL_NODE_ID_PLACEHOLDERS = new Map<number, SignalNodeKind>([
   [300000, 'send'],
-  [300001, 'monitor']
+  [300001, 'monitor'],
+  [300002, 'sendServer']
 ])
 
 function parseNodeGraphId(buf: Uint8Array): NodeGraphIdInfo {

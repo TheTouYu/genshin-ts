@@ -47,6 +47,8 @@ type MemberFactory = (call: (method: string, args: unknown[]) => unknown) => unk
 /** implementations for capability-proven members; keys are `helper` or `helper.member` */
 const MEMBER_IMPLS: Record<string, MemberFactory> = {
   self: (call) => call('getSelfEntity', []),
+  stage: (call) => call('getStageEntity', []),
+  level: (call) => call('getStageEntity', []),
   'Mathf.Abs': (call) => (value: unknown) => call('absoluteValueOperation', [value]),
   'Mathf.Sin': (call) => (radian: unknown) => call('sineFunction', [radian]),
   'Mathf.Cos': (call) => (radian: unknown) => call('cosineFunction', [radian]),
@@ -80,14 +82,16 @@ const MEMBER_IMPLS: Record<string, MemberFactory> = {
     return call('getCorrespondingValueFromList', [listValue, 0n])
   },
   'GameObject.FindGameObjectsWithTag': (call) => (tag: unknown) =>
-    call('getEntityListByUnitTag', [tag])
+    call('getEntityListByUnitTag', [tag]),
+  'Random.Range': (call) => (min: unknown, max: unknown) => call('getRandomNumber', [min, max]),
+  'Random.value': (call) => () => call('getRandomNumber', [0, 1])
 }
 
 /** helpers exposed as plain getters (no member object) */
-const VALUE_HELPERS = new Set(['self'])
+const VALUE_HELPERS = new Set(['self', 'stage', 'level'])
 
 /** helpers pending developer confirmation: always installed as rejecting stubs */
-const CONFIRMATION_PENDING_HELPERS = ['send', 'player', 'stage', 'level'] as const
+const CONFIRMATION_PENDING_HELPERS = ['send', 'player'] as const
 
 export function installScopedClientGlobals(
   subType: ClientGraphSubType,

@@ -159,6 +159,7 @@ export function parseValue(v: any, type: 'entity_list'): list<'entity'>
 export function parseValue(v: any, type: 'prefab_id_list'): list<'prefab_id'>
 export function parseValue(v: any, type: 'config_id_list'): list<'config_id'>
 export function parseValue(v: any, type: 'faction_list'): list<'faction'>
+export function parseValue(v: any, type: 'enum_list'): list<'enum'>
 export function parseValue(v: any, type: 'struct_list'): list<'struct'>
 export function parseValue(v: any, type: DictValueType): value
 export function parseValue(v: any, type: keyof (ListableValueTypeMap & SpecialValueTypeMap)): value
@@ -387,6 +388,18 @@ export function parseValue(v: any, type: ValueType) {
     case 'faction_list': {
       if (z.instanceof(list).safeParse(v).success && (v as list).getConcreteType() === 'faction') {
         return v as list<'faction'>
+      }
+      break
+    }
+    case 'enum_list': {
+      if (z.instanceof(list).safeParse(v).success && (v as list).getConcreteType() === 'enum') {
+        return v as list<'enum'>
+      }
+      if (Array.isArray(v)) {
+        return new listLiteral(
+          'enum',
+          v.map((item) => parseValue(item, 'enumeration') as enumeration)
+        )
       }
       break
     }
@@ -16373,7 +16386,7 @@ export class ServerExecutionFlowFunctions {
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
    *
-   * 查询对应礼盒消耗数量: 查询玩家实体上指定礼盒的消耗数量
+   * 查询对应华丽演绎礼盒消耗数量: 查询玩家实体上华丽演绎礼盒的消耗数量(无法对其他类型的礼盒使用)
    *
    * @param playerEntity
    *

@@ -1,11 +1,11 @@
 {
   "sampleRoot": "D:\\_S2\\mypy_test\\client_nodes",
-  "sampleCount": 1288,
+  "sampleCount": 1295,
   "familyCounts": {
     "bool_filter": 202,
-    "character_skill": 265,
+    "character_skill": 269,
     "creation_skill": 246,
-    "creation_status": 199,
+    "creation_status": 202,
     "creation_status_decision": 173,
     "int_filter": 203
   },
@@ -29,7 +29,7 @@
       "unitType": 3,
       "which": 11,
       "nodeGraphType": 20002,
-      "count": 265
+      "count": 269
     },
     {
       "subType": "creation_skill",
@@ -50,7 +50,7 @@
       "unitType": 3,
       "which": 53,
       "nodeGraphType": 20009,
-      "count": 199
+      "count": 202
     }
   ],
   "metadataCounts": {
@@ -63,7 +63,7 @@
       "creation_status_decision": 87,
       "int_filter": 76
     },
-    "withReflectMap": 152,
+    "withReflectMap": 154,
     "missingEnglishName": 0,
     "nodeTypeSources": {
       "server_alias": 348,
@@ -75,8 +75,38 @@
   "decodeFailures": [],
   "clientVarType25": {
     "conclusion": "observed faction list type",
-    "hitCount": 1,
+    "hitCount": 5,
     "hits": [
+      {
+        "file": "角色技能节点图\\变量字典覆盖采样.gia",
+        "subType": "character_skill",
+        "nodeIndex": 21,
+        "genericId": 200016,
+        "concreteId": 59,
+        "pinKind": 4,
+        "pinIndex": 0,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\变量字典覆盖采样.gia",
+        "subType": "character_skill",
+        "nodeIndex": 43,
+        "genericId": 200019,
+        "concreteId": 109,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\变量字典覆盖采样.gia",
+        "subType": "character_skill",
+        "nodeIndex": 44,
+        "genericId": 200019,
+        "concreteId": 109,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
       {
         "file": "角色技能节点图\\定点发射投射物_连线.gia",
         "subType": "character_skill",
@@ -86,6 +116,16 @@
         "pinKind": 3,
         "pinIndex": 1,
         "pinType": 25
+      },
+      {
+        "file": "造物状态节点图\\变量字典覆盖采样核验_填值.gia",
+        "subType": "creation_status",
+        "nodeIndex": 4,
+        "genericId": 200173,
+        "concreteId": 4219,
+        "pinKind": 4,
+        "pinIndex": 0,
+        "pinType": 25
       }
     ]
   },
@@ -94,7 +134,7 @@
       "creation_status",
       "creation_status_decision"
     ],
-    "hitCount": 372,
+    "hitCount": 375,
     "uniqueValues": [
       {
         "type": 1,
@@ -105,7 +145,7 @@
     ],
     "bySubType": {
       "creation_status_decision": 173,
-      "creation_status": 199
+      "creation_status": 202
     }
   },
   "inlineVarTypeHint": {

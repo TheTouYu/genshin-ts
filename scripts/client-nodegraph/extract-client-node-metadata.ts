@@ -26,6 +26,7 @@ type DecodedNode = NonNullable<
 const DEFAULT_SAMPLE_ROOT = 'D:\\_S2\\mypy_test\\client_nodes'
 const GIA_PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
+const ROUND3_EVIDENCE_PATH = 'resources/client_structure_evidence.round3.json'
 
 const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
   角色技能节点图: 'character_skill',
@@ -35,6 +36,11 @@ const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
   布尔过滤器节点: 'bool_filter',
   整数过滤器节点: 'int_filter'
 }
+
+// User-defined signal senders/receivers carry dynamic high-range generic ids
+// (0x60000018 send / 0x6000001B receive observed in round-2 samples); they are
+// per-graph artifacts, not fixed node types, and are excluded from metadata.
+const DYNAMIC_GENERIC_ID_MIN = 0x60000000
 
 // The one node present in every sample of a family: begins for skill/status
 // families, the result end node for filter families.
@@ -93,6 +99,8 @@ type PinRecord = {
   clientVarType?: number
   /** single consistent literal payload observed across all set instances */
   defaultValue?: number | string | boolean | [number, number, number]
+  /** editor i2 index when it differs from i1 (round-3 pinIndexRemap evidence) */
+  i2Index?: number
 }
 
 type NodeRecord = {
@@ -128,6 +136,30 @@ function walkGiaFiles(dir: string): string[] {
 function writeJson(filePath: string, value: unknown) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + '\n', 'utf8')
+}
+
+/**
+ * Round-3 verified i1->i2 pin remap table (32 genericIds, corpus-wide zero
+ * conflicts). Keys are `${pinKind}:${i1Index}`, values the editor i2 index.
+ */
+function loadPinIndexRemap(): Map<number, Map<string, number>> {
+  const evidence = JSON.parse(fs.readFileSync(ROUND3_EVIDENCE_PATH, 'utf8')) as {
+    pinIndexRemap: { nodes: Array<{ genericId: number; i1ToI2: Record<string, string> }> }
+  }
+  const byGenericId = new Map<number, Map<string, number>>()
+  for (const node of evidence.pinIndexRemap.nodes) {
+    const remap = new Map<string, number>()
+    for (const [from, to] of Object.entries(node.i1ToI2)) {
+      const f = from.match(/^k(\d+)\[(\d+)]$/)
+      const t = to.match(/^k(\d+)\[(\d+)]$/)
+      if (!f || !t || f[1] !== t[1]) {
+        throw new Error(`[error] bad i1ToI2 entry ${from} -> ${to} (genericId ${node.genericId})`)
+      }
+      remap.set(`${f[1]}:${f[2]}`, Number(t[2]))
+    }
+    byGenericId.set(node.genericId, remap)
+  }
+  return byGenericId
 }
 
 function familyFromFile(sampleRoot: string, file: string): ClientGraphSubType | undefined {
@@ -735,12 +767,13 @@ function main() {
     const residualGids = new Set(
       graphNodes(root)
         .map((node) => Number(node.genericId?.nodeId))
-        .filter((gid) => gid !== universalGid)
+        .filter((gid) => gid !== universalGid && gid < DYNAMIC_GENERIC_ID_MIN)
     )
     const namedGid = isBaseSample && residualGids.size === 1 ? [...residualGids][0] : undefined
 
     for (const node of graphNodes(root)) {
       const gid = Number(node.genericId?.nodeId)
+      if (gid >= DYNAMIC_GENERIC_ID_MIN) continue
       const isUniversal = gid === universalGid
       const key = `${subType}:${gid}`
       let agg = isUniversal ? universalAggregates.get(subType) : gidAggregates.get(key)
@@ -790,6 +823,7 @@ function main() {
   )
 
   const docAlignment = buildDocNameAlignment()
+  const pinIndexRemapByGid = loadPinIndexRemap()
   const records: NodeRecord[] = []
   const nodeTypeSeen = new Map<string, string>()
   const missingEnglishNames: Array<{ subType: string; displayName: string; nodeType: string; genericId: number }> = []
@@ -876,6 +910,13 @@ function main() {
     }
 
     const { records: pinRecords, reflectiveInputIndexes, reflectiveOutputIndexes } = mergePins(agg)
+    const i2Remap = pinIndexRemapByGid.get(agg.genericId)
+    if (i2Remap) {
+      for (const [key, pin] of pinRecords) {
+        const i2 = i2Remap.get(key)
+        if (i2 !== undefined) pin.i2Index = i2
+      }
+    }
     const inputs: PinRecord[] = []
     const outputs: PinRecord[] = []
     const flows: PinRecord[] = []
@@ -1150,6 +1191,7 @@ function main() {
     unresolved: docAlignment.report.unresolved,
     sectionLeftovers: docAlignment.report.sectionLeftovers,
     seedMisses: docAlignment.report.seedMisses,
+    zhOnlyPages: docAlignment.report.zhOnlyPages,
     zhToEn: Object.fromEntries(
       [...docAlignment.byZhName.entries()]
         .sort(([a], [b]) => a.localeCompare(b))

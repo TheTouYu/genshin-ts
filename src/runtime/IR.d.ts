@@ -90,6 +90,7 @@ export type ServerNode = SimplifyDeep<
 export type ClientNode = SimplifyDeep<
   Node & {
     type: string
+    clientHints?: { outputIrType?: string }
   }
 >
 
@@ -222,6 +223,7 @@ export interface GenericValueTypeMap {
 export interface EnumValueTypeMap {
   enum: string
   enumeration: string
+  enum_list: string[]
 }
 
 export interface LocalVariableValueTypeMap {

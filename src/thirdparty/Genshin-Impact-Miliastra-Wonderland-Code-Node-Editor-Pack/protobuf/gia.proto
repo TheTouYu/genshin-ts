@@ -381,8 +381,15 @@ message VarBase {
     Inner inner = 100;
   }
 
+  message ClientInlineVarBinding {
+    int32 typeTag = 1;
+    optional IntBaseValue bindingInt = 102;
+    optional EnumBaseValue bindingEnum = 106;
+  }
+
   Class class = 1;
   bool alreadySetVal = 2;
+  optional ClientInlineVarBinding clientInlineBinding = 3;
   optional ItemType itemType = 4;
   // Only Struct contains this field
   optional StructInfo structInfo = 5;

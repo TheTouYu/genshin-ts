@@ -1,26 +1,29 @@
 {
   "description": "Observed VarBase shapes for literal input pins (alreadySetVal=true) grouped by clientVarType",
-  "shapeCount": 73,
+  "shapeCount": 141,
   "byClientVarType": {
-    "1:entity": 1753,
-    "2:entity_list": 457,
-    "3:int": 676,
-    "4:int_list": 105,
-    "5:bool": 413,
-    "6:bool_list": 8,
-    "7:float": 464,
-    "8:float_list": 136,
-    "9:str": 62,
-    "11:vec3": 232,
-    "12:vec3_list": 14,
-    "13:enum": 61,
-    "14:guid": 62,
-    "15:guid_list": 3,
-    "16:faction": 14,
-    "18:config_id": 20,
-    "20:config_id_list": 2,
-    "24:dict": 187,
-    "25:faction_list": 1
+    "1:entity": 1808,
+    "2:entity_list": 459,
+    "3:int": 849,
+    "4:int_list": 113,
+    "5:bool": 472,
+    "6:bool_list": 10,
+    "7:float": 495,
+    "8:float_list": 188,
+    "9:str": 141,
+    "10:str_list": 6,
+    "11:vec3": 245,
+    "12:vec3_list": 17,
+    "13:enum": 609,
+    "14:guid": 119,
+    "15:guid_list": 5,
+    "16:faction": 69,
+    "18:config_id": 73,
+    "19:prefab_id": 13,
+    "20:config_id_list": 5,
+    "21:prefab_id_list": 3,
+    "24:dict": 195,
+    "25:faction_list": 3
   },
   "shapes": [
     {
@@ -46,7 +49,7 @@
       "sampleFile": "角色技能节点图\\以键查询字典值_连线.gia",
       "genericId": 200154,
       "pinIndex": 1,
-      "count": 1744
+      "count": 1795
     },
     {
       "clientVarType": 1,
@@ -71,7 +74,32 @@
       "sampleFile": "布尔过滤器节点\\获取射线检测结果_连线.gia",
       "genericId": 200019,
       "pinIndex": 0,
-      "count": 9
+      "count": 11
+    },
+    {
+      "clientVarType": 1,
+      "typeName": "entity",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 4,
+          "value": {
+            "class": 0,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 1
+              }
+            }
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200022,
+      "pinIndex": 1,
+      "count": 2
     },
     {
       "clientVarType": 2,
@@ -123,7 +151,7 @@
       "sampleFile": "布尔过滤器节点\\筛选方形范围内的实体列表_连线.gia",
       "genericId": 200018,
       "pinIndex": 0,
-      "count": 30
+      "count": 32
     },
     {
       "clientVarType": 2,
@@ -198,10 +226,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\字典_Entity到Integer_连线.gia",
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
       "genericId": 200152,
-      "pinIndex": 4,
-      "count": 265
+      "pinIndex": 3,
+      "count": 362
     },
     {
       "clientVarType": 3,
@@ -227,7 +255,7 @@
       "sampleFile": "布尔过滤器节点\\乘法运算_连线.gia",
       "genericId": 200011,
       "pinIndex": 1,
-      "count": 157
+      "count": 158
     },
     {
       "clientVarType": 3,
@@ -253,7 +281,7 @@
       "sampleFile": "布尔过滤器节点\\拼装列表_填值.gia",
       "genericId": 200049,
       "pinIndex": 2,
-      "count": 125
+      "count": 156
     },
     {
       "clientVarType": 3,
@@ -279,7 +307,7 @@
       "sampleFile": "布尔过滤器节点\\乘法运算_填值.gia",
       "genericId": 200013,
       "pinIndex": 1,
-      "count": 76
+      "count": 81
     },
     {
       "clientVarType": 3,
@@ -298,7 +326,7 @@
       "sampleFile": "布尔过滤器节点\\筛选方形范围内的实体列表_填值.gia",
       "genericId": 200044,
       "pinIndex": 4,
-      "count": 31
+      "count": 49
     },
     {
       "clientVarType": 3,
@@ -324,7 +352,7 @@
       "sampleFile": "布尔过滤器节点\\列表是否包含该值_填值.gia",
       "genericId": 200019,
       "pinIndex": 0,
-      "count": 20
+      "count": 37
     },
     {
       "clientVarType": 3,
@@ -347,10 +375,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\字典_Entity到Integer_连线.gia",
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
       "genericId": 200152,
-      "pinIndex": 2,
-      "count": 2
+      "pinIndex": 1,
+      "count": 6
     },
     {
       "clientVarType": 4,
@@ -402,7 +430,7 @@
       "sampleFile": "布尔过滤器节点\\获取列表最大值_连线.gia",
       "genericId": 200020,
       "pinIndex": 0,
-      "count": 28
+      "count": 29
     },
     {
       "clientVarType": 4,
@@ -428,7 +456,33 @@
       "sampleFile": "布尔过滤器节点\\列表是否包含该值_填值.gia",
       "genericId": 200019,
       "pinIndex": 1,
-      "count": 25
+      "count": 27
+    },
+    {
+      "clientVarType": 4,
+      "typeName": "int_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 4
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "造物状态节点图\\枚举普查_造物状态_全量排布.gia",
+      "genericId": 200127,
+      "pinIndex": 1,
+      "count": 5
     },
     {
       "clientVarType": 4,
@@ -506,7 +560,7 @@
       "sampleFile": "角色技能节点图\\列表是否包含该值_连线.gia",
       "genericId": 200156,
       "pinIndex": 1,
-      "count": 317
+      "count": 366
     },
     {
       "clientVarType": 5,
@@ -532,7 +586,7 @@
       "sampleFile": "布尔过滤器节点\\列表是否包含该值_连线.gia",
       "genericId": 200006,
       "pinIndex": 1,
-      "count": 57
+      "count": 59
     },
     {
       "clientVarType": 5,
@@ -551,7 +605,7 @@
       "sampleFile": "布尔过滤器节点\\逻辑与运算_填值.gia",
       "genericId": 200001,
       "pinIndex": 0,
-      "count": 28
+      "count": 31
     },
     {
       "clientVarType": 5,
@@ -586,6 +640,32 @@
         "class": 10000,
         "alreadySetVal": true,
         "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 5
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200022,
+      "pinIndex": 1,
+      "count": 4
+    },
+    {
+      "clientVarType": 5,
+      "typeName": "bool",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
           "indexOfConcrete": 3,
           "value": {
             "class": 6,
@@ -600,10 +680,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\字典_GUID到Boolean_连线.gia",
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
       "genericId": 200152,
       "pinIndex": 2,
-      "count": 1
+      "count": 2
     },
     {
       "clientVarType": 6,
@@ -629,7 +709,7 @@
       "sampleFile": "角色技能节点图\\双分支_连线.gia",
       "genericId": 200017,
       "pinIndex": 1,
-      "count": 8
+      "count": 10
     },
     {
       "clientVarType": 7,
@@ -661,6 +741,25 @@
       "clientVarType": 7,
       "typeName": "float",
       "shape": {
+        "class": 4,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 7
+          }
+        },
+        "bFloat": "set(object)"
+      },
+      "sampleFile": "布尔过滤器节点\\三维向量缩放_填值.gia",
+      "genericId": 200066,
+      "pinIndex": 0,
+      "count": 83
+    },
+    {
+      "clientVarType": 7,
+      "typeName": "float",
+      "shape": {
         "class": 10000,
         "alreadySetVal": true,
         "bConcreteValue": {
@@ -687,25 +786,6 @@
       "clientVarType": 7,
       "typeName": "float",
       "shape": {
-        "class": 4,
-        "alreadySetVal": true,
-        "itemType": {
-          "classBase": 2,
-          "type_client": {
-            "type": 7
-          }
-        },
-        "bFloat": "set(object)"
-      },
-      "sampleFile": "布尔过滤器节点\\三维向量缩放_填值.gia",
-      "genericId": 200066,
-      "pinIndex": 0,
-      "count": 68
-    },
-    {
-      "clientVarType": 7,
-      "typeName": "float",
-      "shape": {
         "class": 10000,
         "alreadySetVal": true,
         "bConcreteValue": {
@@ -723,10 +803,88 @@
           }
         }
       },
-      "sampleFile": "造物技能节点图\\拼装列表_连线.gia",
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200049,
+      "pinIndex": 4,
+      "count": 37
+    },
+    {
+      "clientVarType": 7,
+      "typeName": "float",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 2,
+          "value": {
+            "class": 4,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 7
+              }
+            },
+            "bFloat": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200022,
+      "pinIndex": 1,
+      "count": 4
+    },
+    {
+      "clientVarType": 7,
+      "typeName": "float",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 3,
+          "value": {
+            "class": 4,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 7
+              }
+            },
+            "bFloat": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
       "genericId": 200049,
       "pinIndex": 1,
-      "count": 30
+      "count": 3
+    },
+    {
+      "clientVarType": 7,
+      "typeName": "float",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 2,
+          "value": {
+            "class": 4,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 7
+              }
+            },
+            "bFloat": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
+      "pinIndex": 0,
+      "count": 2
     },
     {
       "clientVarType": 8,
@@ -752,7 +910,7 @@
       "sampleFile": "造物状态决策节点图\\拼装列表_连线.gia",
       "genericId": 200228,
       "pinIndex": 2,
-      "count": 100
+      "count": 150
     },
     {
       "clientVarType": 8,
@@ -775,10 +933,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia",
-      "genericId": 200017,
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
       "pinIndex": 1,
-      "count": 20
+      "count": 22
     },
     {
       "clientVarType": 8,
@@ -853,10 +1011,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\字典_String到Entity_连线.gia",
-      "genericId": 200154,
-      "pinIndex": 1,
-      "count": 50
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
+      "pinIndex": 0,
+      "count": 52
     },
     {
       "clientVarType": 9,
@@ -874,6 +1032,58 @@
       },
       "sampleFile": "布尔过滤器节点\\获取目标挂接点位置_填值.gia",
       "genericId": 200047,
+      "pinIndex": 1,
+      "count": 48
+    },
+    {
+      "clientVarType": 9,
+      "typeName": "str",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 4,
+          "value": {
+            "class": 5,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 9
+              }
+            },
+            "bString": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200049,
+      "pinIndex": 6,
+      "count": 29
+    },
+    {
+      "clientVarType": 9,
+      "typeName": "str",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 4,
+          "value": {
+            "class": 5,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 9
+              }
+            },
+            "bString": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200049,
       "pinIndex": 1,
       "count": 11
     },
@@ -902,6 +1112,51 @@
       "genericId": 200152,
       "pinIndex": 1,
       "count": 1
+    },
+    {
+      "clientVarType": 10,
+      "typeName": "str_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 3,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 10
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
+      "pinIndex": 1,
+      "count": 4
+    },
+    {
+      "clientVarType": 10,
+      "typeName": "str_list",
+      "shape": {
+        "class": 10002,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 10
+          }
+        },
+        "bArray": "set(object)"
+      },
+      "sampleFile": "角色技能节点图\\指定挂接点打攻击盒_全参数填值_筛选列表连线.gia",
+      "genericId": 200059,
+      "pinIndex": 18,
+      "count": 2
     },
     {
       "clientVarType": 11,
@@ -946,7 +1201,7 @@
       "sampleFile": "布尔过滤器节点\\三维向量内积_填值.gia",
       "genericId": 200063,
       "pinIndex": 0,
-      "count": 92
+      "count": 100
     },
     {
       "clientVarType": 11,
@@ -972,7 +1227,7 @@
       "sampleFile": "布尔过滤器节点\\获取射线检测结果_连线.gia",
       "genericId": 200006,
       "pinIndex": 1,
-      "count": 11
+      "count": 14
     },
     {
       "clientVarType": 11,
@@ -998,7 +1253,7 @@
       "sampleFile": "角色技能节点图\\列表_Vector_连线.gia",
       "genericId": 200049,
       "pinIndex": 1,
-      "count": 8
+      "count": 10
     },
     {
       "clientVarType": 11,
@@ -1076,7 +1331,7 @@
       "sampleFile": "角色技能节点图\\列表_Vector_连线.gia",
       "genericId": 200017,
       "pinIndex": 1,
-      "count": 14
+      "count": 17
     },
     {
       "clientVarType": 13,
@@ -1095,7 +1350,501 @@
       "sampleFile": "布尔过滤器节点\\筛选方形范围内的实体列表_填值.gia",
       "genericId": 200044,
       "pinIndex": 5,
-      "count": 21
+      "count": 99
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 37,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 44
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 7,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 24
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 28,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 24
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 34,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 20
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 42,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 18
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 12,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 16
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 16,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 16
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 20,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 16
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 24,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 16
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 31,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 16
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 1,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "布尔过滤器节点\\枚举匹配_填值.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 3,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "整数过滤器节点\\枚举匹配_填值.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 13,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 25,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 26,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 32,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 36,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 39,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 12
     },
     {
       "clientVarType": 13,
@@ -1145,6 +1894,422 @@
         }
       },
       "sampleFile": "布尔过滤器节点\\获取实体扫描状态_连线.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 2,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 6,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 9,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 10,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 14,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 18,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 19,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 21,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 23,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 27,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 29,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 30,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 33,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 35,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 40,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 8
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 41,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
       "genericId": 200005,
       "pinIndex": 0,
       "count": 8
@@ -1208,7 +2373,7 @@
         "class": 10000,
         "alreadySetVal": true,
         "bConcreteValue": {
-          "indexOfConcrete": 1,
+          "indexOfConcrete": 4,
           "value": {
             "class": 6,
             "alreadySetVal": true,
@@ -1222,7 +2387,7 @@
           }
         }
       },
-      "sampleFile": "布尔过滤器节点\\枚举匹配_填值.gia",
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
       "genericId": 200005,
       "pinIndex": 0,
       "count": 4
@@ -1234,7 +2399,7 @@
         "class": 10000,
         "alreadySetVal": true,
         "bConcreteValue": {
-          "indexOfConcrete": 3,
+          "indexOfConcrete": 5,
           "value": {
             "class": 6,
             "alreadySetVal": true,
@@ -1248,7 +2413,163 @@
           }
         }
       },
-      "sampleFile": "整数过滤器节点\\枚举匹配_填值.gia",
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 4
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 8,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 4
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 11,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 4
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 15,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 4
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 17,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 4
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 22,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
+      "genericId": 200005,
+      "pinIndex": 0,
+      "count": 4
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 38,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 13
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\枚举普查_角色技能_全量排布.gia",
       "genericId": 200005,
       "pinIndex": 0,
       "count": 4
@@ -1277,7 +2598,7 @@
       "sampleFile": "角色技能节点图\\以实体查询GUID_连线.gia",
       "genericId": 200154,
       "pinIndex": 1,
-      "count": 52
+      "count": 102
     },
     {
       "clientVarType": 14,
@@ -1303,7 +2624,7 @@
       "sampleFile": "布尔过滤器节点\\以实体查询GUID_连线.gia",
       "genericId": 200006,
       "pinIndex": 1,
-      "count": 5
+      "count": 7
     },
     {
       "clientVarType": 14,
@@ -1322,7 +2643,7 @@
       "sampleFile": "布尔过滤器节点\\以GUID查询实体_填值.gia",
       "genericId": 200023,
       "pinIndex": 0,
-      "count": 4
+      "count": 5
     },
     {
       "clientVarType": 14,
@@ -1345,10 +2666,36 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\字典_GUID到Boolean_连线.gia",
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
       "genericId": 200152,
+      "pinIndex": 2,
+      "count": 3
+    },
+    {
+      "clientVarType": 14,
+      "typeName": "guid",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 3,
+          "value": {
+            "class": 1,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 14
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 200022,
       "pinIndex": 1,
-      "count": 1
+      "count": 2
     },
     {
       "clientVarType": 15,
@@ -1374,7 +2721,33 @@
       "sampleFile": "布尔过滤器节点\\获取列表对应值_填值.gia",
       "genericId": 200017,
       "pinIndex": 1,
-      "count": 3
+      "count": 5
+    },
+    {
+      "clientVarType": 16,
+      "typeName": "faction",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 6,
+          "value": {
+            "class": 1,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 16
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "布尔过滤器节点\\查询实体阵营_连线.gia",
+      "genericId": 200022,
+      "pinIndex": 1,
+      "count": 51
     },
     {
       "clientVarType": 16,
@@ -1405,6 +2778,32 @@
           "indexOfConcrete": 6,
           "value": {
             "class": 1,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 16
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200152,
+      "pinIndex": 2,
+      "count": 3
+    },
+    {
+      "clientVarType": 16,
+      "typeName": "faction",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 9,
+          "value": {
+            "class": 1,
             "alreadySetVal": false,
             "itemType": {
               "classBase": 2,
@@ -1416,9 +2815,9 @@
           }
         }
       },
-      "sampleFile": "布尔过滤器节点\\查询实体阵营_连线.gia",
-      "genericId": 200022,
-      "pinIndex": 1,
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
+      "pinIndex": 0,
       "count": 2
     },
     {
@@ -1474,6 +2873,58 @@
       "count": 2
     },
     {
+      "clientVarType": 16,
+      "typeName": "faction",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 4,
+          "value": {
+            "class": 1,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 16
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "造物状态节点图\\变量字典覆盖采样.gia",
+      "genericId": 200231,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
+      "clientVarType": 18,
+      "typeName": "config_id",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 5,
+          "value": {
+            "class": 1,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 18
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200152,
+      "pinIndex": 3,
+      "count": 51
+    },
+    {
       "clientVarType": 18,
       "typeName": "config_id",
       "shape": {
@@ -1497,7 +2948,7 @@
       "sampleFile": "布尔过滤器节点\\获取实体当前生效的扫描标签_连线.gia",
       "genericId": 200019,
       "pinIndex": 0,
-      "count": 12
+      "count": 14
     },
     {
       "clientVarType": 18,
@@ -1535,7 +2986,7 @@
           "indexOfConcrete": 5,
           "value": {
             "class": 1,
-            "alreadySetVal": false,
+            "alreadySetVal": true,
             "itemType": {
               "classBase": 2,
               "type_client": {
@@ -1546,10 +2997,74 @@
           }
         }
       },
-      "sampleFile": "造物状态决策节点图\\获取前一帧执行状态_连线.gia",
-      "genericId": 200230,
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200152,
       "pinIndex": 1,
-      "count": 2
+      "count": 1
+    },
+    {
+      "clientVarType": 18,
+      "typeName": "config_id",
+      "shape": {
+        "class": 1,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 18
+          }
+        },
+        "bId": "set(object)"
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 1610612760,
+      "pinIndex": 8,
+      "count": 1
+    },
+    {
+      "clientVarType": 19,
+      "typeName": "prefab_id",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 8,
+          "value": {
+            "class": 1,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 19
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
+      "pinIndex": 0,
+      "count": 12
+    },
+    {
+      "clientVarType": 19,
+      "typeName": "prefab_id",
+      "shape": {
+        "class": 1,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 19
+          }
+        },
+        "bId": "set(object)"
+      },
+      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
+      "genericId": 1610612760,
+      "pinIndex": 7,
+      "count": 1
     },
     {
       "clientVarType": 20,
@@ -1575,7 +3090,59 @@
       "sampleFile": "布尔过滤器节点\\获取实体当前生效的扫描标签_连线.gia",
       "genericId": 200019,
       "pinIndex": 1,
+      "count": 5
+    },
+    {
+      "clientVarType": 21,
+      "typeName": "prefab_id_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 8,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 21
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
+      "pinIndex": 1,
       "count": 2
+    },
+    {
+      "clientVarType": 21,
+      "typeName": "prefab_id_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 17,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 21
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
     },
     {
       "clientVarType": 24,
@@ -1679,6 +3246,40 @@
                 "type": 24,
                 "implKind": 2,
                 "containerBinding": {
+                  "mode": 14,
+                  "kind": 21,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200154,
+      "pinIndex": 0,
+      "count": 2
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
                   "mode": 1,
                   "kind": 3,
                   "keyType": 1,
@@ -1694,6 +3295,176 @@
       "genericId": 200154,
       "pinIndex": 0,
       "count": 2
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
+                  "mode": 1,
+                  "kind": 4,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200154,
+      "pinIndex": 0,
+      "count": 1
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 20,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
+                  "mode": 3,
+                  "kind": 7,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 20,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
+                  "mode": 3,
+                  "kind": 20,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
+                  "mode": 14,
+                  "kind": 10,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200154,
+      "pinIndex": 0,
+      "count": 1
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
+                  "mode": 3,
+                  "kind": 12,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200154,
+      "pinIndex": 0,
+      "count": 1
     },
     {
       "clientVarType": 24,
@@ -1883,6 +3654,40 @@
                 "type": 24,
                 "implKind": 2,
                 "containerBinding": {
+                  "mode": 16,
+                  "kind": 12,
+                  "keyType": 1,
+                  "valueType": 2
+                }
+              }
+            },
+            "bMap": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "造物状态节点图\\变量字典覆盖采样.gia",
+      "genericId": 200231,
+      "pinIndex": 0,
+      "count": 1
+    },
+    {
+      "clientVarType": 24,
+      "typeName": "dict",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 0,
+          "structs": true,
+          "value": {
+            "class": 10003,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 24,
+                "implKind": 2,
+                "containerBinding": {
                   "mode": 3,
                   "kind": 7,
                   "keyType": 1,
@@ -1920,10 +3725,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\定点发射投射物_连线.gia",
-      "genericId": 200017,
+      "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
+      "genericId": 200019,
       "pinIndex": 1,
-      "count": 1
+      "count": 3
     }
   ]
 }
