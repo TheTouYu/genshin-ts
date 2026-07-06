@@ -1,20 +1,20 @@
 // @ts-nocheck
 /**
- * debug6.gia 结构复刻 — debug5 主图系统节点 + 1 个多 InFlow「复杂分支」复合
+ * debug6.gia 结构复刻 — DSL raw 系统节点 + 多 InFlow「复杂分支」复合版
  *
  * 原始: /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/user_edit/分支/debug6.gia (1607 B)
  *
  * 目标结构:
- *   - 主图 6 节点：5 个系统节点 + n=11 复杂分支复合调用
+ *   - 主图 6 节点：5 个系统节点 + 1 个复杂分支复合调用
  *   - CompositeDefs = 1
  *   - 「复杂分支」接口：4 InFlow / 5 OutFlow / 0 InParam / 1 OutParam
- *   - n=11 的不同入边连接到 InFlow[0..2]，不再合并成单入口
+ *   - 复合调用的不同入边连接到 InFlow[0..2]，不再合并成单入口
  */
 
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
-import type { CompositeDefIR, IRDocument } from '../../dist/src/runtime/IR.js'
+import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL(
@@ -24,94 +24,81 @@ const PROTO_PATH = new URL(
 const OUT_DIR = './tests/composite/output'
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
-const COMPLEX_BRANCH_ID = 1610612743
-
-const complexBranch: CompositeDefIR = {
-  name: '复杂分支',
-  id: COMPLEX_BRANCH_ID,
-  type: 'composite',
+const complexBranch = g.defineComposite('复杂分支', {
   inflows: [
-    { name: '有限循环', visible: true, index: 0, pinIndex: 67 },
-    { name: '开始转化事件', visible: true, index: 1, pinIndex: 76 },
-    { name: '开始设置局部变量', visible: true, index: 2, pinIndex: 77 },
-    { name: '开始打印字符串', visible: true, index: 3, pinIndex: 78 }
+    { name: '有限循环', pinIndex: 67 },
+    { name: '开始转化事件', pinIndex: 76 },
+    { name: '开始设置局部变量', pinIndex: 77 },
+    { name: '开始打印字符串', pinIndex: 78 }
   ],
   outflows: [
-    { name: '循环体', visible: true, index: 0, pinIndex: 68 },
-    { name: '循环完成', visible: true, index: 1, pinIndex: 69 },
-    { name: '打印字符串', visible: true, index: 2, pinIndex: 73 },
-    { name: '设置局部变量', visible: true, index: 3, pinIndex: 74 },
-    { name: '事件转发完成', visible: true, index: 4, pinIndex: 75 }
+    { name: '循环体', pinIndex: 68 },
+    { name: '循环完成', pinIndex: 69 },
+    { name: '打印字符串', pinIndex: 73 },
+    { name: '设置局部变量', pinIndex: 74 },
+    { name: '事件转发完成', pinIndex: 75 }
   ],
-  inputs: [],
-  outputs: [{ name: '当前循环值', visible: true, index: 0, type: 'int', pinIndex: 72 }],
-  implNodes: [
-    { id: 6, type: 'forwarding_event', args: [] },
-    { id: 7, type: 'finite_loop', args: [] },
-    { id: 8, type: 'set_local_variable', args: [] },
-    { id: 9, type: 'print_string', args: [] }
-  ],
-  implEdges: {
-    6: [8],
-    7: [
-      { node_id: 8, source_index: 0 },
-      { node_id: 6, source_index: 1 },
-      { node_id: 9, source_index: 1 }
-    ],
-    8: [9]
-  },
-  compositePins: [
-    { outerPinKind: 1, outerPinIndex: 0, innerNodeId: 7, innerPinKind: 1, innerPinIndex: 0 },
-    { outerPinKind: 1, outerPinIndex: 1, innerNodeId: 6, innerPinKind: 1, innerPinIndex: 0 },
-    { outerPinKind: 1, outerPinIndex: 2, innerNodeId: 8, innerPinKind: 1, innerPinIndex: 0 },
-    { outerPinKind: 1, outerPinIndex: 3, innerNodeId: 9, innerPinKind: 1, innerPinIndex: 0 },
-    { outerPinKind: 2, outerPinIndex: 0, innerNodeId: 7, innerPinKind: 2, innerPinIndex: 0 },
-    { outerPinKind: 2, outerPinIndex: 1, innerNodeId: 7, innerPinKind: 2, innerPinIndex: 1 },
-    { outerPinKind: 2, outerPinIndex: 2, innerNodeId: 9, innerPinKind: 2, innerPinIndex: 0 },
-    { outerPinKind: 2, outerPinIndex: 3, innerNodeId: 8, innerPinKind: 2, innerPinIndex: 0 },
-    { outerPinKind: 2, outerPinIndex: 4, innerNodeId: 6, innerPinKind: 2, innerPinIndex: 0 },
-    { outerPinKind: 4, outerPinIndex: 0, innerNodeId: 7, innerPinKind: 4, innerPinIndex: 0 }
-  ]
-}
+  outputs: { 当前循环值: { type: 'int', pinIndex: 72 } },
+  build(_args, f) {
+    const forward = f.node('forwarding_event')
+    const loop = f.node('finite_loop', [], {
+      outParams: { 当前循环值: { type: 'int', index: 0 } }
+    })
+    const setLocal = f.node('set_local_variable')
+    const print = f.node('print_string')
 
-const doc: IRDocument & { compositeDefs: CompositeDefIR[] } = {
-  ir_version: 1,
-  ir_type: 'node_graph',
-  graph: {
-    type: 'server',
-    mode: 'beyond',
-    sub_type: 'entity',
-    id: 1073741841,
-    name: 'main'
-  },
-  variables: [],
-  nodes: [
-    { id: 1, type: 'when_custom_variable_changes', next: [2, 3, 5, 11] },
-    {
-      id: 2,
-      type: 'forwarding_event',
-      args: [{ type: 'conn', value: { node_id: 1, index: 0, type: 'entity' } }],
-      next: [4, { node_id: 11, target_index: 2 }]
-    },
-    {
-      id: 3,
-      type: 'finite_loop',
-      args: [],
-      next: [
-        { node_id: 4, source_index: 0 },
-        { node_id: 11, source_index: 0, target_index: 1 },
-        { node_id: 2, source_index: 1 },
-        { node_id: 5, source_index: 1 },
-        { node_id: 11, source_index: 1, target_index: 1 }
-      ]
-    },
-    { id: 4, type: 'set_local_variable', args: [], next: [5, { node_id: 11, target_index: 2 }] },
-    { id: 5, type: 'print_string', args: [] },
-    { id: 11, type: '__composite_call__', args: [{ type: 'int', value: COMPLEX_BRANCH_ID }] }
-  ],
-  compositeDefs: [complexBranch]
-}
+    f.inflow('有限循环', loop)
+    f.inflow('开始转化事件', forward)
+    f.inflow('开始设置局部变量', setLocal)
+    f.inflow('开始打印字符串', print)
 
+    f.link(loop, 0, setLocal)
+    f.link(loop, 1, forward)
+    f.link(loop, 1, print)
+    f.link(forward, 0, setLocal)
+    f.link(setLocal, 0, print)
+
+    f.outflow('循环体', loop, 0)
+    f.outflow('循环完成', loop, 1)
+    f.outflow('打印字符串', print, 0)
+    f.outflow('设置局部变量', setLocal, 0)
+    f.outflow('事件转发完成', forward, 0)
+
+    return { 当前循环值: loop.当前循环值 }
+  }
+})
+
+g.server({ mode: 'beyond', type: 'entity', id: 1073741841, name: 'main', prefix: false }).on(
+  'whenCustomVariableChanges',
+  (e, f) => {
+    const entry = f.entry()
+    const forward = f.node('forwarding_event', [e.eventSourceEntity])
+    const loop = f.node('finite_loop')
+    const setLocal = f.node('set_local_variable')
+    const print = f.node('print_string')
+    const branch = f.declareDetached(complexBranch, {})
+
+    f.link(entry, 0, forward)
+    f.link(entry, 0, loop)
+    f.link(entry, 0, print)
+    f.link(entry, 0, branch, 0)
+
+    f.link(forward, 0, setLocal)
+    f.link(forward, 0, branch, 2)
+
+    f.link(loop, 0, setLocal)
+    f.link(loop, 0, branch, 1)
+    f.link(loop, 1, forward)
+    f.link(loop, 1, print)
+    f.link(loop, 1, branch, 1)
+
+    f.link(setLocal, 0, print)
+    f.link(setLocal, 0, branch, 2)
+  }
+)
+
+const doc = buildServerGraphRegistriesIRDocuments()[0]
+const complexBranchId = complexBranch.id
 const bytes = irToGia(doc, { graphId: 1073741841, name: 'recreate_debug6', protoPath: PROTO_PATH })
 const outPath = `${OUT_DIR}/recreate_debug6.gia`
 writeFileSync(outPath, Buffer.from(bytes))
@@ -155,11 +142,11 @@ outFlowConnections.forEach((c) =>
 )
 const complexDef = compDefs.find((a) => a.compositeDef?.inner?.def?.name === '复杂分支')
 const complex = complexDef?.compositeDef?.inner?.def
-const nodeIds = mainNodes.map((n) =>
-  n.genericId?.kind === 22001 ? n.genericId?.nodeId : n.genericId?.nodeId
-)
+const nodeIds = mainNodes.map((n) => n.genericId?.nodeId)
+const compositeNode = mainNodes.find((n) => n.genericId?.nodeId === complexBranchId)
+const compositeNodeIndex = compositeNode?.nodeIndex
 const toComplexInFlowIndexes = outFlowConnections
-  .filter((c) => c.to === 11)
+  .filter((c) => c.to === compositeNodeIndex)
   .map((c) => c.targetInIdx)
   .sort((a, b) => a - b)
 
@@ -170,11 +157,11 @@ check(`复杂分支: 0 InParam`, (complex?.inputs?.length ?? 0) === 0)
 check(`复杂分支: 1 OutParam`, (complex?.outputs?.length ?? 0) === 1)
 check(`主图节点 = 6 (实际 ${mainNodes.length})`, mainNodes.length === 6)
 check(
-  `主图 nodeId = [36,190,5,19,1,${COMPLEX_BRANCH_ID}] (实际 ${JSON.stringify(nodeIds)})`,
-  JSON.stringify(nodeIds) === JSON.stringify([36, 190, 5, 19, 1, COMPLEX_BRANCH_ID])
+  `主图 nodeId = [36,190,5,19,1,${complexBranchId}] (实际 ${JSON.stringify(nodeIds)})`,
+  JSON.stringify(nodeIds) === JSON.stringify([36, 190, 5, 19, 1, complexBranchId])
 )
 check(
-  `n=11 入边使用多个 InFlow (实际 ${JSON.stringify(toComplexInFlowIndexes)})`,
+  `复合调用入边使用多个 InFlow (实际 ${JSON.stringify(toComplexInFlowIndexes)})`,
   JSON.stringify(toComplexInFlowIndexes) === JSON.stringify([0, 1, 1, 2, 2])
 )
 check(`exec 边 = 13 (实际 ${execEdges})`, execEdges === 13)

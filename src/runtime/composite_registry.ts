@@ -32,7 +32,8 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 
 export type CompositeParamType = string
 
-export type CompositeParamDef = { type: CompositeParamType }
+export type CompositeParamDef = { type: CompositeParamType; pinIndex?: number }
+export type CompositeFlowDef = { name: string; pinIndex?: number }
 
 /**
  * 复合节点实现图捕获结果
@@ -52,6 +53,11 @@ export type CompositeCapture = {
    * build 中调用 f.outflow(name, ref, pinIndex) 时按调用顺序记录。
    */
   outflowMarks?: Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>
+  /**
+   * 显式 InFlow 入口标记。
+   * build 中调用 f.inflow(name, ref, pinIndex) 时按调用顺序记录。
+   */
+  inflowMarks?: Array<{ name: string; innerNodeId: number; inflowPinIndex: number }>
 }
 
 /**
@@ -93,8 +99,10 @@ export class CompositeRegistry {
   define(
     name: string,
     def: {
-      inputs: Record<string, CompositeParamDef>
-      outputs: Record<string, CompositeParamDef>
+      inputs?: Record<string, CompositeParamDef>
+      outputs?: Record<string, CompositeParamDef>
+      inflows?: Array<string | CompositeFlowDef>
+      outflows?: Array<string | CompositeFlowDef>
       variables?: Record<string, unknown>
       build: (...args: any[]) => any
     }
@@ -110,33 +118,47 @@ export class CompositeRegistry {
       name,
       id,
       variables: parsedVars?.variables,
-      inputs: def.inputs,
-      outputs: def.outputs,
+      inputs: def.inputs ?? {},
+      outputs: def.outputs ?? {},
       build: def.build,
       captured: null,
       toCompositeDefIR: (capture?: CompositeCapture): CompositeDefIR => {
-        const inputList: ParamFlowDef[] = Object.entries(def.inputs).map(([n, pd], i) => ({
+        const inputList: ParamFlowDef[] = Object.entries(def.inputs ?? {}).map(([n, pd], i) => ({
           name: n,
           visible: true,
           index: i,
           type: pd.type as any,
-          pinIndex: PIN_INDEX_INPUT_BASE + i
+          pinIndex: pd.pinIndex ?? PIN_INDEX_INPUT_BASE + i
         }))
-        const outputList: ParamFlowDef[] = Object.entries(def.outputs).map(([n, pd], i) => ({
+        const outputList: ParamFlowDef[] = Object.entries(def.outputs ?? {}).map(([n, pd], i) => ({
           name: n,
           visible: true,
           index: i,
           type: pd.type as any,
-          pinIndex: PIN_INDEX_OUTPUT_BASE + i
+          pinIndex: pd.pinIndex ?? PIN_INDEX_OUTPUT_BASE + i
         }))
 
         const impl = capture ?? definition.captured
 
         const hasExec = impl && impl.execNodes.length > 0
 
+        const explicitInflowDefs = normalizeFlowDefs(def.inflows ?? [])
+        const explicitOutflowDefs = normalizeFlowDefs(def.outflows ?? [])
+        const inflowMarks = impl?.inflowMarks ?? []
+
         // 计算 compositePins：outer pin → inner node pin 映射
         const pins: CompositePinEntry[] = []
-        if (hasExec && impl?.captureNodeId) {
+        if (hasExec && inflowMarks.length > 0) {
+          inflowMarks.forEach((m, outerIndex) => {
+            pins.push({
+              outerPinKind: 1, // InFlow
+              outerPinIndex: outerIndex,
+              innerNodeId: m.innerNodeId,
+              innerPinKind: 1, // InFlow
+              innerPinIndex: m.inflowPinIndex
+            })
+          })
+        } else if (hasExec && impl?.captureNodeId) {
           pins.push({
             outerPinKind: 1, // InFlow
             outerPinIndex: 0,
@@ -201,7 +223,9 @@ export class CompositeRegistry {
         }
 
         const outflowMarks = impl?.outflowMarks ?? []
+        const totalInflows = inflowMarks.length > 0 ? inflowMarks.length : hasExec ? 1 : 0
         const totalOutflows = outflowMarks.length
+        const isMultiInflow = totalInflows > 1
         const isMultiOutflow = totalOutflows > 1
 
         return {
@@ -209,23 +233,34 @@ export class CompositeRegistry {
           id,
           type: 'composite',
           inflows: hasExec
-            ? [
-                {
-                  name: '',
+            ? inflowMarks.length > 0
+              ? inflowMarks.map((m, i) => ({
+                  name: explicitInflowDefs[i]?.name ?? m.name,
                   visible: true,
-                  index: 0,
-                  pinIndex: isMultiOutflow ? PIN_INDEX_INFLOW_MULTI : PIN_INDEX_INFLOW_SINGLE
-                }
-              ]
+                  index: i,
+                  pinIndex:
+                    explicitInflowDefs[i]?.pinIndex ??
+                    (isMultiInflow ? PIN_INDEX_INFLOW_MULTI + i : PIN_INDEX_INFLOW_SINGLE)
+                }))
+              : [
+                  {
+                    name: explicitInflowDefs[0]?.name ?? '',
+                    visible: true,
+                    index: 0,
+                    pinIndex:
+                      explicitInflowDefs[0]?.pinIndex ??
+                      (isMultiOutflow ? PIN_INDEX_INFLOW_MULTI : PIN_INDEX_INFLOW_SINGLE)
+                  }
+                ]
             : [],
           outflows: hasExec
             ? outflowMarks.map((m, i) => ({
-                name: m.name,
+                name: explicitOutflowDefs[i]?.name ?? m.name,
                 visible: true,
                 index: i,
-                pinIndex: isMultiOutflow
-                  ? PIN_INDEX_OUTFLOW_MULTI_BASE + i
-                  : PIN_INDEX_OUTFLOW_SINGLE
+                pinIndex:
+                  explicitOutflowDefs[i]?.pinIndex ??
+                  (isMultiOutflow ? PIN_INDEX_OUTFLOW_MULTI_BASE + i : PIN_INDEX_OUTFLOW_SINGLE)
               }))
             : [],
           inputs: inputList,
@@ -281,6 +316,10 @@ export class CompositeRegistry {
     }
 
     this.definitions.set(name, definition)
+
+    function normalizeFlowDefs(defs: Array<string | CompositeFlowDef>): CompositeFlowDef[] {
+      return defs.map((def) => (typeof def === 'string' ? { name: def } : def))
+    }
 
     function addOutFlowCompositePins(pins: CompositePinEntry[], impl: CompositeCapture): void {
       const marks = impl.outflowMarks

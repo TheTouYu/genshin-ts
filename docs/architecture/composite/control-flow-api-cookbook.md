@@ -6,6 +6,13 @@
 >
 > **⚠️ 重要声明**: 本文档中标注 **"感觉正确"** 的内容是基于源码阅读推断的用法, 尚未经过完整自动化测试验证。真实的端到端验证需要手动在游戏中运行 GIA 注入。请用本目录的验证工具 (trace-exec-flow / analyze-composite-gia) 自行确认。
 
+> **💡 新版 Raw 控制流 DSL**: [Raw Control-Flow DSL Quickstart](./raw-control-flow-dsl-quickstart.md) 提供了 `f.entry()`/`f.node()`/`f.link()`/`f.inflow()`/`f.outflow()` 作为清理后的低层控制流 API，是当前版本的低层控制流权威参考。
+> - `f.eventMarker()` → **`f.entry()`**（旧名仍可用）
+> - `f.linkTo(src, outIdx, tgt, inIdx?)` → **`f.link(src, outIdx, tgt, inIdx?)`**（旧名仍可用）
+> - `f.registerExecNode` **自动串联**到 tail；`f.node()` 创建 **detached** 节点
+> - `f.leaf(idx)` → **`f.outflow(name, source, idx)`**
+> - 新 DSL 适合手动拓扑连线，优先用于复刻 GIA 场景。
+
 ---
 
 ## 0. 关键概念纠正 (用户 2026-07-05 指出)
@@ -759,6 +766,8 @@ g.server().on('whenEntityIsCreated', (_e, f) => {
 | **创建 OutParam 引用** | `f.createOutParamValue(type, ref, pinIndex)` | f.createOutParamValue |
 
 > ✨ 标记的 3 个 API (declareDetached / linkTo / eventMarker) 是 2026-07-05 新增, 用于支持 fan-in. 之前 gsts 不支持, 现在已修复.
+>
+> **💡 新版替代**: 上表最后 4 项（registerExecNode / branchExec / leaf / createOutParamValue）是更低层 API，新建代码优先考虑 [Raw Control-Flow DSL](./raw-control-flow-dsl-quickstart.md) 的 `f.node()`（detached 创建）和 `f.outflow(name, source, idx)`（替代 `f.leaf`）。
 
 ---
 

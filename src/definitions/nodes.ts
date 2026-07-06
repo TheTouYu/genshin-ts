@@ -737,9 +737,53 @@ export class ServerExecutionFlowFunctions {
   connect(
     sourceRef: MetaCallRecordRef,
     sourceOutflowPinIndex: number,
-    targetRef: MetaCallRecordRef
+    targetRef: MetaCallRecordRef,
+    targetInflowPinIndex = 0
   ): void {
-    this.registry.connect(sourceRef, sourceOutflowPinIndex, targetRef)
+    this.registry.connect(
+      sourceRef,
+      sourceOutflowPinIndex,
+      targetRef,
+      targetInflowPinIndex
+    )
+  }
+
+  /**
+   * @internal 供复合节点 build() 使用：将指定节点的某个 InFlow pin 标记为复合入口。
+   */
+  inflow(name: string, ref: MetaCallRecordRef, inflowPinIndex = 0): void {
+    this.registry.inflow(name, ref, inflowPinIndex)
+  }
+
+  /**
+   * @gsts advanced
+   *
+   * Return the current event entry marker for manual flow wiring.
+   */
+  entry(): { readonly __markerNodeId: number } {
+    return this.eventMarker()
+  }
+
+  /**
+   * @gsts advanced
+   *
+   * Register a detached raw execution node. It is not automatically linked to the current tail.
+   */
+  node(
+    nodeType: string,
+    args: value[] = [],
+    options?: { outParams?: Record<string, { type: string; index: number }> }
+  ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value> {
+    return this.registry.registerDetachedExecNode(nodeType, args, options?.outParams)
+  }
+
+  /** Alias for f.node(). */
+  rawExecNode(
+    nodeType: string,
+    args: value[] = [],
+    options?: { outParams?: Record<string, { type: string; index: number }> }
+  ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value> {
+    return this.node(nodeType, args, options)
   }
 
   /**
@@ -16593,13 +16637,25 @@ export class ServerExecutionFlowFunctions {
   linkTo(
     source: Record<string, any> & { readonly __markerNodeId: number },
     sourceOutflowIdx: number,
-    target: Record<string, any> & { readonly __markerNodeId: number }
+    target: Record<string, any> & { readonly __markerNodeId: number },
+    targetInflowIdx = 0
   ): void {
     this.registry.linkOutflowToMarker(
       source.__markerNodeId,
       sourceOutflowIdx,
-      target.__markerNodeId
+      target.__markerNodeId,
+      targetInflowIdx
     )
+  }
+
+  /** Alias for linkTo(). */
+  link(
+    source: Record<string, any> & { readonly __markerNodeId: number },
+    sourceOutflowIdx: number,
+    target: Record<string, any> & { readonly __markerNodeId: number },
+    targetInflowIdx = 0
+  ): void {
+    this.linkTo(source, sourceOutflowIdx, target, targetInflowIdx)
   }
 
   /**

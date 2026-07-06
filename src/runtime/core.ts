@@ -682,12 +682,22 @@ export class MetaCallRegistry {
     return flow.execContextStack[flow.execContextStack.length - 1]
   }
 
-  private addEdge(flow: ExecutionFlow, fromNodeId: number, toNodeId: number, sourceIndex?: number) {
+  private addEdge(
+    flow: ExecutionFlow,
+    fromNodeId: number,
+    toNodeId: number,
+    sourceIndex?: number,
+    targetIndex?: number
+  ) {
     const list = (flow.edges[fromNodeId] ??= [])
-    if (sourceIndex === undefined) {
+    if (sourceIndex === undefined && targetIndex === undefined) {
       list.push(toNodeId)
     } else {
-      list.push({ node_id: toNodeId, source_index: sourceIndex })
+      list.push({
+        node_id: toNodeId,
+        ...(sourceIndex === undefined ? {} : { source_index: sourceIndex }),
+        ...(targetIndex === undefined ? {} : { target_index: targetIndex })
+      })
     }
   }
 
@@ -940,14 +950,47 @@ export class MetaCallRegistry {
   }
 
   /**
-   * 将源节点的 OutFlow[sourceOutflowPinIndex] 连接到目标节点的 InFlow[0]。
-   * 若已存在同 (source, target, sourceOutflowPinIndex) 的边，则去重替换。
+   * 将复合节点的外部 InFlow 标记到内部节点的某个 InFlow pin。
+   * 调用顺序决定复合节点 inflow 的 outer index。
+   */
+  inflow(name: string, ref: MetaCallRecordRef, inflowPinIndex = 0): void {
+    const current = this.currentFlow
+    if (!name || typeof name !== 'string') {
+      throw new Error('inflow: name must be a non-empty string')
+    }
+    if (!ref.id) {
+      throw new Error('inflow: ref is not a registered node')
+    }
+    const allNodes = new Set<number>([
+      ...current.execNodes.map((n) => n.id),
+      ...current.dataNodes.map((n) => n.id)
+    ])
+    if (!allNodes.has(ref.id)) {
+      throw new Error('inflow: ref is not a registered node in the current flow')
+    }
+    const marks = ((current as any).__inflowMarks ??= []) as Array<{
+      name: string
+      innerNodeId: number
+      inflowPinIndex: number
+    }>
+    if (marks.some((m) => m.name === name)) {
+      console.warn(
+        `[gsts] duplicate inflow name "${name}"; game allows it but this is usually a mistake`
+      )
+    }
+    marks.push({ name, innerNodeId: ref.id, inflowPinIndex })
+  }
+
+  /**
+   * 将源节点的 OutFlow[sourceOutflowPinIndex] 连接到目标节点的 InFlow[targetInflowPinIndex]。
+   * 若已存在同 (source, target, sourceOutflowPinIndex, targetInflowPinIndex) 的边，则去重替换。
    * 不改变当前 tail。
    */
   connect(
     sourceRef: MetaCallRecordRef,
     sourceOutflowPinIndex: number,
-    targetRef: MetaCallRecordRef
+    targetRef: MetaCallRecordRef,
+    targetInflowPinIndex = 0
   ): void {
     const current = this.currentFlow
     if (!sourceRef.id || !targetRef.id) {
@@ -964,12 +1007,16 @@ export class MetaCallRegistry {
     const targetId = targetRef.id
     current.edges[sourceRef.id] = list.filter((conn) => {
       if (typeof conn === 'number') {
-        // bare-number edge = default OutFlow[0]
-        return !(conn === targetId && sourceOutflowPinIndex === 0)
+        // bare-number edge = default OutFlow[0] → InFlow[0]
+        return !(conn === targetId && sourceOutflowPinIndex === 0 && targetInflowPinIndex === 0)
       }
-      return !(conn.node_id === targetId && conn.source_index === sourceOutflowPinIndex)
+      return !(
+        conn.node_id === targetId &&
+        conn.source_index === sourceOutflowPinIndex &&
+        (conn.target_index ?? 0) === targetInflowPinIndex
+      )
     })
-    this.addEdge(current, sourceRef.id, targetId, sourceOutflowPinIndex)
+    this.addEdge(current, sourceRef.id, targetId, sourceOutflowPinIndex, targetInflowPinIndex)
   }
 
   /**
@@ -1278,6 +1325,43 @@ export class MetaCallRegistry {
   }
 
   /**
+   * 注册一个不自动串联到当前 tail 的系统 exec 节点。
+   * 不推进当前 tail；节点需要通过 link()/connect()/inflow() 等显式接入。
+   */
+  registerDetachedExecNode(
+    nodeType: string,
+    args: value[] = [],
+    outParams?: Record<string, { type: string; index: number }>
+  ): MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value> {
+    const current = this.currentFlow
+    const record: MetaCallRecord = {
+      id: this.currentRecordId,
+      type: 'exec',
+      nodeType,
+      args
+    }
+
+    const nodeMode = NODE_MODE_BY_NODE_TYPE.get(record.nodeType)
+    if (nodeMode && nodeMode !== this.graphMode) {
+      throw new Error(
+        `[error] node "${record.nodeType}" is ${nodeMode} mode only (current: ${this.graphMode})`
+      )
+    }
+
+    current.execNodes.push(record)
+    const ref = Object.defineProperty(record, '__markerNodeId', {
+      value: record.id,
+      writable: false,
+      enumerable: false,
+      configurable: false
+    }) as MetaCallRecordRef & { readonly __markerNodeId: number } & Record<string, value>
+    for (const [name, param] of Object.entries(outParams ?? {})) {
+      ref[name] = this.createOutParamValue(param.type, ref, param.index)
+    }
+    return ref
+  }
+
+  /**
    * 在两个已存在的 exec marker 之间添加一条 OutFlow→InFlow 边（fan-in 支持）。
    * 不创建新节点，不修改 tailEndpoints。
    *
@@ -1288,9 +1372,10 @@ export class MetaCallRegistry {
   linkOutflowToMarker(
     sourceMarkerId: number,
     sourceOutflowIdx: number,
-    targetMarkerId: number
+    targetMarkerId: number,
+    targetInflowIdx = 0
   ): void {
-    this.addEdge(this.currentFlow, sourceMarkerId, targetMarkerId, sourceOutflowIdx)
+    this.addEdge(this.currentFlow, sourceMarkerId, targetMarkerId, sourceOutflowIdx, targetInflowIdx)
   }
 
   /**
@@ -1627,13 +1712,15 @@ export const g = {
  * })
  */
 export function defineComposite<
-  Inputs extends Record<string, { type: any }>,
-  Outputs extends Record<string, { type: any }>
+  Inputs extends Record<string, { type: any; pinIndex?: number }> = {},
+  Outputs extends Record<string, { type: any; pinIndex?: number }> = {}
 >(
   name: string,
   def: {
-    inputs: Inputs
-    outputs: Outputs
+    inputs?: Inputs
+    outputs?: Outputs
+    inflows?: Array<string | { name: string; pinIndex?: number }>
+    outflows?: Array<string | { name: string; pinIndex?: number }>
     build: (
       inputs: { [K in keyof Inputs]: any },
       f: ServerExecutionFlowFunctions
@@ -1805,6 +1892,11 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
           innerNodeId: number
           outflowPinIndex: number
         }>
+        const inflowMarks = ((flow as any).__inflowMarks ?? []) as Array<{
+          name: string
+          innerNodeId: number
+          inflowPinIndex: number
+        }>
 
         def.captured = {
           captureNodeId: flow.eventNode.id,
@@ -1813,7 +1905,8 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
           edges: flow.edges,
           outputValues: (outputs ?? {}) as Record<string, value>,
           isPureData: flow.execNodes.length === 0,
-          outflowMarks
+          outflowMarks,
+          inflowMarks
         }
       } finally {
         gsts[kServerF] = prevF

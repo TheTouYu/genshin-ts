@@ -1,7 +1,7 @@
 # DSL API：复合节点的语法糖与类型系统
 
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
-> 参见：[捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | **[控制流 API 实战速查](./control-flow-api-cookbook.md)** (顺序执行 / 多 OutFlow 派发 / 真实 GIA 样本对照)
+> 参见：[捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | **[Raw 控制流 DSL 快速上手](./raw-control-flow-dsl-quickstart.md)** | **[控制流 API 实战速查](./control-flow-api-cookbook.md)** (顺序执行 / 多 OutFlow 派发 / 真实 GIA 样本对照)
 
 ---
 
@@ -146,6 +146,14 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 该映射在 `toCompositeDefIR()` 中将运行时值类名转换为 GIA 类型字符串，用于 `ParamFlowDef.type` 字段。
 
 ---
+
+> **💡 新版 Raw 控制流 DSL**: [Raw Control-Flow DSL Quickstart](./raw-control-flow-dsl-quickstart.md) 提供了 `f.node()`/`f.link()`/`f.entry()`/`f.outflow()` 作为清理后的低层手动连线 API，是当前版本的低层控制流权威参考。
+> - `f.registerExecNode(type, args)` **自动串联**到当前 tail；`f.node(type, args?, opts?)` 创建 **detached** 节点，不自动连线
+> - `f.leaf(outflowIdx)` → **`f.outflow(name, source, sourceOutflowIdx?)`**
+> - `f.eventMarker()` → **`f.entry()`**（旧名仍可用）
+> - `f.linkTo(src, outIdx, tgt, inIdx?)` → **`f.link(src, outIdx, tgt, inIdx?)`**（旧名仍可用）
+>
+> 旧 API 依然可用，但新建通用控制流复合时优先考虑新 DSL。
 
 ## 4. 低层 build API（`registerExecNode` / `leaf` / `branchExec` / `createOutParamValue`）
 

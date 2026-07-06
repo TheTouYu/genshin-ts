@@ -19,6 +19,7 @@
 - 跨轮 handover 记录
 
 ### 复合 DSL 实战（architecture/composite/）
+- [`architecture/composite/raw-control-flow-dsl-quickstart.md`](architecture/composite/raw-control-flow-dsl-quickstart.md) — 新版低层控制流 DSL 快速上手（`f.entry()`/`f.node()`/`f.link()`/`f.inflow()`/`f.outflow()`），当前低层控制流权威参考
 - [`architecture/composite/control-flow-api-cookbook.md`](architecture/composite/control-flow-api-cookbook.md) — **新增**：控制流复合 API 实战速查 (顺序执行 / 多 OutFlow 派发 / 真实 GIA 样本对照) — **2026-07-05**
 
 ### 维护记录 (maintenance/)

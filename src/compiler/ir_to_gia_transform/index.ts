@@ -730,14 +730,20 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
                 node.pins = node.pins.filter((pin: any) => pin.i1?.kind !== 2)
               }
               for (const pin of node.pins) {
+                if (pin.i1?.kind === 1) { // InFlow
+                  const inflowIdx = pin.i1.index ?? 0
+                  if (inflowIdx < cdef.inflows.length) {
+                    pin.compositePinIndex = cdef.inflows[inflowIdx].pinIndex
+                  }
+                }
                 if (pin.i1?.kind === 3) { // InParam
                   const inputIdx = pin.i1.index ?? 0
                   if (inputIdx < cdef.inputs.length) {
                     pin.compositePinIndex = cdef.inputs[inputIdx].pinIndex
-                  // 数据连线输入的 InParam：值来自上游，自身应 null
-                  if (pin.connects?.length > 0) {
-                    pin.value = null
-                  }
+                    // 数据连线输入的 InParam：值来自上游，自身应 null
+                    if (pin.connects?.length > 0) {
+                      pin.value = null
+                    }
                   }
                 }
                 if (pin.i1?.kind === 2) { // OutFlow

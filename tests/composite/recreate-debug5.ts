@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * debug5.gia 结构复刻 — 主图直接使用系统节点，0 CompositeDefs
+ * debug5.gia 结构复刻 — DSL raw 系统节点版，0 CompositeDefs
  *
  * 原始: /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/user_edit/分支/debug5.gia (517 B)
  *
@@ -15,7 +15,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
-import type { IRDocument } from '../../dist/src/runtime/IR.js'
+import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL(
@@ -25,40 +25,27 @@ const PROTO_PATH = new URL(
 const OUT_DIR = './tests/composite/output'
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
-const doc: IRDocument = {
-  ir_version: 1,
-  ir_type: 'node_graph',
-  graph: {
-    type: 'server',
-    mode: 'beyond',
-    sub_type: 'entity',
-    id: 1073741840,
-    name: 'main'
-  },
-  variables: [],
-  nodes: [
-    { id: 1, type: 'when_custom_variable_changes', next: [2, 3, 5] },
-    {
-      id: 2,
-      type: 'forwarding_event',
-      args: [{ type: 'conn', value: { node_id: 1, index: 0, type: 'entity' } }],
-      next: [4]
-    },
-    {
-      id: 3,
-      type: 'finite_loop',
-      args: [],
-      next: [
-        { node_id: 4, source_index: 0 },
-        { node_id: 2, source_index: 1 },
-        { node_id: 5, source_index: 1 }
-      ]
-    },
-    { id: 4, type: 'set_local_variable', args: [], next: [5] },
-    { id: 5, type: 'print_string', args: [] }
-  ]
-}
+g.server({ mode: 'beyond', type: 'entity', id: 1073741840, name: 'main', prefix: false }).on(
+  'whenCustomVariableChanges',
+  (e, f) => {
+    const entry = f.entry()
+    const forward = f.node('forwarding_event', [e.eventSourceEntity])
+    const loop = f.node('finite_loop')
+    const setLocal = f.node('set_local_variable')
+    const print = f.node('print_string')
 
+    f.link(entry, 0, forward)
+    f.link(entry, 0, loop)
+    f.link(entry, 0, print)
+    f.link(forward, 0, setLocal)
+    f.link(loop, 0, setLocal)
+    f.link(loop, 1, forward)
+    f.link(loop, 1, print)
+    f.link(setLocal, 0, print)
+  }
+)
+
+const doc = buildServerGraphRegistriesIRDocuments()[0]
 const bytes = irToGia(doc, { graphId: 1073741840, name: 'recreate_debug5', protoPath: PROTO_PATH })
 const outPath = `${OUT_DIR}/recreate_debug5.gia`
 writeFileSync(outPath, Buffer.from(bytes))

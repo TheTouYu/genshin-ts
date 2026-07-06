@@ -14,6 +14,7 @@
 |:---------|:---------|
 | **分析新 GIA 文件** | → [analyze-workflow.md](analyze-workflow.md)（从 Phase 0 开始） |
 | **检查还有哪些文档缺口** | → [todo.md §3（文档更新计划）](todo.md#3-文档更新计划下一轮) |
+| **了解新版低层控制流 DSL** | → [Raw Control-Flow DSL Quickstart](../architecture/composite/raw-control-flow-dsl-quickstart.md)（`f.entry()`/`f.node()`/`f.link()`/`f.inflow()`/`f.outflow()`） |
 | **查看待验证的疑点** | → [todo.md §6（需后续验证的疑点）](todo.md#-需后续验证的疑点) |
 | **判断我的发现是否已有记录** | → 见下方文件列表 + todo.md §6 疑点表 |
 | **gsts 编译器要改什么才能匹配编辑器输出** | → [gsts-compiler-gap.md](gsts-compiler-gap.md)（合规清单） |

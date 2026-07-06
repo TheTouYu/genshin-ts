@@ -421,6 +421,7 @@ function analyze(filePath: string) {
   // ===== 输出 =====
   const args = process.argv.slice(2)
   const jsonMode = args.includes('--json')
+  const ioMode = args.includes('--io')
   const detailIdxArg = args.find(a => a.startsWith('--detail='))
   const detailIdx = detailIdxArg ? parseInt(detailIdxArg.split('=')[1], 10) : null
   const depthArg = args.find(a => a.startsWith('--depth='))
@@ -441,6 +442,92 @@ function analyze(filePath: string) {
     if (idx == null) return
     showExpand(idx, allNodes, data, defToCompiled, compNames, compInputs, compOutputs)
     return
+  }
+
+  function buildControlIoSummary(): any[] {
+    return allNodes.map((node: any) => {
+      const incoming = upstreamOf.get(node.idx) ?? []
+      const outgoing = downstreamOf.get(node.idx) ?? []
+      const inflows = new Map<number, { index: number; name: string; sources: any[] }>()
+      const outflows = new Map<number, { index: number; name: string; targets: any[] }>()
+
+      for (const edge of incoming) {
+        if (!inflows.has(edge.tgtOutFlowIdx)) {
+          inflows.set(edge.tgtOutFlowIdx, {
+            index: edge.tgtOutFlowIdx,
+            name: edge.tgtOutFlowName,
+            sources: []
+          })
+        }
+        const srcNode = nodeMap.get(edge.srcIdx)
+        inflows.get(edge.tgtOutFlowIdx)!.sources.push({
+          idx: edge.srcIdx,
+          name: srcNode ? resolveName(srcNode, compNames) : '?',
+          outflow_index: edge.srcBranchIdx,
+          outflow_name: edge.srcBranchName
+        })
+      }
+
+      for (const edge of outgoing) {
+        if (!outflows.has(edge.srcBranchIdx)) {
+          outflows.set(edge.srcBranchIdx, {
+            index: edge.srcBranchIdx,
+            name: edge.srcBranchName,
+            targets: []
+          })
+        }
+        const tgtNode = nodeMap.get(edge.tgtIdx)
+        outflows.get(edge.srcBranchIdx)!.targets.push({
+          idx: edge.tgtIdx,
+          name: tgtNode ? resolveName(tgtNode, compNames) : '?',
+          inflow_index: edge.tgtOutFlowIdx,
+          inflow_name: edge.tgtOutFlowName
+        })
+      }
+
+      return {
+        idx: node.idx,
+        name: node.name,
+        nid: node.nid,
+        kind: node.kind,
+        inflows: Array.from(inflows.values()).sort((a, b) => a.index - b.index),
+        outflows: Array.from(outflows.values()).sort((a, b) => a.index - b.index)
+      }
+    })
+  }
+
+  function printControlIoSummary() {
+    console.log('='.repeat(60))
+    console.log(`文件: ${filePath}`)
+    console.log(`总节点: ${mainGraph.nodes.length}`)
+    console.log('='.repeat(60))
+    console.log('\n🔌 控制流 I/O')
+    console.log('-'.repeat(60))
+
+    for (const node of buildControlIoSummary()) {
+      console.log(`n=${String(node.idx).padStart(2)} ${node.name}`)
+      if (node.inflows.length === 0) {
+        console.log('  InFlow:  (无上游)')
+      } else {
+        for (const inflow of node.inflows) {
+          const sources = inflow.sources
+            .map((s: any) => `n=${s.idx}.OutFlow[${s.outflow_index}] ${s.outflow_name}`)
+            .join(', ')
+          console.log(`  InFlow[${inflow.index}] ${inflow.name} <- ${sources}`)
+        }
+      }
+      if (node.outflows.length === 0) {
+        console.log('  OutFlow: (无下游)')
+      } else {
+        for (const outflow of node.outflows) {
+          const targets = outflow.targets
+            .map((t: any) => `n=${t.idx}.InFlow[${t.inflow_index}] ${t.inflow_name}`)
+            .join(', ')
+          console.log(`  OutFlow[${outflow.index}] ${outflow.name} -> ${targets}`)
+        }
+      }
+      console.log()
+    }
   }
 
   if (jsonMode) {
@@ -476,8 +563,14 @@ function analyze(filePath: string) {
       orphan_nodes: allNodes.filter((n: any) => !n.isCalled && !(n.branchCount > 0) && n.hasOutflowPin).map((n: any) => ({
         idx: n.idx, name: n.name,
       })),
+      ...(ioMode ? { control_io: buildControlIoSummary() } : {}),
     }
     console.log(JSON.stringify(result, null, 2))
+    return
+  }
+
+  if (ioMode) {
+    printControlIoSummary()
     return
   }
 
