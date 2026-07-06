@@ -16,11 +16,12 @@
 
 ## 最近交接轮次一览
 
-| 轮次 | 文件 | 主要主题 | 当前状态 |
-|:----|:----|:---------|:--------|
-| r21 | [r21-outflow-api-redesign-pending.md](r21-outflow-api-redesign-pending.md) | outflow API 重设计（未完成） | 设计已被 r22/r23 和当前 raw control-flow DSL 替代 |
-| r22 | [r22-fan-in-and-debug-3456.md](r22-fan-in-and-debug-3456.md) | fan-in API 实现，debug3/4 复刻 | fan-in 概念仍有效；API 名称已被后续文档整理 |
-| r23 | [r23-outflow-api-done-debug56-next.md](r23-outflow-api-done-debug56-next.md) | outflow API 正交化 | 核心思路保留；debug5/6 做法被 r24/r25 后续复刻替代 |
-| r24 | [r24-debug56-recreate-draft-review.md](r24-debug56-recreate-draft-review.md) | debug5/6 草稿复刻 review | 已被 r25 的结构复刻和 r26 当前 DSL 文档替代 |
-| r25 | [r25-debug56-structural-recreate-dsl-api-next.md](r25-debug56-structural-recreate-dsl-api-next.md) | debug5/6 结构复刻与 DSL API 建议 | API 建议已落到当前 raw control-flow DSL，阅读时以 quickstart 为准 |
-| r26 | [r26-documentation-governance-next.md](r26-documentation-governance-next.md) | 文档治理计划 | 计划已开始执行；当前规则见 [../../documentation-governance.md](../../documentation-governance.md) 和 [../../documentation-map.md](../../documentation-map.md) |
+| 轮次      | 文件                                                                                               | 主要主题                         | 当前状态                                                                                                                                                      |
+| :-------- | :------------------------------------------------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| r21       | [r21-outflow-api-redesign-pending.md](r21-outflow-api-redesign-pending.md)                         | outflow API 重设计（未完成）     | 设计已被 r22/r23 和当前 raw control-flow DSL 替代                                                                                                             |
+| r22       | [r22-fan-in-and-debug-3456.md](r22-fan-in-and-debug-3456.md)                                       | fan-in API 实现，debug3/4 复刻   | fan-in 概念仍有效；API 名称已被后续文档整理                                                                                                                   |
+| r23       | [r23-outflow-api-done-debug56-next.md](r23-outflow-api-done-debug56-next.md)                       | outflow API 正交化               | 核心思路保留；debug5/6 做法被 r24/r25 后续复刻替代                                                                                                            |
+| r24       | [r24-debug56-recreate-draft-review.md](r24-debug56-recreate-draft-review.md)                       | debug5/6 草稿复刻 review         | 已被 r25 的结构复刻和 r26 当前 DSL 文档替代                                                                                                                   |
+| r25       | [r25-debug56-structural-recreate-dsl-api-next.md](r25-debug56-structural-recreate-dsl-api-next.md) | debug5/6 结构复刻与 DSL API 建议 | API 建议已落到当前 raw control-flow DSL，阅读时以 quickstart 为准                                                                                             |
+| r26       | [r26-documentation-governance-next.md](r26-documentation-governance-next.md)                       | 文档治理计划                     | 计划已开始执行；当前规则见 [../../documentation-governance.md](../../documentation-governance.md) 和 [../../documentation-map.md](../../documentation-map.md) |
+| layout-r8 | [layout-handover-round-8.md](layout-handover-round-8.md)                                           | 场景 C：多执行泳道真实样本探索   | 下一轮按区块高度驱动实现布局算法                                                                                                                              |
