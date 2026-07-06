@@ -263,7 +263,7 @@ npx tsx tests/composite/ascii-layout.ts "$REF/嵌套.gia" --compact
 
 | 文档 | 内容 | 推荐优先级 |
 |------|------|-----------|
-| `docs/composite-ir/layout-patterns.md` | 编辑器布局规律（25 文件统计） | ⭐ 前置阅读 |
+| `docs/composite-ir/layout-patterns.md` | 当前推荐布局设计准则：视口、层级窗口、语义区块、执行泳道、数据流贴近 | ⭐ 前置阅读 |
 | `docs/architecture/composite/composite-nested-composite-guide.md` | 嵌套复合 GIA 编码规则（pin、compositePins、genericId） | ⭐ 核心参考 |
 | `docs/architecture/composite/ir-representation.md` | 复合定义的 IR JSON 结构 | 编码理解 |
 | `docs/architecture/composite/pipeline-flow.md` | 三阶段管线中复合节点的数据流 | 流程理解 |
