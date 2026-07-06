@@ -38,14 +38,46 @@ export type ResolvedGilFolder = {
   saveLevelDir: string
 }
 
+function getWslLocalLowDir(): string | undefined {
+  const usersRoot = '/mnt/c/Users'
+  if (!existsDir(usersRoot)) return undefined
+  const candidates = fs
+    .readdirSync(usersRoot, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => path.join(usersRoot, d.name, 'AppData', 'LocalLow'))
+    .filter((p) => existsDir(p))
+
+  if (candidates.length === 1) return candidates[0]
+  if (candidates.length > 1) {
+    throw new Error(
+      `[error] multiple WSL LocalLow folders found; set GSTS_LOCALLOW_DIR: ${candidates.join(', ')}`
+    )
+  }
+  return undefined
+}
+
 function getLocalLowDir(): string {
+  const explicit = process.env.GSTS_LOCALLOW_DIR
+  if (explicit) return explicit
+
   const localAppData = process.env.LOCALAPPDATA
-  if (!localAppData) throw new Error('[error] LOCALAPPDATA not found (Windows required)')
-  const appDataDir = path.dirname(localAppData)
-  return path.join(appDataDir, 'LocalLow')
+  if (localAppData) {
+    const appDataDir = path.dirname(localAppData)
+    return path.join(appDataDir, 'LocalLow')
+  }
+
+  const wslLocalLow = getWslLocalLowDir()
+  if (wslLocalLow) return wslLocalLow
+
+  throw new Error(
+    '[error] LOCALAPPDATA not found; set GSTS_LOCALLOW_DIR or run under Windows/WSL with /mnt/c mounted'
+  )
 }
 
 function getBeyondLocalRoot(region: GstsGameRegion): string {
+  const explicit = process.env.GSTS_BEYOND_LOCAL_ROOT
+  if (explicit) return explicit
+
   const localLow = getLocalLowDir()
   if (region === 'China') return path.join(localLow, 'miHoYo', '原神', 'BeyondLocal')
   return path.join(localLow, 'miHoYo', 'Genshin Impact', 'BeyondLocal')
