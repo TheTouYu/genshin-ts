@@ -70,8 +70,8 @@ export function buildExecutionGraph(irNodes: IRNode[]) {
           node.type === 'assembly_list' || node.type === 'assembly_dictionary'
             ? toIndex + 1
             : node.type === '__composite_call__'
-            ? toIndex - 1
-            : toIndex
+              ? toIndex - 1
+              : toIndex
         dataConnections.push({
           fromId: dataNodeId,
           toId: node.id,
@@ -161,6 +161,50 @@ function updateEventHeight(
   }
 }
 
+/**
+ * Compute the aggregate extra vertical space needed for data chains
+ * in the exec subtree rooted at `nodeId`. Direct data inputs and longer
+ * data ancestors add conservative allowance below their exec consumer.
+ */
+function computeSubtreeDataExtraHeight(
+  nodeId: NodeId,
+  dataBlockHeightMap: Map<NodeId, number>,
+  execChildrenMap: Map<NodeId, NodeId[]>,
+  memo: Map<NodeId, number>,
+  visiting = new Set<NodeId>()
+): number {
+  const cached = memo.get(nodeId)
+  if (cached !== undefined) return cached
+  if (visiting.has(nodeId)) return 0
+
+  visiting.add(nodeId)
+  let total = dataBlockHeightMap.get(nodeId) ?? 0
+
+  for (const child of execChildrenMap.get(nodeId) ?? []) {
+    total += computeSubtreeDataExtraHeight(
+      child,
+      dataBlockHeightMap,
+      execChildrenMap,
+      memo,
+      visiting
+    )
+  }
+
+  visiting.delete(nodeId)
+  memo.set(nodeId, total)
+  return total
+}
+
+/**
+ * Layout one exec node and all its descendants using block-height-aware
+ * branch placement.  Returns the maximum Y coordinate occupied by the
+ * subtree rooted at `nodeId`.
+ *
+ * Sibling branches are positioned below the previous sibling's subtree
+ * block-bottom plus a context-dependent visual buffer, instead of using
+ * a fixed per-index branch gap.  This matches the Round 8 requirement:
+ * exec fan-out lanes are driven by semantic block height.
+ */
 function layoutExecutionChain(
   nodeId: NodeId,
   depth: number,
@@ -169,9 +213,12 @@ function layoutExecutionChain(
   laneOffset: number,
   execChildrenMap: Map<NodeId, NodeId[]>,
   state: ReturnType<typeof createLayoutState>,
-  config: LayoutConfig
-) {
-  if (state.positions.has(nodeId)) return
+  config: LayoutConfig,
+  dataBlockHeightMap: Map<NodeId, number>,
+  dataExtraHeightMemo: Map<NodeId, number>
+): number {
+  const existingPos = state.positions.get(nodeId)
+  if (existingPos) return existingPos[1] + config.rowHeight
 
   const row = Math.floor(depth / config.maxColumns)
   const column = depth % config.maxColumns
@@ -187,20 +234,81 @@ function layoutExecutionChain(
 
   state.unplacedNodes.delete(nodeId)
 
+  // Default subtree bottom: this node plus one row height
+  let subtreeMaxY = y + config.rowHeight
+
   const children = execChildrenMap.get(nodeId) ?? []
-  const branchGap = Math.trunc(config.rowHeight * 0.9)
-  children.forEach((child, idx) =>
-    layoutExecutionChain(
-      child,
+  if (children.length === 0) return subtreeMaxY
+
+  // --- Determine spacing intent ---
+  // Main swim lanes (depth 0 = direct children of event) use wide spacing
+  // Multi-outlet columns (>3 children, not at root level) use tight spacing
+  // Normal forks (2-3 children, not at root level) use medium spacing
+  const isRootSwimLane = depth === 0
+  let branchBaseSpacing: number
+  if (isRootSwimLane) {
+    branchBaseSpacing = 480
+  } else if (children.length > 3) {
+    branchBaseSpacing = 350
+  } else {
+    branchBaseSpacing = 400
+  }
+
+  // --- First child: place on the main lane ---
+  const child0MaxY = layoutExecutionChain(
+    children[0],
+    depth + 1,
+    baseY,
+    eventIndex,
+    actualLaneOffset,
+    execChildrenMap,
+    state,
+    config,
+    dataBlockHeightMap,
+    dataExtraHeightMemo
+  )
+  subtreeMaxY = Math.max(subtreeMaxY, child0MaxY)
+
+  // --- Subsequent children: position below previous sibling's block ---
+  let prevSubtreeMaxY = child0MaxY
+
+  for (let idx = 1; idx < children.length; idx++) {
+    const prevChildId = children[idx - 1]
+
+    // Extra vertical allowance for data chains of the previous sibling
+    const extraDataHeight = computeSubtreeDataExtraHeight(
+      prevChildId,
+      dataBlockHeightMap,
+      execChildrenMap,
+      dataExtraHeightMemo
+    )
+
+    // The new lane offset places this child below the previous subtree's
+    // occupied area (prevSubtreeMaxY) plus the base spacing and extra
+    // data height.  Minimum: never go above the current actualLaneOffset.
+    const newLaneOffset = Math.max(
+      actualLaneOffset,
+      prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + extraDataHeight
+    )
+
+    const childMaxY = layoutExecutionChain(
+      children[idx],
       depth + 1,
       baseY,
       eventIndex,
-      actualLaneOffset + idx * branchGap,
+      newLaneOffset,
       execChildrenMap,
       state,
-      config
+      config,
+      dataBlockHeightMap,
+      dataExtraHeightMemo
     )
-  )
+
+    subtreeMaxY = Math.max(subtreeMaxY, childMaxY)
+    prevSubtreeMaxY = childMaxY
+  }
+
+  return subtreeMaxY
 }
 
 function placeDataNearConsumers(
@@ -330,11 +438,15 @@ function expandExecGapsForDataChains(
     )
     if (dataAncestors.length === 0) continue
 
-    const directDataInputs = (dataParentsMap.get(consumerId) ?? []).filter((id) => state.positions.has(id))
+    const directDataInputs = (dataParentsMap.get(consumerId) ?? []).filter((id) =>
+      state.positions.has(id)
+    )
     const dataDepths = computeDataDepths(dataAncestors, dataParentsMap, new Set(dataAncestors))
     const maxDepth = Math.max(...dataAncestors.map((id) => dataDepths.get(id) ?? 0), 0)
 
-    const execParents = (execParentsMap.get(consumerId) ?? []).filter((id) => state.positions.has(id))
+    const execParents = (execParentsMap.get(consumerId) ?? []).filter((id) =>
+      state.positions.has(id)
+    )
     const parentX = execParents.length
       ? Math.max(...execParents.map((id) => state.positions.get(id)![0]))
       : consumerPos[0] - config.columnWidth
@@ -405,12 +517,50 @@ export function layoutPositions(
   const { execNodes, roots, execChildrenMap, dataConsumersMap, dataConnections } = graphInfo
   const state = createLayoutState(irNodes)
 
+  const dataParentsMap = new Map<NodeId, NodeId[]>()
+  for (const conn of dataConnections) {
+    const parents = dataParentsMap.get(conn.toId) ?? []
+    parents.push(conn.fromId)
+    dataParentsMap.set(conn.toId, parents)
+  }
+
+  // Estimate the vertical footprint of data chains attached to each exec node before placing lanes.
+  const dataBlockHeightMap = new Map<NodeId, number>()
+  for (const node of irNodes) {
+    const directDataInputs = dataParentsMap.get(node.id) ?? []
+    const dataAncestorCount = collectDataAncestors(node.id, dataParentsMap).size
+    const directInputExtra = Math.max(0, directDataInputs.length - 1) * 200
+    const chainExtra = Math.max(0, dataAncestorCount - 1) * 120
+    dataBlockHeightMap.set(node.id, directInputExtra + chainExtra)
+  }
+
+  const dataExtraHeightMemo = new Map<NodeId, number>()
+  for (const execNodeId of execNodes) {
+    computeSubtreeDataExtraHeight(
+      execNodeId,
+      dataBlockHeightMap,
+      execChildrenMap,
+      dataExtraHeightMemo
+    )
+  }
+
   let currentBaseY = 0
   roots.forEach((root, eventIndex) => {
     currentBaseY = state.eventMaxYCoord.size
       ? Math.max(...state.eventMaxYCoord.values()) + config.eventGap
       : 0
-    layoutExecutionChain(root.id, 0, currentBaseY, eventIndex, 0, execChildrenMap, state, config)
+    layoutExecutionChain(
+      root.id,
+      0,
+      currentBaseY,
+      eventIndex,
+      0,
+      execChildrenMap,
+      state,
+      config,
+      dataBlockHeightMap,
+      dataExtraHeightMemo
+    )
 
     // 使用 while 循环，只有当放置了新节点时才继续
     while (placeDataNearConsumers(dataConsumersMap, execNodes, state)) {
@@ -418,12 +568,6 @@ export function layoutPositions(
     }
   })
 
-  const dataParentsMap = new Map<NodeId, NodeId[]>()
-  for (const conn of dataConnections) {
-    const parents = dataParentsMap.get(conn.toId) ?? []
-    parents.push(conn.fromId)
-    dataParentsMap.set(conn.toId, parents)
-  }
   expandExecGapsForDataChains(dataParentsMap, execChildrenMap, execNodes, state, config)
 
   // 剩余游离节点（无消费者或无关联）统一放到左上角网格
