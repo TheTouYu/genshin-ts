@@ -1,6 +1,11 @@
 # IR JSON 复合节点表示 — 文档索引
 
-> 本文档集完整描述复合节点从运行时捕获 → IR JSON 序列化 → GIA 编码全链路的数据结构。基于 **user_edit 目录全部 40 个真实 GIA 文件**的逆向验证 + **实用/log系统.gia**、**复杂gia/物理运动.gia**、**复杂gia/弹球.gia + 传球.gia** 的三轮交叉核验。
+> 状态：已验证 / 当前推荐入口
+> 来源：真实 GIA 验证 + 当前代码实现对照
+> 最近校验：2026-07-06
+> 适用范围：真实 GIA 逆向结论；与 gsts 当前实现对照时需看具体章节标注
+
+> 本文档集描述复合节点从真实 GIA 逆向结论到 gsts 当前实现对照的知识体系。真实 GIA 结论基于 `user_edit/`、`复杂gia/`、`实用/` 等样本的多轮验证；代码实现结论必须回指到当前源码或测试。
 > >
 > > 最新更新：已验证三种 GIA 执行模型（事件驱动/信号驱动/计算流水线）和跨文件共享复合库。
 >
@@ -15,6 +20,8 @@
 | **分析新 GIA 文件** | → [analyze-workflow.md](analyze-workflow.md)（从 Phase 0 开始） |
 | **检查还有哪些文档缺口** | → [todo.md §3（文档更新计划）](todo.md#3-文档更新计划下一轮) |
 | **了解新版低层控制流 DSL** | → [Raw Control-Flow DSL Quickstart](../architecture/composite/raw-control-flow-dsl-quickstart.md)（`f.entry()`/`f.node()`/`f.link()`/`f.inflow()`/`f.outflow()`） |
+| **查看文档状态和来源规则** | → [documentation-governance.md](../documentation-governance.md) |
+| **按任务找当前可信文档** | → [documentation-map.md](../documentation-map.md) |
 | **查看待验证的疑点** | → [todo.md §6（需后续验证的疑点）](todo.md#-需后续验证的疑点) |
 | **判断我的发现是否已有记录** | → 见下方文件列表 + todo.md §6 疑点表 |
 | **gsts 编译器要改什么才能匹配编辑器输出** | → [gsts-compiler-gap.md](gsts-compiler-gap.md)（合规清单） |

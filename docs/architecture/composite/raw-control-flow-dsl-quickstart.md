@@ -1,5 +1,10 @@
 # Raw Control-Flow DSL Quickstart
 
+> 状态：当前推荐
+> 来源：当前代码实现 + recreate-debug5/6 验证
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前低层手动控制流 DSL
+
 这份文档介绍新版低层控制流 DSL。它适合两类场景：
 
 - 你想复刻游戏编辑器里抓出来的 GIA 拓扑。

@@ -1,5 +1,10 @@
 # 捕获机制：复合节点的核心创新
 
+> 状态：当前实现 / 部分旧例需迁移
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前复合捕获机制。若正文出现 `leafMarks` / `outflowExitNodes`，按当前实现理解为历史字段；当前权威结构是 `inflowMarks` / `outflowMarks`。
+
 > 本文档详细描述复合节点在阶段二执行期间如何通过"捕获"（Capture）机制将 build 回调中的节点创建操作记录为独立的子图结构。
 > 参见：[DSL API](./dsl-api.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md)
 
@@ -80,10 +85,12 @@ type CompositeCapture = {
   edges: Record<number, NextConnection[]>  // 节点间执行流连线
   outputValues: Record<string, value>  // build 返回值的 pin 元数据
   isPureData: boolean                  // execNodes 为空时为 true
-  outflowExitNodes?: number[]          // 自动检测的多 OutFlow 出口
-  leafMarks?: Record<number, number>   // 显式 leaf() 标记
+  inflowMarks?: Array<{ name: string; innerNodeId: number; inflowPinIndex: number }>
+  outflowMarks?: Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>
 }
 ```
+
+`f.leaf(i)` 仍是兼容路径，但新代码应使用 `f.outflow(name, ref, outflowPinIndex?)`；多入口复合使用 `f.inflow(name, ref, inflowPinIndex?)`。
 
 ### 3.1 `__composite_capture__` 根节点
 
@@ -145,8 +152,8 @@ for (const def of compositeRegistry.getAll()) {
       edges: flow.edges,
       outputValues: outputs ?? {},
       isPureData: flow.execNodes.length === 0,
-      outflowExitNodes,          // 自动检测
-      leafMarks: flow.__leafMarks  // 显式标记
+      inflowMarks: flow.__inflowMarks,
+      outflowMarks: flow.__outflowMarks
     }
   }
 }
@@ -183,13 +190,14 @@ if (meta && meta.kind === 'pin') {
 }
 ```
 
-### 4.4 多 OutFlow 的优先级逻辑
+### 4.4 InFlow / OutFlow 显式标记
 
-`addOutFlowCompositePins()` 按优先级选择：
+当前实现使用显式标记生成复合控制流接口：
 
-1. **leafMarks**（最高）：build 中显式调用了 `f.leaf(n)`→ 按 `outflowIndex → innerNodeId` 映射
-2. **outflowExitNodes**（自动）：未显式标记时，找所有 exec 节点中无下游边的节点，若超过 1 个则按序排列
-3. **默认**：取 execNodes 的最后一个节点作为唯一 OutFlow
+1. **`inflowMarks`**：build 中调用 `f.inflow(name, ref, inflowPinIndex?)`，把外部 InFlow 映射到内部节点 InFlow。
+2. **`outflowMarks`**：build 中调用 `f.outflow(name, ref, outflowPinIndex?)`，把内部节点 OutFlow 暴露为外部 OutFlow。
+3. **兼容路径**：`f.leaf(i)` 会写入 `outflowMarks`，名称为 `outflow_${i}`，仅用于旧代码兼容。
+4. **默认路径**：没有显式 InFlow/OutFlow 时，执行型复合仍会生成单入口/单出口的默认接口。
 
 ---
 

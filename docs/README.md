@@ -1,8 +1,22 @@
 # GS-TS 文档体系
 
+> 状态：当前推荐
+> 来源：文档结构审计
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前文档体系
+
+## 治理入口
+- [`documentation-governance.md`](documentation-governance.md) — 文档状态、来源、验证和归档规则
+- [`documentation-map.md`](documentation-map.md) — 按任务查找当前可信文档
+
 ## 导航入口
 - [`docs/composite-ir/index.md`](composite-ir/index.md) — 复合 IR 知识体系总入口（最活跃、最权威）
 - [`docs/architecture/`](architecture/) — 编译管线架构文档
+
+## 用户文档和内部文档边界
+- `docs/docs/en/` 和 `docs/docs/zh/` 是 Rspress 用户文档站，面向普通 DSL 使用者。
+- `docs/architecture/`、`docs/composite-ir/`、`docs/traces/`、`docs/gia-tools-reference.md` 是内部开发和逆向分析文档。
+- 内部逆向结论不要直接搬进用户文档；可迁移 API 用法和通用调试流程，但应剥离内部样本路径、GIA 字段细节和未验证推测。
 
 ## 文档分体系
 
@@ -27,6 +41,8 @@
 
 ### 分析工具 (tools/)
 - `decode-gia.ts` — GIA 解码为 JSON
+- `trace-exec-flow.ts --io` — 控制流输入/输出汇总，适合拓扑比对
+- `trace-dataflow.ts` — 数据流追踪，支持跨复合边界
 - `analyze-gia-arch.ts` — GIA 架构分析
 - `analyze-composite-gia.ts` — 复合 GIA 分析
 - `gap-scan.ts` — 编译器与参考文件缺口扫描

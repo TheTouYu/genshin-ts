@@ -1,5 +1,10 @@
 # DSL API：复合节点的语法糖与类型系统
 
+> 状态：当前实现
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前复合节点用户面 API
+
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
 > 参见：[捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | **[Raw 控制流 DSL 快速上手](./raw-control-flow-dsl-quickstart.md)** | **[控制流 API 实战速查](./control-flow-api-cookbook.md)** (顺序执行 / 多 OutFlow 派发 / 真实 GIA 样本对照)
 
@@ -90,25 +95,22 @@ const { sum } = f.callComposite(B, { y: val })
 
 ### 多 OutFlow
 
-复合节点可以有多个执行流出口。build 中使用 `f.leaf(outflowIndex)` 标记：
+复合节点可以有多个执行流出口。当前推荐在 `defineComposite` 中声明 `outflows`，并在 build 中使用 `f.outflow(name, source, sourceOutflowIdx?)` 绑定内部节点出口：
 
 ```typescript
 const Condition = g.defineComposite('ConditionCheck', {
   inputs: { x: { type: 'int' } },
+  outflows: [{ name: 'yes' }, { name: 'no' }],
   outputs: {},
   build: (args, f) => {
-    const cond = f.greaterThan(args.x, f.int(0))
-    f.doubleBranch(cond,
-      () => { f.leaf(0) },    // x > 0 → OutFlow 0
-      () => { f.leaf(1) }     // else → OutFlow 1
-    )
+    const branch = f.node('double_branch', [args.x])
+    f.outflow('yes', branch, 0)
+    f.outflow('no', branch, 1)
   }
 })
 ```
 
-`f.leaf(outflowIndex)` 将当前执行尾节点与指定的 outflow index 关联。该信息记录在 flow 的 `__leafMarks` 临时存储中，捕获时收集到 `CompositeCapture.leafMarks`。
-
-若未显式调用 `leaf()`，捕获阶段自动检测叶子节点（有 exec 产出但无下游边的节点），若超过 1 个则按 execNodes 中的顺序生成 `outflowExitNodes`。
+`f.outflow(...)` 会记录到 `CompositeCapture.outflowMarks`，再生成 `CompositeDefIR.outflows` 和 `compositePins`。`f.leaf(outflowIndex)` 仍可用，但只是 deprecated 兼容路径，会生成 `outflow_${index}` 这种兼容名称；新文档和新代码不应再依赖旧的 `leafMarks` / `outflowExitNodes` 机制。
 
 **调用方**通过 `connectOutFlowBranch` 连接特定 OutFlow 分支（在下层自动完成）：
 

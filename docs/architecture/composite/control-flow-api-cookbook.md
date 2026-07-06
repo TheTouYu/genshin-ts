@@ -1,5 +1,10 @@
 # 控制流复合 API 实战速查 (顺序执行 / 多 OutFlow 派发)
 
+> 状态：部分已验证 / 部分待验证
+> 来源：真实 GIA 验证 + 当前代码实现 + 历史实战记录
+> 最近校验：2026-07-06
+> 适用范围：控制流模式参考。新代码优先从 `raw-control-flow-dsl-quickstart.md` 开始；本文中标注“感觉正确”或“待验证”的内容仍需单独核验。
+
 > **本文档定位**: 衔接 `dsl-api.md` (基础 API) 与 `multi-outflow-composite-guide.md` (GIA 端分析)。
 > 专门记录"**控制流类复合**"的 DSL 写法 — 顺序执行、条件branch、Multiple Branches、Multi-InFlow 状态机。
 > 所有 API 用法均来自 `tests/composite/` 实际测试源码 + 真实 GIA 文件逆向验证。
@@ -553,16 +558,15 @@ f.doubleBranch(condition, () => {
 | `f.fork` 嵌套 | `f.fork` 内能否再 `f.fork`? | ❌ 需手动验证 |
 | `f.branchExec` 后的 tail 状态 | 调用后 tail 是被推进还是被冻结? 决定后续代码接在哪里 | ❌ 需手动验证 |
 
-### 8.2 已知可能存在的 bug
+### 8.2 当前实现状态更新
 
-参考 `docs/architecture/composite/multi-outflow-composite-guide.md:7-9` 的现有陈述:
+`multi-outflow-composite-guide.md` 早期曾记录“当前复合节点实现仅支持 0 或 1 个 OutFlow”。这已经是历史状态。
 
-> 当前复合节点实现仅支持 0 或 1 个 OutFlow。游戏支持有**多个命名 OutFlow** 的控制流复合节点（如"顺序执行"：1 个入口 → 4 个出口，每个出口可连不同下游）。
-
-**这意味着**:
-- 多个 OutFlow 的复合在**编译器内部可能没有完全实现**
-- 测试源码中出现的 `branchExec`/`connectOutFlow` 可能**编译时正确, 运行时未验证**
-- 真实游戏中是否正常工作, 取决于 GIA 注入后的引擎兼容性
+**当前状态**:
+- 多 OutFlow 已由 `f.outflow(name, source, idx?)` / `outflowMarks` 支持。
+- 多 InFlow 已由 `f.inflow(name, target, idx?)` / `inflowMarks` 支持。
+- 新建低层控制流复合优先使用 [`raw-control-flow-dsl-quickstart.md`](./raw-control-flow-dsl-quickstart.md) 的 `f.entry()` / `f.node()` / `f.link()` / `f.inflow()` / `f.outflow()`。
+- 仍标为“待验证”的项目只表示游戏运行时语义或特定 API 边界未完全确认，不再表示编译器缺少多 OutFlow / 多 InFlow 基础能力。
 
 ### 8.3 验证工具
 

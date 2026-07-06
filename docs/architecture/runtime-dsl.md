@@ -298,6 +298,11 @@ g.defineComposite(name, {
 
 ### 6.2 捕获机制
 
+> 状态：部分过期
+> 来源：历史实现说明
+> 最近校验：2026-07-06
+> 说明：下面的 `CompositeCapture` 示例说明捕获意图；当前权威字段是 `inflowMarks` / `outflowMarks`，并通过 `f.inflow()` / `f.outflow()` 显式绑定多 InFlow / 多 OutFlow。
+
 `build` 函数执行时，所有通过 `f.method()` 创建的节点被记录到 `CompositeCapture` 中：
 
 ```typescript
@@ -307,8 +312,8 @@ type CompositeCapture = {
   edges: Record<number, NextConnection[]>  // 节点间的执行连线
   outputValues: Record<string, value>     // build 返回的输出值
   isPureData: boolean               // 是否为纯函数（无 exec 节点）
-  outflowExitNodes?: number[]       // 多 Outflow 出口
-  leafMarks?: Record<number, number> // 显式的 outflow 标记
+  inflowMarks?: Array<{ name: string; innerNodeId: number; inflowPinIndex: number }>
+  outflowMarks?: Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>
 }
 ```
 

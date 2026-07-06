@@ -1,10 +1,15 @@
 # 多 OutFlow 复合节点实现指南
 
-> **API 设计部分已合并到** [`dsl-api.md`](dsl-api.md) 和 **[`control-flow-api-cookbook.md`](./control-flow-api-cookbook.md)** (新增, 含顺序执行 / 物理运动控制器等真实样本对照)。本文档专注于参考文件结构分析和修改文件清单。
+> 状态：部分过期 / 历史分析
+> 来源：真实 GIA 参考文件分析 + 旧实现计划
+> 最近校验：2026-07-06
+> 适用范围：真实 GIA 文件结构分析仍有参考价值；“当前实现仅支持 0/1 OutFlow”等实现判断已过期。
+>
+> **当前权威 API**：低层控制流请看 [`raw-control-flow-dsl-quickstart.md`](./raw-control-flow-dsl-quickstart.md)，复合 API 请看 [`dsl-api.md`](dsl-api.md)。当前代码已支持多 OutFlow、多 InFlow、`f.inflow()`、`f.outflow()` 和 detached raw node。本文档保留为参考文件结构和历史实现清单。
 
 ## 背景
 
-当前复合节点实现仅支持 0 或 1 个 OutFlow。游戏支持有**多个命名 OutFlow** 的控制流复合节点（如"顺序执行"：1 个入口 → 4 个出口，每个出口可连不同下游）。
+历史背景：早期复合节点实现仅支持 0 或 1 个 OutFlow，而游戏支持有**多个命名 OutFlow** 的控制流复合节点（如"顺序执行"：1 个入口 → 4 个出口，每个出口可连不同下游）。当前 gsts 实现已补齐多 OutFlow，并新增 `f.outflow(name, source, idx?)` 作为推荐出口声明方式。
 
 ## 参考文件
 
@@ -117,9 +122,9 @@ outflows: hasExec
   ? [{ name: '', visible: true, index: 0, pinIndex: 4 }]
   : [],
 ```
-只生成 0 或 1 条 outflows。
+历史状态：当时只生成 0 或 1 条 outflows。
 
-**需要改**：支持多条 outflows，从捕获数据中获取 OutFlow 的数量、名称和 pinIndex。
+**当前状态**：已支持多条 outflows，优先从 `outflowMarks` / `f.outflow()` 获取 OutFlow 的名称、数量和 pinIndex。
 
 **compositePins 计算**（第 100-141 行）：当前只计算 1 条 OutFlow 映射。需要遍历所有 OutFlow，为每个建立 outer→inner 映射。
 
@@ -159,9 +164,9 @@ for (const outflow of cdef.outflows) {
 
 **Post-encoding exec flow 修正**（第 647-678 行）：
 
-当前逻辑移除所有复合的 OutFlow。需要改为：
-- 保留所有合法的 OutFlow pins（与 CompositeDef.outflows 对应）
-- 只为"多余的" OutFlow（flow 连接产生但 CompositeDef 未声明）做处理
+历史状态：当时 post-encoding 逻辑会移除所有复合的 OutFlow。
+
+**当前状态**：主图构建会按 `CompositeDef.outflows` 保留合法 OutFlow pins；这段保留为历史实现计划，不再描述当前代码。
 
 ## 实现难点
 

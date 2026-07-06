@@ -1,5 +1,10 @@
 # 复合节点 IR 类型定义
 
+> 状态：已验证 / 当前实现对照
+> 来源：真实 GIA 验证 + 当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：真实 GIA 逆向结论和 gsts 当前 IR 类型。历史章节里的 `leafMarks` / `outflowExitNodes` 应按当前实现迁移为 `outflowMarks` / `inflowMarks`。
+
 覆盖：CompositeDefIR、CompositePinEntry、CompositeCallMeta、compositeDataEdges、CompositeCapture、SignalDef、structureDef。
 
 ## 1. CompositeDefIR — 复合节点定义
@@ -159,12 +164,12 @@ interface CompositePinEntry {
 `toCompositeDefIR()`（`composite_registry.ts:114-248`）：
 
 1. **inputs/outputs**：从声明转换，pinIndex = base + index
-2. **inflows**：有 exec 节点 → 1 条
-3. **outflows**：根据 `leafMarks` 或 `outflowExitNodes` 数量
+2. **inflows**：优先使用 `inflowMarks`；没有显式标记但有 exec 节点时生成默认单 InFlow
+3. **outflows**：优先使用 `outflowMarks`；没有显式标记但有 exec 节点时生成默认单 OutFlow
 4. **implNodes**：execNodes + dataNodes 合并，参数转 IR 字面量或连接
 5. **compositePins**：
-   - InFlow → 首个 exec node 的 InFlow
-   - OutFlow → 遍历 leafMarks 或 outflowExitNodes
+   - InFlow → 遍历 `inflowMarks` 或默认入口
+   - OutFlow → 遍历 `outflowMarks` 或默认出口
    - InParam → 扫描所有内部节点 arg 中的 `__captureInputName`
    - OutParam → 读取 outputValues 中每个值的 metadata
 
@@ -226,8 +231,8 @@ type CompositeCapture = {
   edges: Record<number, NextConnection[]>  // 执行连线
   outputValues: Record<string, value>  // build() 返回值（含 pin 元数据）
   isPureData: boolean                  // 是否纯数据
-  outflowExitNodes?: number[]          // 多出口节点 ID 列表
-  leafMarks?: Record<number, number>   // leaf(outflowIndex) 标记
+  inflowMarks?: Array<{ name: string; innerNodeId: number; inflowPinIndex: number }>
+  outflowMarks?: Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>
 }
 ```
 

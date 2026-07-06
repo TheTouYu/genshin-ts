@@ -1,5 +1,10 @@
 # GIA 分析工具索引
 
+> 状态：当前推荐
+> 来源：当前工具实现 + 真实 GIA 分析流程
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前工具链
+
 > 本项目有约 30 个 GIA 分析/调试脚本，分散在 `tests/composite/` 和 `tools/` 下。本文按**使用场景**组织，告诉你遇到什么问题该用哪个工具。
 
 ---
@@ -12,7 +17,9 @@
 
 ```
 npx tsx tests/composite/trace-exec-flow.ts <文件.gia>
+npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --io
 npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --json [--depth=3]
+npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --json --io --depth=1
 npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --detail=5
 npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --expand=<复合名>
 ```
@@ -22,6 +29,7 @@ npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --expand=<复合名>
 - 渲染完整执行流树（含分支名：Double Branch 显示"是/否"，Multiple Branches 显示 case 值）
 - `--expand` **穿透复合边界**，展开 impl 图内部事件源分析
 - `--json` 结构化输出，适合程序消费
+- `--io` 输出每个节点的控制流输入/输出汇总，适合快速比对多 InFlow、多 OutFlow 和 fan-in/fan-out
 - `--detail=N` 查看任意节点的完整引脚信息
 - 孤悬节点检测
 
@@ -30,11 +38,17 @@ npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --expand=<复合名>
 # 看整体执行骨架
 npx tsx tests/composite/trace-exec-flow.ts 物理运动.gia
 
+# 看每个节点的控制流输入/输出
+npx tsx tests/composite/trace-exec-flow.ts 物理运动.gia --io
+
 # 钻进复合节点看内部执行流
 npx tsx tests/composite/trace-exec-flow.ts 传球.gia --expand=监听信号
 
 # JSON 输出供后续分析
 npx tsx tests/composite/trace-exec-flow.ts 弹球.gia --json --depth=3
+
+# JSON 输出控制流 I/O，适合做小范围 diff
+npx tsx tests/composite/trace-exec-flow.ts 弹球.gia --json --io --depth=1
 ```
 
 ### 1.2 `trace-dataflow.ts`

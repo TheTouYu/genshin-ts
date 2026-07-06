@@ -92,7 +92,7 @@ npx tsx tests/composite/test-composite-part3.ts
 - `CompositeCapture` 的 `isPureData` 判定
 - `compositePins` 的映射正确性（InParam 扫描、OutParam 元数据）
 - `toCompositeDefIR()` 的 `implNodes` 和 `implEdges` 结构
-- 多 OutFlow 的 `leafMarks` 优先级
+- 多 OutFlow 的 `outflowMarks` / `f.outflow()` 优先级（旧文档中的 `leafMarks` 属于历史实现）
 - 单 OutFlow 的默认行为
 
 ---

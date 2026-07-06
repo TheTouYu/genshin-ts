@@ -17,3 +17,4 @@ worktrees/
 /.omp
 /.vscode
 /.omo/run-continuation
+/.pi-subagents
