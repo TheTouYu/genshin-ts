@@ -1,5 +1,12 @@
 # 复合节点 Worktree 操作手册
 
+> 状态：部分过期 / 历史记录
+> 来源：开发过程工作流记录
+> 最近校验：2026-07-06
+> 适用范围：记录旧版 worktree 隔离工作流。当前 raw control-flow DSL 已改变 API 形态，本文不作为新会话当前任务入口。
+>
+> 当前权威入口：[documentation-map.md](../documentation-map.md)、[raw-control-flow-dsl-quickstart.md](../architecture/composite/raw-control-flow-dsl-quickstart.md)、[dsl-api.md](../architecture/composite/dsl-api.md)
+
 ## 给新会话的进入指引
 
 每次新会话开始时，按以下步骤进入：

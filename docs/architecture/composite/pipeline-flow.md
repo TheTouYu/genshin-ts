@@ -1,7 +1,12 @@
 # 管线追踪：三阶段中的复合节点
 
+> 状态：当前实现
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前复合节点编译管线
+
 > 本文档追踪复合节点定义和调用如何流经编译管线的三个阶段——从 TypeScript 源文件到最终的 `.gia` 二进制文件。
-> 参见：[DSL API](./composite/dsl-api.md) | [捕获机制](./composite/capture-mechanism.md) | [IR 表示](./composite/ir-representation.md) | [GIA 编码](./composite/gia-encoding.md)
+> 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [IR 表示](./ir-representation.md) | [GIA 编码](./gia-encoding.md)
 
 ---
 

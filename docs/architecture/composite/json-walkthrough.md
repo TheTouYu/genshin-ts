@@ -1,5 +1,10 @@
 # 复合节点 IR JSON 产物解读
 
+> 状态：当前实现
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前 Stage 2 IR JSON 调试
+
 > 本文档教你如何阅读和理解复合节点编译产生的 IR JSON 文件——这是调试和验证复合节点正确性的核心工具。
 > 参见：[IR 表示](./ir-representation.md)（类型定义参考） | [捕获机制](./capture-mechanism.md) | [DSL API](./dsl-api.md)
 

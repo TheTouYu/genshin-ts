@@ -1,5 +1,10 @@
 # 列表参数参考文件分析：类型转化-full-v2.gia
 
+> 状态：历史记录
+> 来源：2026-07-05 参考文件逆向分析
+> 最近校验：2026-07-06
+> 适用范围：单个参考 GIA 文件的 decode 分析，帮助理解 editor 输出中的 list 类型编码规则；不作为当前 API 教程。
+>
 > 分析日期：2026-07-05
 > 参考文件：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/user_edit/类型转化-full-v2.gia`
 > 游戏版本：6.7.0

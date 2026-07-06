@@ -56,8 +56,8 @@
 | 当前推荐 | 兼容旧名或旧方式 | 说明 |
 |---|---|---|
 | `f.entry()` | `f.eventMarker()` | 获取当前 event marker。旧名仍可用。 |
-| `f.link(src, outIdx, target, inIdx?)` | `f.linkTo(...)` | 推荐新代码使用 `link`；旧名仍可用。 |
-| `f.node()` / `f.rawExecNode()` | `f.registerExecNode()` | `node()` 创建 detached raw exec node；`registerExecNode()` 会自动串联当前 tail。 |
+| `f.link(src, outIdx, target, inIdx?)` | `f.linkTo(...)` | 用户文档和新示例优先使用 `link`。当前代码中 `link` 委托到 `linkTo`；旧名仍可用。 |
+| `f.node()` / `f.rawExecNode()` | `f.registerExecNode()` | `node()` 创建 detached raw exec node；`registerExecNode()` 会自动串联当前 tail。两者语义不同，不是简单同名替换。 |
 | `f.outflow(name, source, idx?)` | `f.leaf(idx)` | `leaf()` 是 deprecated 兼容路径。 |
 | `f.inflow(name, target, idx?)` | 无 | 多 InFlow composite 的当前推荐入口。 |
 

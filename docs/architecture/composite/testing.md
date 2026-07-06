@@ -1,5 +1,10 @@
 # 测试体系：复合节点的验证策略
 
+> 状态：当前实现
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前复合节点测试脚本和验证流程
+
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
 > 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [管线追踪](./pipeline-flow.md)
 
@@ -13,7 +18,7 @@
 npx tsx tests/composite/demo_addsub2.ts
 ```
 
-该脚本完整展示了 TS 定义 → 运行时捕获 → IR JSON → GIA 编码的全流程，对应 `ts_g_define_加减运算2.gia` 参考文件的结构。参见：[dsl-api.md](./composite/dsl-api.md) | [捕获机制](./composite/capture-mechanism.md)
+该脚本完整展示了 TS 定义 → 运行时捕获 → IR JSON → GIA 编码的全流程，对应 `ts_g_define_加减运算2.gia` 参考文件的结构。参见：[dsl-api.md](./dsl-api.md) | [捕获机制](./capture-mechanism.md)
 
 ## 1. 测试文件位置
 

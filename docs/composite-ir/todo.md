@@ -1,5 +1,10 @@
 # 文档待办清单
 
+> 状态：历史记录
+> 来源：多轮 GIA 文件逆向分析 + 开发过程记录
+> 最近校验：2026-07-06
+> 适用范围：记录多轮分析的完成状态和待验证疑点。不作为当前 API 教程；当前入口见 [documentation-map.md](../documentation-map.md)。
+
 > 基于 `实用/log系统.gia`（90KB, 48 CompositeDefs）、`复杂gia/物理运动.gia`（118KB, 50 CompositeDefs）、`复杂gia/弹球.gia`（55KB, 33 CompositeDefs）和`复杂gia/传球.gia`（21KB, 14 CompositeDefs）的三轮联合分析。
 >
 > 更新于 2026-06-30 — 已完成三轮分析（log系统 核验通过，物理运动 完整文档化，弹球+传球 跨文件对比）。
@@ -223,7 +228,7 @@
 **核心内容**:
 - 关键概念纠正: 顺序执行 ≠ 并行, 而是**严格串行** (按 impl 内 connects 数组顺序)
 - 4 种控制流复合的触发行为对照 (顺序执行 / Multiple Branches / Double Branch / Multi-InFlow)
-- 6 个 f.* API 的完整实战写法 (f.fork, f.connectOutFlow, f.doubleBranch, f.multipleBranches, f.registerExecNode, f.branchExec, f.leaf)
+- 6 个 f.* API 的完整实战写法（历史列表：f.fork, f.connectOutFlow, f.doubleBranch, f.multipleBranches, f.registerExecNode, f.branchExec, f.leaf；当前新代码优先看 `f.node()` / `f.link()` / `f.inflow()` / `f.outflow()`）
 - 物理运动.gia 真实样本的 GIA 形态 ↔ 感觉正确的 API 写法对照
 - **"感觉正确"标注**: 8 项未验证的 API 行为 + 已知可能存在的 gap
 - 与现有 `dsl-api.md` / `multi-outflow-composite-guide.md` 的引用关系

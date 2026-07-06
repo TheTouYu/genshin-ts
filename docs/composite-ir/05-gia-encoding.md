@@ -1,5 +1,10 @@
 # 编码为 GIA 的数据流 + 代码位置
 
+> 状态：当前实现 + 真实 GIA 验证对照
+> 来源：当前代码实现（gsts 编译器）；部分标注来自真实 GIA 验证
+> 最近校验：2026-07-06
+> 适用范围：gsts 编码逻辑说明；验证段标注了与游戏编辑器的差异。
+
 > 参见：[二进制/JSON 结构详解（architecture）](../architecture/composite/gia-encoding.md)
 
 ## 1. 数据流

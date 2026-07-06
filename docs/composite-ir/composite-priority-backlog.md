@@ -1,5 +1,12 @@
 # 复合节点待办优先级汇总
 
+> 状态：历史记录
+> 来源：聚合自多份已过时或部分过期的复合节点文档
+> 最近校验：2026-07-06
+> 适用范围：记录之前轮次汇总的待办优先级。当前实现已覆盖部分 P0/P1 项，不作为当前 API 手册或开发任务表。
+>
+> 当前权威入口：[documentation-map.md](../documentation-map.md)、[dsl-api.md](../architecture/composite/dsl-api.md)、[raw-control-flow-dsl-quickstart.md](../architecture/composite/raw-control-flow-dsl-quickstart.md)
+
 聚合以下文档中所有未完成项，去重排序：
 - `composite-connection-boundary-matrix.md`
 - `composite-full-scenario-gaps.md`

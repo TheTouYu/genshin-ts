@@ -1,8 +1,15 @@
 # 复合节点非终端 OutFlow 实现指南
 
+> 状态：部分过期 / 历史分析
+> 来源：真实 GIA 文件分析 + 旧实现计划
+> 最近校验：2026-07-06
+> 适用范围：真实 GIA 非终端 OutFlow 结构分析仍有参考价值；实现计划部分已被当前 `f.outflow()` / raw control-flow DSL 替代。
+>
+> 当前权威入口：[raw-control-flow-dsl-quickstart.md](./raw-control-flow-dsl-quickstart.md) 和 [dsl-api.md](./dsl-api.md)。
+
 ## 背景
 
-当前的复合节点实现只支持"终端模式"（outflows=0），即复合节点是 exec flow 的终点。游戏支持的"DAG 模式"允许复合节点同时具有 InFlow 和 OutFlow，从而非终端复合节点可以向多个下游目标 fork exec flow。
+历史背景：早期复合节点实现只支持"终端模式"（outflows=0），即复合节点是 exec flow 的终点。当前 gsts 已支持非终端 OutFlow，游戏支持的"DAG 模式"允许复合节点同时具有 InFlow 和 OutFlow，从而非终端复合节点可以向多个下游目标 fork exec flow。
 
 ### 参考文件
 

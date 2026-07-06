@@ -1,5 +1,10 @@
 # GIA 编码：复合节点的二进制/JSON 结构
 
+> 状态：当前实现
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
+
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
 > 参见：[IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | [阶段三 GIA 编码](../stage3-ir-to-gia.md) | [关键 ID 对照（composite-ir/05）](../../composite-ir/05-gia-encoding.md)
 

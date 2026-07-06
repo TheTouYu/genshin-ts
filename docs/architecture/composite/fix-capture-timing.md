@@ -1,6 +1,11 @@
-## 复合节点预捕获 — 消除纯数据复合的 exec marker 时序耦合
+# 复合节点预捕获 — 消除纯数据复合的 exec marker 时序耦合
 
-### 问题
+> 状态：历史记录 / 待确认
+> 来源：捕获机制调试过程
+> 最近校验：2026-07-06
+> 适用范围：纯数据复合捕获时序问题的历史修复计划；当前机制说明以 capture-mechanism.md 为准。
+
+## 问题
 
 `runCompositeCall()` 创建 `__composite_call__` 标记节点时，pure data 判定依赖 `def.captured`，但此时 captured 尚未设置（复合定义在 `buildServerGraphRegistriesIRDocuments()` 的 handler 处理之后才被捕获）。导致纯数据复合的 marker 被错误标记为 `type: 'exec'`，进入执行流产生无效的 exec 连线。
 

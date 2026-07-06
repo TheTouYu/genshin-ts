@@ -1,5 +1,10 @@
 # Gap: 列表类型作为复合参数
 
+> 状态：待验证
+> 来源：2026-07-05 测试发现 + 源码分析
+> 最近校验：2026-07-06
+> 适用范围：分析 list 类型作为复合参数时的 gsts 实现缺口。部分分析可能已随代码更新而过时。
+>
 > 编写日期：2026-07-05
 > 来源：`tests/composite/test-all-types-composites.ts`（全覆盖参数类型复合节点测试）
 > 相关文档：`docs/architecture/definition-system.md §3`

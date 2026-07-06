@@ -1,5 +1,10 @@
 # 高级复合模式
 
+> 状态：已验证
+> 来源：真实 GIA 验证（实用/log系统.gia + 复杂gia/物理运动.gia + 弹球.gia + 传球.gia）
+> 最近校验：2026-07-06
+> 适用范围：真实 GIA 逆向高级模式；与 gsts 当前实现差异需单独标注。
+
 覆盖：`实用/log系统.gia`（90KB, 48 CompositeDefs）和 `复杂gia/物理运动.gia`（118KB, 50 CompositeDefs）中发现的新模式和复杂结构。
 
 ## 1. structureDef（which=29）— 结构体类型注册表

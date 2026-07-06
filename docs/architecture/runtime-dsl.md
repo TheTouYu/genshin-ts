@@ -1,5 +1,10 @@
 # 运行时与 DSL 层
 
+> 状态：当前实现 / 部分章节过期
+> 来源：当前代码实现
+> 最近校验：2026-07-06
+> 适用范围：gsts 当前 runtime/DSL 架构说明；复合节点低层控制流以 raw-control-flow-dsl-quickstart.md 为准。
+
 > 本文档描述 genshin-ts 的运行时（Runtime）和 DSL（领域特定语言）层——这是用户直接编写的 API 以及 IR 构建的基础设施。
 
 ---
