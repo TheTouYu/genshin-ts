@@ -37,7 +37,10 @@ import {
 } from '../runtime/value.js'
 import type {
   AttackLayerConfig,
+  FilterReturnType,
+  HitLevel,
   KnockbackDirectionType,
+  PreAimingEndReason,
   RetracingType,
   RotationDirection,
   RotationType,
@@ -51,13 +54,36 @@ import type {
 import type {
   AttackShape,
   AttackType,
+  CauseOfBeingDown,
+  ComparisonOperator,
+  DisruptorDeviceOrientation,
   DisruptorDeviceType,
+  ElementalReactionType,
   ElementalType,
   EntityType,
+  EnumerationType,
+  EnumerationTypeMap,
+  FollowCoordinateSystem,
+  FollowLocationType,
+  HitPerformanceLevel,
   HitType,
   InputDeviceType,
+  LogicalOperator,
+  MathematicalOperator,
+  MotionPathPointType,
+  MotionType,
+  RevivePointSelectionStrategy,
+  RoundingMode,
+  SortBy,
+  SurvivalStatus,
   TargetType,
-  TriggerRestriction
+  TriggerRestriction,
+  TrigonometricFunction,
+  TypeConversion,
+  UIControlGroupStatus,
+  UnitStatusAdditionResult,
+  UnitStatusRemovalReason,
+  UnitStatusRemovalStrategy
 } from './enum.js'
 import { matchTypes, parseValue, type DataTypeConversionMap } from './nodes.js'
 
@@ -964,11 +990,89 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 结果: 相等输出“是”，不相等输出“否”
    */
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean {
-    const genericType = matchTypes(['enum'], enumeration1, enumeration2)
-    const enumeration1Obj = parseValue(enumeration1, genericType)
-    const enumeration2Obj = parseValue(enumeration2, genericType)
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -1729,7 +1833,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 列表
    */
-  getEntityTypeList(): enumeration[] {
+  getEntityTypeList(): EntityType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -1738,7 +1842,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as EntityType[]
   }
 
   /**
@@ -2084,7 +2188,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
     factionFilter: TargetType,
-    entityTypeFilter: EnumerationValue[],
+    entityTypeFilter: EntityType[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
@@ -3806,7 +3910,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     hitboxType: AttackShape,
@@ -4055,7 +4159,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     hitboxType: AttackShape,
@@ -4281,7 +4385,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
@@ -4488,7 +4592,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
@@ -4705,7 +4809,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
@@ -4936,7 +5040,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
@@ -5153,7 +5257,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     radiusOfSphereHitbox: FloatValue,
@@ -5360,7 +5464,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     radiusOfSphereHitbox: FloatValue,
@@ -6400,11 +6504,89 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 结果: 相等输出“是”，不相等输出“否”
    */
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean {
-    const genericType = matchTypes(['enum'], enumeration1, enumeration2)
-    const enumeration1Obj = parseValue(enumeration1, genericType)
-    const enumeration2Obj = parseValue(enumeration2, genericType)
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -6973,7 +7155,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 列表
    */
-  getEntityTypeList(): enumeration[] {
+  getEntityTypeList(): EntityType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -6982,7 +7164,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as EntityType[]
   }
 
   /**
@@ -7307,7 +7489,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
     factionFilter: TargetType,
-    entityTypeFilter: EnumerationValue[],
+    entityTypeFilter: EntityType[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
@@ -9066,7 +9248,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     hitboxType: AttackShape,
@@ -9315,7 +9497,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     hitboxType: AttackShape,
@@ -9541,7 +9723,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
@@ -9748,7 +9930,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
@@ -9965,7 +10147,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
@@ -10196,7 +10378,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
@@ -10413,7 +10595,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
-    hitboxEntityTypeFilterList: EnumerationValue[],
+    hitboxEntityTypeFilterList: EntityType[],
     triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     radiusOfSphereHitbox: FloatValue,
@@ -11514,11 +11696,89 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 结果: 相等输出“是”，不相等输出“否”
    */
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean {
-    const genericType = matchTypes(['enum'], enumeration1, enumeration2)
-    const enumeration1Obj = parseValue(enumeration1, genericType)
-    const enumeration2Obj = parseValue(enumeration2, genericType)
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -14916,11 +15176,89 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 结果: 相等输出“是”，不相等输出“否”
    */
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean {
-    const genericType = matchTypes(['enum'], enumeration1, enumeration2)
-    const enumeration1Obj = parseValue(enumeration1, genericType)
-    const enumeration2Obj = parseValue(enumeration2, genericType)
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -17240,11 +17578,89 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 结果: 相等输出“是”，不相等输出“否”
    */
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean {
-    const genericType = matchTypes(['enum'], enumeration1, enumeration2)
-    const enumeration1Obj = parseValue(enumeration1, genericType)
-    const enumeration2Obj = parseValue(enumeration2, genericType)
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -17800,7 +18216,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 列表
    */
-  getEntityTypeList(): enumeration[] {
+  getEntityTypeList(): EntityType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -17809,7 +18225,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as EntityType[]
   }
 
   /**
@@ -18099,7 +18515,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
     factionFilter: TargetType,
-    entityTypeFilter: EnumerationValue[],
+    entityTypeFilter: EntityType[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
@@ -19705,11 +20121,89 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 结果: 相等输出“是”，不相等输出“否”
    */
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean
-  enumerationMatch(enumeration1: EnumerationValue, enumeration2: EnumerationValue): boolean {
-    const genericType = matchTypes(['enum'], enumeration1, enumeration2)
-    const enumeration1Obj = parseValue(enumeration1, genericType)
-    const enumeration2Obj = parseValue(enumeration2, genericType)
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -20265,7 +20759,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 列表
    */
-  getEntityTypeList(): enumeration[] {
+  getEntityTypeList(): EntityType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -20274,7 +20768,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as EntityType[]
   }
 
   /**
@@ -20564,7 +21058,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
     factionFilter: TargetType,
-    entityTypeFilter: EnumerationValue[],
+    entityTypeFilter: EntityType[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')

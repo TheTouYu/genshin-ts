@@ -64,6 +64,12 @@ export type ClientEnumBinding = {
   ): string | undefined
   /** TS enum class for an enum output pin (undefined -> enumeration) */
   resolveReturn(zhParamName: string | undefined): string | undefined
+  /** element enum class for an enum_list input pin (undefined -> EnumerationValue[]) */
+  resolveListParam(zhParamName: string | undefined): string | undefined
+  /** element enum class for an enum_list output pin (undefined -> enumeration[]) */
+  resolveListReturn(nodeType: string): string | undefined
+  /** every bindable class (server + client-only), for same-class overload emission */
+  allClasses: string[]
   /** classes reused from src/definitions/enum.ts, for import emission */
   serverClasses: string[]
   /** client-only classes to emit into src/definitions/client_enums.ts */
@@ -281,6 +287,22 @@ const CLASS_BY_ZH_RETURN: Record<string, string> = {
   战术类型: 'TacticType'
 }
 
+/**
+ * zh doc param name -> element enum class for enum_list pins (sample
+ * evidence: entity type filter literals encode census entity_type values).
+ * 命中层筛选/射线筛选类型 stay unbound: the dropdown's third option
+ * (物件自身碰撞) has no sampled value, so its class cannot be completed.
+ */
+const LIST_CLASS_BY_ZH_PARAM: Record<string, string> = {
+  实体类型筛选: 'EntityType',
+  攻击盒实体类型筛选列表: 'EntityType'
+}
+
+/** nodeType -> element enum class for enum_list outputs (doc names them all 列表) */
+const LIST_CLASS_BY_NODE_TYPE: Record<string, string> = {
+  get_entity_type_list: 'EntityType'
+}
+
 /** server classes referenced by the zh maps beyond SERVER_CLASS_BY_IOC */
 const EXTRA_SERVER_CLASSES = ['TriggerRestriction']
 
@@ -407,6 +429,10 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     for (const m of cls.members) valueByKey[m.key] = m.value
   }
 
+  const serverClasses = [
+    ...new Set([...Object.values(SERVER_CLASS_BY_IOC), ...EXTRA_SERVER_CLASSES])
+  ].sort()
+
   return {
     resolve(record, pin, zhParamName) {
       const v = pin.defaultValue
@@ -420,10 +446,15 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     resolveReturn(zhParamName) {
       return zhParamName ? CLASS_BY_ZH_RETURN[zhParamName] : undefined
     },
-    serverClasses: [
-      ...new Set([...Object.values(SERVER_CLASS_BY_IOC), ...EXTRA_SERVER_CLASSES])
-    ].sort(),
+    resolveListParam(zhParamName) {
+      return zhParamName ? LIST_CLASS_BY_ZH_PARAM[zhParamName] : undefined
+    },
+    resolveListReturn(nodeType) {
+      return LIST_CLASS_BY_NODE_TYPE[nodeType]
+    },
+    serverClasses,
     clientOnlyClasses,
-    valueByKey
+    valueByKey,
+    allClasses: [...new Set([...serverClasses, ...clientOnlyClasses.map((c) => c.className)])].sort()
   }
 }

@@ -594,7 +594,12 @@ function buildMethodSpec(
     if (irType !== undefined && !SUPPORTED_RETURN_TYPES.has(irType)) {
       return gap('unsupported_return_type', `${doc?.en.name ?? fallbackName}: ${irType}`)
     }
-    const enumClass = irType === 'enum' ? enumBinding.resolveReturn(doc?.zh?.name) : undefined
+    const enumClass =
+      irType === 'enum'
+        ? enumBinding.resolveReturn(doc?.zh?.name)
+        : irType === 'enum_list'
+          ? enumBinding.resolveListReturn(record.nodeType)
+          : undefined
     returns.push({
       pinIndex,
       ident: uniqueIdent(identFromDocName(doc?.en.name ?? '', fallbackName), returnIdents),
@@ -732,7 +737,11 @@ function buildMethodSpec(
       return gap(`unsupported_param_type`, `${b.doc.en.name}: ${b.pin.type}`)
     }
     const enumClass =
-      b.pin.type === 'enum' ? enumBinding.resolve(record, b.pin, b.doc.zh?.name) : undefined
+      b.pin.type === 'enum'
+        ? enumBinding.resolve(record, b.pin, b.doc.zh?.name)
+        : b.pin.type === 'enum_list'
+          ? enumBinding.resolveListParam(b.doc.zh?.name)
+          : undefined
     params.push({
       pinIndex: b.pin.index,
       ident,
@@ -846,11 +855,13 @@ function emitSingleReturn(
 }
 
 function paramTsOf(p: ParamSpec): string {
-  return p.enumClass ?? paramTs(p.irType!)
+  if (p.enumClass) return p.irType === 'enum_list' ? `${p.enumClass}[]` : p.enumClass
+  return paramTs(p.irType!)
 }
 
 function returnTsOf(r: ReturnSpec): string {
-  return r.enumClass ?? returnTs(r.irType!)
+  if (r.enumClass) return r.irType === 'enum_list' ? `${r.enumClass}[]` : r.enumClass
+  return returnTs(r.irType!)
 }
 
 /** enum returns with a bound class carry the class name (conn typing + hints) */
@@ -1051,7 +1062,40 @@ function emitReflectMethod(spec: MethodSpec): string {
   ].join('\n')
 }
 
-function emitMethod(spec: MethodSpec): string {
+/**
+ * 枚举匹配 mirrors the server's enumerationsEqual: one same-class overload per
+ * bindable enum class plus a generic implementation signature, so IntelliSense
+ * offers concrete classes and mixed-class comparisons fail to compile.
+ */
+function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
+  const [p1, p2] = spec.params.map((p) => p.ident)
+  const r = spec.returns[0]
+  const overloads = enumClasses.map((c) => `  ${spec.methodName}(${p1}: ${c}, ${p2}: ${c}): boolean`)
+  return [
+    buildJsdoc(spec),
+    ...overloads,
+    `  ${spec.methodName}<T extends EnumerationType>(`,
+    `    ${p1}: EnumerationTypeMap[T],`,
+    `    ${p2}: EnumerationTypeMap[T]`,
+    `  ): boolean {`,
+    `    const ${p1}Obj = parseValue(${p1}, 'enum')`,
+    `    const ${p2}Obj = parseValue(${p2}, 'enum')`,
+    `    if (${p1}Obj.getClassName() !== ${p2}Obj.getClassName()) {`,
+    `      throw new Error('enumeration type mismatch')`,
+    `    }`,
+    `    const ref = this.registry.registerNode({`,
+    `      id: 0,`,
+    `      type: '${spec.recordType}',`,
+    `      nodeType: '${spec.nodeType}',`,
+    `      args: [${p1}Obj, ${p2}Obj]`,
+    `    })`,
+    ...emitSingleReturn(r, retConstructionOf(r), returnTsOf(r)),
+    `  }`
+  ].join('\n')
+}
+
+function emitMethod(spec: MethodSpec, enumBinding: ClientEnumBinding): string {
+  if (spec.nodeType === 'enumeration_match') return emitEnumerationMatch(spec, enumBinding.allClasses)
   return spec.reflect ? emitReflectMethod(spec) : emitNonReflectMethod(spec)
 }
 
@@ -1707,7 +1751,7 @@ export function generateClientNodes(
 
     let text: string
     try {
-      text = emitMethod(spec)
+      text = emitMethod(spec, enumBinding)
     } catch (err) {
       gaps.push({
         subType: record.subType,
@@ -1812,7 +1856,11 @@ ${texts.join('\n\n')}
     'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue', 'StrValue', 'Vec3Value', 'value'
   ].filter(usesIdent)
   const nodesImports = ['matchTypes', 'parseValue'].filter(usesIdent)
-  const serverEnumImports = enumBinding.serverClasses.filter(usesIdent)
+  const serverEnumImports = [
+    ...enumBinding.serverClasses,
+    'EnumerationType',
+    'EnumerationTypeMap'
+  ].filter(usesIdent)
   const clientEnumImports = enumBinding.clientOnlyClasses
     .map((c) => c.className)
     .filter(usesIdent)
