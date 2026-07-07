@@ -11,7 +11,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  name: 'R6-C参考复刻-step2e',
+  name: 'R6-C参考复刻-step2f',
   id: 1073741897,
   variables: {
     locationOffset: vec3([1, 2, 3]),

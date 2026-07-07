@@ -215,7 +215,8 @@ function layoutExecutionChain(
   state: ReturnType<typeof createLayoutState>,
   config: LayoutConfig,
   dataBlockHeightMap: Map<NodeId, number>,
-  dataExtraHeightMemo: Map<NodeId, number>
+  dataExtraHeightMemo: Map<NodeId, number>,
+  minFirstChildLaneOffset?: number
 ): number {
   const existingPos = state.positions.get(nodeId)
   if (existingPos) return existingPos[1] + config.rowHeight
@@ -260,7 +261,7 @@ function layoutExecutionChain(
     depth + 1,
     baseY,
     eventIndex,
-    actualLaneOffset,
+    Math.max(actualLaneOffset, minFirstChildLaneOffset ?? actualLaneOffset),
     execChildrenMap,
     state,
     config,
@@ -294,6 +295,10 @@ function layoutExecutionChain(
           prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + dataLanePadding
         )
 
+    const childFirstLaneOffset = isRootSwimLane
+      ? Math.max(newLaneOffset, prevSubtreeMaxY - (baseY + row * config.wrapHeight))
+      : undefined
+
     const childMaxY = layoutExecutionChain(
       children[idx],
       depth + 1,
@@ -304,7 +309,8 @@ function layoutExecutionChain(
       state,
       config,
       dataBlockHeightMap,
-      dataExtraHeightMemo
+      dataExtraHeightMemo,
+      childFirstLaneOffset
     )
 
     subtreeMaxY = Math.max(subtreeMaxY, childMaxY)
