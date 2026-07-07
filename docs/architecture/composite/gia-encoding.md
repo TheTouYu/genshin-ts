@@ -178,11 +178,12 @@ compositePins: [{
     type: Integer }
   ```
 
-- **conn arg** → `buildPlaceholderPin()` 构建占位 pin（值用默认 0/""），void 的 `connects` 数组在构建阶段最后由调用方填充：
+- **conn arg** → 根据 IR 连接携带的真实 `conn.type` 构建占位 pin（值用默认 0/""），再在构建阶段最后填充 `connects`：
   ```typescript
+  // 例如 float conn 输入 addition / greater_than 时，必须生成 FloatBase，不能按节点默认推成 IntBase
   { i1: { kind: InParam, index: 0 }, i2: { kind: InParam, index: 0 },
-    value: { class: IntBase, alreadySetVal: false, itemType: {...} },
-    type: Integer }
+    value: { class: FloatBase, alreadySetVal: false, itemType: {...} },
+    type: Float }
   // 后在主循环中填充: pin.connects = [{ id: <mappedUpstreamId>,
   //   connect: { kind: OutParam, index: <upstreamPinIndex> },
   //   connect2: { kind: OutParam, index: <upstreamPinIndex> } }]
@@ -231,6 +232,15 @@ value = {
 
 `needsConcreteWrapping()` 检查节点类型是否属于 `concreteWrappedNodeTypes` 集合或 `data_type_conversion_*` 前缀。
 
+对于 concrete-wrapped 节点，`indexOfConcrete` 必须使用具体值类型，而不是 pin index。当前 gsts 复合 impl 编码使用的常见映射为：
+
+| 方向 | bool | float | str | int |
+|---|---:|---:|---:|---:|
+| 普通 concrete InParam | 0 | 1 | 2 | 3 |
+| 普通 concrete OutParam | 0 | 1 | 2 | 3 |
+
+`data_type_conversion_*` 的输入/输出仍有自己的 concrete map 规则：输入按 DTC map（如 guid→str 使用对应 GUID 项），输出目标 str 使用目标类型对应索引。不要把 `NodePin.index` 或 `compositePins.innerPinIndex` 当成 `indexOfConcrete`。
+
 ### 4.3 vec3 节点的特殊处理
 
 vec3 节点（`_3d_vector_addition`、`create_3d_vector` 等）的占位 pin 需要 `VectorBase` 类型：
@@ -246,7 +256,9 @@ vec3→float 节点（`_3d_vector_dot_product`、`_3d_vector_angle`）的自动 
 
 ### 4.4 OutParam 引脚构建
 
-优先使用 `implOutParamMap`（来自 compositePins 的 OutParam 条目）。若节点无显式 OutParam 映射但自身是数据生产者（`isDataProducerNode`），自动生成一个默认 OutParam：
+优先使用 `implOutParamMap`（来自 compositePins 的 OutParam 条目）。显式 OutParam 映射中的 `innerPinIndex` 只决定内部节点的 OutParam pin index；`value.bConcreteValue.indexOfConcrete` 必须按输出类型计算。例如 `addition(float, float)` 作为复合输出时，OutParam pin index 仍可为 `0`，但 concrete index 必须是 `float -> 1`，否则下游 `_3d_vector_zoom` 等 float 输入会在游戏内断线。
+
+若节点无显式 OutParam 映射但自身是数据生产者（`isDataProducerNode`），自动生成一个默认 OutParam：
 
 ```typescript
 if (!hasExplicitOutParam && pins.length > 0 && isDataProducerNode(node.type)) {
