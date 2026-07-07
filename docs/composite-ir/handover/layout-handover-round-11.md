@@ -58,6 +58,7 @@ WSL 下 `node bin/gsts.mjs ...` 在 `.gia` 生成后仍可能因为注入阶段�
 | long-input step7 | `布局c-long-input-step7.gia` | 将缩放基数与逻辑或右侧参数作为复合输入；修复复合 impl OutParam concrete index | 用户确认“问题修复”，已提交；下一轮会继续给 step7 的少量布局调整反馈 |
 | long-input step8 | `布局c-long-input-step8.gia` | 按复合调用节点输入/输出 pin 数估算额外视觉高度，避免大复合数据节点与下方分支重叠 | 用户游戏内测试通过；另用无复合的小输入回归文件验证普通布局未回退 |
 | small-input regression step8 | `布局c-small-input-regression-step8.gia` | 新增不含复合节点、仅少量普通数据流输入的 R6-C 回归测试 | 用户游戏内测试通过 |
+| long-input step9 | `布局c-long-input-step9.gia` | 给大 pin 数复合数据节点增加水平避让：右侧系统节点右移，但数据流节点保持原锚点不随额外间距整体右移 | 用户游戏内测试通过 |
 
 本轮截图问题来源：
 
@@ -302,8 +303,9 @@ R6-C参考复刻-long-input-step8
 ## 八、剩余风险
 
 1. `dataLanePadding = min(1100, extraDataHeight*0.35)` 是通过 step4 验证的经验值，可能对其它复杂图偏大或偏小。
-2. 主图布局已在 step8 纳入纯数据复合调用节点的输入/输出 pin 数视觉高度估算，并经用户游戏内验证；但这仍是经验估算，后续如果出现更宽/更多 pin 的复合节点，可能还需要继续校准。
-3. 复合 impl concrete 编码修复已由 step6/step7 游戏内反馈验证，但建议未来补自动回归测试，至少覆盖：`float addition -> vec3 zoom`、`float comparison -> logical OR`、显式 OutParam 映射。
+2. 主图布局已在 step8 纳入纯数据复合调用节点的输入/输出 pin 数视觉高度估算，并在 step9 纳入水平避让，经用户游戏内验证；但这仍是经验估算，后续如果出现更宽/更多 pin 的复合节点，可能还需要继续校准。
+3. 普通数据流布局仍有两个待调点：少量数据节点之间的垂直间距应稍微减少；但随着数据流节点数量增加，整块数据区对下方系统节点/分支线的高度估算应稍微增加。测试时建议准备不同输入数据流节点数量的两个分支进行对照。
+4. 复合 impl concrete 编码修复已由 step6/step7 游戏内反馈验证，但建议未来补自动回归测试，至少覆盖：`float addition -> vec3 zoom`、`float comparison -> logical OR`、显式 OutParam 映射。
 4. 真实编辑器的复合 pinIndex 分配与 gsts 默认值不同；本轮只保证 gsts 当前输出可被游戏接受，不代表编辑器导出结构完全等价。
 
 ---

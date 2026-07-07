@@ -399,7 +399,7 @@ function compositeDefIdFromCall(node: IRNode): number | undefined {
   return Number(firstArg.value)
 }
 
-function estimateDataNodeVisualExtra(
+function compositeCallPinCount(
   node: IRNode,
   compositeDefById: Map<number, CompositeDefIR>
 ): number {
@@ -409,12 +409,31 @@ function estimateDataNodeVisualExtra(
   const def = compositeId === undefined ? undefined : compositeDefById.get(compositeId)
   const inputCount = def?.inputs.length ?? Math.max(0, (node.args?.length ?? 1) - 1)
   const outputCount = def?.outputs.length ?? 0
-  const pinCount = inputCount + outputCount
+  return inputCount + outputCount
+}
+
+function estimateDataNodeVisualExtra(
+  node: IRNode,
+  compositeDefById: Map<number, CompositeDefIR>
+): number {
+  const pinCount = compositeCallPinCount(node, compositeDefById)
 
   // Composite calls with many visible input/output pins occupy a taller card than a
   // regular data node.  Reserve additional vertical space for the exec branch below
   // their consumer so a large composite data node does not overlap the next branch.
   return Math.max(0, pinCount - 2) * 140
+}
+
+function estimateDataNodeHorizontalExtra(
+  node: IRNode,
+  compositeDefById: Map<number, CompositeDefIR>
+): number {
+  const pinCount = compositeCallPinCount(node, compositeDefById)
+
+  // Wide composite calls with many visible pins can reach into their consumer's
+  // column.  Add horizontal clearance before the consumer exec node, separate from
+  // vertical block-height padding.
+  return Math.max(0, pinCount - 2) * 55
 }
 
 function computeDataDepths(
@@ -452,7 +471,9 @@ function expandExecGapsForDataChains(
   execChildrenMap: Map<NodeId, NodeId[]>,
   execNodes: Set<NodeId>,
   state: ReturnType<typeof createLayoutState>,
-  config: LayoutConfig
+  config: LayoutConfig,
+  nodeById: Map<NodeId, IRNode>,
+  compositeDefById: Map<number, CompositeDefIR>
 ) {
   // 这些经验值来自真实正样本「主图布局1.gia」：
   // - 数据链通常在消费者下方约 190-230px。
@@ -485,10 +506,21 @@ function expandExecGapsForDataChains(
     const parentX = execParents.length
       ? Math.max(...execParents.map((id) => state.positions.get(id)![0]))
       : consumerPos[0] - config.columnWidth
+    let directCompositeHorizontalExtra = 0
+    for (const inputId of new Set(directDataInputs)) {
+      const inputNode = nodeById.get(inputId)
+      if (inputNode) {
+        directCompositeHorizontalExtra += estimateDataNodeHorizontalExtra(
+          inputNode,
+          compositeDefById
+        )
+      }
+    }
     const desiredGap =
       config.columnWidth +
       Math.max(0, maxDepth) * extraExecGapPerAdditionalDataNode +
-      Math.min(2, Math.max(0, directDataInputs.length - 1)) * extraGapPerAdditionalInput
+      Math.min(2, Math.max(0, directDataInputs.length - 1)) * extraGapPerAdditionalInput +
+      directCompositeHorizontalExtra
     const desiredConsumerX = parentX + desiredGap
     const deltaX = Math.ceil(desiredConsumerX - consumerPos[0])
 
@@ -497,12 +529,13 @@ function expandExecGapsForDataChains(
     }
 
     const [cx, cy] = state.positions.get(consumerId)!
+    const dataAnchorX = cx - directCompositeHorizontalExtra
     const rowCounts = new Map<number, number>()
     for (const id of dataAncestors) {
       const depth = dataDepths.get(id) ?? 0
       const row = rowCounts.get(depth) ?? 0
       rowCounts.set(depth, row + 1)
-      const x = cx - (maxDepth - depth + 1) * dataNodeStepX
+      const x = dataAnchorX - (maxDepth - depth + 1) * dataNodeStepX
       const y = cy + dataYBelowConsumer + row * dataYBelowConsumer
       state.positions.set(id, [x, y])
     }
@@ -615,7 +648,15 @@ export function layoutPositions(
     }
   })
 
-  expandExecGapsForDataChains(dataParentsMap, execChildrenMap, execNodes, state, config)
+  expandExecGapsForDataChains(
+    dataParentsMap,
+    execChildrenMap,
+    execNodes,
+    state,
+    config,
+    nodeById,
+    compositeDefById
+  )
 
   // 剩余游离节点（无消费者或无关联）统一放到左上角网格
   placeDetachedGrid(state, config)
