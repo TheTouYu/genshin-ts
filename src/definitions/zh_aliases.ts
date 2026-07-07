@@ -389,6 +389,8 @@ export const SERVER_F_ZH_TO_EN = {
   查询角色技能: 'queryCharacterSkill',
   查询技能属性组值: 'querySkillAttributeGroupValue',
   查询对应华丽演绎礼盒消耗数量: 'queryCorrespondingGiftBoxConsumption',
+  // 旧版中文名，与 查询对应华丽演绎礼盒消耗数量 等价（见 generate-zh-aliases.mjs 的 ZH_COMPAT_ALIASES）
+  查询对应礼盒消耗数量: 'queryCorrespondingGiftBoxConsumption',
   查询对应礼盒数量: 'queryCorrespondingGiftBoxQuantity',
   查询指定任务是否完成: 'queryIfSpecifiedTaskIsCompleted',
   查询指定任务计数: 'querySpecifiedTaskCount',

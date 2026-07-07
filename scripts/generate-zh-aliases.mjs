@@ -46,8 +46,15 @@ const SKIP_TITLE_PREFIX = [
   '输出',
   '返回',
   '备注',
+  '兼容',
   'GSTS'
 ]
+
+// 旧版中文名兼容别名（旧名 -> en 方法名）。官方文档改名后仍保留旧名调用；
+// 仅写入 SERVER_F_ZH_TO_EN，SERVER_F_EN_TO_ZH 维持最新中文名。
+const ZH_COMPAT_ALIASES = {
+  查询对应礼盒消耗数量: 'queryCorrespondingGiftBoxConsumption'
+}
 
 function extractZhTitle(lines) {
   for (const line of lines) {
@@ -281,11 +288,24 @@ function writeReport(eventInfo, nodeInfo, eventMissing, nodeMissing) {
   fs.writeFileSync(REPORT_PATH, lines.join('\n'), 'utf8')
 }
 
+function applyCompatAliases(nodeMaps) {
+  for (const [zh, en] of Object.entries(ZH_COMPAT_ALIASES)) {
+    if (!nodeMaps.enToZh.has(en)) {
+      throw new Error(`compat alias target not found: ${zh} -> ${en}`)
+    }
+    if (nodeMaps.zhToEn.has(zh)) {
+      throw new Error(`compat alias conflicts with generated zh name: ${zh}`)
+    }
+    nodeMaps.zhToEn.set(zh, en)
+  }
+}
+
 function main() {
   const nodes = parseNodes()
   const events = parseEvents()
 
   const nodeMaps = buildMaps(nodes.entries, 'nodes')
+  applyCompatAliases(nodeMaps)
   const eventMaps = buildMaps(events.entries, 'events')
 
   writeOutput(eventMaps, nodeMaps)

@@ -43,6 +43,12 @@ const TYPE_MAP: Record<string, string> = {
   'local variable': 'localVariable'
 }
 
+// 官方文档改名后保留的旧版中文名（en 方法名 -> 旧中文名）。
+// 悬停注释中补充等价说明；旧名调用由 scripts/generate-zh-aliases.mjs 的 ZH_COMPAT_ALIASES 保持可用。
+const ZH_LEGACY_TITLES: Record<string, string> = {
+  queryCorrespondingGiftBoxConsumption: '查询对应礼盒消耗数量'
+}
+
 type GenericRule = {
   functionName: string
   genericParameters: string[]
@@ -746,6 +752,11 @@ function buildNodes() {
     lines.push(` * ${n.desc}`)
     lines.push(' *')
     lines.push(` * ${n.nameZh}: ${n.descZh}`)
+    const legacyTitle = ZH_LEGACY_TITLES[n.name]
+    if (legacyTitle) {
+      lines.push(' *')
+      lines.push(` * 兼容别名: \`${legacyTitle}\`（旧版中文名，与 \`${n.nameZh}\` 等价，两者可互换调用）`)
+    }
 
     // Add @param for each input parameter
     if (inputParams.length > 0) {
