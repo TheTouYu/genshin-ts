@@ -1,26 +1,5 @@
 [
   {
-    "subType": "bool_filter",
-    "nodeType": "get_entity_type_list",
-    "displayName": "获取实体类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
-  },
-  {
-    "subType": "bool_filter",
-    "nodeType": "get_ray_detection_result",
-    "displayName": "获取射线检测结果",
-    "reason": "unsupported_param_type",
-    "detail": "Entity Type Filter: enum_list"
-  },
-  {
-    "subType": "bool_filter",
-    "nodeType": "get_ray_filter_type_list",
-    "displayName": "获取射线筛选类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
-  },
-  {
     "subType": "character_skill",
     "nodeType": "assemble_structure",
     "displayName": "拼装结构体",
@@ -41,30 +20,9 @@
   },
   {
     "subType": "character_skill",
-    "nodeType": "get_entity_type_list",
-    "displayName": "获取实体类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
-  },
-  {
-    "subType": "character_skill",
     "nodeType": "get_local_variable",
     "displayName": "获取局部变量",
     "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "get_ray_detection_result",
-    "displayName": "获取射线检测结果",
-    "reason": "unsupported_param_type",
-    "detail": "Entity Type Filter: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "get_ray_filter_type_list",
-    "displayName": "获取射线筛选类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
   },
   {
     "subType": "character_skill",
@@ -83,62 +41,6 @@
     "nodeType": "split_structure",
     "displayName": "拆分结构体",
     "reason": "local_variable_pins"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_hitbox_at_specific_location",
-    "displayName": "特定位置打攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_rectangular_hitbox_at_specific_location",
-    "displayName": "特定位置打矩形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_rectangular_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打矩形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_sector_hitbox_at_specific_location",
-    "displayName": "特定位置打扇形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_sector_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打扇形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_spherical_hitbox_at_specific_location",
-    "displayName": "特定位置打球形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "trigger_spherical_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打球形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
   },
   {
     "subType": "creation_skill",
@@ -161,30 +63,9 @@
   },
   {
     "subType": "creation_skill",
-    "nodeType": "get_entity_type_list",
-    "displayName": "获取实体类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
     "nodeType": "get_local_variable",
     "displayName": "获取局部变量",
     "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "get_ray_detection_result",
-    "displayName": "获取射线检测结果",
-    "reason": "unsupported_param_type",
-    "detail": "Entity Type Filter: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "get_ray_filter_type_list",
-    "displayName": "获取射线筛选类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
   },
   {
     "subType": "creation_skill",
@@ -203,55 +84,6 @@
     "nodeType": "split_structure",
     "displayName": "拆分结构体",
     "reason": "local_variable_pins"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_hitbox_at_specific_location",
-    "displayName": "特定位置打攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_rectangular_hitbox_at_specific_location",
-    "displayName": "特定位置打矩形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_rectangular_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打矩形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_sector_hitbox_at_specific_location",
-    "displayName": "特定位置打扇形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_sector_hitbox_at_specified_attachment_point",
-    "displayName": "指定挂接点打扇形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "trigger_spherical_hitbox_at_specific_location",
-    "displayName": "特定位置打球形攻击盒",
-    "reason": "unsupported_param_type",
-    "detail": "Hitbox Entity Type Filter List: enum_list"
   },
   {
     "subType": "creation_status",
@@ -314,26 +146,5 @@
     "nodeType": "split_structure",
     "displayName": "拆分结构体",
     "reason": "local_variable_pins"
-  },
-  {
-    "subType": "int_filter",
-    "nodeType": "get_entity_type_list",
-    "displayName": "获取实体类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
-  },
-  {
-    "subType": "int_filter",
-    "nodeType": "get_ray_detection_result",
-    "displayName": "获取射线检测结果",
-    "reason": "unsupported_param_type",
-    "detail": "Entity Type Filter: enum_list"
-  },
-  {
-    "subType": "int_filter",
-    "nodeType": "get_ray_filter_type_list",
-    "displayName": "获取射线筛选类型列表",
-    "reason": "unsupported_return_type",
-    "detail": "List: enum_list"
   }
 ]

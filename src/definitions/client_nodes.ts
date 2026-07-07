@@ -36,6 +36,7 @@ import {
   type Vec3Value
 } from '../runtime/value.js'
 import type {
+  RetracingType,
   RotationDirection,
   RotationType,
   TacticSpeed,
@@ -1705,6 +1706,27 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations
+   *
+   * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntityTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
+  }
+
+  /**
    * Returns the length of the list (number of elements)
    *
    * 获取列表长度: 获取列表长度（列表中的元素个数）
@@ -2004,6 +2026,106 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'randomNumber', 0)
     return ret as unknown as number | bigint
+  }
+
+  /**
+   * Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray
+   *
+   * 获取射线检测结果: 获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置
+   *
+   * @param detectionInitiatorEntity
+   *
+   * 检测发起者实体
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param launchDirection
+   *
+   * 出射方向
+   * @param maxRayLength
+   *
+   * 射线最大长度
+   * @param factionFilter
+   *
+   * 阵营筛选
+   * @param entityTypeFilter Includes Stage, Object, Player, Character, Creation
+   *
+   * 实体类型筛选: 分为关卡、物件、玩家、角色、造物
+   * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
+   *
+   * 命中层筛选: 分为受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * onHitLocation
+   * 命中位置
+   *
+   * onHitEntity
+   * 命中实体
+   */
+  getRayDetectionResult(
+    detectionInitiatorEntity: EntityValue,
+    launchLocation: Vec3Value,
+    launchDirection: Vec3Value,
+    maxRayLength: FloatValue,
+    factionFilter: EnumerationValue,
+    entityTypeFilter: EnumerationValue[],
+    hitLayerFilter: EnumerationValue[]
+  ): { onHitLocation: vec3; onHitEntity: entity } {
+    const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
+    const launchLocationObj = parseValue(launchLocation, 'vec3')
+    const launchDirectionObj = parseValue(launchDirection, 'vec3')
+    const maxRayLengthObj = parseValue(maxRayLength, 'float')
+    const factionFilterObj = parseValue(factionFilter, 'enum')
+    const entityTypeFilterObj = parseValue(entityTypeFilter, 'enum_list')
+    const hitLayerFilterObj = parseValue(hitLayerFilter, 'enum_list')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_detection_result',
+      args: [
+        detectionInitiatorEntityObj,
+        launchLocationObj,
+        launchDirectionObj,
+        maxRayLengthObj,
+        factionFilterObj,
+        entityTypeFilterObj,
+        hitLayerFilterObj
+      ]
+    })
+    return {
+      onHitLocation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'onHitLocation', 0)
+        return ret as unknown as vec3
+      })(),
+      onHitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'onHitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision
+   *
+   * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getRayFilterTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_filter_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
   }
 
   /**
@@ -3544,6 +3666,1786 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Initiates a Hitbox Attack at the specified Location in the World Coordinate System, with configurable attack parameters
+   *
+   * 特定位置打攻击盒: 在世界坐标系的指定位置发起一次攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param hitboxType
+   *
+   * 攻击盒类型
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSceneSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSceneSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSceneSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    hitboxType: EnumerationValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    radiusOfSphereHitbox: FloatValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSceneSpecialEffectsOffset: Vec3Value,
+    onHitSceneSpecialEffectsRotation: Vec3Value,
+    onHitSceneSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const hitboxTypeObj = parseValue(hitboxType, 'enum')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSceneSpecialEffectsOffsetObj = parseValue(onHitSceneSpecialEffectsOffset, 'vec3')
+    const onHitSceneSpecialEffectsRotationObj = parseValue(onHitSceneSpecialEffectsRotation, 'vec3')
+    const onHitSceneSpecialEffectsZoomObj = parseValue(onHitSceneSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        hitboxTypeObj,
+        scaleOfCuboidHitboxObj,
+        radiusOfSphereHitboxObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSceneSpecialEffectsOffsetObj,
+        onHitSceneSpecialEffectsRotationObj,
+        onHitSceneSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiates a Hitbox Attack at a specified Attachment Point, with configurable attack parameters
+   *
+   * 指定挂接点打攻击盒: 对指定挂接点发起一次攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param hitboxType
+   *
+   * 攻击盒类型
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    hitboxType: EnumerationValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    radiusOfSphereHitbox: FloatValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const hitboxTypeObj = parseValue(hitboxType, 'enum')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        hitboxTypeObj,
+        scaleOfCuboidHitboxObj,
+        radiusOfSphereHitboxObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a rectangular hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打矩形攻击盒: 在世界坐标系的指定位置发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerRectangularHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_rectangular_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        scaleOfCuboidHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a rectangular hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打矩形攻击盒: 对指定挂接点发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerRectangularHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_rectangular_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        scaleOfCuboidHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a sector hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打扇形攻击盒: 在世界坐标系的指定位置发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSectorHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_sector_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a sector hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打扇形攻击盒: 对指定挂接点发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSectorHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_sector_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a spherical hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打球形攻击盒: 在世界坐标系的指定位置发起一次球形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSphericalHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    radiusOfSphereHitbox: FloatValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_spherical_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        radiusOfSphereHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a spherical hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打球形攻击盒: 对指定挂接点发起一次球形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSphericalHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    radiusOfSphereHitbox: FloatValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_spherical_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        radiusOfSphereHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
    * Query whether the entity has the specified unit status
    *
    * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
@@ -5048,6 +6950,27 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations
+   *
+   * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntityTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
+  }
+
+  /**
    * Returns the length of the list (number of elements)
    *
    * 获取列表长度: 获取列表长度（列表中的元素个数）
@@ -5326,6 +7249,106 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'randomNumber', 0)
     return ret as unknown as number | bigint
+  }
+
+  /**
+   * Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray
+   *
+   * 获取射线检测结果: 获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置
+   *
+   * @param detectionInitiatorEntity
+   *
+   * 检测发起者实体
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param launchDirection
+   *
+   * 出射方向
+   * @param maxRayLength
+   *
+   * 射线最大长度
+   * @param factionFilter
+   *
+   * 阵营筛选
+   * @param entityTypeFilter Includes Stage, Object, Player, Character, Creation
+   *
+   * 实体类型筛选: 分为关卡、物件、玩家、角色、造物
+   * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
+   *
+   * 命中层筛选: 分为受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * onHitLocation
+   * 命中位置
+   *
+   * onHitEntity
+   * 命中实体
+   */
+  getRayDetectionResult(
+    detectionInitiatorEntity: EntityValue,
+    launchLocation: Vec3Value,
+    launchDirection: Vec3Value,
+    maxRayLength: FloatValue,
+    factionFilter: EnumerationValue,
+    entityTypeFilter: EnumerationValue[],
+    hitLayerFilter: EnumerationValue[]
+  ): { onHitLocation: vec3; onHitEntity: entity } {
+    const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
+    const launchLocationObj = parseValue(launchLocation, 'vec3')
+    const launchDirectionObj = parseValue(launchDirection, 'vec3')
+    const maxRayLengthObj = parseValue(maxRayLength, 'float')
+    const factionFilterObj = parseValue(factionFilter, 'enum')
+    const entityTypeFilterObj = parseValue(entityTypeFilter, 'enum_list')
+    const hitLayerFilterObj = parseValue(hitLayerFilter, 'enum_list')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_detection_result',
+      args: [
+        detectionInitiatorEntityObj,
+        launchLocationObj,
+        launchDirectionObj,
+        maxRayLengthObj,
+        factionFilterObj,
+        entityTypeFilterObj,
+        hitLayerFilterObj
+      ]
+    })
+    return {
+      onHitLocation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'onHitLocation', 0)
+        return ret as unknown as vec3
+      })(),
+      onHitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'onHitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision
+   *
+   * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getRayFilterTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_filter_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
   }
 
   /**
@@ -6900,6 +8923,1577 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       })
     })
     this.registry.markLinkNextExecFrom(ref.id, LOOP_COMPLETE_SOURCE_INDEX)
+  }
+
+  /**
+   * Initiates a Hitbox Attack at the specified Location in the World Coordinate System, with configurable attack parameters
+   *
+   * 特定位置打攻击盒: 在世界坐标系的指定位置发起一次攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param hitboxType
+   *
+   * 攻击盒类型
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSceneSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSceneSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSceneSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    hitboxType: EnumerationValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    radiusOfSphereHitbox: FloatValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSceneSpecialEffectsOffset: Vec3Value,
+    onHitSceneSpecialEffectsRotation: Vec3Value,
+    onHitSceneSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const hitboxTypeObj = parseValue(hitboxType, 'enum')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSceneSpecialEffectsOffsetObj = parseValue(onHitSceneSpecialEffectsOffset, 'vec3')
+    const onHitSceneSpecialEffectsRotationObj = parseValue(onHitSceneSpecialEffectsRotation, 'vec3')
+    const onHitSceneSpecialEffectsZoomObj = parseValue(onHitSceneSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        hitboxTypeObj,
+        scaleOfCuboidHitboxObj,
+        radiusOfSphereHitboxObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSceneSpecialEffectsOffsetObj,
+        onHitSceneSpecialEffectsRotationObj,
+        onHitSceneSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiates a Hitbox Attack at a specified Attachment Point, with configurable attack parameters
+   *
+   * 指定挂接点打攻击盒: 对指定挂接点发起一次攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param hitboxType
+   *
+   * 攻击盒类型
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    hitboxType: EnumerationValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    radiusOfSphereHitbox: FloatValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const hitboxTypeObj = parseValue(hitboxType, 'enum')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        hitboxTypeObj,
+        scaleOfCuboidHitboxObj,
+        radiusOfSphereHitboxObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a rectangular hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打矩形攻击盒: 在世界坐标系的指定位置发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerRectangularHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_rectangular_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        scaleOfCuboidHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a rectangular hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打矩形攻击盒: 对指定挂接点发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerRectangularHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_rectangular_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        scaleOfCuboidHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a sector hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打扇形攻击盒: 在世界坐标系的指定位置发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSectorHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_sector_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a sector hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打扇形攻击盒: 对指定挂接点发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSectorHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: EnumerationValue,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: EnumerationValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_sector_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a spherical hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打球形攻击盒: 在世界坐标系的指定位置发起一次球形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSphericalHitboxAtSpecificLocation(
+    targetFactionFilter: EnumerationValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EnumerationValue[],
+    triggerType: EnumerationValue,
+    onHitSceneEffects: IntValue,
+    radiusOfSphereHitbox: FloatValue,
+    attackLayerFilter: EnumerationValue,
+    attackTagList: StrValue[],
+    elementalType: EnumerationValue,
+    elementalAttackPotency: FloatValue,
+    hitType: EnumerationValue,
+    attackType: EnumerationValue,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: EnumerationValue,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_spherical_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        radiusOfSphereHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
   }
 
   /**
@@ -14183,6 +17777,27 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations
+   *
+   * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntityTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
+  }
+
+  /**
    * Returns the length of the list (number of elements)
    *
    * 获取列表长度: 获取列表长度（列表中的元素个数）
@@ -14426,6 +18041,106 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'randomNumber', 0)
     return ret as unknown as number | bigint
+  }
+
+  /**
+   * Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray
+   *
+   * 获取射线检测结果: 获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置
+   *
+   * @param detectionInitiatorEntity
+   *
+   * 检测发起者实体
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param launchDirection
+   *
+   * 出射方向
+   * @param maxRayLength
+   *
+   * 射线最大长度
+   * @param factionFilter
+   *
+   * 阵营筛选
+   * @param entityTypeFilter Includes Stage, Object, Player, Character, Creation
+   *
+   * 实体类型筛选: 分为关卡、物件、玩家、角色、造物
+   * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
+   *
+   * 命中层筛选: 分为受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * onHitLocation
+   * 命中位置
+   *
+   * onHitEntity
+   * 命中实体
+   */
+  getRayDetectionResult(
+    detectionInitiatorEntity: EntityValue,
+    launchLocation: Vec3Value,
+    launchDirection: Vec3Value,
+    maxRayLength: FloatValue,
+    factionFilter: EnumerationValue,
+    entityTypeFilter: EnumerationValue[],
+    hitLayerFilter: EnumerationValue[]
+  ): { onHitLocation: vec3; onHitEntity: entity } {
+    const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
+    const launchLocationObj = parseValue(launchLocation, 'vec3')
+    const launchDirectionObj = parseValue(launchDirection, 'vec3')
+    const maxRayLengthObj = parseValue(maxRayLength, 'float')
+    const factionFilterObj = parseValue(factionFilter, 'enum')
+    const entityTypeFilterObj = parseValue(entityTypeFilter, 'enum_list')
+    const hitLayerFilterObj = parseValue(hitLayerFilter, 'enum_list')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_detection_result',
+      args: [
+        detectionInitiatorEntityObj,
+        launchLocationObj,
+        launchDirectionObj,
+        maxRayLengthObj,
+        factionFilterObj,
+        entityTypeFilterObj,
+        hitLayerFilterObj
+      ]
+    })
+    return {
+      onHitLocation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'onHitLocation', 0)
+        return ret as unknown as vec3
+      })(),
+      onHitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'onHitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision
+   *
+   * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getRayFilterTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_filter_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
   }
 
   /**
@@ -16527,6 +20242,27 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations
+   *
+   * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntityTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
+  }
+
+  /**
    * Returns the length of the list (number of elements)
    *
    * 获取列表长度: 获取列表长度（列表中的元素个数）
@@ -16770,6 +20506,106 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'randomNumber', 0)
     return ret as unknown as number | bigint
+  }
+
+  /**
+   * Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray
+   *
+   * 获取射线检测结果: 获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置
+   *
+   * @param detectionInitiatorEntity
+   *
+   * 检测发起者实体
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param launchDirection
+   *
+   * 出射方向
+   * @param maxRayLength
+   *
+   * 射线最大长度
+   * @param factionFilter
+   *
+   * 阵营筛选
+   * @param entityTypeFilter Includes Stage, Object, Player, Character, Creation
+   *
+   * 实体类型筛选: 分为关卡、物件、玩家、角色、造物
+   * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
+   *
+   * 命中层筛选: 分为受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * onHitLocation
+   * 命中位置
+   *
+   * onHitEntity
+   * 命中实体
+   */
+  getRayDetectionResult(
+    detectionInitiatorEntity: EntityValue,
+    launchLocation: Vec3Value,
+    launchDirection: Vec3Value,
+    maxRayLength: FloatValue,
+    factionFilter: EnumerationValue,
+    entityTypeFilter: EnumerationValue[],
+    hitLayerFilter: EnumerationValue[]
+  ): { onHitLocation: vec3; onHitEntity: entity } {
+    const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
+    const launchLocationObj = parseValue(launchLocation, 'vec3')
+    const launchDirectionObj = parseValue(launchDirection, 'vec3')
+    const maxRayLengthObj = parseValue(maxRayLength, 'float')
+    const factionFilterObj = parseValue(factionFilter, 'enum')
+    const entityTypeFilterObj = parseValue(entityTypeFilter, 'enum_list')
+    const hitLayerFilterObj = parseValue(hitLayerFilter, 'enum_list')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_detection_result',
+      args: [
+        detectionInitiatorEntityObj,
+        launchLocationObj,
+        launchDirectionObj,
+        maxRayLengthObj,
+        factionFilterObj,
+        entityTypeFilterObj,
+        hitLayerFilterObj
+      ]
+    })
+    return {
+      onHitLocation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'onHitLocation', 0)
+        return ret as unknown as vec3
+      })(),
+      onHitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'onHitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision
+   *
+   * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getRayFilterTypeList(): enumeration[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_filter_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as enumeration[]
   }
 
   /**

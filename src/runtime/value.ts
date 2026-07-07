@@ -664,7 +664,14 @@ export class listLiteral<
 
   override toIRLiteral(): Argument {
     const t = `${this.getConcreteType()}_list` as keyof CommonLiteralValueListTypeMap
-    return { type: t, value: this.items as CommonLiteralValueListTypeMap[typeof t] } as Argument
+    // IR 的 enum_list 是 string[]：枚举项序列化为值名
+    const items =
+      this.items && this.getConcreteType() === 'enum'
+        ? this.items.map(
+            (item) => ((item as unknown as enumeration).toIRLiteral() as { value: string }).value
+          )
+        : this.items
+    return { type: t, value: items as CommonLiteralValueListTypeMap[typeof t] } as Argument
   }
 }
 

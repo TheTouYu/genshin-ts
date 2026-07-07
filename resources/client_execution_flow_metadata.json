@@ -2429,6 +2429,33 @@
     }
   },
   {
+    "methodName": "getEntityTypeList",
+    "nodeType": "get_entity_type_list",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "list",
+        "irType": "enum_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
+    ],
+    "docs": {
+      "en": "Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations",
+      "zh": "将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物"
+    }
+  },
+  {
     "methodName": "getListLength",
     "nodeType": "get_list_length",
     "subTypes": [
@@ -2934,6 +2961,109 @@
         "float|float",
         "int|int"
       ]
+    }
+  },
+  {
+    "methodName": "getRayDetectionResult",
+    "nodeType": "get_ray_detection_result",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "detectionInitiatorEntity",
+        "irType": "entity",
+        "docZh": "检测发起者实体",
+        "docEn": "Detection Initiator Entity"
+      },
+      {
+        "name": "launchLocation",
+        "irType": "vec3",
+        "docZh": "出射位置",
+        "docEn": "Launch Location"
+      },
+      {
+        "name": "launchDirection",
+        "irType": "vec3",
+        "docZh": "出射方向",
+        "docEn": "Launch Direction"
+      },
+      {
+        "name": "maxRayLength",
+        "irType": "float",
+        "docZh": "射线最大长度",
+        "docEn": "Max Ray Length"
+      },
+      {
+        "name": "factionFilter",
+        "irType": "enum",
+        "docZh": "阵营筛选",
+        "docEn": "Faction Filter"
+      },
+      {
+        "name": "entityTypeFilter",
+        "irType": "enum_list",
+        "docZh": "实体类型筛选",
+        "docEn": "Entity Type Filter"
+      },
+      {
+        "name": "hitLayerFilter",
+        "irType": "enum_list",
+        "docZh": "命中层筛选",
+        "docEn": "Hit Layer Filter"
+      }
+    ],
+    "returns": [
+      {
+        "name": "onHitLocation",
+        "irType": "vec3",
+        "docZh": "命中位置",
+        "docEn": "On-Hit Location"
+      },
+      {
+        "name": "onHitEntity",
+        "irType": "entity",
+        "docZh": "命中实体",
+        "docEn": "On-Hit Entity"
+      }
+    ],
+    "docs": {
+      "en": "Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray",
+      "zh": "获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置"
+    }
+  },
+  {
+    "methodName": "getRayFilterTypeList",
+    "nodeType": "get_ray_filter_type_list",
+    "subTypes": [
+      "bool_filter",
+      "character_skill",
+      "creation_skill",
+      "int_filter"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "list",
+        "irType": "enum_list",
+        "docZh": "列表",
+        "docEn": "List"
+      }
+    ],
+    "docs": {
+      "en": "Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision",
+      "zh": "将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞"
     }
   },
   {
@@ -6384,6 +6514,1801 @@
     "docs": {
       "en": "Iterates through each Entity in the input Entity List",
       "zh": "遍历输入实体列表中的每个实体"
+    }
+  },
+  {
+    "methodName": "triggerHitboxAtSpecificLocation",
+    "nodeType": "trigger_hitbox_at_specific_location",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      },
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "hitboxType",
+        "irType": "enum",
+        "docZh": "攻击盒类型",
+        "docEn": "Hitbox Type"
+      },
+      {
+        "name": "scaleOfCuboidHitbox",
+        "irType": "vec3",
+        "docZh": "攻击盒为长方体时的缩放",
+        "docEn": "Scale of Cuboid Hitbox"
+      },
+      {
+        "name": "radiusOfSphereHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为球体时的半径",
+        "docEn": "Radius of Sphere Hitbox"
+      },
+      {
+        "name": "heightOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的高度",
+        "docEn": "Height of Sector Hitbox"
+      },
+      {
+        "name": "sectorAngleOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇角度",
+        "docEn": "Sector Angle of Sector Hitbox"
+      },
+      {
+        "name": "sectorRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇半径",
+        "docEn": "Sector Radius of Sector Hitbox"
+      },
+      {
+        "name": "innerRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的内半径",
+        "docEn": "Inner Radius of Sector Hitbox"
+      },
+      {
+        "name": "detectionDirectionOfSectorHitbox",
+        "irType": "enum",
+        "docZh": "攻击盒为扇形时的检测方向",
+        "docEn": "Detection Direction of Sector Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSceneSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Scene Special Effects Offset"
+      },
+      {
+        "name": "onHitSceneSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Scene Special Effects Rotation"
+      },
+      {
+        "name": "onHitSceneSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Scene Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiates a Hitbox Attack at the specified Location in the World Coordinate System, with configurable attack parameters",
+      "zh": "在世界坐标系的指定位置发起一次攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerHitboxAtSpecifiedAttachmentPoint",
+    "nodeType": "trigger_hitbox_at_specified_attachment_point",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "attachmentPointName",
+        "irType": "str",
+        "docZh": "挂接点名称",
+        "docEn": "Attachment Point Name"
+      },
+      {
+        "name": "attachmentPointOffset",
+        "irType": "vec3",
+        "docZh": "挂接点偏移",
+        "docEn": "Attachment Point Offset"
+      },
+      {
+        "name": "attachmentPointRotation",
+        "irType": "vec3",
+        "docZh": "挂接点旋转",
+        "docEn": "Attachment Point Rotation"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "hitboxType",
+        "irType": "enum",
+        "docZh": "攻击盒类型",
+        "docEn": "Hitbox Type"
+      },
+      {
+        "name": "scaleOfCuboidHitbox",
+        "irType": "vec3",
+        "docZh": "攻击盒为长方体时的缩放",
+        "docEn": "Scale of Cuboid Hitbox"
+      },
+      {
+        "name": "radiusOfSphereHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为球体时的半径",
+        "docEn": "Radius of Sphere Hitbox"
+      },
+      {
+        "name": "heightOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的高度",
+        "docEn": "Height of Sector Hitbox"
+      },
+      {
+        "name": "sectorAngleOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇角度",
+        "docEn": "Sector Angle of Sector Hitbox"
+      },
+      {
+        "name": "sectorRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇半径",
+        "docEn": "Sector Radius of Sector Hitbox"
+      },
+      {
+        "name": "innerRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的内半径",
+        "docEn": "Inner Radius of Sector Hitbox"
+      },
+      {
+        "name": "detectionDirectionOfSectorHitbox",
+        "irType": "enum",
+        "docZh": "攻击盒为扇形时的检测方向",
+        "docEn": "Detection Direction of Sector Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiates a Hitbox Attack at a specified Attachment Point, with configurable attack parameters",
+      "zh": "对指定挂接点发起一次攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerRectangularHitboxAtSpecificLocation",
+    "nodeType": "trigger_rectangular_hitbox_at_specific_location",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      },
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "scaleOfCuboidHitbox",
+        "irType": "vec3",
+        "docZh": "攻击盒为长方体时的缩放",
+        "docEn": "Scale of Cuboid Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiate a rectangular hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.",
+      "zh": "在世界坐标系的指定位置发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerRectangularHitboxAtSpecifiedAttachmentPoint",
+    "nodeType": "trigger_rectangular_hitbox_at_specified_attachment_point",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "attachmentPointName",
+        "irType": "str",
+        "docZh": "挂接点名称",
+        "docEn": "Attachment Point Name"
+      },
+      {
+        "name": "attachmentPointOffset",
+        "irType": "vec3",
+        "docZh": "挂接点偏移",
+        "docEn": "Attachment Point Offset"
+      },
+      {
+        "name": "attachmentPointRotation",
+        "irType": "vec3",
+        "docZh": "挂接点旋转",
+        "docEn": "Attachment Point Rotation"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "scaleOfCuboidHitbox",
+        "irType": "vec3",
+        "docZh": "攻击盒为长方体时的缩放",
+        "docEn": "Scale of Cuboid Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiate a rectangular hitbox at the specified attachment point, and you can set various parameters for this attack.",
+      "zh": "对指定挂接点发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerSectorHitboxAtSpecificLocation",
+    "nodeType": "trigger_sector_hitbox_at_specific_location",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      },
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "heightOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的高度",
+        "docEn": "Height of Sector Hitbox"
+      },
+      {
+        "name": "sectorAngleOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇角度",
+        "docEn": "Sector Angle of Sector Hitbox"
+      },
+      {
+        "name": "sectorRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇半径",
+        "docEn": "Sector Radius of Sector Hitbox"
+      },
+      {
+        "name": "innerRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的内半径",
+        "docEn": "Inner Radius of Sector Hitbox"
+      },
+      {
+        "name": "detectionDirectionOfSectorHitbox",
+        "irType": "enum",
+        "docZh": "攻击盒为扇形时的检测方向",
+        "docEn": "Detection Direction of Sector Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiate a sector hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.",
+      "zh": "在世界坐标系的指定位置发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerSectorHitboxAtSpecifiedAttachmentPoint",
+    "nodeType": "trigger_sector_hitbox_at_specified_attachment_point",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "attachmentPointName",
+        "irType": "str",
+        "docZh": "挂接点名称",
+        "docEn": "Attachment Point Name"
+      },
+      {
+        "name": "attachmentPointOffset",
+        "irType": "vec3",
+        "docZh": "挂接点偏移",
+        "docEn": "Attachment Point Offset"
+      },
+      {
+        "name": "attachmentPointRotation",
+        "irType": "vec3",
+        "docZh": "挂接点旋转",
+        "docEn": "Attachment Point Rotation"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "heightOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的高度",
+        "docEn": "Height of Sector Hitbox"
+      },
+      {
+        "name": "sectorAngleOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇角度",
+        "docEn": "Sector Angle of Sector Hitbox"
+      },
+      {
+        "name": "sectorRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的扇半径",
+        "docEn": "Sector Radius of Sector Hitbox"
+      },
+      {
+        "name": "innerRadiusOfSectorHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为扇形时的内半径",
+        "docEn": "Inner Radius of Sector Hitbox"
+      },
+      {
+        "name": "detectionDirectionOfSectorHitbox",
+        "irType": "enum",
+        "docZh": "攻击盒为扇形时的检测方向",
+        "docEn": "Detection Direction of Sector Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiate a sector hitbox at the specified attachment point, and you can set various parameters for this attack.",
+      "zh": "对指定挂接点发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerSphericalHitboxAtSpecificLocation",
+    "nodeType": "trigger_spherical_hitbox_at_specific_location",
+    "subTypes": [
+      "character_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "location",
+        "irType": "vec3",
+        "docZh": "位置",
+        "docEn": "Location"
+      },
+      {
+        "name": "rotate",
+        "irType": "vec3",
+        "docZh": "旋转",
+        "docEn": "Rotate"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "radiusOfSphereHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为球体时的半径",
+        "docEn": "Radius of Sphere Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiate a spherical hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.",
+      "zh": "在世界坐标系的指定位置发起一次球形攻击盒攻击，可以设置该次攻击的各种参数"
+    }
+  },
+  {
+    "methodName": "triggerSphericalHitboxAtSpecifiedAttachmentPoint",
+    "nodeType": "trigger_spherical_hitbox_at_specified_attachment_point",
+    "subTypes": [
+      "character_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetFactionFilter",
+        "irType": "enum",
+        "docZh": "目标阵营筛选",
+        "docEn": "Target Faction Filter"
+      },
+      {
+        "name": "attachmentPointName",
+        "irType": "str",
+        "docZh": "挂接点名称",
+        "docEn": "Attachment Point Name"
+      },
+      {
+        "name": "attachmentPointOffset",
+        "irType": "vec3",
+        "docZh": "挂接点偏移",
+        "docEn": "Attachment Point Offset"
+      },
+      {
+        "name": "attachmentPointRotation",
+        "irType": "vec3",
+        "docZh": "挂接点旋转",
+        "docEn": "Attachment Point Rotation"
+      },
+      {
+        "name": "damageCoefficient",
+        "irType": "float",
+        "docZh": "伤害系数",
+        "docEn": "Damage Coefficient"
+      },
+      {
+        "name": "damageIncrement",
+        "irType": "float",
+        "docZh": "伤害增量",
+        "docEn": "Damage Increment"
+      },
+      {
+        "name": "hitboxEntityTypeFilterList",
+        "irType": "enum_list",
+        "docZh": "攻击盒实体类型筛选列表",
+        "docEn": "Hitbox Entity Type Filter List"
+      },
+      {
+        "name": "triggerType",
+        "irType": "enum",
+        "docZh": "触发类型",
+        "docEn": "Trigger Type"
+      },
+      {
+        "name": "onHitSceneEffects",
+        "irType": "int",
+        "docZh": "命中场景特效",
+        "docEn": "On-Hit Scene Effects"
+      },
+      {
+        "name": "radiusOfSphereHitbox",
+        "irType": "float",
+        "docZh": "攻击盒为球体时的半径",
+        "docEn": "Radius of Sphere Hitbox"
+      },
+      {
+        "name": "attackLayerFilter",
+        "irType": "enum",
+        "docZh": "攻击层筛选",
+        "docEn": "Attack Layer Filter"
+      },
+      {
+        "name": "attackTagList",
+        "irType": "str_list",
+        "docZh": "攻击标签列表",
+        "docEn": "Attack Tag List"
+      },
+      {
+        "name": "elementalType",
+        "irType": "enum",
+        "docZh": "元素类型",
+        "docEn": "Elemental Type"
+      },
+      {
+        "name": "elementalAttackPotency",
+        "irType": "float",
+        "docZh": "元素攻击强效",
+        "docEn": "Elemental Attack Potency"
+      },
+      {
+        "name": "hitType",
+        "irType": "enum",
+        "docZh": "打击类型",
+        "docEn": "Hit Type"
+      },
+      {
+        "name": "attackType",
+        "irType": "enum",
+        "docZh": "攻击类型",
+        "docEn": "Attack Type"
+      },
+      {
+        "name": "interruptValue",
+        "irType": "float",
+        "docZh": "打断值",
+        "docEn": "Interrupt Value"
+      },
+      {
+        "name": "absoluteDamage",
+        "irType": "bool",
+        "docZh": "是否是绝对伤害",
+        "docEn": "Absolute Damage"
+      },
+      {
+        "name": "onHitSpecialEffects",
+        "irType": "int",
+        "docZh": "命中特效",
+        "docEn": "On-Hit Special Effects"
+      },
+      {
+        "name": "knockbackOrientation",
+        "irType": "enum",
+        "docZh": "受击击退朝向",
+        "docEn": "Knockback Orientation"
+      },
+      {
+        "name": "blockDamagePopUp",
+        "irType": "bool",
+        "docZh": "是否屏蔽伤害跳字",
+        "docEn": "Block Damage Pop-Up"
+      },
+      {
+        "name": "onHitSceneEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中场景特效偏移",
+        "docEn": "On-Hit Scene Effects Offset"
+      },
+      {
+        "name": "onHitSceneEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中场景特效旋转",
+        "docEn": "On-Hit Scene Effects Rotation"
+      },
+      {
+        "name": "onHitSceneEffectsZoom",
+        "irType": "float",
+        "docZh": "命中场景特效缩放",
+        "docEn": "On-Hit Scene Effects Zoom"
+      },
+      {
+        "name": "onHitSpecialEffectsOffset",
+        "irType": "vec3",
+        "docZh": "命中特效偏移",
+        "docEn": "On-Hit Special Effects Offset"
+      },
+      {
+        "name": "onHitSpecialEffectsRotation",
+        "irType": "vec3",
+        "docZh": "命中特效旋转",
+        "docEn": "On-Hit Special Effects Rotation"
+      },
+      {
+        "name": "onHitSpecialEffectsZoom",
+        "irType": "float",
+        "docZh": "命中特效缩放",
+        "docEn": "On-Hit Special Effects Zoom"
+      },
+      {
+        "name": "aggroMultiplierForThisAttack",
+        "irType": "float",
+        "docZh": "本次攻击的仇恨倍率",
+        "docEn": "Aggro Multiplier for This Attack"
+      },
+      {
+        "name": "aggroIncrementForThisAttack",
+        "irType": "int",
+        "docZh": "本次攻击的仇恨增量",
+        "docEn": "Aggro Increment for This Attack"
+      },
+      {
+        "name": "hitLevel",
+        "irType": "enum",
+        "docZh": "受击等级",
+        "docEn": "Hit Level"
+      },
+      {
+        "name": "onHitHorizontalImpulse",
+        "irType": "float",
+        "docZh": "命中水平冲量",
+        "docEn": "On-Hit Horizontal Impulse"
+      },
+      {
+        "name": "onHitVerticalImpulse",
+        "irType": "float",
+        "docZh": "命中垂直冲量",
+        "docEn": "On-Hit Vertical Impulse"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Initiate a spherical hitbox at the specified attachment point, and you can set various parameters for this attack.",
+      "zh": "对指定挂接点发起一次球形攻击盒攻击，可以设置该次攻击的各种参数"
     }
   },
   {

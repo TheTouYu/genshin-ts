@@ -10741,7 +10741,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\定点位移_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26,
+      28, 32, 33, 34, 38, 39, 40, 41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'character_skill',
@@ -11128,7 +11132,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打攻击盒_全参数填值_筛选列表连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打攻击盒_全参数填值_筛选列表连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26,
+      27, 29, 33, 34, 35, 39, 40, 41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'character_skill',
@@ -11480,7 +11488,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\特定位置打矩形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\特定位置打矩形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39, 40,
+      41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'character_skill',
@@ -11867,7 +11879,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打矩形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打矩形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 16, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33, 34, 35, 39, 40,
+      41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'character_skill',
@@ -12219,7 +12235,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\特定位置打扇形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\特定位置打扇形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32,
+      33, 34, 38, 39, 40, 41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'character_skill',
@@ -12606,7 +12626,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33,
+      34, 35, 39, 40, 41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'character_skill',
@@ -12958,7 +12982,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\特定位置打球形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\特定位置打球形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 10, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39,
+      40, 41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'character_skill',
@@ -13345,7 +13373,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 16, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33, 34, 35, 39, 40,
+      41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'character_skill',
@@ -20276,7 +20308,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\特定位置打攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26,
+      28, 32, 33, 34, 38, 39, 40, 41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'creation_skill',
@@ -20663,7 +20699,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\指定挂接点打攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26,
+      27, 29, 33, 34, 35, 39, 40, 41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'creation_skill',
@@ -21015,7 +21055,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打矩形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\特定位置打矩形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39, 40,
+      41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'creation_skill',
@@ -21402,7 +21446,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打矩形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\指定挂接点打矩形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 16, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33, 34, 35, 39, 40,
+      41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'creation_skill',
@@ -21754,7 +21802,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打扇形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\特定位置打扇形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32,
+      33, 34, 38, 39, 40, 41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'creation_skill',
@@ -22141,7 +22193,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33,
+      34, 35, 39, 40, 41, 42, 43, 44, 46, 47
+    ]
   },
   {
     subType: 'creation_skill',
@@ -22493,7 +22549,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打球形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\特定位置打球形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 10, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39,
+      40, 41, 42, 43, 45, 46
+    ]
   },
   {
     subType: 'creation_skill',

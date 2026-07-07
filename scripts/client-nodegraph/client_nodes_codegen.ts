@@ -238,7 +238,7 @@ const IR_BY_DOC_TAG: Record<string, string> = {
 /** IR types expressible as generated method parameters */
 const SUPPORTED_PARAM_TYPES = new Set([
   ...Object.keys(PARAM_TS_BY_IR),
-  ...['bool', 'int', 'float', 'str', 'vec3', 'guid', 'entity', 'faction', 'config_id', 'prefab_id'].map(
+  ...['bool', 'int', 'float', 'str', 'vec3', 'guid', 'entity', 'faction', 'config_id', 'prefab_id', 'enum'].map(
     (t) => `${t}_list`
   )
 ])
@@ -246,7 +246,7 @@ const SUPPORTED_PARAM_TYPES = new Set([
 /** IR types expressible as generated method returns */
 const SUPPORTED_RETURN_TYPES = new Set([
   ...Object.keys(RETURN_TS_BY_IR),
-  ...['bool', 'int', 'float', 'str', 'vec3', 'guid', 'entity', 'faction', 'config_id', 'prefab_id'].map(
+  ...['bool', 'int', 'float', 'str', 'vec3', 'guid', 'entity', 'faction', 'config_id', 'prefab_id', 'enum'].map(
     (t) => `${t}_list`
   )
 ])
