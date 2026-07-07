@@ -16,6 +16,8 @@
 
 ## 最近交接轮次一览
 
+> 通用布局协作规则、导出路径、复制命令和小步验证约定见：[layout-working-rules.md](layout-working-rules.md)。各轮 handover 应引用该文件，不再重复维护这些细节。
+
 | 轮次        | 文件                                                                                               | 主要主题                         | 当前状态                                                                                                                                                      |
 | :---------- | :------------------------------------------------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | r21         | [r21-outflow-api-redesign-pending.md](r21-outflow-api-redesign-pending.md)                         | outflow API 重设计（未完成）     | 设计已被 r22/r23 和当前 raw control-flow DSL 替代                                                                                                             |
@@ -28,4 +30,5 @@
 | layout-r9   | [layout-handover-round-9.md](layout-handover-round-9.md)                                           | 多执行泳道 block-aware 中间实现  | 游戏内反馈：下移系数偏高，测试未复刻参考文件；已由 layout-r10 严格复刻和分步验证继续推进                                                                      |
 | layout-r10  | [layout-handover-round-10.md](layout-handover-round-10.md)                                         | `布局c` 严格复刻与布局调参       | `layout-r6-c-reference-repro` 与 long-input 变体已游戏内验证通过；当前参数已提交，但仍属 gsts 当前输出经验值                                                  |
 | layout-r11  | [layout-handover-round-11.md](layout-handover-round-11.md)                                         | long-input step7、复合数据流编码 | step4/6/7 已游戏内验证并提交；记录 `dataLanePadding=1100`、复合 impl concrete InParam/OutParam 类型修复，以及下一轮 step7 布局反馈流程                         |
-| layout-next | [layout-handover-next-iteration.md](layout-handover-next-iteration.md)                             | 下一轮小步游戏内验证流程         | 早期下一轮入口，已被 layout-r11 继续推进；后续优先读 layout-r11，再按小步导出/游戏内反馈/通过后提交流程继续                                                   |
+| layout-r12  | [layout-handover-round-12.md](layout-handover-round-12.md)                                         | 主图与复合 impl 布局统一计划     | 场景 C 已通过；场景 D 暴露复合 impl 仍用简化布局。下一步应让复合 impl 复用主图 `layout.ts` 的语义布局核心，而不是继续维护两套算法。                 |
+| layout-next | [layout-handover-next-iteration.md](layout-handover-next-iteration.md)                             | 下一轮小步游戏内验证流程         | 早期下一轮入口，已被 layout-r11/r12 继续推进；后续优先读最新 layout-r12，再按小步导出/游戏内反馈/通过后提交流程继续                                           |
