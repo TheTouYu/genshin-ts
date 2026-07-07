@@ -45,7 +45,7 @@ const attackParams = g.defineComposite('R6-C攻击参数数据流', {
 })
 
 g.server({
-  name: 'R6-C参考复刻-long-input-step7',
+  name: 'R6-C参考复刻-long-input-step8',
   id: 1073741898,
   variables: {
     locationOffset: vec3([1, 2, 3]),

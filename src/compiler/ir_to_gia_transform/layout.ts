@@ -1,3 +1,4 @@
+import { CompositeDefIR } from '../../runtime/IR'
 import { isConnectionArgument } from './node_id.js'
 import { IRNode, NodeId, Position } from './types.js'
 
@@ -391,6 +392,31 @@ function collectDataAncestors(
   return result
 }
 
+function compositeDefIdFromCall(node: IRNode): number | undefined {
+  if (node.type !== '__composite_call__') return undefined
+  const firstArg = node.args?.[0]
+  if (!firstArg || firstArg.type === 'conn') return undefined
+  return Number(firstArg.value)
+}
+
+function estimateDataNodeVisualExtra(
+  node: IRNode,
+  compositeDefById: Map<number, CompositeDefIR>
+): number {
+  if (node.type !== '__composite_call__') return 0
+
+  const compositeId = compositeDefIdFromCall(node)
+  const def = compositeId === undefined ? undefined : compositeDefById.get(compositeId)
+  const inputCount = def?.inputs.length ?? Math.max(0, (node.args?.length ?? 1) - 1)
+  const outputCount = def?.outputs.length ?? 0
+  const pinCount = inputCount + outputCount
+
+  // Composite calls with many visible input/output pins occupy a taller card than a
+  // regular data node.  Reserve additional vertical space for the exec branch below
+  // their consumer so a large composite data node does not overlap the next branch.
+  return Math.max(0, pinCount - 2) * 140
+}
+
 function computeDataDepths(
   dataIds: NodeId[],
   dataParentsMap: Map<NodeId, NodeId[]>,
@@ -513,7 +539,8 @@ function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: 
 
 export function layoutPositions(
   irNodes: IRNode[],
-  graphInfo: ReturnType<typeof buildExecutionGraph>
+  graphInfo: ReturnType<typeof buildExecutionGraph>,
+  compositeDefs: CompositeDefIR[] = []
 ): Map<NodeId, Position> {
   const config: LayoutConfig = {
     columnWidth: 800,
@@ -533,6 +560,9 @@ export function layoutPositions(
     dataParentsMap.set(conn.toId, parents)
   }
 
+  const nodeById = new Map(irNodes.map((node) => [node.id, node]))
+  const compositeDefById = new Map(compositeDefs.map((def) => [def.id, def]))
+
   // Estimate the vertical footprint of data chains attached to each exec node before placing lanes.
   const dataBlockHeightMap = new Map<NodeId, number>()
   for (const node of irNodes) {
@@ -540,7 +570,15 @@ export function layoutPositions(
     const dataAncestorCount = collectDataAncestors(node.id, dataParentsMap).size
     const directInputExtra = Math.max(0, directDataInputs.length - 1) * 200
     const chainExtra = Math.max(0, dataAncestorCount - 1) * 120
-    dataBlockHeightMap.set(node.id, directInputExtra + chainExtra)
+    const uniqueDirectDataInputs = new Set(directDataInputs)
+    let dataNodeVisualExtra = 0
+    for (const inputId of uniqueDirectDataInputs) {
+      const inputNode = nodeById.get(inputId)
+      if (inputNode) {
+        dataNodeVisualExtra += estimateDataNodeVisualExtra(inputNode, compositeDefById)
+      }
+    }
+    dataBlockHeightMap.set(node.id, directInputExtra + chainExtra + dataNodeVisualExtra)
   }
 
   const dataExtraHeightMemo = new Map<NodeId, number>()

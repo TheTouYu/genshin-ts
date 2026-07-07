@@ -56,6 +56,8 @@ WSL 下 `node bin/gsts.mjs ...` 在 `.gia` 生成后仍可能因为注入阶段�
 | long-input step5 | `布局c-long-input-step5.gia` | 把攻击节点输入参数计算抽成纯数据复合节点 `R6-C攻击参数数据流` | 用户反馈复合内部数据类型问题，疑似 int/float 导致连线断开 |
 | long-input step6 | `布局c-long-input-step6.gia` | 修复复合 impl connected InParam 类型编码，conn 输入按 IR 真实类型生成 pin | 用户游戏内测试通过，已提交 |
 | long-input step7 | `布局c-long-input-step7.gia` | 将缩放基数与逻辑或右侧参数作为复合输入；修复复合 impl OutParam concrete index | 用户确认“问题修复”，已提交；下一轮会继续给 step7 的少量布局调整反馈 |
+| long-input step8 | `布局c-long-input-step8.gia` | 按复合调用节点输入/输出 pin 数估算额外视觉高度，避免大复合数据节点与下方分支重叠 | 用户游戏内测试通过；另用无复合的小输入回归文件验证普通布局未回退 |
+| small-input regression step8 | `布局c-small-input-regression-step8.gia` | 新增不含复合节点、仅少量普通数据流输入的 R6-C 回归测试 | 用户游戏内测试通过 |
 
 本轮截图问题来源：
 
@@ -300,7 +302,7 @@ R6-C参考复刻-long-input-step8
 ## 八、剩余风险
 
 1. `dataLanePadding = min(1100, extraDataHeight*0.35)` 是通过 step4 验证的经验值，可能对其它复杂图偏大或偏小。
-2. 当前主图布局对复合调用节点的数据区块估算可能仍不够精细；step7 后续布局反馈可能集中在复合节点作为单个主图数据节点时的占位与内部数据复杂度不匹配。
+2. 主图布局已在 step8 纳入纯数据复合调用节点的输入/输出 pin 数视觉高度估算，并经用户游戏内验证；但这仍是经验估算，后续如果出现更宽/更多 pin 的复合节点，可能还需要继续校准。
 3. 复合 impl concrete 编码修复已由 step6/step7 游戏内反馈验证，但建议未来补自动回归测试，至少覆盖：`float addition -> vec3 zoom`、`float comparison -> logical OR`、显式 OutParam 映射。
 4. 真实编辑器的复合 pinIndex 分配与 gsts 默认值不同；本轮只保证 gsts 当前输出可被游戏接受，不代表编辑器导出结构完全等价。
 

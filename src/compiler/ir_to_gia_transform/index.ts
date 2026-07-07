@@ -12,20 +12,28 @@ import type {
 import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { isListValueInfo, type ListValueInfo } from '../../runtime/variables.js'
 import type { NodeType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/nodes.js'
-import { Graph, Node, NodeIdFor, NODE_ID, Pin, wrap_gia, type Root as GiaRoot } from '../gia_vendor.js'
 import {
   GraphUnit_Id_Class,
   NodeGraph_Id_Class,
   NodeGraph_Id_Kind,
   NodeProperty_Type
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import {
+  Graph,
+  Node,
+  NODE_ID,
+  NodeIdFor,
+  Pin,
+  wrap_gia,
+  type Root as GiaRoot
+} from '../gia_vendor.js'
+import { buildCompositeAccessories } from './composite.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
-import { buildCompositeAccessories } from './composite.js'
 
 type IrToGiaOptimizeOptions = {
   timerDispatchAggregate?: boolean
@@ -167,18 +175,30 @@ function extractCompositeIdFromArgs(args: Argument[] | undefined): number | unde
   return Number(arg.value)
 }
 
-function compositeTypeToBaseTag(type: string): 'Str' | 'Bol' | 'Int' | 'Flt' | 'Vec' | 'Ety' | 'Gid' | 'Cfg' | 'Fct' | 'Pfb' | null {
+function compositeTypeToBaseTag(
+  type: string
+): 'Str' | 'Bol' | 'Int' | 'Flt' | 'Vec' | 'Ety' | 'Gid' | 'Cfg' | 'Fct' | 'Pfb' | null {
   switch (type) {
-    case 'bool': return 'Bol'
-    case 'int': return 'Int'
-    case 'float': return 'Flt'
-    case 'str': return 'Str'
-    case 'vec3': return 'Vec'
-    case 'guid': return 'Gid'
-    case 'entity': return 'Ety'
-    case 'faction': return 'Fct'
-    case 'config_id': return 'Cfg'
-    case 'prefab_id': return 'Pfb'
+    case 'bool':
+      return 'Bol'
+    case 'int':
+      return 'Int'
+    case 'float':
+      return 'Flt'
+    case 'str':
+      return 'Str'
+    case 'vec3':
+      return 'Vec'
+    case 'guid':
+      return 'Gid'
+    case 'entity':
+      return 'Ety'
+    case 'faction':
+      return 'Fct'
+    case 'config_id':
+      return 'Cfg'
+    case 'prefab_id':
+      return 'Pfb'
     default:
       if (type.endsWith('_list')) {
         const elementType = type.slice(0, -5)
@@ -250,11 +270,11 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     graph.rootModeFlag = 1
   }
   const nodesById = new Map<NodeId, GiaNode>()
-  const positions = layoutPositions(ir.nodes!, graphInfo)
+  const irDoc = ir as { compositeDefs?: CompositeDefIR[]; variables?: Variable[] }
+  const positions = layoutPositions(ir.nodes!, graphInfo, irDoc.compositeDefs ?? [])
   const connIndex = buildConnTypeIndex(ir)
   const varsByName = buildVarsByName(ir)
   // 合并复合节点声明的图变量到主图（compositeDefs 仅 ServerIRDocument 有）
-  const irDoc = ir as { compositeDefs?: CompositeDefIR[]; variables?: Variable[] }
   const mainVarNames = new Set(irDoc.variables?.map((v) => v.name) ?? [])
   const allVars = [...(irDoc.variables ?? [])]
   for (const cd of irDoc.compositeDefs ?? []) {
@@ -614,7 +634,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   // === 为未连接下游的复合 outflow 生成终端 Print_String 节点 ===
   // 参考文件（顺序执行.gia 等）中，每个无下游的 outflow 出口都有一个 Print_String 终端节点
-  let nextTerminalId = Math.max(...ir.nodes!.map(n => n.id)) + 1
+  let nextTerminalId = Math.max(...ir.nodes!.map((n) => n.id)) + 1
 
   // 构建执行子图邻接表，用于下游节点递归搜索
   const execChildren = new Map<number, number[]>()
@@ -681,14 +701,21 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   }
 
   // 应用复合节点之间的数据连线
-  const compositeDataEdges = (ir as any).compositeDataEdges as Array<{
-    fromNodeId: number; fromPinIndex: number; toMarkerId: number; toPinIndex: number
-  }> | undefined
+  const compositeDataEdges = (ir as any).compositeDataEdges as
+    | Array<{
+        fromNodeId: number
+        fromPinIndex: number
+        toMarkerId: number
+        toPinIndex: number
+      }>
+    | undefined
   // 构建已存在连接的集合，避免 compositeDataEdges 重复连接
-  const existingConnections = new Set(graphInfo.dataConnections.map(
-    (c: { fromId: number; toId: number; fromIndex: number; toIndex: number }) =>
-      `${c.fromId}-${c.fromIndex}-${c.toId}-${c.toIndex}`
-  ))
+  const existingConnections = new Set(
+    graphInfo.dataConnections.map(
+      (c: { fromId: number; toId: number; fromIndex: number; toIndex: number }) =>
+        `${c.fromId}-${c.fromIndex}-${c.toId}-${c.toIndex}`
+    )
+  )
   if (compositeDataEdges) {
     for (const edge of compositeDataEdges) {
       const key = `${edge.fromNodeId}-${edge.fromPinIndex}-${edge.toMarkerId}-${edge.toPinIndex}`
@@ -730,13 +757,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
                 node.pins = node.pins.filter((pin: any) => pin.i1?.kind !== 2)
               }
               for (const pin of node.pins) {
-                if (pin.i1?.kind === 1) { // InFlow
+                if (pin.i1?.kind === 1) {
+                  // InFlow
                   const inflowIdx = pin.i1.index ?? 0
                   if (inflowIdx < cdef.inflows.length) {
                     pin.compositePinIndex = cdef.inflows[inflowIdx].pinIndex
                   }
                 }
-                if (pin.i1?.kind === 3) { // InParam
+                if (pin.i1?.kind === 3) {
+                  // InParam
                   const inputIdx = pin.i1.index ?? 0
                   if (inputIdx < cdef.inputs.length) {
                     pin.compositePinIndex = cdef.inputs[inputIdx].pinIndex
@@ -746,7 +775,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
                     }
                   }
                 }
-                if (pin.i1?.kind === 2) { // OutFlow
+                if (pin.i1?.kind === 2) {
+                  // OutFlow
                   const outflowIdx = pin.i1.index ?? 0
                   if (outflowIdx < cdef.outflows.length) {
                     pin.compositePinIndex = cdef.outflows[outflowIdx].pinIndex
@@ -766,7 +796,6 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
             }
           }
         }
-
       }
     }
 
@@ -801,9 +830,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   // 将复合节点定义编码为 accessories
   try {
     const compositeDefs: CompositeDefIR[] = irDoc.compositeDefs ?? []
-    const compositeDefById = new Map<number, CompositeDefIR>(
-      compositeDefs.map((d) => [d.id, d])
-    )
+    const compositeDefById = new Map<number, CompositeDefIR>(compositeDefs.map((d) => [d.id, d]))
     for (const def of compositeDefs) {
       const accs = buildCompositeAccessories(def, compositeDefById)
       root.accessories.push(...accs)
