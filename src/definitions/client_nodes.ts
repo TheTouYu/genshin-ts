@@ -802,8 +802,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
-      clientHints: { outputIrType: String(type) }
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -1553,8 +1552,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj],
-      clientHints: { outputIrType: type }
+      args: [targetEntityObj, variableNameObj]
     })
     let ret: value
     if (type === 'dict') {
@@ -4408,8 +4406,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
-      clientHints: { outputIrType: String(type) }
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -5056,8 +5053,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj],
-      clientHints: { outputIrType: type }
+      args: [targetEntityObj, variableNameObj]
     })
     let ret: value
     if (type === 'dict') {
@@ -7901,8 +7897,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
-      clientHints: { outputIrType: String(type) }
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -8293,8 +8288,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj],
-      clientHints: { outputIrType: type }
+      args: [targetEntityObj, variableNameObj]
     })
     let ret: value
     if (type === 'dict') {
@@ -11374,8 +11368,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
-      clientHints: { outputIrType: String(type) }
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -11743,8 +11736,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj],
-      clientHints: { outputIrType: type }
+      args: [targetEntityObj, variableNameObj]
     })
     let ret: value
     if (type === 'dict') {
@@ -13810,8 +13802,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
-      clientHints: { outputIrType: String(type) }
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -14367,8 +14358,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj],
-      clientHints: { outputIrType: type }
+      args: [targetEntityObj, variableNameObj]
     })
     let ret: value
     if (type === 'dict') {
@@ -16225,8 +16215,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj],
-      clientHints: { outputIrType: String(type) }
+      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -16782,8 +16771,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       id: 0,
       type: 'data',
       nodeType: 'get_custom_variable',
-      args: [targetEntityObj, variableNameObj],
-      clientHints: { outputIrType: type }
+      args: [targetEntityObj, variableNameObj]
     })
     let ret: value
     if (type === 'dict') {

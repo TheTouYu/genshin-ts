@@ -30,7 +30,8 @@ import {
 import type { IrToGiaOptions } from './index.js'
 import { parseEnumValue } from './mappings.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
-import type { ClientIRNode, NodeId } from './types.js'
+import { buildConnTypeIndex, type ConnTypeIndex } from './node_id.js'
+import type { IRNode, NodeId } from './types.js'
 
 const PIN_KIND_OUT_FLOW = NodePin_Index_Kind.OutFlow
 const PIN_KIND_IN_PARAM = NodePin_Index_Kind.InParam
@@ -54,7 +55,7 @@ const LIST_TYPE_BY_ELEM_TYPE: Record<number, number> = {
 }
 
 type ClientGiaNode = ReturnType<typeof client_node_body>
-type IrArg = NonNullable<ClientIRNode['args']>[number]
+type IrArg = NonNullable<IRNode['args']>[number]
 type ValueArg = Exclude<IrArg, null | { type: 'conn' }>
 
 function isValueArg(arg: IrArg | null | undefined): arg is ValueArg {
@@ -104,6 +105,20 @@ function irTypeOfArg(arg: IrArg | undefined): string | undefined {
   return arg.type === 'conn' ? arg.value.type : arg.type
 }
 
+/**
+ * get_custom_variable 的输出类型由输出连线推断（与服务器 inferTypedNodeIdFromOutputs 同思路）。
+ * 无消费者的数据节点在 IR 构建阶段已被剪枝，因此这里总有连线可用。
+ */
+function customVarOutputIrType(irNode: IRNode, connIndex: ConnTypeIndex): string | undefined {
+  if (irNode.type !== 'get_custom_variable') return undefined
+  const outputs = connIndex.get(irNode.id)
+  if (!outputs) return undefined
+  for (const info of outputs.values()) {
+    return info.type
+  }
+  return undefined
+}
+
 function resolvedVariant(metadata: ClientNodeMetadata, concreteId: number | string) {
   return metadata.reflectMap?.find((v) => v.concreteId === concreteId)
 }
@@ -128,7 +143,7 @@ function findOutPin(node: ClientGiaNode, pinIndex: number) {
 
 function applyAssemblyList(
   node: ClientGiaNode,
-  irNode: ClientIRNode,
+  irNode: IRNode,
   metadata: ClientNodeMetadata,
   concreteId: number | string
 ) {
@@ -161,7 +176,7 @@ function applyAssemblyList(
   }
 }
 
-function applyMultipleBranches(node: ClientGiaNode, irNode: ClientIRNode) {
+function applyMultipleBranches(node: ClientGiaNode, irNode: IRNode) {
   const args = irNode.args ?? []
   const controlArg = args[0]
   if (isValueArg(controlArg)) {
@@ -182,43 +197,45 @@ function applyMultipleBranches(node: ClientGiaNode, irNode: ClientIRNode) {
   if (caseValues.length) setInPinValue(node, 1, 4, client_list_literal_value(4, caseValues), 0)
 }
 
-const DATA_TYPE_CONVERSION_ENUM: Record<string, number> = {
-  'int->bool': 800,
-  'int->float': 801,
-  'int->str': 802,
-  'entity->str': 803,
-  'guid->str': 804,
-  'bool->int': 805,
-  'bool->str': 806,
-  'float->int': 807,
-  'float->str': 808,
-  'vec3->str': 809,
-  'faction->str': 810
+/** TypeConversion 枚举名 -> 输出 IR 类型；枚举值 800..810 由共享枚举表（parseEnumValue）解析 */
+const DATA_TYPE_CONVERSION_OUT_TYPE: Record<string, string> = {
+  type_conversion_integer_to_boolean: 'bool',
+  type_conversion_integer_to_floating_point: 'float',
+  type_conversion_integer_to_string: 'str',
+  type_conversion_entity_to_string: 'str',
+  type_conversion_guid_to_string: 'str',
+  type_conversion_boolean_to_integer: 'int',
+  type_conversion_boolean_to_string: 'str',
+  type_conversion_floating_point_to_integer: 'int',
+  type_conversion_floating_point_to_string: 'str',
+  type_conversion_vector_3_to_string: 'str',
+  type_conversion_faction_to_string: 'str'
 }
 
-function applyDataTypeConversion(node: ClientGiaNode, irNode: ClientIRNode, metadata: ClientNodeMetadata) {
+function applyDataTypeConversion(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+  const enumArg = irNode.args?.[0]
   const inputArg = irNode.args?.[1]
-  const outIrType = irNode.clientHints?.outputIrType
+  const enumName = isValueArg(enumArg) ? String(enumArg.value) : undefined
+  const outIrType = enumName ? DATA_TYPE_CONVERSION_OUT_TYPE[enumName] : undefined
   const inIrType = irTypeOfArg(inputArg ?? undefined)
-  if (!outIrType || !inIrType) {
+  if (!enumName || !outIrType || !inIrType) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.data_type_conversion missing input/output type hints`
-    )
-  }
-  const convKey = `${inIrType}->${outIrType}`
-  const enumVal = DATA_TYPE_CONVERSION_ENUM[convKey]
-  if (enumVal === undefined) {
-    throw clientNodegraphError(
-      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.data_type_conversion unsupported conversion ${convKey}`
+      `${metadata.subType}.data_type_conversion cannot derive conversion from args ` +
+        `(enum "${enumName ?? 'missing'}", input "${inIrType ?? 'missing'}")`
     )
   }
   const inClientType = CLIENT_VAR_TYPE_BY_IR_TYPE[inIrType] ?? 0
   const outClientType = CLIENT_VAR_TYPE_BY_IR_TYPE[outIrType] ?? 0
   const inIoc = CLIENT_REFLECT_IOC_BY_TYPE[inClientType] ?? 0
   const outIoc = CLIENT_REFLECT_IOC_BY_TYPE[outClientType] ?? 0
-  setInPinValue(node, 0, 13, client_literal_value(13, enumVal), -1)
+  setInPinValue(
+    node,
+    0,
+    13,
+    client_literal_value(13, toPinLiteral(13, enumName, 0, irNode.type)),
+    -1
+  )
   setInPinValue(
     node,
     1,
@@ -239,13 +256,12 @@ function applyDataTypeConversion(node: ClientGiaNode, irNode: ClientIRNode, meta
 }
 
 /**
- * get_custom_variable resolves its output pin from clientHints (the cid table
- * already fixed the variant); corpus shows type + ConcreteBase(ioc = type
- * offset) with an unset inner value. Dict output has no sample evidence and
- * keeps the unresolved placeholder.
+ * get_custom_variable resolves its output pin from the wired output type (the
+ * cid table already fixed the variant); corpus shows type + ConcreteBase(ioc =
+ * type offset) with an unset inner value. Dict output has no sample evidence
+ * and keeps the unresolved placeholder.
  */
-function applyCustomVariableOutPin(node: ClientGiaNode, irNode: ClientIRNode) {
-  const outIrType = irNode.clientHints?.outputIrType
+function applyCustomVariableOutPin(node: ClientGiaNode, outIrType: string | undefined) {
   if (!outIrType || outIrType === 'dict') return
   const clientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[outIrType]
   const offset = customVariableTypeOffset(outIrType)
@@ -256,7 +272,7 @@ function applyCustomVariableOutPin(node: ClientGiaNode, irNode: ClientIRNode) {
   outPin.value = client_wrapped_value(offset, client_value_base(clientVarType))
 }
 
-function applySendSignalToServer(node: ClientGiaNode, irNode: ClientIRNode, metadata: ClientNodeMetadata) {
+function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
     throw clientNodegraphError(
@@ -278,9 +294,10 @@ function applySendSignalToServer(node: ClientGiaNode, irNode: ClientIRNode, meta
 
 function applySpecialArgs(
   node: ClientGiaNode,
-  irNode: ClientIRNode,
+  irNode: IRNode,
   metadata: ClientNodeMetadata,
-  concreteId: number | string
+  concreteId: number | string,
+  customVarOutType: string | undefined
 ): boolean {
   if (irNode.type === 'assembly_list') {
     applyAssemblyList(node, irNode, metadata, concreteId)
@@ -296,7 +313,7 @@ function applySpecialArgs(
   }
   if (irNode.type === 'get_custom_variable') {
     applyLiteralArgs(node, irNode, metadata, concreteId)
-    applyCustomVariableOutPin(node, irNode)
+    applyCustomVariableOutPin(node, customVarOutType)
     return true
   }
   if (irNode.type === 'send_signal_to_server_node_graph') {
@@ -308,7 +325,7 @@ function applySpecialArgs(
 
 function applyLiteralArgs(
   node: ClientGiaNode,
-  irNode: ClientIRNode,
+  irNode: IRNode,
   metadata: ClientNodeMetadata,
   concreteId: number | string
 ) {
@@ -390,6 +407,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
 
   const graphInfo = buildExecutionGraph(nodes)
   const positions = layoutPositions(nodes, graphInfo)
+  const connIndex = buildConnTypeIndex(ir)
   const builtById = new Map<NodeId, ClientGiaNode>()
   const metadataById = new Map<NodeId, ClientNodeMetadata>()
   const concreteById = new Map<NodeId, number | string>()
@@ -397,7 +415,8 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, irNode)
     metadataById.set(irNode.id, metadata)
-    const concreteId = resolveClientConcreteVariant(metadata, irNode)
+    const customVarOutType = customVarOutputIrType(irNode, connIndex)
+    const concreteId = resolveClientConcreteVariant(metadata, irNode, customVarOutType)
     concreteById.set(irNode.id, concreteId)
     const pos = positions.get(irNode.id) ?? [0, 0]
     const node = client_node_body({
@@ -407,7 +426,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
       y: pos[1] / 200,
       concrete_id: concreteId
     })
-    if (!applySpecialArgs(node, irNode, metadata, concreteId)) {
+    if (!applySpecialArgs(node, irNode, metadata, concreteId, customVarOutType)) {
       applyLiteralArgs(node, irNode, metadata, concreteId)
     }
     builtById.set(irNode.id, node)

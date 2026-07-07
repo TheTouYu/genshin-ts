@@ -90,7 +90,6 @@ export type ServerNode = SimplifyDeep<
 export type ClientNode = SimplifyDeep<
   Node & {
     type: string
-    clientHints?: { outputIrType?: string }
   }
 >
 

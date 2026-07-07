@@ -7,8 +7,6 @@ export interface MetaCallRecord {
   type: MetaCallRecordType
   nodeType: string
   args: value[]
-  /** client-only hints consumed by IR->GIA (output type for cid lookup, etc.) */
-  clientHints?: { outputIrType?: string }
 }
 
 export type MetaCallRecordRef = Readonly<MetaCallRecord>

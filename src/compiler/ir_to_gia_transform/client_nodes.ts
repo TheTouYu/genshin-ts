@@ -3,7 +3,7 @@ import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_ca
 import { requireClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import varSpec from '../../../resources/client_variable_specialization_seed.json' with { type: 'json' }
-import type { ClientIRNode } from './types.js'
+import type { IRNode } from './types.js'
 
 const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
 
@@ -67,7 +67,7 @@ function assemblyListVariantKey(elementClientVarType: number): string {
   return Array.from({ length: 10 }, () => String(elementClientVarType)).join(',')
 }
 
-function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: ClientIRNode): number | string {
+function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: IRNode): number | string {
   const firstArg = irNode.args?.[0]
   const irType =
     firstArg == null ? undefined : firstArg.type === 'conn' ? firstArg.value.type : firstArg.type
@@ -91,13 +91,12 @@ function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: ClientIRNo
 
 function getCustomVariableConcreteId(
   metadata: ClientNodeMetadata,
-  irNode: ClientIRNode
+  outputIrType: string | undefined
 ): number | string {
-  const outputIrType = irNode.clientHints?.outputIrType
   if (!outputIrType) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.get_custom_variable requires clientHints.outputIrType (use typed overload)`
+      `${metadata.subType}.get_custom_variable cannot infer output type from connections`
     )
   }
   const family = getCustomVariableFamily(metadata.subType)
@@ -122,7 +121,7 @@ function getCustomVariableConcreteId(
 
 export function resolveClientNodeMetadata(
   subType: ClientGraphSubType,
-  node: ClientIRNode
+  node: IRNode
 ): ClientNodeMetadata {
   const metadata = requireClientNodeMetadata(subType, node.type)
   if (metadata.specialKind && UNSUPPORTED_SPECIAL_KINDS.has(metadata.specialKind)) {
@@ -136,10 +135,12 @@ export function resolveClientNodeMetadata(
 
 /**
  * Deterministically resolve a node's concrete id.
+ * get_custom_variable 的输出类型由输出连线推断（与服务器一致），经 customVarOutputIrType 传入。
  */
 export function resolveClientConcreteVariant(
   metadata: ClientNodeMetadata,
-  node: ClientIRNode
+  node: IRNode,
+  customVarOutputIrType?: string
 ): number | string {
   if (metadata.nodeType === 'data_type_conversion') {
     return 130
@@ -148,7 +149,7 @@ export function resolveClientConcreteVariant(
     return assemblyListConcreteId(metadata, node)
   }
   if (metadata.nodeType === 'get_custom_variable') {
-    return getCustomVariableConcreteId(metadata, node)
+    return getCustomVariableConcreteId(metadata, customVarOutputIrType)
   }
   if (metadata.nodeType === 'multiple_branches') {
     return metadata.concreteId ?? 4002
