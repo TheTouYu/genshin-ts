@@ -745,15 +745,10 @@ function buildImplNodePins(
           continue
         }
       }
-      // 其他 conn arg：用 buildPlaceholderPin 从 nodeType 推断类型
-      const pin = buildPlaceholderPin(pinIndex, node.type)
-      // data_type_conversion 需要 bConcreteValue 包裹
+      // 其他 conn arg：用连接携带的真实类型构建占位 pin，避免 float 输入被误编码成 int。
+      const pin = buildConnPin(pinIndex, connType ?? inferInputTypeFromNode(node.type, pinIndex))
       if (needsConcreteWrapping(node.type) && pin.value) {
-        pin.value = {
-          class: 10000,
-          alreadySetVal: true,
-          bConcreteValue: { indexOfConcrete: 0, value: pin.value }
-        } as any
+        pin.value = wrapConcreteValueForNodeInput(node.type, pin.value, connType, pinIndex) as any
       }
       pins.push(pin)
       const connNum = arg.value as { node_id: number; index: number }
@@ -1042,6 +1037,46 @@ function buildConnPin(pinIndex: number, typeName: string): NodePin {
   }
 }
 
+function concreteInputIndex(typeName: string | undefined): number {
+  switch (typeName) {
+    case 'int':
+      return 0
+    case 'float':
+      return 1
+    case 'str':
+      return 2
+    case 'bool':
+      return 3
+    default:
+      return 0
+  }
+}
+
+function wrapConcreteValueForNodeInput(
+  nodeType: string,
+  innerValue: Record<string, unknown>,
+  typeName: string | undefined,
+  pinIndex: number
+): Record<string, unknown> {
+  return {
+    class: 10000,
+    alreadySetVal: true,
+    bConcreteValue: {
+      indexOfConcrete: nodeType.startsWith('data_type_conversion_')
+        ? concreteInputIndex(typeName)
+        : concreteInputIndex(typeName ?? inferInputTypeFromNode(nodeType, pinIndex)),
+      value: innerValue
+    }
+  }
+}
+
+function inferInputTypeFromNode(nodeType: string, _pinIndex: number): string {
+  if (nodeType === 'print_string') return 'str'
+  if (vec3NodeTypes.has(nodeType)) return 'vec3'
+  if (concreteWrappedNodeTypes.has(nodeType)) return 'int'
+  return 'int'
+}
+
 function buildLiteralPin(pinIndex: number, argType: string, value: unknown, nodeType: string): NodePin {
   const kind = NodePin_Index_Kind.InParam
   const varType = argVarType(argType)
@@ -1063,14 +1098,7 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
   }
 
   if (needsConcreteWrapping(nodeType)) {
-    pinValue = {
-      class: 10000,
-      alreadySetVal: true,
-      bConcreteValue: {
-        indexOfConcrete: 0,
-        value: pinValue
-      }
-    }
+    pinValue = wrapConcreteValueForNodeInput(nodeType, pinValue, argType, pinIndex)
   }
 
   return {

@@ -3,8 +3,48 @@
 
 import { g } from 'genshin-ts/runtime/core'
 
+const attackParams = g.defineComposite('R6-C攻击参数数据流', {
+  inputs: {
+    eventSourceGuid: { type: 'guid' },
+    locationOffset: { type: 'vec3' },
+    locationOffsetDelta: { type: 'vec3' },
+    locationOffsetDeltaB: { type: 'vec3' },
+    rotationOffset: { type: 'vec3' },
+    rotationOffsetDelta: { type: 'vec3' },
+    overwriteAbilityUnitConfig: { type: 'bool' }
+  },
+  outputs: {
+    abilityUnit: { type: 'str' },
+    computedLocationOffset: { type: 'vec3' },
+    computedRotationOffset: { type: 'vec3' },
+    overwriteAbilityUnitConfig: { type: 'bool' }
+  },
+  build(args, f) {
+    const abilityUnit = f.dataTypeConversion(args.eventSourceGuid, 'str')
+    const locationOffsetA = f._3dVectorAddition(args.locationOffset, args.locationOffsetDelta)
+    const locationOffsetB = f._3dVectorSubtraction(locationOffsetA, args.locationOffsetDeltaB)
+    const locationOffsetLength = f._3dVectorModuloOperation(locationOffsetB)
+    const locationOffsetScale = f.addition(locationOffsetLength, 1)
+    const computedLocationOffset = f._3dVectorZoom(locationOffsetB, locationOffsetScale)
+    const rotationOffsetA = f._3dVectorAddition(args.rotationOffset, args.rotationOffsetDelta)
+    const computedRotationOffset = f._3dVectorCrossProduct(rotationOffsetA, computedLocationOffset)
+    const rotationOffsetLength = f._3dVectorModuloOperation(computedRotationOffset)
+    const computedOverwriteAbilityUnitConfig = f.logicalOrOperation(
+      args.overwriteAbilityUnitConfig,
+      f.greaterThan(rotationOffsetLength, 0)
+    )
+
+    return {
+      abilityUnit,
+      computedLocationOffset,
+      computedRotationOffset,
+      overwriteAbilityUnitConfig: computedOverwriteAbilityUnitConfig
+    }
+  }
+})
+
 g.server({
-  name: 'R6-C参考复刻-long-input-step4',
+  name: 'R6-C参考复刻-long-input-step6',
   id: 1073741898,
   variables: {
     locationOffset: vec3([1, 2, 3]),
@@ -22,36 +62,23 @@ g.server({
 
       f.fork(
         () => {
-          const abilityUnit = f.dataTypeConversion(e.eventSourceGuid, 'str')
-          const locationOffsetA = f._3dVectorAddition(
-            f.get('locationOffset'),
-            f.get('locationOffsetDelta')
-          )
-          const locationOffsetB = f._3dVectorSubtraction(
-            locationOffsetA,
-            f.get('locationOffsetDeltaB')
-          )
-          const locationOffsetLength = f._3dVectorModuloOperation(locationOffsetB)
-          const locationOffsetScale = f.addition(locationOffsetLength, 1)
-          const computedLocationOffset = f._3dVectorZoom(locationOffsetB, locationOffsetScale)
-          const rotationOffsetA = f._3dVectorAddition(
-            f.get('rotationOffset'),
-            f.get('rotationOffsetDelta')
-          )
-          const rotationOffsetB = f._3dVectorCrossProduct(rotationOffsetA, computedLocationOffset)
-          const rotationOffsetLength = f._3dVectorModuloOperation(rotationOffsetB)
-          const overwriteAbilityUnitConfig = f.logicalOrOperation(
-            f.get('overwriteAbilityUnitConfig'),
-            f.greaterThan(rotationOffsetLength, 0)
-          )
+          const params = f.callComposite(attackParams, {
+            eventSourceGuid: e.eventSourceGuid,
+            locationOffset: f.get('locationOffset'),
+            locationOffsetDelta: f.get('locationOffsetDelta'),
+            locationOffsetDeltaB: f.get('locationOffsetDeltaB'),
+            rotationOffset: f.get('rotationOffset'),
+            rotationOffsetDelta: f.get('rotationOffsetDelta'),
+            overwriteAbilityUnitConfig: f.get('overwriteAbilityUnitConfig')
+          })
           f.initiateAttack(
             e.eventSourceEntity,
             999,
             1.2,
-            computedLocationOffset,
-            rotationOffsetB,
-            abilityUnit,
-            overwriteAbilityUnitConfig,
+            params.computedLocationOffset,
+            params.computedRotationOffset,
+            params.abilityUnit,
+            params.overwriteAbilityUnitConfig,
             e.eventSourceEntity
           )
         },
