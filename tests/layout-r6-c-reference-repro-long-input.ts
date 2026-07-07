@@ -4,13 +4,16 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  name: 'R6-C参考复刻-long-input-step2',
+  name: 'R6-C参考复刻-long-input-step4',
   id: 1073741898,
   variables: {
     locationOffset: vec3([1, 2, 3]),
     locationOffsetDelta: vec3([0, 0, 0]),
+    locationOffsetDeltaB: vec3([4, 5, 6]),
     rotationOffset: vec3([2, 3, 4]),
-    overwriteAbilityUnitConfig: false
+    rotationOffsetDelta: vec3([0.5, 0.5, 0.5]),
+    overwriteAbilityUnitConfig: false,
+    overwriteAbilityUnitConfigFallback: true
   }
 }).on('whenEntityIsCreated', (e, f) => {
   f.fork(
@@ -20,18 +23,35 @@ g.server({
       f.fork(
         () => {
           const abilityUnit = f.dataTypeConversion(e.eventSourceGuid, 'str')
-          const computedLocationOffset = f._3dVectorAddition(
+          const locationOffsetA = f._3dVectorAddition(
             f.get('locationOffset'),
             f.get('locationOffsetDelta')
+          )
+          const locationOffsetB = f._3dVectorSubtraction(
+            locationOffsetA,
+            f.get('locationOffsetDeltaB')
+          )
+          const locationOffsetLength = f._3dVectorModuloOperation(locationOffsetB)
+          const locationOffsetScale = f.addition(locationOffsetLength, 1)
+          const computedLocationOffset = f._3dVectorZoom(locationOffsetB, locationOffsetScale)
+          const rotationOffsetA = f._3dVectorAddition(
+            f.get('rotationOffset'),
+            f.get('rotationOffsetDelta')
+          )
+          const rotationOffsetB = f._3dVectorCrossProduct(rotationOffsetA, computedLocationOffset)
+          const rotationOffsetLength = f._3dVectorModuloOperation(rotationOffsetB)
+          const overwriteAbilityUnitConfig = f.logicalOrOperation(
+            f.get('overwriteAbilityUnitConfig'),
+            f.greaterThan(rotationOffsetLength, 0)
           )
           f.initiateAttack(
             e.eventSourceEntity,
             999,
             1.2,
             computedLocationOffset,
-            f.get('rotationOffset'),
+            rotationOffsetB,
             abilityUnit,
-            f.get('overwriteAbilityUnitConfig'),
+            overwriteAbilityUnitConfig,
             e.eventSourceEntity
           )
         },

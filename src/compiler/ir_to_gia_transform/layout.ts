@@ -287,7 +287,7 @@ function layoutExecutionChain(
     // Root event lanes are independent swimlanes: their direct children should not
     // be pushed below the whole nested subtree of the previous root child.
     // Nested siblings still use block-bottom placement to avoid local data-heavy blocks.
-    const dataLanePadding = Math.min(520, Math.round(extraDataHeight * 0.35))
+    const dataLanePadding = Math.min(1100, Math.round(extraDataHeight * 0.35))
     const newLaneOffset = isRootSwimLane
       ? actualLaneOffset + idx * branchBaseSpacing
       : Math.max(
