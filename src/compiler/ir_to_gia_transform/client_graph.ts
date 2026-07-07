@@ -30,7 +30,7 @@ import {
 import type { IrToGiaOptions } from './index.js'
 import { parseEnumValue } from './mappings.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
-import type { IRNode, NodeId } from './types.js'
+import type { ClientIRNode, NodeId } from './types.js'
 
 const PIN_KIND_OUT_FLOW = NodePin_Index_Kind.OutFlow
 const PIN_KIND_IN_PARAM = NodePin_Index_Kind.InParam
@@ -54,7 +54,7 @@ const LIST_TYPE_BY_ELEM_TYPE: Record<number, number> = {
 }
 
 type ClientGiaNode = ReturnType<typeof client_node_body>
-type IrArg = NonNullable<IRNode['args']>[number]
+type IrArg = NonNullable<ClientIRNode['args']>[number]
 type ValueArg = Exclude<IrArg, null | { type: 'conn' }>
 
 function isValueArg(arg: IrArg | null | undefined): arg is ValueArg {
@@ -128,7 +128,7 @@ function findOutPin(node: ClientGiaNode, pinIndex: number) {
 
 function applyAssemblyList(
   node: ClientGiaNode,
-  irNode: IRNode,
+  irNode: ClientIRNode,
   metadata: ClientNodeMetadata,
   concreteId: number | string
 ) {
@@ -161,7 +161,7 @@ function applyAssemblyList(
   }
 }
 
-function applyMultipleBranches(node: ClientGiaNode, irNode: IRNode) {
+function applyMultipleBranches(node: ClientGiaNode, irNode: ClientIRNode) {
   const args = irNode.args ?? []
   const controlArg = args[0]
   if (isValueArg(controlArg)) {
@@ -196,7 +196,7 @@ const DATA_TYPE_CONVERSION_ENUM: Record<string, number> = {
   'faction->str': 810
 }
 
-function applyDataTypeConversion(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+function applyDataTypeConversion(node: ClientGiaNode, irNode: ClientIRNode, metadata: ClientNodeMetadata) {
   const inputArg = irNode.args?.[1]
   const outIrType = irNode.clientHints?.outputIrType
   const inIrType = irTypeOfArg(inputArg ?? undefined)
@@ -244,7 +244,7 @@ function applyDataTypeConversion(node: ClientGiaNode, irNode: IRNode, metadata: 
  * offset) with an unset inner value. Dict output has no sample evidence and
  * keeps the unresolved placeholder.
  */
-function applyCustomVariableOutPin(node: ClientGiaNode, irNode: IRNode) {
+function applyCustomVariableOutPin(node: ClientGiaNode, irNode: ClientIRNode) {
   const outIrType = irNode.clientHints?.outputIrType
   if (!outIrType || outIrType === 'dict') return
   const clientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[outIrType]
@@ -256,7 +256,7 @@ function applyCustomVariableOutPin(node: ClientGiaNode, irNode: IRNode) {
   outPin.value = client_wrapped_value(offset, client_value_base(clientVarType))
 }
 
-function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+function applySendSignalToServer(node: ClientGiaNode, irNode: ClientIRNode, metadata: ClientNodeMetadata) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
     throw clientNodegraphError(
@@ -278,7 +278,7 @@ function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: 
 
 function applySpecialArgs(
   node: ClientGiaNode,
-  irNode: IRNode,
+  irNode: ClientIRNode,
   metadata: ClientNodeMetadata,
   concreteId: number | string
 ): boolean {
@@ -308,7 +308,7 @@ function applySpecialArgs(
 
 function applyLiteralArgs(
   node: ClientGiaNode,
-  irNode: IRNode,
+  irNode: ClientIRNode,
   metadata: ClientNodeMetadata,
   concreteId: number | string
 ) {

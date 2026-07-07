@@ -46,7 +46,6 @@ const SKIP_TITLE_PREFIX = [
   '输出',
   '返回',
   '备注',
-  '兼容',
   'GSTS'
 ]
 

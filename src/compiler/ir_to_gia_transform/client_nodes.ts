@@ -3,7 +3,7 @@ import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_ca
 import { requireClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import varSpec from '../../../resources/client_variable_specialization_seed.json' with { type: 'json' }
-import type { IRNode } from './types.js'
+import type { ClientIRNode } from './types.js'
 
 const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
 
@@ -67,7 +67,7 @@ function assemblyListVariantKey(elementClientVarType: number): string {
   return Array.from({ length: 10 }, () => String(elementClientVarType)).join(',')
 }
 
-function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: IRNode): number | string {
+function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: ClientIRNode): number | string {
   const firstArg = irNode.args?.[0]
   const irType =
     firstArg == null ? undefined : firstArg.type === 'conn' ? firstArg.value.type : firstArg.type
@@ -91,7 +91,7 @@ function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: IRNode): n
 
 function getCustomVariableConcreteId(
   metadata: ClientNodeMetadata,
-  irNode: IRNode
+  irNode: ClientIRNode
 ): number | string {
   const outputIrType = irNode.clientHints?.outputIrType
   if (!outputIrType) {
@@ -122,7 +122,7 @@ function getCustomVariableConcreteId(
 
 export function resolveClientNodeMetadata(
   subType: ClientGraphSubType,
-  node: IRNode
+  node: ClientIRNode
 ): ClientNodeMetadata {
   const metadata = requireClientNodeMetadata(subType, node.type)
   if (metadata.specialKind && UNSUPPORTED_SPECIAL_KINDS.has(metadata.specialKind)) {
@@ -139,7 +139,7 @@ export function resolveClientNodeMetadata(
  */
 export function resolveClientConcreteVariant(
   metadata: ClientNodeMetadata,
-  node: IRNode
+  node: ClientIRNode
 ): number | string {
   if (metadata.nodeType === 'data_type_conversion') {
     return 130
