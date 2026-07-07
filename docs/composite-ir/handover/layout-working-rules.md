@@ -18,14 +18,16 @@
 5. 游戏内截图和用户反馈是最终裁判；自动分析工具只能辅助判断。
 6. 如果遇到阻碍、不确定或方向性问题，先停下来和用户确认，不要连续深入改多个算法。
 7. 通过的小步要单独提交，便于回溯每个游戏内验证点。
-8. 提交前运行 `git diff --check`；代码改动通常还要运行 `npm run build`。
-9. 生成测试文件时，图内 `g.server({ name })` 必须带清晰轮次/场景/step，方便游戏里辨认。
-10. 导出文件名和图内 name 的 step 应保持同步，避免“文件 step9 但图内 step8”。
-11. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
-12. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
-13. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
-14. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
-15. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
+8. 提交前运行 `git diff --check`；编译器、运行时或布局算法代码改动通常还要运行 `npm run build`。
+9. 如果只新增或修改 `tests/*.ts` 布局测试文件，不需要重新编译编译器代码；直接用现有 `bin/gsts.mjs` 生成该测试的 `.gia`。
+10. 生成测试文件时，图内 `g.server({ name })` 必须带清晰轮次/场景/step，方便游戏里辨认。
+11. 导出文件名和图内 name 的 step 应保持同步，避免“文件 step9 但图内 step8”。
+12. 主图普通布局测试优先使用高层 `f.xxx()` DSL；需要精确手动复刻控制拓扑时用当前推荐 raw API `f.entry()` / `f.node()` / `f.link()`。不要把 `f.registerExecNode()` 当作主图普通测试工具；它是自动串联 tail 的低层兼容/API，主图普通路径曾触发 `removeUnusedNodesFromFlow` 中 `record.args is not iterable` 的实现缺口。
+13. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
+14. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
+15. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
+16. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
+17. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
 
 ---
 
@@ -95,6 +97,8 @@ docs/composite-ir/handover/README.md
 ```bash
 npm run build
 ```
+
+说明：只有改了编译器、运行时、布局算法或需要刷新 `dist/` 中编译产物时才运行。若本步只新增/修改 `tests/*.ts` 测试脚本，跳过构建，直接执行 3.2 生成该测试的 GIA。
 
 ### 3.2 生成单个测试 GIA
 
