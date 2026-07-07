@@ -123,7 +123,11 @@ export function resolveClientNodeMetadata(
   subType: ClientGraphSubType,
   node: IRNode
 ): ClientNodeMetadata {
-  const metadata = requireClientNodeMetadata(subType, node.type)
+  // IR 与服务器同形：data_type_conversion_<out> 共享同一份 data_type_conversion 元数据
+  const lookupType = node.type.startsWith('data_type_conversion_')
+    ? 'data_type_conversion'
+    : node.type
+  const metadata = requireClientNodeMetadata(subType, lookupType)
   if (metadata.specialKind && UNSUPPORTED_SPECIAL_KINDS.has(metadata.specialKind)) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.UNSUPPORTED_SPECIAL_NODE,

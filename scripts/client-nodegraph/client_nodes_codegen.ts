@@ -183,35 +183,6 @@ const TYPE_PRIORITY = [
   'dict'
 ]
 
-/** TypeConversion enum values 800..810 (client + server share the same ids) */
-const DATA_TYPE_CONVERSIONS: Record<string, number> = {
-  'int->bool': 800,
-  'int->float': 801,
-  'int->str': 802,
-  'entity->str': 803,
-  'guid->str': 804,
-  'bool->int': 805,
-  'bool->str': 806,
-  'float->int': 807,
-  'float->str': 808,
-  'vec3->str': 809,
-  'faction->str': 810
-}
-
-const DATA_TYPE_CONVERSION_ENUM_VALUE: Record<string, string> = {
-  'int->bool': 'type_conversion_integer_to_boolean',
-  'int->float': 'type_conversion_integer_to_floating_point',
-  'int->str': 'type_conversion_integer_to_string',
-  'entity->str': 'type_conversion_entity_to_string',
-  'guid->str': 'type_conversion_guid_to_string',
-  'bool->int': 'type_conversion_boolean_to_integer',
-  'bool->str': 'type_conversion_boolean_to_string',
-  'float->int': 'type_conversion_floating_point_to_integer',
-  'float->str': 'type_conversion_floating_point_to_string',
-  'vec3->str': 'type_conversion_vector_3_to_string',
-  'faction->str': 'type_conversion_faction_to_string'
-}
-
 /** doc data_type tags accepted for a pin IR type during doc<->pin alignment */
 const DOC_TAGS_BY_PIN_TYPE: Record<string, string[]> = {
   bool: ['B'],
@@ -1502,18 +1473,16 @@ function emitDataTypeConversion(doc: AlignedDocNode | undefined): string {
         throw new Error('[error] dataTypeConversion: faction input must be wired')
       }
     }
-    const conversion = DATA_TYPE_CONVERSIONS[\`\${inputType}->\${String(type)}\`]
-    if (!conversion) {
+    if (!DATA_TYPE_CONVERSIONS.has(\`\${inputType}->\${String(type)}\`)) {
       throw new Error(
         \`[error] dataTypeConversion: unsupported conversion \${inputType} -> \${String(type)}\`
       )
     }
-    const conversionEnum = DATA_TYPE_CONVERSION_ENUM_VALUE[\`\${inputType}->\${String(type)}\`]
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
-      nodeType: 'data_type_conversion',
-      args: [new enumeration('TypeConversion', conversionEnum), inputObj]
+      nodeType: \`data_type_conversion_\${String(type)}\`,
+      args: [inputObj]
     })
     const ret = new ValueClassMap[type]()
     ret.markPin(ref, 'output', 0)
@@ -1890,33 +1859,20 @@ import type { ExecutionFlowRegistry } from '../runtime/core.js'
 import {
 ${[...valueClassImports, ...valueTypeImports.map((t) => `type ${t}`)].map((s) => `  ${s}`).join(',\n')}
 } from '../runtime/value.js'
-const DATA_TYPE_CONVERSIONS: Record<string, number> = {
-  'int->bool': 800,
-  'int->float': 801,
-  'int->str': 802,
-  'entity->str': 803,
-  'guid->str': 804,
-  'bool->int': 805,
-  'bool->str': 806,
-  'float->int': 807,
-  'float->str': 808,
-  'vec3->str': 809,
-  'faction->str': 810
-}
-
-const DATA_TYPE_CONVERSION_ENUM_VALUE: Record<string, string> = {
-  'int->bool': 'type_conversion_integer_to_boolean',
-  'int->float': 'type_conversion_integer_to_floating_point',
-  'int->str': 'type_conversion_integer_to_string',
-  'entity->str': 'type_conversion_entity_to_string',
-  'guid->str': 'type_conversion_guid_to_string',
-  'bool->int': 'type_conversion_boolean_to_integer',
-  'bool->str': 'type_conversion_boolean_to_string',
-  'float->int': 'type_conversion_floating_point_to_integer',
-  'float->str': 'type_conversion_floating_point_to_string',
-  'vec3->str': 'type_conversion_vector_3_to_string',
-  'faction->str': 'type_conversion_faction_to_string'
-}
+/** supported conversion pairs; IR encodes data_type_conversion_<out> like the server */
+const DATA_TYPE_CONVERSIONS = new Set([
+  'int->bool',
+  'int->float',
+  'int->str',
+  'entity->str',
+  'guid->str',
+  'bool->int',
+  'bool->str',
+  'float->int',
+  'float->str',
+  'vec3->str',
+  'faction->str'
+])
 
 ${enumImportLines.length ? `${enumImportLines.join('\n')}\n` : ''}import type { RuntimeParameterValueTypeMap, RuntimeReturnValueTypeMap } from '../runtime/value.js'
 import type { DataTypeConversionMap } from './nodes.js'

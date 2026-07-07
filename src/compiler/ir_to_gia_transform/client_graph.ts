@@ -197,35 +197,34 @@ function applyMultipleBranches(node: ClientGiaNode, irNode: IRNode) {
   if (caseValues.length) setInPinValue(node, 1, 4, client_list_literal_value(4, caseValues), 0)
 }
 
-/** TypeConversion 枚举名 -> 输出 IR 类型；枚举值 800..810 由共享枚举表（parseEnumValue）解析 */
-const DATA_TYPE_CONVERSION_OUT_TYPE: Record<string, string> = {
-  type_conversion_integer_to_boolean: 'bool',
-  type_conversion_integer_to_floating_point: 'float',
-  type_conversion_integer_to_string: 'str',
-  type_conversion_entity_to_string: 'str',
-  type_conversion_guid_to_string: 'str',
-  type_conversion_boolean_to_integer: 'int',
-  type_conversion_boolean_to_string: 'str',
-  type_conversion_floating_point_to_integer: 'int',
-  type_conversion_floating_point_to_string: 'str',
-  type_conversion_vector_3_to_string: 'str',
-  type_conversion_faction_to_string: 'str'
+/** in->out -> TypeConversion 枚举名；枚举值 800..810 由共享枚举表（parseEnumValue）解析 */
+const DATA_TYPE_CONVERSION_ENUM_NAME: Record<string, string> = {
+  'int->bool': 'type_conversion_integer_to_boolean',
+  'int->float': 'type_conversion_integer_to_floating_point',
+  'int->str': 'type_conversion_integer_to_string',
+  'entity->str': 'type_conversion_entity_to_string',
+  'guid->str': 'type_conversion_guid_to_string',
+  'bool->int': 'type_conversion_boolean_to_integer',
+  'bool->str': 'type_conversion_boolean_to_string',
+  'float->int': 'type_conversion_floating_point_to_integer',
+  'float->str': 'type_conversion_floating_point_to_string',
+  'vec3->str': 'type_conversion_vector_3_to_string',
+  'faction->str': 'type_conversion_faction_to_string'
 }
 
 function applyDataTypeConversion(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
-  const enumArg = irNode.args?.[0]
-  const inputArg = irNode.args?.[1]
-  const enumName = isValueArg(enumArg) ? String(enumArg.value) : undefined
-  const outIrType = enumName ? DATA_TYPE_CONVERSION_OUT_TYPE[enumName] : undefined
+  // IR 与服务器同形：data_type_conversion_<out> + 单输入参数；枚举引脚由 in->out 反推
+  const inputArg = irNode.args?.[0]
+  const outIrType = irNode.type.slice('data_type_conversion_'.length)
   const inIrType = irTypeOfArg(inputArg ?? undefined)
-  if (!enumName || !outIrType || !inIrType) {
+  const enumName = inIrType ? DATA_TYPE_CONVERSION_ENUM_NAME[`${inIrType}->${outIrType}`] : undefined
+  if (!enumName) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.data_type_conversion cannot derive conversion from args ` +
-        `(enum "${enumName ?? 'missing'}", input "${inIrType ?? 'missing'}")`
+      `${metadata.subType}.${irNode.type} unsupported conversion ${inIrType ?? 'missing'}->${outIrType}`
     )
   }
-  const inClientType = CLIENT_VAR_TYPE_BY_IR_TYPE[inIrType] ?? 0
+  const inClientType = CLIENT_VAR_TYPE_BY_IR_TYPE[inIrType!] ?? 0
   const outClientType = CLIENT_VAR_TYPE_BY_IR_TYPE[outIrType] ?? 0
   const inIoc = CLIENT_REFLECT_IOC_BY_TYPE[inClientType] ?? 0
   const outIoc = CLIENT_REFLECT_IOC_BY_TYPE[outClientType] ?? 0
@@ -307,7 +306,7 @@ function applySpecialArgs(
     applyMultipleBranches(node, irNode)
     return true
   }
-  if (irNode.type === 'data_type_conversion') {
+  if (metadata.nodeType === 'data_type_conversion') {
     applyDataTypeConversion(node, irNode, metadata)
     return true
   }
@@ -457,7 +456,9 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     const to = builtById.get(toId)
     if (!from || !to) throw new Error(`[error] bad client data connection ${fromId}->${toId}`)
     const toMeta = metadataById.get(toId)!
-    const toPinIndex = argPinIndex(toMeta, toIndex)
+    // data_type_conversion 的 IR 与服务器同形（省略转换枚举参数），输入参数对应 GIA pin 1
+    const toPinIndex =
+      toMeta.nodeType === 'data_type_conversion' ? toIndex + 1 : argPinIndex(toMeta, toIndex)
     const pin = findInPin(to, toPinIndex)
     if (!pin) throw new Error(`[error] missing client input pin ${toId}.${toPinIndex}`)
     const fromIndex2 = pinI2Index(metadataById.get(fromId)!, 'output', fromIndex)
