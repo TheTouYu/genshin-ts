@@ -11,6 +11,7 @@ import {
   enumeration,
   faction,
   float,
+  generic,
   guid,
   int,
   list,
@@ -1470,67 +1471,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'entity_list'
-  ): entity[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'config_id_list'
-  ): configId[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'prefab_id_list'
-  ): prefabId[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'faction_list'
-  ): faction[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
-  getCustomVariable<
-    T extends
-      | 'bool'
-      | 'int'
-      | 'float'
-      | 'str'
-      | 'guid'
-      | 'entity'
-      | 'vec3'
-      | 'int_list'
-      | 'str_list'
-      | 'entity_list'
-      | 'guid_list'
-      | 'float_list'
-      | 'vec3_list'
-      | 'bool_list'
-      | 'config_id'
-      | 'prefab_id'
-      | 'config_id_list'
-      | 'prefab_id_list'
-      | 'faction'
-      | 'faction_list'
-      | 'dict'
-  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -1539,16 +1480,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }
 
   /**
@@ -4969,67 +4903,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'entity_list'
-  ): entity[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'config_id_list'
-  ): configId[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'prefab_id_list'
-  ): prefabId[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'faction_list'
-  ): faction[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
-  getCustomVariable<
-    T extends
-      | 'bool'
-      | 'int'
-      | 'float'
-      | 'str'
-      | 'guid'
-      | 'entity'
-      | 'vec3'
-      | 'int_list'
-      | 'str_list'
-      | 'entity_list'
-      | 'guid_list'
-      | 'float_list'
-      | 'vec3_list'
-      | 'bool_list'
-      | 'config_id'
-      | 'prefab_id'
-      | 'config_id_list'
-      | 'prefab_id_list'
-      | 'faction'
-      | 'faction_list'
-      | 'dict'
-  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -5038,16 +4912,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }
 
   /**
@@ -8202,67 +8069,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'entity_list'
-  ): entity[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'config_id_list'
-  ): configId[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'prefab_id_list'
-  ): prefabId[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'faction_list'
-  ): faction[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
-  getCustomVariable<
-    T extends
-      | 'bool'
-      | 'int'
-      | 'float'
-      | 'str'
-      | 'guid'
-      | 'entity'
-      | 'vec3'
-      | 'int_list'
-      | 'str_list'
-      | 'entity_list'
-      | 'guid_list'
-      | 'float_list'
-      | 'vec3_list'
-      | 'bool_list'
-      | 'config_id'
-      | 'prefab_id'
-      | 'config_id_list'
-      | 'prefab_id_list'
-      | 'faction'
-      | 'faction_list'
-      | 'dict'
-  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -8271,16 +8078,9 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }
 
   /**
@@ -11648,67 +11448,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'entity_list'
-  ): entity[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'config_id_list'
-  ): configId[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'prefab_id_list'
-  ): prefabId[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'faction_list'
-  ): faction[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
-  getCustomVariable<
-    T extends
-      | 'bool'
-      | 'int'
-      | 'float'
-      | 'str'
-      | 'guid'
-      | 'entity'
-      | 'vec3'
-      | 'int_list'
-      | 'str_list'
-      | 'entity_list'
-      | 'guid_list'
-      | 'float_list'
-      | 'vec3_list'
-      | 'bool_list'
-      | 'config_id'
-      | 'prefab_id'
-      | 'config_id_list'
-      | 'prefab_id_list'
-      | 'faction'
-      | 'faction_list'
-      | 'dict'
-  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -11717,16 +11457,9 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }
 
   /**
@@ -14268,67 +14001,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'entity_list'
-  ): entity[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'config_id_list'
-  ): configId[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'prefab_id_list'
-  ): prefabId[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'faction_list'
-  ): faction[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
-  getCustomVariable<
-    T extends
-      | 'bool'
-      | 'int'
-      | 'float'
-      | 'str'
-      | 'guid'
-      | 'entity'
-      | 'vec3'
-      | 'int_list'
-      | 'str_list'
-      | 'entity_list'
-      | 'guid_list'
-      | 'float_list'
-      | 'vec3_list'
-      | 'bool_list'
-      | 'config_id'
-      | 'prefab_id'
-      | 'config_id_list'
-      | 'prefab_id_list'
-      | 'faction'
-      | 'faction_list'
-      | 'dict'
-  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -14337,16 +14010,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }
 
   /**
@@ -16679,67 +16345,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 变量值
    */
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool'): boolean
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int'): bigint
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float'): number
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str'): string
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid'): guid
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'entity'): entity
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3'): vec3
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'int_list'): bigint[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'str_list'): string[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'entity_list'
-  ): entity[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'guid_list'): guid[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'float_list'): number[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'vec3_list'): vec3[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'bool_list'): boolean[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'config_id'): configId
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'prefab_id'): prefabId
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'config_id_list'
-  ): configId[]
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'prefab_id_list'
-  ): prefabId[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'faction'): faction
-  getCustomVariable(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: 'faction_list'
-  ): faction[]
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: 'dict'): undefined
-  getCustomVariable<
-    T extends
-      | 'bool'
-      | 'int'
-      | 'float'
-      | 'str'
-      | 'guid'
-      | 'entity'
-      | 'vec3'
-      | 'int_list'
-      | 'str_list'
-      | 'entity_list'
-      | 'guid_list'
-      | 'float_list'
-      | 'vec3_list'
-      | 'bool_list'
-      | 'config_id'
-      | 'prefab_id'
-      | 'config_id_list'
-      | 'prefab_id_list'
-      | 'faction'
-      | 'faction_list'
-      | 'dict'
-  >(targetEntity: EntityValue, variableName: StrValue, type: T): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -16748,16 +16354,9 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }
 
   /**

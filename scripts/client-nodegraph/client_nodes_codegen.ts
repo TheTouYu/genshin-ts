@@ -1490,30 +1490,6 @@ function emitDataTypeConversion(doc: AlignedDocNode | undefined): string {
   }`
 }
 
-const CUSTOM_VAR_TYPES = [
-  'bool',
-  'int',
-  'float',
-  'str',
-  'guid',
-  'entity',
-  'vec3',
-  'int_list',
-  'str_list',
-  'entity_list',
-  'guid_list',
-  'float_list',
-  'vec3_list',
-  'bool_list',
-  'config_id',
-  'prefab_id',
-  'config_id_list',
-  'prefab_id_list',
-  'faction',
-  'faction_list',
-  'dict'
-] as const
-
 function customVarFamilySubTypes(nodeType: string): string[] {
   if (nodeType !== 'get_custom_variable') return []
   return [
@@ -1530,10 +1506,6 @@ function emitGetCustomVariable(subType: string, doc: AlignedDocNode | undefined)
   if (!customVarFamilySubTypes('get_custom_variable').includes(subType)) return null
   const p0 = docParamText(doc, '目标实体')
   const p1 = docParamText(doc, '变量名')
-  const overloads = CUSTOM_VAR_TYPES.flatMap((t) => [
-    `  getCustomVariable(targetEntity: EntityValue, variableName: StrValue, type: '${t}'): ${returnTs(t)}`
-  ])
-  const union = CUSTOM_VAR_TYPES.map((t) => `'${t}'`).join(' | ')
   return `${controlFlowJsdoc(
     doc,
     '获取自定义变量',
@@ -1543,12 +1515,7 @@ function emitGetCustomVariable(subType: string, doc: AlignedDocNode | undefined)
     ],
     { en: 'Variable value', zh: '变量值' }
   )}
-${overloads.join('\n')}
-  getCustomVariable<T extends ${union}>(
-    targetEntity: EntityValue,
-    variableName: StrValue,
-    type: T
-  ): RuntimeReturnValueTypeMap[T] {
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
@@ -1557,16 +1524,9 @@ ${overloads.join('\n')}
       nodeType: 'get_custom_variable',
       args: [targetEntityObj, variableNameObj]
     })
-    let ret: value
-    if (type === 'dict') {
-      ret = new dict('str', 'int')
-    } else if (type.endsWith('_list')) {
-      ret = new list(type.slice(0, -5) as 'bool')
-    } else {
-      ret = new (ValueClassMap as any)[type]()
-    }
+    const ret = new generic()
     ret.markPin(ref, 'variableValue', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[T]
+    return ret
   }`
 }
 
@@ -1831,8 +1791,8 @@ ${texts.join('\n\n')}
   const usesIdent = (name: string) => new RegExp(`\\b${name}\\b`).test(bodyText)
 
   const valueClassImports = [
-    'bool', 'configId', 'dict', 'entity', 'enumeration', 'faction', 'float', 'guid', 'int', 'list',
-    'prefabId', 'str', 'vec3', 'ValueClassMap'
+    'bool', 'configId', 'dict', 'entity', 'enumeration', 'faction', 'float', 'generic', 'guid',
+    'int', 'list', 'prefabId', 'str', 'vec3', 'ValueClassMap'
   ].filter(usesIdent)
   const valueTypeImports = [
     'BoolValue', 'ConfigIdValue', 'DictValue', 'EntityValue', 'EnumerationValue', 'FactionValue',
