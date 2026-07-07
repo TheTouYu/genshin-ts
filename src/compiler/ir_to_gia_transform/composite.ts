@@ -796,7 +796,7 @@ function buildImplNodePins(
       pins.push({
         i1: { kind: NodePin_Index_Kind.OutParam, index: op.pinIndex },
         i2: { kind: NodePin_Index_Kind.OutParam, index: op.pinIndex },
-        value: wrapConcreteValue(op.pinIndex, outVarClass, outVarType, '') as any,
+        value: wrapConcreteValue(concreteOutputIndex(op.type), outVarClass, outVarType, '') as any,
         type: outVarType
       })
     }
@@ -844,11 +844,13 @@ function buildImplNodePins(
     const innerValue = makeVarBaseValue(outClass, outType, false)
     let outValue: Record<string, unknown> = innerValue
     if (needsConcreteWrapping(node.type)) {
-      const outIdx = node.type.startsWith('data_type_conversion_') ? 2 : 0
+      const outTypeName = node.type.startsWith('data_type_conversion_')
+        ? node.type.slice('data_type_conversion_'.length).trim()
+        : varTypeNameFromVarType(outType)
       outValue = {
         class: 10000,
         alreadySetVal: true,
-        bConcreteValue: { indexOfConcrete: outIdx, value: innerValue }
+        bConcreteValue: { indexOfConcrete: concreteOutputIndex(outTypeName), value: innerValue }
       }
     }
     pins.push({
@@ -1049,6 +1051,38 @@ function concreteInputIndex(typeName: string | undefined): number {
       return 3
     default:
       return 0
+  }
+}
+
+function concreteOutputIndex(typeName: string | undefined): number {
+  switch (typeName) {
+    case 'bool':
+      return 0
+    case 'float':
+      return 1
+    case 'str':
+      return 2
+    case 'int':
+      return 3
+    default:
+      return 0
+  }
+}
+
+function varTypeNameFromVarType(varType: number): string {
+  switch (varType) {
+    case VarType.Boolean:
+      return 'bool'
+    case VarType.Float:
+      return 'float'
+    case VarType.String:
+      return 'str'
+    case VarType.Integer:
+      return 'int'
+    case VarType.Vector:
+      return 'vec3'
+    default:
+      return 'int'
   }
 }
 

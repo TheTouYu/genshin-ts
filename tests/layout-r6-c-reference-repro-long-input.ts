@@ -11,7 +11,9 @@ const attackParams = g.defineComposite('R6-C攻击参数数据流', {
     locationOffsetDeltaB: { type: 'vec3' },
     rotationOffset: { type: 'vec3' },
     rotationOffsetDelta: { type: 'vec3' },
-    overwriteAbilityUnitConfig: { type: 'bool' }
+    locationOffsetScaleBase: { type: 'float' },
+    overwriteAbilityUnitConfig: { type: 'bool' },
+    overwriteAbilityUnitConfigFallback: { type: 'bool' }
   },
   outputs: {
     abilityUnit: { type: 'str' },
@@ -24,14 +26,13 @@ const attackParams = g.defineComposite('R6-C攻击参数数据流', {
     const locationOffsetA = f._3dVectorAddition(args.locationOffset, args.locationOffsetDelta)
     const locationOffsetB = f._3dVectorSubtraction(locationOffsetA, args.locationOffsetDeltaB)
     const locationOffsetLength = f._3dVectorModuloOperation(locationOffsetB)
-    const locationOffsetScale = f.addition(locationOffsetLength, 1)
+    const locationOffsetScale = f.addition(locationOffsetLength, args.locationOffsetScaleBase)
     const computedLocationOffset = f._3dVectorZoom(locationOffsetB, locationOffsetScale)
     const rotationOffsetA = f._3dVectorAddition(args.rotationOffset, args.rotationOffsetDelta)
     const computedRotationOffset = f._3dVectorCrossProduct(rotationOffsetA, computedLocationOffset)
-    const rotationOffsetLength = f._3dVectorModuloOperation(computedRotationOffset)
     const computedOverwriteAbilityUnitConfig = f.logicalOrOperation(
       args.overwriteAbilityUnitConfig,
-      f.greaterThan(rotationOffsetLength, 0)
+      args.overwriteAbilityUnitConfigFallback
     )
 
     return {
@@ -44,7 +45,7 @@ const attackParams = g.defineComposite('R6-C攻击参数数据流', {
 })
 
 g.server({
-  name: 'R6-C参考复刻-long-input-step6',
+  name: 'R6-C参考复刻-long-input-step7',
   id: 1073741898,
   variables: {
     locationOffset: vec3([1, 2, 3]),
@@ -52,6 +53,7 @@ g.server({
     locationOffsetDeltaB: vec3([4, 5, 6]),
     rotationOffset: vec3([2, 3, 4]),
     rotationOffsetDelta: vec3([0.5, 0.5, 0.5]),
+    locationOffsetScaleBase: 1,
     overwriteAbilityUnitConfig: false,
     overwriteAbilityUnitConfigFallback: true
   }
@@ -69,7 +71,9 @@ g.server({
             locationOffsetDeltaB: f.get('locationOffsetDeltaB'),
             rotationOffset: f.get('rotationOffset'),
             rotationOffsetDelta: f.get('rotationOffsetDelta'),
-            overwriteAbilityUnitConfig: f.get('overwriteAbilityUnitConfig')
+            locationOffsetScaleBase: f.get('locationOffsetScaleBase'),
+            overwriteAbilityUnitConfig: f.get('overwriteAbilityUnitConfig'),
+            overwriteAbilityUnitConfigFallback: f.get('overwriteAbilityUnitConfigFallback')
           })
           f.initiateAttack(
             e.eventSourceEntity,
