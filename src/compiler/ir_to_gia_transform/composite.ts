@@ -19,6 +19,7 @@ import {
   type CompositeDef
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { Graph, Node } from '../gia_vendor.js'
+import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
 
 /**
@@ -259,11 +260,8 @@ function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
   return bySourceIndex
 }
 
-// impl 图布局间距常量（小图紧凑：复合内部通常 ≤8 节点）
-const LAYOUT_EXEC_H_STEP = 450
-const LAYOUT_EXEC_V_STEP = 260
-const LAYOUT_DATA_H_STEP = 450
-const LAYOUT_DATA_Y_OFFSET = 0
+// impl 图复用主图语义布局。注意：impl GraphNode 的 x/y 字段使用布局像素坐标，
+// 不走主图 Graph/Node#setPos 的 1/300、1/200 缩放。
 
 /**
  * 从 IR 节点构建 GIA GraphNode 列表（impl 图）
@@ -359,7 +357,7 @@ function buildImplGraphNodes(
     }]
   }
 
-  const layout = computeImplLayout(nodeResults, implNodes, implEdges)
+  const layout = computeImplLayout(implNodes, implEdges, compositeDefById)
 
   return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex, isDTC, dtcConcreteNid, gvConcreteNid }) => {
     const outEdges = implEdges[node.id]
@@ -395,131 +393,27 @@ function buildImplGraphNodes(
   })
 }
 
-/** 为 impl 图节点计算布局坐标。exec 节点 BFS，数据节点按 Kahn 拓扑深度分列。 */
+/** 为 impl 图节点计算布局坐标。复用主图布局核心，保持 exec/data 语义一致。 */
 function computeImplLayout(
-  nodeResults: Array<{ node: CompositeDefIR['implNodes'][number] }>,
   implNodes: CompositeDefIR['implNodes'],
-  implEdges: Record<number, any[]>
+  implEdges: Record<number, any[]>,
+  compositeDefById?: Map<number, CompositeDefIR>
 ): Map<number, { x: number; y: number }> {
+  const layoutNodes = implNodes.map((node) => ({
+    ...node,
+    next: implEdges[node.id] ?? (node as any).next
+  })) as any[]
+
+  const graphInfo = buildExecutionGraph(layoutNodes)
+  const positions = layoutPositions(
+    layoutNodes,
+    graphInfo,
+    compositeDefById ? [...compositeDefById.values()] : []
+  )
+
   const pos = new Map<number, { x: number; y: number }>()
-
-  const hasExecOut = new Set<number>()
-  const execChildren = new Map<number, number[]>()
-  for (const [fromIdStr, edges] of Object.entries(implEdges)) {
-    const fromId = Number(fromIdStr)
-    hasExecOut.add(fromId)
-    execChildren.set(fromId, edges.map(e => getEdgeTarget(e)))
-  }
-
-  const hasExecIn = new Set<number>()
-  for (const children of execChildren.values()) {
-    for (const c of children) hasExecIn.add(c)
-  }
-  const entryNodes = implNodes.filter(n => hasExecOut.has(n.id) && !hasExecIn.has(n.id))
-
-  const visited = new Set<number>()
-  type QueueEntry = { id: number; x: number; y: number }
-  const queue: QueueEntry[] = entryNodes.map(id => ({ id: id.id, x: 0, y: 0 }))
-  let qi = 0
-
-  while (qi < queue.length) {
-    const { id, x, y } = queue[qi++]
-    if (visited.has(id)) continue
-    visited.add(id)
-    pos.set(id, { x, y })
-
-    const children = execChildren.get(id) ?? []
-    children.forEach((childId, i) => {
-      if (!visited.has(childId)) {
-        queue.push({ id: childId, x: x + LAYOUT_EXEC_H_STEP, y: y + i * LAYOUT_EXEC_V_STEP })
-      }
-    })
-  }
-
-  // 终端节点：有 exec 入边但无 exec 出边的节点（执行链末端）。
-  // 放在其父节点右侧同一行，不归入数据节点布局。
-  const isTerminal = new Set<number>()
-  for (const node of implNodes) {
-    const id = node.id
-    if (hasExecIn.has(id) && !hasExecOut.has(id) && !visited.has(id)) {
-      isTerminal.add(id)
-      // 找到父节点：遍历 implEdges 找出指向该节点的边
-      for (const [fromIdStr, edges] of Object.entries(implEdges)) {
-        const targets = edges.map(e => getEdgeTarget(e))
-        const idx = targets.indexOf(id)
-        if (idx !== -1 && pos.has(Number(fromIdStr))) {
-          const parentPos = pos.get(Number(fromIdStr))!
-          pos.set(id, { x: parentPos.x + LAYOUT_EXEC_H_STEP, y: parentPos.y + idx * LAYOUT_EXEC_V_STEP })
-          visited.add(id)
-          break
-        }
-      }
-    }
-  }
-
-  // 环中节点放远一点
-  let orphanX = -400
-  let orphanY = -400
-  for (const id of hasExecOut) {
-    if (visited.has(id)) continue
-    pos.set(id, { x: orphanX, y: orphanY })
-    orphanX -= 400
-    if (orphanX < -2000) { orphanX = -400; orphanY += 400 }
-  }
-
-  const dataNodeIds = implNodes.filter(n => !hasExecOut.has(n.id) && !visited.has(n.id)).map(n => n.id)
-  const dataNodeIdSet = new Set(dataNodeIds)
-  const dataEdges = new Map<number, number[]>()
-  const dataInDegree = new Map<number, number>()
-  for (const id of dataNodeIds) dataInDegree.set(id, 0)
-  for (const nr of nodeResults) {
-    const args = nr.node.args ?? []
-    for (const arg of args) {
-      if (arg && (arg as any).type === 'conn') {
-        const v = (arg as any).value as { node_id?: number } | undefined
-        if (v?.node_id && dataNodeIdSet.has(v.node_id)) {
-          const deps = dataEdges.get(v.node_id) ?? []
-          deps.push(nr.node.id)
-          dataEdges.set(v.node_id, deps)
-          dataInDegree.set(nr.node.id, (dataInDegree.get(nr.node.id) ?? 0) + 1)
-        }
-      }
-    }
-  }
-
-  const dataDepth = new Map<number, number>()
-  const kahnQ: number[] = []
-  let kahnQi = 0
-  for (const id of dataNodeIds) {
-    if ((dataInDegree.get(id) ?? 0) === 0) {
-      kahnQ.push(id)
-      dataDepth.set(id, 0)
-    }
-  }
-  while (kahnQi < kahnQ.length) {
-    const cur = kahnQ[kahnQi++]
-    const curDepth = dataDepth.get(cur) ?? 0
-    for (const child of dataEdges.get(cur) ?? []) {
-      const newDeg = (dataInDegree.get(child) ?? 1) - 1
-      dataInDegree.set(child, newDeg)
-      dataDepth.set(child, Math.max(dataDepth.get(child) ?? 0, curDepth + 1))
-      if (newDeg === 0) kahnQ.push(child)
-    }
-  }
-
-  const dataCols = new Map<number, number[]>()
-  for (const id of dataNodeIds) {
-    const d = dataDepth.get(id) ?? 0
-    const col = dataCols.get(d) ?? []
-    col.push(id)
-    dataCols.set(d, col)
-  }
-  const maxDepth = Math.max(...dataNodeIds.map(id => dataDepth.get(id) ?? 0), 0)
-  for (let d = 0; d <= maxDepth; d++) {
-    const col = dataCols.get(d) ?? []
-    col.forEach((id, row) => {
-      pos.set(id, { x: d * LAYOUT_DATA_H_STEP, y: row * LAYOUT_EXEC_V_STEP + LAYOUT_DATA_Y_OFFSET })
-    })
+  for (const [nodeId, [x, y]] of positions) {
+    pos.set(nodeId, { x, y })
   }
 
   return pos
