@@ -21,7 +21,7 @@
 8. 提交前运行 `git diff --check`；编译器、运行时或布局算法代码改动通常还要运行 `npm run build`。
 9. 如果只新增或修改 `tests/*.ts` 布局测试文件，不需要重新编译编译器代码；直接用现有 `bin/gsts.mjs` 生成该测试的 `.gia`。
 10. 生成测试文件时，图内 `g.server({ name })` 必须带清晰轮次/场景/step，方便游戏里辨认。
-11. 导出文件名和图内 name 的 step 应保持同步，避免“文件 step9 但图内 step8”。
+11. 导出文件名和图内 name 的 step 应保持同步，避免“文件 step9 但图内 step8”。每次生成新 step 或覆盖给用户验证前，先修改测试文件里的 `g.server({ name })`，再运行 `node bin/gsts.mjs ...` 生成 GIA。
 12. 主图普通布局测试优先使用高层 `f.xxx()` DSL；需要精确手动复刻控制拓扑时用当前推荐 raw API `f.entry()` / `f.node()` / `f.link()`。不要把 `f.registerExecNode()` 当作主图普通测试工具；它是自动串联 tail 的低层兼容/API，主图普通路径曾触发 `removeUnusedNodesFromFlow` 中 `record.args is not iterable` 的实现缺口。
 13. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
 14. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。

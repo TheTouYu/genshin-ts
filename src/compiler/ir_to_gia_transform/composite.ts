@@ -73,7 +73,7 @@ export function buildCompositeAccessories(
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
-  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, def.implVariables, compositeDefById)
+  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, def.implVariables, def, compositeDefById)
 
   // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
   const compositeDef: CompositeDef = {
@@ -272,6 +272,7 @@ function buildImplGraphNodes(
   implEdges: Record<number, any[]>,
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
   implVariables: CompositeDefIR['implVariables'],
+  def: CompositeDefIR,
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
   const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
@@ -357,7 +358,7 @@ function buildImplGraphNodes(
     }]
   }
 
-  const layout = computeImplLayout(implNodes, implEdges, compositeDefById)
+  const layout = computeImplLayout(implNodes, implEdges, def, compositeDefById)
 
   return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex, isDTC, dtcConcreteNid, gvConcreteNid }) => {
     const outEdges = implEdges[node.id]
@@ -397,18 +398,39 @@ function buildImplGraphNodes(
 function computeImplLayout(
   implNodes: CompositeDefIR['implNodes'],
   implEdges: Record<number, any[]>,
+  def: CompositeDefIR,
   compositeDefById?: Map<number, CompositeDefIR>
 ): Map<number, { x: number; y: number }> {
-  const layoutNodes = implNodes.map((node) => ({
-    ...node,
-    next: implEdges[node.id] ?? (node as any).next
-  })) as any[]
+  const maxNodeId = implNodes.reduce((max, node) => Math.max(max, node.id), 0)
+  const outputPins = def.compositePins.filter((entry) => entry.outerPinKind === NodePin_Index_Kind.OutParam)
+  const virtualOutputNodes = outputPins.map((entry, index) => ({
+    id: maxNodeId + index + 1,
+    type: '__composite_output_anchor__',
+    args: []
+  }))
+  const layoutNodes = [
+    ...implNodes.map((node) => ({
+      ...node,
+      next: implEdges[node.id] ?? (node as any).next
+    })),
+    ...virtualOutputNodes
+  ] as any[]
+  const extraDataConnections = outputPins.map((entry, index) => ({
+    fromId: entry.innerNodeId,
+    toId: virtualOutputNodes[index].id,
+    fromIndex: entry.innerPinIndex,
+    toIndex: entry.outerPinIndex
+  }))
 
   const graphInfo = buildExecutionGraph(layoutNodes)
   const positions = layoutPositions(
     layoutNodes,
     graphInfo,
-    compositeDefById ? [...compositeDefById.values()] : []
+    compositeDefById ? [...compositeDefById.values()] : [],
+    {
+      extraDataConnections,
+      virtualConsumerIds: virtualOutputNodes.map((node) => node.id)
+    }
   )
 
   const pos = new Map<number, { x: number; y: number }>()

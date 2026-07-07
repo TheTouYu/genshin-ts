@@ -145,6 +145,12 @@ Round 12 已发现但尚未处理：复合 impl 中只输出到 OutParam 边界�
 
 待修方向：为复合 impl 的 OutParam compositePins 建立“虚拟消费者”或 graph output consumer，使输出数据节点能按边界输出位置/最终输出语义参与布局。
 
+完成记录（2026-07-08）：
+
+- 已实现：`layoutPositions(...)` 增加 `extraDataConnections` / `virtualConsumerIds` 选项；复合 impl 布局把 OutParam compositePins 转成隐藏输出锚点。
+- 已验证：用户游戏内确认 `布局r6-d-composite-summary-step3-output-anchor.gia` 通过。
+- 当前测试图名：`R6-D复合摘要-step3-output-anchor`。
+
 ### 3.2 数据区插入执行泳道之间
 
 Round 12 已发现但尚未处理：数据节点会被放到两条执行分支之间，例如第一条执行分支在上方、第二条执行分支在中间，数据节点落在二者之间，造成数据线和控制线交叉。
@@ -173,21 +179,29 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 
 ## 四、下一轮建议实施顺序
 
-### Step 1：先用主图同构测试修共享布局核心
+### Step 1：继续修数据区插入执行泳道问题
 
-继续使用：
+第一个小点（复合边界输出虚拟消费者）已通过。下一步建议处理 3.2：数据区插入执行泳道之间。
+
+优先继续使用复合回归测试：
 
 ```text
-tests/layout-r6-d-main-equivalent.ts
+tests/layout-r6-d-composite-summary.ts
 ```
 
 建议下一步导出：
 
 ```text
-/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step2.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step4-data-lane.gia
 ```
 
-只改 `src/compiler/ir_to_gia_transform/layout.ts`，不要改复合 impl 编码或测试结构。
+同时保留主图同构测试作对照：
+
+```text
+tests/layout-r6-d-main-equivalent.ts
+```
+
+改动应继续集中在 `src/compiler/ir_to_gia_transform/layout.ts`，不要回退复合 impl 复用主图布局核心的方向。
 
 ### Step 2：比对人工修复参考
 
@@ -207,17 +221,17 @@ tests/layout-r6-d-main-equivalent.ts
 
 ### Step 3：回归复合 impl
 
-主图同构改善后，再重新导出：
+后续每个小点通过后，都应回归复合 impl：
 
 ```text
-布局r6-d-composite-summary-step3.gia
+布局r6-d-composite-summary-stepN.gia
 ```
 
 检查：
 
 - 复合 impl 内是否同步改善。
-- OutParam 边界输出仍是否需要单独虚拟消费者处理。
 - 输入/输出 pin 边界留白是否需要后续 Phase 3。
+- 主图同构测试是否出现同类改善或回退。
 
 ---
 
@@ -237,10 +251,22 @@ rm -f "$export_dir/布局r6-d-main-equivalent-step2.gia"
 cp dist/tests/layout-r6-d-main-equivalent.gia "$export_dir/布局r6-d-main-equivalent-step2.gia"
 ```
 
+生成复合回归 GIA（只改测试时直接执行，不 build；改布局实现后需先 build）：
+
+```bash
+node bin/gsts.mjs tests/layout-r6-d-composite-summary.ts || true
+```
+
+已通过导出文件：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step3-output-anchor.gia
+```
+
 解码主图 GIA 时不要用 `accessories.find(a => a.graph && a.name === '')`，主图在 root graph 下。可用通用递归找最大 nodes graph 的脚本。
 
 ---
 
 ## 六、给下一位助手的一句话
 
-> Phase 1 已提交并由用户确认生效：复合 impl 现在复用主图布局核心。当前阻塞不是复合专属，而是共享布局核心在复杂数据链上有五类问题：复合边界输出缺少虚拟消费者、数据区插入执行泳道、多消费者锚点错误、数据倒退连线、数据链过松散。下一步先用 `tests/layout-r6-d-main-equivalent.ts` 对照用户人工修复版 `复合节点-布局错误-step2-主图同构-修复.gia/png` 修 `layout.ts`，再回归复合 impl。
+> Phase 1 已提交并由用户确认生效：复合 impl 现在复用主图布局核心。Round 13 第一个小点也已通过：复合 OutParam 边界输出现在有虚拟消费者锚点。当前剩余共享布局核心问题：数据区插入执行泳道、多消费者锚点错误、数据倒退连线、数据链过松散。下一步建议先修数据区避开执行泳道，并用 `布局r6-d-composite-summary-step4-data-lane.gia` 给用户游戏内验证。

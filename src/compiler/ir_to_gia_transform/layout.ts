@@ -10,6 +10,18 @@ type LayoutConfig = {
   eventGap: number
 }
 
+type ExtraDataConnection = {
+  fromId: NodeId
+  toId: NodeId
+  fromIndex?: number
+  toIndex?: number
+}
+
+type LayoutOptions = {
+  extraDataConnections?: ExtraDataConnection[]
+  virtualConsumerIds?: NodeId[]
+}
+
 const asArray = <T>(value: T | T[] | undefined): T[] => {
   if (value === undefined) return []
   return Array.isArray(value) ? value : [value]
@@ -545,6 +557,32 @@ function expandExecGapsForDataChains(
   }
 }
 
+function placeVirtualConsumers(
+  state: ReturnType<typeof createLayoutState>,
+  virtualConsumerIds: NodeId[],
+  config: LayoutConfig
+) {
+  if (virtualConsumerIds.length === 0) return
+
+  let maxX = 0
+  let minY = 0
+  let hasPosition = false
+  for (const [nodeId, pos] of state.positions) {
+    if (virtualConsumerIds.includes(nodeId)) continue
+    maxX = Math.max(maxX, pos[0])
+    minY = hasPosition ? Math.min(minY, pos[1]) : pos[1]
+    hasPosition = true
+  }
+
+  const baseX = maxX + config.columnWidth
+  virtualConsumerIds.forEach((nodeId, index) => {
+    if (!state.unplacedNodes.has(nodeId)) return
+    state.positions.set(nodeId, [baseX, minY + index * 230])
+    state.nodeToEventIndex.set(nodeId, 0)
+    state.unplacedNodes.delete(nodeId)
+  })
+}
+
 function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: LayoutConfig) {
   if (state.unplacedNodes.size === 0) return
 
@@ -576,7 +614,8 @@ function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: 
 export function layoutPositions(
   irNodes: IRNode[],
   graphInfo: ReturnType<typeof buildExecutionGraph>,
-  compositeDefs: CompositeDefIR[] = []
+  compositeDefs: CompositeDefIR[] = [],
+  options: LayoutOptions = {}
 ): Map<NodeId, Position> {
   const config: LayoutConfig = {
     columnWidth: 800,
@@ -586,11 +625,19 @@ export function layoutPositions(
     eventGap: 300
   }
 
-  const { execNodes, roots, execChildrenMap, dataConsumersMap, dataConnections } = graphInfo
+  const { execNodes, roots, execChildrenMap, dataConnections } = graphInfo
+  const dataConsumersMap = new Map<NodeId, NodeId[]>(graphInfo.dataConsumersMap)
+  for (const conn of options.extraDataConnections ?? []) {
+    const consumers = dataConsumersMap.get(conn.fromId) ?? []
+    if (!consumers.includes(conn.toId)) {
+      consumers.push(conn.toId)
+      dataConsumersMap.set(conn.fromId, consumers)
+    }
+  }
   const state = createLayoutState(irNodes)
 
   const dataParentsMap = new Map<NodeId, NodeId[]>()
-  for (const conn of dataConnections) {
+  for (const conn of [...dataConnections, ...(options.extraDataConnections ?? [])]) {
     const parents = dataParentsMap.get(conn.toId) ?? []
     parents.push(conn.fromId)
     dataParentsMap.set(conn.toId, parents)
@@ -655,6 +702,12 @@ export function layoutPositions(
       // 继续迭代直到无法放置更多节点
     }
   })
+
+  placeVirtualConsumers(state, options.virtualConsumerIds ?? [], config)
+
+  while (placeDataNearConsumers(dataConsumersMap, execNodes, state)) {
+    // 让额外虚拟消费者锚定只输出到图边界的数据节点
+  }
 
   expandExecGapsForDataChains(
     dataParentsMap,
