@@ -72,10 +72,11 @@ const SCALAR_CLASS_BY_CLIENT_TYPE: Record<number, number> = {
 
 /**
  * Types with sample-proven literal payloads (alreadySetVal=true plus a b* value
- * field observed in _value_shapes.json). config_id/prefab_id pins appear in
- * samples but never with an actual literal payload, so they are excluded.
+ * field observed in _value_shapes.json). config_id/prefab_id literals are
+ * plain bId payloads, proven by the dynamic signal receive node in
+ * 结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia (pins t18/t19 with bId vals).
  */
-const LITERAL_PROVEN_CLIENT_TYPES = new Set([3, 5, 7, 9, 11, 13, 14, 16])
+const LITERAL_PROVEN_CLIENT_TYPES = new Set([3, 5, 7, 9, 11, 13, 14, 16, 18, 19])
 
 /** list client types with observed ArrayBase literal shapes (empty or bArray.entries) */
 const LIST_CLIENT_TYPES = new Set([2, 4, 6, 8, 10, 12, 15, 17, 20, 25])
@@ -199,11 +200,12 @@ export function client_inline_var_value(clientVarType: 18 | 19, literal: number)
   }
 }
 
-/** client_signal pin literal (signal name on kind 5) */
+/** signal name literal on the client_exec (kind 5) str pin */
 export function client_signal_name_value(name: string): VarBase {
   return {
     class: VarBase_Class.StringBase,
     alreadySetVal: true,
+    itemType: client_item_type(9),
     bString: { val: name }
   }
 }
@@ -279,6 +281,12 @@ export function client_pin_body(pin: ClientPinMetadata, literal?: unknown): Node
     } else {
       value = client_value_base(pin.clientVarType ?? 0, pin.defaultValue)
     }
+  } else if (
+    (pin.kind === 'client_exec' || pin.kind === 'client_signal') &&
+    pin.clientVarType !== undefined
+  ) {
+    // corpus: typed client_exec pins carry an unset value with zero payload
+    value = client_value_base(pin.clientVarType, pin.clientVarType === 9 ? '' : 0)
   }
   return {
     i1: { kind, index: pin.index },

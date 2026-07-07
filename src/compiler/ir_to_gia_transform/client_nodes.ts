@@ -35,12 +35,25 @@ export const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   faction_list: 25
 }
 
+/** seed uses camelCase configId/prefabId; IR uses snake_case */
+const SEED_TYPE_TO_IR: Record<string, string> = {
+  configId: 'config_id',
+  prefabId: 'prefab_id',
+  configId_list: 'config_id_list',
+  prefabId_list: 'prefab_id_list'
+}
+
 const TYPE_OFFSET_BY_IR = new Map(
   (varSpec.typeOffsets as Array<{ type: string; clientVarType: number; offset: number }>).map((e) => [
-    e.type,
+    SEED_TYPE_TO_IR[e.type] ?? e.type,
     e
   ])
 )
+
+/** cid/ioc offset of a get_custom_variable output type (seed typeOffsets order) */
+export function customVariableTypeOffset(irType: string): number | undefined {
+  return TYPE_OFFSET_BY_IR.get(irType)?.offset
+}
 
 function getCustomVariableFamily(subType: ClientGraphSubType) {
   const cs = varSpec.getCustomVariable.characterSkillFamilies
