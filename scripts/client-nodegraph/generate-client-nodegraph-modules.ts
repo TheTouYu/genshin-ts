@@ -167,6 +167,8 @@ type HelperMemberSpec = {
   requiredMethods?: string[]
   /** if set, member is needs_developer_confirmation and never implemented */
   confirm?: string
+  /** if set, member is a decided gap (developer decision, blocked like timer) */
+  blocked?: string
   note?: string
 }
 
@@ -193,8 +195,8 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
   },
   {
     helper: 'player',
-    confirm:
-      'no client get_player_guid_by_player_id node; 获取指定玩家的角色实体 returns a character entity, not proven equivalent to server player(id)'
+    blocked:
+      'developer decision 2026-07-06: player(id) is unavailable in client graphs (no client get_player_guid_by_player_id node); blocked like timer'
   },
   { helper: 'self', requiredMethods: ['getSelfEntity'] },
   {
@@ -302,15 +304,15 @@ function deriveScopedGlobalsCapability(metadata: MetadataRecord[]): ClientScoped
   }
 
   return HELPER_MEMBER_SPECS.map((spec) => {
-    if (spec.confirm) {
+    if (spec.confirm || spec.blocked) {
       return {
         helper: spec.helper,
         ...(spec.member ? { member: spec.member } : {}),
         subTypes: [],
         modes: [],
         backedBy: [],
-        status: 'needs_developer_confirmation' as const,
-        note: spec.confirm
+        status: spec.confirm ? ('needs_developer_confirmation' as const) : ('gap' as const),
+        note: (spec.confirm ?? spec.blocked)!
       }
     }
     const required = spec.requiredMethods ?? []

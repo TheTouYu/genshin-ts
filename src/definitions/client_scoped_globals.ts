@@ -37,8 +37,8 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     subTypes: [],
     modes: [],
     backedBy: [],
-    status: 'needs_developer_confirmation',
-    note: 'no client get_player_guid_by_player_id node; 获取指定玩家的角色实体 returns a character entity, not proven equivalent to server player(id)'
+    status: 'gap',
+    note: 'developer decision 2026-07-06: player(id) is unavailable in client graphs (no client get_player_guid_by_player_id node); blocked like timer'
   },
   {
     helper: 'self',

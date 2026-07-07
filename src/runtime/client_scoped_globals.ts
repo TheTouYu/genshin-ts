@@ -91,7 +91,10 @@ const MEMBER_IMPLS: Record<string, MemberFactory> = {
 const VALUE_HELPERS = new Set(['self', 'stage', 'level'])
 
 /** helpers pending developer confirmation: always installed as rejecting stubs */
-const CONFIRMATION_PENDING_HELPERS = ['send', 'player'] as const
+const CONFIRMATION_PENDING_HELPERS = ['send'] as const
+
+/** decided unavailable (2026-07-06): no client equivalent, blocked like timer */
+const BLOCKED_HELPERS = ['player'] as const
 
 export function installScopedClientGlobals(
   subType: ClientGraphSubType,
@@ -152,7 +155,7 @@ export function installScopedClientGlobals(
     define(helper, { value: obj })
   }
 
-  for (const helper of CONFIRMATION_PENDING_HELPERS) {
+  for (const helper of [...CONFIRMATION_PENDING_HELPERS, ...BLOCKED_HELPERS]) {
     define(helper, {
       get: () => {
         throw helperUnavailable(helper, subType, mode)
