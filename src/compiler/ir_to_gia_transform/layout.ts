@@ -286,11 +286,12 @@ function layoutExecutionChain(
     // Root event lanes are independent swimlanes: their direct children should not
     // be pushed below the whole nested subtree of the previous root child.
     // Nested siblings still use block-bottom placement to avoid local data-heavy blocks.
+    const dataLanePadding = Math.min(260, Math.round(extraDataHeight * 0.25))
     const newLaneOffset = isRootSwimLane
       ? actualLaneOffset + idx * branchBaseSpacing
       : Math.max(
           actualLaneOffset,
-          prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + extraDataHeight
+          prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + dataLanePadding
         )
 
     const childMaxY = layoutExecutionChain(
@@ -422,10 +423,10 @@ function expandExecGapsForDataChains(
   config: LayoutConfig
 ) {
   // 这些经验值来自真实正样本「主图布局1.gia」：
-  // - 数据链通常在消费者下方约 220-230px。
+  // - 数据链通常在消费者下方约 190-230px。
   // - 最后一个数据节点到消费者左侧约 440-470px。
   // - 2/3 个数据节点时，执行节点间距约为 1200/1600px。
-  const dataYBelowConsumer = 230
+  const dataYBelowConsumer = 190
   const dataNodeStepX = 450
   const extraExecGapPerAdditionalDataNode = 400
   const extraGapPerAdditionalInput = 260
