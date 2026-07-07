@@ -7,7 +7,7 @@ g.server({
     v_int: 42n,
     v_float: 3.5,
     v_str: 'hello',
-    v_vec3: [1, 2, 3],
+    v_vec3: vec3([1, 2, 3]),
     v_guid: guid(12n),
     v_config: configId(1),
     v_prefab: prefabId(2),
@@ -83,6 +83,10 @@ g.server({
   const vFloat = f.get('v_float')
   const vBool = f.get('v_bool')
   const vStr = f.get('v_str')
+  const vVec3 = f.get('v_vec3')
+
+  const splitVec3 = f.split3dVector(vVec3)
+  f.printString(str(splitVec3.xComponent))
 
   f.printString(str(f.queryDictionarySLength(f.get('ffd'))))
 
