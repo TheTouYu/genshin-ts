@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 设计准则
 > 来源：真实编辑器布局文件 + 截图对照 + 当前代码实现观察
-> 最近校验：2026-07-06
+> 最近校验：2026-07-07
 > 适用范围：gsts 自动布局设计、真实 GIA 布局分析、复合节点拆分策略
 
 本文档替代早期以“固定步进参数”和“节点数量统计”为主的布局观察。旧结论只能作为历史背景；后续布局优化应以本文的**视口、层级窗口、语义区块、执行泳道、数据流贴近原则**为优先依据。
@@ -196,6 +196,22 @@ n1 event at (-414, -281)
 
 其中 n5 的多个数据输入节点分布在 y≈-170、12、203、396；n11 放到 y≈681 后，蓝色数据线和白色执行线在截图中不会重叠成团。这个样本说明布局算法不能只按“第几个 child”给固定 Y 偏移，还要估计上方分支已经占用的局部区块高度。
 
+2026-07-07 的 `layout-r6-c-reference-repro` 分步游戏内验证进一步补充了 gsts 当前实现侧的约束：
+
+- **事件入口是执行 root 锚点**：event 节点即使作为数据源连接到右侧数据节点，也不能被数据链布局移动到消费者附近。数据节点可以贴近消费者，event 必须保留在左侧入口。
+- **root 直接分支和 nested sibling 分开处理**：event 的直接 child 形成基础泳道，不应被上一条 root 分支的完整 nested subtree 推到最下方；但 nested sibling 需要根据上方数据重的局部区块继续下推。
+- **后续链继承已下移 lane**：当第二条 root lane 的后续节点需要避开上方已占位区时，应下移到新的 lane，并让后续节点保持同一 Y 水平平移。
+- **长输入链需要更大数据 padding**：`layout-r6-c-reference-repro-long-input` 中把一个攻击参数改为 `GetVar -> 3D Vector Addition -> Initiate Attack` 后，原本的四输入高度估算不足；当前 gsts 通过提高 nested data padding 解决了重叠。
+
+对应当前实现和测试：
+
+```text
+src/compiler/ir_to_gia_transform/layout.ts
+tests/layout-r6-c-reference-repro.ts
+tests/layout-r6-c-reference-repro-long-input.ts
+docs/composite-ir/handover/layout-handover-round-10.md
+```
+
 设计准则：
 
 - 每条主执行线拥有自己的 Y 区间。
@@ -312,13 +328,14 @@ n5 Get Node Graph Variable -> n7 Addition -> n6 Data Type Conversion -> n4 Print
 当前通过的经验参数：
 
 ```text
-数据链位于消费者下方约 230px。
-最后一个数据节点距消费者左侧约 450px。
-每多一个数据节点，执行节点间隔额外增加约 400px。
+数据链位于消费者下方约 190-230px；`布局c` 类多输入执行节点当前使用约 190px。
+最后一个数据节点距消费者左侧约 440-470px。
+执行节点间隔主要按数据链深度增加；不要把多输入节点的直接输入数量无限线性叠加，否则 Initiate Attack 这类节点会被推得过远。
 纯数据复合 impl 内部数据节点横向间距约 450px。
+nested sibling 的额外下推需要考虑数据链长度；当前 `布局c` 与 long-input 变体通过了更高的 bounded data padding。
 ```
 
-详见：[handover/layout-handover-round-7.md](handover/layout-handover-round-7.md)。
+详见：[handover/layout-handover-round-7.md](handover/layout-handover-round-7.md) 和 [handover/layout-handover-round-10.md](handover/layout-handover-round-10.md)。
 
 ### 4.4 纯数据复合按表达式图布局
 
