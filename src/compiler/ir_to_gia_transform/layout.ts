@@ -481,6 +481,7 @@ function expandExecGapsForDataChains(
   // - 2/3 个数据节点时，执行节点间距约为 1200/1600px。
   const dataYBelowConsumer = 190
   const dataNodeStepX = 450
+  const dataNodeStepY = 175
   const extraExecGapPerAdditionalDataNode = 400
   const extraGapPerAdditionalInput = 260
   const execParentsMap = buildExecParentsMap(execChildrenMap)
@@ -536,7 +537,7 @@ function expandExecGapsForDataChains(
       const row = rowCounts.get(depth) ?? 0
       rowCounts.set(depth, row + 1)
       const x = dataAnchorX - (maxDepth - depth + 1) * dataNodeStepX
-      const y = cy + dataYBelowConsumer + row * dataYBelowConsumer
+      const y = cy + dataYBelowConsumer + row * dataNodeStepY
       state.positions.set(id, [x, y])
     }
   }
@@ -602,7 +603,7 @@ export function layoutPositions(
     const directDataInputs = dataParentsMap.get(node.id) ?? []
     const dataAncestorCount = collectDataAncestors(node.id, dataParentsMap).size
     const directInputExtra = Math.max(0, directDataInputs.length - 1) * 200
-    const chainExtra = Math.max(0, dataAncestorCount - 1) * 120
+    const chainExtra = Math.max(0, dataAncestorCount - 1) * 150
     const uniqueDirectDataInputs = new Set(directDataInputs)
     let dataNodeVisualExtra = 0
     for (const inputId of uniqueDirectDataInputs) {

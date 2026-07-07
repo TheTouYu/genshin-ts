@@ -330,9 +330,10 @@ n5 Get Node Graph Variable -> n7 Addition -> n6 Data Type Conversion -> n4 Print
 当前通过的经验参数：
 
 ```text
-数据链位于消费者下方约 190-230px；`布局c` 类多输入执行节点当前使用约 190px。
+数据链位于消费者下方约 190-230px；`布局c` 类多输入执行节点当前第一个数据节点使用约 190px，下游同列普通数据节点行距经 step12 校准为约 175px。
 最后一个数据节点距消费者左侧约 440-470px。
 执行节点间隔主要按数据链深度增加；不要把多输入节点的直接输入数量无限线性叠加，否则 Initiate Attack 这类节点会被推得过远。
+普通数据流节点数量增多时，整块数据区对下方执行分支的高度估算需要随 `dataAncestorCount` 增长；当前 `布局c` data-count step12 通过的经验系数为 150。
 纯数据复合 impl 内部数据节点横向间距约 450px。
 nested sibling 的额外下推需要考虑数据链长度；当前 `布局c` 与 long-input 变体通过了更高的 bounded data padding。
 ```
