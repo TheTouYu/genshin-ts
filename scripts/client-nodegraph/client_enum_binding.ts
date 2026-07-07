@@ -59,8 +59,11 @@ export type ClientEnumBinding = {
   /** TS enum class for a non-reflective enum input pin (undefined -> EnumerationValue) */
   resolve(
     record: { genericId: number; displayName: string },
-    pin: { index: number; defaultValue?: unknown }
+    pin: { index: number; defaultValue?: unknown },
+    zhParamName?: string
   ): string | undefined
+  /** TS enum class for an enum output pin (undefined -> enumeration) */
+  resolveReturn(zhParamName: string | undefined): string | undefined
   /** classes reused from src/definitions/enum.ts, for import emission */
   serverClasses: string[]
   /** client-only classes to emit into src/definitions/client_enums.ts */
@@ -247,8 +250,43 @@ const EXTRA_SPEC_BY_ZH: Record<string, ClientOnlySpec> = {
 }
 
 /**
+ * zh doc param name -> enum class for enum pins whose sampled default is 0
+ * (the value alone cannot identify the class). Evidence: the all-params
+ * hitbox sample 指定挂接点打攻击盒_全参数填值 pin values resolved against the
+ * census / vendor value spaces — 2001 TargetType, 2101 TriggerRestriction,
+ * 400..402 AttackShape, 450 SectorDetectionDirection, 2602 AttackLayerConfig,
+ * 1301 ElementalType, 2201 HitType, 2302 AttackType, 2502 KnockbackDirectionType.
+ */
+const CLASS_BY_ZH_PARAM: Record<string, string> = {
+  目标阵营筛选: 'TargetType',
+  阵营筛选: 'TargetType',
+  触发类型: 'TriggerRestriction',
+  攻击盒类型: 'AttackShape',
+  攻击盒为扇形时的检测方向: 'SectorDetectionDirection',
+  攻击层筛选: 'AttackLayerConfig',
+  元素类型: 'ElementalType',
+  打击类型: 'HitType',
+  攻击类型: 'AttackType',
+  受击击退朝向: 'KnockbackDirectionType'
+}
+
+/**
+ * zh doc output name -> enum class (census evidence: ioc40 扫描状态 /
+ * ioc13 实体类型 / ioc41 输入设备类型 / ioc42 战术类型).
+ */
+const CLASS_BY_ZH_RETURN: Record<string, string> = {
+  扫描状态: 'ScanStatus',
+  实体类型: 'EntityType',
+  输入设备类型: 'InputDeviceType',
+  战术类型: 'TacticType'
+}
+
+/** server classes referenced by the zh maps beyond SERVER_CLASS_BY_IOC */
+const EXTRA_SERVER_CLASSES = ['TriggerRestriction']
+
+/**
  * 目标实体 dropdown reuse nodes beyond targetEntityParam.sampledNodes, per the
- * seed's reuseNote (2026-07-06 developer decision).
+ * seed's reuseNote (round-2 sampling).
  */
 const TARGET_ENTITY_REUSE_ZH = new Set([
   '获取实体位置',
@@ -370,14 +408,21 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   }
 
   return {
-    resolve(record, pin) {
+    resolve(record, pin, zhParamName) {
       const v = pin.defaultValue
       if (typeof v === 'number' && v > 0) return classByValue.get(v)
       return (
-        explicitByGenericId.get(record.genericId) ?? explicitByDisplayName.get(record.displayName)
+        explicitByGenericId.get(record.genericId) ??
+        explicitByDisplayName.get(record.displayName) ??
+        (zhParamName ? CLASS_BY_ZH_PARAM[zhParamName] : undefined)
       )
     },
-    serverClasses: [...new Set(Object.values(SERVER_CLASS_BY_IOC))].sort(),
+    resolveReturn(zhParamName) {
+      return zhParamName ? CLASS_BY_ZH_RETURN[zhParamName] : undefined
+    },
+    serverClasses: [
+      ...new Set([...Object.values(SERVER_CLASS_BY_IOC), ...EXTRA_SERVER_CLASSES])
+    ].sort(),
     clientOnlyClasses,
     valueByKey
   }

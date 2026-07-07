@@ -430,6 +430,8 @@ type ReturnSpec = {
   /** concrete IR type; reflect-dependent returns resolved via variant map */
   irType?: string
   reflective: boolean
+  /** concrete TS enum class bound from the enum seeds (four.1) */
+  enumClass?: string
   docEnName: string
   docEnDesc: string
   docZhName: string
@@ -592,11 +594,13 @@ function buildMethodSpec(
     if (irType !== undefined && !SUPPORTED_RETURN_TYPES.has(irType)) {
       return gap('unsupported_return_type', `${doc?.en.name ?? fallbackName}: ${irType}`)
     }
+    const enumClass = irType === 'enum' ? enumBinding.resolveReturn(doc?.zh?.name) : undefined
     returns.push({
       pinIndex,
       ident: uniqueIdent(identFromDocName(doc?.en.name ?? '', fallbackName), returnIdents),
       ...(irType !== undefined ? { irType } : {}),
       reflective,
+      ...(enumClass ? { enumClass } : {}),
       docEnName: doc?.en.name ?? fallbackName,
       docEnDesc: sanitizeDocText(doc?.en.description ?? ''),
       docZhName: doc?.zh?.name ?? '',
@@ -727,7 +731,8 @@ function buildMethodSpec(
     if (!SUPPORTED_PARAM_TYPES.has(b.pin.type)) {
       return gap(`unsupported_param_type`, `${b.doc.en.name}: ${b.pin.type}`)
     }
-    const enumClass = b.pin.type === 'enum' ? enumBinding.resolve(record, b.pin) : undefined
+    const enumClass =
+      b.pin.type === 'enum' ? enumBinding.resolve(record, b.pin, b.doc.zh?.name) : undefined
     params.push({
       pinIndex: b.pin.index,
       ident,
@@ -844,14 +849,24 @@ function paramTsOf(p: ParamSpec): string {
   return p.enumClass ?? paramTs(p.irType!)
 }
 
+function returnTsOf(r: ReturnSpec): string {
+  return r.enumClass ?? returnTs(r.irType!)
+}
+
+/** enum returns with a bound class carry the class name (conn typing + hints) */
+function retConstructionOf(r: ReturnSpec): string {
+  if (r.irType === 'enum' && r.enumClass) return `new enumeration('${r.enumClass}')`
+  return retConstruction({ kind: 'literal', irType: r.irType! })
+}
+
 function emitNonReflectMethod(spec: MethodSpec): string {
   const sigParams = spec.params.map((p) => `${p.ident}: ${paramTsOf(p)}`).join(', ')
   const retTs =
     spec.returns.length === 0
       ? 'void'
       : spec.returns.length === 1
-        ? returnTs(spec.returns[0].irType!)
-        : `{ ${spec.returns.map((r) => `${r.ident}: ${returnTs(r.irType!)}`).join('; ')} }`
+        ? returnTsOf(spec.returns[0])
+        : `{ ${spec.returns.map((r) => `${r.ident}: ${returnTsOf(r)}`).join('; ')} }`
 
   const body: string[] = []
   for (const p of spec.params) {
@@ -869,14 +884,14 @@ function emitNonReflectMethod(spec: MethodSpec): string {
 
   if (spec.returns.length === 1) {
     const r = spec.returns[0]
-    body.push(...emitSingleReturn(r, retConstruction({ kind: 'literal', irType: r.irType! }), returnTs(r.irType!)))
+    body.push(...emitSingleReturn(r, retConstructionOf(r), returnTsOf(r)))
   } else if (spec.returns.length > 1) {
     body.push(`    return {`)
     for (const [i, r] of spec.returns.entries()) {
       body.push(`      ${r.ident}: (() => {`)
-      body.push(`        const ret = ${retConstruction({ kind: 'literal', irType: r.irType! })}`)
+      body.push(`        const ret = ${retConstructionOf(r)}`)
       body.push(`        ret.markPin(ref, '${r.ident}', ${r.pinIndex})`)
-      body.push(`        return ret as unknown as ${returnTs(r.irType!)}`)
+      body.push(`        return ret as unknown as ${returnTsOf(r)}`)
       body.push(`      })()${i < spec.returns.length - 1 ? ',' : ''}`)
     }
     body.push(`    }`)
@@ -908,7 +923,9 @@ function emitReflectMethod(spec: MethodSpec): string {
       })
       .join(', ')
     const outTs = singleReturn
-      ? returnTs(singleReturn.reflective ? variant.outType! : singleReturn.irType!)
+      ? singleReturn.reflective
+        ? returnTs(variant.outType!)
+        : returnTsOf(singleReturn)
       : 'void'
     overloads.push(`  ${spec.methodName}(${paramSig}): ${outTs}`)
   }
@@ -924,7 +941,7 @@ function emitReflectMethod(spec: MethodSpec): string {
   const implRet = singleReturn
     ? singleReturn.reflective
       ? unionOf(reflect.variants.map((v) => returnTs(v.outType!)))
-      : returnTs(singleReturn.irType!)
+      : returnTsOf(singleReturn)
     : 'void'
 
   const body: string[] = []
@@ -982,11 +999,7 @@ function emitReflectMethod(spec: MethodSpec): string {
     body.push(...register)
   } else if (!singleReturn.reflective) {
     body.push(...register)
-    body.push(...emitSingleReturn(
-      singleReturn,
-      retConstruction({ kind: 'literal', irType: singleReturn.irType! }),
-      returnTs(singleReturn.irType!)
-    ))
+    body.push(...emitSingleReturn(singleReturn, retConstructionOf(singleReturn), returnTsOf(singleReturn)))
   } else {
     // output type depends on the resolved variant
     const outsAreLists = reflect.variants.every((v) => isListType(v.outType!))

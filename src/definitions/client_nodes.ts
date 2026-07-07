@@ -36,14 +36,29 @@ import {
   type Vec3Value
 } from '../runtime/value.js'
 import type {
+  AttackLayerConfig,
+  KnockbackDirectionType,
   RetracingType,
   RotationDirection,
   RotationType,
+  ScanStatus,
+  SectorDetectionDirection,
   TacticSpeed,
+  TacticType,
   TargetEntity,
   TargetSortingRules
 } from './client_enums.js'
-import type { DisruptorDeviceType, TargetType } from './enum.js'
+import type {
+  AttackShape,
+  AttackType,
+  DisruptorDeviceType,
+  ElementalType,
+  EntityType,
+  HitType,
+  InputDeviceType,
+  TargetType,
+  TriggerRestriction
+} from './enum.js'
 import { matchTypes, parseValue, type DataTypeConversionMap } from './nodes.js'
 
 /** supported conversion pairs; IR encodes data_type_conversion_<out> like the server */
@@ -1640,7 +1655,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 扫描状态: 分为不可见、当前扫描目标、候选目标、不满足条件
    */
-  getEntitySScanStatus(targetEntity: EntityValue): enumeration {
+  getEntitySScanStatus(targetEntity: EntityValue): ScanStatus {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -1648,9 +1663,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'get_entity_s_scan_status',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('ScanStatus')
     ret.markPin(ref, 'scanStatus', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as ScanStatus
   }
 
   /**
@@ -1666,7 +1681,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: EntityValue): enumeration {
+  getEntitySType(targetEntity: EntityValue): EntityType {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -1674,9 +1689,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'get_entity_s_type',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('EntityType')
     ret.markPin(ref, 'entityType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as EntityType
   }
 
   /**
@@ -1917,16 +1932,16 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 输入设备类型: 分为键盘鼠标、手柄、触屏
    */
-  getPlayerClientInputDeviceType(): enumeration {
+  getPlayerClientInputDeviceType(): InputDeviceType {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_player_client_input_device_type',
       args: []
     })
-    const ret = new enumeration()
+    const ret = new enumeration('InputDeviceType')
     ret.markPin(ref, 'inputDeviceType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as InputDeviceType
   }
 
   /**
@@ -2068,7 +2083,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     launchLocation: Vec3Value,
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
-    factionFilter: EnumerationValue,
+    factionFilter: TargetType,
     entityTypeFilter: EnumerationValue[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
@@ -3786,32 +3801,32 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
-    hitboxType: EnumerationValue,
+    hitboxType: AttackShape,
     scaleOfCuboidHitbox: Vec3Value,
     radiusOfSphereHitbox: FloatValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -4034,33 +4049,33 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
-    hitboxType: EnumerationValue,
+    hitboxType: AttackShape,
     scaleOfCuboidHitbox: Vec3Value,
     radiusOfSphereHitbox: FloatValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -4261,25 +4276,25 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerRectangularHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -4467,26 +4482,26 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerRectangularHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -4685,29 +4700,29 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerSectorHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -4915,30 +4930,30 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerSectorHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -5133,25 +5148,25 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerSphericalHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     radiusOfSphereHitbox: FloatValue,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -5339,26 +5354,26 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 命中垂直冲量
    */
   triggerSphericalHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     radiusOfSphereHitbox: FloatValue,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -6910,7 +6925,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: EntityValue): enumeration {
+  getEntitySType(targetEntity: EntityValue): EntityType {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -6918,9 +6933,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       nodeType: 'get_entity_s_type',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('EntityType')
     ret.markPin(ref, 'entityType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as EntityType
   }
 
   /**
@@ -7291,7 +7306,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     launchLocation: Vec3Value,
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
-    factionFilter: EnumerationValue,
+    factionFilter: TargetType,
     entityTypeFilter: EnumerationValue[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
@@ -9046,32 +9061,32 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
-    hitboxType: EnumerationValue,
+    hitboxType: AttackShape,
     scaleOfCuboidHitbox: Vec3Value,
     radiusOfSphereHitbox: FloatValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -9294,33 +9309,33 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
-    hitboxType: EnumerationValue,
+    hitboxType: AttackShape,
     scaleOfCuboidHitbox: Vec3Value,
     radiusOfSphereHitbox: FloatValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -9521,25 +9536,25 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerRectangularHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -9727,26 +9742,26 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerRectangularHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     scaleOfCuboidHitbox: Vec3Value,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -9945,29 +9960,29 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerSectorHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -10175,30 +10190,30 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerSectorHitboxAtSpecifiedAttachmentPoint(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     attachmentPointName: StrValue,
     attachmentPointOffset: Vec3Value,
     attachmentPointRotation: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     heightOfSectorHitbox: FloatValue,
     sectorAngleOfSectorHitbox: FloatValue,
     sectorRadiusOfSectorHitbox: FloatValue,
     innerRadiusOfSectorHitbox: FloatValue,
-    detectionDirectionOfSectorHitbox: EnumerationValue,
-    attackLayerFilter: EnumerationValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -10393,25 +10408,25 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * 命中垂直冲量
    */
   triggerSphericalHitboxAtSpecificLocation(
-    targetFactionFilter: EnumerationValue,
+    targetFactionFilter: TargetType,
     location: Vec3Value,
     rotate: Vec3Value,
     damageCoefficient: FloatValue,
     damageIncrement: FloatValue,
     hitboxEntityTypeFilterList: EnumerationValue[],
-    triggerType: EnumerationValue,
+    triggerType: TriggerRestriction,
     onHitSceneEffects: IntValue,
     radiusOfSphereHitbox: FloatValue,
-    attackLayerFilter: EnumerationValue,
+    attackLayerFilter: AttackLayerConfig,
     attackTagList: StrValue[],
-    elementalType: EnumerationValue,
+    elementalType: ElementalType,
     elementalAttackPotency: FloatValue,
-    hitType: EnumerationValue,
-    attackType: EnumerationValue,
+    hitType: HitType,
+    attackType: AttackType,
     interruptValue: FloatValue,
     absoluteDamage: BoolValue,
     onHitSpecialEffects: IntValue,
-    knockbackOrientation: EnumerationValue,
+    knockbackOrientation: KnockbackDirectionType,
     blockDamagePopUp: BoolValue,
     onHitSceneEffectsOffset: Vec3Value,
     onHitSceneEffectsRotation: Vec3Value,
@@ -11742,7 +11757,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: TargetEntity): enumeration {
+  getEntitySType(targetEntity: TargetEntity): EntityType {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11750,9 +11765,9 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'get_entity_s_type',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('EntityType')
     ret.markPin(ref, 'entityType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as EntityType
   }
 
   /**
@@ -11979,7 +11994,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    * tacticalContext
    * 战术上下文
    */
-  getPreviousFrameExecutionTactic(): { tacticType: enumeration; tacticalContext: string } {
+  getPreviousFrameExecutionTactic(): { tacticType: TacticType; tacticalContext: string } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -11988,9 +12003,9 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     return {
       tacticType: (() => {
-        const ret = new enumeration()
+        const ret = new enumeration('TacticType')
         ret.markPin(ref, 'tacticType', 0)
-        return ret as unknown as enumeration
+        return ret as unknown as TacticType
       })(),
       tacticalContext: (() => {
         const ret = new str()
@@ -15121,7 +15136,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: TargetEntity): enumeration {
+  getEntitySType(targetEntity: TargetEntity): EntityType {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -15129,9 +15144,9 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
       nodeType: 'get_entity_s_type',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('EntityType')
     ret.markPin(ref, 'entityType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as EntityType
   }
 
   /**
@@ -15358,7 +15373,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    * tacticalContext
    * 战术上下文
    */
-  getPreviousFrameExecutionTactic(): { tacticType: enumeration; tacticalContext: string } {
+  getPreviousFrameExecutionTactic(): { tacticType: TacticType; tacticalContext: string } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -15367,9 +15382,9 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     return {
       tacticType: (() => {
-        const ret = new enumeration()
+        const ret = new enumeration('TacticType')
         ret.markPin(ref, 'tacticType', 0)
-        return ret as unknown as enumeration
+        return ret as unknown as TacticType
       })(),
       tacticalContext: (() => {
         const ret = new str()
@@ -17737,7 +17752,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 扫描状态: 分为不可见、当前扫描目标、候选目标、不满足条件
    */
-  getEntitySScanStatus(targetEntity: EntityValue): enumeration {
+  getEntitySScanStatus(targetEntity: EntityValue): ScanStatus {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -17745,9 +17760,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       nodeType: 'get_entity_s_scan_status',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('ScanStatus')
     ret.markPin(ref, 'scanStatus', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as ScanStatus
   }
 
   /**
@@ -17763,7 +17778,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: EntityValue): enumeration {
+  getEntitySType(targetEntity: EntityValue): EntityType {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -17771,9 +17786,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       nodeType: 'get_entity_s_type',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('EntityType')
     ret.markPin(ref, 'entityType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as EntityType
   }
 
   /**
@@ -17932,16 +17947,16 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 输入设备类型: 分为键盘鼠标、手柄、触屏
    */
-  getPlayerClientInputDeviceType(): enumeration {
+  getPlayerClientInputDeviceType(): InputDeviceType {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_player_client_input_device_type',
       args: []
     })
-    const ret = new enumeration()
+    const ret = new enumeration('InputDeviceType')
     ret.markPin(ref, 'inputDeviceType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as InputDeviceType
   }
 
   /**
@@ -18083,7 +18098,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     launchLocation: Vec3Value,
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
-    factionFilter: EnumerationValue,
+    factionFilter: TargetType,
     entityTypeFilter: EnumerationValue[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
@@ -20202,7 +20217,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 扫描状态: 分为不可见、当前扫描目标、候选目标、不满足条件
    */
-  getEntitySScanStatus(targetEntity: EntityValue): enumeration {
+  getEntitySScanStatus(targetEntity: EntityValue): ScanStatus {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -20210,9 +20225,9 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       nodeType: 'get_entity_s_scan_status',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('ScanStatus')
     ret.markPin(ref, 'scanStatus', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as ScanStatus
   }
 
   /**
@@ -20228,7 +20243,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 实体类型
    */
-  getEntitySType(targetEntity: EntityValue): enumeration {
+  getEntitySType(targetEntity: EntityValue): EntityType {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -20236,9 +20251,9 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       nodeType: 'get_entity_s_type',
       args: [targetEntityObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('EntityType')
     ret.markPin(ref, 'entityType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as EntityType
   }
 
   /**
@@ -20397,16 +20412,16 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 输入设备类型: 分为键盘鼠标、手柄、触屏
    */
-  getPlayerClientInputDeviceType(): enumeration {
+  getPlayerClientInputDeviceType(): InputDeviceType {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_player_client_input_device_type',
       args: []
     })
-    const ret = new enumeration()
+    const ret = new enumeration('InputDeviceType')
     ret.markPin(ref, 'inputDeviceType', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as InputDeviceType
   }
 
   /**
@@ -20548,7 +20563,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     launchLocation: Vec3Value,
     launchDirection: Vec3Value,
     maxRayLength: FloatValue,
-    factionFilter: EnumerationValue,
+    factionFilter: TargetType,
     entityTypeFilter: EnumerationValue[],
     hitLayerFilter: EnumerationValue[]
   ): { onHitLocation: vec3; onHitEntity: entity } {

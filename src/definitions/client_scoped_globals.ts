@@ -38,7 +38,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     modes: [],
     backedBy: [],
     status: 'gap',
-    note: 'developer decision 2026-07-06: player(id) is unavailable in client graphs (no client get_player_guid_by_player_id node); blocked like timer'
+    note: 'client graphs have no node to look up a player entity by id; use self / getSelfEntity instead'
   },
   {
     helper: 'self',
