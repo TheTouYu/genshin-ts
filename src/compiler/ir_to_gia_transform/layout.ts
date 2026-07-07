@@ -283,13 +283,15 @@ function layoutExecutionChain(
       dataExtraHeightMemo
     )
 
-    // The new lane offset places this child below the previous subtree's
-    // occupied area (prevSubtreeMaxY) plus the base spacing and extra
-    // data height.  Minimum: never go above the current actualLaneOffset.
-    const newLaneOffset = Math.max(
-      actualLaneOffset,
-      prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + extraDataHeight
-    )
+    // Root event lanes are independent swimlanes: their direct children should not
+    // be pushed below the whole nested subtree of the previous root child.
+    // Nested siblings still use block-bottom placement to avoid local data-heavy blocks.
+    const newLaneOffset = isRootSwimLane
+      ? actualLaneOffset + idx * branchBaseSpacing
+      : Math.max(
+          actualLaneOffset,
+          prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + extraDataHeight
+        )
 
     const childMaxY = layoutExecutionChain(
       children[idx],
@@ -433,8 +435,8 @@ function expandExecGapsForDataChains(
     const consumerPos = state.positions.get(consumerId)
     if (!consumerPos) continue
 
-    const dataAncestors = [...collectDataAncestors(consumerId, dataParentsMap)].filter((id) =>
-      state.positions.has(id)
+    const dataAncestors = [...collectDataAncestors(consumerId, dataParentsMap)].filter(
+      (id) => state.positions.has(id) && !execNodes.has(id)
     )
     if (dataAncestors.length === 0) continue
 
@@ -452,8 +454,8 @@ function expandExecGapsForDataChains(
       : consumerPos[0] - config.columnWidth
     const desiredGap =
       config.columnWidth +
-      Math.max(0, dataAncestors.length - 1) * extraExecGapPerAdditionalDataNode +
-      Math.max(0, directDataInputs.length - 1) * extraGapPerAdditionalInput
+      Math.max(0, maxDepth) * extraExecGapPerAdditionalDataNode +
+      Math.min(2, Math.max(0, directDataInputs.length - 1)) * extraGapPerAdditionalInput
     const desiredConsumerX = parentX + desiredGap
     const deltaX = Math.ceil(desiredConsumerX - consumerPos[0])
 
