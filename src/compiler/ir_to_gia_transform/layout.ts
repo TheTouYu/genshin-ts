@@ -382,12 +382,14 @@ function shiftExecChainFrom(
 function collectDataAncestors(
   nodeId: NodeId,
   dataParentsMap: Map<NodeId, NodeId[]>,
-  result = new Set<NodeId>()
+  result = new Set<NodeId>(),
+  traversalStopNodes = new Set<NodeId>()
 ): Set<NodeId> {
   for (const parent of dataParentsMap.get(nodeId) ?? []) {
     if (result.has(parent)) continue
     result.add(parent)
-    collectDataAncestors(parent, dataParentsMap, result)
+    if (traversalStopNodes.has(parent)) continue
+    collectDataAncestors(parent, dataParentsMap, result, traversalStopNodes)
   }
   return result
 }
@@ -490,9 +492,9 @@ function expandExecGapsForDataChains(
     const consumerPos = state.positions.get(consumerId)
     if (!consumerPos) continue
 
-    const dataAncestors = [...collectDataAncestors(consumerId, dataParentsMap)].filter(
-      (id) => state.positions.has(id) && !execNodes.has(id)
-    )
+    const dataAncestors = [
+      ...collectDataAncestors(consumerId, dataParentsMap, new Set(), execNodes)
+    ].filter((id) => state.positions.has(id) && !execNodes.has(id))
     if (dataAncestors.length === 0) continue
 
     const directDataInputs = (dataParentsMap.get(consumerId) ?? []).filter((id) =>
@@ -601,7 +603,12 @@ export function layoutPositions(
   const dataBlockHeightMap = new Map<NodeId, number>()
   for (const node of irNodes) {
     const directDataInputs = dataParentsMap.get(node.id) ?? []
-    const dataAncestorCount = collectDataAncestors(node.id, dataParentsMap).size
+    const dataAncestorCount = collectDataAncestors(
+      node.id,
+      dataParentsMap,
+      new Set(),
+      execNodes
+    ).size
     const directInputExtra = Math.max(0, directDataInputs.length - 1) * 200
     const chainExtra = Math.max(0, dataAncestorCount - 1) * 150
     const uniqueDirectDataInputs = new Set(directDataInputs)
