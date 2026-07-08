@@ -26,11 +26,12 @@
 13. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
 14. v2 复合验证给用户测试时，优先把待测 `.gia` 直接复制到游戏导入根目录 `Beyond_Local_Export`，不要只放在 `真-测试通过/v2/...`；分类目录可保留对照副本。
 15. 用户明确确认“测试通过/可以归档”后，再复制为 `真-测试通过/v2/<feature>/<case>-passed.gia`；不要把未确认的 step 文件命名为 `passed`。
-16. 复合 impl 内部常量默认值（如 `f.addition(args.x, new int(1n))` 里的 `1`）不应为了规避问题改成复合参数；如果游戏反馈默认值异常，应按 TS → `.gs.ts` → IR JSON → GIA 解码逐层定位。
-17. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
-18. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
-19. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
-20. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
+16. v2 归档和 `tests/composite/v2/<feature>/` 测试源码目录只保留高质量、可给他人参考的最终文件；临时 step、拆分探针和失败复现如果不再需要，应在归档前清理或迁到更明确的 bug/regression 位置。
+17. 复合 impl 内部常量默认值（如 `f.addition(args.x, new int(1n))` 里的 `1`）不应为了规避问题改成复合参数；如果游戏反馈默认值异常，应按 TS → `.gs.ts` → IR JSON → GIA 解码逐层定位。
+18. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
+19. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
+20. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
+21. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
 
 ---
 
@@ -196,7 +197,7 @@ npm run build
 5. 如果用户明确要求覆盖同一个文件，可以覆盖，但仍要说明这次覆盖了哪个文件。
 6. 多场景测试文件如果生成多个 graph，图名必须能在游戏里清楚区分。
 7. 复合名也应带语义，例如 `R6-D复杂流程摘要节点`，方便用户打开复合窗口辨认。
-8. 主图 `_GSTS_` 前缀是编译器生成语义，测试命名时只控制 `g.server({ name })` 内部名称即可。
+9. v2 复合验证目录按特点命名，例如 `tests/composite/v2/simple-scenes/`、`tests/composite/v2/nested-composites/`；目录内只保留最终可参考源码，避免长期堆积一次性 step 文件。
 
 ---
 

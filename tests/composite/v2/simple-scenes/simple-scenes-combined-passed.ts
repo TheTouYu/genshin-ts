@@ -1,7 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { float, int, str as strValue } from 'genshin-ts/runtime/value'
 
-const basicCall = g.defineComposite('简单场景合集-基础调用-step3', {
+const basicCall = g.defineComposite('简单场景合集-基础调用-passed', {
   inputs: {},
   outputs: {},
   outflows: [{ name: '完成' }],
@@ -12,7 +12,7 @@ const basicCall = g.defineComposite('简单场景合集-基础调用-step3', {
   }
 })
 
-const paramPrinter = g.defineComposite('简单场景合集-带参打印-step3', {
+const paramPrinter = g.defineComposite('简单场景合集-带参打印-passed', {
   inputs: {
     message: { type: 'str' }
   },
@@ -25,7 +25,7 @@ const paramPrinter = g.defineComposite('简单场景合集-带参打印-step3', 
   }
 })
 
-const firstExec = g.defineComposite('简单场景合集-第一个执行-step3', {
+const firstExec = g.defineComposite('简单场景合集-第一个执行-passed', {
   inputs: {},
   outputs: {},
   outflows: [{ name: '完成' }],
@@ -36,7 +36,7 @@ const firstExec = g.defineComposite('简单场景合集-第一个执行-step3', 
   }
 })
 
-const secondExec = g.defineComposite('简单场景合集-第二个执行-step3', {
+const secondExec = g.defineComposite('简单场景合集-第二个执行-passed', {
   inputs: {},
   outputs: {},
   outflows: [{ name: '完成' }],
@@ -47,7 +47,7 @@ const secondExec = g.defineComposite('简单场景合集-第二个执行-step3',
   }
 })
 
-const doubleValue = g.defineComposite('简单场景合集-数据翻倍-step3', {
+const doubleValue = g.defineComposite('简单场景合集-数据翻倍-passed', {
   inputs: {
     x: { type: 'int' }
   },
@@ -59,7 +59,7 @@ const doubleValue = g.defineComposite('简单场景合集-数据翻倍-step3', {
   }
 })
 
-const plusOne = g.defineComposite('简单场景合集-数据加一-step3', {
+const plusOne = g.defineComposite('简单场景合集-数据加一-passed', {
   inputs: {
     x: { type: 'int' }
   },
@@ -71,7 +71,7 @@ const plusOne = g.defineComposite('简单场景合集-数据加一-step3', {
   }
 })
 
-const multiplyThree = g.defineComposite('简单场景合集-三数相乘-step3', {
+const multiplyThree = g.defineComposite('简单场景合集-三数相乘-passed', {
   inputs: {
     a: { type: 'float' },
     b: { type: 'float' },
@@ -88,7 +88,7 @@ const multiplyThree = g.defineComposite('简单场景合集-三数相乘-step3',
 })
 
 const graph = g.server({
-  name: 'V2-简单场景合集-step3',
+  name: 'V2-简单场景合集-passed',
   id: 1073741918
 })
 

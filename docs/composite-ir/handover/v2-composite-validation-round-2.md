@@ -39,28 +39,19 @@ tests/composite/v2/simple-scenes/
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/v2/simple-scenes
 ```
 
-本轮主要源码：
+本轮主要源码（清理后保留的高质量参考文件）：
 
 ```text
-tests/composite/v2/simple-scenes/simple-scenes-combined-step1.ts
+tests/composite/v2/simple-scenes/simple-scenes-combined-passed.ts
 ```
 
-该文件当前内容已经演进到图名 `V2-简单场景合集-step3`，文件名仍保留 `step1` 是本轮早期命名遗留；下一轮如果继续编辑，建议优先改名或新建 `simple-scenes-combined-step4.ts`，避免文件名和图名继续分叉。
-
-辅助/拆分源码：
+该文件对应图名：
 
 ```text
-tests/composite/v2/simple-scenes/basic-call-step1.ts
-tests/composite/v2/simple-scenes/basic-call-param-step1.ts
-tests/composite/v2/simple-scenes/simple-double-step1.ts
-tests/composite/v2/simple-scenes/two-exec-step1.ts
-tests/composite/v2/simple-scenes/two-simple-step1.ts
-tests/composite/v2/simple-scenes/two-graphs-two-composites-step1.ts
-tests/composite/v2/simple-scenes/mul3-step1.ts
-tests/composite/v2/simple-scenes/bug-data-default-plus-one.ts
+V2-简单场景合集-passed
 ```
 
-`bug-data-default-plus-one.ts` 是本轮定位复合 impl 默认值 pin 左移 bug 的最小复现。
+v2 目录只保留可给他人参考的最终版本；本轮早期的 step/拆分探针源码已清理。
 
 ---
 
@@ -71,10 +62,10 @@ tests/composite/v2/simple-scenes/bug-data-default-plus-one.ts
 测试导入根目录文件：
 
 ```text
-/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/simple-scenes-combined-step3.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/simple-scenes-combined-passed.gia
 ```
 
-v2 passed 归档文件：
+v2 passed 归档文件（清理后该分类目录唯一保留的 GIA）：
 
 ```text
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/v2/simple-scenes/simple-scenes-combined-passed.gia
@@ -83,7 +74,7 @@ v2 passed 归档文件：
 该 GIA 对应图名：
 
 ```text
-V2-简单场景合集-step3
+V2-简单场景合集-passed
 ```
 
 覆盖的简单场景：
@@ -93,9 +84,10 @@ V2-简单场景合集-step3
 3. `whenTimerIsTriggered` 轴：整数纯数据复合串联，包含 `数据翻倍` 和 `数据加一`。
 4. `whenSkillNodeIsCalled` 轴：整数翻倍 + 浮点三数相乘纯数据复合。
 
-注意：用户说通过后，本轮已提交代码，并在用户补充确认后创建了 passed 归档文件：
+注意：用户说通过后，本轮已提交代码，并在用户补充确认后创建了 passed 归档文件。随后按用户要求清理了 v2 测试目录和游戏 v2 归档目录，只保留高质量最终参考文件：
 
 ```text
+tests/composite/v2/simple-scenes/simple-scenes-combined-passed.ts
 真-测试通过/v2/simple-scenes/simple-scenes-combined-passed.gia
 ```
 
@@ -222,22 +214,22 @@ tests/composite/v2/simple-scenes/bug-data-default-plus-one.ts
 
 ```bash
 npm run build
-node bin/gsts.mjs tests/composite/v2/simple-scenes/simple-scenes-combined-step1.ts || true
-npx tsx tests/composite/trace-exec-flow.ts dist/tests/composite/v2/simple-scenes/simple-scenes-combined-step1.gia --io
-npx tsx tests/composite/trace-dataflow.ts dist/tests/composite/v2/simple-scenes/simple-scenes-combined-step1.gia 12 --all-params
-npx tsx tools/decode-gia.ts dist/tests/composite/v2/simple-scenes/simple-scenes-combined-step1.gia > /tmp/simple-scenes-combined-step3.decoded.json
+node bin/gsts.mjs tests/composite/v2/simple-scenes/simple-scenes-combined-passed.ts || true
+npx tsx tests/composite/trace-exec-flow.ts dist/tests/composite/v2/simple-scenes/simple-scenes-combined-passed.gia --io
+npx tsx tests/composite/trace-dataflow.ts dist/tests/composite/v2/simple-scenes/simple-scenes-combined-passed.gia 12 --all-params
+npx tsx tools/decode-gia.ts dist/tests/composite/v2/simple-scenes/simple-scenes-combined-passed.gia > /tmp/simple-scenes-combined-passed.decoded.json
 ```
 
 导出给用户测试：
 
 ```bash
 export root='/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
-rm -f "$root/simple-scenes-combined-step3.gia"
-cp dist/tests/composite/v2/simple-scenes/simple-scenes-combined-step1.gia "$root/simple-scenes-combined-step3.gia"
+rm -f "$root/simple-scenes-combined-passed.gia"
+cp dist/tests/composite/v2/simple-scenes/simple-scenes-combined-passed.gia "$root/simple-scenes-combined-passed.gia"
 ```
 
 ---
 
 ## 九、给下一位助手的一句话
 
-> 简单场景合集已经游戏内验证通过、提交并归档（`3310af9`，归档文件 `真-测试通过/v2/simple-scenes/simple-scenes-combined-passed.gia`），核心 bug 是 Stage 3 复合 impl capture 参数未占 pin 位导致内部默认值左移，已修复。下一轮应选新特点分类（建议嵌套复合或混合普通节点/复合节点），项目和游戏侧都按特点建二级目录，给用户验证的 GIA 直接复制到 `Beyond_Local_Export` 根目录。
+> 简单场景合集已经游戏内验证通过、提交并归档（`3310af9`，归档文件 `真-测试通过/v2/simple-scenes/simple-scenes-combined-passed.gia`；项目参考源码 `tests/composite/v2/simple-scenes/simple-scenes-combined-passed.ts`），核心 bug 是 Stage 3 复合 impl capture 参数未占 pin 位导致内部默认值左移，已修复。v2 simple-scenes 目录已清理，只保留 passed 高质量参考文件。下一轮应选新特点分类（建议嵌套复合或混合普通节点/复合节点），项目和游戏侧都按特点建二级目录，给用户验证的 GIA 直接复制到 `Beyond_Local_Export` 根目录。
