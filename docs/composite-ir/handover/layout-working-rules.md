@@ -25,7 +25,7 @@
 12. 主图普通布局测试优先使用高层 `f.xxx()` DSL；需要精确手动复刻控制拓扑时用当前推荐 raw API `f.entry()` / `f.node()` / `f.link()`。不要把 `f.registerExecNode()` 当作主图普通测试工具；它是自动串联 tail 的低层兼容/API，主图普通路径曾触发 `removeUnusedNodesFromFlow` 中 `record.args is not iterable` 的实现缺口。
 13. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
 14. v2 复合验证给用户测试时，优先把待测 `.gia` 直接复制到游戏导入根目录 `Beyond_Local_Export`，不要只放在 `真-测试通过/v2/...`；分类目录可保留对照副本。
-15. 用户明确确认“测试通过/可以归档”后，再复制为 `真-测试通过/v2/<feature>/<case>-passed.gia`；不要把未确认的 step 文件命名为 `passed`。
+15. 用户明确确认“测试通过/可以归档”后，再**移动**为 `真-测试通过/v2/<feature>/<case>-passed.gia`；不要把未确认的 step 文件命名为 `passed`，也不要用复制方式在游戏导入根目录留下已归档 GIA 残留。
 16. v2 归档和 `tests/composite/v2/<feature>/` 测试源码目录只保留高质量、可给他人参考的最终文件；临时 step、拆分探针和失败复现如果不再需要，应在归档前清理或迁到更明确的 bug/regression 位置。
 17. 复合 impl 内部常量默认值（如 `f.addition(args.x, new int(1n))` 里的 `1`）不应为了规避问题改成复合参数；如果游戏反馈默认值异常，应按 TS → `.gs.ts` → IR JSON → GIA 解码逐层定位。
 18. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
@@ -129,10 +129,10 @@ export_dir='/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond
 feature='<feature-name>'
 mkdir -p "$export_dir/真-测试通过/v2/$feature"
 rm -f "$export_dir/真-测试通过/v2/$feature/<case-name>-passed.gia"
-cp "$export_dir/<tested-name>.gia" "$export_dir/真-测试通过/v2/$feature/<case-name>-passed.gia"
+mv -f "$export_dir/<tested-name>.gia" "$export_dir/真-测试通过/v2/$feature/<case-name>-passed.gia"
 ```
 
-说明：只有用户明确确认测试通过并允许归档后，才创建 `*-passed.gia`。
+说明：只有用户明确确认测试通过并允许归档后，才创建 `*-passed.gia`。归档时使用 `mv -f` 从游戏导入根目录移动到归档目录，而不是 `cp`，避免 `Beyond_Local_Export` 根目录长期堆积已归档 GIA。
 
 ### 3.4 解码 GIA
 
@@ -212,7 +212,7 @@ npm run build
 7. 自动工具输出可以报告给用户，但不要用它覆盖用户游戏内视觉判断。
 8. 导出后如果用户说没看到变化，优先检查图内 name 是否更新、复制路径是否是根目录、旧文件是否被删除。
 9. 如果用户说某一步测试通过但还要做回归测试，先生成回归 `.gia`，等回归也通过再提交。
-10. 用户确认测试通过后先提交相关代码/文档；若用户明确说“可以归档/归档”，再创建 `真-测试通过/v2/<feature>/<case>-passed.gia`。
+10. 用户确认测试通过后先提交相关代码/文档；若用户明确说“可以归档/归档”，再用 `mv -f` 将根目录待测 GIA 移动为 `真-测试通过/v2/<feature>/<case>-passed.gia`。
 11. 若用户要求“场景 X 标记通过”，应更新相关 handover / layout-patterns，并记录通过的文件名与 step。
 
 ---
