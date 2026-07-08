@@ -1,0 +1,175 @@
+{
+  "strategy": "wrap ordinary f.* generated calls in one defineComposite per method/type case",
+  "profiles": {
+    "core": {
+      "includedMethods": 25,
+      "includedCases": 57,
+      "included": {
+        "addition": {
+          "cases": 2
+        },
+        "subtraction": {
+          "cases": 2
+        },
+        "multiplication": {
+          "cases": 2
+        },
+        "division": {
+          "cases": 2
+        },
+        "exponentiation": {
+          "cases": 2
+        },
+        "takeLargerValue": {
+          "cases": 2
+        },
+        "takeSmallerValue": {
+          "cases": 2
+        },
+        "absoluteValueOperation": {
+          "cases": 2
+        },
+        "signOperation": {
+          "cases": 2
+        },
+        "rangeLimitingOperation": {
+          "cases": 2
+        },
+        "lessThan": {
+          "cases": 2
+        },
+        "lessThanOrEqualTo": {
+          "cases": 2
+        },
+        "greaterThan": {
+          "cases": 2
+        },
+        "greaterThanOrEqualTo": {
+          "cases": 2
+        },
+        "getMaximumValueFromList": {
+          "cases": 2
+        },
+        "getMinimumValueFromList": {
+          "cases": 2
+        },
+        "equal": {
+          "cases": 4
+        },
+        "dataTypeConversion": {
+          "cases": 4
+        },
+        "assemblyList": {
+          "cases": 4
+        },
+        "getListLength": {
+          "cases": 4
+        },
+        "listIterationLoop": {
+          "cases": 4
+        },
+        "printString": {
+          "cases": 1
+        },
+        "finiteLoop": {
+          "cases": 1
+        },
+        "doubleBranch": {
+          "cases": 1
+        },
+        "multipleBranches": {
+          "cases": 2
+        }
+      },
+      "skipped": [],
+      "files": [
+        "core.literal.ts",
+        "core.wire.ts"
+      ]
+    },
+    "collections": {
+      "includedMethods": 23,
+      "includedCases": 89,
+      "included": {
+        "concatenateList": {
+          "cases": 4
+        },
+        "clearList": {
+          "cases": 4
+        },
+        "listIncludesThisValue": {
+          "cases": 4
+        },
+        "searchListAndReturnValueId": {
+          "cases": 4
+        },
+        "getCorrespondingValueFromList": {
+          "cases": 4
+        },
+        "insertValueIntoList": {
+          "cases": 4
+        },
+        "removeValueFromList": {
+          "cases": 4
+        },
+        "modifyValueInList": {
+          "cases": 4
+        },
+        "assemblyDictionary": {
+          "cases": 4
+        },
+        "setOrAddKeyValuePairsToDictionary": {
+          "cases": 4
+        },
+        "queryDictionaryValueByKey": {
+          "cases": 4
+        },
+        "removeKeyValuePairsFromDictionaryByKey": {
+          "cases": 4
+        },
+        "queryIfDictionaryContainsSpecificKey": {
+          "cases": 4
+        },
+        "getListOfKeysFromDictionary": {
+          "cases": 4
+        },
+        "queryDictionarySLength": {
+          "cases": 1
+        },
+        "clearDictionary": {
+          "cases": 4
+        },
+        "createDictionary": {
+          "cases": 4
+        },
+        "queryIfDictionaryContainsSpecificValue": {
+          "cases": 4
+        },
+        "getListOfValuesFromDictionary": {
+          "cases": 4
+        },
+        "sortDictionaryByKey": {
+          "cases": 4
+        },
+        "sortDictionaryByValue": {
+          "cases": 4
+        },
+        "getLocalVariable": {
+          "cases": 4
+        },
+        "setLocalVariable": {
+          "cases": 4
+        }
+      },
+      "skipped": [],
+      "files": [
+        "collections.literal.ts",
+        "collections.wire.ts"
+      ]
+    }
+  },
+  "notes": {
+    "maxCasesPerMethod": 4,
+    "source": "scripts/testgen helpers + PROFILE_METHODS allowlists"
+  }
+}
