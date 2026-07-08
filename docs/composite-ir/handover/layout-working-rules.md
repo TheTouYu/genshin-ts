@@ -24,10 +24,11 @@
 11. 导出文件名和图内 name 的 step 应保持同步，避免“文件 step9 但图内 step8”。每次生成新 step 或覆盖给用户验证前，先修改测试文件里的 `g.server({ name })`，再运行 `node bin/gsts.mjs ...` 生成 GIA。
 12. 主图普通布局测试优先使用高层 `f.xxx()` DSL；需要精确手动复刻控制拓扑时用当前推荐 raw API `f.entry()` / `f.node()` / `f.link()`。不要把 `f.registerExecNode()` 当作主图普通测试工具；它是自动串联 tail 的低层兼容/API，主图普通路径曾触发 `removeUnusedNodesFromFlow` 中 `record.args is not iterable` 的实现缺口。
 13. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
-14. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
-15. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
-16. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
-17. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
+14. 当根目录积累了旧测试 `.gia`、影响用户选择当前测试文件时，先清理 `Beyond_Local_Export` 根目录旧 `.gia`，只保留本轮当前待验证文件；不要删除 `Beyond_Local_Export/真-测试通过/布局/` 等归档子目录，也不要清理用户管理的 `布局/` 截图/参考目录。
+15. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
+16. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
+17. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
+18. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
 
 ---
 
@@ -123,7 +124,19 @@ rm -f "$export_dir/<export-name>.gia"
 cp dist/tests/<test-output>.gia "$export_dir/<export-name>.gia"
 ```
 
-### 3.4 移动已通过 GIA 到归档目录
+### 3.4 清理游戏导入根目录旧 GIA
+
+当根目录积累了多轮测试 `.gia`、影响用户在游戏里选择当前文件时，只清理根目录旧 `.gia`，保留当前待验证文件；不要动归档子目录和截图/参考目录。
+
+```bash
+export_dir='/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+find "$export_dir" -maxdepth 1 -type f -name '*.gia' ! -name '*round15-lane-avoidance.gia' -print -delete
+find "$export_dir" -maxdepth 1 -type f -name '*.gia' -printf '%f\n' | sort
+```
+
+如果当前轮次或 step 名称不同，把 `*round15-lane-avoidance.gia` 换成当轮唯一匹配模式；执行后在 handover 中记录删除范围和剩余文件列表。
+
+### 3.5 移动已通过 GIA 到归档目录
 
 用户游戏内验证通过后，把根目录中的通过文件移动到归档目录；不要复制，避免游戏导入根目录堆积过多 `.gia`。
 
@@ -134,37 +147,37 @@ mkdir -p "$archive_dir"
 mv -f "$export_dir/<export-name>.gia" "$archive_dir/<export-name>.gia"
 ```
 
-### 3.5 解码 GIA
+### 3.6 解码 GIA
 
 ```bash
 npx tsx tools/decode-gia.ts dist/tests/<file>.gia > /tmp/<name>.decoded.json
 ```
 
-### 3.6 查看节点概要
+### 3.7 查看节点概要
 
 ```bash
 npx tsx tests/composite/dump-nodes.ts dist/tests/<file>.gia
 ```
 
-### 3.7 查看执行流
+### 3.8 查看执行流
 
 ```bash
 npx tsx tests/composite/trace-exec-flow.ts dist/tests/<file>.gia --io
 ```
 
-### 3.8 查看数据流
+### 3.9 查看数据流
 
 ```bash
 npx tsx tests/composite/trace-dataflow.ts dist/tests/<file>.gia --list-nodes
 ```
 
-### 3.9 查看某节点全部参数数据流
+### 3.10 查看某节点全部参数数据流
 
 ```bash
 npx tsx tests/composite/trace-dataflow.ts dist/tests/<file>.gia <node-id> --all-params
 ```
 
-### 3.10 快速检查 Stage 2 IR
+### 3.11 快速检查 Stage 2 IR
 
 ```bash
 node - <<'NODE'
@@ -178,7 +191,7 @@ for (const n of doc.nodes ?? []) {
 NODE
 ```
 
-### 3.11 提交前检查
+### 3.12 提交前检查
 
 ```bash
 git status --short

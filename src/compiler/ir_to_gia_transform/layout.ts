@@ -395,6 +395,29 @@ function shiftExecChainFrom(
   }
 }
 
+function shiftExecChainYFrom(
+  startId: NodeId,
+  deltaY: number,
+  execChildrenMap: Map<NodeId, NodeId[]>,
+  state: ReturnType<typeof createLayoutState>,
+  visited = new Set<NodeId>()
+) {
+  if (deltaY <= 0 || visited.has(startId)) return
+  visited.add(startId)
+
+  const pos = state.positions.get(startId)
+  if (pos) {
+    const nextY = pos[1] + deltaY
+    state.positions.set(startId, [pos[0], nextY])
+    const eventIndex = state.nodeToEventIndex.get(startId)
+    if (eventIndex !== undefined) updateEventHeight(state, eventIndex, nextY)
+  }
+
+  for (const child of execChildrenMap.get(startId) ?? []) {
+    shiftExecChainYFrom(child, deltaY, execChildrenMap, state, visited)
+  }
+}
+
 function shiftDataChainFrom(
   startId: NodeId,
   deltaX: number,
@@ -732,6 +755,52 @@ function compactLocalDataChains(
   }
 }
 
+function avoidExecLanesNearDataBlocks(
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  execChildrenMap: Map<NodeId, NodeId[]>,
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>
+) {
+  const minExecDataLaneGapX = 700
+  const minExecDataLaneGapY = 360
+  const maxShiftPerPass = 760
+
+  for (let pass = 0; pass < 6; pass++) {
+    let changed = false
+    const execIds = [...execNodes].sort((a, b) => {
+      const pa = state.positions.get(a)
+      const pb = state.positions.get(b)
+      if (!pa || !pb) return a - b
+      return pa[1] - pb[1] || pa[0] - pb[0] || a - b
+    })
+    const dataIds = [...state.positions.keys()].filter((id) => !execNodes.has(id))
+
+    for (const execId of execIds) {
+      const execPos = state.positions.get(execId)
+      if (!execPos) continue
+
+      let requiredY = execPos[1]
+      for (const dataId of dataIds) {
+        const dataPos = state.positions.get(dataId)
+        if (!dataPos) continue
+        if (Math.abs(dataPos[0] - execPos[0]) >= minExecDataLaneGapX) continue
+        if (execPos[1] <= dataPos[1]) continue
+        if (execPos[1] - dataPos[1] >= minExecDataLaneGapY) continue
+
+        requiredY = Math.max(requiredY, dataPos[1] + minExecDataLaneGapY)
+      }
+
+      const deltaY = Math.min(maxShiftPerPass, Math.ceil(requiredY - execPos[1]))
+      if (deltaY <= 0) continue
+
+      shiftExecChainYFrom(execId, deltaY, execChildrenMap, state)
+      changed = true
+    }
+
+    if (!changed) break
+  }
+}
+
 function resolveDataBackflowAndOverlap(
   dataParentsMap: Map<NodeId, NodeId[]>,
   execChildrenMap: Map<NodeId, NodeId[]>,
@@ -966,6 +1035,8 @@ export function layoutPositions(
   )
 
   compactLocalDataChains(dataParentsMap, execNodes, state, nodeById)
+
+  avoidExecLanesNearDataBlocks(dataParentsMap, execChildrenMap, execNodes, state)
 
   resolveDataBackflowAndOverlap(dataParentsMap, execChildrenMap, execNodes, state)
 
