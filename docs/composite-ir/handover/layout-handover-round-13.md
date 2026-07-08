@@ -171,6 +171,12 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 
 待修方向：多消费者数据节点优先锚定到最近的直接数据消费者链，或锚定到其数据依赖子图的局部重心，而不是简单跟随最晚/最大消费者。
 
+当前状态（2026-07-08）：
+
+- 已缓解：step4 的 `expandExecGapsForDataChains(...)` 会避免后续执行消费者抢走已有更早执行消费者的数据锚点，上游中间数据链优先保留给最近的数据消费者。
+- 已回归：step5 的 `resolveDataBackflowAndOverlap(...)` 进一步约束局部数据边方向，并通过用户游戏内验证。
+- 仍需观察：3.5 数据链局部压缩时，继续确认多消费者链路不会重新被最终大消费者拉散。
+
 ### 3.4 禁止数据倒退连接
 
 主图同构暴露：部分数据生产者被放到消费者右侧，输出参数再倒退连接给左边节点，视觉上出现反向数据流。
@@ -197,14 +203,21 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 
 ### Step 1：继续处理剩余数据布局问题
 
-第一个小点（复合边界输出虚拟消费者）已通过。第二个小点（数据区避开执行泳道）已完成当前实现改动并通过用户游戏内验证，导出文件：
+已通过并提交：
 
 ```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step3-output-anchor.gia
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step4-data-lane.gia
-/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step2-data-lane.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step3-no-backflow.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step5-no-backflow.gia
 ```
 
-下一步继续处理 3.5：数据链局部压缩。
+下一步继续处理 3.5：数据链局部压缩。建议导出：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step4-compact-chain.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step6-compact-chain.gia
+```
 
 继续使用复合回归测试：
 
@@ -264,8 +277,8 @@ node bin/gsts.mjs tests/layout-r6-d-main-equivalent.ts || true
 
 ```bash
 export_dir='/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
-rm -f "$export_dir/布局r6-d-main-equivalent-step2.gia"
-cp dist/tests/layout-r6-d-main-equivalent.gia "$export_dir/布局r6-d-main-equivalent-step2.gia"
+rm -f "$export_dir/布局r6-d-main-equivalent-step4-compact-chain.gia"
+cp dist/tests/layout-r6-d-main-equivalent.gia "$export_dir/布局r6-d-main-equivalent-step4-compact-chain.gia"
 ```
 
 生成复合回归 GIA（只改测试时直接执行，不 build；改布局实现后需先 build）：
@@ -278,6 +291,9 @@ node bin/gsts.mjs tests/layout-r6-d-composite-summary.ts || true
 
 ```text
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step3-output-anchor.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step4-data-lane.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step3-no-backflow.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step5-no-backflow.gia
 ```
 
 解码主图 GIA 时不要用 `accessories.find(a => a.graph && a.name === '')`，主图在 root graph 下。可用通用递归找最大 nodes graph 的脚本。
@@ -286,4 +302,4 @@ node bin/gsts.mjs tests/layout-r6-d-composite-summary.ts || true
 
 ## 六、给下一位助手的一句话
 
-> Phase 1 已提交并由用户确认生效：复合 impl 现在复用主图布局核心。Round 13 第一个小点也已通过：复合 OutParam 边界输出现在有虚拟消费者锚点。当前剩余共享布局核心问题：数据区插入执行泳道、多消费者锚点错误、数据倒退连线、数据链过松散。下一步建议先修数据区避开执行泳道，并用 `布局r6-d-composite-summary-step4-data-lane.gia` 给用户游戏内验证。
+> Phase 1 已提交并由用户确认生效：复合 impl 现在复用主图布局核心。Round 13 已通过并提交：复合 OutParam 边界输出虚拟消费者、数据区避开执行泳道、局部数据倒退/重叠修复。当前剩余核心问题是 3.5 数据链局部压缩；下一步建议从主图同构 `step4-compact-chain` 开始，再回归复合 impl `step6-compact-chain`。
