@@ -338,7 +338,24 @@ n5 Get Node Graph Variable -> n7 Addition -> n6 Data Type Conversion -> n4 Print
 nested sibling 的额外下推需要考虑数据链长度；当前 `布局c` 与 long-input 变体通过了更高的 bounded data padding。
 ```
 
-详见：[handover/layout-handover-round-7.md](handover/layout-handover-round-7.md) 和 [handover/layout-handover-round-10.md](handover/layout-handover-round-10.md)。
+2026-07-08 Round 13 的场景 D 验证进一步补充了共享布局核心的约束：
+
+- 复合 impl 与主图应复用同一套数据流布局语义；不要回退到复合 impl 专属简化布局。
+- 只输出到复合 OutParam 边界的数据节点也应有虚拟消费者锚点，否则会被当作弱关联数据节点。
+- 根级执行泳道之间需要按上一分支的数据块高度预留空间，避免数据区插入执行泳道之间。
+- 多消费者数据节点优先保持给更早或更近的消费者；后续大执行节点不应抢走中间数据链锚点。
+- 局部数据边应避免倒退，至少在同一局部链路内保持 `producer.x < consumer.x`，同时只对有直接数据关系的近邻节点做避让，避免把普通参数栈横向摊开。
+
+已游戏内验证的 Round 13 导出包括：
+
+```text
+布局r6-d-composite-summary-step3-output-anchor.gia
+布局r6-d-composite-summary-step4-data-lane.gia
+布局r6-d-main-equivalent-step3-no-backflow.gia
+布局r6-d-composite-summary-step5-no-backflow.gia
+```
+
+详见：[handover/layout-handover-round-7.md](handover/layout-handover-round-7.md)、[handover/layout-handover-round-10.md](handover/layout-handover-round-10.md) 和 [handover/layout-handover-round-13.md](handover/layout-handover-round-13.md)。
 
 ### 4.4 纯数据复合按表达式图布局
 
