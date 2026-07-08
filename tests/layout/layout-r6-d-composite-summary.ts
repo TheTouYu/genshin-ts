@@ -60,7 +60,7 @@ const complexStep = g.defineComposite('R6-D复杂流程摘要节点', {
 })
 
 g.server({
-  name: 'R6-D复合摘要-round14-yfix-regression',
+  name: 'R6-D复合摘要-round14-yfix3-regression',
   id: 1073741901,
   variables: {
     locationOffset: vec3([1, 2, 3]),

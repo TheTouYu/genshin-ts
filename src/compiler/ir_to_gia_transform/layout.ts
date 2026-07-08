@@ -303,7 +303,7 @@ function layoutExecutionChain(
     const dataLanePadding = Math.min(1100, Math.round(extraDataHeight * 0.35))
     const prevLaneBottom = prevSubtreeMaxY - (baseY + row * config.wrapHeight)
     const prevChildHasExecChildren = (execChildrenMap.get(prevChildId)?.length ?? 0) > 0
-    const rootLanePadding = prevChildHasExecChildren ? 120 : dataLanePadding + 120
+    const rootLanePadding = prevChildHasExecChildren ? 380 : dataLanePadding + 120
     const newLaneOffset = isRootSwimLane
       ? Math.max(
           actualLaneOffset + idx * branchBaseSpacing,

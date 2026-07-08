@@ -1,11 +1,11 @@
 # 布局任务交接文档 · 第十四轮
 
-> 状态：已完成 / 当前实现分析 / 历史记录
-> 来源：当前代码实现 + 用户游戏内测试反馈 + 截图观察 + Round 13 已验证导出 + Round 14 已验证导出
+> 状态：部分完成 / 当前实现分析 / 历史记录
+> 来源：当前代码实现 + 用户游戏内测试反馈 + 截图观察 + Round 13 已验证导出 + Round 14 已验证导出 + yfix 回归测试反馈
 > 最近校验：2026-07-08
 > 适用范围：gsts 当前输出的主图布局与复合节点 impl 布局统一工作；不代表编辑器唯一布局规则
 
-> **本轮结果**：Round 14 已完成并通过用户游戏内验证。主图同构 `step4-compact-chain` 的局部数据链已压缩且整体布局合理；复合 impl `step6-compact-chain` 在追加目标位置碰撞检查后，修复了 compact-chain 引入的两处复合内部节点重叠。后续独立任务：控制流节点垂直方向可继续微调得更紧凑。
+> **本轮结果**：Round 14 的数据链局部压缩已完成并通过游戏内验证；复合 impl 初版 compact-chain 重叠已通过目标位置碰撞检查修复。随后进行 R6-C/R6-D 控制流垂直方向回归：R6-C 最后 root 分支掉到底部的问题已通过 yfix/yfix3 明显缓解且未发现回归；R6-D 复合 impl 的数据节点与控制流节点/控制线局部冲突 yfix3 有效但尚未完全修复。按用户要求：本轮提交当前代码与文档，但不归档 yfix3 GIA；完整修复留到下一轮，并为该场景增加更多控制流节点鲁棒性测试。
 > **上一轮文档**：[layout-handover-round-13.md](layout-handover-round-13.md)
 > **通用工作规则**：[layout-working-rules.md](layout-working-rules.md)
 > **当前权威设计文档**：[../layout-patterns.md](../layout-patterns.md)
@@ -15,7 +15,7 @@
 
 ## 一、Round 14 已完成结果
 
-### 1.1 本轮代码与测试
+### 1.1 数据链局部压缩已完成
 
 相关实现集中在：
 
@@ -43,94 +43,103 @@ resolveDataBackflowAndOverlap(...)
 
 设计意图：在 Round 13 防倒退与局部避让之后，进一步压缩同一局部数据计算链；压缩前检查目标位置是否会靠近无直接数据关系的节点，避免复合 impl 中输出叶子节点压到其它数据节点上。
 
-测试图内 name 已同步：
-
-```text
-R6-D主图同构-step4-compact-chain
-R6-D复合摘要-step6-compact-chain
-```
-
-### 1.2 已通过游戏内验证的 Round 14 导出
+已归档并通过游戏内验证的 Round 14 数据链 compact 导出：
 
 ```text
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局/布局r6-d-main-equivalent-step4-compact-chain.gia
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局/布局r6-d-composite-summary-step6-compact-chain.gia
 ```
 
-归档规则：用户游戏内验证通过后，`.gia` 从 `Beyond_Local_Export` 根目录用 `mv` 移动到 `真-测试通过/布局/`，不要复制，避免游戏导入根目录堆积过多测试文件。
-
 用户反馈：
 
 1. 主图：数据流紧凑了，整体布局合理，没有明显问题。
 2. 复合节点内部：初版 compact-chain 出现两处重叠；追加目标位置碰撞检查后通过。
-3. 后续唯一独立微调方向：控制流节点垂直方向可以更紧凑。
 
-### 1.3 当前已解决或缓解的问题
+### 1.2 控制流垂直 yfix 当前状态
 
-1. 复合 impl 复用主图布局核心。
-2. 复合 OutParam 边界输出有虚拟消费者锚点。
-3. 根级执行泳道会按上一分支数据块高度预留空间，避免数据区插入泳道之间。
-4. 多消费者数据节点不再被后续大执行消费者轻易抢走锚点。
-5. 局部数据链中已约束明显倒退线和局部重叠。
-6. 连续局部数据链已压缩，主图同构通过游戏内验证。
-7. compact-chain 目标位置会避开无直接数据关系的近邻节点，复合 impl 重叠回归通过。
+本轮发现 R6-C 回归文件中 root 直接分支的 Y 偏移过大：
+
+```text
+R6-C 普通：最后 root 分支 y≈3735
+R6-C long-input：最后 root 分支 y≈6473
+```
+
+已提交 checkpoint：
+
+```text
+4491ace fix: tighten root exec lane spacing
+```
+
+该提交把 root 直接分支从“上一分支完整 subtree bottom + full extraDataHeight”改为更受控的局部 padding，避免最后 root 分支掉到底部。
+
+随后 yfix2/yfix3 继续微调 `rootLanePadding`：
+
+```text
+yfix2: prevChildHasExecChildren ? 300 : dataLanePadding + 120
+yfix3: prevChildHasExecChildren ? 380 : dataLanePadding + 120
+```
+
+当前待提交代码使用 yfix3。自动坐标核验：
+
+```text
+R6-C 普通：最后 root 分支 y≈2133，未回到 y≈3735
+R6-C long-input：最后 root 分支 y≈2583，未回到 y≈6473
+R6-D 复合 impl：执行泳道约 0 / 730 / 1460
+```
+
+用户游戏内反馈：
+
+- 四个 yfix3 GIA 没有导致回归问题。
+- R6-D 复合 impl 局部问题有改善，但仍未完全修复。
+- 完整修复放到下一轮。
+- 下一轮应针对该场景额外增加一些控制流节点鲁棒性测试。
+- 本轮允许提交代码和文档，但不允许归档 yfix3 GIA。
+
+本轮生成但**不要归档**的 yfix3 测试文件：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-c-reference-repro-round14-regression-yfix3.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-c-reference-repro-long-input-round14-regression-yfix3.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-round14-yfix3-regression.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-round14-yfix3-regression.gia
+```
 
 ---
 
-## 二、本轮实现细节
+## 二、当前剩余局部问题
 
-### 2.1 数据链局部压缩
+### 2.1 截图证据
 
-Round 13 后重点链路已经单调向右，但横向跨度偏大：
-
-```text
-get_local_variable#3 -> _3d_vector_modulo_operation#8 -> addition#10 -> _3d_vector_zoom#12
-```
-
-Round 14 在共享布局核心中新增 `compactLocalDataChains(...)`，只压缩真实局部计算链：
-
-- 有数据子节点的中间数据节点可以参与压缩。
-- 输出到 `set_local_variable` 的数据链尾可以参与压缩。
-- 普通执行节点参数栈不强制横向摊开。
-- 压缩只尝试向左收紧；不向右推远节点。
-- 压缩后仍运行 `resolveDataBackflowAndOverlap(...)` 保持防倒退与直接数据关系避让。
-
-主图验证后的关键链路大致为：
+用户最新局部截图：
 
 ```text
-#3 x≈615 -> #8 x≈991 -> #10 x≈1448 -> #12 x≈1865
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局/复合节点-布局错误-step4-局部.png
 ```
 
-相比 Round 13 的 `#12 x≈2414` 明显收紧，且仍保持 `producer.x < consumer.x`。
+截图显示：R6-D 复合 impl 中 `三维向量加法`、`三维向量缩放`、`三维向量外积`、`逻辑或运算` 与下方 `Print String` 控制流区域之间仍然过近；yfix3 已让控制流节点不再明显压住数据节点，但白色控制流线和数据节点局部仍有视觉冲突，需要下一轮继续微调。
 
-### 2.2 复合 impl 重叠回归修复
-
-初版 compact-chain 在复合 impl 中把输出叶子节点压到无关数据节点附近，截图表现为两处节点重叠。原因是压缩 pass 只检查数据依赖方向，没有检查目标位置是否已有无直接数据关系的近邻节点。
-
-修复方式：在共享布局核心中增加：
+当前 yfix3 坐标：
 
 ```text
-hasDirectDataRelation(...)
-wouldOverlapUnrelatedNode(...)
+nIdx= 5  Print String            ( 800,  730)
+nIdx= 6  Print String            (1600,  730)
+nIdx= 7  Print String            ( 800, 1460)
+nIdx= 8  Print String            (1600, 1460)
+nIdx=14  3D Vector Addition      (1500,  460)
+nIdx=15  3D Vector Cross Product (2330,  460)
+nIdx=16  Logical OR Operation    (1950,  690)
+nIdx=17  Data Type Conversion    ( 350,  920)
 ```
 
-压缩目标位置若与无直接数据关系节点在局部阈值内相近，则跳过该节点的压缩。这样不需要在 `composite.ts` 维护第二套复合专用布局。
+### 2.2 初步判断
 
-复合 impl 回归后的关键坐标：
+yfix3 回到了旧基线附近的垂直安全距离，但截图说明编辑器真实卡片高度、控制线粗细/路由、局部视口缩放下仍需要更精细的控制流/数据流分区。
 
-```text
-nIdx= 9  Data Type Conversion       (  350, 190)
-nIdx=10  3D Vector Addition         (-1000, 960)
-nIdx=11  3D Vector Modulo Operation ( -580, 960)
-nIdx=12  Addition                   ( -160, 960)
-nIdx=13  3D Vector Zoom             ( 1950, 230)
-nIdx=14  3D Vector Addition         ( 1500, 460)
-nIdx=15  3D Vector Cross Product    ( 2330, 460)
-nIdx=16  Logical OR Operation       ( 1950, 690)
-nIdx=17  Data Type Conversion       (  350, 920)
-```
+下一轮不要简单继续无限增大 `rootLanePadding`，否则可能牺牲 R6-C 的垂直紧凑性。更好的方向是：
 
-此前重叠的 `n9(350,190)` 与 `n13(260,230)` 已分离。
+1. 为复合 impl / 主图共享布局增加“数据区块占用”的显式估计，而不是只靠 root padding 常量。
+2. 针对 root direct child 的目标 lane，估算同一 X 区间附近的数据节点卡片高度和控制线通道，必要时只局部下推。
+3. 增加专门测试：同一个复合 impl 内，多条控制流泳道穿过/贴近不同高度的数据链，确保不会因一个常量只修一个截图。
 
 ---
 
@@ -165,36 +174,55 @@ nIdx=17  Data Type Conversion       (  350, 920)
 本轮执行过：
 
 ```bash
+git diff --check
 npm run build
+node bin/gsts.mjs tests/layout-r6-c-reference-repro.ts || true
+node bin/gsts.mjs tests/layout-r6-c-reference-repro-long-input.ts || true
 node bin/gsts.mjs tests/layout/layout-r6-d-main-equivalent.ts || true
 node bin/gsts.mjs tests/layout/layout-r6-d-composite-summary.ts || true
-git diff --check
+npx tsx tests/composite/dump-nodes.ts <对应 dist/*.gia>
 ```
 
-并将导出移动到用户通过归档目录后完成游戏内确认：
+游戏内验证状态：
 
-```text
-/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局
-```
+- R6-D compact-chain：已通过并归档。
+- R6-C yfix3 / R6-D yfix3：无回归问题，局部改善有效，但 R6-D 复合 impl 局部仍需下一轮继续修；按用户要求不归档。
 
 ---
 
-## 五、后续任务
+## 五、下一轮建议
 
-当前 Round 14 已完成。下一轮若继续布局优化，建议单独处理：
+下一轮目标：完整修复 `复合节点-布局错误-step4-局部.png` 所示的复合 impl 局部控制流/数据流贴近问题，并增加控制流节点鲁棒性测试。
 
-> 控制流节点垂直方向更紧凑。
+建议步骤：
+
+1. 保留当前 yfix3 作为起点，不要回退到 yfix2 或最初 yfix。
+2. 新增或扩展测试，专门覆盖：
+   - 复合 impl 中三条控制流泳道。
+   - 中间泳道附近有横向数据链。
+   - 下方泳道附近有 bool/string 数据转换节点。
+   - 控制流线可能穿过数据节点卡片或贴边的情况。
+3. 先实现数据区块占用估计或 root lane 目标位置局部避让，而不是继续只调一个 `rootLanePadding` 常量。
+4. 生成新的四个回归 GIA，例如：
+
+```text
+布局r6-c-reference-repro-round15-lane-avoidance.gia
+布局r6-c-reference-repro-long-input-round15-lane-avoidance.gia
+布局r6-d-main-equivalent-round15-lane-avoidance.gia
+布局r6-d-composite-summary-round15-lane-avoidance.gia
+```
+
+5. 用户游戏内确认全部通过后，再按工作规则用 `mv` 归档通过 `.gia`，并提交。
 
 注意事项：
 
-- 不要回退本轮 `compactLocalDataChains(...)`。
-- 不要回退复合 impl 复用主图布局核心。
-- 不要全局缩小 `columnWidth` 或 `rowHeight` 来解决局部问题。
-- 垂直压缩应优先作用于执行泳道 / 多出口局部区块，不能重新让数据区插入执行泳道之间。
-- 修改后仍先导出主图同构，再回归复合 impl。
+- 不要维护第二套复合布局。
+- 不要全局缩小或放大 `columnWidth` / `rowHeight`。
+- 不要为了 R6-D 复合局部问题让 R6-C root 分支重新掉到底部。
+- 不要归档未完全通过的 yfix3 GIA。
 
 ---
 
 ## 六、给下一位助手的一句话
 
-> Round 14 已完成并通过游戏内验证：局部数据链压缩已进入共享布局核心，主图同构更紧凑；复合 impl 初版重叠已通过目标位置碰撞检查修复。当前只剩一个新的独立优化方向：控制流节点垂直方向可更紧凑，但必须继续复用 `layout.ts` 共享核心，不能维护第二套复合布局。
+> Round 14 数据链 compact 已完成并归档；当前 yfix3 代码已缓解 R6-C 最后 root 分支掉到底部问题，且四个 yfix3 GIA 无回归，但 R6-D 复合 impl 仍有局部控制流线/数据节点贴近问题（截图 `复合节点-布局错误-step4-局部.png`）。下一轮应基于共享 `layout.ts` 做数据区块占用/局部 lane 避让，并增加控制流鲁棒性测试；不要归档 yfix3 GIA。
