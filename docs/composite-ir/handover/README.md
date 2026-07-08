@@ -33,3 +33,4 @@
 | layout-r12  | [layout-handover-round-12.md](layout-handover-round-12.md)                                         | 主图与复合 impl 布局统一计划     | 场景 C 已通过；场景 D 暴露复合 impl 仍用简化布局。已由 layout-r13 完成 Phase 1 并继续分析共享布局问题。                 |
 | layout-r13  | [layout-handover-round-13.md](layout-handover-round-13.md)                                         | 共享布局核心的数据流问题         | Phase 1 已提交并生效；主图同构和用户人工修复参考暴露五类待修问题：边界输出虚拟消费者、数据避开执行泳道、多消费者锚点、防倒退、局部压缩。                 |
 | layout-next | [layout-handover-next-iteration.md](layout-handover-next-iteration.md)                             | 下一轮小步游戏内验证流程         | 早期下一轮入口，已被 layout-r11/r12/r13 继续推进；后续优先读最新 layout-r13，再按小步导出/游戏内反馈/通过后提交流程继续                                           |
+| v2-r1       | [v2-composite-validation-round-1.md](v2-composite-validation-round-1.md)                           | `真-测试通过/v2` 复合验证线启动 | 新长期任务入口：从游戏内已通过 `.gia` 逐个分析、复刻或改写；继续前必须读 `layout-working-rules.md`，并按一个用户可验证 step 推进。                              |
