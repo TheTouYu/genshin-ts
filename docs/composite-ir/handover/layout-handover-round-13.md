@@ -157,6 +157,14 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 
 待修方向：数据块应避开执行泳道之间的视觉通道；对执行消费者的数据块应放在该消费者下方或左下方，并给下一条执行泳道预留足够垂直空间。
 
+完成记录（2026-07-08）：
+
+- 已实现：`layoutExecutionChain(...)` 的根级 swimlane 分支间距现在计入上一分支数据块高度；单个直接数据输入也会在 `dataBlockHeightMap` 中预留基础高度。
+- 已实现：`expandExecGapsForDataChains(...)` 增加数据子节点索引，后续执行消费者不会抢走已有更早执行消费者的数据锚点；上游中间数据链优先保留给最近的数据消费者。
+- 已自动验证：`npm run build` 通过；生成并 dump 了 `布局r6-d-composite-summary-step4-data-lane.gia` 与 `布局r6-d-main-equivalent-step2-data-lane.gia`。
+- 当前导出文件：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step4-data-lane.gia`。
+- 已游戏内验证：用户确认 `布局r6-d-composite-summary-step4-data-lane.gia` 修复有效。
+
 ### 3.3 多消费者数据节点锚点不理想
 
 主图同构暴露：一个数据节点如果同时服务中间数据节点和后续大执行节点，当前布局可能被后续大消费者或最终消费者抢走锚点，导致中间计算链被拖远。
@@ -179,20 +187,21 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 
 ## 四、下一轮建议实施顺序
 
-### Step 1：继续修数据区插入执行泳道问题
+### Step 1：继续处理剩余数据布局问题
 
-第一个小点（复合边界输出虚拟消费者）已通过。下一步建议处理 3.2：数据区插入执行泳道之间。
-
-优先继续使用复合回归测试：
-
-```text
-tests/layout-r6-d-composite-summary.ts
-```
-
-建议下一步导出：
+第一个小点（复合边界输出虚拟消费者）已通过。第二个小点（数据区避开执行泳道）已完成当前实现改动并通过用户游戏内验证，导出文件：
 
 ```text
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step4-data-lane.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step2-data-lane.gia
+```
+
+下一步继续处理 3.4/3.5：剩余数据倒退连接和数据链局部压缩。
+
+继续使用复合回归测试：
+
+```text
+tests/layout-r6-d-composite-summary.ts
 ```
 
 同时保留主图同构测试作对照：

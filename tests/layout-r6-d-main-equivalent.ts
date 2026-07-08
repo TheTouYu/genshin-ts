@@ -5,7 +5,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  name: 'R6-D主图同构-step1',
+  name: 'R6-D主图同构-step2-data-lane',
   id: 1073741902,
   variables: {
     locationOffset: vec3([1, 2, 3]),

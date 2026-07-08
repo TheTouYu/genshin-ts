@@ -301,15 +301,19 @@ function layoutExecutionChain(
     // be pushed below the whole nested subtree of the previous root child.
     // Nested siblings still use block-bottom placement to avoid local data-heavy blocks.
     const dataLanePadding = Math.min(1100, Math.round(extraDataHeight * 0.35))
+    const prevLaneBottom = prevSubtreeMaxY - (baseY + row * config.wrapHeight)
     const newLaneOffset = isRootSwimLane
-      ? actualLaneOffset + idx * branchBaseSpacing
+      ? Math.max(
+          actualLaneOffset + idx * branchBaseSpacing,
+          prevLaneBottom + extraDataHeight + 120
+        )
       : Math.max(
           actualLaneOffset,
-          prevSubtreeMaxY - (baseY + row * config.wrapHeight) + branchBaseSpacing + dataLanePadding
+          prevLaneBottom + branchBaseSpacing + dataLanePadding
         )
 
     const childFirstLaneOffset = isRootSwimLane
-      ? Math.max(newLaneOffset, prevSubtreeMaxY - (baseY + row * config.wrapHeight))
+      ? Math.max(newLaneOffset, prevLaneBottom)
       : undefined
 
     const childMaxY = layoutExecutionChain(
@@ -480,6 +484,49 @@ function buildExecParentsMap(execChildrenMap: Map<NodeId, NodeId[]>): Map<NodeId
   return parents
 }
 
+function buildDataChildrenMap(dataParentsMap: Map<NodeId, NodeId[]>): Map<NodeId, NodeId[]> {
+  const children = new Map<NodeId, NodeId[]>()
+  for (const [child, parents] of dataParentsMap) {
+    for (const parent of parents) {
+      const list = children.get(parent) ?? []
+      list.push(child)
+      children.set(parent, list)
+    }
+  }
+  return children
+}
+
+function hasDataChildWithin(
+  nodeId: NodeId,
+  dataChildrenMap: Map<NodeId, NodeId[]>,
+  candidateSet: Set<NodeId>,
+  execNodes: Set<NodeId>
+): boolean {
+  for (const child of dataChildrenMap.get(nodeId) ?? []) {
+    if (execNodes.has(child)) continue
+    if (candidateSet.has(child)) return true
+  }
+  return false
+}
+
+function hasEarlierExecConsumer(
+  nodeId: NodeId,
+  currentConsumerId: NodeId,
+  dataChildrenMap: Map<NodeId, NodeId[]>,
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>
+): boolean {
+  const currentPos = state.positions.get(currentConsumerId)
+  if (!currentPos) return false
+
+  for (const child of dataChildrenMap.get(nodeId) ?? []) {
+    if (child === currentConsumerId || !execNodes.has(child)) continue
+    const childPos = state.positions.get(child)
+    if (childPos && (childPos[0] < currentPos[0] || childPos[1] < currentPos[1])) return true
+  }
+  return false
+}
+
 function expandExecGapsForDataChains(
   dataParentsMap: Map<NodeId, NodeId[]>,
   execChildrenMap: Map<NodeId, NodeId[]>,
@@ -499,19 +546,34 @@ function expandExecGapsForDataChains(
   const extraExecGapPerAdditionalDataNode = 400
   const extraGapPerAdditionalInput = 260
   const execParentsMap = buildExecParentsMap(execChildrenMap)
+  const dataChildrenMap = buildDataChildrenMap(dataParentsMap)
 
   for (const consumerId of execNodes) {
     const consumerPos = state.positions.get(consumerId)
     if (!consumerPos) continue
 
-    const dataAncestors = [
-      ...collectDataAncestors(consumerId, dataParentsMap, new Set(), execNodes)
-    ].filter((id) => state.positions.has(id) && !execNodes.has(id))
-    if (dataAncestors.length === 0) continue
-
     const directDataInputs = (dataParentsMap.get(consumerId) ?? []).filter((id) =>
       state.positions.has(id)
     )
+    const ownedDirectDataInputs = directDataInputs.filter(
+      (id) => !hasEarlierExecConsumer(id, consumerId, dataChildrenMap, execNodes, state)
+    )
+    const directDataInputSet = new Set(ownedDirectDataInputs)
+    const allDataAncestors = [
+      ...collectDataAncestors(consumerId, dataParentsMap, new Set(), execNodes)
+    ].filter((id) => state.positions.has(id) && !execNodes.has(id))
+    const allDataAncestorSet = new Set(allDataAncestors)
+
+    // Keep long upstream data chains owned by their nearest data consumer instead of letting
+    // a later exec node drag the entire chain into its swimlane.
+    const dataAncestors = allDataAncestors.filter(
+      (id) =>
+        !hasEarlierExecConsumer(id, consumerId, dataChildrenMap, execNodes, state) &&
+        (directDataInputSet.has(id) ||
+          !hasDataChildWithin(id, dataChildrenMap, allDataAncestorSet, execNodes))
+    )
+    if (dataAncestors.length === 0) continue
+
     const dataDepths = computeDataDepths(dataAncestors, dataParentsMap, new Set(dataAncestors))
     const maxDepth = Math.max(...dataAncestors.map((id) => dataDepths.get(id) ?? 0), 0)
 
@@ -522,7 +584,7 @@ function expandExecGapsForDataChains(
       ? Math.max(...execParents.map((id) => state.positions.get(id)![0]))
       : consumerPos[0] - config.columnWidth
     let directCompositeHorizontalExtra = 0
-    for (const inputId of new Set(directDataInputs)) {
+    for (const inputId of new Set(ownedDirectDataInputs)) {
       const inputNode = nodeById.get(inputId)
       if (inputNode) {
         directCompositeHorizontalExtra += estimateDataNodeHorizontalExtra(
@@ -534,7 +596,7 @@ function expandExecGapsForDataChains(
     const desiredGap =
       config.columnWidth +
       Math.max(0, maxDepth) * extraExecGapPerAdditionalDataNode +
-      Math.min(2, Math.max(0, directDataInputs.length - 1)) * extraGapPerAdditionalInput +
+      Math.min(2, Math.max(0, ownedDirectDataInputs.length - 1)) * extraGapPerAdditionalInput +
       directCompositeHorizontalExtra
     const desiredConsumerX = parentX + desiredGap
     const deltaX = Math.ceil(desiredConsumerX - consumerPos[0])
@@ -656,7 +718,8 @@ export function layoutPositions(
       new Set(),
       execNodes
     ).size
-    const directInputExtra = Math.max(0, directDataInputs.length - 1) * 200
+    const directInputExtra =
+      directDataInputs.length > 0 ? 260 + Math.max(0, directDataInputs.length - 1) * 200 : 0
     const chainExtra = Math.max(0, dataAncestorCount - 1) * 150
     const uniqueDirectDataInputs = new Set(directDataInputs)
     let dataNodeVisualExtra = 0
