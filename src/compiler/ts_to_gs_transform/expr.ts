@@ -7,7 +7,7 @@ import { isEntityLikeType } from '../../shared/ts_type_utils.js'
 import { tryTransformBuiltinCall, tryTransformBuiltinPropertyAccess } from './builtins.js'
 import { fail, warn } from './errors.js'
 import { tryTransformListMethodCall } from './list_methods.js'
-import { isFMethodCall } from './matcher.js'
+import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   inferArrayListType,
   inferConcreteTypeFromString,
@@ -266,6 +266,10 @@ function isRawWrapperCall(expr: ts.CallExpression): boolean {
 function isListWrapperCall(expr: ts.CallExpression): boolean {
   const callee = expr.expression
   return ts.isIdentifier(callee) && callee.text === 'list'
+}
+
+function isRawControlFlowFMethod(method: string): boolean {
+  return method === 'node' || method === 'rawExecNode' || method === 'registerExecNode'
 }
 
 function tryMapArrayLiteralThroughWrappers(
@@ -1561,6 +1565,31 @@ export function transformExpression(
       transformHandler
     )
     if (listCall) return listCall
+
+    const fCall = getFMethodCall(env, expr)
+    if (fCall && isRawControlFlowFMethod(fCall.method)) {
+      const args = expr.arguments.map((arg, idx) => {
+        if (idx === 1 && ts.isArrayLiteralExpression(arg)) {
+          return ts.factory.updateArrayLiteralExpression(
+            arg,
+            arg.elements.map((el) => {
+              if (ts.isSpreadElement(el)) {
+                return ts.factory.updateSpreadElement(
+                  el,
+                  transformExpression(env, context, el.expression)
+                )
+              }
+              return transformExpression(env, context, el)
+            })
+          )
+        }
+        return transformExpression(env, context, arg)
+      })
+      return withSameRange(
+        ts.factory.updateCallExpression(expr, expr.expression, expr.typeArguments, args),
+        expr
+      )
+    }
   }
 
   // gsts.f.assemblyList(items, ...): avoid nested assemblyList(assemblyList([...]))

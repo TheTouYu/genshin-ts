@@ -34,7 +34,27 @@ function inferListConcreteType(env: Env, t: ts.Type, declTypeNode?: ts.TypeNode)
   )
 }
 
+function isRawControlFlowMarkerType(env: Env, t: ts.Type): boolean {
+  return env.checker.getPropertyOfType(t, '__markerNodeId') !== undefined
+}
+
+function isRawControlFlowMarkerInitializer(env: Env, expr?: ts.Expression): boolean {
+  if (!expr) return false
+  const unwrapped = unwrapCollectionSourceExpression(expr)
+  if (!ts.isCallExpression(unwrapped)) return false
+  return isFMethodCall(env, unwrapped, [
+    'entry',
+    'eventMarker',
+    'node',
+    'rawExecNode',
+    'declareDetached',
+    'callComposite'
+  ])
+}
+
 function isCollectionType(env: Env, t: ts.Type): boolean {
+  if (isRawControlFlowMarkerType(env, t)) return false
+
   // union/intersection：只要任一分支是 collection，就按 collection 处理（保守，避免漏判）
   if (t.flags & ts.TypeFlags.Union) {
     const u = t as ts.UnionType
@@ -430,11 +450,12 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         decls.set(symbol, { decl: d, symbol, isLet, isConst, inLoop })
         const t = env.checker.getTypeAtLocation(d.name)
         const u = ensureUsage(symbol)
-        u.isCollection = isCollectionType(env, t)
+        const isRawMarker = isRawControlFlowMarkerInitializer(env, d.initializer)
+        u.isCollection = !isRawMarker && isCollectionType(env, t)
         if (u.isCollection) {
           u.collectionSourceKind = classifyCollectionSource(d.initializer)
         }
-        u.isBasic = inferBasicType(env, t) !== null
+        u.isBasic = !isRawMarker && inferBasicType(env, t) !== null
         if (d.initializer) {
           u.hasWrite = true
           if (hasRandomCall(d.initializer)) u.hasRandomWrite = true
