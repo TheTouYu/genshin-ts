@@ -1,8 +1,8 @@
 # Raw Control-Flow DSL Quickstart
 
 > 状态：当前推荐
-> 来源：当前代码实现 + recreate-debug5/6 验证
-> 最近校验：2026-07-06
+> 来源：当前代码实现 + recreate-debug5/6 验证 + v2 raw-control-flow 普通链路游戏内验证
+> 最近校验：2026-07-08
 > 适用范围：gsts 当前低层手动控制流 DSL
 
 这份文档介绍新版低层控制流 DSL。它适合两类场景：
@@ -28,6 +28,14 @@ f.link(entry, 0, node)               // 手动连 entry.OutFlow[0] -> node.InFlo
 ```
 
 `f.node()` 创建的是 detached 节点：它不会自动接到当前执行链上。创建后必须用 `f.link()`、`f.inflow()` 或其他方式接入，否则在移除未使用节点时可能被删掉。
+
+当前普通 `gsts` 编译链路已支持这些 raw marker 写法。`tests/composite/v2/raw-control-flow/raw-control-flow-debug56-passed.ts` 已通过：
+
+```bash
+node bin/gsts.mjs tests/composite/v2/raw-control-flow/raw-control-flow-debug56-passed.ts
+```
+
+该 case 覆盖 `f.node()`、`f.entry()`、`f.link(..., targetInflowIdx)`、`f.inflow()`、`f.outflow()` 和 `f.declareDetached()`，并已游戏内验证通过。
 
 ## 最小例子：从事件入口连到打印节点
 
