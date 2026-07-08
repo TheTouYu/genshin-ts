@@ -13,7 +13,7 @@
 
 1. 每轮布局调参保持“小步迭代 → 导出独立 GIA → 用户游戏内测试 → 通过后提交”。
 2. 每次只改一个小点；不要在同一步同时改横向距离、纵向间距、数据节点行距和分支规则。
-3. 用户说“测试通过 / OK / 可以”后再提交代码；未游戏内验证前不要提交布局参数改动。
+3. 用户反馈“通过”后，先归档通过的 `.gia` 到 `Beyond_Local_Export/真-测试通过/布局/`，再把已通过的布局测试脚本移动到 `tests/layout/`，然后提交代码与文档；未游戏内验证前不要提交布局参数改动。
 4. 用户给截图时，先用 `read` 打开截图并复述问题，再选择一个小点修复。
 5. 游戏内截图和用户反馈是最终裁判；自动分析工具只能辅助判断。
 6. 如果遇到阻碍、不确定或方向性问题，先停下来和用户确认，不要连续深入改多个算法。
@@ -82,11 +82,18 @@ docs/architecture/composite/raw-control-flow-dsl-quickstart.md
 docs/architecture/composite/dsl-api.md
 ```
 
-10. 当前 handover 索引：
+10. 已通过布局测试归档目录：
 
 ```text
-docs/composite-ir/handover/README.md
+tests/layout
 ```
+
+11. 游戏内验证通过的 `.gia` 归档目录：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局
+```
+
 
 ---
 

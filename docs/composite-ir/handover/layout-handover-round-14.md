@@ -21,8 +21,8 @@
 
 ```text
 src/compiler/ir_to_gia_transform/layout.ts
-tests/layout-r6-d-main-equivalent.ts
-tests/layout-r6-d-composite-summary.ts
+tests/layout/layout-r6-d-main-equivalent.ts
+tests/layout/layout-r6-d-composite-summary.ts
 ```
 
 本轮新增共享布局 pass：
@@ -164,8 +164,8 @@ nIdx=17  Data Type Conversion       (  350, 920)
 
 ```bash
 npm run build
-node bin/gsts.mjs tests/layout-r6-d-main-equivalent.ts || true
-node bin/gsts.mjs tests/layout-r6-d-composite-summary.ts || true
+node bin/gsts.mjs tests/layout/layout-r6-d-main-equivalent.ts || true
+node bin/gsts.mjs tests/layout/layout-r6-d-composite-summary.ts || true
 git diff --check
 ```
 

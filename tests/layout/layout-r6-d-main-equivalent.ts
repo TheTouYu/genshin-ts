@@ -1,4 +1,5 @@
 // Main-graph equivalent of layout-r6-d-composite-summary.ts.
+// Archived under tests/layout after game-side validation.
 // This keeps the same data chains and exec fork shape outside composite impl,
 // so game-side validation can compare whether the shared layout issue also exists in main graphs.
 
