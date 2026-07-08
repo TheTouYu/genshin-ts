@@ -302,19 +302,19 @@ function layoutExecutionChain(
     // Nested siblings still use block-bottom placement to avoid local data-heavy blocks.
     const dataLanePadding = Math.min(1100, Math.round(extraDataHeight * 0.35))
     const prevLaneBottom = prevSubtreeMaxY - (baseY + row * config.wrapHeight)
+    const prevChildHasExecChildren = (execChildrenMap.get(prevChildId)?.length ?? 0) > 0
+    const rootLanePadding = prevChildHasExecChildren ? 120 : dataLanePadding + 120
     const newLaneOffset = isRootSwimLane
       ? Math.max(
           actualLaneOffset + idx * branchBaseSpacing,
-          prevLaneBottom + extraDataHeight + 120
+          prevLaneBottom + rootLanePadding
         )
       : Math.max(
           actualLaneOffset,
           prevLaneBottom + branchBaseSpacing + dataLanePadding
         )
 
-    const childFirstLaneOffset = isRootSwimLane
-      ? Math.max(newLaneOffset, prevLaneBottom)
-      : undefined
+    const childFirstLaneOffset = isRootSwimLane ? newLaneOffset : undefined
 
     const childMaxY = layoutExecutionChain(
       children[idx],
