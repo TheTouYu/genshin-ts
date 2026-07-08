@@ -395,6 +395,27 @@ function shiftExecChainFrom(
   }
 }
 
+function shiftDataChainFrom(
+  startId: NodeId,
+  deltaX: number,
+  dataChildrenMap: Map<NodeId, NodeId[]>,
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>,
+  visited = new Set<NodeId>()
+) {
+  if (deltaX <= 0 || visited.has(startId) || execNodes.has(startId)) return
+  visited.add(startId)
+
+  const pos = state.positions.get(startId)
+  if (pos) {
+    state.positions.set(startId, [pos[0] + deltaX, pos[1]])
+  }
+
+  for (const child of dataChildrenMap.get(startId) ?? []) {
+    shiftDataChainFrom(child, deltaX, dataChildrenMap, execNodes, state, visited)
+  }
+}
+
 function collectDataAncestors(
   nodeId: NodeId,
   dataParentsMap: Map<NodeId, NodeId[]>,
@@ -619,6 +640,76 @@ function expandExecGapsForDataChains(
   }
 }
 
+function resolveDataBackflowAndOverlap(
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  execChildrenMap: Map<NodeId, NodeId[]>,
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>
+) {
+  const dataChildrenMap = buildDataChildrenMap(dataParentsMap)
+  const minDataEdgeGapX = 380
+  const minDataNodeGapX = 360
+  const minDataNodeGapY = 190
+
+  for (let pass = 0; pass < 8; pass++) {
+    let changed = false
+
+    for (const [consumerId, parentIds] of dataParentsMap) {
+      const consumerPos = state.positions.get(consumerId)
+      if (!consumerPos) continue
+
+      for (const parentId of parentIds) {
+        const parentPos = state.positions.get(parentId)
+        if (!parentPos) continue
+
+        const requiredGap = execNodes.has(consumerId) ? 80 : minDataEdgeGapX
+        const minConsumerX = parentPos[0] + requiredGap
+        const deltaX = Math.ceil(minConsumerX - consumerPos[0])
+        if (deltaX <= 0) continue
+
+        if (execNodes.has(consumerId)) {
+          shiftExecChainFrom(consumerId, deltaX, execChildrenMap, state)
+        } else {
+          shiftDataChainFrom(consumerId, deltaX, dataChildrenMap, execNodes, state)
+        }
+        changed = true
+      }
+    }
+
+    const dataIds = [...state.positions.keys()]
+      .filter((id) => !execNodes.has(id))
+      .sort((a, b) => {
+        const pa = state.positions.get(a)!
+        const pb = state.positions.get(b)!
+        return pa[0] - pb[0] || pa[1] - pb[1] || a - b
+      })
+
+    for (let i = 0; i < dataIds.length; i++) {
+      const aId = dataIds[i]
+      const aPos = state.positions.get(aId)
+      if (!aPos) continue
+
+      for (let j = i + 1; j < dataIds.length; j++) {
+        const bId = dataIds[j]
+        const bPos = state.positions.get(bId)
+        if (!bPos) continue
+        if (bPos[0] - aPos[0] >= minDataNodeGapX) break
+        if (Math.abs(bPos[1] - aPos[1]) >= minDataNodeGapY) continue
+        const hasLocalDataLink =
+          (dataChildrenMap.get(aId) ?? []).includes(bId) ||
+          (dataChildrenMap.get(bId) ?? []).includes(aId)
+        if (!hasLocalDataLink) continue
+
+        const deltaX = Math.ceil(aPos[0] + minDataNodeGapX - bPos[0])
+        shiftDataChainFrom(bId, deltaX, dataChildrenMap, execNodes, state)
+        changed = true
+      }
+    }
+
+    if (!changed) break
+  }
+}
+
 function placeVirtualConsumers(
   state: ReturnType<typeof createLayoutState>,
   virtualConsumerIds: NodeId[],
@@ -781,6 +872,8 @@ export function layoutPositions(
     nodeById,
     compositeDefById
   )
+
+  resolveDataBackflowAndOverlap(dataParentsMap, execChildrenMap, execNodes, state)
 
   // 剩余游离节点（无消费者或无关联）统一放到左上角网格
   placeDetachedGrid(state, config)

@@ -177,6 +177,14 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 
 待修方向：布局后尽量满足 `data.x < consumer.x`。如果一个数据节点是某个消费者的输入，不应因为另一个后续消费者把它推到当前消费者右侧。
 
+认领记录（2026-07-08）：
+
+- 用户反馈 `主图同构d-step2-data-lane.png` 仍有局部倒退连线和局部重叠。
+- 已定位：主图同构左下 `get_local_variable#3 -> _3d_vector_modulo_operation#8 -> addition#10 -> _3d_vector_zoom#12` 局部链路中，`#8`/`#10` 存在相对生产者的局部回拉和重叠风险。
+- 已实现当前小步：`resolveDataBackflowAndOverlap(...)` 后处理数据边，非执行数据消费者保持最小左到右间距；近邻且有直接数据关系的数据节点做最小横向避让。执行消费者只在真实倒退时右移，避免复合调用参数栈被整体横向摊开。
+- 已自动验证：`npm run build` 通过；生成并 dump `布局r6-d-main-equivalent-step3-no-backflow.gia` 与 `布局r6-d-composite-summary-step5-no-backflow.gia`。主图同构中该局部链路 dump 为 `#3 x≈618 -> #8 x≈998 -> #10 x≈1447 -> #12 x≈2414`。
+- 已游戏内验证：用户确认 `布局r6-d-main-equivalent-step3-no-backflow.gia` 通过；复合回归 `布局r6-d-composite-summary-step5-no-backflow.gia` 同步通过。
+
 ### 3.5 数据链局部压缩
 
 主图同构暴露：连续数据链被拉得过散，跨越多个执行泳道或大面积空白。
@@ -196,7 +204,7 @@ Round 12 已发现但尚未处理：数据节点会被放到两条执行分支�
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step2-data-lane.gia
 ```
 
-下一步继续处理 3.4/3.5：剩余数据倒退连接和数据链局部压缩。
+下一步继续处理 3.5：数据链局部压缩。
 
 继续使用复合回归测试：
 
