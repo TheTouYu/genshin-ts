@@ -529,7 +529,179 @@ npx tsx tests/composite/trace-dataflow.ts <file.gia> <node> --all-params
 
 ---
 
-## 9. 当前样本提炼出的核心规则
+## 9. 当前实现对照与缺口路线图
+
+> 状态：当前实现对照 / 路线图
+> 来源：当前代码实现 + Round 13/14/15 游戏内验证 + 设计准则对照
+> 最近校验：2026-07-08
+
+本节用于把本文前面的理想布局原则和 `layout.ts` 当前实现对齐，避免后续只沿着某一轮 handover 做局部调参。当前总体状态是：
+
+> gsts 布局已经从固定网格进化到“执行泳道 + 数据链局部布局 + 复合 impl 复用主图布局 + 局部避让”，但还没有真正实现“先识别语义区块，再整体规划窗口”的完整布局系统。
+
+### 9.1 已基本补上的能力
+
+1. **主图 / 复合 impl 共享布局核心**
+
+   当前主图通过 `buildExecutionGraph(...) -> layoutPositions(...)` 布局；复合 impl 通过 `computeImplLayout(...)` 把 `implNodes`、`implEdges` 和虚拟输出锚点适配到同一套 `layoutPositions(...)`。Round 13 之后，不再维护复合 impl 专用简化坐标算法。
+
+   已覆盖的关键点：
+
+   - 复合 `OutParam` 通过 `virtualOutputNodes` / `extraDataConnections` 参与数据布局。
+   - 主图和复合 impl 共用执行/数据语义。
+   - 后续布局修复优先在共享 `layout.ts` 中扩展通用约束。
+
+2. **执行流横向主线 + root 泳道**
+
+   当前 `layoutExecutionChain(...)` 已支持 root direct child 宽间距泳道、nested sibling 根据上方 subtree / data block 下推，以及 R6-C 普通与 long-input 场景的 root 分支回归控制。
+
+   已游戏内验证的结论：
+
+   - R6-C 普通和 long-input 场景中，后续链继承已下移 lane 的方向有效。
+   - Round 14/15 已避免 root 分支重新掉到底部。
+
+3. **数据链靠近消费者、横向展开、避免倒退**
+
+   当前数据流布局主要由以下 pass 协同完成：
+
+   ```text
+   expandExecGapsForDataChains(...)
+   compactLocalDataChains(...)
+   resolveDataBackflowAndOverlap(...)
+   ```
+
+   已覆盖的关键点：
+
+   - 数据链按依赖深度在消费者附近横向展开。
+   - 执行节点间距会根据数据链长度和复合 pin 视觉占位拉开。
+   - 多消费者数据节点优先保持给更早或更近的消费者，避免后续大执行节点抢走上游数据链。
+   - 局部数据边避免倒退，数据节点之间避免直接关系链上的重叠。
+
+4. **数据区块与控制流局部避让**
+
+   Round 15 新增共享 pass：
+
+   ```text
+   avoidExecLanesNearDataBlocks(...)
+   ```
+
+   该 pass 在数据链 compact 后，对已经放好的执行 lane 做局部 Y 向避让：如果某条执行链位于相近 X 区间的数据区块下方且距离不足，则只下推该执行链及其后续节点，而不是全局增大 `rootLanePadding`。
+
+   已游戏内验证的文件包括 R6-D 复合 impl 和 R6-E 控制流覆盖，说明该方向能缓解数据节点/控制流线贴近问题，同时没有让 R6-C root 分支回到底部回归。
+
+### 9.2 仍然缺少的关键能力
+
+1. **真正的语义区块识别**
+
+   本文第 2 节强调应先识别事件入口区块、普通执行线区块、带数据流执行线区块、多出口区、纯数据计算区块，再排坐标。当前实现仍主要是“先放执行节点，再放数据节点，再用多个 pass 修正间距、倒退、重叠和局部贴近”。
+
+   当前缺口：
+
+   - 没有显式 `LayoutBlock` / `LaneBlock` / `SemanticBlock` 数据结构。
+   - 没有为每条 lane 计算完整 bounding box。
+   - 没有把“执行链 + 附属数据链 + 多出口子列”作为一个整体布局单元。
+   - 当前 `dataBlockHeightMap` 仍是经验估算，不是实际布局后的占用盒。
+
+2. **多出口节点同列纵向展开仍较基础**
+
+   当前 `layoutExecutionChain(...)` 仅通过 `children.length > 3` 给多 child 场景更紧凑的 branch spacing，还没有显式识别多 `OutFlow` 节点、branch node 或 sequence composite。
+
+   当前缺口：
+
+   - 不能严格保证多出口目标同列对齐。
+   - 每个出口目标的局部数据链还没有作为该出口列的子区块处理。
+   - 多出口目标继续接长链或带数据链时，缺少专门区块估算和回归矩阵。
+
+3. **纯数据复合的表达式图布局仍不完整**
+
+   当前纯数据节点主要依赖 virtual output anchors、data depth、compact 和 backflow pass 形成横向数据链；这能覆盖当前样例，但还不是真正的 data-DAG 专用布局器。
+
+   当前缺口：
+
+   - 没有识别“纯数据复合 impl”并切换到 data-DAG 主导布局。
+   - 没有主计算链 / 分支计算 / 汇总节点 / 输出节点的语义分层。
+   - 多输出纯数据复合、复杂分支数据 DAG 和 crossing minimization 仍缺系统性验证。
+
+4. **复合优先降低复杂度仍主要靠用户建模**
+
+   本文强调复杂流程和长数据链可以通过复合节点下沉，降低主图负担。当前编译器不会自动把长数据链折叠成纯数据复合，也不会生成或建议语义复合节点。
+
+   这不一定是短期目标，因为自动拆复合会改变用户可见图结构和调试体验；但从设计愿景看，仍缺：
+
+   - 长数据链阈值策略。
+   - 自动或半自动数据复合封装。
+   - 主图摘要节点与 impl 细节窗口的协同布局。
+   - 用户可控开关或提示机制。
+
+5. **视口 / 缩放层面的布局目标还未形式化**
+
+   当前实现仍以 `columnWidth`、`rowHeight`、`eventGap` 和经验间距常量驱动；还没有建立可缩放画布下的可读性模型。
+
+   当前缺口：
+
+   - 没有视口宽高和常用缩放比例模型。
+   - 没有节点真实卡片宽高估计。
+   - 没有控制线/数据线路由占用通道模型。
+   - 不能自动评估“局部视口是否清楚”。
+
+6. **节点真实视觉尺寸估计仍较粗**
+
+   当前已有 composite pin count extra、direct input count extra、data ancestor count extra 和局部 X/Y gap 常量，但对编辑器真实卡片高度、pin 分布和连线路由仍是近似估计。
+
+   当前缺口：
+
+   - 按节点类型估计卡片宽高。
+   - 按 pin 数估计 InParam / OutParam 上下占用。
+   - 区分执行 pin、数据 pin 的路由通道。
+   - 为 `Initiate Attack`、复合调用、多输入节点、转换节点等建立特殊视觉模型。
+
+7. **布局测试还未矩阵化**
+
+   当前已有 B1/B2/B4、R6-C、R6-D、R6-E 等关键场景，但还不是完整覆盖矩阵。
+
+   建议补充的测试方向：
+
+   - 多出口节点专门测试。
+   - 纯数据复合多输出测试。
+   - 嵌套复合布局窗口测试。
+   - 多 root event 测试。
+   - 长数据链 + 多消费者 + 后续 exec chain 混合测试。
+   - 多个 composite call 串联且带大量 pin 的测试。
+   - 变量 get/set 与 local variable store 混合数据链测试。
+   - 布局稳定性测试：同样结构增加无关节点后，核心区块不应大幅漂移。
+
+8. **自动 audit 工具还没有跟上当前布局语义**
+
+   `audit-layout.ts` 仍只能作为启发式工具。后续更有价值的是语义化 layout audit：
+
+   - 区分 data-only 节点不是 orphan。
+   - 根据 exec/data graph 和复合窗口分别评估 lane overlap。
+   - 基于局部 bounding boxes 检查数据区块与执行区块距离。
+   - 输出“可能需要游戏内看”的候选问题，而不是把直线交叉当作最终错误。
+
+### 9.3 推荐后续优先级
+
+**P0：短期最值得做**
+
+1. 显式记录实际布局后的 data block bounding box，让后续 lane 避让基于占用盒而不是点距离。
+2. 补多出口节点专门回归，对齐本文第 3.3 节的同列纵向展开目标。
+3. 补纯数据复合多输出测试，验证 virtual output anchors + compact/backflow 在纯 data-DAG 场景中的边界。
+
+**P1：中期架构升级**
+
+1. 引入 `LayoutBlock` / `LaneBlock` 内部结构，先结构化估算和 debug 输出，不必一次性重写所有坐标逻辑。
+2. 基于 block bounding box 做 lane placement，从“放完再修”逐步转向“先估区块，再排 lane”。
+3. 改进 layout audit，让工具理解 exec/data/复合窗口语义。
+
+**P2：长期理想设计**
+
+1. 纯数据复合的 data-DAG 专用布局器。
+2. 视口 / 缩放可读性指标。
+3. 自动或半自动长数据链复合化建议或转换。
+
+---
+
+## 10. 当前样本提炼出的核心规则
 
 一句话总结：
 
