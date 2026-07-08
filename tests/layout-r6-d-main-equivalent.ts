@@ -5,7 +5,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  name: 'R6-D主图同构-step3-no-backflow',
+  name: 'R6-D主图同构-step4-compact-chain',
   id: 1073741902,
   variables: {
     locationOffset: vec3([1, 2, 3]),

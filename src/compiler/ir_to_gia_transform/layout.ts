@@ -640,6 +640,98 @@ function expandExecGapsForDataChains(
   }
 }
 
+function hasDirectDataRelation(
+  aId: NodeId,
+  bId: NodeId,
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  dataChildrenMap: Map<NodeId, NodeId[]>
+): boolean {
+  return (
+    (dataParentsMap.get(aId) ?? []).includes(bId) ||
+    (dataParentsMap.get(bId) ?? []).includes(aId) ||
+    (dataChildrenMap.get(aId) ?? []).includes(bId) ||
+    (dataChildrenMap.get(bId) ?? []).includes(aId)
+  )
+}
+
+function wouldOverlapUnrelatedNode(
+  nodeId: NodeId,
+  targetX: number,
+  targetY: number,
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  dataChildrenMap: Map<NodeId, NodeId[]>,
+  state: ReturnType<typeof createLayoutState>
+): boolean {
+  const minUnrelatedNodeGapX = 320
+  const minUnrelatedNodeGapY = 260
+
+  for (const [otherId, [otherX, otherY]] of state.positions) {
+    if (otherId === nodeId) continue
+    if (hasDirectDataRelation(nodeId, otherId, dataParentsMap, dataChildrenMap)) continue
+    if (Math.abs(otherX - targetX) >= minUnrelatedNodeGapX) continue
+    if (Math.abs(otherY - targetY) >= minUnrelatedNodeGapY) continue
+    return true
+  }
+
+  return false
+}
+
+function compactLocalDataChains(
+  dataParentsMap: Map<NodeId, NodeId[]>,
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>,
+  nodeById: Map<NodeId, IRNode>
+) {
+  const dataChildrenMap = buildDataChildrenMap(dataParentsMap)
+  const compactDataStepX = 420
+  const minExecConsumerGapX = 460
+
+  for (const [nodeId, parentIds] of dataParentsMap) {
+    if (execNodes.has(nodeId) || parentIds.length === 0) continue
+
+    const pos = state.positions.get(nodeId)
+    if (!pos) continue
+
+    const parentPositions = parentIds
+      .map((id) => state.positions.get(id))
+      .filter((parentPos): parentPos is Position => parentPos !== undefined)
+    if (parentPositions.length === 0) continue
+
+    const dataChildren = (dataChildrenMap.get(nodeId) ?? []).filter((id) => !execNodes.has(id))
+    const execConsumers = (dataChildrenMap.get(nodeId) ?? []).filter((id) => execNodes.has(id))
+    const hasLocalDataChild = dataChildren.length > 0
+    const feedsLocalVariableStore = execConsumers.some(
+      (consumerId) => nodeById.get(consumerId)?.type === 'set_local_variable'
+    )
+
+    // Only compact true local calculation chains.  Data leaves that merely feed an exec
+    // node's ordinary parameter stack should remain anchored near that exec consumer.
+    if (!hasLocalDataChild && !feedsLocalVariableStore) continue
+
+    const parentMaxX = Math.max(...parentPositions.map(([x]) => x))
+    let targetX = parentMaxX + compactDataStepX
+
+    for (const consumerId of execConsumers) {
+      const consumerPos = state.positions.get(consumerId)
+      if (!consumerPos) continue
+      targetX = Math.min(targetX, consumerPos[0] - minExecConsumerGapX)
+    }
+
+    const newX = Math.min(pos[0], targetX)
+    const overlapsUnrelatedNode = wouldOverlapUnrelatedNode(
+      nodeId,
+      newX,
+      pos[1],
+      dataParentsMap,
+      dataChildrenMap,
+      state
+    )
+    if (newX < pos[0] && !overlapsUnrelatedNode) {
+      state.positions.set(nodeId, [newX, pos[1]])
+    }
+  }
+}
+
 function resolveDataBackflowAndOverlap(
   dataParentsMap: Map<NodeId, NodeId[]>,
   execChildrenMap: Map<NodeId, NodeId[]>,
@@ -872,6 +964,8 @@ export function layoutPositions(
     nodeById,
     compositeDefById
   )
+
+  compactLocalDataChains(dataParentsMap, execNodes, state, nodeById)
 
   resolveDataBackflowAndOverlap(dataParentsMap, execChildrenMap, execNodes, state)
 
