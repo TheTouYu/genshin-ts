@@ -628,8 +628,11 @@ function buildImplNodePins(
   }
   let pinIndex = node.type === 'assembly_list' ? 1 : 0
   for (const arg of args) {
-    // Capture-input args are routed via compositePins, not physical InParam pins.
+    // Capture-input args are routed via compositePins, not physical InParam pins,
+    // but they still occupy their original argument slot. Otherwise later literal
+    // args shift left and collide with the compositePins target pin.
     if (arg && (arg as any).capture === true) {
+      pinIndex++
       continue
     }
     if (arg && arg.type === 'conn') {
