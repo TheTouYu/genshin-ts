@@ -53,9 +53,11 @@ R6-D复合摘要-step6-compact-chain
 ### 1.2 已通过游戏内验证的 Round 14 导出
 
 ```text
-/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-main-equivalent-step4-compact-chain.gia
-/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/布局r6-d-composite-summary-step6-compact-chain.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局/布局r6-d-main-equivalent-step4-compact-chain.gia
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局/布局r6-d-composite-summary-step6-compact-chain.gia
 ```
+
+归档规则：用户游戏内验证通过后，`.gia` 从 `Beyond_Local_Export` 根目录用 `mv` 移动到 `真-测试通过/布局/`，不要复制，避免游戏导入根目录堆积过多测试文件。
 
 用户反馈：
 
@@ -169,7 +171,11 @@ node bin/gsts.mjs tests/layout/layout-r6-d-composite-summary.ts || true
 git diff --check
 ```
 
-并将导出复制到用户游戏目录后完成游戏内确认。
+并将导出移动到用户通过归档目录后完成游戏内确认：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局
+```
 
 ---
 

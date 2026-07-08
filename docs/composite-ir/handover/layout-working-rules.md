@@ -13,7 +13,7 @@
 
 1. 每轮布局调参保持“小步迭代 → 导出独立 GIA → 用户游戏内测试 → 通过后提交”。
 2. 每次只改一个小点；不要在同一步同时改横向距离、纵向间距、数据节点行距和分支规则。
-3. 用户反馈“通过”后，先归档通过的 `.gia` 到 `Beyond_Local_Export/真-测试通过/布局/`，再把已通过的布局测试脚本移动到 `tests/layout/`，然后提交代码与文档；未游戏内验证前不要提交布局参数改动。
+3. 用户反馈“通过”后，先移动通过的 `.gia` 到 `Beyond_Local_Export/真-测试通过/布局/`，再把已通过的布局测试脚本移动到 `tests/layout/`，然后提交代码与文档；未游戏内验证前不要提交布局参数改动。注意：`.gia` 归档必须用 `mv`，不要用 `cp`，避免游戏导入根目录同时堆积过多测试文件。
 4. 用户给截图时，先用 `read` 打开截图并复述问题，再选择一个小点修复。
 5. 游戏内截图和用户反馈是最终裁判；自动分析工具只能辅助判断。
 6. 如果遇到阻碍、不确定或方向性问题，先停下来和用户确认，不要连续深入改多个算法。
@@ -123,37 +123,48 @@ rm -f "$export_dir/<export-name>.gia"
 cp dist/tests/<test-output>.gia "$export_dir/<export-name>.gia"
 ```
 
-### 3.4 解码 GIA
+### 3.4 移动已通过 GIA 到归档目录
+
+用户游戏内验证通过后，把根目录中的通过文件移动到归档目录；不要复制，避免游戏导入根目录堆积过多 `.gia`。
+
+```bash
+export_dir='/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+archive_dir="$export_dir/真-测试通过/布局"
+mkdir -p "$archive_dir"
+mv -f "$export_dir/<export-name>.gia" "$archive_dir/<export-name>.gia"
+```
+
+### 3.5 解码 GIA
 
 ```bash
 npx tsx tools/decode-gia.ts dist/tests/<file>.gia > /tmp/<name>.decoded.json
 ```
 
-### 3.5 查看节点概要
+### 3.6 查看节点概要
 
 ```bash
 npx tsx tests/composite/dump-nodes.ts dist/tests/<file>.gia
 ```
 
-### 3.6 查看执行流
+### 3.7 查看执行流
 
 ```bash
 npx tsx tests/composite/trace-exec-flow.ts dist/tests/<file>.gia --io
 ```
 
-### 3.7 查看数据流
+### 3.8 查看数据流
 
 ```bash
 npx tsx tests/composite/trace-dataflow.ts dist/tests/<file>.gia --list-nodes
 ```
 
-### 3.8 查看某节点全部参数数据流
+### 3.9 查看某节点全部参数数据流
 
 ```bash
 npx tsx tests/composite/trace-dataflow.ts dist/tests/<file>.gia <node-id> --all-params
 ```
 
-### 3.9 快速检查 Stage 2 IR
+### 3.10 快速检查 Stage 2 IR
 
 ```bash
 node - <<'NODE'
@@ -167,7 +178,7 @@ for (const n of doc.nodes ?? []) {
 NODE
 ```
 
-### 3.10 提交前检查
+### 3.11 提交前检查
 
 ```bash
 git status --short
