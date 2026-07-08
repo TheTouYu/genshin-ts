@@ -24,10 +24,13 @@
 11. 导出文件名和图内 name 的 step 应保持同步，避免“文件 step9 但图内 step8”。每次生成新 step 或覆盖给用户验证前，先修改测试文件里的 `g.server({ name })`，再运行 `node bin/gsts.mjs ...` 生成 GIA。
 12. 主图普通布局测试优先使用高层 `f.xxx()` DSL；需要精确手动复刻控制拓扑时用当前推荐 raw API `f.entry()` / `f.node()` / `f.link()`。不要把 `f.registerExecNode()` 当作主图普通测试工具；它是自动串联 tail 的低层兼容/API，主图普通路径曾触发 `removeUnusedNodesFromFlow` 中 `record.args is not iterable` 的实现缺口。
 13. 覆盖游戏导入目录里的同名 `.gia` 前先 `rm -f` 删除旧文件。
-14. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
-15. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
-16. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
-17. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
+14. v2 复合验证给用户测试时，优先把待测 `.gia` 直接复制到游戏导入根目录 `Beyond_Local_Export`，不要只放在 `真-测试通过/v2/...`；分类目录可保留对照副本。
+15. 用户明确确认“测试通过/可以归档”后，再复制为 `真-测试通过/v2/<feature>/<case>-passed.gia`；不要把未确认的 step 文件命名为 `passed`。
+16. 复合 impl 内部常量默认值（如 `f.addition(args.x, new int(1n))` 里的 `1`）不应为了规避问题改成复合参数；如果游戏反馈默认值异常，应按 TS → `.gs.ts` → IR JSON → GIA 解码逐层定位。
+17. 不要把 handover 当当前 API 教程；API 用法以 `docs/architecture/composite/` 当前文档为准。
+18. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
+19. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
+20. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
 
 ---
 
@@ -116,6 +119,20 @@ rm -f "$export_dir/<export-name>.gia"
 cp dist/tests/<test-output>.gia "$export_dir/<export-name>.gia"
 ```
 
+说明：给用户游戏内验证的待测 GIA 优先放在这个根目录，方便游戏直接导入和辨认。`真-测试通过/v2/<feature>/` 可以放对照副本，但不要代替根目录导出。
+
+### 3.3.1 v2 通过后归档
+
+```bash
+export_dir='/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
+feature='<feature-name>'
+mkdir -p "$export_dir/真-测试通过/v2/$feature"
+rm -f "$export_dir/真-测试通过/v2/$feature/<case-name>-passed.gia"
+cp "$export_dir/<tested-name>.gia" "$export_dir/真-测试通过/v2/$feature/<case-name>-passed.gia"
+```
+
+说明：只有用户明确确认测试通过并允许归档后，才创建 `*-passed.gia`。
+
 ### 3.4 解码 GIA
 
 ```bash
@@ -194,7 +211,8 @@ npm run build
 7. 自动工具输出可以报告给用户，但不要用它覆盖用户游戏内视觉判断。
 8. 导出后如果用户说没看到变化，优先检查图内 name 是否更新、复制路径是否是根目录、旧文件是否被删除。
 9. 如果用户说某一步测试通过但还要做回归测试，先生成回归 `.gia`，等回归也通过再提交。
-10. 若用户要求“场景 X 标记通过”，应更新相关 handover / layout-patterns，并记录通过的文件名与 step。
+10. 用户确认测试通过后先提交相关代码/文档；若用户明确说“可以归档/归档”，再创建 `真-测试通过/v2/<feature>/<case>-passed.gia`。
+11. 若用户要求“场景 X 标记通过”，应更新相关 handover / layout-patterns，并记录通过的文件名与 step。
 
 ---
 
