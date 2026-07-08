@@ -18,6 +18,7 @@
 | 查控制流实战模式 | [`architecture/composite/control-flow-api-cookbook.md`](architecture/composite/control-flow-api-cookbook.md) | 混合了真实样本、源码推断和历史验证，阅读时看状态提示。 |
 | 分析 `.gia` 文件 | [`gia-tools-reference.md`](gia-tools-reference.md) | trace、decode、layout、diff 工具索引。 |
 | 查真实 GIA 逆向结论 | [`composite-ir/index.md`](composite-ir/index.md) | 真实文件验证和复合 IR 规律。 |
+| 复刻 `物理运动.gia` / 学习复杂 GIA API 写法 | [`composite-ir/physics-motion-recreate-guide.md`](composite-ir/physics-motion-recreate-guide.md) | 面向 AI 复刻真实复杂 GIA 的持续维护知识库；记录每轮确认过的系统 API、复合节点、参数来源和已知差异。 |
 | 查历史上下文 | [`composite-ir/handover/README.md`](composite-ir/handover/README.md) | 历史记录，不作为当前教程。 |
 
 ## 按来源找文档
