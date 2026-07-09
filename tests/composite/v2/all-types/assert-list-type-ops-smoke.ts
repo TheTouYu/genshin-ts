@@ -149,6 +149,13 @@ for (const a of data.accessories ?? []) {
     if (!nid || !listConsumerNodeIds.has(nid)) continue
     const actual = firstListInputType(node)
     checked.push(`${name} nodeIndex=${node.nodeIndex} nodeId=${nid} firstListInputType=${actual}`)
+
+    // searchListAndReturnValueId(...) returns int_list. The follow-up getListLength(ids)
+    // should therefore consume IntegerList even inside a bool/float/str/... outer case.
+    if (nid === 142 && actual === expectedListVarType.int && expected !== expectedListVarType.int) {
+      continue
+    }
+
     if (actual !== expected) {
       failures.push(
         `${name}: nodeIndex=${node.nodeIndex} nodeId=${nid} expected first list input VarType ${expected}, got ${actual}`

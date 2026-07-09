@@ -21,6 +21,7 @@ import {
 import { Graph, Node } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
+import { irTypeToNodeSuffix, irTypeToVarBaseClass, irTypeToVarType } from './vartype_map.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -308,27 +309,7 @@ function buildImplGraphNodes(
         const varName = nameArg.value
         const implVar = implVariables?.find(v => v.name === varName)
         if (implVar) {
-          // 从变量类型推导后缀（同 node_id.ts 中 suffixFromValueType 逻辑）
-          let suffix: string | undefined
-          const vt = implVar.type
-          if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(vt)) {
-            suffix = vt
-          } else if (vt === 'vec3') {
-            suffix = 'vec'
-          } else if (vt === 'config_id') {
-            suffix = 'config'
-          } else if (vt === 'prefab_id') {
-            suffix = 'prefab'
-          } else if (vt.endsWith('_list')) {
-            const base = vt.slice(0, -5)
-            if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'vec3', 'config_id', 'prefab_id', 'faction'].includes(base)) {
-              if (base === 'vec3') suffix = 'list_vec'
-              else if (base === 'config_id') suffix = 'list_config'
-              else if (base === 'prefab_id') suffix = 'list_prefab'
-              else if (base === 'faction') suffix = 'list_faction'
-              else suffix = `list_${base}`
-            }
-          }
+          const suffix = irTypeToNodeSuffix(implVar.type as any)
           if (suffix) {
             const nodeIdLower = getNodeIdLowerMap()
             const direct = nodeIdLower.get(`get_node_graph_variable__${suffix}`)
@@ -485,54 +466,11 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
  * 将 arg 的 IR literal type 映射为 VarBase_Class
  */
 function argVarBaseClass(argType: string): number {
-  switch (argType) {
-    case 'int': return VarBase_Class.IntBase
-    case 'float': return VarBase_Class.FloatBase
-    case 'bool': return VarBase_Class.EnumBase
-    case 'str': return VarBase_Class.StringBase
-    case 'vec3': return VarBase_Class.VectorBase
-    case 'entity':
-    case 'guid':
-    case 'faction':
-    case 'prefab_id':
-    case 'config_id':
-      return VarBase_Class.IdBase
-    default:
-      if (argType.endsWith('_list')) {
-        const elementType = argType.slice(0, -5)
-        return argVarBaseClass(elementType)
-      }
-      return 0
-  }
+  return irTypeToVarBaseClass(argType)
 }
 
 function argVarType(argType: string): number {
-  switch (argType) {
-    case 'bool': return VarType.Boolean
-    case 'int': return VarType.Integer
-    case 'float': return VarType.Float
-    case 'str': return VarType.String
-    case 'vec3': return VarType.Vector
-    case 'guid': return VarType.GUID
-    case 'entity': return VarType.Entity
-    case 'faction': return VarType.Faction
-    case 'prefab_id': return VarType.Prefab
-    case 'config_id': return VarType.Configuration
-    default:
-      if (argType.endsWith('_list')) {
-        const elementType = argType.slice(0, -5)
-        switch (elementType) {
-          case 'int': return VarType.IntegerList
-          case 'bool': return VarType.BooleanList
-          case 'float': return VarType.FloatList
-          case 'str': return VarType.StringList
-          case 'guid': return VarType.GUIDList
-          case 'entity': return VarType.EntityList
-          default: return 0
-        }
-      }
-      return 0
-  }
+  return irTypeToVarType(argType)
 }
 
 /**
@@ -1065,44 +1003,9 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
 // ============== 类型映射辅助 ==============
 
 function typeClassFromValueType(type: string): number {
-  switch (type) {
-    case 'int': return VarBase_Class.IntBase
-    case 'float': return VarBase_Class.FloatBase
-    case 'bool': return VarBase_Class.EnumBase
-    case 'str': return VarBase_Class.StringBase
-    case 'vec3': return VarBase_Class.VectorBase
-    case 'entity':
-    case 'guid':
-    case 'faction':
-    case 'prefab_id':
-    case 'config_id':
-      return VarBase_Class.IdBase
-    default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return typeClassFromValueType(elementType)
-      }
-      return 0
-  }
+  return irTypeToVarBaseClass(type)
 }
 
 function typeIdFromValueType(type: string): number {
-  switch (type) {
-    case 'bool': return VarType.Boolean
-    case 'int': return VarType.Integer
-    case 'float': return VarType.Float
-    case 'str': return VarType.String
-    case 'vec3': return VarType.Vector
-    case 'guid': return VarType.GUID
-    case 'entity': return VarType.Entity
-    case 'prefab_id': return VarType.Prefab
-    case 'config_id': return VarType.Configuration
-    case 'faction': return VarType.Faction
-    default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return typeIdFromValueType(elementType)
-      }
-      return 0
-  }
+  return irTypeToVarType(type)
 }

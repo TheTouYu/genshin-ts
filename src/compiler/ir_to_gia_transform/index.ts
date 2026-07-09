@@ -34,6 +34,13 @@ import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
+import {
+  irScalarTypeToNodeType,
+  irTypeToNodeType,
+  irTypeToVendorBaseTag,
+  type IrScalarType,
+  type VendorBaseTag
+} from './vartype_map.js'
 
 type IrToGiaOptimizeOptions = {
   timerDispatchAggregate?: boolean
@@ -51,52 +58,14 @@ function buildVarsByName(ir: IRDocument): Map<string, Variable> {
   return new Map<string, Variable>((ir.variables ?? []).map((v) => [v.name, v]))
 }
 
-type ScalarType =
-  | 'bool'
-  | 'int'
-  | 'float'
-  | 'str'
-  | 'vec3'
-  | 'guid'
-  | 'entity'
-  | 'prefab_id'
-  | 'config_id'
-  | 'faction'
+type ScalarType = IrScalarType
 
 function baseNodeType(type: ScalarType): NodeType {
-  switch (type) {
-    case 'bool':
-      return { t: 'b', b: 'Bol' }
-    case 'int':
-      return { t: 'b', b: 'Int' }
-    case 'float':
-      return { t: 'b', b: 'Flt' }
-    case 'str':
-      return { t: 'b', b: 'Str' }
-    case 'vec3':
-      return { t: 'b', b: 'Vec' }
-    case 'guid':
-      return { t: 'b', b: 'Gid' }
-    case 'entity':
-      return { t: 'b', b: 'Ety' }
-    case 'prefab_id':
-      return { t: 'b', b: 'Pfb' }
-    case 'config_id':
-      return { t: 'b', b: 'Cfg' }
-    case 'faction':
-      return { t: 'b', b: 'Fct' }
-  }
+  return irScalarTypeToNodeType(type)
 }
 
 function valueTypeToNodeType(type: ValueType | DictKeyType | DictValueType): NodeType {
-  if (type.endsWith('_list')) {
-    const base = type.slice(0, -5) as ScalarType
-    return { t: 'l', i: baseNodeType(base) }
-  }
-  if (type === 'dict') {
-    throw new Error('[error] dict type requires key/value types')
-  }
-  return baseNodeType(type as ScalarType)
+  return irTypeToNodeType(type as ValueType)
 }
 
 function dictNodeType(k: DictKeyType, v: DictValueType): NodeType {
@@ -175,37 +144,8 @@ function extractCompositeIdFromArgs(args: Argument[] | undefined): number | unde
   return Number(arg.value)
 }
 
-function compositeTypeToBaseTag(
-  type: string
-): 'Str' | 'Bol' | 'Int' | 'Flt' | 'Vec' | 'Ety' | 'Gid' | 'Cfg' | 'Fct' | 'Pfb' | null {
-  switch (type) {
-    case 'bool':
-      return 'Bol'
-    case 'int':
-      return 'Int'
-    case 'float':
-      return 'Flt'
-    case 'str':
-      return 'Str'
-    case 'vec3':
-      return 'Vec'
-    case 'guid':
-      return 'Gid'
-    case 'entity':
-      return 'Ety'
-    case 'faction':
-      return 'Fct'
-    case 'config_id':
-      return 'Cfg'
-    case 'prefab_id':
-      return 'Pfb'
-    default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return compositeTypeToBaseTag(elementType)
-      }
-      return null
-  }
+function compositeTypeToBaseTag(type: string): VendorBaseTag | null {
+  return irTypeToVendorBaseTag(type)
 }
 
 function resolveServerGraphMode(graphType: ServerGraphSubType | undefined): ServerGraphMode {

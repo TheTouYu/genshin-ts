@@ -13,6 +13,7 @@
 |---|---|---|
 | 写普通 DSL 脚本 | `docs/docs/en/` / `docs/docs/zh/` | Rspress 用户文档，面向普通使用。 |
 | 理解编译管线 | [`architecture/composite/pipeline-flow.md`](architecture/composite/pipeline-flow.md) | TS 到 IR 到 GIA 的正向实现视角。 |
+| 审计复合节点是否复用普通系统节点 | [`architecture/composite/system-node-reuse-audit.md`](architecture/composite/system-node-reuse-audit.md) | 第六轮 all-types 后的当前推荐入口：复用分层、差距表、重构路线和测试矩阵。 |
 | 使用复合节点 API | [`architecture/composite/dsl-api.md`](architecture/composite/dsl-api.md) | `g.defineComposite`、`f.callComposite`、类型和调用语义。 |
 | 手动复刻控制流拓扑 | [`architecture/composite/raw-control-flow-dsl-quickstart.md`](architecture/composite/raw-control-flow-dsl-quickstart.md) | 当前低层控制流权威入口。 |
 | 查控制流实战模式 | [`architecture/composite/control-flow-api-cookbook.md`](architecture/composite/control-flow-api-cookbook.md) | 混合了真实样本、源码推断和历史验证，阅读时看状态提示。 |
@@ -31,6 +32,7 @@
 - [`architecture/composite/capture-mechanism.md`](architecture/composite/capture-mechanism.md)
 - [`architecture/composite/ir-representation.md`](architecture/composite/ir-representation.md)
 - [`architecture/composite/gia-encoding.md`](architecture/composite/gia-encoding.md)
+- [`architecture/composite/system-node-reuse-audit.md`](architecture/composite/system-node-reuse-audit.md)
 - [`architecture/runtime-dsl.md`](architecture/runtime-dsl.md)
 
 注意：部分旧实现文档仍含 `leafMarks`、`outflowExitNodes`、`f.leaf()` 等历史结构。当前实现以 `CompositeCapture.inflowMarks/outflowMarks`、`f.inflow()`、`f.outflow()` 和 raw control-flow DSL 为准。
@@ -77,6 +79,7 @@ docs/
 | 主题 | 重复位置 | 当前处理 |
 |---|---|---|
 | 低层控制流 API | `dsl-api.md`、`control-flow-api-cookbook.md`、`raw-control-flow-dsl-quickstart.md`、多个 handover | 以 raw quickstart 为权威入口，其它文档只保留上下文和链接。 |
+| 复合 impl 与普通系统节点编码复用 | `gia-encoding.md`、`testing.md`、v2-r6 handover、后续修复记录 | 以 `system-node-reuse-audit.md` 为架构入口；具体编码细节仍在 `gia-encoding.md`。 |
 | 多 OutFlow / 多 InFlow | `multi-outflow-composite-guide.md`、`dsl-api.md`、`01-ir-types.md`、cookbook | 标清实现状态：当前代码已支持多 OutFlow 和多 InFlow；旧 guide 是历史分析。 |
 | `leafMarks/outflowExitNodes` | `capture-mechanism.md`、`runtime-dsl.md`、`01-ir-types.md`、旧 handover | 当前实现改为 `outflowMarks/inflowMarks`；旧字段只作为历史。 |
 | 工具用法 | `gia-tools-reference.md`、`analyze-workflow.md`、handover | `gia-tools-reference.md` 做工具索引；真实 GIA 结论保留命令证据。 |

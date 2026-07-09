@@ -6,7 +6,7 @@
 > 适用范围：gsts 当前复合节点测试脚本和验证流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
-> 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [管线追踪](./pipeline-flow.md)
+> 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [管线追踪](./pipeline-flow.md) | [系统节点复用审计](./system-node-reuse-audit.md)
 
 ---
 
@@ -178,7 +178,23 @@ Part 1 的 `.gia` 参考文件需要手动维护。新增测试用例时：
 
 ---
 
-## 6. 已知限制
+## 6. 系统节点复用测试矩阵
+
+第六轮 `all-types` 验证后，复合测试不能只停留在“能生成 `.gia`”或“少量参考文件 diff”。对于普通 `f.*` 系统节点被包进 `g.defineComposite(... build ...)` 的场景，应按 [系统节点复用审计](./system-node-reuse-audit.md) 建立分层矩阵：
+
+| 层级 | 验证目标 | 示例 |
+|---|---|---|
+| L0 类型映射 | scalar/list 类型到 VarType、VarBase_Class、vendor base tag、node suffix 的统一映射 | `bool/int/.../faction_list` |
+| L1 普通主图 vs composite impl | 同一 `f.*` 调用在普通主图和 impl graph 中的 node ID、pin type、literal、connect 是否一致 | 自动生成对照 `.gia` 后 decode 比较 |
+| L2 list 全类型 × 操作 | 所有 list element type 覆盖 list 生产/消费/修改/遍历 | `tests/composite/v2/all-types/list-type-ops-smoke.ts` |
+| L3 dict key/value 矩阵 | typed dict node ID、key/value pin、keys/values output list 类型 | 后续新增 dict smoke/assert 脚本 |
+| L4 CompositeDef interface | `CompositeDef.inputs[]` / `outputs[]` 的 type1/type2 是否与 impl 和调用边界一致 | list 类型不能退化成 scalar VarType |
+| L5 enum/signal/variable/event | 普通路径 special handling 较多的节点类别 | enum literal、signal payload、graph variable |
+| L6 游戏内验证 | 自动断言通过后的少量代表 `.gia` 导入/打开/运行 | 用户或人工反馈归档 |
+
+后续新增 composite all-types 测试时，应记录每个方法在 API、IR、Node ID、InParam、OutParam、literal、data connect、exec connect、special args、自动验证、游戏内验证等维度的状态，而不是只记录生成成功。
+
+## 7. 已知限制
 
 | 限制 | 影响 | 状态 |
 |------|------|------|

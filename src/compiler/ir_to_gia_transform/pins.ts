@@ -1,10 +1,10 @@
 import { Pin } from '../gia_vendor.js'
 import { GiaNode } from './index.js'
 import { parseEnumValue } from './mappings.js'
+import { irTypeToVendorBaseTag } from './vartype_map.js'
 
 type BasicValue = number | string | boolean | [number, number, number]
 
-type BaseTag = 'Bol' | 'Int' | 'Flt' | 'Str' | 'Vec' | 'Gid' | 'Ety' | 'Fct' | 'Cfg' | 'Pfb'
 const CLIENT_EXEC_PIN_KIND = 5
 
 function pinKind(p: Pin | undefined): number | undefined {
@@ -17,33 +17,6 @@ function getPinIndex(p: Pin | undefined): number | undefined {
   if (!p) return undefined
   // @ts-ignore 强制访问私有变量
   return p.index
-}
-
-function toVendorBaseTag(argType: string): BaseTag | null {
-  switch (argType) {
-    case 'bool':
-      return 'Bol'
-    case 'int':
-      return 'Int'
-    case 'float':
-      return 'Flt'
-    case 'str':
-      return 'Str'
-    case 'vec3':
-      return 'Vec'
-    case 'guid':
-      return 'Gid'
-    case 'entity':
-      return 'Ety'
-    case 'faction':
-      return 'Fct'
-    case 'config_id':
-      return 'Cfg'
-    case 'prefab_id':
-      return 'Pfb'
-    default:
-      return null
-  }
 }
 
 function ensureInputPin(node: GiaNode, pinIndex: number): Pin {
@@ -120,12 +93,12 @@ export function setLiteralArgValue(
 
   if (argType.endsWith('_list')) {
     const listBase = argType.slice(0, -5)
-    const itemBase = toVendorBaseTag(listBase)
+    const itemBase = irTypeToVendorBaseTag(listBase)
     if (itemBase) {
       pin.setType({ t: 'l', i: { t: 'b', b: itemBase } })
     }
   } else {
-    const base = toVendorBaseTag(argType)
+    const base = irTypeToVendorBaseTag(argType)
     if (base) {
       pin.setType({ t: 'b', b: base })
     }

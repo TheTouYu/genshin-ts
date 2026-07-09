@@ -80,7 +80,13 @@ const PROFILE_METHODS = {
     'getLocalVariable',
     'setLocalVariable'
   ])
-} satisfies Record<string, Set<string>>
+}
+
+type ProfileName = keyof typeof PROFILE_METHODS
+
+function isProfileName(name: string): name is ProfileName {
+  return Object.prototype.hasOwnProperty.call(PROFILE_METHODS, name)
+}
 
 const COMPOSITE_UNSAFE_METHODS = new Set([
   'defineComposite',
@@ -232,13 +238,14 @@ function main() {
   const enumTsPath = path.join(repoRoot, 'src/definitions/enum.ts')
   const outDir = path.join(repoRoot, 'tests/composite/v2/all-types/generated')
   const selectedProfiles = process.argv.slice(2)
-  const profileNames = selectedProfiles.length ? selectedProfiles : Object.keys(PROFILE_METHODS)
-
-  for (const profileName of profileNames) {
-    if (!PROFILE_METHODS[profileName]) {
-      throw new Error(`unknown composite test profile: ${profileName}`)
-    }
-  }
+  const profileNames = selectedProfiles.length
+    ? selectedProfiles.map((name) => {
+        if (!isProfileName(name)) {
+          throw new Error(`unknown composite test profile: ${name}`)
+        }
+        return name
+      })
+    : (Object.keys(PROFILE_METHODS) as ProfileName[])
 
   const vendorKeysLower = readVendorNodeIdKeysLower(repoRoot)
   const enumPick = loadEnumPicks(enumTsPath)

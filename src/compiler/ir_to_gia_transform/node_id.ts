@@ -15,6 +15,7 @@ import {
   SPECIAL_NODE_MAPPINGS
 } from './mappings.js'
 import { IRNode } from './types.js'
+import { irTypeToNodeSuffix } from './vartype_map.js'
 
 export type ConnTypeInfo =
   | { type: Exclude<ValueType, 'dict' | 'enum'> }
@@ -89,28 +90,7 @@ export function buildConnTypeIndex(ir: IRDocument): ConnTypeIndex {
 }
 
 function suffixFromValueType(valueType: ValueType): string | undefined {
-  switch (valueType) {
-    case 'bool':
-    case 'int':
-    case 'float':
-    case 'str':
-    case 'guid':
-    case 'entity':
-    case 'faction':
-      return valueType
-    case 'vec3':
-      return 'vec'
-    case 'config_id':
-      return 'config'
-    case 'prefab_id':
-      return 'prefab'
-  }
-  if (valueType.endsWith('_list')) {
-    const base = valueType.slice(0, -5) as ValueType
-    const baseSuffix = suffixFromValueType(base)
-    return baseSuffix ? `list_${baseSuffix}` : undefined
-  }
-  return undefined
+  return irTypeToNodeSuffix(valueType)
 }
 
 const ENUM_NAME_ALIASES: Record<string, string> = {
