@@ -8474,12 +8474,6 @@
             "kind": "input",
             "type": "dict",
             "clientVarType": 24
-          },
-          {
-            "index": 0,
-            "kind": "output",
-            "type": "int_list",
-            "clientVarType": 4
           }
         ]
       }
@@ -19217,12 +19211,6 @@
             "kind": "input",
             "type": "dict",
             "clientVarType": 24
-          },
-          {
-            "index": 0,
-            "kind": "output",
-            "type": "int_list",
-            "clientVarType": 4
           }
         ]
       }
@@ -29066,12 +29054,6 @@
             "kind": "input",
             "type": "dict",
             "clientVarType": 24
-          },
-          {
-            "index": 0,
-            "kind": "output",
-            "type": "int_list",
-            "clientVarType": 4
           }
         ]
       }

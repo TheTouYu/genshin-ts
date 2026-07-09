@@ -117,7 +117,14 @@ const HAND_NODE_TYPES = new Set([
   'multiple_branches',
   'data_type_conversion',
   'get_custom_variable',
-  'send_signal_to_server_node_graph'
+  'send_signal_to_server_node_graph',
+  // 字典反射节点：键/值类型不体现在 cid/引脚变体上，样本推导必然产生假确定
+  // 类型（如 entity[] vs bigint[] 漂移），改为服务器对齐的泛型手写模板
+  'get_list_of_values_from_dictionary',
+  'get_list_of_keys_from_dictionary',
+  'query_dictionary_value_by_key',
+  'query_if_dictionary_contains_specific_key',
+  'query_if_dictionary_contains_specific_value'
 ])
 
 // ---------------------------------------------------------------------------
@@ -1590,6 +1597,185 @@ function emitGetCustomVariable(subType: string, doc: AlignedDocNode | undefined)
   }`
 }
 
+/** 按中文参数名取入参双语 JSDoc 文本（docParamText 只取首个入参，不适用于多参节点） */
+function docParamTextByZhName(
+  doc: AlignedDocNode | undefined,
+  zhName: string
+): { en: string; zh: string } {
+  const zhIns = doc?.zh.params.filter((p) => p.io !== 'out') ?? []
+  const enIns = doc?.en.params.filter((p) => p.io !== 'out') ?? []
+  const idx = zhIns.findIndex((p) => p.name === zhName)
+  const zh = idx >= 0 ? zhIns[idx] : undefined
+  const en = idx >= 0 ? enIns[idx] : undefined
+  return {
+    en: sanitizeDocText(en?.description ?? ''),
+    zh: zh ? `${zh.name}${zh.description ? `: ${sanitizeDocText(zh.description)}` : ''}` : zhName
+  }
+}
+
+function docReturnText(doc: AlignedDocNode | undefined, zhFallback: string): { en: string; zh: string } {
+  const zh = doc?.zh.params.find((p) => p.io === 'out')
+  const en = doc?.en.params.find((p) => p.io === 'out')
+  return {
+    en: sanitizeDocText(en?.description ?? ''),
+    zh: zh ? `${zh.name}${zh.description ? `: ${sanitizeDocText(zh.description)}` : ''}` : zhFallback
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Dictionary reflect nodes (server-parity generics)
+//
+// 字典的键/值类型不体现在 concreteId（恒定 1050..1055）或输入引脚变体上，
+// 无法从样本推导确定的出参类型；与服务器同款：签名用 dict<K, V> 泛型，
+// 运行时从字典对象读取键/值类型构造返回值。
+// ---------------------------------------------------------------------------
+
+function emitGetListOfValuesFromDictionary(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '字典')
+  return `${controlFlowJsdoc(
+    doc,
+    '获取字典中值组成的列表',
+    [{ ident: 'dictionary', en: p0.en, zh: p0.zh }],
+    docReturnText(doc, '值列表')
+  )}
+  getListOfValuesFromDictionary<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>): RuntimeReturnValueTypeMap[\`\${V}_list\`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_values_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list(valueType)
+    ret.markPin(ref, 'valueList', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[\`\${V}_list\`]
+  }`
+}
+
+function emitGetListOfKeysFromDictionary(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '字典')
+  return `${controlFlowJsdoc(
+    doc,
+    '获取字典中键组成的列表',
+    [{ ident: 'dictionary', en: p0.en, zh: p0.zh }],
+    docReturnText(doc, '键列表')
+  )}
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[\`\${K}_list\`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_keys_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list(dictionaryObj.getKeyType())
+    ret.markPin(ref, 'keyList', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[\`\${K}_list\`]
+  }`
+}
+
+function emitQueryDictionaryValueByKey(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '字典')
+  const p1 = docParamTextByZhName(doc, '键')
+  return `${controlFlowJsdoc(
+    doc,
+    '以键查询字典值',
+    [
+      { ident: 'dictionary', en: p0.en, zh: p0.zh },
+      { ident: 'key', en: p1.en, zh: p1.zh }
+    ],
+    docReturnText(doc, '值')
+  )}
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_value_by_key',
+      args: [dictionaryObj, keyObj]
+    })
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
+    ret.markPin(ref, 'value', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
+  }`
+}
+
+function emitQueryIfDictionaryContainsSpecificKey(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '字典')
+  const p1 = docParamTextByZhName(doc, '键')
+  return `${controlFlowJsdoc(
+    doc,
+    '查询字典是否包含特定键',
+    [
+      { ident: 'dictionary', en: p0.en, zh: p0.zh },
+      { ident: 'key', en: p1.en, zh: p1.zh }
+    ],
+    docReturnText(doc, '是否包含')
+  )}
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_key',
+      args: [dictionaryObj, keyObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }`
+}
+
+function emitQueryIfDictionaryContainsSpecificValue(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '字典')
+  const p1 = docParamTextByZhName(doc, '值')
+  return `${controlFlowJsdoc(
+    doc,
+    '查询字典是否包含特定值',
+    [
+      { ident: 'dictionary', en: p0.en, zh: p0.zh },
+      { ident: 'value', en: p1.en, zh: p1.zh }
+    ],
+    docReturnText(doc, '是否包含')
+  )}
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_value',
+      args: [dictionaryObj, valueObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }`
+}
+
 function emitSendSignalToServer(doc: AlignedDocNode | undefined): string {
   return `${controlFlowJsdoc(doc, '向服务器节点图发送信号', [{ ident: 'signalName', en: 'Signal name', zh: '信号名' }])}
   sendSignalToServerNodeGraph(signalName: StrValue): void {
@@ -1718,6 +1904,26 @@ export function generateClientNodes(
         case 'send_signal_to_server_node_graph':
           texts.push(emitSendSignalToServer(doc))
           names.push('sendSignalToServerNodeGraph')
+          break
+        case 'get_list_of_values_from_dictionary':
+          texts.push(emitGetListOfValuesFromDictionary(doc))
+          names.push('getListOfValuesFromDictionary')
+          break
+        case 'get_list_of_keys_from_dictionary':
+          texts.push(emitGetListOfKeysFromDictionary(doc))
+          names.push('getListOfKeysFromDictionary')
+          break
+        case 'query_dictionary_value_by_key':
+          texts.push(emitQueryDictionaryValueByKey(doc))
+          names.push('queryDictionaryValueByKey')
+          break
+        case 'query_if_dictionary_contains_specific_key':
+          texts.push(emitQueryIfDictionaryContainsSpecificKey(doc))
+          names.push('queryIfDictionaryContainsSpecificKey')
+          break
+        case 'query_if_dictionary_contains_specific_value':
+          texts.push(emitQueryIfDictionaryContainsSpecificValue(doc))
+          names.push('queryIfDictionaryContainsSpecificValue')
           break
       }
       continue
@@ -1848,16 +2054,34 @@ ${texts.join('\n\n')}
   })
 
   const bodyText = classes.join('\n\n')
-  const usesIdent = (name: string) => new RegExp(`\\b${name}\\b`).test(bodyText)
+  // 服务器同款字典值类型窄化辅助；仅在字典节点生成时注入
+  const dictHelpers = /\bisListType\(/.test(bodyText)
+    ? `function isListType(type: DictValueType): type is keyof CommonLiteralValueListTypeMap {
+  return type.endsWith('_list')
+}
+
+function getBaseValueType(
+  type: keyof CommonLiteralValueListTypeMap
+): keyof CommonLiteralValueTypeMap {
+  return type.replace('_list', '') as keyof CommonLiteralValueTypeMap
+}
+
+`
+    : ''
+  const usesIdent = (name: string) => new RegExp(`\\b${name}\\b`).test(dictHelpers + bodyText)
 
   const valueClassImports = [
     'bool', 'configId', 'dict', 'entity', 'enumeration', 'faction', 'float', 'generic', 'guid',
     'int', 'list', 'prefabId', 'str', 'vec3', 'ValueClassMap'
   ].filter(usesIdent)
   const valueTypeImports = [
-    'BoolValue', 'ConfigIdValue', 'DictValue', 'EntityValue', 'EnumerationValue', 'FactionValue',
-    'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue', 'StrValue', 'Vec3Value', 'value'
+    'BoolValue', 'ConfigIdValue', 'DictKeyType', 'DictValue', 'DictValueType', 'EntityValue',
+    'EnumerationValue', 'FactionValue', 'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue',
+    'StrValue', 'Vec3Value', 'value'
   ].filter(usesIdent)
+  const irTypeImports = ['CommonLiteralValueListTypeMap', 'CommonLiteralValueTypeMap'].filter(
+    usesIdent
+  )
   const nodesImports = ['matchTypes', 'parseValue'].filter(usesIdent)
   const serverEnumImports = [
     ...enumBinding.serverClasses,
@@ -1898,11 +2122,11 @@ const DATA_TYPE_CONVERSIONS = new Set([
   'faction->str'
 ])
 
-${enumImportLines.length ? `${enumImportLines.join('\n')}\n` : ''}import type { RuntimeParameterValueTypeMap, RuntimeReturnValueTypeMap } from '../runtime/value.js'
+${enumImportLines.length ? `${enumImportLines.join('\n')}\n` : ''}${irTypeImports.length ? `import type { ${irTypeImports.join(', ')} } from '../runtime/IR.js'\n` : ''}import type { RuntimeParameterValueTypeMap, RuntimeReturnValueTypeMap } from '../runtime/value.js'
 import type { DataTypeConversionMap } from './nodes.js'
 import { ${nodesImports.join(', ')} } from './nodes.js'
 
-class ClientExecutionFlowFunctionsBase {
+${dictHelpers}class ClientExecutionFlowFunctionsBase {
   constructor(protected registry: ExecutionFlowRegistry) {}
 }
 

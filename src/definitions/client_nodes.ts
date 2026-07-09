@@ -3,6 +3,7 @@
 // + resources/node_definitions.json (official bilingual docs). Do not edit.
 
 import type { ExecutionFlowRegistry } from '../runtime/core.js'
+import type { CommonLiteralValueListTypeMap, CommonLiteralValueTypeMap } from '../runtime/IR.js'
 import {
   bool,
   configId,
@@ -21,7 +22,9 @@ import {
   vec3,
   type BoolValue,
   type ConfigIdValue,
+  type DictKeyType,
   type DictValue,
+  type DictValueType,
   type EntityValue,
   type FactionValue,
   type FloatValue,
@@ -102,6 +105,16 @@ const DATA_TYPE_CONVERSIONS = new Set([
   'vec3->str',
   'faction->str'
 ])
+
+function isListType(type: DictValueType): type is keyof CommonLiteralValueListTypeMap {
+  return type.endsWith('_list')
+}
+
+function getBaseValueType(
+  type: keyof CommonLiteralValueListTypeMap
+): keyof CommonLiteralValueTypeMap {
+  return type.replace('_list', '') as keyof CommonLiteralValueTypeMap
+}
 
 class ClientExecutionFlowFunctionsBase {
   constructor(protected registry: ExecutionFlowRegistry) {}
@@ -1901,19 +1914,19 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 键列表
    */
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[]
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_keys_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
   }
 
   /**
@@ -1950,19 +1963,20 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): bigint[]
-  getListOfValuesFromDictionary(dictionary: DictValue): bigint[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('int')
+    const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as bigint[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -3023,6 +3037,45 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.
+   *
+   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 值
+   */
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_value_by_key',
+      args: [dictionaryObj, keyObj]
+    })
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
+    ret.markPin(ref, 'value', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
+  }
+
+  /**
    * Searches for an Entity by GUID
    *
    * 以GUID查询实体: 根据GUID查询实体
@@ -3116,12 +3169,12 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean
-  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const keyType = matchTypes(['entity'], key)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const keyObj = parseValue(key, keyType)
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -3149,12 +3202,12 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const valueType = matchTypes(['entity'], value)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const valueObj = parseValue(value, valueType)
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -8174,19 +8227,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 键列表
    */
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[]
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_keys_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
   }
 
   /**
@@ -8223,19 +8276,20 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): bigint[]
-  getListOfValuesFromDictionary(dictionary: DictValue): bigint[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('int')
+    const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as bigint[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -9795,6 +9849,45 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   }
 
   /**
+   * Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.
+   *
+   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 值
+   */
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_value_by_key',
+      args: [dictionaryObj, keyObj]
+    })
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
+    ret.markPin(ref, 'value', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
+  }
+
+  /**
    * Searches for an Entity by GUID
    *
    * 以GUID查询实体: 根据GUID查询实体
@@ -9888,12 +9981,12 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean
-  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const keyType = matchTypes(['entity'], key)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const keyObj = parseValue(key, keyType)
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -9921,12 +10014,12 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const valueType = matchTypes(['entity'], value)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const valueObj = parseValue(value, valueType)
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -14363,19 +14456,19 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 键列表
    */
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[]
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_keys_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
   }
 
   /**
@@ -14412,19 +14505,20 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): bigint[]
-  getListOfValuesFromDictionary(dictionary: DictValue): bigint[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('int')
+    const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as bigint[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -15452,6 +15546,45 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.
+   *
+   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 值
+   */
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_value_by_key',
+      args: [dictionaryObj, keyObj]
+    })
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
+    ret.markPin(ref, 'value', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
+  }
+
+  /**
    * Searches for an Entity by GUID
    *
    * 以GUID查询实体: 根据GUID查询实体
@@ -15545,12 +15678,12 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean
-  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const keyType = matchTypes(['entity'], key)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const keyObj = parseValue(key, keyType)
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -15578,12 +15711,12 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const valueType = matchTypes(['entity'], value)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const valueObj = parseValue(value, valueType)
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -19217,7 +19350,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   /**
    * Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.
    *
-   * 查询字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
+   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
    *
    * @param dictionary
    *
@@ -19227,25 +19360,25 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 键列表
    */
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[]
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_keys_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
   }
 
   /**
    * Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.
    *
-   * 查询字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
+   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
    *
    * @param dictionary
    *
@@ -19255,19 +19388,20 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[]
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -20251,21 +20385,27 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 值
    */
-  queryDictionaryValueByKey(dictionary: DictValue, key: EntityValue): entity
-  queryDictionaryValueByKey(dictionary: DictValue, key: EntityValue): entity {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const keyType = matchTypes(['entity'], key)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const keyObj = parseValue(key, keyType)
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'query_dictionary_value_by_key',
       args: [dictionaryObj, keyObj]
     })
-    const ret = new entity()
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as entity
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
   }
 
   /**
@@ -20295,6 +20435,39 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Query if the specified dictionary contains a specific key
+   *
+   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_key',
+      args: [dictionaryObj, keyObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Query if the specified dictionary contains a specific value
    *
    * 查询字典是否包含特定值: 查询指定字典是否包含特定的值
@@ -20310,12 +20483,12 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const valueType = matchTypes(['entity'], value)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const valueObj = parseValue(value, valueType)
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -22676,7 +22849,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   /**
    * Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.
    *
-   * 查询字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
+   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
    *
    * @param dictionary
    *
@@ -22686,25 +22859,25 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 键列表
    */
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[]
-  getListOfKeysFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_keys_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
   }
 
   /**
    * Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.
    *
-   * 查询字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
+   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
    *
    * @param dictionary
    *
@@ -22714,19 +22887,20 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[]
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[] {
-    const genericType = matchTypes(['dict'], dictionary)
-    const dictionaryObj = parseValue(dictionary, genericType)
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -23713,21 +23887,27 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 值
    */
-  queryDictionaryValueByKey(dictionary: DictValue, key: EntityValue): entity
-  queryDictionaryValueByKey(dictionary: DictValue, key: EntityValue): entity {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const keyType = matchTypes(['entity'], key)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const keyObj = parseValue(key, keyType)
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'query_dictionary_value_by_key',
       args: [dictionaryObj, keyObj]
     })
-    const ret = new entity()
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as entity
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
   }
 
   /**
@@ -23757,6 +23937,39 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 
   /**
+   * Query if the specified dictionary contains a specific key
+   *
+   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_key',
+      args: [dictionaryObj, keyObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Query if the specified dictionary contains a specific value
    *
    * 查询字典是否包含特定值: 查询指定字典是否包含特定的值
@@ -23772,12 +23985,12 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 是否包含
    */
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean
-  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean {
-    const dictionaryType = matchTypes(['dict'], dictionary)
-    const valueType = matchTypes(['entity'], value)
-    const dictionaryObj = parseValue(dictionary, dictionaryType)
-    const valueObj = parseValue(value, valueType)
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',

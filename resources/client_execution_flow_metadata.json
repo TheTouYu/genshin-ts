@@ -3364,46 +3364,6 @@
     }
   },
   {
-    "methodName": "getListOfKeysFromDictionary",
-    "nodeType": "get_list_of_keys_from_dictionary",
-    "subTypes": [
-      "character_control_skill",
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "dictionary",
-        "irType": "dict",
-        "docZh": "字典",
-        "docEn": "Dictionary"
-      }
-    ],
-    "returns": [
-      {
-        "name": "keyList",
-        "irType": "entity_list",
-        "docZh": "键列表",
-        "docEn": "Key List"
-      }
-    ],
-    "docs": {
-      "en": "Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.",
-      "zh": "获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列"
-    },
-    "reflect": {
-      "variantKeys": [
-        "dict"
-      ]
-    }
-  },
-  {
     "methodName": "getListOfPlayerEntitiesOnTheField",
     "nodeType": "get_list_of_player_entities_on_the_field",
     "subTypes": [
@@ -3429,81 +3389,6 @@
     "docs": {
       "en": "Returns a list of all Player Entities present in the scene",
       "zh": "获取在场所有玩家实体组成的列表"
-    }
-  },
-  {
-    "methodName": "getListOfValuesFromDictionary",
-    "nodeType": "get_list_of_values_from_dictionary",
-    "subTypes": [
-      "character_control_skill",
-      "character_skill",
-      "creation_skill"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "dictionary",
-        "irType": "dict",
-        "docZh": "字典",
-        "docEn": "Dictionary"
-      }
-    ],
-    "returns": [
-      {
-        "name": "valueList",
-        "irType": "int_list",
-        "docZh": "值列表",
-        "docEn": "Value List"
-      }
-    ],
-    "docs": {
-      "en": "Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.",
-      "zh": "获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列"
-    },
-    "reflect": {
-      "variantKeys": [
-        "dict"
-      ]
-    }
-  },
-  {
-    "methodName": "getListOfValuesFromDictionary",
-    "nodeType": "get_list_of_values_from_dictionary",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "dictionary",
-        "irType": "dict",
-        "docZh": "字典",
-        "docEn": "Dictionary"
-      }
-    ],
-    "returns": [
-      {
-        "name": "valueList",
-        "irType": "entity_list",
-        "docZh": "值列表",
-        "docEn": "Value List"
-      }
-    ],
-    "docs": {
-      "en": "Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.",
-      "zh": "获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列"
-    },
-    "reflect": {
-      "variantKeys": [
-        "dict"
-      ]
     }
   },
   {
@@ -5702,49 +5587,6 @@
     }
   },
   {
-    "methodName": "queryDictionaryValueByKey",
-    "nodeType": "query_dictionary_value_by_key",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "dictionary",
-        "irType": "dict",
-        "docZh": "字典",
-        "docEn": "Dictionary"
-      },
-      {
-        "name": "key",
-        "irType": "entity",
-        "docZh": "键",
-        "docEn": "Key"
-      }
-    ],
-    "returns": [
-      {
-        "name": "value",
-        "irType": "entity",
-        "docZh": "值",
-        "docEn": "Value"
-      }
-    ],
-    "docs": {
-      "en": "Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.",
-      "zh": "根据键查询字典中对应的值，如果键不存在，则返回类型默认值"
-    },
-    "reflect": {
-      "variantKeys": [
-        "dict|entity"
-      ]
-    }
-  },
-  {
     "methodName": "queryEntityByGuid",
     "nodeType": "query_entity_by_guid",
     "subTypes": [
@@ -5879,96 +5721,6 @@
     "docs": {
       "en": "Searches for the GUID of the specified Entity",
       "zh": "查询指定实体的GUID"
-    }
-  },
-  {
-    "methodName": "queryIfDictionaryContainsSpecificKey",
-    "nodeType": "query_if_dictionary_contains_specific_key",
-    "subTypes": [
-      "character_control_skill",
-      "character_skill",
-      "creation_skill"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "dictionary",
-        "irType": "dict",
-        "docZh": "字典",
-        "docEn": "Dictionary"
-      },
-      {
-        "name": "key",
-        "irType": "entity",
-        "docZh": "键",
-        "docEn": "Key"
-      }
-    ],
-    "returns": [
-      {
-        "name": "include",
-        "irType": "bool",
-        "docZh": "是否包含",
-        "docEn": "Include"
-      }
-    ],
-    "docs": {
-      "en": "Query if the specified dictionary contains a specific key",
-      "zh": "查询指定字典是否包含特定的键"
-    },
-    "reflect": {
-      "variantKeys": [
-        "dict|entity"
-      ]
-    }
-  },
-  {
-    "methodName": "queryIfDictionaryContainsSpecificValue",
-    "nodeType": "query_if_dictionary_contains_specific_value",
-    "subTypes": [
-      "character_control_skill",
-      "character_skill",
-      "creation_skill",
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "dictionary",
-        "irType": "dict",
-        "docZh": "字典",
-        "docEn": "Dictionary"
-      },
-      {
-        "name": "value",
-        "irType": "entity",
-        "docZh": "值",
-        "docEn": "Value"
-      }
-    ],
-    "returns": [
-      {
-        "name": "include",
-        "irType": "bool",
-        "docZh": "是否包含",
-        "docEn": "Include"
-      }
-    ],
-    "docs": {
-      "en": "Query if the specified dictionary contains a specific value",
-      "zh": "查询指定字典是否包含特定的值"
-    },
-    "reflect": {
-      "variantKeys": [
-        "dict|entity"
-      ]
     }
   },
   {

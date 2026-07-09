@@ -387,7 +387,12 @@ function deriveReflectMap(
   agg: GidAggregate,
   reflectiveInputIndexes: number[],
   reflectiveOutputIndexes: number[]
-): { variants: ReflectVariant[]; conflicts: string[]; underived: number[] } {
+): {
+  variants: ReflectVariant[]
+  conflicts: string[]
+  underived: number[]
+  outputDrifts: string[]
+} {
   const byConcrete = new Map<number, Map<string, number>>()
   for (const inst of agg.instances) {
     if (inst.concreteId === undefined) continue
@@ -413,6 +418,7 @@ function deriveReflectMap(
 
   const variants: ReflectVariant[] = []
   const conflicts: string[] = []
+  const outputDrifts: string[] = []
   const keyToConcrete = new Map<string, number>()
   const underived: number[] = []
 
@@ -444,13 +450,7 @@ function deriveReflectMap(
           i.pins.some((p) => p.kind === 3 && p.index === idx && p.type !== 0)
         )
     )
-    // prefer an instance whose reflective output pins are also concretely typed
-    const inst =
-      candidates.find((i) =>
-        reflectiveOutputIndexes.every((idx) =>
-          i.pins.some((p) => p.kind === 4 && p.index === idx && p.type !== 0)
-        )
-      ) ?? candidates[0]
+    const inst = candidates[0]
     if (inst) {
       for (const idx of reflectiveInputIndexes) {
         const pin = inst.pins.find((p) => p.kind === 3 && p.index === idx)!
@@ -462,19 +462,33 @@ function deriveReflectMap(
         })
       }
       for (const idx of reflectiveOutputIndexes) {
-        const pin = inst.pins.find((p) => p.kind === 4 && p.index === idx)
-        if (!pin || pin.type === 0) continue
+        // 输出类型必须在同 cid+同输入键的全部实例上一致；出现漂移（如字典节点的
+        // 值类型不体现在 cid/输入引脚上）时记录任何一种都是假确定类型，直接不记录
+        const observed = new Set<number>()
+        for (const cand of candidates) {
+          const pin = cand.pins.find((p) => p.kind === 4 && p.index === idx)
+          if (pin && pin.type !== 0) observed.add(pin.type)
+        }
+        if (observed.size > 1) {
+          outputDrifts.push(
+            `concreteId ${cid} output pin #${idx} type drifts across samples: ` +
+              `${[...observed].sort((a, b) => a - b).map((t) => CLIENT_VAR_TYPE_NAMES[t] ?? `client_${t}`).join(' | ')}`
+          )
+          continue
+        }
+        const [type] = observed
+        if (type === undefined) continue
         variantPins.push({
           index: idx,
           kind: 'output',
-          type: CLIENT_VAR_TYPE_NAMES[pin.type] ?? `client_${pin.type}`,
-          clientVarType: pin.type
+          type: CLIENT_VAR_TYPE_NAMES[type] ?? `client_${type}`,
+          clientVarType: type
         })
       }
     }
     variants.push({ concreteId: cid, variantKey: key, pins: variantPins.length ? variantPins : undefined })
   }
-  return { variants, conflicts, underived }
+  return { variants, conflicts, underived, outputDrifts }
 }
 
 // ---------------------------------------------------------------------------
@@ -843,6 +857,8 @@ function main() {
     genericId: number
     variantKeys: Record<string, number | string>
     conflicts?: string[]
+    /** 同 cid+输入键下输出类型漂移：输出不由变体决定，已从 variantPins 剔除 */
+    outputTypeDrifts?: string[]
     underivedConcreteIds?: number[]
     provenance?: 'family' | 'generic_id_union'
     status: 'resolved' | 'needs_developer_confirmation'
@@ -854,6 +870,7 @@ function main() {
     observedConcreteIds: number[]
     variants: ReflectVariant[]
     conflicts: string[]
+    outputDrifts: string[]
   }
   const reflectDerivations: ReflectDerivation[] = []
 
@@ -950,7 +967,7 @@ function main() {
     }
 
     if (concreteIds.size > 1 || reflectiveInputIndexes.length > 0) {
-      const { variants, conflicts } = deriveReflectMap(
+      const { variants, conflicts, outputDrifts } = deriveReflectMap(
         agg,
         reflectiveInputIndexes,
         reflectiveOutputIndexes
@@ -963,7 +980,8 @@ function main() {
         reflectiveInputIndexes,
         observedConcreteIds: [...concreteIds].sort((a, b) => a - b),
         variants,
-        conflicts
+        conflicts,
+        outputDrifts
       })
     }
 
@@ -1016,6 +1034,7 @@ function main() {
 
   for (const [gid, group] of derivationsByGid) {
     const conflicts = group.flatMap((d) => d.conflicts)
+    const outputDrifts = group.flatMap((d) => d.outputDrifts)
     const indexSets = new Set(group.map((d) => d.reflectiveInputIndexes.join(',')))
     if (indexSets.size > 1) {
       conflicts.push(
@@ -1026,6 +1045,8 @@ function main() {
     const union = new Map<string, ReflectVariant>()
     const cidToKey = new Map<number | string, string>()
     const contributors = new Set<string>()
+    // 已判定跨族漂移的输出引脚（`${variantKey}#${index}`）：后续族不得重新引入
+    const driftedOutputs = new Set<string>()
     for (const d of group) {
       for (const v of d.variants) {
         const priorCid = union.get(v.variantKey)?.concreteId
@@ -1044,9 +1065,39 @@ function main() {
         }
         cidToKey.set(v.concreteId, v.variantKey)
         const existing = union.get(v.variantKey)
-        // prefer the variant carrying the most pin evidence (inputs + outputs)
-        if (!existing || (v.pins?.length ?? 0) > (existing.pins?.length ?? 0)) {
+        if (!existing) {
           union.set(v.variantKey, v)
+        } else {
+          // 同键变体跨族合并：输入引脚按键构造必然一致；输出引脚类型若跨族
+          // 漂移（同 cid 下输出不由变体决定），则该输出不可记录为确定类型，
+          // 且一旦判漂移即永久剔除，后续族不得重新引入
+          const merged: PinRecord[] = (existing.pins ?? []).filter((p) => p.kind === 'input')
+          const existingOuts = (existing.pins ?? []).filter((p) => p.kind === 'output')
+          const incomingOuts = (v.pins ?? []).filter((p) => p.kind === 'output')
+          const outIndexes = new Set([
+            ...existingOuts.map((p) => p.index),
+            ...incomingOuts.map((p) => p.index)
+          ])
+          for (const idx of [...outIndexes].sort((a, b) => a - b)) {
+            const driftKey = `${v.variantKey}#${idx}`
+            if (driftedOutputs.has(driftKey)) continue
+            const a = existingOuts.find((p) => p.index === idx)
+            const b = incomingOuts.find((p) => p.index === idx)
+            if (a && b && a.clientVarType !== b.clientVarType) {
+              driftedOutputs.add(driftKey)
+              outputDrifts.push(
+                `genericId ${gid} key "${v.variantKey}" output pin #${idx} type drifts across families: ` +
+                  `${a.type} | ${b.type}`
+              )
+              continue
+            }
+            merged.push((a ?? b)!)
+          }
+          union.set(v.variantKey, {
+            concreteId: existing.concreteId,
+            variantKey: existing.variantKey,
+            pins: merged.length ? merged : undefined
+          })
         }
         contributors.add(d.record.subType)
       }
@@ -1092,6 +1143,7 @@ function main() {
         genericId: gid,
         variantKeys: Object.fromEntries(unionVariants.map((v) => [v.variantKey, v.concreteId])),
         ...(conflicts.length ? { conflicts: [...new Set(conflicts)] } : {}),
+        ...(outputDrifts.length ? { outputTypeDrifts: [...new Set(outputDrifts)] } : {}),
         ...(underived.length ? { underivedConcreteIds: underived } : {}),
         ...(provenance ? { provenance } : {}),
         status

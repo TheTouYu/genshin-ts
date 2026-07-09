@@ -7,6 +7,18 @@ import type { IRNode } from './types.js'
 
 const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
 
+/**
+ * 字典反射节点：cid 恒定（1050..1055，见 varspec seed dictionaryNodes），
+ * 键/值类型只体现在引脚 type/ioc 上，不参与 reflectMap 变体匹配。
+ */
+export const DICT_REFLECT_NODE_TYPES = new Set([
+  'get_list_of_values_from_dictionary',
+  'get_list_of_keys_from_dictionary',
+  'query_dictionary_value_by_key',
+  'query_if_dictionary_contains_specific_key',
+  'query_if_dictionary_contains_specific_value'
+])
+
 /** IR value type -> ClientVarType id, mirroring the extractor's type name table */
 export const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   entity: 1,
@@ -157,6 +169,15 @@ export function resolveClientConcreteVariant(
   }
   if (metadata.nodeType === 'multiple_branches') {
     return metadata.concreteId ?? 4002
+  }
+  if (DICT_REFLECT_NODE_TYPES.has(metadata.nodeType)) {
+    if (metadata.concreteId == null) {
+      throw clientNodegraphError(
+        CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+        `${metadata.subType}.${metadata.nodeType} has no constant concrete id in metadata`
+      )
+    }
+    return metadata.concreteId
   }
   if (metadata.specialKind === 'inline_var_type_hint') {
     return metadata.concreteId ?? 2000

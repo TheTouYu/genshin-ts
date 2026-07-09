@@ -8367,12 +8367,6 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'dict',
             clientVarType: 24
-          },
-          {
-            index: 0,
-            kind: 'output',
-            type: 'int_list',
-            clientVarType: 4
           }
         ]
       }
@@ -18811,12 +18805,6 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'dict',
             clientVarType: 24
-          },
-          {
-            index: 0,
-            kind: 'output',
-            type: 'int_list',
-            clientVarType: 4
           }
         ]
       }
@@ -28357,12 +28345,6 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
             kind: 'input',
             type: 'dict',
             clientVarType: 24
-          },
-          {
-            index: 0,
-            kind: 'output',
-            type: 'int_list',
-            clientVarType: 4
           }
         ]
       }
