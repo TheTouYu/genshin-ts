@@ -2,7 +2,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { detectLang, initCliI18n } from '../i18n/index.js'
-import { applyReplacement, buildFile, parseMessage, readUint32BE } from './binary.js'
+import {
+  applyReplacement,
+  buildFile,
+  encodeVarint,
+  parseMessage,
+  readFieldBytes,
+  readFieldMessages,
+  readUint32BE
+} from './binary.js'
 import {
   collectFolderIndexes,
   findFolderEntryField,
@@ -60,17 +68,95 @@ function fmtGraphType(
   return `${name}(${type})`
 }
 
+function toFiniteNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+  if (typeof value === 'bigint') return Number(value)
+  if (value && typeof value === 'object') {
+    const maybeLong = value as { toNumber?: () => number }
+    if (typeof maybeLong.toNumber === 'function') {
+      const n = maybeLong.toNumber()
+      return Number.isFinite(n) ? n : undefined
+    }
+  }
+  return undefined
+}
+
+function encodeMessageField(field: number, data: Uint8Array): Uint8Array {
+  return Buffer.concat([
+    Buffer.from(encodeVarint((field << 3) | 2)),
+    Buffer.from(encodeVarint(data.length)),
+    Buffer.from(data)
+  ])
+}
+
+function findTopLevelMessageField(fields: LenField[], field: number): LenField | undefined {
+  return fields.find((f) => f.depth === 1 && f.p0 === field)
+}
+
+function mergeWrappedFieldMessages(
+  existingWrappers: Uint8Array[],
+  incomingInnerMessages: Uint8Array[],
+  getId: (bytes: Uint8Array) => number | undefined
+): Uint8Array[] {
+  const ordered: Uint8Array[] = []
+  const indexById = new Map<number, number>()
+  const anonymous: Uint8Array[] = []
+
+  for (const wrapper of existingWrappers) {
+    const inner = readFieldBytes(wrapper, 1)
+    const id = inner ? getId(inner) : undefined
+    if (typeof id !== 'number') {
+      anonymous.push(wrapper)
+      continue
+    }
+    indexById.set(id, ordered.length)
+    ordered.push(wrapper)
+  }
+
+  for (const inner of incomingInnerMessages) {
+    const id = getId(inner)
+    if (typeof id !== 'number') continue
+    const wrapper = encodeMessageField(1, inner)
+    const existingIndex = indexById.get(id)
+    if (existingIndex === undefined) {
+      indexById.set(id, ordered.length)
+      ordered.push(wrapper)
+      continue
+    }
+    ordered[existingIndex] = wrapper
+  }
+
+  return [...ordered, ...anonymous]
+}
+
 export function createInjector(options?: { protoPath?: string; lang?: string }): Injector {
   const proto = loadGiaProto(options?.protoPath)
+  const compositeDefMessage = proto.root.lookupType('CompositeDef')
 
   function injectBytes(input: InjectGilInput): InjectGilResult {
     const { t } = initCliI18n(detectLang(input.lang ?? options?.lang))
+    const giaPayload = input.giaBytes.slice(20, -4)
+    const giaRoot = proto.rootMessage.decode(giaPayload) as {
+      graph?: { graph?: { inner?: { graph?: Record<string, unknown> } } }
+      accessories?: Array<{
+        compositeDef?: { inner?: { def?: Record<string, unknown> } }
+        graph?: { inner?: { graph?: Record<string, unknown> } }
+      }>
+    }
     const newGraph = loadGiaGraph(
       input.giaBytes,
       proto.rootMessage,
       proto.nodeGraphMessage,
       input.targetId
     )
+    const incomingCompositeDefBytes = (giaRoot.accessories ?? [])
+      .map((unit) => unit.compositeDef?.inner?.def)
+      .filter((def): def is Record<string, unknown> => !!def)
+      .map((def) => compositeDefMessage.encode(def as never).finish())
+    const incomingImplGraphBytes = (giaRoot.accessories ?? [])
+      .map((unit) => unit.graph?.inner?.graph)
+      .filter((graph): graph is Record<string, unknown> => !!graph)
+      .map((graph) => proto.nodeGraphMessage.encode(graph as never).finish())
     const inferredId = getGraphId(newGraph)
     const targetId = input.targetId ?? inferredId
     if (typeof targetId !== 'number' || !Number.isFinite(targetId)) {
@@ -179,8 +265,59 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
 
       // 性能：newGraph 多数情况下已经是 protobufjs Message（来自 decode），直接 encode 避免 fromObject 的大开销
       const newGraphBytes = proto.nodeGraphMessage.encode(newGraph as never).finish()
+      const top10Field = findTopLevelMessageField(fields, 10)
+      if (!top10Field) {
+        throw new Error('[error] composite container not found in gil payload')
+      }
 
-      const newPayload = applyReplacement(payload, fields, target.field, newGraphBytes)
+      const top10Bytes = payload.subarray(top10Field.dataStart, top10Field.dataEnd)
+      const existingGraphWrappers = readFieldMessages(top10Bytes, 1)
+      let replacedTargetGraph = false
+      const nextGraphWrappers = existingGraphWrappers.map((wrapper) => {
+        const inner = readFieldBytes(wrapper, 1)
+        if (!inner) return wrapper
+        const graph = proto.nodeGraphMessage.decode(inner) as { id?: { id?: unknown } }
+        if (toFiniteNumber(graph.id?.id) !== targetId) return wrapper
+        replacedTargetGraph = true
+        return encodeMessageField(1, newGraphBytes)
+      })
+      if (!replacedTargetGraph) {
+        throw new Error('[error] target NodeGraph wrapper not found in composite container')
+      }
+
+      const nextCompositeDefWrappers = mergeWrappedFieldMessages(
+        readFieldMessages(top10Bytes, 2),
+        incomingCompositeDefBytes,
+        (bytes) => {
+          const def = compositeDefMessage.decode(bytes) as {
+            id?: { genericId?: { id?: unknown }; concreteId?: { id?: unknown } }
+          }
+          return toFiniteNumber(def.id?.genericId?.id) ?? toFiniteNumber(def.id?.concreteId?.id)
+        }
+      )
+      const nextImplGraphWrappers = mergeWrappedFieldMessages(
+        readFieldMessages(top10Bytes, 4),
+        incomingImplGraphBytes,
+        (bytes) => {
+          const graph = proto.nodeGraphMessage.decode(bytes) as { id?: { id?: unknown } }
+          return toFiniteNumber(graph.id?.id)
+        }
+      )
+
+      const rebuiltTop10Parts: Uint8Array[] = []
+      for (const wrapper of nextGraphWrappers)
+        rebuiltTop10Parts.push(encodeMessageField(1, wrapper))
+      for (const wrapper of nextCompositeDefWrappers)
+        rebuiltTop10Parts.push(encodeMessageField(2, wrapper))
+      for (const msg of readFieldMessages(top10Bytes, 3))
+        rebuiltTop10Parts.push(encodeMessageField(3, msg))
+      for (const wrapper of nextImplGraphWrappers)
+        rebuiltTop10Parts.push(encodeMessageField(4, wrapper))
+      for (const msg of readFieldMessages(top10Bytes, 5))
+        rebuiltTop10Parts.push(encodeMessageField(5, msg))
+      const rebuiltTop10Bytes = Buffer.concat(rebuiltTop10Parts.map((part) => Buffer.from(part)))
+
+      const newPayload = applyReplacement(payload, fields, top10Field, rebuiltTop10Bytes)
       const newFile = buildFile(newPayload, {
         schema: header.schema,
         headTag: header.headTag,
