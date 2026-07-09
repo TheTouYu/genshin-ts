@@ -36,6 +36,7 @@ export type ServerGraphMode = GraphMode
 export type ClientGraphMode = GraphMode
 export type ClientGraphSubType =
   | 'character_skill'
+  | 'character_control_skill'
   | 'creation_skill'
   | 'creation_status'
   | 'creation_status_decision'

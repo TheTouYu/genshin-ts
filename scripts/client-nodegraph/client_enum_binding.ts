@@ -236,6 +236,33 @@ const CLIENT_ONLY_SPEC_BY_FAMILY_IOC42: Record<string, ClientOnlySpec> = {
   }
 }
 
+/**
+ * Classes with no census row, assembled from direct pin samples. RayFilterType:
+ * round-3 structural sample fills the dropdown in order 2601/2602/2605/2606
+ * (受击盒/场景/物件自身碰撞/光标碰撞盒); vendor comments confirm
+ * 2605 = ObjectSelfCollision, and 光标碰撞盒 is the 4th editor option.
+ */
+const SAMPLED_ONLY_CLASSES: Array<{ spec: ClientOnlySpec; options: Array<{ value: number; name: string }> }> = [
+  {
+    spec: {
+      className: 'RayFilterType',
+      zhName: '射线筛选类型',
+      memberByValue: {
+        2601: 'Hurtbox',
+        2602: 'Scene',
+        2605: 'ObjectSelfCollision',
+        2606: 'CursorHitbox'
+      }
+    },
+    options: [
+      { value: 2601, name: '受击盒' },
+      { value: 2602, name: '场景' },
+      { value: 2605, name: '物件自身碰撞' },
+      { value: 2606, name: '光标碰撞盒' }
+    ]
+  }
+]
+
 /** seed sections outside the census (tacticEnums / targetEntityParam) */
 const EXTRA_SPEC_BY_ZH: Record<string, ClientOnlySpec> = {
   战术速度: {
@@ -289,18 +316,19 @@ const CLASS_BY_ZH_RETURN: Record<string, string> = {
 
 /**
  * zh doc param name -> element enum class for enum_list pins (sample
- * evidence: entity type filter literals encode census entity_type values).
- * 命中层筛选/射线筛选类型 stay unbound: the dropdown's third option
- * (物件自身碰撞) has no sampled value, so its class cannot be completed.
+ * evidence: entity type filter literals encode census entity_type values;
+ * ray filter values per SAMPLED_ONLY_CLASSES).
  */
 const LIST_CLASS_BY_ZH_PARAM: Record<string, string> = {
   实体类型筛选: 'EntityType',
-  攻击盒实体类型筛选列表: 'EntityType'
+  攻击盒实体类型筛选列表: 'EntityType',
+  命中层筛选: 'RayFilterType'
 }
 
 /** nodeType -> element enum class for enum_list outputs (doc names them all 列表) */
 const LIST_CLASS_BY_NODE_TYPE: Record<string, string> = {
-  get_entity_type_list: 'EntityType'
+  get_entity_type_list: 'EntityType',
+  get_ray_filter_type_list: 'RayFilterType'
 }
 
 /** server classes referenced by the zh maps beyond SERVER_CLASS_BY_IOC */
@@ -400,6 +428,10 @@ export function buildClientEnumBinding(): ClientEnumBinding {
       addClientOnlyClass(spec, seed.targetEntityParam.options)
     }
   }
+
+  // sampled-only classes share values with census classes (2601/2602 also
+  // belong to AttackLayerConfig), so they never register in classByValue
+  for (const { spec, options } of SAMPLED_ONLY_CLASSES) addClientOnlyClass(spec, options)
 
   // explicit (genericId / displayName) bindings for pins whose editor default
   // is 0: the value alone cannot identify the class there

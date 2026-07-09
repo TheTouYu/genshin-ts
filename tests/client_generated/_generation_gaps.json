@@ -1,5 +1,47 @@
 [
   {
+    "subType": "character_control_skill",
+    "nodeType": "assemble_structure",
+    "displayName": "拼装结构体",
+    "reason": "local_variable_pins"
+  },
+  {
+    "subType": "character_control_skill",
+    "nodeType": "assembly_dictionary",
+    "displayName": "拼装字典",
+    "reason": "reflect_no_variant_evidence"
+  },
+  {
+    "subType": "character_control_skill",
+    "nodeType": "create_dictionary",
+    "displayName": "建立字典",
+    "reason": "reflect_no_variant_evidence"
+  },
+  {
+    "subType": "character_control_skill",
+    "nodeType": "get_local_variable",
+    "displayName": "获取局部变量",
+    "reason": "reflect_no_variant_evidence"
+  },
+  {
+    "subType": "character_control_skill",
+    "nodeType": "query_dictionary_value_by_key",
+    "displayName": "以键查询字典值",
+    "reason": "reflect_no_variant_evidence"
+  },
+  {
+    "subType": "character_control_skill",
+    "nodeType": "set_local_variable",
+    "displayName": "设置局部变量",
+    "reason": "reflect_no_variant_evidence"
+  },
+  {
+    "subType": "character_control_skill",
+    "nodeType": "split_structure",
+    "displayName": "拆分结构体",
+    "reason": "local_variable_pins"
+  },
+  {
     "subType": "character_skill",
     "nodeType": "assemble_structure",
     "displayName": "拼装结构体",
@@ -15,8 +57,7 @@
     "subType": "character_skill",
     "nodeType": "create_dictionary",
     "displayName": "建立字典",
-    "reason": "unsupported_return_type",
-    "detail": "Dictionary: dict"
+    "reason": "reflect_no_variant_evidence"
   },
   {
     "subType": "character_skill",
@@ -58,8 +99,7 @@
     "subType": "creation_skill",
     "nodeType": "create_dictionary",
     "displayName": "建立字典",
-    "reason": "unsupported_return_type",
-    "detail": "Dictionary: dict"
+    "reason": "reflect_no_variant_evidence"
   },
   {
     "subType": "creation_skill",

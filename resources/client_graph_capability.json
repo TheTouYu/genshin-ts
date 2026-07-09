@@ -9,6 +9,16 @@
       "reason": "client classic mode requires sample confirmation"
     }
   },
+  "character_control_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "unknown",
+      "reason": "client classic mode requires sample confirmation"
+    }
+  },
   "character_skill": {
     "beyond": {
       "status": "available",

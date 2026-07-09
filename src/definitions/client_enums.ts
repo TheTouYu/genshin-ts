@@ -11,6 +11,7 @@ export type ClientEnumerationTypeMap = {
   HitLevel: HitLevel
   KnockbackDirectionType: KnockbackDirectionType
   PreAimingEndReason: PreAimingEndReason
+  RayFilterType: RayFilterType
   RetracingType: RetracingType
   RotationDirection: RotationDirection
   RotationType: RotationType
@@ -240,6 +241,50 @@ export class PreAimingEndReason extends enumeration {
     'PreAimingEndReason',
     'pre_aiming_end_reason_cancelled'
   ) as PreAimingEndReason
+}
+
+/** 射线筛选类型 */
+export class RayFilterType extends enumeration {
+  declare private readonly __brandRayFilterType: 'RayFilterType'
+  private constructor() {
+    super('')
+    // 防止用户通过字符串传参构造枚举导致的意外行为
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Hurtbox
+   *
+   * 受击盒
+   */
+  static readonly Hurtbox = new enumeration(
+    'RayFilterType',
+    'ray_filter_type_hurtbox'
+  ) as RayFilterType
+  /**
+   * Scene
+   *
+   * 场景
+   */
+  static readonly Scene = new enumeration('RayFilterType', 'ray_filter_type_scene') as RayFilterType
+  /**
+   * ObjectSelfCollision
+   *
+   * 物件自身碰撞
+   */
+  static readonly ObjectSelfCollision = new enumeration(
+    'RayFilterType',
+    'ray_filter_type_object_self_collision'
+  ) as RayFilterType
+  /**
+   * CursorHitbox
+   *
+   * 光标碰撞盒
+   */
+  static readonly CursorHitbox = new enumeration(
+    'RayFilterType',
+    'ray_filter_type_cursor_hitbox'
+  ) as RayFilterType
 }
 
 /** 溯源类型 */

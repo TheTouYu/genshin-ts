@@ -1,5 +1,5 @@
 {
-  "shared": 79,
+  "shared": 82,
   "drift": [
     {
       "methodName": "addUnitStatus",
@@ -38,6 +38,28 @@
       },
       "client": {
         "params": [],
+        "returns": null
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "castSpecifiedSkillInstance",
+      "nodeType": "cast_specified_skill_instance",
+      "server": {
+        "params": [
+          "characterEntity: CharacterEntity",
+          "skillInstanceId: IntValue",
+          "checkKeyAvailability: BoolValue"
+        ],
+        "returnType": "void"
+      },
+      "client": {
+        "params": [
+          "skillInstanceID: int",
+          "checkKeyAvailability: bool"
+        ],
         "returns": null
       },
       "notes": [
@@ -113,6 +135,30 @@
           "playDefaultSoundEffects: bool"
         ],
         "returns": null
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "querySkillInstanceIdBySkillSlotAndSkillConfigId",
+      "nodeType": "query_skill_instance_id_by_skill_slot_and_skill_config_id",
+      "server": {
+        "params": [
+          "characterEntity: CharacterEntity",
+          "skillSlot: CharacterSkillSlot",
+          "skillConfigId: ConfigIdValue"
+        ],
+        "returnType": "bigint"
+      },
+      "client": {
+        "params": [
+          "skillSlot: enum",
+          "skillConfigID: config_id"
+        ],
+        "returns": [
+          "skillInstanceIDList: int"
+        ]
       },
       "notes": [
         "param_count_mismatch"

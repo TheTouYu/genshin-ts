@@ -4,6 +4,7 @@ import type { ClientGraphSubType } from '../thirdparty/Genshin-Impact-Miliastra-
 
 export const CLIENT_GRAPH_SUB_TYPES = [
   'character_skill',
+  'character_control_skill',
   'creation_skill',
   'creation_status',
   'creation_status_decision',
@@ -13,6 +14,7 @@ export const CLIENT_GRAPH_SUB_TYPES = [
 
 export const CLIENT_GRAPH_METHOD_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
   character_skill: 'characterSkill',
+  character_control_skill: 'characterControlSkill',
   creation_skill: 'creationSkill',
   creation_status: 'creationStatus',
   creation_status_decision: 'creationStatusDecision',
@@ -26,6 +28,16 @@ export const CLIENT_GRAPH_SUB_TYPE_BY_METHOD = Object.fromEntries(
 
 export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = {
   bool_filter: {
+    beyond: {
+      status: 'available',
+      reason: ''
+    },
+    classic: {
+      status: 'unknown',
+      reason: 'client classic mode requires sample confirmation'
+    }
+  },
+  character_control_skill: {
     beyond: {
       status: 'available',
       reason: ''
@@ -89,6 +101,11 @@ export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = {
 
 export const CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE = {
   character_skill: {
+    event: 'start',
+    startNodeType: 'node_graph_begins',
+    handler: { params: [], shape: 'start', returnType: 'void' }
+  },
+  character_control_skill: {
     event: 'start',
     startNodeType: 'node_graph_begins',
     handler: { params: [], shape: 'start', returnType: 'void' }

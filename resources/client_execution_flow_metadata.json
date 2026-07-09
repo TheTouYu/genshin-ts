@@ -4,6 +4,7 @@
     "nodeType": "_3d_vector_addition",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -46,6 +47,7 @@
     "nodeType": "_3d_vector_angle",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -88,6 +90,7 @@
     "nodeType": "_3d_vector_cross_product",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -130,6 +133,7 @@
     "nodeType": "_3d_vector_dot_product",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -172,6 +176,7 @@
     "nodeType": "_3d_vector_modulo_operation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -208,6 +213,7 @@
     "nodeType": "_3d_vector_normalization",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -244,6 +250,7 @@
     "nodeType": "_3d_vector_rotation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -286,6 +293,7 @@
     "nodeType": "_3d_vector_subtraction",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -328,6 +336,7 @@
     "nodeType": "_3d_vector_zoom",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -370,6 +379,7 @@
     "nodeType": "absolute_value_operation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -412,6 +422,7 @@
     "nodeType": "addition",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -456,9 +467,142 @@
     }
   },
   {
+    "methodName": "addKeyBehavior",
+    "nodeType": "add_key_behavior",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "keyBehaviorID",
+        "irType": "int",
+        "docZh": "关键行为ID",
+        "docEn": "Key Behavior ID"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Adds a key behavior with the corresponding ID to the Key Behavior Log Panel, and records the current time along with it. The maximum number of key behaviors that can be recorded is 20.",
+      "zh": "给关键行为记录板上添加一个对应ID的关键行为，并会将此刻的时间一同记录。可记录的关键行为最大数量为20"
+    }
+  },
+  {
+    "methodName": "addTemporaryAcceleration",
+    "nodeType": "add_temporary_acceleration",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetControlMotor",
+        "irType": "entity",
+        "docZh": "目标操控运动器",
+        "docEn": "Target Control Motor"
+      },
+      {
+        "name": "acceleration",
+        "irType": "float",
+        "docZh": "加速度值",
+        "docEn": "Acceleration"
+      },
+      {
+        "name": "direction",
+        "irType": "vec3",
+        "docZh": "朝向",
+        "docEn": "Direction"
+      },
+      {
+        "name": "duration",
+        "irType": "float",
+        "docZh": "持续时间",
+        "docEn": "Duration"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Add Temporary Acceleration",
+      "zh": "添加临时加速度，若载具处于接地状态，则只会受到地面所在平面的加速度（在平面上的分量）。"
+    }
+  },
+  {
+    "methodName": "addTemporaryMovementParameterValues",
+    "nodeType": "add_temporary_movement_parameter_values",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "controlMotor",
+        "irType": "entity",
+        "docZh": "操控运动器",
+        "docEn": "Control Motor"
+      },
+      {
+        "name": "forwardAcceleration",
+        "irType": "float",
+        "docZh": "前进加速度",
+        "docEn": "Forward Acceleration"
+      },
+      {
+        "name": "backwardAcceleration",
+        "irType": "float",
+        "docZh": "后退加速度",
+        "docEn": "Backward Acceleration"
+      },
+      {
+        "name": "turningRate",
+        "irType": "float",
+        "docZh": "转向速率",
+        "docEn": "Turning Rate"
+      },
+      {
+        "name": "baseDragDeceleration",
+        "irType": "float",
+        "docZh": "基础阻力减速度",
+        "docEn": "Base Drag Deceleration"
+      },
+      {
+        "name": "dragCoefficient",
+        "irType": "float",
+        "docZh": "阻力系数",
+        "docEn": "Drag Coefficient"
+      },
+      {
+        "name": "maxForwardSpeed",
+        "irType": "float",
+        "docZh": "最大前进速度",
+        "docEn": "Max Forward Speed"
+      },
+      {
+        "name": "maxBackwardSpeed",
+        "irType": "float",
+        "docZh": "最大后退速度",
+        "docEn": "Max Backward Speed"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Add Temporary Movement Parameter Values",
+      "zh": "添加临时运动参数值。该值将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。"
+    }
+  },
+  {
     "methodName": "addUnitStatus",
     "nodeType": "add_unit_status",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -493,10 +637,53 @@
     }
   },
   {
+    "methodName": "addVelocity",
+    "nodeType": "add_velocity",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetControlMotor",
+        "irType": "entity",
+        "docZh": "目标操控运动器",
+        "docEn": "Target Control Motor"
+      },
+      {
+        "name": "velocity",
+        "irType": "float",
+        "docZh": "速度值",
+        "docEn": "Velocity"
+      },
+      {
+        "name": "direction",
+        "irType": "vec3",
+        "docZh": "朝向",
+        "docEn": "Direction"
+      },
+      {
+        "name": "duration",
+        "irType": "float",
+        "docZh": "持续时间",
+        "docEn": "Duration"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Add Velocity",
+      "zh": "添加临时加速度，若载具处于接地状态，则只会添加地面所在平面的速度（在平面上的分量）; 添加的速度会在持续时间结束后仍然继承"
+    }
+  },
+  {
     "methodName": "arccosineFunction",
     "nodeType": "arccosine_function",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -533,6 +720,7 @@
     "nodeType": "arcsine_function",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -569,6 +757,7 @@
     "nodeType": "arctangent_function",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -605,6 +794,7 @@
     "nodeType": "break_loop",
     "subTypes": [
       "character_skill",
+      "character_control_skill",
       "creation_skill"
     ],
     "modes": [
@@ -622,6 +812,7 @@
     "methodName": "cameraOrientationDetectionData",
     "nodeType": "camera_orientation_detection_data",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -671,6 +862,96 @@
     "docs": {
       "en": "Casts a ray from the Camera to the emission Location and returns the Rotation and Location of valid Targets along the path",
       "zh": "镜头朝向检测数据，从镜头向出射位置打射线，返回路线上合法目标的旋转与位置"
+    }
+  },
+  {
+    "methodName": "castSkillFromSpecifiedSlot",
+    "nodeType": "cast_skill_from_specified_slot",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "skillSlot",
+        "irType": "enum",
+        "docZh": "技能槽位",
+        "docEn": "Skill Slot"
+      },
+      {
+        "name": "checkKeyAvailability",
+        "irType": "bool",
+        "docZh": "是否校验按键可用",
+        "docEn": "Check Key Availability"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Makes the character cast the skill that is currently in the foreground for the corresponding skill slot.; For the button to be usable, the skill must be bound to a button and currently be in the foreground",
+      "zh": "使角色施放其对应技能槽位当前处于前台的技能; 按键可用需要满足该技能被绑定到了一个按钮上且当前处于前台"
+    }
+  },
+  {
+    "methodName": "castSpecifiedSkillInstance",
+    "nodeType": "cast_specified_skill_instance",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "skillInstanceID",
+        "irType": "int",
+        "docZh": "技能实例ID",
+        "docEn": "Skill Instance ID"
+      },
+      {
+        "name": "checkKeyAvailability",
+        "irType": "bool",
+        "docZh": "是否校验按键可用",
+        "docEn": "Check Key Availability"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Makes the character cast the skill corresponding to the specified Skill Instance ID.; For the button to be usable, the skill must be bound to a button and currently be in the foreground",
+      "zh": "使角色施放指定技能实例ID对应的技能; 按键可用需要满足该技能被绑定到了一个按钮上且当前处于前台"
+    }
+  },
+  {
+    "methodName": "characterBlink",
+    "nodeType": "character_blink",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetLocation",
+        "irType": "vec3",
+        "docZh": "目标位置",
+        "docEn": "Target Location"
+      },
+      {
+        "name": "targetOrientation",
+        "irType": "vec3",
+        "docZh": "目标朝向",
+        "docEn": "Target Orientation"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Makes the character blink to the target position, with the direction they are facing post-blink adjustable. The maximum blink distance is 200 meters.",
+      "zh": "使角色朝目标位置闪现，可以调整闪现后的朝向。可闪现的最大距离为200m"
     }
   },
   {
@@ -833,6 +1114,7 @@
     "methodName": "checkThePresetStatusValueOfTheComplexCreation",
     "nodeType": "check_the_preset_status_value_of_the_complex_creation",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -974,9 +1256,27 @@
     }
   },
   {
+    "methodName": "clearKeyBehaviorLogPanel",
+    "nodeType": "clear_key_behavior_log_panel",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "Clears all recorded key behaviors from the Key Behavior Log Panel.",
+      "zh": "清空关键行为记录板上已记录的关键行为"
+    }
+  },
+  {
     "methodName": "clearTheAggroListOfTheSpecifiedEntity",
     "nodeType": "clear_the_aggro_list_of_the_specified_entity",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -1092,6 +1392,7 @@
     "nodeType": "cosine_function",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -1128,6 +1429,7 @@
     "nodeType": "create3d_vector",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -1200,6 +1502,7 @@
     "nodeType": "degrees_to_radians",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -1236,6 +1539,7 @@
     "nodeType": "direction_vector_to_rotation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -1278,6 +1582,7 @@
     "nodeType": "division",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -1326,6 +1631,7 @@
     "nodeType": "double_branch",
     "subTypes": [
       "character_skill",
+      "character_control_skill",
       "creation_skill",
       "creation_status",
       "creation_status_decision"
@@ -1353,6 +1659,7 @@
     "nodeType": "enumeration_match",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -1400,6 +1707,7 @@
     "nodeType": "equal",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -1526,6 +1834,7 @@
     "nodeType": "filter_entity_list_within_spherical_range",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -1578,6 +1887,7 @@
     "nodeType": "filter_entity_list_within_square_range",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -1638,10 +1948,28 @@
     }
   },
   {
+    "methodName": "finishCurrentPreAiming",
+    "nodeType": "finish_current_pre_aiming",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "Finish Current Pre-Aiming",
+      "zh": "可以让玩家提前完成当前预瞄准"
+    }
+  },
+  {
     "methodName": "finiteLoop",
     "nodeType": "finite_loop",
     "subTypes": [
       "character_skill",
+      "character_control_skill",
       "creation_skill"
     ],
     "modes": [
@@ -1679,6 +2007,7 @@
     "methodName": "fixedPointDisplacement",
     "nodeType": "fixed_point_displacement",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -1727,6 +2056,7 @@
     "methodName": "fixedPointProjectileLaunch",
     "nodeType": "fixed_point_projectile_launch",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -1776,6 +2106,7 @@
     "methodName": "forceExitAimingState",
     "nodeType": "force_exit_aiming_state",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -1794,6 +2125,7 @@
     "nodeType": "get_all_entities_within_the_collision_trigger",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -1834,6 +2166,7 @@
     "nodeType": "get_all_valid_entities_that_are_scannable_by_scan_component",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -1856,10 +2189,42 @@
     }
   },
   {
+    "methodName": "getBaseObjectOfSpecifiedPreAiming",
+    "nodeType": "get_base_object_of_specified_pre_aiming",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "baseObject",
+        "irType": "entity",
+        "docZh": "基准对象",
+        "docEn": "Base Object"
+      }
+    ],
+    "docs": {
+      "en": "Get Base Object of Specified Pre-Aiming",
+      "zh": "获取指定预瞄准序号的基准对象，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "getCharacterEntityOfSpecifiedPlayer",
     "nodeType": "get_character_entity_of_specified_player",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -1889,10 +2254,177 @@
     }
   },
   {
+    "methodName": "getControlMotorCurrentVelocity",
+    "nodeType": "get_control_motor_current_velocity",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "controlMotor",
+        "irType": "entity",
+        "docZh": "操控运动器",
+        "docEn": "Control Motor"
+      }
+    ],
+    "returns": [
+      {
+        "name": "speed",
+        "irType": "float",
+        "docZh": "速度大小",
+        "docEn": "Speed"
+      },
+      {
+        "name": "velocityDirection",
+        "irType": "vec3",
+        "docZh": "速度方向",
+        "docEn": "Velocity Direction"
+      }
+    ],
+    "docs": {
+      "en": "Get Control Motor Current Velocity",
+      "zh": "获取指定操控运动器的当前速度（速度大小及单位方向向量）"
+    }
+  },
+  {
+    "methodName": "getControlMotorForwardDirection",
+    "nodeType": "get_control_motor_forward_direction",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "controlMotor",
+        "irType": "entity",
+        "docZh": "操控运动器",
+        "docEn": "Control Motor"
+      }
+    ],
+    "returns": [
+      {
+        "name": "forwardDirection",
+        "irType": "vec3",
+        "docZh": "前向",
+        "docEn": "Forward Direction"
+      }
+    ],
+    "docs": {
+      "en": "Get Control Motor Forward Direction",
+      "zh": "获取指定操控运动器的前向方向向量"
+    }
+  },
+  {
+    "methodName": "getControlMotorMovementParameters",
+    "nodeType": "get_control_motor_movement_parameters",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "controlMotor",
+        "irType": "entity",
+        "docZh": "操控运动器",
+        "docEn": "Control Motor"
+      }
+    ],
+    "returns": [
+      {
+        "name": "forwardAcceleration",
+        "irType": "float",
+        "docZh": "前进加速度",
+        "docEn": "Forward Acceleration"
+      },
+      {
+        "name": "backwardAcceleration",
+        "irType": "float",
+        "docZh": "后退加速度",
+        "docEn": "Backward Acceleration"
+      },
+      {
+        "name": "turningRate",
+        "irType": "float",
+        "docZh": "转向速率",
+        "docEn": "Turning Rate"
+      },
+      {
+        "name": "baseDragDeceleration",
+        "irType": "float",
+        "docZh": "基础阻力减速度",
+        "docEn": "Base Drag Deceleration"
+      },
+      {
+        "name": "dragCoefficient",
+        "irType": "float",
+        "docZh": "阻力系数",
+        "docEn": "Drag Coefficient"
+      },
+      {
+        "name": "maxForwardSpeed",
+        "irType": "float",
+        "docZh": "最大前进速度",
+        "docEn": "Max Forward Speed"
+      },
+      {
+        "name": "maxBackwardSpeed",
+        "irType": "float",
+        "docZh": "最大后退速度",
+        "docEn": "Max Backward Speed"
+      }
+    ],
+    "docs": {
+      "en": "Get Control Motor Movement Parameters",
+      "zh": "获取指定操控运动器的运动参数，包含临时运动参数。临时值的添加将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。"
+    }
+  },
+  {
+    "methodName": "getControlMotorTargetTurningDirection",
+    "nodeType": "get_control_motor_target_turning_direction",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "controlMotor",
+        "irType": "entity",
+        "docZh": "操控运动器",
+        "docEn": "Control Motor"
+      }
+    ],
+    "returns": [
+      {
+        "name": "targetTurningDirection",
+        "irType": "vec3",
+        "docZh": "目标转向方向",
+        "docEn": "Target Turning Direction"
+      }
+    ],
+    "docs": {
+      "en": "Get Control Motor Target Turning Direction",
+      "zh": "获取操控运动器目标转向方向（移动轮盘输入后，转换成操控运动器的目标转向）"
+    }
+  },
+  {
     "methodName": "getCorrespondingValueFromList",
     "nodeType": "get_corresponding_value_from_list",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2018,10 +2550,59 @@
     }
   },
   {
+    "methodName": "getCurrentActiveControlMotorList",
+    "nodeType": "get_current_active_control_motor_list",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "controlMotorList",
+        "irType": "entity_list",
+        "docZh": "操控运动器列表",
+        "docEn": "Control Motor List"
+      }
+    ],
+    "docs": {
+      "en": "Get Current Active Control Motor List",
+      "zh": "获取当前激活操控运动器列表"
+    }
+  },
+  {
+    "methodName": "getCurrentActivePreAimingIndex",
+    "nodeType": "get_current_active_pre_aiming_index",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "docs": {
+      "en": "Get Current Active Pre-Aiming Index",
+      "zh": "获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "getCurrentCharacter",
     "nodeType": "get_current_character",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -2041,6 +2622,60 @@
     "docs": {
       "en": "Returns the Character Entity currently controlled by this Player's client",
       "zh": "获取该玩家客户端当前控制的角色实体"
+    }
+  },
+  {
+    "methodName": "getCurrentClientTime",
+    "nodeType": "get_current_client_time",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "clientTime",
+        "irType": "float",
+        "docZh": "客户端时间",
+        "docEn": "Client Time"
+      }
+    ],
+    "docs": {
+      "en": "Returns the current client time.",
+      "zh": "获取当前客户端的时间; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果"
+    }
+  },
+  {
+    "methodName": "getCurrentClientTimeHighPrecision",
+    "nodeType": "get_current_client_time_high_precision",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "clientTimeS",
+        "irType": "int",
+        "docZh": "客户端时间（s）",
+        "docEn": "Client Time (s)"
+      },
+      {
+        "name": "clientTimeMs",
+        "irType": "int",
+        "docZh": "客户端时间（ms）",
+        "docEn": "Client Time (ms)"
+      }
+    ],
+    "docs": {
+      "en": "Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.",
+      "zh": "获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果"
     }
   },
   {
@@ -2069,10 +2704,197 @@
     }
   },
   {
+    "methodName": "getCurrentFollowingControlMotor",
+    "nodeType": "get_current_following_control_motor",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "followingControlMotor",
+        "irType": "entity",
+        "docZh": "跟随操控运动器",
+        "docEn": "Following Control Motor"
+      }
+    ],
+    "docs": {
+      "en": "Get Current Following Control Motor",
+      "zh": "获取当前跟随操控运动器"
+    }
+  },
+  {
+    "methodName": "getCurrentKeyBehavior",
+    "nodeType": "get_current_key_behavior",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "behaviorIDList",
+        "irType": "int_list",
+        "docZh": "行为ID列表",
+        "docEn": "Behavior ID List"
+      },
+      {
+        "name": "entryTimeList",
+        "irType": "float_list",
+        "docZh": "录入时间列表",
+        "docEn": "Entry Time List"
+      }
+    ],
+    "docs": {
+      "en": "Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.",
+      "zh": "获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间"
+    }
+  },
+  {
+    "methodName": "getCurrentKeyBehaviorHighPrecision",
+    "nodeType": "get_current_key_behavior_high_precision",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "behaviorIDList",
+        "irType": "int_list",
+        "docZh": "行为ID列表",
+        "docEn": "Behavior ID List"
+      },
+      {
+        "name": "entryTimeListS",
+        "irType": "int_list",
+        "docZh": "录入时间列表（s）",
+        "docEn": "Entry Time List (s)"
+      },
+      {
+        "name": "entryTimeListMs",
+        "irType": "int_list",
+        "docZh": "录入时间列表（ms）",
+        "docEn": "Entry Time List (ms)"
+      }
+    ],
+    "docs": {
+      "en": "Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.",
+      "zh": "获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点"
+    }
+  },
+  {
+    "methodName": "getCursorHitResult",
+    "nodeType": "get_cursor_hit_result",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "hitEntityList",
+        "irType": "entity_list",
+        "docZh": "命中实体列表",
+        "docEn": "Hit Entity List"
+      },
+      {
+        "name": "hitPositionList",
+        "irType": "vec3_list",
+        "docZh": "命中位置列表",
+        "docEn": "Hit Position List"
+      },
+      {
+        "name": "hitCount",
+        "irType": "int",
+        "docZh": "命中数量",
+        "docEn": "Hit Count"
+      }
+    ],
+    "docs": {
+      "en": "Get Cursor Hit Result",
+      "zh": "获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "getCursorScreenCoordinates",
+    "nodeType": "get_cursor_screen_coordinates",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "screenX",
+        "irType": "float",
+        "docZh": "屏幕X",
+        "docEn": "Screen X"
+      },
+      {
+        "name": "screenY",
+        "irType": "float",
+        "docZh": "屏幕Y",
+        "docEn": "Screen Y"
+      }
+    ],
+    "docs": {
+      "en": "Get Cursor Screen Coordinates",
+      "zh": "获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "getCursorViewportCoordinates",
+    "nodeType": "get_cursor_viewport_coordinates",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "viewportX",
+        "irType": "float",
+        "docZh": "视口X",
+        "docEn": "Viewport X"
+      },
+      {
+        "name": "viewportY",
+        "irType": "float",
+        "docZh": "视口Y",
+        "docEn": "Viewport Y"
+      }
+    ],
+    "docs": {
+      "en": "Get Cursor Viewport Coordinates",
+      "zh": "获取本机持久光标的视口坐标X与Y，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "getEntityCurrentlyScannedByScanComponent",
     "nodeType": "get_entity_currently_scanned_by_scan_component",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -2104,6 +2926,7 @@
     "methodName": "getEntityListByUnitTag",
     "nodeType": "get_entity_list_by_unit_tag",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -2137,6 +2960,7 @@
     "nodeType": "get_entity_location",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2203,6 +3027,7 @@
     "nodeType": "get_entity_rotation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2269,6 +3094,7 @@
     "nodeType": "get_entity_s_current_active_scan_tags",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -2302,6 +3128,7 @@
     "nodeType": "get_entity_s_scan_status",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -2335,6 +3162,7 @@
     "nodeType": "get_entity_s_type",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2400,6 +3228,7 @@
     "methodName": "getEntitySUnitTagList",
     "nodeType": "get_entity_s_unit_tag_list",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -2433,6 +3262,7 @@
     "nodeType": "get_entity_type_list",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2460,6 +3290,7 @@
     "nodeType": "get_list_length",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2536,6 +3367,7 @@
     "methodName": "getListOfKeysFromDictionary",
     "nodeType": "get_list_of_keys_from_dictionary",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -2576,6 +3408,7 @@
     "nodeType": "get_list_of_player_entities_on_the_field",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2602,8 +3435,44 @@
     "methodName": "getListOfValuesFromDictionary",
     "nodeType": "get_list_of_values_from_dictionary",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
-      "creation_skill",
+      "creation_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "dictionary",
+        "irType": "dict",
+        "docZh": "字典",
+        "docEn": "Dictionary"
+      }
+    ],
+    "returns": [
+      {
+        "name": "valueList",
+        "irType": "int_list",
+        "docZh": "值列表",
+        "docEn": "Value List"
+      }
+    ],
+    "docs": {
+      "en": "Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.",
+      "zh": "获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列"
+    },
+    "reflect": {
+      "variantKeys": [
+        "dict"
+      ]
+    }
+  },
+  {
+    "methodName": "getListOfValuesFromDictionary",
+    "nodeType": "get_list_of_values_from_dictionary",
+    "subTypes": [
       "creation_status",
       "creation_status_decision"
     ],
@@ -2642,6 +3511,7 @@
     "nodeType": "get_maximum_value_from_list",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -2684,6 +3554,7 @@
     "nodeType": "get_minimum_value_from_list",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -2764,6 +3635,7 @@
     "nodeType": "get_player_client_input_device_type",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -2790,6 +3662,7 @@
     "nodeType": "get_player_entity_to_which_the_character_belongs",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2820,10 +3693,189 @@
     }
   },
   {
+    "methodName": "getPlayerMovementInput",
+    "nodeType": "get_player_movement_input",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "inputDirection",
+        "irType": "float",
+        "docZh": "输入方向",
+        "docEn": "Input Direction"
+      },
+      {
+        "name": "inputStrength",
+        "irType": "float",
+        "docZh": "输入力度",
+        "docEn": "Input Strength"
+      }
+    ],
+    "docs": {
+      "en": "Returns the Input Direction and Input Strength of the current client player's movement.",
+      "zh": "获取当前客户端玩家移动的输入方向和输入力度"
+    }
+  },
+  {
+    "methodName": "getPreAimingCollisionDetectionResultCount",
+    "nodeType": "get_pre_aiming_collision_detection_result_count",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "resultCount",
+        "irType": "int",
+        "docZh": "结果数量",
+        "docEn": "Result Count"
+      }
+    ],
+    "docs": {
+      "en": "Get Pre-Aiming Collision Detection Result Count",
+      "zh": "获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "getPreAimingDuration",
+    "nodeType": "get_pre_aiming_duration",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "durationSeconds",
+        "irType": "float",
+        "docZh": "持续时长（s）",
+        "docEn": "Duration Seconds"
+      }
+    ],
+    "docs": {
+      "en": "Get Pre-Aiming Duration",
+      "zh": "获取指定预瞄准已经持续的时长（秒），仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "getPreAimingRayHitInfo",
+    "nodeType": "get_pre_aiming_ray_hit_info",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "hitPosition",
+        "irType": "vec3",
+        "docZh": "命中位置",
+        "docEn": "Hit Position"
+      },
+      {
+        "name": "hitEntity",
+        "irType": "entity",
+        "docZh": "命中实体",
+        "docEn": "Hit Entity"
+      }
+    ],
+    "docs": {
+      "en": "Get Pre-Aiming Ray Hit Info",
+      "zh": "获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "getPreAimingResult",
+    "nodeType": "get_pre_aiming_result",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "hitPosition",
+        "irType": "vec3",
+        "docZh": "命中位置",
+        "docEn": "Hit Position"
+      },
+      {
+        "name": "inRangePosition",
+        "irType": "vec3",
+        "docZh": "范围内位置",
+        "docEn": "In-Range Position"
+      },
+      {
+        "name": "bestValidTarget",
+        "irType": "entity",
+        "docZh": "最优合法目标",
+        "docEn": "Best Valid Target"
+      },
+      {
+        "name": "validTargetList",
+        "irType": "entity_list",
+        "docZh": "合法目标列表",
+        "docEn": "Valid Target List"
+      }
+    ],
+    "docs": {
+      "en": "Get Pre-Aiming Result",
+      "zh": "获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "getPresetStatus",
     "nodeType": "get_preset_status",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -2920,6 +3972,7 @@
     "nodeType": "get_random_number",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -2968,6 +4021,7 @@
     "nodeType": "get_ray_detection_result",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3044,6 +4098,7 @@
     "nodeType": "get_ray_filter_type_list",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3071,6 +4126,7 @@
     "nodeType": "get_self_entity",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -3125,6 +4181,37 @@
     "docs": {
       "en": "Obtain the Preset Status Value at the specified Preset Status index for this Entity. If the Entity does not have the specified Preset Status index, return 0",
       "zh": "获取自身的指定预设状态索引的预设状态值。如果该实体没有指定的预设状态索引，则返回0"
+    }
+  },
+  {
+    "methodName": "getSkillConfigIdBySkillInstanceId",
+    "nodeType": "get_skill_config_id_by_skill_instance_id",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "skillInstanceID",
+        "irType": "int",
+        "docZh": "技能实例ID",
+        "docEn": "Skill Instance ID"
+      }
+    ],
+    "returns": [
+      {
+        "name": "skillConfigID",
+        "irType": "config_id",
+        "docZh": "技能配置ID",
+        "docEn": "Skill Config ID"
+      }
+    ],
+    "docs": {
+      "en": "Returns the corresponding Skill Config ID based on the Skill Instance ID provided.",
+      "zh": "根据技能实例ID获取对应的技能配置ID"
     }
   },
   {
@@ -3257,6 +4344,7 @@
     "nodeType": "get_target_attachment_point_location",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3297,6 +4385,7 @@
     "nodeType": "get_target_attachment_point_rotation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3337,6 +4426,7 @@
     "nodeType": "get_target_entity",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_status",
       "creation_status_decision",
@@ -3440,6 +4530,7 @@
     "methodName": "getTheAggroListOfTheSpecifiedEntity",
     "nodeType": "get_the_aggro_list_of_the_specified_entity",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -3472,6 +4563,7 @@
     "methodName": "getTheAggroTargetOfTheSpecifiedEntity",
     "nodeType": "get_the_aggro_target_of_the_specified_entity",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -3529,6 +4621,7 @@
     "nodeType": "get_unit_attack_target",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3559,10 +4652,97 @@
     }
   },
   {
+    "methodName": "getWhetherControlMotorIsGrounded",
+    "nodeType": "get_whether_control_motor_is_grounded",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "targetControlMotor",
+        "irType": "entity",
+        "docZh": "目标操控运动器",
+        "docEn": "Target Control Motor"
+      }
+    ],
+    "returns": [
+      {
+        "name": "isGrounded",
+        "irType": "bool",
+        "docZh": "是否接地",
+        "docEn": "Is Grounded"
+      }
+    ],
+    "docs": {
+      "en": "Get Whether Control Motor Is Grounded",
+      "zh": "获取指定操控运动器当前是否接地"
+    }
+  },
+  {
+    "methodName": "getWhetherCursorIsActive",
+    "nodeType": "get_whether_cursor_is_active",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [],
+    "returns": [
+      {
+        "name": "isActive",
+        "irType": "bool",
+        "docZh": "是否激活",
+        "docEn": "Is Active"
+      }
+    ],
+    "docs": {
+      "en": "Get Whether Cursor Is Active",
+      "zh": "获取本机持久光标是否处于激活状态，仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "getWhetherPreAimingStickIsInDeadZone",
+    "nodeType": "get_whether_pre_aiming_stick_is_in_dead_zone",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "isInDeadZone",
+        "irType": "bool",
+        "docZh": "是否处于死区",
+        "docEn": "Is in Dead Zone"
+      }
+    ],
+    "docs": {
+      "en": "Get Whether Pre-Aiming Stick Is in Dead Zone",
+      "zh": "获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "greaterThan",
     "nodeType": "greater_than",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3652,6 +4832,7 @@
     "nodeType": "greater_than_or_equal_to",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3734,12 +4915,43 @@
       "variantKeys": [
         "float|float"
       ]
+    }
+  },
+  {
+    "methodName": "increaseSkillVariableValue",
+    "nodeType": "increase_skill_variable_value",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "skillVariableConfigID",
+        "irType": "config_id",
+        "docZh": "技能变量配置ID",
+        "docEn": "Skill Variable Config ID"
+      },
+      {
+        "name": "setValue",
+        "irType": "float",
+        "docZh": "增加值",
+        "docEn": "Set Value"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Increases the value of the specified skill variable. The increment can be a negative value.",
+      "zh": "给指定的技能变量增加值，增加值可以为负数"
     }
   },
   {
     "methodName": "increaseTheAggroValueOfTheSpecifiedEntity",
     "nodeType": "increase_the_aggro_value_of_the_specified_entity",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -3774,10 +4986,28 @@
     }
   },
   {
+    "methodName": "interruptCurrentSkill",
+    "nodeType": "interrupt_current_skill",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [],
+    "returns": null,
+    "docs": {
+      "en": "Interrupts the skill currently being cast by the character",
+      "zh": "打断角色当前正在施放的技能"
+    }
+  },
+  {
     "methodName": "lessThan",
     "nodeType": "less_than",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -3826,6 +5056,7 @@
     "nodeType": "less_than_or_equal_to",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -3915,6 +5146,7 @@
     "nodeType": "list_includes_this_value",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -4013,6 +5245,7 @@
     "nodeType": "logical_and_operation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4055,6 +5288,7 @@
     "nodeType": "logical_not_operation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4091,6 +5325,7 @@
     "nodeType": "logical_or_operation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4133,6 +5368,7 @@
     "nodeType": "logical_xor_operation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4175,6 +5411,7 @@
     "nodeType": "multiplication",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4222,6 +5459,7 @@
     "methodName": "notifyServerNodeGraph",
     "nodeType": "notify_server_node_graph",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -4260,6 +5498,7 @@
     "nodeType": "orientation_to_rotation",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4295,6 +5534,7 @@
     "methodName": "playerTurning",
     "nodeType": "player_turning",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -4319,6 +5559,7 @@
     "methodName": "playerTurnsToFaceSetDirection",
     "nodeType": "player_turns_to_face_set_direction",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -4343,6 +5584,7 @@
     "methodName": "playTimedEffects",
     "nodeType": "play_timed_effects",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -4389,9 +5631,41 @@
     }
   },
   {
+    "methodName": "queryActiveSkillInstanceListOfSpecifiedSlot",
+    "nodeType": "query_active_skill_instance_list_of_specified_slot",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "skillSlot",
+        "irType": "enum",
+        "docZh": "技能槽位",
+        "docEn": "Skill Slot"
+      }
+    ],
+    "returns": [
+      {
+        "name": "skillInstanceIDList",
+        "irType": "int",
+        "docZh": "技能实例ID",
+        "docEn": "Skill Instance ID List"
+      }
+    ],
+    "docs": {
+      "en": "Returns the skill instance(s) currently in the foreground for the slot specified.",
+      "zh": "查询指定槽位当前位于前台的技能实例"
+    }
+  },
+  {
     "methodName": "queryDictionarySLength",
     "nodeType": "query_dictionary_s_length",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4475,6 +5749,7 @@
     "nodeType": "query_entity_by_guid",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -4509,6 +5784,7 @@
     "nodeType": "query_entity_faction",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -4575,6 +5851,7 @@
     "nodeType": "query_guid_by_entity",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -4608,6 +5885,7 @@
     "methodName": "queryIfDictionaryContainsSpecificKey",
     "nodeType": "query_if_dictionary_contains_specific_key",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -4651,6 +5929,7 @@
     "methodName": "queryIfDictionaryContainsSpecificValue",
     "nodeType": "query_if_dictionary_contains_specific_value",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4697,6 +5976,7 @@
     "nodeType": "query_if_entity_is_on_the_field",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "int_filter"
@@ -4763,6 +6043,7 @@
     "nodeType": "query_if_faction_is_hostile",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4805,6 +6086,7 @@
     "nodeType": "query_if_self_is_in_combat",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "int_filter"
     ],
@@ -4830,6 +6112,7 @@
     "methodName": "queryIfSpecifiedEntityIsInCombat",
     "nodeType": "query_if_specified_entity_is_in_combat",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -4859,10 +6142,172 @@
     }
   },
   {
+    "methodName": "queryPreAimingEndReason",
+    "nodeType": "query_pre_aiming_end_reason",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "preAimingIndex",
+        "irType": "int",
+        "docZh": "预瞄准序号",
+        "docEn": "Pre-Aiming Index"
+      }
+    ],
+    "returns": [
+      {
+        "name": "endReason",
+        "irType": "enum",
+        "docZh": "结束原因",
+        "docEn": "End Reason"
+      }
+    ],
+    "docs": {
+      "en": "Query Pre-Aiming End Reason",
+      "zh": "查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "querySkillInstanceIdBySkillSlotAndSkillConfigId",
+    "nodeType": "query_skill_instance_id_by_skill_slot_and_skill_config_id",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "skillSlot",
+        "irType": "enum",
+        "docZh": "技能槽位",
+        "docEn": "Skill Slot"
+      },
+      {
+        "name": "skillConfigID",
+        "irType": "config_id",
+        "docZh": "技能配置ID",
+        "docEn": "Skill Config ID"
+      }
+    ],
+    "returns": [
+      {
+        "name": "skillInstanceIDList",
+        "irType": "int",
+        "docZh": "技能实例ID",
+        "docEn": "Skill Instance ID List"
+      }
+    ],
+    "docs": {
+      "en": "Returns the corresponding skill instance based on the skill slot and Skill Config ID provided.",
+      "zh": "根据技能槽位和技能配置ID查询对应的技能实例"
+    }
+  },
+  {
+    "methodName": "querySkillInstanceListBySpecifiedSlot",
+    "nodeType": "query_skill_instance_list_by_specified_slot",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "skillSlot",
+        "irType": "enum",
+        "docZh": "技能槽位",
+        "docEn": "Skill Slot"
+      }
+    ],
+    "returns": [
+      {
+        "name": "skillInstanceIDList",
+        "irType": "int_list",
+        "docZh": "技能实例ID列表",
+        "docEn": "Skill Instance ID List"
+      }
+    ],
+    "docs": {
+      "en": "Searches for all skill instances in the slot specified.",
+      "zh": "查询指定槽位的所有技能实例"
+    }
+  },
+  {
+    "methodName": "querySkillVariableValue",
+    "nodeType": "query_skill_variable_value",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "skillVariableConfigID",
+        "irType": "config_id",
+        "docZh": "技能变量配置ID",
+        "docEn": "Skill Variable Config ID"
+      }
+    ],
+    "returns": [
+      {
+        "name": "variableValue",
+        "irType": "float",
+        "docZh": "变量值",
+        "docEn": "Variable Value"
+      }
+    ],
+    "docs": {
+      "en": "Searches for the corresponding variable value based on the Skill Variable Config ID.",
+      "zh": "根据技能变量配置ID查询对应的变量值"
+    }
+  },
+  {
+    "methodName": "queryWhetherPlayerIsCurrentlyInVoiceChat",
+    "nodeType": "query_whether_player_is_currently_in_voice_chat",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "playerEntity",
+        "irType": "entity",
+        "docZh": "玩家实体",
+        "docEn": "Player Entity"
+      }
+    ],
+    "returns": [
+      {
+        "name": "currentlyInVoiceChat",
+        "irType": "bool",
+        "docZh": "是否正在语音",
+        "docEn": "Currently in Voice Chat?"
+      }
+    ],
+    "docs": {
+      "en": "Returns \"Yes\" when microphone input is detected from this player's client.; Note: This node only takes effect during multiplayer games (multiplayer test play, actual multiplayer play). It will not work in single-player games (single-player test play, actual single-player play).",
+      "zh": "当检测到该玩家客户端有麦克风输入时，会返回是; 注意该节点必须在多人游戏(多人试玩、多人正式游玩)中逻辑才会生效，单人游戏(单人试玩、单人正式游玩)均不会生效"
+    }
+  },
+  {
     "methodName": "radiansToDegrees",
     "nodeType": "radians_to_degrees",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -4898,6 +6343,7 @@
     "methodName": "recoverCharacterSHp",
     "nodeType": "recover_character_s_hp",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -4982,6 +6428,7 @@
     "methodName": "removeSpecifiedCharacterDisruptorDevice",
     "nodeType": "remove_specified_character_disruptor_device",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -5007,6 +6454,7 @@
     "methodName": "removeTargetEntityFromAggroList",
     "nodeType": "remove_target_entity_from_aggro_list",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -5038,6 +6486,7 @@
     "methodName": "removeUnitStatus",
     "nodeType": "remove_unit_status",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -5069,6 +6518,7 @@
     "methodName": "resetSkillTarget",
     "nodeType": "reset_skill_target",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -5107,9 +6557,96 @@
     }
   },
   {
+    "methodName": "screenCoordinatesToViewportCoordinates",
+    "nodeType": "screen_coordinates_to_viewport_coordinates",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "screenX",
+        "irType": "float",
+        "docZh": "屏幕X",
+        "docEn": "Screen X"
+      },
+      {
+        "name": "screenY",
+        "irType": "float",
+        "docZh": "屏幕Y",
+        "docEn": "Screen Y"
+      }
+    ],
+    "returns": [
+      {
+        "name": "viewportX",
+        "irType": "float",
+        "docZh": "视口X",
+        "docEn": "Viewport X"
+      },
+      {
+        "name": "viewportY",
+        "irType": "float",
+        "docZh": "视口Y",
+        "docEn": "Viewport Y"
+      }
+    ],
+    "docs": {
+      "en": "Screen Coordinates to Viewport Coordinates",
+      "zh": "将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用"
+    }
+  },
+  {
+    "methodName": "screenCoordinatesToWorldCoordinates",
+    "nodeType": "screen_coordinates_to_world_coordinates",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "screenX",
+        "irType": "float",
+        "docZh": "屏幕X",
+        "docEn": "Screen X"
+      },
+      {
+        "name": "screenY",
+        "irType": "float",
+        "docZh": "屏幕Y",
+        "docEn": "Screen Y"
+      },
+      {
+        "name": "depth",
+        "irType": "float",
+        "docZh": "深度值",
+        "docEn": "Depth"
+      }
+    ],
+    "returns": [
+      {
+        "name": "worldPosition",
+        "irType": "vec3",
+        "docZh": "世界坐标",
+        "docEn": "World Position"
+      }
+    ],
+    "docs": {
+      "en": "Screen Coordinates to World Coordinates",
+      "zh": "将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "setAttackWeight",
     "nodeType": "set_attack_weight",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -5137,9 +6674,40 @@
     }
   },
   {
+    "methodName": "setControlMotorToUngroundedState",
+    "nodeType": "set_control_motor_to_ungrounded_state",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "targetControlMotor",
+        "irType": "entity",
+        "docZh": "目标操控运动器",
+        "docEn": "Target Control Motor"
+      },
+      {
+        "name": "duration",
+        "irType": "float",
+        "docZh": "持续时间",
+        "docEn": "Duration"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Set Control Motor to Ungrounded State",
+      "zh": "接地状态下的操控运动器将持续找到地面并贴合。若希望通过添加速度实现离地运动（跳跃等效果），可以使用该节点短暂脱离接地状态。"
+    }
+  },
+  {
     "methodName": "setOwnAttackTarget",
     "nodeType": "set_own_attack_target",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -5167,9 +6735,40 @@
     }
   },
   {
+    "methodName": "setSkillVariable",
+    "nodeType": "set_skill_variable",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "exec",
+    "params": [
+      {
+        "name": "skillVariableConfigID",
+        "irType": "config_id",
+        "docZh": "技能变量配置ID",
+        "docEn": "Skill Variable Config ID"
+      },
+      {
+        "name": "setValue",
+        "irType": "float",
+        "docZh": "设置值",
+        "docEn": "Set Value"
+      }
+    ],
+    "returns": null,
+    "docs": {
+      "en": "Sets the value of the specified skill variable",
+      "zh": "给指定的技能变量设置值"
+    }
+  },
+  {
     "methodName": "setTheAggroValueOfSpecifiedEntity",
     "nodeType": "set_the_aggro_value_of_specified_entity",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -5207,6 +6806,7 @@
     "methodName": "setTheAggroValueOfTheSpecifiedEntityProportionally",
     "nodeType": "set_the_aggro_value_of_the_specified_entity_proportionally",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -5401,6 +7001,7 @@
     "nodeType": "sine_function",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -5437,6 +7038,7 @@
     "nodeType": "split3d_vector",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -5485,6 +7087,7 @@
     "nodeType": "subtraction",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -6379,6 +7982,7 @@
     "nodeType": "tangent_function",
     "subTypes": [
       "bool_filter",
+      "character_control_skill",
       "character_skill",
       "creation_skill",
       "creation_status",
@@ -6414,6 +8018,7 @@
     "methodName": "tauntTarget",
     "nodeType": "taunt_target",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -6445,6 +8050,7 @@
     "methodName": "transferTheAggroValueOfTheSpecifiedEntityProportionally",
     "nodeType": "transfer_the_aggro_value_of_the_specified_entity_proportionally",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -6489,6 +8095,7 @@
     "nodeType": "traverse_entity_list",
     "subTypes": [
       "character_skill",
+      "character_control_skill",
       "creation_skill"
     ],
     "modes": [
@@ -6520,6 +8127,7 @@
     "methodName": "triggerHitboxAtSpecificLocation",
     "nodeType": "trigger_hitbox_at_specific_location",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -6767,6 +8375,7 @@
     "methodName": "triggerHitboxAtSpecifiedAttachmentPoint",
     "nodeType": "trigger_hitbox_at_specified_attachment_point",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -7020,6 +8629,7 @@
     "methodName": "triggerRectangularHitboxAtSpecificLocation",
     "nodeType": "trigger_rectangular_hitbox_at_specific_location",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -7225,6 +8835,7 @@
     "methodName": "triggerRectangularHitboxAtSpecifiedAttachmentPoint",
     "nodeType": "trigger_rectangular_hitbox_at_specified_attachment_point",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -7436,6 +9047,7 @@
     "methodName": "triggerSectorHitboxAtSpecificLocation",
     "nodeType": "trigger_sector_hitbox_at_specific_location",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -7665,6 +9277,7 @@
     "methodName": "triggerSectorHitboxAtSpecifiedAttachmentPoint",
     "nodeType": "trigger_sector_hitbox_at_specified_attachment_point",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -7900,6 +9513,7 @@
     "methodName": "triggerSphericalHitboxAtSpecificLocation",
     "nodeType": "trigger_spherical_hitbox_at_specific_location",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -8105,6 +9719,7 @@
     "methodName": "triggerSphericalHitboxAtSpecifiedAttachmentPoint",
     "nodeType": "trigger_spherical_hitbox_at_specified_attachment_point",
     "subTypes": [
+      "character_control_skill",
       "character_skill"
     ],
     "modes": [
@@ -8312,9 +9927,53 @@
     }
   },
   {
+    "methodName": "viewportCoordinatesToScreenCoordinates",
+    "nodeType": "viewport_coordinates_to_screen_coordinates",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "viewportX",
+        "irType": "float",
+        "docZh": "视口X",
+        "docEn": "Viewport X"
+      },
+      {
+        "name": "viewportY",
+        "irType": "float",
+        "docZh": "视口Y",
+        "docEn": "Viewport Y"
+      }
+    ],
+    "returns": [
+      {
+        "name": "screenX",
+        "irType": "float",
+        "docZh": "屏幕X",
+        "docEn": "Screen X"
+      },
+      {
+        "name": "screenY",
+        "irType": "float",
+        "docZh": "屏幕Y",
+        "docEn": "Screen Y"
+      }
+    ],
+    "docs": {
+      "en": "Viewport Coordinates to Screen Coordinates",
+      "zh": "将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用"
+    }
+  },
+  {
     "methodName": "whetherTheEntityHasTheSpecifiedUnitStatus",
     "nodeType": "whether_the_entity_has_the_specified_unit_status",
     "subTypes": [
+      "character_control_skill",
       "character_skill",
       "creation_skill"
     ],
@@ -8347,6 +10006,43 @@
     "docs": {
       "en": "Query whether the entity has the specified unit status",
       "zh": "查询目标实体是否携带指定的单位状态"
+    }
+  },
+  {
+    "methodName": "worldCoordinatesToScreenCoordinates",
+    "nodeType": "world_coordinates_to_screen_coordinates",
+    "subTypes": [
+      "character_control_skill"
+    ],
+    "modes": [
+      "beyond"
+    ],
+    "kind": "data",
+    "params": [
+      {
+        "name": "worldPosition",
+        "irType": "vec3",
+        "docZh": "世界坐标",
+        "docEn": "World Position"
+      }
+    ],
+    "returns": [
+      {
+        "name": "screenX",
+        "irType": "float",
+        "docZh": "屏幕X",
+        "docEn": "Screen X"
+      },
+      {
+        "name": "screenY",
+        "irType": "float",
+        "docZh": "屏幕Y",
+        "docEn": "Screen Y"
+      }
+    ],
+    "docs": {
+      "en": "World Coordinates to Screen Coordinates",
+      "zh": "将世界坐标转换为屏幕坐标，仅在超限模式可用"
     }
   }
 ]

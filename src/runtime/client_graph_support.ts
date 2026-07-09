@@ -1,6 +1,7 @@
 import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
 import {
   ClientBoolFilterExecutionFlowFunctions,
+  ClientCharacterControlSkillExecutionFlowFunctions,
   ClientCharacterSkillExecutionFlowFunctions,
   ClientCreationSkillExecutionFlowFunctions,
   ClientCreationStatusDecisionExecutionFlowFunctions,
@@ -96,15 +97,17 @@ export type ClientFlowFunctionClass<
 > = Mode extends ClientGraphMode
   ? T extends 'character_skill'
     ? ClientCharacterSkillExecutionFlowFunctions
-    : T extends 'creation_skill'
-      ? ClientCreationSkillExecutionFlowFunctions
-      : T extends 'creation_status'
-        ? ClientCreationStatusExecutionFlowFunctions
-        : T extends 'creation_status_decision'
-          ? ClientCreationStatusDecisionExecutionFlowFunctions
-          : T extends 'bool_filter'
-            ? ClientBoolFilterExecutionFlowFunctions
-            : ClientIntFilterExecutionFlowFunctions
+    : T extends 'character_control_skill'
+      ? ClientCharacterControlSkillExecutionFlowFunctions
+      : T extends 'creation_skill'
+        ? ClientCreationSkillExecutionFlowFunctions
+        : T extends 'creation_status'
+          ? ClientCreationStatusExecutionFlowFunctions
+          : T extends 'creation_status_decision'
+            ? ClientCreationStatusDecisionExecutionFlowFunctions
+            : T extends 'bool_filter'
+              ? ClientBoolFilterExecutionFlowFunctions
+              : ClientIntFilterExecutionFlowFunctions
   : never
 
 export type ClientStartHandler<F> = (evt: ClientStartEvent, f: F) => void
@@ -193,6 +196,10 @@ export function createClientFlowFunctions<T extends ClientGraphSubType>(
   switch (subType) {
     case 'character_skill':
       return new ClientCharacterSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
+    case 'character_control_skill':
+      return new ClientCharacterControlSkillExecutionFlowFunctions(
+        registry
+      ) as ClientFlowFunctionClass<T>
     case 'creation_skill':
       return new ClientCreationSkillExecutionFlowFunctions(registry) as ClientFlowFunctionClass<T>
     case 'creation_status':

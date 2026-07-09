@@ -41,6 +41,7 @@ import type {
   HitLevel,
   KnockbackDirectionType,
   PreAimingEndReason,
+  RayFilterType,
   RetracingType,
   RotationDirection,
   RotationType,
@@ -570,6 +571,8 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
   assemblyList(_0to9: EntityValue[]): entity[]
   assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: GuidValue[]): guid[]
+  assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
   assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
   assemblyList(_0to9: StrValue[]): string[]
@@ -577,13 +580,22 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   assemblyList(_0to9: Vec3Value[]): vec3[]
   assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
   assemblyList<
-    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+    T extends
+      | 'float'
+      | 'int'
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'guid'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
   >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
     let genericType = matchTypes(
-      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'guid', 'prefab_id', 'str', 'vec3'],
       ..._0to9
     )
     if (type) genericType = type
@@ -1025,6 +1037,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -1936,8 +1949,8 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[]
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[] {
+  getListOfValuesFromDictionary(dictionary: DictValue): bigint[]
+  getListOfValuesFromDictionary(dictionary: DictValue): bigint[] {
     const genericType = matchTypes(['dict'], dictionary)
     const dictionaryObj = parseValue(dictionary, genericType)
     const ref = this.registry.registerNode({
@@ -1946,9 +1959,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list('int')
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as bigint[]
   }
 
   /**
@@ -2189,7 +2202,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     maxRayLength: FloatValue,
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
-    hitLayerFilter: EnumerationValue[]
+    hitLayerFilter: RayFilterType[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
@@ -2235,7 +2248,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 列表
    */
-  getRayFilterTypeList(): enumeration[] {
+  getRayFilterTypeList(): RayFilterType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2244,7 +2257,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as RayFilterType[]
   }
 
   /**
@@ -5598,6 +5611,7132 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 }
 
+export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+  /**
+   * Calculates the sum of two 3D Vectors
+   *
+   * 三维向量加法: 计算两个三维向量的加法
+   *
+   * @param _3DVector1
+   *
+   * 三维向量1
+   * @param _3DVector2
+   *
+   * 三维向量2
+   *
+   * @returns
+   *
+   * 计算结果
+   */
+  _3dVectorAddition(_3DVector1: Vec3Value, _3DVector2: Vec3Value): vec3 {
+    const _3DVector1Obj = parseValue(_3DVector1, 'vec3')
+    const _3DVector2Obj = parseValue(_3DVector2, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_addition',
+      args: [_3DVector1Obj, _3DVector2Obj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'calculationResult', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Calculates the angle between two 3D Vectors and outputs the value in degrees
+   *
+   * 三维向量夹角: 计算两个三维向量之间的夹角，以角度输出
+   *
+   * @param _3DVector1
+   *
+   * 三维向量1
+   * @param _3DVector2
+   *
+   * 三维向量2
+   *
+   * @returns
+   *
+   * 夹角(角度)
+   */
+  _3dVectorAngle(_3DVector1: Vec3Value, _3DVector2: Vec3Value): number {
+    const _3DVector1Obj = parseValue(_3DVector1, 'vec3')
+    const _3DVector2Obj = parseValue(_3DVector2, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_angle',
+      args: [_3DVector1Obj, _3DVector2Obj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'angle', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Calculates the cross product of two 3D Vectors
+   *
+   * 三维向量外积: 计算两个三维向量的外积（叉乘）
+   *
+   * @param _3DVector1
+   *
+   * 三维向量1
+   * @param _3DVector2
+   *
+   * 三维向量2
+   *
+   * @returns
+   *
+   * 计算结果
+   */
+  _3dVectorCrossProduct(_3DVector1: Vec3Value, _3DVector2: Vec3Value): vec3 {
+    const _3DVector1Obj = parseValue(_3DVector1, 'vec3')
+    const _3DVector2Obj = parseValue(_3DVector2, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_cross_product',
+      args: [_3DVector1Obj, _3DVector2Obj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'calculationResult', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Calculates the dot product of two input 3D Vectors
+   *
+   * 三维向量内积: 计算两个输入三维向量的内积（点乘）
+   *
+   * @param _3DVector1
+   *
+   * 三维向量1
+   * @param _3DVector2
+   *
+   * 三维向量2
+   *
+   * @returns
+   *
+   * 计算结果
+   */
+  _3dVectorDotProduct(_3DVector1: Vec3Value, _3DVector2: Vec3Value): number {
+    const _3DVector1Obj = parseValue(_3DVector1, 'vec3')
+    const _3DVector2Obj = parseValue(_3DVector2, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_dot_product',
+      args: [_3DVector1Obj, _3DVector2Obj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'calculationResult', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Calculates the magnitude of the input 3D Vector
+   *
+   * 三维向量模运算: 计算输入三维向量的模
+   *
+   * @param _3DVector
+   *
+   * 三维向量
+   *
+   * @returns
+   *
+   * 结果
+   */
+  _3dVectorModuloOperation(_3DVector: Vec3Value): number {
+    const _3DVectorObj = parseValue(_3DVector, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_modulo_operation',
+      args: [_3DVectorObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Normalizes the length of a 3D Vector and outputs the result
+   *
+   * 三维向量归一化: 将三维向量的长度归一化后输出
+   *
+   * @param _3DVector
+   *
+   * 三维向量
+   *
+   * @returns
+   *
+   * 结果
+   */
+  _3dVectorNormalization(_3DVector: Vec3Value): vec3 {
+    const _3DVectorObj = parseValue(_3DVector, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_normalization',
+      args: [_3DVectorObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Rotates the input 3D Vector by the Euler Angles specified by the rotation and returns the result
+   *
+   * 三维向量旋转: 将被旋转的三维向量，按照旋转所表示的欧拉角进行旋转后返回结果
+   *
+   * @param rotated3DVector
+   *
+   * 被旋转的三维向量
+   * @param rotate
+   *
+   * 旋转
+   *
+   * @returns
+   *
+   * 结果
+   */
+  _3dVectorRotation(rotated3DVector: Vec3Value, rotate: Vec3Value): vec3 {
+    const rotated3DVectorObj = parseValue(rotated3DVector, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_rotation',
+      args: [rotated3DVectorObj, rotateObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Calculates the difference of two 3D Vectors
+   *
+   * 三维向量减法: 计算两个三维向量的减法
+   *
+   * @param _3DVector1
+   *
+   * 三维向量1
+   * @param _3DVector2
+   *
+   * 三维向量2
+   *
+   * @returns
+   *
+   * 计算结果
+   */
+  _3dVectorSubtraction(_3DVector1: Vec3Value, _3DVector2: Vec3Value): vec3 {
+    const _3DVector1Obj = parseValue(_3DVector1, 'vec3')
+    const _3DVector2Obj = parseValue(_3DVector2, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_subtraction',
+      args: [_3DVector1Obj, _3DVector2Obj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'calculationResult', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Scales the input 3D Vector (scalar multiplication) and outputs the result
+   *
+   * 三维向量缩放: 将输入的三维向量缩放后输出（三维向量数乘）
+   *
+   * @param zoomMultiplier
+   *
+   * 缩放倍率
+   * @param _3DVector
+   *
+   * 三维向量
+   *
+   * @returns
+   *
+   * 结果
+   */
+  _3dVectorZoom(zoomMultiplier: FloatValue, _3DVector: Vec3Value): vec3 {
+    const zoomMultiplierObj = parseValue(zoomMultiplier, 'float')
+    const _3DVectorObj = parseValue(_3DVector, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '_3d_vector_zoom',
+      args: [zoomMultiplierObj, _3DVectorObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Returns the absolute value of the input
+   *
+   * 绝对值运算: 返回输入的绝对值
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 结果
+   */
+  absoluteValueOperation(input: FloatValue): number
+  absoluteValueOperation(input: IntValue): bigint
+  absoluteValueOperation(input: FloatValue | IntValue): number | bigint {
+    const genericType = matchTypes(['float', 'int'], input)
+    const inputObj = parseValue(input, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'absolute_value_operation',
+      args: [inputObj]
+    })
+    const ret = new ValueClassMap[genericType]()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Adds a key behavior with the corresponding ID to the Key Behavior Log Panel, and records the current time along with it. The maximum number of key behaviors that can be recorded is 20.
+   *
+   * 添加关键行为: 给关键行为记录板上添加一个对应ID的关键行为，并会将此刻的时间一同记录。可记录的关键行为最大数量为20
+   *
+   * @param keyBehaviorID
+   *
+   * 关键行为ID
+   */
+  addKeyBehavior(keyBehaviorID: IntValue): void {
+    const keyBehaviorIDObj = parseValue(keyBehaviorID, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'add_key_behavior',
+      args: [keyBehaviorIDObj]
+    })
+  }
+
+  /**
+   * Add Temporary Acceleration
+   *
+   * 添加临时加速度: 添加临时加速度，若载具处于接地状态，则只会受到地面所在平面的加速度（在平面上的分量）。
+   *
+   * @param targetControlMotor
+   *
+   * 目标操控运动器
+   * @param acceleration
+   *
+   * 加速度值
+   * @param direction
+   *
+   * 朝向
+   * @param duration
+   *
+   * 持续时间
+   */
+  addTemporaryAcceleration(
+    targetControlMotor: EntityValue,
+    acceleration: FloatValue,
+    direction: Vec3Value,
+    duration: FloatValue
+  ): void {
+    const targetControlMotorObj = parseValue(targetControlMotor, 'entity')
+    const accelerationObj = parseValue(acceleration, 'float')
+    const directionObj = parseValue(direction, 'vec3')
+    const durationObj = parseValue(duration, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'add_temporary_acceleration',
+      args: [targetControlMotorObj, accelerationObj, directionObj, durationObj]
+    })
+  }
+
+  /**
+   * Add Temporary Movement Parameter Values
+   *
+   * 添加临时运动参数值: 添加临时运动参数值。该值将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
+   *
+   * @param controlMotor
+   *
+   * 操控运动器
+   * @param forwardAcceleration
+   *
+   * 前进加速度
+   * @param backwardAcceleration
+   *
+   * 后退加速度
+   * @param turningRate
+   *
+   * 转向速率
+   * @param baseDragDeceleration
+   *
+   * 基础阻力减速度
+   * @param dragCoefficient
+   *
+   * 阻力系数
+   * @param maxForwardSpeed
+   *
+   * 最大前进速度
+   * @param maxBackwardSpeed
+   *
+   * 最大后退速度
+   */
+  addTemporaryMovementParameterValues(
+    controlMotor: EntityValue,
+    forwardAcceleration: FloatValue,
+    backwardAcceleration: FloatValue,
+    turningRate: FloatValue,
+    baseDragDeceleration: FloatValue,
+    dragCoefficient: FloatValue,
+    maxForwardSpeed: FloatValue,
+    maxBackwardSpeed: FloatValue
+  ): void {
+    const controlMotorObj = parseValue(controlMotor, 'entity')
+    const forwardAccelerationObj = parseValue(forwardAcceleration, 'float')
+    const backwardAccelerationObj = parseValue(backwardAcceleration, 'float')
+    const turningRateObj = parseValue(turningRate, 'float')
+    const baseDragDecelerationObj = parseValue(baseDragDeceleration, 'float')
+    const dragCoefficientObj = parseValue(dragCoefficient, 'float')
+    const maxForwardSpeedObj = parseValue(maxForwardSpeed, 'float')
+    const maxBackwardSpeedObj = parseValue(maxBackwardSpeed, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'add_temporary_movement_parameter_values',
+      args: [
+        controlMotorObj,
+        forwardAccelerationObj,
+        backwardAccelerationObj,
+        turningRateObj,
+        baseDragDecelerationObj,
+        dragCoefficientObj,
+        maxForwardSpeedObj,
+        maxBackwardSpeedObj
+      ]
+    })
+  }
+
+  /**
+   * Applies the Unit Status defined by the configuration ID to the Target
+   *
+   * 添加单位状态: 为施加目标添加配置ID对应的单位状态
+   *
+   * @param applicationTarget
+   *
+   * 施加目标
+   * @param stacks
+   *
+   * 层数
+   * @param unitStatusConfigID
+   *
+   * 单位状态配置ID
+   */
+  addUnitStatus(
+    applicationTarget: EntityValue,
+    stacks: IntValue,
+    unitStatusConfigID: ConfigIdValue
+  ): void {
+    const applicationTargetObj = parseValue(applicationTarget, 'entity')
+    const stacksObj = parseValue(stacks, 'int')
+    const unitStatusConfigIDObj = parseValue(unitStatusConfigID, 'config_id')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'add_unit_status',
+      args: [applicationTargetObj, stacksObj, unitStatusConfigIDObj]
+    })
+  }
+
+  /**
+   * Add Velocity
+   *
+   * 添加速度: 添加临时加速度，若载具处于接地状态，则只会添加地面所在平面的速度（在平面上的分量）; 添加的速度会在持续时间结束后仍然继承
+   *
+   * @param targetControlMotor
+   *
+   * 目标操控运动器
+   * @param velocity
+   *
+   * 速度值
+   * @param direction
+   *
+   * 朝向
+   * @param duration
+   *
+   * 持续时间
+   */
+  addVelocity(
+    targetControlMotor: EntityValue,
+    velocity: FloatValue,
+    direction: Vec3Value,
+    duration: FloatValue
+  ): void {
+    const targetControlMotorObj = parseValue(targetControlMotor, 'entity')
+    const velocityObj = parseValue(velocity, 'float')
+    const directionObj = parseValue(direction, 'vec3')
+    const durationObj = parseValue(duration, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'add_velocity',
+      args: [targetControlMotorObj, velocityObj, directionObj, durationObj]
+    })
+  }
+
+  /**
+   * Adds two Floating Point Numbers or Integers
+   *
+   * 加法运算: 计算两个浮点数或整数的加法
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  addition(input1: FloatValue, input2: FloatValue): number
+  addition(input1: IntValue, input2: IntValue): bigint
+  addition(input1: FloatValue | IntValue, input2: FloatValue | IntValue): number | bigint {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const variantKey = [genericType, genericType].join('|')
+    const outputIrType = (
+      { 'float|float': 'float', 'int|int': 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(`[error] addition: unsupported type combination ${variantKey}`)
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'addition',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Calculates the arccosine of the input and returns the value in radians
+   *
+   * 反余弦函数: 计算输入的反余弦值，返回为弧度值
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 弧度
+   */
+  arccosineFunction(input: FloatValue): number {
+    const inputObj = parseValue(input, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'arccosine_function',
+      args: [inputObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'radian', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Calculates the arcsine of the input and returns the value in radians
+   *
+   * 反正弦函数: 计算输入的反正弦值，返回为弧度值
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 弧度
+   */
+  arcsineFunction(input: FloatValue): number {
+    const inputObj = parseValue(input, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'arcsine_function',
+      args: [inputObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'radian', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Calculates the arctangent of the input and returns the value in radians
+   *
+   * 反正切函数: 计算输入的反正切值，返回为弧度值
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 弧度
+   */
+  arctangentFunction(input: FloatValue): number {
+    const inputObj = parseValue(input, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'arctangent_function',
+      args: [inputObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'radian', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Assembles multiple Input Parameters of the same type (up to 10) into a single List
+   *
+   * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
+   *
+   * @param _0to9 Assemble up to 10 parameters into a list
+   *
+   * 0~9: 将至多10个参数拼装为一个列表
+   *
+   * @returns The assembled list
+   *
+   * 列表: 拼装成的列表
+   */
+  assemblyList(_0to9: FloatValue[]): number[]
+  assemblyList(_0to9: FloatValue[], type: 'float'): number[]
+  assemblyList(_0to9: IntValue[]): bigint[]
+  assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
+  assemblyList(_0to9: BoolValue[]): boolean[]
+  assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
+  assemblyList(_0to9: ConfigIdValue[]): configId[]
+  assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
+  assemblyList(_0to9: EntityValue[]): entity[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: GuidValue[]): guid[]
+  assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
+  assemblyList(_0to9: PrefabIdValue[]): prefabId[]
+  assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
+  assemblyList(_0to9: StrValue[]): string[]
+  assemblyList(_0to9: StrValue[], type: 'str'): string[]
+  assemblyList(_0to9: Vec3Value[]): vec3[]
+  assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
+  assemblyList<
+    T extends
+      | 'float'
+      | 'int'
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'guid'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
+  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+    if (_0to9.length === 0 || _0to9.length > 10) {
+      throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
+    }
+    let genericType = matchTypes(
+      ['float', 'int', 'bool', 'config_id', 'entity', 'guid', 'prefab_id', 'str', 'vec3'],
+      ..._0to9
+    )
+    if (type) genericType = type
+    const elementObjs = _0to9.map((v) => parseValue(v, genericType))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_list',
+      args: elementObjs
+    })
+    const ret = new list(genericType)
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+  }
+
+  /**
+   * Break out of a Finite Loop. The output pin must connect to the [Break Loop] input parameter of the [Finite Loop] Node
+   *
+   * 跳出循环: 从有限循环中跳出。出引脚需要与节点【有限循环】的【跳出循环】入参相连
+   */
+  breakLoop(...loopNodeIds: IntValue[]): void {
+    const loopNodeIdObjs = loopNodeIds.map((id) => parseValue(id, 'int'))
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'break_loop',
+      args: loopNodeIdObjs
+    })
+    // break_loop has no exec output; terminate the current path to avoid invalid chaining.
+    this.registry.returnFromCurrentExecPath({ countReturn: false })
+  }
+
+  /**
+   * Casts a ray from the Camera to the emission Location and returns the Rotation and Location of valid Targets along the path
+   *
+   * 镜头朝向检测数据: 镜头朝向检测数据，从镜头向出射位置打射线，返回路线上合法目标的旋转与位置
+   *
+   * @param targetType
+   *
+   * 目标类型
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param nearestDistance
+   *
+   * 最近距离
+   * @param furthestDistance
+   *
+   * 最远距离
+   *
+   * @returns
+   *
+   * targetRotation
+   * 目标旋转
+   *
+   * targetLocation
+   * 目标位置
+   */
+  cameraOrientationDetectionData(
+    targetType: TargetType,
+    launchLocation: Vec3Value,
+    nearestDistance: FloatValue,
+    furthestDistance: FloatValue
+  ): { targetRotation: vec3; targetLocation: vec3 } {
+    const targetTypeObj = parseValue(targetType, 'enum')
+    const launchLocationObj = parseValue(launchLocation, 'vec3')
+    const nearestDistanceObj = parseValue(nearestDistance, 'float')
+    const furthestDistanceObj = parseValue(furthestDistance, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'camera_orientation_detection_data',
+      args: [targetTypeObj, launchLocationObj, nearestDistanceObj, furthestDistanceObj]
+    })
+    return {
+      targetRotation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'targetRotation', 0)
+        return ret as unknown as vec3
+      })(),
+      targetLocation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'targetLocation', 1)
+        return ret as unknown as vec3
+      })()
+    }
+  }
+
+  /**
+   * Makes the character cast the skill that is currently in the foreground for the corresponding skill slot.; For the button to be usable, the skill must be bound to a button and currently be in the foreground
+   *
+   * 施放指定槽位的技能: 使角色施放其对应技能槽位当前处于前台的技能; 按键可用需要满足该技能被绑定到了一个按钮上且当前处于前台
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   * @param checkKeyAvailability Yes: The skill will only be cast when the current button is usable.No: The skill will be cast regardless of whether the current button is usable.
+   *
+   * 是否校验按键可用: 是：当前按键可用时该技能才会被施放否：无论当前按键是否可用该技能都会被施放
+   */
+  castSkillFromSpecifiedSlot(skillSlot: EnumerationValue, checkKeyAvailability: BoolValue): void {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const checkKeyAvailabilityObj = parseValue(checkKeyAvailability, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'cast_skill_from_specified_slot',
+      args: [skillSlotObj, checkKeyAvailabilityObj]
+    })
+  }
+
+  /**
+   * Makes the character cast the skill corresponding to the specified Skill Instance ID.; For the button to be usable, the skill must be bound to a button and currently be in the foreground
+   *
+   * 施放指定技能实例: 使角色施放指定技能实例ID对应的技能; 按键可用需要满足该技能被绑定到了一个按钮上且当前处于前台
+   *
+   * @param skillInstanceID
+   *
+   * 技能实例ID
+   * @param checkKeyAvailability Yes: The skill will only be cast when the current button is usable.No: The skill will be cast regardless of whether the current button is usable.
+   *
+   * 是否校验按键可用: 是：当前按键可用时该技能才会被施放否：无论当前按键是否可用该技能都会被施放
+   */
+  castSpecifiedSkillInstance(skillInstanceID: IntValue, checkKeyAvailability: BoolValue): void {
+    const skillInstanceIDObj = parseValue(skillInstanceID, 'int')
+    const checkKeyAvailabilityObj = parseValue(checkKeyAvailability, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'cast_specified_skill_instance',
+      args: [skillInstanceIDObj, checkKeyAvailabilityObj]
+    })
+  }
+
+  /**
+   * Makes the character blink to the target position, with the direction they are facing post-blink adjustable. The maximum blink distance is 200 meters.
+   *
+   * 角色闪现: 使角色朝目标位置闪现，可以调整闪现后的朝向。可闪现的最大距离为200m
+   *
+   * @param targetLocation
+   *
+   * 目标位置
+   * @param targetOrientation
+   *
+   * 目标朝向
+   */
+  characterBlink(targetLocation: Vec3Value, targetOrientation: Vec3Value): void {
+    const targetLocationObj = parseValue(targetLocation, 'vec3')
+    const targetOrientationObj = parseValue(targetOrientation, 'vec3')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'character_blink',
+      args: [targetLocationObj, targetOrientationObj]
+    })
+  }
+
+  /**
+   * Query the preset state value of the target creation corresponding to the preset state index.
+   *
+   * 查询复杂造物的预设状态值: 查询目标造物对应预设状态索引下的预设状态值
+   *
+   * @param targetCreation
+   *
+   * 目标造物
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  checkThePresetStatusValueOfTheComplexCreation(
+    targetCreation: EntityValue,
+    presetStatusIndex: IntValue
+  ): bigint {
+    const targetCreationObj = parseValue(targetCreation, 'entity')
+    const presetStatusIndexObj = parseValue(presetStatusIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+      args: [targetCreationObj, presetStatusIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'presetStatusValue', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Clears all recorded key behaviors from the Key Behavior Log Panel.
+   *
+   * 清空关键行为记录板: 清空关键行为记录板上已记录的关键行为
+   */
+  clearKeyBehaviorLogPanel(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'clear_key_behavior_log_panel',
+      args: []
+    })
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; Clears the Aggro List of the specified Entity; this usually causes the Target to leave battle
+   *
+   * 清空指定实体的仇恨列表: 仅自定义仇恨模式可用; 清空指定实体的仇恨列表，这通常会导致该目标脱战
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   */
+  clearTheAggroListOfTheSpecifiedEntity(targetEntity: EntityValue): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'clear_the_aggro_list_of_the_specified_entity',
+      args: [targetEntityObj]
+    })
+  }
+
+  /**
+   * Calculates the cosine of the input in radians
+   *
+   * 余弦函数: 计算输入弧度的余弦
+   *
+   * @param radian
+   *
+   * 弧度
+   *
+   * @returns
+   *
+   * 结果
+   */
+  cosineFunction(radian: FloatValue): number {
+    const radianObj = parseValue(radian, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'cosine_function',
+      args: [radianObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Creates a 3D Vector from x, y, and z components
+   *
+   * 创建三维向量: 根据x、y、z分量创建一个三维向量
+   *
+   * @param xComponent
+   *
+   * X分量
+   * @param yComponent
+   *
+   * Y分量
+   * @param zComponent
+   *
+   * Z分量
+   *
+   * @returns
+   *
+   * 三维向量
+   */
+  create3dVector(xComponent: FloatValue, yComponent: FloatValue, zComponent: FloatValue): vec3 {
+    const xComponentObj = parseValue(xComponent, 'float')
+    const yComponentObj = parseValue(yComponent, 'float')
+    const zComponentObj = parseValue(zComponent, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create3d_vector',
+      args: [xComponentObj, yComponentObj, zComponentObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, '_3DVector', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Converts input parameter types to another type for output. For specific rules, see Basic Concepts - [Conversion Rules Between Basic Data Types]; In the client node, when converting a floating-point number to an integer, the number will be truncated.
+   *
+   * 数据类型转换: 将输入的参数类型转换为另一种类型输出。具体规则见基础概念-【基础数据类型之间的转换规则】; 在客户端节点中对于浮点数转整数，会截尾取整
+   *
+   * @param input
+   *
+   * 输入
+   *
+   * @returns
+   *
+   * 转换结果
+   */
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U] {
+    const inputType = matchTypes(
+      [
+        'float',
+        'int',
+        // 以上浮点和整数必须前置, 以便字面量匹配到正确类型
+        'bool',
+        'entity',
+        'faction',
+        'guid',
+        'vec3'
+      ],
+      input
+    )
+    const inputObj = parseValue(input, inputType)
+    if (inputType === 'faction') {
+      const metadata = inputObj.getMetadata()
+      if (!metadata || metadata.kind !== 'pin') {
+        throw new Error('[error] dataTypeConversion: faction input must be wired')
+      }
+    }
+    if (!DATA_TYPE_CONVERSIONS.has(`${inputType}->${String(type)}`)) {
+      throw new Error(
+        `[error] dataTypeConversion: unsupported conversion ${inputType} -> ${String(type)}`
+      )
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: `data_type_conversion_${String(type)}`,
+      args: [inputObj]
+    })
+    const ret = new ValueClassMap[type]()
+    ret.markPin(ref, 'output', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[U]
+  }
+
+  /**
+   * Converts degrees to radians
+   *
+   * 角度转弧度: 将角度值转为弧度值
+   *
+   * @param angle
+   *
+   * 角度
+   *
+   * @returns
+   *
+   * 弧度
+   */
+  degreesToRadians(angle: FloatValue): number {
+    const angleObj = parseValue(angle, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'degrees_to_radians',
+      args: [angleObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'radian', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Converts the Forward Vector and Upward Vector to Euler Angles
+   *
+   * 方向向量转旋转: 给定向前向量和向上向量，转化为欧拉角
+   *
+   * @param forwardVector Represents the desired Orientation of the Unit
+   *
+   * 向前向量: 表示单位期望的朝向
+   * @param upwardVector Defines the Unit's Up direction (used to determine the rotation angle). Default is the positive Y-axis of the World Coordinate System
+   *
+   * 向上向量: 定义单位的上方向（用于确定旋转的旋转角度），默认值为世界坐标系Y轴正方向
+   *
+   * @returns
+   *
+   * 旋转
+   */
+  directionVectorToRotation(forwardVector: Vec3Value, upwardVector: Vec3Value): vec3 {
+    const forwardVectorObj = parseValue(forwardVector, 'vec3')
+    const upwardVectorObj = parseValue(upwardVector, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'direction_vector_to_rotation',
+      args: [forwardVectorObj, upwardVectorObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'rotate', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Performs division, supporting Floating Point division and Integer division. Integer division returns the quotient result; The divisor should not be 0, otherwise it may return an illegal value
+   *
+   * 除法运算: 除法运算，支持浮点数除法和整数除法。整数除法返回整除结果; 除数不应为0，否则可能返回非法值
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  division(input1: FloatValue, input2: FloatValue): number
+  division(input1: IntValue, input2: IntValue): bigint
+  division(input1: FloatValue | IntValue, input2: FloatValue | IntValue): number | bigint {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const variantKey = [genericType, genericType].join('|')
+    const outputIrType = (
+      { 'float|float': 'float', 'int|int': 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(`[error] division: unsupported type combination ${variantKey}`)
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'division',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Branches into True or False based on the evaluated condition; When the Boolean is True, the [True] execution flow runs; when it is False, the [False] execution flow runs
+   *
+   * 双分支: 根据输入条件的判断结果可以分出“是”与“否”两个不同的分支; 当布尔值为“是”时，后续会执行【是】对应的执行流；布尔值为“否”时，会执行【否】对应的执行流
+   *
+   * @param condition
+   *
+   * 条件
+   */
+  doubleBranch(condition: BoolValue, trueBranch: () => void, falseBranch: () => void): void {
+    const TRUE_SOURCE_INDEX = 0
+    const FALSE_SOURCE_INDEX = 1
+
+    const conditionObj = parseValue(condition, 'bool')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'double_branch',
+      args: [conditionObj]
+    })
+
+    const t = this.registry.withExecBranch(ref.id, TRUE_SOURCE_INDEX, () =>
+      globalThis.gsts.ctx.withCtx('client_character_control_skill_if', trueBranch)
+    )
+    const f = this.registry.withExecBranch(ref.id, FALSE_SOURCE_INDEX, () =>
+      globalThis.gsts.ctx.withCtx('client_character_control_skill_if', falseBranch)
+    )
+
+    // 启用 join：未 return 的分支尾部连到后续；空分支从分支节点输出直接连出
+    const joinEndpoints: Array<{ nodeId: number; sourceIndex?: number }> = []
+    ;[
+      { sourceIndex: TRUE_SOURCE_INDEX, ...t },
+      { sourceIndex: FALSE_SOURCE_INDEX, ...f }
+    ].forEach((r) => {
+      if (r.terminatedByReturn) return
+      if (r.tailEndpoints.length) joinEndpoints.push(...r.tailEndpoints)
+      else joinEndpoints.push({ nodeId: ref.id, sourceIndex: r.sourceIndex })
+    })
+    this.registry.setCurrentExecTailEndpoints(joinEndpoints)
+  }
+
+  /**
+   * After confirming the Enumeration type, determines whether the two input values are equal
+   *
+   * 枚举匹配: 确认枚举的类型后，判断两个输入的值是否相等
+   *
+   * @param enumeration1
+   *
+   * 枚举1
+   * @param enumeration2
+   *
+   * 枚举2
+   *
+   * @returns Output True if equal, False if not equal
+   *
+   * 结果: 相等输出“是”，不相等输出“否”
+   */
+  enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
+  enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
+  enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: DisruptorDeviceOrientation,
+    enumeration2: DisruptorDeviceOrientation
+  ): boolean
+  enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
+  enumerationMatch(
+    enumeration1: ElementalReactionType,
+    enumeration2: ElementalReactionType
+  ): boolean
+  enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
+  enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
+  enumerationMatch(enumeration1: FilterReturnType, enumeration2: FilterReturnType): boolean
+  enumerationMatch(
+    enumeration1: FollowCoordinateSystem,
+    enumeration2: FollowCoordinateSystem
+  ): boolean
+  enumerationMatch(enumeration1: FollowLocationType, enumeration2: FollowLocationType): boolean
+  enumerationMatch(enumeration1: HitLevel, enumeration2: HitLevel): boolean
+  enumerationMatch(enumeration1: HitPerformanceLevel, enumeration2: HitPerformanceLevel): boolean
+  enumerationMatch(enumeration1: HitType, enumeration2: HitType): boolean
+  enumerationMatch(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationMatch(
+    enumeration1: KnockbackDirectionType,
+    enumeration2: KnockbackDirectionType
+  ): boolean
+  enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
+  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
+  enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
+  enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
+  enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
+  enumerationMatch(
+    enumeration1: RevivePointSelectionStrategy,
+    enumeration2: RevivePointSelectionStrategy
+  ): boolean
+  enumerationMatch(enumeration1: RotationDirection, enumeration2: RotationDirection): boolean
+  enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
+  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
+  enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
+  enumerationMatch(
+    enumeration1: SectorDetectionDirection,
+    enumeration2: SectorDetectionDirection
+  ): boolean
+  enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
+  enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
+  enumerationMatch(enumeration1: TacticSpeed, enumeration2: TacticSpeed): boolean
+  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
+  enumerationMatch(enumeration1: TargetEntity, enumeration2: TargetEntity): boolean
+  enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
+  enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
+  enumerationMatch(enumeration1: TriggerRestriction, enumeration2: TriggerRestriction): boolean
+  enumerationMatch(
+    enumeration1: TrigonometricFunction,
+    enumeration2: TrigonometricFunction
+  ): boolean
+  enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionResult,
+    enumeration2: UnitStatusAdditionResult
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalReason,
+    enumeration2: UnitStatusRemovalReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusRemovalStrategy,
+    enumeration2: UnitStatusRemovalStrategy
+  ): boolean
+  enumerationMatch<T extends EnumerationType>(
+    enumeration1: EnumerationTypeMap[T],
+    enumeration2: EnumerationTypeMap[T]
+  ): boolean {
+    const enumeration1Obj = parseValue(enumeration1, 'enum')
+    const enumeration2Obj = parseValue(enumeration2, 'enum')
+    if (enumeration1Obj.getClassName() !== enumeration2Obj.getClassName()) {
+      throw new Error('enumeration type mismatch')
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'enumeration_match',
+      args: [enumeration1Obj, enumeration2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Determines whether two inputs are equal; Some Parameter Types have special comparison rules:; Floating Point Numbers: Floating Point Numbers are compared using approximate equality. When the difference between two Floating Point Numbers is less than an extremely small value, the two numbers are considered equal. For example: 2.0000001 and 2.0 are considered equal; 3D Vector: The x, y, and z components of a 3D Vector are compared using Floating Point approximate equality
+   *
+   * 是否相等: 判断两个输入是否相等; 部分参数类型有较为特殊的判定规则：; 浮点数：浮点数采用近似相等进行比较，当两个浮点数小于一个极小值时，这两个浮点数认为相等。例如：2.0000001与2.0认为相等; 三维向量：三维向量的x、y、z分别采用浮点数近似相等比较
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  equal(input1: IntValue, input2: IntValue): boolean
+  equal(input1: BoolValue, input2: BoolValue): boolean
+  equal(input1: ConfigIdValue, input2: ConfigIdValue): boolean
+  equal(input1: GuidValue, input2: GuidValue): boolean
+  equal(input1: Vec3Value, input2: Vec3Value): boolean
+  equal(
+    input1: IntValue | BoolValue | ConfigIdValue | GuidValue | Vec3Value,
+    input2: IntValue | BoolValue | ConfigIdValue | GuidValue | Vec3Value
+  ): boolean {
+    const genericType = matchTypes(['int', 'bool', 'config_id', 'guid', 'vec3'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'equal',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Filters Entities within a spherical range according to specific rules and a maximum count, and returns a list of Entities that meet the conditions
+   *
+   * 筛选球体范围内的实体列表: 以特定的规则和数量上限筛选在球形范围内的实体，满足条件的实体会组成实体列表输出
+   *
+   * @param radius
+   *
+   * 半径
+   * @param centralLocation
+   *
+   * 中心位置
+   * @param maximumFilterQuantity
+   *
+   * 筛选数量上限
+   * @param filterRules Options: Default, Random, or Nearest-to-Farthest order
+   *
+   * 筛选规则: 分为默认排序、随机排序、从近到远排序
+   *
+   * @returns
+   *
+   * 筛选结果
+   */
+  filterEntityListWithinSphericalRange(
+    radius: FloatValue,
+    centralLocation: Vec3Value,
+    maximumFilterQuantity: IntValue,
+    filterRules: TargetSortingRules
+  ): entity[] {
+    const radiusObj = parseValue(radius, 'float')
+    const centralLocationObj = parseValue(centralLocation, 'vec3')
+    const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
+    const filterRulesObj = parseValue(filterRules, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'filter_entity_list_within_spherical_range',
+      args: [radiusObj, centralLocationObj, maximumFilterQuantityObj, filterRulesObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'filterResults', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Filters Entities within a square range according to specified rules and a maximum count, and returns a list of Entities that meet the conditions
+   *
+   * 筛选方形范围内的实体列表: 以特定的规则和数量上限筛选在方形范围内的实体，满足条件的实体会组成实体列表输出
+   *
+   * @param width
+   *
+   * 宽度
+   * @param height
+   *
+   * 高度
+   * @param length
+   *
+   * 长度
+   * @param centralLocation
+   *
+   * 中心位置
+   * @param maximumFilterQuantity
+   *
+   * 筛选数量上限
+   * @param filterRules Options: Default, Random, or Nearest-to-Farthest order
+   *
+   * 筛选规则: 分为默认排序、随机排序、从近到远排序
+   *
+   * @returns
+   *
+   * 筛选结果
+   */
+  filterEntityListWithinSquareRange(
+    width: FloatValue,
+    height: FloatValue,
+    length: FloatValue,
+    centralLocation: Vec3Value,
+    maximumFilterQuantity: IntValue,
+    filterRules: TargetSortingRules
+  ): entity[] {
+    const widthObj = parseValue(width, 'float')
+    const heightObj = parseValue(height, 'float')
+    const lengthObj = parseValue(length, 'float')
+    const centralLocationObj = parseValue(centralLocation, 'vec3')
+    const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
+    const filterRulesObj = parseValue(filterRules, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'filter_entity_list_within_square_range',
+      args: [
+        widthObj,
+        heightObj,
+        lengthObj,
+        centralLocationObj,
+        maximumFilterQuantityObj,
+        filterRulesObj
+      ]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'filterResults', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Finish Current Pre-Aiming
+   *
+   * 完成当前预瞄准: 可以让玩家提前完成当前预瞄准
+   */
+  finishCurrentPreAiming(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'finish_current_pre_aiming',
+      args: []
+    })
+  }
+
+  /**
+   * From the [Loop Start Value] to the [Loop End Value], the loop iterates, incrementing the Integer by 1 each time. On each iteration, it executes the Nodes connected to [Loop Body]. After a full iteration, it executes the Nodes connected to [Loop Complete].; Use [Break Loop] to end the iteration early
+   *
+   * 有限循环: 从【循环起始值】开始到【循环终止值】结束，会遍历其中的循环值，每次整数加一。每次循环会执行一次【循环体】后连接的节点逻辑。完成一次完整遍历后，会执行【循环完成】后连接的节点逻辑。; 可以使用【跳出循环】来提前结束该循环值遍历
+   *
+   * @param loopStartValue
+   *
+   * 循环起始值
+   * @param loopEndValue
+   *
+   * 循环终止值
+   *
+   * @returns
+   *
+   * 当前循环值
+   */
+  finiteLoop(
+    loopStartValue: IntValue,
+    loopEndValue: IntValue,
+    loopBody: (loopValue: bigint, breakLoop: () => void) => void
+  ): void {
+    const LOOP_BODY_SOURCE_INDEX = 0
+    const LOOP_COMPLETE_SOURCE_INDEX = 1
+
+    const loopStartValueObj = parseValue(loopStartValue, 'int')
+    const loopEndValueObj = parseValue(loopEndValue, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'finite_loop',
+      args: [loopStartValueObj, loopEndValueObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'currentLoopValue', 0)
+
+    this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
+      this.registry.withLoop(ref.id, () => {
+        globalThis.gsts.ctx.withCtx('client_character_control_skill_loop', () =>
+          loopBody(ret as unknown as bigint, () => this.breakLoop(ref.id))
+        )
+      })
+    })
+    this.registry.markLinkNextExecFrom(ref.id, LOOP_COMPLETE_SOURCE_INDEX)
+  }
+
+  /**
+   * Moves from the current Location to the Target Location; Supports configuring movement duration and speed; if both are small, the movement may not reach the Target Location
+   *
+   * 定点位移: 定点位移，从当前位置向目标位置位移; 可配置位移时长与位移速度，当这二者都比较小时，可能无法位移到目标位置
+   *
+   * @param displacementDuration
+   *
+   * 位移时长
+   * @param displacementAttenuationDuration
+   *
+   * 位移衰减时长
+   * @param displacementSpeed
+   *
+   * 位移速度
+   * @param displacementTargetLocation
+   *
+   * 位移目标位置
+   * @param terminateDisplacementOnCollision
+   *
+   * 碰撞是否终止位移
+   */
+  fixedPointDisplacement(
+    displacementDuration: FloatValue,
+    displacementAttenuationDuration: FloatValue,
+    displacementSpeed: FloatValue,
+    displacementTargetLocation: Vec3Value,
+    terminateDisplacementOnCollision: BoolValue
+  ): void {
+    const displacementDurationObj = parseValue(displacementDuration, 'float')
+    const displacementAttenuationDurationObj = parseValue(displacementAttenuationDuration, 'float')
+    const displacementSpeedObj = parseValue(displacementSpeed, 'float')
+    const displacementTargetLocationObj = parseValue(displacementTargetLocation, 'vec3')
+    const terminateDisplacementOnCollisionObj = parseValue(terminateDisplacementOnCollision, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'fixed_point_displacement',
+      args: [
+        displacementDurationObj,
+        displacementAttenuationDurationObj,
+        displacementSpeedObj,
+        displacementTargetLocationObj,
+        terminateDisplacementOnCollisionObj
+      ]
+    })
+  }
+
+  /**
+   * Spawns a Local Projectile at the specified Location in the World Coordinate System
+   *
+   * 定点发射投射物: 在世界坐标系的指定位置发射本地投射物
+   *
+   * @param projectilesPrefabID
+   *
+   * 投射物的元件ID
+   * @param createLocation
+   *
+   * 创建位置
+   * @param createRotation
+   *
+   * 创建旋转
+   * @param trackTarget
+   *
+   * 追踪目标
+   * @param projectileFaction
+   *
+   * 投射物阵营
+   */
+  fixedPointProjectileLaunch(
+    projectilesPrefabID: PrefabIdValue,
+    createLocation: Vec3Value,
+    createRotation: Vec3Value,
+    trackTarget: EntityValue,
+    projectileFaction: FactionValue
+  ): void {
+    const projectilesPrefabIDObj = parseValue(projectilesPrefabID, 'prefab_id')
+    const createLocationObj = parseValue(createLocation, 'vec3')
+    const createRotationObj = parseValue(createRotation, 'vec3')
+    const trackTargetObj = parseValue(trackTarget, 'entity')
+    const projectileFactionObj = parseValue(projectileFaction, 'faction')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'fixed_point_projectile_launch',
+      args: [
+        projectilesPrefabIDObj,
+        createLocationObj,
+        createRotationObj,
+        trackTargetObj,
+        projectileFactionObj
+      ]
+    })
+  }
+
+  /**
+   * When the character is in the aiming state, they will be forced to exit the aiming state.
+   *
+   * 强制退出瞄准状态: 当角色处于瞄准状态时，会强制退出瞄准状态
+   */
+  forceExitAimingState(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'force_exit_aiming_state',
+      args: []
+    })
+  }
+
+  /**
+   * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity
+   *
+   * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param triggerID
+   *
+   * 触发器序号
+   *
+   * @returns
+   *
+   * 实体列表
+   */
+  getAllEntitiesWithinTheCollisionTrigger(
+    targetEntity: EntityValue,
+    triggerID: IntValue
+  ): entity[] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const triggerIDObj = parseValue(triggerID, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_all_entities_within_the_collision_trigger',
+      args: [targetEntityObj, triggerIDObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'entityList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Returns all Units carrying a Scan Component whose Filter returns True, regardless of the Unit's scannable status
+   *
+   * 获取扫描组件可扫描的所有合法对象: 获取扫描组件可扫描的所有合法对象，此处的合法对象指代所有携带扫描组件且过滤器返回为“是”的单位，与单位的可扫描状态无关
+   *
+   * @returns
+   *
+   * 对象列表
+   */
+  getAllValidEntitiesThatAreScannableByScanComponent(): entity[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_all_valid_entities_that_are_scannable_by_scan_component',
+      args: []
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'objectList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Get Base Object of Specified Pre-Aiming
+   *
+   * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 基准对象
+   */
+  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_base_object_of_specified_pre_aiming',
+      args: [preAimingIndexObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'baseObject', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Returns the Character Entity of the specified Player Entity
+   *
+   * 获取指定玩家的角色实体: 获取指定玩家实体的角色实体
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getCharacterEntityOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_character_entity_of_specified_player',
+      args: [playerEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'characterEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Get Control Motor Current Velocity
+   *
+   * 获取操控运动器当前速度: 获取指定操控运动器的当前速度（速度大小及单位方向向量）
+   *
+   * @param controlMotor
+   *
+   * 操控运动器
+   *
+   * @returns
+   *
+   * speed
+   * 速度大小
+   *
+   * velocityDirection
+   * 速度方向
+   */
+  getControlMotorCurrentVelocity(controlMotor: EntityValue): {
+    speed: number
+    velocityDirection: vec3
+  } {
+    const controlMotorObj = parseValue(controlMotor, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_control_motor_current_velocity',
+      args: [controlMotorObj]
+    })
+    return {
+      speed: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'speed', 0)
+        return ret as unknown as number
+      })(),
+      velocityDirection: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'velocityDirection', 1)
+        return ret as unknown as vec3
+      })()
+    }
+  }
+
+  /**
+   * Get Control Motor Forward Direction
+   *
+   * 获取操控运动器前向: 获取指定操控运动器的前向方向向量
+   *
+   * @param controlMotor
+   *
+   * 操控运动器
+   *
+   * @returns
+   *
+   * 前向
+   */
+  getControlMotorForwardDirection(controlMotor: EntityValue): vec3 {
+    const controlMotorObj = parseValue(controlMotor, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_control_motor_forward_direction',
+      args: [controlMotorObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'forwardDirection', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Get Control Motor Movement Parameters
+   *
+   * 获取操控运动器运动参数: 获取指定操控运动器的运动参数，包含临时运动参数。临时值的添加将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
+   *
+   * @param controlMotor
+   *
+   * 操控运动器
+   *
+   * @returns
+   *
+   * forwardAcceleration
+   * 前进加速度
+   *
+   * backwardAcceleration
+   * 后退加速度
+   *
+   * turningRate
+   * 转向速率
+   *
+   * baseDragDeceleration
+   * 基础阻力减速度
+   *
+   * dragCoefficient
+   * 阻力系数
+   *
+   * maxForwardSpeed
+   * 最大前进速度
+   *
+   * maxBackwardSpeed
+   * 最大后退速度
+   */
+  getControlMotorMovementParameters(controlMotor: EntityValue): {
+    forwardAcceleration: number
+    backwardAcceleration: number
+    turningRate: number
+    baseDragDeceleration: number
+    dragCoefficient: number
+    maxForwardSpeed: number
+    maxBackwardSpeed: number
+  } {
+    const controlMotorObj = parseValue(controlMotor, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_control_motor_movement_parameters',
+      args: [controlMotorObj]
+    })
+    return {
+      forwardAcceleration: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'forwardAcceleration', 0)
+        return ret as unknown as number
+      })(),
+      backwardAcceleration: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'backwardAcceleration', 1)
+        return ret as unknown as number
+      })(),
+      turningRate: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'turningRate', 2)
+        return ret as unknown as number
+      })(),
+      baseDragDeceleration: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'baseDragDeceleration', 3)
+        return ret as unknown as number
+      })(),
+      dragCoefficient: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'dragCoefficient', 4)
+        return ret as unknown as number
+      })(),
+      maxForwardSpeed: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'maxForwardSpeed', 5)
+        return ret as unknown as number
+      })(),
+      maxBackwardSpeed: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'maxBackwardSpeed', 6)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Control Motor Target Turning Direction
+   *
+   * 获取操控运动器目标转向方向: 获取操控运动器目标转向方向（移动轮盘输入后，转换成操控运动器的目标转向）
+   *
+   * @param controlMotor
+   *
+   * 操控运动器
+   *
+   * @returns
+   *
+   * 目标转向方向
+   */
+  getControlMotorTargetTurningDirection(controlMotor: EntityValue): vec3 {
+    const controlMotorObj = parseValue(controlMotor, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_control_motor_target_turning_direction',
+      args: [controlMotorObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'targetTurningDirection', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Returns the value at the specified ID in the List. IDs start at 0
+   *
+   * 获取列表对应值: 返回列表中指定序号对应的值。列表中序号从0开始
+   *
+   * @param iD
+   *
+   * 序号
+   * @param dataList
+   *
+   * 数据列表
+   *
+   * @returns
+   *
+   * 结果
+   */
+  getCorrespondingValueFromList(iD: IntValue, dataList: FloatValue[]): number
+  getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
+  getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
+  getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
+  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
+  getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
+  getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
+  getCorrespondingValueFromList(iD: IntValue, dataList: Vec3Value[]): vec3
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList:
+      | FloatValue[]
+      | IntValue[]
+      | BoolValue[]
+      | ConfigIdValue[]
+      | EntityValue[]
+      | FactionValue[]
+      | GuidValue[]
+      | StrValue[]
+      | Vec3Value[]
+  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
+    const genericType = matchTypes(
+      ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
+      dataList
+    )
+    const iDObj = parseValue(iD, 'int')
+    const dataListObj = parseValue(dataList, `${genericType}_list` as const)
+    const variantKey = [`${genericType}_list`].join('|')
+    const outputIrType = (
+      {
+        float_list: 'float',
+        int_list: 'int',
+        bool_list: 'bool',
+        config_id_list: 'config_id',
+        entity_list: 'entity',
+        faction_list: 'faction',
+        guid_list: 'guid',
+        str_list: 'str',
+        vec3_list: 'vec3'
+      } as Record<
+        string,
+        | 'float'
+        | 'int'
+        | 'bool'
+        | 'config_id'
+        | 'entity'
+        | 'faction'
+        | 'guid'
+        | 'str'
+        | 'vec3'
+        | undefined
+      >
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(
+        `[error] get_corresponding_value_from_list: unsupported type combination ${variantKey}`
+      )
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_corresponding_value_from_list',
+      args: [iDObj, dataListObj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as
+      | number
+      | bigint
+      | boolean
+      | configId
+      | entity
+      | faction
+      | guid
+      | string
+      | vec3
+  }
+
+  /**
+   * Get Current Active Control Motor List
+   *
+   * 获取当前激活操控运动器列表: 获取当前激活操控运动器列表
+   *
+   * @returns
+   *
+   * 操控运动器列表
+   */
+  getCurrentActiveControlMotorList(): entity[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_active_control_motor_list',
+      args: []
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'controlMotorList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Get Current Active Pre-Aiming Index
+   *
+   * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 预瞄准序号
+   */
+  getCurrentActivePreAimingIndex(): bigint {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_active_pre_aiming_index',
+      args: []
+    })
+    const ret = new int()
+    ret.markPin(ref, 'preAimingIndex', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Returns the Character Entity currently controlled by this Player's client
+   *
+   * 获取当前角色: 获取该玩家客户端当前控制的角色实体
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getCurrentCharacter(): entity {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_character',
+      args: []
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'characterEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Returns the current client time.
+   *
+   * 获取当前客户端时间: 获取当前客户端的时间; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * 客户端时间
+   */
+  getCurrentClientTime(): number {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time',
+      args: []
+    })
+    const ret = new float()
+    ret.markPin(ref, 'clientTime', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
+   *
+   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * clientTimeS
+   * 客户端时间（s）
+   *
+   * clientTimeMs
+   * 客户端时间（ms）
+   */
+  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time_high_precision',
+      args: []
+    })
+    return {
+      clientTimeS: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeS', 0)
+        return ret as unknown as bigint
+      })(),
+      clientTimeMs: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeMs', 1)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Get Current Following Control Motor
+   *
+   * 获取当前跟随操控运动器: 获取当前跟随操控运动器
+   *
+   * @returns
+   *
+   * 跟随操控运动器
+   */
+  getCurrentFollowingControlMotor(): entity {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_following_control_motor',
+      args: []
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'followingControlMotor', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
+   *
+   * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeList
+   * 录入时间列表
+   */
+  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeList: (() => {
+        const ret = new list('float')
+        ret.markPin(ref, 'entryTimeList', 1)
+        return ret as unknown as number[]
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
+   *
+   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeListS
+   * 录入时间列表（s）
+   *
+   * entryTimeListMs
+   * 录入时间列表（ms）
+   */
+  getCurrentKeyBehaviorHighPrecision(): {
+    behaviorIDList: bigint[]
+    entryTimeListS: bigint[]
+    entryTimeListMs: bigint[]
+  } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior_high_precision',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListS: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListS', 1)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListMs: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListMs', 2)
+        return ret as unknown as bigint[]
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Hit Result
+   *
+   * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
+   *
+   * @returns
+   *
+   * hitEntityList
+   * 命中实体列表
+   *
+   * hitPositionList
+   * 命中位置列表
+   *
+   * hitCount
+   * 命中数量
+   */
+  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_hit_result',
+      args: []
+    })
+    return {
+      hitEntityList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'hitEntityList', 0)
+        return ret as unknown as entity[]
+      })(),
+      hitPositionList: (() => {
+        const ret = new list('vec3')
+        ret.markPin(ref, 'hitPositionList', 1)
+        return ret as unknown as vec3[]
+      })(),
+      hitCount: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'hitCount', 2)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Screen Coordinates
+   *
+   * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_screen_coordinates',
+      args: []
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Viewport Coordinates
+   *
+   * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_viewport_coordinates',
+      args: []
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_custom_variable',
+      args: [targetEntityObj, variableNameObj]
+    })
+    const ret = new generic()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret
+  }
+
+  /**
+   * Returns Entities currently detected by the Scan Component; these are Entities in the Active State
+   *
+   * 获取扫描组件当前扫描到的实体: 获取扫描组件当前扫描到的实体，指扫描状态为“激活状态”的实体
+   *
+   * @returns
+   *
+   * correspondingEntity
+   * 对应实体
+   *
+   * scanTagConfigID
+   * 扫描标签配置ID
+   */
+  getEntityCurrentlyScannedByScanComponent(): {
+    correspondingEntity: entity
+    scanTagConfigID: configId
+  } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_currently_scanned_by_scan_component',
+      args: []
+    })
+    return {
+      correspondingEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'correspondingEntity', 0)
+        return ret as unknown as entity
+      })(),
+      scanTagConfigID: (() => {
+        const ret = new configId()
+        ret.markPin(ref, 'scanTagConfigID', 1)
+        return ret as unknown as configId
+      })()
+    }
+  }
+
+  /**
+   * Returns a list of all Entities in the scene that carry this Unit Tag
+   *
+   * 获取单位标签的实体列表: 获取在场所有携带该单位标签的实体列表
+   *
+   * @param unitTagIndex
+   *
+   * 单位标签索引
+   *
+   * @returns
+   *
+   * 实体列表
+   */
+  getEntityListByUnitTag(unitTagIndex: IntValue): entity[] {
+    const unitTagIndexObj = parseValue(unitTagIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_list_by_unit_tag',
+      args: [unitTagIndexObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'entityList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Returns the Location of the specified Entity
+   *
+   * 获取实体位置: 获取指定实体的位置
+   *
+   * @param entity
+   *
+   * 实体
+   *
+   * @returns
+   *
+   * 位置
+   */
+  getEntityLocation(entity: EntityValue): vec3 {
+    const entityObj = parseValue(entity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_location',
+      args: [entityObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'location', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Returns the Rotation of the specified Entity in Euler Angles
+   *
+   * 获取实体旋转: 获取指定实体以欧拉角表示的旋转
+   *
+   * @param entity
+   *
+   * 实体
+   *
+   * @returns
+   *
+   * 旋转
+   */
+  getEntityRotation(entity: EntityValue): vec3 {
+    const entityObj = parseValue(entity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_rotation',
+      args: [entityObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'rotate', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Returns the Target Entity's Current Active Scan Tags
+   *
+   * 获取实体当前生效的扫描标签: 获取目标实体当前生效的扫描标签
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns
+   *
+   * 扫描标签配置ID
+   */
+  getEntitySCurrentActiveScanTags(targetEntity: EntityValue): configId {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_s_current_active_scan_tags',
+      args: [targetEntityObj]
+    })
+    const ret = new configId()
+    ret.markPin(ref, 'scanTagConfigID', 0)
+    return ret as unknown as configId
+  }
+
+  /**
+   * Get Entity Scan Status
+   *
+   * 获取实体扫描状态: 获取实体扫描状态
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns Options: Invisible, Current Scan Target, Candidate Target, Not Eligible
+   *
+   * 扫描状态: 分为不可见、当前扫描目标、候选目标、不满足条件
+   */
+  getEntitySScanStatus(targetEntity: EntityValue): ScanStatus {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_s_scan_status',
+      args: [targetEntityObj]
+    })
+    const ret = new enumeration('ScanStatus')
+    ret.markPin(ref, 'scanStatus', 0)
+    return ret as unknown as ScanStatus
+  }
+
+  /**
+   * Returns the type of the specified Entity
+   *
+   * 获取实体的类型: 获取指定实体的类型
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns
+   *
+   * 实体类型
+   */
+  getEntitySType(targetEntity: EntityValue): EntityType {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_s_type',
+      args: [targetEntityObj]
+    })
+    const ret = new enumeration('EntityType')
+    ret.markPin(ref, 'entityType', 0)
+    return ret as unknown as EntityType
+  }
+
+  /**
+   * Returns a list of all Unit Tags carried by the Target Entity
+   *
+   * 获取实体的单位标签列表: 获取目标实体上携带的所有单位标签组成的列表
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntitySUnitTagList(targetEntity: EntityValue): bigint[] {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_s_unit_tag_list',
+      args: [targetEntityObj]
+    })
+    const ret = new list('int')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as bigint[]
+  }
+
+  /**
+   * Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations
+   *
+   * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntityTypeList(): EntityType[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_entity_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as EntityType[]
+  }
+
+  /**
+   * Returns the length of the list (number of elements)
+   *
+   * 获取列表长度: 获取列表长度（列表中的元素个数）
+   *
+   * @param inputList
+   *
+   * 输入列表
+   *
+   * @returns
+   *
+   * 长度
+   */
+  getListLength(inputList: IntValue[]): bigint
+  getListLength(inputList: EntityValue[]): bigint
+  getListLength(inputList: IntValue[] | EntityValue[]): bigint {
+    const genericType = matchTypes(['int', 'entity'], inputList)
+    const inputListObj = parseValue(inputList, `${genericType}_list` as const)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_length',
+      args: [inputListObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'length', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.
+   *
+   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 键列表
+   */
+  getListOfKeysFromDictionary(dictionary: DictValue): entity[]
+  getListOfKeysFromDictionary(dictionary: DictValue): entity[] {
+    const genericType = matchTypes(['dict'], dictionary)
+    const dictionaryObj = parseValue(dictionary, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_keys_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'keyList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Returns a list of all Player Entities present in the scene
+   *
+   * 获取在场玩家实体列表: 获取在场所有玩家实体组成的列表
+   *
+   * @returns
+   *
+   * 玩家实体列表
+   */
+  getListOfPlayerEntitiesOnTheField(): entity[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_player_entities_on_the_field',
+      args: []
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'playerEntityList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.
+   *
+   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 值列表
+   */
+  getListOfValuesFromDictionary(dictionary: DictValue): bigint[]
+  getListOfValuesFromDictionary(dictionary: DictValue): bigint[] {
+    const genericType = matchTypes(['dict'], dictionary)
+    const dictionaryObj = parseValue(dictionary, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_values_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list('int')
+    ret.markPin(ref, 'valueList', 0)
+    return ret as unknown as bigint[]
+  }
+
+  /**
+   * Applies only to Floating Point Number or Integer lists; returns the maximum value
+   *
+   * 获取列表最大值: 仅对浮点数列表和整数列表有意义，返回列表中的最大值
+   *
+   * @param listValue
+   *
+   * 列表
+   *
+   * @returns
+   *
+   * 最大值
+   */
+  getMaximumValueFromList(listValue: FloatValue[]): number
+  getMaximumValueFromList(listValue: IntValue[]): bigint
+  getMaximumValueFromList(listValue: FloatValue[] | IntValue[]): number | bigint {
+    const genericType = matchTypes(['float', 'int'], listValue)
+    const listValueObj = parseValue(listValue, `${genericType}_list` as const)
+    const variantKey = [`${genericType}_list`].join('|')
+    const outputIrType = (
+      { float_list: 'float', int_list: 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(
+        `[error] get_maximum_value_from_list: unsupported type combination ${variantKey}`
+      )
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_maximum_value_from_list',
+      args: [listValueObj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'maximumValue', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Applies only to Floating Point Number or Integer lists; returns the minimum value
+   *
+   * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
+   *
+   * @param listValue
+   *
+   * 列表
+   *
+   * @returns
+   *
+   * 最小值
+   */
+  getMinimumValueFromList(listValue: FloatValue[]): number
+  getMinimumValueFromList(listValue: IntValue[]): bigint
+  getMinimumValueFromList(listValue: FloatValue[] | IntValue[]): number | bigint {
+    const genericType = matchTypes(['float', 'int'], listValue)
+    const listValueObj = parseValue(listValue, `${genericType}_list` as const)
+    const variantKey = [`${genericType}_list`].join('|')
+    const outputIrType = (
+      { float_list: 'float', int_list: 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(
+        `[error] get_minimum_value_from_list: unsupported type combination ${variantKey}`
+      )
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_minimum_value_from_list',
+      args: [listValueObj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'minimumValue', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Returns the Player's local input device type, as determined by the Interface mapping method
+   *
+   * 获得玩家客户端输入设备类型: 获得玩家的客户端输入设备类型，根据用户界面的映射方式决定
+   *
+   * @returns Includes keyboard/mouse, gamepad, touchscreen
+   *
+   * 输入设备类型: 分为键盘鼠标、手柄、触屏
+   */
+  getPlayerClientInputDeviceType(): InputDeviceType {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_client_input_device_type',
+      args: []
+    })
+    const ret = new enumeration('InputDeviceType')
+    ret.markPin(ref, 'inputDeviceType', 0)
+    return ret as unknown as InputDeviceType
+  }
+
+  /**
+   * Returns the Player Entity that owns the Character Entity
+   *
+   * 获取角色归属的玩家实体: 获取角色实体所归属的玩家实体
+   *
+   * @param characterEntity
+   *
+   * 角色实体
+   *
+   * @returns
+   *
+   * 所属玩家实体
+   */
+  getPlayerEntityToWhichTheCharacterBelongs(characterEntity: EntityValue): entity {
+    const characterEntityObj = parseValue(characterEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_entity_to_which_the_character_belongs',
+      args: [characterEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'affiliatedPlayerEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Returns the Input Direction and Input Strength of the current client player's movement.
+   *
+   * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
+   *
+   * @returns
+   *
+   * inputDirection
+   * 输入方向
+   *
+   * inputStrength
+   * 输入力度
+   */
+  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_movement_input',
+      args: []
+    })
+    return {
+      inputDirection: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputDirection', 0)
+        return ret as unknown as number
+      })(),
+      inputStrength: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputStrength', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Pre-Aiming Collision Detection Result Count
+   *
+   * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结果数量
+   */
+  getPreAimingCollisionDetectionResultCount(preAimingIndex: IntValue): bigint {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_collision_detection_result_count',
+      args: [preAimingIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'resultCount', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Get Pre-Aiming Duration
+   *
+   * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 持续时长（s）
+   */
+  getPreAimingDuration(preAimingIndex: IntValue): number {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_duration',
+      args: [preAimingIndexObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'durationSeconds', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Get Pre-Aiming Ray Hit Info
+   *
+   * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * hitEntity
+   * 命中实体
+   */
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_ray_hit_info',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      hitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'hitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Get Pre-Aiming Result
+   *
+   * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * inRangePosition
+   * 范围内位置
+   *
+   * bestValidTarget
+   * 最优合法目标
+   *
+   * validTargetList
+   * 合法目标列表
+   */
+  getPreAimingResult(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    inRangePosition: vec3
+    bestValidTarget: entity
+    validTargetList: entity[]
+  } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_result',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      inRangePosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'inRangePosition', 1)
+        return ret as unknown as vec3
+      })(),
+      bestValidTarget: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'bestValidTarget', 2)
+        return ret as unknown as entity
+      })(),
+      validTargetList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'validTargetList', 3)
+        return ret as unknown as entity[]
+      })()
+    }
+  }
+
+  /**
+   * Returns the Preset Status value of the specified Entity. Returns 0 if the Entity does not have the specified Preset Status
+   *
+   * 获取预设状态: 获取指定实体的预设状态值。如果该实体没有指定的预设状态，则返回0
+   *
+   * @param entity
+   *
+   * 实体
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  getPresetStatus(entity: EntityValue, presetStatusIndex: IntValue): bigint {
+    const entityObj = parseValue(entity, 'entity')
+    const presetStatusIndexObj = parseValue(presetStatusIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_preset_status',
+      args: [entityObj, presetStatusIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'presetStatusValue', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Returns a random number in [Lower Limit, Upper Limit] (inclusive)
+   *
+   * 获取随机数: 获取一个大于等于下限，小于等于上限的随机数。注意该节点生成的随机数包含上下限
+   *
+   * @param lowerLimit
+   *
+   * 下限
+   * @param upperLimit
+   *
+   * 上限
+   *
+   * @returns
+   *
+   * 随机数
+   */
+  getRandomNumber(lowerLimit: FloatValue, upperLimit: FloatValue): number
+  getRandomNumber(lowerLimit: IntValue, upperLimit: IntValue): bigint
+  getRandomNumber(
+    lowerLimit: FloatValue | IntValue,
+    upperLimit: FloatValue | IntValue
+  ): number | bigint {
+    const genericType = matchTypes(['float', 'int'], lowerLimit, upperLimit)
+    const lowerLimitObj = parseValue(lowerLimit, genericType)
+    const upperLimitObj = parseValue(upperLimit, genericType)
+    const variantKey = [genericType, genericType].join('|')
+    const outputIrType = (
+      { 'float|float': 'float', 'int|int': 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(`[error] get_random_number: unsupported type combination ${variantKey}`)
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_random_number',
+      args: [lowerLimitObj, upperLimitObj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'randomNumber', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray
+   *
+   * 获取射线检测结果: 获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置
+   *
+   * @param detectionInitiatorEntity
+   *
+   * 检测发起者实体
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param launchDirection
+   *
+   * 出射方向
+   * @param maxRayLength
+   *
+   * 射线最大长度
+   * @param factionFilter
+   *
+   * 阵营筛选
+   * @param entityTypeFilter Includes Stage, Object, Player, Character, Creation
+   *
+   * 实体类型筛选: 分为关卡、物件、玩家、角色、造物
+   * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
+   *
+   * 命中层筛选: 分为受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * onHitLocation
+   * 命中位置
+   *
+   * onHitEntity
+   * 命中实体
+   */
+  getRayDetectionResult(
+    detectionInitiatorEntity: EntityValue,
+    launchLocation: Vec3Value,
+    launchDirection: Vec3Value,
+    maxRayLength: FloatValue,
+    factionFilter: TargetType,
+    entityTypeFilter: EntityType[],
+    hitLayerFilter: RayFilterType[]
+  ): { onHitLocation: vec3; onHitEntity: entity } {
+    const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
+    const launchLocationObj = parseValue(launchLocation, 'vec3')
+    const launchDirectionObj = parseValue(launchDirection, 'vec3')
+    const maxRayLengthObj = parseValue(maxRayLength, 'float')
+    const factionFilterObj = parseValue(factionFilter, 'enum')
+    const entityTypeFilterObj = parseValue(entityTypeFilter, 'enum_list')
+    const hitLayerFilterObj = parseValue(hitLayerFilter, 'enum_list')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_detection_result',
+      args: [
+        detectionInitiatorEntityObj,
+        launchLocationObj,
+        launchDirectionObj,
+        maxRayLengthObj,
+        factionFilterObj,
+        entityTypeFilterObj,
+        hitLayerFilterObj
+      ]
+    })
+    return {
+      onHitLocation: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'onHitLocation', 0)
+        return ret as unknown as vec3
+      })(),
+      onHitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'onHitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision
+   *
+   * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getRayFilterTypeList(): RayFilterType[] {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_ray_filter_type_list',
+      args: []
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as RayFilterType[]
+  }
+
+  /**
+   * Returns the Entity associated with this Node Graph
+   *
+   * 获取自身实体: 返回该节点图所关联的实体
+   *
+   * @returns
+   *
+   * 自身实体
+   */
+  getSelfEntity(): entity {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_self_entity',
+      args: []
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'selfEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Returns the corresponding Skill Config ID based on the Skill Instance ID provided.
+   *
+   * 根据技能实例ID获取技能配置ID: 根据技能实例ID获取对应的技能配置ID
+   *
+   * @param skillInstanceID
+   *
+   * 技能实例ID
+   *
+   * @returns
+   *
+   * 技能配置ID
+   */
+  getSkillConfigIdBySkillInstanceId(skillInstanceID: IntValue): configId {
+    const skillInstanceIDObj = parseValue(skillInstanceID, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_skill_config_id_by_skill_instance_id',
+      args: [skillInstanceIDObj]
+    })
+    const ret = new configId()
+    ret.markPin(ref, 'skillConfigID', 0)
+    return ret as unknown as configId
+  }
+
+  /**
+   * Returns the Attachment Point Location corresponding to the specified Attachment Point Name on the Target Entity
+   *
+   * 获取目标挂接点位置: 获取指定目标实体上对应挂接点名称的挂接点位置
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   *
+   * @returns
+   *
+   * 挂接点位置
+   */
+  getTargetAttachmentPointLocation(targetEntity: EntityValue, attachmentPointName: StrValue): vec3 {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_target_attachment_point_location',
+      args: [targetEntityObj, attachmentPointNameObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'attachmentPointLocation', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Returns the Attachment Point Rotation corresponding to the specified Attachment Point Name on the Target Entity
+   *
+   * 获取目标挂接点旋转: 获取指定目标实体上对应挂接点名称的挂接点旋转
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   *
+   * @returns
+   *
+   * 挂接点旋转
+   */
+  getTargetAttachmentPointRotation(targetEntity: EntityValue, attachmentPointName: StrValue): vec3 {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_target_attachment_point_rotation',
+      args: [targetEntityObj, attachmentPointNameObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'attachmentPointRotation', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Returns the Target Entity. The meaning of this output varies depending on the functional module that references the Filter Node Graph
+   *
+   * 获取目标实体: 获取目标实体，根据过滤器节点图被引用的功能模块不同，其指代含义会有区别
+   *
+   * @returns
+   *
+   * 目标实体
+   */
+  getTargetEntity(): entity {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_target_entity',
+      args: []
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'targetEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Available only for Custom Aggro Mode; Gets Specific Entity's Aggro List
+   *
+   * 获取指定实体的仇恨列表: 仅自定义仇恨模式可用; 获取指定实体的仇恨列表
+   *
+   * @param specifiedEntity
+   *
+   * 指定实体
+   *
+   * @returns
+   *
+   * 仇恨列表
+   */
+  getTheAggroListOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity[] {
+    const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_the_aggro_list_of_the_specified_entity',
+      args: [specifiedEntityObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'aggroList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Available only for Custom Aggro Mode; Gets Aggro Target of Specific Entity
+   *
+   * 获取指定实体的仇恨目标: 仅自定义仇恨模式可用; 获取指定实体的仇恨目标
+   *
+   * @param specifiedEntity
+   *
+   * 指定实体
+   *
+   * @returns
+   *
+   * 仇恨目标
+   */
+  getTheAggroTargetOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity {
+    const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_the_aggro_target_of_the_specified_entity',
+      args: [specifiedEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'aggroTarget', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Returns the Target Entity that the Unit Entity is currently attacking
+   *
+   * 获取单位攻击目标: 获取单位实体当前正在攻击的目标实体
+   *
+   * @param unitEntity
+   *
+   * 单位实体
+   *
+   * @returns
+   *
+   * 攻击目标实体
+   */
+  getUnitAttackTarget(unitEntity: EntityValue): entity {
+    const unitEntityObj = parseValue(unitEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_unit_attack_target',
+      args: [unitEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'attackTargetEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Get Whether Control Motor Is Grounded
+   *
+   * 获取操控运动器是否接地: 获取指定操控运动器当前是否接地
+   *
+   * @param targetControlMotor
+   *
+   * 目标操控运动器
+   *
+   * @returns
+   *
+   * 是否接地
+   */
+  getWhetherControlMotorIsGrounded(targetControlMotor: EntityValue): boolean {
+    const targetControlMotorObj = parseValue(targetControlMotor, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_control_motor_is_grounded',
+      args: [targetControlMotorObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isGrounded', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Get Whether Cursor Is Active
+   *
+   * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 是否激活
+   */
+  getWhetherCursorIsActive(): boolean {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_cursor_is_active',
+      args: []
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isActive', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   *
+   * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 是否处于死区
+   */
+  getWhetherPreAimingStickIsInDeadZone(preAimingIndex: IntValue): boolean {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+      args: [preAimingIndexObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isInDeadZone', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Returns whether the left value is greater than the right value
+   *
+   * 是否大于: 返回左值是否大于右值
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  greaterThan(input1: FloatValue, input2: FloatValue): boolean
+  greaterThan(input1: IntValue, input2: IntValue): boolean
+  greaterThan(input1: FloatValue | IntValue, input2: FloatValue | IntValue): boolean {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'greater_than',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Returns whether the left value is greater than or equal to the right value
+   *
+   * 是否大于等于: 返回左值是否大于等于右值
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  greaterThanOrEqualTo(input1: FloatValue, input2: FloatValue): boolean
+  greaterThanOrEqualTo(input1: IntValue, input2: IntValue): boolean
+  greaterThanOrEqualTo(input1: FloatValue | IntValue, input2: FloatValue | IntValue): boolean {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'greater_than_or_equal_to',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Increases the value of the specified skill variable. The increment can be a negative value.
+   *
+   * 增加技能变量值: 给指定的技能变量增加值，增加值可以为负数
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   * @param setValue Modified Value = Original Value + Increase Value
+   *
+   * 增加值: 修改后的值=修改前的值+增加值
+   */
+  increaseSkillVariableValue(skillVariableConfigID: ConfigIdValue, setValue: FloatValue): void {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const setValueObj = parseValue(setValue, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'increase_skill_variable_value',
+      args: [skillVariableConfigIDObj, setValueObj]
+    })
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; Modify the aggro value of the specified entity for the aggro owner entity; the increase value can be negative.
+   *
+   * 增加指定实体的仇恨值: 仅自定义仇恨模式可用; 修改指定实体在仇恨拥有者实体上的仇恨值，增加值可以为负
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param increaseValue Changed value = original value + increase value
+   *
+   * 增加值: 修改后值=修改前值+增加值
+   */
+  increaseTheAggroValueOfTheSpecifiedEntity(
+    targetEntity: EntityValue,
+    aggroOwnerEntity: EntityValue,
+    increaseValue: IntValue
+  ): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const aggroOwnerEntityObj = parseValue(aggroOwnerEntity, 'entity')
+    const increaseValueObj = parseValue(increaseValue, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'increase_the_aggro_value_of_the_specified_entity',
+      args: [targetEntityObj, aggroOwnerEntityObj, increaseValueObj]
+    })
+  }
+
+  /**
+   * Interrupts the skill currently being cast by the character
+   *
+   * 打断当前技能: 打断角色当前正在施放的技能
+   */
+  interruptCurrentSkill(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'interrupt_current_skill',
+      args: []
+    })
+  }
+
+  /**
+   * Returns whether the left value is less than the right value
+   *
+   * 是否小于: 返回左值是否小于右值
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  lessThan(input1: FloatValue, input2: FloatValue): boolean
+  lessThan(input1: IntValue, input2: IntValue): boolean
+  lessThan(input1: FloatValue | IntValue, input2: FloatValue | IntValue): boolean {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'less_than',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Returns whether the left value is less than or equal to the right value
+   *
+   * 是否小于等于: 返回左值是否小于等于右值
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  lessThanOrEqualTo(input1: FloatValue, input2: FloatValue): boolean
+  lessThanOrEqualTo(input1: IntValue, input2: IntValue): boolean
+  lessThanOrEqualTo(input1: FloatValue | IntValue, input2: FloatValue | IntValue): boolean {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'less_than_or_equal_to',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Returns whether the list contains the specified value
+   *
+   * 列表是否包含该值: 返回列表中是否包含指定值
+   *
+   * @param value
+   *
+   * 值
+   * @param list
+   *
+   * 列表
+   *
+   * @returns
+   *
+   * 结果
+   */
+  listIncludesThisValue(value: FloatValue, list: FloatValue[]): boolean
+  listIncludesThisValue(value: IntValue, list: IntValue[]): boolean
+  listIncludesThisValue(value: BoolValue, list: BoolValue[]): boolean
+  listIncludesThisValue(value: ConfigIdValue, list: ConfigIdValue[]): boolean
+  listIncludesThisValue(value: EntityValue, list: EntityValue[]): boolean
+  listIncludesThisValue(value: FactionValue, list: FactionValue[]): boolean
+  listIncludesThisValue(value: GuidValue, list: GuidValue[]): boolean
+  listIncludesThisValue(value: PrefabIdValue, list: PrefabIdValue[]): boolean
+  listIncludesThisValue(value: StrValue, list: StrValue[]): boolean
+  listIncludesThisValue(value: Vec3Value, list: Vec3Value[]): boolean
+  listIncludesThisValue(
+    value:
+      | FloatValue
+      | IntValue
+      | BoolValue
+      | ConfigIdValue
+      | EntityValue
+      | FactionValue
+      | GuidValue
+      | PrefabIdValue
+      | StrValue
+      | Vec3Value,
+    list:
+      | FloatValue[]
+      | IntValue[]
+      | BoolValue[]
+      | ConfigIdValue[]
+      | EntityValue[]
+      | FactionValue[]
+      | GuidValue[]
+      | PrefabIdValue[]
+      | StrValue[]
+      | Vec3Value[]
+  ): boolean {
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      value
+    )
+    const listType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      list
+    )
+    const valueObj = parseValue(value, valueType)
+    const listObj = parseValue(list, `${listType}_list` as const)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'list_includes_this_value',
+      args: [valueObj, listObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Performs a logical AND operation on the two input Boolean values and returns the result
+   *
+   * 逻辑与运算: 对输入的两个布尔值进行与运算后输出
+   *
+   * @param condition1
+   *
+   * 条件1
+   * @param condition2
+   *
+   * 条件2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  logicalAndOperation(condition1: BoolValue, condition2: BoolValue): boolean {
+    const condition1Obj = parseValue(condition1, 'bool')
+    const condition2Obj = parseValue(condition2, 'bool')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'logical_and_operation',
+      args: [condition1Obj, condition2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Performs a logical NOT operation on the input Boolean value and returns the result
+   *
+   * 逻辑非运算: 对输入的布尔值进行非运算后输出
+   *
+   * @param condition
+   *
+   * 条件
+   *
+   * @returns
+   *
+   * 结果
+   */
+  logicalNotOperation(condition: BoolValue): boolean {
+    const conditionObj = parseValue(condition, 'bool')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'logical_not_operation',
+      args: [conditionObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Performs a logical OR operation on the two input Boolean values and returns the result
+   *
+   * 逻辑或运算: 对输入的两个布尔值进行或运算后输出
+   *
+   * @param condition1
+   *
+   * 条件1
+   * @param condition2
+   *
+   * 条件2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  logicalOrOperation(condition1: BoolValue, condition2: BoolValue): boolean {
+    const condition1Obj = parseValue(condition1, 'bool')
+    const condition2Obj = parseValue(condition2, 'bool')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'logical_or_operation',
+      args: [condition1Obj, condition2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Performs a logical XOR operation on the two input Boolean values and returns the result
+   *
+   * 逻辑异或运算: 对输入的两个布尔值进行异或运算后输出
+   *
+   * @param condition1
+   *
+   * 条件1
+   * @param condition2
+   *
+   * 条件2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  logicalXorOperation(condition1: BoolValue, condition2: BoolValue): boolean {
+    const condition1Obj = parseValue(condition1, 'bool')
+    const condition2Obj = parseValue(condition2, 'bool')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'logical_xor_operation',
+      args: [condition1Obj, condition2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Takes an input parameter as a control expression (supports integers or strings). Multiple branches can be defined based on the value of the control expression.; Execution follows the output pin whose value matches the control expression. If no matching pin is found, it will proceed through the [Default] pin.
+   *
+   * 多分支: 接受一个输入参数作为控制表达式(支持整数或字符串)，根据控制表达式的值可以分出多个不同的分支; 当出引脚上的值与控制表达式的值相等时，会沿该出引脚向后执行逻辑。如果没有找到匹配的引脚，则会走【默认】引脚
+   *
+   * @param controlExpression Supports only integers or strings
+   *
+   * 控制表达式: 仅支持整数或字符串
+   */
+  multipleBranches(
+    controlExpression: IntValue,
+    branches: Record<number, (() => void) | number> & { default?: (() => void) | number }
+  ): void {
+    const controlExpressionObj = parseValue(controlExpression, 'int')
+
+    const rawBranches = branches as Record<string, unknown>
+    const caseKeys = Object.keys(rawBranches).filter((k) => k !== 'default')
+    const caseArgs = caseKeys.map((k) => new int(Number(k)))
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'multiple_branches',
+      args: [controlExpressionObj, ...caseArgs]
+    })
+
+    // 分支执行：按约定 default 的 source_index 固定为 0；其它分支按顺序从 1 开始递增
+    type BranchResult = {
+      terminatedByReturn?: boolean
+      tailEndpoints: Array<{ nodeId: number; sourceIndex?: number }>
+      headNodeId?: number
+    }
+    const branchResults: Array<{ sourceIndex: number } & BranchResult> = []
+
+    const defaultVal = rawBranches.default
+    let defaultResult: BranchResult | undefined
+    const emptyDefault: BranchResult = { terminatedByReturn: false, tailEndpoints: [] }
+
+    if (typeof defaultVal === 'function') {
+      const r = this.registry.withExecBranch(ref.id, 0, () =>
+        globalThis.gsts.ctx.withCtx(
+          'client_character_control_skill_switch',
+          defaultVal as () => void
+        )
+      )
+      defaultResult = r
+      branchResults.push({ sourceIndex: 0, ...r })
+    } else if (defaultVal === undefined) {
+      // 空默认分支视为“未 return 且无节点”，join 时需要从分支节点对应输出直接连出
+      branchResults.push({ sourceIndex: 0, ...emptyDefault })
+    }
+
+    const branchResultsByKey = new Map<string, BranchResult>()
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v !== 'function') return
+      const sourceIndex = i + 1
+      const r = this.registry.withExecBranch(ref.id, sourceIndex, () =>
+        globalThis.gsts.ctx.withCtx('client_character_control_skill_switch', v as () => void)
+      )
+      branchResultsByKey.set(k, r)
+      branchResults.push({ sourceIndex, ...r })
+    })
+
+    const resolveAliasKey = (input: unknown): string | null => {
+      if (typeof input === 'string') return input
+      if (typeof input === 'number') return String(input)
+      return null
+    }
+
+    const ensureCaseKey = (key: string, origin: string) => {
+      if (!caseKeys.includes(key)) {
+        throw new Error(`[error] multipleBranches: "${origin}" refers to missing case "${key}"`)
+      }
+    }
+
+    const resolveTarget = (
+      key: string,
+      stack: string[]
+    ): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (stack.includes(key)) {
+        throw new Error(
+          `[error] multipleBranches: circular case alias "${stack.join(' -> ')} -> ${key}"`
+        )
+      }
+      const value = rawBranches[key]
+      if (typeof value === 'function') return { kind: 'case', key }
+      const alias = resolveAliasKey(value)
+      if (!alias) {
+        throw new Error(`[error] multipleBranches: "${key}" must be a function or case alias`)
+      }
+      if (alias === 'default') return { kind: 'default' }
+      ensureCaseKey(alias, key)
+      return resolveTarget(alias, [...stack, key])
+    }
+
+    const resolveDefault = (): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (typeof defaultVal === 'function') return { kind: 'default' }
+      const alias = resolveAliasKey(defaultVal)
+      if (!alias) {
+        throw new Error('[error] multipleBranches: default must be a function or case alias')
+      }
+      if (alias === 'default') {
+        throw new Error('[error] multipleBranches: default alias cannot refer to itself')
+      }
+      ensureCaseKey(alias, 'default')
+      return resolveTarget(alias, ['default'])
+    }
+
+    const attachAlias = (sourceIndex: number, target: BranchResult | undefined) => {
+      const resolved = target ?? emptyDefault
+      if (resolved.headNodeId !== undefined) {
+        this.registry.connectExecBranchOutput(ref.id, sourceIndex, resolved.headNodeId)
+        return
+      }
+      branchResults.push({ sourceIndex, ...resolved })
+    }
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v === 'function') return
+      const target = resolveTarget(k, [])
+      if (target.kind === 'default') {
+        attachAlias(i + 1, defaultResult)
+      } else {
+        attachAlias(i + 1, branchResultsByKey.get(target.key))
+      }
+    })
+
+    if (defaultVal !== undefined && typeof defaultVal !== 'function') {
+      const target = resolveDefault()
+      if (target.kind === 'default') {
+        attachAlias(0, defaultResult)
+      } else {
+        attachAlias(0, branchResultsByKey.get(target.key))
+      }
+    }
+
+    // 启用 join：后续顺序代码连接到所有未 return 的分支尾部（空分支则从分支节点输出直接连出）
+    const joinEndpoints: Array<{ nodeId: number; sourceIndex?: number }> = []
+    branchResults.forEach((r) => {
+      if (r.terminatedByReturn) return
+      if (r.tailEndpoints.length) {
+        joinEndpoints.push(...r.tailEndpoints)
+      } else {
+        joinEndpoints.push({ nodeId: ref.id, sourceIndex: r.sourceIndex })
+      }
+    })
+    this.registry.setCurrentExecTailEndpoints(joinEndpoints)
+  }
+
+  /**
+   * Performs multiplication, supporting Floating Point and Integer multiplication
+   *
+   * 乘法运算: 乘法运算，支持浮点数乘法和整数乘法
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  multiplication(input1: FloatValue, input2: FloatValue): number
+  multiplication(input1: IntValue, input2: IntValue): bigint
+  multiplication(input1: FloatValue | IntValue, input2: FloatValue | IntValue): number | bigint {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const variantKey = [genericType, genericType].join('|')
+    const outputIrType = (
+      { 'float|float': 'float', 'int|int': 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(`[error] multiplication: unsupported type combination ${variantKey}`)
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'multiplication',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Notifies the Server Node Graph; supports up to three String parameters; At runtime, forwards logic to the Server Node Graph and triggers the [On Skill Node Call] Event on the Server Node Graph
+   *
+   * 通知服务器节点图: 通知服务器节点图，支持携带三个字符串参数; 该节点运行时可以将逻辑传到服务器节点图上，在服务器节点图上会触发【技能节点调用时】事件
+   *
+   * @param string1
+   *
+   * 字符串1
+   * @param string2
+   *
+   * 字符串2
+   * @param string3
+   *
+   * 字符串3
+   */
+  notifyServerNodeGraph(string1: StrValue, string2: StrValue, string3: StrValue): void {
+    const string1Obj = parseValue(string1, 'str')
+    const string2Obj = parseValue(string2, 'str')
+    const string3Obj = parseValue(string3, 'str')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'notify_server_node_graph',
+      args: [string1Obj, string2Obj, string3Obj]
+    })
+  }
+
+  /**
+   * Converts a Direction Vector to Euler Angles
+   *
+   * 朝向转旋转: 将方向向量转化为欧拉角
+   *
+   * @param orientation
+   *
+   * 朝向
+   *
+   * @returns
+   *
+   * 旋转
+   */
+  orientationToRotation(orientation: Vec3Value): vec3 {
+    const orientationObj = parseValue(orientation, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'orientation_to_rotation',
+      args: [orientationObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'rotate', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Plays Timed Effects at the specified World Location
+   *
+   * 播放限时特效: 在指定的世界坐标位置播放限时特效
+   *
+   * @param specialEffectsAssetConfigurationID
+   *
+   * 特效资产配置ID
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param zoomMultiplier
+   *
+   * 缩放倍率
+   * @param playDefaultSoundEffects
+   *
+   * 是否播放默认音效
+   */
+  playTimedEffects(
+    specialEffectsAssetConfigurationID: ConfigIdValue,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    zoomMultiplier: FloatValue,
+    playDefaultSoundEffects: BoolValue
+  ): void {
+    const specialEffectsAssetConfigurationIDObj = parseValue(
+      specialEffectsAssetConfigurationID,
+      'config_id'
+    )
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const zoomMultiplierObj = parseValue(zoomMultiplier, 'float')
+    const playDefaultSoundEffectsObj = parseValue(playDefaultSoundEffects, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'play_timed_effects',
+      args: [
+        specialEffectsAssetConfigurationIDObj,
+        locationObj,
+        rotateObj,
+        zoomMultiplierObj,
+        playDefaultSoundEffectsObj
+      ]
+    })
+  }
+
+  /**
+   * Turns the Player using the configured turning mode
+   *
+   * 玩家转向: 可以让玩家按照配置的转向模式转向
+   *
+   * @param turningMode Includes: Target then Input, Input Direction, Target Direction, Target then Camera, Camera Direction, Input then Target
+   *
+   * 转向模式: 分为先目标后输入、输入朝向、目标朝向、先目标后镜头、镜头朝向、先输入后目标
+   */
+  playerTurning(turningMode: RotationType): void {
+    const turningModeObj = parseValue(turningMode, 'enum')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'player_turning',
+      args: [turningModeObj]
+    })
+  }
+
+  /**
+   * Turns the Player toward the direction specified by the 3D Vector configuration
+   *
+   * 玩家转向指定朝向: 玩家转向三维向量配置的方向
+   *
+   * @param orientation
+   *
+   * 朝向
+   */
+  playerTurnsToFaceSetDirection(orientation: Vec3Value): void {
+    const orientationObj = parseValue(orientation, 'vec3')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'player_turns_to_face_set_direction',
+      args: [orientationObj]
+    })
+  }
+
+  /**
+   * Returns the skill instance(s) currently in the foreground for the slot specified.
+   *
+   * 查询指定槽位当前生效的技能实例: 查询指定槽位当前位于前台的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: EnumerationValue): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_active_skill_instance_list_of_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the number of key-value pairs in a dictionary
+   *
+   * 查询字典长度: 查询字典中键值对的数量
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 长度
+   */
+  queryDictionarySLength(dictionary: DictValue): bigint
+  queryDictionarySLength(dictionary: DictValue): bigint {
+    const genericType = matchTypes(['dict'], dictionary)
+    const dictionaryObj = parseValue(dictionary, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_s_length',
+      args: [dictionaryObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'length', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Searches for an Entity by GUID
+   *
+   * 以GUID查询实体: 根据GUID查询实体
+   *
+   * @param gUID
+   *
+   * GUID
+   *
+   * @returns
+   *
+   * 实体
+   */
+  queryEntityByGuid(gUID: GuidValue): entity {
+    const gUIDObj = parseValue(gUID, 'guid')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_entity_by_guid',
+      args: [gUIDObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'entity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
+   * Searches Target Entity's Faction
+   *
+   * 查询实体阵营: 查询目标实体的阵营
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns
+   *
+   * 阵营
+   */
+  queryEntityFaction(targetEntity: EntityValue): faction {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_entity_faction',
+      args: [targetEntityObj]
+    })
+    const ret = new faction()
+    ret.markPin(ref, 'faction', 0)
+    return ret as unknown as faction
+  }
+
+  /**
+   * Searches for the GUID of the specified Entity
+   *
+   * 以实体查询GUID: 查询指定实体的GUID
+   *
+   * @param entity
+   *
+   * 实体
+   *
+   * @returns
+   *
+   * GUID
+   */
+  queryGuidByEntity(entity: EntityValue): guid {
+    const entityObj = parseValue(entity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_guid_by_entity',
+      args: [entityObj]
+    })
+    const ret = new guid()
+    ret.markPin(ref, 'gUID', 0)
+    return ret as unknown as guid
+  }
+
+  /**
+   * Query if the specified dictionary contains a specific key
+   *
+   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean
+  queryIfDictionaryContainsSpecificKey(dictionary: DictValue, key: EntityValue): boolean {
+    const dictionaryType = matchTypes(['dict'], dictionary)
+    const keyType = matchTypes(['entity'], key)
+    const dictionaryObj = parseValue(dictionary, dictionaryType)
+    const keyObj = parseValue(key, keyType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_key',
+      args: [dictionaryObj, keyObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Query if the specified dictionary contains a specific value
+   *
+   * 查询字典是否包含特定值: 查询指定字典是否包含特定的值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param value
+   *
+   * 值
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean
+  queryIfDictionaryContainsSpecificValue(dictionary: DictValue, value: EntityValue): boolean {
+    const dictionaryType = matchTypes(['dict'], dictionary)
+    const valueType = matchTypes(['entity'], value)
+    const dictionaryObj = parseValue(dictionary, dictionaryType)
+    const valueObj = parseValue(value, valueType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_value',
+      args: [dictionaryObj, valueObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Searches whether the specified Entity is present; Note that Character Entities are still considered present even when Downed
+   *
+   * 查询实体是否在场: 查询指定实体是否在场; 注意角色实体即使处于倒下状态，仍然认为在场
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns
+   *
+   * 是否在场
+   */
+  queryIfEntityIsOnTheField(targetEntity: EntityValue): boolean {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_entity_is_on_the_field',
+      args: [targetEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'onTheField', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Searches whether Faction 1 and Faction 2 are hostile
+   *
+   * 查询阵营是否敌对: 查询阵营1和阵营2是否敌对
+   *
+   * @param faction1
+   *
+   * 阵营1
+   * @param faction2
+   *
+   * 阵营2
+   *
+   * @returns
+   *
+   * 是否敌对
+   */
+  queryIfFactionIsHostile(faction1: FactionValue, faction2: FactionValue): boolean {
+    const faction1Obj = parseValue(faction1, 'faction')
+    const faction2Obj = parseValue(faction2, 'faction')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_faction_is_hostile',
+      args: [faction1Obj, faction2Obj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'hostile', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Searches whether the Entity associated with this Node Graph has entered battle
+   *
+   * 查询自身是否已入战: 查询该节点图关联的实体是否入战
+   *
+   * @returns
+   *
+   * 是否入战
+   */
+  queryIfSelfIsInCombat(): boolean {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_self_is_in_combat',
+      args: []
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'inCombat', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Available only for Custom Aggro Mode; Searches whether the specified Entity has entered battle
+   *
+   * 查询指定实体是否入战: 仅自定义仇恨模式可用; 查询指定实体是否已经入战
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   *
+   * @returns
+   *
+   * 是否入战
+   */
+  queryIfSpecifiedEntityIsInCombat(targetEntity: EntityValue): boolean {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_specified_entity_is_in_combat',
+      args: [targetEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'inCombat', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Query Pre-Aiming End Reason
+   *
+   * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结束原因
+   */
+  queryPreAimingEndReason(preAimingIndex: IntValue): enumeration {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_pre_aiming_end_reason',
+      args: [preAimingIndexObj]
+    })
+    const ret = new enumeration()
+    ret.markPin(ref, 'endReason', 0)
+    return ret as unknown as enumeration
+  }
+
+  /**
+   * Returns the corresponding skill instance based on the skill slot and Skill Config ID provided.
+   *
+   * 以技能槽位和技能配置ID查询技能实例ID: 根据技能槽位和技能配置ID查询对应的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   * @param skillConfigID
+   *
+   * 技能配置ID
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  querySkillInstanceIdBySkillSlotAndSkillConfigId(
+    skillSlot: EnumerationValue,
+    skillConfigID: ConfigIdValue
+  ): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const skillConfigIDObj = parseValue(skillConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+      args: [skillSlotObj, skillConfigIDObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Searches for all skill instances in the slot specified.
+   *
+   * 查询指定槽位的技能实例列表: 查询指定槽位的所有技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID列表
+   */
+  querySkillInstanceListBySpecifiedSlot(skillSlot: EnumerationValue): bigint[] {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_list_by_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new list('int')
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint[]
+  }
+
+  /**
+   * Searches for the corresponding variable value based on the Skill Variable Config ID.
+   *
+   * 查询技能变量对应值: 根据技能变量配置ID查询对应的变量值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   *
+   * @returns
+   *
+   * 变量值
+   */
+  querySkillVariableValue(skillVariableConfigID: ConfigIdValue): number {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_variable_value',
+      args: [skillVariableConfigIDObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns "Yes" when microphone input is detected from this player's client.; Note: This node only takes effect during multiplayer games (multiplayer test play, actual multiplayer play). It will not work in single-player games (single-player test play, actual single-player play).
+   *
+   * 查询玩家是否正在语音聊天: 当检测到该玩家客户端有麦克风输入时，会返回是; 注意该节点必须在多人游戏(多人试玩、多人正式游玩)中逻辑才会生效，单人游戏(单人试玩、单人正式游玩)均不会生效
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 是否正在语音
+   */
+  queryWhetherPlayerIsCurrentlyInVoiceChat(playerEntity: EntityValue): boolean {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_whether_player_is_currently_in_voice_chat',
+      args: [playerEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'currentlyInVoiceChat', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Converts radians to degrees
+   *
+   * 弧度转角度: 将弧度值转为角度值
+   *
+   * @param radian
+   *
+   * 弧度
+   *
+   * @returns
+   *
+   * 角度
+   */
+  radiansToDegrees(radian: FloatValue): number {
+    const radianObj = parseValue(radian, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'radians_to_degrees',
+      args: [radianObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'angle', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Initiates a one-time HP restoration for the Target Entity
+   *
+   * 角色恢复生命值: 为目标实体发起一次恢复生命值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param recoveryAmount
+   *
+   * 恢复量
+   * @param ignoreRecoveryAdjustmentEffect
+   *
+   * 是否忽略恢复调整效果
+   * @param aggroMultiplierForThisHealing
+   *
+   * 本次治疗的仇恨倍率
+   * @param aggroIncrementForThisHealing
+   *
+   * 本次治疗的仇恨增量
+   */
+  recoverCharacterSHp(
+    targetEntity: EntityValue,
+    recoveryAmount: FloatValue,
+    ignoreRecoveryAdjustmentEffect: BoolValue,
+    aggroMultiplierForThisHealing: FloatValue,
+    aggroIncrementForThisHealing: IntValue
+  ): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const recoveryAmountObj = parseValue(recoveryAmount, 'float')
+    const ignoreRecoveryAdjustmentEffectObj = parseValue(ignoreRecoveryAdjustmentEffect, 'bool')
+    const aggroMultiplierForThisHealingObj = parseValue(aggroMultiplierForThisHealing, 'float')
+    const aggroIncrementForThisHealingObj = parseValue(aggroIncrementForThisHealing, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'recover_character_s_hp',
+      args: [
+        targetEntityObj,
+        recoveryAmountObj,
+        ignoreRecoveryAdjustmentEffectObj,
+        aggroMultiplierForThisHealingObj,
+        aggroIncrementForThisHealingObj
+      ]
+    })
+  }
+
+  /**
+   * Removes the specified type of Character Disruptor Device
+   *
+   * 移除指定角色扰动装置: 移除指定类型的角色扰动装置
+   *
+   * @param disruptorDeviceType Includes: Force Field Device, Ejector, and Traction Device
+   *
+   * 扰动装置类型: 分为力场器、弹射器、牵引器
+   */
+  removeSpecifiedCharacterDisruptorDevice(disruptorDeviceType: DisruptorDeviceType): void {
+    const disruptorDeviceTypeObj = parseValue(disruptorDeviceType, 'enum')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'remove_specified_character_disruptor_device',
+      args: [disruptorDeviceTypeObj]
+    })
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; Removes the Target Entity from the Aggro Owner Entity's Aggro List; this may cause the Target Entity to leave battle
+   *
+   * 将目标实体移除出仇恨列表: 仅自定义仇恨模式可用; 将目标实体移出仇恨拥有者实体的仇恨列表，这可能导致目标实体脱战
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   */
+  removeTargetEntityFromAggroList(targetEntity: EntityValue, aggroOwnerEntity: EntityValue): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const aggroOwnerEntityObj = parseValue(aggroOwnerEntity, 'entity')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'remove_target_entity_from_aggro_list',
+      args: [targetEntityObj, aggroOwnerEntityObj]
+    })
+  }
+
+  /**
+   * Removes the Unit Status corresponding to the specified configuration ID from the Target Entity
+   *
+   * 移除单位状态: 移除目标实体上指定配置ID对应的单位状态
+   *
+   * @param removalTarget
+   *
+   * 移除目标
+   * @param unitStatusConfigID
+   *
+   * 单位状态配置ID
+   */
+  removeUnitStatus(removalTarget: EntityValue, unitStatusConfigID: ConfigIdValue): void {
+    const removalTargetObj = parseValue(removalTarget, 'entity')
+    const unitStatusConfigIDObj = parseValue(unitStatusConfigID, 'config_id')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'remove_unit_status',
+      args: [removalTargetObj, unitStatusConfigIDObj]
+    })
+  }
+
+  /**
+   * Resets the Skill Target and reruns the Skill selection logic to choose a new Target
+   *
+   * 重置技能目标: 重置技能目标，重新运行一次技能选取逻辑，选择一个新的目标
+   */
+  resetSkillTarget(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'reset_skill_target',
+      args: []
+    })
+  }
+
+  /**
+   * Screen Coordinates to Viewport Coordinates
+   *
+   * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  screenCoordinatesToViewportCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue
+  ): { viewportX: number; viewportY: number } {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_viewport_coordinates',
+      args: [screenXObj, screenYObj]
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Screen Coordinates to World Coordinates
+   *
+   * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   * @param depth
+   *
+   * 深度值
+   *
+   * @returns
+   *
+   * 世界坐标
+   */
+  screenCoordinatesToWorldCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue,
+    depth: FloatValue
+  ): vec3 {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const depthObj = parseValue(depth, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_world_coordinates',
+      args: [screenXObj, screenYObj, depthObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'worldPosition', 0)
+    return ret as unknown as vec3
+  }
+
+  /**
+   * Within the skill node graph, you can send a signal to the server node graph, and every server node graph can listen for that signal.
+   *
+   * 向服务器节点图发送信号: 在技能节点图中，可以向服务器节点图发送信号，所有服务器节点图都可以监听到该信号
+   *
+   * @param signalName Signal name
+   *
+   * 信号名
+   */
+  sendSignalToServerNodeGraph(signalName: StrValue): void {
+    const signalNameObj = parseValue(signalName, 'str')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'send_signal_to_server_node_graph',
+      args: [signalNameObj]
+    })
+  }
+
+  /**
+   * You can set the weight of the current attack target
+   *
+   * 设置攻击权重: 可以设置当前攻击目标的权重
+   *
+   * @param currentAttackTargetWeight
+   *
+   * 当前攻击目标的权重
+   * @param forciblySelectATargetOnce
+   *
+   * 是否强制选一次目标
+   */
+  setAttackWeight(
+    currentAttackTargetWeight: FloatValue,
+    forciblySelectATargetOnce: BoolValue
+  ): void {
+    const currentAttackTargetWeightObj = parseValue(currentAttackTargetWeight, 'float')
+    const forciblySelectATargetOnceObj = parseValue(forciblySelectATargetOnce, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_attack_weight',
+      args: [currentAttackTargetWeightObj, forciblySelectATargetOnceObj]
+    })
+  }
+
+  /**
+   * Set Control Motor to Ungrounded State
+   *
+   * 使操控运动器转换至非接地状态: 接地状态下的操控运动器将持续找到地面并贴合。若希望通过添加速度实现离地运动（跳跃等效果），可以使用该节点短暂脱离接地状态。
+   *
+   * @param targetControlMotor
+   *
+   * 目标操控运动器
+   * @param duration
+   *
+   * 持续时间
+   */
+  setControlMotorToUngroundedState(targetControlMotor: EntityValue, duration: FloatValue): void {
+    const targetControlMotorObj = parseValue(targetControlMotor, 'entity')
+    const durationObj = parseValue(duration, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_control_motor_to_ungrounded_state',
+      args: [targetControlMotorObj, durationObj]
+    })
+  }
+
+  /**
+   * Sets the Target Entity as its Attack Target
+   *
+   * 设置自身攻击目标: 将目标实体设置为自身的攻击目标
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param whetherToTurnImmediately
+   *
+   * 是否立即转向
+   */
+  setOwnAttackTarget(targetEntity: EntityValue, whetherToTurnImmediately: BoolValue): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const whetherToTurnImmediatelyObj = parseValue(whetherToTurnImmediately, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_own_attack_target',
+      args: [targetEntityObj, whetherToTurnImmediatelyObj]
+    })
+  }
+
+  /**
+   * Sets the value of the specified skill variable
+   *
+   * 设置技能变量: 给指定的技能变量设置值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   * @param setValue The modified value
+   *
+   * 设置值: 修改后的值
+   */
+  setSkillVariable(skillVariableConfigID: ConfigIdValue, setValue: FloatValue): void {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const setValueObj = parseValue(setValue, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_skill_variable',
+      args: [skillVariableConfigIDObj, setValueObj]
+    })
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
+   *
+   * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param aggroValue
+   *
+   * 仇恨值
+   */
+  setTheAggroValueOfSpecifiedEntity(
+    targetEntity: EntityValue,
+    aggroOwnerEntity: EntityValue,
+    aggroValue: IntValue
+  ): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const aggroOwnerEntityObj = parseValue(aggroOwnerEntity, 'entity')
+    const aggroValueObj = parseValue(aggroValue, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_the_aggro_value_of_specified_entity',
+      args: [targetEntityObj, aggroOwnerEntityObj, aggroValueObj]
+    })
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; Set the aggro value of the target entity for the specified aggro owner proportionally.
+   *
+   * 按比例设置指定实体的仇恨值: 仅自定义仇恨模式可用; 按比例设置目标实体在指定仇恨拥有者上的仇恨值
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param aggroValueRatio
+   *
+   * 仇恨值比例
+   */
+  setTheAggroValueOfTheSpecifiedEntityProportionally(
+    targetEntity: EntityValue,
+    aggroOwnerEntity: EntityValue,
+    aggroValueRatio: FloatValue
+  ): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const aggroOwnerEntityObj = parseValue(aggroOwnerEntity, 'entity')
+    const aggroValueRatioObj = parseValue(aggroValueRatio, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_the_aggro_value_of_the_specified_entity_proportionally',
+      args: [targetEntityObj, aggroOwnerEntityObj, aggroValueRatioObj]
+    })
+  }
+
+  /**
+   * Calculates the sine of the input in radians
+   *
+   * 正弦函数: 计算输入弧度的正弦
+   *
+   * @param radian
+   *
+   * 弧度
+   *
+   * @returns
+   *
+   * 结果
+   */
+  sineFunction(radian: FloatValue): number {
+    const radianObj = parseValue(radian, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'sine_function',
+      args: [radianObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Outputs the x, y, and z components of a 3D Vector as three Floating Point Numbers
+   *
+   * 拆分三维向量: 将三维向量的x、y、z分量输出为三个浮点数
+   *
+   * @param _3DVector
+   *
+   * 三维向量
+   *
+   * @returns
+   *
+   * xComponent
+   * X分量
+   *
+   * yComponent
+   * Y分量
+   *
+   * zComponent
+   * Z分量
+   */
+  split3dVector(_3DVector: Vec3Value): {
+    xComponent: number
+    yComponent: number
+    zComponent: number
+  } {
+    const _3DVectorObj = parseValue(_3DVector, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'split3d_vector',
+      args: [_3DVectorObj]
+    })
+    return {
+      xComponent: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'xComponent', 0)
+        return ret as unknown as number
+      })(),
+      yComponent: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'yComponent', 1)
+        return ret as unknown as number
+      })(),
+      zComponent: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'zComponent', 2)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Subtracts two Floating Point Numbers or Integers
+   *
+   * 减法运算: 计算两个浮点数或整数的减法
+   *
+   * @param input1
+   *
+   * input1
+   * @param input2
+   *
+   * input2
+   *
+   * @returns
+   *
+   * 结果
+   */
+  subtraction(input1: FloatValue, input2: FloatValue): number
+  subtraction(input1: IntValue, input2: IntValue): bigint
+  subtraction(input1: FloatValue | IntValue, input2: FloatValue | IntValue): number | bigint {
+    const genericType = matchTypes(['float', 'int'], input1, input2)
+    const input1Obj = parseValue(input1, genericType)
+    const input2Obj = parseValue(input2, genericType)
+    const variantKey = [genericType, genericType].join('|')
+    const outputIrType = (
+      { 'float|float': 'float', 'int|int': 'int' } as Record<string, 'float' | 'int' | undefined>
+    )[variantKey]
+    if (!outputIrType) {
+      throw new Error(`[error] subtraction: unsupported type combination ${variantKey}`)
+    }
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'subtraction',
+      args: [input1Obj, input2Obj]
+    })
+    const ret = new ValueClassMap[outputIrType]()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number | bigint
+  }
+
+  /**
+   * Calculates the tangent of the input in radians
+   *
+   * 正切函数: 计算输入弧度的正切
+   *
+   * @param radian
+   *
+   * 弧度
+   *
+   * @returns
+   *
+   * 结果
+   */
+  tangentFunction(radian: FloatValue): number {
+    const radianObj = parseValue(radian, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'tangent_function',
+      args: [radianObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'result', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; The Taunter Entity taunts the specified Target Entity
+   *
+   * 嘲讽目标: 仅自定义仇恨模式可用; 嘲讽者实体嘲讽指定目标实体
+   *
+   * @param taunterEntity
+   *
+   * 嘲讽者实体
+   * @param targetEntity
+   *
+   * 目标实体
+   */
+  tauntTarget(taunterEntity: EntityValue, targetEntity: EntityValue): void {
+    const taunterEntityObj = parseValue(taunterEntity, 'entity')
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'taunt_target',
+      args: [taunterEntityObj, targetEntityObj]
+    })
+  }
+
+  /**
+   * Available only in Custom Aggro Mode; Transfers a percentage of Aggro on the Aggro Owner from the Source Entity to the Target Entity
+   *
+   * 按比例转移指定实体的仇恨值: 仅自定义仇恨模式可用; 将仇恨拥有者上对转移来源实体一定比例的仇恨转移到转移目标实体上
+   *
+   * @param transferTargetEntity
+   *
+   * 转移目标实体
+   * @param transferSourceEntity
+   *
+   * 转移来源实体
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param transferRatio
+   *
+   * 转移比例
+   */
+  transferTheAggroValueOfTheSpecifiedEntityProportionally(
+    transferTargetEntity: EntityValue,
+    transferSourceEntity: EntityValue,
+    aggroOwnerEntity: EntityValue,
+    transferRatio: FloatValue
+  ): void {
+    const transferTargetEntityObj = parseValue(transferTargetEntity, 'entity')
+    const transferSourceEntityObj = parseValue(transferSourceEntity, 'entity')
+    const aggroOwnerEntityObj = parseValue(aggroOwnerEntity, 'entity')
+    const transferRatioObj = parseValue(transferRatio, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'transfer_the_aggro_value_of_the_specified_entity_proportionally',
+      args: [
+        transferTargetEntityObj,
+        transferSourceEntityObj,
+        aggroOwnerEntityObj,
+        transferRatioObj
+      ]
+    })
+  }
+
+  /**
+   * Iterates through each Entity in the input Entity List
+   *
+   * 遍历实体列表: 遍历输入实体列表中的每个实体
+   *
+   * @param entityList
+   *
+   * 实体列表
+   *
+   * @returns
+   *
+   * 当前实体
+   */
+  traverseEntityList(
+    entityList: EntityValue[],
+    loopBody: (currentEntity: entity, breakLoop: () => void) => void
+  ): void {
+    const LOOP_BODY_SOURCE_INDEX = 0
+    const LOOP_COMPLETE_SOURCE_INDEX = 1
+
+    const entityListObj = parseValue(entityList, 'entity_list')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'traverse_entity_list',
+      args: [entityListObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'currentEntity', 0)
+
+    this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
+      this.registry.withLoop(ref.id, () => {
+        globalThis.gsts.ctx.withCtx('client_character_control_skill_loop', () =>
+          loopBody(ret as unknown as entity, () => this.breakLoop(ref.id))
+        )
+      })
+    })
+    this.registry.markLinkNextExecFrom(ref.id, LOOP_COMPLETE_SOURCE_INDEX)
+  }
+
+  /**
+   * Initiates a Hitbox Attack at the specified Location in the World Coordinate System, with configurable attack parameters
+   *
+   * 特定位置打攻击盒: 在世界坐标系的指定位置发起一次攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param hitboxType
+   *
+   * 攻击盒类型
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSceneSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSceneSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSceneSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerHitboxAtSpecificLocation(
+    targetFactionFilter: TargetType,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    hitboxType: AttackShape,
+    scaleOfCuboidHitbox: Vec3Value,
+    radiusOfSphereHitbox: FloatValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSceneSpecialEffectsOffset: Vec3Value,
+    onHitSceneSpecialEffectsRotation: Vec3Value,
+    onHitSceneSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const hitboxTypeObj = parseValue(hitboxType, 'enum')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSceneSpecialEffectsOffsetObj = parseValue(onHitSceneSpecialEffectsOffset, 'vec3')
+    const onHitSceneSpecialEffectsRotationObj = parseValue(onHitSceneSpecialEffectsRotation, 'vec3')
+    const onHitSceneSpecialEffectsZoomObj = parseValue(onHitSceneSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        hitboxTypeObj,
+        scaleOfCuboidHitboxObj,
+        radiusOfSphereHitboxObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSceneSpecialEffectsOffsetObj,
+        onHitSceneSpecialEffectsRotationObj,
+        onHitSceneSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiates a Hitbox Attack at a specified Attachment Point, with configurable attack parameters
+   *
+   * 指定挂接点打攻击盒: 对指定挂接点发起一次攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param hitboxType
+   *
+   * 攻击盒类型
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: TargetType,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    hitboxType: AttackShape,
+    scaleOfCuboidHitbox: Vec3Value,
+    radiusOfSphereHitbox: FloatValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const hitboxTypeObj = parseValue(hitboxType, 'enum')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        hitboxTypeObj,
+        scaleOfCuboidHitboxObj,
+        radiusOfSphereHitboxObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a rectangular hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打矩形攻击盒: 在世界坐标系的指定位置发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerRectangularHitboxAtSpecificLocation(
+    targetFactionFilter: TargetType,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_rectangular_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        scaleOfCuboidHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a rectangular hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打矩形攻击盒: 对指定挂接点发起一次矩形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param scaleOfCuboidHitbox
+   *
+   * 攻击盒为长方体时的缩放
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerRectangularHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: TargetType,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    scaleOfCuboidHitbox: Vec3Value,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const scaleOfCuboidHitboxObj = parseValue(scaleOfCuboidHitbox, 'vec3')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_rectangular_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        scaleOfCuboidHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a sector hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打扇形攻击盒: 在世界坐标系的指定位置发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSectorHitboxAtSpecificLocation(
+    targetFactionFilter: TargetType,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_sector_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a sector hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打扇形攻击盒: 对指定挂接点发起一次扇形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param heightOfSectorHitbox
+   *
+   * 攻击盒为扇形时的高度
+   * @param sectorAngleOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇角度
+   * @param sectorRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的扇半径
+   * @param innerRadiusOfSectorHitbox
+   *
+   * 攻击盒为扇形时的内半径
+   * @param detectionDirectionOfSectorHitbox
+   *
+   * 攻击盒为扇形时的检测方向
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSectorHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: TargetType,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    heightOfSectorHitbox: FloatValue,
+    sectorAngleOfSectorHitbox: FloatValue,
+    sectorRadiusOfSectorHitbox: FloatValue,
+    innerRadiusOfSectorHitbox: FloatValue,
+    detectionDirectionOfSectorHitbox: SectorDetectionDirection,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const heightOfSectorHitboxObj = parseValue(heightOfSectorHitbox, 'float')
+    const sectorAngleOfSectorHitboxObj = parseValue(sectorAngleOfSectorHitbox, 'float')
+    const sectorRadiusOfSectorHitboxObj = parseValue(sectorRadiusOfSectorHitbox, 'float')
+    const innerRadiusOfSectorHitboxObj = parseValue(innerRadiusOfSectorHitbox, 'float')
+    const detectionDirectionOfSectorHitboxObj = parseValue(detectionDirectionOfSectorHitbox, 'enum')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_sector_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        heightOfSectorHitboxObj,
+        sectorAngleOfSectorHitboxObj,
+        sectorRadiusOfSectorHitboxObj,
+        innerRadiusOfSectorHitboxObj,
+        detectionDirectionOfSectorHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a spherical hitbox at the specified position in the world coordinate system, and you can set various parameters for this attack.
+   *
+   * 特定位置打球形攻击盒: 在世界坐标系的指定位置发起一次球形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param location
+   *
+   * 位置
+   * @param rotate
+   *
+   * 旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSphericalHitboxAtSpecificLocation(
+    targetFactionFilter: TargetType,
+    location: Vec3Value,
+    rotate: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    radiusOfSphereHitbox: FloatValue,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const locationObj = parseValue(location, 'vec3')
+    const rotateObj = parseValue(rotate, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_spherical_hitbox_at_specific_location',
+      args: [
+        targetFactionFilterObj,
+        locationObj,
+        rotateObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        radiusOfSphereHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Initiate a spherical hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打球形攻击盒: 对指定挂接点发起一次球形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSphericalHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: TargetType,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    radiusOfSphereHitbox: FloatValue,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_spherical_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        radiusOfSphereHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Viewport Coordinates to Screen Coordinates
+   *
+   * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param viewportX
+   *
+   * 视口X
+   * @param viewportY
+   *
+   * 视口Y
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  viewportCoordinatesToScreenCoordinates(
+    viewportX: FloatValue,
+    viewportY: FloatValue
+  ): { screenX: number; screenY: number } {
+    const viewportXObj = parseValue(viewportX, 'float')
+    const viewportYObj = parseValue(viewportY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'viewport_coordinates_to_screen_coordinates',
+      args: [viewportXObj, viewportYObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Query whether the entity has the specified unit status
+   *
+   * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param unitStatus
+   *
+   * 单位状态
+   *
+   * @returns
+   *
+   * 是否携带
+   */
+  whetherTheEntityHasTheSpecifiedUnitStatus(
+    targetEntity: EntityValue,
+    unitStatus: ConfigIdValue
+  ): boolean {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const unitStatusObj = parseValue(unitStatus, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'whether_the_entity_has_the_specified_unit_status',
+      args: [targetEntityObj, unitStatusObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'hasTheStatus', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * World Coordinates to Screen Coordinates
+   *
+   * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param worldPosition
+   *
+   * 世界坐标
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    screenX: number
+    screenY: number
+  } {
+    const worldPositionObj = parseValue(worldPosition, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'world_coordinates_to_screen_coordinates',
+      args: [worldPositionObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+}
+
 export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
   /**
    * Calculates the sum of two 3D Vectors
@@ -6062,6 +13201,8 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
   assemblyList(_0to9: EntityValue[]): entity[]
   assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: GuidValue[]): guid[]
+  assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
   assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
   assemblyList(_0to9: StrValue[]): string[]
@@ -6069,13 +13210,22 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   assemblyList(_0to9: Vec3Value[]): vec3[]
   assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
   assemblyList<
-    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+    T extends
+      | 'float'
+      | 'int'
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'guid'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
   >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
     let genericType = matchTypes(
-      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'guid', 'prefab_id', 'str', 'vec3'],
       ..._0to9
     )
     if (type) genericType = type
@@ -6539,6 +13689,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -7258,8 +14409,8 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 值列表
    */
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[]
-  getListOfValuesFromDictionary(dictionary: DictValue): entity[] {
+  getListOfValuesFromDictionary(dictionary: DictValue): bigint[]
+  getListOfValuesFromDictionary(dictionary: DictValue): bigint[] {
     const genericType = matchTypes(['dict'], dictionary)
     const dictionaryObj = parseValue(dictionary, genericType)
     const ref = this.registry.registerNode({
@@ -7268,9 +14419,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       nodeType: 'get_list_of_values_from_dictionary',
       args: [dictionaryObj]
     })
-    const ret = new list('entity')
+    const ret = new list('int')
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as bigint[]
   }
 
   /**
@@ -7490,7 +14641,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     maxRayLength: FloatValue,
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
-    hitLayerFilter: EnumerationValue[]
+    hitLayerFilter: RayFilterType[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
@@ -7536,7 +14687,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 列表
    */
-  getRayFilterTypeList(): enumeration[] {
+  getRayFilterTypeList(): RayFilterType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -7545,7 +14696,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as RayFilterType[]
   }
 
   /**
@@ -11731,6 +18882,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -15211,6 +22363,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -17324,6 +24477,8 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
   assemblyList(_0to9: EntityValue[]): entity[]
   assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: GuidValue[]): guid[]
+  assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
   assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
   assemblyList(_0to9: StrValue[]): string[]
@@ -17331,13 +24486,22 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   assemblyList(_0to9: Vec3Value[]): vec3[]
   assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
   assemblyList<
-    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+    T extends
+      | 'float'
+      | 'int'
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'guid'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
   >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
     let genericType = matchTypes(
-      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'guid', 'prefab_id', 'str', 'vec3'],
       ..._0to9
     )
     if (type) genericType = type
@@ -17613,6 +24777,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -18516,7 +25681,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     maxRayLength: FloatValue,
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
-    hitLayerFilter: EnumerationValue[]
+    hitLayerFilter: RayFilterType[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
@@ -18562,7 +25727,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 列表
    */
-  getRayFilterTypeList(): enumeration[] {
+  getRayFilterTypeList(): RayFilterType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -18571,7 +25736,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as RayFilterType[]
   }
 
   /**
@@ -19867,6 +27032,8 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
   assemblyList(_0to9: EntityValue[]): entity[]
   assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: GuidValue[]): guid[]
+  assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
   assemblyList(_0to9: PrefabIdValue[], type: 'prefab_id'): prefabId[]
   assemblyList(_0to9: StrValue[]): string[]
@@ -19874,13 +27041,22 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   assemblyList(_0to9: Vec3Value[]): vec3[]
   assemblyList(_0to9: Vec3Value[], type: 'vec3'): vec3[]
   assemblyList<
-    T extends 'float' | 'int' | 'bool' | 'config_id' | 'entity' | 'prefab_id' | 'str' | 'vec3'
+    T extends
+      | 'float'
+      | 'int'
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'guid'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
   >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
     let genericType = matchTypes(
-      ['float', 'int', 'bool', 'config_id', 'entity', 'prefab_id', 'str', 'vec3'],
+      ['float', 'int', 'bool', 'config_id', 'entity', 'guid', 'prefab_id', 'str', 'vec3'],
       ..._0to9
     )
     if (type) genericType = type
@@ -20156,6 +27332,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(enumeration1: RayFilterType, enumeration2: RayFilterType): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -21059,7 +28236,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     maxRayLength: FloatValue,
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
-    hitLayerFilter: EnumerationValue[]
+    hitLayerFilter: RayFilterType[]
   ): { onHitLocation: vec3; onHitEntity: entity } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
@@ -21105,7 +28282,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 列表
    */
-  getRayFilterTypeList(): enumeration[] {
+  getRayFilterTypeList(): RayFilterType[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -21114,7 +28291,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as enumeration[]
+    return ret as unknown as RayFilterType[]
   }
 
   /**
@@ -21979,6 +29156,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
 
 export type ClientExecutionFlowFunctionsBySubType = {
   character_skill: ClientCharacterSkillExecutionFlowFunctions
+  character_control_skill: ClientCharacterControlSkillExecutionFlowFunctions
   creation_skill: ClientCreationSkillExecutionFlowFunctions
   creation_status: ClientCreationStatusExecutionFlowFunctions
   creation_status_decision: ClientCreationStatusDecisionExecutionFlowFunctions

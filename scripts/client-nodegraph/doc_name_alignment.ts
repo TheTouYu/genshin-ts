@@ -203,6 +203,176 @@ const SEED_ZH_TO_EN: Record<string, string> = {
 }
 
 /**
+ * Developer-curated en names for entries that only exist on untranslated
+ * zh-only doc pages (角色操控技能 pre-aiming/cursor/control-motor/coordinate
+ * chapters, 2026-07). The official en shell pages are empty, so these entries
+ * are self-aligned from the zh page with node/param en names supplied here;
+ * params not listed fall back to positional idents in codegen.
+ */
+const ZH_ONLY_SEED: Record<string, { en: string; params?: Record<string, string> }> = {
+  // coordinate conversions (超限模式)
+  世界坐标转屏幕坐标: {
+    en: 'World Coordinates to Screen Coordinates',
+    params: { 世界坐标: 'World Position', 屏幕X: 'Screen X', 屏幕Y: 'Screen Y' }
+  },
+  屏幕坐标转世界坐标: {
+    en: 'Screen Coordinates to World Coordinates',
+    params: { 屏幕X: 'Screen X', 屏幕Y: 'Screen Y', 深度值: 'Depth', 世界坐标: 'World Position' }
+  },
+  屏幕坐标转视口坐标: {
+    en: 'Screen Coordinates to Viewport Coordinates',
+    params: { 屏幕X: 'Screen X', 屏幕Y: 'Screen Y', 视口X: 'Viewport X', 视口Y: 'Viewport Y' }
+  },
+  视口坐标转屏幕坐标: {
+    en: 'Viewport Coordinates to Screen Coordinates',
+    params: { 视口X: 'Viewport X', 视口Y: 'Viewport Y', 屏幕X: 'Screen X', 屏幕Y: 'Screen Y' }
+  },
+  // pre-aiming (超限模式)
+  完成当前预瞄准: { en: 'Finish Current Pre-Aiming' },
+  查询预瞄准结束原因: {
+    en: 'Query Pre-Aiming End Reason',
+    params: { 预瞄准序号: 'Pre-Aiming Index', 结束原因: 'End Reason' }
+  },
+  获取当前生效的预瞄准序号: {
+    en: 'Get Current Active Pre-Aiming Index',
+    params: { 预瞄准序号: 'Pre-Aiming Index' }
+  },
+  获取指定预瞄准的基准对象: {
+    en: 'Get Base Object of Specified Pre-Aiming',
+    params: { 预瞄准序号: 'Pre-Aiming Index', 基准对象: 'Base Object' }
+  },
+  获取预瞄准摇杆是否处于死区: {
+    en: 'Get Whether Pre-Aiming Stick Is in Dead Zone',
+    params: { 预瞄准序号: 'Pre-Aiming Index', 是否处于死区: 'Is in Dead Zone' }
+  },
+  获取预瞄射线命中信息: {
+    en: 'Get Pre-Aiming Ray Hit Info',
+    params: { 预瞄准序号: 'Pre-Aiming Index', 命中位置: 'Hit Position', 命中实体: 'Hit Entity' }
+  },
+  获取预瞄持续时长: {
+    en: 'Get Pre-Aiming Duration',
+    params: { 预瞄准序号: 'Pre-Aiming Index', '持续时长（s）': 'Duration Seconds' }
+  },
+  获取预瞄碰撞检测结果数量: {
+    en: 'Get Pre-Aiming Collision Detection Result Count',
+    params: { 预瞄准序号: 'Pre-Aiming Index', 结果数量: 'Result Count' }
+  },
+  获取预瞄结果: {
+    en: 'Get Pre-Aiming Result',
+    params: {
+      预瞄准序号: 'Pre-Aiming Index',
+      命中位置: 'Hit Position',
+      范围内位置: 'In-Range Position',
+      最优合法目标: 'Best Valid Target',
+      合法目标列表: 'Valid Target List'
+    }
+  },
+  // cursor (超限模式)
+  获取光标是否激活: {
+    en: 'Get Whether Cursor Is Active',
+    params: { 是否激活: 'Is Active' }
+  },
+  获取光标命中结果: {
+    en: 'Get Cursor Hit Result',
+    params: { 命中实体列表: 'Hit Entity List', 命中位置列表: 'Hit Position List', 命中数量: 'Hit Count' }
+  },
+  获取光标屏幕坐标: {
+    en: 'Get Cursor Screen Coordinates',
+    params: { 屏幕X: 'Screen X', 屏幕Y: 'Screen Y' }
+  },
+  获取光标视口坐标: {
+    en: 'Get Cursor Viewport Coordinates',
+    params: { 视口X: 'Viewport X', 视口Y: 'Viewport Y' }
+  },
+  // high-precision variants of existing nodes
+  '获取当前关键行为（高精度）': {
+    en: 'Get Current Key Behavior (High Precision)',
+    params: {
+      行为ID列表: 'Behavior ID List',
+      '录入时间列表（s）': 'Record Time List Seconds',
+      '录入时间列表（ms）': 'Record Time List Milliseconds'
+    }
+  },
+  '获取当前客户端时间（高精度）': {
+    en: 'Get Current Client Time (High Precision)',
+    params: { '客户端时间（s）': 'Client Time Seconds', '客户端时间（ms）': 'Client Time Milliseconds' }
+  },
+  // control motor
+  使操控运动器转换至非接地状态: {
+    en: 'Set Control Motor to Ungrounded State',
+    params: { 目标操控运动器: 'Target Control Motor', 持续时间: 'Duration' }
+  },
+  添加临时加速度: {
+    en: 'Add Temporary Acceleration',
+    params: {
+      目标操控运动器: 'Target Control Motor',
+      加速度值: 'Acceleration',
+      朝向: 'Direction',
+      持续时间: 'Duration'
+    }
+  },
+  添加速度: {
+    en: 'Add Velocity',
+    params: {
+      目标操控运动器: 'Target Control Motor',
+      速度值: 'Velocity',
+      朝向: 'Direction',
+      持续时间: 'Duration'
+    }
+  },
+  添加临时运动参数值: {
+    en: 'Add Temporary Movement Parameter Values',
+    params: {
+      操控运动器: 'Control Motor',
+      前进加速度: 'Forward Acceleration',
+      后退加速度: 'Backward Acceleration',
+      转向速率: 'Turning Rate',
+      基础阻力减速度: 'Base Drag Deceleration',
+      阻力系数: 'Drag Coefficient',
+      最大前进速度: 'Max Forward Speed',
+      最大后退速度: 'Max Backward Speed'
+    }
+  },
+  获取操控运动器运动参数: {
+    en: 'Get Control Motor Movement Parameters',
+    params: {
+      操控运动器: 'Control Motor',
+      前进加速度: 'Forward Acceleration',
+      后退加速度: 'Backward Acceleration',
+      转向速率: 'Turning Rate',
+      基础阻力减速度: 'Base Drag Deceleration',
+      阻力系数: 'Drag Coefficient',
+      最大前进速度: 'Max Forward Speed',
+      最大后退速度: 'Max Backward Speed'
+    }
+  },
+  获取操控运动器前向: {
+    en: 'Get Control Motor Forward Direction',
+    params: { 操控运动器: 'Control Motor', 前向: 'Forward Direction' }
+  },
+  获取操控运动器当前速度: {
+    en: 'Get Control Motor Current Velocity',
+    params: { 操控运动器: 'Control Motor', 速度大小: 'Speed', 速度方向: 'Velocity Direction' }
+  },
+  获取操控运动器是否接地: {
+    en: 'Get Whether Control Motor Is Grounded',
+    params: { 目标操控运动器: 'Target Control Motor', 是否接地: 'Is Grounded' }
+  },
+  获取操控运动器目标转向方向: {
+    en: 'Get Control Motor Target Turning Direction',
+    params: { 操控运动器: 'Control Motor', 目标转向方向: 'Target Turning Direction' }
+  },
+  获取当前激活操控运动器列表: {
+    en: 'Get Current Active Control Motor List',
+    params: { 操控运动器列表: 'Control Motor List' }
+  },
+  获取当前跟随操控运动器: {
+    en: 'Get Current Following Control Motor',
+    params: { 跟随操控运动器: 'Following Control Motor' }
+  }
+}
+
+/**
  * Sample-derived display names (from vendor sample file names) that differ from
  * the official doc zh node names. Bridges metadata displayName -> doc zh name.
  * Keys may be family-qualified (`subType:displayName`) when the official docs
@@ -212,6 +382,9 @@ export const METADATA_ZH_TO_DOC_ZH: Record<string, string> = {
   查询字典中值组成的列表: '获取字典中值组成的列表',
   查询字典中键组成的列表: '获取字典中键组成的列表',
   获取复杂造物当前释放的技能: '获取复杂造物当前施放的技能',
+  // sample filenames use half-width parens; doc zh names are full-width
+  '获取当前关键行为(高精度)': '获取当前关键行为（高精度）',
+  '获取当前客户端时间(高精度)': '获取当前客户端时间（高精度）',
   // same generic node (200075); official docs name it per family
   'character_skill:恢复生命值': '角色恢复生命值',
   'creation_skill:恢复生命值': '造物恢复生命值'
@@ -486,8 +659,29 @@ export function buildDocNameAlignment(
     const zhAll = parseEntries(page, slug)
     const enAll = parseEntries(enPage, slug.replace(/_zh-cn$/, '_en-us'))
     if (zhAll.length && !enAll.length) {
-      // untranslated family (empty en shell page): nothing to align against
+      // untranslated family (empty en shell page): self-align entries that
+      // have a developer-curated en name; the rest stay unmatched
       zhOnlyPages.push({ page: slug, entries: zhAll.length })
+      for (const zh of zhAll) {
+        const seed = ZH_ONLY_SEED[zh.name]
+        if (!seed) continue
+        allMatches.push({
+          zh,
+          en: {
+            page: zh.page,
+            section: zh.section,
+            name: seed.en,
+            functions: [],
+            params: zh.params.map((p) => ({
+              io: p.io,
+              name: seed.params?.[p.name] ?? '',
+              dataType: p.dataType,
+              description: ''
+            }))
+          },
+          provenance: 'seed'
+        })
+      }
       continue
     }
     pagePairs++

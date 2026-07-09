@@ -15,6 +15,7 @@ const GRAPH_UNIT_ID_TYPE_CLIENT_GRAPH = 3
 
 const MINIMAL_NODE_TYPE_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
   character_skill: 'node_graph_begins',
+  character_control_skill: 'node_graph_begins',
   creation_skill: 'node_graph_begins',
   creation_status: 'node_graph_begins',
   creation_status_decision: 'node_graph_begins',

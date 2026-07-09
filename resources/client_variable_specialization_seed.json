@@ -115,13 +115,14 @@
       "genericId": 200016,
       "appliesTo": [
         "character_skill",
+        "character_control_skill",
         "creation_skill",
         "bool_filter",
         "int_filter"
       ],
       "cidBase": 40,
       "dictCid": 1056,
-      "provenance": "character_skill 20/20 全观测 + 字典双样本；他族交叉点全部吻合",
+      "provenance": "character_skill 20/20 全观测 + 字典双样本；他族交叉点全部吻合；character_control_skill 样本观测 cid 41（int）落在同表",
       "cidToType": {
         "40": "bool",
         "41": "int",

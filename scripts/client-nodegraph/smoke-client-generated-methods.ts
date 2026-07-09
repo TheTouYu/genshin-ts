@@ -28,6 +28,13 @@ g.characterSkill({ id: 1082130433, name: 'GenSkill' }).on('start', (_evt, f) => 
   )
 })
 
+g.characterControlSkill({ id: 1082130439, name: 'GenControlSkill' }).on('start', (_evt, f) => {
+  // zh-only doc family (pre-aiming/cursor/control-motor): query feeds exec
+  const motor = f.getCurrentFollowingControlMotor()
+  f.addVelocity(motor, 1.5, [0, 1, 0], 0.5)
+  f.setControlMotorToUngroundedState(motor, 0.2)
+})
+
 g.creationSkill({ id: 1082130434, name: 'GenCreationSkill' }).on('start', (_evt, f) => {
   f.complexCreationTeleport([0, 1, 0], [0, 90, 0])
   f.notifyServerNodeGraph('a', 'b', 'c')
@@ -63,6 +70,12 @@ const EXPECTED_NODE_TYPES: Record<ClientGraphSubType, string[]> = {
     'fixed_point_displacement',
     'force_exit_aiming_state'
   ],
+  character_control_skill: [
+    'node_graph_begins',
+    'get_current_following_control_motor',
+    'add_velocity',
+    'set_control_motor_to_ungrounded_state'
+  ],
   creation_skill: ['node_graph_begins', 'complex_creation_teleport', 'notify_server_node_graph'],
   creation_status: ['node_graph_begins', 'execute_skill'],
   creation_status_decision: ['node_graph_begins', 'equal', 'double_branch'],
@@ -73,7 +86,7 @@ const EXPECTED_NODE_TYPES: Record<ClientGraphSubType, string[]> = {
 fs.mkdirSync(OUT_DIR, { recursive: true })
 
 const docs = buildClientGraphRegistriesIRDocuments()
-assert.strictEqual(docs.length, 6, 'expected 6 client IR documents')
+assert.strictEqual(docs.length, 7, 'expected 7 client IR documents')
 
 for (const doc of docs) {
   assert.strictEqual(doc.graph.type, 'client')

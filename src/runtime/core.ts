@@ -463,6 +463,16 @@ export type GstsPublic = {
    */
   readonly fCharacterSkill: ClientFlowFunctionClass<'character_skill'>
   /**
+   * Character control skill client node graph function namespace.
+   *
+   * Only available inside `g.characterControlSkill(...).on(...)` handlers.
+   *
+   * 角色操控技能客户端节点图函数命名空间。
+   *
+   * 仅允许在 `g.characterControlSkill(...).on(...)` handler 内访问，否则 throw。
+   */
+  readonly fCharacterControlSkill: ClientFlowFunctionClass<'character_control_skill'>
+  /**
    * Creation skill client node graph function namespace.
    *
    * Only available inside `g.creationSkill(...).on(...)` handlers.
@@ -533,6 +543,7 @@ type GstsInternal = GstsPublic & {
 
 const CLIENT_F_GLOBAL_NAMES = {
   character_skill: 'fCharacterSkill',
+  character_control_skill: 'fCharacterControlSkill',
   creation_skill: 'fCreationSkill',
   creation_status: 'fCreationStatus',
   creation_status_decision: 'fCreationStatusDecision',
@@ -659,6 +670,7 @@ function ensureGsts(): GstsPublic {
   }
 
   installClientFGetter('character_skill')
+  installClientFGetter('character_control_skill')
   installClientFGetter('creation_skill')
   installClientFGetter('creation_status')
   installClientFGetter('creation_status_decision')
@@ -1462,6 +1474,18 @@ function characterSkill(
     : createClientGraphApi('character_skill', options)
 }
 
+function characterControlSkill(): ClientStartApi<'character_control_skill', 'en', 'beyond'>
+function characterControlSkill<Options extends ClientGraphOptionsInput>(
+  options: Options
+): ClientGraphApiForOptions<'character_control_skill', Options>
+function characterControlSkill(
+  options?: ClientGraphOptionsInput
+): ClientStartApi<'character_control_skill', ClientLang, ClientGraphMode> {
+  return options === undefined
+    ? createClientGraphApi('character_control_skill')
+    : createClientGraphApi('character_control_skill', options)
+}
+
 function creationSkill(): ClientStartApi<'creation_skill', 'en', 'beyond'>
 function creationSkill<Options extends ClientGraphOptionsInput>(
   options: Options
@@ -1525,6 +1549,7 @@ function intFilter(
 export const g = {
   server,
   characterSkill,
+  characterControlSkill,
   creationSkill,
   creationStatus,
   creationStatusDecision,

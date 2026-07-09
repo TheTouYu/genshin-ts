@@ -81,6 +81,7 @@ export type CodegenResult = {
 
 const SUB_TYPES = [
   'character_skill',
+  'character_control_skill',
   'creation_skill',
   'creation_status',
   'creation_status_decision',
@@ -90,6 +91,7 @@ const SUB_TYPES = [
 
 const CLASS_NAME_BY_SUB_TYPE: Record<string, string> = {
   character_skill: 'ClientCharacterSkillExecutionFlowFunctions',
+  character_control_skill: 'ClientCharacterControlSkillExecutionFlowFunctions',
   creation_skill: 'ClientCreationSkillExecutionFlowFunctions',
   creation_status: 'ClientCreationStatusExecutionFlowFunctions',
   creation_status_decision: 'ClientCreationStatusDecisionExecutionFlowFunctions',
@@ -1551,6 +1553,7 @@ function customVarFamilySubTypes(nodeType: string): string[] {
   if (nodeType !== 'get_custom_variable') return []
   return [
     'character_skill',
+    'character_control_skill',
     'creation_skill',
     'bool_filter',
     'int_filter',
@@ -1907,6 +1910,7 @@ ${bodyText}
 
 export type ClientExecutionFlowFunctionsBySubType = {
   character_skill: ClientCharacterSkillExecutionFlowFunctions
+  character_control_skill: ClientCharacterControlSkillExecutionFlowFunctions
   creation_skill: ClientCreationSkillExecutionFlowFunctions
   creation_status: ClientCreationStatusExecutionFlowFunctions
   creation_status_decision: ClientCreationStatusDecisionExecutionFlowFunctions

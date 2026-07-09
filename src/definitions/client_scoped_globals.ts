@@ -44,6 +44,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'self',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -57,6 +58,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'get_self_entity',
         methodName: 'getSelfEntity',
         sampleFile: '角色技能节点图\\字典_Entity到Integer_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_self_entity',
+        methodName: 'getSelfEntity',
+        sampleFile: '角色操控技能节点图\\获取实体的类型_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -138,6 +145,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Abs',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -151,6 +159,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'absolute_value_operation',
         methodName: 'absoluteValueOperation',
         sampleFile: '角色技能节点图\\绝对值运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'absolute_value_operation',
+        methodName: 'absoluteValueOperation',
+        sampleFile: '角色操控技能节点图\\乘法运算_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -238,6 +252,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Sin',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -251,6 +266,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'sine_function',
         methodName: 'sineFunction',
         sampleFile: '角色技能节点图\\正弦函数_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'sine_function',
+        methodName: 'sineFunction',
+        sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -290,6 +311,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Cos',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -303,6 +325,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'cosine_function',
         methodName: 'cosineFunction',
         sampleFile: '角色技能节点图\\余弦函数_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'cosine_function',
+        methodName: 'cosineFunction',
+        sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -342,6 +370,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Tan',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -355,6 +384,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'tangent_function',
         methodName: 'tangentFunction',
         sampleFile: '角色技能节点图\\正切函数_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'tangent_function',
+        methodName: 'tangentFunction',
+        sampleFile: '角色操控技能节点图\\余弦函数_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -394,6 +429,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Range',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -407,6 +443,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
         sampleFile: '角色技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '角色操控技能节点图\\是否大于_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -446,6 +488,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'value',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -459,6 +502,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
         sampleFile: '角色技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_random_number',
+        methodName: 'getRandomNumber',
+        sampleFile: '角色操控技能节点图\\是否大于_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -498,6 +547,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'zero',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -511,6 +561,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -551,6 +607,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'one',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -564,6 +621,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -604,6 +667,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'up',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -617,6 +681,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -657,6 +727,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'down',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -670,6 +741,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -710,6 +787,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'left',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -723,6 +801,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -763,6 +847,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'right',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -776,6 +861,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -816,6 +907,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'forward',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -829,6 +921,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -869,6 +967,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'back',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -882,6 +981,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'create3d_vector',
+        methodName: 'create3dVector',
+        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -922,6 +1027,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Dot',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -935,6 +1041,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_dot_product',
         methodName: '_3dVectorDotProduct',
         sampleFile: '角色技能节点图\\三维向量内积_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_dot_product',
+        methodName: '_3dVectorDotProduct',
+        sampleFile: '角色操控技能节点图\\三维向量内积_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -974,6 +1086,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Cross',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -987,6 +1100,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_cross_product',
         methodName: '_3dVectorCrossProduct',
         sampleFile: '角色技能节点图\\三维向量外积_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_cross_product',
+        methodName: '_3dVectorCrossProduct',
+        sampleFile: '角色操控技能节点图\\三维向量减法_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1034,6 +1153,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Angle',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1047,6 +1167,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_angle',
         methodName: '_3dVectorAngle',
         sampleFile: '角色技能节点图\\三维向量夹角_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_angle',
+        methodName: '_3dVectorAngle',
+        sampleFile: '角色操控技能节点图\\三维向量夹角_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1086,6 +1212,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Normalize',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1099,6 +1226,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
         sampleFile: '角色技能节点图\\三维向量归一化_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '角色操控技能节点图\\三维向量归一化_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1138,6 +1271,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Magnitude',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1151,6 +1285,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_modulo_operation',
         methodName: '_3dVectorModuloOperation',
         sampleFile: '角色技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '角色操控技能节点图\\三维向量模运算_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1190,6 +1330,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Add',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1203,6 +1344,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_addition',
+        methodName: '_3dVectorAddition',
+        sampleFile: '角色操控技能节点图\\三维向量加法_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1242,6 +1389,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Sub',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1255,6 +1403,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
         sampleFile: '角色技能节点图\\三维向量减法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '角色操控技能节点图\\三维向量减法_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1294,6 +1448,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Scale',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1307,6 +1462,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
         sampleFile: '角色技能节点图\\三维向量缩放_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1346,6 +1507,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Rotation',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1359,6 +1521,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_rotation',
         methodName: '_3dVectorRotation',
         sampleFile: '角色技能节点图\\三维向量旋转_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_rotation',
+        methodName: '_3dVectorRotation',
+        sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1398,6 +1566,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Lerp',
     subTypes: [
       'character_skill',
+      'character_control_skill',
       'creation_skill',
       'creation_status',
       'creation_status_decision',
@@ -1423,6 +1592,24 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
         sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '角色操控技能节点图\\三维向量减法_填值.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_addition',
+        methodName: '_3dVectorAddition',
+        sampleFile: '角色操控技能节点图\\三维向量加法_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1528,7 +1715,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'GameObject',
     member: 'Find',
-    subTypes: ['character_skill', 'creation_skill', 'bool_filter', 'int_filter'],
+    subTypes: [
+      'character_skill',
+      'character_control_skill',
+      'creation_skill',
+      'bool_filter',
+      'int_filter'
+    ],
     modes: ['beyond'],
     backedBy: [
       {
@@ -1536,6 +1729,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'query_entity_by_guid',
         methodName: 'queryEntityByGuid',
         sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'query_entity_by_guid',
+        methodName: 'queryEntityByGuid',
+        sampleFile: '角色操控技能节点图\\以GUID查询实体_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1561,7 +1760,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'GameObject',
     member: 'FindWithTag',
-    subTypes: ['character_skill', 'creation_skill'],
+    subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
     modes: ['beyond'],
     backedBy: [
       {
@@ -1575,6 +1774,18 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'get_corresponding_value_from_list',
         methodName: 'getCorrespondingValueFromList',
         sampleFile: '角色技能节点图\\列表_Entity_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_entity_list_by_unit_tag',
+        methodName: 'getEntityListByUnitTag',
+        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_填值.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_corresponding_value_from_list',
+        methodName: 'getCorrespondingValueFromList',
+        sampleFile: '角色操控技能节点图\\指定挂接点打攻击盒_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1594,7 +1805,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'GameObject',
     member: 'FindGameObjectsWithTag',
-    subTypes: ['character_skill', 'creation_skill'],
+    subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
     modes: ['beyond'],
     backedBy: [
       {
@@ -1602,6 +1813,12 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         nodeType: 'get_entity_list_by_unit_tag',
         methodName: 'getEntityListByUnitTag',
         sampleFile: '角色技能节点图\\获取单位标签的实体列表_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_entity_list_by_unit_tag',
+        methodName: 'getEntityListByUnitTag',
+        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_填值.gia'
       },
       {
         subType: 'creation_skill',
@@ -1663,6 +1880,32 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   Readonly<Record<string, readonly string[]>>
 > = {
   character_skill: {
+    self: [],
+    Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Random: ['Range', 'value'],
+    Vector3: [
+      'zero',
+      'one',
+      'up',
+      'down',
+      'left',
+      'right',
+      'forward',
+      'back',
+      'Dot',
+      'Cross',
+      'Angle',
+      'Normalize',
+      'Magnitude',
+      'Add',
+      'Sub',
+      'Scale',
+      'Rotation',
+      'Lerp'
+    ],
+    GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
+  },
+  character_control_skill: {
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],

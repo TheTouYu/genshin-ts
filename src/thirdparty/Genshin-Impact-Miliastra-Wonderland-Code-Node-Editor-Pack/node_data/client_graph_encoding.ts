@@ -20,6 +20,10 @@ export const CLIENT_GRAPH_ENCODING_BY_SUB_TYPE: Record<ClientGraphSubType, Clien
     graphType: 20002,
     graphWhich: 11
   },
+  character_control_skill: {
+    graphType: 20010,
+    graphWhich: 64
+  },
   creation_skill: {
     graphType: 20008,
     graphWhich: 52

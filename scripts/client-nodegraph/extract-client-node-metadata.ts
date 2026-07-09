@@ -12,6 +12,7 @@ import { buildDocNameAlignment, lookupDocNode, type DocAlignment } from './doc_n
 
 type ClientGraphSubType =
   | 'character_skill'
+  | 'character_control_skill'
   | 'creation_skill'
   | 'creation_status'
   | 'creation_status_decision'
@@ -30,6 +31,7 @@ const ROUND3_EVIDENCE_PATH = 'resources/client_structure_evidence.round3.json'
 
 const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
   角色技能节点图: 'character_skill',
+  角色操控技能节点图: 'character_control_skill',
   造物技能节点图: 'creation_skill',
   造物状态节点图: 'creation_status',
   造物状态决策节点图: 'creation_status_decision',
@@ -46,6 +48,7 @@ const DYNAMIC_GENERIC_ID_MIN = 0x60000000
 // families, the result end node for filter families.
 const UNIVERSAL_NODE_BY_SUB_TYPE: Record<ClientGraphSubType, { genericId: number; nodeType: string }> = {
   character_skill: { genericId: 200042, nodeType: 'node_graph_begins' },
+  character_control_skill: { genericId: 200042, nodeType: 'node_graph_begins' },
   creation_skill: { genericId: 200042, nodeType: 'node_graph_begins' },
   creation_status: { genericId: 200126, nodeType: 'node_graph_begins' },
   creation_status_decision: { genericId: 200126, nodeType: 'node_graph_begins' },

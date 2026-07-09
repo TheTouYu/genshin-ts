@@ -16494,6 +16494,7 @@ export type ServerExecutionFlowFunctionsByMode<M extends ServerGraphMode> = {
 // here to keep the definitions entrypoint stable.
 export {
   ClientBoolFilterExecutionFlowFunctions,
+  ClientCharacterControlSkillExecutionFlowFunctions,
   ClientCharacterSkillExecutionFlowFunctions,
   ClientCreationSkillExecutionFlowFunctions,
   ClientCreationStatusDecisionExecutionFlowFunctions,

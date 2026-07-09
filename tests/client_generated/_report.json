@@ -1,8 +1,9 @@
 {
   "sampleRoot": "D:\\_S2\\mypy_test\\client_nodes",
-  "sampleCount": 1295,
+  "sampleCount": 1764,
   "familyCounts": {
     "bool_filter": 202,
+    "character_control_skill": 469,
     "character_skill": 269,
     "creation_skill": 246,
     "creation_status": 202,
@@ -32,6 +33,13 @@
       "count": 269
     },
     {
+      "subType": "character_control_skill",
+      "unitType": 3,
+      "which": 64,
+      "nodeGraphType": 20010,
+      "count": 469
+    },
+    {
       "subType": "creation_skill",
       "unitType": 3,
       "which": 52,
@@ -54,22 +62,23 @@
     }
   ],
   "metadataCounts": {
-    "total": 593,
+    "total": 771,
     "bySubType": {
       "bool_filter": 76,
+      "character_control_skill": 178,
       "character_skill": 130,
       "creation_skill": 124,
       "creation_status": 100,
       "creation_status_decision": 87,
       "int_filter": 76
     },
-    "withReflectMap": 154,
+    "withReflectMap": 184,
     "missingEnglishName": 0,
     "nodeTypeSources": {
-      "server_alias": 348,
-      "official_doc": 239
+      "server_alias": 424,
+      "official_doc": 340
     },
-    "serverAliasDivergenceCount": 18
+    "serverAliasDivergenceCount": 23
   },
   "unknownFamily": [],
   "decodeFailures": [],
@@ -150,7 +159,7 @@
   },
   "inlineVarTypeHint": {
     "status": "observed unsupported detail; not a main-chain blocker",
-    "hitCount": 18,
+    "hitCount": 33,
     "files": [
       {
         "file": "角色技能节点图\\嘲讽目标_连线.gia",
@@ -175,6 +184,62 @@
       {
         "file": "角色技能节点图\\玩家转向_连线.gia",
         "count": 2
+      },
+      {
+        "file": "角色操控技能节点图\\定点位移_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_填值.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\施放指定技能实例_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\添加单位状态_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\添加速度_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\特定位置打球形攻击盒_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向指定朝向_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\角色闪现_连线.gia",
+        "count": 2
+      },
+      {
+        "file": "角色操控技能节点图\\设置技能变量_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\遍历实体列表_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\镜头朝向检测数据_连线.gia",
+        "count": 1
       },
       {
         "file": "造物技能节点图\\定点发射投射物_连线.gia",
@@ -316,6 +381,201 @@
         "byteOffset": 608,
         "payloadLength": 9,
         "nodeIndex": 258,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点位移_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 603,
+        "payloadLength": 9,
+        "nodeIndex": 109,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_填值.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[0].value.#3",
+        "byteOffset": 210,
+        "payloadLength": 9,
+        "nodeIndex": 101,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[1].value.#3",
+        "byteOffset": 232,
+        "payloadLength": 9,
+        "nodeIndex": 101,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[0].value.#3",
+        "byteOffset": 208,
+        "payloadLength": 9,
+        "nodeIndex": 101,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\施放指定技能实例_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 441,
+        "payloadLength": 9,
+        "nodeIndex": 159,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\添加单位状态_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[5].pins[0].value.#3",
+        "byteOffset": 1080,
+        "payloadLength": 9,
+        "nodeIndex": 209,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\添加速度_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[7].pins[0].value.#3",
+        "byteOffset": 1311,
+        "payloadLength": 9,
+        "nodeIndex": 374,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\特定位置打球形攻击盒_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[3].pins[0].value.#3",
+        "byteOffset": 2472,
+        "payloadLength": 9,
+        "nodeIndex": 187,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[3].pins[0].value.#3",
+        "byteOffset": 467,
+        "payloadLength": 9,
+        "nodeIndex": 219,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向指定朝向_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 409,
+        "payloadLength": 9,
+        "nodeIndex": 221,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\角色闪现_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 469,
+        "payloadLength": 9,
+        "nodeIndex": 124,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\角色闪现_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[5].pins[0].value.#3",
+        "byteOffset": 1259,
+        "payloadLength": 9,
+        "nodeIndex": 127,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\设置技能变量_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 429,
+        "payloadLength": 9,
+        "nodeIndex": 146,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\遍历实体列表_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[6].pins[0].value.#3",
+        "byteOffset": 1622,
+        "payloadLength": 9,
+        "nodeIndex": 90,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\镜头朝向检测数据_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 579,
+        "payloadLength": 9,
+        "nodeIndex": 129,
         "genericId": 200052,
         "concreteId": 2000,
         "pinKind": 3,

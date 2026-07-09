@@ -9,6 +9,7 @@ import { buildDocNameAlignment } from './doc_name_alignment.js'
 
 type ClientGraphSubType =
   | 'character_skill'
+  | 'character_control_skill'
   | 'creation_skill'
   | 'creation_status'
   | 'creation_status_decision'
@@ -25,6 +26,7 @@ type ClientGraphCapability = Record<
 
 const SUB_TYPES: readonly ClientGraphSubType[] = [
   'character_skill',
+  'character_control_skill',
   'creation_skill',
   'creation_status',
   'creation_status_decision',
@@ -39,6 +41,7 @@ const GRAPH_ENCODING_BY_SUB_TYPE: Record<
   bool_filter: { graphType: 20001, graphWhich: 10 },
   int_filter: { graphType: 20006, graphWhich: 47 },
   character_skill: { graphType: 20002, graphWhich: 11 },
+  character_control_skill: { graphType: 20010, graphWhich: 64 },
   creation_skill: { graphType: 20008, graphWhich: 52 },
   creation_status_decision: { graphType: 20007, graphWhich: 51 },
   creation_status: { graphType: 20009, graphWhich: 53 }
@@ -99,6 +102,7 @@ export const CLIENT_GRAPH_SUB_TYPES = ${jsonConst(SUB_TYPES)} as const
 
 export const CLIENT_GRAPH_METHOD_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
   character_skill: 'characterSkill',
+  character_control_skill: 'characterControlSkill',
   creation_skill: 'creationSkill',
   creation_status: 'creationStatus',
   creation_status_decision: 'creationStatusDecision',
@@ -114,6 +118,11 @@ export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = ${jsonConst(capability)} as c
 
 export const CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE = {
   character_skill: {
+    event: 'start',
+    startNodeType: 'node_graph_begins',
+    handler: { params: [], shape: 'start', returnType: 'void' }
+  },
+  character_control_skill: {
     event: 'start',
     startNodeType: 'node_graph_begins',
     handler: { params: [], shape: 'start', returnType: 'void' }

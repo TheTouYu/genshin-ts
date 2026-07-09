@@ -8,6 +8,7 @@ import type { ClientGraphMode, ClientGraphSubType } from './IR.js'
 
 const CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
   character_skill: 'fCharacterSkill',
+  character_control_skill: 'fCharacterControlSkill',
   creation_skill: 'fCreationSkill',
   creation_status: 'fCreationStatus',
   creation_status_decision: 'fCreationStatusDecision',
