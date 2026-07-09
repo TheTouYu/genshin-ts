@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 待验证
 > 来源：当前代码实现 + 第六轮自动验证与用户游戏内反馈 + 架构审计
-> 最近校验：2026-07-08
+> 最近校验：2026-07-09
 > 适用范围：gsts 当前 Stage 3 复合节点实现；真实编辑器输出仍需以 composite-ir 真实 GIA 验证文档为准
 
 本文档记录第六轮 `all-types` 复合验证后形成的架构判断：复合节点的目标不是为每个暴露问题逐个补丁，而是让复合 impl 图尽可能复用普通系统节点的 Stage 3 编码能力，并把不能复用的部分显式列入差距表、测试矩阵和重构路线。
@@ -203,16 +203,16 @@ composite impl 直接构造 protobuf-like object：
 
 ## 6. 分阶段路线与当前进度
 
-### 当前进度快照（2026-07-08）
+### 当前进度快照（2026-07-09）
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
 | Phase 0：建模与文档入口 | 已完成 | 本文档已成为整体入口，`documentation-map.md`、`gia-encoding.md`、`testing.md`、handover README 已指向本审计。 |
-| Phase 1：统一类型映射 | 进行中 | 已新增 `src/compiler/ir_to_gia_transform/vartype_map.ts`，并让 `composite.ts`、`pins.ts`、`node_id.ts`、`index.ts` 开始复用共享映射。 |
-| Phase 1 验证 | 部分完成 | `npm run build` 通过；`list-type-ops-smoke.gia` 可生成；`assert-list-type-ops-smoke.ts` 已通过 100 个 pin 检查；collections literal/wire 可生成 `.gia`。 |
-| Phase 1 剩余 | 待做 | 新增 L0 `assert-vartype-map.ts`；去掉 `composite.ts` 中仍保留的 wrapper 函数；确认 `_report.json` 是否应随生成结果提交。 |
+| Phase 1：统一类型映射 | 已完成核心收口 | 已新增 `src/compiler/ir_to_gia_transform/vartype_map.ts`，并让 `composite.ts`、`pins.ts`、`node_id.ts`、`index.ts` 复用共享映射；`composite.ts` 中的类型映射 wrapper 已删除。 |
+| Phase 1 验证 | 已自动验证 | `npm run build`、L0 `assert-vartype-map.ts`、`list-type-ops-smoke.gia`、`assert-list-type-ops-smoke.ts` 已通过；collections literal/wire 仍可作为大集成生成验证。 |
+| L1 对照测试 | 已建立诊断入口 / 部分通过 | 新增 `system-node-reuse-smoke.ts` 与 `compare-system-node-reuse.ts`，覆盖 `assembly_list/get_list_length`、`concatenate_list`、`addition/equal`；已修 `get_list_length` OutParam、list pin `ConcreteBase(ArrayBase)` 包裹、`equal` bool 输出和 int `addition/equal` concrete index。当前诊断收敛到 `assembly_list` 的 vendor 完整 pin 形状差异。 |
 | Phase 2：统一节点 ID 推断 | 未开始 | 下一阶段重点，目标是 composite impl 复用普通路径 `resolveGiaNodeId` 或抽出的共享解析逻辑。 |
-| Phase 3：扩大 vendor 编码复用 | 未开始 | 在 L1 对照测试建立后再推进，避免盲目替换手写 pin 编码。 |
+| Phase 3：扩大 vendor 编码复用 | 待启动 | L1 已证明仅统一类型映射不够，后续需要让普通系统节点 pin/value 编码尽可能复用 vendor/主图路径。 |
 
 ### Phase 0：暂停止血，把问题先建模
 
@@ -247,7 +247,7 @@ listElementType(type)
 
 已接入位置：
 
-- `composite.ts`：`argVarType`、`argVarBaseClass`、`typeIdFromValueType`、`typeClassFromValueType`、`get_node_graph_variable` suffix 推断已委托到共享模块。
+- `composite.ts`：CompositeDef interface、impl pin 类型、`get_node_graph_variable` suffix 推断已直接使用共享模块；旧的 `argVarType`、`argVarBaseClass`、`typeIdFromValueType`、`typeClassFromValueType` wrapper 已删除。
 - `pins.ts`：删除本地 `toVendorBaseTag`，改用 `irTypeToVendorBaseTag`。
 - `node_id.ts`：`suffixFromValueType` 改用 `irTypeToNodeSuffix`。
 - `index.ts`：`baseNodeType`、`valueTypeToNodeType`、`compositeTypeToBaseTag` 改用共享模块。
@@ -265,21 +265,23 @@ listElementType(type)
 
 ```bash
 npm run build
+npx tsx tests/composite/v2/all-types/assert-vartype-map.ts
 node bin/gsts.mjs tests/composite/v2/all-types/list-type-ops-smoke.ts || true
 npx tsx tests/composite/v2/all-types/assert-list-type-ops-smoke.ts \
   dist/tests/composite/v2/all-types/list-type-ops-smoke.gia
-npx tsx scripts/generate-composite-node-gia-tests.ts collections
-node bin/gsts.mjs tests/composite/v2/all-types/generated/collections.literal.ts || true
-node bin/gsts.mjs tests/composite/v2/all-types/generated/collections.wire.ts || true
+node bin/gsts.mjs tests/composite/v2/all-types/system-node-reuse-smoke.ts || true
+npx tsx tests/composite/v2/all-types/compare-system-node-reuse.ts \
+  dist/tests/composite/v2/all-types/system-node-reuse-smoke.gia
 ```
 
-其中 `node bin/gsts.mjs ... || true` 是因为当前环境缺少 `Beyond_Local_Save_Level`，`.gia` 已生成但最后复制/注入阶段会报路径不存在。
+其中 `node bin/gsts.mjs ... || true` 是因为当前环境的游戏 LocalLow/保存目录检测会在 `.gia` 生成后报路径问题，不影响本轮自动编码验证。
 
-剩余目标：
+已收口目标：
 
 - 新增 L0 `assert-vartype-map.ts`，直接断言所有 scalar/list 映射。
 - 去掉 `composite.ts` 中仍保留的兼容 wrapper，让调用点直接使用共享函数。
 - 所有 scalar/list 类型有一套权威测试。
+- L1 诊断入口已能显示主图与 composite impl 的 pin/value 编码差距；已根据诊断修复 `get_list_length` OutParam 类型、list pin `ConcreteBase(ArrayBase)` 包裹、`equal` bool 输出和 int `addition/equal` concrete index；严格同构尚未通过，剩余差异集中在 `assembly_list` 的 vendor 完整 pin 形状。
 
 ### Phase 2：统一节点 ID 推断
 
@@ -430,8 +432,8 @@ decode 后比较：
 
 ## 10. 下一步建议
 
-1. 收口 Phase 1：新增 `tests/composite/v2/all-types/assert-vartype-map.ts`，把类型映射统一变成 L0 自动断言。
-2. 清理 `composite.ts` 中的类型映射 wrapper，让调用点直接使用 `vartype_map.ts`。
-3. 建立 L1 普通主图 vs composite impl 对照测试，先覆盖 `assemblyList/getListLength`、`concatenateList`、`addition/equal`。
-4. 进入 Phase 2：抽象或复用 `resolveGiaNodeId`，让 composite impl 节点 ID 推断不再依赖简化版 `resolveImplNodeId`。
+1. 继续 L1：把 `compare-system-node-reuse.ts --strict` 作为后续验收门槛，优先消除 `assembly_list` 与主图/vendor 的完整 pin 形状差异。
+2. 扩大 L1 样本：在当前 `assembly_list/get_list_length`、`concatenate_list`、`addition/equal` 基础上增加 dict、variable、enum、signal 等高风险节点。
+3. 进入 Phase 2：抽象或复用 `resolveGiaNodeId`，让 composite impl 节点 ID 推断不再依赖简化版 `resolveImplNodeId`。
+4. 进入 Phase 3：把普通系统节点 pin/value 编码迁向 vendor/主图路径，减少 `buildImplNodePins` 中的手写 VarBase / bConcreteValue 规则。
 5. 持续更新本文档的进度快照和复用率/差距表，不把架构状态只散落进 handover。

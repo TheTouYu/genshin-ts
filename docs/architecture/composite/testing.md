@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-06
+> 最近校验：2026-07-09
 > 适用范围：gsts 当前复合节点测试脚本和验证流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
@@ -184,8 +184,8 @@ Part 1 的 `.gia` 参考文件需要手动维护。新增测试用例时：
 
 | 层级 | 验证目标 | 示例 |
 |---|---|---|
-| L0 类型映射 | scalar/list 类型到 VarType、VarBase_Class、vendor base tag、node suffix 的统一映射 | `bool/int/.../faction_list` |
-| L1 普通主图 vs composite impl | 同一 `f.*` 调用在普通主图和 impl graph 中的 node ID、pin type、literal、connect 是否一致 | 自动生成对照 `.gia` 后 decode 比较 |
+| L0 类型映射 | scalar/list 类型到 VarType、VarBase_Class、vendor base tag、node suffix 的统一映射 | `tests/composite/v2/all-types/assert-vartype-map.ts` |
+| L1 普通主图 vs composite impl | 同一 `f.*` 调用在普通主图和 impl graph 中的 node ID、pin type、literal、connect 是否一致 | `system-node-reuse-smoke.ts` + `compare-system-node-reuse.ts`（当前为诊断模式，`--strict` 表示严格同构验收） |
 | L2 list 全类型 × 操作 | 所有 list element type 覆盖 list 生产/消费/修改/遍历 | `tests/composite/v2/all-types/list-type-ops-smoke.ts` |
 | L3 dict key/value 矩阵 | typed dict node ID、key/value pin、keys/values output list 类型 | 后续新增 dict smoke/assert 脚本 |
 | L4 CompositeDef interface | `CompositeDef.inputs[]` / `outputs[]` 的 type1/type2 是否与 impl 和调用边界一致 | list 类型不能退化成 scalar VarType |

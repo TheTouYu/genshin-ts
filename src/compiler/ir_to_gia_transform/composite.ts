@@ -21,7 +21,7 @@ import {
 import { Graph, Node } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
-import { irTypeToNodeSuffix, irTypeToVarBaseClass, irTypeToVarType } from './vartype_map.js'
+import { irTypeToNodeSuffix, irTypeToVarBaseClass, irTypeToVarType, isListType } from './vartype_map.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -117,9 +117,9 @@ export function buildCompositeAccessories(
       visible: param.visible,
       index: { kind: NodePin_Index_Kind.InParam, index: param.index },
       type: {
-        class: typeClassFromValueType(param.type as any),
-        type1: typeIdFromValueType(param.type as any),
-        type2: typeIdFromValueType(param.type as any),
+        class: irTypeToVarBaseClass(param.type as any),
+        type1: irTypeToVarType(param.type as any),
+        type2: irTypeToVarType(param.type as any),
         valueId: null
       },
       pinIndex: param.pinIndex
@@ -129,9 +129,9 @@ export function buildCompositeAccessories(
       visible: param.visible,
       index: { kind: NodePin_Index_Kind.OutParam, index: param.index },
       type: {
-        class: typeClassFromValueType(param.type as any),
-        type1: typeIdFromValueType(param.type as any),
-        type2: typeIdFromValueType(param.type as any),
+        class: irTypeToVarBaseClass(param.type as any),
+        type1: irTypeToVarType(param.type as any),
+        type2: irTypeToVarType(param.type as any),
         valueId: null
       },
       pinIndex: param.pinIndex
@@ -462,16 +462,6 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
   return 0
 }
 
-/**
- * 将 arg 的 IR literal type 映射为 VarBase_Class
- */
-function argVarBaseClass(argType: string): number {
-  return irTypeToVarBaseClass(argType)
-}
-
-function argVarType(argType: string): number {
-  return irTypeToVarType(argType)
-}
 
 /**
  * 为 impl 节点构建 pins。由捕获数据驱动：args → InParam、outputValues → OutParam、edges → OutFlow。
@@ -648,12 +638,14 @@ function buildImplNodePins(
   const outParams = implOutParamMap.get(node.id)
   if (outParams) {
     for (const op of outParams) {
-      const outVarType = argVarType(op.type)
-      const outVarClass = argVarBaseClass(op.type)
+      const outVarType = irTypeToVarType(op.type)
+      const outVarClass = irTypeToVarBaseClass(op.type)
       pins.push({
         i1: { kind: NodePin_Index_Kind.OutParam, index: op.pinIndex },
         i2: { kind: NodePin_Index_Kind.OutParam, index: op.pinIndex },
-        value: wrapConcreteValue(concreteOutputIndex(op.type), outVarClass, outVarType, '') as any,
+        value: isListType(op.type)
+          ? makeListVarBaseValue(outVarType, false) as any
+          : wrapConcreteValue(concreteOutputIndex(op.type), outVarClass, outVarType, '') as any,
         type: outVarType
       })
     }
@@ -663,12 +655,26 @@ function buildImplNodePins(
   if (!hasExplicitOutParam && pins.length > 0 && isDataProducerNode(node.type)) {
     let outType = pins[0].type
     let outClass = pins[0].value?.bConcreteValue?.value?.class ?? pins[0].value?.class ?? 0
+    // assembly_list：OutParam 是列表类型，不是 count pin 的 int 类型。
+    if (node.type === 'assembly_list') {
+      const firstElementArg = (node.args ?? []).find((arg: any) => arg && arg.type !== 'conn')
+      const elementType = firstElementArg?.type as string | undefined
+      if (elementType) {
+        outType = irTypeToVarType(`${elementType}_list`)
+        outClass = VarBase_Class.ArrayBase
+      }
+    }
     // data_type_conversion 节点：InParam 用了正确类型，但 OutParam 需要独立设置
     // OutParam 类型 = 目标类型（str=6），indexOfConcrete 固定为 2（M17[2]=6=String）
     if (node.type.startsWith('data_type_conversion_')) {
       const outKey = node.type.slice('data_type_conversion_'.length).trim()
-      outType = argVarType(outKey)
-      outClass = argVarBaseClass(outKey)
+      outType = irTypeToVarType(outKey)
+      outClass = irTypeToVarBaseClass(outKey)
+    }
+    // get_list_length：OutParam 固定为 int，不能继承输入的 *_list 类型。
+    if (node.type === 'get_list_length') {
+      outType = VarType.Integer
+      outClass = VarBase_Class.IntBase
     }
     // list_iteration_loop：OutParam 是元素类型，从 arg[0] 的 conn type 中推导
     if (node.type === 'list_iteration_loop') {
@@ -677,8 +683,8 @@ function buildImplNodePins(
         const connType = (firstArg.value as any)?.type as string | undefined
         if (connType && connType.endsWith('_list')) {
           const elementType = connType.slice(0, -5)
-          outType = argVarType(elementType)
-          outClass = argVarBaseClass(elementType)
+          outType = irTypeToVarType(elementType)
+          outClass = irTypeToVarBaseClass(elementType)
         }
       }
     }
@@ -689,8 +695,8 @@ function buildImplNodePins(
         const varName = nameArg.value
         const implVar = implVariables?.find(v => v.name === varName)
         if (implVar) {
-          outType = argVarType(implVar.type)
-          outClass = argVarBaseClass(implVar.type)
+          outType = irTypeToVarType(implVar.type)
+          outClass = irTypeToVarBaseClass(implVar.type)
         }
       }
     }
@@ -698,16 +704,22 @@ function buildImplNodePins(
       outType = VarType.Float
       outClass = VarBase_Class.FloatBase
     }
+    if (booleanOutputNodeTypes.has(node.type)) {
+      outType = VarType.Boolean
+      outClass = VarBase_Class.EnumBase
+    }
     const innerValue = makeVarBaseValue(outClass, outType, false)
-    let outValue: Record<string, unknown> = innerValue
-    if (needsConcreteWrapping(node.type)) {
+    let outValue: Record<string, unknown> = isListVarType(outType)
+      ? makeListVarBaseValue(outType, false)
+      : innerValue
+    if (needsConcreteWrapping(node.type) && !booleanOutputNodeTypes.has(node.type)) {
       const outTypeName = node.type.startsWith('data_type_conversion_')
         ? node.type.slice('data_type_conversion_'.length).trim()
         : varTypeNameFromVarType(outType)
       outValue = {
         class: 10000,
         alreadySetVal: true,
-        bConcreteValue: { indexOfConcrete: concreteOutputIndex(outTypeName), value: innerValue }
+        bConcreteValue: { indexOfConcrete: concreteOutputIndexForNode(node.type, outTypeName), value: innerValue }
       }
     }
     pins.push({
@@ -760,19 +772,23 @@ const DTC_IN_PARAM_VARTYPE_SEQUENCE = [
  * @returns { indexOfConcrete, varType, varClass } 或 null（非 DTC 节点）
  */
 function getDtcInParamInfo(inType: string): { indexOfConcrete: number; varType: number; varClass: number } | null {
-  const varType = argVarType(inType)
+  const varType = irTypeToVarType(inType)
   if (varType === 0) return null
   const idx = DTC_IN_PARAM_VARTYPE_SEQUENCE.indexOf(varType)
   if (idx === -1) return null
   return {
     indexOfConcrete: idx,
     varType,
-    varClass: argVarBaseClass(inType)
+    varClass: irTypeToVarBaseClass(inType)
   }
 }
 
 /** 构建 VarBase 值结构（bInt/bFloat/bString 等） */
 function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): Record<string, unknown> {
+  if (isListVarType(varType)) {
+    return makeListVarBaseValue(varType, setVal)
+  }
+
   const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
   if (varClass === VarBase_Class.IntBase) {
     return { class: varClass, alreadySetVal: setVal, itemType, bInt: { val: 0 } }
@@ -793,6 +809,38 @@ function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): R
     return { class: varClass, alreadySetVal: setVal, itemType, bId: { val: 0 } }
   }
   return { class: varClass, alreadySetVal: setVal, itemType }
+}
+
+function isListVarType(varType: number): boolean {
+  return [
+    VarType.GUIDList,
+    VarType.IntegerList,
+    VarType.BooleanList,
+    VarType.FloatList,
+    VarType.StringList,
+    VarType.EntityList,
+    VarType.VectorList,
+    VarType.ConfigurationList,
+    VarType.PrefabList,
+    VarType.FactionList
+  ].includes(varType)
+}
+
+function makeListVarBaseValue(varType: number, _setVal: boolean): Record<string, unknown> {
+  const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
+  return {
+    class: VarBase_Class.ConcreteBase,
+    alreadySetVal: true,
+    bConcreteValue: {
+      indexOfConcrete: 0,
+      value: {
+        class: VarBase_Class.ArrayBase,
+        alreadySetVal: true,
+        itemType,
+        bArray: { entries: [] }
+      }
+    }
+  }
 }
 
 /** bConcreteValue 包裹（data_type_conversion 等节点需要） */
@@ -848,6 +896,12 @@ const vec3ToFloatNodeTypes = new Set([
   '_3d_vector_modulo_operation', '_3d_vector_dot_product', '_3d_vector_angle',
 ])
 
+const booleanOutputNodeTypes = new Set([
+  'equal', 'greater_than', 'less_than', 'greater_than_or_equal_to', 'less_than_or_equal_to',
+  'logical_and_operation', 'logical_or_operation', 'logical_not_operation', 'logical_xor_operation',
+  'enumerations_equal',
+])
+
 /** 判断节点类型是否需要 bConcreteValue 包裹 */
 function needsConcreteWrapping(nodeType: string): boolean {
   return nodeType.startsWith('data_type_conversion_') || concreteWrappedNodeTypes.has(nodeType)
@@ -886,8 +940,8 @@ function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
  * 为连线输入创建占位 pin（基于类型字符串如 'int'/'float'，而非 nodeType）
  */
 function buildConnPin(pinIndex: number, typeName: string): NodePin {
-  const varType = argVarType(typeName)
-  const varClass = argVarBaseClass(typeName)
+  const varType = irTypeToVarType(typeName)
+  const varClass = irTypeToVarBaseClass(typeName)
   return {
     i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
     i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
@@ -926,6 +980,16 @@ function concreteOutputIndex(typeName: string | undefined): number {
   }
 }
 
+function concreteInputIndexForNode(nodeType: string, typeName: string | undefined): number {
+  if (nodeType === 'equal' && typeName === 'int') return 5
+  return concreteInputIndex(typeName)
+}
+
+function concreteOutputIndexForNode(nodeType: string, typeName: string | undefined): number {
+  if (nodeType === 'addition' && typeName === 'int') return 0
+  return concreteOutputIndex(typeName)
+}
+
 function varTypeNameFromVarType(varType: number): string {
   switch (varType) {
     case VarType.Boolean:
@@ -955,7 +1019,7 @@ function wrapConcreteValueForNodeInput(
     bConcreteValue: {
       indexOfConcrete: nodeType.startsWith('data_type_conversion_')
         ? concreteInputIndex(typeName)
-        : concreteInputIndex(typeName ?? inferInputTypeFromNode(nodeType, pinIndex)),
+        : concreteInputIndexForNode(nodeType, typeName ?? inferInputTypeFromNode(nodeType, pinIndex)),
       value: innerValue
     }
   }
@@ -970,8 +1034,8 @@ function inferInputTypeFromNode(nodeType: string, _pinIndex: number): string {
 
 function buildLiteralPin(pinIndex: number, argType: string, value: unknown, nodeType: string): NodePin {
   const kind = NodePin_Index_Kind.InParam
-  const varType = argVarType(argType)
-  const varClass = argVarBaseClass(argType)
+  const varType = irTypeToVarType(argType)
+  const varClass = irTypeToVarBaseClass(argType)
 
   const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
 
@@ -998,14 +1062,4 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
     value: pinValue as any,
     type: varType
   }
-}
-
-// ============== 类型映射辅助 ==============
-
-function typeClassFromValueType(type: string): number {
-  return irTypeToVarBaseClass(type)
-}
-
-function typeIdFromValueType(type: string): number {
-  return irTypeToVarType(type)
 }
