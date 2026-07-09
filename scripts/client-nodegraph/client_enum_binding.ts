@@ -300,7 +300,9 @@ const CLASS_BY_ZH_PARAM: Record<string, string> = {
   元素类型: 'ElementalType',
   打击类型: 'HitType',
   攻击类型: 'AttackType',
-  受击击退朝向: 'KnockbackDirectionType'
+  受击击退朝向: 'KnockbackDirectionType',
+  // character_control_skill 填值样本编码 3111 = SkillSlot_1E（服务器 Skill_Slot 段）
+  技能槽位: 'CharacterSkillSlot'
 }
 
 /**
@@ -311,7 +313,9 @@ const CLASS_BY_ZH_RETURN: Record<string, string> = {
   扫描状态: 'ScanStatus',
   实体类型: 'EntityType',
   输入设备类型: 'InputDeviceType',
-  战术类型: 'TacticType'
+  战术类型: 'TacticType',
+  // 查询预瞄准结束原因（无/完成/取消，census 6800-6802）
+  结束原因: 'PreAimingEndReason'
 }
 
 /**
@@ -332,7 +336,7 @@ const LIST_CLASS_BY_NODE_TYPE: Record<string, string> = {
 }
 
 /** server classes referenced by the zh maps beyond SERVER_CLASS_BY_IOC */
-const EXTRA_SERVER_CLASSES = ['TriggerRestriction']
+const EXTRA_SERVER_CLASSES = ['TriggerRestriction', 'CharacterSkillSlot']
 
 /**
  * 目标实体 dropdown reuse nodes beyond targetEntityParam.sampledNodes, per the

@@ -23,7 +23,6 @@ import {
   type ConfigIdValue,
   type DictValue,
   type EntityValue,
-  type EnumerationValue,
   type FactionValue,
   type FloatValue,
   type GuidValue,
@@ -56,6 +55,7 @@ import type {
   AttackShape,
   AttackType,
   CauseOfBeingDown,
+  CharacterSkillSlot,
   ComparisonOperator,
   DisruptorDeviceOrientation,
   DisruptorDeviceType,
@@ -1006,6 +1006,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -6356,7 +6357,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 是否校验按键可用: 是：当前按键可用时该技能才会被施放否：无论当前按键是否可用该技能都会被施放
    */
-  castSkillFromSpecifiedSlot(skillSlot: EnumerationValue, checkKeyAvailability: BoolValue): void {
+  castSkillFromSpecifiedSlot(skillSlot: CharacterSkillSlot, checkKeyAvailability: BoolValue): void {
     const skillSlotObj = parseValue(skillSlot, 'enum')
     const checkKeyAvailabilityObj = parseValue(checkKeyAvailability, 'bool')
     this.registry.registerNode({
@@ -6749,6 +6750,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -9751,7 +9753,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 技能实例ID
    */
-  queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: EnumerationValue): bigint {
+  queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
     const skillSlotObj = parseValue(skillSlot, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10052,7 +10054,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 结束原因
    */
-  queryPreAimingEndReason(preAimingIndex: IntValue): enumeration {
+  queryPreAimingEndReason(preAimingIndex: IntValue): PreAimingEndReason {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10060,9 +10062,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       nodeType: 'query_pre_aiming_end_reason',
       args: [preAimingIndexObj]
     })
-    const ret = new enumeration()
+    const ret = new enumeration('PreAimingEndReason')
     ret.markPin(ref, 'endReason', 0)
-    return ret as unknown as enumeration
+    return ret as unknown as PreAimingEndReason
   }
 
   /**
@@ -10082,7 +10084,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    * 技能实例ID
    */
   querySkillInstanceIdBySkillSlotAndSkillConfigId(
-    skillSlot: EnumerationValue,
+    skillSlot: CharacterSkillSlot,
     skillConfigID: ConfigIdValue
   ): bigint {
     const skillSlotObj = parseValue(skillSlot, 'enum')
@@ -10111,7 +10113,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 技能实例ID列表
    */
-  querySkillInstanceListBySpecifiedSlot(skillSlot: EnumerationValue): bigint[] {
+  querySkillInstanceListBySpecifiedSlot(skillSlot: CharacterSkillSlot): bigint[] {
     const skillSlotObj = parseValue(skillSlot, 'enum')
     const ref = this.registry.registerNode({
       id: 0,
@@ -13658,6 +13660,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -18851,6 +18854,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -22332,6 +22336,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -24746,6 +24751,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -27301,6 +27307,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: CharacterSkillSlot, enumeration2: CharacterSkillSlot): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
