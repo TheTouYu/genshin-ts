@@ -14,3 +14,5 @@ worktrees/
 /.vscode
 /.omo/run-continuation
 /.pi-subagents
+/tests/enum_cases
+/tests/generated
