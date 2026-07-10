@@ -532,8 +532,8 @@ npx tsx tests/composite/trace-dataflow.ts <file.gia> <node> --all-params
 ## 9. 当前实现对照与缺口路线图
 
 > 状态：当前实现对照 / 路线图
-> 来源：当前代码实现 + Round 13/14/15 游戏内验证 + 设计准则对照
-> 最近校验：2026-07-08
+> 来源：当前代码实现 + Round 13/14/15 + Physics Round 8 游戏内验证 + 设计准则对照
+> 最近校验：2026-07-10
 
 本节用于把本文前面的理想布局原则和 `layout.ts` 当前实现对齐，避免后续只沿着某一轮 handover 做局部调参。当前总体状态是：
 
@@ -588,6 +588,18 @@ npx tsx tests/composite/trace-dataflow.ts <file.gia> <node> --all-params
    该 pass 在数据链 compact 后，对已经放好的执行 lane 做局部 Y 向避让：如果某条执行链位于相近 X 区间的数据区块下方且距离不足，则只下推该执行链及其后续节点，而不是全局增大 `rootLanePadding`。
 
    已游戏内验证的文件包括 R6-D 复合 impl 和 R6-E 控制流覆盖，说明该方向能缓解数据节点/控制流线贴近问题，同时没有让 R6-C root 分支回到底部回归。
+
+5. **复合 impl 的控制流泳道可独立缩放**
+
+   Physics Round 8 为 `layoutPositions(...)` 增加可选 `execLaneSpacingScale`。`computeImplLayout(...)` 当前传入 `0.6`，在共享布局 pass 完成后，只按 exec 节点最小 Y 为锚点缩放 `execNodes` 的相对 Y：
+
+   - 控制流多分支垂直距离收紧约 40%。
+   - 所有 X 坐标不变。
+   - 非 exec 的数据节点坐标完全不变；不能对整个 impl 的 Y 坐标统一缩放。
+   - 主图没有传该选项，继续使用原始共享布局坐标。
+   - 显式 `node.position` 最后覆盖自动坐标。
+
+   `更新v、w`、R6-D composite summary 和 R6-E control-lane coverage 已完成游戏内回归。针对性自动测试为 `tests/composite/test-exec-lane-spacing-scale.ts`。
 
 ### 9.2 仍然缺少的关键能力
 

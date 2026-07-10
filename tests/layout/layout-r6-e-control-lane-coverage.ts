@@ -69,7 +69,7 @@ const laneStress = g.defineComposite('R6-E控制流覆盖-数据区避让', {
 })
 
 g.server({
-  name: 'R6-E控制流覆盖-round15-lane-avoidance',
+  name: 'R6-E控制流覆盖-physics-R8-step3-exec-lanes60pct',
   id: 1073741903,
   variables: {
     locationOffset: vec3([1, 2, 3]),

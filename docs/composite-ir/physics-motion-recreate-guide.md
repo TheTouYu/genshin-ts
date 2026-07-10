@@ -395,11 +395,11 @@ node bin/gsts.mjs -c gsts.physics-motion.config.ts dist/tests/layout/physics-mot
 
 用户于 2026-07-10 确认主体核验通过并允许提交。
 
-游戏内新增反馈：`更新v、w` 整体布局在垂直方向过于松散。下一轮需要单独调整布局系数，并配合用户回归此前已通过的复合节点布局；本轮不把该布局问题写成已解决。
+Physics Round 8 已完成布局回归：composite impl 在共享布局完成后仅对 `execNodes` 应用 `execLaneSpacingScale=0.6`。`更新v、w` 中控制流分支相对 Y 收紧约 40%，数据节点坐标、所有 X 坐标、拓扑和 pin 保持不变。物理运动整图与五个历史主要布局场景均经用户游戏内验证通过。过程和归档文件见 [handover/layout-handover-physics-motion-round-8.md](handover/layout-handover-physics-motion-round-8.md)。
 
 ### 5.4 当前剩余差异
 
 1. 5 个子复合尚未实现真实算法，只完成真实接口与代理输出。
-2. 布局垂直方向过松，需下一轮小步调参和多复合回归。
+2. `更新v、w` 控制流垂直间距问题已在 Physics Round 8 修复并完成多场景游戏内回归。
 3. nested capture 物理 pin 差异已修复；修复后的整图已于 2026-07-10 显式注入，用户确认游戏内测试通过。
 4. 本轮暴露出文档和技能的知识冲突：旧 `dsl-api.md` 曾误写 build 内不支持嵌套复合，而当前实现、真实 GIA 和回归均已支持。该段已修正，导航 skill 也新增顺序执行/嵌套 OutFlow 的三层核验规则。

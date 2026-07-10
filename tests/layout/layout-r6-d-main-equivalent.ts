@@ -6,7 +6,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 g.server({
-  name: 'R6-D主图同构-round15-lane-avoidance',
+  name: 'R6-D主图同构-physics-R8-step3-exec-lanes60pct',
   id: 1073741902,
   variables: {
     locationOffset: vec3([1, 2, 3]),

@@ -20,6 +20,7 @@ type ExtraDataConnection = {
 type LayoutOptions = {
   extraDataConnections?: ExtraDataConnection[]
   virtualConsumerIds?: NodeId[]
+  execLaneSpacingScale?: number
 }
 
 const asArray = <T>(value: T | T[] | undefined): T[] => {
@@ -897,6 +898,27 @@ function placeVirtualConsumers(
   })
 }
 
+function scaleExecLaneSpacing(
+  execNodes: Set<NodeId>,
+  state: ReturnType<typeof createLayoutState>,
+  scale: number
+) {
+  if (scale === 1 || execNodes.size === 0) return
+
+  const execPositions = [...execNodes]
+    .map((nodeId) => state.positions.get(nodeId))
+    .filter((position): position is Position => position !== undefined)
+  if (execPositions.length === 0) return
+
+  const anchorY = Math.min(...execPositions.map(([, y]) => y))
+  for (const nodeId of execNodes) {
+    const position = state.positions.get(nodeId)
+    if (!position) continue
+    const scaledY = anchorY + Math.round((position[1] - anchorY) * scale)
+    state.positions.set(nodeId, [position[0], scaledY])
+  }
+}
+
 function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: LayoutConfig) {
   if (state.unplacedNodes.size === 0) return
 
@@ -1042,6 +1064,8 @@ export function layoutPositions(
 
   // 剩余游离节点（无消费者或无关联）统一放到左上角网格
   placeDetachedGrid(state, config)
+
+  scaleExecLaneSpacing(execNodes, state, options.execLaneSpacingScale ?? 1)
 
   // 如有指定位置，则使用指定位置
   for (const node of irNodes) {

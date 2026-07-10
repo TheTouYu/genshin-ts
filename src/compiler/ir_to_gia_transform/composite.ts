@@ -499,7 +499,8 @@ function computeImplLayout(
     compositeDefById ? [...compositeDefById.values()] : [],
     {
       extraDataConnections,
-      virtualConsumerIds: virtualOutputNodes.map((node) => node.id)
+      virtualConsumerIds: virtualOutputNodes.map((node) => node.id),
+      execLaneSpacingScale: 0.6
     }
   )
 

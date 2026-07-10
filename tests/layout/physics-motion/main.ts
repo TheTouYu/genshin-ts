@@ -6,7 +6,7 @@ import { updateVelocityAndAngularVelocity } from './composites/update-vw.js'
 import { PHYSICS_CUSTOM_VARIABLES } from './helpers/variables.js'
 
 g.server({
-  name: '物理运动',
+  name: '物理运动-physics-R8-step3-exec-lanes60pct',
   id: 1073741904,
   variables: {}
 }).on('whenEntityIsCreated', (e, f) => {
