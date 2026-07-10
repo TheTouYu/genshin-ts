@@ -59,7 +59,7 @@ This is NOT a typical "runtime library". The Stage-2 runner spawns this code in 
 - Do NOT add new value class without updating all 3 type maps (`RuntimeValueTypeMap`, `RuntimeParameterValueTypeMap`, `RuntimeReturnValueTypeMap`).
 - Do NOT extend `ir_optimize_return_vars.ts` — marked 弃用; current return-var path uses LocalVariable semantics.
 - `gsts.f` MUST stay a lazy getter — do NOT make it a static instance; the current per-handler binding is required.
-- `defineComposite({ build: (args, f) => ... })` body CANNOT call `f.callComposite(A, ...)` — not yet supported (`docs/architecture/composite/dsl-api.md:203`).
+- `defineComposite({ build: (args, f) => ... })` may call `f.callComposite(A, ...)`; nested composite capture is supported and covered by focused regressions. Preserve capture routing and typed physical pin behavior when changing it.
 - Composite pin index constants live here, not in Stage 3 — DO NOT duplicate.
 
 ## NOTES

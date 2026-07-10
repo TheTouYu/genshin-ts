@@ -33,6 +33,101 @@ npx tsx tests/composite/dump-nodes.ts 复杂gia/物理运动.gia
 npx tsx tools/decode-gia.ts 复杂gia/物理运动.gia | jq '...'
 ```
 
+### 2.1 多文件复刻工程与测试文件
+
+复杂复刻应把入口、复合和 helper 分文件，并通过专用 config 一次编译所有依赖。本工程使用：
+
+```text
+gsts.physics-motion.config.ts
+tests/layout/physics-motion/main.ts
+tests/layout/physics-motion/composites/*.ts
+tests/layout/physics-motion/helpers/*.ts
+```
+
+先生成但不注入：
+
+```bash
+node bin/gsts.mjs -c gsts.physics-motion.config.ts --noinject
+```
+
+需要游戏内测试时，必须显式传入生成的单个 GIA，使 `config.inject.nodeGraphId` 生效：
+
+```bash
+GSTS_LOCALLOW_DIR=/mnt/c/Users/touyu/AppData/LocalLow \
+node bin/gsts.mjs -c gsts.physics-motion.config.ts \
+  dist/tests/layout/physics-motion/main.gia
+```
+
+编译器级回归放在 `tests/composite/`，用 `node:assert/strict` 直接检查 `buildCompositeAccessories(...)` 的结果。例如本轮的 `test-local-variable-impl-concrete-type.ts` 检查 generic/concrete node ID 和 pin type。此类测试只证明被断言的字段；涉及编辑器兼容时，还必须与最小真实 GIA 逐字段比较 `pin kind/index`、`bConcreteValue.indexOfConcrete`、连接端口和游戏内行为。
+
+### 2.2 本轮使用的 composite 和数据节点 API
+
+定义纯数据复合：
+
+```ts
+const child = g.defineComposite('子复合', {
+  inputs: {
+    v: { type: 'vec3', pinIndex: 100 }
+  },
+  outputs: {
+    结果: { type: 'vec3', pinIndex: 200 }
+  },
+  build(args, f) {
+    return { 结果: f._3dVectorNormalization(args.v) }
+  }
+})
+```
+
+在另一个 composite 的 `build()` 内嵌套调用：
+
+```ts
+const result = f.callComposite(child, { v: args.v })
+return { 输出: result.结果 }
+```
+
+本轮常用数据节点写法：
+
+```ts
+const parts = f.split3dVector(v)
+const vector = f.create3dVector(parts.xComponent, 0, parts.zComponent)
+const cross = f._3dVectorCrossProduct(a, b)
+const scaled = f._3dVectorZoom(vector, scale)
+const local = f.getLocalVariable(scaled)
+return { 输出: local.value }
+```
+
+`getLocalVariable(...)` 返回两个不同语义的输出：`localVariable` 是句柄，`value` 是存储值。真实 GIA 中两者的物理 OutParam index 和类型编码不能混用。若高层 API 的 TypeScript 表面返回类型是 `number`、`boolean` 等，但 raw API 需要 runtime `value`，使用 `asRuntimeValue(...)` 做运行时检查；不要用 `as unknown as value` 隐藏错误。
+
+### 2.3 从游戏节点反查 gsts API
+
+拿到节点显示名或 nid 后按以下顺序查询，不凭名称猜方法：
+
+1. 在 `node_pin_records.ts` 查显示名、nid、输入输出顺序。
+2. 在 `node_id.ts` 查 generic/typed concrete ID。
+3. 在 `src/definitions/nodes.ts` 查对应高层方法签名和返回字段。
+4. 中文名可在 `src/definitions/zh_aliases.ts` 反查英文方法。
+5. 最后用真实 GIA 的 decode 结果确认 pin kind/index 和 concrete value 包装。
+
+以 `Get Local Variable` 为例：
+
+```bash
+rg -n "name: 'Get Local Variable'" \
+  src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts
+rg -n 'Get_Local_Variable' \
+  src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_id.ts
+rg -n 'getLocalVariable\\(' src/definitions/nodes.ts
+rg -n '获取局部变量' src/definitions/zh_aliases.ts
+```
+
+已知 nid 时，可以先查：
+
+```bash
+rg -n 'id: <nid>' \
+  src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts
+```
+
+不要只检查 `genericId/concreteId/type`。本轮证明：这些字段自动对齐后，真实编辑器仍可能因为物理 OutParam index 或 `bConcreteValue` 包装不同而断线。
+
 ## 3. Step 0：初始化块
 
 ### 3.1 真实结构
@@ -353,15 +448,18 @@ Double Branch ×2
 
 ```text
 tests/layout/physics-motion/composites/update-vw.ts
+tests/layout/physics-motion/composites/calculate-forces.ts
+tests/layout/physics-motion/composites/force-aerodynamics.ts
+tests/layout/physics-motion/composites/force-friction.ts
+tests/layout/physics-motion/composites/force-torque.ts
 tests/layout/physics-motion/composites/update-vw-stubs.ts
 ```
 
-当前只完成外层接口和拓扑。5 个子复合使用用户确认过的代理语义，后续逐层替换：
+`计算分力` 已按真实 GIA 层级替换代理语义，包括 `aerodynamic_forces`、`slip_velocity`、`friction_force`、`摩擦力矩`、`w衰减力矩`、`力矩`、`计算合力` 和 `计算滚动摩擦力`。当前仍保留阶段性实现的子复合为：
 
 - `计算滚动角速度` 暂时返回当前 `w`。
 - `更新角速度` 暂时返回当前 `w`。
 - `更新速度` 暂时返回当前 `v`。
-- `计算分力` 暂时转发 `w/v` 作为 vec3 输出，`滚动=false`。
 - `顺序执行` 保留 1 InFlow / 4 个同名 OutFlow 的真实接口。
 
 主图暂时把 `更新v、w` 作为 `When Entity Is Created` 的第三条分支，传入 `接触地面=false`、`更新间隔=0.02`。这是用户确认的阶段性接入方式；真实上游 `Update` 与 `计算物理运动状态` 后续再复刻。
@@ -397,9 +495,24 @@ node bin/gsts.mjs -c gsts.physics-motion.config.ts dist/tests/layout/physics-mot
 
 Physics Round 8 已完成布局回归：composite impl 在共享布局完成后仅对 `execNodes` 应用 `execLaneSpacingScale=0.6`。`更新v、w` 中控制流分支相对 Y 收紧约 40%，数据节点坐标、所有 X 坐标、拓扑和 pin 保持不变。物理运动整图与五个历史主要布局场景均经用户游戏内验证通过。过程和归档文件见 [handover/layout-handover-physics-motion-round-8.md](handover/layout-handover-physics-motion-round-8.md)。
 
-### 5.4 当前剩余差异
+### 5.4 `计算分力` 的局部变量编码问题（未完成）
 
-1. 5 个子复合尚未实现真实算法，只完成真实接口与代理输出。
-2. `更新v、w` 控制流垂直间距问题已在 Physics Round 8 修复并完成多场景游戏内回归。
-3. nested capture 物理 pin 差异已修复；修复后的整图已于 2026-07-10 显式注入，用户确认游戏内测试通过。
-4. 本轮暴露出文档和技能的知识冲突：旧 `dsl-api.md` 曾误写 build 内不支持嵌套复合，而当前实现、真实 GIA 和回归均已支持。该段已修正，导航 skill 也新增顺序执行/嵌套 OutFlow 的三层核验规则。
+用户在游戏内核对 `计算分力` 层级时发现，输出 `F摩擦力` 所用 `Get Local Variable` 的输入和值输出不是三维向量，相关连线因此断开；后续层级中的同类节点也受相同问题影响。
+
+第一轮排查确认：Stage 2 IR 已把 `get_local_variable` 的输入和消费者连接记录为 `vec3`。本轮修改 `src/compiler/ir_to_gia_transform/composite.ts`，令 `get_local_variable` 从值输出 `OutParam[1]` 而非句柄输出 `OutParam[0]` 推断 typed concreteId。自动 decode 随后看到 `slip_velocity`、`friction_force`、`计算分力` 三处均为 `genericId=18 / concreteId=2660`，其中 `2660` 是 `Get_Local_Variable__Vec`。
+
+但是用户游戏内复测仍失败。因此这次修改只解决了 typed node ID，不是完整根因。进一步对比真实 GIA 后发现：
+
+- 真实 vec3 getter 的 `InParam[0]`、`OutParam[1]` 都使用 `bConcreteValue.indexOfConcrete=6`。
+- 当前生成节点的 concrete value 包装和 index 仍不一致。
+- 当前 `friction_force` 内部 getter 的消费者引用 `OutParam[1]`，但物理节点只生成了 `OutParam[0]`，会直接造成端口不存在和断线。
+- 新增回归 `tests/composite/test-local-variable-impl-concrete-type.ts` 只检查 node ID 和 pin type，没有覆盖上述真实物理编码，所以测试通过但不足以证明游戏兼容。
+
+下一轮等待用户提供一个最小化、由游戏编辑器导出的 `Get Local Variable(vec3)` GIA。拿到后应逐字段对比 `genericId`、`concreteId`、InParam/OutParam index、`bConcreteValue.indexOfConcrete` 和 connects，再修通用 composite impl pin 生成逻辑，不要在物理脚本中绕过该节点。
+
+### 5.5 当前剩余差异
+
+1. `计算分力` 的结构和算法层级已写入代码，但 vec3 `Get Local Variable` 编码仍导致游戏内断线，尚未通过游戏验证。
+2. `更新速度`、`更新角速度`、`计算滚动角速度` 仍为阶段性代理语义。
+3. `更新v、w` 控制流布局和 nested capture pin 修复沿用此前已验证结果。
+4. 下一轮先用最小真实 getter GIA 修复通用编译器问题，再继续其余三个真实子复合。

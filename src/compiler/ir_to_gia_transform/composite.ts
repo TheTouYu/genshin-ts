@@ -283,9 +283,12 @@ function buildImplGraphNodes(
   const implConnTypeIndex = buildImplConnTypeIndex(implNodes)
   const nodeResults = implNodes.map((node) => {
     let nodeId = resolveImplNodeId(node.type, node.args as any)
+    const producedValuePinIndex = node.type === 'get_local_variable' ? 1 : 0
     const producedType =
-      implConnTypeIndex.get(node.id)?.get(0) ??
-      implOutParamMap.get(node.id)?.find((output) => output.pinIndex === 0)?.type
+      implConnTypeIndex.get(node.id)?.get(producedValuePinIndex) ??
+      implOutParamMap
+        .get(node.id)
+        ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
     // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
     let compositeId: number | undefined
     let calledDef: CompositeDefIR | undefined

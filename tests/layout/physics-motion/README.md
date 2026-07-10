@@ -13,10 +13,14 @@ tests/layout/physics-motion/main.ts
 ```text
 tests/layout/physics-motion/composites/set-physics-params.ts
 tests/layout/physics-motion/composites/update-vw.ts
+tests/layout/physics-motion/composites/calculate-forces.ts
+tests/layout/physics-motion/composites/force-aerodynamics.ts
+tests/layout/physics-motion/composites/force-friction.ts
+tests/layout/physics-motion/composites/force-torque.ts
 tests/layout/physics-motion/composites/update-vw-stubs.ts
 ```
 
-`update-vw-stubs.ts` 当前只保留真实子复合接口和用户确认的代理语义；后续按 `计算分力`、`更新速度`、`更新角速度`、`计算滚动角速度` 逐层替换。
+`计算分力` 及其空气动力、摩擦、力矩子复合已按真实 GIA 结构实现。`update-vw-stubs.ts` 当前只保留 `更新速度`、`更新角速度`、`计算滚动角速度` 和 `顺序执行` 的阶段性实现。
 
 推荐编译：
 

@@ -25,6 +25,7 @@ export const PHYSICS_NODE_GRAPH_VARIABLES = {
   motionEntity: '运动实体',
   visualEntity: '视觉实体',
   angularFriction: 'u_w',
+  fixedAngularDamping: 'w固定衰减',
   gravityForce: 'f_g',
   deltaSeconds: 't',
   halfGravityDeltaSquared: '0.5gt',

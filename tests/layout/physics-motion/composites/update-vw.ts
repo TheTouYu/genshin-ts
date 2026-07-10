@@ -7,8 +7,8 @@ import {
 } from 'genshin-ts/runtime/value'
 
 import { PHYSICS_NODE_GRAPH_VARIABLES } from '../helpers/variables.js'
+import { calculateForces } from './calculate-forces.js'
 import {
-  calculateForces,
   calculateRollingAngularVelocity,
   sequentialExecution,
   updateAngularVelocity,
