@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 待验证
 > 来源：当前代码实现 + 第六轮自动验证与用户游戏内反馈 + 架构审计
-> 最近校验：2026-07-09
+> 最近校验：2026-07-10
 > 适用范围：gsts 当前 Stage 3 复合节点实现；真实编辑器输出仍需以 composite-ir 真实 GIA 验证文档为准
 
 本文档记录第六轮 `all-types` 复合验证后形成的架构判断：复合节点的目标不是为每个暴露问题逐个补丁，而是让复合 impl 图尽可能复用普通系统节点的 Stage 3 编码能力，并把不能复用的部分显式列入差距表、测试矩阵和重构路线。
@@ -210,9 +210,9 @@ composite impl 直接构造 protobuf-like object：
 | Phase 0：建模与文档入口 | 已完成 | 本文档已成为整体入口，`documentation-map.md`、`gia-encoding.md`、`testing.md`、handover README 已指向本审计。 |
 | Phase 1：统一类型映射 | 已完成核心收口 | 已新增 `src/compiler/ir_to_gia_transform/vartype_map.ts`，并让 `composite.ts`、`pins.ts`、`node_id.ts`、`index.ts` 复用共享映射；`composite.ts` 中的类型映射 wrapper 已删除。 |
 | Phase 1 验证 | 已自动验证 | `npm run build`、L0 `assert-vartype-map.ts`、`list-type-ops-smoke.gia`、`assert-list-type-ops-smoke.ts` 已通过；collections literal/wire 仍可作为大集成生成验证。 |
-| L1 对照测试 | 已建立诊断入口 / 部分通过 | 新增 `system-node-reuse-smoke.ts` 与 `compare-system-node-reuse.ts`，覆盖 `assembly_list/get_list_length`、`concatenate_list`、`addition/equal`；已修 `get_list_length` OutParam、list pin `ConcreteBase(ArrayBase)` 包裹、`equal` bool 输出和 int `addition/equal` concrete index。当前诊断收敛到 `assembly_list` 的 vendor 完整 pin 形状差异。 |
-| Phase 2：统一节点 ID 推断 | 未开始 | 下一阶段重点，目标是 composite impl 复用普通路径 `resolveGiaNodeId` 或抽出的共享解析逻辑。 |
-| Phase 3：扩大 vendor 编码复用 | 待启动 | L1 已证明仅统一类型映射不够，后续需要让普通系统节点 pin/value 编码尽可能复用 vendor/主图路径。 |
+| L1 对照测试 | 已建立 / 当前样本严格通过 | 新增 `system-node-reuse-smoke.ts` 与 `compare-system-node-reuse.ts`，覆盖 `assembly_list/get_list_length`、`concatenate_list`、`addition/equal`；已修 `get_list_length` OutParam、list pin `ConcreteBase(ArrayBase)` 包裹、`equal` bool 输出和 int `addition/equal` concrete index。2026-07-10 起 `assembly_list` 改为复用 vendor 完整 pin 形状，当前样本 `--strict` 已通过。 |
+| Phase 2：统一节点 ID 推断 | 未全面开始 / 局部补强 | 下一阶段重点，目标是 composite impl 复用普通路径 `resolveGiaNodeId` 或抽出的共享解析逻辑。当前仅为 `assembly_list` 在 impl 路径补了按首个元素类型选择 typed node ID 的局部逻辑。 |
+| Phase 3：扩大 vendor 编码复用 | 已启动 | `assembly_list` 已改用临时 `Graph + Node + encode` 提取 vendor pins；`get_node_graph_variable` 的既有临时 vendor pin 生成也被整理为同一 helper。后续继续扩大到 dict/enum/signal/variable 等高风险节点。 |
 
 ### Phase 0：暂停止血，把问题先建模
 
@@ -281,7 +281,8 @@ npx tsx tests/composite/v2/all-types/compare-system-node-reuse.ts \
 - 新增 L0 `assert-vartype-map.ts`，直接断言所有 scalar/list 映射。
 - 去掉 `composite.ts` 中仍保留的兼容 wrapper，让调用点直接使用共享函数。
 - 所有 scalar/list 类型有一套权威测试。
-- L1 诊断入口已能显示主图与 composite impl 的 pin/value 编码差距；已根据诊断修复 `get_list_length` OutParam 类型、list pin `ConcreteBase(ArrayBase)` 包裹、`equal` bool 输出和 int `addition/equal` concrete index；严格同构尚未通过，剩余差异集中在 `assembly_list` 的 vendor 完整 pin 形状。
+- L1 诊断入口已能显示主图与 composite impl 的 pin/value 编码差距；已根据诊断修复 `get_list_length` OutParam 类型、list pin `ConcreteBase(ArrayBase)` 包裹、`equal` bool 输出和 int `addition/equal` concrete index。
+- 2026-07-10 起，当前 L1 样本中的 `assembly_list` 剩余差异已通过 vendor 完整 pin 生成消除，`compare-system-node-reuse.ts --strict` 已通过。注意这只证明当前 L1 样本严格同构，不代表所有系统节点已完整复用。
 
 ### Phase 2：统一节点 ID 推断
 
@@ -300,6 +301,14 @@ npx tsx tests/composite/v2/all-types/compare-system-node-reuse.ts \
 ### Phase 3：扩大 vendor 编码复用
 
 当前 `get_node_graph_variable` 已经使用临时 `Graph + Node + encode` 提取 vendor pins 的方式，是值得扩展的方向。
+
+当前进展（2026-07-10）：
+
+- `src/compiler/ir_to_gia_transform/composite.ts` 新增 `encodeVendorNodePins(...)`，集中复用临时 `Graph + Node + encode` 的 vendor pin 生成模式。
+- `get_node_graph_variable` 的既有临时 vendor pin 生成逻辑改为调用该 helper。
+- `assembly_list` 改为调用该 helper，生成 vendor 完整 InParam/OutParam pin 集合（包括固定 100 个元素 pin、`ConcreteBase` 包裹和 `indexOfConcrete`），只在返回后补 composite impl 的 data connects。
+- `resolveImplNodeId` 为 `assembly_list` 增加按首个元素/连接类型选择 typed node ID 的局部逻辑，避免非 int list 继续落到 generic/int 变种。
+- 已自动验证：`compare-system-node-reuse.ts --strict` 对当前 L1 样本通过；`assert-list-type-ops-smoke.ts` 仍通过。
 
 优先尝试复用 vendor pin 生成的类别：
 
@@ -432,8 +441,8 @@ decode 后比较：
 
 ## 10. 下一步建议
 
-1. 继续 L1：把 `compare-system-node-reuse.ts --strict` 作为后续验收门槛，优先消除 `assembly_list` 与主图/vendor 的完整 pin 形状差异。
+1. 保持 L1：继续把 `compare-system-node-reuse.ts --strict` 作为当前样本验收门槛；后续每扩大样本都先让 strict 重新通过。
 2. 扩大 L1 样本：在当前 `assembly_list/get_list_length`、`concatenate_list`、`addition/equal` 基础上增加 dict、variable、enum、signal 等高风险节点。
-3. 进入 Phase 2：抽象或复用 `resolveGiaNodeId`，让 composite impl 节点 ID 推断不再依赖简化版 `resolveImplNodeId`。
-4. 进入 Phase 3：把普通系统节点 pin/value 编码迁向 vendor/主图路径，减少 `buildImplNodePins` 中的手写 VarBase / bConcreteValue 规则。
+3. 继续 Phase 3：优先把 dict/list/enum/variable 等普通系统节点 pin/value 编码迁向 vendor/主图路径，减少 `buildImplNodePins` 中的手写 VarBase / bConcreteValue 规则。
+4. 进入 Phase 2：抽象或复用 `resolveGiaNodeId`，让 composite impl 节点 ID 推断不再依赖简化版 `resolveImplNodeId`；当前 `assembly_list` 的局部 typed 推断只是过渡补强。
 5. 持续更新本文档的进度快照和复用率/差距表，不把架构状态只散落进 handover。

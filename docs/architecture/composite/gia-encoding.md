@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-06
+> 最近校验：2026-07-10
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
@@ -15,6 +15,8 @@
 当前 `composite.ts` 负责把 `CompositeDefIR.implNodes` 编码为 accessory impl NodeGraph。它复用了部分普通路径元数据和 layout 工具，但在节点 ID 推断、pin 类型、字面量、`bConcreteValue` 包裹、connect 填充等方面仍有大量手写逻辑。
 
 第六轮 `all-types` 验证已经证明：Stage 1 / Stage 2 可保留正确类型，但 Stage 3 composite impl 可能因为独立手写映射而与普通主图系统节点编码产生差异，例如部分 list 类型在 impl graph 中被编码为 `pin.type = 0`。
+
+2026-07-10 起，`assembly_list` 已在 composite impl 中改为复用 vendor 完整 pin 生成：`composite.ts` 通过临时 `Graph + Node + encode` 取得和普通主图同源的 InParam/OutParam pin 集合，再只补 impl graph 内部 data connects。当前 L1 样本 `compare-system-node-reuse.ts --strict` 已通过。但这只是 Phase 3 的首个节点级复用案例，其他系统节点仍可能走手写路径。
 
 因此本文以下章节描述的是**当前实现细节**，不代表这些手写逻辑就是长期推荐架构。后续修复应优先参考 [系统节点复用审计](./system-node-reuse-audit.md)，目标是让普通系统节点的 node ID、pin 类型、字面量和特殊节点规则尽可能由普通路径或共享模块提供。
 

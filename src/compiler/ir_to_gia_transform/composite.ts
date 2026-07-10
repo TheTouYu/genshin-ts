@@ -429,10 +429,23 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
   const special = SPECIAL_NODE_IDS[nodeType]
   if (special) return special
 
+  const nodeIdLower = getNodeIdLowerMap()
+
+  if (nodeType === 'assembly_list') {
+    const firstArg = args?.find((arg) => arg && !(arg as any).capture)
+    const valueType = firstArg?.type === 'conn'
+      ? ((firstArg.value as any)?.type as string | undefined)
+      : (firstArg?.type as string | undefined)
+    const suffix = valueType ? irTypeToNodeSuffix(valueType as any) : undefined
+    if (suffix) {
+      const typed = nodeIdLower.get(`assembly_list__${suffix}`)
+      if (typed) return typed
+    }
+  }
+
   // data_type_conversion_<outType> 需要组合 inType 查询
   if (nodeType.startsWith('data_type_conversion_')) {
     const outKey = nodeType.slice('data_type_conversion_'.length).trim()
-    const nodeIdLower = getNodeIdLowerMap()
     
     const firstArg = args?.[0]
     let inType: string | undefined
@@ -453,13 +466,48 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
 
   const mapped = SPECIAL_NODE_MAPPINGS[nodeType]
   const key = (mapped ?? nodeType).toLowerCase()
-  const nodeIdLower = getNodeIdLowerMap()
   const direct = nodeIdLower.get(key)
   if (direct) return direct
   const generic = nodeIdLower.get(`${key}__generic`)
   if (generic) return generic
 
   return 0
+}
+
+function encodeVendorNodePins(
+  concreteNodeId: number,
+  configure?: (node: Node<'server'>) => void
+): NodePin[] {
+  if (!concreteNodeId) {
+    throw new Error('[error] cannot encode vendor pins without a concrete node id')
+  }
+
+  const tmpGraph = new Graph('server', 0, '', 0)
+  const tmpNode = new Node(0, 'server', concreteNodeId, undefined as any)
+
+  configure?.(tmpNode)
+
+  tmpNode.pins = (tmpNode.pins ?? []).filter(
+    (p: any) => !((p?.kind === 3 || p?.kind === 4) && p?.type?.t === 'b' && p?.type?.b === 'Unk')
+  )
+
+  tmpGraph.add_node(tmpNode)
+  const tmpRoot = tmpGraph.encode() as any
+  const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
+  if (!encodedNode) {
+    throw new Error(`[error] vendor pin encoding produced no node for concrete id ${concreteNodeId}`)
+  }
+  const vendorPins = encodedNode.pins ?? []
+
+  for (const pin of vendorPins) {
+    pin.connects = undefined
+  }
+
+  return vendorPins
+}
+
+function findPin(pins: NodePin[], kind: NodePin_Index_Kind, index: number): NodePin | undefined {
+  return pins.find((pin: any) => pin.i1?.kind === kind && pin.i1?.index === index)
 }
 
 
@@ -481,33 +529,12 @@ function buildImplNodePins(
 
   // get_node_graph_variable：临时用 Graph+Node 编码，100% 复用 vendor 的 pin 生成逻辑
   if (node.type === 'get_node_graph_variable' && gvConcreteNid) {
-    const tmpGraph = new Graph('server', 0, '', 0)
-    const tmpNode = new Node(0, 'server', gvConcreteNid, undefined as any)
-
-    // vendor 自动创建了 pins，找到 InParam pin 并设置变量名
-    const nameArg = (node.args ?? [])[0]
-    if (nameArg && nameArg.type === 'str') {
-      for (const pin of tmpNode.pins) {
-        if (pin.kind === 3 && pin.index === 0) {
-          pin.setVal(nameArg.value)
-        }
+    const vendorPins = encodeVendorNodePins(gvConcreteNid, (tmpNode) => {
+      const nameArg = (node.args ?? [])[0]
+      if (nameArg && nameArg.type === 'str') {
+        tmpNode.setVal(0, nameArg.value)
       }
-    }
-
-    // 过滤 Unk pins（和主图完全一致）
-    tmpNode.pins = (tmpNode.pins ?? []).filter(
-      (p: any) => !((p?.kind === 3 || p?.kind === 4) && p?.type?.t === 'b' && p?.type?.b === 'Unk')
-    )
-
-    tmpGraph.add_node(tmpNode)
-    const tmpRoot = tmpGraph.encode() as any
-    const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
-    const vendorPins = encodedNode?.pins ?? []
-
-    // 临时 Graph 没有连线，vendor 不会生成 connects；清理以防万一
-    for (const p of vendorPins) {
-      p.connects = undefined
-    }
+    })
 
     return { pins: vendorPins, dataConns: [] }
   }
@@ -549,12 +576,37 @@ function buildImplNodePins(
 
   const args = node.args ?? []
 
-  // assembly_list 节点：第一个 pin 是 count（元素数量的 Int 字面量）
+  // assembly_list：复用 vendor 的完整 concrete pin 形状（固定 100 个元素 pin + OutParam）。
+  // 这避免在 composite impl 中手写 list pin / ConcreteBase / indexOfConcrete 规则。
   if (node.type === 'assembly_list') {
-    const countPin = buildLiteralPin(0, 'int', args.length, node.type)
-    pins.push(countPin)
+    const concreteNodeId = resolveImplNodeId(node.type, node.args as any)
+    const vendorPins = encodeVendorNodePins(concreteNodeId, (tmpNode) => {
+      tmpNode.setVal(0, args.length)
+      args.forEach((arg, idx) => {
+        if (!arg || arg.type === 'conn' || (arg as any).capture === true) return
+        tmpNode.setVal(idx + 1, arg.value as any)
+      })
+    })
+
+    args.forEach((arg, idx) => {
+      if (!arg || arg.type !== 'conn') return
+      const conn = arg.value as { node_id: number; index: number }
+      const pin = findPin(vendorPins, NodePin_Index_Kind.InParam, idx + 1)
+      if (!pin) {
+        throw new Error(`[error] assembly_list vendor pin missing at input #${idx + 1}`)
+      }
+      dataConns.push({
+        nodeId: node.id,
+        pin,
+        upstreamNodeId: conn.node_id,
+        upstreamPinIndex: conn.index
+      })
+    })
+
+    return { pins: vendorPins, dataConns }
   }
-  let pinIndex = node.type === 'assembly_list' ? 1 : 0
+
+  let pinIndex = 0
   for (const arg of args) {
     // Capture-input args are routed via compositePins, not physical InParam pins,
     // but they still occupy their original argument slot. Otherwise later literal
