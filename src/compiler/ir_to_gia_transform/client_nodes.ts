@@ -25,6 +25,12 @@ export const DICT_REFLECT_NODE_TYPES = new Set([
  */
 export const DICT_BUILD_NODE_TYPES = new Set(['assembly_dictionary', 'create_dictionary'])
 
+/**
+ * 局部变量节点：cid 恒定（设置 2000 / 获取 1036，varspec seed localVariable），
+ * 变量类型只体现在值引脚 type + ConcreteBase.ioc 上（类型序表见 client_graph.ts）。
+ */
+export const LOCAL_VARIABLE_NODE_TYPES = new Set(['get_local_variable', 'set_local_variable'])
+
 /** IR value type -> ClientVarType id, mirroring the extractor's type name table */
 export const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   entity: 1,
@@ -176,7 +182,11 @@ export function resolveClientConcreteVariant(
   if (metadata.nodeType === 'multiple_branches') {
     return metadata.concreteId ?? 4002
   }
-  if (DICT_REFLECT_NODE_TYPES.has(metadata.nodeType) || DICT_BUILD_NODE_TYPES.has(metadata.nodeType)) {
+  if (
+    DICT_REFLECT_NODE_TYPES.has(metadata.nodeType) ||
+    DICT_BUILD_NODE_TYPES.has(metadata.nodeType) ||
+    LOCAL_VARIABLE_NODE_TYPES.has(metadata.nodeType)
+  ) {
     if (metadata.concreteId == null) {
       throw clientNodegraphError(
         CLIENT_ERROR_CODES.NODE_UNAVAILABLE,

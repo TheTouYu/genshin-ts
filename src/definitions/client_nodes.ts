@@ -2543,6 +2543,32 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Returns the value of a specific local variable
+   *
+   * 获取局部变量: 获取特定局部变量的变量值
+   *
+   * @param variableName
+   *
+   * 变量名
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getLocalVariable(variableName: StrValue): generic {
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_local_variable',
+      args: [variableNameObj]
+    })
+    const ret = new generic()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret
+  }
+
+  /**
    * Applies only to Floating Point Number or Integer lists; returns the maximum value
    *
    * 获取列表最大值: 仅对浮点数列表和整数列表有意义，返回列表中的最大值
@@ -4089,6 +4115,82 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       type: 'exec',
       nodeType: 'set_attack_weight',
       args: [currentAttackTargetWeightObj, forciblySelectATargetOnceObj]
+    })
+  }
+
+  /**
+   * Sets the value of a local variable
+   *
+   * 设置局部变量: 设置局部变量的值
+   *
+   * @param variableName
+   *
+   * 变量名
+   * @param variableValue
+   *
+   * 变量值
+   */
+  setLocalVariable<K extends DictKeyType, V extends DictValueType>(
+    variableName: StrValue,
+    variableValue: ReadonlyDict<K, V>
+  ): void
+  setLocalVariable<
+    T extends
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'faction'
+      | 'float'
+      | 'guid'
+      | 'int'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
+      | 'bool_list'
+      | 'config_id_list'
+      | 'entity_list'
+      | 'faction_list'
+      | 'float_list'
+      | 'guid_list'
+      | 'int_list'
+      | 'prefab_id_list'
+      | 'str_list'
+      | 'vec3_list'
+  >(variableName: StrValue, variableValue: RuntimeParameterValueTypeMap[T]): void
+  setLocalVariable(variableName: StrValue, variableValue: unknown): void {
+    const variableNameObj = parseValue(variableName, 'str')
+    let variableValueObj: value
+    if (variableValue instanceof dict) {
+      variableValueObj = parseValue(variableValue, 'dict')
+    } else {
+      const genericType = matchTypes(
+        [
+          'float',
+          'int',
+          'bool',
+          'config_id',
+          'entity',
+          'faction',
+          'guid',
+          'prefab_id',
+          'str',
+          'vec3'
+        ],
+        variableValue
+      )
+      variableValueObj =
+        variableValue instanceof list
+          ? parseValue(
+              variableValue,
+              (genericType + '_list') as keyof CommonLiteralValueListTypeMap
+            )
+          : parseValue(variableValue, genericType)
+    }
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_local_variable',
+      args: [variableNameObj, variableValueObj]
     })
   }
 
@@ -9428,6 +9530,32 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   }
 
   /**
+   * Returns the value of a specific local variable
+   *
+   * 获取局部变量: 获取特定局部变量的变量值
+   *
+   * @param variableName
+   *
+   * 变量名
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getLocalVariable(variableName: StrValue): generic {
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_local_variable',
+      args: [variableNameObj]
+    })
+    const ret = new generic()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret
+  }
+
+  /**
    * Applies only to Floating Point Number or Integer lists; returns the maximum value
    *
    * 获取列表最大值: 仅对浮点数列表和整数列表有意义，返回列表中的最大值
@@ -11717,6 +11845,82 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       type: 'exec',
       nodeType: 'set_control_motor_to_ungrounded_state',
       args: [targetControlMotorObj, durationObj]
+    })
+  }
+
+  /**
+   * Sets the value of a local variable
+   *
+   * 设置局部变量: 设置局部变量的值
+   *
+   * @param variableName
+   *
+   * 变量名
+   * @param variableValue
+   *
+   * 变量值
+   */
+  setLocalVariable<K extends DictKeyType, V extends DictValueType>(
+    variableName: StrValue,
+    variableValue: ReadonlyDict<K, V>
+  ): void
+  setLocalVariable<
+    T extends
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'faction'
+      | 'float'
+      | 'guid'
+      | 'int'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
+      | 'bool_list'
+      | 'config_id_list'
+      | 'entity_list'
+      | 'faction_list'
+      | 'float_list'
+      | 'guid_list'
+      | 'int_list'
+      | 'prefab_id_list'
+      | 'str_list'
+      | 'vec3_list'
+  >(variableName: StrValue, variableValue: RuntimeParameterValueTypeMap[T]): void
+  setLocalVariable(variableName: StrValue, variableValue: unknown): void {
+    const variableNameObj = parseValue(variableName, 'str')
+    let variableValueObj: value
+    if (variableValue instanceof dict) {
+      variableValueObj = parseValue(variableValue, 'dict')
+    } else {
+      const genericType = matchTypes(
+        [
+          'float',
+          'int',
+          'bool',
+          'config_id',
+          'entity',
+          'faction',
+          'guid',
+          'prefab_id',
+          'str',
+          'vec3'
+        ],
+        variableValue
+      )
+      variableValueObj =
+        variableValue instanceof list
+          ? parseValue(
+              variableValue,
+              (genericType + '_list') as keyof CommonLiteralValueListTypeMap
+            )
+          : parseValue(variableValue, genericType)
+    }
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_local_variable',
+      args: [variableNameObj, variableValueObj]
     })
   }
 
@@ -16229,6 +16433,32 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Returns the value of a specific local variable
+   *
+   * 获取局部变量: 获取特定局部变量的变量值
+   *
+   * @param variableName
+   *
+   * 变量名
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getLocalVariable(variableName: StrValue): generic {
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_local_variable',
+      args: [variableNameObj]
+    })
+    const ret = new generic()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret
+  }
+
+  /**
    * Applies only to Floating Point Number or Integer lists; returns the maximum value
    *
    * 获取列表最大值: 仅对浮点数列表和整数列表有意义，返回列表中的最大值
@@ -17684,6 +17914,82 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       type: 'exec',
       nodeType: 'send_signal_to_server_node_graph',
       args: [signalNameObj]
+    })
+  }
+
+  /**
+   * Sets the value of a local variable
+   *
+   * 设置局部变量: 设置局部变量的值
+   *
+   * @param variableName
+   *
+   * 变量名
+   * @param variableValue
+   *
+   * 变量值
+   */
+  setLocalVariable<K extends DictKeyType, V extends DictValueType>(
+    variableName: StrValue,
+    variableValue: ReadonlyDict<K, V>
+  ): void
+  setLocalVariable<
+    T extends
+      | 'bool'
+      | 'config_id'
+      | 'entity'
+      | 'faction'
+      | 'float'
+      | 'guid'
+      | 'int'
+      | 'prefab_id'
+      | 'str'
+      | 'vec3'
+      | 'bool_list'
+      | 'config_id_list'
+      | 'entity_list'
+      | 'faction_list'
+      | 'float_list'
+      | 'guid_list'
+      | 'int_list'
+      | 'prefab_id_list'
+      | 'str_list'
+      | 'vec3_list'
+  >(variableName: StrValue, variableValue: RuntimeParameterValueTypeMap[T]): void
+  setLocalVariable(variableName: StrValue, variableValue: unknown): void {
+    const variableNameObj = parseValue(variableName, 'str')
+    let variableValueObj: value
+    if (variableValue instanceof dict) {
+      variableValueObj = parseValue(variableValue, 'dict')
+    } else {
+      const genericType = matchTypes(
+        [
+          'float',
+          'int',
+          'bool',
+          'config_id',
+          'entity',
+          'faction',
+          'guid',
+          'prefab_id',
+          'str',
+          'vec3'
+        ],
+        variableValue
+      )
+      variableValueObj =
+        variableValue instanceof list
+          ? parseValue(
+              variableValue,
+              (genericType + '_list') as keyof CommonLiteralValueListTypeMap
+            )
+          : parseValue(variableValue, genericType)
+    }
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_local_variable',
+      args: [variableNameObj, variableValueObj]
     })
   }
 

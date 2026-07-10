@@ -118,6 +118,10 @@ const HAND_NODE_TYPES = new Set([
   'data_type_conversion',
   'get_custom_variable',
   'send_signal_to_server_node_graph',
+  // 局部变量节点：cid 恒定（2000/1036），变量类型只体现在值引脚 type/ioc 上，
+  // 用服务器对齐模板（客户端以变量名定位，值走泛型匹配）
+  'get_local_variable',
+  'set_local_variable',
   // 字典反射节点：键/值类型不体现在 cid/引脚变体上，样本推导必然产生假确定
   // 类型（如 entity[] vs bigint[] 漂移），改为服务器对齐的泛型手写模板
   'get_list_of_values_from_dictionary',
@@ -1608,6 +1612,97 @@ function emitGetCustomVariable(subType: string, doc: AlignedDocNode | undefined)
   }`
 }
 
+/** 局部变量值支持的 20 种基础类型（与服务器 setLocalVariable 泛型约束一致） */
+const LOCAL_VAR_VALUE_TYPES = [
+  'bool',
+  'config_id',
+  'entity',
+  'faction',
+  'float',
+  'guid',
+  'int',
+  'prefab_id',
+  'str',
+  'vec3',
+  'bool_list',
+  'config_id_list',
+  'entity_list',
+  'faction_list',
+  'float_list',
+  'guid_list',
+  'int_list',
+  'prefab_id_list',
+  'str_list',
+  'vec3_list'
+] as const
+
+/** 获取局部变量：变量名定位、值类型由输出连线推断（与 getCustomVariable 同构） */
+function emitGetLocalVariable(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '变量名')
+  return `${controlFlowJsdoc(
+    doc,
+    '获取局部变量',
+    [{ ident: 'variableName', en: p0.en, zh: p0.zh }],
+    { en: 'Variable value', zh: '变量值' }
+  )}
+  getLocalVariable(variableName: StrValue): generic {
+    const variableNameObj = parseValue(variableName, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_local_variable',
+      args: [variableNameObj]
+    })
+    const ret = new generic()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret
+  }`
+}
+
+/**
+ * 设置局部变量：与服务器 setLocalVariable 同款值类型匹配（10 标量 + 10 列表），
+ * 另支持字典值（语料 ioc=20 实证）；客户端节点以变量名定位而非变量句柄。
+ */
+function emitSetLocalVariable(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '变量名')
+  const p1 = docParamTextByZhName(doc, '变量值')
+  const typeUnion = LOCAL_VAR_VALUE_TYPES.map((t) => `'${t}'`).join(' | ')
+  return `${controlFlowJsdoc(doc, '设置局部变量', [
+    { ident: 'variableName', en: p0.en, zh: p0.zh },
+    { ident: 'variableValue', en: p1.en, zh: p1.zh }
+  ])}
+  setLocalVariable<K extends DictKeyType, V extends DictValueType>(
+    variableName: StrValue,
+    variableValue: ReadonlyDict<K, V>
+  ): void
+  setLocalVariable<T extends ${typeUnion}>(
+    variableName: StrValue,
+    variableValue: RuntimeParameterValueTypeMap[T]
+  ): void
+  setLocalVariable(variableName: StrValue, variableValue: unknown): void {
+    const variableNameObj = parseValue(variableName, 'str')
+    let variableValueObj: value
+    if (variableValue instanceof dict) {
+      variableValueObj = parseValue(variableValue, 'dict')
+    } else {
+      const genericType = matchTypes(
+        ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'prefab_id', 'str', 'vec3'],
+        variableValue
+      )
+      variableValueObj =
+        variableValue instanceof list
+          ? parseValue(variableValue, (genericType + '_list') as keyof CommonLiteralValueListTypeMap)
+          : parseValue(variableValue, genericType)
+    }
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_local_variable',
+      args: [variableNameObj, variableValueObj]
+    })
+  }`
+}
+
 /** 按中文参数名取入参双语 JSDoc 文本（docParamText 只取首个入参，不适用于多参节点） */
 function docParamTextByZhName(
   doc: AlignedDocNode | undefined,
@@ -2108,6 +2203,14 @@ export function generateClientNodes(
         case 'send_signal_to_server_node_graph':
           texts.push(emitSendSignalToServer(doc))
           names.push('sendSignalToServerNodeGraph')
+          break
+        case 'get_local_variable':
+          texts.push(emitGetLocalVariable(doc))
+          names.push('getLocalVariable')
+          break
+        case 'set_local_variable':
+          texts.push(emitSetLocalVariable(doc))
+          names.push('setLocalVariable')
           break
         case 'get_list_of_values_from_dictionary':
           texts.push(emitGetListOfValuesFromDictionary(doc))

@@ -28,6 +28,7 @@ import {
   CLIENT_VAR_TYPE_BY_IR_TYPE,
   customVariableTypeOffset,
   DICT_REFLECT_NODE_TYPES,
+  LOCAL_VARIABLE_NODE_TYPES,
   resolveClientConcreteVariant,
   resolveClientNodeMetadata
 } from './client_nodes.js'
@@ -112,6 +113,7 @@ function irTypeOfArg(arg: IrArg | undefined): string | undefined {
 /** 输出类型由连线推断的反射节点（变量读取 + 字典取值/取键/取值列表） */
 const OUTPUT_INFERRED_NODE_TYPES = new Set([
   'get_custom_variable',
+  'get_local_variable',
   'get_list_of_values_from_dictionary',
   'get_list_of_keys_from_dictionary',
   'query_dictionary_value_by_key'
@@ -281,6 +283,105 @@ function applyCustomVariableOutPin(node: ClientGiaNode, outIrType: string | unde
   if (!outPin) return
   outPin.type = clientVarType
   outPin.value = client_wrapped_value(offset, client_value_base(clientVarType))
+}
+
+/**
+ * 局部变量值/输出引脚 indexOfConcrete 表（get 200082 / set 200081 全语料普查）：
+ * 标量头按列表块同款类型序 int/str/entity/guid/float/vec3/bool 排列
+ * （实测 int=0、str=1、entity=2、vec3=5，guid/float/bool 按该序推断），
+ * 列表块 7..13 与配置/元件/阵营/字典 14..20 与自定义变量类型序表一致
+ * （实测 int_list=7、entity_list=9、prefabId_list=17、faction=18、dict=20）。
+ */
+const LOCAL_VAR_IOC_BY_IR: Record<string, number> = {
+  int: 0,
+  str: 1,
+  entity: 2,
+  guid: 3,
+  float: 4,
+  vec3: 5,
+  bool: 6,
+  int_list: 7,
+  str_list: 8,
+  entity_list: 9,
+  guid_list: 10,
+  float_list: 11,
+  vec3_list: 12,
+  bool_list: 13,
+  config_id: 14,
+  prefab_id: 15,
+  config_id_list: 16,
+  prefab_id_list: 17,
+  faction: 18,
+  faction_list: 19,
+  dict: 20
+}
+
+/**
+ * 局部变量节点：cid 恒定（设置 2000 / 获取 1036），变量类型只体现在值引脚
+ * type + ConcreteBase.ioc 上。变量名(t9)引脚为普通字符串字面量（无 ioc 包裹）；
+ * 设置节点值引脚按参数 IR 类型定型，获取节点出参按输出连线类型定型
+ * （与自定义变量同思路）。空变量名保持编辑器默认占位（语料未命名节点同形）。
+ */
+function applyLocalVariableNode(
+  node: ClientGiaNode,
+  irNode: IRNode,
+  metadata: ClientNodeMetadata,
+  outIrType: string | undefined
+) {
+  const fail = (msg: string) =>
+    clientNodegraphError(
+      CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
+      `${metadata.subType}.${irNode.type} ${msg}`
+    )
+
+  const nameArg = irNode.args?.[0]
+  if (isValueArg(nameArg) && String(nameArg.value) !== '') {
+    const namePin = findInPin(node, 0)
+    if (namePin) {
+      namePin.type = 9
+      namePin.value = client_literal_value(9, String(nameArg.value))
+    }
+  }
+
+  const typedPin = (irType: string, arg: IrArg | undefined) => {
+    const clientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[irType]
+    const ioc = LOCAL_VAR_IOC_BY_IR[irType]
+    if (clientVarType === undefined || ioc === undefined) {
+      throw fail(`unsupported variable type "${irType}"`)
+    }
+    const inner =
+      isValueArg(arg) && Array.isArray(arg.value) && irType.endsWith('_list')
+        ? client_list_literal_value(
+            clientVarType,
+            arg.value.map((v) => toPinLiteral(clientVarType, v, 1, irNode.type))
+          )
+        : isValueArg(arg)
+          ? client_literal_value(clientVarType, toPinLiteral(clientVarType, arg.value, 1, irNode.type))
+          : client_value_base(clientVarType)
+    return { clientVarType, value: client_wrapped_value(ioc, inner) }
+  }
+
+  if (irNode.type === 'set_local_variable') {
+    const valueArg = irNode.args?.[1]
+    const irType = irTypeOfArg(valueArg ?? undefined)
+    if (!irType) throw fail('cannot resolve value type from args')
+    const pin = findInPin(node, 1)
+    if (pin) {
+      const typed = typedPin(irType, valueArg ?? undefined)
+      pin.type = typed.clientVarType
+      pin.value = typed.value
+    }
+    return
+  }
+
+  // get_local_variable：出参恒为连线（数据节点无消费者时已被剪枝）
+  if (!outIrType) throw fail('cannot infer output type from connections')
+  const outPin = findOutPin(node, 0)
+  if (outPin) {
+    const typed = typedPin(outIrType, undefined)
+    outPin.type = typed.clientVarType
+    outPin.value = typed.value
+  }
 }
 
 /**
@@ -681,6 +782,10 @@ function applySpecialArgs(
   }
   if (DICT_REFLECT_NODE_TYPES.has(irNode.type)) {
     applyDictReflectNode(node, irNode, metadata, inferredOutType)
+    return true
+  }
+  if (LOCAL_VARIABLE_NODE_TYPES.has(irNode.type)) {
+    applyLocalVariableNode(node, irNode, metadata, inferredOutType)
     return true
   }
   if (irNode.type === 'assembly_dictionary') {
