@@ -2411,16 +2411,24 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getEntityTypeList(): EntityType[] {
+  getEntityTypeList(types?: EntityType[]): EntityType[] {
+    if (types && types.length > 10) {
+      throw new Error(`[error] getEntityTypeList: expected at most 10 types, got ${types.length}`)
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_entity_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -2814,16 +2822,26 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getRayFilterTypeList(): RayFilterType[] {
+  getRayFilterTypeList(types?: RayFilterType[]): RayFilterType[] {
+    if (types && types.length > 10) {
+      throw new Error(
+        `[error] getRayFilterTypeList: expected at most 10 types, got ${types.length}`
+      )
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_ray_filter_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -9278,16 +9296,24 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getEntityTypeList(): EntityType[] {
+  getEntityTypeList(types?: EntityType[]): EntityType[] {
+    if (types && types.length > 10) {
+      throw new Error(`[error] getEntityTypeList: expected at most 10 types, got ${types.length}`)
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_entity_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -9866,16 +9892,26 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getRayFilterTypeList(): RayFilterType[] {
+  getRayFilterTypeList(types?: RayFilterType[]): RayFilterType[] {
+    if (types && types.length > 10) {
+      throw new Error(
+        `[error] getRayFilterTypeList: expected at most 10 types, got ${types.length}`
+      )
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_ray_filter_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -16061,16 +16097,24 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getEntityTypeList(): EntityType[] {
+  getEntityTypeList(types?: EntityType[]): EntityType[] {
+    if (types && types.length > 10) {
+      throw new Error(`[error] getEntityTypeList: expected at most 10 types, got ${types.length}`)
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_entity_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -16443,16 +16487,26 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getRayFilterTypeList(): RayFilterType[] {
+  getRayFilterTypeList(types?: RayFilterType[]): RayFilterType[] {
+    if (types && types.length > 10) {
+      throw new Error(
+        `[error] getRayFilterTypeList: expected at most 10 types, got ${types.length}`
+      )
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_ray_filter_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -28361,16 +28415,24 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getEntityTypeList(): EntityType[] {
+  getEntityTypeList(types?: EntityType[]): EntityType[] {
+    if (types && types.length > 10) {
+      throw new Error(`[error] getEntityTypeList: expected at most 10 types, got ${types.length}`)
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_entity_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -28707,16 +28769,26 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getRayFilterTypeList(): RayFilterType[] {
+  getRayFilterTypeList(types?: RayFilterType[]): RayFilterType[] {
+    if (types && types.length > 10) {
+      throw new Error(
+        `[error] getRayFilterTypeList: expected at most 10 types, got ${types.length}`
+      )
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_ray_filter_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -30911,16 +30983,24 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 获取实体类型列表: 将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getEntityTypeList(): EntityType[] {
+  getEntityTypeList(types?: EntityType[]): EntityType[] {
+    if (types && types.length > 10) {
+      throw new Error(`[error] getEntityTypeList: expected at most 10 types, got ${types.length}`)
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_entity_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)
@@ -31257,16 +31337,26 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 获取射线筛选类型列表: 将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞
    *
+   * @param types Types to assemble into the list (up to 10)
+   *
+   * 类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值
+   *
    * @returns
    *
    * 列表
    */
-  getRayFilterTypeList(): RayFilterType[] {
+  getRayFilterTypeList(types?: RayFilterType[]): RayFilterType[] {
+    if (types && types.length > 10) {
+      throw new Error(
+        `[error] getRayFilterTypeList: expected at most 10 types, got ${types.length}`
+      )
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
       nodeType: 'get_ray_filter_type_list',
-      args: []
+      args: typeObjs
     })
     const ret = new list('enum')
     ret.markPin(ref, 'list', 0)

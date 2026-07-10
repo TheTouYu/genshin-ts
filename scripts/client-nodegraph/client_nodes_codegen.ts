@@ -127,7 +127,11 @@ const HAND_NODE_TYPES = new Set([
   'query_if_dictionary_contains_specific_value',
   // 字典构造节点：cid 恒定（1048/1049），同样用服务器对齐泛型模板
   'assembly_dictionary',
-  'create_dictionary'
+  'create_dictionary',
+  // 类型列表构造节点：文档零入参但样本有 1 数量 + 10 枚举隐藏引脚，
+  // 手写模板暴露可选 types 参数（省略时与编辑器默认行为一致）
+  'get_entity_type_list',
+  'get_ray_filter_type_list'
 ])
 
 // ---------------------------------------------------------------------------
@@ -1938,6 +1942,44 @@ ${overloads.join('\n')}
   }`
 }
 
+// ---------------------------------------------------------------------------
+// Type list builders (hidden pins)
+//
+// 获取实体类型列表 / 获取射线筛选类型列表：官方文档零入参，但样本节点带
+// 1 个数量引脚 + 10 个枚举槽（编辑器隐藏引脚，语料 结构采样_…_攻击盒 填值
+// 实证）。方法暴露可选 types 参数；省略时保持引脚默认值（与旧零参行为一致）。
+// ---------------------------------------------------------------------------
+
+function emitTypeListBuilder(
+  doc: AlignedDocNode | undefined,
+  methodName: string,
+  nodeType: string,
+  zhName: string,
+  enumClass: string
+): string {
+  return `${controlFlowJsdoc(
+    doc,
+    zhName,
+    [{ ident: 'types', en: 'Types to assemble into the list (up to 10)', zh: '类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值' }],
+    docReturnText(doc, '列表')
+  )}
+  ${methodName}(types?: ${enumClass}[]): ${enumClass}[] {
+    if (types && types.length > 10) {
+      throw new Error(\`[error] ${methodName}: expected at most 10 types, got \${types.length}\`)
+    }
+    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: '${nodeType}',
+      args: typeObjs
+    })
+    const ret = new list('enum')
+    ret.markPin(ref, 'list', 0)
+    return ret as unknown as ${enumClass}[]
+  }`
+}
+
 function emitSendSignalToServer(doc: AlignedDocNode | undefined): string {
   return `${controlFlowJsdoc(doc, '向服务器节点图发送信号', [{ ident: 'signalName', en: 'Signal name', zh: '信号名' }])}
   sendSignalToServerNodeGraph(signalName: StrValue): void {
@@ -2094,6 +2136,18 @@ export function generateClientNodes(
         case 'create_dictionary':
           texts.push(emitCreateDictionary(doc))
           names.push('createDictionary')
+          break
+        case 'get_entity_type_list':
+          texts.push(
+            emitTypeListBuilder(doc, 'getEntityTypeList', 'get_entity_type_list', '获取实体类型列表', 'EntityType')
+          )
+          names.push('getEntityTypeList')
+          break
+        case 'get_ray_filter_type_list':
+          texts.push(
+            emitTypeListBuilder(doc, 'getRayFilterTypeList', 'get_ray_filter_type_list', '获取射线筛选类型列表', 'RayFilterType')
+          )
+          names.push('getRayFilterTypeList')
           break
       }
       continue

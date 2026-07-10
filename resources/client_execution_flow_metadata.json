@@ -3258,34 +3258,6 @@
     }
   },
   {
-    "methodName": "getEntityTypeList",
-    "nodeType": "get_entity_type_list",
-    "subTypes": [
-      "bool_filter",
-      "character_control_skill",
-      "character_skill",
-      "creation_skill",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [],
-    "returns": [
-      {
-        "name": "list",
-        "irType": "enum_list",
-        "docZh": "列表",
-        "docEn": "List"
-      }
-    ],
-    "docs": {
-      "en": "Assembles the required Entity types into a List. Types include Stages, Objects, Players, Characters, and Creations",
-      "zh": "将所需的实体类型拼装为一个列表。类型分为关卡、物件、玩家、角色、造物"
-    }
-  },
-  {
     "methodName": "getListLength",
     "nodeType": "get_list_length",
     "subTypes": [
@@ -3976,34 +3948,6 @@
     "docs": {
       "en": "Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray",
       "zh": "获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置"
-    }
-  },
-  {
-    "methodName": "getRayFilterTypeList",
-    "nodeType": "get_ray_filter_type_list",
-    "subTypes": [
-      "bool_filter",
-      "character_control_skill",
-      "character_skill",
-      "creation_skill",
-      "int_filter"
-    ],
-    "modes": [
-      "beyond"
-    ],
-    "kind": "data",
-    "params": [],
-    "returns": [
-      {
-        "name": "list",
-        "irType": "enum_list",
-        "docZh": "列表",
-        "docEn": "List"
-      }
-    ],
-    "docs": {
-      "en": "Assembles the required Ray Filter types into a List. Available filters include Hurtbox, Scene, and Object Self-Collision",
-      "zh": "将所需的射线筛选类型拼装为一个列表。可筛选项有受击盒、场景、物件自身碰撞"
     }
   },
   {

@@ -485,6 +485,36 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
   }
 }
 
+/** 类型列表构造节点：pin0 数量 + pin1..10 枚举槽（编辑器隐藏引脚） */
+const TYPE_LIST_BUILDER_NODE_TYPES = new Set(['get_entity_type_list', 'get_ray_filter_type_list'])
+
+/**
+ * 类型列表构造：数量与引脚默认值不同（实体默认 1、射线默认 0）时按字面量
+ * 置位（语料：数量=默认时 alreadySetVal=false）；字面量枚举槽写 plain t13
+ * 字面量，连线槽由数据连线阶段补 connects、槽值保持定型 unset（语料同形）。
+ */
+function applyTypeListBuilder(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+  const args = irNode.args ?? []
+  if (args.length > 10) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.${irNode.type} expects at most 10 types, got ${args.length}`
+    )
+  }
+  if (args.length === 0) return
+  const defaultCount = Number(metadata.inputs.find((p) => p.index === 0)?.defaultValue ?? 0)
+  if (args.length !== defaultCount) {
+    const countPin = findInPin(node, 0)
+    if (countPin) countPin.value = client_literal_value(3, args.length)
+  }
+  args.forEach((arg, idx) => {
+    if (!isValueArg(arg)) return
+    const pin = findInPin(node, idx + 1)
+    if (!pin) return
+    pin.value = client_literal_value(13, toPinLiteral(13, arg.value, idx, irNode.type))
+  })
+}
+
 /**
  * 枚举匹配字面量的类反推：值 key 以类名 snake 前缀开头（如
  * scan_status_candidate_target）；折叠下划线比较以磨平 conn.enum 逐字母
@@ -615,6 +645,10 @@ function applySpecialArgs(
   }
   if (irNode.type === 'create_dictionary') {
     applyCreateDictionary(node, irNode, metadata)
+    return true
+  }
+  if (TYPE_LIST_BUILDER_NODE_TYPES.has(irNode.type)) {
+    applyTypeListBuilder(node, irNode, metadata)
     return true
   }
   if (irNode.type === 'enumeration_match') {

@@ -31,11 +31,13 @@ g.characterSkill({ id: 1082130440, name: 'DictNodes' }).on('start', (_evt, f) =>
   const keys = f.getListOfKeysFromDictionary(d3)
   const hasKey = f.queryIfDictionaryContainsSpecificKey(d3, self)
   const hasValue = f.queryIfDictionaryContainsSpecificValue(d3, 7n)
-  // 拼装字典：int 键 + vec3 值字面量（语料 字典_Integer到Vector_连线 同形；
-  // vec3 标量重载与服务器一致要求类实例，裸 [x,y,z] 会命中 float_list）
+  // 拼装字典：int 键 + vec3 值，前两对字面量 + 第三对连线（语料 拼装字典_连线
+  // 连线槽同 ioc、inner 未置值；vec3 标量重载与服务器一致要求类实例，
+  // 裸 [x,y,z] 会命中 float_list）
   const d4 = f.assemblyDictionary([
     { k: 5n, v: new vec3([1, 2, 3]) },
-    { k: 6n, v: new vec3([4, 5, 6]) }
+    { k: 6n, v: new vec3([4, 5, 6]) },
+    { k: f.getListLength(keys), v: posOfSelf }
   ])
   const posFromD4 = f.queryDictionaryValueByKey(d4, 5n)
   // 建立字典：连线 entity 键列表 + int 值列表（语料 建立字典_连线 同形）
@@ -186,18 +188,33 @@ checkNode(
   3
 )
 // assembly gid=200152 cid=1048：count = kv 参数总数（plain int，语料 拼装字典_连线 同形），
-// 奇槽键 t3 ioc2 / 偶槽值 t11 ioc7，已填槽 innerSet=true，未用槽保持定型 unset
-checkNode('assembly int->vec3 (2 pairs)', 200152, 1048, [
-  { kind: 3, index: 0, type: 3, plainInt: 4 },
+// 奇槽键 t3 ioc2 / 偶槽值 t11 ioc7，字面量槽 innerSet=true、连线槽与未用槽 unset
+checkNode('assembly int->vec3 (2 literal + 1 wired pairs)', 200152, 1048, [
+  { kind: 3, index: 0, type: 3, plainInt: 6 },
   { kind: 3, index: 1, type: 3, ioc: 2, innerSet: true },
   { kind: 3, index: 2, type: 11, ioc: 7, innerSet: true },
   { kind: 3, index: 3, type: 3, ioc: 2, innerSet: true },
   { kind: 3, index: 4, type: 11, ioc: 7, innerSet: true },
   { kind: 3, index: 5, type: 3, ioc: 2, innerSet: false },
+  { kind: 3, index: 6, type: 11, ioc: 7, innerSet: false },
+  { kind: 3, index: 7, type: 3, ioc: 2, innerSet: false },
   { kind: 3, index: 99, type: 3, ioc: 2, innerSet: false },
   { kind: 3, index: 100, type: 11, ioc: 7, innerSet: false },
   { kind: 4, index: 0, type: 24, ioc: 0 }
 ])
+// 连线槽必须带 connects（k#5 键、k#6 值）
+{
+  const asm = nodes.find((n: any) => Number(n.genericId?.nodeId) === 200152)!
+  for (const idx of [5, 6]) {
+    const pin = (asm.pins ?? []).find(
+      (p: any) => Number(p.i1?.kind) === 3 && Number(p.i1?.index) === idx
+    )
+    assert.ok(
+      (pin?.connects ?? []).length > 0,
+      `assembly wired slot k3#${idx} missing connects`
+    )
+  }
+}
 // create gid=200153 cid=1049：entity 键列表 t2 ioc0 + int 值列表 t4 ioc2（语料 建立字典_连线 同形）
 checkNode('create entity_list+int_list', 200153, 1049, [
   { kind: 3, index: 0, type: 2, ioc: 0, innerSet: false },
