@@ -488,6 +488,50 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
 /** 类型列表构造节点：pin0 数量 + pin1..10 枚举槽（编辑器隐藏引脚） */
 const TYPE_LIST_BUILDER_NODE_TYPES = new Set(['get_entity_type_list', 'get_ray_filter_type_list'])
 
+/** enum_list 字面量可展开的构造节点，按枚举值 key 前缀识别类 */
+const TYPE_LIST_BUILDER_BY_ENUM_PREFIX = [
+  { prefix: 'entity_type_', nodeType: 'get_entity_type_list' },
+  { prefix: 'ray_filter_type_', nodeType: 'get_ray_filter_type_list' }
+] as const
+
+/**
+ * enum_list 字面量语法糖（服务器 expandListLiterals 同思路）：编辑器不提供
+ * enum_list 字面量勾选（语料全部为空占位+连线），字面量枚举数组自动展开为
+ * 获取实体类型列表 / 获取射线筛选类型列表 节点并建立连线。
+ */
+function expandEnumListLiterals(nodes: IRNode[], subType: string): IRNode[] {
+  const out = [...nodes]
+  let nextId = Math.max(...nodes.map((n) => n.id)) + 1
+  for (const node of nodes) {
+    for (const [idx, arg] of (node.args ?? []).entries()) {
+      if (!isValueArg(arg) || arg.type !== 'enum_list' || !Array.isArray(arg.value)) continue
+      const keys = arg.value as unknown[]
+      const builder = TYPE_LIST_BUILDER_BY_ENUM_PREFIX.find((b) =>
+        keys.every((k) => typeof k === 'string' && k.startsWith(b.prefix))
+      )
+      if (!keys.length || keys.length > 10 || !builder) {
+        throw clientNodegraphError(
+          CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
+          `${subType}.${node.type} arg #${idx}: enum list literals must be 1-10 values of ` +
+            `EntityType or RayFilterType (the editor only wires these pins from type list ` +
+            `builder nodes), got ${JSON.stringify(arg.value)}`
+        )
+      }
+      const newId = nextId++
+      out.push({
+        id: newId,
+        type: builder.nodeType,
+        args: keys.map((k) => ({ type: 'enum', value: k }))
+      } as IRNode)
+      node.args![idx] = {
+        type: 'conn',
+        value: { node_id: newId, index: 0, type: 'enum_list' }
+      } as IrArg
+    }
+  }
+  return out
+}
+
 /**
  * 类型列表构造：数量与引脚默认值不同（实体默认 1、射线默认 0）时按字面量
  * 置位（语料：数量=默认时 alreadySetVal=false）；字面量枚举槽写 plain t13
@@ -741,8 +785,9 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph.name ?? '_GSTS_Generated_Client_Graph'
   const uid = opts.uid ?? 100000001
-  const nodes = ir.nodes ?? []
-  if (!nodes.length) throw new Error('IR document must have at least one node')
+  if (!ir.nodes?.length) throw new Error('IR document must have at least one node')
+  const nodes = expandEnumListLiterals(ir.nodes, ir.graph.sub_type)
+  ir = { ...ir, nodes }
 
   const graphInfo = buildExecutionGraph(nodes)
   const positions = layoutPositions(nodes, graphInfo)

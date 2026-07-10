@@ -39,6 +39,12 @@ g.characterSkill({ id: 1082130440, name: 'TypeListBuilders' }).on('start', (_evt
   const ray3 = f.getRayDetectionResult(
     self, [0, 0, 0], [0, 0, 1], 10, TargetType.None, mixedTypes, rayFilters
   )
+  // 字面量数组语法糖：转换器自动展开为类型列表构造节点并连线
+  // （编辑器不提供 enum_list 字面量勾选，语料全部为空占位+连线）
+  const ray4 = f.getRayDetectionResult(
+    self, [0, 0, 0], [0, 0, 1], 10, TargetType.None,
+    [EntityType.Stage, EntityType.Creation], [RayFilterType.ObjectSelfCollision]
+  )
   f.doubleBranch(
     f.equal(ray1.onHitLocation, [0, 0, 0]),
     () => f.forceExitAimingState(),
@@ -50,7 +56,12 @@ g.characterSkill({ id: 1082130440, name: 'TypeListBuilders' }).on('start', (_evt
           f.doubleBranch(
             f.equal(ray3.onHitLocation, [0, 0, 0]),
             () => f.forceExitAimingState(),
-            () => f.forceExitAimingState()
+            () =>
+              f.doubleBranch(
+                f.equal(ray4.onHitLocation, [0, 0, 0]),
+                () => f.forceExitAimingState(),
+                () => f.forceExitAimingState()
+              )
           )
       )
   )
@@ -134,6 +145,37 @@ checkBuilder('ray filter default (no args)', 200110, 1, [
   { index: 1, enum: 0, set: false },
   { index: 10, enum: 0, set: false }
 ])
+// 字面量数组语法糖：合成的构造节点（追加在原节点之后）
+checkBuilder('entity literal-array sugar', 200050, 3, [
+  { index: 0, int: 2, set: true },
+  { index: 1, enum: 1401, set: true },
+  { index: 2, enum: 1405, set: true },
+  { index: 3, enum: 0, set: false }
+])
+checkBuilder('ray filter literal-array sugar', 200110, 2, [
+  { index: 0, int: 1, set: true },
+  { index: 1, enum: 2605, set: true },
+  { index: 2, enum: 0, set: false }
+])
+// 合成节点的输出必须连到消费者（获取射线检测结果 200109 第 4 实例 in#5/in#6；
+// 语料中数据连线只记录在输入侧，构造节点出参无 connects），
+// 消费者引脚保持空占位（语料：enum_list 无字面量勾选）
+{
+  const ray4 = nodes.filter((n: any) => Number(n.genericId?.nodeId) === 200109)[3]
+  assert.ok(ray4, 'ray detection consumer #3 missing')
+  for (const idx of [5, 6]) {
+    const pin = (ray4.pins ?? []).find(
+      (p: any) => Number(p.i1?.kind) === 3 && Number(p.i1?.index) === idx
+    )
+    assert.ok((pin?.connects ?? []).length > 0, `consumer in#${idx} not wired`)
+    assert.strictEqual(
+      Boolean(pin?.value?.alreadySetVal),
+      false,
+      `consumer in#${idx} must keep empty placeholder`
+    )
+  }
+  console.log('[ok] enum_list literal-array sugar wired to synthesized builders')
+}
 
 fs.rmSync(OUT_FILE, { force: true })
 console.log('[ok] type list builder encoding verified (entity + ray filter)')
