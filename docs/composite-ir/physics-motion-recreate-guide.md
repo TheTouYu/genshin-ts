@@ -384,6 +384,7 @@ doubleBranches=2
 - 外层 OutFlow 直接映射到 nested `顺序执行.OutFlow[3]`。
 - `顺序执行.OutFlow[0]` 生成物理 pin `compositePinIndex=514` 并连接清零 `额外压力`。
 - `Get Node Graph Variable("w"/"v")` 使用 vec3 concreteId 348，`额外压力` 使用 float concreteId 341。
+- `更新速度`、`更新角速度` 的 `capture: true` 父输入不再生成物理 InParam，两个 nested call 均为 `pins=[]`；`更新间隔` 仍通过两条 impl `compositePins` 路由到逻辑 `InParam[0]`。自动回归见 `tests/composite/test-nested-composite-capture-pins.ts`。
 
 注入命令：
 
@@ -398,7 +399,7 @@ node bin/gsts.mjs -c gsts.physics-motion.config.ts dist/tests/layout/physics-mot
 
 ### 5.4 当前剩余差异
 
-1. `更新速度`、`更新角速度` 的父输入 `capture: true` 当前仍生成物理 InParam；真实文件通过 compositePins 路由，两个调用节点应为 `pins=[]`。主体游戏内核验已通过，本轮未继续修，下一轮应补 Stage 3 capture 跳过规则和回归。
-2. 5 个子复合尚未实现真实算法，只完成真实接口与代理输出。
-3. 布局垂直方向过松，需下一轮小步调参和多复合回归。
+1. 5 个子复合尚未实现真实算法，只完成真实接口与代理输出。
+2. 布局垂直方向过松，需下一轮小步调参和多复合回归。
+3. nested capture 物理 pin 差异已修复；修复后的整图已于 2026-07-10 显式注入，用户确认游戏内测试通过。
 4. 本轮暴露出文档和技能的知识冲突：旧 `dsl-api.md` 曾误写 build 内不支持嵌套复合，而当前实现、真实 GIA 和回归均已支持。该段已修正，导航 skill 也新增顺序执行/嵌套 OutFlow 的三层核验规则。

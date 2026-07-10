@@ -754,14 +754,14 @@ function buildImplNodePins(
     return { pins: vendorPins, dataConns: [] }
   }
 
-  // __composite_call__ 节点：为每个实际传入的 input 创建物理 pin。
-  // conn 输入需要后续填充 connects；literal 输入需要保留具体值，否则游戏内会缺 pin。
+  // __composite_call__ 节点：为每个非 capture input 创建物理 pin。
+  // capture input 由 compositePins 路由；其余 conn/literal 输入仍需保留物理 pin。
   if (node.type === '__composite_call__') {
     if (calledDef) {
       const callArgs = (node.args as any) ?? []
       for (let ai = 1; ai < callArgs.length; ai++) {
         const arg = callArgs[ai]
-        if (!arg) continue
+        if (!arg || (arg as any).capture === true) continue
         const inputIdx = ai - 1
         // 从子复合的输入定义中取类型和 pinIndex
         let cpi: number | undefined

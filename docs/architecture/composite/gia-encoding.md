@@ -191,6 +191,8 @@ compositePins: [{
 
 capture 输入虽然不生成物理 InParam pin，但仍占用原始参数序号。Stage 3 跳过 capture 参数时必须保留 pin index 空洞；例如 `get_custom_variable(capturedEntity, name)` 的实体参数占 `InParam[0]`，变量名应编码到 `InParam[1]`，不能压缩到 index 0。
 
+同一规则适用于 impl 中的嵌套 `__composite_call__`：`args[0]` 仍是子复合 ID，`args[1..]` 中只有非 capture 输入生成物理 InParam；`capture: true` 输入保留逻辑 input index，并仅通过 impl Graph 的 `compositePins` 路由。针对性回归见 `tests/composite/test-nested-composite-capture-pins.ts`。
+
 ### 4.2 VarBase 值字段命名规则
 
 构建 VarBase 值时，protobuf 字段名由 `varClass` 决定（对应 `gia.proto` 中 `oneof value` 的字段名）：
