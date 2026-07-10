@@ -14,6 +14,12 @@
 
 3. **代码示例**：handover 中的代码片段是当时的实验性代码，可能使用了已弃用的 API 名称。实际开发以 `tests/composite/` 目录中的测试源码为准。
 
+## 当前编写入口
+
+- 新 handover 模板：[handover-template.md](handover-template.md)。默认一轮一个明确任务，以“下一轮目标”和“可用资源与执行边界”为主体。
+- 工作细节准则：[layout-working-rules.md](layout-working-rules.md)。每轮作为 P0 资源引用，按任务读取匹配小节，不要求预先加载全文。
+- 历史 handover 保持原样；不要为了套用新模板回写历史文档。
+
 ## 最近交接轮次一览
 
 > 通用布局协作规则、导出路径、复制命令和小步验证约定见：[layout-working-rules.md](layout-working-rules.md)。各轮 handover 应引用该文件，不再重复维护这些细节。
@@ -42,5 +48,6 @@
 | physics-r6  | [layout-handover-physics-motion-round-6.md](layout-handover-physics-motion-round-6.md)                 | `更新v、w` 外层拓扑、nested OutFlow 与知识治理 | 主体已游戏内验证并允许提交：完成 19 节点外层拓扑和 5 个代理子复合，修复 trace expand、detached marker 与 nested physical OutFlow；布局垂直过松和 nested capture 多余物理 pin 留待下一轮回归修复。 |
 | physics-r7  | [layout-handover-physics-motion-round-7.md](layout-handover-physics-motion-round-7.md)                 | nested capture 物理 pin 修复与游戏内回归 | 已自动验证并经用户游戏内测试通过：`更新速度`、`更新角速度` 调用为 `pins=[]`，`更新间隔` 仍通过两条 `compositePins` 路由；本轮未调整布局，下一轮小步收紧 impl 垂直间距并回归此前通过场景。 |
 | physics-r8  | [layout-handover-physics-motion-round-8.md](layout-handover-physics-motion-round-8.md)                 | composite impl 控制流泳道独立压缩 | 已自动验证并经用户游戏内测试通过：仅对 composite impl 的 `execNodes` 应用 `execLaneSpacingScale=0.6`，控制分支约收紧 40%，数据节点坐标、X 坐标、拓扑和 pin 保持不变；物理运动及五个历史布局回归 GIA 已归档。 |
-| physics-r9  | [layout-handover-physics-motion-round-9.md](layout-handover-physics-motion-round-9.md)                 | `计算分力` 复刻与 vec3 局部变量编码问题 | 部分完成、游戏内未通过：`计算分力` 真实复合层级已写入代码；typed getter 自动解码已到 `concreteId=2660`，但物理 OutParam index 与 concrete value 包装仍和真实 GIA 不一致。下一轮等待用户提供最小真实 getter GIA，先修通用 composite 编码，再继续其余三个算法复合。 |
+| physics-r9  | [layout-handover-physics-motion-round-9.md](layout-handover-physics-motion-round-9.md)                 | `计算分力` 复刻与 vec3 局部变量编码问题 | 历史过程：早期游戏内未通过；后续最小真实样本修复已完成，主图/复合路线及修正版物理整图均由用户确认游戏内通过。当前入口转到 physics-r10。 |
+| physics-r10 | [layout-handover-physics-motion-round-10.md](layout-handover-physics-motion-round-10.md)               | 完成剩余三个真实算法复合 | 当前推荐：依次实现 `更新速度`、`更新角速度`、`计算滚动角速度`，每个先自动对照，三者完成后显式注入物理整图供用户游戏内测试。 |
 | layout-next | [layout-handover-next-iteration.md](layout-handover-next-iteration.md)                             | 下一轮小步游戏内验证流程         | 早期下一轮入口，已被 layout-r11/r12/r13/r14/r15 继续推进；后续优先读最新 layout-r15，再按小步导出/游戏内反馈/通过后提交流程继续                                           |
