@@ -16,6 +16,7 @@ import {
   GraphUnit_Id_Class,
   NodeGraph_Id_Class,
   NodeGraph_Id_Kind,
+  NodePin_Index_Kind,
   NodeProperty_Type
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import {
@@ -616,6 +617,11 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     }
 
     filterUnkPins(giaNode)
+    if (nodeType === 'get_local_variable') {
+      giaNode.pins = giaNode.pins.filter(
+        (pin) => !(pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0)
+      )
+    }
 
     nodesById.set(irNode.id, giaNode)
     graph.add_node(giaNode)
@@ -795,6 +801,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
               n.pins = n.pins.filter((pin: any) => pin.i1?.kind !== 4)
             }
           }
+        }
+      }
+    }
+
+    // Local Variable 句柄 pin 只有类型和连接，真实 GIA 不序列化空 VarBase 值。
+    if (mainNodes) {
+      for (const node of mainNodes) {
+        for (const pin of node.pins ?? []) {
+          if (pin.type === 16) pin.value = null
         }
       }
     }

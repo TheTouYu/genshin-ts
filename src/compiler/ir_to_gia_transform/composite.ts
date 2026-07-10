@@ -362,6 +362,15 @@ function buildImplGraphNodes(
       node.type === 'get_custom_variable' && producedType
         ? resolveTypedImplNodeId(node.type, producedType)
         : undefined
+    const localVariableValueType =
+      node.type === 'get_local_variable'
+        ? producedType ?? getImplArgType(node.args?.[0])
+        : node.type === 'set_local_variable'
+          ? getImplArgType(node.args?.[1])
+          : undefined
+    const localVariableConcreteNid = localVariableValueType
+      ? resolveTypedImplNodeId(node.type, localVariableValueType)
+      : undefined
     const { pins, dataConns } = buildImplNodePins(
       node,
       implEdges,
@@ -369,7 +378,8 @@ function buildImplGraphNodes(
       implVariables,
       calledDef,
       gvConcreteNid,
-      customVariableConcreteNid
+      customVariableConcreteNid,
+      localVariableConcreteNid
     )
     allDataConns.push(...dataConns)
     return {
@@ -381,6 +391,7 @@ function buildImplGraphNodes(
       dtcConcreteNid: isDTC ? nodeId : undefined,
       gvConcreteNid,
       customVariableConcreteNid,
+      localVariableConcreteNid,
       nodeIndex: nodeIndexMap.get(node.id) ?? node.id
     }
   })
@@ -405,7 +416,8 @@ function buildImplGraphNodes(
     isDTC,
     dtcConcreteNid,
     gvConcreteNid,
-    customVariableConcreteNid
+    customVariableConcreteNid,
+    localVariableConcreteNid
   }) => {
     const outEdges = implEdges[node.id]
     if (outEdges && outEdges.length > 0) {
@@ -438,7 +450,9 @@ function buildImplGraphNodes(
           ? { ...genericId, nodeId: gvConcreteNid }
           : customVariableConcreteNid
             ? { ...genericId, nodeId: customVariableConcreteNid }
-            : { ...genericId },
+            : localVariableConcreteNid
+              ? { ...genericId, nodeId: localVariableConcreteNid }
+              : { ...genericId },
       pins,
       x: pos.x,
       y: pos.y,
@@ -540,6 +554,13 @@ function buildImplConnTypeIndex(
   return index
 }
 
+function getImplArgType(
+  arg: CompositeDefIR['implNodes'][number]['args'][number] | undefined
+): string | undefined {
+  if (!arg) return undefined
+  return arg.type === 'conn' ? (arg.value as { type?: string }).type : arg.type
+}
+
 function valueTypeSuffix(valueType: string): string | undefined {
   if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(valueType)) {
     return valueType
@@ -632,6 +653,7 @@ function argVarType(argType: string): number {
     case 'float': return VarType.Float
     case 'str': return VarType.String
     case 'vec3': return VarType.Vector
+    case 'local_variable': return VarType.LocalVariable
     case 'guid': return VarType.GUID
     case 'entity': return VarType.Entity
     case 'faction': return VarType.Faction
@@ -666,10 +688,96 @@ function buildImplNodePins(
   implVariables: CompositeDefIR['implVariables'],
   calledDef?: CompositeDefIR,
   gvConcreteNid?: number,
-  customVariableConcreteNid?: number
+  customVariableConcreteNid?: number,
+  localVariableConcreteNid?: number
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+
+  if (
+    (node.type === 'get_local_variable' || node.type === 'set_local_variable') &&
+    localVariableConcreteNid
+  ) {
+    const tmpGraph = new Graph('server', 0, '', 0)
+    const tmpNode = new Node(0, 'server', localVariableConcreteNid, undefined as any)
+    const pendingConns: Array<{
+      pinIndex: number
+      upstreamNodeId: number
+      upstreamPinIndex: number
+    }> = []
+
+    for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
+      const arg = node.args?.[argIndex]
+      if (!arg || (arg as any).capture === true) continue
+      if (arg.type === 'conn') {
+        const conn = arg.value as { node_id: number; index: number }
+        pendingConns.push({
+          pinIndex: argIndex,
+          upstreamNodeId: conn.node_id,
+          upstreamPinIndex: conn.index
+        })
+      } else {
+        const pin = tmpNode.pins.find(
+          (candidate) => candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
+        )
+        pin?.setVal(arg.value)
+      }
+    }
+
+    tmpNode.pins = (tmpNode.pins ?? []).filter(
+      (pin: any) =>
+        !(
+          node.type === 'get_local_variable' &&
+          pin.kind === NodePin_Index_Kind.OutParam &&
+          pin.index === 0
+        ) &&
+        !(
+          (pin?.kind === NodePin_Index_Kind.InParam ||
+            pin?.kind === NodePin_Index_Kind.OutParam) &&
+          pin?.type?.t === 'b' &&
+          pin?.type?.b === 'Unk'
+        )
+    )
+    tmpGraph.add_node(tmpNode)
+    const tmpRoot = tmpGraph.encode() as any
+    const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
+    const vendorPins = (encodedNode?.pins ?? []) as NodePin[]
+
+    for (const pin of vendorPins) {
+      ;(pin as any).connects = undefined
+      if (pin.type === VarType.LocalVariable) {
+        ;(pin as any).value = undefined
+      }
+    }
+    for (const conn of pendingConns) {
+      const pin = vendorPins.find(
+        (candidate: any) =>
+          candidate.i1?.kind === NodePin_Index_Kind.InParam &&
+          candidate.i1?.index === conn.pinIndex
+      )
+      if (!pin) continue
+      dataConns.push({
+        nodeId: node.id,
+        pin,
+        upstreamNodeId: conn.upstreamNodeId,
+        upstreamPinIndex: conn.upstreamPinIndex
+      })
+    }
+
+    const outEdges = implEdges[node.id]
+    if (outEdges && outEdges.length > 0) {
+      for (const [sourceIndex] of groupEdgesBySourceIndex(outEdges)) {
+        vendorPins.push({
+          i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          type: 0,
+          value: undefined as any
+        })
+      }
+    }
+
+    return { pins: vendorPins, dataConns }
+  }
 
   if (node.type === 'get_custom_variable' && customVariableConcreteNid) {
     const tmpGraph = new Graph('server', 0, '', 0)
@@ -1285,6 +1393,7 @@ function typeIdFromValueType(type: string): number {
     case 'float': return VarType.Float
     case 'str': return VarType.String
     case 'vec3': return VarType.Vector
+    case 'local_variable': return VarType.LocalVariable
     case 'guid': return VarType.GUID
     case 'entity': return VarType.Entity
     case 'prefab_id': return VarType.Prefab

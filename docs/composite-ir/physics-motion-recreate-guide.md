@@ -495,24 +495,36 @@ node bin/gsts.mjs -c gsts.physics-motion.config.ts dist/tests/layout/physics-mot
 
 Physics Round 8 已完成布局回归：composite impl 在共享布局完成后仅对 `execNodes` 应用 `execLaneSpacingScale=0.6`。`更新v、w` 中控制流分支相对 Y 收紧约 40%，数据节点坐标、所有 X 坐标、拓扑和 pin 保持不变。物理运动整图与五个历史主要布局场景均经用户游戏内验证通过。过程和归档文件见 [handover/layout-handover-physics-motion-round-8.md](handover/layout-handover-physics-motion-round-8.md)。
 
-### 5.4 `计算分力` 的局部变量编码问题（未完成）
+### 5.4 `计算分力` 的局部变量编码（最小样本游戏内通过）
 
-用户在游戏内核对 `计算分力` 层级时发现，输出 `F摩擦力` 所用 `Get Local Variable` 的输入和值输出不是三维向量，相关连线因此断开；后续层级中的同类节点也受相同问题影响。
+用户在游戏内核对 `计算分力` 层级时发现，输出 `F摩擦力` 所用 `Get Local Variable` 的输入和值输出不是三维向量，相关连线因此断开；后续层级中的同类节点也受相同问题影响。早期修复只把 typed node ID 改为 `2660`，没有对齐物理 pin 和 concrete value 包装，因此游戏内复测仍失败。
 
-第一轮排查确认：Stage 2 IR 已把 `get_local_variable` 的输入和消费者连接记录为 `vec3`。本轮修改 `src/compiler/ir_to_gia_transform/composite.ts`，令 `get_local_variable` 从值输出 `OutParam[1]` 而非句柄输出 `OutParam[0]` 推断 typed concreteId。自动 decode 随后看到 `slip_velocity`、`friction_force`、`计算分力` 三处均为 `genericId=18 / concreteId=2660`，其中 `2660` 是 `Get_Local_Variable__Vec`。
+2026-07-10 用户提供了同时包含主图和 composite impl 两条路线的最小真实样本：
 
-但是用户游戏内复测仍失败。因此这次修改只解决了 typed node ID，不是完整根因。进一步对比真实 GIA 后发现：
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/user_edit/变量/局部变量.gia
+```
 
-- 真实 vec3 getter 的 `InParam[0]`、`OutParam[1]` 都使用 `bConcreteValue.indexOfConcrete=6`。
-- 当前生成节点的 concrete value 包装和 index 仍不一致。
-- 当前 `friction_force` 内部 getter 的消费者引用 `OutParam[1]`，但物理节点只生成了 `OutParam[0]`，会直接造成端口不存在和断线。
-- 新增回归 `tests/composite/test-local-variable-impl-concrete-type.ts` 只检查 node ID 和 pin type，没有覆盖上述真实物理编码，所以测试通过但不足以证明游戏兼容。
+使用 `tools/decode-gia.ts` 解码并通过 `tests/composite/recreate-local-variable-reference.ts` 同构复刻后，确认 vec3 局部变量的真实编码为：
 
-下一轮等待用户提供一个最小化、由游戏编辑器导出的 `Get Local Variable(vec3)` GIA。拿到后应逐字段对比 `genericId`、`concreteId`、InParam/OutParam index、`bConcreteValue.indexOfConcrete` 和 connects，再修通用 composite impl pin 生成逻辑，不要在物理脚本中绕过该节点。
+- getter：`genericId=18`、`concreteId=2660`，物理 pin 为 `InParam[0]` 和值 `OutParam[1]`。
+- setter：`genericId=19`、`concreteId=2678`，句柄输入 `InParam[0].type=16` 连接 getter 逻辑 `OutParam[0]`，值输入 `InParam[1].type=12` 连接 `OutParam[1]`。
+- vec3 数据 pin 的 `bConcreteValue.indexOfConcrete=6`，内层为 `class=7/type=12`。
+- Local Variable 句柄 pin 的 `value=null`；getter 的句柄 `OutParam[0]` 可被连接和 compositePin 引用，但不序列化为实体物理 pin。
+
+通用修复位于 `src/compiler/ir_to_gia_transform/composite.ts` 和 `index.ts`。复合 getter/setter 复用 vendor typed pin 编码；setter 从第二个参数推断 concrete type，getter从值输出或初值参数推断；主图和复合 impl 均清理隐藏句柄物理 pin和空句柄值。
+
+`tests/composite/test-local-variable-impl-concrete-type.ts` 已扩充为真实最小复合形态，覆盖 concreteId、pin index/type、concrete wrapper、vec3 初值及两条消费者连接。重新生成 `dist/tests/layout/physics-motion/main.gia` 后，`slip_velocity`、`friction_force`、`计算分力` 三处 getter 均自动验证为 `18/2660`、`indexOfConcrete=6`、值输出 `OutParam[1]`，此前 `friction_force` 物理端口不一致已消失。
+
+用户于 2026-07-10 导入 `局部变量-gsts复刻.gia`，确认主图和 composite impl 两条路线均游戏内测试通过。通过文件已移动归档到：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局/局部变量-gsts复刻.gia
+```
 
 ### 5.5 当前剩余差异
 
-1. `计算分力` 的结构和算法层级已写入代码，但 vec3 `Get Local Variable` 编码仍导致游戏内断线，尚未通过游戏验证。
+1. vec3 Local Variable 通用编码已用最小真实结构完成游戏内验证；物理运动整图仍需单独确认三处 getter 所在层级。
 2. `更新速度`、`更新角速度`、`计算滚动角速度` 仍为阶段性代理语义。
 3. `更新v、w` 控制流布局和 nested capture pin 修复沿用此前已验证结果。
-4. 下一轮先用最小真实 getter GIA 修复通用编译器问题，再继续其余三个真实子复合。
+4. 修正版物理运动 GIA 已显式注入，等待整图反馈后再继续其余三个真实子复合。
