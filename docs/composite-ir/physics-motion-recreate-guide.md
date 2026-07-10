@@ -312,4 +312,4 @@ Round 5 已完成自动验证和用户游戏内验证：
 ### 4.5 当前差异 / 下一步
 
 1. 真实 `视觉实体` 使用 `Query Entity by GUID` 的 literal guid `1077936360`；当前为了保持可维护性，仍使用 `Get Custom Variable("视觉实体guid")`。后续需由用户决定按真实 literal 复刻，还是保留可配置变量。
-2. `generic.asType('float')` 在 TS 类型上返回 `number`，但 raw `f.node()` 需要 `value[]`，当前代码使用 `as unknown as value` 适配。这是类型层面的不顺，后续可考虑改善类型定义或为复刻代码封装 helper。
+2. raw `f.node()` 只接受 runtime `value[]`，而部分高层 DSL 输出的 TypeScript 表面类型是 `number` / `bigint` / `boolean` / `string`。当前使用 `asRuntimeValue(...)` 进入 raw API：它保留原运行时 pin 对象并执行 `instanceof value` 校验，误传普通 literal 会立即报错。旧的 `as unknown as value` 已从本工程移除；类型契约和运行时回归分别见 `scripts/typecheck-runtime-value-adapter.ts`、`tests/composite/test-runtime-value-adapter.ts`。

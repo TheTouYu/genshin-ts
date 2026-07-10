@@ -164,6 +164,18 @@ export abstract class value {
   abstract toIRLiteral(): Argument
 }
 
+/**
+ * Recover the runtime value object behind a native-looking DSL output before passing it to raw APIs.
+ */
+export function asRuntimeValue<T extends value>(input: T): T
+export function asRuntimeValue(input: unknown): value
+export function asRuntimeValue(input: unknown): value {
+  if (!(input instanceof value)) {
+    throw new Error('[error] asRuntimeValue() expects a DSL value returned by f.* or asType()')
+  }
+  return input
+}
+
 export type BoolValue = bool | boolean
 export class bool extends value {
   declare private readonly __brandBool: 'bool'

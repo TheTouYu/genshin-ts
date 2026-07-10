@@ -79,8 +79,17 @@ const forward = f.node('forwarding_event', [e.eventSourceEntity])
 参数：
 
 - `type`：系统节点类型，使用 snake_case，例如 `finite_loop`、`print_string`。
-- `args`：节点输入参数。可以传普通 DSL value，也可以传事件参数。
+- `args`：节点输入参数，必须是 runtime `value`。事件参数、`guid`、`entity` 等对象型 DSL value 可以直接传入；`asType('float')`、`division()` 等静态显示为 `number` / `bigint` / `boolean` / `string` 的节点输出，使用 `asRuntimeValue(...)` 适配后传入。
 - `options.outParams`：可选，把某个系统节点的输出参数暴露成可返回的 DSL value。
+
+```ts
+import { asRuntimeValue, bool, str } from 'genshin-ts/runtime/value'
+
+const gravity = asRuntimeValue(f.getCustomVariable(entity, 'G').asType('float'))
+const setGravity = f.node('set_node_graph_variable', [new str('G'), gravity, new bool(false)])
+```
+
+`asRuntimeValue()` 不包装普通 JavaScript literal；它会验证输入确实是 Stage 2 的 DSL `value` 对象。raw node 的 literal 参数仍应显式构造，例如 `new float(0.5)`、`new str('G')`。
 
 别名：
 
@@ -344,6 +353,17 @@ outputs: { x: { type: 'int', pinIndex: 72 } }
 ```
 
 这里 `pinIndex` 是复合节点外部接口的 pinIndex。
+
+### 5. 原生表面类型输出传给 `f.node()` 时使用 `asRuntimeValue()`
+
+部分高层 DSL 输出为方便普通表达式使用，TypeScript 静态类型显示为 `number`、`bigint`、`boolean` 或 `string`，但 Stage 2 运行时实际是携带 pin metadata 的 `value` 对象。不要使用 `as unknown as value`；在进入 raw API 边界时显式适配：
+
+```ts
+const deltaSeconds = asRuntimeValue(f.division(updateIntervalFloat, 1000))
+const setDelta = f.node('set_node_graph_variable', [new str('t'), deltaSeconds, new bool(false)])
+```
+
+如果误传普通 literal（例如 `asRuntimeValue(1000)`），适配器会立即报错。
 
 ## 验证工具
 
