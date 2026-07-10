@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：历史 handover 提炼 + 用户交互约定
-> 最近校验：2026-07-08
+> 最近校验：2026-07-10
 > 适用范围：Genshin-TS 布局调参、`.gia` 导出、用户游戏内验证、handover 编写
 
 本文只记录能提高协作效率的**工作规则、路径、命令和交互约定**。不要在这里放具体算法解释、代码实现细节或某一轮的长篇问题分析；那些内容仍写在对应 handover 或设计文档里。
@@ -16,7 +16,7 @@
 3. 用户反馈“通过”后，先移动通过的 `.gia` 到 `Beyond_Local_Export/真-测试通过/布局/`，再把已通过的布局测试脚本移动到 `tests/layout/`，然后提交代码与文档；未游戏内验证前不要提交布局参数改动。注意：`.gia` 归档必须用 `mv`，不要用 `cp`，避免游戏导入根目录同时堆积过多测试文件。
 4. 用户给截图时，先用 `read` 打开截图并复述问题，再选择一个小点修复。
 5. 游戏内截图和用户反馈是最终裁判；自动分析工具只能辅助判断。
-6. 如果遇到阻碍、不确定或方向性问题，先停下来和用户确认，不要连续深入改多个算法。
+6. 如果遇到阻碍、不确定、方向性问题，或发现用户侧状态与自己的假设不一致，**立即停下来和用户确认**，不要连续深入改多个算法，也不要擅自替用户判断哪些副作用应保留。游戏内状态、资源提取结果、业务取舍等信息并非只靠代码和大模型推理就能高效、可靠地确定；及时确认通常比继续自动推断更重要。
 7. 通过的小步要单独提交，便于回溯每个游戏内验证点。
 8. 提交前运行 `git diff --check`；编译器、运行时或布局算法代码改动通常还要运行 `npm run build`。
 9. 如果只新增或修改 `tests/*.ts` 布局测试文件，不需要重新编译编译器代码；直接用现有 `bin/gsts.mjs` 生成该测试的 `.gia`。
@@ -29,6 +29,8 @@
 16. 历史 handover 中的旧 API 名称只作为历史上下文，新示例优先使用当前推荐名称。
 17. 调布局时不要把 `audit-layout.ts` 的 `ORPHAN` / `EDGE_CROSS` 直接当最终问题。
 18. 不要用未复刻目标结构的抽象测试判断最终布局参数；尽量用接近用户截图/参考文件的测试。
+19. 未经用户游戏内确认，不要把自动结构核验结果写成“本轮完成”或提前编写最终 handover；可以记录为“自动验证通过，待游戏内核验”。
+20. `gsts` 在指定正确 `GSTS_LOCALLOW_DIR` 后可能自动提取并更新 `src/resources/prefabs.ts`、`src/resources/signals.ts` 等资源代码。这是预期工作流，后续代码会使用这些资源；除非用户明确要求，否则不要把自动提取结果当作无关改动恢复。
 
 ---
 
@@ -198,6 +200,23 @@ git status --short
 git diff --check
 npm run build
 ```
+
+### 3.13 注入物理运动复刻 GIA
+
+配置直接生成时，`.gia` 自带 graph id 可能不是存档中的目标 NodeGraph；物理运动复刻应先生成，再用显式文件参数注入，使配置中的 `inject.nodeGraphId` 生效：
+
+```bash
+GSTS_LOCALLOW_DIR=/mnt/c/Users/touyu/AppData/LocalLow \
+node bin/gsts.mjs -c gsts.physics-motion.config.ts dist/tests/layout/physics-motion/main.gia
+```
+
+已验证目标：
+
+```text
+/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741845.gil
+```
+
+不要只执行带配置、不带显式 `.gia` 参数的注入路径；该路径可能按生成文件的 graph id（例如 `1073741904`）查找并报 `target NodeGraph not found`。生成/注入过程触发的资源代码提取应按核心规则第 20 条保留。
 
 ---
 

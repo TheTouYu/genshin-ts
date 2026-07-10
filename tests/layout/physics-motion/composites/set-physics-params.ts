@@ -71,6 +71,16 @@ export const setPhysicsParams = g.defineComposite('设置物理参数', {
       gravity,
       new boolValue(false)
     ])
+    f.node('set_node_graph_variable', [
+      new strValue(PHYSICS_NODE_GRAPH_VARIABLES.stiffness),
+      stiffness,
+      new boolValue(false)
+    ])
+    f.node('set_node_graph_variable', [
+      new strValue(PHYSICS_NODE_GRAPH_VARIABLES.damping),
+      damping,
+      new boolValue(false)
+    ])
     const setInverseInertia = f.node('set_node_graph_variable', [
       new strValue(PHYSICS_NODE_GRAPH_VARIABLES.inverseInertia),
       inverseInertia,

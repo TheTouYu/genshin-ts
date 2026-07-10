@@ -280,8 +280,12 @@ function buildImplGraphNodes(
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
   const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+  const implConnTypeIndex = buildImplConnTypeIndex(implNodes)
   const nodeResults = implNodes.map((node) => {
     let nodeId = resolveImplNodeId(node.type, node.args as any)
+    const producedType =
+      implConnTypeIndex.get(node.id)?.get(0) ??
+      implOutParamMap.get(node.id)?.find((output) => output.pinIndex === 0)?.type
     // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
     let compositeId: number | undefined
     let calledDef: CompositeDefIR | undefined
@@ -348,9 +352,31 @@ function buildImplGraphNodes(
         }
       }
     }
-    const { pins, dataConns } = buildImplNodePins(node, implEdges, implOutParamMap, implVariables, calledDef, gvConcreteNid)
+    const customVariableConcreteNid =
+      node.type === 'get_custom_variable' && producedType
+        ? resolveTypedImplNodeId(node.type, producedType)
+        : undefined
+    const { pins, dataConns } = buildImplNodePins(
+      node,
+      implEdges,
+      implOutParamMap,
+      implVariables,
+      calledDef,
+      gvConcreteNid,
+      customVariableConcreteNid
+    )
     allDataConns.push(...dataConns)
-    return { node, nodeId, genericId, pins, isDTC: isDTC || false, dtcConcreteNid: isDTC ? nodeId : undefined, gvConcreteNid, nodeIndex: nodeIndexMap.get(node.id) ?? node.id }
+    return {
+      node,
+      nodeId,
+      genericId,
+      pins,
+      isDTC: isDTC || false,
+      dtcConcreteNid: isDTC ? nodeId : undefined,
+      gvConcreteNid,
+      customVariableConcreteNid,
+      nodeIndex: nodeIndexMap.get(node.id) ?? node.id
+    }
   })
 
   for (const dc of allDataConns) {
@@ -364,7 +390,17 @@ function buildImplGraphNodes(
 
   const layout = computeImplLayout(implNodes, implEdges, def, compositeDefById)
 
-  return nodeResults.map(({ node, nodeId, genericId, pins, nodeIndex, isDTC, dtcConcreteNid, gvConcreteNid }) => {
+  return nodeResults.map(({
+    node,
+    nodeId,
+    genericId,
+    pins,
+    nodeIndex,
+    isDTC,
+    dtcConcreteNid,
+    gvConcreteNid,
+    customVariableConcreteNid
+  }) => {
     const outEdges = implEdges[node.id]
     if (outEdges && outEdges.length > 0) {
       for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
@@ -389,8 +425,14 @@ function buildImplGraphNodes(
     return {
       nodeIndex,
       genericId,
-      // data_type_conversion / get_node_graph_variable: concreteId 使用具体变种 nid
-      concreteId: isDTC && dtcConcreteNid ? { ...genericId, nodeId: dtcConcreteNid } : gvConcreteNid ? { ...genericId, nodeId: gvConcreteNid } : { ...genericId },
+      // generic 数据节点保留 genericId，并按下游连接类型选择 concreteId。
+      concreteId: isDTC && dtcConcreteNid
+        ? { ...genericId, nodeId: dtcConcreteNid }
+        : gvConcreteNid
+          ? { ...genericId, nodeId: gvConcreteNid }
+          : customVariableConcreteNid
+            ? { ...genericId, nodeId: customVariableConcreteNid }
+            : { ...genericId },
       pins,
       x: pos.x,
       y: pos.y,
@@ -464,6 +506,51 @@ function computeImplLayout(
   }
 
   return pos
+}
+
+function buildImplConnTypeIndex(
+  implNodes: CompositeDefIR['implNodes']
+): Map<number, Map<number, string>> {
+  const index = new Map<number, Map<number, string>>()
+
+  for (const node of implNodes) {
+    for (const arg of node.args ?? []) {
+      if (!arg || arg.type !== 'conn') continue
+      const conn = arg.value as { node_id: number; index: number; type?: string }
+      if (!conn.type) continue
+      const outputTypes = index.get(conn.node_id) ?? new Map<number, string>()
+      const existingType = outputTypes.get(conn.index)
+      if (existingType && existingType !== conn.type) {
+        throw new Error(
+          `[error] conflicting impl conn types for ${conn.node_id}.${conn.index}: ${existingType} vs ${conn.type}`
+        )
+      }
+      outputTypes.set(conn.index, conn.type)
+      index.set(conn.node_id, outputTypes)
+    }
+  }
+
+  return index
+}
+
+function valueTypeSuffix(valueType: string): string | undefined {
+  if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(valueType)) {
+    return valueType
+  }
+  if (valueType === 'vec3') return 'vec'
+  if (valueType === 'config_id') return 'config'
+  if (valueType === 'prefab_id') return 'prefab'
+  if (valueType.endsWith('_list')) {
+    const elementSuffix = valueTypeSuffix(valueType.slice(0, -5))
+    return elementSuffix ? `list_${elementSuffix}` : undefined
+  }
+  return undefined
+}
+
+function resolveTypedImplNodeId(nodeType: string, valueType: string): number | undefined {
+  const suffix = valueTypeSuffix(valueType)
+  if (!suffix) return undefined
+  return getNodeIdLowerMap().get(`${nodeType}__${suffix}`)
 }
 
 /**
@@ -571,10 +658,65 @@ function buildImplNodePins(
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
   implVariables: CompositeDefIR['implVariables'],
   calledDef?: CompositeDefIR,
-  gvConcreteNid?: number
+  gvConcreteNid?: number,
+  customVariableConcreteNid?: number
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+
+  if (node.type === 'get_custom_variable' && customVariableConcreteNid) {
+    const tmpGraph = new Graph('server', 0, '', 0)
+    const tmpNode = new Node(0, 'server', customVariableConcreteNid, undefined as any)
+    const captureInputIndices = new Set<number>()
+    const pendingConns: Array<{ pinIndex: number; upstreamNodeId: number; upstreamPinIndex: number }> = []
+
+    for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
+      const arg = node.args?.[argIndex]
+      if (!arg) continue
+      if ((arg as any).capture === true) {
+        captureInputIndices.add(argIndex)
+      } else if (arg.type === 'conn') {
+        const conn = arg.value as { node_id: number; index: number }
+        pendingConns.push({
+          pinIndex: argIndex,
+          upstreamNodeId: conn.node_id,
+          upstreamPinIndex: conn.index
+        })
+      } else {
+        const pin = tmpNode.pins.find((candidate) => candidate.kind === 3 && candidate.index === argIndex)
+        pin?.setVal(arg.value)
+      }
+    }
+
+    tmpNode.pins = (tmpNode.pins ?? []).filter(
+      (pin: any) =>
+        !(pin.kind === NodePin_Index_Kind.InParam && captureInputIndices.has(pin.index)) &&
+        !((pin?.kind === 3 || pin?.kind === 4) && pin?.type?.t === 'b' && pin?.type?.b === 'Unk')
+    )
+    tmpGraph.add_node(tmpNode)
+    const tmpRoot = tmpGraph.encode() as any
+    const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
+    const vendorPins = (encodedNode?.pins ?? []) as NodePin[]
+
+    for (const pin of vendorPins) {
+      ;(pin as any).connects = undefined
+    }
+    for (const conn of pendingConns) {
+      const pin = vendorPins.find(
+        (candidate: any) =>
+          candidate.i1?.kind === NodePin_Index_Kind.InParam && candidate.i1?.index === conn.pinIndex
+      )
+      if (!pin) continue
+      dataConns.push({
+        nodeId: node.id,
+        pin,
+        upstreamNodeId: conn.upstreamNodeId,
+        upstreamPinIndex: conn.upstreamPinIndex
+      })
+    }
+
+    return { pins: vendorPins, dataConns }
+  }
 
   // get_node_graph_variable：临时用 Graph+Node 编码，100% 复用 vendor 的 pin 生成逻辑
   if (node.type === 'get_node_graph_variable' && gvConcreteNid) {
@@ -660,6 +802,7 @@ function buildImplNodePins(
   for (const arg of args) {
     // Capture-input args are routed via compositePins, not physical InParam pins.
     if (arg && (arg as any).capture === true) {
+      pinIndex++
       continue
     }
     if (arg && arg.type === 'conn') {

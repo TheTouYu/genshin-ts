@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-06
+> 最近校验：2026-07-10
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
@@ -189,6 +189,8 @@ compositePins: [{
   //   connect2: { kind: OutParam, index: <upstreamPinIndex> } }]
   ```
 
+capture 输入虽然不生成物理 InParam pin，但仍占用原始参数序号。Stage 3 跳过 capture 参数时必须保留 pin index 空洞；例如 `get_custom_variable(capturedEntity, name)` 的实体参数占 `InParam[0]`，变量名应编码到 `InParam[1]`，不能压缩到 index 0。
+
 ### 4.2 VarBase 值字段命名规则
 
 构建 VarBase 值时，protobuf 字段名由 `varClass` 决定（对应 `gia.proto` 中 `oneof value` 的字段名）：
@@ -258,7 +260,9 @@ vec3→float 节点（`_3d_vector_dot_product`、`_3d_vector_angle`）的自动 
 
 优先使用 `implOutParamMap`（来自 compositePins 的 OutParam 条目）。显式 OutParam 映射中的 `innerPinIndex` 只决定内部节点的 OutParam pin index；`value.bConcreteValue.indexOfConcrete` 必须按输出类型计算。例如 `addition(float, float)` 作为复合输出时，OutParam pin index 仍可为 `0`，但 concrete index 必须是 `float -> 1`，否则下游 `_3d_vector_zoom` 等 float 输入会在游戏内断线。
 
-若节点无显式 OutParam 映射但自身是数据生产者（`isDataProducerNode`），自动生成一个默认 OutParam：
+若节点无显式 OutParam 映射但自身是数据生产者（`isDataProducerNode`），自动生成一个默认 OutParam。当前实现会扫描 impl 内全部 `conn.value.type`，建立 source node/pin → value type 索引；若输出直接暴露为复合 OutParam、没有普通下游连接，则回退到 `implOutParamMap`。
+
+`get_custom_variable` 使用该类型选择 typed `concreteId`，并复用 vendor typed-node pin 模板。例如 `asType('float')` 生成 `genericId=50`、`concreteId=54`、ConcreteBase float OutParam（`indexOfConcrete=4`）；guid/int 分别使用 `concreteId=53/50` 和 concrete index 3/0。回归脚本见 `tests/composite/test-custom-variable-impl-pins.ts`；`设置物理参数` 复刻已于 2026-07-10 完成游戏内验证。
 
 ```typescript
 if (!hasExplicitOutParam && pins.length > 0 && isDataProducerNode(node.type)) {

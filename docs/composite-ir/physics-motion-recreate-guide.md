@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 进行中
 > 来源：真实 GIA 验证 + 当前 gsts 复刻脚本
-> 最近校验：2026-07-08
+> 最近校验：2026-07-10
 > 适用范围：`复杂gia/物理运动.gia` 结构复刻、AI 编写复杂 GIA 代码、布局压力测试
 
 本文档记录复刻 `物理运动.gia` 时确认过的 API 写法和真实节点结构。目标不是复刻真实文件坐标，也不假设真实布局完美；目标是让 AI 能逐步写出与真实 GIA 控制流、数据流、复合节点结构一致的 gsts 代码，用这些真实结构测试当前自动布局是否合理。
@@ -293,7 +293,7 @@ n1 When Entity Is Created.OutFlow[0] -> n4 设置物理参数.InFlow[0]
 当前 `设置物理参数` 内部节点列表：
 
 ```text
-Set Node Graph Variable ×11
+Set Node Graph Variable ×13
 Get Custom Variable ×12
 Query Entity by GUID ×2
 Data Type Conversion ×1
@@ -301,11 +301,15 @@ Division ×1
 复合:mul3 ×1
 ```
 
-### 4.5 已知差异 / 下一步
+Round 5 已完成自动验证和用户游戏内验证：
 
-当前仍有差异，需要下一轮继续收敛：
+- 12 个 `Get Custom Variable` 的变量名均保留在 `InParam[1]`；capture 实体参数不编码物理 `InParam[0]`，但不会压缩后续 pin index。
+- `.asType('float' | 'guid' | 'int')` 会为 impl 中的 `Get Custom Variable` 选择 typed `concreteId` 和 ConcreteBase OutParam。float/guid/int 的参考 concrete index 分别为 4/3/0。
+- `G -> mul3` 的 float 来源类型与目标 pin 一致；`mul3` 调用仍有 3 个输入 pin，literal `0.5` 未回归。
+- `Set("S")`、`Set("D")` 节点已补回，但没有加入 outer `InFlow[0]` fan-out。当前 Set 数量为 13，入口目标仍为 11。
+- 用户于 2026-07-10 确认本轮游戏内测试通过。
 
-1. 真实 `设置物理参数` 内有 13 个 `Set Node Graph Variable`，当前生成 11 个；需要继续核对 `S`、`D` 两个变量为什么未进入最终 impl 图。
-2. 真实 `视觉实体` 使用 `Query Entity by GUID` 的 literal guid `1077936360`；当前为了保持可维护性，先用 `Get Custom Variable("视觉实体guid")`。下一轮需要决定是否按真实 literal 复刻，或保留可配置变量并记录差异。
-3. 当前 trace 工具对生成复合的 `--expand=设置物理参数` 显示内部事件起点为 0，但 `--list-nodes --composite=设置物理参数` 能列出内部节点；这可能是 trace 工具对当前生成 compositePin/entry 的展示差异，需要单独核对。
-4. `generic.asType('float')` 在 TS 类型上返回 `number`，但 raw `f.node()` 需要 `value[]`，当前代码使用 `as unknown as value` 适配。这是类型层面的不顺，需要后续考虑是否改善类型定义或给复刻代码封装 helper。
+### 4.5 当前差异 / 下一步
+
+1. 真实 `视觉实体` 使用 `Query Entity by GUID` 的 literal guid `1077936360`；当前为了保持可维护性，仍使用 `Get Custom Variable("视觉实体guid")`。后续需由用户决定按真实 literal 复刻，还是保留可配置变量。
+2. `generic.asType('float')` 在 TS 类型上返回 `number`，但 raw `f.node()` 需要 `value[]`，当前代码使用 `as unknown as value` 适配。这是类型层面的不顺，后续可考虑改善类型定义或为复刻代码封装 helper。
