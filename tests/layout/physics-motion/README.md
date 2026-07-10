@@ -12,7 +12,11 @@ tests/layout/physics-motion/main.ts
 
 ```text
 tests/layout/physics-motion/composites/set-physics-params.ts
+tests/layout/physics-motion/composites/update-vw.ts
+tests/layout/physics-motion/composites/update-vw-stubs.ts
 ```
+
+`update-vw-stubs.ts` 当前只保留真实子复合接口和用户确认的代理语义；后续按 `计算分力`、`更新速度`、`更新角速度`、`计算滚动角速度` 逐层替换。
 
 推荐编译：
 

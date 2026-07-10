@@ -194,30 +194,53 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 
 ## 5. 复合中调用复合
 
-build 回调中可以调用其他复合节点。此时需要**嵌套的独立捕获**：
+build 回调中可以直接调用其他复合节点。当前捕获流程会递归确保被调复合已捕获，并在外层 impl 图中生成 `kind=22001` 的嵌套复合调用节点：
 
 ```typescript
-const A = g.defineComposite('A', {
-  inputs: { x: { type: 'int' } },
-  outputs: { result: { type: 'int' } },
-  build: (args, f) => {
-    const r = f.add(args.x, int(1))
-    return { result: r }
+const inner = g.defineComposite('Inner', {
+  inputs: {},
+  outputs: {},
+  outflows: [
+    { name: '第一步', pinIndex: 514 },
+    { name: '第二步', pinIndex: 515 },
+    { name: '第三步', pinIndex: 516 },
+    { name: '第四步', pinIndex: 517 }
+  ],
+  build(_args, f) {
+    const branch = f.node('double_branch', [new bool(true)])
+    f.link(f.entry(), 0, branch)
+    f.outflow('第一步', branch, 0)
+    f.outflow('第二步', branch, 0)
+    f.outflow('第三步', branch, 0)
+    f.outflow('第四步', branch, 0)
+    return {}
   }
 })
 
-const B = g.defineComposite('B', {
-  inputs: { x: { type: 'int' } },
-  outputs: { result: { type: 'int' } },
-  build: (args, f) => {
-    // ❌ 不能直接在这里用 f.callComposite(A, ...)
-    // f 是捕获 registry 的 fns，不携带复合调用能力
-    // 实际使用需确保 fns 被正确注入
+const outer = g.defineComposite('Outer', {
+  inputs: {},
+  outputs: {},
+  outflows: [{ name: '完成', pinIndex: 485 }],
+  build(_args, f) {
+    const nested = f.declareDetached(inner, {})
+    const internalTarget = f.node('print_string', [new str('第一步')])
+
+    f.link(f.entry(), 0, nested)
+    f.link(nested, 0, internalTarget)
+    f.outflow('完成', nested, 3)
+    return {}
   }
 })
 ```
 
-当前嵌套复合的捕获机制仍在持续完善——捕获阶段 `runCompositeCall` 需要独立的 `MetaCallRegistry`，而 build 回调中的 `f` 已经是捕获目的 registry，不支持再发起新的复合调用捕获。
+关键语义：
+
+- `f.declareDetached(...)` 返回带 `__markerNodeId` 的复合调用 marker，可作为 `f.link(...)` 的源或目标。
+- `f.link(nested, 0, target)` 连接嵌套复合的逻辑 `OutFlow[0]`；Stage 3 使用被调复合的 `pinIndex` 编码物理 pin。
+- `f.outflow('完成', nested, 3)` 可把嵌套复合的逻辑 `OutFlow[3]` 直接提升为外层复合出口；这种 compositePins 穿透映射已在真实 GIA 中验证。
+- 空名默认入口不写 `f.inflow('')`；使用 `f.link(f.entry(), 0, firstNode)`。`f.inflow(name, ...)` 用于有明确名称的多 InFlow 接口。
+
+针对性回归：`tests/composite/test-nested-composite-outflow.ts` 同时验证 IR compositePin 和解码后嵌套调用的物理 OutFlow pin。
 
 ---
 

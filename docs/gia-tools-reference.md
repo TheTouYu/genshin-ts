@@ -28,7 +28,8 @@ npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --expand=<复合名>
 
 - 识别事件起点（无上游、有 Branch、非被调用）
 - 渲染完整执行流树（含分支名：Double Branch 显示"是/否"，Multiple Branches 显示 case 值）
-- `--expand` **穿透复合边界**，展开 impl 图内部事件源分析
+- `--expand` **穿透复合边界**，展开 impl 图内部事件源分析；嵌套复合节点会显示其当前 OutFlow 名称
+- `--expand` 依赖 `compOutflows` 从主分析传入子图分析；`tests/composite/trace-exec-flow.ts` 已覆盖 `更新v、w -> 顺序执行` 场景
 - `--json` 结构化输出，适合程序消费
 - `--io` 输出每个节点的控制流输入/输出汇总，适合快速比对多 InFlow、多 OutFlow 和 fan-in/fan-out
 - `--detail=N` 查看任意节点的完整引脚信息

@@ -440,7 +440,7 @@ function analyze(filePath: string) {
   if ((expandIdx != null || expandName != null) && !jsonMode) {
     const idx = resolveExpandTarget(expandIdx, expandName, allNodes)
     if (idx == null) return
-    showExpand(idx, allNodes, data, defToCompiled, compNames, compInputs, compOutputs)
+    showExpand(idx, allNodes, data, defToCompiled, compNames, compOutflows, compInputs, compOutputs)
     return
   }
 
@@ -646,7 +646,7 @@ function analyze(filePath: string) {
   // ===== --expand=N: 展开复合节点内部 =====
   if (expandIdx != null || expandName != null) {
     const idx = resolveExpandTarget(expandIdx, expandName, allNodes)
-    if (idx != null) showExpand(idx, allNodes, data, defToCompiled, compNames, compInputs, compOutputs)
+    if (idx != null) showExpand(idx, allNodes, data, defToCompiled, compNames, compOutflows, compInputs, compOutputs)
   }
 }
 
@@ -682,6 +682,7 @@ function showExpand(
   data: any,
   defToCompiled: Map<number, number>,
   compNames: Map<number, string>,
+  compOutflows: Map<number, Map<number, string>>,
   compInputs: Map<number, string[]>,
   compOutputs: Map<number, string[]>,
 ) {
@@ -702,7 +703,16 @@ function showExpand(
     }
   }
   if (!compiledGraph) { console.log(`⚠ 未找到编译体 compiledId=${compiledId}`); return }
-  expandSubGraph(compiledGraph, expandTarget.name, compiledPins, compNames, compInputs, compOutputs, defToCompiled)
+  expandSubGraph(
+    compiledGraph,
+    expandTarget.name,
+    compiledPins,
+    compNames,
+    compOutflows,
+    compInputs,
+    compOutputs,
+    defToCompiled
+  )
 }
 
 // ============================================================
@@ -714,6 +724,7 @@ function expandSubGraph(
   compositeName: string,
   compositePins: any[],
   compNames: Map<number, string>,
+  compOutflows: Map<number, Map<number, string>>,
   compInputs: Map<number, string[]>,
   compOutputs: Map<number, string[]>,
   defToCompiled: Map<number, number>,

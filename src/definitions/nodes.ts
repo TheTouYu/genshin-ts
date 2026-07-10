@@ -19,7 +19,12 @@ import {
   Variable,
   type ServerGraphMode
 } from '../runtime/IR.js'
-import type { MetaCallRecord, MetaCallRecordRef } from '../runtime/meta_call_types.js'
+import type {
+  CompositeCallResult,
+  FlowMarkerRef,
+  MetaCallRecord,
+  MetaCallRecordRef
+} from '../runtime/meta_call_types.js'
 import { getRuntimeOptions } from '../runtime/runtime_config.js'
 import {
   bool,
@@ -727,7 +732,7 @@ export class ServerExecutionFlowFunctions {
   /**
    * @internal 供复合节点 build() 使用：将指定节点的某个 OutFlow pin 标记为复合出口。
    */
-  outflow(name: string, ref: MetaCallRecordRef, outflowPinIndex = 0): void {
+  outflow(name: string, ref: MetaCallRecordRef | FlowMarkerRef, outflowPinIndex = 0): void {
     this.registry.outflow(name, ref, outflowPinIndex)
   }
 
@@ -16607,7 +16612,7 @@ export class ServerExecutionFlowFunctions {
     this.registry.fork(...branches)
   }
 
-  callComposite(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
+  callComposite(handle: CompositeHandle, inputs: Record<string, any>): CompositeCallResult {
     const def = handle.definition
     return this.registry.runCompositeCall(handle.id, inputs, (captureFns, captureInputs) => {
       return def.build(captureInputs, captureFns)
@@ -16618,7 +16623,7 @@ export class ServerExecutionFlowFunctions {
    * 创建复合调用 marker 但不自动串联到当前 tail。
    * 用于 fan-in 场景：先 detached 创建多个 marker，再用 linkTo 连边。
    */
-  declareDetached(handle: CompositeHandle, inputs: Record<string, any>): Record<string, any> {
+  declareDetached(handle: CompositeHandle, inputs: Record<string, any>): CompositeCallResult {
     const def = handle.definition
     return this.registry.runDetachedCompositeCall(
       handle.id,

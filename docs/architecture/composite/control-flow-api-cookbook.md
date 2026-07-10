@@ -2,7 +2,7 @@
 
 > 状态：部分已验证 / 部分待验证
 > 来源：真实 GIA 验证 + 当前代码实现 + 历史实战记录
-> 最近校验：2026-07-06
+> 最近校验：2026-07-10
 > 适用范围：控制流模式参考。新代码优先从 `raw-control-flow-dsl-quickstart.md` 开始；本文中标注“感觉正确”或“待验证”的内容仍需单独核验。
 
 > **本文档定位**: 衔接 `dsl-api.md` (基础 API) 与 `multi-outflow-composite-guide.md` (GIA 端分析)。
@@ -102,7 +102,49 @@ compositePins 映射 (按外 OutFlow 索引):
   外 OutFlow[3] (是) ↔ 内 n=6 (y=242, 第 4 个)
 ```
 
-### 1.2 DSL 写法 (来自 `tests/composite/test-phase1-system-nodes.ts:57-72`)
+### 1.2 当前推荐 DSL 写法
+
+新代码优先使用 detached raw API 定义顺序执行，不依赖 `registerExecNode` / `branchExec` / `leaf` 的历史 tail 语义：
+
+```typescript
+const sequentialExec = g.defineComposite('顺序执行', {
+  inputs: {},
+  outputs: {},
+  inflows: [{ name: '', pinIndex: 513 }],
+  outflows: [
+    { name: '是', pinIndex: 514 },
+    { name: '是', pinIndex: 515 },
+    { name: '是', pinIndex: 516 },
+    { name: '是', pinIndex: 517 }
+  ],
+  build(_args, f) {
+    const entry = f.node('double_branch', [new bool(true)])
+    const exits = Array.from({ length: 4 }, () =>
+      f.node('double_branch', [new bool(true)])
+    )
+
+    f.link(f.entry(), 0, entry)
+    exits.forEach((exit) => {
+      f.link(entry, 0, exit)
+      f.outflow('是', exit, 0)
+    })
+    return {}
+  }
+})
+```
+
+调用侧需要手动拓扑或 fan-in 时：
+
+```typescript
+const sequence = f.declareDetached(sequentialExec, {})
+f.link(source, 0, sequence)
+f.link(sequence, 0, internalTarget)
+f.outflow('完成', sequence, 3)
+```
+
+这里 `f.link(sequence, 0, ...)` 使用逻辑 OutFlow index；`f.outflow(..., sequence, 3)` 可以把嵌套顺序执行的第 4 个出口直接提升为外层复合出口。针对性回归见 `tests/composite/test-nested-composite-outflow.ts`。
+
+### 1.3 历史兼容写法（来自旧测试）
 
 ```typescript
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'

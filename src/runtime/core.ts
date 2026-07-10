@@ -33,7 +33,12 @@ import type {
   ServerGraphSubType,
   Variable
 } from './IR.js'
-import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
+import type {
+  CompositeCallResult,
+  FlowMarkerRef,
+  MetaCallRecord,
+  MetaCallRecordRef
+} from './meta_call_types.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
 import {
@@ -65,7 +70,13 @@ import {
   type VariablesDefinition
 } from './variables.js'
 
-export type { MetaCallRecord, MetaCallRecordRef, MetaCallRecordType } from './meta_call_types.js'
+export type {
+  CompositeCallResult,
+  FlowMarkerRef,
+  MetaCallRecord,
+  MetaCallRecordRef,
+  MetaCallRecordType
+} from './meta_call_types.js'
 
 let leafDeprecationWarned = false
 
@@ -985,19 +996,20 @@ export class MetaCallRegistry {
    * 将指定节点的某个 OutFlow pin 标记为复合节点的出口。
    * 调用顺序决定复合节点 outflow 的 outer index。
    */
-  outflow(name: string, ref: MetaCallRecordRef, outflowPinIndex = 0): void {
+  outflow(name: string, ref: MetaCallRecordRef | FlowMarkerRef, outflowPinIndex = 0): void {
     const current = this.currentFlow
     if (!name || typeof name !== 'string') {
       throw new Error('outflow: name must be a non-empty string')
     }
-    if (!ref.id) {
+    const innerNodeId = 'id' in ref ? ref.id : ref.__markerNodeId
+    if (!innerNodeId) {
       throw new Error('outflow: ref is not a registered node')
     }
     const allNodes = new Set<number>([
       ...current.execNodes.map((n) => n.id),
       ...current.dataNodes.map((n) => n.id)
     ])
-    if (!allNodes.has(ref.id)) {
+    if (!allNodes.has(innerNodeId)) {
       throw new Error('outflow: ref is not a registered node in the current flow')
     }
     const marks = ((current as any).__outflowMarks ??= []) as Array<{
@@ -1010,7 +1022,7 @@ export class MetaCallRegistry {
         `[gsts] duplicate outflow name "${name}"; game allows it but this is usually a mistake`
       )
     }
-    marks.push({ name, innerNodeId: ref.id, outflowPinIndex })
+    marks.push({ name, innerNodeId, outflowPinIndex })
   }
 
   /**
@@ -1301,7 +1313,7 @@ export class MetaCallRegistry {
       fns: ServerExecutionFlowFunctions,
       captureInputs: Record<string, any>
     ) => Record<string, any>
-  ): Record<string, any> {
+  ): CompositeCallResult {
     const def = compositeRegistry.getById(compositeId)
     if (def) ensureCompositeCaptured(def)
     const isPureData = def?.captured?.isPureData ?? false
@@ -1468,7 +1480,7 @@ export class MetaCallRegistry {
       fns: ServerExecutionFlowFunctions,
       captureInputs: Record<string, any>
     ) => Record<string, any>
-  ): Record<string, any> {
+  ): CompositeCallResult {
     const def = compositeRegistry.getById(compositeId)
     if (def) ensureCompositeCaptured(def)
     const isPureData = def?.captured?.isPureData ?? false

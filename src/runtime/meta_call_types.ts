@@ -10,3 +10,9 @@ export interface MetaCallRecord {
 }
 
 export type MetaCallRecordRef = Readonly<MetaCallRecord>
+
+export type FlowMarkerRef = {
+  readonly __markerNodeId: number
+}
+
+export type CompositeCallResult = Record<string, any> & FlowMarkerRef

@@ -313,3 +313,92 @@ Round 5 已完成自动验证和用户游戏内验证：
 
 1. 真实 `视觉实体` 使用 `Query Entity by GUID` 的 literal guid `1077936360`；当前为了保持可维护性，仍使用 `Get Custom Variable("视觉实体guid")`。后续需由用户决定按真实 literal 复刻，还是保留可配置变量。
 2. raw `f.node()` 只接受 runtime `value[]`，而部分高层 DSL 输出的 TypeScript 表面类型是 `number` / `bigint` / `boolean` / `string`。当前使用 `asRuntimeValue(...)` 进入 raw API：它保留原运行时 pin 对象并执行 `instanceof value` 校验，误传普通 literal 会立即报错。旧的 `as unknown as value` 已从本工程移除；类型契约和运行时回归分别见 `scripts/typecheck-runtime-value-adapter.ts`、`tests/composite/test-runtime-value-adapter.ts`。
+
+## 5. Step 2：更新v、w 外层拓扑
+
+### 5.1 真实接口
+
+真实 `更新v、w` 定义：
+
+```text
+InFlow[0] pinIndex=1423
+Input[0] 接触地面 bool  pinIndex=1422
+Input[1] 更新间隔 float pinIndex=543
+OutFlow[0] 是           pinIndex=485
+Output[0] F_aero vec3   pinIndex=1798
+Output[1] F摩擦力 vec3 pinIndex=1799
+```
+
+真实外层实现共 19 个节点：
+
+```text
+复合调用 ×5
+  计算滚动角速度 / 计算分力 / 更新速度 / 更新角速度 / 顺序执行
+Set Node Graph Variable ×9
+Get Node Graph Variable ×3
+Double Branch ×2
+```
+
+控制流：先按 `接触地面` 分支；地面路径再按 `计算分力.滚动` 分支。三条路径分别写入 `F`、`J`，滚动路径额外写入 `w`；随后统一调用 `更新角速度`、`更新速度` 并写回 `w`、`v`。`顺序执行.OutFlow[0]` 清零 `额外压力`，`顺序执行.OutFlow[3]` 直接映射为外层 OutFlow `是`。
+
+数据边界：
+
+- `计算分力(w, v, 额外压力)` 提供各路径的 F/J、`滚动` 与两个外层 vec3 输出。
+- 外层 `更新间隔` fan-out 到 `更新速度`、`更新角速度`。
+- `F_aero`、`F摩擦力` 直接映射到 `计算分力.OutParam[6/7]`。
+
+### 5.2 当前复刻
+
+源码：
+
+```text
+tests/layout/physics-motion/composites/update-vw.ts
+tests/layout/physics-motion/composites/update-vw-stubs.ts
+```
+
+当前只完成外层接口和拓扑。5 个子复合使用用户确认过的代理语义，后续逐层替换：
+
+- `计算滚动角速度` 暂时返回当前 `w`。
+- `更新角速度` 暂时返回当前 `w`。
+- `更新速度` 暂时返回当前 `v`。
+- `计算分力` 暂时转发 `w/v` 作为 vec3 输出，`滚动=false`。
+- `顺序执行` 保留 1 InFlow / 4 个同名 OutFlow 的真实接口。
+
+主图暂时把 `更新v、w` 作为 `When Entity Is Created` 的第三条分支，传入 `接触地面=false`、`更新间隔=0.02`。这是用户确认的阶段性接入方式；真实上游 `Update` 与 `计算物理运动状态` 后续再复刻。
+
+### 5.3 自动验证与游戏反馈
+
+自动结构核验：
+
+```text
+nodeCount=19
+compositeCalls=5
+setNodes=9
+getNodes=3
+doubleBranches=2
+```
+
+同时确认：
+
+- 外层接口名称、类型和 pinIndex 与真实文件一致。
+- 外层 OutFlow 直接映射到 nested `顺序执行.OutFlow[3]`。
+- `顺序执行.OutFlow[0]` 生成物理 pin `compositePinIndex=514` 并连接清零 `额外压力`。
+- `Get Node Graph Variable("w"/"v")` 使用 vec3 concreteId 348，`额外压力` 使用 float concreteId 341。
+
+注入命令：
+
+```bash
+GSTS_LOCALLOW_DIR=/mnt/c/Users/touyu/AppData/LocalLow \
+node bin/gsts.mjs -c gsts.physics-motion.config.ts dist/tests/layout/physics-motion/main.gia
+```
+
+用户于 2026-07-10 确认主体核验通过并允许提交。
+
+游戏内新增反馈：`更新v、w` 整体布局在垂直方向过于松散。下一轮需要单独调整布局系数，并配合用户回归此前已通过的复合节点布局；本轮不把该布局问题写成已解决。
+
+### 5.4 当前剩余差异
+
+1. `更新速度`、`更新角速度` 的父输入 `capture: true` 当前仍生成物理 InParam；真实文件通过 compositePins 路由，两个调用节点应为 `pins=[]`。主体游戏内核验已通过，本轮未继续修，下一轮应补 Stage 3 capture 跳过规则和回归。
+2. 5 个子复合尚未实现真实算法，只完成真实接口与代理输出。
+3. 布局垂直方向过松，需下一轮小步调参和多复合回归。
+4. 本轮暴露出文档和技能的知识冲突：旧 `dsl-api.md` 曾误写 build 内不支持嵌套复合，而当前实现、真实 GIA 和回归均已支持。该段已修正，导航 skill 也新增顺序执行/嵌套 OutFlow 的三层核验规则。

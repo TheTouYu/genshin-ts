@@ -1,6 +1,8 @@
 import { g } from 'genshin-ts/runtime/core'
+import { bool, float } from 'genshin-ts/runtime/value'
 
 import { setPhysicsParams } from './composites/set-physics-params.js'
+import { updateVelocityAndAngularVelocity } from './composites/update-vw.js'
 import { PHYSICS_CUSTOM_VARIABLES } from './helpers/variables.js'
 
 g.server({
@@ -19,6 +21,12 @@ g.server({
     () => {
       f.callComposite(setPhysicsParams, {
         目标实体: e.eventSourceEntity
+      })
+    },
+    () => {
+      f.callComposite(updateVelocityAndAngularVelocity, {
+        接触地面: new bool(false),
+        更新间隔: new float(0.02)
       })
     }
   )

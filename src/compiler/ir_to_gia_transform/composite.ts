@@ -352,6 +352,9 @@ function buildImplGraphNodes(
         }
       }
     }
+    if (!gvConcreteNid && producedType) {
+      gvConcreteNid = resolveTypedImplNodeId(node.type, producedType)
+    }
     const customVariableConcreteNid =
       node.type === 'get_custom_variable' && producedType
         ? resolveTypedImplNodeId(node.type, producedType)
@@ -782,6 +785,21 @@ function buildImplNodePins(
             upstreamNodeId: conn.node_id,
             upstreamPinIndex: conn.index
           })
+        }
+      }
+
+      const outEdges = implEdges[node.id]
+      if (outEdges && outEdges.length > 0) {
+        for (const [sourceIndex] of groupEdgesBySourceIndex(outEdges)) {
+          const pin = {
+            i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+            i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+            type: 0,
+            value: undefined as any
+          } as NodePin & { compositePinIndex?: number }
+          const compositePinIndex = calledDef.outflows[sourceIndex]?.pinIndex
+          if (compositePinIndex !== undefined) pin.compositePinIndex = compositePinIndex
+          pins.push(pin)
         }
       }
     }

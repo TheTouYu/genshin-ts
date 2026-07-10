@@ -36,7 +36,8 @@ If sources conflict, state the conflict explicitly instead of merging them into 
 Read these first for implementation or bug fixes:
 
 - `docs/architecture/composite/raw-control-flow-dsl-quickstart.md` — current low-level manual wiring API.
-- `docs/architecture/composite/dsl-api.md` — `g.defineComposite`, `f.callComposite`, type and call semantics.
+- `docs/architecture/composite/dsl-api.md` — `g.defineComposite`, `f.callComposite`, nested composites, type and call semantics.
+- `docs/architecture/composite/control-flow-api-cookbook.md` — sequential execution, multi-OutFlow dispatch, and verified control-flow patterns; always read it for `顺序执行` tasks.
 - `docs/architecture/composite/capture-mechanism.md` — Stage 2 capture behavior.
 - `docs/architecture/composite/ir-representation.md` — current IR shape and caveats.
 - `docs/architecture/composite/gia-encoding.md` — Stage 3 GIA encoding.
@@ -51,6 +52,15 @@ Then verify against source files when needed:
 - `src/definitions/nodes.ts`
 - `src/compiler/ir_to_gia_transform/index.ts`
 - `src/compiler/ir_to_gia_transform/composite.ts`
+- `tests/composite/test-nested-composite-outflow.ts`
+
+For `顺序执行`, nested composite OutFlow, or detached composite wiring, verify all three layers before claiming a gap:
+
+1. Current docs: `raw-control-flow-dsl-quickstart.md`, `dsl-api.md`, and `control-flow-api-cookbook.md`.
+2. Current source signatures: `declareDetached`, `link`, `outflow`, and Stage 3 `buildImplNodePins`.
+3. Focused tests: `test-phase1-system-nodes.ts`, `recreate-debug4-v2.ts`, and `test-nested-composite-outflow.ts`.
+
+If current docs conflict internally, do not select the more restrictive statement by default. State the conflict, verify source plus executable regression, then update the stale authoritative paragraph.
 
 ### Real GIA / reverse-engineering conclusions
 

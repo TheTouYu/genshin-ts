@@ -27,5 +27,10 @@ export const PHYSICS_NODE_GRAPH_VARIABLES = {
   angularFriction: 'u_w',
   gravityForce: 'f_g',
   deltaSeconds: 't',
-  halfGravityDeltaSquared: '0.5gt'
+  halfGravityDeltaSquared: '0.5gt',
+  angularVelocity: 'w',
+  velocity: 'v',
+  force: 'F',
+  impulse: 'J',
+  extraPressure: '额外压力'
 } as const
