@@ -66,3 +66,272 @@ export const CLIENT_ENUM_VALUES: Record<string, number> = {
   target_sorting_rules_random_order: 1000002,
   target_sorting_rules_sort_from_near_to_far: 1000003
 }
+
+/**
+ * 枚举匹配 census：类名（ir conn.enum 同款 snake）-> 下拉行（ioc 升序）。
+ * 双引脚 indexOfConcrete = 类所在下拉行号；同类多行（类型转换 7/34、
+ * 目标类型 24/39、状态添加结果两半 14/15、数字运算 2/25）按字面量值命中的
+ * 首行取值，连线取首行。
+ */
+export const ENUM_MATCH_ROWS_BY_CLASS: Record<string, Array<{ ioc: number; values: number[] }>> = {
+  attack_layer_config: [
+    {
+      ioc: 30,
+      values: [2601, 2602, 2604]
+    }
+  ],
+  attack_shape: [
+    {
+      ioc: 3,
+      values: [400, 401, 402]
+    }
+  ],
+  attack_type: [
+    {
+      ioc: 27,
+      values: [2300, 2301, 2302, 2303]
+    }
+  ],
+  cause_of_being_down: [
+    {
+      ioc: 19,
+      values: [1605, 1606, 1607]
+    }
+  ],
+  comparison_operator: [
+    {
+      ioc: 0,
+      values: [100, 101, 102, 103, 104]
+    }
+  ],
+  disruptor_device_orientation: [
+    {
+      ioc: 22,
+      values: [1810, 1811]
+    }
+  ],
+  disruptor_device_type: [
+    {
+      ioc: 21,
+      values: [1801, 1802, 1803]
+    }
+  ],
+  elemental_reaction_type: [
+    {
+      ioc: 37,
+      values: [
+        4701, 4702, 4703, 4704, 4705, 4706, 4707, 4708, 4709, 4710, 4711, 4712, 4713, 4714, 4715,
+        4716, 4717, 4718, 4719, 4720, 4721, 4722, 4723, 4724, 4725, 4726, 4727, 4728, 4729, 4730,
+        4731, 4732, 4733, 4734, 4735, 4736, 4737, 4738, 4739, 4740, 4741, 4742, 4743
+      ]
+    }
+  ],
+  elemental_type: [
+    {
+      ioc: 12,
+      values: [1300, 1301, 1302, 1303, 1304, 1305, 1306, 1307]
+    }
+  ],
+  entity_type: [
+    {
+      ioc: 13,
+      values: [1401, 1402, 1403, 1404, 1405]
+    }
+  ],
+  filter_return_type: [
+    {
+      ioc: 38,
+      values: [1000010, 10000011]
+    }
+  ],
+  follow_coordinate_system: [
+    {
+      ioc: 11,
+      values: [1200, 1201]
+    }
+  ],
+  follow_location_type: [
+    {
+      ioc: 10,
+      values: [1100, 1101, 1102]
+    }
+  ],
+  hit_level: [
+    {
+      ioc: 36,
+      values: [3900, 3901, 3902, 3903, 3904]
+    }
+  ],
+  hit_performance_level: [
+    {
+      ioc: 28,
+      values: [2400, 2401, 2402, 2403, 2404, 2405, 2406, 2407, 2408, 2409, 2410]
+    }
+  ],
+  hit_type: [
+    {
+      ioc: 26,
+      values: [2200, 2201, 2202, 2203, 2204, 2205]
+    }
+  ],
+  input_device_type: [
+    {
+      ioc: 41,
+      values: [5800, 5801, 5802]
+    }
+  ],
+  knockback_direction_type: [
+    {
+      ioc: 31,
+      values: [2501, 2502, 2503, 2504, 2505, 2506, 2507]
+    }
+  ],
+  logical_operator: [
+    {
+      ioc: 1,
+      values: [200, 201, 202, 203]
+    }
+  ],
+  mathematical_operator: [
+    {
+      ioc: 2,
+      values: [300, 301, 302, 303]
+    },
+    {
+      ioc: 25,
+      values: [304, 305, 306, 307, 308]
+    }
+  ],
+  motion_path_point_type: [
+    {
+      ioc: 8,
+      values: [900, 901]
+    }
+  ],
+  motion_type: [
+    {
+      ioc: 9,
+      values: [1000, 1001, 1002]
+    }
+  ],
+  pre_aiming_end_reason: [
+    {
+      ioc: 42,
+      values: [6800, 6801, 6802]
+    }
+  ],
+  retracing_type: [
+    {
+      ioc: 35,
+      values: [3200, 3201, 3202]
+    }
+  ],
+  revive_point_selection_strategy: [
+    {
+      ioc: 18,
+      values: [1601, 1602, 1603, 1604]
+    }
+  ],
+  rotation_type: [
+    {
+      ioc: 32,
+      values: [2900, 2901, 2902, 2903, 2904, 2905]
+    }
+  ],
+  rounding_mode: [
+    {
+      ioc: 6,
+      values: [700, 701, 702]
+    }
+  ],
+  scan_status: [
+    {
+      ioc: 40,
+      values: [5000, 5001, 5002, 5003]
+    }
+  ],
+  sector_detection_direction: [
+    {
+      ioc: 33,
+      values: [450, 451, 452]
+    }
+  ],
+  sort_by: [
+    {
+      ioc: 5,
+      values: [600, 601]
+    }
+  ],
+  survival_status: [
+    {
+      ioc: 4,
+      values: [500, 501]
+    }
+  ],
+  tactic_type: [
+    {
+      ioc: 42,
+      values: [0, 6200, 6201, 6202, 6203, 6204, 6205, 6206, 6207, 6208, 6209, 6210, 6211]
+    }
+  ],
+  target_sorting_rules: [
+    {
+      ioc: 29,
+      values: [1000001, 1000002, 1000003]
+    }
+  ],
+  target_type: [
+    {
+      ioc: 24,
+      values: [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007]
+    },
+    {
+      ioc: 39,
+      values: [2000, 2001, 2002, 2004, 2006]
+    }
+  ],
+  trigonometric_function: [
+    {
+      ioc: 20,
+      values: [1700, 1701, 1702, 1703, 1704, 1705, 1706, 1707]
+    }
+  ],
+  type_conversion: [
+    {
+      ioc: 7,
+      values: [800, 801, 802, 803, 804, 805, 806, 807, 808, 809, 810]
+    },
+    {
+      ioc: 34,
+      values: [800, 801, 802, 803, 804, 805, 806, 807, 808, 809]
+    }
+  ],
+  u_i_control_group_status: [
+    {
+      ioc: 23,
+      values: [1900, 1901, 1902]
+    }
+  ],
+  unit_status_addition_result: [
+    {
+      ioc: 14,
+      values: [1500, 1501, 1502, 1503]
+    },
+    {
+      ioc: 15,
+      values: [1504, 1505]
+    }
+  ],
+  unit_status_removal_reason: [
+    {
+      ioc: 16,
+      values: [1506, 1507, 1508, 1509, 1510, 1511, 1512]
+    }
+  ],
+  unit_status_removal_strategy: [
+    {
+      ioc: 17,
+      values: [1540, 1541]
+    }
+  ]
+}

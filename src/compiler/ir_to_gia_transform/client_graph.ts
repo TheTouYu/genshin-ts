@@ -2,7 +2,10 @@ import { loadGiaProto } from '../../injector/proto.js'
 import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type { ClientIRDocument } from '../../runtime/IR.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
-import { CLIENT_ENUM_VALUES } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
+import {
+  CLIENT_ENUM_VALUES,
+  ENUM_MATCH_ROWS_BY_CLASS
+} from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import { NodePin_Index_Kind, VarBase_Class } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import {
@@ -482,6 +485,82 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
   }
 }
 
+/**
+ * 枚举匹配字面量的类反推：值 key 以类名 snake 前缀开头（如
+ * scan_status_candidate_target）；折叠下划线比较以磨平 conn.enum 逐字母
+ * snake（u_i_control_group_status）与值 key（ui_control_group_status_*）的差异，
+ * 键按长度降序保证取最长匹配（如 hit_performance_level 优先于 hit_type）。
+ */
+const ENUM_MATCH_CLASS_KEYS = Object.keys(ENUM_MATCH_ROWS_BY_CLASS).sort(
+  (a, b) => b.length - a.length
+)
+
+function enumMatchClassOfLiteral(valueKey: string): string | undefined {
+  const collapsed = valueKey.replace(/_/g, '')
+  return ENUM_MATCH_CLASS_KEYS.find((cls) => collapsed.startsWith(cls.replace(/_/g, '')))
+}
+
+/**
+ * 枚举匹配（cid 恒定 10）：双枚举引脚 indexOfConcrete = 枚举类在编辑器下拉
+ * 中的行号（两族 census，见 ENUM_MATCH_ROWS_BY_CLASS）。字面量由值命中的行
+ * 定行（区分 状态添加结果 14/15 两半），连线由 conn.enum 类名取该类首行；
+ * 两引脚共享同一行号（编辑器下拉是节点级单选）。
+ */
+function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+  const fail = (msg: string) =>
+    clientNodegraphError(
+      CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
+      `${metadata.subType}.${irNode.type} ${msg}`
+    )
+  const args = [irNode.args?.[0], irNode.args?.[1]]
+  const infos = args.map((arg, i) => {
+    if (isValueArg(arg)) {
+      const key = String(arg.value)
+      const cls = enumMatchClassOfLiteral(key)
+      if (!cls) throw fail(`enum value "${key}" (arg #${i}) is not selectable in this node`)
+      const rows = ENUM_MATCH_ROWS_BY_CLASS[cls]
+      const numeric = Number(toPinLiteral(13, key, i, irNode.type))
+      return { cls, literalIoc: (rows.find((r) => r.values.includes(numeric)) ?? rows[0]).ioc }
+    }
+    if (arg?.type === 'conn') {
+      const cls = arg.value.enum
+      if (!cls) return undefined
+      if (!ENUM_MATCH_ROWS_BY_CLASS[cls]) {
+        throw fail(`enum class "${cls}" (arg #${i}) is not selectable in this node`)
+      }
+      return { cls, literalIoc: undefined }
+    }
+    return undefined
+  })
+
+  const resolved = infos.filter((info) => info !== undefined)
+  if (resolved.length === 0) {
+    throw fail('cannot resolve the enum class from either pin')
+  }
+  if (resolved.length === 2 && resolved[0].cls !== resolved[1].cls) {
+    throw fail(`enum classes differ between pins ("${resolved[0].cls}" vs "${resolved[1].cls}")`)
+  }
+  const literalIocs = [...new Set(resolved.flatMap((r) => r.literalIoc ?? []))]
+  if (literalIocs.length > 1) {
+    throw fail(
+      `enum values map to different editor dropdown rows (ioc ${literalIocs[0]} vs ${literalIocs[1]})`
+    )
+  }
+  const ioc = literalIocs[0] ?? ENUM_MATCH_ROWS_BY_CLASS[resolved[0].cls][0].ioc
+
+  args.forEach((arg, i) => {
+    const pin = findInPin(node, argPinIndex(metadata, i))
+    if (!pin) return
+    pin.type = 13
+    pin.value = client_wrapped_value(
+      ioc,
+      isValueArg(arg)
+        ? client_literal_value(13, toPinLiteral(13, arg.value, i, irNode.type))
+        : client_value_base(13)
+    )
+  })
+}
+
 function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
@@ -536,6 +615,10 @@ function applySpecialArgs(
   }
   if (irNode.type === 'create_dictionary') {
     applyCreateDictionary(node, irNode, metadata)
+    return true
+  }
+  if (irNode.type === 'enumeration_match') {
+    applyEnumerationMatch(node, irNode, metadata)
     return true
   }
   if (irNode.type === 'send_signal_to_server_node_graph') {

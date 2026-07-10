@@ -1076,8 +1076,10 @@ function emitReflectMethod(spec: MethodSpec): string {
 
 /**
  * 枚举匹配 mirrors the server's enumerationsEqual: one same-class overload per
- * bindable enum class plus a generic implementation signature, so IntelliSense
- * offers concrete classes and mixed-class comparisons fail to compile.
+ * census-representable enum class (编辑器下拉行) plus a generic implementation
+ * signature, so IntelliSense offers concrete classes and mixed-class
+ * comparisons fail to compile. Non-census classes (RayFilterType 等) are not
+ * selectable in the editor and get no overload.
  */
 function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
   const [p1, p2] = spec.params.map((p) => p.ident)
@@ -1107,7 +1109,9 @@ function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
 }
 
 function emitMethod(spec: MethodSpec, enumBinding: ClientEnumBinding): string {
-  if (spec.nodeType === 'enumeration_match') return emitEnumerationMatch(spec, enumBinding.allClasses)
+  if (spec.nodeType === 'enumeration_match') {
+    return emitEnumerationMatch(spec, enumBinding.matchClasses)
+  }
   return spec.reflect ? emitReflectMethod(spec) : emitNonReflectMethod(spec)
 }
 

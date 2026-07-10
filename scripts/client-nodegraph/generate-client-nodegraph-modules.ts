@@ -573,6 +573,17 @@ ${classes}
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.ts',
     `${generatedHeader()}/** enumeration value string -> gia numeric value (client-only enum classes) */
 export const CLIENT_ENUM_VALUES: Record<string, number> = ${jsonConst(binding.valueByKey)}
+
+/**
+ * 枚举匹配 census：类名（ir conn.enum 同款 snake）-> 下拉行（ioc 升序）。
+ * 双引脚 indexOfConcrete = 类所在下拉行号；同类多行（类型转换 7/34、
+ * 目标类型 24/39、状态添加结果两半 14/15、数字运算 2/25）按字面量值命中的
+ * 首行取值，连线取首行。
+ */
+export const ENUM_MATCH_ROWS_BY_CLASS: Record<
+  string,
+  Array<{ ioc: number; values: number[] }>
+> = ${jsonConst(binding.matchRowsByClass)}
 `
   )
 }

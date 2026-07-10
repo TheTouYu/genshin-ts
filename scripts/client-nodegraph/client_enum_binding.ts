@@ -55,6 +55,8 @@ export type ClientEnumClass = {
   members: ClientEnumMember[]
 }
 
+export type EnumMatchRow = { ioc: number; values: number[] }
+
 export type ClientEnumBinding = {
   /** TS enum class for a non-reflective enum input pin (undefined -> EnumerationValue) */
   resolve(
@@ -70,6 +72,10 @@ export type ClientEnumBinding = {
   resolveListReturn(nodeType: string): string | undefined
   /** every bindable class (server + client-only), for same-class overload emission */
   allClasses: string[]
+  /** classes representable in the 枚举匹配 dropdown (census rows), for overload emission */
+  matchClasses: string[]
+  /** ir snake class name -> census rows (ioc ascending), for encoder ioc lookup */
+  matchRowsByClass: Record<string, EnumMatchRow[]>
   /** classes reused from src/definitions/enum.ts, for import emission */
   serverClasses: string[]
   /** client-only classes to emit into src/definitions/client_enums.ts */
@@ -357,6 +363,11 @@ function camelToSnakeKey(name: string): string {
     .toLowerCase()
 }
 
+/** conn.value.enum 同款转换（src/runtime/ir_builder.ts camelToSnake），供编码器按类名查表 */
+function irSnakeClassName(name: string): string {
+  return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`).replace(/^_/, '')
+}
+
 function memberZhName(className: string, zhClassName: string, optionName: string): string {
   for (const prefix of [`${zhClassName}_`, `${zhClassName}-`]) {
     if (optionName.startsWith(prefix)) return optionName.slice(prefix.length)
@@ -376,6 +387,19 @@ export function buildClientEnumBinding(): ClientEnumBinding {
       throw new Error(`[error] enum value ${value} claimed by both ${existing} and ${className}`)
     }
     classByValue.set(value, className)
+  }
+
+  // 枚举匹配 dropdown rows: TS class -> ioc -> value set (both families merged;
+  // rows 0-41 are family-invariant, row 42 maps to a distinct class per family)
+  const matchTsClasses = new Set<string>()
+  const matchRowsByTsClass = new Map<string, Map<number, Set<number>>>()
+  const recordMatchRow = (className: string, row: CensusRow) => {
+    matchTsClasses.add(className)
+    const rows = matchRowsByTsClass.get(className) ?? new Map<number, Set<number>>()
+    matchRowsByTsClass.set(className, rows)
+    const values = rows.get(row.ioc) ?? new Set<number>()
+    rows.set(row.ioc, values)
+    for (const value of row.values) values.add(value)
   }
 
   const clientOnlyByName = new Map<string, ClientEnumClass>()
@@ -418,6 +442,7 @@ export function buildClientEnumBinding(): ClientEnumBinding {
       for (const value of row.values) {
         if (value > 0) bindValue(value, className)
       }
+      recordMatchRow(className, row)
       if (spec) addClientOnlyClass(spec, row.options)
     }
     for (const tactic of seed.tacticEnums ?? []) {
@@ -469,6 +494,13 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     ...new Set([...Object.values(SERVER_CLASS_BY_IOC), ...EXTRA_SERVER_CLASSES])
   ].sort()
 
+  const matchRowsByClass: Record<string, EnumMatchRow[]> = {}
+  for (const className of [...matchRowsByTsClass.keys()].sort()) {
+    matchRowsByClass[irSnakeClassName(className)] = [...matchRowsByTsClass.get(className)!]
+      .sort(([a], [b]) => a - b)
+      .map(([ioc, values]) => ({ ioc, values: [...values].sort((a, b) => a - b) }))
+  }
+
   return {
     resolve(record, pin, zhParamName) {
       const v = pin.defaultValue
@@ -491,6 +523,8 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     serverClasses,
     clientOnlyClasses,
     valueByKey,
-    allClasses: [...new Set([...serverClasses, ...clientOnlyClasses.map((c) => c.className)])].sort()
+    allClasses: [...new Set([...serverClasses, ...clientOnlyClasses.map((c) => c.className)])].sort(),
+    matchClasses: [...matchTsClasses].sort(),
+    matchRowsByClass
   }
 }
