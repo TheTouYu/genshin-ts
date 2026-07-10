@@ -31,6 +31,7 @@ import {
   type GuidValue,
   type IntValue,
   type PrefabIdValue,
+  type ReadonlyDict,
   type RuntimeParameterValueTypeMap,
   type RuntimeReturnValueTypeMap,
   type StrValue,
@@ -562,6 +563,344 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -773,6 +1112,228 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**
@@ -6263,6 +6824,344 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -6557,6 +7456,228 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**
@@ -13274,6 +14395,344 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -13488,6 +14947,228 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**
@@ -18425,6 +20106,344 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -18741,6 +20760,228 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**
@@ -21961,6 +24202,344 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -22263,6 +24842,228 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**

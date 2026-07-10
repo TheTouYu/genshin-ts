@@ -396,6 +396,92 @@ function applyDictReflectNode(
   }
 }
 
+/** 键/值槽定型 + ioc；字面量带 payload（innerSet=true），连线/空槽保持 unset */
+function dictSlotValue(clientVarType: number, ioc: number, arg: IrArg | undefined, nodeType: string) {
+  if (isValueArg(arg)) {
+    const literal =
+      Array.isArray(arg.value) && arg.type.endsWith('_list')
+        ? client_list_literal_value(clientVarType, arg.value)
+        : client_literal_value(clientVarType, toPinLiteral(clientVarType, arg.value, 0, nodeType))
+    return client_wrapped_value(ioc, literal)
+  }
+  return client_wrapped_value(ioc, client_value_base(clientVarType))
+}
+
+/**
+ * 拼装字典：cid 恒定 1048，in#0 = kv 参数总数（plain int，与 assembly_list 同款），
+ * in#1..#100 键/值槽交替（奇=键、偶=值），未用槽位也按键/值类型定型（全语料一致）。
+ */
+function applyAssemblyDictionary(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+  const fail = (msg: string) =>
+    clientNodegraphError(CLIENT_ERROR_CODES.NODE_UNAVAILABLE, `${metadata.subType}.${irNode.type} ${msg}`)
+  const args = irNode.args ?? []
+  if (args.length === 0 || args.length % 2 !== 0 || args.length > 100) {
+    throw fail(`expects 1-50 key/value pairs, got ${args.length} args`)
+  }
+  const keyIr = irTypeOfArg(args[0] ?? undefined)
+  const valueIr = irTypeOfArg(args[1] ?? undefined)
+  const keyType = keyIr ? CLIENT_VAR_TYPE_BY_IR_TYPE[keyIr] : undefined
+  const valueType = valueIr ? CLIENT_VAR_TYPE_BY_IR_TYPE[valueIr] : undefined
+  const keyIoc = keyIr ? DICT_KEY_IOC_BY_IR[keyIr] : undefined
+  const valueIoc = valueIr ? dictValueIoc(valueIr) : undefined
+  if (!keyType || keyIoc === undefined) throw fail(`unsupported key type "${keyIr ?? 'missing'}"`)
+  if (!valueType || valueIoc === undefined) {
+    throw fail(`unsupported value type "${valueIr ?? 'missing'}"`)
+  }
+
+  const countPin = findInPin(node, 0)
+  if (countPin) countPin.value = client_value_base(3, args.length)
+  for (let pinIndex = 1; pinIndex <= 100; pinIndex++) {
+    const pin = findInPin(node, pinIndex)
+    if (!pin) continue
+    const isKeySlot = (pinIndex - 1) % 2 === 0
+    const arg = pinIndex - 1 < args.length ? args[pinIndex - 1] : undefined
+    pin.type = isKeySlot ? keyType : valueType
+    pin.value = isKeySlot
+      ? dictSlotValue(keyType, keyIoc, arg, irNode.type)
+      : dictSlotValue(valueType, valueIoc, arg, irNode.type)
+  }
+  const outPin = findOutPin(node, 0)
+  if (outPin) {
+    outPin.type = 24
+    outPin.value = client_wrapped_value(0, client_value_base(24))
+  }
+}
+
+/**
+ * 建立字典：cid 恒定 1049，in#0 键列表 / in#1 值列表按元素类型定型
+ * （键槽 ioc 用键表、值槽 ioc 用值表），出参 t24 ioc0。
+ */
+function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+  const fail = (msg: string) =>
+    clientNodegraphError(CLIENT_ERROR_CODES.NODE_UNAVAILABLE, `${metadata.subType}.${irNode.type} ${msg}`)
+  const pins: Array<{ index: number; iocOfElem: (elem: string) => number | undefined }> = [
+    { index: 0, iocOfElem: (elem) => DICT_KEY_IOC_BY_IR[elem] },
+    { index: 1, iocOfElem: (elem) => DICT_VALUE_IOC_BY_IR[elem] }
+  ]
+  for (const { index, iocOfElem } of pins) {
+    const arg = irNode.args?.[index]
+    const irType = irTypeOfArg(arg ?? undefined)
+    const elem = irType?.endsWith('_list') ? irType.slice(0, -'_list'.length) : undefined
+    const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
+    const ioc = elem ? iocOfElem(elem) : undefined
+    if (!clientVarType || ioc === undefined) {
+      throw fail(`cannot resolve ${index === 0 ? 'key' : 'value'} list type from "${irType ?? 'missing'}"`)
+    }
+    const pin = findInPin(node, index)
+    if (pin) {
+      pin.type = clientVarType
+      pin.value = dictSlotValue(clientVarType, ioc, arg, irNode.type)
+    }
+  }
+  const outPin = findOutPin(node, 0)
+  if (outPin) {
+    outPin.type = 24
+    outPin.value = client_wrapped_value(0, client_value_base(24))
+  }
+}
+
 function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
@@ -442,6 +528,14 @@ function applySpecialArgs(
   }
   if (DICT_REFLECT_NODE_TYPES.has(irNode.type)) {
     applyDictReflectNode(node, irNode, metadata, inferredOutType)
+    return true
+  }
+  if (irNode.type === 'assembly_dictionary') {
+    applyAssemblyDictionary(node, irNode, metadata)
+    return true
+  }
+  if (irNode.type === 'create_dictionary') {
+    applyCreateDictionary(node, irNode, metadata)
     return true
   }
   if (irNode.type === 'send_signal_to_server_node_graph') {

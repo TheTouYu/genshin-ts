@@ -7,18 +7,6 @@
   },
   {
     "subType": "character_control_skill",
-    "nodeType": "assembly_dictionary",
-    "displayName": "拼装字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "character_control_skill",
-    "nodeType": "create_dictionary",
-    "displayName": "建立字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "character_control_skill",
     "nodeType": "get_local_variable",
     "displayName": "获取局部变量",
     "reason": "reflect_no_variant_evidence"
@@ -40,18 +28,6 @@
     "nodeType": "assemble_structure",
     "displayName": "拼装结构体",
     "reason": "local_variable_pins"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "assembly_dictionary",
-    "displayName": "拼装字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "character_skill",
-    "nodeType": "create_dictionary",
-    "displayName": "建立字典",
-    "reason": "reflect_no_variant_evidence"
   },
   {
     "subType": "character_skill",
@@ -79,18 +55,6 @@
   },
   {
     "subType": "creation_skill",
-    "nodeType": "assembly_dictionary",
-    "displayName": "拼装字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_skill",
-    "nodeType": "create_dictionary",
-    "displayName": "建立字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_skill",
     "nodeType": "get_local_variable",
     "displayName": "获取局部变量",
     "reason": "reflect_no_variant_evidence"
@@ -115,19 +79,6 @@
   },
   {
     "subType": "creation_status",
-    "nodeType": "assembly_dictionary",
-    "displayName": "拼装字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_status",
-    "nodeType": "create_dictionary",
-    "displayName": "建立字典",
-    "reason": "unsupported_return_type",
-    "detail": "Dictionary: dict"
-  },
-  {
-    "subType": "creation_status",
     "nodeType": "split_structure",
     "displayName": "拆分结构体",
     "reason": "local_variable_pins"
@@ -137,19 +88,6 @@
     "nodeType": "assemble_structure",
     "displayName": "拼装结构体",
     "reason": "local_variable_pins"
-  },
-  {
-    "subType": "creation_status_decision",
-    "nodeType": "assembly_dictionary",
-    "displayName": "拼装字典",
-    "reason": "reflect_no_variant_evidence"
-  },
-  {
-    "subType": "creation_status_decision",
-    "nodeType": "create_dictionary",
-    "displayName": "建立字典",
-    "reason": "unsupported_return_type",
-    "detail": "Dictionary: dict"
   },
   {
     "subType": "creation_status_decision",

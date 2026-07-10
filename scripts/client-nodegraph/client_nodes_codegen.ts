@@ -124,7 +124,10 @@ const HAND_NODE_TYPES = new Set([
   'get_list_of_keys_from_dictionary',
   'query_dictionary_value_by_key',
   'query_if_dictionary_contains_specific_key',
-  'query_if_dictionary_contains_specific_value'
+  'query_if_dictionary_contains_specific_value',
+  // 字典构造节点：cid 恒定（1048/1049），同样用服务器对齐泛型模板
+  'assembly_dictionary',
+  'create_dictionary'
 ])
 
 // ---------------------------------------------------------------------------
@@ -1776,6 +1779,161 @@ function emitQueryIfDictionaryContainsSpecificValue(doc: AlignedDocNode | undefi
   }`
 }
 
+/** 字典键类型 -> 参数 TS 类型（服务器 assemblyDictionary/createDictionary 重载矩阵同款） */
+const DICT_KEY_PARAM_TS: Record<string, string> = {
+  int: 'IntValue',
+  str: 'StrValue',
+  entity: 'EntityValue',
+  guid: 'GuidValue',
+  faction: 'FactionValue',
+  config_id: 'ConfigIdValue',
+  prefab_id: 'PrefabIdValue'
+}
+
+/**
+ * 字典值标量类型 -> 参数 TS 类型；vec3 标量用类类型（与服务器一致：
+ * [x,y,z] 数组字面量会与列表值产生重载歧义），列表值统一 Value[]。
+ */
+const DICT_VALUE_PARAM_TS: Record<string, { scalar: string; list: string }> = {
+  float: { scalar: 'FloatValue', list: 'FloatValue[]' },
+  int: { scalar: 'IntValue', list: 'IntValue[]' },
+  bool: { scalar: 'BoolValue', list: 'BoolValue[]' },
+  config_id: { scalar: 'ConfigIdValue', list: 'ConfigIdValue[]' },
+  entity: { scalar: 'EntityValue', list: 'EntityValue[]' },
+  faction: { scalar: 'FactionValue', list: 'FactionValue[]' },
+  guid: { scalar: 'GuidValue', list: 'GuidValue[]' },
+  prefab_id: { scalar: 'PrefabIdValue', list: 'PrefabIdValue[]' },
+  str: { scalar: 'StrValue', list: 'StrValue[]' },
+  vec3: { scalar: 'vec3', list: 'Vec3Value[]' }
+}
+
+/**
+ * 拼装字典：服务器 assemblyDictionary 同款重载矩阵 + 泛型实现。IR args 与
+ * 服务器同形（k1,v1,k2,v2... 摊平），GIA 侧 count 引脚与 100 个键/值槽由转换器补齐。
+ */
+function emitAssemblyDictionary(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '键0~49')
+  const overloads = Object.entries(DICT_KEY_PARAM_TS).flatMap(([k, kTs]) =>
+    Object.entries(DICT_VALUE_PARAM_TS).flatMap(([v, vTs]) => [
+      `  assemblyDictionary(pairs: { k: ${kTs}; v: ${vTs.scalar} }[]): ReadonlyDict<'${k}', '${v}'>`,
+      `  assemblyDictionary(pairs: { k: ${kTs}; v: ${vTs.list} }[]): ReadonlyDict<'${k}', '${v}_list'>`
+    ])
+  )
+  return `${controlFlowJsdoc(
+    doc,
+    '拼装字典',
+    [{ ident: 'pairs', en: p0.en || 'Key-Value Pairs (1-50)', zh: '键值对: 至多50个键值对' }],
+    docReturnText(doc, '字典')
+  )}
+${overloads.join('\n')}
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }`
+}
+
+/** 建立字典：服务器 createDictionary 同款重载矩阵 + 泛型实现，键/值列表必须已定型 */
+function emitCreateDictionary(doc: AlignedDocNode | undefined): string {
+  const p0 = docParamTextByZhName(doc, '键列表')
+  const p1 = docParamTextByZhName(doc, '值列表')
+  const overloads = Object.entries(DICT_KEY_PARAM_TS).flatMap(([k, kTs]) =>
+    Object.entries(DICT_VALUE_PARAM_TS).map(
+      ([v, vTs]) =>
+        `  createDictionary(keyList: ${kTs}[], valueList: ${vTs.list}): ReadonlyDict<'${k}', '${v}'>`
+    )
+  )
+  return `${controlFlowJsdoc(
+    doc,
+    '建立字典',
+    [
+      { ident: 'keyList', en: p0.en, zh: p0.zh },
+      { ident: 'valueList', en: p1.en, zh: p1.zh }
+    ],
+    docReturnText(doc, '字典')
+  )}
+${overloads.join('\n')}
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }`
+}
+
 function emitSendSignalToServer(doc: AlignedDocNode | undefined): string {
   return `${controlFlowJsdoc(doc, '向服务器节点图发送信号', [{ ident: 'signalName', en: 'Signal name', zh: '信号名' }])}
   sendSignalToServerNodeGraph(signalName: StrValue): void {
@@ -1924,6 +2082,14 @@ export function generateClientNodes(
         case 'query_if_dictionary_contains_specific_value':
           texts.push(emitQueryIfDictionaryContainsSpecificValue(doc))
           names.push('queryIfDictionaryContainsSpecificValue')
+          break
+        case 'assembly_dictionary':
+          texts.push(emitAssemblyDictionary(doc))
+          names.push('assemblyDictionary')
+          break
+        case 'create_dictionary':
+          texts.push(emitCreateDictionary(doc))
+          names.push('createDictionary')
           break
       }
       continue
@@ -2077,7 +2243,7 @@ function getBaseValueType(
   const valueTypeImports = [
     'BoolValue', 'ConfigIdValue', 'DictKeyType', 'DictValue', 'DictValueType', 'EntityValue',
     'EnumerationValue', 'FactionValue', 'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue',
-    'StrValue', 'Vec3Value', 'value'
+    'ReadonlyDict', 'StrValue', 'Vec3Value', 'value'
   ].filter(usesIdent)
   const irTypeImports = ['CommonLiteralValueListTypeMap', 'CommonLiteralValueTypeMap'].filter(
     usesIdent

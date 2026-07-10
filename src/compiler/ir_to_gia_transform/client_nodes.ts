@@ -19,6 +19,12 @@ export const DICT_REFLECT_NODE_TYPES = new Set([
   'query_if_dictionary_contains_specific_value'
 ])
 
+/**
+ * 字典构造节点：cid 恒定（拼装 1048 / 建立 1049），键值类型同样只体现在
+ * 引脚 type/ioc 上；拼装节点 in#0 为 kv 参数总数，in#1..#100 键/值槽交替。
+ */
+export const DICT_BUILD_NODE_TYPES = new Set(['assembly_dictionary', 'create_dictionary'])
+
 /** IR value type -> ClientVarType id, mirroring the extractor's type name table */
 export const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   entity: 1,
@@ -170,7 +176,7 @@ export function resolveClientConcreteVariant(
   if (metadata.nodeType === 'multiple_branches') {
     return metadata.concreteId ?? 4002
   }
-  if (DICT_REFLECT_NODE_TYPES.has(metadata.nodeType)) {
+  if (DICT_REFLECT_NODE_TYPES.has(metadata.nodeType) || DICT_BUILD_NODE_TYPES.has(metadata.nodeType)) {
     if (metadata.concreteId == null) {
       throw clientNodegraphError(
         CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
