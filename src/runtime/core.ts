@@ -757,6 +757,32 @@ export class MetaCallRegistry {
     return flow.execContextStack[flow.execContextStack.length - 1]
   }
 
+  private getCompositeInputIndex(
+    def: CompositeDefinition | undefined,
+    name: string,
+    fallbackIndex: number
+  ): number {
+    if (!def) return fallbackIndex
+    const inputIndex = Object.keys(def.inputs).indexOf(name)
+    return inputIndex >= 0 ? inputIndex : fallbackIndex
+  }
+
+  private buildCompositeCallArgs(
+    compositeId: number,
+    def: CompositeDefinition | undefined,
+    inputs: Record<string, any>
+  ): { args: value[]; compositeInputIndices: Array<number | undefined> } {
+    const args: value[] = [new int(BigInt(compositeId))]
+    const compositeInputIndices: Array<number | undefined> = [undefined]
+    let fallbackIndex = 0
+    for (const [name, val] of Object.entries(inputs)) {
+      args.push(val as value)
+      compositeInputIndices.push(this.getCompositeInputIndex(def, name, fallbackIndex))
+      fallbackIndex++
+    }
+    return { args, compositeInputIndices }
+  }
+
   private addEdge(
     flow: ExecutionFlow,
     fromNodeId: number,
@@ -1319,15 +1345,13 @@ export class MetaCallRegistry {
     const isPureData = def?.captured?.isPureData ?? false
 
     // 1. 注册标记节点（纯数据 → data 类型，exec → exec 类型）
+    const callArgs = this.buildCompositeCallArgs(compositeId, def, inputs)
     const markerRecord = this.registerNode({
       id: 0,
       nodeType: '__composite_call__',
       type: isPureData ? 'data' : 'exec',
-      args: (() => {
-        const a: value[] = [new int(BigInt(compositeId))]
-        for (const val of Object.values(inputs)) a.push(val as value)
-        return a
-      })()
+      args: callArgs.args,
+      compositeInputIndices: callArgs.compositeInputIndices
     })
     this.trackCompositeCall(compositeId, markerRecord.id!)
 
@@ -1335,6 +1359,7 @@ export class MetaCallRegistry {
     const captureInputs: Record<string, any> = {}
     let inIdx = 0
     for (const [name, val] of Object.entries(inputs)) {
+      const inputIdx = this.getCompositeInputIndex(def, name, inIdx)
       const v = val as value
       const meta = v?.getMetadata?.()
       if (meta && meta.kind === 'pin') {
@@ -1344,7 +1369,7 @@ export class MetaCallRegistry {
             fromNodeId: meta.record.id,
             fromPinIndex: meta.pinIndex,
             toMarkerId: markerRecord.id!,
-            toPinIndex: inIdx
+            toPinIndex: inputIdx
           })
         }
         // capture 用 placeholder
@@ -1487,15 +1512,13 @@ export class MetaCallRegistry {
 
     // 1. 直接 push 标记节点，绕过 registerNode 的 auto-chain
     const current = this.currentFlow
+    const callArgs = this.buildCompositeCallArgs(compositeId, def, inputs)
     const markerRecord: MetaCallRecord = {
       id: this.currentRecordId,
       nodeType: '__composite_call__',
       type: isPureData ? 'data' : 'exec',
-      args: (() => {
-        const a: value[] = [new int(BigInt(compositeId))]
-        for (const val of Object.values(inputs)) a.push(val as value)
-        return a
-      })()
+      args: callArgs.args,
+      compositeInputIndices: callArgs.compositeInputIndices
     }
     if (isPureData) {
       current.dataNodes.push(markerRecord)
@@ -1514,6 +1537,7 @@ export class MetaCallRegistry {
     const captureInputs: Record<string, any> = {}
     let inIdx = 0
     for (const [name, val] of Object.entries(inputs)) {
+      const inputIdx = this.getCompositeInputIndex(def, name, inIdx)
       const v = val as value
       const meta = v?.getMetadata?.()
       if (meta && meta.kind === 'pin') {
@@ -1522,7 +1546,7 @@ export class MetaCallRegistry {
             fromNodeId: meta.record.id,
             fromPinIndex: meta.pinIndex,
             toMarkerId: markerRecord.id!,
-            toPinIndex: inIdx
+            toPinIndex: inputIdx
           })
         }
         if (def?.inputs?.[name]) {

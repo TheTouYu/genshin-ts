@@ -84,7 +84,7 @@ export function buildExecutionGraph(irNodes: IRNode[]) {
           node.type === 'assembly_list' || node.type === 'assembly_dictionary'
             ? toIndex + 1
             : node.type === '__composite_call__'
-              ? toIndex - 1
+              ? ((arg as any).compositeInputIndex ?? toIndex - 1)
               : toIndex
         dataConnections.push({
           fromId: dataNodeId,

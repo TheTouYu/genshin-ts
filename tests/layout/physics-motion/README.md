@@ -20,7 +20,7 @@ tests/layout/physics-motion/composites/force-torque.ts
 tests/layout/physics-motion/composites/update-vw-stubs.ts
 ```
 
-`计算分力` 及其空气动力、摩擦、力矩子复合已按真实 GIA 结构实现。`update-vw-stubs.ts` 当前只保留 `更新速度`、`更新角速度`、`计算滚动角速度` 和 `顺序执行` 的阶段性实现。
+`计算分力` 及其空气动力、摩擦、力矩子复合已按真实 GIA 结构实现。`update-vw-stubs.ts` 当前保留 `更新速度`、`更新角速度`、`计算滚动角速度`、其滚动角速度子复合和 `顺序执行`；前三者已替换掉返回当前 `v/w` 的阶段性代理实现。
 
 推荐编译：
 

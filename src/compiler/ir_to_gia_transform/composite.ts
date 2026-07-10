@@ -874,7 +874,7 @@ function buildImplNodePins(
       for (let ai = 1; ai < callArgs.length; ai++) {
         const arg = callArgs[ai]
         if (!arg || (arg as any).capture === true) continue
-        const inputIdx = ai - 1
+        const inputIdx = (arg as any).compositeInputIndex ?? ai - 1
         // 从子复合的输入定义中取类型和 pinIndex
         let cpi: number | undefined
         let typeName = arg.type ?? 'int'

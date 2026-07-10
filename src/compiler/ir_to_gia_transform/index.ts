@@ -561,10 +561,11 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
           if (bt) p.setType({ t: 'b', b: bt })
           giaNode.pins.push(p)
         }
-        // 从 IR args[1..] 填充 InParam 字面量值（args[0] 是 compositeId）
+        // 从 IR args[1..] 填充 InParam 字面量值（args[0] 是 compositeId）。
+        // 命名/稀疏输入优先使用 compositeInputIndex，避免只传第二个参数时被压缩成 pin 0。
         for (let ai = 1; ai < callArgs.length; ai++) {
           const arg = callArgs[ai]
-          const pinIdx = ai - 1
+          const pinIdx = (arg as any)?.compositeInputIndex ?? ai - 1
           if (!arg || arg.type === 'conn') continue
           if (pinIdx < cdef.inputs.length) {
             setLiteralArgValue(giaNode, pinIdx, ai, nodeType, arg.type, arg.value)

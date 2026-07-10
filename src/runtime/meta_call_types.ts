@@ -7,6 +7,7 @@ export interface MetaCallRecord {
   type: MetaCallRecordType
   nodeType: string
   args: value[]
+  compositeInputIndices?: Array<number | undefined>
 }
 
 export type MetaCallRecordRef = Readonly<MetaCallRecord>

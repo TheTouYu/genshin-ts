@@ -777,25 +777,37 @@ function searchGraph(
 
 function main(): void {
   const args = process.argv.slice(2)
+  const wantsHelp = args.includes('--help') || args.includes('-h')
+
+  function printUsage(useError = false): void {
+    const out = useError ? console.error : console.log
+    out('用法: npx tsx tests/composite/trace-dataflow.ts <文件.gia> <节点索引|节点名> [参数索引...] [--composite <复合名>] [--json] [--max-depth N] [--all-params] [--list-nodes] [--quiet]')
+    out('  省略 -c:        自动在所有图中按名称唯一匹配')
+    out('  省略参数索引:   默认追溯前 N 个输入参数')
+    out('  --json:         输出嵌套 JSON（适用于模型消费）')
+    out('  --max-depth N   设置最大追溯深度（默认 5，0=无限制）')
+    out('  --all-params    追溯目标节点所有输入参数')
+    out('  --list-nodes/-l:列出当前图所有节点（无需节点参数）')
+    out('  --help/-h:      显示帮助')
+    out('  提示: 用 NODE_OPTIONS=\'--no-deprecation\' 屏蔽 tsx 的 deprecation warning')
+    out('  例子:')
+    out('    npx tsx .../物理运动.gia --list-nodes          (列出节点)')
+    out('    npx tsx .../物理运动.gia 计算合力              (全局自动匹配)')
+    out('    npx tsx .../物理运动.gia 计算合力 --json      (嵌套 JSON)')
+    out('    npx tsx .../物理运动.gia 5 0 1                (指定参数)')
+    out('    npx tsx .../物理运动.gia 3 -c slip_velocity --max-depth 10')
+  }
+
+  if (wantsHelp) {
+    printUsage()
+    process.exit(0)
+  }
 
   // Early scan for --list-nodes (无需节点参数)
   const hasListNodes = args.includes('--list-nodes') || args.includes('-l')
 
   if (args.length < 1) {
-    console.error('用法: npx tsx tests/composite/trace-dataflow.ts <文件.gia> <节点索引|节点名> [参数索引...] [--composite <复合名>] [--json] [--max-depth N] [--all-params] [--list-nodes] [--quiet]')
-    console.error('  省略 -c:        自动在所有图中按名称唯一匹配')
-    console.error('  省略参数索引:   默认追溯前 N 个输入参数')
-    console.error('  --json:         输出嵌套 JSON（适用于模型消费）')
-    console.error('  --max-depth N   设置最大追溯深度（默认 5，0=无限制）')
-    console.error('  --all-params    追溯目标节点所有输入参数')
-    console.error('  --list-nodes/-l:列出当前图所有节点（无需节点参数）')
-    console.error('  提示: 用 NODE_OPTIONS=\'--no-deprecation\' 屏蔽 tsx 的 deprecation warning')
-    console.error('  例子:')
-    console.error('    npx tsx .../物理运动.gia --list-nodes          (列出节点)')
-    console.error('    npx tsx .../物理运动.gia 计算合力              (全局自动匹配)')
-    console.error('    npx tsx .../物理运动.gia 计算合力 --json      (嵌套 JSON)')
-    console.error('    npx tsx .../物理运动.gia 5 0 1                (指定参数)')
-    console.error('    npx tsx .../物理运动.gia 3 -c slip_velocity --max-depth 10')
+    printUsage(true)
     process.exit(1)
   }
 
@@ -850,6 +862,12 @@ function main(): void {
   }
   // maxDepth=0 表示无限制
   if (maxDepth === 0) maxDepth = Infinity
+
+  if (!(hasListNodes || listNodes) && (targetNodeSpec == null || targetNodeSpec.startsWith('-'))) {
+    console.error('❌ 缺少目标节点（节点索引或节点名）')
+    printUsage(true)
+    process.exit(1)
+  }
 
   let data: any
   try { data = decode_gia_file(filePath) } catch (e: any) { console.error(`❌ 解码失败: ${e.message}`); process.exit(1) }

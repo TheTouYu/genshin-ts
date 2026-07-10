@@ -411,6 +411,7 @@ function analyze(filePath: string) {
 
     allNodes.push({
       idx: n.nodeIndex, name, nid, kind,
+      pinCount: pins.length,
       hasOutflowPin, branchCount,
       compositeDefHasFlowInput,
       inParamTotal, inParamConnected, isCalled,
@@ -422,6 +423,7 @@ function analyze(filePath: string) {
   const args = process.argv.slice(2)
   const jsonMode = args.includes('--json')
   const ioMode = args.includes('--io')
+  const listNodes = args.includes('--list-nodes') || args.includes('-l')
   const detailIdxArg = args.find(a => a.startsWith('--detail='))
   const detailIdx = detailIdxArg ? parseInt(detailIdxArg.split('=')[1], 10) : null
   const depthArg = args.find(a => a.startsWith('--depth='))
@@ -528,6 +530,46 @@ function analyze(filePath: string) {
       }
       console.log()
     }
+  }
+
+  function printNodeList() {
+    if (jsonMode) {
+      const nodeList = [...allNodes]
+        .sort((a: any, b: any) => a.idx - b.idx)
+        .map((node: any) => ({
+          index: node.idx,
+          name: node.name,
+          nid: node.nid,
+          kind: node.kind,
+          pins: node.pinCount,
+          event_source: node.isEvent,
+          has_outflow_pin: node.hasOutflowPin,
+          branch_count: node.branchCount,
+          called: node.isCalled,
+        }))
+      console.log(JSON.stringify(nodeList, null, 2))
+      return
+    }
+
+    console.log(`📋 主图节点列表:`)
+    const sorted = [...allNodes].sort((a: any, b: any) => a.idx - b.idx)
+    for (const node of sorted) {
+      const marks: string[] = []
+      if (node.isEvent) marks.push('event')
+      if (!node.isCalled && node.hasOutflowPin && node.branchCount === 0) marks.push('orphan')
+      const markSuffix = marks.length > 0 ? `  ${marks.join(', ')}` : ''
+      console.log(
+        `${String(node.idx).padStart(3)}  ${String(node.name).padEnd(36)}  ` +
+        `nid=${String(node.nid ?? '?').padEnd(12)}  kind=${String(node.kind ?? '?').padEnd(7)}  ` +
+        `pins=${String(node.pinCount).padEnd(3)}  branch=${String(node.branchCount).padEnd(2)}  ` +
+        `outflow=${node.hasOutflowPin ? 'Y' : 'N'}${markSuffix}`
+      )
+    }
+  }
+
+  if (listNodes) {
+    printNodeList()
+    return
   }
 
   if (jsonMode) {
@@ -867,16 +909,23 @@ function expandSubGraph(
   }
 }
 
+function printUsage(useError = false): void {
+  const out = useError ? console.error : console.log
+  out('用法: npx tsx tests/composite/trace-exec-flow.ts <文件.gia> [--json] [--io] [--detail=N] [--depth=N] [--expand=N|名称] [--list-nodes|-l]')
+  out('  默认: 输出人类可读的事件起点分析（含执行流引脚名）')
+  out('  --json: 输出 JSON 结果（配合 --depth=N 控制下游递归层数，默认全部展开）')
+  out('  --io: 输出所有节点的控制流 InFlow/OutFlow 汇总')
+  out('  --detail=N: 显示节点 N 的完整引脚信息')
+  out('  --depth=N: 配合 --json 使用，递归展开 N 层下游（0=不展开下游）')
+  out('  --expand=N 或 --expand=<名称>: 展开复合节点的内部执行流事件源')
+  out('  --list-nodes/-l: 列出主图所有节点（可配合 --json）')
+}
+
 // ===== CLI =====
 const cliArgs = process.argv.slice(2)
 const filePath = cliArgs[0]
 if (!filePath || filePath.startsWith('--')) {
-  console.error(`用法: npx tsx tests/composite/trace-exec-flow.ts <文件.gia> [--json] [--detail=N] [--depth=N] [--expand=N]`)
-  console.error(`  默认: 输出人类可读的事件起点分析（含执行流引脚名）`)
-  console.error(`  --json: JSON 格式（含 --depth=N 控制递归层数，默认仅第一层）`)
-  console.error(`  --detail=N: 显示节点 N 的完整引脚信息`)
-  console.error(`  --depth=N: 配合 --json 使用，递归展开 N 层下游（0=仅第一层，空=全部展开）`)
-  console.error(`  --expand=N 或 --expand=<名称>: 展开复合节点的内部执行流事件源（可指定索引或名称）`)
+  printUsage(true)
   process.exit(1)
 }
 

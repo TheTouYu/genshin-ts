@@ -203,8 +203,10 @@ export class CompositeRegistry {
               if (!inputName) continue
               const inputIdx = inputNameToIndex.get(inputName)
               if (inputIdx === undefined) continue
-              // __composite_call__ 的 args[0] 是 compositeId，实际输入从 args[1] 开始
+              // __composite_call__ 的 args[0] 是 compositeId，实际输入从 args[1] 开始。
+              // 稀疏命名输入（例如只传第二个输入）优先使用 call 记录的声明 index。
               const callArgOffset = inner.nodeType === '__composite_call__' ? 1 : 0
+              const compositeInputIndex = inner.compositeInputIndices?.[argIdx]
               // assembly_list 在 GIA 编码时 count pin 插在 index 0，arg pin 偏移 +1
               const assemblyListOffset = inner.nodeType === 'assembly_list' ? 1 : 0
               pins.push({
@@ -212,7 +214,8 @@ export class CompositeRegistry {
                 outerPinIndex: inputIdx,
                 innerNodeId: inner.id!,
                 innerPinKind: 3, // InParam
-                innerPinIndex: argIdx - callArgOffset + assemblyListOffset
+                innerPinIndex:
+                  compositeInputIndex ?? argIdx - callArgOffset + assemblyListOffset
               })
             }
           }
@@ -293,7 +296,12 @@ export class CompositeRegistry {
           ].map((r) => ({
             id: r.id,
             type: r.nodeType,
-            args: r.args.map((a) => {
+            args: r.args.map((a, argIndex) => {
+              const compositeInputIndex = r.compositeInputIndices?.[argIndex]
+              const withCompositeInputIndex = <T extends Record<string, unknown>>(arg: T): T => {
+                if (compositeInputIndex === undefined) return arg
+                return { ...arg, compositeInputIndex }
+              }
               const meta = a.getMetadata()
               const isCaptureInput = !!(a as any).__captureInputName
               if (meta?.kind === 'pin') {
@@ -305,7 +313,7 @@ export class CompositeRegistry {
                 } else {
                   giaType = RUNTIME_TO_GIA_TYPE[typeName] ?? typeName
                 }
-                return {
+                return withCompositeInputIndex({
                   type: 'conn' as const,
                   value: {
                     node_id: meta.record.id,
@@ -313,12 +321,12 @@ export class CompositeRegistry {
                     type: giaType
                   } as any,
                   ...(isCaptureInput ? { capture: true as const } : {})
-                }
+                })
               }
-              return {
+              return withCompositeInputIndex({
                 ...a.toIRLiteral(),
                 ...(isCaptureInput ? { capture: true as const } : {})
-              }
+              })
             })
           })),
           implEdges: impl?.edges ?? {},

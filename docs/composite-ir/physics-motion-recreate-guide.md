@@ -522,9 +522,44 @@ Physics Round 8 已完成布局回归：composite impl 在共享布局完成后�
 /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/真-测试通过/布局/局部变量-gsts复刻.gia
 ```
 
-### 5.5 当前剩余差异
+### 5.5 `更新速度`、`更新角速度`、`计算滚动角速度` 当前实现
+
+2026-07-10 已按真实 `复杂gia/物理运动.gia` 的节点列表和数据来源，替换掉三个复合返回当前 `v/w` 的阶段性代理实现。源码位于：
+
+```text
+tests/layout/physics-motion/composites/update-vw-stubs.ts
+```
+
+自动核验命令：
+
+```bash
+node bin/gsts.mjs -c gsts.physics-motion.config.ts --noinject
+npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.gia \
+  --list-nodes --composite='更新速度'
+npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.gia \
+  --list-nodes --composite='更新角速度'
+npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.gia \
+  --list-nodes --composite='计算滚动角速度'
+```
+
+当前公式来源为真实 GIA trace：
+
+- `更新速度`：`v + F * (更新间隔 * (1 / m))`。
+- `更新角速度`：`w + J * (更新间隔 * (1/I))`。
+- `计算滚动角速度`：读取 `w`、`v`、`R`，通过 `向量缩放除法(v, R)`、`dot(w, vec3(0, 0.9, 0))` 构造 `a朝向`，再调用 `w角速度-a朝向转化` 并输出其 `w角速度`。
+
+同时新增真实子复合接口：
+
+- `向量缩放除法`：`三维向量 / 标量`，接口 pinIndex 为 `379/383 -> 396`。
+- `w角速度-a朝向转化`：接口 pinIndex 为 `w角速度=314`、`a朝向=315`、输出 `a朝向=313`、`w角速度=316`。
+
+2026-07-10 进一步修复了当前 gsts 的 composite call sparse/named input 编码缺口：`f.callComposite(w角速度-a朝向转化, { a朝向 })` 现在会按子复合声明保留 `a朝向` 的物理输入 index，生成 `InParam[1]`，不会压缩成 `InParam[0]`。该通用修复位于 `src/runtime/core.ts`、`src/runtime/ir_builder.ts`、`src/runtime/composite_registry.ts`、`src/compiler/ir_to_gia_transform/layout.ts`、`index.ts` 和 `composite.ts`；回归见 `tests/composite/test-composite-sparse-named-input.ts`。当前物理生成 trace 显示 `w角速度-a朝向转化.InParam[0]` 未连接，`InParam[1] a朝向` 连接上游 `Create 3D Vector`，与真实 `计算滚动角速度` 的稀疏输入结构一致。用户已游戏内确认该修复生效。
+
+同轮游戏内核验还发现 `向量缩放除法` 的接口定义正确，但内部 `Division.InParam[1]` 没有引用复合输入，截图为 `Beyond_Local_Export/布局/复合节点-核验问题-向量缩放除法.png`。下一轮入口见 [handover/layout-handover-physics-motion-round-11.md](handover/layout-handover-physics-motion-round-11.md)。当前初步判断：`向量缩放除法` 的第二个输入名为空字符串，`composite_registry.ts` 扫描 capture 输入时若使用 `if (!inputName)` 会误跳过合法空名输入，应以真实 trace 和最小回归确认后修复。
+
+### 5.6 当前剩余差异
 
 1. vec3 Local Variable 通用编码已用最小真实结构完成游戏内验证；物理运动整图仍需单独确认三处 getter 所在层级。
-2. `更新速度`、`更新角速度`、`计算滚动角速度` 仍为阶段性代理语义。
+2. `更新速度`、`更新角速度`、`计算滚动角速度` 已替换阶段性代理语义；`计算滚动角速度` 中嵌套调用 `w角速度-a朝向转化` 的稀疏输入 pin 编码已通过编译器通用修复对齐自动 trace。
 3. `更新v、w` 控制流布局和 nested capture pin 修复沿用此前已验证结果。
-4. 修正版物理运动 GIA 已显式注入，等待整图反馈后再继续其余三个真实子复合。
+4. `向量缩放除法` 内部 `Division.InParam[1]` 未引用复合输入，待下一轮修复并游戏内核验。

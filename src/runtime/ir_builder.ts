@@ -109,16 +109,22 @@ function buildConnectionArgument(meta: ValueMetadata, arg: value): ConnectionArg
   }
 }
 
-function buildArgument(record: MetaCallRecord, arg: value): Argument {
+function buildArgument(record: MetaCallRecord, arg: value, argIndex: number): Argument {
+  const compositeInputIndex = record.compositeInputIndices?.[argIndex]
+  const withCompositeInputIndex = (argument: Argument): Argument => {
+    if (compositeInputIndex === undefined || argument === null) return argument
+    return { ...(argument as Record<string, unknown>), compositeInputIndex } as unknown as Argument
+  }
+
   const meta = arg.getMetadata()
   if (!meta)
     throw new Error(
       `Error in ${record.nodeType} - Value has no metadata: ${JSON.stringify(arg.toIRLiteral())}`
     )
   const conn = buildConnectionArgument(meta, arg)
-  if (conn) return conn
+  if (conn) return withCompositeInputIndex(conn)
 
-  return arg.toIRLiteral()
+  return withCompositeInputIndex(arg.toIRLiteral())
 }
 
 type NodeBuilder = (record: MetaCallRecord, next?: NextConnection[]) => ServerNode
@@ -128,7 +134,7 @@ const buildDefaultNode: NodeBuilder = (record, next) => {
     id: record.id,
     type: record.nodeType
   }
-  const args = record.args.map((arg) => buildArgument(record, arg))
+  const args = record.args.map((arg, index) => buildArgument(record, arg, index))
   if (args.length) node.args = args
   if (next?.length) node.next = next
   return node
