@@ -1,20 +1,68 @@
 ---
 name: composite-docs-navigator
-description: Use the Genshin-TS composite documentation knowledge system before implementing new features, fixing bugs, investigating composite nodes, raw control-flow DSL, IR/GIA encoding, trace tools, or real GIA behavior. Trigger this skill whenever the task mentions composite nodes, defineComposite/callComposite, raw control flow, f.entry/f.node/f.link/f.inflow/f.outflow, GIA reverse engineering, trace-exec-flow, trace-dataflow, docs/composite-ir, docs/architecture/composite, or asks where to look. This skill helps quickly find the right trusted docs and separates current implementation, verified real-GIA conclusions, historical records, and speculation.
+description: Use the Genshin-TS composite documentation knowledge system before implementing or investigating composite nodes, raw control flow, IR/GIA encoding, trace tools, or real GIA behavior. Route explicit minimal-GIA reproduction tasks through a lean fast path; use the full governance and API route only for ambiguous, architectural, conflicting-source, or API-design work.
 ---
 
 # Composite Docs Navigator
 
 Use this skill to consult the project’s composite-node knowledge base before changing code or drawing conclusions. The goal is to avoid stale handover context and quickly route the task to the current trusted document set.
 
-## Core rule
+## Routing decision
 
-Start from the governance layer, not from random `rg` hits:
+Choose one route before reading documents.
+
+### Fast path: explicit minimal-GIA task
+
+Use the fast path when all are true:
+
+- The user provides a concrete handover or one narrowly defined behavior.
+- A minimal real `.gia` file or exact path is available.
+- The comparison fields or acceptance result are clear.
+- The task does not require new API design, destructive operations, or a game-state/layout tradeoff.
+
+Read only:
+
+1. The handover status, failure chain, and next-target section.
+2. `docs/composite-ir/handover/layout-working-rules.md`, limited to its fast path, path table, and matching commands.
+3. The exact source function and focused tests identified after the first JSON comparison.
+
+Then execute:
+
+```text
+decode real sample -> write isomorphic test -> generate current JSON -> structural diff
+-> inspect exact encoder -> implement generic fix -> focused regression
+```
+
+Do not pre-load the full governance document, complete DSL/API guides, old handovers, or layout architecture. Do not start broad repository or delegated exploration after the exact encoder and test are known. Escalate to the full route only if the comparison exposes ambiguity, multiple plausible roots, API design work, broad shared impact, or a destructive/game-state decision.
+
+### Full route: ambiguous or architectural task
+
+Use the full route for new features, API design, broad investigations, unclear real-GIA behavior, conflicting sources, or cross-module impact:
 
 1. Read `docs/documentation-map.md` for task-to-document routing.
 2. Read `docs/documentation-governance.md` for source/status rules and API-name migration rules.
 3. Then read only the task-relevant current docs.
 4. Use handover files only for history, never as the current API source.
+
+In either route, source precedence remains unchanged: real GIA decides editor encoding, current source decides gsts behavior, and handover/speculation only supplies hypotheses.
+
+## Minimal task card
+
+For fast-path work, keep this compact card in working context:
+
+```text
+Goal:
+Handover section:
+Real sample:
+Comparison fields:
+Isomorphic test/output:
+Likely source function:
+Focused acceptance command:
+Condition for broader validation:
+Game operation requiring confirmation:
+```
+
+For type families, report three scopes separately: generic implementation coverage, automated matrix coverage, and real-GIA/game coverage. One verified concrete type does not prove every type was game-tested.
 
 ## Source separation
 

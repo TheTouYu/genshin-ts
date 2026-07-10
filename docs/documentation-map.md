@@ -20,6 +20,28 @@
 | 查真实 GIA 逆向结论 | [`composite-ir/index.md`](composite-ir/index.md) | 真实文件验证和复合 IR 规律。 |
 | 复刻 `物理运动.gia` / 学习复杂 GIA API 写法 | [`composite-ir/physics-motion-recreate-guide.md`](composite-ir/physics-motion-recreate-guide.md) | 面向 AI 复刻真实复杂 GIA 的持续维护知识库；记录每轮确认过的系统 API、复合节点、参数来源和已知差异。 |
 | 查历史上下文 | [`composite-ir/handover/README.md`](composite-ir/handover/README.md) | 历史记录，不作为当前教程。 |
+| 已有明确 handover + 最小真实 GIA | 任务 handover 的目标/下一步段 + [`composite-ir/handover/layout-working-rules.md`](composite-ir/handover/layout-working-rules.md) 路径速查 | 满足下述快速路径条件时，不必先通读治理层和完整 API 文档。 |
+
+## 明确样本任务快速路径
+
+当任务同时满足以下条件时，优先走快速路径：
+
+1. 用户给出了具体 handover 或明确描述了单一待修行为。
+2. 用户给出了最小真实 `.gia` 文件或精确路径。
+3. 比较方法和验收字段明确，例如 node ID、pin、wrapper、connects。
+4. 不涉及新 API 设计、结构歧义、破坏性操作或游戏状态取舍。
+
+最小阅读集：
+
+1. 只读 handover 的状态、失败链路和“下一轮目标”段。
+2. 只读 `layout-working-rules.md` 的路径速查及匹配的命令模板。
+3. 直接解码真实样本并写同构测试。
+4. 用结构化 JSON 比较定位差异，再读取对应源码函数和现有针对性测试。
+5. 修复后运行针对性回归；只有共享编译器行为受影响时才扩大验证范围。
+
+在快速路径中，`documentation-governance.md` 的来源分级仍然有效，但无需每次完整加载。除非比较结果暴露 API 语义不清或跨模块影响，否则不要预先通读完整 `dsl-api.md`、旧 handover、布局算法文档，也不要先做广泛代码库探索。
+
+退出快速路径的条件：出现真实 GIA 与当前实现冲突但无法判定适用范围、需要设计新接口、发现多个可能根因、用户要求架构审计，或操作将注入/覆盖/删除用户数据。此时回到治理层和对应权威文档，并按项目规则向用户确认。
 
 ## 按来源找文档
 
