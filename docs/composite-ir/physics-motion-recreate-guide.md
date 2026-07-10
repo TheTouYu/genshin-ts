@@ -153,37 +153,159 @@ n2 Get Custom Variable         @ (383, 191)
 
 这属于已知差异；下一轮如果需要值级别完全一致，再单独分析 `Create Prefab` 默认 pin 的 GIA 编码，而不是用假数据来源补齐。
 
-## 4. 下一步：完整复刻「设置物理参数」
+## 4. Step 1：设置物理参数
 
-用户指定下一步小点：把下方的 `设置物理参数` 复合节点完整复刻出来。
+### 4.1 当前工程化组织
 
-下一轮开始前应先运行：
-
-```bash
-npx tsx tests/composite/trace-exec-flow.ts 复杂gia/物理运动.gia --expand=设置物理参数 --io
-npx tsx tests/composite/trace-dataflow.ts 复杂gia/物理运动.gia --list-nodes --composite=设置物理参数
-```
-
-然后逐个节点确认：
-
-1. 内部控制流入口和出口。
-2. 每个系统 API 节点类型。
-3. 每个参数的数据来源，是复合输入、字面量、变量读取，还是其它内部数据节点。
-4. 是否存在需要 raw control-flow DSL 的多入口、多出口或 fan-in/fan-out。
-
-写完后应把新增节点 API 写法继续补充到本文档。
-
-## 5. 后续代码组织探索
-
-完整 `物理运动.gia` 较大，后续不宜把所有复刻代码塞进单个测试文件。下一轮需要探索更接近真实工程的组织方式：
+本轮开始改为接近真实 App 的多文件组织，而不是继续堆单文件测试：
 
 ```text
 tests/layout/physics-motion/
-├── composites.ts        # 复合节点定义库
-├── variables.ts         # 变量名、常量、类型辅助
-├── step0-init.ts        # 小步测试入口
-├── step1-params.ts      # 设置物理参数复刻入口
-└── main.ts              # 最终完整入口，编译成一个 GIA
+├── main.ts
+├── composites/
+│   ├── math.ts
+│   └── set-physics-params.ts
+├── helpers/
+│   └── variables.ts
+└── README.md
 ```
 
-目标：多个测试入口可以复用同一批复合节点和 helper，最终主入口仍能编译成一个完整 GIA。这需要先验证当前 gsts pipeline 对跨文件 import 的处理是否稳定。
+新增专用配置：
+
+```text
+gsts.physics-motion.config.ts
+```
+
+推荐编译：
+
+```bash
+node bin/gsts.mjs -c gsts.physics-motion.config.ts
+```
+
+原因：多文件结构需要让入口、composite 和 helper 一起 emit 到 `dist`。不要优先用单文件命令编译这个目录。
+
+### 4.2 真实结构
+
+真实 `设置物理参数` 复合接口：
+
+```text
+复合:设置物理参数
+InFlow[0] pinIndex=370
+Input[0] 目标实体 entity pinIndex=1365
+OutFlow: 无
+Output: 无
+```
+
+真实内部节点列表：
+
+```text
+Set Node Graph Variable ×13
+Get Custom Variable ×12
+Query Entity by GUID ×2
+Data Type Conversion ×1
+Division ×1
+复合:mul3 ×1
+```
+
+真实变量映射摘要：
+
+```text
+G       <- Get Custom Variable("G")
+S       <- Get Custom Variable("S")
+1/I     <- Get Custom Variable("1/I")
+D       <- Get Custom Variable("D")
+R       <- Get Custom Variable("R")
+u       <- Get Custom Variable("u")
+m       <- Get Custom Variable("m")
+u_w     <- Get Custom Variable("u_w")
+f_g     <- Get Custom Variable("f_g")
+运动实体 <- Query Entity by GUID(Get Custom Variable("运动实体guid"))
+视觉实体 <- Query Entity by GUID(literal guid 1077936360 in real file; current gsts uses custom variable "视觉实体guid")
+t       <- Data Type Conversion(Get Custom Variable("更新间隔")) / 1000
+0.5gt   <- mul3(G, t, 0.5)
+```
+
+真实控制流里多个 `Set Node Graph Variable` 都由复合入口 fan-out 触发；当前 gsts 用 `f.entry()` + `f.link(entry, 0, node)` 表达。
+
+### 4.3 当前 gsts 写法
+
+当前文件：
+
+```text
+tests/layout/physics-motion/composites/set-physics-params.ts
+tests/layout/physics-motion/composites/math.ts
+tests/layout/physics-motion/helpers/variables.ts
+tests/layout/physics-motion/main.ts
+```
+
+关键写法：
+
+```ts
+export const setPhysicsParams = g.defineComposite('设置物理参数', {
+  inputs: {
+    目标实体: { type: 'entity', pinIndex: 1365 }
+  },
+  outputs: {},
+  inflows: [{ name: '', pinIndex: 370 }],
+  build(args, f) {
+    const targetEntity = args.目标实体 as entityValue
+    const gravity = f.getCustomVariable(targetEntity, 'G').asType('float')
+    const updateInterval = f.getCustomVariable(targetEntity, '更新间隔').asType('int')
+    const deltaSeconds = f.division(f.dataTypeConversion(updateInterval, 'float'), 1000)
+
+    const setGravity = f.node('set_node_graph_variable', [new strValue('G'), gravity, false])
+    const entry = f.entry()
+    f.link(entry, 0, setGravity)
+  }
+})
+```
+
+`mul3` 不能写成 raw 系统节点；真实文件里它是复合节点。本轮新增：
+
+```text
+tests/layout/physics-motion/composites/math.ts
+```
+
+用 `f.callComposite(mul3, { a, b, c })` 生成复合节点。
+
+### 4.4 当前生成结构
+
+已执行：
+
+```bash
+npm run build
+node bin/gsts.mjs -c gsts.physics-motion.config.ts
+npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.gia --list-nodes --composite=设置物理参数
+npx tsx tests/composite/trace-exec-flow.ts dist/tests/layout/physics-motion/main.gia --io
+```
+
+当前主图：
+
+```text
+n1 When Entity Is Created
+├─ n3 Create Prefab
+└─ n4 复合:设置物理参数
+
+n2 Get Custom Variable -> n3 Create Prefab.InParam[0]
+n1 When Entity Is Created.OutFlow[0] -> n4 设置物理参数.InFlow[0]
+```
+
+当前 `设置物理参数` 内部节点列表：
+
+```text
+Set Node Graph Variable ×11
+Get Custom Variable ×12
+Query Entity by GUID ×2
+Data Type Conversion ×1
+Division ×1
+复合:mul3 ×1
+```
+
+### 4.5 已知差异 / 下一步
+
+当前仍有差异，需要下一轮继续收敛：
+
+1. 真实 `设置物理参数` 内有 13 个 `Set Node Graph Variable`，当前生成 11 个；需要继续核对 `S`、`D` 两个变量为什么未进入最终 impl 图。
+2. 真实 `视觉实体` 使用 `Query Entity by GUID` 的 literal guid `1077936360`；当前为了保持可维护性，先用 `Get Custom Variable("视觉实体guid")`。下一轮需要决定是否按真实 literal 复刻，或保留可配置变量并记录差异。
+3. 当前 trace 工具对生成复合的 `--expand=设置物理参数` 显示内部事件起点为 0，但 `--list-nodes --composite=设置物理参数` 能列出内部节点；这可能是 trace 工具对当前生成 compositePin/entry 的展示差异，需要单独核对。
+4. `generic.asType('float')` 在 TS 类型上返回 `number`，但 raw `f.node()` 需要 `value[]`，当前代码使用 `as unknown as value` 适配。这是类型层面的不顺，需要后续考虑是否改善类型定义或给复刻代码封装 helper。

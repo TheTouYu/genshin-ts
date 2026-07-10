@@ -249,6 +249,10 @@ function getEdgeSourceIndex(edge: ImplEdge): number {
   return typeof edge === 'number' ? 0 : (edge.source_index ?? 0)
 }
 
+function getEdgeTargetIndex(edge: ImplEdge): number {
+  return typeof edge === 'number' ? 0 : ((edge as any).target_index ?? 0)
+}
+
 function groupEdgesBySourceIndex(edges: ImplEdge[]): Map<number, ImplEdge[]> {
   const bySourceIndex = new Map<number, ImplEdge[]>()
   for (const edge of edges) {
@@ -370,10 +374,11 @@ function buildImplGraphNodes(
         if (outFlowPin) {
           ;(outFlowPin as any).connects = edges.map((edge) => {
             const targetId = getEdgeTarget(edge)
+            const targetIndex = getEdgeTargetIndex(edge)
             return {
               id: nodeIndexMap.get(targetId) ?? targetId,
-              connect: { kind: NodePin_Index_Kind.InFlow, index: 0 },
-              connect2: { kind: NodePin_Index_Kind.InFlow, index: 0 }
+              connect: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+              connect2: { kind: NodePin_Index_Kind.InFlow, index: targetIndex }
             }
           })
         }
@@ -402,13 +407,33 @@ function computeImplLayout(
   compositeDefById?: Map<number, CompositeDefIR>
 ): Map<number, { x: number; y: number }> {
   const maxNodeId = implNodes.reduce((max, node) => Math.max(max, node.id), 0)
-  const outputPins = def.compositePins.filter((entry) => entry.outerPinKind === NodePin_Index_Kind.OutParam)
-  const virtualOutputNodes = outputPins.map((entry, index) => ({
+  const inputPins = def.compositePins.filter((entry) => entry.outerPinKind === NodePin_Index_Kind.InFlow)
+  const inputPinsByOuterIndex = new Map<number, typeof inputPins>()
+  for (const entry of inputPins) {
+    const pins = inputPinsByOuterIndex.get(entry.outerPinIndex) ?? []
+    pins.push(entry)
+    inputPinsByOuterIndex.set(entry.outerPinIndex, pins)
+  }
+  const virtualInputNodes = [...inputPinsByOuterIndex.entries()].map(([outerPinIndex, pins], index) => ({
     id: maxNodeId + index + 1,
+    type: '__composite_input_anchor__',
+    args: [],
+    next: pins.map((pin) => ({
+      node_id: pin.innerNodeId,
+      source_index: 0,
+      target_index: pin.innerPinIndex
+    })),
+    outerPinIndex
+  }))
+  const outputPins = def.compositePins.filter((entry) => entry.outerPinKind === NodePin_Index_Kind.OutParam)
+  const outputNodeIdBase = maxNodeId + virtualInputNodes.length
+  const virtualOutputNodes = outputPins.map((entry, index) => ({
+    id: outputNodeIdBase + index + 1,
     type: '__composite_output_anchor__',
     args: []
   }))
   const layoutNodes = [
+    ...virtualInputNodes,
     ...implNodes.map((node) => ({
       ...node,
       next: implEdges[node.id] ?? (node as any).next
@@ -584,25 +609,30 @@ function buildImplNodePins(
     return { pins: vendorPins, dataConns: [] }
   }
 
-  // __composite_call__ 节点：仅创建有内部数据连线的 pin（conn 类型 arg）
-  // 外层输入由 compositePins 路由，不创建物理 pin
+  // __composite_call__ 节点：为每个实际传入的 input 创建物理 pin。
+  // conn 输入需要后续填充 connects；literal 输入需要保留具体值，否则游戏内会缺 pin。
   if (node.type === '__composite_call__') {
     if (calledDef) {
       const callArgs = (node.args as any) ?? []
       for (let ai = 1; ai < callArgs.length; ai++) {
         const arg = callArgs[ai]
-        if (arg && arg.type === 'conn') {
-          const inputIdx = ai - 1
-          // 从子复合的输入定义中取类型和 pinIndex
-          let cpi: number | undefined
-          let typeName = 'int'
-          if (inputIdx < calledDef.inputs.length) {
-            cpi = calledDef.inputs[inputIdx].pinIndex
-            typeName = calledDef.inputs[inputIdx].type as string
-          }
-          const pin = buildConnPin(inputIdx, typeName) as NodePin & { compositePinIndex?: number }
-          if (cpi !== undefined) pin.compositePinIndex = cpi
-          pins.push(pin)
+        if (!arg) continue
+        const inputIdx = ai - 1
+        // 从子复合的输入定义中取类型和 pinIndex
+        let cpi: number | undefined
+        let typeName = arg.type ?? 'int'
+        if (inputIdx < calledDef.inputs.length) {
+          cpi = calledDef.inputs[inputIdx].pinIndex
+          typeName = calledDef.inputs[inputIdx].type as string
+        }
+        const pin = (arg.type === 'conn'
+          ? buildConnPin(inputIdx, typeName)
+          : buildLiteralPin(inputIdx, typeName, arg.value, node.type)) as NodePin & {
+          compositePinIndex?: number
+        }
+        if (cpi !== undefined) pin.compositePinIndex = cpi
+        pins.push(pin)
+        if (arg.type === 'conn') {
           const conn = arg.value as { node_id: number; index: number }
           dataConns.push({
             nodeId: node.id,

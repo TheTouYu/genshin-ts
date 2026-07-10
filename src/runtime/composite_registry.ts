@@ -159,13 +159,26 @@ export class CompositeRegistry {
             })
           })
         } else if (hasExec && impl?.captureNodeId) {
-          pins.push({
-            outerPinKind: 1, // InFlow
-            outerPinIndex: 0,
-            innerNodeId: impl.captureNodeId,
-            innerPinKind: 1, // InFlow
-            innerPinIndex: 0
-          })
+          const captureEdges = impl.edges[impl.captureNodeId] ?? []
+          if (captureEdges.length > 0) {
+            for (const edge of captureEdges) {
+              pins.push({
+                outerPinKind: 1, // InFlow
+                outerPinIndex: 0,
+                innerNodeId: getEdgeTarget(edge),
+                innerPinKind: 1, // InFlow
+                innerPinIndex: getEdgeTargetIndex(edge)
+              })
+            }
+          } else {
+            pins.push({
+              outerPinKind: 1, // InFlow
+              outerPinIndex: 0,
+              innerNodeId: impl.captureNodeId,
+              innerPinKind: 1, // InFlow
+              innerPinIndex: 0
+            })
+          }
         }
 
         // 多 OutFlow：仅由显式 f.outflow(...) 标记生成
@@ -319,6 +332,14 @@ export class CompositeRegistry {
 
     function normalizeFlowDefs(defs: Array<string | CompositeFlowDef>): CompositeFlowDef[] {
       return defs.map((def) => (typeof def === 'string' ? { name: def } : def))
+    }
+
+    function getEdgeTarget(edge: NextConnection): number {
+      return typeof edge === 'number' ? edge : edge.node_id
+    }
+
+    function getEdgeTargetIndex(edge: NextConnection): number {
+      return typeof edge === 'number' ? 0 : (edge.target_index ?? 0)
     }
 
     function addOutFlowCompositePins(pins: CompositePinEntry[], impl: CompositeCapture): void {
