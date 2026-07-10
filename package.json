@@ -74,6 +74,7 @@
     "gen:client": "node --import tsx ./scripts/client-nodegraph/extract-client-node-metadata.ts && node --import tsx ./scripts/client-nodegraph/generate-client-nodegraph-modules.ts && prettier --write src/definitions/client_*.ts src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_*.ts",
     "smoke:client": "npm run build && node ./scripts/smoke-client-capability.mjs",
     "to-gs": "tsx ./src/compiler/ts_to_gs.ts",
+    "tool:computer-control": "python ./scripts/tools/computer_control_server.py",
     "example": "npm run build && node ./bin/gsts.mjs",
     "dev": "npm run build && node ./bin/gsts.mjs dev"
   },
