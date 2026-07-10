@@ -200,7 +200,7 @@ export class CompositeRegistry {
               const arg = inner.args[argIdx]
               if (!arg) continue
               const inputName = (arg as any).__captureInputName as string | undefined
-              if (!inputName) continue
+              if (inputName === undefined) continue
               const inputIdx = inputNameToIndex.get(inputName)
               if (inputIdx === undefined) continue
               // __composite_call__ 的 args[0] 是 compositeId，实际输入从 args[1] 开始。
@@ -303,7 +303,7 @@ export class CompositeRegistry {
                 return { ...arg, compositeInputIndex }
               }
               const meta = a.getMetadata()
-              const isCaptureInput = !!(a as any).__captureInputName
+              const isCaptureInput = (a as any).__captureInputName !== undefined
               if (meta?.kind === 'pin') {
                 let giaType: string
                 const typeName = (a as any).constructor?.name ?? ''

@@ -555,11 +555,14 @@ npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.
 
 2026-07-10 进一步修复了当前 gsts 的 composite call sparse/named input 编码缺口：`f.callComposite(w角速度-a朝向转化, { a朝向 })` 现在会按子复合声明保留 `a朝向` 的物理输入 index，生成 `InParam[1]`，不会压缩成 `InParam[0]`。该通用修复位于 `src/runtime/core.ts`、`src/runtime/ir_builder.ts`、`src/runtime/composite_registry.ts`、`src/compiler/ir_to_gia_transform/layout.ts`、`index.ts` 和 `composite.ts`；回归见 `tests/composite/test-composite-sparse-named-input.ts`。当前物理生成 trace 显示 `w角速度-a朝向转化.InParam[0]` 未连接，`InParam[1] a朝向` 连接上游 `Create 3D Vector`，与真实 `计算滚动角速度` 的稀疏输入结构一致。用户已游戏内确认该修复生效。
 
-同轮游戏内核验还发现 `向量缩放除法` 的接口定义正确，但内部 `Division.InParam[1]` 没有引用复合输入，截图为 `Beyond_Local_Export/布局/复合节点-核验问题-向量缩放除法.png`。下一轮入口见 [handover/layout-handover-physics-motion-round-11.md](handover/layout-handover-physics-motion-round-11.md)。当前初步判断：`向量缩放除法` 的第二个输入名为空字符串，`composite_registry.ts` 扫描 capture 输入时若使用 `if (!inputName)` 会误跳过合法空名输入，应以真实 trace 和最小回归确认后修复。
+同轮游戏内核验还发现 `向量缩放除法` 的接口定义正确，但内部 `Division.InParam[1]` 没有引用复合输入，截图为 `Beyond_Local_Export/布局/复合节点-核验问题-向量缩放除法.png`。2026-07-11 已按 [handover/layout-handover-physics-motion-round-11.md](handover/layout-handover-physics-motion-round-11.md) 修复当前 gsts 的空字符串输入名 capture 路由：`src/runtime/composite_registry.ts` 现在用 `inputName === undefined` 判断“没有捕获输入名”，并用 `__captureInputName !== undefined` 标记 IR capture，避免合法空名输入被当成缺失输入跳过。回归见 `tests/composite/test-composite-empty-name-input.ts`；保留 `tests/composite/test-composite-sparse-named-input.ts` 防止稀疏命名输入回退。
+
+真实 GIA 对照：`npx tsx tests/composite/gia-inspect.ts 复杂gia/物理运动.gia -p` 显示真实 `向量缩放除法` impl 的 compositePins 为 `outer:InParam:0 → 3D Vector Zoom.InParam[0]`、`outer:InParam:1 → Division.InParam[1]`、`outer:OutParam:0 → 3D Vector Zoom.OutParam[0]`。当前生成对照：`npx tsx tests/composite/gia-inspect.ts dist/tests/layout/physics-motion/main.gia -s 33 -c` 显示 `outer:InParam:1 → n[2] inner:InParam:1`；`trace-dataflow` 显示 `Division.InParam[1] ← 父输入 "向量缩放除法"."inputs[1]"`。该项已自动验证通过，并于 2026-07-11 由用户游戏内确认通过。
 
 ### 5.6 当前剩余差异
 
 1. vec3 Local Variable 通用编码已用最小真实结构完成游戏内验证；物理运动整图仍需单独确认三处 getter 所在层级。
 2. `更新速度`、`更新角速度`、`计算滚动角速度` 已替换阶段性代理语义；`计算滚动角速度` 中嵌套调用 `w角速度-a朝向转化` 的稀疏输入 pin 编码已通过编译器通用修复对齐自动 trace。
 3. `更新v、w` 控制流布局和 nested capture pin 修复沿用此前已验证结果。
-4. `向量缩放除法` 内部 `Division.InParam[1]` 未引用复合输入，待下一轮修复并游戏内核验。
+4. `向量缩放除法` 内部 `Division.InParam[1]` 空名输入路由已自动验证并经用户游戏内确认通过。
+5. 下一轮待查：用户反馈所有 composite `bool` 输入参数在游戏编辑器中显示异常，不能正常选择 `true/false`；入口见 [handover/layout-handover-physics-motion-round-12.md](handover/layout-handover-physics-motion-round-12.md)。初步解码显示真实 `复杂gia/物理运动.gia` 中 `更新v、w.接触地面` 等 bool composite 输入为 `type.class=6,type1=4,type2=4`，当前生成的对应 `CompositeDef.inputs` 可能已对齐，下一轮应重点比较复合调用节点的物理 `InParam` pin 和 literal value wrapper。

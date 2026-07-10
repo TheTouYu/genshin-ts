@@ -1,9 +1,15 @@
 # 物理运动复刻 Round 11 交接
 
-> 状态：当前推荐 / 待执行
+> 状态：历史记录 / 已完成 / 游戏内通过
 > 来源：用户游戏内验证 + 当前代码实现 + 真实 `物理运动.gia`
-> 最近校验：2026-07-10
-> 适用范围：下一轮修复 `向量缩放除法` impl 输入参数路由
+> 最近校验：2026-07-11
+> 适用范围：已完成的 `向量缩放除法` impl 空名输入参数路由修复；下一轮入口见 Round 12
+
+---
+
+## 本轮结果
+
+2026-07-11 已完成：`src/runtime/composite_registry.ts` 支持空字符串复合输入名的 capture/compositePins 路由；新增 `tests/composite/test-composite-empty-name-input.ts`，保留 `tests/composite/test-composite-sparse-named-input.ts`；重新生成并注入 `dist/tests/layout/physics-motion/main.gia` 后，用户游戏内确认 `向量缩放除法` 修复通过。
 
 ---
 
