@@ -21,6 +21,7 @@ import {
 import { Graph, Node } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
+import { resolveNodeIdentity, usesSharedVariantResolution } from './resolved_node.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -273,6 +274,17 @@ function buildImplGraphNodes(
   const implConnTypeIndex = buildImplConnTypeIndex(implNodes)
   const nodeResults = implNodes.map((node) => {
     let nodeId = resolveImplNodeId(node.type, node.args as any)
+    let sharedConcreteNid: number | undefined
+    if (usesSharedVariantResolution(node.type)) {
+      const identity = resolveNodeIdentity(node, {
+        scope: { kind: 'composite-impl', name: def.name },
+        strictTypeChecks: false,
+        variablesByName: new Map((implVariables ?? []).map((variable) => [variable.name, variable])),
+        connectionTypes: implConnTypeIndex as any
+      })
+      nodeId = identity.genericNodeId
+      sharedConcreteNid = identity.concreteNodeId
+    }
     const producedValuePinIndex = node.type === 'get_local_variable' ? 1 : 0
     const producedType =
       implConnTypeIndex.get(node.id)?.get(producedValuePinIndex) ??
@@ -367,7 +379,7 @@ function buildImplGraphNodes(
       implOutParamMap,
       implVariables,
       calledDef,
-      gvConcreteNid,
+      sharedConcreteNid ?? gvConcreteNid,
       customVariableConcreteNid,
       localVariableConcreteNid
     )
@@ -379,7 +391,7 @@ function buildImplGraphNodes(
       pins,
       isDTC: isDTC || false,
       dtcConcreteNid: isDTC ? nodeId : undefined,
-      gvConcreteNid,
+      gvConcreteNid: sharedConcreteNid ?? gvConcreteNid,
       customVariableConcreteNid,
       localVariableConcreteNid,
       nodeIndex: nodeIndexMap.get(node.id) ?? node.id

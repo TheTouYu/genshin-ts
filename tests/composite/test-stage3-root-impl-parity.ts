@@ -1,14 +1,10 @@
 // @ts-nocheck
 /**
- * P0-W4: Root/impl ordinary-node parity fixture for set_node_graph_variable.
+ * P0-W4/P1-W2: Root/impl ordinary-node parity fixture for set_node_graph_variable.
  *
- * Locks the current failure contract:
- * - root float literal setter uses concrete 324 + bConcreteValue iOC=1
- * - root vec connection setter uses concrete 334 + bConcreteValue iOC=11
- * - impl counterparts currently diverge (generic-only 323, no concrete wrapper)
- *
- * This test MUST fail on root/impl ordinary schema parity until production
- * lowering is shared. It also asserts the known root baseline still holds.
+ * Root and impl identity are now resolved through the shared contract. Pin lowering
+ * remains legacy in impl, so this fixture continues to expose the remaining schema
+ * drift while asserting shared generic/concrete identity.
  *
  * Run: npx tsx tests/composite/test-stage3-root-impl-parity.ts
  */
@@ -160,7 +156,7 @@ assert.equal(rootVecConnValue.connectionSourcePinIndex, 0)
 
 console.log('PASS root ordinary setter baseline (float literal / float conn / vec conn)')
 
-// ── Impl current-state observations (failure contract anchors) ───
+// ── Impl shared identity observations ────────────────────────────
 const implFloatSetters = collectSetters(implGraph, '额外压力')
 const implVecSetters = collectSetters(implGraph, '向量')
 assert.ok(implFloatSetters.length >= 2, `impl float setters expected >=2, got ${implFloatSetters.length}`)
@@ -178,24 +174,15 @@ const implFloatLitC = extractOrdinaryNodeContract(implFloatLiteral)
 const implFloatConnC = extractOrdinaryNodeContract(implFloatConn)
 const implVecConnC = extractOrdinaryNodeContract(implVecConn)
 
-// Document known broken identity today so future regressions of the baseline are visible.
 assert.equal(implFloatLitC.genericId, 323)
-assert.equal(
-  implFloatLitC.concreteId,
-  323,
-  'current impl float literal concreteId is generic 323 (known defect)'
-)
+assert.equal(implFloatLitC.concreteId, 324)
 const implFloatLitValue = implFloatLitC.pins.find((p) => p.kind === 3 && p.index === 1)
 assert.ok(implFloatLitValue)
-assert.equal(
-  implFloatLitValue.hasConcreteWrapper,
-  false,
-  'current impl float literal lacks bConcreteValue (known defect)'
-)
+assert.equal(implFloatLitValue.hasConcreteWrapper, false)
 assert.equal(implFloatLitValue.payloadKind, 'float')
 assert.equal(implFloatLitValue.literalSummary, '0')
 
-assert.equal(implFloatConnC.concreteId, 323)
+assert.equal(implFloatConnC.concreteId, 324)
 const implFloatConnValue = implFloatConnC.pins.find((p) => p.kind === 3 && p.index === 1)
 assert.ok(implFloatConnValue)
 assert.equal(implFloatConnValue.hasConcreteWrapper, false)
@@ -203,7 +190,7 @@ assert.equal(implFloatConnValue.hasConnection, true)
 assert.equal(implFloatConnValue.connectionSourcePinKind, 4)
 assert.equal(implFloatConnValue.connectionSourcePinIndex, 0)
 
-assert.equal(implVecConnC.concreteId, 323)
+assert.equal(implVecConnC.concreteId, 334)
 const implVecConnValue = implVecConnC.pins.find((p) => p.kind === 3 && p.index === 1)
 assert.ok(implVecConnValue)
 assert.equal(implVecConnValue.hasConcreteWrapper, false)
@@ -211,7 +198,7 @@ assert.equal(implVecConnValue.hasConnection, true)
 assert.equal(implVecConnValue.connectionSourcePinKind, 4)
 assert.equal(implVecConnValue.connectionSourcePinIndex, 0)
 
-console.log('PASS documented current impl defect anchors (generic 323, no bConcreteValue)')
+console.log('PASS shared root/impl ordinary identity (float literal / float conn / vec conn)')
 
 // ── Root/impl parity MUST currently fail ─────────────────────────
 const cases = [
@@ -231,17 +218,14 @@ for (const c of cases) {
 }
 
 const total = allMismatches.reduce((n, c) => n + c.mismatches.length, 0)
-assert.ok(
-  total > 0,
-  'expected root/impl ordinary schema parity to FAIL on current encoder; got full match'
-)
+assert.ok(total > 0, 'expected legacy impl pin schema mismatch to remain in P1-W2')
 
 // Required mismatch categories for this work package
 function hasMismatch(pathIncludes: string): boolean {
   return allMismatches.some((c) => c.mismatches.some((m) => m.path.includes(pathIncludes)))
 }
 
-assert.ok(hasMismatch('concreteId'), 'parity must report concreteId mismatch')
+assert.ok(!hasMismatch('concreteId'), 'shared identity must eliminate concreteId mismatch')
 assert.ok(
   hasMismatch('hasConcreteWrapper'),
   'parity must report hasConcreteWrapper mismatch'
@@ -303,6 +287,6 @@ for (const c of allMismatches) {
 assert.ok(findSetterByVariableName(rootGraph, '额外压力'))
 assert.ok(findSetterByVariableName(implGraph, '额外压力'))
 
-console.log('\nP0-W4 RESULT: failure contract locked; root baseline green; parity red as expected')
+console.log('\nP1-W2 RESULT: shared identity green; legacy impl pin schema drift remains')
 console.log('output:', outputPath)
 console.log('composite id:', ParityComposite.id)

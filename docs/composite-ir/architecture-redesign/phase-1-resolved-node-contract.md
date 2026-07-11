@@ -82,6 +82,16 @@ assertVariableAssignment(variable, inputType, location): void
 - `npm run build` 与 `npx tsx tests/composite/test-stage3-resolved-node-contract.ts` PASS；
 - 未进行 vendor encoding、完整 Graph materialization 或游戏内验证。
 
+## P1-W2 实测结果
+
+- impl setter/getter family 已接入共享 identity resolver；
+- root 保持原 `resolveGiaNodeId()` 路径，确保 root 输出未改变；
+- impl float setter identity 已变为 generic `323` + concrete `324`；
+- impl vec3 setter identity 已变为 generic `323` + concrete `334`；
+- legacy impl pin builder 仍产生 wrapper/index schema 差异，作为后续 lowering 失败契约保留；
+- `npm run build` 与 `npx tsx tests/composite/test-stage3-root-impl-parity.ts` PASS；
+- 未进行完整 Graph materialization 或游戏内验证。
+
 ## Tests
 
 - root/impl float setter identity parity；

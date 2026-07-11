@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P1-W1 completed; ADR-006=A accepted; Phase 0 exited)
+> 最近校验：2026-07-12 (P1-W2 completed; ADR-006=A accepted; Phase 0 exited)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1-W2 待启动（P1-W1 已完成）
-最近完成工作包：P1-W1 — 建立 resolved node contract 观察实现与失败契约测试
+当前工作包：P1-W3 待启动（P1-W2 已完成）
+最近完成工作包：P1-W2 — root/impl setter identity 接入共享 resolver
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -41,7 +41,7 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - **P0-W5 composite boundary focused baselines**：nested capture/outflow、bool、local vec3、custom variable、sparse named input 均 PASS；broad suite 78/78 active PASS；2 `@pending_ref` 缺设施图；part2/part3 既有 fixture 失败已记录未修。
 - **P0-W6**：Phase 0 汇总 checkpoint 已写入 `checkpoints/phase-0-vendor-evidence.md`。
 - **ADR-006（用户 2026-07-12）**：Accepted = 方案 A，完整 vendor Graph materialization 作为 Phase 1–3 主路径；B/C 不作为默认。
-- 本分支仍未修改生产实现。
+- 本分支已接入 P1-W2 identity resolution，但尚未切换 pin lowering 或 Graph materialization。
 
 ## 尚未证明
 
@@ -51,6 +51,41 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
 - Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
+
+## 最近完成工作包：P1-W2 — root/impl identity adapter 接入
+
+目标：
+
+- 将 setter/getter family 的 generic/concrete identity 接入共享 resolver；
+- root 保持现有输出路径，impl 仅切换 identity，继续使用 legacy pin builder；
+- 保留 pin wrapper/schema 差异作为 Phase 2/3 的失败契约。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/composite.ts
+src/compiler/ir_to_gia_transform/resolved_node.ts
+ tests/composite/test-stage3-root-impl-parity.ts
+```
+
+验证：
+
+```bash
+npm run build                                  # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts  # PASS
+ git diff --check                               # PASS
+```
+
+证据等级：L1 identity contract + L3 encoded parity；ordinary pin wrapper 仍未一致。
+
+明确非目标：不切换 pin lowering、Graph materialization、capture、布局或 legacy 删除。
+
+完成条件：
+
+- [x] root/impl float setter identity 均为 generic `323` + concrete `324`；
+- [x] root/impl vec3 setter identity 均为 generic `323` + concrete `334`；
+- [x] parity helper 不再报告 concreteId mismatch；
+- [x] legacy pin wrapper/index mismatch 保留并明确记录。
 
 ## 最近完成工作包：P1-W1 — Resolved Node Contract 观察实现
 
@@ -148,7 +183,7 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。下一工作包为 P1-W2；建议先将 resolved contract 接入 root/impl 的 identity adapter，仍不切换 pin lowering。
+无阻塞决策。下一工作包为 P1-W3；建议覆盖 getter identity 与 missing declaration/fallback 计数。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：

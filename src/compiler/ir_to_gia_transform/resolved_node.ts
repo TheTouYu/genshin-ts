@@ -22,6 +22,7 @@ export type GraphCompileContext = {
   variablesByName: Map<string, Variable>
   connectionTypes: ConnTypeIndex
   diagnostics?: Diagnostic[]
+  strictTypeChecks?: boolean
 }
 
 export type Diagnostic = {
@@ -45,7 +46,8 @@ export type ResolvedNodeIdentity = {
   concreteNodeId?: number
 }
 
-function scalarType(type: string): ResolvedValueType | undefined {
+function scalarType(type: string | undefined): ResolvedValueType | undefined {
+  if (!type) return undefined
   if (type === 'dict' || type === 'enum' || type === 'enumeration' || type === 'local_variable') {
     return undefined
   }
@@ -64,6 +66,7 @@ function scalarType(type: string): ResolvedValueType | undefined {
 }
 
 function fromTypeInfo(info: ConnTypeInfo): ResolvedValueType | undefined {
+  if (!info?.type) return undefined
   if (info.type === 'dict') {
     const key = scalarType(info.dict.k)
     const value = scalarType(info.dict.v)
@@ -152,24 +155,25 @@ export function resolveNodeIdentity(
   }
 
   let declaredType: ResolvedValueType | undefined
-  if (node.type === 'set_node_graph_variable' || node.type === 'set_custom_variable') {
+  const isSetter = node.type === 'set_node_graph_variable' || node.type === 'set_custom_variable'
+  const isGetter = node.type === 'get_node_graph_variable' || node.type === 'get_custom_variable'
+  if (isSetter || isGetter) {
     const nameArg = node.args?.[0]
     const variableName = nameArg?.type === 'str' ? nameArg.value : undefined
     const variable = variableName ? context.variablesByName.get(variableName) : undefined
     declaredType = variable ? fromVariable(variable) : undefined
     const assigned = inputs[1]?.type ?? inputs[2]?.type
-    if (declaredType && assigned && !sameType(declaredType, assigned)) {
+    if (context.strictTypeChecks && declaredType && assigned && !sameType(declaredType, assigned)) {
       report(context, {
         code: 'E_TYPED_INPUT_CONFLICT',
-        message: `declared variable type conflicts with assigned value in ${context.scope.name}`,
-        nodeId: node.id,
+        message: `declared variable type ${JSON.stringify(declaredType)} conflicts with assigned value ${JSON.stringify(assigned)} in ${context.scope.name}`,        nodeId: node.id,
         nodeType: node.type,
         argIndex: 1
       })
     }
   }
 
-  const typed = (declaredType ?? inputs[1]?.type ?? inputs[0]?.type)
+  const typed = isGetter ? declaredType : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
   const suffix = typed?.kind === 'scalar'
     ? typed.name === 'vec3' ? 'vec' : typed.name
     : typed?.kind === 'list' && typed.element.kind === 'scalar'
@@ -178,7 +182,7 @@ export function resolveNodeIdentity(
   if (!suffix) return { logicalType: node.type, genericNodeId }
 
   const concreteNodeId = nodeIds.get(`${lower}__${suffix}`)
-  if (concreteNodeId === undefined && (node.type === 'set_node_graph_variable' || node.type === 'set_custom_variable')) {
+  if (concreteNodeId === undefined && (isSetter || isGetter)) {
     report(context, {
       code: 'E_UNKNOWN_NODE_VARIANT',
       message: `missing concrete variant ${lower}__${suffix}`,
@@ -187,4 +191,13 @@ export function resolveNodeIdentity(
     })
   }
   return { logicalType: node.type, genericNodeId, concreteNodeId }
+}
+
+export function usesSharedVariantResolution(nodeType: string): boolean {
+  return (
+    nodeType === 'set_node_graph_variable' ||
+    nodeType === 'get_node_graph_variable' ||
+    nodeType === 'set_custom_variable' ||
+    nodeType === 'get_custom_variable'
+  )
 }
