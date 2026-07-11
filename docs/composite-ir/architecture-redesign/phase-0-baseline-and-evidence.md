@@ -1,7 +1,7 @@
 # Phase 0：基线、证据与 Vendor 实验
 
-> 状态：待执行
-> 来源：当前实现 + 已知真实 GIA 差异
+> 状态：进行中（P0-W0~W4 完成）
+> 来源：当前实现 + 已知真实 GIA 差异 + vendor 实验 + root/impl parity fixture
 > 最近校验：2026-07-12
 > 适用范围：只建立证据，不改变生产编码行为
 
@@ -97,7 +97,7 @@ tests/composite/helpers/ordinary-node-contract.ts
 - `Node.encode` 与 `Graph.encode` 差异；
 - 是否需要 project normalization。
 
-## ## P0-W1 实测结果
+## P0-W1 实测结果
 
 实验文件：`tests/composite/experiment-vendor-set-node-graph-variable.ts`
 
@@ -123,15 +123,57 @@ tests/composite/helpers/ordinary-node-contract.ts
 - Generic-only 构造不调用 setConcrete，pins 数组为空，无法 setVal。
 - ReflectMap 包含 160 个 concrete variant 映射（323→全部支持类型的 R\<T\> 变体）。
 
+## P0-W4 实测结果
+
+文件：
+
+```text
+tests/composite/helpers/ordinary-node-contract.ts
+tests/composite/test-stage3-root-impl-parity.ts
+```
+
+命令：
+
+```bash
+npx tsx tests/composite/test-stage3-root-impl-parity.ts
+```
+
+### Root production baseline（当前正确）
+
+| case | generic | concrete | InParam[1] type | bConcreteValue | iOC | connection source |
+|---|---|---|---|---|---|---|
+| float literal | 323 | 324 | 5 | yes | 1 | none |
+| float connection | 323 | 324 | 5 | yes | 1 | kind=4 index=0 |
+| vec connection | 323 | 334 | 12 | yes | 11 | kind=4 index=0 |
+
+### Impl production current defect（失败契约）
+
+| case | generic | concrete | InParam[1] | bConcreteValue | notes |
+|---|---|---|---|---|---|
+| float literal | 323 | 323 | type=5 class=4 raw bFloat | no | 与 root 漂移 |
+| float connection | 323 | 323 | type=5 class=4 | no | conn source 仍 kind=4/index=0 |
+| vec connection | 323 | 323 | type=12 class=7 | no | conn source 仍 kind=4/index=0 |
+
+### Parity helper 行为
+
+- 规范化字段：`genericId` / `concreteId` / pin kind·index·type / `valueClass` / `alreadySetVal` /
+  `hasConcreteWrapper` / `indexOfConcrete` / payload kind·literal summary / connection source pin。
+- 排除：`nodeIndex`、position、绝对上游 node id。
+- 当前 root→impl 比较失败类别：`concreteId`、`valueClass`、`hasConcreteWrapper`、`indexOfConcrete`
+  （connection cases 另见 `alreadySetVal` 漂移）。
+- 纯 synthetic unit 也能检出 concrete wrapper 漂移。
+
+结论：P0-W1~W3 vendor 证据已落到可重复 production encode 失败契约；后续迁移应以该 fixture 由红转绿为验收，而不是只看 vendor 单测。
+
 ## 退出条件
 
 - [x] float literal 差异可由独立 fixture 稳定重现；
-- [ ] vec3 connection 至少有 root/impl 观察结果；
-- [ ] vendor `Node(324)` 实验有逐字段结果；
-- [ ] vendor `Graph.connect()` 实验有逐字段结果；
-- [ ] parity helper 能在当前错误上失败；
+- [x] vec3 connection 至少有 root/impl 观察结果；
+- [x] vendor `Node(324)` 实验有逐字段结果；
+- [x] vendor `Graph.connect()` 实验有逐字段结果；
+- [x] parity helper 能在当前错误上失败；
 - [ ] composite 边界 focused baseline 全部记录；
-- [ ] 没有生产行为修改。
+- [x] 没有生产行为修改。
 
 ## 决策闸门
 
