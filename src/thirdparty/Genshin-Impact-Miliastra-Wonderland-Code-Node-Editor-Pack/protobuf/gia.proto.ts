@@ -150,6 +150,11 @@ export interface CompositeDef_ParameterFlow_Type {
   type1: VarType
   /** Index = 4 */
   type2: VarType
+  /** Index = 101
+   *
+   * One of the field: type
+   */
+  enumId?: CompositeDef_ParameterFlow_Type_EnumId
   /** Index = 105
    *
    * One of the field: type
@@ -163,6 +168,10 @@ export interface CompositeDef_ParameterFlow_Type_MapType {
   key: VarType
   /** Index = 4 */
   value: VarType
+}
+export interface CompositeDef_ParameterFlow_Type_EnumId {
+  /** Index = 1 */
+  val: number
 }
 export interface CompositeDef_ParameterFlow_Type_ID {
   /** Index = 2 */

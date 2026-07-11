@@ -80,10 +80,12 @@ message CompositeDef {
       VarType type1 = 3;
       VarType type2 = 4;
       oneof type {
+        EnumId enumId = 101;
         MapType mapType = 105;
         // TODO
       }
 
+      message EnumId { int64 val = 1; }
       ID valueId = 104;
       message ID { int64 id = 2; }
     }
