@@ -2,7 +2,7 @@
 
 > 状态：待执行
 > 来源：目标架构设计
-> 最近校验：2026-07-11
+> 最近校验：2026-07-12
 > 适用范围：Stage 3 类型与节点 identity；本阶段不要求全面替换 pin 编码
 
 ## 目标
@@ -70,6 +70,17 @@ resolveArgumentTypes(node, context): ResolvedInput[]
 resolveNodeIdentity(node, resolvedInputs, context): ResolvedNodeIdentity
 assertVariableAssignment(variable, inputType, location): void
 ```
+
+## P1-W1 实测结果
+
+- 新增 `resolved_node.ts`，提供最小 `GraphCompileContext`、`ResolvedValueType`、`ResolvedInput` 和
+  `ResolvedNodeIdentity` contract；
+- float setter 解析为 generic `323` + concrete `324`；
+- vec3 setter 解析为 generic `323` + concrete `334`；
+- 声明 float 与 int 赋值冲突产生 `E_TYPED_INPUT_CONFLICT`；
+- 当前仅为 L1 resolved contract 观察实现，尚未接入 root/impl production lowering；
+- `npm run build` 与 `npx tsx tests/composite/test-stage3-resolved-node-contract.ts` PASS；
+- 未进行 vendor encoding、完整 Graph materialization 或游戏内验证。
 
 ## Tests
 

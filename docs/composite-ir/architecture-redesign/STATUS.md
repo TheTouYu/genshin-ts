@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P0-W6 committed; ADR-006=A accepted; Phase 0 exited)
+> 最近校验：2026-07-12 (P1-W1 completed; ADR-006=A accepted; Phase 0 exited)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1 首包待启动（P0-W6 已完成）
-最近完成工作包：P0-W6 — Phase 0 checkpoint、证据总结和 ADR-006=A
+当前工作包：P1-W2 待启动（P1-W1 已完成）
+最近完成工作包：P1-W1 — 建立 resolved node contract 观察实现与失败契约测试
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -51,6 +51,47 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
 - Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
+
+## 最近完成工作包：P1-W1 — Resolved Node Contract 观察实现
+
+目标：
+
+- 建立 Stage 3 内部 resolved value type、compile context 和 node identity contract 的最小实现；
+- 覆盖 float/vec3 setter variant identity；
+- 对声明类型与赋值类型冲突产生结构化 diagnostic；
+- 不切换现有 root/impl production lowering。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/resolved_node.ts
+ tests/composite/test-stage3-resolved-node-contract.ts
+```
+
+验证：
+
+```bash
+npm run build                                  # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts  # PASS
+git diff --check                               # PASS
+```
+
+证据等级：L1 Resolved contract；未证明 vendor encoding、Graph materialization 或游戏行为。
+
+明确非目标：
+
+- 不修改现有 `resolveGiaNodeId()` 或 `resolveImplNodeId()` 调用路径；
+- 不切换 ordinary pin lowering 或 connection materialization；
+- 不删除 legacy helper；
+- 不注入。
+
+完成条件：
+
+- [x] resolved scalar/list/dict/enum/local-variable contract 有最小表示；
+- [x] float setter 解析 generic `323` + concrete `324`；
+- [x] vec3 setter 解析 generic `323` + concrete `334`；
+- [x] 声明 float + assigned int 产生 `E_TYPED_INPUT_CONFLICT`；
+- [x] root/impl 生产输出保持未切换。
 
 ## 工作包状态
 
@@ -107,7 +148,8 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。下一会话启动 Phase 1 首个工作包。
+无阻塞决策。下一工作包为 P1-W2；建议先将 resolved contract 接入 root/impl 的 identity adapter，仍不切换 pin lowering。
+
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
 
