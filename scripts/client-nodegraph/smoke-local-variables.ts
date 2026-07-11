@@ -1,14 +1,16 @@
 /**
  * Local variable smoke: 获取/设置局部变量（gid 200082/200081，cid 恒 1036/2000）
  * 的值引脚编码。变量类型只体现在值引脚 type + ConcreteBase.ioc 上（类型序表见
- * client_graph.ts LOCAL_VAR_IOC_BY_IR）。覆盖字面量/连线/字典/列表值与
- * 出参定型，IR -> GIA -> decode 后逐引脚断言与语料一致。
+ * client_graph.ts LOCAL_VAR_IOC_BY_IR，21 项全部语料实测，get/set 同表——
+ * 客户端信号_局部变量类型补充.gia 在 get 侧另证 config_id/prefab_id/entity_list）。
+ * 覆盖字面量/连线/字典/列表值与出参定型，IR -> GIA -> decode 后逐引脚断言与语料一致。
  */
 import assert from 'node:assert'
 import fs from 'node:fs'
 
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { buildClientGraphRegistriesIRDocuments, g } from '../../src/runtime/core.js'
+import { configId, guid, prefabId } from '../../src/runtime/value.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH =
@@ -33,8 +35,17 @@ g.characterSkill({ id: 1082130443, name: 'LocalVars' }).on('start', (_evt, f) =>
   f.setLocalVariable('prefabs', f.getCustomVariable(self, 'ps').asType('prefab_id_list'))
   // set#7: dict（变量字典覆盖采样/拼装字典_连线 t24 ioc20 同形）
   f.setLocalVariable('d', f.getCustomVariable(self, 'd').asDict('guid', 'vec3'))
-  // set#8: float 字面量（ioc=4 为类型序表推断值，锁定编码行为）
+  // set#8: float 字面量（客户端信号_局部变量类型补充 t7 ioc4 同形）
   f.setLocalVariable('ratio', 1.5)
+  // set#9..#12: guid/bool/configId/prefabId 字面量（同上补样 ioc 3/6/14/15，
+  // t14/t18/t19 为普通 bId 载荷）
+  f.setLocalVariable('g', new guid(23))
+  f.setLocalVariable('b', true)
+  f.setLocalVariable('cfg', new configId(2))
+  f.setLocalVariable('pf', new prefabId(2))
+  // set#13/#14: str_list / faction_list 连线（同上补样 ioc 8/19）
+  f.setLocalVariable('names', f.getCustomVariable(self, 'ns').asType('str_list'))
+  f.setLocalVariable('facs', f.getCustomVariable(self, 'fs').asType('faction_list'))
   // get 出参定型：int(ioc0)/entity(ioc2)/vec3(ioc5) 均为语料实测
   const count = f.getLocalVariable('count').asType('int')
   const guidOfEnt = f.queryGuidByEntity(f.getLocalVariable('e').asType('entity'))
@@ -143,7 +154,13 @@ checkNode('set int_list wired', SET, 2000, [{ kind: 3, index: 1, type: 4, ioc: 7
 checkNode('set entity_list wired', SET, 2000, [{ kind: 3, index: 1, type: 2, ioc: 9, innerSet: false, wired: true }], 5)
 checkNode('set prefab_id_list wired', SET, 2000, [{ kind: 3, index: 1, type: 21, ioc: 17, innerSet: false, wired: true }], 6)
 checkNode('set dict wired', SET, 2000, [{ kind: 3, index: 1, type: 24, ioc: 20, innerSet: false, wired: true }], 7)
-checkNode('set float literal (inferred ioc)', SET, 2000, [{ kind: 3, index: 1, type: 7, ioc: 4, innerSet: true, wired: false }], 8)
+checkNode('set float literal', SET, 2000, [{ kind: 3, index: 1, type: 7, ioc: 4, innerSet: true, wired: false }], 8)
+checkNode('set guid literal', SET, 2000, [{ kind: 3, index: 1, type: 14, ioc: 3, innerSet: true, wired: false }], 9)
+checkNode('set bool literal', SET, 2000, [{ kind: 3, index: 1, type: 5, ioc: 6, innerSet: true, wired: false }], 10)
+checkNode('set config_id literal', SET, 2000, [{ kind: 3, index: 1, type: 18, ioc: 14, innerSet: true, wired: false }], 11)
+checkNode('set prefab_id literal', SET, 2000, [{ kind: 3, index: 1, type: 19, ioc: 15, innerSet: true, wired: false }], 12)
+checkNode('set str_list wired', SET, 2000, [{ kind: 3, index: 1, type: 10, ioc: 8, innerSet: false, wired: true }], 13)
+checkNode('set faction_list wired', SET, 2000, [{ kind: 3, index: 1, type: 25, ioc: 19, innerSet: false, wired: true }], 14)
 
 // 获取局部变量（按 IR 声明顺序：name/fac 先于 count/e/pos/d 注册）
 checkNode('get str out', GET, 1036, [
@@ -154,7 +171,7 @@ checkNode('get faction out', GET, 1036, [{ kind: 4, index: 0, type: 16, ioc: 18 
 checkNode('get int out', GET, 1036, [{ kind: 4, index: 0, type: 3, ioc: 0 }], 2)
 checkNode('get entity out', GET, 1036, [{ kind: 4, index: 0, type: 1, ioc: 2 }], 3)
 checkNode('get vec3 out', GET, 1036, [{ kind: 4, index: 0, type: 11, ioc: 5 }], 4)
-checkNode('get dict out (inferred ioc)', GET, 1036, [{ kind: 4, index: 0, type: 24, ioc: 20 }], 5)
+checkNode('get dict out (set 侧实证 ioc20，get 同表)', GET, 1036, [{ kind: 4, index: 0, type: 24, ioc: 20 }], 5)
 
 fs.rmSync(OUT_FILE, { force: true })
-console.log('[ok] local variable encoding verified (9 set + 6 get)')
+console.log('[ok] local variable encoding verified (15 set + 6 get)')

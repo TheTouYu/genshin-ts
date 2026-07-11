@@ -1,29 +1,29 @@
 {
   "description": "Observed VarBase shapes for literal input pins (alreadySetVal=true) grouped by clientVarType",
-  "shapeCount": 147,
+  "shapeCount": 158,
   "byClientVarType": {
     "1:entity": 1924,
     "2:entity_list": 632,
-    "3:int": 1396,
+    "3:int": 1397,
     "4:int_list": 242,
-    "5:bool": 551,
-    "6:bool_list": 13,
-    "7:float": 834,
-    "8:float_list": 204,
-    "9:str": 163,
-    "10:str_list": 6,
-    "11:vec3": 428,
-    "12:vec3_list": 23,
+    "5:bool": 553,
+    "6:bool_list": 14,
+    "7:float": 836,
+    "8:float_list": 205,
+    "9:str": 177,
+    "10:str_list": 7,
+    "11:vec3": 429,
+    "12:vec3_list": 24,
     "13:enum": 785,
-    "14:guid": 132,
-    "15:guid_list": 6,
+    "14:guid": 134,
+    "15:guid_list": 7,
     "16:faction": 75,
-    "18:config_id": 92,
-    "19:prefab_id": 15,
-    "20:config_id_list": 7,
-    "21:prefab_id_list": 3,
-    "24:dict": 244,
-    "25:faction_list": 3
+    "18:config_id": 93,
+    "19:prefab_id": 16,
+    "20:config_id_list": 8,
+    "21:prefab_id_list": 4,
+    "24:dict": 257,
+    "25:faction_list": 4
   },
   "shapes": [
     {
@@ -300,7 +300,7 @@
       "sampleFile": "布尔过滤器节点\\筛选方形范围内的实体列表_填值.gia",
       "genericId": 200044,
       "pinIndex": 4,
-      "count": 145
+      "count": 146
     },
     {
       "clientVarType": 3,
@@ -579,7 +579,7 @@
       "sampleFile": "布尔过滤器节点\\逻辑与运算_填值.gia",
       "genericId": 200001,
       "pinIndex": 0,
-      "count": 91
+      "count": 92
     },
     {
       "clientVarType": 5,
@@ -686,6 +686,32 @@
       "count": 2
     },
     {
+      "clientVarType": 5,
+      "typeName": "bool",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 6,
+          "value": {
+            "class": 6,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 5
+              }
+            },
+            "bEnum": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 6,
       "typeName": "bool_list",
       "shape": {
@@ -712,6 +738,32 @@
       "count": 13
     },
     {
+      "clientVarType": 6,
+      "typeName": "bool_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 13,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 6
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 7,
       "typeName": "float",
       "shape": {
@@ -728,7 +780,7 @@
       "sampleFile": "布尔过滤器节点\\三维向量缩放_填值.gia",
       "genericId": 200066,
       "pinIndex": 0,
-      "count": 365
+      "count": 366
     },
     {
       "clientVarType": 7,
@@ -887,6 +939,32 @@
       "count": 3
     },
     {
+      "clientVarType": 7,
+      "typeName": "float",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 4,
+          "value": {
+            "class": 4,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 7
+              }
+            },
+            "bFloat": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 8,
       "typeName": "float_list",
       "shape": {
@@ -991,6 +1069,32 @@
       "count": 2
     },
     {
+      "clientVarType": 8,
+      "typeName": "float_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 11,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 8
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 9,
       "typeName": "str",
       "shape": {
@@ -1007,7 +1111,7 @@
       "sampleFile": "布尔过滤器节点\\获取目标挂接点位置_填值.gia",
       "genericId": 200047,
       "pinIndex": 1,
-      "count": 70
+      "count": 84
     },
     {
       "clientVarType": 9,
@@ -1159,6 +1263,32 @@
       "count": 2
     },
     {
+      "clientVarType": 10,
+      "typeName": "str_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 8,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 10
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 11,
       "typeName": "vec3",
       "shape": {
@@ -1175,7 +1305,7 @@
       "sampleFile": "布尔过滤器节点\\三维向量内积_填值.gia",
       "genericId": 200063,
       "pinIndex": 0,
-      "count": 274
+      "count": 275
     },
     {
       "clientVarType": 11,
@@ -1332,6 +1462,32 @@
       "genericId": 200017,
       "pinIndex": 1,
       "count": 22
+    },
+    {
+      "clientVarType": 12,
+      "typeName": "vec3_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 12,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 12
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
     },
     {
       "clientVarType": 12,
@@ -2669,7 +2825,7 @@
       "sampleFile": "布尔过滤器节点\\以GUID查询实体_填值.gia",
       "genericId": 200023,
       "pinIndex": 0,
-      "count": 7
+      "count": 8
     },
     {
       "clientVarType": 14,
@@ -2744,10 +2900,10 @@
           }
         }
       },
-      "sampleFile": "角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia",
-      "genericId": 200022,
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
       "pinIndex": 1,
-      "count": 2
+      "count": 3
     },
     {
       "clientVarType": 15,
@@ -2774,6 +2930,32 @@
       "genericId": 200017,
       "pinIndex": 1,
       "count": 5
+    },
+    {
+      "clientVarType": 15,
+      "typeName": "guid_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 10,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 15
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
     },
     {
       "clientVarType": 15,
@@ -3100,6 +3282,32 @@
       "count": 1
     },
     {
+      "clientVarType": 18,
+      "typeName": "config_id",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 14,
+          "value": {
+            "class": 1,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 18
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 19,
       "typeName": "prefab_id",
       "shape": {
@@ -3145,6 +3353,32 @@
       "count": 3
     },
     {
+      "clientVarType": 19,
+      "typeName": "prefab_id",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 15,
+          "value": {
+            "class": 1,
+            "alreadySetVal": true,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 19
+              }
+            },
+            "bId": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
+    },
+    {
       "clientVarType": 20,
       "typeName": "config_id_list",
       "shape": {
@@ -3169,6 +3403,32 @@
       "genericId": 200019,
       "pinIndex": 1,
       "count": 7
+    },
+    {
+      "clientVarType": 20,
+      "typeName": "config_id_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 16,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 20
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
     },
     {
       "clientVarType": 21,
@@ -3220,7 +3480,7 @@
       "sampleFile": "角色技能节点图\\变量字典覆盖采样.gia",
       "genericId": 200081,
       "pinIndex": 1,
-      "count": 1
+      "count": 2
     },
     {
       "clientVarType": 24,
@@ -3236,7 +3496,7 @@
       "sampleFile": "角色技能节点图\\以GUID查询实体_连线.gia",
       "genericId": 200154,
       "pinIndex": 0,
-      "count": 190
+      "count": 203
     },
     {
       "clientVarType": 24,
@@ -3909,6 +4169,32 @@
       "genericId": 200019,
       "pinIndex": 1,
       "count": 3
+    },
+    {
+      "clientVarType": 25,
+      "typeName": "faction_list",
+      "shape": {
+        "class": 10000,
+        "alreadySetVal": true,
+        "bConcreteValue": {
+          "indexOfConcrete": 19,
+          "value": {
+            "class": 10002,
+            "alreadySetVal": false,
+            "itemType": {
+              "classBase": 2,
+              "type_client": {
+                "type": 25
+              }
+            },
+            "bArray": "set(object)"
+          }
+        }
+      },
+      "sampleFile": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+      "genericId": 200081,
+      "pinIndex": 1,
+      "count": 1
     }
   ]
 }

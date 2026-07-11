@@ -1,10 +1,10 @@
 {
   "sampleRoot": "D:\\_S2\\mypy_test\\client_nodes",
-  "sampleCount": 1764,
+  "sampleCount": 1765,
   "familyCounts": {
     "bool_filter": 202,
     "character_control_skill": 469,
-    "character_skill": 269,
+    "character_skill": 270,
     "creation_skill": 246,
     "creation_status": 202,
     "creation_status_decision": 173,
@@ -30,7 +30,7 @@
       "unitType": 3,
       "which": 11,
       "nodeGraphType": 20002,
-      "count": 269
+      "count": 270
     },
     {
       "subType": "character_control_skill",
@@ -84,7 +84,7 @@
   "decodeFailures": [],
   "clientVarType25": {
     "conclusion": "observed faction list type",
-    "hitCount": 5,
+    "hitCount": 6,
     "hits": [
       {
         "file": "角色技能节点图\\变量字典覆盖采样.gia",
@@ -122,6 +122,16 @@
         "nodeIndex": 168,
         "genericId": 200017,
         "concreteId": 70,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+        "subType": "character_skill",
+        "nodeIndex": 36,
+        "genericId": 200081,
+        "concreteId": 2000,
         "pinKind": 3,
         "pinIndex": 1,
         "pinType": 25

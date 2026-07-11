@@ -287,10 +287,10 @@ function applyCustomVariableOutPin(node: ClientGiaNode, outIrType: string | unde
 
 /**
  * 局部变量值/输出引脚 indexOfConcrete 表（get 200082 / set 200081 全语料普查）：
- * 标量头按列表块同款类型序 int/str/entity/guid/float/vec3/bool 排列
- * （实测 int=0、str=1、entity=2、vec3=5，guid/float/bool 按该序推断），
- * 列表块 7..13 与配置/元件/阵营/字典 14..20 与自定义变量类型序表一致
- * （实测 int_list=7、entity_list=9、prefabId_list=17、faction=18、dict=20）。
+ * 标量头按列表块同款类型序 int/str/entity/guid/float/vec3/bool 排列，
+ * 列表块 7..13 与配置/元件/阵营/字典 14..20 与自定义变量类型序表一致。
+ * 21 项全部语料实测（2026-07-11 客户端信号_局部变量类型补充.gia 补齐
+ * guid/float/bool 与全部列表/配置/元件条目，推断值 13/13 命中）。
  */
 const LOCAL_VAR_IOC_BY_IR: Record<string, number> = {
   int: 0,
