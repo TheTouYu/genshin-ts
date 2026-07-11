@@ -92,13 +92,27 @@ assertVariableAssignment(variable, inputType, location): void
 - `npm run build` 与 `npx tsx tests/composite/test-stage3-root-impl-parity.ts` PASS；
 - 未进行完整 Graph materialization 或游戏内验证。
 
+## P1-W3 实测结果
+
+- getter 从同一变量声明解析 identity：`get_node_graph_variable(floatValue)` 为 generic `337` + concrete `341`；
+- 缺少变量声明保持既有 generic fallback，不改变编码策略；shared resolver 现在通过 `fallbacks` sink 记录
+  `missing-variable-declaration`；
+- 无法转换为当前 scalar/list suffix 的 resolved 类型保持 generic fallback，并记录
+  `unsupported-resolved-type`；
+- 这些 fallback 记录仅是当前 resolver 的观察/计数 contract，尚未接入 root/impl production diagnostics 或改变
+  dict/list legacy lowering；
+- `npm run build`、`npx tsx tests/composite/test-stage3-resolved-node-contract.ts` 与
+  `npx tsx tests/composite/test-stage3-root-impl-parity.ts` PASS；未进行完整 Graph materialization、真实 GIA
+  或游戏内验证。
+
 ## Tests
 
 - root/impl float setter identity parity；
 - root/impl vec3 setter identity parity；
 - setter literal 与 conn identity parity；
 - declared float + assigned int 冲突；
-- missing variable declaration 的明确策略；
+- missing variable declaration 的明确 generic fallback 与计数；
+- getter/setter 对声明变量的 identity 一致性；
 - existing mode-specific root node 不回归；
 - dict/list 旧 fallback 有计数，不静默变化。
 
@@ -106,10 +120,10 @@ assertVariableAssignment(variable, inputType, location): void
 
 - [ ] setter float 在 root/impl 都解析 generic `323` + concrete `324`；
 - [ ] vec3 setter 解析到 vendor Vec variant；
-- [ ] getter/setter 对同一变量 resolved type 一致；
+- [x] getter/setter 对同一变量 resolved type 一致（float declaration fixture）；
 - [ ] 冲突产生结构化错误；
 - [ ] root 当前 fixture 编码未因纯 refactor 改变；
-- [ ] 未解析 family 有明确 fallback 和后续清单；
+- [x] shared resolver 对 missing declaration / unsupported type 有显式 fallback 记录；生产路径接入留待后续工作包。
 - [ ] `valueTypeSuffix` 等 impl 副本开始删除或仅作为 legacy adapter。
 
 ## 回滚条件

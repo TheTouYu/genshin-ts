@@ -22,6 +22,7 @@ export type GraphCompileContext = {
   variablesByName: Map<string, Variable>
   connectionTypes: ConnTypeIndex
   diagnostics?: Diagnostic[]
+  fallbacks?: ResolutionFallback[]
   strictTypeChecks?: boolean
 }
 
@@ -31,6 +32,13 @@ export type Diagnostic = {
   nodeId?: number
   nodeType?: string
   argIndex?: number
+}
+
+export type ResolutionFallback = {
+  reason: 'missing-variable-declaration' | 'unsupported-resolved-type' | 'missing-concrete-variant'
+  nodeId: number
+  nodeType: string
+  variableName?: string
 }
 
 export type ResolvedInput = {
@@ -121,6 +129,10 @@ function report(context: GraphCompileContext, diagnostic: Diagnostic): never {
   throw new Error(`[error] ${diagnostic.code}: ${diagnostic.message}`)
 }
 
+function recordFallback(context: GraphCompileContext, fallback: ResolutionFallback): void {
+  context.fallbacks?.push(fallback)
+}
+
 export function resolveArgumentTypes(
   node: ServerNode,
   context: GraphCompileContext
@@ -162,6 +174,14 @@ export function resolveNodeIdentity(
     const variableName = nameArg?.type === 'str' ? nameArg.value : undefined
     const variable = variableName ? context.variablesByName.get(variableName) : undefined
     declaredType = variable ? fromVariable(variable) : undefined
+    if (!variable) {
+      recordFallback(context, {
+        reason: 'missing-variable-declaration',
+        nodeId: node.id,
+        nodeType: node.type,
+        variableName
+      })
+    }
     const assigned = inputs[1]?.type ?? inputs[2]?.type
     if (context.strictTypeChecks && declaredType && assigned && !sameType(declaredType, assigned)) {
       report(context, {
@@ -179,10 +199,24 @@ export function resolveNodeIdentity(
     : typed?.kind === 'list' && typed.element.kind === 'scalar'
       ? `list_${typed.element.name === 'vec3' ? 'vec' : typed.element.name}`
       : undefined
-  if (!suffix) return { logicalType: node.type, genericNodeId }
+  if (!suffix) {
+    if (typed && (isSetter || isGetter)) {
+      recordFallback(context, {
+        reason: 'unsupported-resolved-type',
+        nodeId: node.id,
+        nodeType: node.type
+      })
+    }
+    return { logicalType: node.type, genericNodeId }
+  }
 
   const concreteNodeId = nodeIds.get(`${lower}__${suffix}`)
   if (concreteNodeId === undefined && (isSetter || isGetter)) {
+    recordFallback(context, {
+      reason: 'missing-concrete-variant',
+      nodeId: node.id,
+      nodeType: node.type
+    })
     report(context, {
       code: 'E_UNKNOWN_NODE_VARIANT',
       message: `missing concrete variant ${lower}__${suffix}`,

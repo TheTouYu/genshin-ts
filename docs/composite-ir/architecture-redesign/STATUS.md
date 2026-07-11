@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P1-W2 completed; ADR-006=A accepted; Phase 0 exited)
+> 最近校验：2026-07-12 (P1-W3 completed; ADR-006=A accepted; Phase 0 exited)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1-W3 待启动（P1-W2 已完成）
-最近完成工作包：P1-W2 — root/impl setter identity 接入共享 resolver
+当前工作包：P1-W3 已完成；等待用户审核
+最近完成工作包：P1-W3 — getter identity 与 fallback accounting contract
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -42,6 +42,9 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - **P0-W6**：Phase 0 汇总 checkpoint 已写入 `checkpoints/phase-0-vendor-evidence.md`。
 - **ADR-006（用户 2026-07-12）**：Accepted = 方案 A，完整 vendor Graph materialization 作为 Phase 1–3 主路径；B/C 不作为默认。
 - 本分支已接入 P1-W2 identity resolution，但尚未切换 pin lowering 或 Graph materialization。
+- **P1-W3**：shared resolver 对声明 float 的 getter 得到 generic `337` + concrete `341`；missing declaration 和
+  unsupported resolved type 均保持 generic fallback，并可通过 context `fallbacks` sink 记录原因。生产路径尚未消费
+  该 sink，故不改变现有编码或 diagnostics。
 
 ## 尚未证明
 
@@ -51,6 +54,44 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
 - Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
+
+## 最近完成工作包：P1-W3 — getter identity 与 fallback accounting contract
+
+目标：
+
+- 为声明变量的 getter 增加 shared identity regression；
+- 明确 missing declaration 和当前 suffix 不支持类型的 resolver fallback，提供可计数 sink；
+- 不改变 root/impl production lowering、legacy fallback 行为或 diagnostics。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/resolved_node.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+```
+
+验证：
+
+```bash
+npm run build                                                  # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts       # PASS
+git diff --check                                               # PASS
+```
+
+证据等级：L1 resolver contract + L3 existing root/impl parity regression；无新的真实 GIA、wire、注入或游戏行为证据。
+
+明确非目标：不接入 root production resolver、不改 impl legacy pin lowering、不切换 Graph materialization、不改变
+missing declaration 的 generic fallback、不删除 legacy helper。
+
+完成条件：
+
+- [x] getter declaration identity 覆盖 float generic `337` + concrete `341`；
+- [x] missing declaration 的 generic fallback 和原因可被测试观察；
+- [x] unsupported resolved type 的 generic fallback 和原因可被测试观察；
+- [x] existing identity parity fixture 继续通过且保留 pin schema failure contract。
 
 ## 最近完成工作包：P1-W2 — root/impl identity adapter 接入
 
@@ -183,7 +224,8 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。下一工作包为 P1-W3；建议覆盖 getter identity 与 missing declaration/fallback 计数。
+无阻塞决策。P1-W3 等待审核；下一工作包须先由用户选择/确认，建议是将 shared resolver 以保持 root
+输出不变的 adapter 形式接入 root getter/setter，并以 fallback accounting 建立观察基线。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：

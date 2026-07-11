@@ -8,7 +8,8 @@ const context = {
     ['floatValue', { name: 'floatValue', type: 'float' }],
     ['vecValue', { name: 'vecValue', type: 'vec3' }]
   ]),
-  connectionTypes: new Map()
+  connectionTypes: new Map(),
+  strictTypeChecks: true
 }
 
 const floatNode = { id: 1, type: 'set_node_graph_variable', args: [
@@ -35,4 +36,44 @@ assert.throws(() => resolveNodeIdentity({
   args: [{ type: 'str', value: 'floatValue' }, { type: 'int', value: 0 }]
 }, context), /E_TYPED_INPUT_CONFLICT/)
 
-console.log('PASS P1-W1 resolved node contract: float/vec variants and typed conflict')
+const getter = { id: 4, type: 'get_node_graph_variable', args: [{ type: 'str', value: 'floatValue' }] }
+assert.deepEqual(resolveNodeIdentity(getter, context), {
+  logicalType: 'get_node_graph_variable', genericNodeId: 337, concreteNodeId: 341
+})
+
+const fallbacks = []
+const missingDeclarationContext = { ...context, fallbacks }
+assert.deepEqual(resolveNodeIdentity({
+  id: 5,
+  type: 'get_node_graph_variable',
+  args: [{ type: 'str', value: 'notDeclared' }]
+}, missingDeclarationContext), {
+  logicalType: 'get_node_graph_variable', genericNodeId: 337
+})
+assert.deepEqual(fallbacks, [{
+  reason: 'missing-variable-declaration',
+  nodeId: 5,
+  nodeType: 'get_node_graph_variable',
+  variableName: 'notDeclared'
+}])
+
+const unsupportedFallbacks = []
+assert.deepEqual(resolveNodeIdentity({
+  id: 6,
+  type: 'set_node_graph_variable',
+  args: [{ type: 'str', value: 'dictValue' }, { type: 'dict', dict: { k: 'int', v: 'float' } }]
+}, { ...context, fallbacks: unsupportedFallbacks }), {
+  logicalType: 'set_node_graph_variable', genericNodeId: 323
+})
+assert.deepEqual(unsupportedFallbacks, [{
+  reason: 'missing-variable-declaration',
+  nodeId: 6,
+  nodeType: 'set_node_graph_variable',
+  variableName: 'dictValue'
+}, {
+  reason: 'unsupported-resolved-type',
+  nodeId: 6,
+  nodeType: 'set_node_graph_variable'
+}])
+
+console.log('PASS P1-W3 getter identity and explicit resolution fallback accounting')
