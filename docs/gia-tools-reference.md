@@ -152,13 +152,31 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 
 | 工具                       | 功能                                                | 用法                                                           |
 | -------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
-| `decode-gia.ts`            | **解码 GIA → 完整 JSON**，配合 `jq` 查询任意字段    | `npx tsx tools/decode-gia.ts <文件.gia> \| jq '...'`           |
+| `decode-gia.ts`            | **解码 GIA → 完整 JSON**，支持 compact、header 校验、文件输出和 stdin | `npm run gia:decode -- <文件.gia> \| jq '...'`           |
 | `analyze-composite-gia.ts` | **CompositeDef/SignalDef 深度分析**，支持多文件对比 | `npx tsx tools/analyze-composite-gia.ts <f1.gia> [f2.gia ...]` |
 | `analyze-gia-arch.ts`      | **架构概览** — 分析复杂 GIA 的顶层结构              | `npx tsx tools/analyze-gia-arch.ts`                            |
 | `topology.ts`              | **复合调用拓扑** — 主图中复合节点的调用关系图       | `npx tsx tools/topology.ts <文件.gia>`                         |
 | `coverage.ts`              | **文档覆盖率** — 按已知模式分类复合定义             | `npx tsx tools/coverage.ts <文件.gia>`                         |
 | `gap-scan.ts`              | **文档缺口扫描** — 用启发式找未知模式               | `npx tsx tools/gap-scan.ts <文件.gia>`                         |
 | `preview_markdown.ts`      | **终端渲染 Markdown**                               | `npx tsx tools/preview_markdown.ts <文件.md>`                  |
+
+**`decode-gia.ts` 选项与常用查询：**
+
+```bash
+# 紧凑 JSON，适合保存或跨进程传输
+npm run gia:decode -- --compact <文件.gia> > decoded.json
+
+# 校验 GIA 容器头尾；诊断输出写 stderr，不污染 JSON
+npm run gia:decode -- --check-header <文件.gia> > decoded.json
+
+# 输出到文件，stdout 不输出 JSON
+npm run gia:decode -- -o decoded.json <文件.gia>
+
+# 从 stdin 读取完整 GIA 容器
+cat <文件.gia> | npm run gia:decode -- - --compact | jq '.graph'
+```
+
+stdout 始终只输出 JSON；`--check-header` 的校验结果和错误输出到 stderr。直接使用 `npx tsx` 可能显示 Node 的 deprecation warning，建议使用上面的 npm wrapper。
 
 **`decode-gia.ts` 常用 jq 查询：**
 
