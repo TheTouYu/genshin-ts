@@ -74,6 +74,8 @@
     "to-gs": "tsx ./src/compiler/ts_to_gs.ts",
     "example": "npm run build && node ./bin/gsts.mjs",
     "dev": "npm run build && node ./bin/gsts.mjs dev",
+    "docs:index": "NODE_OPTIONS='--disable-warning=DEP0205' tsx scripts/docs-index.ts",
+    "docs:search": "NODE_OPTIONS='--disable-warning=DEP0205' tsx scripts/docs-search.ts",
     "trace-exec": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/trace-exec-flow.ts",
     "trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/trace-dataflow.ts",
     "gia:decode": "NODE_OPTIONS='--no-deprecation' tsx tools/decode-gia.ts",

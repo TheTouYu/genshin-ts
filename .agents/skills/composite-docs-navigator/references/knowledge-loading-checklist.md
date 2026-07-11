@@ -31,6 +31,7 @@ Read these current entry points first:
 | Definitions / vendor update | `references/definitions-vendor.md`, `references/maintenance-release.md` |
 | Template package | `references/template-package.md` |
 | Documentation update | `docs/documentation-governance.md`, `docs/documentation-map.md`, relevant authoritative target |
+| Engine API usage/search | `docs/architecture/docs-search.md`, then `engine-api-usage`; use `engine-api-signatures` for exact API/event signatures |
 
 Read historical handovers after current authoritative documents and only for a concrete reason.
 

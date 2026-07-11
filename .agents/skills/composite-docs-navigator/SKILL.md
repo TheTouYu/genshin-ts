@@ -27,6 +27,7 @@ Choose one or more routes before reading deeply:
 | `物理运动` recreation | Physical motion | `references/physical-motion-recreation.md`; add map/injection reference if injection is requested |
 | `create-genshin-ts`, starter template, npm package | Template package | `references/template-package.md` |
 | maintenance, release, generated files, upstream updates | Maintenance / release | `references/maintenance-release.md` |
+| engine API usage, event examples, vector/entity/variable API lookup | Engine API search | `docs/architecture/docs-search.md`, collection `engine-api-usage`; use `engine-api-signatures` for exact signatures |
 | documentation update after any of the above | Documentation | also load `.agents/skills/composite-docs-maintainer/SKILL.md` |
 
 Do not read unrelated references merely because this skill was triggered.
@@ -85,6 +86,22 @@ Use the full route for architectural work, ambiguous behavior, conflicting sourc
 4. Read `docs/composite-ir/index.md` and `docs/gia-tools-reference.md` for real-GIA work.
 5. Read historical handovers only for context, after current documents.
 6. Inspect source and focused tests before editing.
+
+## Local docs-search integration
+
+For engine API usage questions, after route classification query the local search tool instead of loading the entire documentation corpus:
+
+```bash
+npm --silent run docs:search -- "<user question>" --collection engine-api-usage --limit 5 --json
+```
+
+For exact method, event, parameter, or return-type lookup:
+
+```bash
+npm --silent run docs:search -- "<API name or event name>" --collection engine-api-signatures --limit 5 --json
+```
+
+Read `docs/architecture/docs-search.md` for collection boundaries, `.env` requirements, result interpretation, cache/index maintenance, and the distinction between search ranking and evidence level. Use `--include-history` only when the question explicitly needs handover/history or current results are insufficient. docs-search is read-only and never authorizes injection or game-file operations.
 
 ## Current API naming
 

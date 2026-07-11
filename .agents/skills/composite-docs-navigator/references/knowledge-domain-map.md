@@ -20,6 +20,7 @@ This is the coverage index for the project knowledge system. It maps each major 
 | Game map / injection | `docs/architecture/injector-system.md`, `composite-ir/handover/layout-working-rules.md` | `src/cli/gil_paths.ts`, `src/cli/gsts.ts`, `src/injector/` | `gsts maps`, single-file injection | `mapId` differs from `nodeGraphId`; destructive operation confirmation required |
 | Physical-motion recreation | `docs/composite-ir/physics-motion-recreate-guide.md`, latest physics handover | `tests/layout/physics-motion/`, `gsts.physics-motion.config.ts` | generation, focused regressions, game validation | Multi-file output should use single-file GIA injection |
 | Documentation governance | `docs/documentation-governance.md`, `documentation-map.md`, handover README | `.agents/skills/composite-docs-*` | `git diff --check`, link/path checks | Historical docs are not current API authority |
+| Engine API usage/search | `docs/architecture/docs-search.md`, user docs, template docs | `src/docs_search/engine_api.ts`, `resources/node_definitions.json`, `src/definitions/` (read-only) | `npm run docs:index`, `npm --silent run docs:search -- ... --json` | Search ranking is not evidence; signatures are not game verification; `.env` and local index stay ignored |
 | Maintenance / release | `docs/maintenance/`, `Changelog*.md`, release workflow | `scripts/release.mjs`, `scripts/generate-definitions.ts`, `.github/workflows/` | maintenance scripts, release checks | Generated/vendor content must follow regeneration/sync process |
 
 ## Coverage rule

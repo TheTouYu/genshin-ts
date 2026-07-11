@@ -56,6 +56,7 @@ Use the shared domain map as the baseline. The primary destinations are:
 | Maintenance/release/vendor update | `docs/maintenance/`, `Changelog*.md`, release files | `maintenance-release.md` |
 | Historical continuity | `docs/composite-ir/handover/`, update `handover/README.md` if recent | `historical-docs.md` |
 | Knowledge-domain coverage or navigation | `knowledge-domain-map.md`, `docs/documentation-map.md`, `docs/README.md` | `coverage-audit.md` |
+| Engine API usage/search | `docs/architecture/docs-search.md`, user/template docs | `src/docs_search/engine_api.ts`, `resources/node_definitions.json`, tests | `docs:index`, `docs:search`, API query fixtures | Search ranking is not evidence; generated definitions are read-only; `.env` and local index are ignored |
 
 If no route fits, identify the missing domain first. Do not silently classify unrelated work as Composite.
 
