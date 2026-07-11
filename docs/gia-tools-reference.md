@@ -73,6 +73,8 @@ npx tsx tests/composite/trace-dataflow.ts <文件.gia> <节点索引|节点名> 
 - 从任意节点的 InParam 逆向追溯数据来源
 - `⤷` 标记跨复合边界（从调用方进入被调复合的 impl 图）
 - 支持手选指定参数索引追溯
+- 当前工具实现会从 `CompositeDef.inputs` 解析复合调用节点的输入类型；已用真实 `user_edit/变量/bool.gia` 自动验证 bool 输入显示为 `Bol`，避免仅显示 `?`
+- trace 展示的是 schema 解码后的语义结构，不能发现 schema 未声明的 protobuf unknown field；遇到“JSON 一致但游戏异常”时，必须增加无修改 round-trip 哈希或 wire 字段扫描
 
 **典型用例：**
 

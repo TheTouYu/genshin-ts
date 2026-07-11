@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-10
+> 最近校验：2026-07-11
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
@@ -92,6 +92,25 @@ inputs: [{
   pinIndex: 100       // PIN_INDEX_INPUT_BASE + 0
 }]
 ```
+
+bool 参数还必须携带枚举类型元数据，input 和 output 使用相同规则：
+
+```typescript
+type: {
+  class: EnumBase,     // 6
+  type1: Boolean,      // 4
+  type2: Boolean,
+  enumId: { val: 1 }, // protobuf field 101
+  valueId: null
+}
+```
+
+`enumId.val` 描述复合接口的枚举类型；调用 pin 上的 `value.bEnum.val` 才是实际
+`false/true` 值。两者不可互相替代。真实 `user_edit/变量/bool.gia` 缺失 field 101 后再编码，游戏中的 bool 参数控件会显示为空白异常；补回 `enumId.val=1` 后已于 2026-07-11 完成游戏验证。
+
+普通 decoded JSON 可能因 schema 缺失字段而无法展示这种差异。该问题通过 wire 扫描定位到
+`CompositeDef.ParameterFlow.Type` 的 `aa06020801`，因此协议调查必须包含 unknown-field 或
+round-trip 检查。
 
 ### type.kind
 

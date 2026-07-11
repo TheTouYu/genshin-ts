@@ -115,24 +115,14 @@ export function buildCompositeAccessories(
       name: param.name,
       visible: param.visible,
       index: { kind: NodePin_Index_Kind.InParam, index: param.index },
-      type: {
-        class: typeClassFromValueType(param.type as any),
-        type1: typeIdFromValueType(param.type as any),
-        type2: typeIdFromValueType(param.type as any),
-        valueId: null
-      },
+      type: compositeParameterType(param.type as string),
       pinIndex: param.pinIndex
     })),
     outputs: def.outputs.map((param) => ({
       name: param.name,
       visible: param.visible,
       index: { kind: NodePin_Index_Kind.OutParam, index: param.index },
-      type: {
-        class: typeClassFromValueType(param.type as any),
-        type1: typeIdFromValueType(param.type as any),
-        type2: typeIdFromValueType(param.type as any),
-        valueId: null
-      },
+      type: compositeParameterType(param.type as string),
       pinIndex: param.pinIndex
     })),
     type: {
@@ -1363,6 +1353,17 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
 }
 
 // ============== 类型映射辅助 ==============
+
+function compositeParameterType(type: string) {
+  const typeId = typeIdFromValueType(type)
+  return {
+    class: typeClassFromValueType(type),
+    type1: typeId,
+    type2: typeId,
+    ...(type === 'bool' ? { enumId: { val: 1 } } : {}),
+    valueId: null
+  }
+}
 
 function typeClassFromValueType(type: string): number {
   switch (type) {

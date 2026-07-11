@@ -303,3 +303,30 @@ n= 1 [系统] When Entity Is Created
 | composite outflows 生成 | `src/runtime/composite_registry.ts` | ~215-240 |
 | compositePins 绑定 | `src/compiler/ir_to_gia_transform/composite.ts` | ~200-240 (`buildCompositeAccessories`) |
 | 测试文件 | `tests/composite/test-bool-input.ts` | 全文 |
+
+---
+
+## 十、2026-07-11 最终勘误（真实游戏验证）
+
+> 本节覆盖本文前面的阶段性根因判断；本文其余内容仅保留为历史调查背景。
+
+最终参考文件为 `user_edit/变量/bool.gia`。该文件的 `CompositeDef.outflows=[]`，并非本文早期记录的 `[是, 否]`。逐项排除了 outflows、pinIndex、定义/impl ID 关系、调用 pin wrapper 和 `type_server.kind` 后，纯 protobuf decode/encode round-trip 仍会让游戏中的 bool 控件异常。
+
+wire 扫描定位到旧 schema 未声明的字段：
+
+```text
+CompositeDef.ParameterFlow.Type.field 101
+raw bytes: aa06020801
+child field 1 = 1
+```
+
+正式语义为：
+
+```proto
+message EnumId { int64 val = 1; }
+EnumId enumId = 101;
+```
+
+复合 bool input/output 必须生成 `enumId: { val: 1 }`。这里的 `enumId.val` 是接口枚举类型元数据；调用 pin 的 `bEnum.val` 是实际布尔值。补齐 schema 和编译器编码后，`bool-gsts-7-compiler-enum-id.gia` 已由用户于 2026-07-11 确认游戏内控件正常。
+
+当前自动回归为 `tests/composite/test-composite-bool-input-gia.ts`；正式编码规则见 `docs/architecture/composite/gia-encoding.md`。

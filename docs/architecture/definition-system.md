@@ -603,11 +603,27 @@ gia_gen/
 └── utils.ts              — 工具函数
 
 protobuf/
-├── gia.proto.ts          — GIA protobuf schema (ts 定义)
+├── gia.proto             — GIA protobuf schema
+├── gia.proto.ts          — 由 schema 生成的 TS 定义
 └── decode.ts             — GIA 二进制解码
 ```
 
-### 11.2 GIA 代码生成
+### 11.2 Vendor 兼容补丁来源
+
+`src/thirdparty/` 不直接手改。genshin-ts 当前 legacy schema 的兼容补丁维护在 fork：
+
+```text
+repo:   TheTouYu/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack
+branch: compat/genshin-ts-legacy-schema
+base:   b6ceb52  chore: sync genshin-ts legacy schema baseline
+patch:  497d9ec  fix: preserve composite enum type metadata
+```
+
+`497d9ec` 为 `CompositeDef.ParameterFlow.Type` 补充 `EnumId enumId = 101`，并包含最小 wire round-trip 测试。同步到 genshin-ts 时至少成对更新 `gia.proto` 和 `gia.proto.ts`，并在提交说明中记录 fork commit。
+
+未来 vendor 更新时，先检查新 schema 是否已经正式包含 field 101：已包含则移除兼容补丁；未包含则在新 legacy 基线上重放 `497d9ec` 的语义增量。不要直接用 fork `dev` 的新架构 schema 覆盖当前 legacy schema，因为其消息已经从 `Root/GraphUnit/CompositeDef` 大规模迁移为 `AssetBundle/ResourceEntry/PinInterface`。
+
+### 11.3 GIA 代码生成
 
 `gia_gen/` 提供了阶段三中使用的 `Graph` 和 `Node` 类：
 

@@ -272,19 +272,48 @@ function getOutParamName(n: any, outIdx: number, ci: CompIdx): string | null {
   return out?.name ?? null
 }
 
+function formatCompositeValueType(type: any): string | null {
+  if (!type) return null
+  const typeId = type.type1 ?? type.type2
+  switch (typeId) {
+    case 1: return 'Entity'
+    case 3: return 'Int'
+    case 4: return 'Bol'
+    case 5: return 'R<T>'
+    case 6: return 'String'
+    case 8: return 'Array'
+    case 12: return 'Vector'
+    case 16: return 'PrefabId'
+    default: return typeId != null ? `type=${typeId}` : null
+  }
+}
+
+function getCompositeInput(node: any, idx: number, ci: CompIdx): any | null {
+  const nid = node.genericId?.nodeId
+  if (nid == null || node.genericId?.kind !== 22001) return null
+  const def = ci.compDefs.get(nid)
+  return (def?.inputs ?? [])[idx] ?? null
+}
+
 function getInParamName(node: any, idx: number, ci: CompIdx): string {
   const nid = node.genericId?.nodeId
   if (!nid) return `InParam[${idx}]`
-  if (node.genericId?.kind === 22001) {
-    const def = ci.compDefs.get(nid)
-    if (def) { const inp = (def.inputs ?? [])[idx]; if (inp?.name) return inp.name }
-  }
+  const compositeInput = getCompositeInput(node, idx, ci)
+  if (compositeInput?.name) return compositeInput.name
   // Check for known overrides first
   const overrides = PIN_NAME_OVERRIDES[nid]
   if (overrides && overrides[idx] != null) return overrides[idx]
   const types = getInputTypes(nid)
   const t = types[idx] ?? '?'
   return t
+}
+
+function getInParamType(node: any, idx: number, ci: CompIdx): string {
+  const compositeType = formatCompositeValueType(getCompositeInput(node, idx, ci)?.type)
+  if (compositeType) return compositeType
+  const nid = node.genericId?.nodeId
+  const types = nid != null ? getInputTypes(nid) : []
+  return types[idx] ?? '?'
 }
 
 function traceInParam(
@@ -299,8 +328,7 @@ function traceInParam(
   crossGraphCtx?: CrossGraphContext,
 ): InParamBranch {
   const nid = node.genericId?.nodeId
-  const types = nid != null ? getInputTypes(nid) : []
-  const inType = types[inParamIdx] ?? '?'
+  const inType = getInParamType(node, inParamIdx, ci)
   const inName = getInParamName(node, inParamIdx, ci)
 
   // Helper: check compositePins for parent-input mapping

@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-06
+> 最近校验：2026-07-11
 > 适用范围：gsts 当前复合节点测试脚本和验证流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
@@ -113,6 +113,7 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-type-conversion.ts` | 内部节点含 `data_type_conversion_*` 的复合 |
 | `test-mixed-composite-normal.ts` | 复合调用与普通 `f.method()` 交叉排列 |
 | `test-composite-game-demo.ts` | 模拟真实游戏逻辑的复合（条件、变量、多个复合） |
+| `test-composite-bool-input-gia.ts` | bool input/output 的 `enumId=1` wire 元数据；非 bool 参数不得携带 `enumId`；同时锁定调用 pin literal |
 | `analyze-nested-composites.ts` | 研究嵌套复合的技术可行性（结果：当前不支持） |
 
 ---
@@ -167,6 +168,17 @@ npm run quicktest
 // 解决方案：每个测试文件独立进程，或在 beforeEach 中清空注册表
 compositeRegistry['definitions'].clear()  // hack: 不推荐
 ```
+
+### Protobuf round-trip 与字段 presence
+
+`decode_gia_file()` 使用 protobuf defaults，未知字段会在 decode/encode 时丢失，普通 JSON diff 不一定能发现协议缺口。复合参数类型回归必须同时检查：
+
+1. defaults JSON 中的语义值；
+2. raw protobuf message 中字段实际存在；
+3. 必要时对真实文件执行无修改 round-trip，并比较 payload 长度或哈希。
+
+2026-07-11 的 bool 参数修复即由 round-trip 定位：旧 schema 丢失
+`CompositeDef.ParameterFlow.Type.field 101` 的 5 bytes（`aa06020801`）。
 
 ### 对比参考文件
 
