@@ -1,5 +1,10 @@
 # 注入器系统：.gia → .gil 注入
 
+> 状态：当前实现
+> 来源：当前代码实现 + 真实地图验证
+> 最近校验：2026-07-11
+> 适用范围：gsts 当前注入流程；地图 ID 分配规律仅适用于已观察的真实地图样本
+
 > 本文档描述 genshin-ts 的注入器系统——如何将编译产出的 .gia 二进制文件注入到原神的 .gil 关卡文件中。
 
 ---
@@ -13,6 +18,25 @@
 **输入**：`.gil` 文件 + `.gia` 文件 + 目标节点图 ID
 
 **输出**：修改后的 `.gil` 文件内容
+
+### 地图 ID 与节点图 ID
+
+这两个 ID 必须分开记录：
+
+- `mapId`：`Beyond_Local_Save_Level/<mapId>.gil` 的地图文件 ID。
+- `nodeGraphId`：该地图内部要替换的 NodeGraph ID。
+
+通过 `gsts maps -c <config>` 可以查看当前 `playerId` 对应的地图文件，并按修改时间标记 `[recent]`。本次真实新地图验证中，地图文件为 `1073741846.gil`，其第一个节点图 ID 为 `1073741825`。当前观察到的新地图通常从 `1073741825` 分配首个 NodeGraph，后续新建节点图递增；这是经验规律，不能替代对目标 `.gil` 的实际扫描。
+
+物理运动等多文件批量编译会生成自己的 GIA graph ID。批量模式目前忽略 `config.inject.nodeGraphId`，按 GIA 内 graph ID 推断目标；如果目标地图的 NodeGraph ID 与 GIA graph ID 不同，应先生成 GIA，再用单文件注入路径，让配置中的 `nodeGraphId` 生效：
+
+```bash
+GSTS_LOCALLOW_DIR=/mnt/c/Users/<user>/AppData/LocalLow \\
+  node bin/gsts.mjs -c gsts.physics-motion.config.ts \\
+  dist/tests/layout/physics-motion/main.gia
+```
+
+此行为由 `src/cli/gsts.ts` 的批量注入与 `runSingle()` 路径决定。
 
 ---
 

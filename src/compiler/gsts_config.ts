@@ -107,7 +107,7 @@ export type GstsInjectConfig = {
   /**
    * [ZH] 玩家 ID（BeyondLocal 下的数字目录名）。
    *
-   * 若该目录下只有一个纯数字目录，可省略。
+   * 若该目录下只有一个纯数字目录，可省略。`gsts maps` 会按该玩家目录列出地图文件。
    *
    * [EN] Player ID (numeric folder name under BeyondLocal).
    *
@@ -117,7 +117,7 @@ export type GstsInjectConfig = {
   /**
    * [ZH] 地图 ID（例如 `1073741849`），最终注入目标为 `<mapId>.gil`。
    *
-   * 提示：可用 `gsts maps` 列出近期编辑的地图文件，辅助填写。
+   * 提示：可用 `gsts maps` 列出近期编辑的地图文件，辅助填写。新建并保存地图后，应优先选择列表中最新的 `[recent]` 文件。
    *
    * [EN] Map ID (e.g. `1073741849`), injection target is `<mapId>.gil`.
    *
@@ -127,12 +127,16 @@ export type GstsInjectConfig = {
   /**
    * [ZH] 目标节点图 ID（用于替换地图里的哪个节点图）。
    *
+   * - 新地图通常从 `1073741825` 开始分配第一个节点图 ID，后续新建节点图通常递增；这是当前真实地图样本中的经验规律，不是 protobuf 全局保证。
+   * - `mapId` 是地图 `.gil` 文件 ID，`nodeGraphId` 是该地图内部要替换的节点图 ID，两者不是同一个 ID。
    * - 若不填：会尝试从 `.gia` 内的 graph id 推断。
    * - 找不到会报错（需先在编辑器里新建并保存对应节点图）。
    * - 仅对 `gsts <file>` 单文件模式生效（批量模式会忽略该字段）。
    *
    * [EN] Target NodeGraph id.
    *
+   * - New maps commonly assign `1073741825` to the first NodeGraph and increment later NodeGraphs; this is an observed map convention, not a protobuf global guarantee.
+   * - `mapId` identifies the `.gil` map file; `nodeGraphId` identifies the NodeGraph to replace inside that map. They are different IDs.
    * - If omitted, inferred from `.gia` when possible.
    * - If not found, will throw an error (need to create and save the corresponding node graph first in the editor).
    * - Only takes effect in `gsts <file>` (single-file) mode. Batch mode ignores this field.

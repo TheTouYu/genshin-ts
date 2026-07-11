@@ -7,7 +7,7 @@ const config: GstsConfig = {
   inject: {
     gameRegion: 'China',
     playerId: 110170759,
-    mapId: 1073741845,
+    mapId: 1073741846,
     nodeGraphId: 1073741825
   },
   options: {
