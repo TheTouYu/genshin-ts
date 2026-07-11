@@ -559,7 +559,20 @@ npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.
 
 真实 GIA 对照：`npx tsx tests/composite/gia-inspect.ts 复杂gia/物理运动.gia -p` 显示真实 `向量缩放除法` impl 的 compositePins 为 `outer:InParam:0 → 3D Vector Zoom.InParam[0]`、`outer:InParam:1 → Division.InParam[1]`、`outer:OutParam:0 → 3D Vector Zoom.OutParam[0]`。当前生成对照：`npx tsx tests/composite/gia-inspect.ts dist/tests/layout/physics-motion/main.gia -s 33 -c` 显示 `outer:InParam:1 → n[2] inner:InParam:1`；`trace-dataflow` 显示 `Division.InParam[1] ← 父输入 "向量缩放除法"."inputs[1]"`。该项已自动验证通过，并于 2026-07-11 由用户游戏内确认通过。
 
-### 5.6 当前剩余差异
+### 5.6 Round 13 发现与通用编码关注点
+
+2026-07-11，用户对 `计算物理运动状态` 复刻进行了多轮注入和游戏内检查，确认以下问题和修复边界：
+
+1. **不要用语义简化替代真实复合结构**：早期复刻把 `v停止` 及其相关逻辑压缩成直接的 `|v| < 0.1`，并把真实嵌套 `与` 复合展开成普通 `logicalAndOperation`。用户确认生成图与真实图差异明显。后续复刻必须先按真实节点、嵌套复合和 `compositePins` 还原，再讨论高层 API 的抽象。
+2. **复合节点定义必须保留**：`计算物理运动状态` 内的 `与`、`can fly` 是真实复合节点，不应仅在源码中保留等价逻辑而让 GIA 展开为普通节点。当前物理测试源码已恢复独立 `与` 和 `can fly` 定义；`v停止` 的真实输出路由仍应继续按真实 GIA 逐字段核验，不得因当前游戏检查部分生效就声称已完全一致。
+3. **vec3 literal 曾缺少初始值**：源码的 `new vec3([0, 1, 0])` 正确表达了 literal，但 `src/compiler/ir_to_gia_transform/composite.ts` 的 `buildLiteralPin()` 遗漏 `VectorBase`，曾编码为 `class=0/alreadySetVal=false`。现已补充 `bVector.val={x:0,y:1,z:0}` 和 `alreadySetVal=true`；用户已游戏内确认修复生效。
+4. **literal 编码要按类型族验证**：后续应分别覆盖 `int`、`float`、`bool`、`str`、`vec3` 以及 entity/guid/prefab 等实体类参数，不能从 vec3 修复推断其他类型已正确。比较字段至少包括 `class`、`type`、`alreadySetVal`、`bConcreteValue.indexOfConcrete`、内部值字段和物理 pin index。
+5. **复合调用 literal 与普通节点 literal 要分开检查**：本轮 vec3 问题出现在 composite impl 内的普通 `3D Vector Dot Product` 输入；后续还需检查 `f.callComposite(...)` 的 literal 输入、嵌套复合输入，以及 literal/conn/capture 混合时的 sparse pin 保留。
+6. **运行时值适配不能用普通 JS 值替代 runtime value**：尝试把 bool literal 直接写成 `true` 曾触发 `a.getMetadata is not a function`。需要继续使用 `new bool(...)`、`new float(...)`、`new vec3(...)` 等 runtime value，或完善明确的 literal 适配层；不能用类型断言掩盖运行时契约错误。
+
+本轮用户已确认 `can fly` 内积第二参数 `(0, 1, 0)` 的初始值修复生效；这只证明该 vec3 literal 编码和对应游戏显示通过，不等于 `计算物理运动状态` 全部逻辑或 `v停止` 已完成游戏验证。
+
+### 5.7 当前剩余差异
 
 1. vec3 Local Variable 通用编码已用最小真实结构完成游戏内验证；物理运动整图仍需单独确认三处 getter 所在层级。
 2. `更新速度`、`更新角速度`、`计算滚动角速度` 已替换阶段性代理语义；`计算滚动角速度` 中嵌套调用 `w角速度-a朝向转化` 的稀疏输入 pin 编码已通过编译器通用修复对齐自动 trace。

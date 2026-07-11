@@ -1,6 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 import { bool, float } from 'genshin-ts/runtime/value'
 
+import { calculatePhysicalMotionState } from './composites/calculate-physical-motion-state.js'
 import { setPhysicsParams } from './composites/set-physics-params.js'
 import { updateVelocityAndAngularVelocity } from './composites/update-vw.js'
 import { PHYSICS_CUSTOM_VARIABLES } from './helpers/variables.js'
@@ -24,8 +25,16 @@ g.server({
       })
     },
     () => {
+      const angularVelocity = f
+        .getNodeGraphVariable('w')
+        .asType('vec3')
+      const velocity = f.getNodeGraphVariable('v').asType('vec3')
+      const motionState = f.callComposite(calculatePhysicalMotionState, {
+        w: angularVelocity,
+        v: velocity
+      })
       f.callComposite(updateVelocityAndAngularVelocity, {
-        接触地面: new bool(false),
+        接触地面: motionState.接触地面,
         更新间隔: new float(0.02)
       })
     }

@@ -123,3 +123,11 @@ tests/composite/gia-inspect.ts
 6. 运行针对性回归、`npm run build`（如修改编译器/运行时）和物理专用 config 生成，记录自动验证结果。
 7. 向用户报告生成文件和仅改动的结构；得到明确确认后再注入，等待游戏内反馈。
 8. 用户确认通过后更新物理复刻指南和 handover README；若未通过，保留本 handover 的待验证状态并记录新证据。
+
+### Round 13 实际发现
+
+- 用户游戏内确认：`can fly` 内部三维向量内积的第二参数已正确显示为带初始值的 `vec3(0, 1, 0)`。
+- 根因：`src/compiler/ir_to_gia_transform/composite.ts` 的 `buildLiteralPin()` 缺少 `VectorBase` 分支；已补充 `bVector` 和 `alreadySetVal=true`，并完成构建、生成和重新注入。
+- 用户指出：早期 `v停止` 复刻存在逻辑简化，真实 `与` 复合被遗漏/展开，后续必须优先逐节点、逐 `compositePins` 对齐，不能只复刻语义等价结果。
+- 后续通用关注：复合调用 literal、impl 普通节点 literal、int/float/bool/str/vec3/entity/guid/prefab 类型族、`bConcreteValue` 包装和 runtime value 适配均需独立回归；本轮只对 vec3 literal 获得游戏内确认。
+- 当前状态：自动生成通过，vec3 literal 游戏内通过；`v停止` 和整个 `计算物理运动状态` 仍保持待完全验证。

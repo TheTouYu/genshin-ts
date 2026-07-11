@@ -11,7 +11,8 @@ export const PHYSICS_CUSTOM_VARIABLES = {
   angularFriction: 'u_w',
   gravityForce: 'f_g',
   updateInterval: '更新间隔',
-  physicsPrefabId: '物理计算元件id'
+  physicsPrefabId: '物理计算元件id',
+  contactGround: '接触地面'
 } as const
 
 export const PHYSICS_NODE_GRAPH_VARIABLES = {

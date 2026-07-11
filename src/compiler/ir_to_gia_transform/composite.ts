@@ -1336,6 +1336,20 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
     pinValue = { class: varClass, alreadySetVal: true, itemType, bEnum: { val: Number(Boolean(value)) } }
   } else if (varClass === VarBase_Class.StringBase) {
     pinValue = { class: varClass, alreadySetVal: true, itemType, bString: { val: String(value) } }
+  } else if (varClass === VarBase_Class.VectorBase) {
+    const vector = Array.isArray(value) ? value : [0, 0, 0]
+    pinValue = {
+      class: varClass,
+      alreadySetVal: true,
+      itemType,
+      bVector: {
+        val: {
+          x: Number(vector[0]),
+          y: Number(vector[1]),
+          z: Number(vector[2])
+        }
+      }
+    }
   } else if (varClass === VarBase_Class.IdBase) {
     pinValue = { class: varClass, alreadySetVal: false, itemType }
   }
