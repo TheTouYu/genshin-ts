@@ -2,21 +2,22 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P0-W5 completed; not committed)
+> 最近校验：2026-07-12 (P0-W6 committed; ADR-006=A accepted; Phase 0 exited)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：0 — 基线、证据与 Vendor 实验
-当前工作包：P0-W6 — Phase 0 checkpoint、证据总结和 Phase 1 决策闸门（待启动）
-最近完成提交：test(composite): P0-W4 root/impl ordinary-node parity helper（HEAD）
+当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
+当前工作包：P1 首包待启动（P0-W6 已完成）
+最近完成工作包：P0-W6 — Phase 0 checkpoint、证据总结和 ADR-006=A
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
+ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 ```
 
-## 已确认事实（含 P0-W1~W4）
+## 已确认事实（含 P0-W1~W6）
 
 - Root ordinary nodes 主要走 `resolveGiaNodeId()`、vendor `Node/Pin` 和 `Graph.connect/flow`。
 - Composite impl ordinary nodes 主要走 `resolveImplNodeId()`、`buildImplNodePins()` 和手写 `connects`。
@@ -37,15 +38,19 @@
   - Impl 对应三者：cid=323（generic-only），无 bConcreteValue，float literal 为裸 `bFloat.val=0`
   - connection 的 source pin kind/index 在 root/impl 一致；差异集中在 concrete identity 与 wrapper schema
 - 差异根因：impl 编码器未使用 concrete variant ID + `setConcrete()` / 共享 vendor lowering。
-- 本分支仍未修改生产实现；P0-W4 仅新增观察 helper 与失败契约 fixture。
+- **P0-W5 composite boundary focused baselines**：nested capture/outflow、bool、local vec3、custom variable、sparse named input 均 PASS；broad suite 78/78 active PASS；2 `@pending_ref` 缺设施图；part2/part3 既有 fixture 失败已记录未修。
+- **P0-W6**：Phase 0 汇总 checkpoint 已写入 `checkpoints/phase-0-vendor-evidence.md`。
+- **ADR-006（用户 2026-07-12）**：Accepted = 方案 A，完整 vendor Graph materialization 作为 Phase 1–3 主路径；B/C 不作为默认。
+- 本分支仍未修改生产实现。
 
 ## 尚未证明
 
-- 临时 vendor Graph 编码后提取 NodeGraph 是否会引入或丢失 impl metadata。
+- 临时 vendor Graph 编码后提取 NodeGraph 是否会引入或丢失 impl metadata（A 的关键残余风险）。
 - int/bool/str/entity/guid 等其他类型的 concrete variant 一致性。
 - 修复后的生成 GIA 是否被游戏接受。
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
-- nested/capture/bool/local/custom focused 边界基线的完整命令结果清单（P0-W5）。
+- Connection pin literal default 的 wire presence（Q-003）。
+- Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
 
 ## 工作包状态
 
@@ -57,74 +62,56 @@
 - [x] P0-W3：Vec setter connection 实验。
 - [x] P0-W4：Root/impl ordinary-node parity helper 和 fixture。
 - [x] P0-W5：锁定当前 root/impl 失败契约与 composite 边界基线。
-- [ ] P0-W6：Phase 0 checkpoint、证据总结和 Phase 1 决策闸门。
+- [x] P0-W6：Phase 0 checkpoint、证据总结和 Phase 1 决策闸门（含 ADR-006=A）。
 
-后续 Phase 以各 phase 文档为计划，不在本状态文件提前展开。
+Phase 0 已退出。后续 Phase 以各 phase 文档为计划。
 
-## 最近完成工作包：P0-W4 — Root/impl ordinary-node parity helper 和 fixture
+## 最近完成工作包：P0-W6 — Phase 0 checkpoint 与决策闸门
 
 目标：
 
-- 建立规范化 ordinary-node contract 比较（排除 nodeIndex/position）；
-- 用同一 fixture 对照 root/impl float literal、float connection、vec connection setter；
-- 锁定当前失败契约：parity helper 必须在现有缺陷上失败；root baseline 必须通过。
+- 汇总 P0-W0~W5 证据为可复用 checkpoint；
+- 明确已证明 / 未证明边界；
+- 关闭 ADR-006 决策闸门（用户选 A）；
+- 准备 Phase 1 输入，但不开始实现。
 
-修改文件范围：
+修改文件：
 
 ```text
-tests/composite/helpers/ordinary-node-contract.ts
-tests/composite/test-stage3-root-impl-parity.ts
-STATUS.md
-phase-0-baseline-and-evidence.md
+docs/composite-ir/architecture-redesign/checkpoints/phase-0-vendor-evidence.md
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-0-baseline-and-evidence.md
+docs/composite-ir/architecture-redesign/decision-log.md
 ```
 
 验证：
 
 ```bash
-npx tsx tests/composite/test-stage3-root-impl-parity.ts
 git diff --check
+# 可选复核（本轮未强制重跑全部 baseline）
+# npx tsx tests/composite/test-stage3-root-impl-parity.ts
 ```
 
 明确非目标：
 
 - 不修改 `src/` 生产编码器；
-- 不开始 P0-W5（composite 边界 focused baseline 清单）；
-- 不注入；
-- 已提交（见 HEAD）。
+- 不开始 Phase 1 代码；
+- 不注入。
 
 完成条件：
 
-- [x] helper 可提取 generic/concrete、InParam type/class、bConcreteValue/iOC、connection source pin；
-- [x] fixture 覆盖 root/impl float literal + float conn + vec conn；
-- [x] root baseline 断言通过；
-- [x] root/impl parity 在 concreteId / hasConcreteWrapper / indexOfConcrete 上失败；
-- [x] 纯 helper 单元检测 synthetic drift；
+- [x] Phase 0 汇总 checkpoint 存在且含 git 基线、命令、已证明/未证明、方案对比与用户决策；
+- [x] STATUS / phase-0 反映 P0-W6 完成与 Phase 0 退出；
+- [x] decision-log：ADR-006 Accepted=A；B/C 默认路径 Rejected；
 - [x] 生产编码器未修改。
-
-## 最近完成工作包：P0-W5 — 锁定失败契约与 composite 边界基线
-
-目标：汇总当前 root/impl 失败契约，并记录 nested/capture/bool/local/custom/vec3 等 focused baseline 的真实命令与结果；修正过时 pending 描述，不改实现。
-
-修改文件：
-
-```text
-docs/composite-ir/architecture-redesign/STATUS.md
-docs/composite-ir/architecture-redesign/phase-0-baseline-and-evidence.md
-```
-
-结果：
-
-- root/impl parity red contract 重新执行并保持预期；
-- nested capture/outflow、bool、local vec3、custom variable、sparse named input focused baselines 均 PASS；
-- broad composite suite active assertions PASS（78/78），2 个设施图参考对比仍 pending；
-- `test-composite-part2.ts` 和 `test-composite-part3.ts` 暴露既有 fixture/API 使用失败，已记录但未修复；
-- 生产编码器未修改。
-
-明确非目标：不开始 P0-W6，不修改生产实现，不注入，不提交。
 
 ## 待用户决策
 
-- Phase 0 结束前仍需决定 ADR-006（完整 vendor Graph materialization vs node-level vendor lowering + adapter），证据集需含 P0-W5。
+无阻塞决策。下一会话启动 Phase 1 首个工作包。
+
+残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
+
+- 临时 vendor Graph 嵌入 impl 的 metadata 兼容性仍未证明。
 
 ## 进行中或未提交变化
 
@@ -134,6 +121,6 @@ docs/composite-ir/architecture-redesign/phase-0-baseline-and-evidence.md
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 若 P0-W5 文档变化已审核并提交，从 P0-W6 启动报告开始；
-4. 当前工作树包含 P0-W5 的两项文档变化，未提交且可由本状态解释；
+3. 从 Phase 1 首个工作包启动报告开始；
+4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。

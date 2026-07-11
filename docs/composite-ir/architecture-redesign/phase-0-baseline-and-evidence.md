@@ -1,7 +1,7 @@
 # Phase 0：基线、证据与 Vendor 实验
 
-> 状态：进行中（P0-W0~W5 完成）
-> 来源：当前实现 + 已知真实 GIA 差异 + vendor 实验 + root/impl parity fixture
+> 状态：已完成（P0-W0~W6；ADR-006 = 方案 A，用户 2026-07-12 确认）
+> 来源：当前实现 + 已知真实 GIA 差异 + vendor 实验 + root/impl parity fixture + Phase 0 checkpoint + 用户决策
 > 最近校验：2026-07-12
 > 适用范围：只建立证据，不改变生产编码行为
 
@@ -220,14 +220,19 @@ npx tsx tests/composite/test-stage3-root-impl-parity.ts
 - [x] vendor `Graph.connect()` 实验有逐字段结果；
 - [x] parity helper 能在当前错误上失败；
 - [x] composite 边界 focused baseline 全部记录；
-- [x] 没有生产行为修改。
+- [x] 没有生产行为修改；
+- [x] Phase 0 汇总 checkpoint 已建立：`checkpoints/phase-0-vendor-evidence.md`；
+- [x] 用户确认 ADR-006 = 方案 A（完整 vendor Graph materialization）；Phase 0 正式退出。
 
-## 决策闸门
+## 决策闸门（已关闭）
 
-实验后再决定 Phase 2 使用：
+实验证据与方案对比见 [checkpoints/phase-0-vendor-evidence.md](checkpoints/phase-0-vendor-evidence.md)。
 
-- 直接保留 vendor `Node` 到整图 encode；或
-- 单节点 vendor encode 后提取 GraphNode；或
-- vendor schema + 项目 adapter。
+用户 2026-07-12 选择：
 
-未完成实验前不得把“临时 Graph 一定可嵌入 impl”写成结论。
+- **A（Accepted）**：完整 vendor Graph materialization 作为 Phase 1–3 主路径；
+- B：不作为默认近阶段架构；
+- C：否决为默认。
+
+已证明：节点级 vendor Node/setVal/connect 对 float/vec setter 可匹配真实 ordinary schema。
+**仍未**证明：临时 Graph 一定可安全嵌入 impl；后续必须用专项实验验证，不得把该点写成已证明结论。
