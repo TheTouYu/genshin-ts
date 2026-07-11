@@ -16,3 +16,5 @@ worktrees/
 /.pi-subagents
 /tests/enum_cases
 /tests/generated
+/.codebase-memory
+/.claude/skills
