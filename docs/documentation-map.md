@@ -15,6 +15,7 @@
 | 查游戏引擎 API 用法 | [`architecture/docs-search.md`](architecture/docs-search.md) + `engine-api-usage` | 先按任务路由，再用本地 docs-search 查事件、实体、向量、变量、集合、定时器、信号和控制流用法。 |
 | 查精确 API/事件签名 | [`architecture/docs-search.md`](architecture/docs-search.md) + `engine-api-signatures` | 查询方法、事件、参数、返回类型和生成定义来源；签名不是教程或游戏验证。 |
 | 理解编译管线 | [`architecture/composite/pipeline-flow.md`](architecture/composite/pipeline-flow.md) | TS 到 IR 到 GIA 的正向实现视角。 |
+| 执行复合 Stage 3 架构重构 | [`composite-ir/architecture-redesign/`](composite-ir/architecture-redesign/) | root/impl 双 backend 审计、目标架构、阶段计划、迁移不变量和验证矩阵；规划内容不要当成当前实现。 |
 | 使用复合节点 API | [`architecture/composite/dsl-api.md`](architecture/composite/dsl-api.md) | `g.defineComposite`、`f.callComposite`、类型和调用语义。 |
 | 手动复刻控制流拓扑 | [`architecture/composite/raw-control-flow-dsl-quickstart.md`](architecture/composite/raw-control-flow-dsl-quickstart.md) | 当前低层控制流权威入口。 |
 | 查控制流实战模式 | [`architecture/composite/control-flow-api-cookbook.md`](architecture/composite/control-flow-api-cookbook.md) | 混合了真实样本、源码推断和历史验证，阅读时看状态提示。 |
@@ -57,6 +58,9 @@
 - [`architecture/composite/ir-representation.md`](architecture/composite/ir-representation.md)
 - [`architecture/composite/gia-encoding.md`](architecture/composite/gia-encoding.md)
 - [`architecture/runtime-dsl.md`](architecture/runtime-dsl.md)
+
+正在规划但尚未成为当前实现的 Stage 3 重构见
+[`composite-ir/architecture-redesign/`](composite-ir/architecture-redesign/)。该目录明确区分当前审计、目标设计和待执行实验。
 
 注意：部分旧实现文档仍含 `leafMarks`、`outflowExitNodes`、`f.leaf()` 等历史结构。当前实现以 `CompositeCapture.inflowMarks/outflowMarks`、`f.inflow()`、`f.outflow()` 和 raw control-flow DSL 为准。
 

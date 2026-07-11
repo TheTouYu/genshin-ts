@@ -26,6 +26,7 @@
 | **判断我的发现是否已有记录** | → 见下方文件列表 + todo.md §6 疑点表 |
 | **复盘一次完整的 GIA 协议问题修复** | → [R20 bool EnumId 元数据复盘](retrospectives/r20-bool-enum-metadata.md) |
 | **gsts 编译器要改什么才能匹配编辑器输出** | → [gsts-compiler-gap.md](gsts-compiler-gap.md)（合规清单） |
+| **参与复合 Stage 3 架构重构** | → [architecture-redesign/](architecture-redesign/)（统一普通图编译器的全局规划与阶段执行文档） |
 | **我感觉思路跑偏了** | → 在对话中键入 `/think-check` |
 
 ---
@@ -44,6 +45,7 @@
 | [`gsts-compiler-gap`](gsts-compiler-gap.md) | **编译器合规清单** — gsts 输出 vs 编辑器的逐字段差异、优先级、代码位置 | 首次 gsts 编译对比 2026-06-30 |
 | [`todo`](todo.md) | **待办清单** — 覆盖状态、P0/P1 优先级、文档更新计划、核验发现 | logSystem + 物理运动 + 弹球+传球 |
 | [`retrospectives/r20-bool-enum-metadata`](retrospectives/r20-bool-enum-metadata.md) | **完整案例复盘** — field 101、wire-level 定位、编译器修复、自动回归、游戏验证和 vendor 维护 | CompositeDef bool 参数 |
+| [`architecture-redesign/`](architecture-redesign/) | **当前架构重审与迁移计划** — root/impl 双 backend 审计、Resolved Graph IR、vendor-backed ordinary lowering、阶段闸门和验证矩阵 | Stage 3 普通节点 + composite boundary |
 
 ---
 
