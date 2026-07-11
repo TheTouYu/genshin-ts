@@ -145,6 +145,21 @@ assertVariableAssignment(variable, inputType, location): void
   `npx tsx tests/composite/test-stage3-root-impl-parity.ts` 与 `git diff --check` PASS；
 - 未进行真实 GIA、wire、注入或游戏内验证。
 
+## P1-W7 实测结果
+
+- `valueTypeSuffix()` / `resolveTypedImplNodeId()` 已改名为 `legacyImplValueTypeSuffix()` /
+  `resolveLegacyImplTypedNodeId()`，并以 `usesLegacyImplTypedIdentityAdapter()` 将其限定到 handwritten impl
+  backend 的 compatibility family；
+- adapter 允许 `get_node_graph_variable`、`get_custom_variable`、`get_local_variable` 与
+  `set_local_variable`，其中前两者只保留 shared resolver identity 之外的 legacy impl compatibility fallback；
+  adapter 明确拒绝已迁移的 `set_node_graph_variable` / `set_custom_variable`；
+- `get_node_graph_variable` 的 list element fallback 保持原有行为，但现在是 adapter 的显式选项；
+- `npm run build`、`npx tsx tests/composite/test-stage3-resolved-node-contract.ts`、
+  `npx tsx tests/composite/test-stage3-root-impl-parity.ts`、
+  `npx tsx tests/composite/test-custom-variable-impl-pins.ts` 与 `git diff --check` PASS；parity fixture
+  仍保留 11 项 handwritten pin wrapper/schema mismatch；
+- 未删除 helper，未切换 pin lowering 或完整 Graph materialization，未进行真实 GIA、wire、注入或游戏内验证。
+
 ## Tests
 
 - root/impl float setter identity parity；
@@ -166,7 +181,7 @@ assertVariableAssignment(variable, inputType, location): void
 - [x] root 当前 fixture 编码未因纯 refactor 改变；
 - [x] shared resolver 对 missing declaration / unsupported type 有显式 fallback 记录；root adapter 的可选
   observation sink 已接通，生产路径接入仍留待后续工作包。
-- [ ] `valueTypeSuffix` 等 impl 副本开始删除或仅作为 legacy adapter。
+- [x] `valueTypeSuffix` 等 impl 副本已显式限定为 legacy adapter；删除仍由 Phase 5 legacy 删除闸门控制。
 
 ## 回滚条件
 

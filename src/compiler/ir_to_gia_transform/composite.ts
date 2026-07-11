@@ -313,56 +313,26 @@ function buildImplGraphNodes(
       kind: isCompositeCall ? NodeGraph_Id_Kind.SysGraph : NodeGraph_Id_Kind.SysCall,
       nodeId: dtcGenericId ?? nodeId
     }
-    // get_node_graph_variable：根据变量类型解析 concreteId（如 str_list → 347）
+    // Shared resolution owns the migrated node-graph/custom families. This adapter only
+    // preserves legacy impl fallbacks until vendor Graph materialization replaces this backend.
     let gvConcreteNid: number | undefined
     if (node.type === 'get_node_graph_variable') {
       const nameArg = (node.args ?? [])[0]
-      if (nameArg && nameArg.type === 'str' && typeof nameArg.value === 'string') {
-        const varName = nameArg.value
-        const implVar = implVariables?.find(v => v.name === varName)
+      if (nameArg?.type === 'str' && typeof nameArg.value === 'string') {
+        const implVar = implVariables?.find((variable) => variable.name === nameArg.value)
         if (implVar) {
-          // 从变量类型推导后缀（同 node_id.ts 中 suffixFromValueType 逻辑）
-          let suffix: string | undefined
-          const vt = implVar.type
-          if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(vt)) {
-            suffix = vt
-          } else if (vt === 'vec3') {
-            suffix = 'vec'
-          } else if (vt === 'config_id') {
-            suffix = 'config'
-          } else if (vt === 'prefab_id') {
-            suffix = 'prefab'
-          } else if (vt.endsWith('_list')) {
-            const base = vt.slice(0, -5)
-            if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'vec3', 'config_id', 'prefab_id', 'faction'].includes(base)) {
-              if (base === 'vec3') suffix = 'list_vec'
-              else if (base === 'config_id') suffix = 'list_config'
-              else if (base === 'prefab_id') suffix = 'list_prefab'
-              else if (base === 'faction') suffix = 'list_faction'
-              else suffix = `list_${base}`
-            }
-          }
-          if (suffix) {
-            const nodeIdLower = getNodeIdLowerMap()
-            const direct = nodeIdLower.get(`get_node_graph_variable__${suffix}`)
-            if (direct) {
-              gvConcreteNid = direct
-            } else if (suffix.startsWith('list_')) {
-              // fallback：尝试元素级后缀（如 get_node_graph_variable__str）
-              const elemSuffix = suffix.slice(5)
-              const elemTyped = nodeIdLower.get(`get_node_graph_variable__${elemSuffix}`)
-              if (elemTyped) gvConcreteNid = elemTyped
-            }
-          }
+          gvConcreteNid = resolveLegacyImplTypedNodeId(node.type, implVar.type, {
+            allowListElementFallback: true
+          })
         }
       }
     }
     if (!gvConcreteNid && producedType) {
-      gvConcreteNid = resolveTypedImplNodeId(node.type, producedType)
+      gvConcreteNid = resolveLegacyImplTypedNodeId(node.type, producedType)
     }
     const customVariableConcreteNid =
       node.type === 'get_custom_variable' && producedType
-        ? resolveTypedImplNodeId(node.type, producedType)
+        ? resolveLegacyImplTypedNodeId(node.type, producedType)
         : undefined
     const localVariableValueType =
       node.type === 'get_local_variable'
@@ -371,7 +341,7 @@ function buildImplGraphNodes(
           ? getImplArgType(node.args?.[1])
           : undefined
     const localVariableConcreteNid = localVariableValueType
-      ? resolveTypedImplNodeId(node.type, localVariableValueType)
+      ? resolveLegacyImplTypedNodeId(node.type, localVariableValueType)
       : undefined
     const { pins, dataConns } = buildImplNodePins(
       node,
@@ -563,7 +533,20 @@ function getImplArgType(
   return arg.type === 'conn' ? (arg.value as { type?: string }).type : arg.type
 }
 
-function valueTypeSuffix(valueType: string): string | undefined {
+// These families remain on the handwritten impl backend. They must not become a new
+// typed-identity path: migrated node-graph/custom variants use resolveNodeIdentity() above.
+const LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES = new Set([
+  'get_node_graph_variable',
+  'get_custom_variable',
+  'get_local_variable',
+  'set_local_variable'
+])
+
+export function usesLegacyImplTypedIdentityAdapter(nodeType: string): boolean {
+  return LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES.has(nodeType)
+}
+
+function legacyImplValueTypeSuffix(valueType: string): string | undefined {
   if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(valueType)) {
     return valueType
   }
@@ -571,16 +554,24 @@ function valueTypeSuffix(valueType: string): string | undefined {
   if (valueType === 'config_id') return 'config'
   if (valueType === 'prefab_id') return 'prefab'
   if (valueType.endsWith('_list')) {
-    const elementSuffix = valueTypeSuffix(valueType.slice(0, -5))
+    const elementSuffix = legacyImplValueTypeSuffix(valueType.slice(0, -5))
     return elementSuffix ? `list_${elementSuffix}` : undefined
   }
   return undefined
 }
 
-function resolveTypedImplNodeId(nodeType: string, valueType: string): number | undefined {
-  const suffix = valueTypeSuffix(valueType)
+function resolveLegacyImplTypedNodeId(
+  nodeType: string,
+  valueType: string,
+  { allowListElementFallback = false }: { allowListElementFallback?: boolean } = {}
+): number | undefined {
+  if (!usesLegacyImplTypedIdentityAdapter(nodeType)) return undefined
+  const suffix = legacyImplValueTypeSuffix(valueType)
   if (!suffix) return undefined
-  return getNodeIdLowerMap().get(`${nodeType}__${suffix}`)
+  const nodeIds = getNodeIdLowerMap()
+  const direct = nodeIds.get(`${nodeType}__${suffix}`)
+  if (direct || !allowListElementFallback || !suffix.startsWith('list_')) return direct
+  return nodeIds.get(`${nodeType}__${suffix.slice(5)}`)
 }
 
 /**

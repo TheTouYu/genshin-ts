@@ -2,6 +2,9 @@
 import assert from 'node:assert/strict'
 import { resolveArgumentTypes, resolveNodeIdentity } from '../../dist/src/compiler/ir_to_gia_transform/resolved_node.js'
 import { resolveGiaNodeId } from '../../dist/src/compiler/ir_to_gia_transform/node_id.js'
+import {
+  usesLegacyImplTypedIdentityAdapter
+} from '../../dist/src/compiler/ir_to_gia_transform/composite.js'
 
 const context = {
   scope: { kind: 'composite-impl', name: 'contract-fixture' },
@@ -50,6 +53,13 @@ assert.deepEqual(resolveNodeIdentity(customSetter, customContext), {
 assert.deepEqual(resolveNodeIdentity(customGetter, customContext), {
   logicalType: 'get_custom_variable', genericNodeId: 50, concreteNodeId: 54
 })
+
+assert.equal(usesLegacyImplTypedIdentityAdapter('get_node_graph_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('get_custom_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('get_local_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('set_local_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('set_node_graph_variable'), false)
+assert.equal(usesLegacyImplTypedIdentityAdapter('set_custom_variable'), false)
 
 assert.throws(() => resolveNodeIdentity({
   id: 3,

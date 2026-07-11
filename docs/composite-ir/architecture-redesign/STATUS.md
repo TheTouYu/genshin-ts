@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1-W7 已选择；尚未开始
-最近完成工作包：P1-W6 — custom-variable identity contract（已审核并提交：730ff8d）
+当前工作包：P1-W7 已完成；等待用户审核（未提交）
+最近完成工作包：P1-W7 — impl typed-identity legacy adapter boundary
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -60,6 +60,45 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
 - Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
+
+## 最近完成工作包：P1-W7 — impl typed-identity legacy adapter boundary
+
+目标：
+
+- 将 `valueTypeSuffix` / `resolveTypedImplNodeId` 明确重命名、分类为 handwritten impl backend 的 legacy adapter；
+- 使 node-graph/custom family 已迁移 identity 与 local-variable / getter compatibility fallback 的边界可观察；
+- 保持全部现有 pin lowering、Graph materialization、capture/boundary、布局、diagnostics 和编码结果不变。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/composite.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+```
+
+验证：
+
+```bash
+npm run build                                                  # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts       # PASS (保留 11 项 legacy pin schema drift)
+npx tsx tests/composite/test-custom-variable-impl-pins.ts     # PASS
+git diff --check                                               # PASS
+```
+
+证据等级：L1 legacy adapter classification + L3 existing composite output/pin regressions；无新的真实 GIA、wire、注入或游戏行为证据。
+
+明确非目标：不删除 helper、不切换 pin lowering 或完整 Graph materialization、不改变 root/impl 编码结果、不改
+capture/boundary/布局/diagnostics，也不将 adapter fallback 作为 shared resolver 的新类型来源。
+
+完成条件：
+
+- [x] typed-identity adapter 的允许 node family 显式可查询；
+- [x] 已迁移的 `set_node_graph_variable` / `set_custom_variable` 不被 adapter 接受；
+- [x] `get_node_graph_variable` / `get_custom_variable` / local-variable compatibility family 保持 adapter 边界；
+- [x] existing root/impl parity 继续保留 concrete wrapper/schema drift failure contract。
 
 ## 最近完成工作包：P1-W6 — custom-variable identity contract
 
@@ -350,9 +389,7 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。用户已审核并提交 P1-W4 至 P1-W6（`730ff8d`），并选择 P1-W7：将
-`valueTypeSuffix` / `resolveTypedImplNodeId` 等 impl typed-identity helper 分类并限定为明确 legacy adapter；只
-建立边界/回归，不删除 helper、不切换 pin lowering、Graph materialization、capture、boundary、布局或 diagnostics。
+无阻塞决策。P1-W7 已完成，等待用户审核；不删除 helper、不切换 pin lowering、Graph materialization、capture、boundary、布局或 diagnostics。下一工作包尚未选择。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
@@ -361,12 +398,19 @@ git diff --check
 
 ## 进行中或未提交变化
 
-无。工作树应 clean。
+P1-W7 未提交，预期只有以下文件：
+
+```text
+src/compiler/ir_to_gia_transform/composite.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+```
 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 从 P1-W7 的启动报告开始；P1-W4 至 P1-W6 已由 `730ff8d` 提交。
+3. 先审查 P1-W7 未提交 diff、完成报告和验证结果；未经用户审核不得提交或扩展工作包。
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。
