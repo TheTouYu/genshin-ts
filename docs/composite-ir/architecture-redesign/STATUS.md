@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1-W6 已完成；等待用户审核
-最近完成工作包：P1-W6 — custom-variable identity contract
+当前工作包：P1-W7 已选择；尚未开始
+最近完成工作包：P1-W6 — custom-variable identity contract（已审核并提交：730ff8d）
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -350,9 +350,9 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。P1-W6 等待审核；下一工作包须先由用户选择/确认。建议将 `valueTypeSuffix` 等 impl 副本限定为
-明确 legacy adapter，或在证据充足时为 custom-variable root legacy path 设计独立 adapter；不得提前切换 pin
-lowering 或 Graph materialization。
+无阻塞决策。用户已审核并提交 P1-W4 至 P1-W6（`730ff8d`），并选择 P1-W7：将
+`valueTypeSuffix` / `resolveTypedImplNodeId` 等 impl typed-identity helper 分类并限定为明确 legacy adapter；只
+建立边界/回归，不删除 helper、不切换 pin lowering、Graph materialization、capture、boundary、布局或 diagnostics。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
@@ -367,6 +367,6 @@ lowering 或 Graph materialization。
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 从 P1-W6 审核或下一个经用户确认的 Phase 1 工作包启动报告开始；
+3. 从 P1-W7 的启动报告开始；P1-W4 至 P1-W6 已由 `730ff8d` 提交。
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。
