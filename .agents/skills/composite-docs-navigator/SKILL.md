@@ -1,170 +1,125 @@
 ---
 name: composite-docs-navigator
-description: Use the Genshin-TS composite documentation knowledge system before implementing or investigating composite nodes, raw control flow, IR/GIA encoding, trace tools, or real GIA behavior. Route explicit minimal-GIA reproduction tasks through a lean fast path; use the full governance and API route only for ambiguous, architectural, conflicting-source, or API-design work.
+description: Use the Genshin-TS composite/GIA knowledge system before implementing, investigating, documenting, generating, or injecting composite nodes, raw control flow, IR/GIA encoding, trace tools, real GIA behavior, or game-map files. Always use this skill when the task mentions composite nodes, .gia/.gil files, physical-motion recreation, mapId, nodeGraphId, gsts maps, injection, reinjection, or in-game validation—even if the user only asks to “load the knowledge system.” Route minimal real-GIA reproductions through the fast path; use the full route for ambiguous, architectural, conflicting-source, documentation, map-selection, injection, or game-state tasks. Never guess mapId/nodeGraphId or perform destructive game-file operations without confirmation.
 ---
 
-# Composite Docs Navigator
+# Composite / GIA knowledge navigator
 
-Use this skill to consult the project’s composite-node knowledge base before changing code or drawing conclusions. The goal is to avoid stale handover context and quickly route the task to the current trusted document set.
+Use this skill as a lightweight router, not as a copy of the whole project knowledge base. Read only the references and project documents relevant to the current task.
 
-## Routing decision
+## First: classify the task
 
-Choose one route before reading documents.
+Choose one or more routes before reading deeply:
 
-### Fast path: explicit minimal-GIA task
-
-Use the fast path when all are true:
-
-- The user provides a concrete handover or one narrowly defined behavior.
-- A minimal real `.gia` file or exact path is available.
-- The comparison fields or acceptance result are clear.
-- The task does not require new API design, destructive operations, or a game-state/layout tradeoff.
-
-Read only:
-
-1. The handover status, failure chain, and next-target section.
-2. `docs/composite-ir/handover/layout-working-rules.md`, limited to its fast path, path table, and matching commands.
-3. The exact source function and focused tests identified after the first JSON comparison.
-
-Then execute:
-
-```text
-decode real sample -> write isomorphic test -> generate current JSON -> structural diff
--> inspect exact encoder -> implement generic fix -> focused regression
-```
-
-Do not pre-load the full governance document, complete DSL/API guides, old handovers, or layout architecture. Do not start broad repository or delegated exploration after the exact encoder and test are known. Escalate to the full route only if the comparison exposes ambiguity, multiple plausible roots, API design work, broad shared impact, or a destructive/game-state decision.
-
-### Full route: ambiguous or architectural task
-
-Use the full route for new features, API design, broad investigations, unclear real-GIA behavior, conflicting sources, or cross-module impact:
-
-1. Read `docs/documentation-map.md` for task-to-document routing.
-2. Read `docs/documentation-governance.md` for source/status rules and API-name migration rules.
-3. Then read only the task-relevant current docs.
-4. Use handover files only for history, never as the current API source.
-
-In either route, source precedence remains unchanged: real GIA decides editor encoding, current source decides gsts behavior, and handover/speculation only supplies hypotheses.
-
-## Minimal task card
-
-For fast-path work, keep this compact card in working context:
-
-```text
-Goal:
-Handover section:
-Real sample:
-Comparison fields:
-Isomorphic test/output:
-Likely source function:
-Focused acceptance command:
-Condition for broader validation:
-Game operation requiring confirmation:
-```
-
-For type families, report three scopes separately: generic implementation coverage, automated matrix coverage, and real-GIA/game coverage. One verified concrete type does not prove every type was game-tested.
-
-## Source separation
-
-Always classify findings by source:
-
-| Source | Meaning | How to use |
+| Task signal | Route | Read first |
 |---|---|---|
-| Current implementation | Current gsts source behavior | Use for code changes and API behavior. Verify with source/test files before editing. |
-| Real GIA verification | Observed game/editor `.gia` files | Use for editor behavior, reverse-engineered patterns, and validation expectations. Record file + command. |
-| Historical record | Handover, old plans, bug-fix notes | Use for why decisions happened, not as current instructions. |
-| Speculation / pending | “感觉正确”, “待验证”, TODO/gap docs | Treat as hypothesis; verify before relying on it. |
+| “加载知识体系”, “加载 composite 知识” | Knowledge load | `references/knowledge-loading-checklist.md`, `references/knowledge-domain-map.md`, `references/evidence-levels.md` |
+| project overview, onboarding, architecture orientation | Project overview | `references/project-overview.md`, `references/knowledge-domain-map.md` |
+| user DSL, TypeScript subset, starter authoring | User DSL / constraints | `references/eslint-constraints.md`, `references/template-package.md`, `references/runtime-ir.md` |
+| TS → .gs.ts → IR → GIA, compiler stages, artifacts | Compiler pipeline | `references/compiler-pipeline.md` |
+| runtime globals, values, capture, IR document | Runtime / IR | `references/runtime-ir.md` |
+| `.gia` difference, editor behavior, wire field, reverse engineering | Real GIA | `references/real-gia-analysis.md`, `references/evidence-levels.md` |
+| `defineComposite`, `callComposite`, raw flow, capture, IR | Composite/API | `references/composite-api.md` |
+| node/event/enum definitions, vendor data, schema sync | Definitions / vendor | `references/definitions-vendor.md`, `references/gia-protobuf.md` if schema/wire is involved |
+| `gsts`, config, dev, maps, backup, CLI behavior | CLI/config | `references/cli-config.md` |
+| `mapId`, `nodeGraphId`, `gsts maps`, `.gil`, inject/reinject | Map/injection | `references/game-map-injection.md`, `references/evidence-levels.md` |
+| tests, build, regressions, validation claims | Testing / validation | `references/testing-validation.md` |
+| `物理运动` recreation | Physical motion | `references/physical-motion-recreation.md`; add map/injection reference if injection is requested |
+| `create-genshin-ts`, starter template, npm package | Template package | `references/template-package.md` |
+| maintenance, release, generated files, upstream updates | Maintenance / release | `references/maintenance-release.md` |
+| documentation update after any of the above | Documentation | also load `.agents/skills/composite-docs-maintainer/SKILL.md` |
 
-If sources conflict, state the conflict explicitly instead of merging them into one conclusion.
+Do not read unrelated references merely because this skill was triggered.
 
-## Recommended routing
+## Knowledge-load mode
 
-### Current APIs and code-facing behavior
+When the user explicitly asks to load the knowledge system:
 
-Read these first for implementation or bug fixes:
+1. Read `references/knowledge-loading-checklist.md`.
+2. Read `references/knowledge-domain-map.md`.
+3. Read `references/evidence-levels.md`.
+4. Load only the module references required by the user’s next stated task.
+5. Report what was loaded and distinguish current implementation, real GIA evidence, history, and pending claims.
 
-- `docs/architecture/composite/raw-control-flow-dsl-quickstart.md` — current low-level manual wiring API.
-- `docs/architecture/composite/dsl-api.md` — `g.defineComposite`, `f.callComposite`, nested composites, type and call semantics.
-- `docs/architecture/composite/control-flow-api-cookbook.md` — sequential execution, multi-OutFlow dispatch, and verified control-flow patterns; always read it for `顺序执行` tasks.
-- `docs/architecture/composite/capture-mechanism.md` — Stage 2 capture behavior.
-- `docs/architecture/composite/ir-representation.md` — current IR shape and caveats.
-- `docs/architecture/composite/gia-encoding.md` — Stage 3 GIA encoding.
-- `docs/architecture/composite/pipeline-flow.md` — end-to-end flow.
-- `docs/architecture/runtime-dsl.md` — broader runtime/DSL architecture.
+Loading the skill does not authorize code changes, injection, overwriting, cleanup, or other destructive operations.
 
-Then verify against source files when needed:
+The knowledge-domain map is the coverage baseline. When a task does not fit an existing route, first identify the missing domain and update the map/router rather than silently treating it as a Composite task.
 
-- `src/runtime/core.ts`
-- `src/runtime/composite_registry.ts`
-- `src/runtime/IR.d.ts`
-- `src/definitions/nodes.ts`
-- `src/compiler/ir_to_gia_transform/index.ts`
-- `src/compiler/ir_to_gia_transform/composite.ts`
-- `tests/composite/test-nested-composite-outflow.ts`
+## Source precedence
 
-For `顺序执行`, nested composite OutFlow, or detached composite wiring, verify all three layers before claiming a gap:
+Keep these sources separate:
 
-1. Current docs: `raw-control-flow-dsl-quickstart.md`, `dsl-api.md`, and `control-flow-api-cookbook.md`.
-2. Current source signatures: `declareDetached`, `link`, `outflow`, and Stage 3 `buildImplNodePins`.
-3. Focused tests: `test-phase1-system-nodes.ts`, `recreate-debug4-v2.ts`, and `test-nested-composite-outflow.ts`.
+1. **Real GIA / real map observation** decides editor encoding and observed game-file structure.
+2. **Current source and tests** decide current gsts behavior.
+3. **Automatic generation or regression** proves reproducibility, not game behavior by itself.
+4. **Successful injection** proves that the injector replaced a target, not that the game behavior is correct.
+5. **Historical handover** explains decisions and failed paths; it is not current API authority.
+6. **Speculation / TODO** is a hypothesis until verified.
 
-If current docs conflict internally, do not select the more restrictive statement by default. State the conflict, verify source plus executable regression, then update the stale authoritative paragraph.
+If sources conflict, state the conflict and verify it; do not merge them into one conclusion.
 
-### Real GIA / reverse-engineering conclusions
+## Fast path: one narrow real-GIA task
 
-Read these when the task asks “what does the editor/game really do?”:
+Use only when all are true:
 
-- `docs/composite-ir/index.md`
-- `docs/composite-ir/01-ir-types.md`
-- `docs/composite-ir/03-validation-basics.md`
-- `docs/composite-ir/04-validation-signal.md`
-- `docs/composite-ir/05-gia-encoding.md`
-- `docs/composite-ir/06-advanced-patterns.md`
-- `docs/composite-ir/analyze-workflow.md`
-- `docs/gia-tools-reference.md`
+- The user gives one concrete behavior and a real `.gia` path or minimal sample.
+- Comparison fields and acceptance criteria are clear.
+- No new API design, map selection, game-state decision, or destructive operation is involved.
 
-Use commands such as:
+Workflow:
 
-```bash
-npx tsx tests/composite/trace-exec-flow.ts <file.gia> --io
-npx tsx tests/composite/trace-exec-flow.ts <file.gia> --json --io --depth=1
-npx tsx tests/composite/trace-dataflow.ts <file.gia> --list-nodes
-npx tsx tools/decode-gia.ts <file.gia>
+```text
+decode real sample → write isomorphic test → generate current output
+→ structural/wire diff → inspect exact encoder → focused fix → focused regression
 ```
 
-### Historical context
+Read the relevant handover status and `docs/composite-ir/handover/layout-working-rules.md` only after the route is selected. Escalate to the full route when there are multiple plausible roots, conflicting evidence, cross-module impact, or game/map operations.
 
-Use these only after current docs have been checked:
+## Full route
 
-- `docs/composite-ir/handover/README.md`
-- `docs/composite-ir/handover/r21-*.md` through `r26-*.md` for recent decision history.
-- `docs/composite-ir/todo.md`
-- `docs/composite-ir/composite-priority-backlog.md`
-- `docs/composite-ir/composite-worktree-ops.md`
-- `docs/composite-ir/gaps/*.md`
+Use the full route for architectural work, ambiguous behavior, conflicting sources, new APIs, documentation audits, map selection, injection, or game validation:
 
-Read the status banner first. If a file is `历史记录`, `部分过期`, or `待验证`, do not copy its code examples into new code without checking current docs and source.
+1. Read `docs/documentation-map.md`.
+2. Read `docs/documentation-governance.md`.
+3. Read only the task-relevant current architecture and composite documents.
+4. Read `docs/composite-ir/index.md` and `docs/gia-tools-reference.md` for real-GIA work.
+5. Read historical handovers only for context, after current documents.
+6. Inspect source and focused tests before editing.
 
-## API-name guidance
+## Current API naming
 
-Prefer current user-facing names in new examples:
+For new examples prefer:
 
 - `f.entry()` over `f.eventMarker()`.
-- `f.link(...)` in user docs/examples; note that current code delegates to `linkTo(...)`, and `linkTo` remains available.
-- `f.node()` / `f.rawExecNode()` for detached raw exec nodes.
+- `f.link(...)` over `f.linkTo(...)` in user-facing examples.
+- `f.node()` / `f.rawExecNode()` for detached raw nodes.
 - `f.outflow(name, source, idx?)` over deprecated `f.leaf(idx)`.
-- `f.inflow(name, target, idx?)` for multi-InFlow composite definitions.
+- `f.inflow(name, target, idx?)` for multiple InFlows.
 
-Do not flatten `f.node()` and `f.registerExecNode()` into synonyms. They have different semantics: `node()` is detached; `registerExecNode()` auto-links to the current tail.
+Do not treat `f.node()` and `f.registerExecNode()` as synonyms: detached and auto-linked semantics differ.
 
-## Output pattern
+## Safety boundary
 
-When using this skill for a task, report:
+Before any operation that can affect game state or files outside the repository:
 
-1. **Docs consulted** — exact files.
-2. **Relevant current facts** — from current implementation docs/source.
-3. **Relevant real-GIA facts** — with file/command if used.
-4. **Historical notes** — only if they explain risk or decision history.
-5. **Recommended next action** — implementation, verification, or doc update.
+- Do not guess `mapId`, `nodeGraphId`, player, region, or target path.
+- Show the selected target and planned command to the user.
+- Obtain explicit confirmation before injecting, overwriting, copying, deleting, cleaning, or enabling reinjection.
+- Afterward report the actual output path and target ID.
+- Say “injection succeeded” separately from “game behavior verified”; claim the latter only after user/game evidence.
 
-Keep the report short unless the user asked for a full audit.
+## Required report
+
+When this skill is used, report briefly:
+
+1. Docs and references consulted.
+2. Relevant current implementation facts.
+3. Relevant real-GIA or real-map facts, with file/command evidence.
+4. Historical or pending notes.
+5. Safety confirmation state and recommended next action.
+
+Reference files are resolved relative to this skill directory:
+
+```text
+.agents/skills/composite-docs-navigator/references/
+```
