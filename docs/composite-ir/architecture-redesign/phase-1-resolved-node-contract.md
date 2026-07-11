@@ -105,6 +105,46 @@ assertVariableAssignment(variable, inputType, location): void
   `npx tsx tests/composite/test-stage3-root-impl-parity.ts` PASS；未进行完整 Graph materialization、真实 GIA
   或游戏内验证。
 
+## P1-W4 实测结果
+
+- root `resolveGiaNodeId()` 的 `get_node_graph_variable` / `set_node_graph_variable` scalar/list variant
+  决策现在先委托 shared `resolveNodeIdentity()`；
+- shared resolver 无 concrete identity 时继续走 root legacy 分支，因此 dict 和其他未迁移 family 的既有
+  resolution 不在本工作包中改变；
+- root float setter、vec3 setter 和 float getter adapter contract 分别得到 `324`、`334`、`341`；
+- root/impl parity fixture 的 root ordinary setter baseline 保持通过，impl legacy pin wrapper/schema drift
+  仍作为失败契约存在；
+- `npm run build`、`npx tsx tests/composite/test-stage3-resolved-node-contract.ts`、
+  `npx tsx tests/composite/test-stage3-root-impl-parity.ts` 与 `git diff --check` PASS；
+- 未进行完整 Graph materialization、真实 GIA、wire 或游戏内验证。
+
+## P1-W5 实测结果
+
+- `resolveGiaNodeId()` 新增可选 `resolutionFallbacks` sink，并原样传给 root adapter 所调用的
+  `resolveNodeIdentity()`；未提供 sink 时行为不变；
+- dict setter 先记录 `missing-variable-declaration` 与 `unsupported-resolved-type`，随后仍由 legacy
+  root branch 解析到既有 concrete ID `2902`；因此观察到 shared adapter fallback，但没有改变 legacy
+  compatibility result；
+- sink 未接入 `irToGia()`、production diagnostics 或输出文件，故本工作包不改变常规生产编码路径；
+- `npm run build`、`npx tsx tests/composite/test-stage3-resolved-node-contract.ts`、
+  `npx tsx tests/composite/test-stage3-root-impl-parity.ts` 与 `git diff --check` PASS；
+- 未进行完整 Graph materialization、真实 GIA、wire 或游戏内验证。
+
+## P1-W6 实测结果
+
+- shared resolver 将 custom-variable family 与 node-graph-variable declaration contract 分离：
+  - `set_custom_variable` 从 value `args[2]` 解析类型；
+  - `get_custom_variable` 从该节点的 downstream connection output type 解析类型；
+- custom float setter / getter contract 分别得到 generic/concrete `22/26` 与 `50/54`；不再把 target entity
+  或 variable-name string 误当作 value type；
+- 现有 composite custom-variable focused regression 继续验证 getter 的 concrete output/pin schema（float/guid/int）；
+- 本工作包仅校正 shared identity contract，未将 custom-variable root legacy path 接入 resolver，未切换 pin
+  lowering 或完整 Graph materialization；
+- `npm run build`、`npx tsx tests/composite/test-stage3-resolved-node-contract.ts`、
+  `npx tsx tests/composite/test-custom-variable-impl-pins.ts`、
+  `npx tsx tests/composite/test-stage3-root-impl-parity.ts` 与 `git diff --check` PASS；
+- 未进行真实 GIA、wire、注入或游戏内验证。
+
 ## Tests
 
 - root/impl float setter identity parity；
@@ -114,16 +154,18 @@ assertVariableAssignment(variable, inputType, location): void
 - missing variable declaration 的明确 generic fallback 与计数；
 - getter/setter 对声明变量的 identity 一致性；
 - existing mode-specific root node 不回归；
-- dict/list 旧 fallback 有计数，不静默变化。
+- dict/list 旧 fallback 有计数，不静默变化；
+- custom setter 使用 value `args[2]`，custom getter 使用 downstream output type。
 
 ## 退出条件
 
-- [ ] setter float 在 root/impl 都解析 generic `323` + concrete `324`；
-- [ ] vec3 setter 解析到 vendor Vec variant；
+- [x] setter float 在 root/impl 都解析 generic `323` + concrete `324`；
+- [x] vec3 setter 解析到 vendor Vec variant；
 - [x] getter/setter 对同一变量 resolved type 一致（float declaration fixture）；
-- [ ] 冲突产生结构化错误；
-- [ ] root 当前 fixture 编码未因纯 refactor 改变；
-- [x] shared resolver 对 missing declaration / unsupported type 有显式 fallback 记录；生产路径接入留待后续工作包。
+- [x] 冲突产生结构化错误；
+- [x] root 当前 fixture 编码未因纯 refactor 改变；
+- [x] shared resolver 对 missing declaration / unsupported type 有显式 fallback 记录；root adapter 的可选
+  observation sink 已接通，生产路径接入仍留待后续工作包。
 - [ ] `valueTypeSuffix` 等 impl 副本开始删除或仅作为 legacy adapter。
 
 ## 回滚条件

@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P1-W3 completed; ADR-006=A accepted; Phase 0 exited)
+> 最近校验：2026-07-12 (P1-W6 completed; ADR-006=A accepted; Phase 0 exited)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1-W3 已完成；等待用户审核
-最近完成工作包：P1-W3 — getter identity 与 fallback accounting contract
+当前工作包：P1-W6 已完成；等待用户审核
+最近完成工作包：P1-W6 — custom-variable identity contract
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -45,6 +45,12 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - **P1-W3**：shared resolver 对声明 float 的 getter 得到 generic `337` + concrete `341`；missing declaration 和
   unsupported resolved type 均保持 generic fallback，并可通过 context `fallbacks` sink 记录原因。生产路径尚未消费
   该 sink，故不改变现有编码或 diagnostics。
+- **P1-W4**：root `resolveGiaNodeId()` 的 node-graph variable getter/setter scalar/list variant 先委托 shared
+  resolver；没有 concrete identity 时仍走 legacy root branch，未迁移 dict/其他 family 的现有结果保持不变。
+- **P1-W5**：root adapter 接受可选 fallback sink；dict setter 的 shared resolver fallback 被记录后仍由
+  legacy root branch 输出既有 concrete ID `2902`。sink 未接入 production encoding 或 diagnostics。
+- **P1-W6**：custom setter 从 `args[2]` value、custom getter 从 downstream output connection type 解析
+  shared identity；不再把 target entity/name string 当作类型来源。root custom legacy path 未切换。
 
 ## 尚未证明
 
@@ -54,6 +60,126 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
 - Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
+
+## 最近完成工作包：P1-W6 — custom-variable identity contract
+
+目标：
+
+- 为 `set_custom_variable` / `get_custom_variable` 建立独立于 node-graph declaration 的 shared type-source
+  contract；
+- 覆盖 custom float setter/getter identity，并保持已有 composite custom getter pin regression；
+- 不接入 root custom legacy path、不切换 pin lowering/Graph materialization 或删除 legacy helper。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/resolved_node.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+```
+
+验证：
+
+```bash
+npm run build                                                  # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-custom-variable-impl-pins.ts     # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts       # PASS
+git diff --check                                               # PASS
+```
+
+证据等级：L1 shared type-source contract + L3 focused composite output/pin regression；无新的真实 GIA、wire、注入或
+游戏行为证据。
+
+明确非目标：不接入 root `set/get_custom_variable` production resolver、不改变 legacy root output、不切换
+ordinary pin lowering/Graph materialization、不改 capture/boundary/布局或 diagnostics、不删除 legacy helper。
+
+完成条件：
+
+- [x] custom setter identity 从 `args[2]` value type 得到 float concrete `26`；
+- [x] custom getter identity 从 downstream output type 得到 float concrete `54`；
+- [x] existing custom getter composite pin/output regression 保持通过；
+- [x] root/impl ordinary setter parity 保持既有 pin schema failure contract。
+
+## 最近完成工作包：P1-W5 — root adapter fallback accounting
+
+目标：
+
+- 将 root node-graph variable adapter 的 shared resolver fallback 接入可选观察 sink；
+- 对 legacy fallback 的结果建立回归，不改变输出、production diagnostics 或 fallback policy；
+- 不切换 pin lowering、Graph materialization 或删除 legacy helper。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/node_id.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+```
+
+验证：
+
+```bash
+npm run build                                                  # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts       # PASS
+git diff --check                                               # PASS
+```
+
+证据等级：L1 fallback observation contract + L3 existing encoded root/impl parity regression；无新的真实 GIA、wire、
+注入或游戏行为证据。
+
+明确非目标：不将 sink 传入 `irToGia()`、不改变 production diagnostics、不改变 dict legacy concrete
+resolution、不切换 ordinary pin lowering/Graph materialization、不改 capture/boundary/布局、不删除 legacy helper。
+
+完成条件：
+
+- [x] root adapter 可选接收并转发 shared resolver fallback sink；
+- [x] dict setter 的 fallback 记录可观察；
+- [x] 同一 dict setter 继续经 legacy branch 输出既有 `2902`；
+- [x] existing root/impl encoded parity fixture 保持既有 pin schema failure contract。
+
+## 最近完成工作包：P1-W4 — root variable identity adapter
+
+目标：
+
+- 将 root node-graph variable getter/setter 的 scalar/list identity 决策接入 shared resolver；
+- 保持 root legacy fallback 处理 dict 和未迁移 family；
+- 不切换 pin lowering、Graph materialization、production diagnostics 或删除 legacy helper。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/node_id.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+```
+
+验证：
+
+```bash
+npm run build                                                  # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts       # PASS
+git diff --check                                               # PASS
+```
+
+证据等级：L1 shared root/impl identity adapter + L3 existing encoded root/impl parity regression；无新的真实
+GIA、wire、注入或游戏行为证据。
+
+明确非目标：不切换 ordinary pin lowering、不尝试完整 Graph materialization、不改变 dict/list legacy fallback
+之外的 family、不改变 capture/boundary/布局或 diagnostics、不删除 legacy helper。
+
+完成条件：
+
+- [x] root float setter 通过 shared resolver 得到 concrete `324`；
+- [x] root vec3 setter 通过 shared resolver 得到 concrete `334`；
+- [x] root float getter 通过 shared resolver 得到 concrete `341`；
+- [x] no-concrete 路径继续落入 legacy root fallback；
+- [x] existing root/impl encoded parity fixture 保持既有 pin schema failure contract。
 
 ## 最近完成工作包：P1-W3 — getter identity 与 fallback accounting contract
 
@@ -224,8 +350,9 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。P1-W3 等待审核；下一工作包须先由用户选择/确认，建议是将 shared resolver 以保持 root
-输出不变的 adapter 形式接入 root getter/setter，并以 fallback accounting 建立观察基线。
+无阻塞决策。P1-W6 等待审核；下一工作包须先由用户选择/确认。建议将 `valueTypeSuffix` 等 impl 副本限定为
+明确 legacy adapter，或在证据充足时为 custom-variable root legacy path 设计独立 adapter；不得提前切换 pin
+lowering 或 Graph materialization。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
@@ -240,6 +367,6 @@ git diff --check
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 从 Phase 1 首个工作包启动报告开始；
+3. 从 P1-W6 审核或下一个经用户确认的 Phase 1 工作包启动报告开始；
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。

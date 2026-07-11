@@ -14,6 +14,7 @@ import {
   SPECIAL_NODE_IDS,
   SPECIAL_NODE_MAPPINGS
 } from './mappings.js'
+import { resolveNodeIdentity, type ResolutionFallback } from './resolved_node.js'
 import { IRNode } from './types.js'
 
 export type ConnTypeInfo =
@@ -368,7 +369,8 @@ export function resolveGiaNodeId(
   node: IRNode,
   connIndex: ConnTypeIndex,
   varsByName: Map<string, Variable>,
-  runtimeMode?: ServerGraphMode
+  runtimeMode?: ServerGraphMode,
+  resolutionFallbacks?: ResolutionFallback[]
 ): number {
   const nodeType = node.type
   const specialId = SPECIAL_NODE_IDS[nodeType]
@@ -507,6 +509,17 @@ export function resolveGiaNodeId(
   }
 
   if (nodeType === 'get_node_graph_variable') {
+    // P1-W4: root and impl share scalar/list variable identity resolution. Keep the
+    // legacy resolver below as the fallback for dict and other unported families.
+    const identity = resolveNodeIdentity(node, {
+      scope: { kind: 'root', name: 'root-node-identity-adapter' },
+      variablesByName: varsByName,
+      connectionTypes: connIndex,
+      fallbacks: resolutionFallbacks,
+      strictTypeChecks: false
+    })
+    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
+
     const varSuffix = inferVarSuffix(node, varsByName)
     if (varSuffix) {
       const typed = lookupTypedNodeId(lower, varSuffix, nodeIdLower)
@@ -592,6 +605,17 @@ export function resolveGiaNodeId(
   }
 
   if (nodeType === 'set_node_graph_variable') {
+    // P1-W4: do not let root and impl independently choose scalar/list variants.
+    // The legacy branch remains the compatibility fallback for unresolved types.
+    const identity = resolveNodeIdentity(node, {
+      scope: { kind: 'root', name: 'root-node-identity-adapter' },
+      variablesByName: varsByName,
+      connectionTypes: connIndex,
+      fallbacks: resolutionFallbacks,
+      strictTypeChecks: false
+    })
+    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
+
     const valueArg = node.args?.[1]
     const t = connTypeFromArgument(valueArg)
     if (t?.type === 'dict') {

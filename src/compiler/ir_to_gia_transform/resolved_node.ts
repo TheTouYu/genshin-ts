@@ -124,6 +124,16 @@ function sameType(a: ResolvedValueType, b: ResolvedValueType): boolean {
   return JSON.stringify(a) === JSON.stringify(b)
 }
 
+function firstProducedType(
+  nodeId: number,
+  context: GraphCompileContext
+): ResolvedValueType | undefined {
+  const outputs = context.connectionTypes.get(nodeId)
+  if (!outputs) return undefined
+  for (const info of outputs.values()) return fromTypeInfo(info)
+  return undefined
+}
+
 function report(context: GraphCompileContext, diagnostic: Diagnostic): never {
   context.diagnostics?.push(diagnostic)
   throw new Error(`[error] ${diagnostic.code}: ${diagnostic.message}`)
@@ -167,9 +177,14 @@ export function resolveNodeIdentity(
   }
 
   let declaredType: ResolvedValueType | undefined
-  const isSetter = node.type === 'set_node_graph_variable' || node.type === 'set_custom_variable'
-  const isGetter = node.type === 'get_node_graph_variable' || node.type === 'get_custom_variable'
-  if (isSetter || isGetter) {
+  const isNodeGraphSetter = node.type === 'set_node_graph_variable'
+  const isNodeGraphGetter = node.type === 'get_node_graph_variable'
+  const isCustomSetter = node.type === 'set_custom_variable'
+  const isCustomGetter = node.type === 'get_custom_variable'
+  const isSetter = isNodeGraphSetter || isCustomSetter
+  const isGetter = isNodeGraphGetter || isCustomGetter
+
+  if (isNodeGraphSetter || isNodeGraphGetter) {
     const nameArg = node.args?.[0]
     const variableName = nameArg?.type === 'str' ? nameArg.value : undefined
     const variable = variableName ? context.variablesByName.get(variableName) : undefined
@@ -182,18 +197,25 @@ export function resolveNodeIdentity(
         variableName
       })
     }
-    const assigned = inputs[1]?.type ?? inputs[2]?.type
+    const assigned = inputs[1]?.type
     if (context.strictTypeChecks && declaredType && assigned && !sameType(declaredType, assigned)) {
       report(context, {
         code: 'E_TYPED_INPUT_CONFLICT',
-        message: `declared variable type ${JSON.stringify(declaredType)} conflicts with assigned value ${JSON.stringify(assigned)} in ${context.scope.name}`,        nodeId: node.id,
+        message: `declared variable type ${JSON.stringify(declaredType)} conflicts with assigned value ${JSON.stringify(assigned)} in ${context.scope.name}`,
+        nodeId: node.id,
         nodeType: node.type,
         argIndex: 1
       })
     }
   }
 
-  const typed = isGetter ? declaredType : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
+  const typed = isNodeGraphGetter
+    ? declaredType
+    : isCustomGetter
+      ? firstProducedType(node.id, context)
+      : isCustomSetter
+        ? inputs[2]?.type
+        : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
   const suffix = typed?.kind === 'scalar'
     ? typed.name === 'vec3' ? 'vec' : typed.name
     : typed?.kind === 'list' && typed.element.kind === 'scalar'
