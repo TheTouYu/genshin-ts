@@ -50,6 +50,10 @@ const MEMBER_IMPLS: Record<string, MemberFactory> = {
   self: (call) => call('getSelfEntity', []),
   stage: (call) => call('getStageEntity', []),
   level: (call) => call('getStageEntity', []),
+  send:
+    (call) =>
+    (signalName: unknown, ...params: unknown[]) =>
+      call('sendSignalToServerNodeGraph', [signalName, ...params]),
   'Mathf.Abs': (call) => (value: unknown) => call('absoluteValueOperation', [value]),
   'Mathf.Sin': (call) => (radian: unknown) => call('sineFunction', [radian]),
   'Mathf.Cos': (call) => (radian: unknown) => call('cosineFunction', [radian]),
@@ -88,11 +92,8 @@ const MEMBER_IMPLS: Record<string, MemberFactory> = {
   'Random.value': (call) => () => call('getRandomNumber', [0, 1])
 }
 
-/** helpers exposed as plain getters (no member object) */
-const VALUE_HELPERS = new Set(['self', 'stage', 'level'])
-
-/** helpers pending developer confirmation: always installed as rejecting stubs */
-const CONFIRMATION_PENDING_HELPERS = ['send'] as const
+/** helpers exposed as plain getters (no member object); `send` yields a callable */
+const VALUE_HELPERS = new Set(['self', 'stage', 'level', 'send'])
 
 /** decided unavailable (2026-07-06): no client equivalent, blocked like timer */
 const BLOCKED_HELPERS = ['player'] as const
@@ -156,7 +157,7 @@ export function installScopedClientGlobals(
     define(helper, { value: obj })
   }
 
-  for (const helper of [...CONFIRMATION_PENDING_HELPERS, ...BLOCKED_HELPERS]) {
+  for (const helper of BLOCKED_HELPERS) {
     define(helper, {
       get: () => {
         throw helperUnavailable(helper, subType, mode)

@@ -67,13 +67,17 @@ export function buildExecutionGraph(irNodes: IRNode[]) {
         // - assembly_dictionary: GIA pin0 为 kv 参数数量（k/v 总数），k/v 从 pin1 开始
         // - get_entity_type_list / get_ray_filter_type_list: GIA pin0 为数量，
         //   枚举槽从 pin1 开始（编辑器隐藏引脚）
+        // - send_signal_to_server_node_graph: args[0]=信号名（kind5 exec 字面量，
+        //   非数据引脚），信号参数 args[1..] 对应数据引脚 0..（服务器 send_signal 同款）
         const toIndexPatched =
           node.type === 'assembly_list' ||
           node.type === 'assembly_dictionary' ||
           node.type === 'get_entity_type_list' ||
           node.type === 'get_ray_filter_type_list'
             ? toIndex + 1
-            : toIndex
+            : node.type === 'send_signal_to_server_node_graph'
+              ? toIndex - 1
+              : toIndex
         dataConnections.push({
           fromId: dataNodeId,
           toId: node.id,

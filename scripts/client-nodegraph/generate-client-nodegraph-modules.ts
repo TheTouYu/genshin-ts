@@ -199,8 +199,8 @@ type ClientScopedGlobalCapability = {
 const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
   {
     helper: 'send',
-    confirm:
-      'client signal nodes (向服务器节点图发送信号/通知服务器节点图) are not proven equivalent to server send()'
+    requiredMethods: ['sendSignalToServerNodeGraph'],
+    note: 'maps to 向服务器节点图发送信号 (skill families only); signal node id is patched from the level signal definition at injection time'
   },
   {
     helper: 'player',

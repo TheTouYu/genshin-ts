@@ -736,6 +736,23 @@ function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: Cl
   })
 }
 
+/**
+ * 信号参数连线引脚的未填充默认载荷（客户端信号_局部变量类型补充.gia 实测：
+ * t18/t19 带 bId 0、t1 无载荷、列表 bArray[]；其余标量与 vendor 未填引脚
+ * defaultValue 普查一致：int/float/bool/guid/faction 0、str ''、vec3 [0,0,0]）
+ */
+const SIGNAL_PARAM_DEFAULT_BY_TYPE: Record<number, unknown> = {
+  3: 0,
+  5: 0,
+  7: 0,
+  9: '',
+  11: [0, 0, 0],
+  14: 0,
+  16: 0,
+  18: 0,
+  19: 0
+}
+
 function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
@@ -754,6 +771,42 @@ function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: 
   // corpus: signal name lives on the client_exec (kind 5) str pin
   const signalPin = node.pins.find((p) => p.i1?.kind === PIN_KIND_CLIENT_EXEC && p.type === 9)
   if (signalPin) signalPin.value = client_signal_name_value(String(nameArg.value))
+
+  // 参数引脚：kind 3、按信号参数顺序（args[1..] -> pin 0..），类型为普通
+  // 客户端类型（无 ConcreteBase 包裹）——客户端信号_局部变量类型补充.gia 实证
+  const args = irNode.args ?? []
+  const paramPins: ClientGiaNode['pins'] = []
+  for (let i = 1; i < args.length; i++) {
+    const arg = args[i]
+    if (arg == null) continue
+    const irType = irTypeOfArg(arg)
+    const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
+    if (clientVarType === undefined) {
+      throw clientNodegraphError(
+        CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
+        `${metadata.subType}.send_signal_to_server_node_graph param #${i - 1}: ` +
+          `unsupported signal parameter type "${irType ?? 'unknown'}"`
+      )
+    }
+    const pinIndex = i - 1
+    const value = isValueArg(arg)
+      ? Array.isArray(arg.value) && irType!.endsWith('_list')
+        ? client_list_literal_value(
+            clientVarType,
+            arg.value.map((v) => toPinLiteral(clientVarType, v, i, irNode.type))
+          )
+        : client_literal_value(clientVarType, toPinLiteral(clientVarType, arg.value, i, irNode.type))
+      : client_value_base(clientVarType, SIGNAL_PARAM_DEFAULT_BY_TYPE[clientVarType])
+    paramPins.push({
+      i1: { kind: PIN_KIND_IN_PARAM, index: pinIndex },
+      i2: { kind: PIN_KIND_IN_PARAM, index: pinIndex },
+      type: clientVarType,
+      value,
+      connects: []
+    } as ClientGiaNode['pins'][number])
+  }
+  // 样本引脚顺序：参数（kind3）在前，exec/信号名（kind5）与流出在后
+  node.pins.unshift(...paramPins)
 }
 
 function applySpecialArgs(

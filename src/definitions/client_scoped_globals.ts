@@ -26,11 +26,30 @@ export type ClientScopedGlobalCapability = {
 export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapability[] = [
   {
     helper: 'send',
-    subTypes: [],
-    modes: [],
-    backedBy: [],
-    status: 'needs_developer_confirmation',
-    note: 'client signal nodes (向服务器节点图发送信号/通知服务器节点图) are not proven equivalent to server send()'
+    subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
+    modes: ['beyond'],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: 'send_signal_to_server_node_graph',
+        methodName: 'sendSignalToServerNodeGraph',
+        sampleFile: '角色技能节点图\\双分支_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'send_signal_to_server_node_graph',
+        methodName: 'sendSignalToServerNodeGraph',
+        sampleFile: '角色操控技能节点图\\向服务器节点图发送信号_填值.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'send_signal_to_server_node_graph',
+        methodName: 'sendSignalToServerNodeGraph',
+        sampleFile: '造物技能节点图\\双分支_连线.gia'
+      }
+    ],
+    status: 'partial',
+    note: 'maps to 向服务器节点图发送信号 (skill families only); signal node id is patched from the level signal definition at injection time'
   },
   {
     helper: 'player',
@@ -1880,6 +1899,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   Readonly<Record<string, readonly string[]>>
 > = {
   character_skill: {
+    send: [],
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],
@@ -1906,6 +1926,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
     GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
   },
   character_control_skill: {
+    send: [],
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],
@@ -1932,6 +1953,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
     GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
   },
   creation_skill: {
+    send: [],
     self: [],
     Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],

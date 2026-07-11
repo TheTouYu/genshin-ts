@@ -2,12 +2,18 @@
 // Source of truth: resources/client_node_metadata.json (sample-extracted pins)
 // + resources/node_definitions.json (official bilingual docs). Do not edit.
 
-import type { ExecutionFlowRegistry } from '../runtime/core.js'
+import {
+  isSignalDefinition,
+  type ExecutionFlowRegistry,
+  type SignalDefinition,
+  type SignalParamValues
+} from '../runtime/core.js'
 import type { CommonLiteralValueListTypeMap, CommonLiteralValueTypeMap } from '../runtime/IR.js'
 import {
   bool,
   configId,
   dict,
+  ensureLiteralStr,
   entity,
   enumeration,
   faction,
@@ -4078,17 +4084,51 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 向服务器节点图发送信号: 在技能节点图中，可以向服务器节点图发送信号，所有服务器节点图都可以监听到该信号
    *
-   * @param signalName Signal name
+   * @param signalName Signal name (literal string or extracted Signal.xxx definition)
    *
-   * 信号名
+   * 信号名（仅支持字面量字符串或提取出的 Signal.xxx 定义）
+   * @param params Signal parameters
+   *
+   * 信号参数
    */
-  sendSignalToServerNodeGraph(signalName: StrValue): void {
-    const signalNameObj = parseValue(signalName, 'str')
+  sendSignalToServerNodeGraph<S extends SignalDefinition>(
+    signalName: S,
+    ...params: SignalParamValues<S>
+  ): void
+  sendSignalToServerNodeGraph(signalName: StrValue, ...params: any[]): void
+  sendSignalToServerNodeGraph(signalName: StrValue | SignalDefinition, ...params: any[]): void {
+    const signalDefinition = isSignalDefinition(signalName) ? signalName : undefined
+    const rawSignalName = signalDefinition ? signalDefinition.name : (signalName as StrValue)
+    const signalNameObj = ensureLiteralStr(rawSignalName, 'signalName')
+    const paramObjs = params.map((p, index) => {
+      const signalParamType = signalDefinition?.params[index]?.[1]
+      if (signalParamType && signalParamType !== 'unknown') {
+        return parseValue(p, signalParamType as any)
+      }
+      const genericType = matchTypes(
+        [
+          'float',
+          'int',
+          'bool',
+          'config_id',
+          'entity',
+          'faction',
+          'guid',
+          'prefab_id',
+          'str',
+          'vec3'
+        ],
+        p
+      )
+      return p instanceof list
+        ? parseValue(p, (genericType + '_list') as keyof CommonLiteralValueListTypeMap)
+        : parseValue(p, genericType)
+    })
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'send_signal_to_server_node_graph',
-      args: [signalNameObj]
+      args: [signalNameObj, ...paramObjs]
     })
   }
 
@@ -11785,17 +11825,51 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 向服务器节点图发送信号: 在技能节点图中，可以向服务器节点图发送信号，所有服务器节点图都可以监听到该信号
    *
-   * @param signalName Signal name
+   * @param signalName Signal name (literal string or extracted Signal.xxx definition)
    *
-   * 信号名
+   * 信号名（仅支持字面量字符串或提取出的 Signal.xxx 定义）
+   * @param params Signal parameters
+   *
+   * 信号参数
    */
-  sendSignalToServerNodeGraph(signalName: StrValue): void {
-    const signalNameObj = parseValue(signalName, 'str')
+  sendSignalToServerNodeGraph<S extends SignalDefinition>(
+    signalName: S,
+    ...params: SignalParamValues<S>
+  ): void
+  sendSignalToServerNodeGraph(signalName: StrValue, ...params: any[]): void
+  sendSignalToServerNodeGraph(signalName: StrValue | SignalDefinition, ...params: any[]): void {
+    const signalDefinition = isSignalDefinition(signalName) ? signalName : undefined
+    const rawSignalName = signalDefinition ? signalDefinition.name : (signalName as StrValue)
+    const signalNameObj = ensureLiteralStr(rawSignalName, 'signalName')
+    const paramObjs = params.map((p, index) => {
+      const signalParamType = signalDefinition?.params[index]?.[1]
+      if (signalParamType && signalParamType !== 'unknown') {
+        return parseValue(p, signalParamType as any)
+      }
+      const genericType = matchTypes(
+        [
+          'float',
+          'int',
+          'bool',
+          'config_id',
+          'entity',
+          'faction',
+          'guid',
+          'prefab_id',
+          'str',
+          'vec3'
+        ],
+        p
+      )
+      return p instanceof list
+        ? parseValue(p, (genericType + '_list') as keyof CommonLiteralValueListTypeMap)
+        : parseValue(p, genericType)
+    })
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'send_signal_to_server_node_graph',
-      args: [signalNameObj]
+      args: [signalNameObj, ...paramObjs]
     })
   }
 
@@ -17903,17 +17977,51 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 向服务器节点图发送信号: 在技能节点图中，可以向服务器节点图发送信号，所有服务器节点图都可以监听到该信号
    *
-   * @param signalName Signal name
+   * @param signalName Signal name (literal string or extracted Signal.xxx definition)
    *
-   * 信号名
+   * 信号名（仅支持字面量字符串或提取出的 Signal.xxx 定义）
+   * @param params Signal parameters
+   *
+   * 信号参数
    */
-  sendSignalToServerNodeGraph(signalName: StrValue): void {
-    const signalNameObj = parseValue(signalName, 'str')
+  sendSignalToServerNodeGraph<S extends SignalDefinition>(
+    signalName: S,
+    ...params: SignalParamValues<S>
+  ): void
+  sendSignalToServerNodeGraph(signalName: StrValue, ...params: any[]): void
+  sendSignalToServerNodeGraph(signalName: StrValue | SignalDefinition, ...params: any[]): void {
+    const signalDefinition = isSignalDefinition(signalName) ? signalName : undefined
+    const rawSignalName = signalDefinition ? signalDefinition.name : (signalName as StrValue)
+    const signalNameObj = ensureLiteralStr(rawSignalName, 'signalName')
+    const paramObjs = params.map((p, index) => {
+      const signalParamType = signalDefinition?.params[index]?.[1]
+      if (signalParamType && signalParamType !== 'unknown') {
+        return parseValue(p, signalParamType as any)
+      }
+      const genericType = matchTypes(
+        [
+          'float',
+          'int',
+          'bool',
+          'config_id',
+          'entity',
+          'faction',
+          'guid',
+          'prefab_id',
+          'str',
+          'vec3'
+        ],
+        p
+      )
+      return p instanceof list
+        ? parseValue(p, (genericType + '_list') as keyof CommonLiteralValueListTypeMap)
+        : parseValue(p, genericType)
+    })
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'send_signal_to_server_node_graph',
-      args: [signalNameObj]
+      args: [signalNameObj, ...paramObjs]
     })
   }
 
