@@ -78,6 +78,29 @@ export function argPinIndex(metadata: ClientNodeMetadata, argIndex: number): num
   return metadata.argPins?.[argIndex] ?? argIndex
 }
 
+/**
+ * 客户端专属节点的连线入参索引修正（服务器管线的对应物是 index.ts
+ * remapInputIndexForHiddenPin；双端共享的 assembly_list/assembly_dictionary
+ * 修正在 layout.ts toIndexPatched）：
+ * - data_type_conversion: IR 与服务器同形（省略转换枚举参数），输入参数对应 GIA pin 1
+ * - get_entity_type_list / get_ray_filter_type_list: GIA pin0 为数量，
+ *   枚举槽从 pin1 开始（编辑器隐藏引脚）
+ * - send_signal_to_server_node_graph: args[0]=信号名（kind5 exec 字面量，
+ *   非数据引脚），信号参数 args[1..] 对应数据引脚 0..（服务器 send_signal 同款）
+ */
+function remapClientInputIndex(metadata: ClientNodeMetadata, argIndex: number): number {
+  switch (metadata.nodeType) {
+    case 'data_type_conversion':
+    case 'get_entity_type_list':
+    case 'get_ray_filter_type_list':
+      return argIndex + 1
+    case 'send_signal_to_server_node_graph':
+      return argIndex - 1
+    default:
+      return argPinIndex(metadata, argIndex)
+  }
+}
+
 function pinI2Index(
   metadata: ClientNodeMetadata,
   kind: 'output' | 'in_flow' | 'out_flow',
@@ -999,9 +1022,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     const to = builtById.get(toId)
     if (!from || !to) throw new Error(`[error] bad client data connection ${fromId}->${toId}`)
     const toMeta = metadataById.get(toId)!
-    // data_type_conversion 的 IR 与服务器同形（省略转换枚举参数），输入参数对应 GIA pin 1
-    const toPinIndex =
-      toMeta.nodeType === 'data_type_conversion' ? toIndex + 1 : argPinIndex(toMeta, toIndex)
+    const toPinIndex = remapClientInputIndex(toMeta, toIndex)
     const pin = findInPin(to, toPinIndex)
     if (!pin) throw new Error(`[error] missing client input pin ${toId}.${toPinIndex}`)
     const fromIndex2 = pinI2Index(metadataById.get(fromId)!, 'output', fromIndex)

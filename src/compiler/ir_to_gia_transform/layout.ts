@@ -62,22 +62,15 @@ export function buildExecutionGraph(irNodes: IRNode[]) {
           consumers.push(node.id)
           dataConsumersMap.set(dataNodeId, consumers)
         }
-        // 特殊节点的 GIA pin 布局与 IR args 索引不一致：
+        // 双端共享节点的 GIA pin 布局与 IR args 索引不一致时在此统一修正；
+        // 单端专属节点的修正放各自管线（服务器 index.ts remapInputIndexForHiddenPin /
+        // 客户端 client_graph.ts remapClientInputIndex）：
         // - assembly_list: GIA pin0 为元素数量，元素从 pin1 开始
         // - assembly_dictionary: GIA pin0 为 kv 参数数量（k/v 总数），k/v 从 pin1 开始
-        // - get_entity_type_list / get_ray_filter_type_list: GIA pin0 为数量，
-        //   枚举槽从 pin1 开始（编辑器隐藏引脚）
-        // - send_signal_to_server_node_graph: args[0]=信号名（kind5 exec 字面量，
-        //   非数据引脚），信号参数 args[1..] 对应数据引脚 0..（服务器 send_signal 同款）
         const toIndexPatched =
-          node.type === 'assembly_list' ||
-          node.type === 'assembly_dictionary' ||
-          node.type === 'get_entity_type_list' ||
-          node.type === 'get_ray_filter_type_list'
+          node.type === 'assembly_list' || node.type === 'assembly_dictionary'
             ? toIndex + 1
-            : node.type === 'send_signal_to_server_node_graph'
-              ? toIndex - 1
-              : toIndex
+            : toIndex
         dataConnections.push({
           fromId: dataNodeId,
           toId: node.id,
