@@ -817,6 +817,7 @@ function main(): void {
     out('  --all-params    追溯目标节点所有输入参数')
     out('  --list-nodes/-l:列出当前图所有节点（无需节点参数）')
     out('  --help/-h:      显示帮助')
+    out('  索引说明: 主图使用 main-node-index；--composite 使用 impl-node-index；两者不可混用')
     out('  提示: 用 NODE_OPTIONS=\'--no-deprecation\' 屏蔽 tsx 的 deprecation warning')
     out('  例子:')
     out('    npx tsx .../物理运动.gia --list-nodes          (列出节点)')
@@ -999,6 +1000,7 @@ function main(): void {
     const found = findNodeByIndexOrName(targetNodeSpec, nodeMap, ci)
     if (!found) {
       console.error(`❌ 在 "${compositeName}" impl 图中未找到 "${targetNodeSpec}"`)
+      console.error('提示: --composite 模式要求使用该复合 --list-nodes 输出中的 impl-node-index；主图节点索引不能直接使用')
       console.error('可用节点:')
       for (const [idx, n] of nodeMap) {
         if (n.genericId?.kind === 22001) console.error(`  ${idx}: ${resolveName(n, ci)}`)

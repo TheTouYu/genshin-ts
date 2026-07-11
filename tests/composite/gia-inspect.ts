@@ -19,6 +19,18 @@ import { readFileSync } from 'fs'
 const PROTO = '/home/h/genshin-ts/dist/src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
 
 const args = process.argv.slice(2)
+if (args.includes('--help') || args.includes('-h')) {
+  console.log('用法: npx tsx tests/composite/gia-inspect.ts <file.gia> [options]')
+  console.log('  -l            列出所有 accessories (默认)')
+  console.log('  -s <N>        显示第 N 个 accessory 详情')
+  console.log('  -n "<name>"   按名称模糊匹配 accessory')
+  console.log('  -p            仅显示 accessories 的 compositePins')
+  console.log('  -g <N>        仅显示第 N 个 accessory 的 impl graph 节点')
+  console.log('  -c            配合 -s 使用，仅显示 compositePins')
+  console.log('  -f <nodeId>   过滤 impl graph 节点')
+  console.log('  -t            统计节点类型分布')
+  process.exit(0)
+}
 const flags = new Set(args.filter(a => a.startsWith('-')))
 const vals = args.filter(a => !a.startsWith('-'))
 const filePath = vals[0]

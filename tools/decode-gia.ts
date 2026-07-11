@@ -21,7 +21,13 @@
 import { decode_gia_file } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.ts'
 
 async function main() {
-  const file = process.argv[2]
+  const args = process.argv.slice(2)
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('用法: npx tsx tools/decode-gia.ts <file.gia>')
+    console.log('  输出完整 JSON 到 stdout；错误和诊断输出到 stderr')
+    process.exit(0)
+  }
+  const file = args[0]
   if (!file) { console.error('用法: npx tsx tools/decode-gia.ts <file.gia>'); process.exit(1) }
   // check_header=false 避免 header check log 污染 stdout，方便 pipe 到 jq
   const r = await decode_gia_file(file, undefined, false)

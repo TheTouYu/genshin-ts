@@ -9,8 +9,16 @@
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { readFileSync } from 'fs'
 
-const FILES = process.argv.slice(2)
-if (!FILES.length) { console.error('用法: ... <file.gia> ...'); process.exit(1) }
+const ARGS = process.argv.slice(2)
+if (ARGS.includes('--help') || ARGS.includes('-h')) {
+  console.log('用法: npx tsx tests/composite/audit-layout.ts [选项] <file.gia> [file2.gia ...]')
+  console.log('  --strict    将没有执行流连接的数据节点也报告为 ORPHAN')
+  console.log('  --help, -h  显示帮助')
+  process.exit(0)
+}
+const strict = ARGS.includes('--strict')
+const FILES = ARGS.filter(arg => !arg.startsWith('--') && arg !== '-h')
+if (!FILES.length) { console.error('用法: npx tsx tests/composite/audit-layout.ts [--strict] <file.gia> ...'); process.exit(1) }
 
 function shortName(p) { const m = p.match(/\/([^/]+)\.gia$/); return m ? m[1] : p }
 
@@ -132,9 +140,13 @@ function analyzeFile(path) {
     const hasInEdge = new Set([...outgoing.values()].flat().map(e => e.to))
     const connectedNodes = new Set([...hasOutEdge, ...hasInEdge])
     const orphans = nodes.filter(n => !connectedNodes.has(n.nodeIndex))
-    if (orphans.length > 0) {
-      const orphanInfo = orphans.map(n => `nIdx=${n.nodeIndex}`).join(', ')
-      issues.push(`ORPHAN: ${orphans.length} 个节点无 exec 连接: ${orphanInfo}`)
+    const dataOnlyOrphans = orphans.filter(n =>
+      !(n.pins ?? []).some(pin => pin.i1?.kind === 1 || pin.i1?.kind === 2)
+    )
+    const reportedOrphans = strict ? orphans : orphans.filter(n => !dataOnlyOrphans.includes(n))
+    if (reportedOrphans.length > 0) {
+      const orphanInfo = reportedOrphans.map(n => `nIdx=${n.nodeIndex}`).join(', ')
+      issues.push(`ORPHAN: ${reportedOrphans.length} 个执行节点无 exec 连接: ${orphanInfo}`)
     }
 
     // ---- 5. ASCII 拓扑（只有节点数 <= 15 的 graph）----
@@ -167,7 +179,7 @@ function analyzeFile(path) {
       nodeCount: nodes.length,
       edgeCount: [...outgoing.values()].reduce((s, e) => s + e.length, 0),
       branchCount: [...outgoing.values()].filter(e => e.length > 1).length,
-      orphans: orphans.length,
+      orphans: reportedOrphans.length,
       crossCount,
       issues,
       ascii

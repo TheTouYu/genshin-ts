@@ -15,6 +15,8 @@
 
 ### 1.1 `trace-exec-flow.ts`（原名 find-event-sources）
 
+> 推荐通过 `npm run trace-exec -- <file.gia> ...` 调用，已自动屏蔽 Node/tsx deprecation warning；直接使用 `npx tsx` 时，JSON 输出请设置 `NODE_OPTIONS='--no-deprecation'`。
+
 ```
 npx tsx tests/composite/trace-exec-flow.ts <文件.gia>
 npx tsx tests/composite/trace-exec-flow.ts <文件.gia> --io
@@ -55,6 +57,8 @@ npx tsx tests/composite/trace-exec-flow.ts 弹球.gia --json --io --depth=1
 ```
 
 ### 1.2 `trace-dataflow.ts`
+
+> 推荐通过 `npm run trace-dataflow -- <file.gia> ...` 调用。使用 `--composite` 时，节点索引必须来自该复合 impl 图的 `--list-nodes` 输出；主图节点索引和 impl-node-index 不可混用。
 
 ```
 npx tsx tests/composite/trace-dataflow.ts <文件.gia> <节点索引|节点名> [参数索引...] [flags]
@@ -113,8 +117,8 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 
 | 工具                        | 功能                                                                                                                  | 用法                                                                      |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `ascii-layout.ts`           | **ASCII 布局图** — 将节点渲染为 2D 制表符图形，直观看到位置和连线                                                     | `npx tsx tests/composite/ascii-layout.ts <文件.gia>`                      |
-| `audit-layout.ts`           | **布局质量审计** — 重叠检测、间距过近（<20px）、OutFlow 分支分析                                                      | `npx tsx tests/composite/audit-layout.ts <文件.gia>`                      |
+| `ascii-layout.ts`           | **ASCII 布局图** — 将节点渲染为 2D 制表符图形，直观看到位置和连线；支持 `--composite <名称>` 选择 impl 图 | `npx tsx tests/composite/ascii-layout.ts [--composite <名称>] <文件.gia>` |
+| `audit-layout.ts`           | **布局质量审计** — 重叠检测、间距过近（<20px）、OutFlow 分支分析；默认忽略无 exec 边的数据节点，可用 `--strict` 恢复 | `npx tsx tests/composite/audit-layout.ts [--strict] <文件.gia>`          |
 | `dump-nodes.ts`             | **坐标 dump** — 输出所有 GIA 节点的 `nIdx @ (x, y)`                                                                   | `npx tsx tests/composite/dump-nodes.ts <文件.gia>`                        |
 | `analyze-exec-lanes.ts`     | **执行分叉泳道分析** — 输出 fan-out parent/child 坐标、dx/dy、stepFromPrev                                            | `npx tsx tests/composite/analyze-exec-lanes.ts <文件.gia> [files...]`     |
 | `calibrate-layout-lanes.ts` | **布局调参校准** — 输出 sibling step、exec/data Y 范围、blockBottom、gapAfterPrevBlock，适合对比参考 GIA 与 gsts 输出 | `npx tsx tests/composite/calibrate-layout-lanes.ts <文件.gia> [files...]` |
@@ -143,6 +147,8 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 ---
 
 ## 4. `tools/` — 独立分析脚本
+
+> 推荐使用 `npm run gia:decode -- <file.gia>`、`npm run gia:inspect -- <file.gia>`、`npm run gia:compare -- <ref.gia> <gen.gia>` 和 `npm run gia:diff -- <ref.gia> <gen.gia>`，避免 deprecation warning 污染输出。`decode-gia.ts`、`analyze-composite-gia.ts`、`topology.ts` 支持 `--help`。
 
 | 工具                       | 功能                                                | 用法                                                           |
 | -------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |

@@ -565,4 +565,4 @@ npx tsx tests/composite/trace-dataflow.ts dist/tests/layout/physics-motion/main.
 2. `更新速度`、`更新角速度`、`计算滚动角速度` 已替换阶段性代理语义；`计算滚动角速度` 中嵌套调用 `w角速度-a朝向转化` 的稀疏输入 pin 编码已通过编译器通用修复对齐自动 trace。
 3. `更新v、w` 控制流布局和 nested capture pin 修复沿用此前已验证结果。
 4. `向量缩放除法` 内部 `Division.InParam[1]` 空名输入路由已自动验证并经用户游戏内确认通过。
-5. 下一轮待查：用户反馈所有 composite `bool` 输入参数在游戏编辑器中显示异常，不能正常选择 `true/false`；入口见 [handover/layout-handover-physics-motion-round-12.md](handover/layout-handover-physics-motion-round-12.md)。初步解码显示真实 `复杂gia/物理运动.gia` 中 `更新v、w.接触地面` 等 bool composite 输入为 `type.class=6,type1=4,type2=4`，当前生成的对应 `CompositeDef.inputs` 可能已对齐，下一轮应重点比较复合调用节点的物理 `InParam` pin 和 literal value wrapper。
+5. composite bool 输入的 `EnumId { val: 1 }` 元数据问题已修复，并经自动回归和用户游戏内验证；完整证据见 [r20-bool-enum-metadata.md](retrospectives/r20-bool-enum-metadata.md)。下一轮目标已转为复刻真实 `计算物理运动状态`，并将其 `接触地面` 输出接入当前 `更新v、w`；入口见 [handover/layout-handover-physics-motion-round-13.md](handover/layout-handover-physics-motion-round-13.md)。

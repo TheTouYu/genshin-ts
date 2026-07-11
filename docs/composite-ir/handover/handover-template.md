@@ -86,7 +86,15 @@
 
 - `physics-motion-recreate-guide.md`：查真实物理复合结构和已经确认的 API 写法。
 - `raw-control-flow-dsl-quickstart.md`：需要手工控制 InFlow/OutFlow 拓扑时读取。
-- `gia-tools-reference.md`：不确定该用哪个 decode/trace/diff 工具时读取。
+- `gia-tools-reference.md`：不确定该用哪个 decode/trace/diff 工具时读取；优先使用已配置 `NODE_OPTIONS='--no-deprecation'` 的 npm wrapper。
+
+工具使用约定：
+
+- 执行流优先使用 `npm run trace-exec -- <file.gia> ...`，数据流优先使用 `npm run trace-dataflow -- <file.gia> ...`。
+- 解码和结构对比优先使用 `npm run gia:decode`、`npm run gia:inspect`、`npm run gia:compare`、`npm run gia:diff`。
+- 使用 `trace-dataflow --composite` 时，节点索引必须来自该复合 impl 图的 `--list-nodes` 输出；主图节点索引、impl-node-index 和 accessory-index 不可混用。
+- 布局检查默认使用 `audit-layout.ts`；真实数据驱动 GIA 中无执行流的数据节点不应直接判定为 ORPHAN，需要严格检查时再使用 `--strict`。
+- 需要查看复合 impl 布局时使用 `ascii-layout.ts --composite <名称>`；所有上述工具都应先用 `--help` 确认参数，而不是凭记忆猜测。
 
 每个引用都要同时写清用途、读取条件和建议读取范围；读取范围至少给出章节名或关键词，不能只写“按需”。
 
@@ -103,6 +111,17 @@
 ### 代码与测试入口
 
 使用“文件或函数 -> 用途”的形式，不粘贴大段源码：
+
+工具入口可按以下稳定优先级记录：
+
+```text
+Tier 1：trace-exec-flow.ts / trace-dataflow.ts / gia-inspect.ts
+Tier 2：decode-gia.ts / gia-compare.ts / gia-diff.ts / verify-composite-gia.ts
+Tier 3：ascii-layout.ts / audit-layout.ts / analyze-composite-gia.ts / topology.ts
+Tier 4：tests/composite/_dump_*.ts 等专项调试脚本
+```
+
+除非任务需要专项字段，否则不要优先选择 Tier 4 调试脚本；具体参数和当前支持范围以 [`gia-tools-reference.md`](../../gia-tools-reference.md) 为准。
 
 ```text
 src/.../file.ts :: functionName     当前编码入口

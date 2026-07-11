@@ -67,6 +67,7 @@ interface CharPos {
 interface RenderOptions {
   compact: boolean
   terminalCols: number
+  compositeName: string | null
 }
 
 // ============================================================
@@ -657,8 +658,14 @@ function renderFile(file: string, opts: RenderOptions): string {
     return lines.join('\n')
   }
 
-  const graphs = extractGraphs(data)
+  const allGraphs = extractGraphs(data)
+  const graphs = opts.compositeName
+    ? allGraphs.filter(g => g.name === opts.compositeName || g.name.includes(opts.compositeName!))
+    : allGraphs
   if (graphs.length === 0) {
+    if (opts.compositeName) {
+      lines.push(`  ❌ 未找到复合图: ${opts.compositeName}`)
+    }
     lines.push('  (no graphs found)')
     return lines.join('\n')
   }
@@ -687,12 +694,39 @@ function main(): void {
   const opts: RenderOptions = {
     compact: false,
     terminalCols: process.stdout.columns || 100,
+    compositeName: null,
   }
 
   const files: string[] = []
-  for (const arg of args) {
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]
+    if (arg === '--help' || arg === '-h') {
+      console.log('用法: npx tsx tests/composite/ascii-layout.ts [选项] <file.gia> [files...]')
+      console.log('  --compact                 紧凑渲染')
+      console.log('  --composite <名称>        只渲染匹配的 composite impl 图')
+      console.log('  --composite=<名称>        同上')
+      console.log('  --help, -h                显示帮助')
+      process.exit(0)
+    }
     if (arg === '--compact') { opts.compact = true; continue }
-    if (arg === '--simple' || arg.startsWith('--')) {
+    if (arg === '--composite') {
+      opts.compositeName = args[++i]
+      if (!opts.compositeName) {
+        console.error('❌ --composite 需要指定复合名称')
+        process.exit(1)
+      }
+      continue
+    }
+    if (arg.startsWith('--composite=')) {
+      opts.compositeName = arg.slice('--composite='.length)
+      if (!opts.compositeName) {
+        console.error('❌ --composite= 需要指定复合名称')
+        process.exit(1)
+      }
+      continue
+    }
+    if (arg === '--simple') continue
+    if (arg.startsWith('--')) {
       console.error(`未知选项: ${arg}`)
       process.exit(1)
     }
@@ -700,7 +734,7 @@ function main(): void {
   }
 
   if (files.length === 0) {
-    console.error('用法: npx tsx tests/composite/ascii-layout.ts [--compact] <file.gia> [files...]')
+    console.error('用法: npx tsx tests/composite/ascii-layout.ts [--compact] [--composite <名称>] <file.gia> [files...]')
     process.exit(1)
   }
 

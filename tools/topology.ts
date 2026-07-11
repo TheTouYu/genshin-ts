@@ -5,7 +5,13 @@ import { decode_gia_file } from '../src/thirdparty/Genshin-Impact-Miliastra-Wond
  * 用法: npx tsx tools/topology.ts <file.gia>
  */
 async function main() {
-  const file = process.argv[2]
+  const args = process.argv.slice(2)
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('用法: npx tsx tools/topology.ts <file.gia>')
+    console.log('  输出主图执行流、数据流和复合调用拓扑')
+    process.exit(0)
+  }
+  const file = args[0]
   if (!file) { console.error('用法: npx tsx tools/topology.ts <file.gia>'); process.exit(1) }
 
   const r = await decode_gia_file(file, undefined, false)

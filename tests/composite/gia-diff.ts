@@ -15,6 +15,13 @@ const PROTO = '/home/h/genshin-ts/dist/src/thirdparty/Genshin-Impact-Miliastra-W
 
 // 参数解析
 const args = process.argv.slice(2)
+if (args.includes('--help') || args.includes('-h')) {
+  console.log('用法: npx tsx tests/composite/gia-diff.ts <ref.gia> <gen.gia> [flags]')
+  console.log('  -c, --compact  忽略命名、ID、顺序等 cosmetic 差异')
+  console.log('  -q, --quiet    仅输出差异数')
+  console.log('  -v, --verbose  显示上下文')
+  process.exit(0)
+}
 const flags = new Set(args.filter(a => a.startsWith('-')))
 const paths = args.filter(a => !a.startsWith('-'))
 const refPath = paths[0]

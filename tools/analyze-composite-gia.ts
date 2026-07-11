@@ -12,8 +12,15 @@ function die(msg: string): never {
   process.exit(1)
 }
 
-const FILES: string[] = process.argv.slice(2)
-if (FILES.length === 0) die('Usage: npx tsx tools/analyze-composite-gia.ts <file.gia> [<file2.gia> ...]')
+const ARGS = process.argv.slice(2)
+if (ARGS.includes('--help') || ARGS.includes('-h')) {
+  console.log('用法: npx tsx tools/analyze-composite-gia.ts <file.gia> [file2.gia ...]')
+  console.log('  单文件：输出 CompositeDef/SignalDef 概览和 CPI 检查')
+  console.log('  多文件：额外输出跨文件复合对比')
+  process.exit(0)
+}
+const FILES: string[] = ARGS.filter(arg => !arg.startsWith('-'))
+if (FILES.length === 0) die('用法: npx tsx tools/analyze-composite-gia.ts <file.gia> [<file2.gia> ...]')
 
 function shortName(p: string): string {
   const m = p.match(/\/([^/]+)\.gia$/)

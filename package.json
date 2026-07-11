@@ -75,7 +75,11 @@
     "example": "npm run build && node ./bin/gsts.mjs",
     "dev": "npm run build && node ./bin/gsts.mjs dev",
     "trace-exec": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/trace-exec-flow.ts",
-    "trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/trace-dataflow.ts"
+    "trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/trace-dataflow.ts",
+    "gia:decode": "NODE_OPTIONS='--no-deprecation' tsx tools/decode-gia.ts",
+    "gia:inspect": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/gia-inspect.ts",
+    "gia:compare": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/gia-compare.ts",
+    "gia:diff": "NODE_OPTIONS='--no-deprecation' tsx tests/composite/gia-diff.ts"
   },
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.47.0",

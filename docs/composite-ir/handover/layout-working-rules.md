@@ -137,6 +137,8 @@ tests/layout
 
 ## 三、常用命令模板
 
+> 工具优先使用项目 npm wrapper：`npm run trace-exec`、`npm run trace-dataflow`、`npm run gia:decode`、`npm run gia:inspect`、`npm run gia:compare`、`npm run gia:diff`。这些入口会自动屏蔽 Node/tsx deprecation warning；其余工具先执行 `--help`，确认当前 CLI 参数后再调用。
+
 ### 3.1 构建
 
 ```bash
@@ -187,8 +189,19 @@ mv -f "$export_dir/<export-name>.gia" "$archive_dir/<export-name>.gia"
 ### 3.6 解码 GIA
 
 ```bash
-npx tsx tools/decode-gia.ts dist/tests/<file>.gia > /tmp/<name>.decoded.json
+npm run gia:decode -- dist/tests/<file>.gia > /tmp/<name>.decoded.json
 ```
+
+直接使用脚本时，JSON 输出应设置 `NODE_OPTIONS='--no-deprecation'`，避免 warning 污染管道。
+
+### 3.6a 复合 impl 工具
+
+```bash
+npm run gia:inspect -- dist/tests/<file>.gia -s <accessory-index> -c
+npx tsx tests/composite/ascii-layout.ts --composite '<composite-name>' dist/tests/<file>.gia
+```
+
+`trace-dataflow --composite` 使用的是 impl 图内部节点索引；`gia-inspect -s` 使用的是 accessory index，不能混用。
 
 ### 3.7 查看节点概要
 
@@ -205,7 +218,14 @@ npx tsx tests/composite/trace-exec-flow.ts dist/tests/<file>.gia --io
 ### 3.9 查看数据流
 
 ```bash
-npx tsx tests/composite/trace-dataflow.ts dist/tests/<file>.gia --list-nodes
+npm run trace-dataflow -- dist/tests/<file>.gia --list-nodes
+```
+
+进入复合 impl 图时：
+
+```bash
+npm run trace-dataflow -- dist/tests/<file>.gia --list-nodes --composite='<composite-name>'
+npm run trace-dataflow -- dist/tests/<file>.gia <impl-node-index> --all-params --composite='<composite-name>' --json
 ```
 
 ### 3.10 查看某节点全部参数数据流
@@ -228,7 +248,19 @@ for (const n of doc.nodes ?? []) {
 NODE
 ```
 
-### 3.12 提交前检查
+### 3.12 布局审计
+
+```bash
+npx tsx tests/composite/audit-layout.ts dist/tests/<file>.gia
+```
+
+默认忽略没有执行流连接的数据节点；需要严格查看所有无执行流节点时使用：
+
+```bash
+npx tsx tests/composite/audit-layout.ts --strict dist/tests/<file>.gia
+```
+
+### 3.13 提交前检查
 
 ```bash
 git status --short
@@ -236,7 +268,7 @@ git diff --check
 npm run build
 ```
 
-### 3.13 注入物理运动复刻 GIA
+### 3.14 注入物理运动复刻 GIA
 
 配置直接生成时，`.gia` 自带 graph id 可能不是存档中的目标 NodeGraph；物理运动复刻应先生成，再用显式文件参数注入，使配置中的 `inject.nodeGraphId` 生效：
 
