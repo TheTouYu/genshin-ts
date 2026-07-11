@@ -2,7 +2,7 @@
 
 > 状态：待执行
 > 来源：当前实现 + 已知真实 GIA 差异
-> 最近校验：2026-07-11
+> 最近校验：2026-07-12
 > 适用范围：只建立证据，不改变生产编码行为
 
 ## 目标
@@ -97,9 +97,35 @@ tests/composite/helpers/ordinary-node-contract.ts
 - `Node.encode` 与 `Graph.encode` 差异；
 - 是否需要 project normalization。
 
+## ## P0-W1 实测结果
+
+实验文件：`tests/composite/experiment-vendor-set-node-graph-variable.ts`
+
+### Vendor Node(324) 与真实 GIA 逐字段对照
+
+| 字段 | 真实 更新v、w n[4] | Vendor Node(324) | 匹配 |
+|---|---|---|---|
+| generic_id | 323 | 323 | ✓ |
+| concrete_id | 324 | 324 | ✓ |
+| InParam[0] type | 6 (Str) | 6 (Str) | ✓ |
+| InParam[0] value | rawStr=额外压力 | rawStr=额外压力 | ✓ |
+| InParam[1] type | 5 (R\<T\>) | 5 (R\<T\>) | ✓ |
+| InParam[1] bConcreteValue | 存在 | 存在 | ✓ |
+| InParam[1] indexOfConcrete | 1 | 1 | ✓ |
+| InParam[1] bFloat.val | 0 | 0 | ✓ |
+| InParam[2] type | 4 (Bool) | 4 (Bool) | ✓ |
+| InParam[2] bEnum.val | 0 | 0 | ✓ |
+
+结论：Vendor `new Node(0, 'server', 324)` + `setVal(...)` 可直接生成与真实 GIA 逐字段一致的 setter 节点。
+
+### Vendor Node(323) (generic only)
+
+- Generic-only 构造不调用 setConcrete，pins 数组为空，无法 setVal。
+- ReflectMap 包含 160 个 concrete variant 映射（323→全部支持类型的 R\<T\> 变体）。
+
 ## 退出条件
 
-- [ ] float literal 差异可由独立 fixture 稳定重现；
+- [x] float literal 差异可由独立 fixture 稳定重现；
 - [ ] vec3 connection 至少有 root/impl 观察结果；
 - [ ] vendor `Node(324)` 实验有逐字段结果；
 - [ ] vendor `Graph.connect()` 实验有逐字段结果；
