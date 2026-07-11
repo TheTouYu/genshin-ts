@@ -1,7 +1,7 @@
 # Phase 1：Resolved Node Contract 与共享 Variant Resolution
 
-> 状态：待执行
-> 来源：目标架构设计
+> 状态：已完成 / 阶段退出
+> 来源：当前代码实现 + 自动回归
 > 最近校验：2026-07-12
 > 适用范围：Stage 3 类型与节点 identity；本阶段不要求全面替换 pin 编码
 
@@ -182,6 +182,10 @@ assertVariableAssignment(variable, inputType, location): void
 - [x] shared resolver 对 missing declaration / unsupported type 有显式 fallback 记录；root adapter 的可选
   observation sink 已接通，生产路径接入仍留待后续工作包。
 - [x] `valueTypeSuffix` 等 impl 副本已显式限定为 legacy adapter；删除仍由 Phase 5 legacy 删除闸门控制。
+
+Phase 1 已由用户确认退出。稳定证据见
+[`checkpoints/phase-1-resolved-contract.md`](checkpoints/phase-1-resolved-contract.md)；Phase 2 只可在保留
+handwritten impl backend 的前提下开始 shared vendor lowering。
 
 ## 回滚条件
 

@@ -2,16 +2,16 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P1-W6 completed; ADR-006=A accepted; Phase 0 exited)
+> 最近校验：2026-07-12 (P1-W7 submitted; Phase 1 exited; ADR-006=A accepted)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：0 已退出 → 下一阶段 Phase 1 — Resolved Node Contract
-当前工作包：P1-W7 已完成；等待用户审核（未提交）
-最近完成工作包：P1-W7 — impl typed-identity legacy adapter boundary
+当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
+当前工作包：Phase 2 entry checkpoint 已完成；P2-W1 尚未选择
+最近完成工作包：P1-W7 — impl typed-identity legacy adapter boundary（已审核并提交：d6bc6a8）
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -389,7 +389,8 @@ git diff --check
 
 ## 待用户决策
 
-无阻塞决策。P1-W7 已完成，等待用户审核；不删除 helper、不切换 pin lowering、Graph materialization、capture、boundary、布局或 diagnostics。下一工作包尚未选择。
+用户已确认 Phase 1 退出并授权进入 Phase 2。无阻塞决策；P2-W1 尚未选择。首个 Phase 2 切片仍须保持
+ADR-006=A 的完整 vendor Graph materialization 方向，且在 metadata 兼容实验前不得删除 handwritten impl backend。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
@@ -398,11 +399,10 @@ git diff --check
 
 ## 进行中或未提交变化
 
-P1-W7 未提交，预期只有以下文件：
+Phase 1 checkpoint / Phase 2 entry 的文档更新尚未提交，预期只有：
 
 ```text
-src/compiler/ir_to_gia_transform/composite.ts
-tests/composite/test-stage3-resolved-node-contract.ts
+docs/composite-ir/architecture-redesign/checkpoints/phase-1-resolved-contract.md
 docs/composite-ir/architecture-redesign/STATUS.md
 docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
 ```
@@ -411,6 +411,6 @@ docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 先审查 P1-W7 未提交 diff、完成报告和验证结果；未经用户审核不得提交或扩展工作包。
+3. 审查 Phase 1 checkpoint / Phase 2 entry 文档 diff；提交后从 P2-W1 启动报告开始。
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。
