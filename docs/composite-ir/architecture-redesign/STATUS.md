@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P0-W4 committed)
+> 最近校验：2026-07-12 (P0-W5 completed; not committed)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,7 +10,7 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0 — 基线、证据与 Vendor 实验
-当前工作包：P0-W5 — 锁定失败契约与 composite 边界基线（待启动）
+当前工作包：P0-W6 — Phase 0 checkpoint、证据总结和 Phase 1 决策闸门（待启动）
 最近完成提交：test(composite): P0-W4 root/impl ordinary-node parity helper（HEAD）
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
@@ -56,7 +56,7 @@
 - [x] P0-W2：Vendor `Graph.connect()` float connection 实验。
 - [x] P0-W3：Vec setter connection 实验。
 - [x] P0-W4：Root/impl ordinary-node parity helper 和 fixture。
-- [ ] P0-W5：锁定当前 root/impl 失败契约与 composite 边界基线。
+- [x] P0-W5：锁定当前 root/impl 失败契约与 composite 边界基线。
 - [ ] P0-W6：Phase 0 checkpoint、证据总结和 Phase 1 决策闸门。
 
 后续 Phase 以各 phase 文档为计划，不在本状态文件提前展开。
@@ -101,21 +101,26 @@ git diff --check
 - [x] 纯 helper 单元检测 synthetic drift；
 - [x] 生产编码器未修改。
 
-## 下一工作包：P0-W5 — 锁定失败契约与 composite 边界基线
-
-只有 P0-W4 完成并由用户确认后开始。
+## 最近完成工作包：P0-W5 — 锁定失败契约与 composite 边界基线
 
 目标：汇总当前 root/impl 失败契约，并记录 nested/capture/bool/local/custom/vec3 等 focused baseline 的真实命令与结果；修正过时 pending 描述，不改实现。
 
-预期修改：
+修改文件：
 
 ```text
-tests/composite/ 下如需补充的边界观察脚本（尽量复用已有）
-STATUS.md
-phase-0-baseline-and-evidence.md 的 0.6 / 退出条件
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-0-baseline-and-evidence.md
 ```
 
-明确不修改生产编码器。
+结果：
+
+- root/impl parity red contract 重新执行并保持预期；
+- nested capture/outflow、bool、local vec3、custom variable、sparse named input focused baselines 均 PASS；
+- broad composite suite active assertions PASS（78/78），2 个设施图参考对比仍 pending；
+- `test-composite-part2.ts` 和 `test-composite-part3.ts` 暴露既有 fixture/API 使用失败，已记录但未修复；
+- 生产编码器未修改。
+
+明确非目标：不开始 P0-W6，不修改生产实现，不注入，不提交。
 
 ## 待用户决策
 
@@ -129,5 +134,6 @@ phase-0-baseline-and-evidence.md 的 0.6 / 退出条件
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 若 P0-W4 已提交且工作树 clean，从 P0-W5 启动报告开始；
-4. 不覆盖无法解释的变化。
+3. 若 P0-W5 文档变化已审核并提交，从 P0-W6 启动报告开始；
+4. 当前工作树包含 P0-W5 的两项文档变化，未提交且可由本状态解释；
+5. 不覆盖无法解释的变化。

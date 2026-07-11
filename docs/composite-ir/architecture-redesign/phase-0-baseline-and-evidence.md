@@ -1,6 +1,6 @@
 # Phase 0：基线、证据与 Vendor 实验
 
-> 状态：进行中（P0-W0~W4 完成）
+> 状态：进行中（P0-W0~W5 完成）
 > 来源：当前实现 + 已知真实 GIA 差异 + vendor 实验 + root/impl parity fixture
 > 最近校验：2026-07-12
 > 适用范围：只建立证据，不改变生产编码行为
@@ -75,6 +75,53 @@ dist/tests/layout/physics-motion/main.gia：更新v、w impl n[13]
 ### 0.6 基线回归清单
 
 确认并运行 nested/capture/bool/local/custom/vec3 focused tests；记录真实存在的脚本、命令和结果，修正文档中过时 pending 描述但不顺便改实现。
+
+## P0-W5 实测结果
+
+日期：2026-07-12。以下命令均在当前分支、生产实现未修改的工作树上执行。
+
+### Root/impl 失败契约
+
+```text
+npx tsx tests/composite/test-stage3-root-impl-parity.ts  PASS（预期 red contract）
+```
+
+Root float literal/connection 与 vec3 connection baseline 通过；impl 与 root 的 parity 仍按预期在 concreteId、valueClass、concrete wrapper、indexOfConcrete（connection 另含 alreadySetVal）上失败。该失败是 P0-W4 锁定的迁移前契约，不是本轮回归失败。
+
+### Composite boundary focused baseline
+
+| 场景 | 命令 | 结果 | 证据范围 |
+|---|---|---|---|
+| nested capture physical pins | `npx tsx tests/composite/test-nested-composite-capture-pins.ts` | PASS | captured-only input 不生成 physical pin；保留 sparse physical index；capture 仍经 `compositePins` 路由 |
+| nested outflow marker | `npx tsx tests/composite/test-nested-composite-outflow.ts` | PASS | nested call 的 OutFlow 与外层 composite pin 映射及 downstream connect 保持 |
+| bool composite input GIA | `npx tsx tests/composite/test-composite-bool-input-gia.ts` | PASS | bool enum metadata、type、pin index、literal value 保持 |
+| local variable concrete type | `npx tsx tests/composite/test-local-variable-impl-concrete-type.ts` | PASS | impl vec3 local getter/setter concrete wrapper 与真实 pin 结构观察一致 |
+| custom variable impl pins | `npx tsx tests/composite/test-custom-variable-impl-pins.ts` | PASS | captured input 不编码为 physical InParam，声明 pin index 与 concrete output type 保持 |
+| sparse named input | `npx tsx tests/composite/test-composite-sparse-named-input.ts` | PASS | `compositeInputIndex` 与 declared input hole 保持 |
+| broad composite suite | `npx tsx tests/composite/test-composite-all.ts` | PASS（78/78 active） | 80 total：78 active pass，2 个设施图参考文件对比仍为 pending |
+
+### 已发现但未修复的基线问题
+
+以下命令不是本轮 production boundary 迁移的验收通过项，结果保留用于后续清理，未顺手修改：
+
+```text
+npx tsx tests/composite/test-composite-part3.ts  FAIL
+  captured output 使用 raw primitive，触发 outputValue.getMetadata is not a function
+
+npx tsx tests/composite/test-composite-part2.ts  FAIL
+  callComposite fixture 使用 { type: 'int', value: null }，触发 Value has no metadata
+```
+
+这两项属于既有测试 fixture/API 使用问题，失败位置分别是
+`src/runtime/composite_registry.ts:228` 和 `src/runtime/ir_builder.ts:121`，不应被记录为 nested/capture 结构已回归。修复它们需要单独工作包；本轮不改变实现或测试语义。
+
+### 0.6 结论
+
+- nested/capture/bool/local/custom/sparse/vec3 重点边界均有实际命令记录；通过项保持现有迁移不变量。
+- root/impl ordinary schema drift 的 red contract 仍稳定存在。
+- `test-composite-all.ts` 的两个 `@pending_ref` 是缺少设施图参考文件的证据范围限制，不是实现失败。
+- `test-composite-part2.ts` 与 `test-composite-part3.ts` 的失败已单独标为待处理 fixture 问题，不推广为 composite boundary 结论。
+- 本轮没有生产编码行为修改。
 
 ## 建议文件
 
@@ -172,7 +219,7 @@ npx tsx tests/composite/test-stage3-root-impl-parity.ts
 - [x] vendor `Node(324)` 实验有逐字段结果；
 - [x] vendor `Graph.connect()` 实验有逐字段结果；
 - [x] parity helper 能在当前错误上失败；
-- [ ] composite 边界 focused baseline 全部记录；
+- [x] composite 边界 focused baseline 全部记录；
 - [x] 没有生产行为修改。
 
 ## 决策闸门
