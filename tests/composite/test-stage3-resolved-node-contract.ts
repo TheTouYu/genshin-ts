@@ -55,7 +55,7 @@ assert.deepEqual(resolveNodeIdentity(customGetter, customContext), {
 })
 
 assert.equal(usesLegacyImplTypedIdentityAdapter('get_node_graph_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('get_custom_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('get_custom_variable'), false)
 assert.equal(usesLegacyImplTypedIdentityAdapter('get_local_variable'), true)
 assert.equal(usesLegacyImplTypedIdentityAdapter('set_local_variable'), true)
 assert.equal(usesLegacyImplTypedIdentityAdapter('set_node_graph_variable'), false)
@@ -80,6 +80,8 @@ const rootIdentity = (node) => resolveGiaNodeId(
 assert.equal(rootIdentity(floatNode), 324)
 assert.equal(rootIdentity(vecNode), 334)
 assert.equal(rootIdentity(getter), 341)
+assert.equal(rootIdentity(customSetter), 26)
+assert.equal(resolveGiaNodeId(customGetter, customContext.connectionTypes, context.variablesByName), 54)
 
 const rootFallbacks = []
 assert.equal(resolveGiaNodeId({

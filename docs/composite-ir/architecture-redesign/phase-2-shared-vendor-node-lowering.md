@@ -1,6 +1,6 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1 setter 切片已完成并通过用户游戏编辑器验证；P2-W2 getter 切片已完成自动回归，待审核
+> 状态：P2-W1/P2-W2/P2-W3 已完成；P2-W3 已通过用户游戏编辑器核验
 > 来源：目标架构设计 + 当前实现/自动回归 + 用户游戏编辑器验证
 > 最近校验：2026-07-12
 > 适用范围：普通系统节点；不包含 composite synthetic call/capture
@@ -186,10 +186,63 @@ git diff --check                                          # PASS
 明确非目标：不迁移 custom/local variable family，不切换完整 impl Graph materialization，不删除 handwritten backend，
 不推广 float/vec3 getter 结果到 list/dict/其他类型。
 
+## P2-W3 当前结果：custom-variable getter/setter shared vendor lowering
+
+状态：实现、自动回归与用户游戏编辑器核验完成。
+
+已验证（自动证据）：
+
+- root custom-variable float getter/setter 优先使用 shared `resolveNodeIdentity()`；未支持类型仍保留 legacy fallback；
+- impl custom getter 不再进入 legacy typed-identity adapter；getter/setter concrete identity 都来自 shared resolver；
+- impl custom getter/setter 使用 vendor `Node` 物化 pin schema；captured target entity 继续由 composite boundary overlay 路由；
+- float literal setter、float connection setter、float getter 在排除 captured target physical pin 后 root/impl ordinary contract parity 为零差异；
+- setter hidden trigger pin 使用 physical `InParam[4]`；connection value 保留 Addition producer 和 data edge；
+- P2-W1/P2-W2 focused regressions未回归。
+
+验证命令：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+npx tsx tests/composite/test-custom-variable-impl-pins.ts
+npx tsx tests/composite/test-stage3-root-impl-parity.ts
+npx tsx tests/composite/test-stage3-p2-game-validation.ts
+npx tsx tests/composite/test-stage3-p2w3-custom-variable-game-validation.ts
+git diff --check
+```
+
+候选文件：
+
+```text
+/tmp/P2W3自定义变量-gsts-game-validation.gia
+最终 SHA-256: cbb66a8f46fa16e348c81e1077dd12bdb724f58dd059974f1cb822956d22e8f5
+归档：`Beyond_Local_Export/真-测试通过/复合节点/P2W3自定义变量-gsts-game-validation.gia`
+```
+
+游戏编辑器核验清单：
+
+1. 主图能看到 float literal setter、Addition → connected setter、custom getter → Addition → string conversion/print；
+2. composite `P2W3_CustomVariable_GSTS` 内存在同样的 literal setter、connected setter 和 getter；
+3. 两个 setter 均显示为 float 变种，变量名分别为 `p2w3_literal_float` 和 `p2w3_connected_float`；
+4. connected setter 的 value pin 来自 Addition，getter 输出也进入另一个 Addition；
+5. composite target entity 通过复合输入连接，内部不应出现错误的独立 target literal；
+6. execution flow 依次经过两个 setter 和 print，composite call 可从主图事件执行。
+
+游戏编辑器证据（用户 2026-07-12）：主图与 composite impl 的 float literal setter、Addition connection setter、
+float getter、target capture、hidden trigger pin、执行流和 composite call 均确认正常。首次候选的 Print String 参数异常
+来自 fixture 缺少 float→string DTC；补入 `Data Type Conversion` 后用户复验通过。该结果只覆盖 float custom-variable
+场景，不推广到其他类型族。
+
+附加布局观察：同语义标准管线候选的视觉布局不理想；随后在当前分支重新生成最近五个 Round 15 布局基线，用户
+确认全部通过。故记录为新场景布局覆盖缺口，不作为 shared custom-variable lowering 回归，也不在 P2-W3 修改布局。
+
+明确非目标：不迁移 local variable、list/dict/其他 custom 类型族，不切换完整 impl Graph materialization，不删除
+handwritten backend，不注入或覆盖游戏目录。
+
 ## 后续推广顺序
 
-1. ~~graph variable getter~~（P2-W2 完成自动回归，待审核）；
-2. custom variable getter/setter；
+1. ~~graph variable getter~~（P2-W2 已提交）；
+2. ~~custom variable getter/setter~~（P2-W3 自动回归与用户游戏编辑器核验通过）；
 3. local variable getter/setter；
 4. DTC；
 5. arithmetic/comparison；

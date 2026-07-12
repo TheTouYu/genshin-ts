@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P2-W2 graph-variable getter slice complete; uncommitted)
+> 最近校验：2026-07-12 (P2-W3 custom-variable slice complete; approved for commit)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W2 — graph-variable getter shared identity + vendor pin materialization（已完成，待审核提交）
-最近完成工作包：P2-W1 — float/vec setter schema parity + P2 editor validation（提交 c8c78fe；用户 2026-07-12 确认通过）
+当前工作包：P2-W3 — custom-variable getter/setter shared vendor lowering（已完成，用户批准提交）
+最近完成工作包：P2-W3 — custom-variable getter/setter shared vendor lowering + 用户编辑器核验
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -345,9 +345,9 @@ git diff --check                               # PASS
 - [x] 声明 float + assigned int 产生 `E_TYPED_INPUT_CONFLICT`；
 - [x] root/impl 生产输出保持未切换。
 
-## 当前工作包：P2-W2 — graph-variable getter shared identity + vendor pin materialization
+## 已完成工作包：P2-W2 — graph-variable getter shared identity + vendor pin materialization
 
-状态：实现与自动回归完成；待审核提交
+状态：实现与自动回归完成；已提交为 `d9aad11`
 
 目标：
 
@@ -514,10 +514,57 @@ git diff --check
 - [x] decision-log：ADR-006 Accepted=A；B/C 默认路径 Rejected；
 - [x] 生产编码器未修改。
 
+## 当前工作包：P2-W3 — custom-variable getter/setter shared vendor lowering + 用户编辑器核验
+
+状态：实现、自动回归与用户游戏编辑器核验完成；用户已批准提交
+
+目标：
+
+- custom-variable getter/setter 的 root/impl concrete identity 使用 shared resolver；
+- impl getter/setter 使用 vendor `Node` 物化 pin schema，并建立 focused root/impl parity；
+- 生成独立、可人工识别的 `.gia` 候选，由用户放入游戏编辑器核验后再判定工作包完成；
+- 保留 handwritten backend 和完整 Graph materialization 后续路径。
+
+用户参与闸门：
+
+1. 先完成自动回归并生成候选文件，不注入、不覆盖游戏目录；
+2. 报告候选路径、SHA-256、预期节点与人工核验清单；
+3. 用户自行放入游戏编辑器并反馈结果；
+4. 游戏验证失败则保留证据并在本工作包内做 focused 修复；通过后才更新为完成。
+
+拟修改范围：
+
+```text
+src/compiler/ir_to_gia_transform/node_id.ts
+src/compiler/ir_to_gia_transform/composite.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+tests/composite/test-stage3-root-impl-parity.ts
+tests/composite/test-stage3-p2-game-validation.ts（或独立 P2-W3 生成/验证 fixture）
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-2-shared-vendor-node-lowering.md
+```
+
+完成条件：
+
+- [x] root custom getter/setter scalar identity 接入 shared resolver，legacy fallback 保留；
+- [x] impl custom getter 不再进入 legacy typed-identity adapter；
+- [x] custom float getter/setter vendor schema root/impl parity 为零差异（排除 captured target boundary pin）；
+- [x] capture target、literal value、connection value 和 execution flow focused regression 通过；
+- [x] 生成候选 `.gia`：`/tmp/P2W3自定义变量-gsts-game-validation.gia`；
+- [x] 最终候选 SHA-256：`cbb66a8f46fa16e348c81e1077dd12bdb724f58dd059974f1cb822956d22e8f5`；
+- [x] 用户在游戏编辑器中确认节点类型、参数、连线、执行流和 composite call 行为；
+- [x] 通过文件已归档到 `Beyond_Local_Export/真-测试通过/复合节点/`；
+- [x] build、focused tests、`git diff --check` 通过。
+
+明确非目标：不迁移 local variable、list/dict/其他 custom 类型族，不切换完整 impl Graph materialization，不删除
+handwritten backend，不注入或覆盖游戏目录。
+
 ## 待用户决策
 
-P2-W2 已完成 graph-variable getter 自动回归。无阻塞决策；审核提交后下一候选为 custom variable getter/setter。
-后续仍须保持 ADR-006=A 的完整 vendor Graph materialization 方向，不得把当前 setter 专用 vendor Node 路径扩写为
+P2-W3 已通过用户游戏编辑器核验，用户批准提交。附加布局实验发现该新场景视觉布局不理想，但最近五个已通过
+布局基线在当前分支重新生成后均由用户确认通过，因此该问题不阻塞 custom-variable lowering 提交，也不在本工作包
+修改布局算法。
+后续仍须保持 ADR-006=A 的完整 vendor Graph materialization 方向，不得把当前 vendor Node vertical slice 扩写为
 长期方案 B，也不得删除 handwritten impl backend。
 
 
@@ -527,20 +574,12 @@ P2-W2 已完成 graph-variable getter 自动回归。无阻塞决策；审核提
 
 ## 进行中或未提交变化
 
-P2-W2 尚未提交，预期只有：
-
-```text
-docs/composite-ir/architecture-redesign/STATUS.md
-docs/composite-ir/architecture-redesign/phase-2-shared-vendor-node-lowering.md
-src/compiler/ir_to_gia_transform/composite.ts
-tests/composite/test-stage3-resolved-node-contract.ts
-tests/composite/test-stage3-root-impl-parity.ts
-```
+P2-W3 已完成并获用户提交授权。当前变化只包含 P2-W3 源码、测试和状态文档；附加布局实验脚本未纳入提交。
 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 审查 P2-W2 最终 diff 与自动验证；提交后再选择 custom variable getter/setter 工作包。
+3. P2-W3 已完成；提交后按 Phase 2 推广顺序选择 local-variable 工作包。
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。

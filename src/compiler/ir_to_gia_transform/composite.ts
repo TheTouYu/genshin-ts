@@ -287,7 +287,7 @@ function buildImplGraphNodes(
     }
     const producedValuePinIndex = node.type === 'get_local_variable' ? 1 : 0
     const producedType =
-      implConnTypeIndex.get(node.id)?.get(producedValuePinIndex) ??
+      implConnTypeIndex.get(node.id)?.get(producedValuePinIndex)?.type ??
       implOutParamMap
         .get(node.id)
         ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
@@ -332,8 +332,8 @@ function buildImplGraphNodes(
       gvConcreteNid = resolveLegacyImplTypedNodeId(node.type, producedType)
     }
     const customVariableConcreteNid =
-      node.type === 'get_custom_variable' && producedType
-        ? resolveLegacyImplTypedNodeId(node.type, producedType)
+      node.type === 'get_custom_variable' || node.type === 'set_custom_variable'
+        ? sharedConcreteNid
         : undefined
     const localVariableValueType =
       node.type === 'get_local_variable'
@@ -508,22 +508,22 @@ function computeImplLayout(
 
 function buildImplConnTypeIndex(
   implNodes: CompositeDefIR['implNodes']
-): Map<number, Map<number, string>> {
-  const index = new Map<number, Map<number, string>>()
+): Map<number, Map<number, { type: string }>> {
+  const index = new Map<number, Map<number, { type: string }>>()
 
   for (const node of implNodes) {
     for (const arg of node.args ?? []) {
       if (!arg || arg.type !== 'conn') continue
       const conn = arg.value as { node_id: number; index: number; type?: string }
       if (!conn.type) continue
-      const outputTypes = index.get(conn.node_id) ?? new Map<number, string>()
-      const existingType = outputTypes.get(conn.index)
+      const outputTypes = index.get(conn.node_id) ?? new Map<number, { type: string }>()
+      const existingType = outputTypes.get(conn.index)?.type
       if (existingType && existingType !== conn.type) {
         throw new Error(
           `[error] conflicting impl conn types for ${conn.node_id}.${conn.index}: ${existingType} vs ${conn.type}`
         )
       }
-      outputTypes.set(conn.index, conn.type)
+      outputTypes.set(conn.index, { type: conn.type })
       index.set(conn.node_id, outputTypes)
     }
   }
@@ -541,7 +541,6 @@ function getImplArgType(
 // These families remain on the handwritten impl backend. They must not become a new
 // typed-identity path: migrated node-graph/custom variants use resolveNodeIdentity() above.
 const LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES = new Set([
-  'get_custom_variable',
   'get_local_variable',
   'set_local_variable'
 ])
@@ -785,7 +784,10 @@ function buildImplNodePins(
     return { pins: vendorPins, dataConns }
   }
 
-  if (node.type === 'get_custom_variable' && customVariableConcreteNid) {
+  if (
+    (node.type === 'get_custom_variable' || node.type === 'set_custom_variable') &&
+    customVariableConcreteNid
+  ) {
     const tmpGraph = new Graph('server', 0, '', 0)
     const tmpNode = new Node(0, 'server', customVariableConcreteNid, undefined as any)
     const captureInputIndices = new Set<number>()
@@ -794,17 +796,23 @@ function buildImplNodePins(
     for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
       const arg = node.args?.[argIndex]
       if (!arg) continue
+      const physicalPinIndex =
+        node.type === 'set_custom_variable' && argIndex === 3 ? 4 : argIndex
       if ((arg as any).capture === true) {
-        captureInputIndices.add(argIndex)
+        captureInputIndices.add(physicalPinIndex)
       } else if (arg.type === 'conn') {
         const conn = arg.value as { node_id: number; index: number }
         pendingConns.push({
-          pinIndex: argIndex,
+          pinIndex: physicalPinIndex,
           upstreamNodeId: conn.node_id,
           upstreamPinIndex: conn.index
         })
       } else {
-        const pin = tmpNode.pins.find((candidate) => candidate.kind === 3 && candidate.index === argIndex)
+        const pin = tmpNode.pins.find(
+          (candidate) =>
+            candidate.kind === NodePin_Index_Kind.InParam &&
+            candidate.index === physicalPinIndex
+        )
         pin?.setVal(arg.value)
       }
     }
@@ -834,6 +842,18 @@ function buildImplNodePins(
         upstreamNodeId: conn.upstreamNodeId,
         upstreamPinIndex: conn.upstreamPinIndex
       })
+    }
+
+    const outEdges = implEdges[node.id]
+    if (outEdges && outEdges.length > 0) {
+      for (const [sourceIndex] of groupEdgesBySourceIndex(outEdges)) {
+        vendorPins.push({
+          i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          type: 0,
+          value: undefined as any
+        })
+      }
     }
 
     return { pins: vendorPins, dataConns }
