@@ -2,18 +2,26 @@
 
 > 状态：待执行
 > 来源：目标架构设计；依赖 Vendor Graph 实验
-> 最近校验：2026-07-11
+> 最近校验：2026-07-12
 > 适用范围：普通 data/flow edges；composite boundary overlay 仍独立
 
 ## 目标
 
 让 root 和 impl 的普通节点连接使用同一个 materializer，逐步移除 impl 对 `NodePin.connects` 的手工写入。
 
-## 前置条件
+## P2-W5 前置观察（已验证但范围有限）
+
+2026-07-12 的 P2-W5 先以同一 DSL 建立用户编辑器通过的 legacy reference，再在
+`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` gate 下把一个**无 capture、无 nested composite call 的闭合 ordinary
+impl 图**交给 vendor `Graph.add_node/connect/flow`，提取 encoded nodes 后套入既有 CompositeDef wrapper。
+用户确认候选在编辑器正常。覆盖 local-variable float getter/setter、literal、Addition data edge、DTC、Print 和
+两条 flow；它证明此组合可用，不证明 raw/wire 全等，也不证明 boundary metadata 的普遍兼容。
+
+仍必须满足：
 
 - Phase 2 至少完成 setter 和变量节点族；
-- Phase 0 已证明 vendor `Graph.connect/flow` 的 encoded 结构适用于 impl；
-- logical→physical pin index 已在 resolved contract 中固定。
+- logical→physical pin index 已在 resolved contract 中固定；
+- 每个新增 boundary/synthetic family 都要独立观察，不得因 P2-W5 直接默认开启 gate。
 
 ## 工作项
 

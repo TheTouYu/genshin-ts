@@ -275,6 +275,40 @@ git diff --check                                                 # PASS
 
 明确非目标：不迁移 vec3/int/bool/list/dict 等其他 local-variable 类型，不切换完整 vendor Graph materialization，不删除 handwritten backend，不改 composite boundary、capture 或布局。
 
+## P2-W5 当前结果：composite impl vendor Graph embedding observation
+
+状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+
+本工作包先用同一份 DSL 走 legacy 路径，由用户确认后导出为真实参考；随后仅在
+`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate 下，闭合的 ordinary impl graph 用 vendor
+`Graph.add_node()`、`Graph.connect()`、`Graph.flow()` 编码，并提取 encoded nodes 放回现有
+CompositeDef impl wrapper。默认路径仍为 handwritten backend。
+
+已验证范围：两个 local-variable float 分支，覆盖 getter/setter、literal、Addition→setter 数据线、
+getter downstream use、float→string DTC、Print 和两条 execution flow。用户确认 legacy baseline 和
+refactored candidate 均在游戏编辑器中正常；候选 SHA-256 为
+`86c2a1b9c8e9a771f68e5d5c0e7451169ea3f5dfceada75d7efd5e5e0a60d9d0`，参考路径为
+`Beyond_Local_Export/user_edit/复合节点/P2W5-vendor-Graph-legacy-baseline.gia`。
+
+边界：自动对比仍可见旧手写 pin 与 vendor schema 的 40 个字段差异，故本结果证明的是指定闭合
+ordinary 图可在编辑器工作，而不是 raw/wire 全等；capture、nested composite call、`compositePins`、
+`graphValues`、`affiliations`、其他节点族和默认切换仍待独立验证。
+
+验证：
+
+```bash
+npm run build                                                                 # PASS
+npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts            # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts /tmp/P2W5-vendor-graph-refactored-candidate.gia # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts                       # PASS
+npx tsx tests/composite/test-local-variable-impl-concrete-type.ts             # PASS
+npx tsx tests/composite/test-nested-composite-capture-pins.ts                 # PASS
+npx tsx tests/composite/test-nested-composite-outflow.ts                      # PASS
+git diff --check                                                              # PASS
+```
+
+明确非目标：不删除 handwritten backend，不把 gate 设为默认，不迁移 boundary/capture/布局，不注入。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；

@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P2-W4 local-variable float slice passed editor validation; awaiting completion report)
+> 最近校验：2026-07-12 (P2-W5 vendor Graph embedding observation passed editor validation; awaiting completion report)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W4 — local-variable float getter/setter shared vendor lowering（已完成，用户编辑器核验通过）
-最近完成工作包：P2-W4 — local-variable float getter/setter shared vendor lowering + 用户编辑器核验
+当前工作包：P2-W5 — composite impl vendor Graph embedding observation（已完成，用户编辑器核验通过）
+最近完成工作包：P2-W5 — composite impl vendor Graph embedding observation + 用户编辑器核验
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -66,7 +66,7 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 
 ## 尚未证明
 
-- 临时 vendor Graph 编码后提取 NodeGraph 是否会引入或丢失 impl metadata（A 的关键残余风险）。
+- P2-W5 只证明无 capture、无 nested composite call 的 local-float closed ordinary impl 图可由临时 vendor Graph 提取并经编辑器核验；graphValues、affiliations、compositePins、capture、synthetic composite call 和其他 ordinary family 的嵌入兼容性仍未证明。
 - int/bool/str/entity/guid 等其他类型的 concrete variant 一致性。
 - P2-W1 已覆盖的 float/vec3 setter fixture 已被用户在游戏编辑器中接受；其他普通节点族仍未证明。
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
@@ -609,23 +609,62 @@ git diff --check                                                 # PASS
 
 明确非目标：不迁移其他 local-variable 类型，不切换完整 vendor Graph materialization，不删除 handwritten backend，不改 capture/boundary/布局，不注入。
 
+## 已完成工作包：P2-W5 — composite impl vendor Graph embedding observation
+
+状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+
+目标：
+
+- 先用同一份原始 DSL 生成 legacy baseline，由用户编辑器确认后导出为本轮真实参考；
+- 只在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` gate 下，让 closed ordinary composite impl graph 用 vendor `Graph.add_node()`、`connect()`、`flow()` 编码，再提取 nodes 套回既有 composite wrapper；
+- 保持 composite boundary、capture、nested composite call、布局和 handwritten backend 默认路径不变。
+
+已确认：
+
+- 用户确认 legacy baseline `P2W5-vendor-graph-legacy-baseline.gia` 正常，并导出真实参考：`Beyond_Local_Export/user_edit/复合节点/P2W5-vendor-Graph-legacy-baseline.gia`；
+- refactored candidate 只将复合 impl 内两个 local-variable float 分支（literal setter、Addition→setter、getter downstream use、DTC、Print、两条 flow）切换至 vendor Graph；主图仍是现有 root path；
+- 用户在游戏编辑器中确认 refactored candidate 正常；这证明该封闭 ordinary 图的节点、data edge、flow、nodeIndex 与现有 wrapper 的组合可用；
+- 自动 `gia-diff.ts` 对用户导出参考和候选仍报告 40 个 impl pin 字段差异；它们来自旧手写 pin 与 vendor pin schema 的不同，不能据此宣称 raw/wire 全等。编辑器通过证明本样本行为可用，不推广为所有类型或 boundary 的 wire 等价。
+
+真实 GIA / 游戏编辑器证据：
+
+```text
+legacy candidate (used only before editor export; removed from export root after completion): Beyond_Local_Export/P2W5-vendor-graph-legacy-baseline.gia
+legacy candidate SHA-256: 19db5302bb85b1a935a155ffee68bf8a9d0daac5481f15d6e4a7b34420bcd87b
+editor-exported reference: Beyond_Local_Export/user_edit/复合节点/P2W5-vendor-Graph-legacy-baseline.gia
+editor-exported reference SHA-256: 91416d44384f4ae954c4e69ed0d40917c468306ca07e92114a89855a15ea53bc
+passed archive: Beyond_Local_Export/真-测试通过/复合节点/P2W5-vendor-graph-refactored-candidate.gia
+passed archive SHA-256: 86c2a1b9c8e9a771f68e5d5c0e7451169ea3f5dfceada75d7efd5e5e0a60d9d0
+user confirmation: legacy baseline and refactored candidate both passed editor review.
+```
+
+验证：
+
+```bash
+npm run build                                                                 # PASS
+npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts            # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts /tmp/P2W5-vendor-graph-refactored-candidate.gia # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts                       # PASS
+npx tsx tests/composite/test-local-variable-impl-concrete-type.ts             # PASS
+npx tsx tests/composite/test-nested-composite-capture-pins.ts                 # PASS
+npx tsx tests/composite/test-nested-composite-outflow.ts                      # PASS
+git diff --check                                                              # PASS
+```
+
+明确非目标：不将 gate 设为默认，不删除手写 impl backend，不迁移 capture、nested composite call、compositePins、graphValues、affiliations 或布局，不注入，不改 vendor/generated 文件。
+
 ## 待用户决策
 
-P2-W4 已通过用户游戏编辑器核验。下一工作包应按 Phase 2 顺序选择 DTC，或先开独立的完整 vendor Graph embedding 观察工作包；两者不得混入同一工作包。ADR-006=A 保持不变，不得把当前 vendor Node vertical slice 扩写为长期方案 B，也不得删除 handwritten impl backend。
-
-
-残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
-
-- 临时 vendor Graph 嵌入 impl 的 metadata 兼容性仍未证明。
+P2-W5 已通过用户编辑器核验。下一工作包应选择：按 Phase 2 顺序迁移 DTC，或为 capture/nested composite call 等 boundary edge 建立独立 vendor Graph embedding 观察工作包；两者不得混入同一工作包。ADR-006=A 保持不变；P2-W5 不授权删除 handwritten backend 或默认开启 gate。
 
 ## 进行中或未提交变化
 
-P2-W3 已完成并获用户提交授权。当前变化只包含 P2-W3 源码、测试和状态文档；附加布局实验脚本未纳入提交。
+P2-W5 已完成、未提交。当前预期变化：`src/compiler/ir_to_gia_transform/composite.ts`、`tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts`、本状态文档和 Phase 2/3 计划文档。
 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)、[COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；结束涉及真实 GIA/用户编辑器协作的工作包时，再读 [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md) 决定是否做最小经验更新；
 2. 检查分支、status 和最近提交；
-3. P2-W4 已完成；提交后按 Phase 2 推广顺序选择 DTC，或建立独立 Graph embedding 观察工作包；
-4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
+3. P2-W5 已完成；提交后按用户决定选择 DTC 或 boundary embedding observation；
+4. 架构约束：ADR-006 = 完整 vendor Graph materialization；P2-W5 gate 只覆盖 closed ordinary impl graph，阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。

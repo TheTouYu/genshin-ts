@@ -376,6 +376,10 @@ function buildImplGraphNodes(
 
   const layout = computeImplLayout(implNodes, implEdges, def, compositeDefById)
 
+  if (process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1') {
+    return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout)
+  }
+
   return nodeResults.map(({
     node,
     nodeId,
@@ -431,6 +435,101 @@ function buildImplGraphNodes(
       usingStruct: []
     }
   })
+}
+
+/**
+ * P2-W5 experiment gate: materialize a closed ordinary impl graph through vendor Graph.
+ *
+ * Composite calls and capture/boundary pins remain outside this path. The gate rejects every
+ * unsupported node instead of silently returning to handwritten connects, so each editor
+ * candidate has an unambiguous backend.
+ */
+function materializeImplOrdinaryGraphWithVendor(
+  nodeResults: any[],
+  implEdges: Record<number, ImplEdge[]>,
+  layout: Map<number, { x: number; y: number }>
+): GraphNode[] {
+  const graph = new Graph('server', 0, '', 0)
+  const vendorNodes = new Map<number, Node<any>>()
+
+  for (const result of nodeResults) {
+    const { node, nodeIndex, genericId, isCompositeCall } = result
+    if (isCompositeCall || node.type === '__composite_capture__') {
+      throw new Error(`[error] vendor impl graph gate does not support synthetic node ${node.type}`)
+    }
+
+    const concreteNodeId = result.dtcConcreteNid ?? result.gvConcreteNid ??
+      result.customVariableConcreteNid ?? result.localVariableConcreteNid ??
+      result.ordinaryConcreteNid ?? result.nodeId
+    if (!concreteNodeId) {
+      throw new Error(`[error] vendor impl graph gate cannot resolve ${node.type} (${node.id})`)
+    }
+
+    const vendorNode = new Node(nodeIndex, 'server', concreteNodeId, genericId.nodeId)
+    for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
+      const arg = node.args[argIndex]
+      if (!arg || arg.type === 'conn') continue
+      if (arg.capture === true) {
+        throw new Error(`[error] vendor impl graph gate does not support capture input on ${node.type}`)
+      }
+      const pin = vendorNode.pins.find(
+        (candidate: any) => candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
+      )
+      if (!pin) {
+        throw new Error(`[error] vendor impl graph gate missing ${node.type} InParam[${argIndex}]`)
+      }
+      pin.setVal(arg.value)
+    }
+
+    vendorNode.pins = vendorNode.pins.filter(
+      (pin: any) =>
+        !(node.type === 'get_local_variable' &&
+          pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0) &&
+        !((pin.kind === NodePin_Index_Kind.InParam || pin.kind === NodePin_Index_Kind.OutParam) &&
+          pin.type?.t === 'b' && pin.type?.b === 'Unk')
+    )
+    vendorNodes.set(node.id, graph.add_node(vendorNode))
+  }
+
+  for (const result of nodeResults) {
+    const target = vendorNodes.get(result.node.id)
+    if (!target) throw new Error(`[error] vendor impl graph missing target ${result.node.id}`)
+    for (let argIndex = 0; argIndex < (result.node.args ?? []).length; argIndex++) {
+      const arg = result.node.args[argIndex]
+      if (!arg || arg.type !== 'conn') continue
+      const source = vendorNodes.get(arg.value.node_id)
+      if (!source) {
+        throw new Error(`[error] vendor impl graph data source is not ordinary: ${arg.value.node_id}`)
+      }
+      graph.connect(source, target, arg.value.index, argIndex)
+    }
+  }
+
+  for (const [fromId, edges] of Object.entries(implEdges)) {
+    const source = vendorNodes.get(Number(fromId))
+    if (!source) continue
+    for (const edge of edges) {
+      const target = vendorNodes.get(getEdgeTarget(edge))
+      if (!target) {
+        throw new Error(`[error] vendor impl graph flow target is not ordinary: ${getEdgeTarget(edge)}`)
+      }
+      graph.flow(source, target, getEdgeSourceIndex(edge), getEdgeTargetIndex(edge))
+    }
+  }
+
+  const encodedNodes = ((graph.encode() as any).graph?.graph?.inner?.graph?.nodes ?? []) as GraphNode[]
+  if (encodedNodes.length !== nodeResults.length) {
+    throw new Error(`[error] vendor impl graph lost nodes: ${encodedNodes.length}/${nodeResults.length}`)
+  }
+  for (const encodedNode of encodedNodes) {
+    const source = nodeResults.find((result) => result.nodeIndex === encodedNode.nodeIndex)
+    const pos = source ? layout.get(source.node.id) : undefined
+    if (!source || !pos) throw new Error(`[error] vendor impl graph lost node position`)
+    encodedNode.x = pos.x
+    encodedNode.y = pos.y
+    encodedNode.usingStruct = []
+  }
+  return encodedNodes
 }
 
 /** 为 impl 图节点计算布局坐标。复用主图布局核心，保持 exec/data 语义一致。 */
