@@ -20,6 +20,36 @@
 
 不得按物理变量名编码，节点族规则必须通用。
 
+## P2-W1 当前结果：standalone vendor Graph metadata observation
+
+状态：部分完成 / 观察契约已通过；impl embedding 仍待验证
+
+新增观察测试：`tests/composite/test-stage3-vendor-graph-metadata.ts`
+
+已验证：
+
+- standalone `Graph.encode()` 能生成普通 setter NodeGraph；
+- float setter 的 generic/concrete identity 和 `InParam[1]` concrete wrapper 与既有 vendor/真实 GIA 证据一致；
+- standalone graph 的 `graphValues`、`compositePins`、`affiliations` 为空；
+- 当前 CompositeDef impl wrapper 的 `graphValues`、`affiliations` 与 standalone vendor graph 的空字段一致；`compositePins` 是独立 boundary overlay，不应与 standalone 空列表直接比较；
+- 当前 impl wrapper 保留 ordinary node identity，但 ordinary pin 编码仍为 handwritten；
+- `Node#setPos()` 的编码包含 vendor 像素缩放和随机 shaking，因此不能直接视为 impl layout 坐标契约。
+
+仍待验证：
+
+- 当前 fixture 已覆盖多个 ordinary nodes、float data edge、nodeIndex remap 和 flow pin 扫描；Graph graph-id/name wrapper、分支 flow 和完整 position 映射仍未覆盖；
+- `compositePins` boundary overlay 已单独观察，不作为 ordinary vendor metadata 的一部分；
+- 该结果不能授权切换 production lowering 或删除 handwritten impl backend。
+
+验证命令：
+
+```bash
+npm run build                                      # PASS
+npx tsx tests/composite/experiment-vendor-graph-connect-float.ts # PASS
+npx tsx tests/composite/test-stage3-vendor-graph-metadata.ts     # PASS
+git diff --check                                   # PASS
+```
+
 ## 工作项
 
 ### 2.1 提取共享 value adapter

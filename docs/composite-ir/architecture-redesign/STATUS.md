@@ -334,7 +334,46 @@ git diff --check                               # PASS
 - [x] 声明 float + assigned int 产生 `E_TYPED_INPUT_CONFLICT`；
 - [x] root/impl 生产输出保持未切换。
 
-## 工作包状态
+## 当前工作包：P2-W1 — vendor Graph metadata observation
+
+状态：进行中 / 观察契约已建立；未切换生产 lowering
+
+目标：
+
+- 记录 standalone vendor `Graph` 对 `set_node_graph_variable` float setter 的 NodeGraph metadata、节点 identity、位置编码和空 accessories-like 字段行为；
+- 为后续 impl Graph 嵌入实验提供可重复的 baseline；
+- 保留 handwritten impl pin/connect backend，不改变生产编码路径。
+
+新增文件：
+
+```text
+tests/composite/test-stage3-vendor-graph-metadata.ts
+```
+
+验证：
+
+```bash
+npm run build                                      # PASS
+npx tsx tests/composite/experiment-vendor-graph-connect-float.ts # PASS
+npx tsx tests/composite/test-stage3-vendor-graph-metadata.ts     # PASS
+git diff --check                                   # PASS
+```
+
+当前观察（L2 vendor node / L3 standalone encoded graph）：
+
+- vendor `Graph.encode()` 可生成包含 float setter 的 inner graph；节点为 generic `323`、concrete `324`；`InParam[1]` 为 `type=5`、`bConcreteValue.indexOfConcrete=1`、float value `0`；
+- standalone graph 的 `graphValues`、`compositePins`、`affiliations` 均为空；
+- vendor `Node#setPos(0, 0)` 经编码后使用 `x/y` 像素缩放并带随机 shaking，不能直接作为 impl layout metadata 的等价物；
+- 当前 CompositeDef impl wrapper 的 `graphValues`、`affiliations` 仍与 standalone vendor graph 的空字段一致，但 `compositePins` 是独立 boundary overlay（本 fixture 为 1 条），不能与 standalone 空列表直接比较；
+- 当前 impl wrapper 保留 ordinary node 的 generic/concrete identity，但 ordinary pin 编码仍是 handwritten，尚未切换为 vendor Graph materialization。
+
+未确认与下一步：
+
+- P2-W1 的 metadata 对照已覆盖 graphValues、compositePins boundary overlay、affiliations、node identity 和节点存在性；
+- 当前 fixture 已覆盖多个 ordinary nodes、float data edge、nodeIndex remap 和 flow pin 扫描；尚未覆盖 Graph graph-id/name wrapper、分支 flow 和完整位置映射；
+- 当前结果仍不足以切换 `buildImplGraphNodes()` 到完整 vendor Graph materialization，也不得删除 `buildImplNodePins()`。
+
+明确非目标：不修改生产编码行为、不切换 feature gate、不注入。
 
 ### Phase 0
 
