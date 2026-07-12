@@ -541,7 +541,6 @@ function getImplArgType(
 // These families remain on the handwritten impl backend. They must not become a new
 // typed-identity path: migrated node-graph/custom variants use resolveNodeIdentity() above.
 const LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES = new Set([
-  'get_node_graph_variable',
   'get_custom_variable',
   'get_local_variable',
   'set_local_variable'
@@ -908,7 +907,7 @@ function buildImplNodePins(
     return { pins: vendorPins, dataConns }
   }
 
-  // get_node_graph_variable：临时用 Graph+Node 编码，100% 复用 vendor 的 pin 生成逻辑
+  // get_node_graph_variable：shared identity 提供 concrete variant，vendor Node 物化 pin schema。
   if (node.type === 'get_node_graph_variable' && gvConcreteNid) {
     const tmpGraph = new Graph('server', 0, '', 0)
     const tmpNode = new Node(0, 'server', gvConcreteNid, undefined as any)

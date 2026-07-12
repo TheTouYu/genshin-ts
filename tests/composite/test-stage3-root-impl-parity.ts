@@ -1,10 +1,10 @@
 // @ts-nocheck
 /**
- * P0-W4/P1-W2: Root/impl ordinary-node parity fixture for set_node_graph_variable.
+ * P0-W4/P1-W2/P2-W1/P2-W2: Root/impl ordinary-node parity fixture for
+ * node-graph variable setters and getters.
  *
- * Root and impl identity are now resolved through the shared contract. Pin lowering
- * remains legacy in impl, so this fixture continues to expose the remaining schema
- * drift while asserting shared generic/concrete identity.
+ * Root and impl identity are resolved through the shared contract. The migrated setter
+ * and getter families use vendor Node pin materialization and must remain schema-identical.
  *
  * Run: npx tsx tests/composite/test-stage3-root-impl-parity.ts
  */
@@ -96,6 +96,16 @@ function collectSetters(graph: any, varName: string): any[] {
     const namePin = (node.pins ?? []).find((p: any) => p?.i1?.kind === 3 && p?.i1?.index === 0)
     const name = namePin?.value?.bString?.val
     if (name === varName) out.push(node)
+  }
+  return out
+}
+
+function collectGetters(graph: any, varName: string): any[] {
+  const out: any[] = []
+  for (const node of graph?.nodes ?? []) {
+    if (node?.genericId?.nodeId !== 337) continue
+    const namePin = (node.pins ?? []).find((p: any) => p?.i1?.kind === 3 && p?.i1?.index === 0)
+    if (namePin?.value?.bString?.val === varName) out.push(node)
   }
   return out
 }
@@ -224,6 +234,31 @@ const total = allMismatches.reduce((n, c) => n + c.mismatches.length, 0)
 assert.equal(total, 0, 'setter-family root/impl ordinary schema must match')
 console.log('PASS setter-family root/impl ordinary schema parity')
 
+// ── Graph-variable getter shared identity and vendor schema parity ──
+for (const { variableName, concreteId } of [
+  { variableName: 'a', concreteId: 341 },
+  { variableName: '向量', concreteId: 348 }
+]) {
+  const rootGetter = collectGetters(rootGraph, variableName)[0]
+  const implGetter = collectGetters(implGraph, variableName)[0]
+  assert.ok(rootGetter, `root getter missing for ${variableName}`)
+  assert.ok(implGetter, `impl getter missing for ${variableName}`)
+  const rootContract = extractOrdinaryNodeContract(rootGetter)
+  const implContract = extractOrdinaryNodeContract(implGetter)
+  assert.equal(rootContract.genericId, 337)
+  assert.equal(rootContract.concreteId, concreteId)
+  assert.equal(implContract.genericId, 337)
+  assert.equal(implContract.concreteId, concreteId)
+  assert.deepEqual(
+    compareOrdinaryNodeContracts(rootContract, implContract, {
+      labelExpected: `root/getter-${variableName}`,
+      labelActual: `impl/getter-${variableName}`
+    }),
+    []
+  )
+}
+console.log('PASS graph-variable getter root/impl identity and vendor schema parity')
+
 // Also expose a pure helper unit check (no production encode)
 {
   const syntheticRoot = {
@@ -273,6 +308,6 @@ console.log('PASS setter-family root/impl ordinary schema parity')
 assert.ok(findSetterByVariableName(rootGraph, '额外压力'))
 assert.ok(findSetterByVariableName(implGraph, '额外压力'))
 
-console.log('\nP2-W1 RESULT: setter identity and vendor pin schema parity green')
+console.log('\nP2-W2 RESULT: setter/getter identity and vendor pin schema parity green')
 console.log('output:', outputPath)
 console.log('composite id:', ParityComposite.id)

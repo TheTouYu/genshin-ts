@@ -54,7 +54,7 @@ assert.deepEqual(resolveNodeIdentity(customGetter, customContext), {
   logicalType: 'get_custom_variable', genericNodeId: 50, concreteNodeId: 54
 })
 
-assert.equal(usesLegacyImplTypedIdentityAdapter('get_node_graph_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('get_node_graph_variable'), false)
 assert.equal(usesLegacyImplTypedIdentityAdapter('get_custom_variable'), true)
 assert.equal(usesLegacyImplTypedIdentityAdapter('get_local_variable'), true)
 assert.equal(usesLegacyImplTypedIdentityAdapter('set_local_variable'), true)

@@ -1,6 +1,6 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1 setter 切片已完成并通过用户游戏编辑器验证；后续 ordinary family 待执行
+> 状态：P2-W1 setter 切片已完成并通过用户游戏编辑器验证；P2-W2 getter 切片已完成自动回归，待审核
 > 来源：目标架构设计 + 当前实现/自动回归 + 用户游戏编辑器验证
 > 最近校验：2026-07-12
 > 适用范围：普通系统节点；不包含 composite synthetic call/capture
@@ -157,9 +157,38 @@ src/compiler/ir_to_gia_transform/vendor_normalization.ts
 - [x] 已有 focused 迁移不变量通过；
 - [x] 游戏目录替换经用户明确授权，且用户编辑器验证通过。
 
+## P2-W2 当前结果：graph-variable getter vendor pin materialization
+
+状态：实现与自动回归完成，待审核；无新增真实 GIA 或游戏内验证。
+
+已验证：
+
+- impl `get_node_graph_variable` 的 generic/concrete identity 由 shared `resolveNodeIdentity()` 提供，不再进入
+  handwritten impl typed-identity adapter；
+- float getter `a` 在 root/impl 均为 generic `337` + concrete `341`；
+- vec3 getter `向量` 在 root/impl 均为 generic `337` + concrete `348`；
+- getter 的变量名输入、concrete wrapper 和输出 pin schema 继续由 vendor `Node` 物化；
+- root/impl getter ordinary-node contract parity 为零差异；
+- P2-W1 setter parity 和 game-validation 结构契约未回归。
+
+验证命令：
+
+```bash
+npm run build                                             # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts   # PASS
+npx tsx tests/composite/test-stage3-p2-game-validation.ts # PASS; script仍明确标注游戏验证不能由自动测试替代
+git diff --check                                          # PASS
+```
+
+证据边界：L1 shared identity/backend gate + L3 encoded root/impl parity；没有新增真实 GIA、wire、注入或用户游戏行为证据。
+
+明确非目标：不迁移 custom/local variable family，不切换完整 impl Graph materialization，不删除 handwritten backend，
+不推广 float/vec3 getter 结果到 list/dict/其他类型。
+
 ## 后续推广顺序
 
-1. graph variable getter；
+1. ~~graph variable getter~~（P2-W2 完成自动回归，待审核）；
 2. custom variable getter/setter；
 3. local variable getter/setter；
 4. DTC；

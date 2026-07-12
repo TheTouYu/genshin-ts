@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P2-W1 implementation and user game validation complete; uncommitted)
+> 最近校验：2026-07-12 (P2-W2 graph-variable getter slice complete; uncommitted)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W1 — setter vendor pin materialization + P2 game-validation fixture（已完成，待审核提交）
-最近完成工作包：P2-W1 — float/vec setter schema parity + P2 editor validation（用户 2026-07-12 确认通过）
+当前工作包：P2-W2 — graph-variable getter shared identity + vendor pin materialization（已完成，待审核提交）
+最近完成工作包：P2-W1 — float/vec setter schema parity + P2 editor validation（提交 c8c78fe；用户 2026-07-12 确认通过）
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -55,6 +55,9 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
   物化 pin schema；float literal、float connection、vec3 connection 的 root/impl contract parity 已转绿。
 - **P2-W1**：ordinary concrete-wrapped producer 根据实际下游输出类型解析 concrete identity；float Addition
   从 generic/concrete `200/200` 修正为 `200/201`。
+- **P2-W2**：impl graph-variable getter 不再进入 legacy typed-identity adapter；shared resolver 提供 concrete
+  identity，vendor `Node` 物化 getter pin schema。float getter root/impl 为 `337/341`，vec3 getter为 `337/348`，
+  ordinary-node contract parity 均为零差异。
 - **用户游戏内验证（2026-07-12）**：`P2复合节点-gsts-reproduction.gia` 的 5 个复合均在编辑器中通过：
   主图 5-way fan-out、float literal setter 类型、float/vec3 producer connection、顺序分叉和 literal/connection
   pair 均确认正确。最终验证文件 SHA-256：
@@ -342,9 +345,49 @@ git diff --check                               # PASS
 - [x] 声明 float + assigned int 产生 `E_TYPED_INPUT_CONFLICT`；
 - [x] root/impl 生产输出保持未切换。
 
-## 当前工作包：P2-W1 — setter vendor pin materialization + game validation
+## 当前工作包：P2-W2 — graph-variable getter shared identity + vendor pin materialization
 
-状态：实现、自动回归与用户游戏编辑器验证均完成；待审核提交
+状态：实现与自动回归完成；待审核提交
+
+目标：
+
+- graph-variable getter 的 impl concrete identity 只使用 shared resolver；
+- 保留 vendor `Node` getter pin materialization，并建立 float/vec3 root/impl encoded parity；
+- 不迁移 custom/local variable、不切换完整 Graph materialization 或删除 handwritten backend。
+
+修改文件：
+
+```text
+src/compiler/ir_to_gia_transform/composite.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+tests/composite/test-stage3-root-impl-parity.ts
+docs/composite-ir/architecture-redesign/STATUS.md
+docs/composite-ir/architecture-redesign/phase-2-shared-vendor-node-lowering.md
+```
+
+验证：
+
+```bash
+npm run build                                             # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts   # PASS
+npx tsx tests/composite/test-stage3-p2-game-validation.ts # PASS; 自动结构检查，不替代游戏验证
+git diff --check                                          # PASS
+```
+
+证据等级：L1 shared identity/backend gate + L3 encoded root/impl parity；无新增真实 GIA、wire、注入或游戏行为证据。
+
+完成条件：
+
+- [x] `get_node_graph_variable` 不再由 legacy impl typed-identity adapter 接受；
+- [x] float getter root/impl generic/concrete identity 为 `337/341`；
+- [x] vec3 getter root/impl generic/concrete identity 为 `337/348`；
+- [x] getter vendor pin schema root/impl parity 为零差异；
+- [x] P2-W1 focused regressions 未回归。
+
+## 已完成工作包：P2-W1 — setter vendor pin materialization + game validation
+
+状态：实现、自动回归与用户游戏编辑器验证均完成；已提交为 `c8c78fe`
 
 目标：
 
@@ -473,7 +516,7 @@ git diff --check
 
 ## 待用户决策
 
-P2-W1 已完成首个 setter-family 生产切片并获得用户游戏编辑器验证。无阻塞决策；下一工作包尚未选择。
+P2-W2 已完成 graph-variable getter 自动回归。无阻塞决策；审核提交后下一候选为 custom variable getter/setter。
 后续仍须保持 ADR-006=A 的完整 vendor Graph materialization 方向，不得把当前 setter 专用 vendor Node 路径扩写为
 长期方案 B，也不得删除 handwritten impl backend。
 
@@ -484,21 +527,20 @@ P2-W1 已完成首个 setter-family 生产切片并获得用户游戏编辑器�
 
 ## 进行中或未提交变化
 
-P2-W1 尚未提交，预期只有：
+P2-W2 尚未提交，预期只有：
 
 ```text
 docs/composite-ir/architecture-redesign/STATUS.md
 docs/composite-ir/architecture-redesign/phase-2-shared-vendor-node-lowering.md
 src/compiler/ir_to_gia_transform/composite.ts
-tests/composite/test-stage3-p2-game-validation.ts
+tests/composite/test-stage3-resolved-node-contract.ts
 tests/composite/test-stage3-root-impl-parity.ts
-tests/composite/test-stage3-vendor-graph-metadata.ts
 ```
 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 审查 P2-W1 最终 diff、自动验证和用户游戏验证记录；提交后再选择下一工作包。
+3. 审查 P2-W2 最终 diff 与自动验证；提交后再选择 custom variable getter/setter 工作包。
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。
