@@ -291,6 +291,7 @@ function buildImplGraphNodes(
       implOutParamMap
         .get(node.id)
         ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
+    const ordinaryConcreteNid = resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
     let compositeId: number | undefined
     let calledDef: CompositeDefIR | undefined
@@ -364,6 +365,7 @@ function buildImplGraphNodes(
       gvConcreteNid: sharedConcreteNid ?? gvConcreteNid,
       customVariableConcreteNid,
       localVariableConcreteNid,
+      ordinaryConcreteNid,
       nodeIndex: nodeIndexMap.get(node.id) ?? node.id
     }
   })
@@ -389,7 +391,8 @@ function buildImplGraphNodes(
     dtcConcreteNid,
     gvConcreteNid,
     customVariableConcreteNid,
-    localVariableConcreteNid
+    localVariableConcreteNid,
+    ordinaryConcreteNid
   }) => {
     const outEdges = implEdges[node.id]
     if (outEdges && outEdges.length > 0) {
@@ -424,7 +427,9 @@ function buildImplGraphNodes(
             ? { ...genericId, nodeId: customVariableConcreteNid }
             : localVariableConcreteNid
               ? { ...genericId, nodeId: localVariableConcreteNid }
-              : { ...genericId },
+              : ordinaryConcreteNid
+                ? { ...genericId, nodeId: ordinaryConcreteNid }
+                : { ...genericId },
       pins,
       x: pos.x,
       y: pos.y,
@@ -577,6 +582,15 @@ function resolveLegacyImplTypedNodeId(
 /**
  * 解析 impl 节点的 GIA node ID
  */
+function resolveImplOrdinaryConcreteNodeId(
+  nodeType: string,
+  producedType: string | undefined
+): number | undefined {
+  if (!producedType || !concreteWrappedNodeTypes.has(nodeType)) return undefined
+  const suffix = producedType === 'vec3' ? 'vec' : producedType
+  return getNodeIdLowerMap().get(`${nodeType.toLowerCase()}__${suffix}`)
+}
+
 function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value: unknown } | null>): number {
   const special = SPECIAL_NODE_IDS[nodeType]
   if (special) return special
@@ -821,6 +835,74 @@ function buildImplNodePins(
         upstreamNodeId: conn.upstreamNodeId,
         upstreamPinIndex: conn.upstreamPinIndex
       })
+    }
+
+    return { pins: vendorPins, dataConns }
+  }
+
+  // set_node_graph_variable：使用 concrete vendor Node 物化完整 pin schema。
+  // literal 与 connection 共用同一 schema；connection 只延后填入 connects。
+  if (node.type === 'set_node_graph_variable' && gvConcreteNid) {
+    const tmpGraph = new Graph('server', 0, '', 0)
+    const tmpNode = new Node(0, 'server', gvConcreteNid, undefined as any)
+    const pendingConns: Array<{
+      pinIndex: number
+      upstreamNodeId: number
+      upstreamPinIndex: number
+    }> = []
+
+    for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
+      const arg = node.args?.[argIndex]
+      if (!arg || (arg as any).capture === true) continue
+      if (arg.type === 'conn') {
+        const conn = arg.value as { node_id: number; index: number }
+        pendingConns.push({
+          pinIndex: argIndex,
+          upstreamNodeId: conn.node_id,
+          upstreamPinIndex: conn.index
+        })
+      } else {
+        const pin = tmpNode.pins.find(
+          (candidate) =>
+            candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
+        )
+        pin?.setVal(arg.value)
+      }
+    }
+
+    tmpGraph.add_node(tmpNode)
+    const tmpRoot = tmpGraph.encode() as any
+    const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
+    const vendorPins = (encodedNode?.pins ?? []) as NodePin[]
+
+    for (const pin of vendorPins) {
+      ;(pin as any).connects = undefined
+    }
+    for (const conn of pendingConns) {
+      const pin = vendorPins.find(
+        (candidate: any) =>
+          candidate.i1?.kind === NodePin_Index_Kind.InParam &&
+          candidate.i1?.index === conn.pinIndex
+      )
+      if (!pin) continue
+      dataConns.push({
+        nodeId: node.id,
+        pin,
+        upstreamNodeId: conn.upstreamNodeId,
+        upstreamPinIndex: conn.upstreamPinIndex
+      })
+    }
+
+    const outEdges = implEdges[node.id]
+    if (outEdges && outEdges.length > 0) {
+      for (const [sourceIndex] of groupEdgesBySourceIndex(outEdges)) {
+        vendorPins.push({
+          i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          type: 0,
+          value: undefined as any
+        })
+      }
     }
 
     return { pins: vendorPins, dataConns }

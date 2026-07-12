@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P1-W7 submitted; Phase 1 exited; ADR-006=A accepted)
+> 最近校验：2026-07-12 (P2-W1 implementation and user game validation complete; uncommitted)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：Phase 2 entry checkpoint 已完成；P2-W1 尚未选择
-最近完成工作包：P1-W7 — impl typed-identity legacy adapter boundary（已审核并提交：d6bc6a8）
+当前工作包：P2-W1 — setter vendor pin materialization + P2 game-validation fixture（已完成，待审核提交）
+最近完成工作包：P2-W1 — float/vec setter schema parity + P2 editor validation（用户 2026-07-12 确认通过）
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -51,12 +51,20 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
   legacy root branch 输出既有 concrete ID `2902`。sink 未接入 production encoding 或 diagnostics。
 - **P1-W6**：custom setter 从 `args[2]` value、custom getter 从 downstream output connection type 解析
   shared identity；不再把 target entity/name string 当作类型来源。root custom legacy path 未切换。
+- **P2-W1**：composite impl 的 `set_node_graph_variable` float/vec3 setter 已使用 concrete vendor `Node`
+  物化 pin schema；float literal、float connection、vec3 connection 的 root/impl contract parity 已转绿。
+- **P2-W1**：ordinary concrete-wrapped producer 根据实际下游输出类型解析 concrete identity；float Addition
+  从 generic/concrete `200/200` 修正为 `200/201`。
+- **用户游戏内验证（2026-07-12）**：`P2复合节点-gsts-reproduction.gia` 的 5 个复合均在编辑器中通过：
+  主图 5-way fan-out、float literal setter 类型、float/vec3 producer connection、顺序分叉和 literal/connection
+  pair 均确认正确。最终验证文件 SHA-256：
+  `3e825367f5a5d9babce1200950b826f45ffc1d40da39b84b805cdf1dfcfbafc9`。
 
 ## 尚未证明
 
 - 临时 vendor Graph 编码后提取 NodeGraph 是否会引入或丢失 impl metadata（A 的关键残余风险）。
 - int/bool/str/entity/guid 等其他类型的 concrete variant 一致性。
-- 修复后的生成 GIA 是否被游戏接受。
+- P2-W1 已覆盖的 float/vec3 setter fixture 已被用户在游戏编辑器中接受；其他普通节点族仍未证明。
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
 - Signals/dynamic pin family 是否共用同一 resolution contract（ADR-008）。
@@ -334,9 +342,9 @@ git diff --check                               # PASS
 - [x] 声明 float + assigned int 产生 `E_TYPED_INPUT_CONFLICT`；
 - [x] root/impl 生产输出保持未切换。
 
-## 当前工作包：P2-W1 — vendor Graph metadata observation
+## 当前工作包：P2-W1 — setter vendor pin materialization + game validation
 
-状态：进行中 / 观察契约已建立；未切换生产 lowering
+状态：实现、自动回归与用户游戏编辑器验证均完成；待审核提交
 
 目标：
 
@@ -369,11 +377,48 @@ git diff --check                                   # PASS
 
 未确认与下一步：
 
-- P2-W1 的 metadata 对照已覆盖 graphValues、compositePins boundary overlay、affiliations、node identity 和节点存在性；
-- 当前 fixture 已覆盖多个 ordinary nodes、float data edge、nodeIndex remap 和 flow pin 扫描；尚未覆盖 Graph graph-id/name wrapper、分支 flow 和完整位置映射；
+- P2-W1 的 metadata 对照已覆盖 graphValues、compositePins boundary overlay、affiliations、node identity、节点存在性、Graph wrapper id/name 和 standalone 分支 flow wire；
+- 当前 fixture 已覆盖多个 ordinary nodes、float data edge、nodeIndex remap、Graph wrapper id/name、standalone 分支 flow，以及 CompositeDef impl 内 3 条 execution-flow pin 的 remap；当前 CompositeDef impl wrapper 的 name 为空、kind 为 `21002`，与 standalone vendor Graph 的 kind `21001` / name 不同；
+- impl flow 观察确认 flow pin 使用 kind=2，连接 wire 使用 kind=1，目标 nodeIndex 已 remap；完整位置映射仍未覆盖；
 - 当前结果仍不足以切换 `buildImplGraphNodes()` 到完整 vendor Graph materialization，也不得删除 `buildImplNodePins()`。
 
-明确非目标：不修改生产编码行为、不切换 feature gate、不注入。
+用户游戏编辑器审查（2026-07-12，`P2复合节点-gsts-reproduction.gia`）：**FAIL，停止本轮继续修复**。
+
+证据：
+
+- 真实参考：`Beyond_Local_Export/user_edit/复合节点/P2复合节点.gia`；
+- gsts 复刻：`Beyond_Local_Export/P2复合节点-gsts-reproduction.gia`；
+- 截图：`Beyond_Local_Export/布局/复合节点-重构-主图差异-连线异常.png`；
+- 用户在游戏编辑器中确认：
+  1. 主图 5 个 composite call 本应由事件节点按叉状 fan-out 全部连接；复刻文件大部分控制流断开；
+  2. `P2_FloatConnection_GSTS` 错把两个固定 float literal 生成为节点图变量读取；
+  3. `P2_FloatLiteral_GSTS` 的 setter 未正确物化为 float 类型；
+  4. `P2_ExecutionFlow_GSTS` 错用了 true/false 条件分支，参考语义是顺序分叉，先 true 后 false；
+  5. `P2_LiteralConnectionPair_GSTS` 同时存在错误顺序语义、literal setter 类型错误，以及 connected setter 的 Addition producer 未显示。
+
+分类：首次用户审查确认失败。随后按 reference-vs-generated 最小对照修正 DSL fixture，并定位两项生产缺口：
+ordinary float Addition concrete identity 未解析，以及 impl setter 仍使用 handwritten pin schema。
+
+最终结果（用户 2026-07-12 复验）：**PASS**。
+
+- 主图 event 直接 fan-out 到 5 个 composite calls；
+- float literal setter 显示为 concrete float；
+- float/vec3 Addition producer 与 setter connection 正确显示；
+- execution-flow 和 pair 使用参考中的同一顺序分叉出口；
+- 最终游戏目录文件与候选逐字节一致，SHA-256 为
+  `3e825367f5a5d9babce1200950b826f45ffc1d40da39b84b805cdf1dfcfbafc9`。
+
+新增/修改验证：
+
+```bash
+npm run build                                             # PASS
+npx tsx tests/composite/test-stage3-p2-game-validation.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts   # PASS; setter parity green
+npx tsx tests/composite/test-stage3-vendor-graph-metadata.ts # PASS
+git diff --check                                          # PASS
+```
+
+明确非目标：未切换完整 impl Graph materialization，未删除 handwritten backend，未推广到其他 ordinary family。
 
 ### Phase 0
 
@@ -428,8 +473,9 @@ git diff --check
 
 ## 待用户决策
 
-用户已确认 Phase 1 退出并授权进入 Phase 2。无阻塞决策；P2-W1 尚未选择。首个 Phase 2 切片仍须保持
-ADR-006=A 的完整 vendor Graph materialization 方向，且在 metadata 兼容实验前不得删除 handwritten impl backend。
+P2-W1 已完成首个 setter-family 生产切片并获得用户游戏编辑器验证。无阻塞决策；下一工作包尚未选择。
+后续仍须保持 ADR-006=A 的完整 vendor Graph materialization 方向，不得把当前 setter 专用 vendor Node 路径扩写为
+长期方案 B，也不得删除 handwritten impl backend。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
@@ -438,18 +484,21 @@ ADR-006=A 的完整 vendor Graph materialization 方向，且在 metadata 兼容
 
 ## 进行中或未提交变化
 
-Phase 1 checkpoint / Phase 2 entry 的文档更新尚未提交，预期只有：
+P2-W1 尚未提交，预期只有：
 
 ```text
-docs/composite-ir/architecture-redesign/checkpoints/phase-1-resolved-contract.md
 docs/composite-ir/architecture-redesign/STATUS.md
-docs/composite-ir/architecture-redesign/phase-1-resolved-node-contract.md
+docs/composite-ir/architecture-redesign/phase-2-shared-vendor-node-lowering.md
+src/compiler/ir_to_gia_transform/composite.ts
+tests/composite/test-stage3-p2-game-validation.ts
+tests/composite/test-stage3-root-impl-parity.ts
+tests/composite/test-stage3-vendor-graph-metadata.ts
 ```
 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)；
 2. 检查分支、status 和最近提交；
-3. 审查 Phase 1 checkpoint / Phase 2 entry 文档 diff；提交后从 P2-W1 启动报告开始。
+3. 审查 P2-W1 最终 diff、自动验证和用户游戏验证记录；提交后再选择下一工作包。
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。

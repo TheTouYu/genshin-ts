@@ -14,6 +14,7 @@ import assert from 'node:assert/strict'
 import { Graph } from '../../src/compiler/gia_vendor.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
+import { bool, str } from '../../dist/src/runtime/value.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL(
@@ -33,6 +34,13 @@ const encodedGraph = encoded.graph?.graph?.inner?.graph
 const node = encodedGraph?.nodes?.[0]
 
 assert.ok(encodedGraph, 'vendor Graph must encode an inner graph')
+assert.equal(encodedGraph.id?.class, 10000)
+assert.equal(encodedGraph.id?.type, 20000)
+assert.equal(encodedGraph.id?.kind, 21001)
+assert.equal(encodedGraph.id?.id, 7002)
+assert.equal(encodedGraph.name, 'p2w1-vendor-metadata')
+assert.equal(encoded.graph?.name, 'p2w1-vendor-metadata')
+assert.equal(encoded.graph?.graph?.inner?.graph?.name, encodedGraph.name)
 console.log('vendor graph keys:', Object.keys(encodedGraph).sort().join(','))
 assert.deepEqual(encodedGraph.graphValues, [])
 assert.deepEqual(encodedGraph.compositePins, [])
@@ -53,6 +61,25 @@ assert.equal(valuePin.type, 5)
 assert.equal(valuePin.value?.class, 10000)
 assert.equal(valuePin.value?.bConcreteValue?.indexOfConcrete, 1)
 assert.equal(valuePin.value?.bConcreteValue?.value?.bFloat?.val, 0)
+
+// Branch-flow baseline: Graph.flow emits flow pins on the source node and preserves
+// source/target flow indices in the encoded wire structure.
+const flowGraph = new Graph('server', 7003, 'p2w1-vendor-flow', 7004)
+const flowSource = flowGraph.add_node(324)
+const flowTargetA = flowGraph.add_node(324)
+const flowTargetB = flowGraph.add_node(324)
+flowGraph.flow(flowSource, flowTargetA, 0, 0)
+flowGraph.flow(flowSource, flowTargetB, 1, 0)
+const encodedFlowGraph = (flowGraph.encode() as any).graph?.graph?.inner?.graph
+const flowNode = encodedFlowGraph?.nodes?.find((candidate: any) => candidate.nodeIndex === flowSource.NodeIndex)
+const flowPins = flowNode?.pins?.filter((pin: any) => pin.i1?.kind === 2)
+assert.equal(encodedFlowGraph.name, 'p2w1-vendor-flow')
+assert.equal(flowPins?.length, 2)
+assert.deepEqual(flowPins.map((pin: any) => pin.i1.index), [0, 1])
+assert.deepEqual(flowPins[0].connects[0].connect, { kind: 1, index: 0 })
+assert.deepEqual(flowPins[1].connects[0].connect, { kind: 1, index: 0 })
+assert.equal(flowPins[0].connects[0].id, flowTargetA.NodeIndex)
+assert.equal(flowPins[1].connects[0].id, flowTargetB.NodeIndex)
 
 console.log('PASS P2-W1 vendor Graph metadata observation')
 console.log(JSON.stringify({
@@ -82,6 +109,14 @@ const MetadataComposite = g.defineComposite('p2w1-metadata-composite', {
   build(_inputs: any, f: any) {
     f.set('额外压力', 0)
     f.set('额外压力', f.addition(f.get('a'), f.get('b')))
+    f.registerExecNode('double_branch', [new bool(true)])
+    const leaf = f.branchExec(0, {
+      id: 0,
+      type: 'exec',
+      nodeType: 'print_string',
+      args: [new str('p2w1-flow-leaf')]
+    })
+    f.outflow('完成', leaf, 0)
     return {}
   }
 })
@@ -105,9 +140,19 @@ const implGraph = decoded.accessories
   : undefined
 const implInner = implGraph?.graph?.inner?.graph
 assert.ok(implInner, 'current composite impl graph must be present')
+assert.equal(implInner.id?.kind, 21002)
+assert.equal(typeof implInner.name, 'string')
+console.log('observed impl graph wrapper:', JSON.stringify({
+  class: implInner.id?.class,
+  type: implInner.id?.type,
+  kind: implInner.id?.kind,
+  id: implInner.id?.id,
+  name: implInner.name
+}))
 assert.deepEqual(implInner.graphValues, encodedGraph.graphValues)
 assert.ok(Array.isArray(implInner.compositePins))
-assert.equal(implInner.compositePins.length, 1)
+assert.ok(implInner.compositePins.length >= 1)
+console.log(`observed impl composite pins: ${implInner.compositePins.length}`)
 assert.deepEqual(implInner.affiliations, encodedGraph.affiliations)
 assert.ok(implInner.nodes.length >= 3, 'fixture must contain multiple ordinary nodes')
 assert.ok(implInner.nodes.every((implNode: any) => implNode.genericId?.nodeId != null))
@@ -122,10 +167,18 @@ assert.ok(connectedSetter, 'impl data edge must target a setter value pin')
 const connectedValuePin = connectedSetter.pins.find((pin: any) => pin.i1?.kind === 3 && pin.i1?.index === 1)
 assert.equal(connectedValuePin.connects[0].connect.kind, 4)
 assert.equal(connectedValuePin.connects[0].connect.index, 0)
-const flowPins = implInner.nodes.flatMap((implNode: any) =>
-  implNode.pins.filter((pin: any) => pin.i1?.kind === 1 && pin.connects?.length)
+const implConnectedPins = implInner.nodes.flatMap((implNode: any) =>
+  implNode.pins.filter((pin: any) => pin.connects?.length)
 )
-assert.ok(flowPins.length >= 0, 'flow pin scan completed')
+const implFlowPins = implConnectedPins.filter((pin: any) => pin.i1?.kind === 2)
+console.log('observed impl connected pins:', JSON.stringify(implConnectedPins.map((pin: any) => ({
+  kind: pin.i1?.kind,
+  index: pin.i1?.index,
+  connects: pin.connects
+}))))
+assert.ok(implFlowPins.length > 0, 'fixture must contain encoded impl execution-flow edges')
+assert.ok(implFlowPins.every((pin: any) => pin.connects.every((connect: any) => connect.connect?.kind === 1)))
+console.log(`observed current impl flow pins: ${implFlowPins.length}`)
 console.log('PASS current impl wrapper preserves metadata and remaps multi-node data/flow structure')
 console.log('UNPROVEN: current impl node pin encoding is still handwritten and not vendor Graph materialization')
 

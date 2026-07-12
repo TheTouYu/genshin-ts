@@ -178,14 +178,16 @@ assert.equal(implFloatLitC.genericId, 323)
 assert.equal(implFloatLitC.concreteId, 324)
 const implFloatLitValue = implFloatLitC.pins.find((p) => p.kind === 3 && p.index === 1)
 assert.ok(implFloatLitValue)
-assert.equal(implFloatLitValue.hasConcreteWrapper, false)
+assert.equal(implFloatLitValue.hasConcreteWrapper, true)
+assert.equal(implFloatLitValue.indexOfConcrete, 1)
 assert.equal(implFloatLitValue.payloadKind, 'float')
 assert.equal(implFloatLitValue.literalSummary, '0')
 
 assert.equal(implFloatConnC.concreteId, 324)
 const implFloatConnValue = implFloatConnC.pins.find((p) => p.kind === 3 && p.index === 1)
 assert.ok(implFloatConnValue)
-assert.equal(implFloatConnValue.hasConcreteWrapper, false)
+assert.equal(implFloatConnValue.hasConcreteWrapper, true)
+assert.equal(implFloatConnValue.indexOfConcrete, 1)
 assert.equal(implFloatConnValue.hasConnection, true)
 assert.equal(implFloatConnValue.connectionSourcePinKind, 4)
 assert.equal(implFloatConnValue.connectionSourcePinIndex, 0)
@@ -193,14 +195,15 @@ assert.equal(implFloatConnValue.connectionSourcePinIndex, 0)
 assert.equal(implVecConnC.concreteId, 334)
 const implVecConnValue = implVecConnC.pins.find((p) => p.kind === 3 && p.index === 1)
 assert.ok(implVecConnValue)
-assert.equal(implVecConnValue.hasConcreteWrapper, false)
+assert.equal(implVecConnValue.hasConcreteWrapper, true)
+assert.equal(implVecConnValue.indexOfConcrete, 11)
 assert.equal(implVecConnValue.hasConnection, true)
 assert.equal(implVecConnValue.connectionSourcePinKind, 4)
 assert.equal(implVecConnValue.connectionSourcePinIndex, 0)
 
 console.log('PASS shared root/impl ordinary identity (float literal / float conn / vec conn)')
 
-// ── Root/impl parity MUST currently fail ─────────────────────────
+// ── Setter-family root/impl parity is now shared through vendor pin materialization ──
 const cases = [
   { name: 'float-literal', expected: rootFloatLitC, actual: implFloatLitC },
   { name: 'float-connection', expected: rootFloatConnC, actual: implFloatConnC },
@@ -218,25 +221,8 @@ for (const c of cases) {
 }
 
 const total = allMismatches.reduce((n, c) => n + c.mismatches.length, 0)
-assert.ok(total > 0, 'expected legacy impl pin schema mismatch to remain in P1-W2')
-
-// Required mismatch categories for this work package
-function hasMismatch(pathIncludes: string): boolean {
-  return allMismatches.some((c) => c.mismatches.some((m) => m.path.includes(pathIncludes)))
-}
-
-assert.ok(!hasMismatch('concreteId'), 'shared identity must eliminate concreteId mismatch')
-assert.ok(
-  hasMismatch('hasConcreteWrapper'),
-  'parity must report hasConcreteWrapper mismatch'
-)
-assert.ok(hasMismatch('indexOfConcrete'), 'parity must report indexOfConcrete mismatch')
-
-console.log('PASS root/impl parity helper fails on current ordinary schema drift:')
-for (const c of allMismatches) {
-  console.log(`  [${c.name}] ${c.mismatches.length} mismatch(es)`)
-  console.log(formatMismatches(c.mismatches))
-}
+assert.equal(total, 0, 'setter-family root/impl ordinary schema must match')
+console.log('PASS setter-family root/impl ordinary schema parity')
 
 // Also expose a pure helper unit check (no production encode)
 {
@@ -287,6 +273,6 @@ for (const c of allMismatches) {
 assert.ok(findSetterByVariableName(rootGraph, '额外压力'))
 assert.ok(findSetterByVariableName(implGraph, '额外压力'))
 
-console.log('\nP1-W2 RESULT: shared identity green; legacy impl pin schema drift remains')
+console.log('\nP2-W1 RESULT: setter identity and vendor pin schema parity green')
 console.log('output:', outputPath)
 console.log('composite id:', ParityComposite.id)
