@@ -628,6 +628,28 @@ export function resolveGiaNodeId(
     // fallback 继续走后续通用逻辑
   }
 
+  if (nodeType === 'set_local_variable') {
+    const identity = resolveNodeIdentity(node, {
+      scope: { kind: 'root', name: 'root-node-identity-adapter' },
+      variablesByName: varsByName,
+      connectionTypes: connIndex,
+      fallbacks: resolutionFallbacks,
+      strictTypeChecks: false
+    })
+    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
+  }
+
+  if (nodeType === 'get_local_variable') {
+    const identity = resolveNodeIdentity(node, {
+      scope: { kind: 'root', name: 'root-node-identity-adapter' },
+      variablesByName: varsByName,
+      connectionTypes: connIndex,
+      fallbacks: resolutionFallbacks,
+      strictTypeChecks: false
+    })
+    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
+  }
+
   if (nodeType === 'set_node_graph_variable') {
     // P1-W4: do not let root and impl independently choose scalar/list variants.
     // The legacy branch remains the compatibility fallback for unresolved types.

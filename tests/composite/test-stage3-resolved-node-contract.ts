@@ -54,10 +54,26 @@ assert.deepEqual(resolveNodeIdentity(customGetter, customContext), {
   logicalType: 'get_custom_variable', genericNodeId: 50, concreteNodeId: 54
 })
 
+const localSetter = { id: 10, type: 'set_local_variable', args: [
+  { type: 'local_variable', value: 0 },
+  { type: 'float', value: 0 }
+] }
+const localGetter = { id: 11, type: 'get_local_variable', args: [{ type: 'float', value: 0 }] }
+const localContext = {
+  ...context,
+  connectionTypes: new Map([[11, new Map([[1, { type: 'float' }]])]])
+}
+assert.deepEqual(resolveNodeIdentity(localSetter, localContext), {
+  logicalType: 'set_local_variable', genericNodeId: 19, concreteNodeId: 2677
+})
+assert.deepEqual(resolveNodeIdentity(localGetter, localContext), {
+  logicalType: 'get_local_variable', genericNodeId: 18, concreteNodeId: 2659
+})
+
 assert.equal(usesLegacyImplTypedIdentityAdapter('get_node_graph_variable'), false)
 assert.equal(usesLegacyImplTypedIdentityAdapter('get_custom_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('get_local_variable'), true)
-assert.equal(usesLegacyImplTypedIdentityAdapter('set_local_variable'), true)
+assert.equal(usesLegacyImplTypedIdentityAdapter('get_local_variable'), false)
+assert.equal(usesLegacyImplTypedIdentityAdapter('set_local_variable'), false)
 assert.equal(usesLegacyImplTypedIdentityAdapter('set_node_graph_variable'), false)
 assert.equal(usesLegacyImplTypedIdentityAdapter('set_custom_variable'), false)
 
@@ -82,6 +98,8 @@ assert.equal(rootIdentity(vecNode), 334)
 assert.equal(rootIdentity(getter), 341)
 assert.equal(rootIdentity(customSetter), 26)
 assert.equal(resolveGiaNodeId(customGetter, customContext.connectionTypes, context.variablesByName), 54)
+assert.equal(resolveGiaNodeId(localSetter, localContext.connectionTypes, context.variablesByName), 2677)
+assert.equal(resolveGiaNodeId(localGetter, localContext.connectionTypes, context.variablesByName), 2659)
 
 const rootFallbacks = []
 assert.equal(resolveGiaNodeId({

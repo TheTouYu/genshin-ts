@@ -130,7 +130,10 @@ function firstProducedType(
 ): ResolvedValueType | undefined {
   const outputs = context.connectionTypes.get(nodeId)
   if (!outputs) return undefined
-  for (const info of outputs.values()) return fromTypeInfo(info)
+  for (const info of outputs.values()) {
+    const type = fromTypeInfo(info)
+    if (type && type.kind !== 'local-variable') return type
+  }
   return undefined
 }
 
@@ -181,8 +184,10 @@ export function resolveNodeIdentity(
   const isNodeGraphGetter = node.type === 'get_node_graph_variable'
   const isCustomSetter = node.type === 'set_custom_variable'
   const isCustomGetter = node.type === 'get_custom_variable'
-  const isSetter = isNodeGraphSetter || isCustomSetter
-  const isGetter = isNodeGraphGetter || isCustomGetter
+  const isLocalSetter = node.type === 'set_local_variable'
+  const isLocalGetter = node.type === 'get_local_variable'
+  const isSetter = isNodeGraphSetter || isCustomSetter || isLocalSetter
+  const isGetter = isNodeGraphGetter || isCustomGetter || isLocalGetter
 
   if (isNodeGraphSetter || isNodeGraphGetter) {
     const nameArg = node.args?.[0]
@@ -211,11 +216,13 @@ export function resolveNodeIdentity(
 
   const typed = isNodeGraphGetter
     ? declaredType
-    : isCustomGetter
+    : isCustomGetter || isLocalGetter
       ? firstProducedType(node.id, context)
       : isCustomSetter
         ? inputs[2]?.type
-        : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
+        : isLocalSetter
+          ? inputs[1]?.type
+          : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
   const suffix = typed?.kind === 'scalar'
     ? typed.name === 'vec3' ? 'vec' : typed.name
     : typed?.kind === 'list' && typed.element.kind === 'scalar'
@@ -254,6 +261,8 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
     nodeType === 'set_node_graph_variable' ||
     nodeType === 'get_node_graph_variable' ||
     nodeType === 'set_custom_variable' ||
-    nodeType === 'get_custom_variable'
+    nodeType === 'get_custom_variable' ||
+    nodeType === 'set_local_variable' ||
+    nodeType === 'get_local_variable'
   )
 }

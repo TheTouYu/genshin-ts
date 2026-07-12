@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P2-W3 custom-variable slice complete; approved for commit)
+> 最近校验：2026-07-12 (P2-W4 local-variable float slice passed editor validation; awaiting completion report)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,8 +10,8 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W3 — custom-variable getter/setter shared vendor lowering（已完成，用户批准提交）
-最近完成工作包：P2-W3 — custom-variable getter/setter shared vendor lowering + 用户编辑器核验
+当前工作包：P2-W4 — local-variable float getter/setter shared vendor lowering（已完成，用户编辑器核验通过）
+最近完成工作包：P2-W4 — local-variable float getter/setter shared vendor lowering + 用户编辑器核验
 分支起点：c5dfdd6 feat: add governed documentation search
 工作树预期：clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
@@ -58,6 +58,7 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - **P2-W2**：impl graph-variable getter 不再进入 legacy typed-identity adapter；shared resolver 提供 concrete
   identity，vendor `Node` 物化 getter pin schema。float getter root/impl 为 `337/341`，vec3 getter为 `337/348`，
   ordinary-node contract parity 均为零差异。
+- **P2-W4 用户游戏编辑器验证（2026-07-12）**：local-variable float 的重构后候选已通过。复合 impl 内两个 `Get Local Variable` 的 initial float `10`/`20`、setter、Addition connection、执行流和 composite call 均正常；归档文件 SHA-256：`cad6764f38a45260ea906f9ad8b4ca457e15fb5b824d3b31e8dd5a9fd0eef6e9`，路径为 `Beyond_Local_Export/真-测试通过/复合节点/P2W4局部变量-float-refactored-fixed.gia`。首次重构候选因 getter 被错误 materialize 为 generic `18` 而显示空参数；已作为 P2-W4 focused regression 修复。
 - **用户游戏内验证（2026-07-12）**：`P2复合节点-gsts-reproduction.gia` 的 5 个复合均在编辑器中通过：
   主图 5-way fan-out、float literal setter 类型、float/vec3 producer connection、顺序分叉和 literal/connection
   pair 均确认正确。最终验证文件 SHA-256：
@@ -559,13 +560,58 @@ docs/composite-ir/architecture-redesign/phase-2-shared-vendor-node-lowering.md
 明确非目标：不迁移 local variable、list/dict/其他 custom 类型族，不切换完整 impl Graph materialization，不删除
 handwritten backend，不注入或覆盖游戏目录。
 
+## 已完成工作包：P2-W4 — local-variable float shared vendor lowering + 用户编辑器核验
+
+状态：实现、自动回归与用户游戏编辑器核验完成；尚未提交。
+
+目标：
+
+- root / impl 的 local-variable float getter/setter 共享 `resolveNodeIdentity()`；
+- impl 使用 vendor `Node` 物化 float getter/setter pin schema；
+- 覆盖 literal setter、Addition→setter connection、getter downstream use 和 root/impl fan-out；
+- 用用户确认的 editor reference 和重构后候选分别验证，不把传统路径基线误作重构验证。
+
+关键事实：
+
+- `Get Local Variable` 的 OutParam[0] 是 `local_variable` handle，OutParam[1] 才是实际 value；resolver 必须跳过 handle，继续从下游使用的 OutParam[1] 解析 float。
+- 首次重构候选错误回退到 generic getter `18`，导致 impl 内 initial float `10` / `20` 在编辑器显示为空。用户反馈后，focused regression 锁定 concrete `2659`、InParam[0] 与 OutParam[1] 的 float concrete wrapper。
+- 修复后 getter 为 generic/concrete `18/2659`，setter 为 `19/2677`；真实参考与修复候选的 raw `gia-diff.ts` 为“完全一致”。
+
+真实 GIA / 游戏编辑器证据：
+
+```text
+参考：Beyond_Local_Export/user_edit/复合节点/P2W4局部变量-float-参考候选.gia
+参考 SHA-256：12f4dfb882b1dc7df3e6810f8ab5f3271aea4c33c822d5ee4e43b01518cf9604
+通过归档：Beyond_Local_Export/真-测试通过/复合节点/P2W4局部变量-float-refactored-fixed.gia
+通过 SHA-256：cad6764f38a45260ea906f9ad8b4ca457e15fb5b824d3b31e8dd5a9fd0eef6e9
+用户确认：复合 impl 的 10/20 initial float、setter、连接、flow 和 call 正常。
+```
+
+验证：
+
+```bash
+npm run build                                                     # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts    # PASS
+npx tsx tests/composite/test-local-variable-impl-concrete-type.ts # PASS
+npx tsx tests/composite/test-stage3-p2w4-local-variable-reference-candidate.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts          # PASS
+npx tsx tests/composite/test-custom-variable-impl-pins.ts        # PASS
+npx tsx tests/composite/test-stage3-p2w3-custom-variable-game-validation.ts # PASS
+git diff --check                                                 # PASS
+```
+
+协作文件规则（用户 2026-07-12 明确授权）：
+
+- 候选直接复制到 Windows `/mnt/c/.../Beyond_Local_Export/` 根目录；同一工作包重试直接覆盖上一份失败候选，不逐次累积文件。
+- 用户编辑器确认通过后，自动将根目录中的通过候选移动到 `Beyond_Local_Export/真-测试通过/复合节点/`；根目录不保留该通过候选。
+- 不覆盖 `user_edit/` 真实参考、地图/注入目录或其他工作包文件；Windows 路径一律经 `/mnt/c` 操作。
+- 报告实际路径和 SHA-256；候选覆盖和通过后归档移动不需要逐次确认，其他破坏性游戏文件操作仍须确认。
+
+明确非目标：不迁移其他 local-variable 类型，不切换完整 vendor Graph materialization，不删除 handwritten backend，不改 capture/boundary/布局，不注入。
+
 ## 待用户决策
 
-P2-W3 已通过用户游戏编辑器核验，用户批准提交。附加布局实验发现该新场景视觉布局不理想，但最近五个已通过
-布局基线在当前分支重新生成后均由用户确认通过，因此该问题不阻塞 custom-variable lowering 提交，也不在本工作包
-修改布局算法。
-后续仍须保持 ADR-006=A 的完整 vendor Graph materialization 方向，不得把当前 vendor Node vertical slice 扩写为
-长期方案 B，也不得删除 handwritten impl backend。
+P2-W4 已通过用户游戏编辑器核验。下一工作包应按 Phase 2 顺序选择 DTC，或先开独立的完整 vendor Graph embedding 观察工作包；两者不得混入同一工作包。ADR-006=A 保持不变，不得把当前 vendor Node vertical slice 扩写为长期方案 B，也不得删除 handwritten impl backend。
 
 
 残余风险提醒（非阻塞启动 Phase 1 identity，但阻塞删除 legacy / 宣称 Graph 嵌入完成）：
@@ -578,8 +624,8 @@ P2-W3 已完成并获用户提交授权。当前变化只包含 P2-W3 源码、�
 
 ## 新会话恢复
 
-1. 读取 [EXECUTION.md](EXECUTION.md)；
+1. 读取 [EXECUTION.md](EXECUTION.md)、[COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；结束涉及真实 GIA/用户编辑器协作的工作包时，再读 [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md) 决定是否做最小经验更新；
 2. 检查分支、status 和最近提交；
-3. P2-W3 已完成；提交后按 Phase 2 推广顺序选择 local-variable 工作包。
+3. P2-W4 已完成；提交后按 Phase 2 推广顺序选择 DTC，或建立独立 Graph embedding 观察工作包；
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization；阶段顺序仍不可跳过；
 5. 不覆盖无法解释的变化。

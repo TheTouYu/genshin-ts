@@ -335,15 +335,10 @@ function buildImplGraphNodes(
       node.type === 'get_custom_variable' || node.type === 'set_custom_variable'
         ? sharedConcreteNid
         : undefined
-    const localVariableValueType =
-      node.type === 'get_local_variable'
-        ? producedType ?? getImplArgType(node.args?.[0])
-        : node.type === 'set_local_variable'
-          ? getImplArgType(node.args?.[1])
-          : undefined
-    const localVariableConcreteNid = localVariableValueType
-      ? resolveLegacyImplTypedNodeId(node.type, localVariableValueType)
-      : undefined
+    const localVariableConcreteNid =
+      node.type === 'get_local_variable' || node.type === 'set_local_variable'
+        ? sharedConcreteNid
+        : undefined
     const { pins, dataConns } = buildImplNodePins(
       node,
       implEdges,
@@ -538,12 +533,9 @@ function getImplArgType(
   return arg.type === 'conn' ? (arg.value as { type?: string }).type : arg.type
 }
 
-// These families remain on the handwritten impl backend. They must not become a new
-// typed-identity path: migrated node-graph/custom variants use resolveNodeIdentity() above.
-const LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES = new Set([
-  'get_local_variable',
-  'set_local_variable'
-])
+// Migrated ordinary families use resolveNodeIdentity(). Keep the adapter queryable so later
+// slices can prove no local-variable caller remains before its handwritten fallback is removed.
+const LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES = new Set<string>()
 
 export function usesLegacyImplTypedIdentityAdapter(nodeType: string): boolean {
   return LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES.has(nodeType)

@@ -1,6 +1,6 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1/P2-W2/P2-W3 已完成；P2-W3 已通过用户游戏编辑器核验
+> 状态：P2-W1/P2-W2/P2-W3/P2-W4 已完成；P2-W3/P2-W4 已通过用户游戏编辑器核验
 > 来源：目标架构设计 + 当前实现/自动回归 + 用户游戏编辑器验证
 > 最近校验：2026-07-12
 > 适用范围：普通系统节点；不包含 composite synthetic call/capture
@@ -239,11 +239,47 @@ float getter、target capture、hidden trigger pin、执行流和 composite call
 明确非目标：不迁移 local variable、list/dict/其他 custom 类型族，不切换完整 impl Graph materialization，不删除
 handwritten backend，不注入或覆盖游戏目录。
 
+## P2-W4 当前结果：local-variable float getter/setter shared vendor lowering
+
+状态：实现、自动回归与用户游戏编辑器核验完成；尚未提交。
+
+已验证：
+
+- root / impl local-variable float getter/setter 共享 `resolveNodeIdentity()`；impl 不再走 legacy typed-identity adapter；
+- `Get Local Variable` 必须忽略 OutParam[0] 的 `local_variable` handle，使用实际 float value 的 OutParam[1] 下游类型；修复后 getter 为 generic/concrete `18/2659`；
+- float setter 为 generic/concrete `19/2677`，literal 和 Addition connection 均保留 vendor concrete schema；
+- 初次重构候选错误地 materialize 为 generic getter `18`，使 editor 中 initial float `10` / `20` 为空；用户反馈后已添加 focused assertion，锁定 getter concrete ID、InParam[0] 和 OutParam[1] wrapper；
+- 修复后与用户导出的真实 reference 比较，`gia-diff.ts` 对 composite impl 报“完全一致”；用户再次在编辑器中确认 initial values、setter、connection、flow 与 composite call 正常。
+
+真实证据：
+
+```text
+reference: Beyond_Local_Export/user_edit/复合节点/P2W4局部变量-float-参考候选.gia
+reference SHA-256: 12f4dfb882b1dc7df3e6810f8ab5f3271aea4c33c822d5ee4e43b01518cf9604
+passed archive: Beyond_Local_Export/真-测试通过/复合节点/P2W4局部变量-float-refactored-fixed.gia
+passed SHA-256: cad6764f38a45260ea906f9ad8b4ca457e15fb5b824d3b31e8dd5a9fd0eef6e9
+```
+
+验证：
+
+```bash
+npm run build                                                     # PASS
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts    # PASS
+npx tsx tests/composite/test-local-variable-impl-concrete-type.ts # PASS
+npx tsx tests/composite/test-stage3-p2w4-local-variable-reference-candidate.ts # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts          # PASS
+npx tsx tests/composite/test-custom-variable-impl-pins.ts        # PASS
+npx tsx tests/composite/test-stage3-p2w3-custom-variable-game-validation.ts # PASS
+git diff --check                                                 # PASS
+```
+
+明确非目标：不迁移 vec3/int/bool/list/dict 等其他 local-variable 类型，不切换完整 vendor Graph materialization，不删除 handwritten backend，不改 composite boundary、capture 或布局。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；
 2. ~~custom variable getter/setter~~（P2-W3 自动回归与用户游戏编辑器核验通过）；
-3. local variable getter/setter；
+3. ~~local variable float getter/setter~~（P2-W4 自动回归与用户游戏编辑器核验通过）；
 4. DTC；
 5. arithmetic/comparison；
 6. list/dict 和特殊 ID 类型。
