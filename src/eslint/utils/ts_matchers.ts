@@ -1,5 +1,8 @@
 import ts from 'typescript'
 
+import { CLIENT_GRAPH_SUB_TYPE_BY_METHOD } from '../../definitions/client_graph_modes.js'
+import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+
 export const DEFAULT_GSTS_SERVER_PREFIX = 'gstsServer'
 
 export function isGstsServerName(
@@ -138,4 +141,83 @@ export function isServerOnCall(call: ts.CallExpression, checker: ts.TypeChecker)
   if (!ts.isPropertyAccessExpression(callee)) return false
   if (callee.name.text !== 'on' && callee.name.text !== 'onSignal') return false
   return isServerInstanceExpression(callee.expression, checker, new Set())
+}
+
+export type ClientOnCallInfo = {
+  subType: ClientGraphSubType
+  mode: 'beyond' | 'classic'
+  handler: ts.ArrowFunction | ts.FunctionExpression
+}
+
+type ClientInstanceInfo = Omit<ClientOnCallInfo, 'handler'>
+
+function readClientMode(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientInstanceInfo['mode'] {
+  const options = call.arguments[0]
+  if (!options) return 'beyond'
+  const unwrapped = unwrapExpression(options)
+  if (ts.isObjectLiteralExpression(unwrapped)) {
+    for (const prop of unwrapped.properties) {
+      if (!ts.isPropertyAssignment(prop)) continue
+      const name = prop.name
+      const isMode =
+        (ts.isIdentifier(name) && name.text === 'mode') ||
+        (ts.isStringLiteral(name) && name.text === 'mode')
+      if (!isMode) continue
+      const value = unwrapExpression(prop.initializer)
+      if (ts.isStringLiteral(value) && value.text === 'classic') return 'classic'
+    }
+  }
+  const optionsType = checker.getTypeAtLocation(options)
+  const modeSymbol = checker.getPropertyOfType(optionsType, 'mode')
+  const modeType = modeSymbol && checker.getTypeOfSymbolAtLocation(modeSymbol, options)
+  if (modeType?.isStringLiteral() && modeType.value === 'classic') return 'classic'
+  return 'beyond'
+}
+
+function getClientInstanceInfo(
+  expr: ts.Expression,
+  checker: ts.TypeChecker,
+  seen: Set<ts.Symbol>
+): ClientInstanceInfo | undefined {
+  const target = unwrapExpression(expr)
+  if (ts.isCallExpression(target)) {
+    const callee = target.expression
+    if (
+      ts.isPropertyAccessExpression(callee) &&
+      ts.isIdentifier(callee.expression) &&
+      callee.expression.text === 'g'
+    ) {
+      const subType = CLIENT_GRAPH_SUB_TYPE_BY_METHOD[callee.name.text]
+      if (subType) return { subType, mode: readClientMode(target, checker) }
+    }
+  }
+  if (!ts.isIdentifier(target)) return undefined
+
+  const symbol = checker.getSymbolAtLocation(target)
+  if (!symbol || seen.has(symbol)) return undefined
+  seen.add(symbol)
+  for (const decl of symbol.getDeclarations() ?? []) {
+    if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
+    const info = getClientInstanceInfo(decl.initializer, checker, seen)
+    if (info) return info
+  }
+  return undefined
+}
+
+export function getClientOnCallInfo(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientOnCallInfo | undefined {
+  const callee = call.expression
+  if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== 'on') return undefined
+  const info = getClientInstanceInfo(callee.expression, checker, new Set())
+  if (!info) return undefined
+  const handler = call.arguments[1]
+  if (!handler || (!ts.isArrowFunction(handler) && !ts.isFunctionExpression(handler))) {
+    return undefined
+  }
+  return { ...info, handler }
 }

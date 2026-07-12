@@ -9,7 +9,7 @@ type Options = {
   allowAssignmentExpression?: boolean
   allowedOperators?: string[]
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
@@ -18,7 +18,7 @@ const DEFAULTS: Required<Options> = {
   allowAssignmentExpression: false,
   allowedOperators: ['=', '+=', '-=', '*=', '/=', '%='],
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -66,7 +66,7 @@ const rule: Rule.RuleModule = {
           allowAssignmentExpression: { type: 'boolean' },
           allowedOperators: { type: 'array', items: { type: 'string' } },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

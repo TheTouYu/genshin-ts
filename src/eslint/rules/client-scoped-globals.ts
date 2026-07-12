@@ -1,15 +1,10 @@
 import type { Rule } from 'eslint'
 
-import { CLIENT_GRAPH_SUB_TYPE_BY_METHOD } from '../../definitions/client_graph_modes.js'
 import {
   CLIENT_BLOCKED_SERVER_HELPERS,
   CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE
 } from '../../definitions/client_scoped_globals.js'
-
-type ClientHandlerInfo = {
-  subType: string
-  mode: 'beyond' | 'classic'
-}
+import { buildNodeGraphScopeIndex } from '../utils/scope.js'
 
 /** helpers that exist in server handlers and are guarded per client capability */
 const GUARDED_HELPERS = new Set([
@@ -24,52 +19,6 @@ const GUARDED_HELPERS = new Set([
   'GameObject',
   ...CLIENT_BLOCKED_SERVER_HELPERS
 ])
-
-function clientEntryHandlerInfo(node: any): { handler: any; info: ClientHandlerInfo } | undefined {
-  // matches g.<clientMethod>(options?).on('start', handler)
-  if (node.type !== 'CallExpression') return undefined
-  const callee = node.callee
-  if (callee?.type !== 'MemberExpression' || callee.computed) return undefined
-  if (callee.property?.name !== 'on') return undefined
-  const target = callee.object
-  if (target?.type !== 'CallExpression') return undefined
-  const targetCallee = target.callee
-  if (targetCallee?.type !== 'MemberExpression' || targetCallee.computed) return undefined
-  if (targetCallee.object?.type !== 'Identifier' || targetCallee.object.name !== 'g') {
-    return undefined
-  }
-  const subType = (CLIENT_GRAPH_SUB_TYPE_BY_METHOD as Record<string, string>)[
-    targetCallee.property?.name
-  ]
-  if (!subType) return undefined
-  const handler = node.arguments[1]
-  if (!handler || (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression')) {
-    return undefined
-  }
-  let mode: ClientHandlerInfo['mode'] = 'beyond'
-  const options = target.arguments[0]
-  if (options?.type === 'ObjectExpression') {
-    for (const prop of options.properties) {
-      if (prop.type === 'Property' && !prop.computed && prop.key?.name === 'mode') {
-        if (prop.value?.type === 'Literal' && prop.value.value === 'classic') mode = 'classic'
-      }
-    }
-  }
-  return { handler, info: { subType, mode } }
-}
-
-function enclosingClientHandler(
-  node: any,
-  handlers: Map<any, ClientHandlerInfo>
-): ClientHandlerInfo | undefined {
-  let cur = node.parent
-  while (cur) {
-    const info = handlers.get(cur)
-    if (info) return info
-    cur = cur.parent
-  }
-  return undefined
-}
 
 function isReferencePosition(node: any): boolean {
   const parent = node.parent
@@ -101,17 +50,13 @@ const rule: Rule.RuleModule = {
     schema: []
   },
   create(context) {
-    const handlers = new Map<any, ClientHandlerInfo>()
+    const scopeIndex = buildNodeGraphScopeIndex(context)
 
     return {
-      CallExpression(node) {
-        const match = clientEntryHandlerInfo(node)
-        if (match) handlers.set(match.handler, match.info)
-      },
       'Identifier, JSXIdentifier'(node: any) {
         if (!GUARDED_HELPERS.has(node.name)) return
         if (!isReferencePosition(node)) return
-        const info = enclosingClientHandler(node, handlers)
+        const info = scopeIndex.getEnclosingClientScope(node)
         if (!info) return
 
         const supported = (

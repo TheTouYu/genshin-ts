@@ -11,14 +11,14 @@ import { buildServerScopeIndex } from '../utils/scope.js'
 type Options = {
   supportedTypes?: string[]
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
 const DEFAULTS: Required<Options> = {
   supportedTypes: ['int', 'float', 'bool', 'str', 'vec3'],
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -31,7 +31,7 @@ const rule: Rule.RuleModule = {
         properties: {
           supportedTypes: { type: 'array', items: { type: 'string' } },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

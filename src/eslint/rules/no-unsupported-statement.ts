@@ -12,7 +12,7 @@ type Options = {
   banLabeled?: boolean
   banBlock?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
@@ -24,7 +24,7 @@ const DEFAULTS: Required<Options> = {
   banLabeled: true,
   banBlock: true,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -54,7 +54,7 @@ const rule: Rule.RuleModule = {
           banLabeled: { type: 'boolean' },
           banBlock: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

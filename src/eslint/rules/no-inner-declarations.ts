@@ -6,13 +6,13 @@ import { buildServerScopeIndex } from '../utils/scope.js'
 
 type Options = {
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
 const DEFAULTS: Required<Options> = {
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -24,7 +24,7 @@ const rule: Rule.RuleModule = {
         type: 'object',
         properties: {
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false
@@ -37,8 +37,8 @@ const rule: Rule.RuleModule = {
     const scopeIndex = buildServerScopeIndex(context)
     const message = formatMessage(
       options.lang,
-      '回调内部不支持函数/类声明, 请移到外部并使用 gstsServer* 前缀',
-      'Function/class declarations inside callbacks are not supported, please move them outside and use gstsServer* prefix'
+      '节点图回调内部不支持函数/类声明，请移到顶层并使用匹配图类型的 gsts 函数名前缀',
+      'Function/class declarations inside node graph callbacks are not supported; move them to top level and use a gsts function prefix matching the graph type'
     )
 
     const check = (node: any) => {

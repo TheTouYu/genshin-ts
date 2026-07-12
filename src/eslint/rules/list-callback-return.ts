@@ -11,14 +11,14 @@ import { buildServerScopeIndex } from '../utils/scope.js'
 type Options = {
   enforceReturnShape?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
 const DEFAULTS: Required<Options> = {
   enforceReturnShape: true,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -53,7 +53,7 @@ const rule: Rule.RuleModule = {
         properties: {
           enforceReturnShape: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

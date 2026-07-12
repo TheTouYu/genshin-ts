@@ -2,20 +2,39 @@ import type { Rule } from 'eslint'
 import ts from 'typescript'
 
 import { getSourceCode, requireParserServices } from './parser.js'
-import { DEFAULT_GSTS_SERVER_PREFIX, isGstsServerName, isServerOnCall } from './ts_matchers.js'
+import {
+  DEFAULT_GSTS_SERVER_PREFIX,
+  getClientOnCallInfo,
+  isGstsServerName,
+  isServerOnCall,
+  type ClientOnCallInfo
+} from './ts_matchers.js'
 
 type RuleContext = Rule.RuleContext
 
-export type ServerScopeIndex = {
+export type ClientScopeInfo = Omit<ClientOnCallInfo, 'handler'>
+
+export type NodeGraphScopeIndex = {
   serverScopeRoots: WeakSet<object>
+  clientScopeRoots: WeakMap<object, ClientScopeInfo>
   isServerScopeFunction(node: unknown): boolean
+  isClientScopeFunction(node: unknown): boolean
+  getClientScopeInfo(node: unknown): ClientScopeInfo | undefined
+  getEnclosingClientScope(
+    node: unknown,
+    options?: { includeNestedFunctions?: boolean }
+  ): ClientScopeInfo | undefined
+  isInNodeGraphScope(node: unknown, options: NodeGraphScopeOptions): boolean
   isInServerScope(node: unknown, options: ServerScopeOptions): boolean
 }
 
-export type ServerScopeOptions = {
-  scope: 'server' | 'all'
+export type NodeGraphScopeOptions = {
+  scope: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions: boolean
 }
+
+export type ServerScopeIndex = NodeGraphScopeIndex
+export type ServerScopeOptions = NodeGraphScopeOptions
 
 function isFunctionNode(node: any): boolean {
   return (
@@ -26,19 +45,25 @@ function isFunctionNode(node: any): boolean {
   )
 }
 
-export function buildServerScopeIndex(
+export function buildNodeGraphScopeIndex(
   context: RuleContext,
   prefixes = [DEFAULT_GSTS_SERVER_PREFIX]
-): ServerScopeIndex {
+): NodeGraphScopeIndex {
   const services = requireParserServices(context)
   const sourceCode = getSourceCode(context)
   const tsRoot = services.esTreeNodeToTSNodeMap.get(sourceCode.ast) as ts.SourceFile
   const serverScopeRoots = new WeakSet<object>()
+  const clientScopeRoots = new WeakMap<object, ClientScopeInfo>()
 
   const addRoot = (node: ts.Node | undefined) => {
     if (!node) return
     const esNode = services.tsNodeToESTreeNodeMap.get(node)
     if (esNode) serverScopeRoots.add(esNode)
+  }
+
+  const addClientRoot = (info: ClientOnCallInfo) => {
+    const esNode = services.tsNodeToESTreeNodeMap.get(info.handler)
+    if (esNode) clientScopeRoots.set(esNode, { subType: info.subType, mode: info.mode })
   }
 
   for (const stmt of tsRoot.statements) {
@@ -61,33 +86,68 @@ export function buildServerScopeIndex(
   }
 
   const visit = (node: ts.Node) => {
-    if (ts.isCallExpression(node) && isServerOnCall(node, services.program.getTypeChecker())) {
-      const handler = node.arguments[1]
-      if (handler && (ts.isArrowFunction(handler) || ts.isFunctionExpression(handler))) {
-        addRoot(handler)
+    if (ts.isCallExpression(node)) {
+      const checker = services.program.getTypeChecker()
+      if (isServerOnCall(node, checker)) {
+        const handler = node.arguments[1]
+        if (handler && (ts.isArrowFunction(handler) || ts.isFunctionExpression(handler))) {
+          addRoot(handler)
+        }
       }
+      const clientInfo = getClientOnCallInfo(node, checker)
+      if (clientInfo) addClientRoot(clientInfo)
     }
     ts.forEachChild(node, visit)
   }
   visit(tsRoot)
 
   const isServerScopeFunction = (node: unknown) => serverScopeRoots.has(node as object)
+  const isClientScopeFunction = (node: unknown) => clientScopeRoots.has(node as object)
+  const getClientScopeInfo = (node: unknown) => clientScopeRoots.get(node as object)
 
-  const isInServerScope = (node: unknown, options: ServerScopeOptions): boolean => {
+  const getEnclosingClientScope = (
+    node: unknown,
+    options: { includeNestedFunctions?: boolean } = {}
+  ): ClientScopeInfo | undefined => {
+    let cur: any = node
+    let firstFn: any | null = null
+    while (cur) {
+      if (isFunctionNode(cur)) {
+        if (!firstFn) firstFn = cur
+        const info = clientScopeRoots.get(cur)
+        if (info && (options.includeNestedFunctions !== false || cur === firstFn)) return info
+      }
+      cur = cur.parent
+    }
+    return undefined
+  }
+
+  const isInNodeGraphScope = (node: unknown, options: NodeGraphScopeOptions): boolean => {
     if (options.scope === 'all') return true
     let cur: any = node
     let firstFn: any | null = null
     while (cur) {
       if (isFunctionNode(cur)) {
         if (!firstFn) firstFn = cur
-        if (serverScopeRoots.has(cur)) {
-          return options.includeNestedFunctions ? true : cur === firstFn
-        }
+        const matchesServer = options.scope !== 'client' && serverScopeRoots.has(cur)
+        const matchesClient = options.scope !== 'server' && clientScopeRoots.has(cur)
+        if (matchesServer || matchesClient) return options.includeNestedFunctions || cur === firstFn
       }
       cur = cur.parent
     }
     return false
   }
 
-  return { serverScopeRoots, isServerScopeFunction, isInServerScope }
+  return {
+    serverScopeRoots,
+    clientScopeRoots,
+    isServerScopeFunction,
+    isClientScopeFunction,
+    getClientScopeInfo,
+    getEnclosingClientScope,
+    isInNodeGraphScope,
+    isInServerScope: isInNodeGraphScope
+  }
 }
+
+export const buildServerScopeIndex = buildNodeGraphScopeIndex

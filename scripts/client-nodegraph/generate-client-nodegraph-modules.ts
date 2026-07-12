@@ -114,6 +114,20 @@ export const CLIENT_GRAPH_SUB_TYPE_BY_METHOD = Object.fromEntries(
   Object.entries(CLIENT_GRAPH_METHOD_BY_SUB_TYPE).map(([subType, method]) => [method, subType])
 ) as Record<string, ClientGraphSubType>
 
+export const CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE = {
+  character_skill: 'fCharacterSkill',
+  character_control_skill: 'fCharacterControlSkill',
+  creation_skill: 'fCreationSkill',
+  creation_status: 'fCreationStatus',
+  creation_status_decision: 'fCreationStatusDecision',
+  bool_filter: 'fBoolFilter',
+  int_filter: 'fIntFilter'
+} as const satisfies Record<ClientGraphSubType, string>
+
+export const CLIENT_GRAPH_SUB_TYPE_BY_F_GLOBAL_NAME = Object.fromEntries(
+  Object.entries(CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE).map(([subType, name]) => [name, subType])
+) as Record<string, ClientGraphSubType>
+
 export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = ${jsonConst(capability)} as const
 
 export const CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE = {

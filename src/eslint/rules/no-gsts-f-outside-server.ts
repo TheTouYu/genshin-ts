@@ -39,6 +39,7 @@ const rule: Rule.RuleModule = {
         if (!isIdentifier(node.object, 'gsts')) return
         if (node.computed) return
         if (!isIdentifier(node.property, 'f')) return
+        if (scopeIndex.getEnclosingClientScope(node)) return
         if (
           scopeIndex.isInServerScope(node, {
             scope: 'server',

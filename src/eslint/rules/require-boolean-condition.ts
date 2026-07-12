@@ -12,7 +12,7 @@ type Options = {
   checkNotOperand?: boolean
   allowAny?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
@@ -21,7 +21,7 @@ const DEFAULTS: Required<Options> = {
   checkNotOperand: true,
   allowAny: true,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -36,7 +36,7 @@ const rule: Rule.RuleModule = {
           checkNotOperand: { type: 'boolean' },
           allowAny: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

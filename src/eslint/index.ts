@@ -3,6 +3,8 @@ import bigintIndexInServer from './rules/bigint-index-in-server.js'
 import builtinConsoleLogArity from './rules/builtin-console-log-arity.js'
 import builtinMathSupport from './rules/builtin-math-support.js'
 import builtinWrapperArity from './rules/builtin-wrapper-arity.js'
+import clientFilterReturn from './rules/client-filter-return.js'
+import clientGraphScopedF from './rules/client-graph-scoped-f.js'
 import clientScopedGlobals from './rules/client-scoped-globals.js'
 import forStructure from './rules/for-structure.js'
 import gstsserverCallScope from './rules/gstsserver-call-scope.js'
@@ -44,6 +46,8 @@ export const rules = {
   'builtin-console-log-arity': builtinConsoleLogArity,
   'builtin-math-support': builtinMathSupport,
   'builtin-wrapper-arity': builtinWrapperArity,
+  'client-filter-return': clientFilterReturn,
+  'client-graph-scoped-f': clientGraphScopedF,
   'client-scoped-globals': clientScopedGlobals,
   'for-structure': forStructure,
   'gstsserver-call-scope': gstsserverCallScope,
@@ -122,6 +126,8 @@ export const configs = {
       'gsts/builtin-math-support': 'error',
       'gsts/builtin-console-log-arity': 'error',
       'gsts/builtin-wrapper-arity': 'error',
+      'gsts/client-filter-return': 'error',
+      'gsts/client-graph-scoped-f': 'error',
       'gsts/client-scoped-globals': 'error'
     }
   }
