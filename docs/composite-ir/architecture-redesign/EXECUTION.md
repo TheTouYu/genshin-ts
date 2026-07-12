@@ -25,8 +25,11 @@
 4. 读取 [STATUS.md](STATUS.md)。
 5. 读取当前 Phase 文档、[migration-invariants.md](migration-invariants.md) 和
    [decision-log.md](decision-log.md) 中相关条目。
-6. 只读取当前工作包需要的源码、测试和真实证据文档。
-7. 修改前向用户提交恢复报告，并等待用户同意执行。
+6. 若工作包需要用户编辑器、真实 GIA 或 Windows `Beyond_Local_Export` 文件协作，读取
+   [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md) 和其维护规则
+   [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
+7. 只读取当前工作包需要的源码、测试和真实证据文档。
+8. 修改前向用户提交恢复报告，并等待用户同意执行。
 
 恢复报告固定格式：
 
@@ -167,7 +170,9 @@ npm run build
 每个完成的工作包必须更新：
 
 - `STATUS.md`：完成项、证据、下一工作包、工作树预期；
-- 当前 phase 文档：只更新 checklist/实测结果/偏差，不重写历史计划。
+- 当前 phase 文档：只更新 checklist/实测结果/偏差，不重写历史计划；
+- 按 `COLLABORATION-PLAYBOOK-MAINTENANCE.md` 判断是否更新经验手册；只有高频、可复用、
+  可行动且已证实的规律才可更新，默认每工作包最多精修或新增一条经验。
 
 仅在适用时更新：
 
