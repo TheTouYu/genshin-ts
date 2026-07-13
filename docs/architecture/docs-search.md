@@ -13,8 +13,9 @@
 - `docs-search` 负责在选定范围内查找相关文档片段、引擎 API 用法和 API 签名。
 - `codebase-memory` 负责源码定义、调用链和影响分析。
 - `composite-docs-maintainer` 负责文档变化后的索引维护和知识域治理。
+- 项目级 `miliastra-knowledge` skill 在本地资料不足时查询编辑器公开的节点规则和合法类型组合，用于收敛工作包范围；它不替代本地索引。
 
-检索排序不是证据等级。返回的 `status`、`source` 和 `scope` 必须原样保留并参与后续判断。
+检索排序和外部资料都不是证据等级。返回的 `status`、`source` 和 `scope` 必须原样保留并参与后续判断。
 
 ## 运行环境
 
@@ -141,9 +142,10 @@ handover、旧方案和部分过期内容。默认排除或降权；只有查询
    npm --silent run docs:search -- "<API 名称或事件名>" --collection engine-api-signatures --limit 5 --json
    ```
 
-4. 读取结果中的路径、标题、片段、状态、来源、scope 和相关测试。
-5. 对 `当前代码实现`、`自动回归`、`真实 GIA 观察`、`历史记录` 和 `待验证` 分开表述。
-6. 涉及源码调用关系时，再用 codebase-memory 或精确搜索核对，不要用文档检索代替代码图谱。
+4. 若本地资料不足以确定编辑器公开支持范围或合法类型组合，使用 `miliastra-knowledge` 的 `get_node_info` / `get_document` / `rag_search` 补查官方规则；不要猜测缺失的节点或组合。
+5. 读取结果中的路径、标题、片段、状态、来源、scope 和相关测试。
+6. 对 `当前代码实现`、`自动回归`、外部官方资料、`真实 GIA 观察`、`历史记录` 和 `待验证` 分开表述。
+7. 涉及源码调用关系时，再用 codebase-memory 或精确搜索核对，不要用文档检索代替代码图谱。
 
 ### Composite/GIA 问题
 
@@ -162,6 +164,7 @@ handover、旧方案和部分过期内容。默认排除或降权；只有查询
 ## 证据和安全边界
 
 - 检索排名不证明结论正确。
+- `miliastra-knowledge` 的外部官方资料可界定公开 API/类型组合，不证明当前编码器、GIA wire 或游戏行为；涉及 GIA 仍须做真实样本和用户编辑器验证。
 - `engine-api-signatures` 表示定义/生成数据来源，不等于游戏内行为验证。
 - 测试来源只能说明自动回归；不能写成游戏内验证。
 - `verified-gia` 结果必须保留样本范围；一个 GIA 样本不自动代表所有图。

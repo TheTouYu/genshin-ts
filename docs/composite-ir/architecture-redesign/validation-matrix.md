@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 持续更新
 > 来源：当前测试体系 + 真实 GIA 验证方法
-> 最近校验：2026-07-12
+> 最近校验：2026-07-13
 > 适用范围：Stage 3 架构重构验收；未勾选项均不视为已证明
 
 ## 1. 验证层级
@@ -96,7 +96,7 @@ tests/composite/test-stage3-root-impl-parity.ts
 | omitted sparse input | 只按声明/证据 | index 不压缩 | 无 | ☐ |
 | pure-data output | 按真实规则 | OutParam route | consumer edge | ☐ |
 | exec inflow/outflow | flow pin | In/OutFlow route | flow edge | ☐ |
-| nested composite | call synthetic pins | nested definition route | data/flow | ☑ legacy focused tests；☐ vendor gate P2-W9 failure baseline |
+| nested composite | call synthetic pins | nested definition route | data/flow | ☑ P2-W9~W12a legacy/vendor focused tests + 用户编辑器核验 |
 
 现有候选回归：
 
@@ -111,11 +111,26 @@ npx tsx tests/composite/test-local-variable-impl-concrete-type.ts
 执行前确认脚本当前入口和退出码；旧文档中的 nested pending 状态可能过时，以源码测试为准。
 
 P2-W5~W8 的 vendor embedding editor coverage 已确认：closed local-float ordinary impl、captured float literal、
-captured root Addition connection、captured entity custom target。它们属于 L6 scoped evidence，不填补 nested
-synthetic call、其他 type/family、`graphValues` 或 `affiliations`。P2-W9 的 vendor gate 当前在
-`__composite_call__` synthetic boundary 失败；参见 `checkpoints/phase-2-vendor-embedding-evidence.md`。
+captured root Addition connection、captured entity custom target。P2-W9~W12a 进一步覆盖 nested synthetic/boundary
+结构。P2-W16 在 vendor gate 下覆盖当前 mapping 的全部 11 个 DTC variant：`int→bool/float/str`、
+`entity/guid→str`、`bool→int/str`、`float→int/str`、`vec3/faction→str`；focused fixture 断言 shared identity、
+vendor pin schema、boundary route 和可见 Print，用户编辑器候选通过（L6）。这些都是 scoped evidence，不填补
+其他 ordinary family、DTC 未映射变种、跨版本 float→int 数值语义、`graphValues` 或 `affiliations`。
 
-## 6. `额外压力` vertical slice 验收
+## 6. P2-W16 DTC vendor-gate 验收
+
+```bash
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 \
+  npx tsx tests/composite/test-stage3-p2w16-all-dtc-vendor-graph.ts /tmp/P2W16-all-dtc-vendor.gia
+```
+
+结构目标：11 个 DTC 均为 generic `180` + 对应 concrete ID；vendor-gated impl 中 input/output type、concrete
+wrapper、capture/ordinary boundary route 和可见 Print 分支均存在。faction→string 使用 impl graph-variable getter
+ordinary edge，而非 capture placeholder。真实 `类型转化-full.gia` 仅作 7 个 `→str` 变种的 L4 参考；候选通过为 L6，
+不能因此宣称所有转换的 raw/wire 全等或跨版本数值语义。
+
+## 7. `额外压力` vertical slice 验收
 
 自动生成：
 
@@ -146,7 +161,7 @@ git diff --check
 
 注入必须另行取得用户确认。
 
-## 7. Vendor experiments
+## 8. Vendor experiments
 
 Phase 0 必做：
 
@@ -159,7 +174,7 @@ Phase 0 必做：
 
 实验脚本放 `tests/composite/`，不得写入生产路径。
 
-## 8. 每阶段最低命令
+## 9. 每阶段最低命令
 
 ```bash
 npm run build

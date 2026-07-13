@@ -1,7 +1,7 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1~P2-W12a 已完成；P2-W3~P2-W12a 已通过用户游戏编辑器核验
-> 来源：目标架构设计 + 当前实现/自动回归 + 真实 GIA 对照 + 用户游戏编辑器验证
+> 状态：P2-W1~P2-W12a、P2-W16 已完成；P2-W3~P2-W12a、P2-W16 已通过用户游戏编辑器核验
+> 来源：目标架构设计 + 当前实现/自动回归 + 官方节点规则查询 + 真实 GIA 对照 + 用户游戏编辑器验证
 > 最近校验：2026-07-13
 > 适用范围：ordinary vendor subgraph 与已验证的 composite synthetic/boundary overlay；不代表默认 backend 或全部类型编码
 
@@ -420,12 +420,22 @@ ordinary data input、nested capture 和 optional/sparse call binding；详见
   自动回归和用户编辑器四分支候选通过。该规则适用于 composite definition/call-site 的通用结构；各类型 wrapper/wire、
   optional connection/capture binding 与未绑定值的运行时结果仍待独立验证。
 
+## P2-W16 当前结果：all mapped DTC shared identity + vendor Graph validation
+
+状态：实现、focused 自动回归与用户游戏编辑器核验完成；待提交。
+
+root 与 composite impl 的 `data_type_conversion_<out>` 现在都由 shared `resolveNodeIdentity()` 以输入/输出类型解析 generic `180` 与 concrete variant。focused fixture 覆盖当前映射的 11 个变种：`int→bool/float/str`、`entity/guid→str`、`bool→int/str`、`float→int/str`、`vec3/faction→str`。在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下，它断言每个变种的 vendor input/output pin schema、concrete wrapper、composite boundary route 和可见 Print 分支；默认 handwritten backend 与 gate policy 未改变。
+
+faction→string 不能消费 capture placeholder：fixture 改用 impl node-graph variable getter 的 ordinary connection。legacy handwritten impl 对部分非 string DTC 的 OutParam schema 仍不完整，本包不增加手写修补；完整 schema 只作为 vendor-gated contract 断言。官方 `miliastra-knowledge` 查询的《基础概念》用于确定这 11 种候选范围；真实 `类型转化-full.gia` 只覆盖 7 个 `→str` 变种，故不能把官方查询或本候选写成全量 raw/wire 等价。用户编辑器确认 root adapter 接入前与接入后的两份 11 种变种候选均通过；归档文件分别为 `Beyond_Local_Export/真-测试通过/复合节点/P2W16-all-dtc-vendor-graph-pre-root-resolver.gia`（SHA-256 `27dd83efae860e18742bd15347f677d5f1e9bb72fd577300027ca9b5887810b2`）与 `Beyond_Local_Export/真-测试通过/复合节点/P2W16-all-dtc-vendor-graph-root-resolver.gia`（SHA-256 `d0f1c64b3b10b30da38aa7b12899aec418bf9dd5ba433618c7df2cb4b1c73abc`）；未注入。
+
+明确边界：不默认开启 gate、不删除 handwritten backend、不迁移 arithmetic/comparison/list/dict；官方资料对 float→int 的取整存在客户端/版本表述差异，编辑器通过不推广为跨版本数值语义结论。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；
 2. ~~custom variable getter/setter~~（P2-W3 自动回归与用户游戏编辑器核验通过）；
 3. ~~local variable float getter/setter~~（P2-W4 自动回归与用户游戏编辑器核验通过）；
-4. DTC；
+4. ~~DTC~~（P2-W16 全部当前映射变种已在 vendor gate 下核验）；
 5. arithmetic/comparison；
 6. list/dict 和特殊 ID 类型。
 

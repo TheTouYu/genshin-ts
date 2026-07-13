@@ -426,24 +426,16 @@ export function resolveGiaNodeId(
     return typed
   }
 
-  // special: data_type_conversion_<out> 的具体节点 ID 需要由 (inType,outType) 决定
-  // IR 只编码 outType，inType 在此阶段根据输入参数/连线类型推断
+  // DTC concrete identity depends on both input and output types. Root and composite impl
+  // delegate this decision to the same resolver rather than maintaining separate variant maps.
   if (nodeType.startsWith('data_type_conversion_')) {
-    const outKey = nodeType.slice('data_type_conversion_'.length).trim()
-    const nodeIdLower = getNodeIdLowerMap()
-
-    const inArg = node.args?.[0]
-    const inInfo = connTypeFromArgument(inArg)
-    const inType = inInfo?.type
-    if (inType && inType !== 'dict') {
-      const inKey = inType === 'vec3' ? 'vec' : inType
-      const direct = nodeIdLower.get(`data_type_conversion__${inKey}_${outKey}`)
-      if (direct) return direct
-    }
-
-    // fallback: generic
-    const generic = nodeIdLower.get(`data_type_conversion__generic`)
-    if (generic) return generic
+    const identity = resolveNodeIdentity(node, {
+      scope: { kind: 'root', name: 'root-node-identity-adapter' },
+      variablesByName: varsByName,
+      connectionTypes: connIndex,
+      strictTypeChecks: false
+    })
+    return identity.concreteNodeId ?? identity.genericNodeId
   }
 
   const key = SPECIAL_NODE_MAPPINGS[nodeType] ?? nodeType

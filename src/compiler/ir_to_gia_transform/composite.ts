@@ -365,7 +365,7 @@ function buildImplGraphNodes(
       pins,
       isCompositeCall,
       isDTC: isDTC || false,
-      dtcConcreteNid: isDTC ? nodeId : undefined,
+      dtcConcreteNid: isDTC ? sharedConcreteNid ?? nodeId : undefined,
       gvConcreteNid: sharedConcreteNid ?? gvConcreteNid,
       customVariableConcreteNid,
       localVariableConcreteNid,

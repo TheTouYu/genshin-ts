@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-13（P2-W10~W12a 已提交；nested data/capture/optional call-input 经自动回归、真实 GIA 对照与用户编辑器核验）
+> 最近校验：2026-07-13（P2-W10~W12a 已提交；P2-W16 全部当前映射 DTC 变种经自动回归与用户编辑器核验）
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,10 +10,10 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W13 — Stage 3 文档收束（本轮）；仅同步 P2-W10~W12a 已提交证据
-最近完成代码工作包：P2-W12a — optional composite call-input contract
+当前工作包：P2-W16 已完成，待提交与推送
+最近完成代码工作包：P2-W16 — all mapped DTC shared identity + vendor Graph validation
 分支起点：c5dfdd6 feat: add governed documentation search
-工作树预期：P2-W13 文档变更待提交；此前 P2-W10~W12a 代码提交后为 clean
+工作树预期：P2-W16 源码、focused tests、文档与项目级 miliastra-knowledge skill 变更待提交
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 ```
 
@@ -84,6 +84,7 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - **P2-W11（提交 `2f1e497`）**：outer captured float → nested child input 仅经 outer impl
   `compositePins` 路由；nested call 不物化该 physical input 或 ordinary data edge；自动 fixture 与用户编辑器
   核验均通过。
+- **P2-W16（未提交）**：root 与 composite impl 的 `data_type_conversion_<out>` 已接入同一 shared resolver，以输入/输出类型解析 generic `180` 与当前映射的 11 个 concrete variant：`int→bool/float/str`、`entity/guid→str`、`bool→int/str`、`float→int/str`、`vec3/faction→str`。在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下，focused fixture 对全部 11 个变种断言 input/output schema、concrete wrapper、composite boundary route 和可见 Print 分支。root adapter 接入前候选与当前 root shared-resolver 候选均已通过用户编辑器复验；两份候选分别归档，避免覆盖不同 SHA 的可追溯证据。该结论不默认开启 gate、不删除 handwritten backend，也不证明其他 ordinary family、DTC 未映射变种或 float→int 的跨版本数值取整语义。
 - **P2-W12a（提交 `bba105b`）**：复合 definition capture 与单次 call-site binding 已分离。真实
   `user_edit/复合节点/调用参数.gia`（SHA-256
   `599f3c06bdd3946cb93c3a498fb89237dd2fbc6e5f8661bfa80918f252bf3b1b`）中，同一双 float 加法 definition 的
@@ -97,7 +98,7 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - P2-W5~W12a 已证明指定 ordinary 图、capture、nested synthetic call、nested non-capture data、nested capture 与
   optional call-site binding 可在 gate 下组合；仍未证明 `graphValues`、`affiliations`、multiple/other-type capture、
   其他 ordinary family 或所有嵌入形态。
-- int/bool/str/entity/guid 等其他类型的 concrete variant 一致性。
+- P2-W16 已覆盖当前 DTC 映射的 int/bool/float/entity/guid/vec3/faction 输入与 bool/int/float/str 输出；这不证明这些类型在 setter/getter、arithmetic、list/dict 或其他 ordinary family 的 concrete variant 一致性。
 - P2-W1 已覆盖的 float/vec3 setter fixture 已被用户在游戏编辑器中接受；其他普通节点族仍未证明。
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
 - Connection pin literal default 的 wire presence（Q-003）。
@@ -683,9 +684,33 @@ git diff --check                                                              # 
 
 明确非目标：不将 gate 设为默认，不删除手写 impl backend，不迁移 capture、nested composite call、compositePins、graphValues、affiliations 或布局，不注入，不改 vendor/generated 文件。
 
+## P2-W16 完成记录：all mapped DTC shared identity + vendor Graph validation
+
+状态：实现、focused 自动回归、官方节点规则查询与两份用户游戏编辑器候选核验完成；待提交。
+
+范围：DTC shared resolver 按 `(inputType, outputType)` 决定 generic `180` 与 concrete variant；fixture 覆盖当前 mapping 的 11 个变种。faction→string 采用 impl node-graph variable getter 的普通数据边，不能将 capture placeholder 当作 faction DTC 输入。legacy 手写 impl backend 对部分非 string DTC OutParam schema 仍不完整；本包不增加手写 patch，vendor gate 下才断言完整 schema。
+
+证据：官方 `miliastra-knowledge` 查询的《基础概念》列出这 11 类基础转换；真实 `tests/composite/output/类型转化-full.gia`（SHA-256 `d26757fe40fde0f8c0ec54b8069e047464d62fdcd0d076acddf481b1afe92897`）覆盖 7 个 `→str` 变种；P2-W16 legacy/vendor focused fixture、build、P2-W5 与 nested regressions 均 PASS；用户确认 root adapter 接入前与接入后的两份 11 变种编辑器候选均通过。当前候选 SHA-256 为 `d0f1c64b3b10b30da38aa7b12899aec418bf9dd5ba433618c7df2cb4b1c73abc`。官方资料对 float→int 的取整描述存在客户端/版本差异，两个候选通过不推广为跨版本数值语义结论。
+
+验证：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+npx tsx tests/composite/test-stage3-p2w16-all-dtc-vendor-graph.ts /tmp/P2W16-all-dtc-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w16-all-dtc-vendor-graph.ts /tmp/P2W16-all-dtc-vendor.gia
+npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts /tmp/P2W5-regression.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts /tmp/P2W5-vendor-regression.gia
+npx tsx tests/composite/test-nested-composite-capture-pins.ts
+npx tsx tests/composite/test-nested-composite-outflow.ts
+git diff --check
+```
+
+已归档候选：`Beyond_Local_Export/真-测试通过/复合节点/P2W16-all-dtc-vendor-graph-pre-root-resolver.gia`，SHA-256 `27dd83efae860e18742bd15347f677d5f1e9bb72fd577300027ca9b5887810b2`；`Beyond_Local_Export/真-测试通过/复合节点/P2W16-all-dtc-vendor-graph-root-resolver.gia`，SHA-256 `d0f1c64b3b10b30da38aa7b12899aec418bf9dd5ba433618c7df2cb4b1c73abc`；未注入。
+
 ## 待用户决策
 
-P2-W10~W12a 已完成并提交；P2-W13 仅作本轮文档收束。ADR-006=A 保持不变。现有证据仍不授权默认开启 gate、删除
+P2-W16 已完成，P2-W13 文档收束被本轮最小文档同步吸收。ADR-006=A 保持不变。现有证据仍不授权默认开启 gate、删除
 handwritten backend，或将未覆盖的类型 wire/default、connection/capture 型 optional binding、`graphValues`、
 `affiliations` 纳入已完成范围。用户对后续 Stage 3 名称明确的候选 `.gia` 保持直接复制/覆盖
 `Beyond_Local_Export` 根目录的授权；该授权不包含真实参考、归档、地图/注入目录、删除/清理或注入。
@@ -850,10 +875,10 @@ legacy/vendor fixture、nested outflow/capture regression、P2-W5 legacy/vendor 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)、[COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；结束涉及真实 GIA/用户编辑器协作的工作包时，再读 [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md) 决定是否做最小经验更新；
-2. 检查分支、status 和最近提交；P2-W13 提交前工作树应只含本轮文档同步；
-3. P2-W5~W12a 已完成并提交；下一功能工作包开始前读取
-   `checkpoints/phase-2-vendor-embedding-evidence.md`、ADR-009、ADR-010 和本文件的 P2-W10~W12a 事实；
+2. 检查分支、status 和最近提交；P2-W16 提交前工作树应只含本轮源码、focused tests、最小文档同步与项目级 skill；
+3. P2-W5~W12a 已完成并提交，P2-W16 待提交；下一功能工作包开始前读取
+   `checkpoints/phase-2-vendor-embedding-evidence.md`、ADR-009、ADR-010、本文件 P2-W16 事实和适用的官方节点规则查询；
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization，但 vendor 仅覆盖 ordinary subgraph。nested data、nested
-   capture 与 optional call-input structure 已分别核验；仍不得默认开启 gate、删除 handwritten backend，或将未覆盖
+   capture、optional call-input structure 与当前映射 DTC 已分别核验；仍不得默认开启 gate、删除 handwritten backend，或将未覆盖
    类型 wire/default、connection/capture 型 optional binding、`graphValues`、`affiliations` 混入既有结论；
 5. 不覆盖无法解释的变化。

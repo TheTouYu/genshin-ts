@@ -34,6 +34,33 @@ assert.deepEqual(resolveNodeIdentity(vecNode, context), {
   logicalType: 'set_node_graph_variable', genericNodeId: 323, concreteNodeId: 334
 })
 
+const dtcVariants = [
+  ['int', 'bool', 180],
+  ['int', 'float', 181],
+  ['int', 'str', 182],
+  ['entity', 'str', 183],
+  ['guid', 'str', 184],
+  ['bool', 'int', 185],
+  ['bool', 'str', 186],
+  ['float', 'int', 187],
+  ['float', 'str', 188],
+  ['vec3', 'str', 189],
+  ['faction', 'str', 255]
+]
+for (const [inputType, outputType, concreteNodeId] of dtcVariants) {
+  const node = {
+    id: 100 + concreteNodeId,
+    type: `data_type_conversion_${outputType}`,
+    args: [{ type: inputType, value: null }]
+  }
+  assert.deepEqual(resolveNodeIdentity(node, context), {
+    logicalType: node.type,
+    genericNodeId: 180,
+    concreteNodeId
+  })
+  assert.equal(resolveGiaNodeId(node, context.connectionTypes, context.variablesByName), concreteNodeId)
+}
+
 const customSetter = { id: 8, type: 'set_custom_variable', args: [
   { type: 'entity', value: 0 },
   { type: 'str', value: 'customFloat' },

@@ -169,7 +169,9 @@ export function resolveNodeIdentity(
 ): ResolvedNodeIdentity {
   const lower = (SPECIAL_NODE_MAPPINGS[node.type] ?? node.type).toLowerCase()
   const nodeIds = getNodeIdLowerMap()
-  const genericNodeId = nodeIds.get(lower) ?? nodeIds.get(`${lower}__generic`)
+  const genericNodeId = node.type.startsWith('data_type_conversion_')
+    ? nodeIds.get('data_type_conversion__generic')
+    : nodeIds.get(lower) ?? nodeIds.get(`${lower}__generic`)
   if (genericNodeId === undefined) {
     report(context, {
       code: 'E_UNKNOWN_NODE_VARIANT',
@@ -177,6 +179,33 @@ export function resolveNodeIdentity(
       nodeId: node.id,
       nodeType: node.type
     })
+  }
+
+  const isDataTypeConversion = node.type.startsWith('data_type_conversion_')
+  if (isDataTypeConversion) {
+    const inputType = inputs[0]?.type
+    const outputType = node.type.slice('data_type_conversion_'.length)
+    const inputSuffix = inputType?.kind === 'scalar'
+      ? inputType.name === 'vec3' ? 'vec' : inputType.name
+      : undefined
+    const concreteNodeId = inputSuffix
+      ? nodeIds.get(`data_type_conversion__${inputSuffix}_${outputType}`)
+      : undefined
+    if (!concreteNodeId) {
+      recordFallback(context, {
+        reason: inputSuffix ? 'missing-concrete-variant' : 'unsupported-resolved-type',
+        nodeId: node.id,
+        nodeType: node.type
+      })
+      report(context, {
+        code: 'E_UNKNOWN_NODE_VARIANT',
+        message: `missing data type conversion variant for ${inputSuffix ?? 'unresolved'}→${outputType}`,
+        nodeId: node.id,
+        nodeType: node.type,
+        argIndex: 0
+      })
+    }
+    return { logicalType: node.type, genericNodeId, concreteNodeId }
   }
 
   let declaredType: ResolvedValueType | undefined
@@ -263,6 +292,7 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
     nodeType === 'set_custom_variable' ||
     nodeType === 'get_custom_variable' ||
     nodeType === 'set_local_variable' ||
-    nodeType === 'get_local_variable'
+    nodeType === 'get_local_variable' ||
+    nodeType.startsWith('data_type_conversion_')
   )
 }
