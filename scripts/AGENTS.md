@@ -1,113 +1,28 @@
-# scripts/ — Build/Test/Regen Scripts (CI-driven)
+# `scripts/` 自动化、生成与发布脚本
 
-## OVERVIEW
-Node/TS scripts **runnable via `npm run ...`** or as part of CI/release pipeline. Distinct from `tools/` (interactive `npx tsx` GIA analysis — see `tools/AGENTS.md`).
+## 适用范围
 
-## STRUCTURE (28 top-level + `testgen/` subdir)
+这里放 CI、构建、定义生成、测试生成和发布脚本。交互式、只读的 GIA 分析工具应放在 `tools/`，不要混入本目录。
 
-### Definition generation (4)
-| File | Role |
-|------|------|
-| `generate-definitions.ts` | **1,375 LoC** — `npm run gen`; reads `resources/node_definitions.json` → emits `src/definitions/*.ts` (then prettier --write) |
-| `generate-zh-aliases.mjs` | Chinese alias map → `src/definitions/zh_aliases.ts` |
-| `inspect-ts-hover.mjs` | Debug TS hover provider output |
-| `analyze-node-definitions-diff.mjs` | **23 KB** — diff the definitions tables across runs |
+## 修改前
 
-### Test generation (5)
-| File | Role |
-|------|------|
-| `generate-node-gia-tests.ts` | **10 KB** — `npm run gen`-test step; produces `tests/generated/*.ts` grouped by generic id |
-| `generate-enum-gia-tests.ts` | **13 KB** — produces `tests/enum_cases/*.ts` from enum type members |
-| `generate-enum-equal-wired-tests.ts` | **4 KB** — `enum_enumerationsEqual_wired.ts` |
-| `generate-mismatch-node-tests.ts` | **6 KB** — `mismatch_only.{literal,wire}.ts` (preserved across pretest) |
-| `generate-final-gia-test.ts` | **15 KB** — final GIA integration test |
+- 先确认脚本是生成、测试、维护还是发布用途，并检查 `package.json` 是否实际调用它。
+- 生成 definitions 时，先确认真实来源是 `resources/node_definitions.json`；生成测试时，确认输出目录会被 `pretest` 清理。
 
-### Consistency / coverage (3)
-| File | Role |
-|------|------|
-| `check-node-def-consistency.ts` | **10 KB** — consistency against vendor pin records |
-| `check-node-gia-test-coverage.mjs` | Per-method coverage stats companion |
-| `audit-vendor-gia-files.ts` | **16 KB** — audits third-party GIA files for missing node records / pin mismatches |
+## 修改规则
 
-### Repair (1)
-| File | Role |
-|------|------|
-| `fix-node-pin-records-from-consistency.ts` | Auto-fix pin records from consistency report |
+- 脚本使用 `tsx` 运行，不依赖预先构建的 `dist/`。
+- 生成文件只写入既定的 generated 目录；不要把临时输出或分析产物提交到源码目录。
+- 修改定义生成流程后使用 `npm run gen`，不要手改 `src/definitions/`。
+- 修改测试生成或清理流程时，特别检查 `scripts/clean-tests.mjs` 的保留文件列表，避免误删手工回归。
+- 发布脚本和版本流程属于高影响操作；不要在未确认时发布、改版本或触发网络副作用。
 
-### Asset extractors (2)
-| File | Role |
-|------|------|
-| `extract-new-node-ids.mjs` | Extract new node IDs from vendor data |
-| `verify-character-prefabs-from-docs.mjs` | Verify character prefab IDs against external docs |
+## 验证
 
-### Assertion tests (8)
-| File | Role |
-|------|------|
-| `assert-collection-rebind-semantics.ts` | Compile fixture → assert collection-rebind IR |
-| `assert-const-object-member-folding.ts` | Compile fixture → assert const-folded object members |
-| `assert-f-method-matcher.ts` | Compile fixture → assert f-method matching |
-| `assert-live-collection-reference.ts` | Compile fixture → assert live collection reference semantics |
-| `assert-loop-index-modulo.ts` | Compile fixture → assert loop index modulo semantics |
-| `assert-signal-parameters.ts` | **14 KB** — Compile fixture → assert signal parameter shapes |
-| `assert-timer-capture-writeback.ts` | Compile fixture → assert timer capture writeback |
-| `assert-variable-plan-semantics.ts` | **13 KB** — Compile fixture → assert var-plan semantics |
+- 运行受影响脚本的最小命令，检查生成结果和失败信息。
+- 改动会影响构建或测试入口时，运行 `npm run build` 或对应测试；最后运行 `git diff --check`。
 
-### Build/release (3)
-| File | Role |
-|------|------|
-| `postbuild.mjs` | 57 LoC — copies `gia.proto`, `IR.d.ts`, `server_on_overloads.d.ts`, `server_globals.d.ts` (renamed to `.global.d.ts`) into `dist/` |
-| `release.mjs` | Changelog-driven version extraction for `.github/workflows/release.yml` |
-| `clean-tests.mjs` | **33 LoC** — `pretest` hook; preserves `mismatch_only.{literal,wire}.ts` + `enum_nodes_second.ts` + `enum_enumerationsEqual_wired.ts`; deletes everything else in `tests/generated` and `tests/enum_cases` |
+## 不要做
 
-### `testgen/` (depth 2) — internal library
-9 files used by `generate-*-gia-tests.ts`:
-- `methods.ts` — AST visitor over `ServerExecutionFlowFunctions` class; returns `MethodInfo[]`
-- `args_from_nodes.ts` — picks argument literal/wire values from node method signatures
-- `typespec.ts` — `parseTypeSpec` recursive parser (primitive / list / dict / enumConcrete / unknown)
-- `values.ts` — literal / wire value emitters
-- `picks.ts` — `loadEnumPicks(enum.ts)` — reads first static of each enum class
-- `return_consumers.ts` — wires generated return values to consumer nodes
-- `emit.ts` — `header/footer/emitFile/cleanDir` for generated `.ts` test files
-- `generics_data.ts` — `loadNodeGenerics`, `loadNodeGenericsSummary`, `buildGenericsMap` from `resources/node_generics*.json`
-- `vendor_ids.ts` — `readVendorNodeIdKeysLower`, `canResolveNodeType` (mirrors `SPECIAL_NODE_MAPPINGS`)
-
-## WHERE TO LOOK
-| Task | Location |
-|------|----------|
-| Regenerate definitions from updated resources | `npm run gen` (= `tsx generate-definitions.ts && prettier --write src/definitions/**/*.ts`) |
-| Regenerate test corpus | `npm test` (calls `generate-node-gia-tests.ts` + `generate-enum-gia-tests.ts` after pretest clean) |
-| Add a new generator for tests | Mirror `generate-*-gia-tests.ts` pattern; use `testgen/emit.ts` for the file header/footer |
-| Add a new assertion test | Copy an `assert-*.ts`; compile fixture → compare to expected IR/GIA |
-| Audit vendor coverage | `npx tsx scripts/audit-vendor-gia-files.ts` |
-| Run a single test gen step | `npx tsx scripts/generate-node-gia-tests.ts` |
-| Check pretest cleanup behavior | `clean-tests.mjs` (the keep-Set is the project's "trust the generator except for these" pattern) |
-| Understand release flow | `release.mjs` + `.github/workflows/release.yml` |
-
-## CONVENTIONS
-- `scripts/` = CI/release pipeline work. `tools/` = interactive one-off GIA analysis.
-- All test generators write to `tests/generated/` or `tests/enum_cases/` (git-ignored / cleaned before every test).
-- All scripts use `tsx` for execution; never require a prebuild.
-- Auto-generated test files start with `// AUTO-GENERATED: <group>` + `// Run: npx tsx scripts/generate-...` markers.
-- Sidecar reports from test generators: `_report.json` (per-method coverage stats) + `_skipped_nodes.txt` (methods that couldn't be stably generated).
-- `clean-tests.mjs` keep-Set defines the **manually-curated regression corpus** — those 4 files survive `pretest`:
-  - `tests/generated/mismatch_only.literal.ts`
-  - `tests/generated/mismatch_only.wire.ts`
-  - `tests/enum_cases/enum_nodes_second.ts`
-  - `tests/enum_cases/enum_enumerationsEqual_wired.ts`
-
-## ANTI-PATTERNS
-- Do NOT add a script that depends on `dist/` — these are dev-time only; production runs go through `node ./bin/gsts.mjs`.
-- Do NOT add a generator that writes outside `tests/generated/` or `tests/enum_cases/`.
-- Do NOT modify the `clean-tests.mjs` keep-Set without strong reason — those 4 files are the regression corpus.
-- Do NOT skip the prettier --write step after `generate-definitions.ts` — broken formatting breaks the eslint pipeline.
-- Do NOT add a test generator that depends on a specific node ID — IDs are in `1073741825+` range and may collide.
-- Do NOT put GIA analysis scripts here (use `tools/`).
-- `assert-*.ts` files are NOT wired into `npm test` — they are orphan. If you need them in CI, add a script entry to `package.json`.
-
-## NOTES
-- 8 `assert-*.ts` files are effectively orphan — nothing in `package.json` invokes them. Consider whether they should be wired into `test` or moved to a separate `test:all` script.
-- The `postbuild.mjs` script is the only one that runs in the normal build flow (as `postbuild`).
-- `release.mjs` reads `Changelog.md` headings to find `#{1,6} ... X.Y.Z` and outputs `version=` + `tag=` to `$GITHUB_OUTPUT`.
-- `clean-tests.mjs` is the `pretest` hook.
-- Test generator IDs are reserved in `1073741828-1073741852` range (per `generate-node-gia-tests.ts:46 BASE_GRAPH_ID = 1073741828`); collisions are a real risk.
-- `audit-vendor-gia-files.ts` is the most-invoked non-test script — it ensures vendor completeness across `node_data/`.
+- 不要在这里添加会修改游戏文件的脚本。
+- 不要让 CI/生成脚本依赖本机私有路径、现有 `dist/` 或未记录的手工前置步骤。

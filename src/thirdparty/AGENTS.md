@@ -1,70 +1,26 @@
-# src/thirdparty/ — Vendored MIT Data
+# `src/thirdparty/`：Vendor 数据与代码
 
-## OVERVIEW
-A single subdirectory `Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/` (Wu-Yijun's MIT-licensed reverse-engineered data). **Fork-merged into this repo as a subdir** (not a git submodule) so `npm install` brings it in without an extra network call.
+## 适用范围
 
-## STRUCTURE
-```
-src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/
-├── protobuf/
-│   ├── gia.proto            # 14 KB — protobuf schema for .gia wrapper
-│   ├── gia.proto.ts         # 18 KB — auto-generated protobufjs bindings
-│   └── decode.ts            # 5 KB — `decode_gia_file` (used by tools/decode-gia.ts)
-├── gia_gen/                 # TypeScript code-gen of node types
-│   ├── nodes.ts             # 30 KB
-│   ├── graph.ts             # 23 KB
-│   ├── basic.ts             # 29 KB
-│   ├── utils.ts             # 6 KB
-│   ├── extract.ts
-│   └── index.ts
-└── node_data/               # Vendor node metadata
-    ├── node_id.ts           # 210 KB — vendor `NODE_ID` map
-    ├── node_pin_records.ts  # 168 KB — pin records per node
-    ├── enum_id.ts           # 15 KB — enum id mapping
-    ├── concrete_map.ts
-    ├── types_list.ts
-    ├── helpers.ts
-    └── index.ts
-```
+本目录包含 vendored 的 GIA protobuf、生成器和节点数据。它是外部数据快照，不是项目日常业务源码。
 
-## WHERE TO LOOK
-| Task | Location |
-|------|----------|
-| Add a new protobuf field | `protobuf/gia.proto` (regenerate `.proto.ts` if needed) + `compiler/ir_to_gia_transform/index.ts` |
-| Find a node ID | `node_data/node_id.ts` (vendor map; lowercase keys) |
-| Find pin records for a node | `node_data/node_pin_records.ts` (168 KB) |
-| Find an enum ID | `node_data/enum_id.ts` |
-| Change the GIA wrapper shape | `protobuf/gia.proto` + `src/injector/proto.ts:loadGiaProto` |
-| Decode a GIA binary | `protobuf/decode.ts:decode_gia_file` (used by `tools/decode-gia.ts`) |
-| Find the Graph/Node/Pin API | `gia_gen/index.ts` (re-exported via `src/compiler/gia_vendor.ts`) |
+## 修改前
 
-## CONVENTIONS
-- **Vendored at the subdir level** — no git submodule, no npm dep. Easier for `npm install` but harder to update.
-- Most files at the boundary are `// @ts-nocheck thirdparty` annotated to skip type-checking (since the vendor code may not match our strict TS settings).
-- Re-exported through `src/compiler/gia_vendor.ts` (the only public-facing entry point for the vendor API).
-- `protobuf/gia.proto` is loaded by `src/injector/proto.ts:loadGiaProto` (memoized per path).
-- `node_data/node_pin_records.ts` is **mirrored** in `scripts/testgen/vendor_ids.ts:SPECIAL_NODE_MAPPINGS` for the test generator.
-- The vendor `NODE_ID` map is keyed by lowercase node names; case-sensitive lookups must `.toLowerCase()` first.
+- 先确认问题能否在项目 adapter、映射或生成流程解决；通常应查看 `src/compiler/gia_vendor.ts`、Stage 3 映射和相关测试。
+- 如确需更新 vendor，先向用户说明上游来源、版本/提交、影响文件、再生成步骤和验证计划。
 
-## KEY EXPORTS (re-exported via `src/compiler/gia_vendor.ts`)
-- `Graph`, `Node`, `Pin` (`gia_gen/`)
-- `wrap_gia` (`gia_gen/index.ts`)
-- `NODE_ID` (`node_data/node_id.ts`)
-- `NodePinRecords` (`node_data/node_pin_records.ts`)
-- `EnumId` (`node_data/enum_id.ts`)
-- `decode_gia_file` (`protobuf/decode.ts`)
+## 修改规则
 
-## ANTI-PATTERNS
-- **DO NOT HAND-EDIT** anything in `src/thirdparty/`. It is vendored MIT data; update by bumping the fork.
-- Do NOT add `any` workarounds outside the existing `// @ts-nocheck thirdparty` annotations — extend the annotation, don't bypass TS elsewhere.
-- Do NOT import directly from `src/thirdparty/...` in user code — go through `src/compiler/gia_vendor.ts` (which re-exports the public API).
-- Do NOT change the `gia.proto` schema without coordinating with the vendor's updates — divergence breaks the GIA format.
-- Do NOT modify `node_id.ts` / `node_pin_records.ts` to add custom entries — instead, add an override in `compiler/ir_to_gia_transform/mappings.ts:SPECIAL_NODE_MAPPINGS` or `node_id.ts:resolveGiaNodeId` (project-controlled).
+- 不手改本目录文件，也不要在项目其他目录复制 vendor 数据来绕过同步流程。
+- 项目代码通过 `src/compiler/gia_vendor.ts` 使用公开 vendor API，不直接深层导入 vendor 路径。
+- protobuf schema、节点 ID、pin records 和 concrete map 的变化必须随 vendor 同步流程处理，并检查项目映射、生成脚本和一致性审计。
+- vendor 是编码机制和数据来源，不自动等同真实游戏编辑器规范；真实 GIA 结论仍需独立样本证据。
 
-## NOTES
-- The vendor's approach was "more complete" than the project's own reverse-engineering (per `README.md:Special Thanks`); the project integrates it and merges some of its own data.
-- `node_data/node_id.ts` (210 KB) is the **single largest** file in the repo outside of `src/definitions/nodes.ts`.
-- `audit-vendor-gia-files.ts` (in `scripts/`) checks for missing node records; runs as part of consistency CI.
-- Update workflow: bump the upstream fork, re-vendor, re-run `npm run gen` + `audit-vendor-gia-files.ts`.
-- The vendor fork is MIT-licensed; original work by Wu-Yijun at https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack.
-- The 168 KB `node_pin_records.ts` is consumed directly by `compiler/ir_to_gia_transform/mappings.ts` (488 LoC) and mirrored in `scripts/testgen/vendor_ids.ts`.
+## 验证
+
+- vendor 更新后运行约定的生成、一致性审计、构建和受影响回归；最后运行 `git diff --check`。
+
+## 不要做
+
+- 不要直接补 node ID、pin record、protobuf 字段或 `any` workaround 来修单个案例。
+- 不要把 vendor 编码成功报告为游戏行为已经验证。

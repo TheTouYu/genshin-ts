@@ -1,58 +1,28 @@
-# src/compiler/ — 3-Stage Pipeline Hub
+# `src/compiler/` 三阶段编译管线
 
-## OVERVIEW
-Orchestrates the 3-stage TS→.gs.ts→IR JSON→.gia binary pipeline. Each stage runs in its own tsx child process (maxParallel=cpus-1); IR is the only typed hand-off.
+## 适用范围
 
-## STRUCTURE
-```
-src/compiler/
-├── ts_to_gs_pipeline.ts    # Stage 1 driver (public: compileTsToGs, compileTsToGsFromConfig)
-├── ts_to_gs.ts             # Stage 1 CLI shim (npm run to-gs)
-├── gs_to_ir_json_transform/  # Stage 2 (only 2 files — see sub-AGENTS)
-├── ir_to_gia_pipeline.ts   # Stage 3 public API (writeGiaFromIrJsonFiles, parallel runner)
-├── ir_to_gia.ts            # Stage 3 CLI shim
-├── ir_merge.ts             # Multi-entry IR merge by graphId
-├── gsts_config.ts          # GstsConfig + GstsOptimizeOptions + GstsInjectConfig types (bilingual JSDoc)
-├── config_loader.ts        # loadGstsConfig via tsx child process
-├── gia_vendor.ts           # Re-export shim for vendored Graph/Node/Pin/wrap_gia
-├── ts_to_gs_transform/     # Stage 1: TS AST → .gs.ts (14 files)
-└── ir_to_gia_transform/    # Stage 3: IR JSON → .gia (11 files)
-```
+这里负责 TS → `.gs.ts` → IR JSON → `.gia` 的三阶段编译。进入 Stage 1 或 Stage 3 子目录后，必须继续读取其中的规则。
 
-## WHERE TO LOOK
-| Task | Location |
-|------|----------|
-| Add a compile config option | `gsts_config.ts` (type) + `config_loader.ts` (loader) |
-| Trace multi-entry IR merge | `ir_merge.ts` (`mergeIrJsonFilesByGraphId`, sets `__gsts.merged=true`) |
-| Find what runner a stage uses | `ts_to_gs_pipeline.ts`, `ir_to_gia_pipeline.ts` (parallel harness) |
-| Add a new pipeline stage | Mirror `ts_to_gs_transform/` + driver pipeline pair |
-| Cross-stage error format | `fail()` / `warn()` in `ts_to_gs_transform/errors.ts` (positional), `[error]` (host) elsewhere |
+## 修改前
 
-## CONVENTIONS
-- All files snake_case; CLI shims `ts_to_gs.ts` / `ir_to_gia.ts` mirror stage names.
-- `gsts_config.ts` types have full EN+ZH JSDoc — when adding fields, mirror both.
-- Children spawn via `tsx`; pipeline root is `compileRoot`; `entries` use fast-glob (supports `!` negation).
-- Stage outputs use the suffix convention (`.gs.ts`, `.json`, `.gia`) — do NOT break the convention; pipeline guards on `.gs.ts` to prevent re-processing.
-- `_GSTS_<name>` graph name prefix is set in `ir_to_gia_transform/shared.ts` and enforced by `injector/index.ts` safety check.
+- 先确认问题属于哪个阶段，以及输入、输出和跨阶段契约；不要通过跨阶段临时耦合绕过问题。
+- 影响范围不清时，先用 codebase-memory 定位入口和调用链，再读取实际源码与 focused tests。
+- 涉及 Composite、IR 或 GIA 时，先读取最小相关架构文档；真实 GIA 结论不能只依赖 vendor 或自动生成结果。
 
-## KEY EXPORTS (public API)
-- `compileTsToGs(entries, outDir, opts)` — Stage 1
-- `compileTsToGsFromConfig(config)` — Stage 1 from GstsConfig
-- `emitIrJsonForEntries(entries, outDir, opts)` — Stage 2 orchestrator (parallel)
-- `mergeIrJsonFilesByGraphId(paths, outPath, opts)` — multi-entry merge
-- `writeGiaFromIrJsonFile(irPath, outFile?, opts?)` — Stage 3 single
-- `writeGiaFromIrJsonFiles(entries, outDir, opts)` — Stage 3 parallel
-- `irToGia(ir, opts)` — Stage 3 main (in `ir_to_gia_transform/index.ts`)
+## 修改规则
 
-## ANTI-PATTERNS
-- Do NOT call `gsts_config.ts` types in user DSL — they are for `gsts.config.ts` only.
-- Do NOT hand-edit `src/definitions/*.ts` — regenerate via `npm run gen`.
-- Do NOT use `JSON.parse/stringify` in compiler host code without thinking — it's fine here, but is `gsts/no-json` in user DSL.
-- Stage children must NOT share state — each is an isolated `tsx` process.
+- 保持产物后缀和阶段责任：Stage 1 只生成 `.gs.ts`，Stage 2 生成 IR，Stage 3 消费 IR 并生成 `.gia`。
+- `gsts_config.ts` 的公开配置字段需要完整中英文 JSDoc，并保持 loader、CLI、模板和测试配置一致。
+- 进程间阶段执行应保持隔离，不依赖共享可变状态。
+- IR 是唯一的类型化跨阶段交接；修改 IR 形状时检查生产者、消费者、合并逻辑和回归。
 
-## NOTES
-- **3 god-files** dominate: `ts_to_gs_transform/expr.ts` (2150), `ts_to_gs_transform/stmt.ts` (1663), `ir_to_gia_transform/composite.ts` (1123). Refactor here = high risk.
-- `gsts.test.config.ts` disables `precompileExpression` + `removeUnusedNodes` so test goldens stay stable.
-- `ir_merge.ts` errors via `i18n.t('err_mergeServerSubTypeMismatch', ...)` (uses `src/i18n/`).
-- `config_loader.ts` loads `gsts.config.ts` via tsx child (not `require`).
-- See subdirectory AGENTS.md for Stage 1 (`ts_to_gs_transform/`) and Stage 3 (`ir_to_gia_transform/`) details. Stage 2 has only 2 files, so no sub-AGENTS.
+## 验证
+
+- 优先运行受影响阶段的最小命令或测试；生产 TypeScript 改动后运行 `npm run build`。
+- 修改共享管线时扩大到相关 end-to-end 回归；最后运行 `git diff --check`。
+
+## 不要做
+
+- 不要手改 definitions 或 vendor 文件，不要破坏 `.gs.ts` / `.json` / `.gia` 产物约定。
+- 不要把编译成功、GIA 生成成功或注入成功误报为游戏行为验证。

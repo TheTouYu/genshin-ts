@@ -1,64 +1,32 @@
-# src/compiler/ir_to_gia_transform/ — Stage 3: IR JSON → .gia Binary
+# `src/compiler/ir_to_gia_transform/`：Stage 3 IR → GIA
 
-## OVERVIEW
-Converts `IRDocument` JSON to GIA protobuf binary. Pure consumer of `src/runtime/IR.d.ts` types. Uses vendored `Graph/Node/Pin/wrap_gia` from `src/thirdparty/` and the `.gia.proto` schema (loaded via `src/injector/proto.ts`).
+## 适用范围
 
-## STRUCTURE (11 files)
-| File | Lines | Role |
-|------|-------|------|
-| `index.ts` | **856** | `irToGia(ir, opts): Uint8Array` — main entry; orchestrates expandListLiterals → resolveGiaNodeId → layout → optimizeTimerDispatchAggregate → buildCompositeAccessories → protobuf encode |
-| `runner.ts` | 42 | Standalone CLI: `irPath [outFile] [preserve=1] [indicesCsv]`; child-process for pipeline parallel harness |
-| `shared.ts` | 92 | `writeGiaFromIrJsonFile(irPath, outFile?, opts?)` — used by both `runner.ts` and `cli/gsts.ts`; names graph `_GSTS_<base>` if unnamed |
-| `mappings.ts` | 488 | Bidirectional maps: `ENUM_ID_LOWER`, `ENUM_VALUE_LOWER` (skipped key list), `ENUM_VALUE_MAPPINGS` (vendor `ComparisonOperators_*` → `comparison_operator_*` bridge), `SPECIAL_NODE_MAPPINGS` (renamed upstream nodes) |
-| `pins.ts` | 155 | `setEnumArgValue` / `setLiteralArgValue` / `setClientExecLiteralArgValue`; manages `InParam` (kind=3) and `ClientExec` (kind=5) Pin construction |
-| `layout.ts` | 311 | `buildExecutionGraph(irNodes)` + `layoutPositions(...)` — grid-based X/Y placement with column/row widths, maxColumns, eventGap |
-| `optimize_timer_dispatch.ts` | 361 | Aggregates chains of `when_timer_is_triggered → equal → branch` into a single switch node (`MAX_TIMER_DISPATCH_CASES = 10`); driven by `GSTS_OPT_TIMER_DISPATCH` env |
-| `composite.ts` | **1,123** | **GOD-FILE** — `buildCompositeAccessories(def, compositeDefById?)` encodes each `CompositeDefIR` as `GraphUnit` pair (CompositeDef + impl NodeGraph); id remap, `__composite_capture__` filtering, OutParam generation, nested-call pin wiring |
-| `node_id.ts` | 643 | `buildConnTypeIndex` + `resolveGiaNodeId`; type-driven node-id resolution with classic/beyond mode branches (e.g. `teleport_player`: classic=805 beyond=288) |
-| `preprocess.ts` | 49 | `expandListLiterals` — inline `*_list = [...]` → synthetic `assembly_list` data node + conn |
-| `types.ts` | small | `Position`, `NodeId`, `IRNode` (= `NonNullable<IRDocument['nodes']>[number]`) |
+这里将 `IRDocument` 编码为 `.gia`。它消费 `src/runtime/IR.d.ts`，通过
+`src/compiler/gia_vendor.ts` 使用 vendor 的 `Graph`、`Node`、`Pin` 与 protobuf 包装能力。
 
-## WHERE TO LOOK
-| Task | Location |
-|------|----------|
-| Add a new GIA encoding rule | `index.ts:irToGia` (orchestrator) or one of the helpers |
-| Add a new node-type mapping | `mappings.ts:SPECIAL_NODE_MAPPINGS` + `node_id.ts:resolveGiaNodeId` |
-| Add a pin encoding | `pins.ts` |
-| Change editor layout | `layout.ts:layoutPositions` (column widths, gap) |
-| Add a composite pin wiring | `composite.ts:buildImplNodePins` (250 LoC) |
-| Change timer dispatch optimization | `optimize_timer_dispatch.ts` (`MAX_TIMER_DISPATCH_CASES` constant) |
-| Change graph name prefix | `shared.ts:writeGiaFromIrJsonFile` (default `_GSTS_`) |
-| Debug a wrong GIA | `tools/decode-gia.ts <file.gia> \| jq` (decodes to JSON) |
+## 修改前
 
-## CONVENTIONS
-- Pure consumer of `IRDocument` (from `src/runtime/IR.d.ts`); no imports from `src/definitions/` (only uses value type strings).
-- Protobuf schema loaded from `src/thirdparty/.../protobuf/gia.proto` via `loadGiaProto(protoPath)` from `src/injector/proto.ts`.
-- Vendor data (`Graph`, `Node`, `Pin`, `NODE_ID`, `NodePinRecords`, `EnumId`) re-exported via `src/compiler/gia_vendor.ts`.
-- `_GSTS_<name>` graph name prefix: created in `shared.ts` when name missing; verified in `injector/index.ts` safety check.
-- Node IDs in IR are 300000/300001 (send/monitor placeholders); `injector/signal_nodes.ts` patches them by scanning signal name strings.
-- `optimize_timer_dispatch.ts` operates only on chains `next → dispatch → equal → branch` and `→ next2 → dispatch2 → ...` — never on isolated timer nodes.
+- 先确认问题在类型解析、ordinary node lowering、Composite 边界、布局、优化还是 protobuf 物化层。
+- 涉及 Composite、GIA、真实样本、布局、地图或注入时，先按 Composite/GIA 文档导航读取最小必要资料；不要用历史 handover 代替当前源码和测试。
+- 真实 GIA 结论必须有样本路径、命令、观察字段和适用范围；vendor 行为或 decode 默认值不能单独证明真实 wire presence 或游戏行为。
 
-## KEY EXPORTS (public)
-- `irToGia(ir, opts)` (`index.ts`) — main entry
-- `writeGiaFromIrJsonFile(irPath, outFile?, opts?)` (`shared.ts`)
-- `writeGiaFromIrJsonFiles(entries, outDir, opts)` (`shared.ts`, parallel) — re-exported from `ir_to_gia_pipeline.ts`
-- `resolveGiaNodeId(connType, ...)` (`node_id.ts`)
-- `buildCompositeAccessories(def, compositeDefById?)` (`composite.ts`)
-- `optimizeTimerDispatchAggregate(ir)` (`optimize_timer_dispatch.ts`)
-- `buildExecutionGraph(irNodes)` + `layoutPositions(irNodes, opts?)` (`layout.ts`)
-- `expandListLiterals(ir)` (`preprocess.ts`)
-- Types: `ServerGraphMode`, `GiaGraph`, `GiaNode` (`index.ts` re-exports)
+## 修改规则
 
-## ANTI-PATTERNS
-- Do NOT import from `src/definitions/` in this directory — Stage 3 is type-string-driven, not import-driven.
-- Do NOT add new map entries to `mappings.ts` without checking `audit-vendor-gia-files.ts` first (the consistency check enforces vendor completeness).
-- Do NOT increase `MAX_TIMER_DISPATCH_CASES` above 10 — game switch-case limit; re-tune by splitting, not by raising.
-- Do NOT skip `optimizeTimerDispatchAggregate` for a hot path — the optimizer is idempotent and safe.
-- Do NOT hand-write protobuf bytes — use the `wrap_gia` API from vendor.
-- Composite pin index constants (`PIN_INDEX_INFLOW_SINGLE = 1974`, `PIN_INDEX_INFLOW_MULTI = 6`, `PIN_INDEX_INPUT_BASE = 100`, `PIN_INDEX_OUTPUT_BASE = 200`) live in `src/runtime/composite_registry.ts`, not here — DO NOT redefine.
+- 保持为 `IR.d.ts` 的纯消费者；不要为了类型解析导入 `src/definitions/`。
+- 通过 `gia_vendor.ts` 使用 vendor API；不要直接改 `src/thirdparty/`，也不要手写 protobuf 字节。
+- 保持 root 与 Composite impl 的 ordinary-node 类型决策、pin schema 和连接语义一致；
+  Composite 特殊逻辑仅限 definition、synthetic call、capture、`compositePins` 和边界布局。
+- 改动 capture、nested composite、多 inflow/outflow、sparse input、layout 或 graph metadata 时，
+  先建立 focused 回归，不能顺手扩大行为范围。
+- 真实 GIA、自动回归、生成候选、注入和游戏编辑器验证必须分别记录。
 
-## NOTES
-- The `composite.ts` file is the single most complex Stage-3 file (1.1k LoC, 41 KB). The `buildImplNodePins` function (lines 627–877) is itself 250 lines and is the natural split target.
-- Mode-specific node IDs (classic vs beyond) are scattered through `node_id.ts` as overrides — when adding a new node, check both modes.
-- `mappings.ts:ENUM_VALUE_MAPPINGS` is a vendor→project bridge table (e.g. `ComparisonOperators_*` → `comparison_operator_*`) — when vendor renames, update here.
-- The Stage 3 numeric limits: `MAX_TIMER_DISPATCH_CASES = 10`, `loopMax` default 999 (latter is Stage 1).
+## 验证
+
+- 运行最小 Stage 3 / composite 回归；生产 TypeScript 改动后运行 `npm run build` 和 `git diff --check`。
+- 共享 Composite 行为变动时，补跑 nested、capture、sparse、root/impl parity 等受影响回归；未运行项明确说明。
+
+## 不要做
+
+- 不要猜测 mapId、nodeGraphId、游戏状态或真实 GIA 规律。
+- 不要展开 nested composite、破坏 capture 路由，或未经确认注入/覆盖游戏文件。
