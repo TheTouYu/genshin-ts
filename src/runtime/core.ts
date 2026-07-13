@@ -539,6 +539,16 @@ function processDictParam(param: ServerEventMetadataType[ServerEventName][number
   在 server handler 执行过程中首次调用 runCompositeCall 时自动补捕获，
   确保 def.captured.isPureData 正确可用。
  */
+function createCompositeCaptureInputs(def: CompositeDefinition | undefined): Record<string, value> {
+  const inputs: Record<string, value> = {}
+  for (const [name, param] of Object.entries(def?.inputs ?? {})) {
+    const v = createTypedValue(param.type as string)
+    ;(v as any).__captureInputName = name
+    inputs[name] = v
+  }
+  return inputs
+}
+
 function ensureCompositeCaptured(def: CompositeDefinition): void {
   if (def.captured) return
 
@@ -1355,8 +1365,10 @@ export class MetaCallRegistry {
     })
     this.trackCompositeCall(compositeId, markerRecord.id!)
 
-    // 2. 检测输入值中的 pin metadata，记录数据连线到主图
-    const captureInputs: Record<string, any> = {}
+    // 2. 检测输入值中的 pin metadata，记录数据连线到主图。
+    // impl capture always sees the complete definition contract; call-site omission controls only
+    // this marker's physical input pins.
+    const captureInputs = createCompositeCaptureInputs(def)
     let inIdx = 0
     for (const [name, val] of Object.entries(inputs)) {
       const inputIdx = this.getCompositeInputIndex(def, name, inIdx)
@@ -1372,12 +1384,6 @@ export class MetaCallRegistry {
             toPinIndex: inputIdx
           })
         }
-        // capture 用 placeholder
-        if (def?.inputs?.[name]) {
-          captureInputs[name] = createTypedValue(def.inputs[name].type as string)
-        }
-      } else {
-        captureInputs[name] = val
       }
       inIdx++
     }
@@ -1533,8 +1539,9 @@ export class MetaCallRegistry {
     ctx.tailEndpoints = [{ nodeId: markerRecord.id! }]
     ctx.pendingSourceIndex = undefined
 
-    // 2. 记录数据连线（同 runCompositeCall）
-    const captureInputs: Record<string, any> = {}
+    // 2. 记录数据连线（同 runCompositeCall）。
+    // Keep nested build capture independent from this call's optional input bindings.
+    const captureInputs = createCompositeCaptureInputs(def)
     let inIdx = 0
     for (const [name, val] of Object.entries(inputs)) {
       const inputIdx = this.getCompositeInputIndex(def, name, inIdx)
@@ -1549,11 +1556,6 @@ export class MetaCallRegistry {
             toPinIndex: inputIdx
           })
         }
-        if (def?.inputs?.[name]) {
-          captureInputs[name] = createTypedValue(def.inputs[name].type as string)
-        }
-      } else {
-        captureInputs[name] = val
       }
       inIdx++
     }
