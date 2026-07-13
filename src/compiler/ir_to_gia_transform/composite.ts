@@ -469,9 +469,9 @@ function materializeImplOrdinaryGraphWithVendor(
     for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
       const arg = node.args[argIndex]
       if (!arg || arg.type === 'conn') continue
-      if (arg.capture === true) {
-        throw new Error(`[error] vendor impl graph gate does not support capture input on ${node.type}`)
-      }
+      // Capture is a composite boundary overlay, not an ordinary literal. Keep the vendor-created
+      // physical schema pin untouched; buildCompositeAccessories() routes it via compositePins.
+      if (arg.capture === true) continue
       const pin = vendorNode.pins.find(
         (candidate: any) => candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
       )

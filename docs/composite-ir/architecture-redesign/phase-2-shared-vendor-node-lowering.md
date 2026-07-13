@@ -309,6 +309,43 @@ git diff --check                                                              # 
 
 明确非目标：不删除 handwritten backend，不把 gate 设为默认，不迁移 boundary/capture/布局，不注入。
 
+## P2-W6 当前结果：captured input vendor Graph embedding observation
+
+状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+
+在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate 下，P2-W6 将一个 captured float composite input 与 P2-W5
+同类 local-float ordinary impl 图组合。capture arg 不调用 vendor `Pin.setVal()`，保留 vendor 创建的
+`get_local_variable.InParam[0]` schema pin，并继续只由 CompositeDef impl 的 `compositePins` overlay 路由；它不成为
+ordinary literal 或 ordinary data edge。
+
+用户在编辑器确认 candidate 的 captured initial float `10`、float setter `1.25`、Addition、DTC、Print、ordinary
+flow 和 composite call 正常。候选位于
+`Beyond_Local_Export/P2W6-capture-vendor-graph-refactored-candidate.gia`，SHA-256 为
+`393437cfee93eb26fc1a232a4b0077bf85b2db965a07fda83249f321967063e1`。
+
+自动验证：
+
+```bash
+npm run build                                                                 # PASS
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P2W6-capture-vendor-graph-legacy-baseline.gia # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P2W6-capture-vendor-graph-refactored-candidate.gia # PASS
+npx tsx tests/composite/test-nested-composite-capture-pins.ts                # PASS
+npx tsx tests/composite/test-nested-composite-outflow.ts                     # PASS
+npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts /tmp/P2W5-vendor-graph-legacy-regression.gia # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w5-vendor-graph-baseline.ts /tmp/P2W5-vendor-graph-vendor-regression.gia # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts                      # PASS
+npx tsx tests/composite/test-local-variable-impl-concrete-type.ts            # PASS
+npx tsx tests/composite/test-custom-variable-impl-pins.ts                    # PASS
+git diff --check                                                              # PASS
+```
+
+证据边界：该结果证明一个 captured float → local-variable getter 的 boundary route 能与 vendor Graph-extracted
+ordinary nodes 共存且在编辑器工作。它不证明多个 capture、captured connection、custom target、nested composite call、
+synthetic call、`graphValues`、`affiliations` 或其他 ordinary family 的兼容性；不得据此默认开启 gate 或删除 handwritten
+backend。
+
+明确非目标：不迁移 DTC/nested composite call，不改变 capture 语义或 `compositePins` 结构，不改布局，不注入。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；
