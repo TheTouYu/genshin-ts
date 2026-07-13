@@ -40,6 +40,32 @@ Vendor `Node.setConcrete`、`Pin.setType` 和 concrete map 是默认物化机制
 
 从 setter family 开始，按节点族切换，不一次重写整个 composite backend。
 
+### ADR-011：普通能力在 root 与 composite impl 中同源
+
+状态：Accepted（用户确认，2026-07-13）
+
+问题：复合节点内部是否应被当成仅支持少数已单独验证 node family 的受限执行环境。
+
+决定：不应。主图可表达和执行的 ordinary system node、数据/控制流关系及 API 调用，目标上应同样可在
+composite impl 中表达和执行。复合 impl 不是另一套能力模型；它只是普通图 materialization 之外再叠加
+CompositeDef、synthetic call、capture、`compositePins`、inflow/outflow 和布局等 boundary 职责。信号等动态或特殊
+family 也以同一能力目标处理；如 schema 或 boundary 有专属规则，应在共享 ordinary contract 下增加专用 lowerer/normalization，
+而不是恢复独立 composite ordinary backend。
+
+证据：用户明确确认该能力模型；ADR-001/002/006 的共享 ordinary backend 与 boundary isolation 架构与之相容。P2-W1~W17b
+分别为 setter/getter/DTC/同型 scalar arithmetic 等局部 ordinary family 提供了自动与部分用户编辑器核验，但不构成所有 API、
+signal payload/dynamic pin 或 wire 细节均已验证的证据。
+
+影响：
+
+- 后续工作包不再把“复合是否支持某普通 API/node”当成独立能力分叉；优先定位共享 resolution、lowering、materialization 或 boundary overlay 的缺口；
+- 每个新增 family 仍需以可执行 root + composite impl fixture 验证控制流、数据流、typed schema 和相关 boundary；
+- 持续用更多真实 GIA 与用户编辑器案例扩展覆盖；验证范围扩大不等于可跳过真实样本、wire 或游戏行为的证据分层；
+- 只有 synthetic composite call、capture、`compositePins`、inflow/outflow 等 boundary 继续属于 composite 专属实现。
+
+验证/退出条件：共享 materializer 覆盖 ordinary subgraph 后，按 family/动态规则/真实案例逐步补齐 root/impl executable parity；
+在对应 coverage、真实/编辑器证据和 legacy removal gate 达标前，不默认开启 gate 或删除 handwritten backend。
+
 ### ADR-006：Impl 使用完整 vendor Graph materialization
 
 状态：Accepted（用户 2026-07-12 选择方案 A）

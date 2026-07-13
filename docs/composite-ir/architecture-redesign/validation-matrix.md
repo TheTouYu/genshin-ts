@@ -130,18 +130,21 @@ wrapper、capture/ordinary boundary route 和可见 Print 分支均存在。fact
 ordinary edge，而非 capture placeholder。真实 `类型转化-full.gia` 仅作 7 个 `→str` 变种的 L4 参考；候选通过为 L6，
 不能因此宣称所有转换的 raw/wire 全等或跨版本数值语义。
 
-## 7. P2-W17a scalar arithmetic 观察基线
+## 7. P2-W17 scalar same-type arithmetic
 
 ```bash
-npx tsx tests/composite/test-stage3-p2w17a-scalar-arithmetic-observation.ts /tmp/P2W17a-scalar-arithmetic-legacy.gia
+npx tsx tests/composite/test-stage3-p2w17a-scalar-arithmetic-observation.ts /tmp/P2W17b-scalar-arithmetic-legacy.gia
 GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 \
-  npx tsx tests/composite/test-stage3-p2w17a-scalar-arithmetic-observation.ts /tmp/P2W17a-scalar-arithmetic-vendor.gia
+  npx tsx tests/composite/test-stage3-p2w17a-scalar-arithmetic-observation.ts /tmp/P2W17b-scalar-arithmetic-vendor.gia
 ```
 
-覆盖 `addition`、`subtraction`、`multiplication`、`division` 的 int/float literal 与 ordinary connection target。当前自动
-观察是失败基线：root 的 float target 使用 float concrete ID/schema；legacy impl 保留 float pin type 但 concrete ID 回退到
-int/generic variant；vendor-gated impl 因此将 float target pin 物化成 int schema。它证明当前 root/impl shared identity 未完成，
-不证明真实 GIA 或编辑器行为，也不授权默认开启 gate 或删除 handwritten backend。
+P2-W17a（`b8449d1`）记录 `addition`、`subtraction`、`multiplication`、`division` 的 int/float literal 与 ordinary
+connection target 失败基线：root 的 float target 使用 float concrete ID/schema，legacy impl concrete ID 回退为 int/generic，
+vendor-gated impl 因而 materialize 成 int schema。
+
+P2-W17b 将这四族的同型 int/float identity 接入 shared resolver。上述 legacy/vendor 命令现在断言 root、legacy impl 与
+vendor-gated impl 都使用相同的 int/float concrete ID 和 input/output pin schema。该结果是 L1/L3 自动证据；不证明真实 GIA、wire
+或编辑器行为，不覆盖异型 arithmetic、comparison、vec3、list/dict，也不授权默认开启 gate 或删除 handwritten backend。
 
 ## 8. `额外压力` vertical slice 验收
 

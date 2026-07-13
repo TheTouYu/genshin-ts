@@ -49,6 +49,18 @@ type GraphScope =
 
 Scope 决定可见变量、synthetic boundary 和 diagnostics 上下文，不决定普通节点 pin schema。
 
+### 能力同源原则
+
+用户确认的目标能力模型是：主图能够表达和执行的 ordinary system node、API 调用及其数据/控制流关系，
+原则上也必须能在 composite impl 中表达和执行。复合不是受限 ordinary-node 子集；scope 变化只能增加
+CompositeDef、synthetic call、capture、`compositePins`、inflow/outflow 和布局等 boundary 职责，不能产生第二套
+ordinary node 能力或 schema。
+
+这是一项目标架构约束，不是“所有 API 已验证”的现状声明。实现共享 resolution/lowering/materializer 后，仍须对
+各 family 用可执行 root + impl fixture、真实 GIA 和用户编辑器案例逐步验证；signal/dynamic pin 等有专属规则的 family
+应接入共享 ordinary contract 下的专用 lowerer/normalization，而不是恢复独立 composite backend。详见
+[ADR-011](decision-log.md#adr-011普通能力在-root-与-composite-impl-中同源)。
+
 ## 3. Resolved Graph IR
 
 建议新增 Stage 3 内部 contract，不修改跨阶段 `IR.d.ts`：

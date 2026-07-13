@@ -12,8 +12,8 @@
 
 docs/composite-ir/architecture-redesign/EXECUTION.md
 
-完整执行“会话启动”步骤，然后读取 STATUS.md、当前 Phase 文档、迁移不变量和相关决策。
-不要依赖聊天历史或历史 handover 代替当前状态。
+完整执行“会话启动”步骤，然后先读取精简 STATUS.md、当前 Phase 文档、迁移不变量和当前工作包相关决策。
+不要依赖聊天历史或历史 handover 代替当前状态；只有当前工作包需要精确历史证据时，才按 STATUS 的链接读取 work-packages/checkpoints 中对应章节。
 
 修改前先向我提交协议规定的恢复报告，至少包含：
 1. 当前分支、工作树和最近提交；
@@ -44,7 +44,7 @@ docs/composite-ir/architecture-redesign/EXECUTION.md
 收到恢复报告后只需重点确认：
 
 - Branch 是否为 `refactor/composite-stage3-architecture`；
-- Working tree 是否 clean，或每项变化是否都被 STATUS 解释；
+- Working tree 是否 clean，或每项变化是否都被精简 STATUS 的当前工作包解释；
 - 是否只有一个工作包；
 - 是否把待验证假设误写成事实；
 - 修改范围是否符合 phase；

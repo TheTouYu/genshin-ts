@@ -208,6 +208,35 @@ export function resolveNodeIdentity(
     return { logicalType: node.type, genericNodeId, concreteNodeId }
   }
 
+  const isScalarArithmetic = [
+    'addition',
+    'subtraction',
+    'multiplication',
+    'division'
+  ].includes(node.type)
+  if (isScalarArithmetic) {
+    const left = inputs[0]?.type
+    const right = inputs[1]?.type
+    if (
+      left?.kind === 'scalar' &&
+      right?.kind === 'scalar' &&
+      left.name === right.name &&
+      (left.name === 'int' || left.name === 'float')
+    ) {
+      const concreteNodeId = nodeIds.get(`${lower}__${left.name}`)
+      if (concreteNodeId === undefined) {
+        report(context, {
+          code: 'E_UNKNOWN_NODE_VARIANT',
+          message: `missing scalar arithmetic variant ${lower}__${left.name}`,
+          nodeId: node.id,
+          nodeType: node.type
+        })
+      }
+      return { logicalType: node.type, genericNodeId, concreteNodeId }
+    }
+    return { logicalType: node.type, genericNodeId }
+  }
+
   let declaredType: ResolvedValueType | undefined
   const isNodeGraphSetter = node.type === 'set_node_graph_variable'
   const isNodeGraphGetter = node.type === 'get_node_graph_variable'
@@ -293,6 +322,7 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
     nodeType === 'get_custom_variable' ||
     nodeType === 'set_local_variable' ||
     nodeType === 'get_local_variable' ||
+    ['addition', 'subtraction', 'multiplication', 'division'].includes(nodeType) ||
     nodeType.startsWith('data_type_conversion_')
   )
 }

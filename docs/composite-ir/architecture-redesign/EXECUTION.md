@@ -22,14 +22,17 @@
    git log -5 --oneline --decorate
    ```
 
-4. 读取 [STATUS.md](STATUS.md)。
+4. 读取精简的 [STATUS.md](STATUS.md)，只据此确认当前 Phase、唯一工作包、活跃边界和工作树预期。
 5. 读取当前 Phase 文档、[migration-invariants.md](migration-invariants.md) 和
-   [decision-log.md](decision-log.md) 中相关条目。
-6. 若工作包需要用户编辑器、真实 GIA 或 Windows `Beyond_Local_Export` 文件协作，读取
-   [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md) 和其维护规则
-   [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
-7. 只读取当前工作包需要的源码、测试和真实证据文档。
-8. 修改前向用户提交恢复报告，并等待用户同意执行。
+   [decision-log.md](decision-log.md) 中与该工作包直接相关的条目。
+6. 当前工作包需要历史命令、失败基线、候选 SHA 或逐包证据时，才从
+   [work-packages/](work-packages/README.md) 或 [checkpoints/](checkpoints/README.md) 按链接读取对应章节；
+   历史归档不得替代当前状态。
+7. 若工作包需要用户编辑器、真实 GIA 或 Windows `Beyond_Local_Export` 文件协作，读取
+   [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；仅在本轮需要维护经验手册时读取其
+   [维护规则](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
+8. 只读取当前工作包需要的源码、测试、验证矩阵和真实证据文档。
+9. 修改前向用户提交恢复报告，并等待用户同意执行。
 
 恢复报告固定格式：
 

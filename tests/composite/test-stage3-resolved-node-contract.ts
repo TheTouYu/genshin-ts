@@ -61,6 +61,31 @@ for (const [inputType, outputType, concreteNodeId] of dtcVariants) {
   assert.equal(resolveGiaNodeId(node, context.connectionTypes, context.variablesByName), concreteNodeId)
 }
 
+const scalarArithmeticVariants = [
+  ['addition', 200, 201],
+  ['subtraction', 202, 203],
+  ['multiplication', 204, 205],
+  ['division', 206, 207]
+]
+for (const [type, intConcreteNodeId, floatConcreteNodeId] of scalarArithmeticVariants) {
+  for (const [valueType, concreteNodeId] of [
+    ['int', intConcreteNodeId],
+    ['float', floatConcreteNodeId]
+  ]) {
+    const node = {
+      id: 300 + concreteNodeId,
+      type,
+      args: [{ type: valueType, value: 8 }, { type: valueType, value: 2 }]
+    }
+    assert.deepEqual(resolveNodeIdentity(node, context), {
+      logicalType: type,
+      genericNodeId: intConcreteNodeId,
+      concreteNodeId
+    })
+    assert.equal(resolveGiaNodeId(node, context.connectionTypes, context.variablesByName), concreteNodeId)
+  }
+}
+
 const customSetter = { id: 8, type: 'set_custom_variable', args: [
   { type: 'entity', value: 0 },
   { type: 'str', value: 'customFloat' },

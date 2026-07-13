@@ -36,6 +36,16 @@ Composite backend 最终只负责：
 - `compositePins`、外部参数、inflow/outflow；
 - composite 专属布局锚点。
 
+### 能力目标与验证策略
+
+用户确认：主图可表达、可执行的 ordinary system node、API 调用与数据/控制流关系，目标上也应在 composite impl
+中可表达、可执行。后续不按“复合是否支持某个普通 node/API”建立长期能力分叉；共享 ordinary mechanism 是实现路径，
+更多可执行 root + impl fixture、真实 GIA 和用户编辑器案例是扩大证据覆盖的路径。
+
+这一目标不把尚未采样的节点族写成已验证事实。尤其 signal、动态 pin/payload、列表/字典和特殊 ID family 仍需各自
+确认 shared contract 的适配规则、编码/wire 与实际编辑器行为。Composite 专属 boundary 仍单独实现和验证。详见
+[ADR-011](decision-log.md#adr-011普通能力在-root-与-composite-impl-中同源)。
+
 ## 3. 非目标
 
 - 不以“减少代码行数”为首要目标。
@@ -88,7 +98,7 @@ Composite backend 最终只负责：
 - list/dict typed variants；
 - entity/guid/config/prefab/faction。
 
-只有获得最小真实样本或 vendor/root parity 证据后逐族推广。
+以 shared ordinary mechanism 为实现目标，随后通过可执行 root + impl fixture、最小真实样本或用户编辑器案例逐族扩大覆盖；不把未采样 family 当作已验证。
 
 ### Slice D：composite boundary
 

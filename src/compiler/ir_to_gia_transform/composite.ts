@@ -298,7 +298,10 @@ function buildImplGraphNodes(
       implOutParamMap
         .get(node.id)
         ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
-    const ordinaryConcreteNid = resolveImplOrdinaryConcreteNodeId(node.type, producedType)
+    const ordinaryConcreteNid =
+      ['addition', 'subtraction', 'multiplication', 'division'].includes(node.type)
+        ? sharedConcreteNid
+        : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
     let compositeId: number | undefined
     let calledDef: CompositeDefIR | undefined

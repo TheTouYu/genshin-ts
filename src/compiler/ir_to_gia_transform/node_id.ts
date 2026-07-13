@@ -426,9 +426,12 @@ export function resolveGiaNodeId(
     return typed
   }
 
-  // DTC concrete identity depends on both input and output types. Root and composite impl
-  // delegate this decision to the same resolver rather than maintaining separate variant maps.
-  if (nodeType.startsWith('data_type_conversion_')) {
+  // Migrated DTC and scalar same-type arithmetic families delegate concrete identity to the
+  // shared resolver rather than maintaining root and composite-impl variant maps.
+  if (
+    nodeType.startsWith('data_type_conversion_') ||
+    ['addition', 'subtraction', 'multiplication', 'division'].includes(nodeType)
+  ) {
     const identity = resolveNodeIdentity(node, {
       scope: { kind: 'root', name: 'root-node-identity-adapter' },
       variablesByName: varsByName,

@@ -28,30 +28,39 @@ setter 的 concrete float 差异出发，但目标不是增加一个节点特例
 ## 每次新会话
 
 只需把 [NEW-SESSION-PROMPT.md](NEW-SESSION-PROMPT.md) 中的提示发送给模型。模型必须先按
-[EXECUTION.md](EXECUTION.md) 恢复，并以 [STATUS.md](STATUS.md) 为唯一实时进度入口；阶段证据保存在
-[checkpoints/](checkpoints/)。需要用户编辑器、真实 GIA 或 Windows `Beyond_Local_Export` 协作时，同时读取
-[COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md) 与其
-[维护规则](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
+[EXECUTION.md](EXECUTION.md) 恢复，并以精简 [STATUS.md](STATUS.md) 为唯一实时进度入口；阶段证据保存在
+[checkpoints/](checkpoints/)，已完成工作包的详细历史保存在 [work-packages/](work-packages/README.md)。需要用户编辑器、
+真实 GIA 或 Windows `Beyond_Local_Export` 协作时读取 [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；仅在
+维护经验手册时读取其[维护规则](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
 
 ## 阅读顺序
 
+### 新会话最小集
+
 1. [EXECUTION.md](EXECUTION.md)：固定操作、核验、文档和提交协议。
-2. [STATUS.md](STATUS.md)：当前 Phase、唯一工作包和未提交变化。
-3. [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)：用户参与的候选/reference/归档流程与高信噪比协作经验（仅适用于相关工作包）。
-4. [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md)：经验手册的低学习率维护规则；仅在结束相关工作包时阅读。
-5. [global-plan.md](global-plan.md)：全局目标、工作流、阶段依赖和完成定义。
-6. [current-architecture-audit.md](current-architecture-audit.md)：当前两套 backend 的逐层审计。
-7. [target-architecture.md](target-architecture.md)：目标分层、接口与职责边界。
-8. [migration-invariants.md](migration-invariants.md)：迁移期间不可破坏的行为。
-9. [validation-matrix.md](validation-matrix.md)：证据、测试维度和验收字段。
-10. 按阶段执行：
-   - [phase-0-baseline-and-evidence.md](phase-0-baseline-and-evidence.md)
-   - [phase-1-resolved-node-contract.md](phase-1-resolved-node-contract.md)
-   - [phase-2-shared-vendor-node-lowering.md](phase-2-shared-vendor-node-lowering.md)
-   - [phase-3-unified-graph-materialization.md](phase-3-unified-graph-materialization.md)
-   - [phase-4-composite-boundary-isolation.md](phase-4-composite-boundary-isolation.md)
-   - [phase-5-legacy-removal-and-hardening.md](phase-5-legacy-removal-and-hardening.md)
-11. [decision-log.md](decision-log.md)：已决定、待实验和禁止提前决定的事项。
+2. [STATUS.md](STATUS.md)：当前 Phase、唯一工作包、活跃边界和未提交变化预期。
+3. 当前 Phase 文档：当前目标、活动 checklist、退出条件。
+4. [migration-invariants.md](migration-invariants.md)：迁移期间不可破坏的行为。
+5. [decision-log.md](decision-log.md) 中与当前工作包直接相关的 ADR/Q 条目。
+
+### 工作包确定后按需加载
+
+- [validation-matrix.md](validation-matrix.md)：确定实际验证命令和字段时。
+- [work-packages/](work-packages/README.md) 与 [checkpoints/](checkpoints/)：需要精确历史命令、失败基线、候选 SHA 或阶段证据时。
+- [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)：用户参与候选/reference/归档时；仅在维护经验时读取
+  [维护规则](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
+- [global-plan.md](global-plan.md)、[current-architecture-audit.md](current-architecture-audit.md)、
+  [target-architecture.md](target-architecture.md)：遇到架构/阶段顺序/职责边界决策时。
+- 真实 GIA、源码和 focused tests：仅按当前工作包的证据链加载。
+
+阶段文档入口：
+
+- [phase-0-baseline-and-evidence.md](phase-0-baseline-and-evidence.md)
+- [phase-1-resolved-node-contract.md](phase-1-resolved-node-contract.md)
+- [phase-2-shared-vendor-node-lowering.md](phase-2-shared-vendor-node-lowering.md)
+- [phase-3-unified-graph-materialization.md](phase-3-unified-graph-materialization.md)
+- [phase-4-composite-boundary-isolation.md](phase-4-composite-boundary-isolation.md)
+- [phase-5-legacy-removal-and-hardening.md](phase-5-legacy-removal-and-hardening.md)
 
 ## 核心命题
 

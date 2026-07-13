@@ -7,7 +7,8 @@
 
 本文件只记录**高频、可复用、能改变下一轮行动且已有证据支持**的经验。
 维护规则见 [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。
-工作包的具体路径、SHA-256、节点 ID、失败过程和测试命令留在 `STATUS.md`、phase 文档、focused test 与真实文件中。
+工作包的具体路径、SHA-256、节点 ID、失败过程和测试命令留在当前 `STATUS.md`、focused test、真实文件或
+`work-packages/` 归档中；Phase 文档只保留当前 checklist 和摘要。
 
 ## 已验证协作经验
 
