@@ -1,6 +1,6 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1~P2-W12a、P2-W16 已完成；P2-W3~P2-W12a、P2-W16 已通过用户游戏编辑器核验
+> 状态：P2-W1~P2-W12a、P2-W16 已完成；P2-W17a scalar arithmetic 观察基线进行中；P2-W3~P2-W12a、P2-W16 已通过用户游戏编辑器核验
 > 来源：目标架构设计 + 当前实现/自动回归 + 官方节点规则查询 + 真实 GIA 对照 + 用户游戏编辑器验证
 > 最近校验：2026-07-13
 > 适用范围：ordinary vendor subgraph 与已验证的 composite synthetic/boundary overlay；不代表默认 backend 或全部类型编码
@@ -430,14 +430,26 @@ faction→string 不能消费 capture placeholder：fixture 改用 impl node-gra
 
 明确边界：不默认开启 gate、不删除 handwritten backend、不迁移 arithmetic/comparison/list/dict；官方资料对 float→int 的取整存在客户端/版本表述差异，编辑器通过不推广为跨版本数值语义结论。
 
+## P2-W17a：scalar arithmetic identity / vendor schema observation baseline（已完成，准备提交）
+
+只观察 `addition`、`subtraction`、`multiplication`、`division` 的 int/float 同型输入输出，覆盖 root、legacy impl
+和 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` impl 的 literal/ordinary connection target。它不接入 shared resolver、不改变生产
+lowering，也不生成游戏候选。
+
+当前自动基线：root 对四族 float target 使用预期 concrete ID（分别为 `201`、`203`、`205`、`207`）和 float pin schema；legacy
+impl 虽保留 float pin type，却为 float target 写入 generic/int concrete ID（分别为 `200`、`202`、`204`、`206`）。vendor gate
+消费该错误 identity，float target 进一步 materialize 成 int pin schema。该现象是后续 same-type arithmetic shared-resolution
+迁移的失败基线，不构成真实 GIA 或游戏编辑器行为结论。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；
 2. ~~custom variable getter/setter~~（P2-W3 自动回归与用户游戏编辑器核验通过）；
 3. ~~local variable float getter/setter~~（P2-W4 自动回归与用户游戏编辑器核验通过）；
 4. ~~DTC~~（P2-W16 全部当前映射变种已在 vendor gate 下核验）；
-5. arithmetic/comparison；
-6. list/dict 和特殊 ID 类型。
+5. scalar same-type arithmetic（P2-W17a 观察基线已完成；后续迁移须另建工作包）；
+6. comparison（输入同型、输出 bool，独立于 arithmetic）；
+7. list/dict 和特殊 ID 类型。
 
 每族都重复“观察 fixture → vendor experiment → gate → parity → 删除 legacy branch”；optional call-input 的 Runtime
 契约已闭合，但不得把其类型 wire/default 结论提前并入上述节点族。

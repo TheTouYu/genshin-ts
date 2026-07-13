@@ -130,7 +130,20 @@ wrapper、capture/ordinary boundary route 和可见 Print 分支均存在。fact
 ordinary edge，而非 capture placeholder。真实 `类型转化-full.gia` 仅作 7 个 `→str` 变种的 L4 参考；候选通过为 L6，
 不能因此宣称所有转换的 raw/wire 全等或跨版本数值语义。
 
-## 7. `额外压力` vertical slice 验收
+## 7. P2-W17a scalar arithmetic 观察基线
+
+```bash
+npx tsx tests/composite/test-stage3-p2w17a-scalar-arithmetic-observation.ts /tmp/P2W17a-scalar-arithmetic-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 \
+  npx tsx tests/composite/test-stage3-p2w17a-scalar-arithmetic-observation.ts /tmp/P2W17a-scalar-arithmetic-vendor.gia
+```
+
+覆盖 `addition`、`subtraction`、`multiplication`、`division` 的 int/float literal 与 ordinary connection target。当前自动
+观察是失败基线：root 的 float target 使用 float concrete ID/schema；legacy impl 保留 float pin type 但 concrete ID 回退到
+int/generic variant；vendor-gated impl 因此将 float target pin 物化成 int schema。它证明当前 root/impl shared identity 未完成，
+不证明真实 GIA 或编辑器行为，也不授权默认开启 gate 或删除 handwritten backend。
+
+## 8. `额外压力` vertical slice 验收
 
 自动生成：
 
@@ -161,7 +174,7 @@ git diff --check
 
 注入必须另行取得用户确认。
 
-## 8. Vendor experiments
+## 9. Vendor experiments
 
 Phase 0 必做：
 
@@ -174,7 +187,7 @@ Phase 0 必做：
 
 实验脚本放 `tests/composite/`，不得写入生产路径。
 
-## 9. 每阶段最低命令
+## 10. 每阶段最低命令
 
 ```bash
 npm run build

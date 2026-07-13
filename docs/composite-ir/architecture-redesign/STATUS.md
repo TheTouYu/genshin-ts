@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-13（P2-W10~W12a 已提交；P2-W16 全部当前映射 DTC 变种经自动回归与用户编辑器核验）
+> 最近校验：2026-07-13（P2-W10~W12a、P2-W16 已提交；P2-W17a scalar arithmetic 观察基线已完成）
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,10 +10,10 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W16 已完成，待提交与推送
-最近完成代码工作包：P2-W16 — all mapped DTC shared identity + vendor Graph validation
+当前工作包：P2-W17a 已完成，准备提交
+最近完成代码工作包：P2-W17a — scalar arithmetic identity / vendor schema observation baseline
 分支起点：c5dfdd6 feat: add governed documentation search
-工作树预期：P2-W16 源码、focused tests、文档与项目级 miliastra-knowledge skill 变更待提交
+工作树预期：P2-W17a focused observation fixture 与最小状态/Phase 2/验证矩阵文档更新待提交
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 ```
 
@@ -84,7 +84,7 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 - **P2-W11（提交 `2f1e497`）**：outer captured float → nested child input 仅经 outer impl
   `compositePins` 路由；nested call 不物化该 physical input 或 ordinary data edge；自动 fixture 与用户编辑器
   核验均通过。
-- **P2-W16（未提交）**：root 与 composite impl 的 `data_type_conversion_<out>` 已接入同一 shared resolver，以输入/输出类型解析 generic `180` 与当前映射的 11 个 concrete variant：`int→bool/float/str`、`entity/guid→str`、`bool→int/str`、`float→int/str`、`vec3/faction→str`。在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下，focused fixture 对全部 11 个变种断言 input/output schema、concrete wrapper、composite boundary route 和可见 Print 分支。root adapter 接入前候选与当前 root shared-resolver 候选均已通过用户编辑器复验；两份候选分别归档，避免覆盖不同 SHA 的可追溯证据。该结论不默认开启 gate、不删除 handwritten backend，也不证明其他 ordinary family、DTC 未映射变种或 float→int 的跨版本数值取整语义。
+- **P2-W16（提交 `5400b4c`）**：root 与 composite impl 的 `data_type_conversion_<out>` 已接入同一 shared resolver，以输入/输出类型解析 generic `180` 与当前映射的 11 个 concrete variant：`int→bool/float/str`、`entity/guid→str`、`bool→int/str`、`float→int/str`、`vec3/faction→str`。在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下，focused fixture 对全部 11 个变种断言 input/output schema、concrete wrapper、composite boundary route 和可见 Print 分支。root adapter 接入前候选与当前 root shared-resolver 候选均已通过用户编辑器复验；两份候选分别归档，避免覆盖不同 SHA 的可追溯证据。该结论不默认开启 gate、不删除 handwritten backend，也不证明其他 ordinary family、DTC 未映射变种或 float→int 的跨版本数值取整语义。
 - **P2-W12a（提交 `bba105b`）**：复合 definition capture 与单次 call-site binding 已分离。真实
   `user_edit/复合节点/调用参数.gia`（SHA-256
   `599f3c06bdd3946cb93c3a498fb89237dd2fbc6e5f8661bfa80918f252bf3b1b`）中，同一双 float 加法 definition 的
@@ -686,7 +686,7 @@ git diff --check                                                              # 
 
 ## P2-W16 完成记录：all mapped DTC shared identity + vendor Graph validation
 
-状态：实现、focused 自动回归、官方节点规则查询与两份用户游戏编辑器候选核验完成；待提交。
+状态：实现、focused 自动回归、官方节点规则查询与两份用户游戏编辑器候选核验完成；已提交为 `5400b4c`。
 
 范围：DTC shared resolver 按 `(inputType, outputType)` 决定 generic `180` 与 concrete variant；fixture 覆盖当前 mapping 的 11 个变种。faction→string 采用 impl node-graph variable getter 的普通数据边，不能将 capture placeholder 当作 faction DTC 输入。legacy 手写 impl backend 对部分非 string DTC OutParam schema 仍不完整；本包不增加手写 patch，vendor gate 下才断言完整 schema。
 
@@ -708,9 +708,21 @@ git diff --check
 
 已归档候选：`Beyond_Local_Export/真-测试通过/复合节点/P2W16-all-dtc-vendor-graph-pre-root-resolver.gia`，SHA-256 `27dd83efae860e18742bd15347f677d5f1e9bb72fd577300027ca9b5887810b2`；`Beyond_Local_Export/真-测试通过/复合节点/P2W16-all-dtc-vendor-graph-root-resolver.gia`，SHA-256 `d0f1c64b3b10b30da38aa7b12899aec418bf9dd5ba433618c7df2cb4b1c73abc`；未注入。
 
+## P2-W17a 完成记录：scalar arithmetic identity / vendor schema observation baseline
+
+状态：focused 观察 fixture、build 和回归完成；准备提交。
+
+目标：只为 `addition`、`subtraction`、`multiplication`、`division` 的 int/float 同型输入输出建立 root、legacy impl 与 vendor-gated impl 的观察基线；不接入 shared resolver 或改变生产 lowering。
+
+当前自动观察：root 对四族的 int/float literal 与 ordinary connection target 都编码预期 generic/concrete ID（`200/200|201`、`202/202|203`、`204/204|205`、`206/206|207`）。legacy impl 的 float target 保留 float pin type，但 concrete ID 回退至 generic/int variant；vendor gate 因接收同一错误 concrete identity，进一步将 float target pin schema 物化为 int。该差异已由新 fixture 对 literal 与 connection 两类输入锁定，是后续 shared same-type arithmetic resolver 的失败基线，不是本包修复对象。未生成或复制游戏候选，未注入。
+
+验证：`npm run build`、P2-W17a legacy/vendor fixture、resolved contract、P2-W16 legacy/vendor fixture、P2-W5 legacy/vendor fixture、nested capture/outflow 与 `git diff --check` 均通过。Node 26 对 `module.register()` 输出弃用警告，不影响各命令退出码。
+
+明确非目标：不迁移任何 arithmetic family、不改 root/impl production encoding、不扩展 comparison/vec3/list/dict、不改 capture/nested/boundary/布局，不删除 handwritten backend。
+
 ## 待用户决策
 
-P2-W16 已完成，P2-W13 文档收束被本轮最小文档同步吸收。ADR-006=A 保持不变。现有证据仍不授权默认开启 gate、删除
+P2-W17a 已完成；请决定后续是否建立单一 scalar same-type arithmetic shared-resolution 迁移包，或先补充真实 GIA/编辑器观察。ADR-006=A 保持不变。现有证据仍不授权默认开启 gate、删除
 handwritten backend，或将未覆盖的类型 wire/default、connection/capture 型 optional binding、`graphValues`、
 `affiliations` 纳入已完成范围。用户对后续 Stage 3 名称明确的候选 `.gia` 保持直接复制/覆盖
 `Beyond_Local_Export` 根目录的授权；该授权不包含真实参考、归档、地图/注入目录、删除/清理或注入。
