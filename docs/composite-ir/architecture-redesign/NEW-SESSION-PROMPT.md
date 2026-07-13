@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：architecture-redesign 执行协议
-> 最近校验：2026-07-11
+> 最近校验：2026-07-13
 > 适用范围：每次开启新的 Composite Stage 3 Redesign 会话
 
 将下面内容作为新会话的启动消息发送给大模型：
@@ -12,8 +12,12 @@
 
 docs/composite-ir/architecture-redesign/EXECUTION.md
 
-完整执行“会话启动”步骤，然后先读取精简 STATUS.md、当前 Phase 文档、迁移不变量和当前工作包相关决策。
-不要依赖聊天历史或历史 handover 代替当前状态；只有当前工作包需要精确历史证据时，才按 STATUS 的链接读取 work-packages/checkpoints 中对应章节。
+完整执行“会话启动”步骤。先只读取精简 STATUS.md；仅当它明确给出唯一、可执行的工作包后，才读取当前
+Phase 文档、迁移不变量和该工作包直接相关的决策。
+在工作包确定前，不要读取 documentation-map/governance、GIA 工具索引、维护 skill、验证矩阵、历史
+handover、work-packages/checkpoints、源码、测试或真实 GIA；不要依赖聊天历史或自行拼接历史来推定工作包。
+若 STATUS 未给出唯一工作包，或其状态与 Git history 冲突，恢复报告中标明不一致并停止等待我的决定。只有
+已确定的当前工作包需要精确历史证据时，才按 STATUS 的链接读取 work-packages/checkpoints 中对应章节。
 
 修改前先向我提交协议规定的恢复报告，至少包含：
 1. 当前分支、工作树和最近提交；

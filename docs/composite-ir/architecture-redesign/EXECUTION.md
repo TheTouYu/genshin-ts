@@ -2,13 +2,23 @@
 
 > 状态：当前推荐
 > 来源：项目工作流约束 + architecture-redesign 全局规划
-> 最近校验：2026-07-11
+> 最近校验：2026-07-13
 > 适用范围：`refactor/composite-stage3-architecture` 分支上的所有重构会话
 
 本文件是每个新会话的固定执行入口。它规定如何恢复进度、选择工作包、验证、更新文档和准备提交。
 架构目标见 [global-plan.md](global-plan.md)，实时进度只看 [STATUS.md](STATUS.md)。
 
 ## 1. 会话启动：先报告，不修改
+
+### 恢复读取预算
+
+在唯一工作包已由 `STATUS.md` 明确前，恢复只允许读取本节列出的项目规则、
+`EXECUTION.md`、`STATUS.md`、当前 Phase、迁移不变量和该工作包直接相关的 ADR；不得预读
+`documentation-map.md`、`documentation-governance.md`、GIA 工具索引、维护 skill、验证矩阵、
+`work-packages/`、`checkpoints/`、源码、测试或真实 GIA。它们均须在工作包确定后，按本节的触发条件最小化加载。
+
+若 `STATUS.md` 未给出唯一且可执行的工作包（例如只列下一候选、编号/范围/完成条件缺失，或状态与 Git
+history 冲突），恢复报告必须标记该不一致并停止等待用户决定；不得通过预读历史、源码或测试自行推定工作包。
 
 按顺序执行：
 
@@ -22,8 +32,9 @@
    git log -5 --oneline --decorate
    ```
 
-4. 读取精简的 [STATUS.md](STATUS.md)，只据此确认当前 Phase、唯一工作包、活跃边界和工作树预期。
-5. 读取当前 Phase 文档、[migration-invariants.md](migration-invariants.md) 和
+4. 读取精简的 [STATUS.md](STATUS.md)，只据此确认当前 Phase、唯一工作包、活跃边界和工作树预期；若无法
+   确认唯一可执行工作包，按上文停止。
+5. 在唯一工作包已确认后，读取当前 Phase 文档、[migration-invariants.md](migration-invariants.md) 和
    [decision-log.md](decision-log.md) 中与该工作包直接相关的条目。
 6. 当前工作包需要历史命令、失败基线、候选 SHA 或逐包证据时，才从
    [work-packages/](work-packages/README.md) 或 [checkpoints/](checkpoints/README.md) 按链接读取对应章节；
