@@ -70,6 +70,27 @@ Vendor `Node.setConcrete`、`Pin.setType` 和 concrete map 是默认物化机制
 
 ## Provisional
 
+### ADR-009：Synthetic composite call 不进入 vendor ordinary Graph
+
+状态：Provisional（P2-W9 failure baseline + 当前源码/第三方只读审计；等待用户决定是否实施 isolation）
+
+问题：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 是否应把 impl 中的 `__composite_call__` 与 ordinary nodes 一起交给
+vendor `Graph` materialization。
+
+当前结论：不应直接作为 vendor ordinary `Node` 物化。P2-W9 最小 fixture 在 gate 下失败：
+`vendor impl graph gate missing __composite_call__ InParam[0]`。`__composite_call__` 必须 lower 为 child
+CompositeDef ID 的 `SysGraph`，并持有 `relatedIds`、child pin `compositePinIndex`、capture/sparse input 和
+ordinary↔synthetic edge 的 boundary 规则；这些不属于 ordinary node record/reflectMap schema。
+
+第三方证据：vendor compat Graph 的 `Node` 从 ordinary node record/reflectMap 建 schema；第三方仓库 `dev`
+（`a9174c9`）虽有 `NodeInterface` protobuf，但未提供 SysGraph/composite-call factory、registry 或 nested encoder。
+
+影响：若继续 P2-W9，候选设计必须是“vendor materializes ordinary subgraph；composite backend materializes
+synthetic call；明确 overlay 连接二者”，不能静默 fallback 或把 synthetic call 添加到 vendor node table。
+
+验证/退出条件：先由用户确认是否授权 synthetic-call isolation；随后以 nested OutFlow → ordinary node 的单一
+overlay fixture、focused regressions 和用户编辑器候选验证。nested data/capture/sparse inputs 另拆工作包。
+
 ### ADR-007：Stage 3 内部新增 Resolved Graph IR
 
 方向接受；具体类型结构、文件名和 list/dict 表示需在首个 fixture 实现中校正。

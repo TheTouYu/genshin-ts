@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 持续更新
 > 来源：当前测试体系 + 真实 GIA 验证方法
-> 最近校验：2026-07-11
+> 最近校验：2026-07-12
 > 适用范围：Stage 3 架构重构验收；未勾选项均不视为已证明
 
 ## 1. 验证层级
@@ -96,7 +96,7 @@ tests/composite/test-stage3-root-impl-parity.ts
 | omitted sparse input | 只按声明/证据 | index 不压缩 | 无 | ☐ |
 | pure-data output | 按真实规则 | OutParam route | consumer edge | ☐ |
 | exec inflow/outflow | flow pin | In/OutFlow route | flow edge | ☐ |
-| nested composite | call synthetic pins | nested definition route | data/flow | ☑ 已有 focused tests，迁移需重跑 |
+| nested composite | call synthetic pins | nested definition route | data/flow | ☑ legacy focused tests；☐ vendor gate P2-W9 failure baseline |
 
 现有候选回归：
 
@@ -109,6 +109,11 @@ npx tsx tests/composite/test-local-variable-impl-concrete-type.ts
 ```
 
 执行前确认脚本当前入口和退出码；旧文档中的 nested pending 状态可能过时，以源码测试为准。
+
+P2-W5~W8 的 vendor embedding editor coverage 已确认：closed local-float ordinary impl、captured float literal、
+captured root Addition connection、captured entity custom target。它们属于 L6 scoped evidence，不填补 nested
+synthetic call、其他 type/family、`graphValues` 或 `affiliations`。P2-W9 的 vendor gate 当前在
+`__composite_call__` synthetic boundary 失败；参见 `checkpoints/phase-2-vendor-embedding-evidence.md`。
 
 ## 6. `额外压力` vertical slice 验收
 

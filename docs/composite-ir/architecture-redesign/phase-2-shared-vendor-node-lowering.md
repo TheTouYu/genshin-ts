@@ -277,7 +277,7 @@ git diff --check                                                 # PASS
 
 ## P2-W5 当前结果：composite impl vendor Graph embedding observation
 
-状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+状态：实现、自动回归和用户游戏编辑器核验完成；已提交为 `7e7d8d2`。
 
 本工作包先用同一份 DSL 走 legacy 路径，由用户确认后导出为真实参考；随后仅在
 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate 下，闭合的 ordinary impl graph 用 vendor
@@ -311,7 +311,7 @@ git diff --check                                                              # 
 
 ## P2-W6 当前结果：captured input vendor Graph embedding observation
 
-状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+状态：实现、自动回归和用户游戏编辑器核验完成；已提交为 `0b09bf2`。
 
 在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate 下，P2-W6 将一个 captured float composite input 与 P2-W5
 同类 local-float ordinary impl 图组合。capture arg 不调用 vendor `Pin.setVal()`，保留 vendor 创建的
@@ -348,7 +348,7 @@ backend。
 
 ## P2-W7 当前结果：captured connection vendor Graph embedding observation
 
-状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+状态：实现、自动回归和用户游戏编辑器核验完成；已提交为 `23ca190`。
 
 P2-W7 在 P2-W6 的 captured float → local-variable getter fixture 中，仅把外部值来源改为 root
 `Addition(4, 6).OutParam[0]`。自动断言锁定两段不同的边：root Addition → synthetic composite call
@@ -367,7 +367,7 @@ ordinary family。gate 仍不可默认开启，handwritten backend 不可删除�
 
 ## P2-W8 当前结果：captured custom target vendor Graph embedding observation
 
-状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+状态：实现、自动回归和用户游戏编辑器核验完成；已提交为 `a8f814d`。
 
 P2-W8 将 captured entity target 路由到两个 float custom setters 与一个 float custom getter。vendor Graph gate
 过滤 custom getter/setter 的 captured `InParam[0]`，使 target 继续只由 `compositePins` overlay 表达；fixture 锁定三条
@@ -385,6 +385,27 @@ use、DTC 和 Print。用户确认该 candidate 在编辑器工作。
 nested composite call、synthetic call、`graphValues`、`affiliations` 或默认 gate。handwritten backend 不可删除。
 
 明确非目标：不迁移 nested composite call/DTC，不改变 capture 或 `compositePins` 语义，不改布局或注入。
+
+## P2-W9 调查结果：nested synthetic call 不是 vendor ordinary node
+
+状态：失败观察已完成；未进入实现或游戏候选阶段。
+
+P2-W9 的 legacy nested-call fixture 通过；同一 fixture 在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下失败：
+
+```text
+[error] vendor impl graph gate missing __composite_call__ InParam[0]
+```
+
+当前 gate 错误地把 `__composite_call__` 交给 vendor `Node`。该节点没有 ordinary record/reflectMap schema；当前
+Stage 3 必须将其 lower 为 child CompositeDef ID 的 `SysGraph`，并由 composite backend 保留 child pin
+`compositePinIndex`、impl `relatedIds`、capture/sparse-input 以及 ordinary↔synthetic edge 规则。第三方 vendor 的
+`dev` 分支只读审计也未发现 SysGraph/composite-call factory 或 nested encoder；其 `NodeInterface` protobuf 定义不构成
+可用支持。
+
+因此 P2-W9 不能通过扩大 vendor node table 或静默 fallback 解决。若用户授权后续实现，应先拆成
+“vendor ordinary subgraph + legacy synthetic call + 单一 post-materialization flow overlay”的小工作包；nested data,
+capture 和 sparse input 另拆。详细证据见
+[`checkpoints/phase-2-vendor-embedding-evidence.md`](checkpoints/phase-2-vendor-embedding-evidence.md) 和 ADR-009。
 
 ## 后续推广顺序
 

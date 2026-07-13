@@ -22,3 +22,7 @@
 ### 3. 候选文件使用固定生命周期
 
 候选放 `Beyond_Local_Export` 根目录；同一工作包修复时覆盖上一次失败候选；用户确认通过后移入 `真-测试通过/复合节点/`；真实 `user_edit` reference 永远单独保留且不可覆盖。Windows 文件一律经 `/mnt/c` 操作，并记录实际路径与 SHA-256。
+
+### 4. Boundary 扩展先做最小变量实验
+
+从 closed ordinary vendor graph 推进到 capture、connection、custom target 或 synthetic call 时，一次只改变一种边界变量，并在自动断言中分开检查 ordinary edge、`compositePins` route 和 synthetic metadata。若 vendor gate 对 synthetic node 或 schema 无法表达而失败，先保留失败基线、调查 vendor 与当前 backend 的职责；不要为了产出候选静默 fallback 或把该节点伪装成 ordinary node。
