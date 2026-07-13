@@ -100,7 +100,7 @@ g.server({ mode: 'beyond', type: 'entity', id: 1073741841, name: 'main', prefix:
 const doc = buildServerGraphRegistriesIRDocuments()[0]
 const complexBranchId = complexBranch.id
 const bytes = irToGia(doc, { graphId: 1073741841, name: 'recreate_debug6', protoPath: PROTO_PATH })
-const outPath = `${OUT_DIR}/recreate_debug6.gia`
+const outPath = process.env.GSTS_COMPOSITE_OUTPUT ?? `${OUT_DIR}/recreate_debug6.gia`
 writeFileSync(outPath, Buffer.from(bytes))
 console.log(`\n✅ 已生成: ${outPath}  (${bytes.length} 字节)`)
 

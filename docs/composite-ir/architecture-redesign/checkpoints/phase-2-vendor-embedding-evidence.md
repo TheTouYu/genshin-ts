@@ -53,17 +53,53 @@ reflectMap 创建 schema，不能为任意 CompositeDef ID 创建 SysGraph schem
 SysGraph factory、NodeInterface registry、nested call encoder、relatedIds/compositePins API 或测试。不能把它视为 vendor
 nested-composite 支持，也不得为 P2-W9 直接升级/修改 vendor。
 
-## 下一轮推荐入口
+## P2-W9 isolation 自动验证
 
-P2-W9 需要先由用户决定是否授权 **synthetic-call isolation**。若获授权，最小子工作包只验证：
+用户已授权最小 **synthetic-call isolation**。当前实现将 `__composite_call__` 从 vendor ordinary Graph 排除，保留既有
+composite backend 的 SysGraph/pins/`relatedIds` lowering；vendor encode ordinary nodes 后，才为 synthetic ↔ ordinary 的
+execution-flow 边写单一 overlay。它不为跨 boundary data connection 创建 fallback。
 
-```text
-legacy synthetic nested call + vendor-materialized ordinary Print
-+ nested OutFlow → ordinary Print 的单一 post-materialization overlay
+自动验证（2026-07-13）：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts /tmp/P2W9-nested-call-legacy-baseline.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts /tmp/P2W9-nested-call-refactored-candidate.gia
+npx tsx tests/composite/test-nested-composite-outflow.ts
+npx tsx tests/composite/test-nested-composite-capture-pins.ts
 ```
 
-后续 nested data input、capture、sparse named input 必须各自独立。若不授权，保持 nested call 在 gate 外，转向 DTC
-或另一个 ordinary node family。
+均 PASS。vendor-gated candidate：`/tmp/P2W9-nested-call-refactored-candidate.gia`，SHA-256：
+首次候选（SHA-256 `369eabb44dd71ce3d7370351285f30ee75c7124659d62e9c03c1e3d90c368309`）的编辑器反馈为：outer
+内部可见 nested call 与 Print，但 Print 流线断开。该反馈确认 fixture 的 inner composite 未声明 OutFlow，故 nested call
+没有可连接的 child completion pin；同时检查发现 isolation overlay 重复写入了 legacy synthetic → ordinary flow edge。
+
+修复：fixture 显式声明 inner `完成` OutFlow，并将 inner Print 从 entry 接入后以 `f.outflow('完成', innerPrint, 0)` 标记；
+materializer 仅 overlay vendor ordinary → legacy synthetic 的反向 flow，legacy synthetic → ordinary edge 保持原有 lowering。
+自动回归再次通过。修复候选 SHA-256：
+`41d1df1ba73279004abca845a6cdc438ec6b1b4a8bcf085b7126216326065d42`，已按用户授权覆盖
+`Beyond_Local_Export/P2W9-nested-call-vendor-graph-candidate.gia`；源/目标 SHA-256 一致。未注入，待用户编辑器复验。
+
+复杂 flow 自动回归（2026-07-13）发现并修复另一项 capture 边界问题：vendor Graph 会为被 `compositePins` 路由的
+`double_branch` 条件保留 ordinary `InParam[0]`，与 boundary route 重复。当前实现保留 P2-W6 已验证的
+`get_local_variable` captured handle schema；其他 captured ordinary InParam 在 vendor materialization 后过滤。
+`test-phase2-reference-patterns.ts`、P2-W6/P2-W8 legacy/vendor regressions 均 PASS。
+
+按用户持续授权，已生成并复制到 `Beyond_Local_Export` 根目录、待编辑器回归的候选：
+
+```text
+P2W9-complex-multi-inflow-outflow.gia  SHA-256 2ea56cebadd47dfab113bb2de28e72bc663562120f05f0bb02aad892b24782f9
+P2W9-nested-multi-outflow.gia          SHA-256 57af3262396118bb60c318025a297f0e58fa2fde79da21a099789d636338a60e
+P2W9-reference-flow-patterns.gia       SHA-256 38655390fa36544056186c9ace2e8568034601efcca56e7d7d21ac57a0d5883d
+```
+
+源/目标 SHA-256 均一致，未注入。用户编辑器核验（2026-07-13）：上述三个复杂控制流候选及
+`P2W9-nested-call-vendor-graph-candidate.gia` 均通过；确认 multi-OutFlow 顺序、nested 四独立 OutFlow、child
+OutFlow[3] → outer continuation 和复杂 data/flow 组合正常。该结果不推广到 nested data input、capture 或 sparse
+named input。
+
+用户已授权后续 Stage 3 名称明确的候选 `.gia` 直接复制到或覆盖 `Beyond_Local_Export` 根目录；真实参考、归档、
+地图/注入目录、未知同名文件、删除/清理和注入仍须单独确认。nested data input、capture、sparse named input 必须各自独立。
 
 ## 未证明 / 禁止推论
 

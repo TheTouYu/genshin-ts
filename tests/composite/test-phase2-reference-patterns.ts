@@ -278,7 +278,7 @@ doc.nodes?.forEach((n: any) => {
 
 const outName = 'phase2_reference_patterns'
 const bytes = irToGia(doc, { graphId: 1073741913, name: outName, protoPath: PROTO_PATH })
-const outPath = `${OUT_DIR}/${outName}.gia`
+const outPath = process.env.GSTS_COMPOSITE_OUTPUT ?? `${OUT_DIR}/${outName}.gia`
 writeFileSync(outPath, Buffer.from(bytes))
 console.log(`\n✅ 已生成: ${outPath}  (${bytes.length} 字节)`)
 

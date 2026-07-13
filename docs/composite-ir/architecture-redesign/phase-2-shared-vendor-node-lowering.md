@@ -388,7 +388,7 @@ nested composite call、synthetic call、`graphValues`、`affiliations` 或默�
 
 ## P2-W9 调查结果：nested synthetic call 不是 vendor ordinary node
 
-状态：失败观察已完成；未进入实现或游戏候选阶段。
+状态：最小 synthetic-call isolation 已实现、通过自动回归与用户编辑器核验。
 
 P2-W9 的 legacy nested-call fixture 通过；同一 fixture 在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下失败：
 
@@ -402,10 +402,12 @@ Stage 3 必须将其 lower 为 child CompositeDef ID 的 `SysGraph`，并由 com
 `dev` 分支只读审计也未发现 SysGraph/composite-call factory 或 nested encoder；其 `NodeInterface` protobuf 定义不构成
 可用支持。
 
-因此 P2-W9 不能通过扩大 vendor node table 或静默 fallback 解决。若用户授权后续实现，应先拆成
-“vendor ordinary subgraph + legacy synthetic call + 单一 post-materialization flow overlay”的小工作包；nested data,
-capture 和 sparse input 另拆。详细证据见
-[`checkpoints/phase-2-vendor-embedding-evidence.md`](checkpoints/phase-2-vendor-embedding-evidence.md) 和 ADR-009。
+因此 P2-W9 不能通过扩大 vendor node table 或静默 fallback 解决。用户已授权并完成最小切片：vendor
+materializes ordinary subgraph，composite backend 保留 legacy synthetic call，并在 materialization 后只补写
+synthetic ↔ ordinary 的 execution-flow overlay。复杂回归进一步锁定 fan-out DSL 顺序、captured ordinary input 过滤、
+child OutFlow 的物理 pin 补齐和 nested 四独立 OutFlow；用户编辑器确认通过。nested data、capture 和 sparse input
+尚未纳入。详细证据见 [`checkpoints/phase-2-vendor-embedding-evidence.md`](checkpoints/phase-2-vendor-embedding-evidence.md)
+和 ADR-009。
 
 ## 后续推广顺序
 

@@ -72,7 +72,7 @@ Vendor `Node.setConcrete`、`Pin.setType` 和 concrete map 是默认物化机制
 
 ### ADR-009：Synthetic composite call 不进入 vendor ordinary Graph
 
-状态：Provisional（P2-W9 failure baseline + 当前源码/第三方只读审计；等待用户决定是否实施 isolation）
+状态：Provisional（P2-W9 failure baseline + 当前源码/第三方只读审计；用户已授权最小 isolation 实现，待用户编辑器核验）
 
 问题：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 是否应把 impl 中的 `__composite_call__` 与 ordinary nodes 一起交给
 vendor `Graph` materialization。
@@ -88,8 +88,9 @@ ordinary↔synthetic edge 的 boundary 规则；这些不属于 ordinary node re
 影响：若继续 P2-W9，候选设计必须是“vendor materializes ordinary subgraph；composite backend materializes
 synthetic call；明确 overlay 连接二者”，不能静默 fallback 或把 synthetic call 添加到 vendor node table。
 
-验证/退出条件：先由用户确认是否授权 synthetic-call isolation；随后以 nested OutFlow → ordinary node 的单一
-overlay fixture、focused regressions 和用户编辑器候选验证。nested data/capture/sparse inputs 另拆工作包。
+验证/退出条件：用户已授权最小 synthetic-call isolation。以 nested OutFlow → ordinary node 的单一
+post-materialization overlay fixture、focused regressions 和用户编辑器候选验证；通过前保持 Provisional。nested
+数据输入、capture 和 sparse inputs 另拆工作包。
 
 ### ADR-007：Stage 3 内部新增 Resolved Graph IR
 

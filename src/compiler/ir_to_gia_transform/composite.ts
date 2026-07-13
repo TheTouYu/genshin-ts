@@ -271,6 +271,13 @@ function buildImplGraphNodes(
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
   const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+  const requiredCompositeCallOutflows = new Map<number, Set<number>>()
+  for (const pin of def.compositePins) {
+    if (pin.outerPinKind !== NodePin_Index_Kind.OutFlow) continue
+    const indexes = requiredCompositeCallOutflows.get(pin.innerNodeId) ?? new Set<number>()
+    indexes.add(pin.innerPinIndex)
+    requiredCompositeCallOutflows.set(pin.innerNodeId, indexes)
+  }
   const implConnTypeIndex = buildImplConnTypeIndex(implNodes)
   const nodeResults = implNodes.map((node) => {
     let nodeId = resolveImplNodeId(node.type, node.args as any)
@@ -347,7 +354,8 @@ function buildImplGraphNodes(
       calledDef,
       sharedConcreteNid ?? gvConcreteNid,
       customVariableConcreteNid,
-      localVariableConcreteNid
+      localVariableConcreteNid,
+      requiredCompositeCallOutflows.get(node.id)
     )
     allDataConns.push(...dataConns)
     return {
@@ -355,6 +363,7 @@ function buildImplGraphNodes(
       nodeId,
       genericId,
       pins,
+      isCompositeCall,
       isDTC: isDTC || false,
       dtcConcreteNid: isDTC ? nodeId : undefined,
       gvConcreteNid: sharedConcreteNid ?? gvConcreteNid,
@@ -377,12 +386,20 @@ function buildImplGraphNodes(
   const layout = computeImplLayout(implNodes, implEdges, def, compositeDefById)
 
   if (process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1') {
-    return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout)
+    return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout, nodeIndexMap)
   }
 
-  return nodeResults.map(({
+  return nodeResults.map((result) => materializeLegacyImplGraphNode(result, implEdges, layout, nodeIndexMap))
+}
+
+function materializeLegacyImplGraphNode(
+  result: any,
+  implEdges: Record<number, ImplEdge[]>,
+  layout: Map<number, { x: number; y: number }>,
+  nodeIndexMap: Map<number, number>
+): GraphNode {
+  const {
     node,
-    nodeId,
     genericId,
     pins,
     nodeIndex,
@@ -392,49 +409,47 @@ function buildImplGraphNodes(
     customVariableConcreteNid,
     localVariableConcreteNid,
     ordinaryConcreteNid
-  }) => {
-    const outEdges = implEdges[node.id]
-    if (outEdges && outEdges.length > 0) {
-      for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
-        const outFlowPin = pins.find((p: any) =>
-          p.i1?.kind === NodePin_Index_Kind.OutFlow && p.i1?.index === srcIdx
-        )
-        if (outFlowPin) {
-          ;(outFlowPin as any).connects = edges.map((edge) => {
-            const targetId = getEdgeTarget(edge)
-            const targetIndex = getEdgeTargetIndex(edge)
-            return {
-              id: nodeIndexMap.get(targetId) ?? targetId,
-              connect: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
-              connect2: { kind: NodePin_Index_Kind.InFlow, index: targetIndex }
-            }
-          })
-        }
+  } = result
+  const outEdges = implEdges[node.id]
+  if (outEdges && outEdges.length > 0) {
+    for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
+      const outFlowPin = pins.find((p: any) =>
+        p.i1?.kind === NodePin_Index_Kind.OutFlow && p.i1?.index === srcIdx
+      )
+      if (outFlowPin) {
+        ;(outFlowPin as any).connects = edges.map((edge) => {
+          const targetId = getEdgeTarget(edge)
+          const targetIndex = getEdgeTargetIndex(edge)
+          return {
+            id: nodeIndexMap.get(targetId) ?? targetId,
+            connect: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+            connect2: { kind: NodePin_Index_Kind.InFlow, index: targetIndex }
+          }
+        })
       }
     }
+  }
 
-    const pos = layout.get(node.id) ?? { x: 0, y: 0 }
-    return {
-      nodeIndex,
-      genericId,
-      // generic 数据节点保留 genericId，并按下游连接类型选择 concreteId。
-      concreteId: isDTC && dtcConcreteNid
-        ? { ...genericId, nodeId: dtcConcreteNid }
-        : gvConcreteNid
-          ? { ...genericId, nodeId: gvConcreteNid }
-          : customVariableConcreteNid
-            ? { ...genericId, nodeId: customVariableConcreteNid }
-            : localVariableConcreteNid
-              ? { ...genericId, nodeId: localVariableConcreteNid }
-              : ordinaryConcreteNid
-                ? { ...genericId, nodeId: ordinaryConcreteNid }
-                : { ...genericId },
-      pins,
-      x: pos.x,
-      y: pos.y,
-      usingStruct: []
-    }
-  })
+  const pos = layout.get(node.id) ?? { x: 0, y: 0 }
+  return {
+    nodeIndex,
+    genericId,
+    concreteId: isDTC && dtcConcreteNid
+      ? { ...genericId, nodeId: dtcConcreteNid }
+      : gvConcreteNid
+        ? { ...genericId, nodeId: gvConcreteNid }
+        : customVariableConcreteNid
+          ? { ...genericId, nodeId: customVariableConcreteNid }
+          : localVariableConcreteNid
+            ? { ...genericId, nodeId: localVariableConcreteNid }
+            : ordinaryConcreteNid
+              ? { ...genericId, nodeId: ordinaryConcreteNid }
+              : { ...genericId },
+    pins,
+    x: pos.x,
+    y: pos.y,
+    usingStruct: []
+  }
 }
 
 /**
@@ -447,14 +462,17 @@ function buildImplGraphNodes(
 function materializeImplOrdinaryGraphWithVendor(
   nodeResults: any[],
   implEdges: Record<number, ImplEdge[]>,
-  layout: Map<number, { x: number; y: number }>
+  layout: Map<number, { x: number; y: number }>,
+  nodeIndexMap: Map<number, number>
 ): GraphNode[] {
   const graph = new Graph('server', 0, '', 0)
   const vendorNodes = new Map<number, Node<any>>()
+  const syntheticResults = nodeResults.filter((result) => result.isCompositeCall)
+  const ordinaryResults = nodeResults.filter((result) => !result.isCompositeCall)
 
-  for (const result of nodeResults) {
-    const { node, nodeIndex, genericId, isCompositeCall } = result
-    if (isCompositeCall || node.type === '__composite_capture__') {
+  for (const result of ordinaryResults) {
+    const { node, nodeIndex, genericId } = result
+    if (node.type === '__composite_capture__') {
       throw new Error(`[error] vendor impl graph gate does not support synthetic node ${node.type}`)
     }
 
@@ -469,8 +487,9 @@ function materializeImplOrdinaryGraphWithVendor(
     for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
       const arg = node.args[argIndex]
       if (!arg || arg.type === 'conn') continue
-      // Capture is a composite boundary overlay, not an ordinary literal. Keep the vendor-created
-      // physical schema pin untouched; buildCompositeAccessories() routes it via compositePins.
+      // Capture is a composite boundary overlay, not an ordinary literal. The local-variable
+      // getter is the verified exception: its captured local-variable handle keeps the vendor
+      // schema pin, while other captured ordinary inputs are represented only by compositePins.
       if (arg.capture === true) continue
       const pin = vendorNode.pins.find(
         (candidate: any) => candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
@@ -490,7 +509,7 @@ function materializeImplOrdinaryGraphWithVendor(
       (pin: any) =>
         !(node.type === 'get_local_variable' &&
           pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0) &&
-        !((node.type === 'get_custom_variable' || node.type === 'set_custom_variable') &&
+        !(node.type !== 'get_local_variable' &&
           pin.kind === NodePin_Index_Kind.InParam && capturedInputIndexes.has(pin.index)) &&
         !((pin.kind === NodePin_Index_Kind.InParam || pin.kind === NodePin_Index_Kind.OutParam) &&
           pin.type?.t === 'b' && pin.type?.b === 'Unk')
@@ -498,7 +517,7 @@ function materializeImplOrdinaryGraphWithVendor(
     vendorNodes.set(node.id, graph.add_node(vendorNode))
   }
 
-  for (const result of nodeResults) {
+  for (const result of ordinaryResults) {
     const target = vendorNodes.get(result.node.id)
     if (!target) throw new Error(`[error] vendor impl graph missing target ${result.node.id}`)
     for (let argIndex = 0; argIndex < (result.node.args ?? []).length; argIndex++) {
@@ -506,27 +525,30 @@ function materializeImplOrdinaryGraphWithVendor(
       if (!arg || arg.type !== 'conn') continue
       const source = vendorNodes.get(arg.value.node_id)
       if (!source) {
-        throw new Error(`[error] vendor impl graph data source is not ordinary: ${arg.value.node_id}`)
+        throw new Error(`[error] vendor impl graph data source crosses synthetic boundary: ${arg.value.node_id}`)
       }
       graph.connect(source, target, arg.value.index, argIndex)
     }
   }
 
+  const vendorFlowCountBySource = new Map<string, number>()
   for (const [fromId, edges] of Object.entries(implEdges)) {
     const source = vendorNodes.get(Number(fromId))
     if (!source) continue
     for (const edge of edges) {
       const target = vendorNodes.get(getEdgeTarget(edge))
-      if (!target) {
-        throw new Error(`[error] vendor impl graph flow target is not ordinary: ${getEdgeTarget(edge)}`)
-      }
-      graph.flow(source, target, getEdgeSourceIndex(edge), getEdgeTargetIndex(edge))
+      if (!target) continue
+      const sourceIndex = getEdgeSourceIndex(edge)
+      const flowKey = `${fromId}:${sourceIndex}`
+      const insertPosition = vendorFlowCountBySource.get(flowKey) ?? 0
+      graph.flow(source, target, sourceIndex, getEdgeTargetIndex(edge), insertPosition)
+      vendorFlowCountBySource.set(flowKey, insertPosition + 1)
     }
   }
 
   const encodedNodes = ((graph.encode() as any).graph?.graph?.inner?.graph?.nodes ?? []) as GraphNode[]
-  if (encodedNodes.length !== nodeResults.length) {
-    throw new Error(`[error] vendor impl graph lost nodes: ${encodedNodes.length}/${nodeResults.length}`)
+  if (encodedNodes.length !== ordinaryResults.length) {
+    throw new Error(`[error] vendor impl graph lost nodes: ${encodedNodes.length}/${ordinaryResults.length}`)
   }
   for (const encodedNode of encodedNodes) {
     const source = nodeResults.find((result) => result.nodeIndex === encodedNode.nodeIndex)
@@ -536,7 +558,49 @@ function materializeImplOrdinaryGraphWithVendor(
     encodedNode.y = pos.y
     encodedNode.usingStruct = []
   }
-  return encodedNodes
+  const syntheticNodes = syntheticResults.map((result) =>
+    materializeLegacyImplGraphNode(result, implEdges, layout, nodeIndexMap)
+  )
+  const allNodes = [...encodedNodes, ...syntheticNodes]
+  const allNodesByIndex = new Map(allNodes.map((node) => [node.nodeIndex, node]))
+
+  for (const [fromId, edges] of Object.entries(implEdges)) {
+    const sourceResult = nodeResults.find((result) => result.node.id === Number(fromId))
+    if (!sourceResult || !sourceResult.isCompositeCall) continue
+    for (const edge of edges) {
+      const targetId = getEdgeTarget(edge)
+      const targetResult = nodeResults.find((result) => result.node.id === targetId)
+      if (!targetResult || targetResult.isCompositeCall) continue
+      const source = allNodesByIndex.get(sourceResult.nodeIndex)
+      const target = allNodesByIndex.get(targetResult.nodeIndex)
+      if (!source || !target) throw new Error('[error] vendor impl graph lost synthetic flow endpoint')
+      const sourceIndex = getEdgeSourceIndex(edge)
+      const sourcePin = source.pins?.find(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && pin.i1?.index === sourceIndex
+      )
+      if (!sourcePin) {
+        throw new Error(
+          `[error] vendor impl graph missing ${sourceResult.node.type} OutFlow[${sourceIndex}] for synthetic overlay`
+        )
+      }
+      const targetIndex = getEdgeTargetIndex(edge)
+      const connects = (sourcePin as any).connects ?? []
+      if (!connects.some((connect: any) =>
+        connect.id === target.nodeIndex &&
+        connect.connect?.kind === NodePin_Index_Kind.InFlow &&
+        connect.connect?.index === targetIndex
+      )) {
+        connects.push({
+          id: target.nodeIndex,
+          connect: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
+          connect2: { kind: NodePin_Index_Kind.InFlow, index: targetIndex }
+        })
+      }
+      ;(sourcePin as any).connects = connects
+    }
+  }
+
+  return allNodes.sort((a, b) => a.nodeIndex - b.nodeIndex)
 }
 
 /** 为 impl 图节点计算布局坐标。复用主图布局核心，保持 exec/data 语义一致。 */
@@ -792,7 +856,8 @@ function buildImplNodePins(
   calledDef?: CompositeDefIR,
   gvConcreteNid?: number,
   customVariableConcreteNid?: number,
-  localVariableConcreteNid?: number
+  localVariableConcreteNid?: number,
+  requiredCompositeCallOutflows?: Set<number>
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
@@ -1092,19 +1157,20 @@ function buildImplNodePins(
         }
       }
 
-      const outEdges = implEdges[node.id]
-      if (outEdges && outEdges.length > 0) {
-        for (const [sourceIndex] of groupEdgesBySourceIndex(outEdges)) {
-          const pin = {
-            i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
-            i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
-            type: 0,
-            value: undefined as any
-          } as NodePin & { compositePinIndex?: number }
-          const compositePinIndex = calledDef.outflows[sourceIndex]?.pinIndex
-          if (compositePinIndex !== undefined) pin.compositePinIndex = compositePinIndex
-          pins.push(pin)
-        }
+      const outflowIndexes = new Set<number>(requiredCompositeCallOutflows)
+      for (const [sourceIndex] of groupEdgesBySourceIndex(implEdges[node.id] ?? [])) {
+        outflowIndexes.add(sourceIndex)
+      }
+      for (const sourceIndex of [...outflowIndexes].sort((a, b) => a - b)) {
+        const pin = {
+          i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+          type: 0,
+          value: undefined as any
+        } as NodePin & { compositePinIndex?: number }
+        const compositePinIndex = calledDef.outflows[sourceIndex]?.pinIndex
+        if (compositePinIndex !== undefined) pin.compositePinIndex = compositePinIndex
+        pins.push(pin)
       }
     }
     return { pins, dataConns }

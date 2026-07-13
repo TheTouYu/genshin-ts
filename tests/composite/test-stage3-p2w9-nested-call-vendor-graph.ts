@@ -38,8 +38,11 @@ setRuntimeOptions({ optimize: { precompileExpression: false, removeUnusedNodes: 
 const inner = g.defineComposite(INNER_NAME, {
   inputs: {},
   outputs: {},
+  outflows: ['完成'],
   build(_inputs: any, f: any) {
-    f.printString(new str('P2W9 inner'))
+    const innerPrint = f.node('print_string', [new str('P2W9 inner')])
+    f.link(f.entry(), 0, innerPrint)
+    f.outflow('完成', innerPrint, 0)
     return {}
   }
 })
@@ -85,8 +88,12 @@ const definitionIds = new Set(
 const outerAccessory = decoded.accessories?.find(
   (accessory: any) => accessory.which === 9 && definitions.get(accessory.id?.id) === OUTER_NAME
 )
+const innerDefinition = decoded.accessories?.find(
+  (accessory: any) => accessory.which === 12 && accessory.name === INNER_NAME
+)?.compositeDef?.inner?.def
 const outerImpl = outerAccessory?.graph?.inner?.graph
 assert.ok(outerImpl, `outer impl missing: ${OUTER_NAME}`)
+assert.ok(innerDefinition, `inner definition missing: ${INNER_NAME}`)
 assert.ok(
   outerAccessory.relatedIds?.some((id: any) => definitionIds.has(id.id)),
   'outer impl relatedIds must retain the nested composite definition reference'
@@ -99,6 +106,12 @@ assert.ok(nestedNode, 'outer impl nested SysGraph call missing')
 const outerPrint = outerImpl.nodes?.find((node: any) => node.genericId?.nodeId === 1)
 assert.ok(outerPrint, 'outer ordinary Print missing')
 const nestedFlow = nestedNode.pins?.find((pin: any) => pin.i1?.kind === 2 && pin.i1?.index === 0)
+assert.equal(
+  nestedFlow?.compositePinIndex,
+  innerDefinition.outflows?.[0]?.pinIndex,
+  'nested call OutFlow[0] must use child outflow pinIndex'
+)
+assert.equal(nestedFlow?.connects?.length, 1, 'synthetic overlay must not duplicate the legacy flow edge')
 assert.ok(nestedFlow?.connects?.some((connect: any) => connect.id === outerPrint.nodeIndex),
   'nested call OutFlow[0] must reach vendor-materialized outer Print'
 )
