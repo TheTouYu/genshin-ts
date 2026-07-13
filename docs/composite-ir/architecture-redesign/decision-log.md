@@ -66,6 +66,34 @@ signal payload/dynamic pin 或 wire 细节均已验证的证据。
 验证/退出条件：共享 materializer 覆盖 ordinary subgraph 后，按 family/动态规则/真实案例逐步补齐 root/impl executable parity；
 在对应 coverage、真实/编辑器证据和 legacy removal gate 达标前，不默认开启 gate 或删除 handwritten backend。
 
+### ADR-012：框架优先、问题驱动的 ordinary API 迁移
+
+状态：Accepted（用户确认，2026-07-13）
+
+问题：若要求主图普通 API 的每一个 node family 在迁移前都完成独立 root/impl、真实 GIA 或用户编辑器验证，
+Phase 2 将退化为逐项覆盖，无法在目标周期内完成双 backend 的架构收束。
+
+决定：ordinary system node/API 的迁移采用“共享框架默认覆盖、实际问题驱动补洞”策略。只要 shared resolution、
+vendor ordinary factory、shared graph materializer 和 Composite boundary 的职责边界正确，ordinary API 默认应通过这条
+统一路径在 impl 中表达；不再以逐 API 的预先验证作为进入 P3/P4 的前置条件。发现失败时，按 resolution、vendor
+normalization、ordinary materialization、boundary overlay、dynamic family 或证据不足分类，建立最小例外工作包并集中修复。
+
+证据：用户明确接受该工程风险，以保障重构交付节奏；ADR-001/002/006/011 的单一 ordinary backend、boundary
+isolation 和完整 vendor Graph 目标与此一致。P2-W1~W17b 已证明变量、DTC、标量四则运算等切片可走共享机制，
+但不是该策略的全 API 验证依据。
+
+影响：
+
+- 后续排期优先完成 ordinary factory、shared materializer、boundary isolation 与 legacy removal，不以 comparison
+  或其他单一 family 的覆盖数量决定优先级；
+- 每阶段仅保留最少跨类别哨兵与已确认不变量回归，用于发现框架洞；
+- signal/dynamic pin/payload、list/dict、特殊 ID、真实 GIA/wire 与 Composite boundary 仍保留专属 adapter 或验证
+  义务，不能被“默认覆盖”静默跳过；
+- 文档继续把工程目标、自动回归、真实 GIA、编辑器验证和游戏内验证分层；不得将此决策表述为“406 个 API 已验证”。
+
+验证/退出条件：按 [工作包选择协议](work-package-selection.md) 由 `STATUS.md` 每轮给出唯一的最高优先级工作包；
+P2 完成 ordinary factory 泛化与显式例外出口后进入 P3，P3/P4/P5 依次按各自架构退出条件推进。
+
 ### ADR-006：Impl 使用完整 vendor Graph materialization
 
 状态：Accepted（用户 2026-07-12 选择方案 A）

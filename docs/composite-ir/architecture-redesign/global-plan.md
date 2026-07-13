@@ -40,7 +40,7 @@ Composite backend 最终只负责：
 
 用户确认：主图可表达、可执行的 ordinary system node、API 调用与数据/控制流关系，目标上也应在 composite impl
 中可表达、可执行。后续不按“复合是否支持某个普通 node/API”建立长期能力分叉；共享 ordinary mechanism 是实现路径，
-更多可执行 root + impl fixture、真实 GIA 和用户编辑器案例是扩大证据覆盖的路径。
+更多可执行 root + impl fixture、真实 GIA 和用户编辑器案例用于发现框架例外、完成阶段退出或扩大证据覆盖；它们不是逐 API 进入下一架构阶段的前置门槛。ordinary API 采用框架优先、问题驱动补洞的排期策略，见 [ADR-012](decision-log.md#adr-012框架优先问题驱动的-ordinary-api-迁移) 与 [工作包选择协议](work-package-selection.md)。
 
 这一目标不把尚未采样的节点族写成已验证事实。尤其 signal、动态 pin/payload、列表/字典和特殊 ID family 仍需各自
 确认 shared contract 的适配规则、编码/wire 与实际编辑器行为。Composite 专属 boundary 仍单独实现和验证。详见
@@ -91,14 +91,15 @@ Composite backend 最终只负责：
 
 目标是删除当前 impl 内按节点特设的临时 `Graph+Node` 分支，改用共享工厂。
 
-### Slice C：通用 reflective/data nodes
+### Slice C：ordinary framework 收束与例外出口
 
-- data type conversion；
-- arithmetic/comparison；
-- list/dict typed variants；
-- entity/guid/config/prefab/faction。
+- 将所有 ordinary API 收束到 shared resolution、vendor ordinary factory 与 shared materializer；
+- 以少量 exec/query/calc、generic/concrete、literal/connection 哨兵验证框架通路；
+- signal/dynamic pin/payload、list/dict、entity/guid/config/prefab/faction 等仅在出现实际缺口时建立集中 adapter；
+- 将 unresolved family 记录为显式 fallback/diagnostic，不恢复独立 Composite ordinary backend。
 
-以 shared ordinary mechanism 为实现目标，随后通过可执行 root + impl fixture、最小真实样本或用户编辑器案例逐族扩大覆盖；不把未采样 family 当作已验证。
+不把未采样 family 写成已验证；但也不以逐族验证阻塞 P3/P4。优先级由
+[工作包选择协议](work-package-selection.md) 决定。
 
 ### Slice D：composite boundary
 

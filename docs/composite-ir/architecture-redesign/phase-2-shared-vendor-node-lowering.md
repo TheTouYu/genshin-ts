@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 进行中
 > 来源：目标架构 + 当前实现/自动回归 + scoped 用户编辑器核验
-> 最近校验：2026-07-13
+> 最近校验：2026-07-14
 > 适用范围：ordinary vendor subgraph 与 composite synthetic/boundary overlay；不代表默认 backend 或全部类型/API 已验证
 
 > 本文件保留 Phase 2 的当前目标、活动边界和摘要。P2-W1~P2-W17b 的完整命令、候选、SHA、失败与修正过程已归档到
@@ -41,6 +41,7 @@ Composite 只保留 CompositeDef、synthetic call、capture、`compositePins`、
 | P2-W9~W12a | synthetic-call isolation、nested data/capture、optional sparse call binding | 自动 + 用户编辑器 | [历史](work-packages/phase-2-detailed-history-2026-07-13.md#p2-w9-调查结果nested-synthetic-call-不是-vendor-ordinary-node) |
 | P2-W16 | 当前映射的 11 个 DTC variant shared identity | 自动 + 用户编辑器 | [历史](work-packages/phase-2-detailed-history-2026-07-13.md#p2-w16-当前结果all-mapped-dtc-shared-identity--vendor-graph-validation) |
 | P2-W17a/W17b | 同型 int/float 四则运算 shared identity；可执行 data/control-flow fixture | 自动 + 用户编辑器 | [历史](work-packages/phase-2-detailed-history-2026-07-13.md#p2-w17bscalar-same-type-arithmetic-shared-identity-resolution用户编辑器核验通过待审核提交) |
+| P2-W18 | ADR-012：框架优先、问题驱动的排期；下一包转向 ordinary factory 泛化 | 用户确认 + 文档协议；相对链接检查与 docs:index 通过（267 documents / 4476 chunks） | [工作包选择协议](work-package-selection.md) |
 
 ## P2-W17b 当前证据
 
@@ -55,13 +56,13 @@ ordinary data edge 和 control-flow/boundary route。用户已确认修正候选
 
 ## 当前工作包与后续顺序
 
-P2-W17b 已完成自动与用户编辑器核验，待用户审核/提交。下一功能工作包建议：
+P2-W17b 已完成自动与用户编辑器核验。根据 ADR-012，P2 后续不再以 comparison 或其他单一 ordinary
+family 的逐项观察作为默认主线；优先完成 ordinary factory 泛化，使主图 ordinary API 默认走 shared resolution 和
+vendor schema 路径，并为 dynamic/list/dict/特殊 ID 等实际缺口提供显式 fallback 或集中 adapter。
 
-1. comparison：先建立同型输入、bool 输出的可执行观察基线；
-2. 在共享 mechanism 稳定后，按真实可执行案例扩展 signal/dynamic pin、list/dict 和特殊 ID family；
-3. 每次只改变一个 node family 或一个 boundary 变量，保留 root + impl 的可执行 data/control-flow fixture。
-
-不要把 comparison、signal、layout、capture 语义或 legacy 删除合并到同一包。
+每轮的唯一工作包由 [工作包选择协议](work-package-selection.md) 排序。comparison 只在其解除框架阻塞、暴露可复现
+例外或用户明确指定时成为工作包。不要把 ordinary factory、ordinary edge materialization、capture/boundary 或 legacy
+删除混在同一包。
 
 ## Phase 退出条件
 
