@@ -217,6 +217,8 @@ git status --short
 git diff --check
 git diff --stat
 git diff
+# 文档状态一致性：STATUS 当前/最近工作包、未提交变化、恢复指引、ADR/checkpoint
+# 必须与 HEAD、git status 和已完成的用户核验一致；不得将已提交或已验证事项写成待提交/待核验。
 # 当前工作包 required focused tests
 ```
 

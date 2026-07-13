@@ -10,10 +10,10 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：P2-W9 — nested synthetic-call vendor Graph embedding isolation（实现、自动回归与用户编辑器核验完成，待提交前审核）
-最近完成工作包：P2-W8 — captured custom target vendor Graph embedding observation + 用户编辑器核验
+当前工作包：无；P2-W9 已完成并提交，下一工作包待用户决定
+最近完成工作包：P2-W9 — nested synthetic-call vendor Graph embedding isolation
 分支起点：c5dfdd6 feat: add governed documentation search
-工作树预期：clean
+工作树预期：P2-W9 提交后 clean；本次状态校正与协议补强产生 6 个未提交文档变化，待提交
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 ```
 
@@ -673,13 +673,9 @@ git diff --check                                                              # 
 
 ## 待用户决策
 
-P2-W8 已通过用户编辑器核验。P2-W9 的 synthetic-call isolation 已获用户授权并完成最小实现：vendor 仅 materialize
-ordinary subgraph，legacy composite backend 保留 `__composite_call__`，post-materialization overlay 只补写 nested
-OutFlow → ordinary Print execution flow。首次编辑器反馈确认 outer 内的打印节点连线断开；根因是 fixture 内层复合未声明
-OutFlow，nested call 因而没有可用的完成出口。已修复 fixture：inner Print 显式连到 entry 并标记 `完成` OutFlow；同时避免
-对 legacy synthetic → ordinary edge 二次 overlay。修复候选已按用户授权覆盖到 `Beyond_Local_Export` 根目录，待用户复验。
-用户另授权：后续 Stage 3 名称明确的候选 `.gia` 可直接复制/覆盖该根目录，无需逐次确认；该授权不包含真实参考、归档、
-地图/注入目录、删除/清理或注入。ADR-006=A 保持不变，P2-W9 不授权删除 handwritten backend 或默认开启 gate。
+P2-W9 已完成并提交；下一工作包的范围待用户决定。ADR-006=A 保持不变。P2-W9 不授权默认开启 gate、删除 handwritten
+backend，或将 nested data/capture/sparse input 纳入已完成切片。用户对后续 Stage 3 名称明确的候选 `.gia` 保持直接复制/覆盖
+`Beyond_Local_Export` 根目录的授权；该授权不包含真实参考、归档、地图/注入目录、删除/清理或注入。
 
 ## 当前完成工作包：P2-W7 — captured connection vendor Graph embedding observation
 
@@ -815,11 +811,10 @@ git diff --check                                                              # 
 明确非目标：不将 gate 设为默认，不删除 handwritten backend，不迁移 nested composite call/DTC，不改 capture
 或 `compositePins` 语义、布局、`graphValues` 或 `affiliations`，不注入，不改 vendor/generated 文件。
 
-## 进行中或未提交变化
+## P2-W9 完成与提交记录
 
-P2-W9 isolation 实现、自动回归与文档更新完成、未提交。当前变化：
-`src/compiler/ir_to_gia_transform/composite.ts`、
-`docs/composite-ir/architecture-redesign/{STATUS.md,phase-2-shared-vendor-node-lowering.md,decision-log.md,checkpoints/phase-2-vendor-embedding-evidence.md}`；原 P2-W9 fixture 已在 HEAD。
+P2-W9 isolation 实现、自动回归、用户编辑器核验与文档更新已完成，提交为
+`ebc478c refactor(stage3): isolate synthetic calls in vendor graphs`（Work package: P2-W9）。当前工作树预期 clean。
 
 首次 probe 保留失败证据：legacy baseline PASS；原 vendor-gated candidate FAIL，错误为
 `[error] vendor impl graph gate missing __composite_call__ InParam[0]`。用户随后选择方案 A。实现把
@@ -843,8 +838,8 @@ legacy/vendor fixture、nested outflow/capture regression、P2-W5 legacy/vendor 
 
 1. 读取 [EXECUTION.md](EXECUTION.md)、[COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；结束涉及真实 GIA/用户编辑器协作的工作包时，再读 [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md) 决定是否做最小经验更新；
 2. 检查分支、status 和最近提交；
-3. P2-W5~W8 已完成并已提交；P2-W9 isolation 已通过用户编辑器核验、待提交前审核，先读取
-   `checkpoints/phase-2-vendor-embedding-evidence.md`、ADR-009 和本文件“进行中或未提交变化”；
+3. P2-W5~W9 已完成并已提交；下一工作包开始前读取
+   `checkpoints/phase-2-vendor-embedding-evidence.md`、ADR-009 和本文件“P2-W9 完成与提交记录”；
 4. 架构约束：ADR-006 = 完整 vendor Graph materialization，但 vendor 仅覆盖 ordinary subgraph；P2-W9 已获用户授权
    isolation，仍不得默认开启 gate、删除 handwritten backend，或将 nested data/capture/sparse input 混入当前工作包；
 5. 不覆盖无法解释的变化。

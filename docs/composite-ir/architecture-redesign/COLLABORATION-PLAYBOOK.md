@@ -34,3 +34,7 @@
 ### 5. 多出口控制流按 DSL 顺序逐层核验
 
 当一个 OutFlow 连向多个下游、或嵌套复合引用子复合特定 OutFlow 时，先核对 DSL 的 `f.link` / `f.outflow` 顺序，再核对解码 GIA 的 `connects` 顺序、`compositePins` 和物理 OutFlow pin，最后才检查 materializer。候选必须验证声明的 child OutFlow 已物理存在；不要只因定义或 `compositePins` 存在就认为编辑器连线正确。
+
+### 6. 提交前以 Git 事实收束工作包状态
+
+用户编辑器核验、focused 回归和提交完成后，提交前必须对照 `HEAD`、`git status` 与文档状态；同步 `STATUS.md` 的当前/最近工作包、未提交变化和恢复指引，以及相关 ADR/checkpoint。已提交或已验证的事项不能继续标为待提交、待核验或未证明；尚未覆盖的边界必须精确保留。

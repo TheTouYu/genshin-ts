@@ -1,8 +1,8 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1/P2-W2/P2-W3/P2-W4 已完成；P2-W3/P2-W4 已通过用户游戏编辑器核验
+> 状态：P2-W1~P2-W9 已完成；P2-W3~P2-W9 已通过用户游戏编辑器核验
 > 来源：目标架构设计 + 当前实现/自动回归 + 用户游戏编辑器验证
-> 最近校验：2026-07-12
+> 最近校验：2026-07-13
 > 适用范围：普通系统节点；不包含 composite synthetic call/capture
 
 ## 目标

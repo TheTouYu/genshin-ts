@@ -2,7 +2,7 @@
 
 > 状态：已验证 / 当前阶段 checkpoint
 > 来源：当前代码实现 + focused 自动回归 + 用户游戏编辑器验证 + 第三方 `dev` 分支只读审计
-> 最近校验：2026-07-12
+> 最近校验：2026-07-13
 > 适用范围：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate；不代表默认 backend 或全部 Composite 场景
 
 ## 目的
@@ -104,6 +104,6 @@ named input。
 ## 未证明 / 禁止推论
 
 - gate 不能设为默认，handwritten backend 不能删除；
-- 未证明 multiple/other-type capture、nested call、synthetic call、`graphValues`、`affiliations` 或其他 ordinary family；
+- 未证明 multiple/other-type capture、nested data input、nested capture、nested sparse named input、`graphValues`、`affiliations` 或其他 ordinary family；
 - 编辑器通过不证明 raw wire 全等；P2-W5 仍观察到 legacy 与 vendor schema 字段差异；
 - 不得由单一 float/custom sample 推论 int/bool/list/dict/entity/guid 等类型族。
