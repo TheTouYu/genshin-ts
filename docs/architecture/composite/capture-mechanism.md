@@ -174,7 +174,27 @@ for (const def of compositeRegistry.getAll()) {
 
 同一输入可在多处消费（如 `f.add(input, input)`），每个消费点产生一条 `compositePinEntry`。
 
-### 4.3 返回值处理
+### 4.3 Definition 输入与 call-site binding 分离
+
+当前实现把两个层次分开：
+
+- **definition capture**：`ensureCompositeCaptured()` 以及 `runCompositeCall()` /
+  `runDetachedCompositeCall()` 均通过 `createCompositeCaptureInputs(def)`，为 `def.inputs` 的每个声明输入创建带
+  `__captureInputName` 的 typed placeholder。因此 child `build(inputs, f)` 可稳定消费全部声明输入，不依赖某一次
+  调用实际传了哪些键。
+- **call-site binding**：调用实参只由 `buildCompositeCallArgs()` 写入 `__composite_call__` marker 的 args 与
+  `compositeInputIndices`。Stage 3 仅为实际绑定项物化 physical InParam；未传项不被补成 literal、ordinary edge 或
+  capture route。
+
+这对应真实 `调用参数.gia` 的同一 CompositeDef 被 first-only、second-only、both、empty 四次调用的结构。它是
+所有 composite 的定义/调用结构契约，不是 float 专属规则；但不同类型的 concrete wrapper、wire presence 与未绑定输入
+参与游戏计算时的运行时结果仍需逐族验证。
+
+自动回归：`tests/composite/test-composite-optional-call-inputs.ts`（direct call）和
+`tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts`（nested vendor gate）。用户编辑器已核验后者的
+四分支 candidate；未注入。
+
+### 4.4 返回值处理
 
 build 返回值被记录到 `outputValues`。在 `toCompositeDefIR()` 中，遍历 outputs 声明，对每个 output 名从 `outputValues` 中取出值，通过其 `getMetadata()` 获取 pin 信息，建立 `OutParam` 映射：
 
@@ -190,7 +210,7 @@ if (meta && meta.kind === 'pin') {
 }
 ```
 
-### 4.4 InFlow / OutFlow 显式标记
+### 4.5 InFlow / OutFlow 显式标记
 
 当前实现使用显式标记生成复合控制流接口：
 

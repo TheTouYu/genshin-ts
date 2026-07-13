@@ -101,6 +101,28 @@ sparse named input 仍须另拆工作包；本 ADR 不授权默认开启 gate �
 目标是只 remap 一次。需确认 signal、assembly、custom variable 等动态 pin family 是否适合统一 contract，或需要 family
 specific resolver。
 
+### ADR-010：Composite definition capture 与 optional call-site binding 分离
+
+状态：Accepted（真实 `调用参数.gia` + 当前实现/自动回归 + 用户编辑器核验，2026-07-13）
+
+问题：同一 CompositeDef 内部同时消费全部声明 inputs 时，是否要求每个 `callComposite` / `declareDetached` 都传入全部输入。
+
+决定：不要求。definition capture 必须按完整 `def.inputs` 创建 typed placeholders；每个 call-site 独立决定实际
+binding 的任意子集（包括空集），marker 仅物化实际绑定的 physical InParam，并以 declaration index 保持 sparse
+位置。未绑定输入不得在 marker 上被补为 literal、ordinary edge 或 capture route。
+
+证据：真实 `Beyond_Local_Export/user_edit/复合节点/调用参数.gia`（SHA-256
+`599f3c06bdd3946cb93c3a498fb89237dd2fbc6e5f8661bfa80918f252bf3b1b`）的一个双 float 加法 definition 同时消费两个
+inputs，四个 call marker 分别为 `[0]`、`[1]`、`[0,1]`、`[]`。`bba105b` 的 direct/nested focused regressions 及用户编辑器
+四分支候选核验均通过。
+
+影响：`runCompositeCall()` 与 `runDetachedCompositeCall()` 的 child build capture 不能使用该次 call 的 partial
+inputs；必须使用 definition placeholders。该决定适用于所有 composite 的 definition/call-site 结构语义，不等同于各
+类型 wrapper/wire/default 或未绑定输入运行时值的通用结论。
+
+验证/退出条件：已覆盖 direct 与 nested vendor-gated literal binding 的四种 presence 组合。后续 connection/capture 型
+optional binding、其他类型编码细节和未绑定输入的游戏运行时结果独立验证；不因此默认开启 vendor gate 或删除 handwritten backend。
+
 ## Open
 
 ### Q-001：Vendor `Node(324)` 是否逐字段匹配真实 setter？

@@ -1,9 +1,9 @@
 # Phase 2：共享 Vendor Ordinary-Node Lowering
 
-> 状态：P2-W1~P2-W9 已完成；P2-W3~P2-W9 已通过用户游戏编辑器核验
-> 来源：目标架构设计 + 当前实现/自动回归 + 用户游戏编辑器验证
+> 状态：P2-W1~P2-W12a 已完成；P2-W3~P2-W12a 已通过用户游戏编辑器核验
+> 来源：目标架构设计 + 当前实现/自动回归 + 真实 GIA 对照 + 用户游戏编辑器验证
 > 最近校验：2026-07-13
-> 适用范围：普通系统节点；不包含 composite synthetic call/capture
+> 适用范围：ordinary vendor subgraph 与已验证的 composite synthetic/boundary overlay；不代表默认 backend 或全部类型编码
 
 ## 目标
 
@@ -405,9 +405,20 @@ Stage 3 必须将其 lower 为 child CompositeDef ID 的 `SysGraph`，并由 com
 因此 P2-W9 不能通过扩大 vendor node table 或静默 fallback 解决。用户已授权并完成最小切片：vendor
 materializes ordinary subgraph，composite backend 保留 legacy synthetic call，并在 materialization 后只补写
 synthetic ↔ ordinary 的 execution-flow overlay。复杂回归进一步锁定 fan-out DSL 顺序、captured ordinary input 过滤、
-child OutFlow 的物理 pin 补齐和 nested 四独立 OutFlow；用户编辑器确认通过。nested data、capture 和 sparse input
-尚未纳入。详细证据见 [`checkpoints/phase-2-vendor-embedding-evidence.md`](checkpoints/phase-2-vendor-embedding-evidence.md)
-和 ADR-009。
+child OutFlow 的物理 pin 补齐和 nested 四独立 OutFlow；用户编辑器确认通过。P2-W10~W12a 随后分别补齐 nested
+ordinary data input、nested capture 和 optional/sparse call binding；详见
+[`checkpoints/phase-2-vendor-embedding-evidence.md`](checkpoints/phase-2-vendor-embedding-evidence.md)、ADR-009 和 ADR-010。
+
+## P2-W10~W12a：nested boundary 与 optional call-input closure
+
+- **P2-W10**（`70455ee`）：outer vendor float Addition → nested synthetic child non-capture input 的数据 edge 保留在
+  child call physical InParam；用户编辑器核验通过。它不证明其他 producer/type 的 data encoding。
+- **P2-W11**（`2f1e497`）：outer captured float → nested child 仅由 `compositePins` 路由；child call 不重复物化该
+  input/ordinary edge；用户编辑器核验通过。它不证明多 capture 或其他 capture 类型。
+- **P2-W12a**（`bba105b`）：definition capture 使用全部声明 typed placeholders，单次 call-site 仍仅物化实际绑定的
+  physical inputs。真实 `调用参数.gia` 观察到同一 definition 的 `[0]`、`[1]`、`[0,1]`、`[]` 四种 call；direct/nested
+  自动回归和用户编辑器四分支候选通过。该规则适用于 composite definition/call-site 的通用结构；各类型 wrapper/wire、
+  optional connection/capture binding 与未绑定值的运行时结果仍待独立验证。
 
 ## 后续推广顺序
 
@@ -418,4 +429,5 @@ child OutFlow 的物理 pin 补齐和 nested 四独立 OutFlow；用户编辑器
 5. arithmetic/comparison；
 6. list/dict 和特殊 ID 类型。
 
-每族都重复“观察 fixture → vendor experiment → gate → parity → 删除 legacy branch”。
+每族都重复“观察 fixture → vendor experiment → gate → parity → 删除 legacy branch”；optional call-input 的 Runtime
+契约已闭合，但不得把其类型 wire/default 结论提前并入上述节点族。

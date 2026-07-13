@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P2-W5~W8 checkpointed; P2-W9 synthetic-call failure baseline and vendor dev audit recorded)
+> 最近校验：2026-07-13（P2-W10~W12a 已提交；nested data/capture/optional call-input 经自动回归、真实 GIA 对照与用户编辑器核验）
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -10,10 +10,10 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：0、1 已退出 → 当前阶段 Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前工作包：无；P2-W9 已完成并提交，下一工作包待用户决定
-最近完成工作包：P2-W9 — nested synthetic-call vendor Graph embedding isolation
+当前工作包：P2-W13 — Stage 3 文档收束（本轮）；仅同步 P2-W10~W12a 已提交证据
+最近完成代码工作包：P2-W12a — optional composite call-input contract
 分支起点：c5dfdd6 feat: add governed documentation search
-工作树预期：P2-W9 提交后 clean；本次状态校正与协议补强产生 6 个未提交文档变化，待提交
+工作树预期：P2-W13 文档变更待提交；此前 P2-W10~W12a 代码提交后为 clean
 ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
 ```
 
@@ -78,13 +78,25 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
   正常。用户确认 literal float setter、Addition connection setter、getter → Addition → DTC → Print、flow 和
   composite call 均正常。vendor custom setter value pin 的原生 `alreadySetVal` 状态无需 normalization；游戏目录
   候选 SHA-256：`8b6717d6800a5dd08fe1120a34640ae703b7b75145a28ca36a3426a84bda85f9`。
+- **P2-W10（提交 `70455ee`）**：vendor-materialized outer float Addition → nested synthetic SysGraph
+  non-capture input 的数据边保留在 child call 的 physical InParam，不变成 `compositePins` capture route；自动
+  legacy/vendor fixture 与用户编辑器核验均通过。
+- **P2-W11（提交 `2f1e497`）**：outer captured float → nested child input 仅经 outer impl
+  `compositePins` 路由；nested call 不物化该 physical input 或 ordinary data edge；自动 fixture 与用户编辑器
+  核验均通过。
+- **P2-W12a（提交 `bba105b`）**：复合 definition capture 与单次 call-site binding 已分离。真实
+  `user_edit/复合节点/调用参数.gia`（SHA-256
+  `599f3c06bdd3946cb93c3a498fb89237dd2fbc6e5f8661bfa80918f252bf3b1b`）中，同一双 float 加法 definition 的
+  impl 同时消费两个输入，而四个 call 的 physical input presence 为 `[0]` / `[1]` / `[0,1]` / `[]`。当前
+  `createCompositeCaptureInputs()` 使 definition build 始终获得完整 typed placeholders；调用 marker 仍仅物化
+  实际绑定输入。direct/nested 自动回归与用户编辑器的四分支候选均通过。该 definition/call-site 分离是通用
+  composite 调用结构契约；float wrapper、未绑定输入的运行时值及其他边界编码未由此样本推广。
 
 ## 尚未证明
 
-- P2-W5/P2-W6/P2-W7/P2-W8 只证明 local-float closed ordinary impl 图、单一 captured float literal 或 root
-  Addition connection → local-variable getter，以及 captured entity target → custom getter/setter 的 boundary
-  overlay，可由临时 vendor Graph 提取并经编辑器核验；`graphValues`、`affiliations`、多个/其他类型 capture、nested
-  composite call、synthetic composite call 和其他 ordinary family 的嵌入兼容性仍未证明。
+- P2-W5~W12a 已证明指定 ordinary 图、capture、nested synthetic call、nested non-capture data、nested capture 与
+  optional call-site binding 可在 gate 下组合；仍未证明 `graphValues`、`affiliations`、multiple/other-type capture、
+  其他 ordinary family 或所有嵌入形态。
 - int/bool/str/entity/guid 等其他类型的 concrete variant 一致性。
 - P2-W1 已覆盖的 float/vec3 setter fixture 已被用户在游戏编辑器中接受；其他普通节点族仍未证明。
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
@@ -673,8 +685,9 @@ git diff --check                                                              # 
 
 ## 待用户决策
 
-P2-W9 已完成并提交；下一工作包的范围待用户决定。ADR-006=A 保持不变。P2-W9 不授权默认开启 gate、删除 handwritten
-backend，或将 nested data/capture/sparse input 纳入已完成切片。用户对后续 Stage 3 名称明确的候选 `.gia` 保持直接复制/覆盖
+P2-W10~W12a 已完成并提交；P2-W13 仅作本轮文档收束。ADR-006=A 保持不变。现有证据仍不授权默认开启 gate、删除
+handwritten backend，或将未覆盖的类型 wire/default、connection/capture 型 optional binding、`graphValues`、
+`affiliations` 纳入已完成范围。用户对后续 Stage 3 名称明确的候选 `.gia` 保持直接复制/覆盖
 `Beyond_Local_Export` 根目录的授权；该授权不包含真实参考、归档、地图/注入目录、删除/清理或注入。
 
 ## 当前完成工作包：P2-W7 — captured connection vendor Graph embedding observation
@@ -837,9 +850,10 @@ legacy/vendor fixture、nested outflow/capture regression、P2-W5 legacy/vendor 
 ## 新会话恢复
 
 1. 读取 [EXECUTION.md](EXECUTION.md)、[COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)；结束涉及真实 GIA/用户编辑器协作的工作包时，再读 [COLLABORATION-PLAYBOOK-MAINTENANCE.md](COLLABORATION-PLAYBOOK-MAINTENANCE.md) 决定是否做最小经验更新；
-2. 检查分支、status 和最近提交；
-3. P2-W5~W9 已完成并已提交；下一工作包开始前读取
-   `checkpoints/phase-2-vendor-embedding-evidence.md`、ADR-009 和本文件“P2-W9 完成与提交记录”；
-4. 架构约束：ADR-006 = 完整 vendor Graph materialization，但 vendor 仅覆盖 ordinary subgraph；P2-W9 已获用户授权
-   isolation，仍不得默认开启 gate、删除 handwritten backend，或将 nested data/capture/sparse input 混入当前工作包；
+2. 检查分支、status 和最近提交；P2-W13 提交前工作树应只含本轮文档同步；
+3. P2-W5~W12a 已完成并提交；下一功能工作包开始前读取
+   `checkpoints/phase-2-vendor-embedding-evidence.md`、ADR-009、ADR-010 和本文件的 P2-W10~W12a 事实；
+4. 架构约束：ADR-006 = 完整 vendor Graph materialization，但 vendor 仅覆盖 ordinary subgraph。nested data、nested
+   capture 与 optional call-input structure 已分别核验；仍不得默认开启 gate、删除 handwritten backend，或将未覆盖
+   类型 wire/default、connection/capture 型 optional binding、`graphValues`、`affiliations` 混入既有结论；
 5. 不覆盖无法解释的变化。

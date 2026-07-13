@@ -1,9 +1,9 @@
 # Phase 2 Vendor Graph Embedding Checkpoint
 
 > 状态：已验证 / 当前阶段 checkpoint
-> 来源：当前代码实现 + focused 自动回归 + 用户游戏编辑器验证 + 第三方 `dev` 分支只读审计
+> 来源：当前代码实现 + focused 自动回归 + 真实 GIA 对照 + 用户游戏编辑器验证 + 第三方 `dev` 分支只读审计
 > 最近校验：2026-07-13
-> 适用范围：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate；不代表默认 backend 或全部 Composite 场景
+> 适用范围：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 实验 gate 与已验证的 Runtime optional-call contract；不代表默认 backend 或全部类型编码场景
 
 ## 目的
 
@@ -18,6 +18,9 @@
 | P2-W6 | captured float literal → local getter | `compositePins` route、getter pin 无 ordinary connects | 通过 | literal capture overlay 可与 vendor ordinary nodes 共存 |
 | P2-W7 | root Addition connection → captured input | root ordinary edge 与 impl boundary route 分别断言 | 通过 | 一个 root producer connection 可跨 boundary 到 vendor impl |
 | P2-W8 | captured entity target → custom getter/setter | 三条 target route、custom IDs、literal/connection value | 通过 | custom target boundary 可与 vendor custom nodes 共存 |
+| P2-W10 | outer ordinary float producer → nested synthetic input | child physical InParam data edge、producer OutParam、无错误 capture route | 通过 | 该 float ordinary→synthetic data 边可与 vendor subgraph 共存 |
+| P2-W11 | outer captured float → nested child input | child无 physical input/ordinary edge、outer `compositePins` route | 通过 | 单 float nested capture 可与 vendor subgraph 共存 |
+| P2-W12a | definition inputs + first-only/second-only/both/empty call binding | direct/nested Runtime contract、`[0]/[1]/[0,1]/[]` pin matrix、child完整 routes | 通过 | definition/call-site binding 分离是通用结构契约；类型编码细节另验 |
 
 P2-W8 中 vendor custom setter value pin 的原生 `alreadySetVal=false` 与旧 root/impl parity fixture 的
 `true` 不同。用户明确选择保留 vendor schema，且编辑器通过；因此本样本不添加手工 normalization。该结论只适用于
@@ -98,12 +101,37 @@ P2W9-reference-flow-patterns.gia       SHA-256 38655390fa36544056186c9ace2e85680
 OutFlow[3] → outer continuation 和复杂 data/flow 组合正常。该结果不推广到 nested data input、capture 或 sparse
 named input。
 
+## P2-W10~W12a 边界闭合
+
+### Nested data / capture
+
+P2-W10（`70455ee`）把 outer vendor-materialized float Addition 输出接入 nested synthetic child 的非 capture
+input；该 data edge 保留在 child physical InParam，未变成 `compositePins`。P2-W11（`2f1e497`）把 outer captured
+float 传给 nested child；该 input 仅由 outer `compositePins` 路由，child 不物化重复 physical pin/ordinary edge。两者均有
+legacy/vendor fixture 与用户编辑器核验；不推广到其他 producer/type 或多 capture。
+
+### Optional call-input contract
+
+真实样本 `Beyond_Local_Export/user_edit/复合节点/调用参数.gia`，SHA-256
+`599f3c06bdd3946cb93c3a498fb89237dd2fbc6e5f8661bfa80918f252bf3b1b`，经
+`decode-gia.ts --compact`、`trace-exec-flow.ts --io`、`trace-dataflow.ts --list-nodes` 观察：同一双 float 加法
+CompositeDef 的 impl 同时消费两个 definition input，四个 call marker 的 physical input presence 分别为
+`[0]`、`[1]`、`[0,1]`、`[]`。这是 definition contract 与 call-site binding 分离的真实 GIA 结构证据。
+
+P2-W12a（`bba105b`）在 `core.ts` 用完整 definition typed placeholders 捕获 child build，保留每个 call marker
+仅物化实际绑定 input 的行为；`test-composite-optional-call-inputs.ts` 覆盖 direct call，
+`test-stage3-p2w12-nested-sparse-input-vendor-graph.ts` 覆盖 nested vendor gate 及四分支 flow。用户编辑器确认候选
+`P2W12-nested-sparse-input-vendor-graph-candidate.gia` 的四种绑定和 outer 4-way fan-out 正常。此结论适用于全部
+composite 的 definition/call-site **结构契约**；不以 float/Add 样本推广各类型的 wrapper/wire/default 或未绑定值的运行时结果。
+
 用户已授权后续 Stage 3 名称明确的候选 `.gia` 直接复制到或覆盖 `Beyond_Local_Export` 根目录；真实参考、归档、
-地图/注入目录、未知同名文件、删除/清理和注入仍须单独确认。nested data input、capture、sparse named input 必须各自独立。
+地图/注入目录、未知同名文件、删除/清理和注入仍须单独确认。
 
 ## 未证明 / 禁止推论
 
 - gate 不能设为默认，handwritten backend 不能删除；
-- 未证明 multiple/other-type capture、nested data input、nested capture、nested sparse named input、`graphValues`、`affiliations` 或其他 ordinary family；
+- 未证明 multiple/other-type capture、其他 producer/type 的 nested data、optional connection/capture binding、
+  `graphValues`、`affiliations` 或其他 ordinary family；
 - 编辑器通过不证明 raw wire 全等；P2-W5 仍观察到 legacy 与 vendor schema 字段差异；
-- 不得由单一 float/custom sample 推论 int/bool/list/dict/entity/guid 等类型族。
+- optional call-input 的结构契约不自动证明 int/bool/list/dict/entity/guid 等类型的 wrapper、concrete metadata、wire
+  presence 或未绑定值的游戏运行时结果。

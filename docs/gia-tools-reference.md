@@ -176,7 +176,15 @@ npm run gia:decode -- -o decoded.json <文件.gia>
 cat <文件.gia> | npm run gia:decode -- - --compact | jq '.graph'
 ```
 
-stdout 始终只输出 JSON；`--check-header` 的校验结果和错误输出到 stderr。直接使用 `npx tsx` 可能显示 Node 的 deprecation warning，建议使用上面的 npm wrapper。
+`decode-gia.ts` 脚本本体的 stdout 只输出 JSON；`--check-header` 的校验结果和错误输出到 stderr。注意：通过
+`npm run gia:decode -- ... > output.json` 时，npm 的脚本标题/lifecycle 文本可能混入 shell 重定向，不能直接假定
+`output.json` 为纯 JSON。需要管道给 `jq` 或保存 JSON 时，优先直接调用：
+
+```bash
+NODE_OPTIONS='--no-deprecation' npx tsx tools/decode-gia.ts --compact <文件.gia> > output.json
+```
+
+直接使用 `npx tsx` 可能显示 Node 的 deprecation warning；上例用 `NODE_OPTIONS` 抑制它。
 
 **`decode-gia.ts` 常用 jq 查询：**
 

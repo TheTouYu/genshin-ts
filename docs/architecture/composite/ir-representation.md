@@ -91,11 +91,20 @@
 ```
 
 - `args[0]` 始终是 `int(BigInt(compositeId))`
-- 后续 args 为传入的输入参数值
+- 后续 args 为实际传入的输入参数值；每个输入 arg 可带 `compositeInputIndex`，表示它在 definition inputs 中的声明位置
+- 调用可绑定任意输入子集或空集：例如声明 `[first, second]` 时，first-only / second-only / both / empty 分别保留
+  `[0]` / `[1]` / `[0,1]` / `[]`，不得因 args 数组压缩改变 declaration index
+- definition capture 始终使用完整声明输入；某次 call 未绑定的输入不应删除 impl 的 `compositePins` route，也不应在该
+  call marker 上伪造 literal、ordinary edge 或 capture route
 - 纯数据复合：该节点注册为 data 类型（无 next 字段）
 - exec 复合：该节点注册为 exec 类型，有 next 连线
 
 ---
+
+上述是当前 Runtime/IR 的通用结构契约。真实 GIA 证据为
+`Beyond_Local_Export/user_edit/复合节点/调用参数.gia`：同一加法 definition 的 impl 消费两个输入，四个 marker 的
+physical input presence 为 `[0]` / `[1]` / `[0,1]` / `[]`。该证据不自动证明各类型的 concrete wrapper、wire presence
+或未绑定输入参与游戏计算时的默认结果。
 
 ## 4. compositeDataEdges
 
