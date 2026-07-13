@@ -481,10 +481,17 @@ function materializeImplOrdinaryGraphWithVendor(
       pin.setVal(arg.value)
     }
 
+    const capturedInputIndexes = new Set(
+      (node.args ?? [])
+        .map((arg: any, index: number) => arg?.capture === true ? index : undefined)
+        .filter((index: number | undefined): index is number => index !== undefined)
+    )
     vendorNode.pins = vendorNode.pins.filter(
       (pin: any) =>
         !(node.type === 'get_local_variable' &&
           pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0) &&
+        !((node.type === 'get_custom_variable' || node.type === 'set_custom_variable') &&
+          pin.kind === NodePin_Index_Kind.InParam && capturedInputIndexes.has(pin.index)) &&
         !((pin.kind === NodePin_Index_Kind.InParam || pin.kind === NodePin_Index_Kind.OutParam) &&
           pin.type?.t === 'b' && pin.type?.b === 'Unk')
     )

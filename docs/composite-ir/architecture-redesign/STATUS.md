@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + architecture-redesign 计划
-> 最近校验：2026-07-12 (P2-W7 captured-connection vendor Graph embedding observation passed user editor validation; awaiting completion report)
+> 最近校验：2026-07-12 (P2-W8 captured custom-target vendor Graph embedding observation passed user editor validation; awaiting completion report)
 > 适用范围：`refactor/composite-stage3-architecture`；新会话以本文件为唯一进度入口
 
 ## 当前定位
@@ -73,13 +73,18 @@ ADR-006：Accepted = 方案 A（完整 vendor Graph materialization）
   `compositePins` → local-variable getter `InParam[0]` 的 boundary route 均获用户确认；内部 setter、Addition、
   DTC、Print、flow 和 composite call 正常。游戏目录候选 SHA-256：
   `4ab45073f3084b37d1907c1c3fea1776b2c28f5b3f6b928508a3eab14ee17d1d`。
+- **P2-W8 用户游戏编辑器验证（2026-07-12）**：在同一 gate 下，captured entity target 可经
+  `compositePins` 同时路由到两个 custom setters 与一个 custom getter，且 vendor-materialized custom nodes
+  正常。用户确认 literal float setter、Addition connection setter、getter → Addition → DTC → Print、flow 和
+  composite call 均正常。vendor custom setter value pin 的原生 `alreadySetVal` 状态无需 normalization；游戏目录
+  候选 SHA-256：`8b6717d6800a5dd08fe1120a34640ae703b7b75145a28ca36a3426a84bda85f9`。
 
 ## 尚未证明
 
-- P2-W5/P2-W6/P2-W7 只证明 local-float closed ordinary impl 图，以及单一 captured float literal 或 root
-  Addition connection → local-variable getter 的 boundary overlay，可由临时 vendor Graph 提取并经编辑器核验；
-  `graphValues`、`affiliations`、多个/其他类型 capture、custom target、nested composite call、synthetic composite
-  call 和其他 ordinary family 的嵌入兼容性仍未证明。
+- P2-W5/P2-W6/P2-W7/P2-W8 只证明 local-float closed ordinary impl 图、单一 captured float literal 或 root
+  Addition connection → local-variable getter，以及 captured entity target → custom getter/setter 的 boundary
+  overlay，可由临时 vendor Graph 提取并经编辑器核验；`graphValues`、`affiliations`、多个/其他类型 capture、nested
+  composite call、synthetic composite call 和其他 ordinary family 的嵌入兼容性仍未证明。
 - int/bool/str/entity/guid 等其他类型的 concrete variant 一致性。
 - P2-W1 已覆盖的 float/vec3 setter fixture 已被用户在游戏编辑器中接受；其他普通节点族仍未证明。
 - 完整 Graph materialization 是否适用于所有 impl graph（非仅 setter family）。
@@ -668,9 +673,9 @@ git diff --check                                                              # 
 
 ## 待用户决策
 
-P2-W7 已通过用户编辑器核验。下一工作包应选择：为 captured custom-variable target 建立独立 vendor Graph
-embedding 观察工作包，或为 nested composite call 建立独立观察工作包；两者不得混入同一工作包。ADR-006=A 保持
-不变；P2-W7 不授权删除 handwritten backend 或默认开启 gate。
+P2-W8 已通过用户编辑器核验。下一工作包应为 nested composite call 建立独立 vendor Graph embedding 观察；
+不得与 DTC 或其他 boundary/synthetic family 混入同一工作包。ADR-006=A 保持不变；P2-W8 不授权删除 handwritten
+backend 或默认开启 gate。
 
 ## 当前完成工作包：P2-W7 — captured connection vendor Graph embedding observation
 
@@ -760,10 +765,56 @@ git diff --check                                                              # 
 明确非目标：不将 gate 设为默认，不删除 handwritten backend，不迁移 nested composite call、DTC、其他 capture
 形态、`graphValues`、`affiliations` 或布局，不注入，不改 vendor/generated 文件。
 
+## 当前完成工作包：P2-W8 — captured custom target vendor Graph embedding observation
+
+状态：实现、自动回归、候选复制和用户游戏编辑器核验完成；尚未提交。
+
+目标：
+
+- 只在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` gate 下观察 captured entity target 是否能与
+  vendor-materialized custom getter/setter impl 图共存；
+- captured target 仅经 `compositePins` overlay 路由，不物化为 custom nodes 的 ordinary target pin；
+- 先保留 vendor 原生 custom setter value-pin `alreadySetVal`，由编辑器结果决定是否需要 normalization。
+
+已验证：
+
+- custom getter/setter 的 captured target `InParam[0]` 不再物化为 ordinary pin；`compositePins` 对两个 setters
+  与一个 getter 各保留一条 target route；
+- float custom setter concrete ID 为 `26`、getter concrete ID 为 `54`；literal setter、Addition connection setter、
+  getter downstream use、DTC、Print 和 ordinary edges 均被 fixture 锁定；
+- 用户确认 editor 中上述节点、target capture、执行流和 composite call 正常；vendor custom setter value pin 的
+  原生 `alreadySetVal` 状态在该样本中可用，因此没有增加手工 normalization。
+
+真实 GIA / 游戏编辑器证据：
+
+```text
+candidate: Beyond_Local_Export/P2W8-captured-custom-target-refactored-candidate.gia
+candidate SHA-256: 8b6717d6800a5dd08fe1120a34640ae703b7b75145a28ca36a3426a84bda85f9
+user confirmation: captured custom target, literal/connected setter, getter, data/flow and composite call passed editor review.
+```
+
+验证：
+
+```bash
+npm run build                                                                 # PASS
+npx tsx tests/composite/test-stage3-p2w8-captured-custom-target-vendor-graph.ts /tmp/P2W8-captured-custom-target-legacy-baseline.gia # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w8-captured-custom-target-vendor-graph.ts /tmp/P2W8-captured-custom-target-refactored-candidate.gia # PASS
+npx tsx tests/composite/test-custom-variable-impl-pins.ts                    # PASS
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P2W6-capture-vendor-graph-regression.gia # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P2W6-capture-vendor-graph-vendor-regression.gia # PASS
+npx tsx tests/composite/test-stage3-p2w7-captured-connection-vendor-graph.ts /tmp/P2W7-captured-connection-regression.gia # PASS
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w7-captured-connection-vendor-graph.ts /tmp/P2W7-captured-connection-vendor-regression.gia # PASS
+npx tsx tests/composite/test-stage3-root-impl-parity.ts                      # PASS
+git diff --check                                                              # PASS
+```
+
+明确非目标：不将 gate 设为默认，不删除 handwritten backend，不迁移 nested composite call/DTC，不改 capture
+或 `compositePins` 语义、布局、`graphValues` 或 `affiliations`，不注入，不改 vendor/generated 文件。
+
 ## 进行中或未提交变化
 
-P2-W6 已完成、未提交。当前预期变化：`src/compiler/ir_to_gia_transform/composite.ts`、
-`tests/composite/test-stage3-p2w6-capture-vendor-graph.ts`、本状态文档和 Phase 2 计划文档。
+P2-W8 已完成、未提交。当前预期变化：`src/compiler/ir_to_gia_transform/composite.ts`、
+`tests/composite/test-stage3-p2w8-captured-custom-target-vendor-graph.ts`、本状态文档和 Phase 2 计划文档。
 
 ## 新会话恢复
 

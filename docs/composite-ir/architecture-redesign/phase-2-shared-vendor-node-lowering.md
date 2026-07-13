@@ -365,6 +365,27 @@ ordinary family。gate 仍不可默认开启，handwritten backend 不可删除�
 
 明确非目标：不迁移 custom target/nested composite call/DTC，不改变 capture 或 `compositePins` 语义，不改布局或注入。
 
+## P2-W8 当前结果：captured custom target vendor Graph embedding observation
+
+状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+
+P2-W8 将 captured entity target 路由到两个 float custom setters 与一个 float custom getter。vendor Graph gate
+过滤 custom getter/setter 的 captured `InParam[0]`，使 target 继续只由 `compositePins` overlay 表达；fixture 锁定三条
+boundary route、setter/getter concrete IDs `26`/`54`、literal setter、Addition connection setter、getter downstream
+use、DTC 和 Print。用户确认该 candidate 在编辑器工作。
+
+首次 probe 发现 vendor custom setter value `InParam[2]` 的 `alreadySetVal=false` 与 legacy/root parity contract 的
+`true` 不同。按用户选择的方案 A，P2-W8 保留 vendor 原生 schema、不添加未证实 patch；用户编辑器验证通过，故该字段
+在此 float custom-target 样本中是可接受的 vendor-materialized schema 差异，不能据此推广到其他 type/family。
+
+候选：`Beyond_Local_Export/P2W8-captured-custom-target-refactored-candidate.gia`；SHA-256：
+`8b6717d6800a5dd08fe1120a34640ae703b7b75145a28ca36a3426a84bda85f9`。
+
+证据边界：该结果只覆盖 captured entity target 到 custom float getter/setter；不证明多个 target、其他 custom type、
+nested composite call、synthetic call、`graphValues`、`affiliations` 或默认 gate。handwritten backend 不可删除。
+
+明确非目标：不迁移 nested composite call/DTC，不改变 capture 或 `compositePins` 语义，不改布局或注入。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；
