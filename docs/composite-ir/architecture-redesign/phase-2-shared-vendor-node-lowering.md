@@ -346,6 +346,25 @@ backend。
 
 明确非目标：不迁移 DTC/nested composite call，不改变 capture 语义或 `compositePins` 结构，不改布局，不注入。
 
+## P2-W7 当前结果：captured connection vendor Graph embedding observation
+
+状态：实现、自动回归和用户游戏编辑器核验完成；尚未提交。
+
+P2-W7 在 P2-W6 的 captured float → local-variable getter fixture 中，仅把外部值来源改为 root
+`Addition(4, 6).OutParam[0]`。自动断言锁定两段不同的边：root Addition → synthetic composite call
+`InParam[0]` 是 ordinary connection；impl 侧仍是 `compositePins` → `get_local_variable.InParam[0]` boundary
+route，getter pin 不应出现 ordinary `connects`。在 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 下用户确认该候选在编辑器
+正常。
+
+候选：`Beyond_Local_Export/P2W7-captured-connection-refactored-candidate.gia`；SHA-256：
+`4ab45073f3084b37d1907c1c3fea1776b2c28f5b3f6b928508a3eab14ee17d1d`。
+
+证据边界：该结果将 P2-W6 的 captured literal 范围扩展为一个 root float producer connection，不证明其他 producer
+family、多个 capture、custom target、nested composite call、synthetic call、`graphValues`、`affiliations` 或其他
+ordinary family。gate 仍不可默认开启，handwritten backend 不可删除。
+
+明确非目标：不迁移 custom target/nested composite call/DTC，不改变 capture 或 `compositePins` 语义，不改布局或注入。
+
 ## 后续推广顺序
 
 1. ~~graph variable getter~~（P2-W2 已提交）；
