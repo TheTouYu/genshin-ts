@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：已完成 P3-W22 / P3.5 用户核验
+> 状态：已完成 P3-W22 / P3.5 / P4-W1 用户核验
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-14
 > 适用范围：Phase 3、Phase 4、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -38,6 +38,75 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+以下四份 P4-W1 候选于 2026-07-14 以 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 生成到
+`Beyond_Local_Export` 根目录，自动契约和 legacy/vendor 回归通过，均未注入。它们分别覆盖独立 boundary
+子切片；用户已确认 B1、B2、B4 通过。B3 初版定义未实际消费输入，旧候选结论已作废；用户已确认修正版通过。任何一份失败只阻塞其对应子切片。
+
+### P4-W1-B1-capture-only
+
+- 工作包/阶段：P4-W1 B1 / Phase 4 boundary regression batch。
+- 目的与覆盖风险：captured composite input 不生成 impl ordinary edge；capture route 仅经 `compositePins` 到 getter
+  InParam，同时 getter value OutParam[1] 仍能连接 ordinary Addition consumer。
+- 自动证据：P2-W6 legacy/vendor fixture、P2-W7 captured-connection vendor fixture、nested capture contract，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/P4W1-b1-capture-only-vendor.gia`
+- SHA-256：`4e3af41168f1baa1c5b05225781cbdef46616968cc50545c17b4e42ec70d5043`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 captured float 经 getter value → Addition → DTC → Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 local-variable capture-only route；不证明所有 capture family 或 wire 全等。
+
+### P4-W1-B2-sparse-optional-binding
+
+- 工作包/阶段：P4-W1 B2 / Phase 4 boundary regression batch。
+- 目的与覆盖风险：nested first-only、second-only、both、empty call 保持 declared `compositeInputIndex`，不压缩
+  physical InParam，并保留 child definition 的完整 input routes。
+- 自动证据：P2-W12 legacy/vendor fixture、optional-call-input runtime contract，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/P4W1-b2-sparse-binding-vendor.gia`
+- SHA-256：`017f775dfaec4a852b2b228ae9f9a57ea193df758a8a21f32fbe8efe78b9456e`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖四个 nested call 分支到达各自 Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖两个 float input 的 presence 组合；不证明所有 optional type/connection/capture 组合。
+
+### P4-W1-B3-nested-call-data
+
+- 工作包/阶段：P4-W1 B3 / Phase 4 boundary regression batch。
+- 目的与覆盖风险：vendor-materialized outer Addition ordinary producer → synthetic child call InParam → child
+  `compositePins` → child DTC → child Print，及 child OutFlow → outer ordinary Print。初版 child definition 未
+  消费输入，用户指出其逻辑无效；旧 SHA 的游戏结论不用于 B3。
+- 自动证据：收紧后的 P2-W10 legacy/vendor fixture、P3 complex-flow legacy/vendor parity，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w10-nested-data-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/P4W1-b3-nested-data-vendor.gia`
+- SHA-256：`912613244991b76030c15012f31ba1b7f89e5b1f5e6b33ed060bef91c8b9455c`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 child input 经 DTC 到 child Print，随后 child OutFlow 到 outer Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 float ordinary producer → nested call；不证明 child OutParam data return 或所有 synthetic routes。
+
+### P4-W1-B4-multi-inflow-outflow
+
+- 工作包/阶段：P4-W1 B4 / Phase 4 boundary regression batch。
+- 目的与覆盖风险：两个 indexed InFlow 的 root → synthetic call overlay、两个 physical OutFlow 与各自不同 ordinary
+  Print consumer、impl `compositePins` 的 InFlow/OutFlow route。
+- 自动证据：`test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts` legacy/vendor、nested outflow contract，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/P4W1-b4-multi-inflow-outflow-vendor.gia`
+- SHA-256：`f24a6f7acfd2dc19d03680685bb6cff74739f6e4d57c654dd4b5370b5a4e4508`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖左/右 InFlow 分别进入对应 child Print，并由对应 OutFlow 到不同 root Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖两个 indexed flow；不证明多 source fan-in、循环或任意数量的 inflow/outflow。
 
 ### P3.5-local-variable-getter-output
 

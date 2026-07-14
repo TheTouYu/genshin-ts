@@ -40,8 +40,9 @@ const inner = g.defineComposite(INNER_NAME, {
   inputs: { value: { type: 'float' } },
   outputs: {},
   outflows: ['完成'],
-  build(_inputs: any, f: any) {
-    const innerPrint = f.node('print_string', [new str('P2W10 inner')])
+  build(inputs: any, f: any) {
+    const converted = f.dataTypeConversion(inputs.value, 'str')
+    const innerPrint = f.node('print_string', [converted])
     f.link(f.entry(), 0, innerPrint)
     f.outflow('完成', innerPrint, 0)
     return {}
@@ -94,8 +95,12 @@ const innerDefinition = decoded.accessories?.find(
   (accessory: any) => accessory.which === 12 && accessory.name === INNER_NAME
 )?.compositeDef?.inner?.def
 const outerImpl = outerAccessory?.graph?.inner?.graph
+const innerImpl = decoded.accessories?.find(
+  (accessory: any) => accessory.which === 9 && definitions.get(accessory.id?.id) === INNER_NAME
+)?.graph?.inner?.graph
 assert.ok(outerImpl, `outer impl missing: ${OUTER_NAME}`)
 assert.ok(innerDefinition, `inner definition missing: ${INNER_NAME}`)
+assert.ok(innerImpl, `inner impl missing: ${INNER_NAME}`)
 
 const nestedNode = outerImpl.nodes?.find(
   (node: any) => node.genericId?.kind === 22001 && definitionIds.has(node.genericId?.nodeId)
@@ -122,6 +127,31 @@ assert.equal(
   outerImpl.compositePins?.filter((pin: any) => pin.outerPin?.kind === 3).length ?? 0,
   0,
   'non-capture nested data input must not become an outer compositePins route'
+)
+
+const innerConversion = innerImpl.nodes?.find((node: any) => node.genericId?.nodeId === 180)
+const innerPrint = innerImpl.nodes?.find((node: any) => node.genericId?.nodeId === 1)
+assert.ok(innerConversion, 'inner input consumer DTC missing')
+assert.ok(innerPrint, 'inner input consumer Print missing')
+assert.ok(
+  innerImpl.compositePins?.some(
+    (pin: any) =>
+      pin.outerPin?.kind === 3 &&
+      pin.outerPin?.index === 0 &&
+      pin.innerNodeId === innerConversion.nodeIndex &&
+      pin.innerPin?.kind === 3 &&
+      pin.innerPin?.index === 0
+  ),
+  'child input must route through compositePins to its DTC consumer'
+)
+assert.ok(
+  innerPrint.pins?.some(
+    (pin: any) =>
+      pin.i1?.kind === 3 && pin.i1?.index === 0 && pin.connects?.some(
+        (connect: any) => connect.id === innerConversion.nodeIndex && connect.connect?.kind === 4
+      )
+  ),
+  'inner DTC output must connect to Print input'
 )
 
 const sha256 = createHash('sha256').update(bytes).digest('hex')

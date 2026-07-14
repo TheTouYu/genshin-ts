@@ -1,8 +1,8 @@
 # Phase 4：隔离 Composite Boundary
 
-> 状态：待执行
-> 来源：当前 composite/capture 实现 + 目标架构设计
-> 最近校验：2026-07-11
+> 状态：P4-W1 已完成
+> 来源：当前 composite/capture 实现 + P4-W1 自动回归 + 用户批次核验
+> 最近校验：2026-07-14
 > 适用范围：CompositeDef、synthetic call、capture 与 compositePins
 
 ## 目标
@@ -85,6 +85,27 @@ CompositeDef + compositePins + GraphUnit pair
 - physical-motion `与` / `can fly` 保持嵌套；
 - node-index remap 与 compositePins integrity。
 
+## P4-W1：boundary regression batch
+
+用户于 2026-07-14 确认 Phase 3 退出，并授权将四个彼此独立的 boundary 回归子切片作为一个 P4-W1 批次
+实现和集中游戏核验。该授权只改变候选交付节奏，不改变 P4 的 architecture boundary 或本阶段禁止事项。
+
+| 子切片 | 最小风险 | 自动契约与候选观察点 |
+|---|---|---|
+| B1 | capture-only input | 不生成 ordinary `InParam`；仅有正确 `compositePins` capture route |
+| B2 | sparse / optional call binding | 部分/空 binding 不压缩 `compositeInputIndex` 或 declaration index |
+| B3 | nested call data boundary | ordinary producer → child call input；child output → ordinary consumer |
+| B4 | multi InFlow / OutFlow | 指定 index physical pin、overlay route 与各分支可观察执行 |
+
+每个子切片必须独立生成 vendor-gated candidate、记录 SHA-256 和观察点，并在 manifest 中单独记录用户结论。任何一个
+失败只阻塞对应子切片；不得把其余通过结论推广到它，也不得在本批次迁移 capture 语义、ordinary lowering/edge、布局、
+default gate 或 legacy 删除。
+
+当前结果（2026-07-14）：B1~B4 的 legacy/vendor focused contracts、nested capture/outflow 与 P3
+complex-flow parity 均通过。用户已确认 B1、B2、B4 的编辑器加载和可观察执行通过；B3 初版只验证 outer
+producer 连到 child input，未验证 child 实际消费该输入，已收紧为 child input → `compositePins` → DTC → Print，
+并以新 SHA 由用户复测通过。四份候选均未注入。
+
 ## 退出条件
 
 - [ ] ordinary lowering 模块无 composite capture/call 分支；
@@ -92,7 +113,11 @@ CompositeDef + compositePins + GraphUnit pair
 - [ ] call synthetic pins 有单一 builder；
 - [ ] compositePins 在 materialization 后统一应用；
 - [ ] nested/capture/sparse/bool 回归通过；
-- [ ] `composite.ts` 只做 orchestration 或已拆成边界模块。
+- [ ] `composite.ts` 只做 orchestration 或已拆成边界模块；
+- [ ] 跨调用边界的 inflow/outflow 路由、node-index remap 与必要布局附加规则仅由 boundary 处理；普通 flow/layout
+  仍使用共享图能力；
+- [ ] 代表性 vendor-gated boundary 候选已登记到游戏回归 manifest，并由用户确认编辑器加载和可观察执行；
+- [ ] 不默认开启 shared backend gate，不删除 legacy backend；完成后才可选择独立的 opt-in beta 配置入口工作包。
 
 ## 禁止事项
 
@@ -100,3 +125,4 @@ CompositeDef + compositePins + GraphUnit pair
 - 不把 capture 编码成游戏普通节点；
 - 不根据当前物理布局猜 outer/inner pin route；
 - 不把真实编辑器 ID 规律无证据推广到 gsts ID 分配策略。
+- 不在 boundary 模块重新实现 ordinary node、ordinary data edge 或 ordinary flow edge。

@@ -13,19 +13,17 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：P3.5 exception — local-variable getter output pin schema（已完成，待审核提交）
-当前唯一工作包：无 — P3.5 已完成，等待用户审核提交后恢复 P4-W1
-挂起工作包：P4-W1 — boundary regression batch（B1~B4；已授权，等待 P3.5 提交）
-最近已提交工作包：P3-W21 — encoded ordinary-edge integrity checks（`2b48804`）
-最近已完成、待审核提交工作包：P3.5 — local-variable getter output pin schema
+当前 Phase：Phase 4 — Composite Boundary Isolation
+当前唯一工作包：无 — P4-W1 已完成，等待用户审核提交和选择下一 P4 工作包
+最近已提交工作包：P3.5 — local-variable getter output pin schema（`d4b6276`）
+最近已完成、待审核提交工作包：P4-W1 — boundary regression batch（B1~B4）
 工作树预期：以下未提交变化均已审查、须保留：
   - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
   - 本轮计划治理：README.md、STATUS.md、decision-log.md、migration-invariants.md、phase-3-unified-graph-materialization.md、
     phase-4-composite-boundary-isolation.md、phase-5-legacy-removal-and-hardening.md、game-regression-manifest.md（新增未追踪）
-  - P3.5/P4-W1：src/compiler/ir_to_gia_transform/index.ts、composite.ts、
-    tests/composite/test-local-variable-impl-concrete-type.ts、test-stage3-p2w6-capture-vendor-graph.ts、
-    test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P3-W21 已提交，不得重做或覆盖
+  - P4-W1：tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts、game-regression-manifest.md、
+    phase-4-composite-boundary-isolation.md、STATUS.md
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P3.5 已提交，不得重做或覆盖
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -76,19 +74,24 @@ P3-W20 将 root 与 vendor-gated impl closed ordinary subgraph 的 ordinary data
 `ordinary_graph_materializer.ts`；synthetic call/capture overlay 仍独立。自动回归通过，且用户已确认四份
 vendor-gated 候选在游戏内实际运行通过；未注入。候选 SHA-256、命令与回滚边界见 Phase 3 文档。
 
-## 当前唯一工作包：P3.5
+## 当前唯一工作包：P4-W1
 
 ```text
-工作包：P3.5 — local-variable getter output pin schema（P4-W1 B1 阻塞修复）
-优先级类别：最小例外修复包；用户于 2026-07-14 批准。
-解除的上层阻塞：P4-W1 B1 在 vendor-gated capture fixture 中触发 P3-W21 endpoint integrity error。根因是 root/vendor-gated impl 均删除 get_local_variable OutParam[0]，但它是 setter 所需 local-variable handle；OutParam[1] 是 ordinary value consumer 所需 typed value。
-输入与修改范围：root/vendor-gated impl getter pin filter、focused local-variable/capture contracts、P3/manifest/STATUS；不改 capture 语义、ordinary resolver、vendor/generated、default gate、legacy backend、布局、游戏目录或注入。
-完成条件：root 与 vendor-gated impl 均保留 getter OutParam[0] handle 和 OutParam[1] typed value；capture input 不进入 vendor ordinary data edges；P2-W5、P2-W6/P2-W7、P2-W10/P2-W12、nested、P3 materializer 回归通过；新候选经用户编辑器加载和可观察执行核验；git diff --check 通过。
-当前结果：自动回归通过；候选 `Beyond_Local_Export/P35-local-variable-getter-output-vendor.gia`，SHA-256 `b32b810dc88c9318b0842ccc76c7f63b5a995d469150e6bf2e03316507b7ada2`。用户于 2026-07-14 确认编辑器加载和可观察执行通过；未注入。
-实际验证命令：npm run build；local-variable impl concrete contract；P2-W5 legacy/vendor；P2-W6/P2-W7、P2-W10/P2-W12 vendor；nested capture/outflow；P3 materializer；git diff --check。
-回滚边界：P3.5 getter pin filters、focused contracts、候选 manifest 与状态/Phase 文档；不影响 P4 boundary semantics 或独立 docs-search/治理改动。
-明确非目标：继续 P4-W1 B1~B4、capture/ordinary edge 语义迁移、布局、default gate、legacy 删除、真实 GIA/wire 全等、注入或操作游戏目录。
-后续候选（非当前工作包）：P3.5 经用户审核提交后恢复 P4-W1 boundary regression batch。
+工作包：P4-W1 — boundary regression batch（B1 capture-only、B2 sparse/optional binding、B3 nested call data、B4 multi InFlow/OutFlow）
+优先级类别：架构阻塞
+解除的上层阻塞：P3.5 已由 `d4b6276` 提交，且用户已确认精确候选 SHA 的编辑器加载和可观察执行；P4 继续以最小可失败契约确认 capture/call/compositePins 的边界归属。
+输入与修改范围：P4 focused tests、必要的 boundary-only integrity helper、game-regression-manifest、Phase 4/STATUS；不改 ordinary resolver/factory/materializer、vendor/generated、default gate、legacy backend、布局、游戏目录或注入。
+最小观察或失败基线：现有 nested/capture/sparse focused tests 分散验证结构，尚无 B1~B4 分别拥有 boundary route、physical pin、nodeIndex remap 与可观察执行的独立 manifest 候选。
+完成条件：B1~B4 各有独立自动契约、vendor-gated candidate、SHA-256、manifest 观察点和用户结论；任一失败只阻塞对应子切片；既有 P3/P2 回归不退化；git diff --check 通过。
+当前结果：B1、B2、B4 已由用户确认编辑器加载和可观察执行通过。B3 初版只验证 outer producer 连到 child
+input，未验证 child 实际消费输入；已收紧为 child input → `compositePins` → DTC → Print，并以新 SHA 由用户复测
+通过。P4-W1 四份候选均通过，均未注入。
+实际验证命令：npm run build；B1~B4 focused contract/fixture 的 legacy/vendor 命令；nested capture/outflow、sparse binding、P3 complex-flow；git diff --check。每个候选 SHA 改变均须请求用户核验。
+回滚边界：P4-W1 boundary helper/fixture、四项 manifest 条目与 Phase 4/STATUS 文档；不影响 P3 shared materializer 或独立 docs-search/治理改动。
+明确非目标：capture/ordinary edge 语义迁移、ordinary lowering、布局变化、default gate、legacy 删除、真实 GIA/wire 全等、注入或操作游戏目录。
+批次授权：用户允许 B1~B4 在本唯一工作包内一次实现并集中请求游戏核验；每项必须独立记录，不能相互外推或顺手扩范围。
+后续候选（非当前工作包）：P4-W2 — capture normalization 的独立输入/输出 contract 与 boundary builder 归属审计；
+只有 P4-W1 提交并经用户确认后，才将其设为唯一当前工作包。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、
