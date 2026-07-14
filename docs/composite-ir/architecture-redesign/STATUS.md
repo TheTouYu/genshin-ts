@@ -7,21 +7,21 @@
 
 > 历史工作包的目标、命令、候选路径、SHA-256 和失败过程不在本文件重复；见
 > [work-packages/README.md](work-packages/README.md)。当前计划见
-> [phase-4-composite-boundary-isolation.md](phase-4-composite-boundary-isolation.md)。
+> [phase-5-legacy-removal-and-hardening.md](phase-5-legacy-removal-and-hardening.md)。
 
 ## 当前定位
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 4 — Composite Boundary Isolation
-当前唯一工作包：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对
-最近已提交工作包：P4-W6 — Layout isolation（用户核验 2026-07-14 通过）
+当前 Phase：Phase 5 进行中（P5-W1 已完成并提交）
+当前唯一工作包：P5-W2 — opt-in beta 配置入口（不删 legacy、不改 default gate）
+最近已提交工作包：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
+更早已提交：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
 工作树预期：
-  - 以下未提交变化均已审查、须保留，且不属于 P4-W6：
+  - 以下未提交变化均已审查、须保留，且不属于 P4-W7/P5-W1：
     - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
-    - 本轮计划治理：README.md、decision-log.md、migration-invariants.md、
-      phase-5-legacy-removal-and-hardening.md
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P4-W6 已提交，不得重做或覆盖
+    - 本轮计划治理：README.md、decision-log.md、migration-invariants.md
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；不得重做或覆盖已提交的 P4-W7/P5-W1
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -338,24 +338,133 @@ capture-normalized boundaryPins）。未改 ordinary materializer、default gate
 capture/call/definition/compositePins 语义。未注入。用户确认通过后已归档；连续重生字节 SHA 仍可能因既有非确定性变化，
 自动证据以 focused structural contract 为准。
 
-## 当前唯一工作包：P4-W7
+## 最近完成（已提交）：P4-W7
+
+P4-W7 将 `composite.ts` 收口为 boundary orchestration + ordinary impl backend 接线：
+
+- 新增 `COMPOSITE_ORCHESTRATION_CONTRACT`（pipeline / boundaryModules /
+  ordinaryPinBuilderForbiddenNodeTypes / default gate 状态）；
+- `buildImplNodePins` 变为 ordinary-only：遇 `__composite_call__` / `__composite_capture__` 直接失败；
+  删除嵌套 call lowerer 与 capture-node skip 外壳；
+- call 路由只发生在 `buildImplGraphNodes` orchestration 层（`buildCompositeCallPins`）；
+- arg 级 `capture: true` 仍只跳过 physical InParam；
+- Phase 4 退出条件全部满足；阶段切换仍须用户确认。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+npx tsx tests/composite/test-stage3-p4w2-capture-normalization-contract.ts
+npx tsx tests/composite/test-stage3-p4w3-call-lowerer-contract.ts
+npx tsx tests/composite/test-stage3-p4w4-definition-interface-contract.ts
+npx tsx tests/composite/test-stage3-p4w5-composite-pins-overlay-contract.ts
+npx tsx tests/composite/test-stage3-p4w6-layout-isolation-contract.ts
+npx tsx tests/composite/test-nested-composite-capture-pins.ts
+npx tsx tests/composite/test-nested-composite-outflow.ts
+npx tsx tests/composite/test-composite-sparse-named-input.ts
+npx tsx tests/composite/test-composite-optional-call-inputs.ts
+npx tsx tests/composite/test-composite-bool-input-gia.ts
+npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts /tmp/P4W7-p4w1-b4-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts <候选>
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P4W7-p2w6-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts <候选>
+npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts /tmp/P4W7-p2w11-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts <候选>
+npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts /tmp/P4W7-p2w9-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts <候选>
+npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts /tmp/P4W7-p2w12-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts <候选>
+git diff --check
+```
+
+用户核验候选（未注入；用户 2026-07-14 确认编辑器加载与可观察执行通过；已归档）：
+
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W7-capture-vendor.gia`（B1 capture-only）
+  用户核验时 SHA-256 `48b428233b4487ae7281d13788e51b6534d23441ff5cd1969fd70bcb10bad05d`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W7-nested-capture-vendor.gia`（nested capture route）
+  用户核验时 SHA-256 `805f45c51d1c017712e289b7d1ed6e9d9b277854c1e0b9539e95bd2dff8d93d7`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W7-nested-sparse-vendor.gia`（nested sparse binding）
+  用户核验时 SHA-256 `b67c1077a9f00b8dc6333930f9aa77ab51b589a74f357bb615b0974f60a6969d`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W7-multi-inflow-outflow-vendor.gia`（multi InFlow/OutFlow）
+  用户核验时 SHA-256 `901baf90dbf6cd374b1498d9ad9e4cede4df2b866e54dd76516439049c746dd0`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W7-nested-call-vendor.gia`（nested call flow sentinel）
+  用户核验时 SHA-256 `d64611d80a435f333ae1c6255ef4cba559fcde15a61ff8fab79ee50e5eba0cde`
+
+说明：本包是生产路径重构（ordinary pin builder 去掉 capture/call 节点分支；orchestration contract）。
+未改 ordinary materializer 语义、default gate、legacy backend 删除、布局算法、capture/call/definition/
+compositePins 业务语义。未注入。用户确认通过后已归档；连续重生字节 SHA 仍可能因既有非确定性变化，
+自动证据以 focused structural contract 为准。Phase 4 checkpoint：
+[checkpoints/phase-4-boundary-isolation.md](checkpoints/phase-4-boundary-isolation.md)。
+
+## 最近完成（已提交）：P5-W1
+
+P5-W1 建立可复用的 ordinary legacy call-site inventory，并给 boundary 模块加 no-legacy 静态守卫。
+不删除 handwritten backend，不改 default gate，不注入，不生成新游戏候选。
+
+交付：
 
 ```text
-工作包：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对
+src/compiler/ir_to_gia_transform/legacy_ordinary_inventory.ts
+  COMPOSITE_LEGACY_INVENTORY_CONTRACT
+  LEGACY_ORDINARY_HELPER_SYMBOLS (22)
+  LEGACY_ORDINARY_CALL_SITES (13 families)
+  BOUNDARY_NO_LEGACY_FORBIDDEN_PATTERNS
+  CALL_BOUNDARY_ALLOWED_SYNTHETIC_PIN_HELPERS
+
+src/compiler/ir_to_gia_transform/composite.ts
+  COMPOSITE_ORCHESTRATION_CONTRACT.legacyInventory → inventory contract
+  re-export inventory helpers
+
+tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+  inventory completeness + boundary no-legacy static asserts
+```
+
+已证明（自动）：
+
+- 5 个 boundary 模块不含 ordinary `buildConnPin` / `buildLiteralPin` / `buildPlaceholderPin` /
+  `wrapConcreteValueForNodeInput` / `needsConcreteWrapping` / `resolveImplNodeId` /
+  `buildImplNodePins` / `bConcreteValue`；
+- call lowerer 仅保留 synthetic `buildCallConnPin` / `buildCallLiteralPin` 等 boundary pin helpers；
+- `composite.ts` 仍承载 13 类 legacy call-site（identity、pin、concrete wrapper、legacy materialize、
+  vendor-gate bridge）；删除条件已写入 inventory，供后续包逐项消减；
+- default gate 仍为 false；`legacyOrdinaryBackendPresent` 仍为 true。
+
+未证明 / 非目标：
+
+- 未删除任何 legacy helper；
+- 未默认开启 vendor shared backend；
+- 无新游戏候选、未注入、无真实 GIA/wire 结论；
+- root ordinary 能力清单（P5 后续包）未建立。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+git diff --check
+```
+
+## 当前唯一工作包：P5-W2
+
+```text
+工作包：P5-W2 — opt-in beta 配置入口
 优先级类别：架构阻塞
-解除的上层阻塞：P4-W2–P4-W6 已抽出 capture/call/definition/compositePins/layout；Phase 4 仍要求
-  `composite.ts` 只做 orchestration，ordinary lowering 不再嵌 capture/call 分支，并完成阶段退出核对。
-输入与修改范围：审计 `composite.ts` 剩余职责；将仍嵌的 boundary 逻辑收口为 orchestration 或已有 boundary
-  模块；核对 Phase 4 退出条件与 manifest；必要 focused tests 与 STATUS/Phase 4 文档。不改
-  default gate、legacy 删除、注入、布局算法。
-最小观察或失败基线：`composite.ts` 仍承载 ordinary lowering 与部分 boundary 混合逻辑；Phase 4 退出
-  checklist 未全部满足。
-完成条件：orchestration 边界清晰；相关回归不退化；Phase 4 退出条件已核对或明确剩余阻塞；
-git diff --check 通过；若产生生产行为变化则请求用户编辑器/游戏核验。
-实际验证命令：npm run build；P4-W7 focused 或现有 boundary/orchestration 回归；git diff --check。
-回滚边界：P4-W7 orchestration 收口/文档；不影响 P4-W2–P4-W6 模块 contract。
-明确非目标：default gate、legacy 删除、真实 GIA/wire 全等、注入、重写布局算法。
-后续候选（非当前工作包）：P5 legacy 删除；opt-in beta 配置入口。
+解除的上层阻塞：legacy inventory/no-legacy 守卫已就位；在删除 legacy 或改 default gate 前，需要稳定的
+  opt-in beta 配置/CLI 入口（环境变量可保留内部兼容），便于用户长时间试用 shared backend 而不改默认。
+输入与修改范围：为 GSTS_STAGE3_VENDOR_IMPL_GRAPH 建立正式 opt-in beta 配置/诊断入口（配置字段或 CLI
+  flag + 明确 backend 诊断）；更新 STATUS/Phase 5。不删除 legacy，不改 default，不注入。
+最小观察或失败基线：shared backend 仅靠环境变量实验 gate；无正式 beta 配置 surface 与用户可操作诊断。
+完成条件：存在文档化的 opt-in beta 入口；默认仍为 handwritten；开启 beta 时诊断标明 backend；focused
+  自动检查通过；git diff --check 通过。若产生可执行候选则请求用户编辑器核验。
+实际验证命令：npm run build；P5-W2 focused beta-config contract；既有 vendor-gated sentinel 抽样；
+  git diff --check。
+回滚边界：P5-W2 配置/诊断；不影响 inventory 与 P4 boundary contract。
+明确非目标：删除 legacy backend、默认开启 vendor gate、注入、改 capture/call/layout 语义。
+后续候选（非当前工作包）：root ordinary 能力清单；legacy 分项删除；default 切换（须用户批准）。
+用户闸门：若触及 default gate / legacy 删除 / 注入，必须停止。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

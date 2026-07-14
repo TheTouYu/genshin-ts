@@ -39,6 +39,7 @@ import {
   usesSharedScalarSameTypeBinaryResolution,
   usesSharedVariantResolution
 } from './resolved_node.js'
+import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
 
 /**
  * Stable orchestration contract for Phase 4 exit audits.
@@ -47,6 +48,9 @@ import {
  * re-implement capture/call/definition/compositePins/layout builders. Ordinary pin
  * builders remain free of `__composite_call__` / `__composite_capture__` branches;
  * arg-level `capture: true` only skips physical InParam materialization.
+ *
+ * Phase 5 inventory of remaining ordinary handwritten surfaces lives in
+ * `legacy_ordinary_inventory.ts` and is referenced here without deleting helpers.
  */
 export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   pipeline: [
@@ -75,8 +79,17 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   ordinaryArgCaptureSkip: true,
   /** Default production backend remains handwritten until Phase 5. */
   defaultVendorImplGraphGate: false,
-  legacyOrdinaryBackendPresent: true
+  legacyOrdinaryBackendPresent: true,
+  /** P5-W1: inventory/assert surface; does not delete legacy backend. */
+  legacyInventory: COMPOSITE_LEGACY_INVENTORY_CONTRACT
 } as const
+
+export {
+  COMPOSITE_LEGACY_INVENTORY_CONTRACT,
+  listLegacyOrdinaryCallSiteIds,
+  listLegacyOrdinaryHelperSymbols,
+  findLegacyOrdinaryCallSite
+} from './legacy_ordinary_inventory.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
