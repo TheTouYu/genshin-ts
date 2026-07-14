@@ -82,12 +82,12 @@ g.creationSkill({ id: 1082130603, name: 'ClientTsTransformCreationSkill' }).on(
 
 g.creationStatus({ id: 1082130604, name: 'ClientTsTransformCreationStatus' }).on(
   'start',
-  (_evt, f) => {
+  (_evt) => {
     String('status')
-    if (f.equal(1n, 1n)) {
-      f.absoluteValueOperation(gstsClientCreationStatusAdd(-1n))
+    if (1n === 1n) {
+      gstsClientCreationStatusAdd(-1n)
     } else {
-      f.absoluteValueOperation(gstsCreationStatusAdd(-1n))
+      gstsCreationStatusAdd(-1n)
     }
   }
 )

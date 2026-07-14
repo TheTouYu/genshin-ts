@@ -53,6 +53,7 @@ try {
   assert.match(output, /\.__gstsInitLocalVariable\(/)
   assert.match(output, /\.finiteLoop\(/)
   assert.match(output, /\.multipleBranches\(/)
+  assert.match(output, /gsts\.fCreationStatus\.doubleBranch\(/)
   assert.doesNotMatch(output, /gsts\.f\.(?:doubleBranch|finiteLoop|addition)/)
 
   await import(`${pathToFileURL(result.entryOutFiles[0]).href}?test=${Date.now()}`)

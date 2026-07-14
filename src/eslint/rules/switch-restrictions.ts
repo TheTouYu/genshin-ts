@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint'
 import ts from 'typescript'
 
+import { CLIENT_NODE_METHODS_BY_SUB_TYPE } from '../../definitions/client_method_modes.js'
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
 import { getParserServices } from '../utils/parser.js'
@@ -269,6 +270,25 @@ const rule: Rule.RuleModule = {
     return {
       SwitchStatement(node) {
         if (!scopeIndex.isInServerScope(node, options)) return
+        const clientInfo = scopeIndex.getEnclosingClientScope(node, {
+          includeNestedFunctions: options.includeNestedFunctions
+        })
+        if (
+          clientInfo &&
+          !(CLIENT_NODE_METHODS_BY_SUB_TYPE[clientInfo.subType] as readonly string[]).includes(
+            'multipleBranches'
+          )
+        ) {
+          context.report({
+            node,
+            message: formatMessage(
+              options.lang,
+              `客户端 ${clientInfo.subType} 节点图不支持 switch（缺少 multipleBranches 节点）`,
+              `Client ${clientInfo.subType} graphs do not support switch (multipleBranches is unavailable)`
+            )
+          })
+          return
+        }
         const tsNode = services.esTreeNodeToTSNodeMap.get(node.discriminant)
         if (!tsNode) return
         const type = checker.getTypeAtLocation(tsNode)

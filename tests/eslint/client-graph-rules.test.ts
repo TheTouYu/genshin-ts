@@ -9,6 +9,7 @@ import clientGraphScopedF from '../../src/eslint/rules/client-graph-scoped-f.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
 import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
 import noJson from '../../src/eslint/rules/no-json.js'
+import switchRestrictions from '../../src/eslint/rules/switch-restrictions.js'
 
 const filename = path.join(process.cwd(), 'tests/eslint/client-graph-rules.test.ts')
 const ruleTester = new RuleTester({
@@ -164,6 +165,64 @@ g.boolFilter().on('start', (_evt, _f) => 'bad')`,
       code: `${importG}
 g.intFilter().on('start', (_evt, _f) => false)`,
       errors: [{ message: /must return a bigint\/number\/int compatible value/ }]
+    }
+  ]
+})
+
+ruleTester.run('switch-restrictions client capabilities', switchRestrictions, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, _f) => {
+  switch (1n) {
+    case 1n:
+      break
+    default:
+      break
+  }
+})`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.boolFilter().on('start', (_evt, _f) => {
+  switch (1n) {
+    case 1n:
+      return true
+    default:
+      return false
+  }
+})`,
+      errors: [{ message: /Client bool_filter graphs do not support switch/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.intFilter().on('start', (_evt, _f) => {
+  switch (1n) {
+    case 1n:
+      return 1n
+    default:
+      return 0n
+  }
+})`,
+      errors: [{ message: /Client int_filter graphs do not support switch/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, _f) => {
+  switch (1n) {
+    case 1n:
+      break
+    default:
+      break
+  }
+})`,
+      errors: [{ message: /Client character_skill graphs do not support switch/ }]
     }
   ]
 })
