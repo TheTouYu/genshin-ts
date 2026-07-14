@@ -14,7 +14,7 @@
 
 ### 1. 两阶段核验不可合并
 
-传统路径的 DSL candidate 经编辑器确认，只能成为 real-GIA reference；重构后必须生成**新的** candidate 并再次经编辑器确认。自动 diff 或拓扑一致不能替代第二次编辑器核验。
+任何改变 Stage 3 生产编码行为的工作包，自动回归完成后都必须生成**新的** candidate 并请求用户编辑器/游戏核验；传统路径已确认的 DSL candidate 只能成为 real-GIA reference，不能替代新 candidate 的核验。除非工作包明确限定为仅自动观察/不可核验实验，否则未取得用户反馈前不得标记验证完成或建议提交。自动 diff 或拓扑一致不能替代编辑器/游戏核验。
 
 ### 2. typed ordinary node 不只比较拓扑
 

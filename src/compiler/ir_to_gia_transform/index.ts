@@ -32,6 +32,11 @@ import { buildCompositeAccessories } from './composite.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
+import {
+  applyOrdinaryLiteralArgs,
+  createOrdinaryVendorNode,
+  normalizeOrdinaryVendorPins
+} from './ordinary_node_factory.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
@@ -316,10 +321,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   }
 
   const filterUnkPins = (giaNode: GiaNode) => {
-    giaNode.pins = (giaNode.pins ?? []).filter(
-      // @ts-ignore thirdparty Pin shape
-      (p) => !((p?.kind === 3 || p?.kind === 4) && p?.type?.t === 'b' && p?.type?.b === 'Unk')
-    )
+    normalizeOrdinaryVendorPins(giaNode as any)
   }
 
   const applyArgsWithNullHole = (
@@ -479,8 +481,12 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   }
 
   const applyGenericArgs = (nodeType: string, giaNode: GiaNode, irNode: IRNode) => {
-    irNode.args?.forEach((arg, idx) => {
-      if (isValueArg(arg)) setArgValue(giaNode, idx, idx, nodeType, arg)
+    applyOrdinaryLiteralArgs(giaNode as any, {
+      nodeId: irNode.id,
+      nodeType,
+      args: irNode.args,
+      nodeIndex: irNode.id,
+      mode: serverMode
     })
   }
 
@@ -603,11 +609,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       }
       assemblyDictMeta.set(irNode.id, { keyConn })
     }
-    const giaNode: GiaNode = new Node<ServerGraphMode>(
-      irNode.id,
-      serverMode,
-      nodeId as NodeIdFor<ServerGraphMode>
-    )
+    const giaNode: GiaNode = createOrdinaryVendorNode({
+      nodeId: irNode.id,
+      nodeType,
+      args: irNode.args,
+      nodeIndex: irNode.id,
+      mode: serverMode,
+      concreteNodeId: nodeId,
+      applyLiterals: false
+    })
     const layoutPos = positions.get(irNode.id)!
     giaNode.setPos(layoutPos[0] / 300, layoutPos[1] / 200)
 

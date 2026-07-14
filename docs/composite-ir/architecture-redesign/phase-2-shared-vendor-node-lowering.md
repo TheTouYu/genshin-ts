@@ -42,6 +42,7 @@ Composite 只保留 CompositeDef、synthetic call、capture、`compositePins`、
 | P2-W16 | 当前映射的 11 个 DTC variant shared identity | 自动 + 用户编辑器 | [历史](work-packages/phase-2-detailed-history-2026-07-13.md#p2-w16-当前结果all-mapped-dtc-shared-identity--vendor-graph-validation) |
 | P2-W17a/W17b | 同型 int/float 四则运算 shared identity；可执行 data/control-flow fixture | 自动 + 用户编辑器 | [历史](work-packages/phase-2-detailed-history-2026-07-13.md#p2-w17bscalar-same-type-arithmetic-shared-identity-resolution用户编辑器核验通过待审核提交) |
 | P2-W18 | ADR-012：框架优先、问题驱动的排期；下一包转向 ordinary factory 泛化 | 用户确认 + 文档协议；相对链接检查与 docs:index 通过（267 documents / 4476 chunks） | [工作包选择协议](work-package-selection.md) |
+| P2-W19 | root 与 vendor-gated impl 共用 ordinary Node 创建、literal/enum 写入和 Unk normalization factory | 自动 + 用户编辑器加载与实际运行通过；未注入 | `ordinary_node_factory.ts` + focused regressions |
 
 ## P2-W17b 当前证据
 
@@ -56,13 +57,15 @@ ordinary data edge 和 control-flow/boundary route。用户已确认修正候选
 
 ## 当前工作包与后续顺序
 
-P2-W17b 已完成自动与用户编辑器核验。根据 ADR-012，P2 后续不再以 comparison 或其他单一 ordinary
-family 的逐项观察作为默认主线；优先完成 ordinary factory 泛化，使主图 ordinary API 默认走 shared resolution 和
-vendor schema 路径，并为 dynamic/list/dict/特殊 ID 等实际缺口提供显式 fallback 或集中 adapter。
+P2-W19 已将 root 与 vendor-gated impl 的 ordinary vendor `Node` 创建、literal/enum 写入和 `Unk` pin
+normalization 收束为 `ordinary_node_factory.ts`。factory 只处理已有 resolved concrete/generic identity 的普通 vendor node；
+root 的 special argument layouts、composite 的 capture/synthetic overlay 和 ordinary edge materialization 仍保持各自边界。P2-W19 的
+DTC、captured custom target 与 scalar arithmetic 候选已由用户确认编辑器加载和实际运行通过；未注入。最终自动复跑的
+`/tmp` 候选 SHA-256 与已核验候选不同，尚未做结构或 wire diff；用户选择以原候选为本包编辑器证据，暂不调查该风险。
 
-每轮的唯一工作包由 [工作包选择协议](work-package-selection.md) 排序。comparison 只在其解除框架阻塞、暴露可复现
-例外或用户明确指定时成为工作包。不要把 ordinary factory、ordinary edge materialization、capture/boundary 或 legacy
-删除混在同一包。
+P2 后续不再以 comparison 或其他单一 ordinary family 的逐项观察作为默认主线。P3 应将 ordinary data/flow edge
+materialization 收束为共享路径；dynamic/list/dict/特殊 ID 等实际缺口仍按集中 adapter 或显式例外处理。每轮的唯一工作包由
+[工作包选择协议](work-package-selection.md) 排序，不能把 edge materialization、capture/boundary 或 legacy 删除混在同一包。
 
 ## Phase 退出条件
 

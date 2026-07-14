@@ -14,9 +14,9 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前未提交工作包：P2-W18 — 框架优先排期决策与工作包调度协议（验证完成，待用户审核）
-最近已提交代码工作包：P2-W17b — scalar same-type arithmetic shared identity resolution
-工作树预期：包含 P2-W18 架构文档与此前 docs-search JSON 输出修复的未提交变化；不得覆盖、混淆或越过 P2-W18 开始 P2-W19
+当前未提交工作包：P2-W19 — ordinary shared factory 泛化与显式例外出口（验证完成，待用户审核）
+最近已提交工作包：P2-W18 — framework-first work package scheduling（`56aa3af`）
+工作树预期：P2-W19 的源码、测试和状态文档变化，以及此前独立 docs-search JSON 输出修复；不得覆盖或混淆 docs-search 改动
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -57,33 +57,34 @@ git diff --check
 Node 26 的 `module.register()` 弃用警告不影响上述命令退出码。完整工作包时间线见
 [归档记录](work-packages/status-history-2026-07-13.md#p2-w17b-完成记录scalar-same-type-arithmetic-shared-identity-resolution)。
 
-## 当前唯一工作包：P2-W18
+## 当前唯一工作包：P2-W19
 
 ```text
-工作包：P2-W18 — 框架优先排期决策与工作包调度协议
+工作包：P2-W19 — ordinary shared factory 泛化与显式例外出口
 优先级类别：架构阻塞
-解除的上层阻塞：此前 STATUS 只给出 comparison 候选，无法将下一轮稳定引导到消除 root/impl 双 backend 的最高优先级工作；
-  未提交状态若被写成已完成，会让后续会话错误越过验证和审核。
-输入与修改范围：architecture-redesign 的 ADR、全局/Phase 计划、执行入口、STATUS 和工作包选择协议；不改生产代码、
-  vendor/generated 文件、真实 GIA 或游戏目录。
-最小观察或失败基线：只读恢复演练发现 P2-W18 尚未出现在 Git history，且此前 npm run docs:index 于 3200/4475 超时，
-  但旧 STATUS 错写为已完成并将 P2-W19 设为当前工作包。
-完成条件：ADR-012、调度协议与 STATUS 一致；STATUS 明确当前未提交工作包、验证状态和下一包的选择边界；
-  文档索引已成功完成。现等待用户审核，审核后才可按提交协议提交或明确授权保留 checkpoint。
-实际验证命令：git diff --check（PASS）；相对链接检查（PASS，8 个 P2-W18 相关 Markdown 文件）；
-  npm run docs:index（首次 PASS，2026-07-14，267 documents / 4476 chunks）。写入本次核验记录后启动的复跑被中断；
-  用户已确认该中断暂不处理且不阻塞 P2-W18，不据此推断索引脚本或索引内容存在问题。
-回滚边界：仅 P2-W18 架构重构文档；不影响此前独立 docs-search JSON 修复。
-明确非目标：启动 P2-W19、comparison、任何 Stage 3 生产编码、默认开启 vendor gate、legacy 删除、注入或游戏内验证。
-后续候选（非当前工作包）：P2-W19 — ordinary shared factory 泛化与显式例外出口；仅在 P2-W18 通过审核并提交，
-  或用户明确授权将其作为未提交 checkpoint 保留后才可选择。
+解除的上层阻塞：root 和 composite impl 仍各自持有 ordinary Node 创建、literal 写入和 pin normalization；仅少数 family
+  已共享 identity，阻塞 P3 将 ordinary data/flow edge 收束为 shared materializer。
+输入与修改范围：`ir_to_gia_transform` 的 root/impl ordinary Node 物化、shared resolution contract、focused composite
+  regressions 与本状态/Phase 文档；不改 vendor/generated、synthetic call/capture overlay、legacy default backend、真实 GIA 或游戏目录。
+最小观察或失败基线：源码审计确认 root 在 `index.ts` 内联 value/special-pin/Unk 处理，impl 在 `composite.ts` 分别以 vendor
+  Graph 循环和 family-specific temporary Graph 物化；两条路径无法保证新增 ordinary family 使用同一 factory。
+完成条件：root 与 vendor-gated impl 共享一个 ordinary factory 的 Node 创建、literal/enum 写入和通用 Unk
+  normalization；synthetic/capture overlay 仍由 composite backend 显式排除，不静默 fallback；既有 scoped root/impl、nested/capture 回归不退化；用户完成 P2-W19 候选的编辑器/游戏核验。
+实际验证命令：npm run build（PASS）；ordinary factory direct contract（PASS）；resolved contract（PASS）；DTC、captured custom
+  target、scalar arithmetic vendor-gated fixtures（PASS）；custom-variable pin、nested capture/outflow regressions（PASS）；git diff --check（PASS）。
+  候选已复制到 `Beyond_Local_Export` 根目录并以 SHA-256 回读确认；用户已确认编辑器加载和实际运行均通过；未注入。
+回滚边界：新增 shared factory 与其 root/vendor-gated impl 调用点、对应 focused test 和状态/Phase 文档；不影响独立 docs-search 改动。
+明确非目标：shared identity resolver 或 shared ordinary edge materializer、默认开启 gate、删除 handwritten legacy backend、
+  改变 graphValues/affiliations、synthetic call/capture 语义、list/dict/signal/dynamic payload 扩展或注入；用户编辑器/游戏核验只验证本包候选。
+编辑器/游戏候选：`P2W19-dtc-vendor.gia`（SHA-256 `9130ceb40d13550b53557c9fabb97b7726b306bb46155b36e83027cd837daab3`）、
+  `P2W19-custom-target-vendor.gia`（SHA-256 `a2bbff1122c8da81d78ebdaf4e8f1f3c624b5786253f46ea9b5cda81f931e078`）、
+  `P2W19-scalar-arithmetic-vendor.gia`（SHA-256 `0c9f3eea52789b826a505cdab097423c85ccd81bad0e0589be7a4da7a238aa7b`）；均在
+  `Beyond_Local_Export` 根目录。用户已确认编辑器加载和实际运行均通过；未注入。
+生成差异风险：最终自动回归重新生成的 `/tmp/P2W19-*-final.gia` 与上述已核验候选 SHA-256 不同；尚未做结构或 wire
+  diff，不能推断根因或认为 final 文件已编辑器核验。用户选择接受原候选作为 P2-W19 编辑器/实际运行证据，暂不调查该
+  差异且不阻塞提交。
+后续候选（非当前工作包）：P3 shared ordinary Graph materializer；仅在 P2-W19 的 factory 边界与显式例外出口通过审核后选择。
 ```
-
-## 已定义但未选择的后续工作包：P2-W19
-
-P2-W19 的优先级类别为“架构阻塞”，目标是 ordinary shared factory 泛化与显式例外出口，解除 P3 shared
-materializer 前仍只有少数 family 使用 shared resolver/factory 的阻塞。其详细调度卡只能在 P2-W18 结束后成为
-`STATUS.md` 的当前唯一工作包；不得在此期间读取源码或开始实现。
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、
 legacy 删除、类型/边界语义变更仍须先取得用户确认。

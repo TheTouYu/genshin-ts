@@ -21,6 +21,7 @@ import {
 import { Graph, Node } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
+import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { resolveNodeIdentity, usesSharedVariantResolution } from './resolved_node.js'
 
 /**
@@ -486,22 +487,18 @@ function materializeImplOrdinaryGraphWithVendor(
       throw new Error(`[error] vendor impl graph gate cannot resolve ${node.type} (${node.id})`)
     }
 
-    const vendorNode = new Node(nodeIndex, 'server', concreteNodeId, genericId.nodeId)
-    for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
-      const arg = node.args[argIndex]
-      if (!arg || arg.type === 'conn') continue
-      // Capture is a composite boundary overlay, not an ordinary literal. The local-variable
-      // getter is the verified exception: its captured local-variable handle keeps the vendor
-      // schema pin, while other captured ordinary inputs are represented only by compositePins.
-      if (arg.capture === true) continue
-      const pin = vendorNode.pins.find(
-        (candidate: any) => candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
-      )
-      if (!pin) {
-        throw new Error(`[error] vendor impl graph gate missing ${node.type} InParam[${argIndex}]`)
-      }
-      pin.setVal(arg.value)
-    }
+    const vendorNode = createOrdinaryVendorNode({
+      nodeId: node.id,
+      nodeType: node.type,
+      args: node.args,
+      nodeIndex,
+      mode: 'server',
+      concreteNodeId,
+      genericNodeId: genericId.nodeId,
+      skipCapturedInputs: true,
+      inputPinIndex: (argIndex) =>
+        node.type === 'set_custom_variable' && argIndex === 3 ? 4 : argIndex
+    })
 
     const capturedInputIndexes = new Set(
       (node.args ?? [])
@@ -513,10 +510,9 @@ function materializeImplOrdinaryGraphWithVendor(
         !(node.type === 'get_local_variable' &&
           pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0) &&
         !(node.type !== 'get_local_variable' &&
-          pin.kind === NodePin_Index_Kind.InParam && capturedInputIndexes.has(pin.index)) &&
-        !((pin.kind === NodePin_Index_Kind.InParam || pin.kind === NodePin_Index_Kind.OutParam) &&
-          pin.type?.t === 'b' && pin.type?.b === 'Unk')
+          pin.kind === NodePin_Index_Kind.InParam && capturedInputIndexes.has(pin.index))
     )
+    normalizeOrdinaryVendorPins(vendorNode)
     vendorNodes.set(node.id, graph.add_node(vendorNode))
   }
 
