@@ -28,6 +28,12 @@ import {
   normalizeCompositeCaptures
 } from './normalize_capture.js'
 import {
+  buildCompositeCallPins,
+  collectCalledCompositeIds,
+  isCompositeCallNode,
+  resolveCompositeCallIdentity
+} from './lower_composite_call.js'
+import {
   resolveNodeIdentity,
   usesSharedScalarSameTypeBinaryResolution,
   usesSharedVariantResolution
@@ -145,27 +151,14 @@ export function buildCompositeAccessories(
   }
   accessories.push(defGraphUnit)
 
-  // 收集此 impl 调用的子复合 ID（用于 relatedIds）
-  const calledCompositeIds: Array<{ class: number; type: number; id: number }> = []
-  if (compositeDefById) {
-    const seen = new Set<number>()
-    for (const node of def.implNodes) {
-      if (node.type === '__composite_call__') {
-        const arg0 = (node.args as any)?.[0]
-        if (arg0 && arg0.type !== 'conn') {
-          const cid = Number(arg0.value)
-          if (cid && !seen.has(cid)) {
-            seen.add(cid)
-            calledCompositeIds.push({
-              class: GraphUnit_Id_Class.AffiliatedNode,
-              type: 0,
-              id: cid
-            })
-          }
-        }
-      }
-    }
-  }
+  // Synthetic call lowerer owns child id extraction for relatedIds (ADR-009).
+  const calledCompositeIds = compositeDefById
+    ? collectCalledCompositeIds(def.implNodes).map((id) => ({
+        class: GraphUnit_Id_Class.AffiliatedNode,
+        type: 0,
+        id
+      }))
+    : []
 
   // 2. impl NodeGraph（实现图）
   const implGraphUnit: GraphUnit = {
@@ -287,26 +280,19 @@ function buildImplGraphNodes(
       usesSharedScalarSameTypeBinaryResolution(node.type)
         ? sharedConcreteNid
         : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
-    // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
-    let compositeId: number | undefined
-    let calledDef: CompositeDefIR | undefined
-    if (node.type === '__composite_call__') {
-      const arg0 = (node.args as any)?.[0]
-      if (arg0 && arg0.type !== 'conn') {
-        compositeId = Number(arg0.value)
-        if (compositeDefById) calledDef = compositeDefById.get(compositeId)
-        nodeId = compositeId
-      }
-    }
-    const isCompositeCall = node.type === '__composite_call__'
+    // Synthetic call lowerer owns SysGraph identity; ordinary nodes stay SysCall.
+    const callIdentity = resolveCompositeCallIdentity(node, compositeDefById)
+    const calledDef = callIdentity?.calledDef
+    if (callIdentity) nodeId = callIdentity.nodeId
+    const isCompositeCall = callIdentity !== undefined
     const isDTC = node.type.startsWith('data_type_conversion_')
     // data_type_conversion 节点：genericId 固定为 180（通用类型），
     // concreteId 为具体变种 ID（如 182=int→str, 186=bool→str 等）
     const dtcGenericId = isDTC ? getNodeIdLowerMap().get('data_type_conversion__generic') ?? 180 : undefined
-    const genericId = {
+    const genericId = callIdentity?.genericId ?? {
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
-      kind: isCompositeCall ? NodeGraph_Id_Kind.SysGraph : NodeGraph_Id_Kind.SysCall,
+      kind: NodeGraph_Id_Kind.SysCall,
       nodeId: dtcGenericId ?? nodeId
     }
     // Shared resolution owns the migrated node-graph/custom families. This adapter only
@@ -334,17 +320,24 @@ function buildImplGraphNodes(
       node.type === 'get_local_variable' || node.type === 'set_local_variable'
         ? sharedConcreteNid
         : undefined
-    const { pins, dataConns } = buildImplNodePins(
-      node,
-      implEdges,
-      implOutParamMap,
-      implVariables,
-      calledDef,
-      sharedConcreteNid ?? gvConcreteNid,
-      customVariableConcreteNid,
-      localVariableConcreteNid,
-      requiredCompositeCallOutflows.get(node.id)
-    )
+    const { pins, dataConns } = isCompositeCallNode(node) && calledDef
+      ? buildCompositeCallPins({
+          node,
+          calledDef,
+          implEdges,
+          requiredOutflowIndexes: requiredCompositeCallOutflows.get(node.id)
+        })
+      : buildImplNodePins(
+          node,
+          implEdges,
+          implOutParamMap,
+          implVariables,
+          calledDef,
+          sharedConcreteNid ?? gvConcreteNid,
+          customVariableConcreteNid,
+          localVariableConcreteNid,
+          requiredCompositeCallOutflows.get(node.id)
+        )
     allDataConns.push(...dataConns)
     return {
       node,
@@ -1111,57 +1104,16 @@ function buildImplNodePins(
     return { pins: vendorPins, dataConns: [] }
   }
 
-  // __composite_call__ 节点：为每个非 capture input 创建物理 pin。
-  // capture input 由 compositePins 路由；其余 conn/literal 输入仍需保留物理 pin。
-  if (node.type === '__composite_call__') {
-    if (calledDef) {
-      const callArgs = (node.args as any) ?? []
-      for (let ai = 1; ai < callArgs.length; ai++) {
-        const arg = callArgs[ai]
-        if (!arg || (arg as any).capture === true) continue
-        const inputIdx = (arg as any).compositeInputIndex ?? ai - 1
-        // 从子复合的输入定义中取类型和 pinIndex
-        let cpi: number | undefined
-        let typeName = arg.type ?? 'int'
-        if (inputIdx < calledDef.inputs.length) {
-          cpi = calledDef.inputs[inputIdx].pinIndex
-          typeName = calledDef.inputs[inputIdx].type as string
-        }
-        const pin = (arg.type === 'conn'
-          ? buildConnPin(inputIdx, typeName)
-          : buildLiteralPin(inputIdx, typeName, arg.value, node.type)) as NodePin & {
-          compositePinIndex?: number
-        }
-        if (cpi !== undefined) pin.compositePinIndex = cpi
-        pins.push(pin)
-        if (arg.type === 'conn') {
-          const conn = arg.value as { node_id: number; index: number }
-          dataConns.push({
-            nodeId: node.id,
-            pin,
-            upstreamNodeId: conn.node_id,
-            upstreamPinIndex: conn.index
-          })
-        }
-      }
-
-      const outflowIndexes = new Set<number>(requiredCompositeCallOutflows)
-      for (const [sourceIndex] of groupEdgesBySourceIndex(implEdges[node.id] ?? [])) {
-        outflowIndexes.add(sourceIndex)
-      }
-      for (const sourceIndex of [...outflowIndexes].sort((a, b) => a - b)) {
-        const pin = {
-          i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
-          i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
-          type: 0,
-          value: undefined as any
-        } as NodePin & { compositePinIndex?: number }
-        const compositePinIndex = calledDef.outflows[sourceIndex]?.pinIndex
-        if (compositePinIndex !== undefined) pin.compositePinIndex = compositePinIndex
-        pins.push(pin)
-      }
-    }
-    return { pins, dataConns }
+  // Call pins are owned by lower_composite_call.ts; buildImplNodePins must not
+  // re-implement sparse/capture classification for __composite_call__.
+  if (isCompositeCallNode(node)) {
+    if (!calledDef) return { pins, dataConns }
+    return buildCompositeCallPins({
+      node,
+      calledDef,
+      implEdges,
+      requiredOutflowIndexes: requiredCompositeCallOutflows
+    })
   }
 
   // __composite_capture__: 跳过数据 pin 但保留 OutFlow pin 生成

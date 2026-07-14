@@ -1,8 +1,8 @@
 # Phase 4：隔离 Composite Boundary
 
-> 状态：P4-W1 / P4-W2 已完成；当前可推进 P4-W3
-> 来源：当前 composite/capture 实现 + P4-W1 自动回归 + P4-W2 capture normalization contract +
-> 用户批次核验
+> 状态：P4-W1 / P4-W2 / P4-W3 已完成；当前可推进 P4-W4
+> 来源：当前 composite/capture/call 实现 + P4-W1 自动回归 + P4-W2 capture normalization contract +
+> P4-W3 call lowerer contract + 用户批次核验
 > 最近校验：2026-07-14
 > 适用范围：CompositeDef、synthetic call、capture 与 compositePins
 
@@ -58,6 +58,14 @@ connection 自动回归通过；用户已确认 B1 capture-only 与 nested captu
 - literal/connection/capture 来源分类。
 
 它可调用共享 value codec，但不是 ordinary vendor node。
+
+P4-W3（2026-07-14）：已抽取纯函数模块
+`src/compiler/ir_to_gia_transform/lower_composite_call.ts`（`resolveCompositeCallIdentity` /
+`buildCompositeCallPins` / `collectCalledCompositeIds`），并由 `buildCompositeAccessories()` 与
+`buildImplGraphNodes()` 接入。focused contract：
+`tests/composite/test-stage3-p4w3-call-lowerer-contract.ts`。B2 sparse、B3 nested data、B4 multi
+inflow/outflow、nested call/capture 自动回归通过；用户已确认四份 vendor 候选的编辑器加载和可观察执行
+通过（2026-07-14）；未注入；已提交。
 
 ### 4.3 Definition interface builder
 
@@ -119,7 +127,7 @@ producer 连到 child input，未验证 child 实际消费该输入，已收紧�
 
 - [ ] ordinary lowering 模块无 composite capture/call 分支；
 - [x] capture normalization 有独立输入输出 contract（P4-W2；自动 contract + 用户编辑器/游戏核验通过）；
-- [ ] call synthetic pins 有单一 builder；
+- [x] call synthetic pins 有单一 builder（P4-W3；自动 contract + 用户编辑器/游戏核验通过）；
 - [ ] compositePins 在 materialization 后统一应用；
 - [ ] nested/capture/sparse/bool 回归通过；
 - [ ] `composite.ts` 只做 orchestration 或已拆成边界模块；

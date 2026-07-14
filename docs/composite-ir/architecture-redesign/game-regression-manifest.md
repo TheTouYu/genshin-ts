@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2 用户核验
+> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2 / P4-W3 用户核验
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-14
 > 适用范围：Phase 3、Phase 4、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -38,6 +38,82 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+以下四份 P4-W3 候选于 2026-07-14 以 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 生成，自动契约与 B2/B3/B4/nested
+call 回归通过，均未注入。用户于 2026-07-14 确认四份候选均通过编辑器加载和可观察执行，并归档到
+`真-测试通过/复合节点`。它们验证 call lowerer 抽取后生产路径不退化；不得把旧 P4-W1 同名 SHA 的结论继承到
+本轮新 SHA。
+
+### P4-W3-B2-sparse-binding
+
+- 工作包/阶段：P4-W3 / Phase 4 call lowerer 独立抽取。
+- 目的与覆盖风险：call lowerer 接入后，nested first-only、second-only、both、empty call 仍保持 declared
+  `compositeInputIndex`，不压缩 physical InParam，并保留 child definition pinIndex。
+- 自动证据：`test-stage3-p4w3-call-lowerer-contract.ts`、P2-W12 legacy/vendor、optional-call-input contract，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W3-sparse-binding-vendor.gia`
+  （通过后从根目录 `P4W3-sparse-binding-vendor.gia` 归档）
+- SHA-256：`900391e99dd0e148f163833201d1084eee8c3649102d9178142d341ebf687d94`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖四个 nested call 分支到达各自 Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖两个 float input 的 presence 组合 + call lowerer 抽取；不证明所有 optional
+  type/connection/capture 组合或 wire 全等。
+
+### P4-W3-B3-nested-data
+
+- 工作包/阶段：P4-W3 / Phase 4 call lowerer 独立抽取。
+- 目的与覆盖风险：call lowerer 接入后，vendor-materialized outer Addition → synthetic child call InParam →
+  child `compositePins` → child DTC → child Print，以及 child OutFlow → outer ordinary Print 不退化。
+- 自动证据：`test-stage3-p4w3-call-lowerer-contract.ts`、P2-W10 legacy/vendor，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w10-nested-data-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W3-nested-data-vendor.gia`
+  （通过后从根目录 `P4W3-nested-data-vendor.gia` 归档）
+- SHA-256：`d7817e84477624e394b1ae55829a3f7bc53f20800107042b7682a1c118cc1cfe`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 child input 经 DTC 到 child Print，随后 child OutFlow 到 outer Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 float ordinary producer → nested call + call lowerer 抽取；不证明 child
+  OutParam data return 或全部 synthetic routes。
+
+### P4-W3-B4-multi-inflow-outflow
+
+- 工作包/阶段：P4-W3 / Phase 4 call lowerer 独立抽取。
+- 目的与覆盖风险：call lowerer 接入后，两个 indexed InFlow 的 root → synthetic call overlay、两个 physical
+  OutFlow 与各自不同 ordinary Print consumer、impl `compositePins` 的 InFlow/OutFlow route 不退化。
+- 自动证据：`test-stage3-p4w3-call-lowerer-contract.ts`、P4-W1 B4 legacy/vendor、nested outflow contract，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W3-multi-inflow-outflow-vendor.gia`
+  （通过后从根目录 `P4W3-multi-inflow-outflow-vendor.gia` 归档）
+- SHA-256：`ba267e2ab0bec629c34be8d47bb9c1ca3d4905ade480cace8beb1a4ea7bea397`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖左/右 InFlow 分别进入对应 child Print，并由对应 OutFlow 到不同 root Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖两个 indexed flow + call lowerer 抽取；不证明多 source fan-in 或任意数量
+  inflow/outflow。
+
+### P4-W3-nested-call-flow
+
+- 工作包/阶段：P4-W3 / Phase 4 call lowerer 独立抽取。
+- 目的与覆盖风险：call lowerer 接入后，nested SysGraph call 的 OutFlow → outer ordinary Print overlay 与
+  SysGraph identity 不退化。
+- 自动证据：`test-stage3-p4w3-call-lowerer-contract.ts`、P2-W9 legacy/vendor，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W3-nested-call-vendor.gia`
+  （通过后从根目录 `P4W3-nested-call-vendor.gia` 归档）
+- SHA-256：`37a2665fb0a4c523e0026173464c572313fcd72dd84a06c3ff6007eda1d96edd`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 nested call OutFlow 到达 outer Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested call flow sentinel + call lowerer 抽取；不证明 nested data/capture 全族。
 
 ### P2-W18-scalar-comparison
 
