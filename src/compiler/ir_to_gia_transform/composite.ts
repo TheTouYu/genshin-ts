@@ -551,6 +551,10 @@ function materializeImplOrdinaryGraphWithVendor(
     },
     onMissingDataEndpoint: (edge) => {
       throw new Error(`[error] vendor impl graph data source crosses synthetic boundary: ${edge.fromId}`)
+    },
+    integrity: {
+      expectedNodeIndexes: new Map(nodeResults.map((result) => [result.node.id, result.nodeIndex])),
+      excludedNodeIds: new Set(syntheticResults.map((result) => result.node.id))
     }
   })
 

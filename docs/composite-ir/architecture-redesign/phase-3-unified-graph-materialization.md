@@ -73,7 +73,7 @@ Root 先接入并验证输出保持，再由 impl 以 family/fixture 逐步接�
 - connects 指向 encoded nodeIndex；
 - source/target type compatible；
 - capture-filtered node 不出现在 connects；
-- no dangling compositePins。
+- `compositePins` 不在本阶段检查；它属于 Phase 4 的 materialization 后 boundary overlay integrity。
 
 ## Tests
 
@@ -102,8 +102,19 @@ Root 先接入并验证输出保持，再由 impl 以 family/fixture 逐步接�
 - [x] index remap 只发生一次；
 - [x] capture/boundary edges 明确不进入 ordinary materializer；
 - [x] root/impl edge parity 通过现有跨类别哨兵；
-- [ ] encoded integrity checks 无 fallback；
+- [x] P3-W21 为 shared materializer 建立无 fallback 的 encoded integrity contract：ordinary data
+  endpoint pin、同一 data target 唯一性、vendor impl encoded `nodeIndex` 对齐，以及 synthetic/capture
+  exclusion；direct contract 另锁定错误 pin、重复 target、boundary 越界与 nodeIndex 漂移。
 - [x] 用户明确确认 P3-W20 候选在游戏内实际运行通过。
+- [x] P3-W21 对 ordinary endpoint、data target uniqueness、encoded nodeIndex、type compatibility（限当前可获得的 schema/IR 证据）与 boundary/capture exclusion 建立无 fallback 的共享可失败契约。
+- [ ] P3-W22 建立游戏回归 manifest，重生成并哈希代表性 vendor-gated P3 哨兵，用户确认编辑器加载和可观察执行；候选 SHA 改变不得继承旧结论。
+- [ ] P3 exit audit 已确认 ordinary data/flow、literal/connection、fan-out、hidden-pin remap 与 boundary exclusion 的最小跨类别哨兵；任一游戏回归失败先阻塞并建立最小修复包。
+
+P3-W21 已完成：`ordinary_graph_materializer.ts` 在写入前检查 ordinary endpoint pin、pin type、同一 data
+目标唯一性与 nodeIndex 唯一性；vendor impl 额外以 `nodeIndexMap` 断言 encoded index 对齐，并明确排除 synthetic
+call。P3-W21 focused 自动回归通过，未改变候选 GIA 的语义目标、未生成待用户核验的新候选、未注入；这不是真实
+GIA/wire 全等或游戏行为结论。P3-W22 只管理 manifest、候选、哈希、验证与退出审计，不修改 ordinary
+materializer。所有退出项完成后仍须用户确认才可进入 Phase 4。
 
 ## 回滚条件
 

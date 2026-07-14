@@ -1,13 +1,19 @@
 // @ts-nocheck
 import assert from 'node:assert/strict'
 
-import { Graph, Node } from '../../dist/src/compiler/gia_vendor.js'
+import { Graph, Node, Pin } from '../../dist/src/compiler/gia_vendor.js'
 import { materializeOrdinaryGraphEdges } from '../../dist/src/compiler/ir_to_gia_transform/ordinary_graph_materializer.js'
 
 const graph = new Graph('server', 0, '', 0)
 const source = graph.add_node(new Node(1, 'server', 201, 200))
 const target = graph.add_node(new Node(2, 'server', 201, 200))
-const nodesById = new Map([[10, source], [20, target]])
+const intTarget = graph.add_node(new Node(3, 'server', 200))
+source.pins.push(new Pin(source.GenericId, 4, 1))
+source.pins.at(-1).setType(source.pins.find((pin) => pin.kind === 4 && pin.index === 0).type)
+target.pins.push(new Pin(target.GenericId, 3, 3))
+target.pins.at(-1).setType(target.pins.find((pin) => pin.kind === 3 && pin.index === 0).type)
+
+const nodesById = new Map([[10, source], [20, target], [30, intTarget]])
 
 materializeOrdinaryGraphEdges({
   graph,
@@ -39,4 +45,53 @@ assert.throws(
   /ordinary data edge endpoint missing/
 )
 
-console.log('PASS P3-W20 shared ordinary Graph edge materializer contract')
+assert.throws(
+  () => materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    dataEdges: [{ fromId: 10, toId: 20, fromIndex: 9, toIndex: 0 }]
+  }),
+  /ordinary data edge pin missing/
+)
+
+assert.throws(
+  () => materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    dataEdges: [
+      { fromId: 10, toId: 20, fromIndex: 0, toIndex: 0 },
+      { fromId: 10, toId: 20, fromIndex: 1, toIndex: 0 }
+    ]
+  }),
+  /ordinary data edge target is not unique/
+)
+
+assert.throws(
+  () => materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    dataEdges: [{ fromId: 10, toId: 30, fromIndex: 0, toIndex: 0 }]
+  }),
+  /ordinary data edge pin type mismatch/
+)
+
+assert.throws(
+  () => materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    dataEdges: [{ fromId: 10, toId: 20, fromIndex: 0, toIndex: 0 }],
+    integrity: { excludedNodeIds: new Set([10]) }
+  }),
+  /ordinary data edge crosses excluded boundary/
+)
+
+assert.throws(
+  () => materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    integrity: { expectedNodeIndexes: new Map([[10, 99]]) }
+  }),
+  /ordinary nodeIndex mismatch/
+)
+
+console.log('PASS P3-W21 encoded ordinary Graph edge integrity contract')

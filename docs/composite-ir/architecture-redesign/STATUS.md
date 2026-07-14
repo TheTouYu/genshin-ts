@@ -1,22 +1,29 @@
 # Composite Stage 3 Redesign 当前状态
 
 > 状态：当前推荐 / 实时状态
-> 来源：当前 Git 工作树 + 当前 Phase 计划 + ADR-012 + 已归档工作包记录
+> 来源：当前 Git 工作树 + 当前 Phase 计划 + ADR-012/013 + 已归档工作包记录
 > 最近校验：2026-07-14
 > 适用范围：`refactor/composite-stage3-architecture`；新会话的最小实时恢复入口
 
 > 历史工作包的目标、命令、候选路径、SHA-256 和失败过程不在本文件重复；见
 > [work-packages/README.md](work-packages/README.md)。当前计划见
-> [phase-2-shared-vendor-node-lowering.md](phase-2-shared-vendor-node-lowering.md)。
+> [phase-3-unified-graph-materialization.md](phase-3-unified-graph-materialization.md)。
 
 ## 当前定位
 
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：Phase 3 — Unified Ordinary Graph Materialization
-当前唯一工作包：P3-W21 — encoded ordinary-edge integrity checks（待执行）
+当前唯一工作包：P3-W22 — 游戏回归 manifest 建立与 Phase 3 exit audit（待执行；ADR-013 已先行固化）
 最近已提交工作包：P3-W20 — shared ordinary Graph edge materializer（见 HEAD 提交标题）
-工作树预期：仅此前独立 docs-search JSON 输出修复与执行协议改动；P3-W20 提交后不得遗留未提交变化
+最近已完成、待审核提交工作包：P3-W21 — encoded ordinary-edge integrity checks
+工作树预期：以下未提交变化均已审查、须保留：
+  - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
+  - 本轮计划治理：README.md、STATUS.md、decision-log.md、migration-invariants.md、phase-3-unified-graph-materialization.md、
+    phase-4-composite-boundary-isolation.md、phase-5-legacy-removal-and-hardening.md、game-regression-manifest.md（新增未追踪）
+  - P3-W21：src/compiler/ir_to_gia_transform/ordinary_graph_materializer.ts、
+    src/compiler/ir_to_gia_transform/composite.ts、tests/composite/test-stage3-ordinary-graph-materializer.ts
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P3-W21 尚待用户审核，不能覆盖或提交
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -27,6 +34,8 @@
 - ADR-010：definition capture 使用完整 typed placeholders；call-site 可独立省略任意绑定输入，并保持 sparse declaration index。
 - ADR-011：root 与 composite impl 的 ordinary system node/API 能力目标同源；composite 只增加 call/capture/`compositePins`/inflow/outflow/layout 等 boundary 职责。
 - ADR-012：ordinary API 按共享框架默认覆盖、实际问题驱动补洞；此工程策略不等于所有 ordinary family 已验证。
+- ADR-013：当前 root 已支持的 ordinary 能力必须经 root/impl 同一 resolver、factory 和 materializer 表达；Composite
+  仅处理增量 boundary。缺口按 0–6 层归因，vendor 缺口走 compat patch → 有来源同步；不允许 Composite 专属 ordinary fallback。
 - P2 已对指定 setter/getter、local/custom variable、DTC、nested boundary 与同型 int/float 四则运算建立 scoped 自动和部分用户编辑器证据；这不等于所有 ordinary family 已验证。
 - P2-W17b：`addition`、`subtraction`、`multiplication`、`division` 的同型 int/float 在 root、legacy impl 与 vendor-gated impl 使用 shared identity；可执行 fixture 的控制流为 event/复合 `执行` InFlow → Print 链，数据流为 arithmetic → DTC → Print。用户编辑器已确认通过；归档候选：`Beyond_Local_Export/真-测试通过/复合节点/P2W17b-scalar-arithmetic-vendor-shared-resolution.gia`，SHA-256 `929847e8078744dc6cd0356bfe726c1d91fcb5869ed1a4b2b397d3c18e4cc4a1`；未注入。
 
@@ -38,6 +47,7 @@
 - 不默认开启 vendor gate，不删除 handwritten backend，不改变 `graphValues`、`affiliations`、capture、nested、sparse 或布局语义。
 - signal/dynamic pin family 的能力目标由 ADR-011 确认与 root 同源，但专属 payload/schema/wire 仍需真实可执行案例验证。
 - P3-W20 已将 root 的 ordinary data/flow edges 与 vendor-gated impl closed ordinary subgraph 的 data/flow edges 接入同一 shared materializer；synthetic call/capture overlay 仍独立。自动回归通过，用户已确认四份 P3-W20 vendor-gated 候选在游戏内实际运行通过；未注入。
+- P3-W21 已在 shared materializer 中加入 ordinary endpoint pin、pin type、data target 唯一性和 nodeIndex 唯一性检查；vendor impl 以 `nodeIndexMap` 额外断言编码 index 对齐，synthetic call 明确排除。direct contract 与 P3/P2 focused 自动回归通过；未生成新候选、未注入，且不构成真实 GIA/wire 或游戏行为结论。
 
 ## 当前验证与归档
 
@@ -64,19 +74,18 @@ P3-W20 将 root 与 vendor-gated impl closed ordinary subgraph 的 ordinary data
 `ordinary_graph_materializer.ts`；synthetic call/capture overlay 仍独立。自动回归通过，且用户已确认四份
 vendor-gated 候选在游戏内实际运行通过；未注入。候选 SHA-256、命令与回滚边界见 Phase 3 文档。
 
-## 当前唯一工作包：P3-W21
+## 当前唯一工作包：P3-W22
 
 ```text
-工作包：P3-W21 — encoded ordinary-edge integrity checks
+工作包：P3-W22 — 游戏回归 manifest 建立与 Phase 3 exit audit
 优先级类别：架构阻塞
-解除的上层阻塞：P3-W20 已共享 ordinary edge materializer，但 Phase 3 仍缺少对 encoded endpoint pin、target uniqueness、nodeIndex 和 capture/boundary exclusion 的集中 integrity contract；该缺口阻塞 Phase 3 退出与 P4 选择。
-输入与修改范围：shared materializer 的可选 integrity contract、P3 focused parity fixture 与本状态/Phase 文档；不改 vendor/generated、ordinary resolution/factory、synthetic/capture overlay、default gate、legacy backend、游戏目录或注入。
-最小观察或失败基线：P3-W20 仅以类别 fixture 观察解码 connects，未对每一条待 materialize ordinary edge 集中断言 endpoint pin 存在、同一 data target 唯一、encoded nodeIndex 对齐及 capture-filtered endpoint 排除。
-完成条件：root 与 vendor-gated impl 的 focused fixture 对 ordinary data/flow encoded integrity 形成共享、可失败的契约；所有 boundary/capture edge 仍由 overlay 排除；既有 P3-W20 regressions 不退化；git diff --check 通过。若生产编码行为改变，另生成候选并请求用户游戏内核验。
-实际验证命令：npm run build；P3 materializer direct contract；P3 complex-flow legacy/vendor parity；DTC、custom target、scalar arithmetic vendor fixtures；nested capture/outflow；git diff --check。
-回滚边界：P3-W21 integrity helper/contract、focused fixture 与本状态/Phase 文档；不影响已提交 P3-W20 或独立 docs-search 改动。
-明确非目标：默认开启 gate、legacy 删除、改变 ordinary edge 语义、将 synthetic/capture 纳入 ordinary materializer、逐 API 验收、真实 GIA 覆盖或注入。
-后续候选（非当前工作包）：P4 capture/call/compositePins boundary isolation；仅在 P3 退出条件满足后选择。
+解除的上层阻塞：P3-W21 已为 shared materializer 建立 encoded ordinary-edge integrity contract；Phase 3 尚需将代表性游戏回归候选、精确 SHA、观察点和用户结论规范化，并审计退出哨兵。
+输入与修改范围：game-regression-manifest、Phase 3 exit audit 与本状态/Phase 文档；不改 ordinary materializer、vendor/generated、default gate、legacy backend、游戏目录或注入。
+完成条件：代表性 vendor-gated P3 哨兵可重生成、哈希并进入 manifest；用户确认编辑器加载和可观察执行；Phase 3 exit audit 对 ordinary data/flow、literal/connection、fan-out、hidden-pin remap 与 boundary exclusion 给出证据状态；git diff --check 通过。
+实际验证命令：由 manifest 中每条候选的生成命令、SHA-256 与 focused regression 构成；git diff --check。任何候选 SHA 改变均须重新请求用户核验。
+回滚边界：P3-W22 manifest、退出审计与状态文档；不影响 P3-W21 integrity contract 或独立 docs-search 改动。
+明确非目标：默认开启 gate、legacy 删除、改变 ordinary edge/capture/boundary 语义、真实 GIA 全等结论、注入或操作游戏目录。
+后续候选（非当前工作包）：只有 P3-W22 完成、用户确认阶段退出后，才选择 P4 capture/call/compositePins boundary isolation。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、
@@ -85,7 +94,9 @@ legacy 删除、类型/边界语义变更仍须先取得用户确认。
 ## 新会话最小恢复
 
 1. 读取 `EXECUTION.md`、本文件、当前 Phase 文档、`migration-invariants.md` 及与当前包直接相关的 ADR。
-2. 检查 branch/status/log；若工作树与本文件不符，先停止并报告。
+2. 检查 branch/status/log；若工作树不符，先停止并报告。若含 `??`，按 EXECUTION 运行 untracked 清单并读取本段
+   明列的预期新增文件；不得只用 `git diff` 将其视为已审查。
 3. 仅在当前包涉及编辑器协作时读取 `COLLABORATION-PLAYBOOK.md`；仅在维护手册时读取其 maintenance 文档。
 4. 按任务加载工作包历史、验证矩阵、真实 GIA、源码和测试；不要以历史归档代替当前状态。
-5. 修改前提交恢复报告；用户未明确授权时不修改、不提交、不操作游戏目录。
+5. 修改前提交恢复报告；用户未明确授权时不修改、不提交、不操作游戏目录。阶段退出的候选与用户结论以
+   [游戏回归 manifest](game-regression-manifest.md) 为准。
