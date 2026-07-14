@@ -1,13 +1,16 @@
+import assert from 'node:assert/strict'
 import path from 'node:path'
 
 import parser from '@typescript-eslint/parser'
 import { RuleTester } from 'eslint'
 
+import { configs } from '../../src/eslint/index.js'
 import builtinMathSupport from '../../src/eslint/rules/builtin-math-support.js'
 import builtinWrapperArity from '../../src/eslint/rules/builtin-wrapper-arity.js'
 import clientFilterReturn from '../../src/eslint/rules/client-filter-return.js'
 import clientGraphScopedF from '../../src/eslint/rules/client-graph-scoped-f.js'
 import clientLocalVariableSupport from '../../src/eslint/rules/client-local-variable-support.js'
+import clientRepeatedEvaluation from '../../src/eslint/rules/client-repeated-evaluation.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
 import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
 import noJson from '../../src/eslint/rules/no-json.js'
@@ -27,6 +30,9 @@ const ruleTester = new RuleTester({
 })
 
 const importG = `import { g } from 'genshin-ts/runtime/core'`
+
+assert.equal(configs.recommended.rules['gsts/client-local-variable-support'], 'error')
+assert.equal(configs.recommended.rules['gsts/client-repeated-evaluation'], 'warn')
 
 ruleTester.run('client-scoped-globals', clientScopedGlobals, {
   valid: [
@@ -224,21 +230,70 @@ g.boolFilter().on('start', (_evt, f) => f.equal(1n, 1n) ? true : false)`
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, f) => {
-  const ready = f.equal(1n, 1n)
-  if (ready) f.absoluteValueOperation(-1n)
-  if (ready) f.absoluteValueOperation(-2n)
-})`,
-      errors: [{ message: /non-pure const "ready" is read 2 times.*local-variable snapshot/ }]
-    },
-    {
-      filename,
-      code: `${importG}
 g.creationStatusDecision().on('start', (_evt, f) => {
   const result = f.equal(1n, 1n) ? 1n : 0n
   f.absoluteValueOperation(result)
 })`,
       errors: [{ message: /conditional expressions require a temporary local variable/ }]
+    }
+  ]
+})
+
+ruleTester.run('client-repeated-evaluation', clientRepeatedEvaluation, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const roll = f.getRandomNumber(0n, 10n)
+  f.absoluteValueOperation(roll)
+  f.absoluteValueOperation(roll)
+})
+g.creationStatus().on('start', (_evt, f) => {
+  const ready = true
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+  const once = f.getRandomNumber(0n, 10n)
+  f.absoluteValueOperation(once)
+  while (f.equal(1n, 1n)) {
+    const perIteration = f.getRandomNumber(0n, 10n)
+    f.absoluteValueOperation(perIteration)
+  }
+})`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const ready = f.equal(1n, 1n)
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+})`,
+      errors: [
+        {
+          message:
+            /Non-pure const "ready" has 2 read sites.*connections are reevaluated at every use.*random, query, or other time-varying nodes.*local-variable snapshot/
+        }
+      ]
+    },
+    {
+      filename,
+      options: [{ lang: 'zh' }],
+      code: `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const roll = f.getRandomNumber(0n, 10n)
+  while (f.equal(1n, 1n)) {
+    f.absoluteValueOperation(roll)
+  }
+})`,
+      errors: [
+        {
+          message:
+            /“roll”在声明所在循环之外的循环中读取.*节点图连线在每个使用点都会重新求值.*随机数、查询结果或其他时变节点/
+        }
+      ]
     },
     {
       filename,
@@ -248,7 +303,7 @@ function gstsCreationStatusNeedsLocal() {
   if (ready) gsts.fCreationStatus.absoluteValueOperation(-1n)
   if (ready) gsts.fCreationStatus.absoluteValueOperation(-2n)
 }`,
-      errors: [{ message: /non-pure const "ready" is read 2 times.*local-variable snapshot/ }]
+      errors: [{ message: /Non-pure const "ready" has 2 read sites.*local-variable snapshot/ }]
     }
   ]
 })
