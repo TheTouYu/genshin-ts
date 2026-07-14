@@ -17,7 +17,6 @@ import {
   type NodeGraph
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { Graph, Node } from '../gia_vendor.js'
-import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
@@ -32,6 +31,7 @@ import {
 } from './lower_composite_call.js'
 import { buildCompositeDefinitionInterface } from './build_composite_definition.js'
 import { buildCompositePinsOverlay } from './build_composite_pins.js'
+import { computeCompositeImplLayout } from './build_composite_layout.js'
 import {
   resolveNodeIdentity,
   usesSharedScalarSameTypeBinaryResolution,
@@ -69,7 +69,16 @@ export function buildCompositeAccessories(
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
-  const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, def.implVariables, def, compositeDefById)
+  const implNodes = buildImplGraphNodes(
+    implNodesForEncoding,
+    nodeIndexMap,
+    filteredEdges,
+    implOutParamMap,
+    def.implVariables,
+    def,
+    boundaryPins,
+    compositeDefById
+  )
 
   // 1. CompositeDef interface (definition + ParameterFlow/ControlFlow + impl relation).
   // Owned by build_composite_definition.ts; accessories still emit definition before impl.
@@ -171,11 +180,13 @@ function buildImplGraphNodes(
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
   implVariables: CompositeDefIR['implVariables'],
   def: CompositeDefIR,
+  /** Capture-normalized boundary routes; layout + OutFlow requirements must not use raw pins. */
+  boundaryPins: CompositeDefIR['compositePins'],
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
   const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
   const requiredCompositeCallOutflows = new Map<number, Set<number>>()
-  for (const pin of def.compositePins) {
+  for (const pin of boundaryPins) {
     if (pin.outerPinKind !== NodePin_Index_Kind.OutFlow) continue
     const indexes = requiredCompositeCallOutflows.get(pin.innerNodeId) ?? new Set<number>()
     indexes.add(pin.innerPinIndex)
@@ -289,7 +300,14 @@ function buildImplGraphNodes(
     }]
   }
 
-  const layout = computeImplLayout(implNodes, implEdges, def, compositeDefById)
+  // Layout isolation owns virtual anchors + impl spacing from capture-normalized
+  // ordinary graph + boundaryPins. See build_composite_layout.ts.
+  const layout = computeCompositeImplLayout({
+    ordinaryNodes: implNodes,
+    ordinaryEdges: implEdges as Record<number, any[]>,
+    boundaryPins,
+    compositeDefs: compositeDefById ? [...compositeDefById.values()] : []
+  }).positions
 
   if (process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1') {
     return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout, nodeIndexMap)
@@ -512,74 +530,6 @@ function materializeImplOrdinaryGraphWithVendor(
   }
 
   return allNodes.sort((a, b) => a.nodeIndex - b.nodeIndex)
-}
-
-/** 为 impl 图节点计算布局坐标。复用主图布局核心，保持 exec/data 语义一致。 */
-function computeImplLayout(
-  implNodes: CompositeDefIR['implNodes'],
-  implEdges: Record<number, any[]>,
-  def: CompositeDefIR,
-  compositeDefById?: Map<number, CompositeDefIR>
-): Map<number, { x: number; y: number }> {
-  const maxNodeId = implNodes.reduce((max, node) => Math.max(max, node.id), 0)
-  const inputPins = def.compositePins.filter((entry) => entry.outerPinKind === NodePin_Index_Kind.InFlow)
-  const inputPinsByOuterIndex = new Map<number, typeof inputPins>()
-  for (const entry of inputPins) {
-    const pins = inputPinsByOuterIndex.get(entry.outerPinIndex) ?? []
-    pins.push(entry)
-    inputPinsByOuterIndex.set(entry.outerPinIndex, pins)
-  }
-  const virtualInputNodes = [...inputPinsByOuterIndex.entries()].map(([outerPinIndex, pins], index) => ({
-    id: maxNodeId + index + 1,
-    type: '__composite_input_anchor__',
-    args: [],
-    next: pins.map((pin) => ({
-      node_id: pin.innerNodeId,
-      source_index: 0,
-      target_index: pin.innerPinIndex
-    })),
-    outerPinIndex
-  }))
-  const outputPins = def.compositePins.filter((entry) => entry.outerPinKind === NodePin_Index_Kind.OutParam)
-  const outputNodeIdBase = maxNodeId + virtualInputNodes.length
-  const virtualOutputNodes = outputPins.map((entry, index) => ({
-    id: outputNodeIdBase + index + 1,
-    type: '__composite_output_anchor__',
-    args: []
-  }))
-  const layoutNodes = [
-    ...virtualInputNodes,
-    ...implNodes.map((node) => ({
-      ...node,
-      next: implEdges[node.id] ?? (node as any).next
-    })),
-    ...virtualOutputNodes
-  ] as any[]
-  const extraDataConnections = outputPins.map((entry, index) => ({
-    fromId: entry.innerNodeId,
-    toId: virtualOutputNodes[index].id,
-    fromIndex: entry.innerPinIndex,
-    toIndex: entry.outerPinIndex
-  }))
-
-  const graphInfo = buildExecutionGraph(layoutNodes)
-  const positions = layoutPositions(
-    layoutNodes,
-    graphInfo,
-    compositeDefById ? [...compositeDefById.values()] : [],
-    {
-      extraDataConnections,
-      virtualConsumerIds: virtualOutputNodes.map((node) => node.id),
-      execLaneSpacingScale: 0.6
-    }
-  )
-
-  const pos = new Map<number, { x: number; y: number }>()
-  for (const [nodeId, [x, y]] of positions) {
-    pos.set(nodeId, { x, y })
-  }
-
-  return pos
 }
 
 function buildImplConnTypeIndex(

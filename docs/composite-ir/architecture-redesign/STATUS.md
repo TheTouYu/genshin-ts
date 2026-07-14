@@ -14,14 +14,14 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：Phase 4 — Composite Boundary Isolation
-当前唯一工作包：P4-W6 — Layout isolation
-最近已提交工作包：P4-W5 — CompositePins overlay 独立抽取（用户核验 2026-07-14 通过）
+当前唯一工作包：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对
+最近已提交工作包：P4-W6 — Layout isolation（用户核验 2026-07-14 通过）
 工作树预期：
-  - 以下未提交变化均已审查、须保留，且不属于 P4-W5：
+  - 以下未提交变化均已审查、须保留，且不属于 P4-W6：
     - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
     - 本轮计划治理：README.md、decision-log.md、migration-invariants.md、
       phase-5-legacy-removal-and-hardening.md
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P4-W5 已提交，不得重做或覆盖
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P4-W6 已提交，不得重做或覆盖
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -265,23 +265,97 @@ git diff --check
 materializer、default gate、legacy backend、布局、capture/call/definition 语义。未注入。用户确认通过后已归档；
 连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused structural contract 为准。
 
-## 当前唯一工作包：P4-W6
+## 最近完成：P4-W6
+
+P4-W6 将 composite virtual anchors / impl layout 抽为独立纯函数模块
+`src/compiler/ir_to_gia_transform/build_composite_layout.ts`，并由 `buildImplGraphNodes()` 接入。
+
+输入 / 输出 contract：
 
 ```text
-工作包：P4-W6 — Layout isolation
+input:
+  ordinaryNodes               // capture 归一化后的 ordinary + synthetic call 节点
+  ordinaryEdges               // 已移除 capture 源边
+  boundaryPins                // capture 归一化后的 IR 路由（InFlow 已重定向）
+  compositeDefs?              // 仅用于 nested call 视觉高度估计
+  execLaneSpacingScale?       // 默认 0.6
+output:
+  positions                   // 仅 ordinaryNodes 的 x/y；不含 virtual anchors
+  virtualGraph                // 诊断用：anchors / extraDataConnections / layoutNodes
+```
+
+关键不变量：
+- layout 只消费 capture-normalized graph + boundaryPins，不再读 raw `def.compositePins`；
+- virtual anchors 仅喂给共享 `layout.ts`，不得编码进 GraphNode；
+- 返回的 position map 只含 ordinary / synthetic call 节点；
+- 不改变 node/pin/edge 语义，不改 nodeIndex、default gate、legacy backend。
+
+同时：`buildImplGraphNodes` 的 OutFlow required-index 收集也改为消费 `boundaryPins`，与 layout /
+compositePins overlay 同源。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p4w6-layout-isolation-contract.ts
+npx tsx tests/composite/test-stage3-p4w2-capture-normalization-contract.ts
+npx tsx tests/composite/test-stage3-p4w3-call-lowerer-contract.ts
+npx tsx tests/composite/test-stage3-p4w4-definition-interface-contract.ts
+npx tsx tests/composite/test-stage3-p4w5-composite-pins-overlay-contract.ts
+npx tsx tests/composite/test-nested-composite-capture-pins.ts
+npx tsx tests/composite/test-nested-composite-outflow.ts
+npx tsx tests/composite/test-composite-sparse-named-input.ts
+npx tsx tests/composite/test-composite-optional-call-inputs.ts
+npx tsx tests/composite/test-composite-bool-input-gia.ts
+npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts /tmp/P4W6-p4w1-b4-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts /tmp/P4W6-p4w1-b4-vendor.gia
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P4W6-p2w6-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P4W6-p2w6-vendor.gia
+npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts /tmp/P4W6-p2w11-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts /tmp/P4W6-p2w11-vendor.gia
+npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts /tmp/P4W6-p2w9-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts /tmp/P4W6-p2w9-vendor.gia
+npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts /tmp/P4W6-p2w12-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts /tmp/P4W6-p2w12-vendor.gia
+git diff --check
+```
+
+用户核验候选（未注入；用户 2026-07-14 确认编辑器加载与可观察执行通过；已归档；清理根目录残留后重生）：
+
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W6-capture-vendor.gia`（B1 capture-only）
+  用户核验时 SHA-256 `338906e9ec90bde1976daa5c4a089ae51627ab08e52fb24dba51b316d85eecee`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W6-nested-capture-vendor.gia`（nested capture route）
+  用户核验时 SHA-256 `e87090229e6dc00a158e290116a570aa7149ad775c4715a949d7ba1aafbb1562`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W6-nested-sparse-vendor.gia`（nested sparse binding）
+  用户核验时 SHA-256 `72c04ad8e376eb38902853810e1c40b01f175408961d15a473ceeaca91aa22fe`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W6-multi-inflow-outflow-vendor.gia`（multi InFlow/OutFlow）
+  用户核验时 SHA-256 `4a377264ee68c24797f6a302ebc31afc7799eac42237dae3c80af3704812abf2`
+- `Beyond_Local_Export/真-测试通过/复合节点/P4W6-nested-call-vendor.gia`（nested call flow sentinel）
+  用户核验时 SHA-256 `edb60eaa3bba903ff56daec2bb39983b16a2786308ac19fd6eb0995a80f8b3b4`
+
+说明：本包是生产路径重构（impl layout 从 `composite.ts` 迁到独立 boundary builder，并强制消费
+capture-normalized boundaryPins）。未改 ordinary materializer、default gate、legacy backend、
+capture/call/definition/compositePins 语义。未注入。用户确认通过后已归档；连续重生字节 SHA 仍可能因既有非确定性变化，
+自动证据以 focused structural contract 为准。
+
+## 当前唯一工作包：P4-W7
+
+```text
+工作包：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对
 优先级类别：架构阻塞
-解除的上层阻塞：P4-W2/P4-W3/P4-W4/P4-W5 已分别抽出 capture/call/definition/compositePins；Phase 4 仍要求
-  layout 只消费 normalized graph，不改变节点/pin semantics，且不侵入 ordinary materialization。
-输入与修改范围：审计并隔离 composite virtual anchors / impl layout 配置为 boundary 职责；必要 focused
-  tests 与 Phase 4/STATUS 文档。不改 ordinary materializer、default gate、legacy 删除、注入。
-最小观察或失败基线：layout 仍与 composite.ts / ordinary path 耦合，可能在 boundary 收口后仍改语义或
-  依赖未归一化 graph。
-完成条件：layout 仅消费 normalized graph；node/pin semantics 不变；相关回归不退化；git diff --check
-  通过；若产生生产行为变化则请求用户编辑器/游戏核验。
-实际验证命令：npm run build；P4-W6 focused contract 或 layout/boundary focused tests；git diff --check。
-回滚边界：P4-W6 layout isolation helper/测试与 Phase 4/STATUS 文档；不影响 P4-W2–P4-W5 模块。
-明确非目标：default gate、legacy 删除、真实 GIA/wire 全等、注入、重排为“更好看”的布局。
-后续候选（非当前工作包）：P4 阶段退出核对 / composite.ts orchestration 收口；P5 legacy 删除。
+解除的上层阻塞：P4-W2–P4-W6 已抽出 capture/call/definition/compositePins/layout；Phase 4 仍要求
+  `composite.ts` 只做 orchestration，ordinary lowering 不再嵌 capture/call 分支，并完成阶段退出核对。
+输入与修改范围：审计 `composite.ts` 剩余职责；将仍嵌的 boundary 逻辑收口为 orchestration 或已有 boundary
+  模块；核对 Phase 4 退出条件与 manifest；必要 focused tests 与 STATUS/Phase 4 文档。不改
+  default gate、legacy 删除、注入、布局算法。
+最小观察或失败基线：`composite.ts` 仍承载 ordinary lowering 与部分 boundary 混合逻辑；Phase 4 退出
+  checklist 未全部满足。
+完成条件：orchestration 边界清晰；相关回归不退化；Phase 4 退出条件已核对或明确剩余阻塞；
+git diff --check 通过；若产生生产行为变化则请求用户编辑器/游戏核验。
+实际验证命令：npm run build；P4-W7 focused 或现有 boundary/orchestration 回归；git diff --check。
+回滚边界：P4-W7 orchestration 收口/文档；不影响 P4-W2–P4-W6 模块 contract。
+明确非目标：default gate、legacy 删除、真实 GIA/wire 全等、注入、重写布局算法。
+后续候选（非当前工作包）：P5 legacy 删除；opt-in beta 配置入口。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、
