@@ -66,6 +66,36 @@ signal payload/dynamic pin 或 wire 细节均已验证的证据。
 验证/退出条件：共享 materializer 覆盖 ordinary subgraph 后，按 family/动态规则/真实案例逐步补齐 root/impl executable parity；
 在对应 coverage、真实/编辑器证据和 legacy removal gate 达标前，不默认开启 gate 或删除 handwritten backend。
 
+### ADR-013：主图能力域、证据治理与 backend 提升闸门
+
+状态：Accepted（用户完整计划审查确认，2026-07-14）
+
+问题：如何把“主图可实现的操作应可封装到复合节点”落实为可执行的能力边界、缺口处理、证据分层、阶段退出、beta/default
+切换与 legacy 删除规则，而不退化为逐 API 游戏验收或让 Composite 重获独立 ordinary backend。
+
+决定：
+
+1. 本次硬承诺仅覆盖当前 gsts root compiler 已能编译为 ordinary node 的能力；编辑器可用但 root 尚不支持的能力是独立功能扩展。对前者，root 与 Composite impl 必须共用 resolver、vendor node factory 与 ordinary graph materializer；差异只能经显式 scope/context adapter 表达。
+2. Composite 的增量边界仅包括 definition/call、参数与返回绑定、capture/重定向、`compositePins`、nested 封装及跨调用边界附加路由。inflow/outflow 与布局本身是共享图能力；普通 node/data/flow 不得在 boundary 重写。
+3. “root 已支持而 Composite 不支持”是实现或知识缺口，不是可接受的产品边界。先用最小失败样本按 DSL/IR、共享决策、共享 materialization、boundary、vendor/schema、编辑器/游戏六层归因；若 vendor 本身缺失，在 editor-pack compat 分支以测试补丁，再按有来源 commit 同步。只允许有诊断、测试、TODO 与删除条件的短期**共享**兼容层；禁止 Composite 专属补丁、静默回退或复制 vendor 数据。
+4. 真实语义证据优先级为：用户游戏确认、同版本真实 GIA/可复现实测、迁移不变量与 manifest、当前 root 输出/自动测试、vendor、历史/推测。未验证差异保持显式假设和最小自动契约；仅在阶段退出、beta/default 切换、legacy 删除或代表性游戏回归失败时升级为真实证据阻塞项。
+5. shared backend 先维持实验 gate；P3/P4 完成后另立 opt-in beta 配置/CLI 工作包，环境变量保留内部兼容。默认切换、legacy 删除均为用户明确批准的独立工作包；默认切换后仍保留可回退 legacy 的稳定使用窗口。
+
+证据：用户在完整计划审查中逐项确认。`76478b9` 已提供 vendor compat 补丁 `497d9ec` 同步的先例；它不构成任何未采样节点族或真实游戏行为的证据。
+
+影响：
+
+- P3 退出前建立受控游戏回归 manifest；记录候选目的、命令、gate、路径、SHA-256、观察点、用户结论和注入状态。候选 SHA 改变不得自动继承游戏结论。
+- 代表性游戏回归失败阻塞阶段推进，先建立一个最小修复工作包并重新核验。
+- P5 在删除前审计 root ordinary 能力清单：共享路径、具名共享 adapter/vendor 补丁、boundary、root 未支持能力必须分类；这不是“全部 API 已游戏验证”的声明。
+- 输出差异允许限于可机械证明无语义影响的顺序、布局和容器 index 数值；pin schema、edge、capture/call、`compositePins` 等差异无法解释时阻塞。真实语义或无法机械证明的差异由用户决定。
+- 已满足最小复现、0–6 层最早偏差定位且阻塞 manifest、beta/default 切换或真实用户关键使用的失败，可用一个最小例外修复包抢占阶段顺序；不得扩范围或恢复 Composite 专属 ordinary backend。关键使用仅指无法编译、编辑器拒绝加载、关键运行逻辑错误、数据/控制流错误，或无法以 legacy 回退规避的场景。未复现异常、图的美观或性能猜测只记录为候选。
+- 若真实证据证明 root compiler 本身错误，修复 root 与共享 ordinary 管线，Composite 经共享路径跟随；不得在 Composite 复制或遮掩 root bug。legacy 可保留为比较基线，不得固化已证伪行为。
+- 当前 root 最终可生成并执行的每项能力均属于 Composite 的硬承诺，不能以 root 特例排除。ordinary node/pin/data/flow 必须走共享管线；图容器、事件包装、signal payload、`graphValues`、布局后处理等跨 scope 机制必须提升为共享或显式命名 adapter，不能成为 Composite 专属 ordinary 编码。进入 opt-in beta 前必须完成 root 特例显式化审计，逐项记录能力、归属、root/impl 调用点、自动/游戏证据、临时 adapter 的 vendor 关联与删除条件。
+- signal、dynamic pin/payload、`graphValues`、`affiliations` 等高风险能力可作为已命名、待验证项进入 beta，但必须在特例审计中列明，不得有 Composite 专属 fallback，不得影响 manifest 哨兵；beta 配置/诊断须说明验证状态或限制。任何 manifest 或真实用户失败仍按阻塞规则优先修复。beta 默认允许这些能力生成，但必须给出醒目、可操作的诊断：实际 backend、能力分类、待验证状态、legacy 回退方式与问题报告所需信息；不得静默。默认每次编译汇总一次 backend、触发的高风险分类、共享 adapter/fallback 标识与回退提示；逐节点细节仅在错误或 verbose 调试模式输出。
+
+验证/退出条件：P3/P4 的自动哨兵与 manifest 候选达到编辑器加载和用户确认的可观察执行；beta/default/legacy 的具体闸门见对应 Phase 文档和迁移不变量。
+
 ### ADR-012：框架优先、问题驱动的 ordinary API 迁移
 
 状态：Accepted（用户确认，2026-07-13）

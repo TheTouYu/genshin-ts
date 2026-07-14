@@ -17,8 +17,16 @@
 `documentation-map.md`、`documentation-governance.md`、GIA 工具索引、维护 skill、验证矩阵、
 `work-packages/`、`checkpoints/`、源码、测试或真实 GIA。它们均须在工作包确定后，按本节的触发条件最小化加载。
 
-若 `STATUS.md` 未给出唯一且可执行的工作包（例如只列下一候选、编号/范围/完成条件缺失，或状态与 Git
-history 冲突），恢复报告必须标记该不一致并停止等待用户决定；不得通过预读历史、源码或测试自行推定工作包。
+若 `STATUS.md` 未给出唯一且可执行的工作包（例如只列下一候选、编号/范围/完成条件缺失），恢复报告必须标记该不一致并停止等待用户决定；不得通过预读历史、源码或测试自行推定工作包。
+
+`STATUS.md` 与 Git history 的差异按下列规则处理，避免将可机械修复的提交同步滞后升级为用户决策闸门：
+
+- 若 HEAD 或最近提交的标题、改动范围和验证记录与 STATUS 所列当前工作包一致，且差异仅为“未提交/待审核”、
+  最近提交 SHA 或工作树预期未同步，视为状态文档滞后；代理必须以 Git 提交为事实，自行最小更新 STATUS 和当前
+  Phase 文档，再继续选择 STATUS 已列的下一唯一工作包。
+- 只有提交范围、完成条件、验证/用户核验记录相互矛盾，或无法从提交和当前状态确定唯一后续工作包时，才停止等待
+  用户决定。
+- 不得因为已识别的 STATUS 提交同步滞后，在后续会话重复向用户报告相同的无实质影响差异。
 
 按顺序执行：
 
@@ -77,7 +85,8 @@ refactor/composite-stage3-architecture
 理想工作树是 clean。如果不 clean：
 
 1. 对照 `STATUS.md` 的“进行中/未提交变化”；
-2. 用 `git diff --name-only` 和 `git diff` 判断来源；
+2. 用 `git diff --name-only` 和 `git diff` 判断已追踪变化的来源；若 `git status --short` 含 `??`，额外运行
+   `git ls-files --others --exclude-standard` 并读取每个预期未追踪文件，不能将其视为 diff 中已审查；
 3. 不覆盖、丢弃或重置无法解释的变化；
 4. 若变化不属于当前工作包，停止并询问用户。
 
@@ -117,6 +126,12 @@ comparison 等候选提升为工作包。
 - graph connection 迁移；
 - 大规模文件移动；
 - 布局变化。
+
+**已授权的 P4 批次例外（用户，2026-07-14）**：P4-W1 可包含 B1 capture-only、B2 sparse/optional
+binding、B3 nested call data 与 B4 multi-inflow/outflow 四个 boundary 回归子切片，以一次性集中请求用户游戏
+核验。它仍是一个唯一工作包，且仅限 boundary 观察/契约/候选，不迁移 capture 语义、ordinary lowering、ordinary
+edge、布局或默认 backend。每个子切片必须有独立 focused contract、候选路径/SHA、观察点、游戏结论和回滚边界；
+任何子切片失败只归因和阻塞该子切片，不得以其他子切片的通过外推，也不得顺手扩大修复范围。
 
 发现额外问题时记录到 `STATUS.md` 或 phase 文档，不顺手扩展修复。
 

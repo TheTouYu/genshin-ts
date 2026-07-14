@@ -47,6 +47,8 @@ setter 的 concrete float 差异出发，但目标不是增加一个节点特例
 
 - [work-package-selection.md](work-package-selection.md)：核对 STATUS 中唯一工作包的优先级、上层阻塞与例外分类时。
 - [validation-matrix.md](validation-matrix.md)：确定实际验证命令和字段时。
+- [game-regression-manifest.md](game-regression-manifest.md)：阶段退出、beta/default 切换或 legacy 删除需要候选
+  SHA、观察点和用户游戏结论时。
 - [work-packages/](work-packages/README.md) 与 [checkpoints/](checkpoints/)：需要精确历史命令、失败基线、候选 SHA 或阶段证据时。
 - [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)：用户参与候选/reference/归档时；仅在维护经验时读取
   [维护规则](COLLABORATION-PLAYBOOK-MAINTENANCE.md)。

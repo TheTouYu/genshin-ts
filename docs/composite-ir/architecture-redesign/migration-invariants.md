@@ -57,10 +57,28 @@
 
 - 不手改 `src/definitions/`；需要变化时运行 `npm run gen`。
 - 不手改 `src/thirdparty/`。Vendor gap 在项目 adapter 中记录；如确需 vendor 更新，单独走维护流程。
+- 已确认 vendor schema/生成器缺口时，先在 editor-pack compat 分支以最小测试补丁，再以明确 commit 同步；不得复制 vendor 数据或在 Composite 中做专属补丁。
+- 短期共享 adapter 只可在有诊断、自动回归、TODO、关联 vendor 补丁/同步事项与删除条件时存在；不得静默 fallback。
 - Stage 3 保持为 `IR.d.ts` consumer；不要为了规避 resolution 随意导入生成 definitions。
 - TypeScript 相对导入使用 `.js`，无分号、单引号、100 字符宽。
 
-## 6. 阶段停止条件
+## 6. 失败归因与证据不足
+
+失败按最早偏差依次归类，不能跳过前层直接指责 vendor 或 boundary：
+
+0. 用户 DSL/源程序约束；
+1. root/impl ordinary IR；
+2. 共享 identity/type/pin 决策；
+3. shared node/edge materialization；
+4. Composite boundary（call、capture、binding、`compositePins`、nested/index remap）；
+5. vendor/schema；
+6. 编辑器或游戏行为。
+
+没有真实证据的 root/impl 结构或行为差异只能保留为待验证假设与最小自动契约，并记录适用范围；不改变已验证行为，
+不得宣称等价。只有它阻塞阶段退出、manifest、beta/default 切换、legacy 删除或代表性游戏回归失败时，才升级为必须取得
+真实证据的阻塞项。
+
+## 7. 阶段停止条件
 
 出现任一情况立即停止推广：
 
@@ -81,14 +99,18 @@
 4. 更新 `decision-log.md` 的 rejected/unknown；
 5. 在没有用户确认时不注入。
 
-## 7. Legacy 删除闸门
+## 8. Legacy 删除闸门
 
 只有同时满足以下条件才能删除对应 legacy helper：
 
-- 所有调用者已迁移；
+- shared backend 已默认运行，并完成至少一轮真实项目/使用场景反馈审计；
+- 仍可 opt-out 到 legacy 的稳定回退窗口已经完成；
+- 当前 manifest 的代表性候选已在默认 shared backend 下由用户重新确认可观察执行；
+- 所有调用者已迁移，且 root ordinary 能力清单已分类为共享路径、具名共享 adapter/vendor 补丁、boundary 或 root 未支持能力；
 - 新路径有 root/impl parity；
 - 至少有一个真实 GIA 对照或明确 vendor schema 证据；
 - focused tests 覆盖 literal 与 connection；
-- 不再有兼容 fallback 依赖该 helper；
+- 不再有兼容 fallback、未解释 vendor gap 或仍依赖 legacy 的 ordinary family；
 - `rg` 证明无普通节点调用；
-- 删除后 build、focused regressions、`git diff --check` 通过。
+- 删除后 build、完整自动回归、代表性游戏回归和 `git diff --check` 通过；
+- 历史测试、manifest 条目、失败样本和决策记录保留。
