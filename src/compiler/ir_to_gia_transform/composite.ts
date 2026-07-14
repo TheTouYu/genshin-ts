@@ -1,7 +1,6 @@
 // @ts-nocheck thirdparty
 import type { CompositeDefIR } from '../../runtime/IR.js'
 import {
-  CompositeDef_Type_Kind,
   GraphUnit_Id_Class,
   GraphUnit_Id_Type,
   GraphUnit_Which,
@@ -15,8 +14,7 @@ import {
   type GraphUnit,
   type GraphNode,
   type NodePin,
-  type NodeGraph,
-  type CompositeDef
+  type NodeGraph
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { Graph, Node } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
@@ -33,6 +31,7 @@ import {
   isCompositeCallNode,
   resolveCompositeCallIdentity
 } from './lower_composite_call.js'
+import { buildCompositeDefinitionInterface } from './build_composite_definition.js'
 import {
   resolveNodeIdentity,
   usesSharedScalarSameTypeBinaryResolution,
@@ -47,8 +46,6 @@ export function buildCompositeAccessories(
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphUnit[] {
   const accessories: GraphUnit[] = []
-
-  const implGraphId = def.id + 10000
 
   // Capture normalization is a pure boundary step: filter IR capture placeholders,
   // drop capture-source edges, redirect InFlow routes, and fix nodeIndex mapping
@@ -74,82 +71,11 @@ export function buildCompositeAccessories(
 
   const implNodes = buildImplGraphNodes(implNodesForEncoding, nodeIndexMap, filteredEdges, implOutParamMap, def.implVariables, def, compositeDefById)
 
-  // 1. CompositeDef（定义 + 接口）—— 在 impl graph 之前，匹配参考顺序
-  const compositeDef: CompositeDef = {
-    id: {
-      genericId: {
-        class: NodeGraph_Id_Class.SystemDefined,
-        type: NodeProperty_Type.Server,
-        kind: NodeGraph_Id_Kind.SysGraph,
-        id: def.id
-      },
-      concreteId: {
-        class: NodeGraph_Id_Class.SystemDefined,
-        type: NodeProperty_Type.Server,
-        kind: NodeGraph_Id_Kind.SysGraph,
-        id: def.id
-      },
-      graphId: {
-        class: NodeGraph_Id_Class.UserDefined,
-        type: NodeGraph_Id_Type.BasicNode,
-        kind: NodeGraph_Id_Kind.CompositeGraph,
-        id: implGraphId
-      }
-    },
-    inflows: def.inflows.map((flow) => ({
-      name: flow.name,
-      visible: flow.visible,
-      index: { kind: NodePin_Index_Kind.InFlow, index: flow.index },
-      description: '',
-      pinIndex: flow.pinIndex
-    })),
-    outflows: def.outflows.map((flow) => ({
-      name: flow.name,
-      visible: flow.visible,
-      index: { kind: NodePin_Index_Kind.OutFlow, index: flow.index },
-      description: '',
-      pinIndex: flow.pinIndex
-    })),
-    inputs: def.inputs.map((param) => ({
-      name: param.name,
-      visible: param.visible,
-      index: { kind: NodePin_Index_Kind.InParam, index: param.index },
-      type: compositeParameterType(param.type as string),
-      pinIndex: param.pinIndex
-    })),
-    outputs: def.outputs.map((param) => ({
-      name: param.name,
-      visible: param.visible,
-      index: { kind: NodePin_Index_Kind.OutParam, index: param.index },
-      type: compositeParameterType(param.type as string),
-      pinIndex: param.pinIndex
-    })),
-    type: {
-      kind: CompositeDef_Type_Kind.Composite
-    },
-    name: def.name,
-    description: '',
-    xxx: 6
-  }
-
-  const defGraphUnit: GraphUnit = {
-    id: {
-      class: GraphUnit_Id_Class.AffiliatedNode,
-      type: GraphUnit_Id_Type.ServerGraph,
-      id: def.id
-    },
-    relatedIds: [
-      { class: GraphUnit_Id_Class.Basic, type: 0, id: implGraphId }
-    ],
-    name: def.name,
-    which: GraphUnit_Which.CompositeGraph,
-    compositeDef: {
-      inner: {
-        def: compositeDef
-      }
-    }
-  }
-  accessories.push(defGraphUnit)
+  // 1. CompositeDef interface (definition + ParameterFlow/ControlFlow + impl relation).
+  // Owned by build_composite_definition.ts; accessories still emit definition before impl.
+  const definitionInterface = buildCompositeDefinitionInterface({ def })
+  const implGraphId = definitionInterface.implGraphId
+  accessories.push(definitionInterface.definitionGraphUnit)
 
   // Synthetic call lowerer owns child id extraction for relatedIds (ADR-009).
   const calledCompositeIds = compositeDefById
@@ -1571,62 +1497,5 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
     i2: { kind, index: pinIndex },
     value: pinValue as any,
     type: varType
-  }
-}
-
-// ============== 类型映射辅助 ==============
-
-function compositeParameterType(type: string) {
-  const typeId = typeIdFromValueType(type)
-  return {
-    class: typeClassFromValueType(type),
-    type1: typeId,
-    type2: typeId,
-    ...(type === 'bool' ? { enumId: { val: 1 } } : {}),
-    valueId: null
-  }
-}
-
-function typeClassFromValueType(type: string): number {
-  switch (type) {
-    case 'int': return VarBase_Class.IntBase
-    case 'float': return VarBase_Class.FloatBase
-    case 'bool': return VarBase_Class.EnumBase
-    case 'str': return VarBase_Class.StringBase
-    case 'vec3': return VarBase_Class.VectorBase
-    case 'entity':
-    case 'guid':
-    case 'faction':
-    case 'prefab_id':
-    case 'config_id':
-      return VarBase_Class.IdBase
-    default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return typeClassFromValueType(elementType)
-      }
-      return 0
-  }
-}
-
-function typeIdFromValueType(type: string): number {
-  switch (type) {
-    case 'bool': return VarType.Boolean
-    case 'int': return VarType.Integer
-    case 'float': return VarType.Float
-    case 'str': return VarType.String
-    case 'vec3': return VarType.Vector
-    case 'local_variable': return VarType.LocalVariable
-    case 'guid': return VarType.GUID
-    case 'entity': return VarType.Entity
-    case 'prefab_id': return VarType.Prefab
-    case 'config_id': return VarType.Configuration
-    case 'faction': return VarType.Faction
-    default:
-      if (type.endsWith('_list')) {
-        const elementType = type.slice(0, -5)
-        return typeIdFromValueType(elementType)
-      }
-      return 0
   }
 }

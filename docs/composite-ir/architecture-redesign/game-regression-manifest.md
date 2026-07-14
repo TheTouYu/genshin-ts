@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2 / P4-W3 用户核验
+> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2 / P4-W3 / P4-W4 用户核验
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-14
 > 适用范围：Phase 3、Phase 4、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -38,6 +38,88 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+以下五份 P4-W4 候选于 2026-07-14 生成，自动 contract 与 boundary 回归通过，均未注入。用户于 2026-07-14
+确认编辑器加载和可观察执行通过，并归档到 `真-测试通过/复合节点`。它们验证 definition interface builder
+抽取后生产路径不退化；连续重生字节 SHA 可能因既有非确定性变化，用户结论绑定下列核验时 SHA。
+
+### P4-W4-bool-definition
+
+- 工作包/阶段：P4-W4 / Phase 4 definition interface builder 独立抽取。
+- 目的与覆盖风险：CompositeDef ParameterFlow 的 bool `enumId.val=1`、int 不带 enumId、pinIndex 与
+  definition GraphUnit/impl graphId relation 在独立 builder 接入后不退化。
+- 自动证据：`test-stage3-p4w4-definition-interface-contract.ts`、`test-composite-bool-input-gia.ts`，PASS。
+- 生成命令：`npx tsx tests/composite/test-composite-bool-input-gia.ts`（产物复制为候选名）。
+- backend/gate：default handwritten impl；本候选重点是 CompositeDef 接口编码，不依赖 vendor gate。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W4-bool-definition-vendor.gia`
+- SHA-256：`fc56d8c9cdb8af62bfc83584a1e186bee3443ff9d4429ec77241000bd262a1fa`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；观察 bool 接口控件与类型显示，不要求该 fixture
+  的 return-only 输出参数具备完整内部实现图。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 definition interface builder + bool/int ParameterFlow；不证明完整
+  OutParam 内部路由实现或全部 enum 类型。
+
+### P4-W4-multi-inflow-outflow
+
+- 工作包/阶段：P4-W4 / Phase 4 definition interface builder 独立抽取。
+- 目的与覆盖风险：多 InFlow/OutFlow 的 ControlFlow 接口与 pinIndex 在独立 builder 接入后不退化。
+- 自动证据：P4-W4 contract、P4-W1 B4 legacy/vendor，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W4-multi-inflow-outflow-vendor.gia`
+- SHA-256：`580e5f1ae0df4ac5abe2fee22c255e7800a088f1bea25e46689faf1e585f980f`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 multi flow interface + definition builder；不证明任意数量 flow。
+
+### P4-W4-nested-sparse
+
+- 工作包/阶段：P4-W4 / Phase 4 definition interface builder 独立抽取。
+- 目的与覆盖风险：nested sparse binding 与 child definition pinIndex 在 definition builder 抽取后不退化。
+- 自动证据：P4-W4 contract、P2-W12 legacy/vendor、sparse/optional contracts，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W4-nested-sparse-vendor.gia`
+- SHA-256：`8314a4a4454b8503906a582762d29ad2befd683941436b8878a89592c17efeda`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested sparse presence 组合 + definition builder；不证明全部 optional 类型。
+
+### P4-W4-nested-capture
+
+- 工作包/阶段：P4-W4 / Phase 4 definition interface builder 独立抽取。
+- 目的与覆盖风险：nested capture route 与 definition interface 共存时不退化。
+- 自动证据：P4-W4 contract、P2-W11 legacy/vendor、nested capture pins，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W4-nested-capture-vendor.gia`
+- SHA-256：`de770f551e69d6197b6d65d9cc8b58e9ccc0856f4d4335e284dfe4cf4ab15ff6`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested capture + definition builder；不证明全部 capture family。
+
+### P4-W4-nested-call
+
+- 工作包/阶段：P4-W4 / Phase 4 definition interface builder 独立抽取。
+- 目的与覆盖风险：nested call flow sentinel 在 definition builder 抽取后不退化。
+- 自动证据：P4-W4 contract、P2-W9 legacy/vendor、nested outflow，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P4W4-nested-call-vendor.gia`
+- SHA-256：`75b9c29ab143684dae034a88f1ea3536598633543b463d49978f381898272ca1`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested call flow + definition builder；不证明 nested data 全族。
 
 以下四份 P4-W3 候选于 2026-07-14 以 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 生成，自动契约与 B2/B3/B4/nested
 call 回归通过，均未注入。用户于 2026-07-14 确认四份候选均通过编辑器加载和可观察执行，并归档到
