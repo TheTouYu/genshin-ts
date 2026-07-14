@@ -40,6 +40,7 @@ import {
   usesSharedVariantResolution
 } from './resolved_node.js'
 import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
+import { ROOT_ORDINARY_CAPABILITY_CONTRACT } from './root_ordinary_capability_inventory.js'
 import {
   STAGE3_BACKEND_CONTRACT,
   isSharedVendorImplGraphEnabled
@@ -87,7 +88,9 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   /** P5-W1: inventory/assert surface; does not delete legacy backend. */
   legacyInventory: COMPOSITE_LEGACY_INVENTORY_CONTRACT,
   /** P5-W2: formal opt-in beta surface; default remains handwritten. */
-  stage3Backend: STAGE3_BACKEND_CONTRACT
+  stage3Backend: STAGE3_BACKEND_CONTRACT,
+  /** P5-W3: root ordinary capability inventory; does not flip default or delete legacy. */
+  rootOrdinaryCapabilities: ROOT_ORDINARY_CAPABILITY_CONTRACT
 } as const
 
 export {
@@ -96,6 +99,27 @@ export {
   listLegacyOrdinaryHelperSymbols,
   findLegacyOrdinaryCallSite
 } from './legacy_ordinary_inventory.js'
+
+export {
+  ROOT_ORDINARY_CAPABILITY_CONTRACT,
+  ROOT_ORDINARY_CAPABILITIES,
+  ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
+  ROOT_SHARED_VARIABLE_NODE_TYPES,
+  ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES,
+  ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
+  ROOT_NAMED_TYPED_IDENTITY_ADAPTER_NODE_TYPES,
+  ROOT_HIGH_RISK_PENDING_FAMILIES,
+  listRootOrdinaryCapabilityIds,
+  listRootOrdinaryCapabilitiesByCategory,
+  findRootOrdinaryCapability,
+  assertSharedVariantInventoryConsistency
+} from './root_ordinary_capability_inventory.js'
+export type {
+  RootOrdinaryCapabilityCategory,
+  RootOrdinaryCapabilityLayer,
+  RootOrdinaryEvidenceClass,
+  RootOrdinaryCapability
+} from './root_ordinary_capability_inventory.js'
 
 export {
   STAGE3_BACKEND_CONTRACT,

@@ -13,12 +13,12 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W2 已完成并提交；用户编辑器核验通过）
-当前唯一工作包：P5-W3 — root ordinary 能力清单与例外审计（不删 legacy、不改 default gate）
-最近已提交工作包：P5-W2 — opt-in beta 配置入口
+当前 Phase：Phase 5 进行中（P5-W2/P5-W3 已完成并提交；用户编辑器核验通过）
+当前唯一工作包：P5-W4 — 删除空的 legacy typed-identity adapter（不改 default gate）
+最近已提交工作包：P5-W3 — root ordinary 能力清单与例外审计；P5-W2 — opt-in beta 配置入口
 更早已提交：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
 更早已提交：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
-工作树预期：clean（P5-W2 已提交；.gia 候选不入库）
+工作树预期：clean（P5-W2/P5-W3 已提交；.gia 候选不入库）
 默认 backend：handwritten impl backend
 opt-in beta：options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1
 ```
@@ -532,23 +532,89 @@ node dist/src/cli/gsts.js --help   # 可见 --stage3-shared-impl-beta
 开启 beta 后走既有 shared vendor path；候选用于确认“正式入口启用后的 shared backend”仍可编辑器加载。
 连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused contract 为准。
 
-## 当前唯一工作包：P5-W3
+## 最近完成（已提交）：P5-W3
+
+P5-W3 建立可机读/可测的 root ordinary 能力清单与例外审计；不删除 legacy；不改 default gate；
+未注入；本包不生成新游戏候选（仅审计）。用户编辑器核验以同批 P5-W2 候选通过为准。
+
+交付：
 
 ```text
-工作包：P5-W3 — root ordinary 能力清单与例外审计
+src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts
+  ROOT_ORDINARY_CAPABILITY_CONTRACT
+  ROOT_ORDINARY_CAPABILITIES（19 项：6 shared-path / 8 named-shared-adapter / 3 boundary / 2 root-unsupported）
+  shared variant 表、pin-hole / special-arg / typed-identity adapter 表
+  high-risk pending families（与 P5-W2 同源）
+
+src/compiler/ir_to_gia_transform/composite.ts
+  COMPOSITE_ORCHESTRATION_CONTRACT.rootOrdinaryCapabilities
+  re-export inventory helpers
+
+tests/composite/test-stage3-p5w3-root-ordinary-capability-inventory.ts
+```
+
+分类摘要（ADR-013）：
+
+```text
+shared-path:
+  generic vendor factory、ordinary edges、generic literals、variable identity、DTC、same-type scalar binary
+named-shared-adapter:
+  SPECIAL_NODE_IDS/MAPPINGS、mode-specific identity、root typed-identity、pin-hole layouts、
+  special-arg layouts（signal/assembly/multiple_branches）、graphValues、affiliations
+boundary:
+  __composite_call__、__composite_capture__、definition/pins/layout overlay
+root-unsupported:
+  enum signal parameters；heterogeneous arithmetic/comparison（不声称已支持）
+```
+
+已证明（自动）：
+
+- 每项能力已分类；shared/adapter 必须命名共享路径；boundary 不得声称 ordinary shared path；
+- shared variant 表与 `usesSharedVariantResolution` 一致；
+- root pin-hole / special-arg / typed-identity adapter 在 `index.ts` / `node_id.ts` 仍有活表面；
+- high-risk pending 与 P5-W2 diagnostics 同源；
+- default gate 仍为 false；legacy backend 仍存在；
+- P5-W1 / P5-W2 / P4-W7 / resolved-node contract 未破坏。
+
+未证明 / 非目标：
+
+- 不是全 API 游戏验证声明；
+- 未删除任何 legacy helper；未默认开启 vendor gate；
+- 无新游戏候选、未注入、无真实 GIA/wire 结论；
+- root named adapter 尚未提升为独立共享模块（仅审计记录）。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w3-root-ordinary-capability-inventory.ts
+npx tsx tests/composite/test-stage3-p5w2-beta-config-contract.ts
+npx tsx tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+git diff --check
+```
+
+说明：P5-W3 是审计/清单包，不改 ordinary materializer 业务语义。用户编辑器核验以同批 P5-W2 候选通过为准（见上节）。
+
+## 当前唯一工作包：P5-W4
+
+```text
+工作包：P5-W4 — 删除空的 legacy typed-identity adapter
 优先级类别：架构阻塞
-解除的上层阻塞：opt-in beta 入口已就位；删除 legacy / 切换 default 前必须完成 root ordinary 能力清单，
-  将每项分类为共享路径、具名共享 adapter/vendor 补丁、boundary 或 root 未支持能力（ADR-013）。
-输入与修改范围：从当前 root compiler 实际可生成的 ordinary node/API 出发建立能力清单模块/文档与 focused
-  contract；更新 STATUS/Phase 5。不删除 legacy，不改 default，不注入。
-最小观察或失败基线：无系统化 root ordinary 能力清单；无法审计 Composite 是否仍依赖专属 ordinary fallback。
-完成条件：存在可机读/可测的 root ordinary 能力清单；每项已分类；focused 自动检查通过；git diff --check
-  通过。若产生可执行候选则请求用户编辑器核验。
-实际验证命令：npm run build；P5-W3 focused inventory contract；抽样 sentinel；git diff --check。
-回滚边界：P5-W3 清单/审计；不影响 beta 配置与 P4 boundary contract。
-明确非目标：删除 legacy backend、默认开启 vendor gate、注入、改 capture/call/layout 语义。
-后续候选（非当前工作包）：legacy 分项删除；default 切换（须用户批准）。
-用户闸门：若触及 default gate / legacy 删除 / 注入，必须停止。
+解除的上层阻塞：root 能力清单已就位；`LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES` 已为空，
+  可先删除无调用者的 typed-identity adapter 表面，不触及 default gate 与 handwritten pin/materialize 主路径。
+输入与修改范围：`composite.ts` 中 `usesLegacyImplTypedIdentityAdapter` /
+  `resolveLegacyImplTypedNodeId` / `LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES` 及其 inventory/测试引用；
+  更新 STATUS/Phase 5。不改 default，不删除 handwritten pin/materialize，不注入。
+最小观察或失败基线：adapter set 已空但 helper/调用仍存在，阻碍后续分项删除。
+完成条件：空 adapter 表面删除或收口为 no-op 删除闸门；inventory 更新；focused 自动通过；
+  git diff --check 通过。若产生可执行候选则请求用户编辑器核验。
+实际验证命令：npm run build；P5-W4 focused；P5-W1/W3 与相关 sentinel；git diff --check。
+回滚边界：仅 typed-identity adapter 表面；不触及 default gate / vendor materialize / boundary。
+明确非目标：默认开启 vendor gate、删除 handwritten pin/materialize 主路径、注入、改 capture/call/layout。
+后续候选（非当前工作包）：共享 pin-hole adapter 提升；handwritten pin/materialize 分项删除；default 切换（须用户批准）。
+用户闸门：若触及 default gate / 主路径 legacy 删除 / 注入，必须停止。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

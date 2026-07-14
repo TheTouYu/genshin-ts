@@ -1,9 +1,9 @@
 # Phase 5：删除 Legacy Backend 与架构硬化
 
-> 状态：进行中；P5-W1/P5-W2 已完成并提交（P5-W2 用户核验通过，2026-07-14）
-> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1/P5-W2 源码观察
+> 状态：进行中；P5-W1/P5-W2/P5-W3 已完成并提交（P5-W2 用户核验通过，2026-07-14）
+> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1/P5-W2/P5-W3 源码观察
 > 最近校验：2026-07-14
-> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W3`
+> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W4`
 
 ## 目标
 
@@ -43,6 +43,10 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
 
 ### 5.2 Root ordinary 能力清单与例外审计
 
+- [x] P5-W3：可机读能力清单 `root_ordinary_capability_inventory.ts`（19 项已分类：
+  shared-path / named-shared-adapter / boundary / root-unsupported）；focused contract 通过；
+  不构成全 API 游戏验证声明。
+
 从当前 root compiler 实际可生成的 ordinary node/API 出发，建立并审计能力清单。每项必须分类为：
 
 - shared resolver → vendor factory → shared materializer 默认路径；
@@ -51,7 +55,8 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
 - 编辑器可用但当前 root 尚未支持的独立功能扩展。
 
 清单是删除 legacy 的架构覆盖审计，不是“所有 API 已游戏验证”的声明。基础 scalar、vec3、entity/guid/config/prefab/faction
-和 list/dict 仍按 vendor family、实际失败与真实证据分批处理。
+和 list/dict 仍按 vendor family、实际失败与真实证据分批处理。后续分项删除以清单中的
+`compositeLegacyRisk` / named adapter 行为准。
 
 ### 5.3 性能与确定性
 
@@ -98,7 +103,8 @@ git diff --check
 - [ ] 全部 focused + project tests 通过；
 - [ ] 当前权威文档反映新实现；
 - [ ] remaining unsupported families 明确列出，不隐藏；
-- [ ] 当前 root ordinary 能力清单和全部共享 adapter/vendor gap 已审计，未保留 Composite 专属 ordinary backend；
+- [x] 当前 root ordinary 能力清单已建立并分类（P5-W3；自动审计，非全 API 游戏验证）；
+- [ ] 全部共享 adapter/vendor gap 已收敛或具名删除条件满足，未保留 Composite 专属 ordinary backend；
 - [x] opt-in beta 配置/CLI/诊断入口已建立（P5-W2；默认仍 handwritten）；
 - [ ] shared backend 默认切换前已完成可回退稳定使用窗口和用户明确批准。
 
