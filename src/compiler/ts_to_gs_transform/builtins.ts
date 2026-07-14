@@ -1,5 +1,6 @@
 import ts from 'typescript'
 
+import { CLIENT_MATH_METHODS_BY_SUB_TYPE } from '../../definitions/client_math.js'
 import { fail } from './errors.js'
 import {
   inferListElementTypeFromExpression,
@@ -107,14 +108,34 @@ function inferNumericKind(env: Env, expr: ts.Expression): NumericKind {
   return getNumericKind(env, t)
 }
 
+function makeTypeConversion(
+  env: Env,
+  value: ts.Expression,
+  type: 'bool' | 'float' | 'str',
+  source?: ts.Expression
+): ts.Expression {
+  if (env.graphDocumentType === 'client') {
+    const isSamePrimitiveType = (sourceType: ts.Type): boolean => {
+      if (sourceType.isUnionOrIntersection()) {
+        return sourceType.types.every(isSamePrimitiveType)
+      }
+      const base = env.checker.getBaseTypeOfLiteralType(sourceType)
+      if (type === 'float') return (base.flags & ts.TypeFlags.NumberLike) !== 0
+      if (type === 'str') return (base.flags & ts.TypeFlags.StringLike) !== 0
+      return (base.flags & ts.TypeFlags.BooleanLike) !== 0
+    }
+    if (source && isSamePrimitiveType(env.checker.getTypeAtLocation(source))) return value
+    return makeFCall(env, 'dataTypeConversion', [value, ts.factory.createStringLiteral(type)])
+  }
+  return ts.factory.createCallExpression(ts.factory.createIdentifier(type), undefined, [value])
+}
+
 function coerceFloatArg(env: Env, spec: MathCallTransform, arg: ts.Expression): ts.Expression {
   const kind = inferNumericKind(env, arg)
   if (kind === 'float') return spec.transformExpression(env, spec.context, arg)
   if (kind === 'int' || kind === 'mixed') {
     const valueExpr = spec.transformExpression(env, spec.context, arg)
-    return ts.factory.createCallExpression(ts.factory.createIdentifier('float'), undefined, [
-      valueExpr
-    ])
+    return makeTypeConversion(env, valueExpr, 'float')
   }
   const raw = env.checker.typeToString(env.checker.getTypeAtLocation(arg))
   fail(env, arg, `Math argument must be a number (${raw})`)
@@ -135,6 +156,18 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
   const method = callee.name.text
   const args = [...spec.expr.arguments]
   const tempId = env.tempCounter++
+
+  if (env.graphDocumentType === 'client' && env.clientSubType) {
+    const available = CLIENT_MATH_METHODS_BY_SUB_TYPE[env.clientSubType]
+    if (!(available as readonly string[]).includes(method)) {
+      const availableText = available.map((name) => `Math.${name}`).join(', ')
+      fail(
+        env,
+        callee.name,
+        `Math.${method} is not supported in client graph ${env.clientSubType}; available methods: ${availableText}`
+      )
+    }
+  }
 
   const expectArgs = (count: number, label: string) => {
     if (args.length !== count) {
@@ -522,6 +555,9 @@ export function tryTransformBuiltinCall(
   if (ts.isPropertyAccessExpression(callee)) {
     if (ts.isIdentifier(callee.expression) && callee.expression.text === 'console') {
       if (callee.name.text === 'log') {
+        if (env.graphDocumentType === 'client') {
+          fail(env, expr, `console.log is not available in client graph ${env.clientSubType}`)
+        }
         // Compiler-only rewrite: keep runtime console/Number/String/Boolean intact for JS usage.
         if (expr.arguments.length !== 1) {
           fail(env, expr, 'console.log only supports a single argument')
@@ -566,30 +602,21 @@ export function tryTransformBuiltinCall(
         fail(env, expr, 'Number() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        ts.factory.createCallExpression(ts.factory.createIdentifier('float'), undefined, [argExpr]),
-        expr
-      )
+      return withSameRange(makeTypeConversion(env, argExpr, 'float', expr.arguments[0]), expr)
     }
     if (callee.text === 'String') {
       if (expr.arguments.length !== 1) {
         fail(env, expr, 'String() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        ts.factory.createCallExpression(ts.factory.createIdentifier('str'), undefined, [argExpr]),
-        expr
-      )
+      return withSameRange(makeTypeConversion(env, argExpr, 'str', expr.arguments[0]), expr)
     }
     if (callee.text === 'Boolean') {
       if (expr.arguments.length !== 1) {
         fail(env, expr, 'Boolean() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        ts.factory.createCallExpression(ts.factory.createIdentifier('bool'), undefined, [argExpr]),
-        expr
-      )
+      return withSameRange(makeTypeConversion(env, argExpr, 'bool', expr.arguments[0]), expr)
     }
   }
 

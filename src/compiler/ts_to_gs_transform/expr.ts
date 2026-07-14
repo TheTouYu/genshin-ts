@@ -7,7 +7,7 @@ import { isEntityLikeType } from '../../shared/ts_type_utils.js'
 import { tryTransformBuiltinCall, tryTransformBuiltinPropertyAccess } from './builtins.js'
 import { fail, warn } from './errors.js'
 import { tryTransformListMethodCall } from './list_methods.js'
-import { isFMethodCall } from './matcher.js'
+import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   inferArrayListType,
   inferConcreteTypeFromString,
@@ -24,7 +24,7 @@ import {
 } from './ops.js'
 import { transformHandler } from './stmt.js'
 import type { Env, TimerCaptureInfo, TimerHandleMeta, VarPlanEntry } from './types.js'
-import { makeFCall, withSameRange } from './utils.js'
+import { assertClientFMethodAvailable, makeFCall, withSameRange } from './utils.js'
 
 type NumericKind = 'float' | 'int' | 'mixed' | 'unknown'
 type LocalVarType = ListType | `${ListType}_list`
@@ -223,11 +223,17 @@ function isLoopIndexIdentifier(env: Env, expr: ts.Expression): expr is ts.Identi
   return env.loopIndexSymbols?.has(sym) ?? false
 }
 
-function wrapWithFloat(expr: ts.Expression): ts.Expression {
+function wrapWithFloat(env: Env, expr: ts.Expression): ts.Expression {
+  if (env.graphDocumentType === 'client') {
+    return makeFCall(env, 'dataTypeConversion', [expr, ts.factory.createStringLiteral('float')])
+  }
   return ts.factory.createCallExpression(ts.factory.createIdentifier('float'), undefined, [expr])
 }
 
-function wrapWithInt(expr: ts.Expression): ts.Expression {
+function wrapWithInt(env: Env, expr: ts.Expression): ts.Expression {
+  if (env.graphDocumentType === 'client') {
+    return expr
+  }
   return ts.factory.createCallExpression(ts.factory.createIdentifier('int'), undefined, [expr])
 }
 
@@ -1484,6 +1490,11 @@ export function transformExpression(
     return expr
   }
 
+  if (ts.isCallExpression(expr) && env.graphDocumentType === 'client') {
+    const fCall = getFMethodCall(env, expr)
+    if (fCall) assertClientFMethodAvailable(env, fCall.method, fCall.callee.name)
+  }
+
   const timerKind = ts.isCallExpression(expr) ? getTimerKind(expr) : null
   if (timerKind && ts.isCallExpression(expr)) {
     return transformTimerCall(env, context, expr, timerKind)
@@ -1659,7 +1670,7 @@ export function transformExpression(
     const shadowedNames = env.shadowedNames
     if (shadowedNames && shadowedNames.has(name)) {
       if (shouldWrapLoopIndexByContext(env, expr)) {
-        return withSameRange(wrapWithFloat(expr), expr)
+        return withSameRange(wrapWithFloat(env, expr), expr)
       }
       return expr
     }
@@ -1670,7 +1681,7 @@ export function transformExpression(
         return withSameRange(ts.factory.createPropertyAccessExpression(expr, 'value'), expr)
       }
       if (shouldWrapLoopIndexByContext(env, expr)) {
-        return withSameRange(wrapWithFloat(expr), expr)
+        return withSameRange(wrapWithFloat(env, expr), expr)
       }
       return expr
     }
@@ -1682,7 +1693,7 @@ export function transformExpression(
           return withSameRange(ts.factory.createPropertyAccessExpression(expr, 'value'), expr)
         }
         if (shouldWrapLoopIndexByContext(env, expr)) {
-          return withSameRange(wrapWithFloat(expr), expr)
+          return withSameRange(wrapWithFloat(env, expr), expr)
         }
         return expr
       }
@@ -1700,7 +1711,7 @@ export function transformExpression(
       return withSameRange(ts.factory.createPropertyAccessExpression(expr, 'value'), expr)
     }
     if (shouldWrapLoopIndexByContext(env, expr)) {
-      return withSameRange(wrapWithFloat(expr), expr)
+      return withSameRange(wrapWithFloat(env, expr), expr)
     }
     return expr
   }
@@ -1755,8 +1766,60 @@ export function transformExpression(
   if (ts.isConditionalExpression(expr)) {
     const resultType = inferConditionalResultType(env, expr)
     const cond = transformExpression(env, context, expr.condition)
-    const whenTrue = transformExpression(env, context, expr.whenTrue)
-    const whenFalse = transformExpression(env, context, expr.whenFalse)
+    let whenTrue = transformExpression(env, context, expr.whenTrue)
+    let whenFalse = transformExpression(env, context, expr.whenFalse)
+
+    if (
+      env.graphDocumentType === 'client' &&
+      (env.clientSubType === 'bool_filter' || env.clientSubType === 'int_filter')
+    ) {
+      const notCond = makeFCall(env, 'logicalNotOperation', [cond])
+      if (env.clientSubType === 'bool_filter') {
+        if (resultType !== 'bool') {
+          fail(env, expr, 'client bool filter conditional branches must return boolean values')
+        }
+        return makeFCall(env, 'logicalOrOperation', [
+          makeFCall(env, 'logicalAndOperation', [cond, whenTrue]),
+          makeFCall(env, 'logicalAndOperation', [notCond, whenFalse])
+        ])
+      }
+      if (resultType !== 'int' && resultType !== 'float') {
+        fail(env, expr, 'client int filter conditional branches must return numeric values')
+      }
+      const normalizeIntReturn = resultType === 'float' && env.clientHandler
+      if (normalizeIntReturn) {
+        whenTrue = makeFCall(env, 'dataTypeConversion', [
+          whenTrue,
+          ts.factory.createStringLiteral('int')
+        ])
+        whenFalse = makeFCall(env, 'dataTypeConversion', [
+          whenFalse,
+          ts.factory.createStringLiteral('int')
+        ])
+      }
+      let trueWeight = makeFCall(env, 'dataTypeConversion', [
+        cond,
+        ts.factory.createStringLiteral('int')
+      ])
+      let falseWeight = makeFCall(env, 'dataTypeConversion', [
+        notCond,
+        ts.factory.createStringLiteral('int')
+      ])
+      if (resultType === 'float' && !normalizeIntReturn) {
+        trueWeight = makeFCall(env, 'dataTypeConversion', [
+          trueWeight,
+          ts.factory.createStringLiteral('float')
+        ])
+        falseWeight = makeFCall(env, 'dataTypeConversion', [
+          falseWeight,
+          ts.factory.createStringLiteral('float')
+        ])
+      }
+      return makeFCall(env, 'addition', [
+        makeFCall(env, 'multiplication', [trueWeight, whenTrue]),
+        makeFCall(env, 'multiplication', [falseWeight, whenFalse])
+      ])
+    }
 
     const tmpName = `__gsts_ternary_${env.tempCounter++}`
     const tmpId = ts.factory.createIdentifier(tmpName)
@@ -1933,7 +1996,7 @@ export function transformExpression(
       let rhs = transformExpression(env, context, expr.right)
       const leftType = env.checker.getTypeAtLocation(leftId)
       if (getNumericKind(env, leftType) === 'float' && isLoopIndexIdentifier(env, expr.right)) {
-        rhs = wrapWithFloat(rhs)
+        rhs = wrapWithFloat(env, rhs)
       }
       const timerMeta = extractTimerHandleMeta(rhs)
       if (timerMeta) {
@@ -2068,22 +2131,22 @@ export function transformExpression(
         const rightIsLoop = isLoopIndexIdentifier(env, expr.right)
         if (op === ts.SyntaxKind.PercentToken) {
           if (leftIsLoop) {
-            left = wrapWithInt(left)
+            left = wrapWithInt(env, left)
           }
           if (rightIsLoop) {
-            right = wrapWithInt(right)
+            right = wrapWithInt(env, right)
           }
         } else {
           if (leftIsLoop) {
             const otherKind = getNumericKind(env, env.checker.getTypeAtLocation(expr.right))
             if (otherKind === 'float') {
-              left = wrapWithFloat(left)
+              left = wrapWithFloat(env, left)
             }
           }
           if (rightIsLoop) {
             const otherKind = getNumericKind(env, env.checker.getTypeAtLocation(expr.left))
             if (otherKind === 'float') {
-              right = wrapWithFloat(right)
+              right = wrapWithFloat(env, right)
             }
           }
         }

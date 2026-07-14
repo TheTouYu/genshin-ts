@@ -1,6 +1,7 @@
 import type ts from 'typescript'
 
 import type { DictValueType } from '../../runtime/value.js'
+import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import type { GstsConfig, GstsFeatureFlags } from '../gsts_config.js'
 
 export type TransformCtx = {
@@ -55,6 +56,11 @@ export type Env = {
    * Whether current transform is inside server ctx (g.server().on / gstsServer*)
    */
   serverCtx?: boolean
+  graphDocumentType?: 'server' | 'client'
+  clientSubType?: ClientGraphSubType
+  clientMode?: 'beyond' | 'classic'
+  /** Distinguishes final client handler returns from reusable client function returns. */
+  clientHandler?: boolean
   /**
    * Return handling mode for current function body.
    */

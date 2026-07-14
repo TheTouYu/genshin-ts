@@ -7,6 +7,7 @@ import builtinMathSupport from '../../src/eslint/rules/builtin-math-support.js'
 import clientFilterReturn from '../../src/eslint/rules/client-filter-return.js'
 import clientGraphScopedF from '../../src/eslint/rules/client-graph-scoped-f.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
+import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
 import noJson from '../../src/eslint/rules/no-json.js'
 
 const filename = path.join(process.cwd(), 'tests/eslint/client-graph-rules.test.ts')
@@ -194,6 +195,46 @@ g.creationStatus().on('start', (_evt, _f) => { JSON.stringify({ ok: true }) })`,
       code: `${importG}
 g.server().on('update', (_evt, _f) => { JSON.stringify({ ok: true }) })`,
       errors: [{ message: /Compiler does not support this/ }]
+    }
+  ]
+})
+
+ruleTester.run('gsts-function-prefix', gstsFunctionPrefix, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+function gstsServerShared() {}
+function gstsClientCharacterSkillShared() {}
+const gstsCharacterSkillShared = () => {}
+function gstsClientCharacterControlSkillShared() {}
+const gstsCharacterControlSkillShared = () => {}
+function gstsClientCreationSkillShared() {}
+const gstsCreationSkillShared = () => {}
+function gstsClientCreationStatusShared() {}
+const gstsCreationStatusShared = () => {}
+function gstsClientCreationStatusDecisionShared() {}
+const gstsCreationStatusDecisionShared = () => {}
+function gstsClientBoolFilterShared() {}
+const gstsBoolFilterShared = () => {}
+function gstsClientIntFilterShared() {}
+const gstsIntFilterShared = () => {}
+gsts.fCharacterSkill`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `
+function gstsUnknownShared() {}
+const gstsClientShared = () => {}`,
+      errors: [
+        {
+          message:
+            /available prefixes: gstsServer,[\s\S]*gstsClientCharacterSkill[\s\S]*gstsCharacterSkill/
+        },
+        { message: /Function name "gstsClientShared" uses an unknown gsts prefix/ }
+      ]
     }
   ]
 })

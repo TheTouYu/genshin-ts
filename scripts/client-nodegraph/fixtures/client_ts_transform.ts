@@ -1,0 +1,120 @@
+import { g } from 'genshin-ts/runtime/core'
+
+import { gstsClientCharacterSkillAdd } from './client_ts_transform_helpers.js'
+
+const gstsCharacterSkillAbs = (value: number) => Number(Math.abs(value))
+
+function gstsClientCharacterControlSkillAdd(value: bigint) {
+  return value + 1n
+}
+
+const gstsCharacterControlSkillAdd = (value: bigint) => value + 1n
+
+function gstsClientCreationSkillAdd(value: bigint) {
+  return value + 1n
+}
+
+const gstsCreationSkillAdd = (value: bigint) => value + 1n
+
+function gstsClientCreationStatusAdd(value: bigint) {
+  return value + 1n
+}
+
+const gstsCreationStatusAdd = (value: bigint) => value + 1n
+
+function gstsClientCreationStatusDecisionAdd(value: bigint) {
+  return value + 1n
+}
+
+const gstsCreationStatusDecisionAdd = (value: bigint) => value + 1n
+
+function gstsClientBoolFilterNot(value: boolean) {
+  return !value
+}
+
+const gstsBoolFilterNot = (value: boolean) => Boolean(!value)
+
+function gstsClientIntFilterAdd(value: number) {
+  return value + 1
+}
+
+const gstsIntFilterAdd = (value: number) => value + 1
+
+g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on(
+  'start',
+  (_evt, f) => {
+    let counter = 0
+    if (counter >= 0) {
+      counter = gstsClientCharacterSkillAdd(counter)
+    } else {
+      counter = gstsCharacterSkillAbs(-1)
+    }
+    for (let index = 0; index < 2; index++) {
+      counter += index
+    }
+    counter = Math.sin(counter)
+  }
+)
+
+g.characterControlSkill({
+  id: 1082130602,
+  name: 'ClientTsTransformCharacterControlSkill'
+}).on('start', (_evt, _f) => {
+  let value = 0n
+  switch (1n) {
+    case 1n:
+      value = gstsClientCharacterControlSkillAdd(value)
+      break
+    default:
+      value = gstsCharacterControlSkillAdd(value)
+  }
+})
+
+g.creationSkill({ id: 1082130603, name: 'ClientTsTransformCreationSkill' }).on(
+  'start',
+  (_evt, _f) => {
+    let remaining = gstsClientCreationSkillAdd(0n)
+    while (remaining > 0n) {
+      remaining -= gstsCreationSkillAdd(0n)
+    }
+  }
+)
+
+g.creationStatus({ id: 1082130604, name: 'ClientTsTransformCreationStatus' }).on(
+  'start',
+  (_evt, f) => {
+    String('status')
+    if (f.equal(1n, 1n)) {
+      f.absoluteValueOperation(gstsClientCreationStatusAdd(-1n))
+    } else {
+      f.absoluteValueOperation(gstsCreationStatusAdd(-1n))
+    }
+  }
+)
+
+g.creationStatusDecision({
+  id: 1082130605,
+  name: 'ClientTsTransformCreationStatusDecision'
+}).on('start', (_evt, f) => {
+  if (f.equal(1n, 1n)) {
+    f.absoluteValueOperation(gstsClientCreationStatusDecisionAdd(-1n))
+  } else {
+    f.absoluteValueOperation(gstsCreationStatusDecisionAdd(-1n))
+  }
+})
+
+g.boolFilter({ id: 1082130606, name: 'ClientTsTransformBoolFilter' }).on(
+  'start',
+  (_evt, f) => {
+    if (f.equal(1n, 1n)) return gstsBoolFilterNot(gstsClientBoolFilterNot(true))
+    return gstsClientBoolFilterNot(gstsBoolFilterNot(false))
+  }
+)
+
+g.intFilter({ id: 1082130607, name: 'ClientTsTransformIntFilter' }).on(
+  'start',
+  (_evt, f) => {
+    if (f.greaterThan(1, 0)) return gstsIntFilterAdd(gstsClientIntFilterAdd(0))
+    return gstsClientIntFilterAdd(gstsIntFilterAdd(1))
+  }
+)

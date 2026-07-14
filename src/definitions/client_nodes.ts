@@ -124,7 +124,36 @@ function getBaseValueType(
 }
 
 class ClientExecutionFlowFunctionsBase {
+  private localVariableCounter = 0
+
   constructor(protected registry: ExecutionFlowRegistry) {}
+
+  /** Compiler-only helper. Client local-variable nodes identify state by a string name. */
+  __gstsInitLocalVariable(type: string, initialValue?: unknown) {
+    const localVariable = '__gsts_local_' + type + '_' + ++this.localVariableCounter
+    const variableNameObj = parseValue(localVariable, 'str')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_local_variable',
+      args: [variableNameObj]
+    })
+    const genericValue = new generic()
+    genericValue.markPin(ref, 'variableValue', 0)
+    const value = (genericValue as unknown as { asType(typeName: string): unknown }).asType(type)
+    if (initialValue !== undefined) {
+      const setLocalVariable = (
+        this as unknown as {
+          setLocalVariable(variableName: StrValue, variableValue: unknown): void
+        }
+      ).setLocalVariable
+      if (typeof setLocalVariable !== 'function') {
+        throw new Error('[error] client local variables are not available in this graph type')
+      }
+      setLocalVariable.call(this, localVariable, initialValue)
+    }
+    return { localVariable, value }
+  }
 }
 
 export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {

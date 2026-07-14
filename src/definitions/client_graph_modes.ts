@@ -26,6 +26,35 @@ export const CLIENT_GRAPH_SUB_TYPE_BY_METHOD = Object.fromEntries(
   Object.entries(CLIENT_GRAPH_METHOD_BY_SUB_TYPE).map(([subType, method]) => [method, subType])
 ) as Record<string, ClientGraphSubType>
 
+export const CLIENT_GSTS_FUNCTION_PREFIXES_BY_SUB_TYPE = {
+  character_skill: ['gstsClientCharacterSkill', 'gstsCharacterSkill'],
+  character_control_skill: ['gstsClientCharacterControlSkill', 'gstsCharacterControlSkill'],
+  creation_skill: ['gstsClientCreationSkill', 'gstsCreationSkill'],
+  creation_status: ['gstsClientCreationStatus', 'gstsCreationStatus'],
+  creation_status_decision: ['gstsClientCreationStatusDecision', 'gstsCreationStatusDecision'],
+  bool_filter: ['gstsClientBoolFilter', 'gstsBoolFilter'],
+  int_filter: ['gstsClientIntFilter', 'gstsIntFilter']
+} as const satisfies Record<ClientGraphSubType, readonly [string, string]>
+
+export const CLIENT_GSTS_FUNCTION_PREFIX_ENTRIES = Object.entries(
+  CLIENT_GSTS_FUNCTION_PREFIXES_BY_SUB_TYPE
+)
+  .flatMap(([subType, prefixes]) =>
+    prefixes.map((prefix) => ({ prefix, subType: subType as ClientGraphSubType }))
+  )
+  .sort((a, b) => b.prefix.length - a.prefix.length)
+
+export const CLIENT_GSTS_FUNCTION_PREFIXES = CLIENT_GSTS_FUNCTION_PREFIX_ENTRIES.map(
+  (entry) => entry.prefix
+)
+
+export function getClientGraphSubTypeForGstsFunctionName(
+  name: string | undefined
+): ClientGraphSubType | undefined {
+  if (!name) return undefined
+  return CLIENT_GSTS_FUNCTION_PREFIX_ENTRIES.find((entry) => name.startsWith(entry.prefix))?.subType
+}
+
 export const CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE = {
   character_skill: 'fCharacterSkill',
   character_control_skill: 'fCharacterControlSkill',

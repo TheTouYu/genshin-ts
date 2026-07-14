@@ -912,6 +912,108 @@ function collectLocalVarSymbols(plan: VarPlan): Set<ts.Symbol> {
   return out
 }
 
+function validateNoMutableOuterCaptures(env: Env, body: ts.ConciseBody): void {
+  if (env.graphDocumentType !== 'client') return
+
+  const isInsideBody = (node: ts.Node) => {
+    let current: ts.Node | undefined = node
+    while (current) {
+      if (current === body) return true
+      current = current.parent
+    }
+    return false
+  }
+
+  const visit = (node: ts.Node) => {
+    if (ts.isIdentifier(node) && !isDeclarationName(node)) {
+      const rawSymbol = env.checker.getSymbolAtLocation(node)
+      const symbol =
+        rawSymbol && (rawSymbol.flags & ts.SymbolFlags.Alias) !== 0
+          ? env.checker.getAliasedSymbol(rawSymbol)
+          : rawSymbol
+      for (const declaration of symbol?.getDeclarations() ?? []) {
+        if (!ts.isVariableDeclaration(declaration) || isInsideBody(declaration)) continue
+        if (declaration.getSourceFile().isDeclarationFile) continue
+        const list = declaration.parent
+        if (!ts.isVariableDeclarationList(list)) continue
+        if ((list.flags & ts.NodeFlags.Const) !== 0) continue
+        fail(
+          env,
+          node,
+          `client graph cannot capture mutable outer variable "${node.text}"; declare it inside the handler or use explicit client graph storage`
+        )
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+
+  visit(body)
+}
+
+function collapseClientFilterReturns(statements: readonly ts.Statement[]): ts.Expression | null {
+  const firstIndex = statements.findIndex((statement) => !ts.isEmptyStatement(statement))
+  if (firstIndex < 0) return null
+  const statement = statements[firstIndex]
+  const rest = statements.slice(firstIndex + 1)
+
+  if (ts.isReturnStatement(statement)) return statement.expression ?? null
+  if (!ts.isIfStatement(statement)) return null
+
+  const thenStatements = ts.isBlock(statement.thenStatement)
+    ? statement.thenStatement.statements
+    : [statement.thenStatement]
+  const whenTrue = collapseClientFilterReturns(thenStatements)
+  if (!whenTrue) return null
+
+  const elseStatements = statement.elseStatement
+    ? ts.isBlock(statement.elseStatement)
+      ? statement.elseStatement.statements
+      : [statement.elseStatement]
+    : rest
+  const whenFalse = collapseClientFilterReturns(elseStatements)
+  if (!whenFalse) return null
+
+  return ts.factory.createConditionalExpression(
+    statement.expression,
+    ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+    whenTrue,
+    ts.factory.createToken(ts.SyntaxKind.ColonToken),
+    whenFalse
+  )
+}
+
+function flattenClientFilterReturns(body: ts.Block): ts.Block {
+  for (let index = 0; index < body.statements.length; index += 1) {
+    const expression = collapseClientFilterReturns(body.statements.slice(index))
+    if (!expression) continue
+    return ts.factory.updateBlock(body, [
+      ...body.statements.slice(0, index),
+      ts.factory.createReturnStatement(expression)
+    ])
+  }
+  return body
+}
+
+function transformReturnExpression(
+  env: Env,
+  context: ts.TransformationContext,
+  expression: ts.Expression
+): ts.Expression {
+  const transformed = transformExpression(env, context, expression)
+  if (
+    env.graphDocumentType === 'client' &&
+    env.clientHandler &&
+    env.clientSubType === 'int_filter' &&
+    inferBasicType(env, env.checker.getTypeAtLocation(expression)) === 'float'
+  ) {
+    return makeFCall(env, 'dataTypeConversion', [
+      transformed,
+      ts.factory.createStringLiteral('int')
+    ])
+  }
+  return transformed
+}
+
 function tryTransformCollectionRebindSnapshot(
   env: Env,
   context: ts.TransformationContext,
@@ -1296,16 +1398,23 @@ export function transformBlockStatements(
     if (ts.isReturnStatement(s)) {
       const returnMode = env.returnMode ?? 'handler'
       if (returnMode === 'value') {
+        const label =
+          env.graphDocumentType === 'client'
+            ? env.clientHandler &&
+              (env.clientSubType === 'bool_filter' || env.clientSubType === 'int_filter')
+              ? 'client filter handler'
+              : 'client gsts function'
+            : 'gstsServer'
         if (!s.expression) {
-          fail(env, s, 'gstsServer return must return a value')
+          fail(env, s, `${label} return must return a value`)
         }
         if ((env.returnDepth ?? 0) > 0) {
-          fail(env, s, 'gstsServer return must be at top-level (not inside if/loop/switch)')
+          fail(env, s, `${label} return must be at top-level (not inside if/loop/switch)`)
         }
         if (i !== lastNonEmptyIdx) {
-          fail(env, s, 'gstsServer return must be the last statement in the function body')
+          fail(env, s, `${label} return must be the last statement in the function body`)
         }
-        const expr = transformExpression(env, context, s.expression)
+        const expr = transformReturnExpression(env, context, s.expression)
         out.push(withSameRange(ts.factory.updateReturnStatement(s, expr), s))
         break
       }
@@ -1450,24 +1559,27 @@ export function transformBlock(
 export function transformGstsServerFunction<
   T extends ts.FunctionDeclaration | ts.FunctionExpression | ts.ArrowFunction
 >(env: Env, context: ts.TransformationContext, fn: T): T {
+  const label = env.graphDocumentType === 'client' ? 'client gsts function' : 'gstsServer'
   const seen = new Set<string>()
   let evtIdent: string | undefined
   let fIdent: string | undefined
   fn.parameters.forEach((p) => {
     if (p.dotDotDotToken || p.initializer || !ts.isIdentifier(p.name)) {
-      fail(env, p, 'gstsServer parameters must be identifiers (no destructuring/default/rest)')
+      fail(env, p, `${label} parameters must be identifiers (no destructuring/default/rest)`)
     }
     const name = p.name.text
     if (seen.has(name)) {
-      fail(env, p, 'gstsServer parameters must be unique')
+      fail(env, p, `${label} parameters must be unique`)
     }
     seen.add(name)
-    if (name === 'evt') evtIdent = name
-    if (name === 'f') fIdent = name
+    if (env.graphDocumentType !== 'client') {
+      if (name === 'evt') evtIdent = name
+      if (name === 'f') fIdent = name
+    }
   })
 
   if (!fn.body) {
-    fail(env, fn, 'gstsServer function must have an implementation body')
+    fail(env, fn, `${label} must have an implementation body`)
   }
 
   let bodyBlock: ts.Block
@@ -1476,17 +1588,19 @@ export function transformGstsServerFunction<
   } else if (ts.isArrowFunction(fn)) {
     bodyBlock = ts.factory.createBlock([ts.factory.createReturnStatement(fn.body)], true)
   } else {
-    fail(env, fn, 'gstsServer function body must be a block')
+    fail(env, fn, `${label} body must be a block`)
   }
 
   const env2: Env = {
     ...env,
     evtIdent,
     fIdent,
-    serverCtx: true,
+    serverCtx: env.graphDocumentType !== 'client',
+    clientHandler: false,
     returnMode: 'value',
     returnDepth: 0
   }
+  validateNoMutableOuterCaptures(env2, bodyBlock)
   const varPlan = buildVarPlan(env2, bodyBlock)
   const localNames = collectLocalNames(bodyBlock, fn.parameters)
   const localVarNames = collectLocalVarNames(varPlan)
@@ -1572,9 +1686,7 @@ export function transformHandler(
   fn: ts.ArrowFunction | ts.FunctionExpression,
   override?: { fIdent?: string; evtIdent?: string }
 ) {
-  const body = fn.body
-  if (!ts.isBlock(body)) return fn
-
+  const originalBody = fn.body
   const paramFIdent =
     fn.parameters.length >= 2 && ts.isIdentifier(fn.parameters[1].name)
       ? fn.parameters[1].name.text
@@ -1590,10 +1702,34 @@ export function transformHandler(
     ...env,
     fIdent,
     evtIdent,
-    serverCtx: true,
-    returnMode: 'handler',
+    serverCtx: env.graphDocumentType !== 'client',
+    clientHandler: env.graphDocumentType === 'client',
+    returnMode:
+      env.graphDocumentType === 'client' &&
+      (env.clientSubType === 'bool_filter' || env.clientSubType === 'int_filter')
+        ? 'value'
+        : 'handler',
     returnDepth: 0
   }
+  validateNoMutableOuterCaptures(env2, originalBody)
+  if (!ts.isBlock(originalBody)) {
+    if (env.graphDocumentType !== 'client' || !ts.isArrowFunction(fn)) return fn
+    return ts.factory.updateArrowFunction(
+      fn,
+      fn.modifiers,
+      fn.typeParameters,
+      fn.parameters,
+      fn.type,
+      fn.equalsGreaterThanToken,
+      transformReturnExpression(env2, context, originalBody)
+    )
+  }
+
+  const body =
+    env2.returnMode === 'value' && env.graphDocumentType === 'client'
+      ? flattenClientFilterReturns(originalBody)
+      : originalBody
+
   const varPlan = buildVarPlan(env2, body)
   const localNames = collectLocalNames(body, fn.parameters)
   const localVarNames = collectLocalVarNames(varPlan)

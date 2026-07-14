@@ -7,6 +7,7 @@ import clientFilterReturn from './rules/client-filter-return.js'
 import clientGraphScopedF from './rules/client-graph-scoped-f.js'
 import clientScopedGlobals from './rules/client-scoped-globals.js'
 import forStructure from './rules/for-structure.js'
+import gstsFunctionPrefix from './rules/gsts-function-prefix.js'
 import gstsserverCallScope from './rules/gstsserver-call-scope.js'
 import gstsserverParams from './rules/gstsserver-params.js'
 import gstsserverReturn from './rules/gstsserver-return.js'
@@ -50,6 +51,7 @@ export const rules = {
   'client-graph-scoped-f': clientGraphScopedF,
   'client-scoped-globals': clientScopedGlobals,
   'for-structure': forStructure,
+  'gsts-function-prefix': gstsFunctionPrefix,
   'gstsserver-call-scope': gstsserverCallScope,
   'gstsserver-params': gstsserverParams,
   'gstsserver-return': gstsserverReturn,
@@ -109,6 +111,7 @@ export const configs = {
       'gsts/no-inner-declarations': 'error',
       'gsts/switch-restrictions': 'error',
       'gsts/for-structure': 'error',
+      'gsts/gsts-function-prefix': 'error',
       'gsts/no-nullish-coalesce': 'error',
       'gsts/assignment-restrictions': 'error',
       'gsts/bigint-index-in-server': 'warn',
