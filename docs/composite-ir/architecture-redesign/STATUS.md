@@ -14,13 +14,14 @@
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：Phase 4 — Composite Boundary Isolation
-当前唯一工作包：P4-W2 — capture normalization 独立 I/O contract 与 boundary builder 归属审计
-最近已提交工作包：P2-W18 — scalar same-type comparison shared identity（`1015d99`）
-工作树预期：以下未提交变化均已审查、须保留，且不属于 P2-W18/P4-W2：
-  - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
-  - 本轮计划治理：README.md、decision-log.md、migration-invariants.md、
-    phase-5-legacy-removal-and-hardening.md
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P2-W18 已提交，不得重做或覆盖
+当前唯一工作包：P4-W3 — Composite call lowerer 独立抽取
+最近已提交工作包：P4-W2 — capture normalization 独立 I/O contract（用户核验 2026-07-14 通过）
+工作树预期：
+  - 以下未提交变化均已审查、须保留，且不属于 P4-W2：
+    - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
+    - 本轮计划治理：README.md、decision-log.md、migration-invariants.md、
+      phase-5-legacy-removal-and-hardening.md
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P4-W2 已提交，不得重做或覆盖
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -77,29 +78,74 @@ schema 修正不在本包。已提交。
 
 此前已提交：P4-W1（`d277682`）。
 
-## 当前唯一工作包：P4-W2
+## 最近完成：P4-W2
+
+P4-W2 将 capture normalization 抽为可独立调用的纯函数模块
+`src/compiler/ir_to_gia_transform/normalize_capture.ts`，并由 `buildCompositeAccessories()` 接入。
+
+输入 / 输出 contract：
 
 ```text
-工作包：P4-W2 — capture normalization 独立 I/O contract 与 boundary builder 归属审计
+input:
+  implNodes, implEdges, compositePins
+output:
+  captureNodeId, captureFirstChildId
+  ordinaryNodes        // 不含 __composite_capture__
+  ordinaryEdges        // 已移除 capture 源边
+  boundaryPins         // IR node id；指向 capture 的 InFlow 重定向到首个 exec 子节点
+  nodeIndexMap         // ordinary IR id → encoded nodeIndex（默认从 2 起）
+```
+
+ordinary lowerer 不得看见：`__composite_capture__` 节点、capture 源流边。arg 级 `capture: true` 仍由 call/pin
+builder 处理（本包未提前剥离）。boundary builder 职责：路由重定向、`encodeBoundaryPins`、与 ordinary
+materialization 分离的 compositePins overlay。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p4w2-capture-normalization-contract.ts
+npx tsx tests/composite/test-nested-composite-capture-pins.ts
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P4W2-final-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P4W2-final-vendor.gia
+npx tsx tests/composite/test-stage3-p2w7-captured-connection-vendor-graph.ts /tmp/P4W2-p2w7.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w7-captured-connection-vendor-graph.ts /tmp/P4W2-p2w7v.gia
+npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts /tmp/P4W2-nested-capture-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts /tmp/P4W2-nested-capture-vendor.gia
+git diff --check
+```
+
+用户核验候选（未注入）：
+
+- `Beyond_Local_Export/P4W2-capture-normalization-vendor.gia`（B1 capture-only）
+  SHA-256 `671d93b20afb2bb34cbbe09b0abd63911479e5fc38a7a0ef8fbe42c98d103b11`
+- `Beyond_Local_Export/P4W2-nested-capture-vendor.gia`（nested capture）
+  SHA-256 `44e3340f17c630cb12796ff6b873d76ba60ab251409c7adeba036c8653c919d9`
+
+说明：同一 fixture 连续重生的字节 SHA 本身存在既有非确定性（P4-W2 前后都不稳）；自动证据以 focused
+structural contract 为准，不以 SHA 字节全等证明行为。未改 ordinary resolver/factory/materializer、default
+gate、legacy backend、布局、call lowerer 完整抽取。用户已确认两份候选的编辑器加载和可观察执行通过
+（2026-07-14）；未注入；已提交。
+
+## 当前唯一工作包：P4-W3
+
+```text
+工作包：P4-W3 — Composite call lowerer 独立抽取
 优先级类别：架构阻塞
-解除的上层阻塞：P2-W18 用户核验已完成并提交；Phase 4 退出条件仍要求 capture normalization 有独立
-  输入/输出 contract，且 ordinary lowering 不得继续依赖内嵌 capture 分支。
-输入与修改范围：只读审计当前 capture 归一化/重定向与 boundary builder 归属；新增 capture normalization 的
-  独立输入→输出 contract（focused tests 和/或纯函数模块边界）；必要的 Phase 4/STATUS/decision 文档更新。
-  不改 ordinary resolver/factory/materializer、vendor/generated、default gate、legacy backend、布局、
-  call synthetic pins、compositePins overlay 语义、游戏目录或注入；不在本包完成完整 composite.ts 拆分。
-最小观察或失败基线：现有 nested/capture focused tests 覆盖部分结果形状，但 capture 过滤 ordinary nodes、
-  边重定向、boundary bindings 与 node-index 要求仍与 composite 主路径耦合，缺少可独立调用的 I/O contract。
-完成条件：形成可引用的 capture normalization 输入/输出 contract；明确列出 ordinary lowerer 不得看见的
-  capture 字段与 boundary builder 职责边界；B1 及既有 nested capture 回归不退化；git diff --check 通过。
-  若本包仅做 contract/审计而不抽模块，须在完成报告标明模块抽取为后续工作包。
-实际验证命令：npm run build（若改生产 TS）；P4-W2 focused contract；既有 nested capture / B1 capture-only
-  focused tests（legacy + 必要时 vendor gate）；git diff --check。
-回滚边界：P4-W2 contract/helper 与 Phase 4/STATUS 文档；不影响 P2-W18、P4-W1 候选、shared materializer 或
-  独立 docs-search/治理改动。
-明确非目标：call lowerer 完整抽取、definition interface builder、compositePins overlay 迁移、布局变化、
-  ordinary edge 语义迁移、default gate、legacy 删除、真实 GIA/wire 全等、注入或操作游戏目录。
-后续候选（非当前工作包）：P4-W3 — Composite call lowerer 或 capture 模块正式抽取（待 P4-W2 完成后按审计结果选择）。
+解除的上层阻塞：P4-W2 用户核验已通过；capture 占位符归一化已从 buildCompositeAccessories 内联抽出；
+  Phase 4 仍要求 call synthetic pins 有单一 builder，且 ordinary lowering 不再内嵌 call 分支。
+输入与修改范围：审计并抽取 `__composite_call__` pin/identity/sparse/capture-input 分类为独立 lowerer或
+  纯函数 contract；必要 focused tests 与 Phase 4/STATUS 文档。不改 ordinary materializer、default gate、
+  legacy 删除、布局、注入。
+最小观察或失败基线：call pin 生成仍散落在 composite.ts buildImplNodePins；P4-W1 B2/B3/B4 与 nested
+  call 回归覆盖部分结果形状。
+完成条件：形成可引用的 call lowerer 输入/输出或单一 builder；B2/B3/B4 与 nested call 回归不退化；
+  git diff --check 通过；若产生生产行为变化则请求用户编辑器/游戏核验。
+实际验证命令：npm run build；P4-W3 focused contract；P4-W1 B2/B3/B4 及 nested call focused tests；
+  git diff --check。
+回滚边界：P4-W3 call helper/测试与 Phase 4/STATUS 文档；不影响 P4-W2 capture 模块。
+明确非目标：definition interface builder 完整迁移、compositePins overlay 完整迁移、布局变化、default gate、
+  legacy 删除、真实 GIA/wire 全等、注入。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

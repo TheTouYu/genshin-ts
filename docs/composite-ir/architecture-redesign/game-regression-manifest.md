@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 用户核验
+> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2 用户核验
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-14
 > 适用范围：Phase 3、Phase 4、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -128,6 +128,36 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 - 用户结论与日期：通过，2026-07-14。
 - 注入状态：未注入。
 - 适用范围与未证明事项：只覆盖两个 indexed flow；不证明多 source fan-in、循环或任意数量的 inflow/outflow。
+
+### P4-W2-capture-normalization
+
+- 工作包/阶段：P4-W2 / Phase 4 capture normalization 模块化。
+- 目的与覆盖风险：`normalizeCompositeCaptures` 接入生产路径后，B1 capture-only 行为不退化：captured float 不生成 ordinary InParam edge，仅经 `compositePins` 到 getter InParam[0]，getter value OutParam[1] 仍连接 ordinary Addition → DTC → Print。
+- 自动证据：`test-stage3-p4w2-capture-normalization-contract.ts`、`test-nested-composite-capture-pins.ts`、P2-W6 legacy/vendor、P2-W7 legacy/vendor，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/P4W2-capture-normalization-vendor.gia`
+- SHA-256：`671d93b20afb2bb34cbbe09b0abd63911479e5fc38a7a0ef8fbe42c98d103b11`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 capture → getter value → Addition → DTC → Print。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 local-variable capture-only + normalization 接入；不证明 wire 全等。同一 fixture 连续重生的字节 SHA 存在既有非确定性，自动证据以 structural contract 为准。
+
+### P4-W2-nested-capture
+
+- 工作包/阶段：P4-W2 / Phase 4 capture normalization 模块化。
+- 目的与覆盖风险：outer captured float 经 parent `compositePins` 进入 nested SysGraph call；normalization 不破坏 nested capture route。
+- 自动证据：`test-stage3-p4w2-capture-normalization-contract.ts`、`test-nested-composite-capture-pins.ts`、P2-W11 legacy/vendor，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/P4W2-nested-capture-vendor.gia`
+- SHA-256：`44e3340f17c630cb12796ff6b873d76ba60ab251409c7adeba036c8653c919d9`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 outer capture 进入 nested SysGraph call。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested capture route + normalization 接入；不证明全部 nested family 或 wire 全等。
 
 ### P3.5-local-variable-getter-output
 

@@ -24,6 +24,10 @@ import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './ma
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import {
+  encodeBoundaryPins,
+  normalizeCompositeCaptures
+} from './normalize_capture.js'
+import {
   resolveNodeIdentity,
   usesSharedScalarSameTypeBinaryResolution,
   usesSharedVariantResolution
@@ -40,40 +44,22 @@ export function buildCompositeAccessories(
 
   const implGraphId = def.id + 10000
 
-  // === 识别 __composite_capture__ 节点 ===
-  // capture 是 IR 层输入占位符，由 compositePins 路由，GIA 中不需要物理节点
-  // 始终过滤掉，并将其引出边从 implEdges 中移除
-  const captureNodeId = def.implNodes.find(
-    n => n.type === '__composite_capture__'
-  )?.id
-
-  // capture 的第一个 exec 子节点（如有），用于重定向 compositePins 引用
-  let captureFirstChildId: number | undefined
-  if (captureNodeId !== undefined) {
-    const captureEdges = def.implEdges[captureNodeId]
-    if (captureEdges && captureEdges.length > 0) {
-      captureFirstChildId = getEdgeTarget(captureEdges[0])
-    }
-  }
-
-  // 过滤 capture 节点
-  const implNodesForEncoding = def.implNodes.filter(
-    n => n.type !== '__composite_capture__'
-  )
-  const nodeIndexMap = new Map<number, number>()
-  implNodesForEncoding.forEach((n, i) => nodeIndexMap.set(n.id, i + 2))
-
-  // 过滤后的 edges：移除 capture 的引出边，避免布局引擎看到已删除节点的入边
-  const filteredEdges: Record<number, ImplEdge[]> = {}
-  for (const [fromIdStr, edges] of Object.entries(def.implEdges)) {
-    const fromId = Number(fromIdStr)
-    if (fromId === captureNodeId) continue
-    filteredEdges[fromId] = edges as ImplEdge[]
-  }
+  // Capture normalization is a pure boundary step: filter IR capture placeholders,
+  // drop capture-source edges, redirect InFlow routes, and fix nodeIndex mapping
+  // before ordinary / call lowering. See normalize_capture.ts.
+  const captureNormalized = normalizeCompositeCaptures({
+    implNodes: def.implNodes,
+    implEdges: def.implEdges,
+    compositePins: def.compositePins
+  })
+  const implNodesForEncoding = captureNormalized.ordinaryNodes
+  const nodeIndexMap = captureNormalized.nodeIndexMap
+  const filteredEdges = captureNormalized.ordinaryEdges as Record<number, ImplEdge[]>
+  const boundaryPins = captureNormalized.boundaryPins
 
   // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
   const implOutParamMap = new Map<number, Array<{ pinIndex: number; type: string }>>()
-  for (const cp of def.compositePins) {
+  for (const cp of boundaryPins) {
     if (cp.outerPinKind !== 4) continue // 只取 OutParam
     const arr = implOutParamMap.get(cp.innerNodeId) ?? []
     arr.push({ pinIndex: cp.innerPinIndex, type: def.outputs[cp.outerPinIndex]?.type ?? 'int' })
@@ -202,18 +188,12 @@ export function buildCompositeAccessories(
           },
           name: '',
           nodes: implNodes,
-          compositePins: def.compositePins.map((entry) => {
-            // remap: 指向 capture 的 compositePin 重定向到其首个 exec 子节点
-            const actualNodeId =
-              captureNodeId !== undefined && entry.innerNodeId === captureNodeId && captureFirstChildId !== undefined
-                ? captureFirstChildId
-                : entry.innerNodeId
-            return {
+          compositePins: encodeBoundaryPins(boundaryPins, nodeIndexMap).map((entry) => ({
               outerPin: {
                 kind: entry.outerPinKind as NodePin_Index_Kind,
                 index: entry.outerPinIndex
               },
-              innerNodeId: nodeIndexMap.get(actualNodeId) ?? actualNodeId,
+              innerNodeId: entry.encodedInnerNodeId,
               innerPin: {
                 kind: entry.innerPinKind as NodePin_Index_Kind,
                 index: entry.innerPinIndex
@@ -222,8 +202,7 @@ export function buildCompositeAccessories(
                 kind: entry.innerPinKind as NodePin_Index_Kind,
                 index: entry.innerPinIndex
               }
-            }
-          }),
+          })),
           comments: [],
           graphValues: [],
           affiliations: []
