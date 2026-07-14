@@ -21,11 +21,13 @@ import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './ma
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import {
+  COMPOSITE_CAPTURE_NODE_TYPE,
   normalizeCompositeCaptures
 } from './normalize_capture.js'
 import {
   buildCompositeCallPins,
   collectCalledCompositeIds,
+  COMPOSITE_CALL_NODE_TYPE,
   isCompositeCallNode,
   resolveCompositeCallIdentity
 } from './lower_composite_call.js'
@@ -37,6 +39,44 @@ import {
   usesSharedScalarSameTypeBinaryResolution,
   usesSharedVariantResolution
 } from './resolved_node.js'
+
+/**
+ * Stable orchestration contract for Phase 4 exit audits.
+ *
+ * `composite.ts` wires boundary modules and the ordinary impl backend. It must not
+ * re-implement capture/call/definition/compositePins/layout builders. Ordinary pin
+ * builders remain free of `__composite_call__` / `__composite_capture__` branches;
+ * arg-level `capture: true` only skips physical InParam materialization.
+ */
+export const COMPOSITE_ORCHESTRATION_CONTRACT = {
+  pipeline: [
+    'normalize_capture',
+    'resolve_ordinary_and_call',
+    'layout',
+    'materialize',
+    'definition_interface',
+    'composite_pins_overlay'
+  ] as const,
+  boundaryModules: {
+    capture: 'normalize_capture.ts',
+    call: 'lower_composite_call.ts',
+    definition: 'build_composite_definition.ts',
+    compositePins: 'build_composite_pins.ts',
+    layout: 'build_composite_layout.ts'
+  } as const,
+  ordinaryPinBuilderForbiddenNodeTypes: [
+    COMPOSITE_CAPTURE_NODE_TYPE,
+    COMPOSITE_CALL_NODE_TYPE
+  ] as const,
+  /**
+   * Arg-level capture markers on ordinary nodes still skip physical InParam pins.
+   * That is not a second capture-node lowerer; capture nodes are removed earlier.
+   */
+  ordinaryArgCaptureSkip: true,
+  /** Default production backend remains handwritten until Phase 5. */
+  defaultVendorImplGraphGate: false,
+  legacyOrdinaryBackendPresent: true
+} as const
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -256,23 +296,30 @@ function buildImplGraphNodes(
       node.type === 'get_local_variable' || node.type === 'set_local_variable'
         ? sharedConcreteNid
         : undefined
-    const { pins, dataConns } = isCompositeCallNode(node) && calledDef
-      ? buildCompositeCallPins({
-          node,
-          calledDef,
-          implEdges,
-          requiredOutflowIndexes: requiredCompositeCallOutflows.get(node.id)
-        })
+    // Boundary call pins are owned by lower_composite_call.ts. Ordinary pin builder
+    // never receives `__composite_call__` / `__composite_capture__` after P4-W7.
+    const { pins, dataConns } = isCompositeCallNode(node)
+      ? (calledDef
+          ? buildCompositeCallPins({
+              node,
+              calledDef,
+              implEdges,
+              requiredOutflowIndexes: requiredCompositeCallOutflows.get(node.id)
+            })
+          : { pins: [] as NodePin[], dataConns: [] as Array<{
+              nodeId: number
+              pin: NodePin
+              upstreamNodeId: number
+              upstreamPinIndex: number
+            }> })
       : buildImplNodePins(
           node,
           implEdges,
           implOutParamMap,
           implVariables,
-          calledDef,
           sharedConcreteNid ?? gvConcreteNid,
           customVariableConcreteNid,
-          localVariableConcreteNid,
-          requiredCompositeCallOutflows.get(node.id)
+          localVariableConcreteNid
         )
     allDataConns.push(...dataConns)
     return {
@@ -396,8 +443,11 @@ function materializeImplOrdinaryGraphWithVendor(
 
   for (const result of ordinaryResults) {
     const { node, nodeIndex, genericId } = result
-    if (node.type === '__composite_capture__') {
-      throw new Error(`[error] vendor impl graph gate does not support synthetic node ${node.type}`)
+    // Capture nodes are filtered by normalize_capture before materialization.
+    if (node.type === COMPOSITE_CAPTURE_NODE_TYPE || isCompositeCallNode(node)) {
+      throw new Error(
+        `[error] vendor ordinary materializer received boundary node ${node.type} (${node.id})`
+      )
     }
 
     const concreteNodeId = result.dtcConcreteNid ?? result.gvConcreteNid ??
@@ -705,23 +755,34 @@ function argVarType(argType: string): number {
 }
 
 /**
- * 为 impl 节点构建 pins。由捕获数据驱动：args → InParam、outputValues → OutParam、edges → OutFlow。
- * dataConns 数组中持有对 pins 内 pin 对象的引用，供调用方填充 connects。
- * 对 __composite_call__ 节点，根据子复合的 input/output 定义生成 InParam/OutParam pins。
+ * Ordinary-only impl pin builder.
+ *
+ * Driven by: args → InParam, boundary OutParam map → OutParam, edges → OutFlow.
+ * dataConns holds pin object refs so the caller can fill connects after nodeIndex remap.
+ *
+ * Boundary ownership (P4-W7):
+ * - `__composite_call__` → lower_composite_call.ts (orchestration routes before this builder)
+ * - `__composite_capture__` → normalize_capture.ts (removed before ordinary/call lowering)
+ * - arg-level `capture: true` only skips physical InParam materialization
  */
 function buildImplNodePins(
   node: CompositeDefIR['implNodes'][number],
   implEdges: Record<number, any[]>,
   implOutParamMap: Map<number, Array<{ pinIndex: number; type: string }>>,
   implVariables: CompositeDefIR['implVariables'],
-  calledDef?: CompositeDefIR,
   gvConcreteNid?: number,
   customVariableConcreteNid?: number,
-  localVariableConcreteNid?: number,
-  requiredCompositeCallOutflows?: Set<number>
+  localVariableConcreteNid?: number
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+
+  if (isCompositeCallNode(node) || node.type === COMPOSITE_CAPTURE_NODE_TYPE) {
+    throw new Error(
+      `[error] ordinary impl pin builder received boundary node ${node.type} (${node.id}); ` +
+        'route call/capture through lower_composite_call / normalize_capture'
+    )
+  }
 
   if (
     (node.type === 'get_local_variable' || node.type === 'set_local_variable') &&
@@ -979,21 +1040,6 @@ function buildImplNodePins(
     return { pins: vendorPins, dataConns: [] }
   }
 
-  // Call pins are owned by lower_composite_call.ts; buildImplNodePins must not
-  // re-implement sparse/capture classification for __composite_call__.
-  if (isCompositeCallNode(node)) {
-    if (!calledDef) return { pins, dataConns }
-    return buildCompositeCallPins({
-      node,
-      calledDef,
-      implEdges,
-      requiredOutflowIndexes: requiredCompositeCallOutflows
-    })
-  }
-
-  // __composite_capture__: 跳过数据 pin 但保留 OutFlow pin 生成
-  if (node.type !== '__composite_capture__') {
-
   const args = node.args ?? []
 
   // assembly_list 节点：第一个 pin 是 count（元素数量的 Int 字面量）
@@ -1165,7 +1211,6 @@ function buildImplNodePins(
     }
   }
   return { pins, dataConns }
-} // end if (node.type !== '__composite_capture__')
 }
 
 function isDataProducerNode(nodeType: string): boolean {

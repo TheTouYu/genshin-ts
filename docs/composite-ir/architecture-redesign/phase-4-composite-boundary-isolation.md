@@ -1,9 +1,10 @@
 # Phase 4：隔离 Composite Boundary
 
-> 状态：P4-W1 / P4-W2 / P4-W3 / P4-W4 / P4-W5 / P4-W6 已完成；当前可推进 P4-W7
+> 状态：已完成；Phase 4 退出条件满足（P4-W1–P4-W7 自动 + 用户核验）；待用户确认进入 Phase 5
 > 来源：当前 composite/capture/call/definition/compositePins/layout 实现 + P4-W1 自动回归 + P4-W2 capture
 > normalization contract + P4-W3 call lowerer contract + P4-W4 definition interface contract +
-> P4-W5 compositePins overlay contract + P4-W6 layout isolation contract + 用户批次核验
+> P4-W5 compositePins overlay contract + P4-W6 layout isolation contract + P4-W7 orchestration
+> contract + 用户批次核验
 > 最近校验：2026-07-14
 > 适用范围：CompositeDef、synthetic call、capture、compositePins 与 layout isolation
 
@@ -120,6 +121,16 @@ capture-normalized `ordinaryNodes` / `ordinaryEdges` / `boundaryPins`；virtual 
 自动回归通过；用户已确认五份 vendor 候选的编辑器加载和可观察执行通过（2026-07-14）；候选已归档到
 `真-测试通过/复合节点`；未注入。
 
+### 4.6 Orchestration 收口 / Phase 4 退出核对
+
+P4-W7（2026-07-14）：`composite.ts` 增加 `COMPOSITE_ORCHESTRATION_CONTRACT`，明确 boundary pipeline 与
+模块归属；`buildImplNodePins` 变为 ordinary-only，遇 `__composite_call__` / `__composite_capture__` 直接
+失败，不再嵌 call lowerer 或 capture-node skip 外壳。call 路由只发生在 `buildImplGraphNodes`
+orchestration 层。arg 级 `capture: true` 仍只用于跳过 physical InParam。default vendor gate 仍关闭，
+legacy ordinary backend 仍在（属 Phase 5）。focused contract：
+`tests/composite/test-stage3-p4w7-orchestration-contract.ts`。P4 boundary 自动回归通过；用户已确认五份
+vendor 候选的编辑器加载和可观察执行通过（2026-07-14）；候选已归档到 `真-测试通过/复合节点`；未注入。
+
 ## Tests
 
 - pure data composite；
@@ -154,18 +165,19 @@ producer 连到 child input，未验证 child 实际消费该输入，已收紧�
 
 ## 退出条件
 
-- [ ] ordinary lowering 模块无 composite capture/call 分支；
+- [x] ordinary lowering 模块无 composite capture/call 节点分支（P4-W7；arg 级 capture skip 仍保留）；
 - [x] capture normalization 有独立输入输出 contract（P4-W2；自动 contract + 用户编辑器/游戏核验通过）；
 - [x] call synthetic pins 有单一 builder（P4-W3；自动 contract + 用户编辑器/游戏核验通过）；
 - [x] definition interface 有独立 builder（P4-W4；自动 contract + 用户编辑器/游戏核验通过）；
 - [x] compositePins 在 materialization 后统一应用（P4-W5；自动 contract + 用户编辑器/游戏核验通过）；
 - [x] nested/capture/sparse/bool 回归通过（P4-W5 自动复跑 + 用户编辑器/游戏核验通过）；
-- [ ] `composite.ts` 只做 orchestration 或已拆成边界模块；
+- [x] `composite.ts` 只做 orchestration 或已拆成边界模块（P4-W7；boundary 已拆；ordinary legacy backend 属 Phase 5）；
 - [x] layout isolation 有独立输入输出 contract（P4-W6；自动 contract + 用户编辑器/游戏核验通过）；
-- [~] 跨调用边界的 inflow/outflow 路由、node-index remap 与必要布局附加规则仅由 boundary 处理；普通 flow/layout
-  仍使用共享图能力（layout 附加规则已隔离；`composite.ts` orchestration 收口仍未完成）；
-- [x] 代表性 vendor-gated boundary 候选已登记到游戏回归 manifest，并由用户确认编辑器加载和可观察执行（P4-W1–P4-W6）；
-- [ ] 不默认开启 shared backend gate，不删除 legacy backend；完成后才可选择独立的 opt-in beta 配置入口工作包。
+- [x] 跨调用边界的 inflow/outflow 路由、node-index remap 与必要布局附加规则仅由 boundary 处理；普通 flow/layout
+  仍使用共享图能力（P4-W6 layout + P4-W7 orchestration）；
+- [x] 代表性 vendor-gated boundary 候选已登记到游戏回归 manifest，并由用户确认编辑器加载和可观察执行
+  （P4-W1–P4-W7；P4-W7 用户核验 2026-07-14 通过）；
+- [x] 不默认开启 shared backend gate，不删除 legacy backend；完成后才可选择独立的 opt-in beta 配置入口工作包。
 
 ## 禁止事项
 

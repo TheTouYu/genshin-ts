@@ -14,7 +14,7 @@ import type {
  *
  * Ordinary lowerers must only consume `ordinaryNodes` / `ordinaryEdges`. They must never
  * observe `__composite_capture__` nodes or capture-source edges. Arg-level `capture: true`
- * remains a call / pin-builder concern until a later Phase 4 package strips it earlier.
+ * remains a call / ordinary pin-builder concern (skip physical InParam only; P4-W7).
  */
 
 export const COMPOSITE_CAPTURE_NODE_TYPE = '__composite_capture__' as const
