@@ -22,6 +22,7 @@ import { Graph, Node } from '../gia_vendor.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
+import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import { resolveNodeIdentity, usesSharedVariantResolution } from './resolved_node.js'
 
 /**
@@ -516,34 +517,42 @@ function materializeImplOrdinaryGraphWithVendor(
     vendorNodes.set(node.id, graph.add_node(vendorNode))
   }
 
-  for (const result of ordinaryResults) {
-    const target = vendorNodes.get(result.node.id)
-    if (!target) throw new Error(`[error] vendor impl graph missing target ${result.node.id}`)
-    for (let argIndex = 0; argIndex < (result.node.args ?? []).length; argIndex++) {
-      const arg = result.node.args[argIndex]
-      if (!arg || arg.type !== 'conn') continue
-      const source = vendorNodes.get(arg.value.node_id)
-      if (!source) {
-        throw new Error(`[error] vendor impl graph data source crosses synthetic boundary: ${arg.value.node_id}`)
-      }
-      graph.connect(source, target, arg.value.index, argIndex)
-    }
-  }
-
+  const ordinaryDataEdges = ordinaryResults.flatMap((result) =>
+    (result.node.args ?? []).flatMap((arg: any, toIndex: number) =>
+      arg?.type === 'conn'
+        ? [{ fromId: arg.value.node_id, toId: result.node.id, fromIndex: arg.value.index, toIndex }]
+        : []
+    )
+  )
+  const ordinaryFlowEdges = Object.entries(implEdges).flatMap(([fromId, edges]) =>
+    (edges as ImplEdge[]).flatMap((edge) => {
+      const targetId = getEdgeTarget(edge)
+      return vendorNodes.has(Number(fromId)) && vendorNodes.has(targetId)
+        ? [{
+            fromId: Number(fromId),
+            toId: targetId,
+            fromIndex: getEdgeSourceIndex(edge),
+            toIndex: getEdgeTargetIndex(edge)
+          }]
+        : []
+    })
+  )
   const vendorFlowCountBySource = new Map<string, number>()
-  for (const [fromId, edges] of Object.entries(implEdges)) {
-    const source = vendorNodes.get(Number(fromId))
-    if (!source) continue
-    for (const edge of edges) {
-      const target = vendorNodes.get(getEdgeTarget(edge))
-      if (!target) continue
-      const sourceIndex = getEdgeSourceIndex(edge)
-      const flowKey = `${fromId}:${sourceIndex}`
-      const insertPosition = vendorFlowCountBySource.get(flowKey) ?? 0
-      graph.flow(source, target, sourceIndex, getEdgeTargetIndex(edge), insertPosition)
-      vendorFlowCountBySource.set(flowKey, insertPosition + 1)
+  materializeOrdinaryGraphEdges({
+    graph,
+    nodesById: vendorNodes,
+    dataEdges: ordinaryDataEdges,
+    flowEdges: ordinaryFlowEdges,
+    flowInsertPosition: (edge) => {
+      const flowKey = `${edge.fromId}:${edge.fromIndex}`
+      const position = vendorFlowCountBySource.get(flowKey) ?? 0
+      vendorFlowCountBySource.set(flowKey, position + 1)
+      return position
+    },
+    onMissingDataEndpoint: (edge) => {
+      throw new Error(`[error] vendor impl graph data source crosses synthetic boundary: ${edge.fromId}`)
     }
-  }
+  })
 
   const encodedNodes = ((graph.encode() as any).graph?.graph?.inner?.graph?.nodes ?? []) as GraphNode[]
   if (encodedNodes.length !== ordinaryResults.length) {

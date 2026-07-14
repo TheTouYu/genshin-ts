@@ -37,6 +37,7 @@ import {
   createOrdinaryVendorNode,
   normalizeOrdinaryVendorPins
 } from './ordinary_node_factory.js'
+import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
@@ -638,16 +639,16 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     graph.add_node(giaNode)
   })
 
-  for (const { fromId, toId, fromIndex, toIndex } of graphInfo.flowConnections) {
-    const from = nodesById.get(fromId)
-    const to = nodesById.get(toId)
-    if (!from || !to) {
+  materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    flowEdges: graphInfo.flowConnections,
+    onMissingFlowEndpoint: ({ fromId, toId, fromIndex, toIndex }) => {
       throw new Error(
         `[error] bad flow connection ${fromId}->${toId}, index=${fromIndex}->${toIndex}`
       )
     }
-    graph.flow(from, to, fromIndex, toIndex)
-  }
+  })
 
   // === 为未连接下游的复合 outflow 生成终端 Print_String 节点 ===
   // 参考文件（顺序执行.gia 等）中，每个无下游的 outflow 出口都有一个 Print_String 终端节点
@@ -702,20 +703,20 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     // 游戏编辑器中 composite call 节点可以没有 OutFlow pin
   }
 
-  for (const { fromId, toId, fromIndex, toIndex } of graphInfo.dataConnections) {
-    const from = nodesById.get(fromId)
-    const to = nodesById.get(toId)
-    if (!from || !to) {
+  materializeOrdinaryGraphEdges({
+    graph,
+    nodesById,
+    dataEdges: graphInfo.dataConnections,
+    mapOutputIndex: (nodeId, pinIndex) =>
+      remapOutputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex),
+    mapInputIndex: (nodeId, pinIndex) =>
+      remapInputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex),
+    onMissingDataEndpoint: ({ fromId, toId, fromIndex, toIndex }) => {
       throw new Error(
         `[error] bad data connection ${fromId}->${toId}, index=${fromIndex}->${toIndex}`
       )
     }
-    const fromType = irNodeTypeById.get(fromId) ?? ''
-    const toType = irNodeTypeById.get(toId) ?? ''
-    const mappedFromIndex = remapOutputIndexForHiddenPin(fromType, fromIndex)
-    const mappedToIndex = remapInputIndexForHiddenPin(toType, toIndex)
-    graph.connect(from, to, mappedFromIndex, mappedToIndex)
-  }
+  })
 
   // 应用复合节点之间的数据连线
   const compositeDataEdges = (ir as any).compositeDataEdges as

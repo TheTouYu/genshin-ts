@@ -13,10 +13,10 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 2 — Shared Vendor Ordinary-Node Lowering
-当前未提交工作包：P2-W19 — ordinary shared factory 泛化与显式例外出口（验证完成，待用户审核）
-最近已提交工作包：P2-W18 — framework-first work package scheduling（`56aa3af`）
-工作树预期：P2-W19 的源码、测试和状态文档变化，以及此前独立 docs-search JSON 输出修复；不得覆盖或混淆 docs-search 改动
+当前 Phase：Phase 3 — Unified Ordinary Graph Materialization
+当前唯一工作包：P3-W21 — encoded ordinary-edge integrity checks（待执行）
+最近已提交工作包：P3-W20 — shared ordinary Graph edge materializer（见 HEAD 提交标题）
+工作树预期：仅此前独立 docs-search JSON 输出修复与执行协议改动；P3-W20 提交后不得遗留未提交变化
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -37,6 +37,7 @@
 - 不证明注入或游戏内行为；本轮没有注入。
 - 不默认开启 vendor gate，不删除 handwritten backend，不改变 `graphValues`、`affiliations`、capture、nested、sparse 或布局语义。
 - signal/dynamic pin family 的能力目标由 ADR-011 确认与 root 同源，但专属 payload/schema/wire 仍需真实可执行案例验证。
+- P3-W20 已将 root 的 ordinary data/flow edges 与 vendor-gated impl closed ordinary subgraph 的 data/flow edges 接入同一 shared materializer；synthetic call/capture overlay 仍独立。自动回归通过，用户已确认四份 P3-W20 vendor-gated 候选在游戏内实际运行通过；未注入。
 
 ## 当前验证与归档
 
@@ -57,33 +58,25 @@ git diff --check
 Node 26 的 `module.register()` 弃用警告不影响上述命令退出码。完整工作包时间线见
 [归档记录](work-packages/status-history-2026-07-13.md#p2-w17b-完成记录scalar-same-type-arithmetic-shared-identity-resolution)。
 
-## 当前唯一工作包：P2-W19
+## 最近完成：P3-W20
+
+P3-W20 将 root 与 vendor-gated impl closed ordinary subgraph 的 ordinary data/flow edges 收束至
+`ordinary_graph_materializer.ts`；synthetic call/capture overlay 仍独立。自动回归通过，且用户已确认四份
+vendor-gated 候选在游戏内实际运行通过；未注入。候选 SHA-256、命令与回滚边界见 Phase 3 文档。
+
+## 当前唯一工作包：P3-W21
 
 ```text
-工作包：P2-W19 — ordinary shared factory 泛化与显式例外出口
+工作包：P3-W21 — encoded ordinary-edge integrity checks
 优先级类别：架构阻塞
-解除的上层阻塞：root 和 composite impl 仍各自持有 ordinary Node 创建、literal 写入和 pin normalization；仅少数 family
-  已共享 identity，阻塞 P3 将 ordinary data/flow edge 收束为 shared materializer。
-输入与修改范围：`ir_to_gia_transform` 的 root/impl ordinary Node 物化、shared resolution contract、focused composite
-  regressions 与本状态/Phase 文档；不改 vendor/generated、synthetic call/capture overlay、legacy default backend、真实 GIA 或游戏目录。
-最小观察或失败基线：源码审计确认 root 在 `index.ts` 内联 value/special-pin/Unk 处理，impl 在 `composite.ts` 分别以 vendor
-  Graph 循环和 family-specific temporary Graph 物化；两条路径无法保证新增 ordinary family 使用同一 factory。
-完成条件：root 与 vendor-gated impl 共享一个 ordinary factory 的 Node 创建、literal/enum 写入和通用 Unk
-  normalization；synthetic/capture overlay 仍由 composite backend 显式排除，不静默 fallback；既有 scoped root/impl、nested/capture 回归不退化；用户完成 P2-W19 候选的编辑器/游戏核验。
-实际验证命令：npm run build（PASS）；ordinary factory direct contract（PASS）；resolved contract（PASS）；DTC、captured custom
-  target、scalar arithmetic vendor-gated fixtures（PASS）；custom-variable pin、nested capture/outflow regressions（PASS）；git diff --check（PASS）。
-  候选已复制到 `Beyond_Local_Export` 根目录并以 SHA-256 回读确认；用户已确认编辑器加载和实际运行均通过；未注入。
-回滚边界：新增 shared factory 与其 root/vendor-gated impl 调用点、对应 focused test 和状态/Phase 文档；不影响独立 docs-search 改动。
-明确非目标：shared identity resolver 或 shared ordinary edge materializer、默认开启 gate、删除 handwritten legacy backend、
-  改变 graphValues/affiliations、synthetic call/capture 语义、list/dict/signal/dynamic payload 扩展或注入；用户编辑器/游戏核验只验证本包候选。
-编辑器/游戏候选：`P2W19-dtc-vendor.gia`（SHA-256 `9130ceb40d13550b53557c9fabb97b7726b306bb46155b36e83027cd837daab3`）、
-  `P2W19-custom-target-vendor.gia`（SHA-256 `a2bbff1122c8da81d78ebdaf4e8f1f3c624b5786253f46ea9b5cda81f931e078`）、
-  `P2W19-scalar-arithmetic-vendor.gia`（SHA-256 `0c9f3eea52789b826a505cdab097423c85ccd81bad0e0589be7a4da7a238aa7b`）；均在
-  `Beyond_Local_Export` 根目录。用户已确认编辑器加载和实际运行均通过；未注入。
-生成差异风险：最终自动回归重新生成的 `/tmp/P2W19-*-final.gia` 与上述已核验候选 SHA-256 不同；尚未做结构或 wire
-  diff，不能推断根因或认为 final 文件已编辑器核验。用户选择接受原候选作为 P2-W19 编辑器/实际运行证据，暂不调查该
-  差异且不阻塞提交。
-后续候选（非当前工作包）：P3 shared ordinary Graph materializer；仅在 P2-W19 的 factory 边界与显式例外出口通过审核后选择。
+解除的上层阻塞：P3-W20 已共享 ordinary edge materializer，但 Phase 3 仍缺少对 encoded endpoint pin、target uniqueness、nodeIndex 和 capture/boundary exclusion 的集中 integrity contract；该缺口阻塞 Phase 3 退出与 P4 选择。
+输入与修改范围：shared materializer 的可选 integrity contract、P3 focused parity fixture 与本状态/Phase 文档；不改 vendor/generated、ordinary resolution/factory、synthetic/capture overlay、default gate、legacy backend、游戏目录或注入。
+最小观察或失败基线：P3-W20 仅以类别 fixture 观察解码 connects，未对每一条待 materialize ordinary edge 集中断言 endpoint pin 存在、同一 data target 唯一、encoded nodeIndex 对齐及 capture-filtered endpoint 排除。
+完成条件：root 与 vendor-gated impl 的 focused fixture 对 ordinary data/flow encoded integrity 形成共享、可失败的契约；所有 boundary/capture edge 仍由 overlay 排除；既有 P3-W20 regressions 不退化；git diff --check 通过。若生产编码行为改变，另生成候选并请求用户游戏内核验。
+实际验证命令：npm run build；P3 materializer direct contract；P3 complex-flow legacy/vendor parity；DTC、custom target、scalar arithmetic vendor fixtures；nested capture/outflow；git diff --check。
+回滚边界：P3-W21 integrity helper/contract、focused fixture 与本状态/Phase 文档；不影响已提交 P3-W20 或独立 docs-search 改动。
+明确非目标：默认开启 gate、legacy 删除、改变 ordinary edge 语义、将 synthetic/capture 纳入 ordinary materializer、逐 API 验收、真实 GIA 覆盖或注入。
+后续候选（非当前工作包）：P4 capture/call/compositePins boundary isolation；仅在 P3 退出条件满足后选择。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、
