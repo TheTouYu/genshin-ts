@@ -77,7 +77,11 @@ const results: SearchResult[] = index.chunks
   .map((result, rank) => ({ ...result, rank: rank + 1 }))
 
 if (options.has('json')) {
-  console.log(JSON.stringify({ query, indexVersion: index.updatedAt, results }, null, 2))
+  const publicResults = results.map(({ chunk, ...result }) => {
+    const { tokens: _tokens, embedding: _embedding, ...publicChunk } = chunk
+    return { ...result, chunk: publicChunk }
+  })
+  console.log(JSON.stringify({ query, indexVersion: index.updatedAt, results: publicResults }, null, 2))
 } else {
   for (const result of results) {
     console.log(

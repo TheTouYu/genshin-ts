@@ -77,6 +77,9 @@ npm run docs:search -- "节点图变量变化时" --collection engine-api-signat
 npm --silent run docs:search -- "实体创建事件" --collection engine-api-usage --limit 5 --json
 ```
 
+JSON 结果只包含查询信息、评分和可公开的 chunk 元数据/文本；不会输出索引内部的
+`tokens` 或 `embedding`，避免高维向量污染机器读取和日志。
+
 > `npm --silent` 很重要：普通 `npm run` 会先输出 npm script banner，不能直接把输出当作 JSON 解析。
 
 支持的当前参数：
