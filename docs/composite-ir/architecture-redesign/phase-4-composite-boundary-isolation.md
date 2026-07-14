@@ -1,8 +1,9 @@
 # Phase 4：隔离 Composite Boundary
 
-> 状态：P4-W1 / P4-W2 / P4-W3 / P4-W4 已完成；当前可推进 P4-W5
-> 来源：当前 composite/capture/call/definition 实现 + P4-W1 自动回归 + P4-W2 capture normalization
-> contract + P4-W3 call lowerer contract + P4-W4 definition interface contract + 用户批次核验
+> 状态：P4-W1 / P4-W2 / P4-W3 / P4-W4 / P4-W5 已完成；当前可推进 P4-W6
+> 来源：当前 composite/capture/call/definition/compositePins 实现 + P4-W1 自动回归 + P4-W2 capture
+> normalization contract + P4-W3 call lowerer contract + P4-W4 definition interface contract +
+> P4-W5 compositePins overlay contract + 用户批次核验
 > 最近校验：2026-07-14
 > 适用范围：CompositeDef、synthetic call、capture 与 compositePins
 
@@ -94,6 +95,18 @@ pinIndex、multi inflow/outflow、nested sparse/capture/call 自动回归通过�
 - capture route 不产生重复 physical pin；
 - nested call route 指向正确 child pin。
 
+P4-W5（2026-07-14）：已抽取纯函数模块
+`src/compiler/ir_to_gia_transform/build_composite_pins.ts`（`buildCompositePinsOverlay` /
+`materializeCompositePin` / `assertCompositePinsIntegrity`），并由 `buildCompositeAccessories()` 在
+ordinary/call materialization 与 nodeIndex remap 之后接入。focused contract：
+`tests/composite/test-stage3-p4w5-composite-pins-overlay-contract.ts`。
+
+生产默认完整性：outer definition pin 存在、encoded inner node 存在、物理路由不重复。物理 pin 存在性为
+opt-in（`requirePhysicalPins`），因当前 materializer 对 capture/sparse InParam、InFlow 目标、普通 OutFlow
+终端与部分 pure-data OutParam 仍有意保留 pin hole。nested/capture/sparse/multi-flow 自动回归通过；用户
+已确认五份 vendor 候选的编辑器加载和可观察执行通过（2026-07-14）；候选已归档到 `真-测试通过/复合节点`；
+未注入。
+
 ### 4.5 Layout isolation
 
 保留 composite virtual anchors 与 impl layout 配置，但布局只消费 normalized graph，不改变节点/pin semantics。
@@ -136,8 +149,8 @@ producer 连到 child input，未验证 child 实际消费该输入，已收紧�
 - [x] capture normalization 有独立输入输出 contract（P4-W2；自动 contract + 用户编辑器/游戏核验通过）；
 - [x] call synthetic pins 有单一 builder（P4-W3；自动 contract + 用户编辑器/游戏核验通过）；
 - [x] definition interface 有独立 builder（P4-W4；自动 contract + 用户编辑器/游戏核验通过）；
-- [ ] compositePins 在 materialization 后统一应用；
-- [ ] nested/capture/sparse/bool 回归通过；
+- [x] compositePins 在 materialization 后统一应用（P4-W5；自动 contract + 用户编辑器/游戏核验通过）；
+- [x] nested/capture/sparse/bool 回归通过（P4-W5 自动复跑 + 用户编辑器/游戏核验通过）；
 - [ ] `composite.ts` 只做 orchestration 或已拆成边界模块；
 - [ ] 跨调用边界的 inflow/outflow 路由、node-index remap 与必要布局附加规则仅由 boundary 处理；普通 flow/layout
   仍使用共享图能力；

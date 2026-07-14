@@ -22,7 +22,6 @@ import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './ma
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import {
-  encodeBoundaryPins,
   normalizeCompositeCaptures
 } from './normalize_capture.js'
 import {
@@ -32,6 +31,7 @@ import {
   resolveCompositeCallIdentity
 } from './lower_composite_call.js'
 import { buildCompositeDefinitionInterface } from './build_composite_definition.js'
+import { buildCompositePinsOverlay } from './build_composite_pins.js'
 import {
   resolveNodeIdentity,
   usesSharedScalarSameTypeBinaryResolution,
@@ -87,6 +87,19 @@ export function buildCompositeAccessories(
     : []
 
   // 2. impl NodeGraph（实现图）
+  // compositePins overlay is applied after ordinary/call materialization and nodeIndex remap.
+  // See build_composite_pins.ts for encode + outer/inner integrity ownership.
+  const pinsOverlay = buildCompositePinsOverlay({
+    boundaryPins,
+    nodeIndexMap,
+    definition: {
+      inflows: def.inflows,
+      outflows: def.outflows,
+      inputs: def.inputs,
+      outputs: def.outputs
+    },
+    encodedNodes: implNodes
+  })
   const implGraphUnit: GraphUnit = {
     id: {
       class: GraphUnit_Id_Class.Basic,
@@ -107,21 +120,7 @@ export function buildCompositeAccessories(
           },
           name: '',
           nodes: implNodes,
-          compositePins: encodeBoundaryPins(boundaryPins, nodeIndexMap).map((entry) => ({
-              outerPin: {
-                kind: entry.outerPinKind as NodePin_Index_Kind,
-                index: entry.outerPinIndex
-              },
-              innerNodeId: entry.encodedInnerNodeId,
-              innerPin: {
-                kind: entry.innerPinKind as NodePin_Index_Kind,
-                index: entry.innerPinIndex
-              },
-              innerPin2: {
-                kind: entry.innerPinKind as NodePin_Index_Kind,
-                index: entry.innerPinIndex
-              }
-          })),
+          compositePins: pinsOverlay.compositePins,
           comments: [],
           graphValues: [],
           affiliations: []
