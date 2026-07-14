@@ -17,6 +17,12 @@ import {
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import { mergeIrJsonFilesByGraphId } from '../compiler/ir_merge.js'
 import { writeGiaFromIrJsonFile, writeGiaFromIrJsonFiles } from '../compiler/ir_to_gia_pipeline.js'
+import {
+  applyStage3ImplBackendEnv,
+  formatStage3BackendDiagnostic,
+  resolveStage3ImplBackend,
+  type Stage3BackendDecision
+} from '../compiler/ir_to_gia_transform/stage3_backend.js'
 import { compileTsToGs } from '../compiler/ts_to_gs_pipeline.js'
 import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
@@ -33,6 +39,8 @@ type GlobalOptions = {
   config?: string
   noinject?: boolean
   lang?: string
+  /** Opt-in Stage 3 shared vendor-impl Graph beta (does not flip production default). */
+  stage3SharedImplBeta?: boolean
 }
 
 const ui = createUi()
@@ -79,6 +87,37 @@ function applyIrToGiaOptimizeEnv(cfg: GstsConfig | undefined) {
   if (!cfg) return
   const enabled = cfg.options?.optimize?.timerDispatchAggregate ?? true
   process.env.GSTS_OPT_TIMER_DISPATCH = enabled ? '1' : '0'
+}
+
+function resolveStage3BackendFromSurfaces(
+  opts: GlobalOptions,
+  cfg: GstsConfig | undefined
+): Stage3BackendDecision {
+  return resolveStage3ImplBackend({
+    cli: opts.stage3SharedImplBeta === true ? true : undefined,
+    config:
+      cfg?.options?.stage3?.vendorImplGraphBeta === true
+        ? true
+        : cfg?.options?.stage3?.vendorImplGraphBeta === false
+          ? false
+          : undefined
+  })
+}
+
+function applyStage3BackendSurfaces(
+  opts: GlobalOptions,
+  cfg: GstsConfig | undefined,
+  t: ReturnType<typeof initCliI18n>['t']
+): Stage3BackendDecision {
+  const decision = resolveStage3BackendFromSurfaces(opts, cfg)
+  applyStage3ImplBackendEnv(decision)
+  if (decision.enabled) {
+    ui.warn(t('warnStage3SharedImplBeta', { source: decision.source, backend: decision.backend }))
+    for (const line of formatStage3BackendDiagnostic(decision).split('\n')) {
+      ui.info(line)
+    }
+  }
+  return decision
 }
 
 /**
@@ -494,6 +533,7 @@ async function runBatch(opts: GlobalOptions, hooks?: RunBatchHooks) {
   const { t } = initCliI18n(lang)
   await runCliChecks(lang)
   applyIrToGiaOptimizeEnv(cfg)
+  applyStage3BackendSurfaces(opts, cfg, t)
 
   ui.info(t('startCompile'))
   const { entryOutFiles } = await compileTsToGs({
@@ -602,6 +642,7 @@ async function runDev(opts: GlobalOptions) {
   const lang = detectLang(opts.lang ?? cfg.lang)
   const { t } = initCliI18n(lang)
   applyIrToGiaOptimizeEnv(cfg)
+  applyStage3BackendSurfaces(opts, cfg, t)
 
   const lastInjectedGiaPaths = new Set<string>()
   const normalizeGiaPath = (p: string) => path.resolve(p)
@@ -1375,6 +1416,7 @@ async function runSingle(file: string, opts: GlobalOptions) {
   const { t } = initCliI18n(lang)
   await runCliChecks(lang)
   applyIrToGiaOptimizeEnv(loadedForChecks?.cfg)
+  applyStage3BackendSurfaces(opts, loadedForChecks?.cfg, t)
   const injectCfg = loadedForChecks?.cfg.inject
 
   if (isGiaPath(abs)) {
@@ -1464,6 +1506,7 @@ async function main() {
     .description(t('desc'))
     .option('-c, --config <file>', t('optConfig'))
     .option('--noinject', t('optNoInject'))
+    .option('--stage3-shared-impl-beta', t('optStage3SharedImplBeta'))
     .option('--lang <lang>', t('optLang'))
     .argument('[file]', t('argFile'))
     .showHelpAfterError(t('helpAfterError'))

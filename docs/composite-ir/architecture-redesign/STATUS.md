@@ -13,16 +13,14 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W1 已完成并提交）
-当前唯一工作包：P5-W2 — opt-in beta 配置入口（不删 legacy、不改 default gate）
-最近已提交工作包：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
+当前 Phase：Phase 5 进行中（P5-W2 已完成并提交；用户编辑器核验通过）
+当前唯一工作包：P5-W3 — root ordinary 能力清单与例外审计（不删 legacy、不改 default gate）
+最近已提交工作包：P5-W2 — opt-in beta 配置入口
+更早已提交：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
 更早已提交：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
-工作树预期：
-  - 以下未提交变化均已审查、须保留，且不属于 P4-W7/P5-W1：
-    - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
-    - 本轮计划治理：README.md、decision-log.md、migration-invariants.md
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；不得重做或覆盖已提交的 P4-W7/P5-W1
-默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
+工作树预期：clean（P5-W2 已提交；.gia 候选不入库）
+默认 backend：handwritten impl backend
+opt-in beta：options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1
 ```
 
 ## 当前可依赖事实
@@ -447,23 +445,109 @@ npx tsx tests/composite/test-stage3-resolved-node-contract.ts
 git diff --check
 ```
 
-## 当前唯一工作包：P5-W2
+## 最近完成（已提交）：P5-W2
+
+P5-W2 为 shared vendor-impl Graph 建立正式 opt-in beta 配置/CLI/诊断入口；默认仍为 handwritten；
+不删除 legacy；不改 default gate；未注入。用户 2026-07-14 确认编辑器加载与可观察执行通过。
+
+交付：
 
 ```text
-工作包：P5-W2 — opt-in beta 配置入口
+src/compiler/ir_to_gia_transform/stage3_backend.ts
+  STAGE3_BACKEND_CONTRACT
+  resolveStage3ImplBackend / applyStage3ImplBackendEnv / formatStage3BackendDiagnostic
+  isSharedVendorImplGraphEnabled
+
+src/compiler/gsts_config.ts
+  GstsStage3Options.vendorImplGraphBeta
+  options.stage3
+
+src/cli/gsts.ts
+  --stage3-shared-impl-beta
+  applyStage3BackendSurfaces（config + CLI → env + 诊断）
+
+src/i18n/locales/{zh-CN,en-US}/main.json
+  optStage3SharedImplBeta / warnStage3SharedImplBeta
+
+src/compiler/ir_to_gia_transform/composite.ts
+  生产路径经 isSharedVendorImplGraphEnabled()
+  COMPOSITE_ORCHESTRATION_CONTRACT.stage3Backend
+
+tests/composite/test-stage3-p5w2-beta-config-contract.ts
+```
+
+优先级 / 入口：
+
+```text
+1. explicit API option
+2. CLI --stage3-shared-impl-beta
+3. config options.stage3.vendorImplGraphBeta
+4. env GSTS_STAGE3_VENDOR_IMPL_GRAPH=1（内部/测试兼容）
+5. default = legacy-handwritten
+```
+
+已证明（自动）：
+
+- 默认 backend 仍为 handwritten；`defaultVendorImplGraphGate=false`；
+- config / CLI / env / explicit 优先级与 force-off 行为；
+- 开启 beta 时诊断包含 backend、source、highRiskPending、回退说明；
+- env 兼容 gate 仍可驱动既有 vendor-gated sentinel；
+- P5-W1 inventory 与 P4-W7 orchestration contract 未破坏。
+
+未证明 / 非目标：
+
+- 未删除任何 legacy helper；
+- 未默认开启 vendor gate；
+- 未注入；无真实 GIA/wire 全等结论；
+- 用户编辑器核验已通过（2026-07-14）；未注入；无真实 GIA/wire 全等结论。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w2-beta-config-contract.ts
+npx tsx tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P5W2-p2w6-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P5W2-p2w6-vendor.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts /tmp/P5W2-p4w1-b4-vendor.gia
+git diff --check
+node dist/src/cli/gsts.js --help   # 可见 --stage3-shared-impl-beta
+```
+
+用户核验候选（未注入；用户 2026-07-14 确认编辑器加载与可观察执行通过；核验时重生 SHA）：
+
+- `Beyond_Local_Export/P5W2-capture-vendor.gia`（B1 capture-only）
+  SHA-256 `6aae55dd7235a8ae390d9f877c33fc229f23fd72f5fdd55126e0fb25f7749ccd`
+- `Beyond_Local_Export/P5W2-nested-capture-vendor.gia`（nested capture route）
+  SHA-256 `631850977f1c2b15c3c9d3c13c5943f2e8e1de4cec40033586c5647f203ab7c2`
+- `Beyond_Local_Export/P5W2-nested-sparse-vendor.gia`（nested sparse binding）
+  SHA-256 `7caeb6fc22a4943766c1e2986e43827975ab0bec4f2b79fe317a1c93d1644adc`
+- `Beyond_Local_Export/P5W2-multi-inflow-outflow-vendor.gia`（multi InFlow/OutFlow）
+  SHA-256 `ec6aa74850b341128d4e3131f577b3ecfbb46e18ba99f331374398b15a45c208`
+- `Beyond_Local_Export/P5W2-nested-call-vendor.gia`（nested call flow sentinel）
+  SHA-256 `1131c2d9de6910c38bfa82a3e0a528d4dd8ad090b536592b4ceea4d7a7b6ed71`
+
+说明：本包是配置/诊断 surface，不改变 ordinary materializer 业务语义、layout、capture/call/definition。
+开启 beta 后走既有 shared vendor path；候选用于确认“正式入口启用后的 shared backend”仍可编辑器加载。
+连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused contract 为准。
+
+## 当前唯一工作包：P5-W3
+
+```text
+工作包：P5-W3 — root ordinary 能力清单与例外审计
 优先级类别：架构阻塞
-解除的上层阻塞：legacy inventory/no-legacy 守卫已就位；在删除 legacy 或改 default gate 前，需要稳定的
-  opt-in beta 配置/CLI 入口（环境变量可保留内部兼容），便于用户长时间试用 shared backend 而不改默认。
-输入与修改范围：为 GSTS_STAGE3_VENDOR_IMPL_GRAPH 建立正式 opt-in beta 配置/诊断入口（配置字段或 CLI
-  flag + 明确 backend 诊断）；更新 STATUS/Phase 5。不删除 legacy，不改 default，不注入。
-最小观察或失败基线：shared backend 仅靠环境变量实验 gate；无正式 beta 配置 surface 与用户可操作诊断。
-完成条件：存在文档化的 opt-in beta 入口；默认仍为 handwritten；开启 beta 时诊断标明 backend；focused
-  自动检查通过；git diff --check 通过。若产生可执行候选则请求用户编辑器核验。
-实际验证命令：npm run build；P5-W2 focused beta-config contract；既有 vendor-gated sentinel 抽样；
-  git diff --check。
-回滚边界：P5-W2 配置/诊断；不影响 inventory 与 P4 boundary contract。
+解除的上层阻塞：opt-in beta 入口已就位；删除 legacy / 切换 default 前必须完成 root ordinary 能力清单，
+  将每项分类为共享路径、具名共享 adapter/vendor 补丁、boundary 或 root 未支持能力（ADR-013）。
+输入与修改范围：从当前 root compiler 实际可生成的 ordinary node/API 出发建立能力清单模块/文档与 focused
+  contract；更新 STATUS/Phase 5。不删除 legacy，不改 default，不注入。
+最小观察或失败基线：无系统化 root ordinary 能力清单；无法审计 Composite 是否仍依赖专属 ordinary fallback。
+完成条件：存在可机读/可测的 root ordinary 能力清单；每项已分类；focused 自动检查通过；git diff --check
+  通过。若产生可执行候选则请求用户编辑器核验。
+实际验证命令：npm run build；P5-W3 focused inventory contract；抽样 sentinel；git diff --check。
+回滚边界：P5-W3 清单/审计；不影响 beta 配置与 P4 boundary contract。
 明确非目标：删除 legacy backend、默认开启 vendor gate、注入、改 capture/call/layout 语义。
-后续候选（非当前工作包）：root ordinary 能力清单；legacy 分项删除；default 切换（须用户批准）。
+后续候选（非当前工作包）：legacy 分项删除；default 切换（须用户批准）。
 用户闸门：若触及 default gate / legacy 删除 / 注入，必须停止。
 ```
 

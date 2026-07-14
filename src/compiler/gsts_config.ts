@@ -55,6 +55,35 @@ export type GstsOptimizeOptions = {
 }
 
 // loopMax应用场景通常会有另外的控制条件, 一般只有需要更长的情况, 因此不列入优化项
+/**
+ * [ZH] Stage 3（IR → GIA）实验 / beta 选项。默认全部关闭。
+ *
+ * [EN] Stage 3 (IR → GIA) experimental / beta options. All off by default.
+ */
+export type GstsStage3Options = {
+  /**
+   * [ZH] 启用 composite ordinary impl Graph 的 shared vendor materializer（opt-in beta）。
+   *
+   * - 默认：`false`（handwritten legacy backend）
+   * - 开启后：impl 中的 ordinary system node 走 shared vendor Graph materializer
+   * - 环境变量兼容：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`（内部/测试）
+   * - CLI：`--stage3-shared-impl-beta`
+   * - 不删除 legacy，不改变生产 default
+   * - signal / dynamic pin / graphValues / affiliations 等可生成但未完全游戏验证；失败请附 backend 诊断
+   *
+   * [EN] Opt into the shared vendor materializer for composite ordinary impl Graphs (beta).
+   *
+   * - Default: `false` (handwritten legacy backend)
+   * - When enabled: ordinary system nodes in impl Graphs use the shared vendor Graph materializer
+   * - Env compat: `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` (internal/tests)
+   * - CLI: `--stage3-shared-impl-beta`
+   * - Does not delete legacy or flip the production default
+   * - signal / dynamic pin / graphValues / affiliations may generate but are not fully game-proven;
+   *   include backend diagnostics when reporting issues
+   */
+  vendorImplGraphBeta?: boolean
+}
+
 export type GstsTransformOptions = {
   /**
    * [ZH] for(;;) / while(true) 等“无限循环”的最大迭代次数（用于 finiteLoop(0, loopMax)）。
@@ -81,6 +110,12 @@ export type GstsTransformOptions = {
    * [EN] Optimization options.
    */
   optimize?: Partial<GstsOptimizeOptions>
+  /**
+   * [ZH] Stage 3（IR → GIA）beta / 实验选项。默认关闭。
+   *
+   * [EN] Stage 3 (IR → GIA) beta / experimental options. Off by default.
+   */
+  stage3?: GstsStage3Options
 }
 
 export type GstsLang = 'auto' | 'zh-CN' | 'en-US'

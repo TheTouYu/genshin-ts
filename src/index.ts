@@ -1,4 +1,4 @@
-export type { GstsConfig } from './compiler/gsts_config.js'
+export type { GstsConfig, GstsStage3Options } from './compiler/gsts_config.js'
 
 export { compileTsToGs, compileTsToGsFromConfig } from './compiler/ts_to_gs_pipeline.js'
 

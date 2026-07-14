@@ -2,6 +2,8 @@
   "desc": "Genshin TS 工具链：TS -> .gs.ts -> IR JSON -> .gia -> 注入 .gil",
   "optConfig": "配置文件路径（默认：./gsts.config.ts）",
   "optNoInject": "强制禁用注入（忽略配置）",
+  "optStage3SharedImplBeta": "启用 Stage3 composite ordinary impl 的 shared vendor Graph materializer（opt-in beta；默认仍为 handwritten）",
+  "warnStage3SharedImplBeta": "Stage3 shared impl backend beta 已启用（backend={{backend}}, source={{source}}）；默认生产路径仍为 handwritten，可用去掉该 flag/config 并 unset GSTS_STAGE3_VENDOR_IMPL_GRAPH 回退",
   "optLang": "语言：auto|zh-CN|en-US（默认 auto）",
   "argFile": "编译单文件（.ts/.json/.gia）",
   "cmdDev": "监控文件变更并自动编译",

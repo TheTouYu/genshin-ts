@@ -1,9 +1,9 @@
 # Phase 5：删除 Legacy Backend 与架构硬化
 
-> 状态：进行中；P5-W1 完成（自动 inventory/assert，2026-07-14）
-> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1 源码观察
+> 状态：进行中；P5-W1/P5-W2 已完成并提交（P5-W2 用户核验通过，2026-07-14）
+> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1/P5-W2 源码观察
 > 最近校验：2026-07-14
-> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W2`
+> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W3`
 
 ## 目标
 
@@ -36,6 +36,8 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
   helpers（`buildConnPin` / `buildLiteralPin` / `buildPlaceholderPin` / `buildImplNodePins`）；
 - [x] P5-W1：boundary 模块不允许手写 ordinary `bConcreteValue`；
 - [x] P5-W1：可复用 legacy call-site inventory（13 families / 22 helper symbols）；
+- [x] P5-W2：正式 opt-in beta 配置/CLI/诊断入口（`options.stage3.vendorImplGraphBeta` /
+  `--stage3-shared-impl-beta` / env 兼容）；默认仍为 handwritten，不删 legacy；
 - [ ] 未解析 type/variant 编译失败（后续 hardening）；
 - [ ] feature gate/fallback 数量归零（须 default 切换 + legacy 删除后）。
 
@@ -97,7 +99,8 @@ git diff --check
 - [ ] 当前权威文档反映新实现；
 - [ ] remaining unsupported families 明确列出，不隐藏；
 - [ ] 当前 root ordinary 能力清单和全部共享 adapter/vendor gap 已审计，未保留 Composite 专属 ordinary backend；
-- [ ] shared backend 默认切换前已完成 opt-in beta、可回退稳定使用窗口和用户明确批准。
+- [x] opt-in beta 配置/CLI/诊断入口已建立（P5-W2；默认仍 handwritten）；
+- [ ] shared backend 默认切换前已完成可回退稳定使用窗口和用户明确批准。
 
 ## 长期维护规则
 

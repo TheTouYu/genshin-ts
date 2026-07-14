@@ -235,14 +235,17 @@ export const LEGACY_ORDINARY_CALL_SITES: readonly LegacyOrdinaryCallSite[] = [
     id: 'legacy-vendor-gate-bridge',
     family: 'vendor-gate-bridge',
     symbol: 'materializeImplOrdinaryGraphWithVendor',
-    callers: ['buildImplGraphNodes (GSTS_STAGE3_VENDOR_IMPL_GRAPH=1)'],
-    sharedReplacement: 'default shared ordinary materializer (no env gate)',
+    callers: [
+      'buildImplGraphNodes (shared-vendor-impl-graph via stage3_backend: config/CLI/env)'
+    ],
+    sharedReplacement: 'default shared ordinary materializer (no gate)',
     deletionPreconditions: [
-      'opt-in beta configuration exists',
+      'opt-in beta configuration exists (P5-W2)',
       'default switch approved',
       'legacy backend deleted or quarantined'
     ],
-    notes: 'Experimental bridge, not the deletion target of early P5 packs.'
+    notes:
+      'Opt-in beta bridge via options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1; not the deletion target of early P5 packs.'
   }
 ] as const
 

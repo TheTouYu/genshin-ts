@@ -40,6 +40,10 @@ import {
   usesSharedVariantResolution
 } from './resolved_node.js'
 import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
+import {
+  STAGE3_BACKEND_CONTRACT,
+  isSharedVendorImplGraphEnabled
+} from './stage3_backend.js'
 
 /**
  * Stable orchestration contract for Phase 4 exit audits.
@@ -81,7 +85,9 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   defaultVendorImplGraphGate: false,
   legacyOrdinaryBackendPresent: true,
   /** P5-W1: inventory/assert surface; does not delete legacy backend. */
-  legacyInventory: COMPOSITE_LEGACY_INVENTORY_CONTRACT
+  legacyInventory: COMPOSITE_LEGACY_INVENTORY_CONTRACT,
+  /** P5-W2: formal opt-in beta surface; default remains handwritten. */
+  stage3Backend: STAGE3_BACKEND_CONTRACT
 } as const
 
 export {
@@ -90,6 +96,23 @@ export {
   listLegacyOrdinaryHelperSymbols,
   findLegacyOrdinaryCallSite
 } from './legacy_ordinary_inventory.js'
+
+export {
+  STAGE3_BACKEND_CONTRACT,
+  STAGE3_VENDOR_IMPL_GRAPH_ENV,
+  STAGE3_SHARED_IMPL_BETA_CLI_FLAG,
+  STAGE3_SHARED_IMPL_BETA_CONFIG_PATH,
+  resolveStage3ImplBackend,
+  applyStage3ImplBackendEnv,
+  formatStage3BackendDiagnostic,
+  isSharedVendorImplGraphEnabled
+} from './stage3_backend.js'
+export type {
+  Stage3ImplBackend,
+  Stage3BackendSource,
+  Stage3BackendDecision,
+  ResolveStage3ImplBackendInput
+} from './stage3_backend.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -369,7 +392,7 @@ function buildImplGraphNodes(
     compositeDefs: compositeDefById ? [...compositeDefById.values()] : []
   }).positions
 
-  if (process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1') {
+  if (isSharedVendorImplGraphEnabled()) {
     return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout, nodeIndexMap)
   }
 
