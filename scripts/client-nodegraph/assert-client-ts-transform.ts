@@ -5,6 +5,8 @@ import { pathToFileURL } from 'node:url'
 
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { compileTsToGs } from '../../src/compiler/ts_to_gs_pipeline.js'
+import { loadGiaProto } from '../../src/injector/proto.js'
+import type { Root as GiaRoot } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 const root = process.cwd()
 const tempRoot = path.join(root, 'tests', '.client-ts-transform-tmp')
@@ -77,6 +79,19 @@ try {
       'int_filter'
     ])
   )
+  const intervalBySubType = new Map(
+    documents.flatMap((document) =>
+      document.graph.type === 'client'
+        ? [[document.graph.sub_type, document.graph.evaluation_interval] as const]
+        : []
+    )
+  )
+  assert.strictEqual(intervalBySubType.get('bool_filter'), 0.3)
+  assert.strictEqual(intervalBySubType.get('int_filter'), 0.75)
+  for (const subType of subTypes) {
+    if (subType === 'bool_filter' || subType === 'int_filter') continue
+    assert.strictEqual(intervalBySubType.get(subType), undefined)
+  }
 
   const ir = JSON.stringify(documents)
   for (const nodeType of [
@@ -94,9 +109,26 @@ try {
     root,
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
   )
+  const { rootMessage } = loadGiaProto(protoPath)
   documents.forEach((document, index) => {
     const bytes = irToGia(document, { protoPath })
     assert.ok(bytes.length > 0, `${subTypes[index]}: empty GIA output`)
+    const message = rootMessage.decode(bytes.slice(20, -4))
+    const decoded = rootMessage.toObject(message, {
+      defaults: true,
+      longs: Number
+    }) as GiaRoot
+    const clientGraph = decoded.graph?.graph?.inner.graph
+    assert.ok(clientGraph, `${subTypes[index]}: missing decoded client graph`)
+    const expectedInterval = intervalBySubType.get(subTypes[index])
+    if (expectedInterval === undefined) {
+      assert.strictEqual(clientGraph.evaluationInterval, undefined)
+    } else {
+      assert.ok(
+        Math.abs((clientGraph.evaluationInterval ?? Number.NaN) - expectedInterval) < 1e-6,
+        `${subTypes[index]}: unexpected GIA evaluationInterval ${String(clientGraph.evaluationInterval)}`
+      )
+    }
   })
 
   const importG = `import { g } from 'genshin-ts/runtime/core'`

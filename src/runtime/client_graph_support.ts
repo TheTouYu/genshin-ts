@@ -87,6 +87,20 @@ export type ClientGraphOptions<Mode extends ClientGraphMode = ClientGraphMode> =
         mode?: 'beyond'
       }
 
+export type ClientFilterGraphOptions<Mode extends ClientGraphMode = ClientGraphMode> =
+  ClientGraphOptions<Mode> & {
+    /**
+     * [ZH] 过滤器执行时间间隔，单位为秒（默认 0.3）。
+     *
+     * 写入客户端 NodeGraph.evaluationInterval。
+     *
+     * [EN] Filter evaluation interval in seconds (default: 0.3).
+     *
+     * Encoded as client NodeGraph.evaluationInterval.
+     */
+    evaluationInterval?: number
+  }
+
 export type ClientStartEvent = Record<string, never>
 export type ClientStartEventName = 'start'
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>

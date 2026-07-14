@@ -71,6 +71,7 @@ export type IRBuildInput = {
   serverMode?: ServerGraphMode
   clientSubType?: ClientGraphSubType
   clientMode?: ClientGraphMode
+  clientEvaluationInterval?: number
   graphId?: number
   graphName?: string
 }

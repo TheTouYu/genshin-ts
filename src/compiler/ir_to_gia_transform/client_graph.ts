@@ -1,5 +1,8 @@
 import { loadGiaProto } from '../../injector/proto.js'
-import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
+import {
+  CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL,
+  resolveGraphIdForGraph
+} from '../../runtime/graph_defaults.js'
 import type { ClientIRDocument } from '../../runtime/IR.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import {
@@ -1050,12 +1053,16 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   }
 
   const encoding = getClientGraphEncoding(ir.graph.sub_type)
+  const isFilter = ir.graph.sub_type === 'bool_filter' || ir.graph.sub_type === 'int_filter'
   const root: GiaRoot = client_graph_body({
     uid,
     graph_id: graphId,
     graph_name: name,
     graphType: encoding.graphType,
     graphWhich: encoding.graphWhich,
+    evaluation_interval: isFilter
+      ? (ir.graph.evaluation_interval ?? CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL)
+      : undefined,
     nodes: [...builtById.values()]
   })
 

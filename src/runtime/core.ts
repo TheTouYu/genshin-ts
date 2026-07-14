@@ -27,6 +27,7 @@ import {
   normalizeClientBoolFilterReturn,
   normalizeClientIntFilterReturn,
   type ClientFilterGraphApi,
+  type ClientFilterGraphOptions,
   type ClientFlowFunctionClass,
   type ClientGraphOptions,
   type ClientLang,
@@ -35,7 +36,10 @@ import {
   type ClientStartGraphApi
 } from './client_graph_support.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
-import { resolveGraphIdForGraph } from './graph_defaults.js'
+import {
+  CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL,
+  resolveGraphIdForGraph
+} from './graph_defaults.js'
 import { buildIRDocument } from './ir_builder.js'
 import type {
   ClientGraphMode,
@@ -738,6 +742,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
   private readonly graphMode: GraphMode
   private readonly graphId?: number
   private readonly graphName?: string
+  private readonly clientEvaluationInterval?: number
   private readonly prefixName: boolean
   private readonly variables: Variable[]
   private readonly variableMetaByName: Map<string, NodeGraphVariableMeta>
@@ -759,13 +764,15 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     prefixName: boolean = true,
     variables: Variable[] = [],
     variableMetaByName: Map<string, NodeGraphVariableMeta> = new Map(),
-    graphDocumentType: 'server' | 'client' = 'server'
+    graphDocumentType: 'server' | 'client' = 'server',
+    clientEvaluationInterval?: number
   ) {
     this.graphDocumentType = graphDocumentType
     this.graphType = graphType
     this.graphMode = graphMode
     this.graphId = graphId
     this.graphName = graphName
+    this.clientEvaluationInterval = clientEvaluationInterval
     this.prefixName = prefixName
     this.variables = variables
     this.variableMetaByName = variableMetaByName
@@ -936,6 +943,10 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
 
   getGraphName(): string | undefined {
     return this.graphName
+  }
+
+  getClientEvaluationInterval(): number | undefined {
+    return this.clientEvaluationInterval
   }
 
   shouldPrefixName(): boolean {
@@ -1373,6 +1384,7 @@ type ClientIntFilterApi<
 >
 
 type ClientGraphOptionsInput = ClientGraphOptions<ClientGraphMode>
+type ClientFilterGraphOptionsInput = ClientFilterGraphOptions<ClientGraphMode>
 
 type ResolvedClientLang<Options> = Options extends { lang: infer Lang extends ClientLang }
   ? Lang
@@ -1403,14 +1415,27 @@ function createClientGraphApi<T extends ClientGraphSubType>(
 ): ClientGraphApiForSubType<T, 'en', 'beyond'>
 function createClientGraphApi<
   T extends ClientGraphSubType,
-  Options extends ClientGraphOptionsInput
+  Options extends ClientFilterGraphOptionsInput
 >(subType: T, options: Options): ClientGraphApiForOptions<T, Options>
 function createClientGraphApi<T extends ClientGraphSubType>(
   subType: T,
-  options?: ClientGraphOptionsInput
+  options?: ClientFilterGraphOptionsInput
 ): ClientGraphApiForSubType<T, ClientLang, ClientGraphMode> {
   const graphType = assertClientGraphSubType(subType)
   const graphMode = assertClientGraphMode(options?.mode)
+  const isFilter = graphType === 'bool_filter' || graphType === 'int_filter'
+  const clientEvaluationInterval = isFilter
+    ? (options?.evaluationInterval ?? CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL)
+    : undefined
+  if (
+    clientEvaluationInterval !== undefined &&
+    (!Number.isFinite(clientEvaluationInterval) || clientEvaluationInterval < 0)
+  ) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
+      `filter evaluationInterval must be a finite non-negative number, got ${String(clientEvaluationInterval)}`
+    )
+  }
   const registry = new MetaCallRegistry(
     graphType,
     graphMode,
@@ -1419,7 +1444,8 @@ function createClientGraphApi<T extends ClientGraphSubType>(
     options?.prefix !== false,
     [],
     new Map(),
-    'client'
+    'client',
+    clientEvaluationInterval
   )
   clientRegistries.push(registry)
   const entrySpec = CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[graphType]
@@ -1523,11 +1549,11 @@ function creationStatusDecision(
 }
 
 function boolFilter(): ClientBoolFilterApi<'en', 'beyond'>
-function boolFilter<Options extends ClientGraphOptionsInput>(
+function boolFilter<Options extends ClientFilterGraphOptionsInput>(
   options: Options
 ): ClientGraphApiForOptions<'bool_filter', Options>
 function boolFilter(
-  options?: ClientGraphOptionsInput
+  options?: ClientFilterGraphOptionsInput
 ): ClientBoolFilterApi<ClientLang, ClientGraphMode> {
   return options === undefined
     ? createClientGraphApi('bool_filter')
@@ -1535,11 +1561,11 @@ function boolFilter(
 }
 
 function intFilter(): ClientIntFilterApi<'en', 'beyond'>
-function intFilter<Options extends ClientGraphOptionsInput>(
+function intFilter<Options extends ClientFilterGraphOptionsInput>(
   options: Options
 ): ClientGraphApiForOptions<'int_filter', Options>
 function intFilter(
-  options?: ClientGraphOptionsInput
+  options?: ClientFilterGraphOptionsInput
 ): ClientIntFilterApi<ClientLang, ClientGraphMode> {
   return options === undefined
     ? createClientGraphApi('int_filter')
@@ -1697,6 +1723,7 @@ export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       variables: registry.getVariables(),
       clientSubType: registry.getGraphType() as ClientGraphSubType,
       clientMode: registry.getGraphMode() as ClientGraphMode,
+      clientEvaluationInterval: registry.getClientEvaluationInterval(),
       graphId: registry.getGraphId(),
       graphName: resolveName(registry)
     })

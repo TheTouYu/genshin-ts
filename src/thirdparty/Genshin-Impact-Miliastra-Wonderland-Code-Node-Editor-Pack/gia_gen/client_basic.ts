@@ -23,6 +23,7 @@ export function client_graph_body(body: {
   graph_name: string
   graphType: number
   graphWhich: number
+  evaluation_interval?: number
   nodes: GraphNode[]
 }): Root {
   const root = graph_body({
@@ -43,6 +44,9 @@ export function client_graph_body(body: {
     type: body.graphType,
     kind: NodeGraph_Id_Kind.NodeGraph,
     id: body.graph_id
+  }
+  if (body.evaluation_interval !== undefined) {
+    root.graph.graph!.inner.graph.evaluationInterval = body.evaluation_interval
   }
   return root
 }

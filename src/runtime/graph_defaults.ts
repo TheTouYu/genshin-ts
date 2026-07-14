@@ -1,5 +1,6 @@
 export const SERVER_DEFAULT_GRAPH_ID = 1073741825
 export const CLIENT_DEFAULT_GRAPH_ID = 1082130433
+export const CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL = 0.3
 
 export type GraphDocumentType = 'server' | 'client'
 

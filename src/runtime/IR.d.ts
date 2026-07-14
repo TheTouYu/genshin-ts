@@ -59,6 +59,8 @@ export interface ClientGraphInfo {
   type: 'client'
   mode?: ClientGraphMode
   sub_type: ClientGraphSubType
+  /** Filter-only evaluation interval in seconds. Defaults to 0.3. */
+  evaluation_interval?: number
 }
 
 export type Variable =

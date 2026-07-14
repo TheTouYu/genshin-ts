@@ -111,7 +111,11 @@ g.boolFilter({ id: 1082130606, name: 'ClientTsTransformBoolFilter' }).on(
   }
 )
 
-g.intFilter({ id: 1082130607, name: 'ClientTsTransformIntFilter' }).on(
+g.intFilter({
+  id: 1082130607,
+  name: 'ClientTsTransformIntFilter',
+  evaluationInterval: 0.75
+}).on(
   'start',
   (_evt, f) => {
     if (f.greaterThan(1, 0)) return gstsIntFilterAdd(gstsClientIntFilterAdd(0))

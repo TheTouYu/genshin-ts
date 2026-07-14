@@ -215,6 +215,7 @@ export function buildIRDocument(input: IRBuildInput): IRDocument {
         type: 'client',
         mode: input.clientMode ?? 'beyond',
         sub_type: input.clientSubType,
+        evaluation_interval: input.clientEvaluationInterval,
         id: input.graphId ?? CLIENT_DEFAULT_GRAPH_ID,
         name: input.graphName
       },
