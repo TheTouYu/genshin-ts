@@ -508,8 +508,6 @@ function materializeImplOrdinaryGraphWithVendor(
     )
     vendorNode.pins = vendorNode.pins.filter(
       (pin: any) =>
-        !(node.type === 'get_local_variable' &&
-          pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0) &&
         !(node.type !== 'get_local_variable' &&
           pin.kind === NodePin_Index_Kind.InParam && capturedInputIndexes.has(pin.index))
     )
@@ -519,7 +517,7 @@ function materializeImplOrdinaryGraphWithVendor(
 
   const ordinaryDataEdges = ordinaryResults.flatMap((result) =>
     (result.node.args ?? []).flatMap((arg: any, toIndex: number) =>
-      arg?.type === 'conn'
+      arg?.type === 'conn' && arg.capture !== true
         ? [{ fromId: arg.value.node_id, toId: result.node.id, fromIndex: arg.value.index, toIndex }]
         : []
     )
@@ -906,11 +904,6 @@ function buildImplNodePins(
 
     tmpNode.pins = (tmpNode.pins ?? []).filter(
       (pin: any) =>
-        !(
-          node.type === 'get_local_variable' &&
-          pin.kind === NodePin_Index_Kind.OutParam &&
-          pin.index === 0
-        ) &&
         !(
           (pin?.kind === NodePin_Index_Kind.InParam ||
             pin?.kind === NodePin_Index_Kind.OutParam) &&

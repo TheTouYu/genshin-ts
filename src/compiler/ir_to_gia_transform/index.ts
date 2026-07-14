@@ -629,11 +629,6 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     }
 
     filterUnkPins(giaNode)
-    if (nodeType === 'get_local_variable') {
-      giaNode.pins = giaNode.pins.filter(
-        (pin) => !(pin.kind === NodePin_Index_Kind.OutParam && pin.index === 0)
-      )
-    }
 
     nodesById.set(irNode.id, giaNode)
     graph.add_node(giaNode)

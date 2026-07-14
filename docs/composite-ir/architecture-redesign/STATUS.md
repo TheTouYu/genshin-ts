@@ -13,17 +13,19 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 3 — Unified Ordinary Graph Materialization
-当前唯一工作包：P3-W22 — 游戏回归 manifest 建立与 Phase 3 exit audit（待执行；ADR-013 已先行固化）
-最近已提交工作包：P3-W20 — shared ordinary Graph edge materializer（见 HEAD 提交标题）
-最近已完成、待审核提交工作包：P3-W21 — encoded ordinary-edge integrity checks
+当前 Phase：P3.5 exception — local-variable getter output pin schema（已完成，待审核提交）
+当前唯一工作包：无 — P3.5 已完成，等待用户审核提交后恢复 P4-W1
+挂起工作包：P4-W1 — boundary regression batch（B1~B4；已授权，等待 P3.5 提交）
+最近已提交工作包：P3-W21 — encoded ordinary-edge integrity checks（`2b48804`）
+最近已完成、待审核提交工作包：P3.5 — local-variable getter output pin schema
 工作树预期：以下未提交变化均已审查、须保留：
   - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
   - 本轮计划治理：README.md、STATUS.md、decision-log.md、migration-invariants.md、phase-3-unified-graph-materialization.md、
     phase-4-composite-boundary-isolation.md、phase-5-legacy-removal-and-hardening.md、game-regression-manifest.md（新增未追踪）
-  - P3-W21：src/compiler/ir_to_gia_transform/ordinary_graph_materializer.ts、
-    src/compiler/ir_to_gia_transform/composite.ts、tests/composite/test-stage3-ordinary-graph-materializer.ts
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P3-W21 尚待用户审核，不能覆盖或提交
+  - P3.5/P4-W1：src/compiler/ir_to_gia_transform/index.ts、composite.ts、
+    tests/composite/test-local-variable-impl-concrete-type.ts、test-stage3-p2w6-capture-vendor-graph.ts、
+    test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P3-W21 已提交，不得重做或覆盖
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -74,18 +76,19 @@ P3-W20 将 root 与 vendor-gated impl closed ordinary subgraph 的 ordinary data
 `ordinary_graph_materializer.ts`；synthetic call/capture overlay 仍独立。自动回归通过，且用户已确认四份
 vendor-gated 候选在游戏内实际运行通过；未注入。候选 SHA-256、命令与回滚边界见 Phase 3 文档。
 
-## 当前唯一工作包：P3-W22
+## 当前唯一工作包：P3.5
 
 ```text
-工作包：P3-W22 — 游戏回归 manifest 建立与 Phase 3 exit audit
-优先级类别：架构阻塞
-解除的上层阻塞：P3-W21 已为 shared materializer 建立 encoded ordinary-edge integrity contract；Phase 3 尚需将代表性游戏回归候选、精确 SHA、观察点和用户结论规范化，并审计退出哨兵。
-输入与修改范围：game-regression-manifest、Phase 3 exit audit 与本状态/Phase 文档；不改 ordinary materializer、vendor/generated、default gate、legacy backend、游戏目录或注入。
-完成条件：代表性 vendor-gated P3 哨兵可重生成、哈希并进入 manifest；用户确认编辑器加载和可观察执行；Phase 3 exit audit 对 ordinary data/flow、literal/connection、fan-out、hidden-pin remap 与 boundary exclusion 给出证据状态；git diff --check 通过。
-实际验证命令：由 manifest 中每条候选的生成命令、SHA-256 与 focused regression 构成；git diff --check。任何候选 SHA 改变均须重新请求用户核验。
-回滚边界：P3-W22 manifest、退出审计与状态文档；不影响 P3-W21 integrity contract 或独立 docs-search 改动。
-明确非目标：默认开启 gate、legacy 删除、改变 ordinary edge/capture/boundary 语义、真实 GIA 全等结论、注入或操作游戏目录。
-后续候选（非当前工作包）：只有 P3-W22 完成、用户确认阶段退出后，才选择 P4 capture/call/compositePins boundary isolation。
+工作包：P3.5 — local-variable getter output pin schema（P4-W1 B1 阻塞修复）
+优先级类别：最小例外修复包；用户于 2026-07-14 批准。
+解除的上层阻塞：P4-W1 B1 在 vendor-gated capture fixture 中触发 P3-W21 endpoint integrity error。根因是 root/vendor-gated impl 均删除 get_local_variable OutParam[0]，但它是 setter 所需 local-variable handle；OutParam[1] 是 ordinary value consumer 所需 typed value。
+输入与修改范围：root/vendor-gated impl getter pin filter、focused local-variable/capture contracts、P3/manifest/STATUS；不改 capture 语义、ordinary resolver、vendor/generated、default gate、legacy backend、布局、游戏目录或注入。
+完成条件：root 与 vendor-gated impl 均保留 getter OutParam[0] handle 和 OutParam[1] typed value；capture input 不进入 vendor ordinary data edges；P2-W5、P2-W6/P2-W7、P2-W10/P2-W12、nested、P3 materializer 回归通过；新候选经用户编辑器加载和可观察执行核验；git diff --check 通过。
+当前结果：自动回归通过；候选 `Beyond_Local_Export/P35-local-variable-getter-output-vendor.gia`，SHA-256 `b32b810dc88c9318b0842ccc76c7f63b5a995d469150e6bf2e03316507b7ada2`。用户于 2026-07-14 确认编辑器加载和可观察执行通过；未注入。
+实际验证命令：npm run build；local-variable impl concrete contract；P2-W5 legacy/vendor；P2-W6/P2-W7、P2-W10/P2-W12 vendor；nested capture/outflow；P3 materializer；git diff --check。
+回滚边界：P3.5 getter pin filters、focused contracts、候选 manifest 与状态/Phase 文档；不影响 P4 boundary semantics 或独立 docs-search/治理改动。
+明确非目标：继续 P4-W1 B1~B4、capture/ordinary edge 语义迁移、布局、default gate、legacy 删除、真实 GIA/wire 全等、注入或操作游戏目录。
+后续候选（非当前工作包）：P3.5 经用户审核提交后恢复 P4-W1 boundary regression batch。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

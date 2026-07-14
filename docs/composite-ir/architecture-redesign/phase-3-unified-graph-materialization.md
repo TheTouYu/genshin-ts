@@ -107,14 +107,24 @@ Root 先接入并验证输出保持，再由 impl 以 family/fixture 逐步接�
   exclusion；direct contract 另锁定错误 pin、重复 target、boundary 越界与 nodeIndex 漂移。
 - [x] 用户明确确认 P3-W20 候选在游戏内实际运行通过。
 - [x] P3-W21 对 ordinary endpoint、data target uniqueness、encoded nodeIndex、type compatibility（限当前可获得的 schema/IR 证据）与 boundary/capture exclusion 建立无 fallback 的共享可失败契约。
-- [ ] P3-W22 建立游戏回归 manifest，重生成并哈希代表性 vendor-gated P3 哨兵，用户确认编辑器加载和可观察执行；候选 SHA 改变不得继承旧结论。
-- [ ] P3 exit audit 已确认 ordinary data/flow、literal/connection、fan-out、hidden-pin remap 与 boundary exclusion 的最小跨类别哨兵；任一游戏回归失败先阻塞并建立最小修复包。
+- [x] P3-W22 已建立游戏回归 manifest，并以精确 SHA 重生成四份代表性 vendor-gated P3 哨兵；用户于
+  2026-07-14 确认编辑器加载和可观察执行通过。候选 SHA 改变不继承旧结论。
+- [x] P3 exit audit 已确认普通 data/flow（complex-flow）、literal/connection（scalar/custom target）、fan-out
+  （complex-flow）、hidden-pin remap（P3-W20 root/impl parity）与 boundary exclusion（P3-W21 integrity contract）的
+  最小跨类别哨兵；四份 manifest 候选均已由用户核验通过。任一后续游戏回归失败先阻塞并建立最小修复包。
 
 P3-W21 已完成：`ordinary_graph_materializer.ts` 在写入前检查 ordinary endpoint pin、pin type、同一 data
 目标唯一性与 nodeIndex 唯一性；vendor impl 额外以 `nodeIndexMap` 断言 encoded index 对齐，并明确排除 synthetic
-call。P3-W21 focused 自动回归通过，未改变候选 GIA 的语义目标、未生成待用户核验的新候选、未注入；这不是真实
-GIA/wire 全等或游戏行为结论。P3-W22 只管理 manifest、候选、哈希、验证与退出审计，不修改 ordinary
-materializer。所有退出项完成后仍须用户确认才可进入 Phase 4。
+call。P3-W21 focused 自动回归通过，未改变候选 GIA 的语义目标、未注入；这不是真实 GIA/wire 全等结论。
+P3-W22 已将 complex-flow、DTC、captured custom target 与 scalar arithmetic 四份 vendor-gated 候选重生成并登记
+精确 SHA；用户于 2026-07-14 确认四份均可在编辑器加载和可观察执行，未注入。所有 Phase 3 退出项已满足，用户
+已确认进入 Phase 4。
+
+P4-W1 B1 自动回归暴露 P3.5 例外：root 与 vendor-gated impl 都曾删除 `get_local_variable` 的 OutParam[0]，但它是
+local-variable handle；同时 OutParam[1] 是 typed value。该删除会使 handle → setter 或 value → ordinary consumer
+产生 endpoint 缺失。用户已批准最小 P3.5 修复：两条路径保留两个输出，vendor ordinary edge 忽略 `capture: true`
+输入。自动回归通过；用户于 2026-07-14 确认候选可在编辑器加载和可观察执行，未注入。P3.5 不改变 P3 已完成的
+exit 结论；P4-W1 可在 P3.5 审核提交后恢复。
 
 ## 回滚条件
 

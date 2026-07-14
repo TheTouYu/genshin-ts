@@ -86,6 +86,8 @@ assert.equal(nodes.filter((node: any) => node.genericId?.nodeId === 1).length, 1
 
 const getter = nodes.find((node: any) => node.genericId?.nodeId === 18)
 assert.equal(getter.concreteId?.nodeId, 2659, 'captured float local getter concrete ID')
+const getterValuePin = getter.pins?.find((pin: any) => pin.i1?.kind === 4 && pin.i1?.index === 1)
+assert.ok(getterValuePin, 'captured float local getter must retain value OutParam[1]')
 const capturedValuePin = getter.pins?.find((pin: any) => pin.i1?.kind === 3 && pin.i1?.index === 0)
 assert.ok(capturedValuePin, 'getter must retain the vendor-created InParam[0] schema pin')
 assert.equal(capturedValuePin.connects?.length ?? 0, 0, 'capture input must not become an ordinary edge')
@@ -104,6 +106,13 @@ assert.equal(
   1,
   'one captured data boundary route'
 )
+
+const addition = nodes.find((node: any) => node.genericId?.nodeId === 200)
+const additionInput = addition?.pins?.find((pin: any) => pin.i1?.kind === 3 && pin.i1?.index === 0)
+assert.equal(additionInput?.connects?.length, 1, 'getter value must retain one ordinary data edge')
+assert.equal(additionInput?.connects?.[0]?.id, getter.nodeIndex, 'addition must consume the getter node')
+assert.equal(additionInput?.connects?.[0]?.connect?.kind, 4, 'getter data source must be OutParam')
+assert.equal(additionInput?.connects?.[0]?.connect?.index, 1, 'getter value must use OutParam[1]')
 
 const setter = nodes.find((node: any) => node.genericId?.nodeId === 19)
 assert.equal(setter.concreteId?.nodeId, 2677, 'float setter concrete ID')
