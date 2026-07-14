@@ -208,13 +208,18 @@ export function resolveNodeIdentity(
     return { logicalType: node.type, genericNodeId, concreteNodeId }
   }
 
-  const isScalarArithmetic = [
+  const isScalarBinarySameType = [
     'addition',
     'subtraction',
     'multiplication',
-    'division'
+    'division',
+    'equal',
+    'greater_than',
+    'less_than',
+    'greater_than_or_equal_to',
+    'less_than_or_equal_to'
   ].includes(node.type)
-  if (isScalarArithmetic) {
+  if (isScalarBinarySameType) {
     const left = inputs[0]?.type
     const right = inputs[1]?.type
     if (
@@ -227,7 +232,7 @@ export function resolveNodeIdentity(
       if (concreteNodeId === undefined) {
         report(context, {
           code: 'E_UNKNOWN_NODE_VARIANT',
-          message: `missing scalar arithmetic variant ${lower}__${left.name}`,
+          message: `missing scalar same-type binary variant ${lower}__${left.name}`,
           nodeId: node.id,
           nodeType: node.type
         })
@@ -314,6 +319,18 @@ export function resolveNodeIdentity(
   return { logicalType: node.type, genericNodeId, concreteNodeId }
 }
 
+const SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = new Set([
+  'addition',
+  'subtraction',
+  'multiplication',
+  'division',
+  'equal',
+  'greater_than',
+  'less_than',
+  'greater_than_or_equal_to',
+  'less_than_or_equal_to'
+])
+
 export function usesSharedVariantResolution(nodeType: string): boolean {
   return (
     nodeType === 'set_node_graph_variable' ||
@@ -322,7 +339,11 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
     nodeType === 'get_custom_variable' ||
     nodeType === 'set_local_variable' ||
     nodeType === 'get_local_variable' ||
-    ['addition', 'subtraction', 'multiplication', 'division'].includes(nodeType) ||
+    SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES.has(nodeType) ||
     nodeType.startsWith('data_type_conversion_')
   )
+}
+
+export function usesSharedScalarSameTypeBinaryResolution(nodeType: string): boolean {
+  return SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES.has(nodeType)
 }

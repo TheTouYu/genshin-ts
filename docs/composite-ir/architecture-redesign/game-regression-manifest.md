@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：已完成 P3-W22 / P3.5 / P4-W1 用户核验
+> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 用户核验
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-14
 > 适用范围：Phase 3、Phase 4、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -38,6 +38,27 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+### P2-W18-scalar-comparison
+
+- 工作包/阶段：P2-W18 / ordinary family 哨兵（用户指定插入，非 P4 boundary 包）。
+- 目的与覆盖风险：同型 int/float 的 `equal` / `less_than` / `less_than_or_equal_to` / `greater_than` /
+  `greater_than_or_equal_to` 走 shared identity；root 与 composite impl 均可达 comparison → bool→str DTC →
+  Print 控制流；literal 与 ordinary producer connection 输入均覆盖。
+- 自动证据：`npm run build`、`test-stage3-resolved-node-contract.ts`、P2-W18 legacy/vendor fixture、P2-W17b
+  legacy/vendor 回归，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w18-scalar-comparison-observation.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P2W18-scalar-comparison-vendor-shared-resolution.gia`
+  （通过后从根目录 `P2W18-scalar-comparison-vendor.gia` 归档）
+- SHA-256：`0b1e414dd836b62dadb7a0e4dff47642fcb2c96e126298bbb73ace6b57033f62`
+- 编辑器加载观察：用户确认通过（2026-07-14）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-14）；覆盖 root 与复合 `P2W18_ScalarComparisonFlow_GSTS`
+  的 comparison → bool→str DTC → Print 链。
+- 用户结论与日期：通过，2026-07-14。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖同型 int/float 五类比较；不证明异型 comparison、bool/str/entity/vec equal、
+  logical ops、legacy handwritten OutParam bool schema 修正或 wire 全等。
 
 以下四份 P4-W1 候选于 2026-07-14 以 `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` 生成到
 `Beyond_Local_Export` 根目录，自动契约和 legacy/vendor 回归通过，均未注入。它们分别覆盖独立 boundary

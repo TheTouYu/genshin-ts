@@ -7,23 +7,20 @@
 
 > 历史工作包的目标、命令、候选路径、SHA-256 和失败过程不在本文件重复；见
 > [work-packages/README.md](work-packages/README.md)。当前计划见
-> [phase-3-unified-graph-materialization.md](phase-3-unified-graph-materialization.md)。
+> [phase-4-composite-boundary-isolation.md](phase-4-composite-boundary-isolation.md)。
 
 ## 当前定位
 
 ```text
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：Phase 4 — Composite Boundary Isolation
-当前唯一工作包：无 — P4-W1 已完成，等待用户审核提交和选择下一 P4 工作包
-最近已提交工作包：P3.5 — local-variable getter output pin schema（`d4b6276`）
-最近已完成、待审核提交工作包：P4-W1 — boundary regression batch（B1~B4）
-工作树预期：以下未提交变化均已审查、须保留：
+当前唯一工作包：P4-W2 — capture normalization 独立 I/O contract 与 boundary builder 归属审计
+最近已提交工作包：P2-W18 — scalar same-type comparison shared identity（`2f09bbd`）
+工作树预期：以下未提交变化均已审查、须保留，且不属于 P2-W18/P4-W2：
   - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
-  - 本轮计划治理：README.md、STATUS.md、decision-log.md、migration-invariants.md、phase-3-unified-graph-materialization.md、
-    phase-4-composite-boundary-isolation.md、phase-5-legacy-removal-and-hardening.md、game-regression-manifest.md（新增未追踪）
-  - P4-W1：tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts、game-regression-manifest.md、
-    phase-4-composite-boundary-isolation.md、STATUS.md
-  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P3.5 已提交，不得重做或覆盖
+  - 本轮计划治理：README.md、decision-log.md、migration-invariants.md、
+    phase-5-legacy-removal-and-hardening.md
+  新会话须按 EXECUTION 的 untracked 审查规则读取并保留上述变化；P2-W18 已提交，不得重做或覆盖
 默认 backend：handwritten impl backend；GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 仍是实验 gate
 ```
 
@@ -36,12 +33,13 @@
 - ADR-012：ordinary API 按共享框架默认覆盖、实际问题驱动补洞；此工程策略不等于所有 ordinary family 已验证。
 - ADR-013：当前 root 已支持的 ordinary 能力必须经 root/impl 同一 resolver、factory 和 materializer 表达；Composite
   仅处理增量 boundary。缺口按 0–6 层归因，vendor 缺口走 compat patch → 有来源同步；不允许 Composite 专属 ordinary fallback。
-- P2 已对指定 setter/getter、local/custom variable、DTC、nested boundary 与同型 int/float 四则运算建立 scoped 自动和部分用户编辑器证据；这不等于所有 ordinary family 已验证。
+- P2 已对指定 setter/getter、local/custom variable、DTC、nested boundary、同型 int/float 四则与同型 int/float 比较建立 scoped 自动和部分用户编辑器证据；这不等于所有 ordinary family 已验证。
 - P2-W17b：`addition`、`subtraction`、`multiplication`、`division` 的同型 int/float 在 root、legacy impl 与 vendor-gated impl 使用 shared identity；可执行 fixture 的控制流为 event/复合 `执行` InFlow → Print 链，数据流为 arithmetic → DTC → Print。用户编辑器已确认通过；归档候选：`Beyond_Local_Export/真-测试通过/复合节点/P2W17b-scalar-arithmetic-vendor-shared-resolution.gia`，SHA-256 `929847e8078744dc6cd0356bfe726c1d91fcb5869ed1a4b2b397d3c18e4cc4a1`；未注入。
+- P2-W18：`equal`、`less_than`、`less_than_or_equal_to`、`greater_than`、`greater_than_or_equal_to` 的同型 int/float 在 root、legacy impl 与 vendor-gated impl 使用 shared identity；可执行 fixture 为 comparison → bool→str DTC → Print。用户编辑器已确认通过；归档候选：`Beyond_Local_Export/真-测试通过/复合节点/P2W18-scalar-comparison-vendor-shared-resolution.gia`，SHA-256 `0b1e414dd836b62dadb7a0e4dff47642fcb2c96e126298bbb73ace6b57033f62`；未注入。legacy handwritten OutParam 的 bool schema 修正不在本包。
 
 ## 当前未证明 / 停止边界
 
-- 不证明异型 arithmetic、comparison、vec3、list/dict、未采样 API、全部 signal/dynamic pin/payload 或全部 impl embedding。
+- 不证明异型 arithmetic、异型 comparison、非 int/float equal 全族、logical ops、vec3、list/dict、未采样 API、全部 signal/dynamic pin/payload 或全部 impl embedding。
 - 不证明真实 GIA/wire 全等；decoded defaults 不证明 protobuf field presence。
 - 不证明注入或游戏内行为；本轮没有注入。
 - 不默认开启 vendor gate，不删除 handwritten backend，不改变 `graphValues`、`affiliations`、capture、nested、sparse 或布局语义。
@@ -68,30 +66,40 @@ git diff --check
 Node 26 的 `module.register()` 弃用警告不影响上述命令退出码。完整工作包时间线见
 [归档记录](work-packages/status-history-2026-07-13.md#p2-w17b-完成记录scalar-same-type-arithmetic-shared-identity-resolution)。
 
-## 最近完成：P3-W20
+## 最近完成：P2-W18
 
-P3-W20 将 root 与 vendor-gated impl closed ordinary subgraph 的 ordinary data/flow edges 收束至
-`ordinary_graph_materializer.ts`；synthetic call/capture overlay 仍独立。自动回归通过，且用户已确认四份
-vendor-gated 候选在游戏内实际运行通过；未注入。候选 SHA-256、命令与回滚边界见 Phase 3 文档。
+P2-W18 将同型 int/float 的 `equal` / `less_than` / `less_than_or_equal_to` / `greater_than` /
+`greater_than_or_equal_to` 接入 shared same-type binary identity；root、legacy impl 与 vendor-gated impl 使用
+同一 resolver。自动契约与 legacy/vendor 可执行 fixture 通过；用户已确认编辑器加载和可观察执行；未注入。
+归档候选：`Beyond_Local_Export/真-测试通过/复合节点/P2W18-scalar-comparison-vendor-shared-resolution.gia`，
+SHA-256 `0b1e414dd836b62dadb7a0e4dff47642fcb2c96e126298bbb73ace6b57033f62`。legacy handwritten OutParam bool
+schema 修正不在本包。已提交。
 
-## 当前唯一工作包：P4-W1
+此前已提交：P4-W1（`d277682`）。
+
+## 当前唯一工作包：P4-W2
 
 ```text
-工作包：P4-W1 — boundary regression batch（B1 capture-only、B2 sparse/optional binding、B3 nested call data、B4 multi InFlow/OutFlow）
+工作包：P4-W2 — capture normalization 独立 I/O contract 与 boundary builder 归属审计
 优先级类别：架构阻塞
-解除的上层阻塞：P3.5 已由 `d4b6276` 提交，且用户已确认精确候选 SHA 的编辑器加载和可观察执行；P4 继续以最小可失败契约确认 capture/call/compositePins 的边界归属。
-输入与修改范围：P4 focused tests、必要的 boundary-only integrity helper、game-regression-manifest、Phase 4/STATUS；不改 ordinary resolver/factory/materializer、vendor/generated、default gate、legacy backend、布局、游戏目录或注入。
-最小观察或失败基线：现有 nested/capture/sparse focused tests 分散验证结构，尚无 B1~B4 分别拥有 boundary route、physical pin、nodeIndex remap 与可观察执行的独立 manifest 候选。
-完成条件：B1~B4 各有独立自动契约、vendor-gated candidate、SHA-256、manifest 观察点和用户结论；任一失败只阻塞对应子切片；既有 P3/P2 回归不退化；git diff --check 通过。
-当前结果：B1、B2、B4 已由用户确认编辑器加载和可观察执行通过。B3 初版只验证 outer producer 连到 child
-input，未验证 child 实际消费输入；已收紧为 child input → `compositePins` → DTC → Print，并以新 SHA 由用户复测
-通过。P4-W1 四份候选均通过，均未注入。
-实际验证命令：npm run build；B1~B4 focused contract/fixture 的 legacy/vendor 命令；nested capture/outflow、sparse binding、P3 complex-flow；git diff --check。每个候选 SHA 改变均须请求用户核验。
-回滚边界：P4-W1 boundary helper/fixture、四项 manifest 条目与 Phase 4/STATUS 文档；不影响 P3 shared materializer 或独立 docs-search/治理改动。
-明确非目标：capture/ordinary edge 语义迁移、ordinary lowering、布局变化、default gate、legacy 删除、真实 GIA/wire 全等、注入或操作游戏目录。
-批次授权：用户允许 B1~B4 在本唯一工作包内一次实现并集中请求游戏核验；每项必须独立记录，不能相互外推或顺手扩范围。
-后续候选（非当前工作包）：P4-W2 — capture normalization 的独立输入/输出 contract 与 boundary builder 归属审计；
-只有 P4-W1 提交并经用户确认后，才将其设为唯一当前工作包。
+解除的上层阻塞：P2-W18 用户核验已完成并提交；Phase 4 退出条件仍要求 capture normalization 有独立
+  输入/输出 contract，且 ordinary lowering 不得继续依赖内嵌 capture 分支。
+输入与修改范围：只读审计当前 capture 归一化/重定向与 boundary builder 归属；新增 capture normalization 的
+  独立输入→输出 contract（focused tests 和/或纯函数模块边界）；必要的 Phase 4/STATUS/decision 文档更新。
+  不改 ordinary resolver/factory/materializer、vendor/generated、default gate、legacy backend、布局、
+  call synthetic pins、compositePins overlay 语义、游戏目录或注入；不在本包完成完整 composite.ts 拆分。
+最小观察或失败基线：现有 nested/capture focused tests 覆盖部分结果形状，但 capture 过滤 ordinary nodes、
+  边重定向、boundary bindings 与 node-index 要求仍与 composite 主路径耦合，缺少可独立调用的 I/O contract。
+完成条件：形成可引用的 capture normalization 输入/输出 contract；明确列出 ordinary lowerer 不得看见的
+  capture 字段与 boundary builder 职责边界；B1 及既有 nested capture 回归不退化；git diff --check 通过。
+  若本包仅做 contract/审计而不抽模块，须在完成报告标明模块抽取为后续工作包。
+实际验证命令：npm run build（若改生产 TS）；P4-W2 focused contract；既有 nested capture / B1 capture-only
+  focused tests（legacy + 必要时 vendor gate）；git diff --check。
+回滚边界：P4-W2 contract/helper 与 Phase 4/STATUS 文档；不影响 P2-W18、P4-W1 候选、shared materializer 或
+  独立 docs-search/治理改动。
+明确非目标：call lowerer 完整抽取、definition interface builder、compositePins overlay 迁移、布局变化、
+  ordinary edge 语义迁移、default gate、legacy 删除、真实 GIA/wire 全等、注入或操作游戏目录。
+后续候选（非当前工作包）：P4-W3 — Composite call lowerer 或 capture 模块正式抽取（待 P4-W2 完成后按审计结果选择）。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

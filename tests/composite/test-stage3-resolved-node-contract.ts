@@ -86,6 +86,32 @@ for (const [type, intConcreteNodeId, floatConcreteNodeId] of scalarArithmeticVar
   }
 }
 
+const scalarComparisonVariants = [
+  ['equal', 14, 370, 371],
+  ['less_than', 230, 230, 235],
+  ['less_than_or_equal_to', 231, 231, 236],
+  ['greater_than', 232, 232, 237],
+  ['greater_than_or_equal_to', 233, 233, 238]
+]
+for (const [type, genericNodeId, intConcreteNodeId, floatConcreteNodeId] of scalarComparisonVariants) {
+  for (const [valueType, concreteNodeId] of [
+    ['int', intConcreteNodeId],
+    ['float', floatConcreteNodeId]
+  ]) {
+    const node = {
+      id: 400 + concreteNodeId,
+      type,
+      args: [{ type: valueType, value: 8 }, { type: valueType, value: 2 }]
+    }
+    assert.deepEqual(resolveNodeIdentity(node, context), {
+      logicalType: type,
+      genericNodeId,
+      concreteNodeId
+    })
+    assert.equal(resolveGiaNodeId(node, context.connectionTypes, context.variablesByName), concreteNodeId)
+  }
+}
+
 const customSetter = { id: 8, type: 'set_custom_variable', args: [
   { type: 'entity', value: 0 },
   { type: 'str', value: 'customFloat' },

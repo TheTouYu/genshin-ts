@@ -426,11 +426,21 @@ export function resolveGiaNodeId(
     return typed
   }
 
-  // Migrated DTC and scalar same-type arithmetic families delegate concrete identity to the
+  // Migrated DTC and scalar same-type binary families delegate concrete identity to the
   // shared resolver rather than maintaining root and composite-impl variant maps.
   if (
     nodeType.startsWith('data_type_conversion_') ||
-    ['addition', 'subtraction', 'multiplication', 'division'].includes(nodeType)
+    [
+      'addition',
+      'subtraction',
+      'multiplication',
+      'division',
+      'equal',
+      'greater_than',
+      'less_than',
+      'greater_than_or_equal_to',
+      'less_than_or_equal_to'
+    ].includes(nodeType)
   ) {
     const identity = resolveNodeIdentity(node, {
       scope: { kind: 'root', name: 'root-node-identity-adapter' },

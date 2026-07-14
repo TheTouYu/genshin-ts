@@ -23,7 +23,11 @@ import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
-import { resolveNodeIdentity, usesSharedVariantResolution } from './resolved_node.js'
+import {
+  resolveNodeIdentity,
+  usesSharedScalarSameTypeBinaryResolution,
+  usesSharedVariantResolution
+} from './resolved_node.js'
 
 /**
  * 将 CompositeDefIR 编码为 accessories 中的 GraphUnit（CompositeDef 和 impl NodeGraph 成对）
@@ -301,7 +305,7 @@ function buildImplGraphNodes(
         .get(node.id)
         ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
     const ordinaryConcreteNid =
-      ['addition', 'subtraction', 'multiplication', 'division'].includes(node.type)
+      usesSharedScalarSameTypeBinaryResolution(node.type)
         ? sharedConcreteNid
         : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // 对 __composite_call__ 节点：使用子复合 ID 作为 GIA nodeId
