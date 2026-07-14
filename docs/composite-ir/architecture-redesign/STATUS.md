@@ -15,7 +15,7 @@
 当前分支：refactor/composite-stage3-architecture
 当前 Phase：Phase 4 — Composite Boundary Isolation
 当前唯一工作包：P4-W2 — capture normalization 独立 I/O contract 与 boundary builder 归属审计
-最近已提交工作包：P2-W18 — scalar same-type comparison shared identity（`2f09bbd`）
+最近已提交工作包：P2-W18 — scalar same-type comparison shared identity（`1015d99`）
 工作树预期：以下未提交变化均已审查、须保留，且不属于 P2-W18/P4-W2：
   - 独立 docs-search/协议：docs/architecture/docs-search.md、scripts/docs-search.ts、EXECUTION.md
   - 本轮计划治理：README.md、decision-log.md、migration-invariants.md、
