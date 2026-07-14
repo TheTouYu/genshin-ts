@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint'
 import ts from 'typescript'
 
+import { getClientGraphSubTypeForGstsFunctionName } from '../../definitions/client_graph_modes.js'
 import { getSourceCode, requireParserServices } from './parser.js'
 import {
   DEFAULT_GSTS_SERVER_PREFIX,
@@ -66,20 +67,29 @@ export function buildNodeGraphScopeIndex(
     if (esNode) clientScopeRoots.set(esNode, { subType: info.subType, mode: info.mode })
   }
 
+  const addClientFunctionRoot = (node: ts.Node | undefined, name: string | undefined) => {
+    const subType = getClientGraphSubTypeForGstsFunctionName(name)
+    if (!node || !subType) return false
+    const esNode = services.tsNodeToESTreeNodeMap.get(node)
+    if (esNode) clientScopeRoots.set(esNode, { subType, mode: 'beyond' })
+    return true
+  }
+
   for (const stmt of tsRoot.statements) {
-    if (ts.isFunctionDeclaration(stmt) && isGstsServerName(stmt.name?.text, prefixes)) {
-      addRoot(stmt)
+    if (ts.isFunctionDeclaration(stmt)) {
+      if (addClientFunctionRoot(stmt, stmt.name?.text)) continue
+      if (isGstsServerName(stmt.name?.text, prefixes)) addRoot(stmt)
       continue
     }
     if (ts.isVariableStatement(stmt)) {
       for (const decl of stmt.declarationList.declarations) {
         if (!ts.isIdentifier(decl.name)) continue
-        if (!isGstsServerName(decl.name.text, prefixes)) continue
         if (
           decl.initializer &&
           (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))
         ) {
-          addRoot(decl.initializer)
+          if (addClientFunctionRoot(decl.initializer, decl.name.text)) continue
+          if (isGstsServerName(decl.name.text, prefixes)) addRoot(decl.initializer)
         }
       }
     }

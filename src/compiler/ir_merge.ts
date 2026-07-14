@@ -322,6 +322,13 @@ export function mergeIrJsonFilesByGraphId(params: {
     for (const it of ordered.slice(1)) {
       normalizeGraphCompatibility(base, it.doc, it.sourceJsonPath)
     }
+    if (base.graph.type === 'client') {
+      throw new Error(
+        t('err_mergeDuplicateClientGraphId', {
+          id: String(graphId)
+        })
+      )
+    }
 
     const topDir = pickTopmostDir(
       params.outDirAbs,

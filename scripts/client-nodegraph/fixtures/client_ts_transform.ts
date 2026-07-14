@@ -53,6 +53,14 @@ g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on
       counter += index
     }
     counter = Math.sin(counter)
+
+    const wiredInt = f.addition(1n, 2n)
+    const convertedFloat = float(wiredInt)
+    const convertedString = str(wiredInt)
+    const convertedBool = bool(wiredInt)
+    const convertedInt = int(f.division(1, 2))
+    f.setAttackWeight(convertedFloat, convertedBool)
+    f.notifyServerNodeGraph(convertedString, str(convertedInt), '')
   }
 )
 

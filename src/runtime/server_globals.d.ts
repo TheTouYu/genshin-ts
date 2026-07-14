@@ -38,16 +38,20 @@ declare global {
 
   /**
    * Convert to bool for node-graph conditions.
+   * Server graphs use the server conversion node; client graphs compile this helper to the client conversion node.
    *
    * 转换为 bool，常用于条件判断。
+   * 服务器节点图使用服务器转换节点；客户端节点图会将此辅助函数编译为客户端转换节点。
    */
   function bool(value: BoolValue | IntValue): boolean
   /**
    * Convert to int (bigint) for integer-only nodes.
    * Also usable as an explicit integer literal helper instead of bigint syntax (e.g. `int(123)`), though bigint is still recommended.
+   * Float-to-int conversion rounds in server graphs, but truncates toward zero in client graphs.
    *
    * 转换为 int（bigint），用于需要整数的节点。
    * 也可作为整数字面量的显式声明方式替代 bigint 写法（如 `int(123)`），但通常仍推荐使用 bigint。
+   * float 转 int 时，服务器节点图会四舍五入，客户端节点图会向零截尾取整。
    */
   function int(value: IntValue | BoolValue | FloatValue): bigint
   /**
@@ -88,14 +92,18 @@ declare global {
   function idx(value: IntValue): number
   /**
    * Convert to float (number) for float nodes.
+   * Server graphs use the server conversion node; client graphs compile this helper to the client conversion node.
    *
    * 转换为 float（number），用于需要浮点数的节点。
+   * 服务器节点图使用服务器转换节点；客户端节点图会将此辅助函数编译为客户端转换节点。
    */
   function float(value: FloatValue | IntValue): number
   /**
    * Convert to string; useful for logs
+   * Server graphs use the server conversion node; client graphs compile this helper to the client conversion node.
    *
    * 转为字符串，常用于日志
+   * 服务器节点图使用服务器转换节点；客户端节点图会将此辅助函数编译为客户端转换节点。
    */
   function str(
     value:

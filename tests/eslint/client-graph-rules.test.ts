@@ -4,8 +4,10 @@ import parser from '@typescript-eslint/parser'
 import { RuleTester } from 'eslint'
 
 import builtinMathSupport from '../../src/eslint/rules/builtin-math-support.js'
+import builtinWrapperArity from '../../src/eslint/rules/builtin-wrapper-arity.js'
 import clientFilterReturn from '../../src/eslint/rules/client-filter-return.js'
 import clientGraphScopedF from '../../src/eslint/rules/client-graph-scoped-f.js'
+import clientLocalVariableSupport from '../../src/eslint/rules/client-local-variable-support.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
 import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
 import noJson from '../../src/eslint/rules/no-json.js'
@@ -128,6 +130,31 @@ g.creationSkill().on('start', (_evt, _f) => { Math.sqrt(4) })`,
   ]
 })
 
+ruleTester.run('builtin-wrapper-arity client conversions', builtinWrapperArity, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', () => {
+  bool(1n); int(1); float(1n); str(1n)
+})`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', () => {
+  int(); float(1, 2)
+})`,
+      errors: [
+        { message: /int\(\) requires exactly one argument/ },
+        { message: /float\(\) requires exactly one argument/ }
+      ]
+    }
+  ]
+})
+
 ruleTester.run('client-filter-return', clientFilterReturn, {
   valid: [
     {
@@ -165,6 +192,63 @@ g.boolFilter().on('start', (_evt, _f) => 'bad')`,
       code: `${importG}
 g.intFilter().on('start', (_evt, _f) => false)`,
       errors: [{ message: /must return a bigint\/number\/int compatible value/ }]
+    }
+  ]
+})
+
+ruleTester.run('client-local-variable-support', clientLocalVariableSupport, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const ready = f.equal(1n, 1n)
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+  const result = ready ? 1n : 0n
+  f.absoluteValueOperation(result)
+})`
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const ready = true
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+})
+g.boolFilter().on('start', (_evt, f) => f.equal(1n, 1n) ? true : false)`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const ready = f.equal(1n, 1n)
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+})`,
+      errors: [{ message: /non-pure const "ready" is read 2 times.*local-variable snapshot/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatusDecision().on('start', (_evt, f) => {
+  const result = f.equal(1n, 1n) ? 1n : 0n
+  f.absoluteValueOperation(result)
+})`,
+      errors: [{ message: /conditional expressions require a temporary local variable/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+function gstsCreationStatusNeedsLocal() {
+  const ready = gsts.fCreationStatus.equal(1n, 1n)
+  if (ready) gsts.fCreationStatus.absoluteValueOperation(-1n)
+  if (ready) gsts.fCreationStatus.absoluteValueOperation(-2n)
+}`,
+      errors: [{ message: /non-pure const "ready" is read 2 times.*local-variable snapshot/ }]
     }
   ]
 })

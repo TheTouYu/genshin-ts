@@ -3,9 +3,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
+import { mergeIrJsonFilesByGraphId } from '../../src/compiler/ir_merge.js'
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { compileTsToGs } from '../../src/compiler/ts_to_gs_pipeline.js'
 import { loadGiaProto } from '../../src/injector/proto.js'
+import type { IRDocument } from '../../src/runtime/IR.js'
 import type { Root as GiaRoot } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 const root = process.cwd()
@@ -43,6 +45,29 @@ async function expectCompileError(name: string, source: string, pattern: RegExp)
   assert.match(String(error), pattern, `${name}: unexpected compilation error`)
 }
 
+async function expectRuntimeError(
+  name: string,
+  source: string,
+  pattern: RegExp,
+  buildDocuments = false
+) {
+  const file = path.join(tempRoot, `${name}.ts`)
+  fs.writeFileSync(file, source, 'utf8')
+  const result = await compile([relative(file)])
+  let error: unknown
+  try {
+    await import(`${pathToFileURL(result.entryOutFiles[0]).href}?test=${Date.now()}`)
+    if (buildDocuments) {
+      const { buildAllGraphRegistriesIRDocuments } = await import('genshin-ts/runtime/core')
+      buildAllGraphRegistriesIRDocuments()
+    }
+  } catch (caught) {
+    error = caught
+  }
+  assert.ok(error, `${name}: expected graph construction to fail`)
+  assert.match(String(error), pattern, `${name}: unexpected graph construction error`)
+}
+
 fs.rmSync(tempRoot, { recursive: true, force: true })
 fs.mkdirSync(tempRoot, { recursive: true })
 
@@ -55,6 +80,7 @@ try {
   assert.match(output, /\.__gstsInitLocalVariable\(/)
   assert.match(output, /\.finiteLoop\(/)
   assert.match(output, /\.multipleBranches\(/)
+  assert.match(output, /\.dataTypeConversion\(/)
   assert.match(output, /gsts\.fCreationStatus\.doubleBranch\(/)
   assert.doesNotMatch(output, /gsts\.f\.(?:doubleBranch|finiteLoop|addition)/)
 
@@ -93,6 +119,41 @@ try {
     assert.strictEqual(intervalBySubType.get(subType), undefined)
   }
 
+  const duplicateClientPath = path.join(outDir, 'duplicate-client.json')
+  fs.writeFileSync(duplicateClientPath, JSON.stringify([documents[0], documents[0]]), 'utf8')
+  assert.throws(
+    () => mergeIrJsonFilesByGraphId({ outDirAbs: outDir, irJsonPaths: [duplicateClientPath] }),
+    /client graph id may only be declared once|客户端节点图 id 只能声明一次/
+  )
+
+  const serverGraphId = 1082130699
+  const duplicateServerPath = path.join(outDir, 'duplicate-server.json')
+  const serverDocuments: IRDocument[] = [
+    {
+      ir_version: 1,
+      ir_type: 'node_graph',
+      graph: { type: 'server', id: serverGraphId, mode: 'beyond' },
+      nodes: [{ id: 1, type: 'first_server_event' }]
+    },
+    {
+      ir_version: 1,
+      ir_type: 'node_graph',
+      graph: { type: 'server', id: serverGraphId, mode: 'beyond' },
+      nodes: [{ id: 1, type: 'second_server_event' }]
+    }
+  ]
+  fs.writeFileSync(duplicateServerPath, JSON.stringify(serverDocuments), 'utf8')
+  const [mergedServer] = mergeIrJsonFilesByGraphId({
+    outDirAbs: outDir,
+    irJsonPaths: [duplicateServerPath]
+  })
+  assert.strictEqual(mergedServer.merged.nodes?.length, 2)
+  assert.deepStrictEqual(
+    mergedServer.merged.nodes?.map((node) => node.id),
+    [1, 2],
+    'duplicate server graph ids must keep the existing multi-event merge behavior'
+  )
+
   const ir = JSON.stringify(documents)
   for (const nodeType of [
     'double_branch',
@@ -100,7 +161,11 @@ try {
     'multiple_branches',
     'get_local_variable',
     'set_local_variable',
-    'sine_function'
+    'sine_function',
+    'data_type_conversion_float',
+    'data_type_conversion_int',
+    'data_type_conversion_str',
+    'data_type_conversion_bool'
   ]) {
     assert.ok(ir.includes(`"type":"${nodeType}"`), `missing transformed node ${nodeType}`)
   }
@@ -175,6 +240,41 @@ g.characterSkill().on('start', () => { Math.sqrt(4) })`,
     `${importG}
 g.creationStatus().on('start', () => { let value = 0n; value += 1n })`,
     /client method "initLocalVariable" is not available in creation_status beyond mode/
+  )
+  await expectCompileError(
+    'unavailable-ternary-local-variable',
+    `${importG}
+g.creationStatusDecision().on('start', (_evt, f) => {
+  const result = f.equal(1n, 1n) ? 1n : 0n
+  f.absoluteValueOperation(result)
+})`,
+    /client method "initLocalVariable" is not available in creation_status_decision beyond mode/
+  )
+  await expectCompileError(
+    'unavailable-reused-const-local-variable',
+    `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const ready = f.equal(1n, 1n)
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+})`,
+    /client method "initLocalVariable" is not available in creation_status beyond mode/
+  )
+  await expectRuntimeError(
+    'duplicate-client-handler',
+    `${importG}
+const graph = g.creationStatus({ id: 1082130688 })
+graph.on('start', () => {})
+graph.on('start', () => {})`,
+    /client creation_status graph may only register one start handler/
+  )
+  await expectRuntimeError(
+    'duplicate-client-id',
+    `${importG}
+g.creationStatus({ id: 1082130689 }).on('start', () => {})
+g.creationStatus({ id: 1082130689 }).on('start', () => {})`,
+    /client graph id may only be declared once: id=1082130689/,
+    true
   )
   await expectCompileError(
     'client-recursion',

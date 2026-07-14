@@ -17,7 +17,7 @@ const DEFAULTS: Required<Options> = {
   includeNestedFunctions: true
 }
 
-const WRAPPERS = new Set(['Number', 'String', 'Boolean'])
+const WRAPPERS = new Set(['Number', 'String', 'Boolean', 'bool', 'float', 'int', 'str'])
 
 const rule: Rule.RuleModule = {
   meta: {

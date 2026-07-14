@@ -2,7 +2,11 @@ import ts from 'typescript'
 
 import { inferConcreteTypeFromType, inferListTypeFromType } from '../../shared/ts_list_utils.js'
 import { isEntityLikeType as isSharedEntityLikeType } from '../../shared/ts_type_utils.js'
-import { isConstEvaluableExpression, tryEvaluateConstExpression } from './const_eval.js'
+import {
+  isConstEvaluableExpression,
+  isPureLiteralExpression,
+  tryEvaluateConstExpression
+} from './const_eval.js'
 import { fail } from './errors.js'
 import {
   extractTimerHandleMeta,
@@ -357,63 +361,6 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
 
   const getSymbol = (id: ts.Identifier): ts.Symbol | null =>
     env.checker.getSymbolAtLocation(id) ?? null
-
-  const isPureLiteralExpression = (expr: ts.Expression): boolean => {
-    if (ts.isParenthesizedExpression(expr)) return isPureLiteralExpression(expr.expression)
-    if (ts.isAsExpression(expr)) return isPureLiteralExpression(expr.expression)
-    if (ts.isTypeAssertionExpression(expr)) return isPureLiteralExpression(expr.expression)
-
-    if (
-      ts.isNumericLiteral(expr) ||
-      ts.isBigIntLiteral(expr) ||
-      ts.isStringLiteral(expr) ||
-      ts.isNoSubstitutionTemplateLiteral(expr) ||
-      expr.kind === ts.SyntaxKind.TrueKeyword ||
-      expr.kind === ts.SyntaxKind.FalseKeyword ||
-      expr.kind === ts.SyntaxKind.NullKeyword
-    ) {
-      return true
-    }
-
-    if (ts.isPrefixUnaryExpression(expr)) {
-      const op = expr.operator
-      if (
-        op === ts.SyntaxKind.PlusToken ||
-        op === ts.SyntaxKind.MinusToken ||
-        op === ts.SyntaxKind.ExclamationToken ||
-        op === ts.SyntaxKind.TildeToken
-      ) {
-        return isPureLiteralExpression(expr.operand)
-      }
-      return false
-    }
-
-    if (ts.isBinaryExpression(expr)) {
-      const op = expr.operatorToken.kind
-      if (
-        op === ts.SyntaxKind.PlusToken ||
-        op === ts.SyntaxKind.MinusToken ||
-        op === ts.SyntaxKind.AsteriskToken ||
-        op === ts.SyntaxKind.SlashToken ||
-        op === ts.SyntaxKind.PercentToken ||
-        op === ts.SyntaxKind.LessThanToken ||
-        op === ts.SyntaxKind.LessThanEqualsToken ||
-        op === ts.SyntaxKind.GreaterThanToken ||
-        op === ts.SyntaxKind.GreaterThanEqualsToken ||
-        op === ts.SyntaxKind.AmpersandAmpersandToken ||
-        op === ts.SyntaxKind.BarBarToken ||
-        op === ts.SyntaxKind.EqualsEqualsToken ||
-        op === ts.SyntaxKind.EqualsEqualsEqualsToken ||
-        op === ts.SyntaxKind.ExclamationEqualsToken ||
-        op === ts.SyntaxKind.ExclamationEqualsEqualsToken
-      ) {
-        return isPureLiteralExpression(expr.left) && isPureLiteralExpression(expr.right)
-      }
-      return false
-    }
-
-    return false
-  }
 
   const collectDecls = (n: ts.Node, inLoop: boolean) => {
     if (ts.isFunctionLike(n)) return

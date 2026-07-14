@@ -1450,6 +1450,7 @@ function createClientGraphApi<T extends ClientGraphSubType>(
   clientRegistries.push(registry)
   const entrySpec = CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[graphType]
   const fns = createClientFlowFunctions(graphType, registry)
+  let hasHandler = false
 
   const api = {
     on(
@@ -1462,6 +1463,13 @@ function createClientGraphApi<T extends ClientGraphSubType>(
           `unsupported client event: ${eventName}`
         )
       }
+      if (hasHandler) {
+        throw clientNodegraphError(
+          CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
+          `client ${graphType} graph may only register one ${entrySpec.event} handler`
+        )
+      }
+      hasHandler = true
 
       if (graphType === 'bool_filter') {
         registry.runClientStartHandler(
@@ -1697,6 +1705,17 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
   return list
 }
 
+function assertUniqueClientGraphIds(docs: IRDocument[]) {
+  const ids = new Set<number>()
+  for (const doc of docs) {
+    const id = resolveGraphIdForGraph(doc.graph)
+    if (ids.has(id)) {
+      throw new Error(`[error] client graph id may only be declared once: id=${id}`)
+    }
+    ids.add(id)
+  }
+}
+
 export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {}) {
   const removeUnusedNodes = getRuntimeOptions().optimize.removeUnusedNodes
   const prefixName = (raw: string, enable: boolean) => {
@@ -1713,7 +1732,7 @@ export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
     return '_GSTS_Generated_Client_Graph'
   }
 
-  return clientRegistries.map((registry) => {
+  const docs = clientRegistries.map((registry) => {
     const flows = registry.getFlows()
     const optimizedFlows = removeUnusedNodes
       ? flows.map(removeUnusedNodesFromFlow).filter((flow) => flow !== null)
@@ -1728,6 +1747,8 @@ export function buildClientGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
       graphName: resolveName(registry)
     })
   })
+  assertUniqueClientGraphIds(docs)
+  return docs
 }
 
 function assertNoServerClientGraphIdCollisions(docs: IRDocument[]) {

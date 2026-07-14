@@ -123,13 +123,18 @@ function getBaseValueType(
   return type.replace('_list', '') as keyof CommonLiteralValueTypeMap
 }
 
+type ClientLocalVariableType = keyof CommonLiteralValueTypeMap | keyof CommonLiteralValueListTypeMap
+
 class ClientExecutionFlowFunctionsBase {
   private localVariableCounter = 0
 
   constructor(protected registry: ExecutionFlowRegistry) {}
 
   /** Compiler-only helper. Client local-variable nodes identify state by a string name. */
-  __gstsInitLocalVariable(type: string, initialValue?: unknown) {
+  __gstsInitLocalVariable<T extends ClientLocalVariableType>(
+    type: T,
+    initialValue?: RuntimeParameterValueTypeMap[T]
+  ): { localVariable: string; value: RuntimeReturnValueTypeMap[T] } {
     const localVariable = '__gsts_local_' + type + '_' + ++this.localVariableCounter
     const variableNameObj = parseValue(localVariable, 'str')
     const ref = this.registry.registerNode({
@@ -140,7 +145,7 @@ class ClientExecutionFlowFunctionsBase {
     })
     const genericValue = new generic()
     genericValue.markPin(ref, 'variableValue', 0)
-    const value = (genericValue as unknown as { asType(typeName: string): unknown }).asType(type)
+    const value = genericValue.asType(type)
     if (initialValue !== undefined) {
       const setLocalVariable = (
         this as unknown as {

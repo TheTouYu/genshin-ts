@@ -474,7 +474,8 @@ export class generic extends value {
   asType(type: 'config_id_list'): configId[]
   asType(type: 'faction_list'): faction[]
   asType(type: 'struct_list'): struct[]
-  asType<T extends LiteralValueType>(type: T): RuntimeReturnValueTypeMap[T] {
+  asType<T extends LiteralValueType>(type: T): RuntimeReturnValueTypeMap[T]
+  asType(type: LiteralValueType): RuntimeReturnValueTypeMap[LiteralValueType] {
     if (this.typeSet) {
       throw new Error('Generic type has already been set and cannot be changed')
     }
@@ -553,7 +554,7 @@ export class generic extends value {
     }
     if (this.metadata && this.metadata.kind === 'pin')
       ret.markPin(this.metadata.record, this.metadata.pinName, this.metadata.pinIndex)
-    return ret as RuntimeReturnValueTypeMap[T]
+    return ret as RuntimeReturnValueTypeMap[LiteralValueType]
   }
 
   asDict<K extends DictKeyType, V extends DictValueType>(keyType: K, valueType: V): dict<K, V> {

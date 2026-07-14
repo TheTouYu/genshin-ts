@@ -56,6 +56,7 @@
   "err_mergeServerModeMismatch": "[error] 无法合并不同 server mode（id={{id}}）：{{a}} vs {{b}}",
   "err_mergeClientSubTypeMismatch": "[error] 无法合并不同 client sub_type（id={{id}}）：{{a}} vs {{b}}",
   "err_mergeClientModeMismatch": "[error] 无法合并不同 client mode（id={{id}}）：{{a}} vs {{b}}",
+  "err_mergeDuplicateClientGraphId": "[error] 客户端节点图 id 只能声明一次（id={{id}}）；客户端节点图只有单一入口，不能像服务器节点图一样合并多个声明",
   "err_mergeDuplicateVarsByName": "[error] 合并后变量名重复（{{count}} 个）。\\n{{lines}}\\n{{truncated}}{{hint}}",
   "err_mergeTruncated": "...（已截断）\\n",
   "err_mergeDuplicateVarsHint": "[hint] 请重命名变量"

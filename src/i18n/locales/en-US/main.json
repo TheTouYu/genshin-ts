@@ -56,6 +56,7 @@
   "err_mergeServerModeMismatch": "[error] cannot merge different server mode (id={{id}}): {{a}} vs {{b}}",
   "err_mergeClientSubTypeMismatch": "[error] cannot merge different client sub_type (id={{id}}): {{a}} vs {{b}}",
   "err_mergeClientModeMismatch": "[error] cannot merge different client mode (id={{id}}): {{a}} vs {{b}}",
+  "err_mergeDuplicateClientGraphId": "[error] client graph id may only be declared once (id={{id}}); client graphs have a single entry and cannot merge multiple declarations like server graphs",
   "err_mergeDuplicateVarsByName": "[error] duplicate variables by name after merge ({{count}}).\\n{{lines}}\\n{{truncated}}{{hint}}",
   "err_mergeTruncated": "... (truncated)\\n",
   "err_mergeDuplicateVarsHint": "[hint] rename variables"
