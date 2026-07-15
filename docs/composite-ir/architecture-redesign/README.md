@@ -38,7 +38,7 @@ setter 的 concrete float 差异出发，但目标不是增加一个节点特例
 ### 新会话最小集
 
 1. [EXECUTION.md](EXECUTION.md)：固定操作、核验、文档和提交协议。
-2. [STATUS.md](STATUS.md)：当前 Phase、唯一工作包、活跃边界和未提交变化预期。
+2. [STATUS.md](STATUS.md)：当前 Phase、唯一工作包、活跃边界与证据；不记录 git commit SHA。
 3. 当前 Phase 文档：当前目标、活动 checklist、退出条件。
 4. [migration-invariants.md](migration-invariants.md)：迁移期间不可破坏的行为。
 5. [decision-log.md](decision-log.md) 中与当前工作包直接相关的 ADR/Q 条目。

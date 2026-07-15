@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 持续维护
 > 来源：经真实 GIA 对照和用户编辑器核验确认的可复用协作经验
-> 最近校验：2026-07-14
+> 最近校验：2026-07-15
 > 适用范围：需要用户参与 GIA reference、候选编辑器核验或 Windows `Beyond_Local_Export` 协作的 Stage 3 工作包
 
 本文件只记录**高频、可复用、能改变下一轮行动且已有证据支持**的经验。
@@ -44,6 +44,8 @@
 
 当一个 OutFlow 连向多个下游、或嵌套复合引用子复合特定 OutFlow 时，先核对 DSL 的 `f.link` / `f.outflow` 顺序，再核对解码 GIA 的 `connects` 顺序、`compositePins` 和物理 OutFlow pin，最后才检查 materializer。候选必须验证声明的 child OutFlow 已物理存在；不要只因定义或 `compositePins` 存在就认为编辑器连线正确。
 
-### 6. 提交前以 Git 事实收束工作包状态
+### 6. 提交前收束工作包语义状态（不记 commit SHA）
 
-用户编辑器核验、focused 回归和提交完成后，提交前必须对照 `HEAD`、`git status` 与文档状态；同步 `STATUS.md` 的当前/最近工作包、未提交变化和恢复指引，以及相关 ADR/checkpoint。已提交或已验证的事项不能继续标为待提交、待核验或未证明；尚未覆盖的边界必须精确保留。
+用户编辑器核验与 focused 回归完成后、**用户下令提交之前**，同步 `STATUS.md` 的当前/最近工作包、证据、下一包与恢复指引，以及相关 ADR/checkpoint。已完成或已验证的事项不得继续标为待核验/未证明；尚未覆盖的边界必须精确保留。
+
+`STATUS.md` **不要**记录 git commit SHA，也不要维护“工作树预期: clean/dirty”这类随提交瞬间过期的字段。提交身份以 `git log` 为准。一次 commit 应包含本包代码与上述 STATUS 更新；禁止为补写 SHA 或把“未提交”改成“已提交”而 amend / 追加空文档提交。

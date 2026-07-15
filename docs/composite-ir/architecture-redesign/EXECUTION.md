@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：项目工作流约束 + architecture-redesign 全局规划
-> 最近校验：2026-07-13
+> 最近校验：2026-07-15
 > 适用范围：`refactor/composite-stage3-architecture` 分支上的所有重构会话
 
 本文件是每个新会话的固定执行入口。它规定如何恢复进度、选择工作包、验证、更新文档和准备提交。
@@ -21,12 +21,13 @@
 
 `STATUS.md` 与 Git history 的差异按下列规则处理，避免将可机械修复的提交同步滞后升级为用户决策闸门：
 
-- 若 HEAD 或最近提交的标题、改动范围和验证记录与 STATUS 所列当前工作包一致，且差异仅为“未提交/待审核”、
-  最近提交 SHA 或工作树预期未同步，视为状态文档滞后；代理必须以 Git 提交为事实，自行最小更新 STATUS 和当前
-  Phase 文档，再继续选择 STATUS 已列的下一唯一工作包。
-- 只有提交范围、完成条件、验证/用户核验记录相互矛盾，或无法从提交和当前状态确定唯一后续工作包时，才停止等待
-  用户决定。
-- 不得因为已识别的 STATUS 提交同步滞后，在后续会话重复向用户报告相同的无实质影响差异。
+- STATUS 记录工作包语义状态（当前/最近包、证据、下一包、活跃边界），**不记录 git commit SHA**。
+  提交身份以 `git log` / `git show` 为准；不要为了“文档里写上 SHA”而改 STATUS 或 amend。
+- 若 HEAD 标题、改动范围和验证记录与 STATUS 所列当前/最近工作包一致，且差异仅为“未提交/待审核”
+  字样或“工作树预期”未刷新，视为无实质影响的文档滞后：可在**下一次有实质内容的文档更新**时顺手改掉，
+  不得单独为此开工作包，不得为同步 STATUS 而 `git commit --amend`，也不得在恢复报告中反复当作阻塞项。
+- 只有工作包范围、完成条件、验证/用户核验记录相互矛盾，或无法从提交和当前状态确定唯一后续工作包时，
+  才停止等待用户决定。
 
 按顺序执行：
 
@@ -40,8 +41,8 @@
    git log -5 --oneline --decorate
    ```
 
-4. 读取精简的 [STATUS.md](STATUS.md)，只据此确认当前 Phase、唯一工作包、活跃边界和工作树预期；若无法
-   确认唯一可执行工作包，按上文停止。
+4. 读取精简的 [STATUS.md](STATUS.md)，只据此确认当前 Phase、唯一工作包和活跃边界；工作树状态以
+   `git status` 为准，不从 STATUS 读 commit SHA。若无法确认唯一可执行工作包，按上文停止。
 5. 在唯一工作包已确认后，读取当前 Phase 文档、[migration-invariants.md](migration-invariants.md) 和
    [decision-log.md](decision-log.md) 中与该工作包直接相关的条目。
 6. 当前工作包需要历史命令、失败基线、候选 SHA 或逐包证据时，才从
@@ -60,7 +61,7 @@ Branch:
 Working tree:
 Current phase:
 Current work package:
-Last completed commit:
+Last completed work package:   # 包 ID/名称即可；不要抄 commit SHA
 Confirmed evidence:
 Open assumptions:
 Files to read:
@@ -84,7 +85,7 @@ refactor/composite-stage3-architecture
 
 理想工作树是 clean。如果不 clean：
 
-1. 对照 `STATUS.md` 的“进行中/未提交变化”；
+1. 对照 `STATUS.md` 的当前工作包与进行中说明；
 2. 用 `git diff --name-only` 和 `git diff` 判断已追踪变化的来源；若 `git status --short` 含 `??`，额外运行
    `git ls-files --others --exclude-standard` 并读取每个预期未追踪文件，不能将其视为 diff 中已审查；
 3. 不覆盖、丢弃或重置无法解释的变化；
@@ -205,7 +206,9 @@ npm run build
 
 每个完成的工作包必须更新：
 
-- `STATUS.md`：完成项、证据、下一工作包、工作树预期；
+- `STATUS.md`：完成项、证据、下一工作包、活跃边界；
+  **不要**写入 git commit SHA。工作树是否 clean 以提交后的 `git status` 为准，STATUS 不必维护
+  “工作树预期: clean/dirty”这类会随提交瞬间过期的字段；若需提示未完成改动，写清文件/包语义即可。
 - 当前 phase 文档：只更新 checklist/实测结果/偏差，不重写历史计划；
 - 按 `COLLABORATION-PLAYBOOK-MAINTENANCE.md` 判断是否更新经验手册；只有高频、可复用、
   可行动且已证实的规律才可更新，默认每工作包最多精修或新增一条经验。
@@ -253,8 +256,9 @@ git status --short
 git diff --check
 git diff --stat
 git diff
-# 文档状态一致性：STATUS 当前/最近工作包、未提交变化、恢复指引、ADR/checkpoint
-# 必须与 HEAD、git status 和已完成的用户核验一致；不得将已提交或已验证事项写成待提交/待核验。
+# 文档状态一致性：STATUS 当前/最近工作包、证据与下一包、ADR/checkpoint
+# 必须与本工作包结果和已完成的用户核验语义一致；不得将已完成事项写成待核验/未证明。
+# 不要在 STATUS 写入 git commit SHA；也不要为“提交后 STATUS 仍写未提交”单独再开一次提交。
 # 当前工作包 required focused tests
 ```
 
@@ -278,6 +282,10 @@ refactor(stage3): share setter variant resolution
 Work package: P0-W1
 ```
 
+**提交内容应在 commit 前一次收齐**：包括本包源码/测试，以及把 STATUS/Phase 写成“本包已完成、
+下一包是什么”的文档更新。用户说“提交”后执行一次 commit；**禁止**为同步 STATUS 的“已提交”
+字样或补写 commit SHA 而 `git commit --amend` 或立刻再 commit 一次。
+
 提交后检查：
 
 ```bash
@@ -286,7 +294,8 @@ git show --stat --oneline HEAD
 git log -3 --oneline --decorate
 ```
 
-期望工作树 clean。若不 clean，逐项记录到 `STATUS.md`，不得隐藏。
+期望工作树 clean。若仍有与本包无关或中断残留的改动，在完成报告里列出；不要为“让 STATUS
+显示 clean”再改文档。
 
 ## 11. 会话中断恢复
 

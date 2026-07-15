@@ -13,16 +13,16 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6 已提交）
+当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6 完成）
 当前唯一工作包：P5-W7 — 按覆盖矩阵消减最高优先 ordinary 缺口（待矩阵结果调度）
-最近已提交工作包：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
-更早已提交：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
-更早已提交：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
-更早已提交：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
-工作树预期：clean（P5-W6 已提交；.gia 候选不入库）
+最近完成工作包：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
+更早完成：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
+更早完成：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
+更早完成：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
 默认 backend：handwritten impl backend
 opt-in beta：options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1
 覆盖完成表面：shared beta（grilling S4）；默认旧路只保历史哨兵
+STATUS 不记录 git commit SHA；提交身份以 git log 为准（见 EXECUTION 提交协议）
 ```
 
 ## 当前可依赖事实
@@ -671,7 +671,7 @@ git diff --check
 说明：本包删除的是已空 adapter（原先恒返回 undefined）。node-graph concrete id 仍走 shared resolver。
 连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused structural contract 为准。
 
-## 最近完成（已提交）：P5-W6
+## 最近完成：P5-W6
 
 P5-W6（grilling W1）建立可机读的 root→shared-beta ordinary 覆盖矩阵，并在 shared beta 下自动探测
 residual concrete + generic `print_string`。不改生产编码路径，不切 default gate，不删 legacy，不注入。
@@ -787,8 +787,8 @@ legacy 删除、类型/边界语义变更仍须先取得用户确认。
 ## 新会话最小恢复
 
 1. 读取 `EXECUTION.md`、本文件、当前 Phase 文档、`migration-invariants.md` 及与当前包直接相关的 ADR。
-2. 检查 branch/status/log；若工作树不符，先停止并报告。若含 `??`，按 EXECUTION 运行 untracked 清单并读取本段
-   明列的预期新增文件；不得只用 `git diff` 将其视为已审查。
+2. 检查 branch/status/log；用 Git 判断工作树与最近提交，**不要**到 STATUS 找 commit SHA。
+   若工作树有无法由当前包解释的改动，先停止并报告。若含 `??`，按 EXECUTION 运行 untracked 清单。
 3. 仅在当前包涉及编辑器协作时读取 `COLLABORATION-PLAYBOOK.md`；仅在维护手册时读取其 maintenance 文档。
 4. 按任务加载工作包历史、验证矩阵、真实 GIA、源码和测试；不要以历史归档代替当前状态。
 5. 修改前提交恢复报告；用户未明确授权时不修改、不提交、不操作游戏目录。阶段退出的候选与用户结论以
