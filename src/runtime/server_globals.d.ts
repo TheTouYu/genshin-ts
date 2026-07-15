@@ -38,10 +38,8 @@ declare global {
 
   /**
    * Convert to bool for node-graph conditions.
-   * Server graphs use the server conversion node; client graphs compile this helper to the client conversion node.
    *
    * 转换为 bool，常用于条件判断。
-   * 服务器节点图使用服务器转换节点；客户端节点图会将此辅助函数编译为客户端转换节点。
    */
   function bool(value: BoolValue | IntValue): boolean
   /**
@@ -92,18 +90,14 @@ declare global {
   function idx(value: IntValue): number
   /**
    * Convert to float (number) for float nodes.
-   * Server graphs use the server conversion node; client graphs compile this helper to the client conversion node.
    *
    * 转换为 float（number），用于需要浮点数的节点。
-   * 服务器节点图使用服务器转换节点；客户端节点图会将此辅助函数编译为客户端转换节点。
    */
   function float(value: FloatValue | IntValue): number
   /**
    * Convert to string; useful for logs
-   * Server graphs use the server conversion node; client graphs compile this helper to the client conversion node.
    *
    * 转为字符串，常用于日志
-   * 服务器节点图使用服务器转换节点；客户端节点图会将此辅助函数编译为客户端转换节点。
    */
   function str(
     value:

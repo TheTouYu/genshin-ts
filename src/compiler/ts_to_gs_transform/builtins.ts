@@ -25,14 +25,7 @@ type MathCallTransform = {
   transformExpression: ExpressionTransformer
 }
 
-type TypeConversionTarget = 'bool' | 'float' | 'int' | 'str'
-
-const CLIENT_WRAPPER_CONVERSIONS: Readonly<Record<string, TypeConversionTarget>> = {
-  bool: 'bool',
-  float: 'float',
-  int: 'int',
-  str: 'str'
-}
+type TypeConversionTarget = 'bool' | 'float' | 'str'
 
 const floatZero = () => ts.factory.createNumericLiteral(0)
 const floatOne = () => ts.factory.createNumericLiteral(1)
@@ -130,7 +123,6 @@ function makeTypeConversion(
       }
       const base = env.checker.getBaseTypeOfLiteralType(sourceType)
       if (type === 'float') return (base.flags & ts.TypeFlags.NumberLike) !== 0
-      if (type === 'int') return (base.flags & ts.TypeFlags.BigIntLike) !== 0
       if (type === 'str') return (base.flags & ts.TypeFlags.StringLike) !== 0
       return (base.flags & ts.TypeFlags.BooleanLike) !== 0
     }
@@ -606,18 +598,6 @@ export function tryTransformBuiltinCall(
   }
 
   if (ts.isIdentifier(callee)) {
-    const clientWrapperType = CLIENT_WRAPPER_CONVERSIONS[callee.text]
-    if (env.graphDocumentType === 'client' && clientWrapperType) {
-      if (expr.arguments.length !== 1) {
-        fail(env, expr, `${callee.text}() requires exactly one argument`)
-      }
-      const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        makeTypeConversion(env, argExpr, clientWrapperType, expr.arguments[0]),
-        expr
-      )
-    }
-
     // Compiler-only rewrite: keep runtime console/Number/String/Boolean intact for JS usage.
     if (callee.text === 'Number') {
       if (expr.arguments.length !== 1) {

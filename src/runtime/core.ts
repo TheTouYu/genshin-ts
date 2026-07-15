@@ -35,6 +35,7 @@ import {
   type ClientStartEventName,
   type ClientStartGraphApi
 } from './client_graph_support.js'
+import { installScopedClientGlobals } from './client_scoped_globals.js'
 import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
 import {
   CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL,
@@ -51,7 +52,6 @@ import type {
   Variable
 } from './IR.js'
 import type { MetaCallRecord, MetaCallRecordRef } from './meta_call_types.js'
-import { installScopedClientGlobals } from './client_scoped_globals.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
 import {
@@ -609,7 +609,12 @@ function ensureGsts(): GstsPublic {
       return this.ctxType.startsWith('client_')
     },
     isClientGraphCtx(subType: ClientGraphSubType) {
-      return this.ctxType.startsWith(`client_${subType}_`)
+      return (
+        this.ctxType === `client_${subType}_handler` ||
+        this.ctxType === `client_${subType}_if` ||
+        this.ctxType === `client_${subType}_loop` ||
+        this.ctxType === `client_${subType}_switch`
+      )
     },
     assertServerCtx() {
       if (!this.isServerCtx()) {

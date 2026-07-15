@@ -115,7 +115,13 @@ const rule: Rule.RuleModule = {
 
     const check = (node: any) => {
       const info = scopeIndex.getClientScopeInfo(node)
-      if (!info || (info.subType !== 'bool_filter' && info.subType !== 'int_filter')) return
+      if (
+        !info ||
+        info.kind !== 'handler' ||
+        (info.subType !== 'bool_filter' && info.subType !== 'int_filter')
+      ) {
+        return
+      }
       const expected = info.subType === 'bool_filter' ? 'bool' : 'int'
       const body = node.body
 
@@ -158,7 +164,8 @@ const rule: Rule.RuleModule = {
 
     return {
       ArrowFunctionExpression: check,
-      FunctionExpression: check
+      FunctionExpression: check,
+      FunctionDeclaration: check
     }
   }
 }

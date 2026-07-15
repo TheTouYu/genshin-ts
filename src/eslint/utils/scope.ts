@@ -13,7 +13,9 @@ import {
 
 type RuleContext = Rule.RuleContext
 
-export type ClientScopeInfo = Omit<ClientOnCallInfo, 'handler'>
+export type ClientScopeInfo = Omit<ClientOnCallInfo, 'handler'> & {
+  kind: 'handler' | 'helper'
+}
 
 export type NodeGraphScopeIndex = {
   serverScopeRoots: WeakSet<object>
@@ -64,14 +66,20 @@ export function buildNodeGraphScopeIndex(
 
   const addClientRoot = (info: ClientOnCallInfo) => {
     const esNode = services.tsNodeToESTreeNodeMap.get(info.handler)
-    if (esNode) clientScopeRoots.set(esNode, { subType: info.subType, mode: info.mode })
+    if (esNode) {
+      clientScopeRoots.set(esNode, {
+        subType: info.subType,
+        mode: info.mode,
+        kind: 'handler'
+      })
+    }
   }
 
   const addClientFunctionRoot = (node: ts.Node | undefined, name: string | undefined) => {
     const subType = getClientGraphSubTypeForGstsFunctionName(name)
     if (!node || !subType) return false
     const esNode = services.tsNodeToESTreeNodeMap.get(node)
-    if (esNode) clientScopeRoots.set(esNode, { subType, mode: 'beyond' })
+    if (esNode) clientScopeRoots.set(esNode, { subType, mode: 'beyond', kind: 'helper' })
     return true
   }
 

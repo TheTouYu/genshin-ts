@@ -86,6 +86,17 @@ try {
 
   await import(`${pathToFileURL(result.entryOutFiles[0]).href}?test=${Date.now()}`)
   const { buildClientGraphRegistriesIRDocuments } = await import('genshin-ts/runtime/core')
+  assert.strictEqual(int(123), 123n)
+  assert.strictEqual(float(1), 1)
+  assert.strictEqual(bool(true), true)
+  assert.strictEqual(str('value'), 'value')
+  assert.strictEqual(
+    gsts.ctx.withCtx('client_creation_status_decision_handler', () =>
+      gsts.ctx.isClientGraphCtx('creation_status')
+    ),
+    false,
+    'creation_status_decision context must not match creation_status'
+  )
   const documents = buildClientGraphRegistriesIRDocuments()
   assert.strictEqual(documents.length, 7, 'fixture must build all seven client graph families')
   const subTypes = documents.map((document) => {
@@ -197,6 +208,93 @@ try {
   })
 
   const importG = `import { g } from 'genshin-ts/runtime/core'`
+  const wrapperConversionGraphIds = {
+    characterSkill: 1082130690,
+    creationStatusDecision: 1082130691
+  }
+  const wrapperConversionPath = path.join(tempRoot, 'client-wrapper-conversions.ts')
+  fs.writeFileSync(
+    wrapperConversionPath,
+    `${importG}
+function gstsCharacterSkillConvertFloat(value: bigint) { return float(value) }
+g.characterSkill({ id: ${wrapperConversionGraphIds.characterSkill} }).on('start', (_evt, f) => {
+  const sameInt = int(f.addition(1n, 2n))
+  const literalInt = int(123)
+  const convertedFloat = gstsCharacterSkillConvertFloat(f.addition(3n, 4n))
+  f.finiteLoop(sameInt, literalInt, () => {})
+  f.setAttackWeight(convertedFloat, true)
+})
+g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecision} }).on('start', (_evt, f) => {
+  f.doubleBranch(true, () => {
+    const wiredInt = f.absoluteValueOperation(-1n)
+    f.doubleBranch(f.greaterThan(float(wiredInt), 0), () => {}, () => {})
+  }, () => {})
+})`,
+    'utf8'
+  )
+  const wrapperConversionResult = await compile([relative(wrapperConversionPath)])
+  const wrapperConversionOutput = fs.readFileSync(wrapperConversionResult.entryOutFiles[0], 'utf8')
+  assert.match(wrapperConversionOutput, /const sameInt = int\(f\.addition\(1n, 2n\)\)/)
+  assert.match(wrapperConversionOutput, /const literalInt = int\(123\)/)
+  assert.match(wrapperConversionOutput, /return float\(value\)/)
+  assert.match(
+    wrapperConversionOutput,
+    /const convertedFloat = gstsCharacterSkillConvertFloat\(f\.addition\(3n, 4n\)\)/
+  )
+  assert.match(wrapperConversionOutput, /f\.greaterThan\(float\(wiredInt\), 0\)/)
+  await import(`${pathToFileURL(wrapperConversionResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const wrapperConversionDocuments = buildClientGraphRegistriesIRDocuments().filter(
+    (document) =>
+      typeof document.graph.id === 'number' &&
+      Object.values(wrapperConversionGraphIds).includes(document.graph.id)
+  )
+  assert.strictEqual(wrapperConversionDocuments.length, 2)
+  const characterWrapperDocument = wrapperConversionDocuments.find(
+    (item) => item.graph.id === wrapperConversionGraphIds.characterSkill
+  )
+  assert.ok(characterWrapperDocument, 'missing character skill wrapper conversion graph')
+  assert.deepStrictEqual(
+    characterWrapperDocument.nodes
+      ?.map((node) => node.type)
+      .filter((type) => type.startsWith('data_type_conversion_')),
+    ['data_type_conversion_float'],
+    'same-type int wrappers and int(123) must not create conversion nodes'
+  )
+  const decisionWrapperDocument = wrapperConversionDocuments.find(
+    (item) => item.graph.id === wrapperConversionGraphIds.creationStatusDecision
+  )
+  assert.ok(decisionWrapperDocument, 'missing creation status decision wrapper conversion graph')
+  assert.deepStrictEqual(
+    decisionWrapperDocument.nodes
+      ?.map((node) => node.type)
+      .filter((type) => type.startsWith('data_type_conversion_')),
+    ['data_type_conversion_float'],
+    'creation status decision must use its own client conversion functions'
+  )
+
+  const shadowedWrapperGraphId = 1082130692
+  const shadowedWrapperPath = path.join(tempRoot, 'shadowed-client-wrapper.ts')
+  fs.writeFileSync(
+    shadowedWrapperPath,
+    `${importG}
+function float<T>(value: T): T { return value }
+g.characterSkill({ id: ${shadowedWrapperGraphId} }).on('start', (_evt, f) => {
+  const wiredInt = f.addition(1n, 2n)
+  f.absoluteValueOperation(float(wiredInt))
+})`,
+    'utf8'
+  )
+  const shadowedWrapperResult = await compile([relative(shadowedWrapperPath)])
+  const shadowedWrapperOutput = fs.readFileSync(shadowedWrapperResult.entryOutFiles[0], 'utf8')
+  assert.match(shadowedWrapperOutput, /f\.absoluteValueOperation\(float\(wiredInt\)\)/)
+  assert.doesNotMatch(shadowedWrapperOutput, /\.dataTypeConversion\(/)
+  await import(`${pathToFileURL(shadowedWrapperResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const shadowedWrapperDocument = buildClientGraphRegistriesIRDocuments().find(
+    (document) => document.graph.id === shadowedWrapperGraphId
+  )
+  assert.ok(shadowedWrapperDocument, 'missing shadowed wrapper graph')
+  assert.doesNotMatch(JSON.stringify(shadowedWrapperDocument), /data_type_conversion_/)
+
   await expectCompileError(
     'mutable-outer-capture',
     `${importG}

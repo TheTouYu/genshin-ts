@@ -176,6 +176,22 @@ g.boolFilter().on('start', (_evt, _f) => {
   if (true) return true
   return false
 })`
+    },
+    {
+      filename,
+      code: `${importG}
+g.boolFilter().on('start', function (_evt, _f) { return true })
+g.intFilter().on('start', function namedIntFilter(_evt, _f) { return 1n })`
+    },
+    {
+      filename,
+      code: `
+function gstsBoolFilterDeclaration() {}
+const gstsBoolFilterExpression = function () {}
+const gstsBoolFilterArrow = () => {}
+function gstsClientIntFilterDeclaration() { return false }
+const gstsIntFilterExpression = function () { return false }
+const gstsClientIntFilterArrow = () => false`
     }
   ],
   invalid: [
@@ -198,6 +214,12 @@ g.boolFilter().on('start', (_evt, _f) => 'bad')`,
       code: `${importG}
 g.intFilter().on('start', (_evt, _f) => false)`,
       errors: [{ message: /must return a bigint\/number\/int compatible value/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.boolFilter().on('start', function namedBoolFilter(_evt, _f) { return 'bad' })`,
+      errors: [{ message: /must return a boolean\/bool compatible value/ }]
     }
   ]
 })

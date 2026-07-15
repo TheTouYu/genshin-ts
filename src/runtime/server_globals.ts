@@ -1,6 +1,10 @@
 import z from 'zod'
 
 import {
+  CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE,
+  CLIENT_GRAPH_SUB_TYPES
+} from '../definitions/client_graph_modes.js'
+import {
   installEntityHelpers,
   type PlayerEntity,
   type StageEntity
@@ -98,6 +102,39 @@ function inServerCtx(): boolean {
   return !!root.gsts?.ctx?.isServerCtx?.()
 }
 
+function inClientCtx(): boolean {
+  const root = globalThis as unknown as { gsts?: { ctx?: { isClientCtx?: () => boolean } } }
+  return !!root.gsts?.ctx?.isClientCtx?.()
+}
+
+type DataTypeConversionFunctions = {
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U]
+}
+
+function getActiveGraphFunctions(): DataTypeConversionFunctions {
+  const root = globalThis as unknown as {
+    gsts?: {
+      ctx?: {
+        isServerCtx?: () => boolean
+        isClientGraphCtx?: (subType: (typeof CLIENT_GRAPH_SUB_TYPES)[number]) => boolean
+      }
+    } & Record<string, unknown>
+  }
+  const runtime = root.gsts
+  if (runtime?.ctx?.isServerCtx?.()) {
+    return runtime.f as DataTypeConversionFunctions
+  }
+  for (const subType of CLIENT_GRAPH_SUB_TYPES) {
+    if (runtime?.ctx?.isClientGraphCtx?.(subType)) {
+      return runtime[CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE[subType]] as DataTypeConversionFunctions
+    }
+  }
+  throw new Error('[error] data type conversion is only available in a node graph context')
+}
+
 function ensureServerCtx(fnName: string): void {
   if (!inServerCtx()) {
     throw new Error(`[error] ${fnName}: only available in g.server().on handler`)
@@ -169,7 +206,7 @@ function convertIfNeeded<T extends keyof DataTypeConversionMap, U extends DataTy
   const from = detectFromType(input)
   if (!from) return null
   if (!CONVERT[from].has(type)) return null
-  return gsts.f.dataTypeConversion(input, type)
+  return getActiveGraphFunctions().dataTypeConversion(input, type)
 }
 
 function asFloatValue(value: FloatValue | IntValue, name: string): FloatValue {
@@ -198,7 +235,7 @@ function makeConvertibleFactory<T extends ConvertibleTo>(
   type: T
 ): (v: unknown) => ConvertToReturnTypeMap[T] {
   return (v: unknown) => {
-    if (!inServerCtx()) {
+    if (!inServerCtx() && !inClientCtx()) {
       try {
         const parsed = parseValue(v, type)
         if (parsed instanceof bool && parsed.value !== undefined) {
