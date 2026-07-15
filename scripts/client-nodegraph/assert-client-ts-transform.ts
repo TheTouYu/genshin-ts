@@ -221,8 +221,15 @@ g.characterSkill({ id: ${wrapperConversionGraphIds.characterSkill} }).on('start'
   const sameInt = int(f.addition(1n, 2n))
   const literalInt = int(123)
   const convertedFloat = gstsCharacterSkillConvertFloat(f.addition(3n, 4n))
+  const nativeFloat = Number(f.addition(5n, 6n))
+  const nativeString = String(f.addition(7n, 8n))
+  const nativeBool = Boolean(f.addition(9n, 10n))
+  const nativeMath = Math.sin(f.addition(11n, 12n))
   f.finiteLoop(sameInt, literalInt, () => {})
   f.setAttackWeight(convertedFloat, true)
+  f.setAttackWeight(nativeFloat, nativeBool)
+  f.setAttackWeight(nativeMath, true)
+  f.notifyServerNodeGraph(nativeString, '', '')
 })
 g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecision} }).on('start', (_evt, f) => {
   f.doubleBranch(true, () => {
@@ -241,6 +248,13 @@ g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecisio
     wrapperConversionOutput,
     /const convertedFloat = gstsCharacterSkillConvertFloat\(f\.addition\(3n, 4n\)\)/
   )
+  assert.match(wrapperConversionOutput, /const nativeFloat = float\(f\.addition\(5n, 6n\)\)/)
+  assert.match(wrapperConversionOutput, /const nativeString = str\(f\.addition\(7n, 8n\)\)/)
+  assert.match(wrapperConversionOutput, /const nativeBool = bool\(f\.addition\(9n, 10n\)\)/)
+  assert.match(
+    wrapperConversionOutput,
+    /const nativeMath = f\.sineFunction\(float\(f\.addition\(11n, 12n\)\)\)/
+  )
   assert.match(wrapperConversionOutput, /f\.greaterThan\(float\(wiredInt\), 0\)/)
   await import(`${pathToFileURL(wrapperConversionResult.entryOutFiles[0]).href}?test=${Date.now()}`)
   const wrapperConversionDocuments = buildClientGraphRegistriesIRDocuments().filter(
@@ -253,11 +267,25 @@ g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecisio
     (item) => item.graph.id === wrapperConversionGraphIds.characterSkill
   )
   assert.ok(characterWrapperDocument, 'missing character skill wrapper conversion graph')
-  assert.deepStrictEqual(
+  const characterConversionTypes =
     characterWrapperDocument.nodes
       ?.map((node) => node.type)
-      .filter((type) => type.startsWith('data_type_conversion_')),
-    ['data_type_conversion_float'],
+      .filter((type) => type.startsWith('data_type_conversion_')) ?? []
+  assert.strictEqual(
+    characterConversionTypes.filter((type) => type === 'data_type_conversion_float').length,
+    3
+  )
+  assert.strictEqual(
+    characterConversionTypes.filter((type) => type === 'data_type_conversion_str').length,
+    1
+  )
+  assert.strictEqual(
+    characterConversionTypes.filter((type) => type === 'data_type_conversion_bool').length,
+    1
+  )
+  assert.doesNotMatch(
+    JSON.stringify(characterConversionTypes),
+    /data_type_conversion_int/,
     'same-type int wrappers and int(123) must not create conversion nodes'
   )
   const decisionWrapperDocument = wrapperConversionDocuments.find(

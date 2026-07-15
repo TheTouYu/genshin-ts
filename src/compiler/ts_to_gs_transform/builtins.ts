@@ -110,25 +110,7 @@ function inferNumericKind(env: Env, expr: ts.Expression): NumericKind {
   return getNumericKind(env, t)
 }
 
-function makeTypeConversion(
-  env: Env,
-  value: ts.Expression,
-  type: TypeConversionTarget,
-  source?: ts.Expression
-): ts.Expression {
-  if (env.graphDocumentType === 'client') {
-    const isSamePrimitiveType = (sourceType: ts.Type): boolean => {
-      if (sourceType.isUnionOrIntersection()) {
-        return sourceType.types.every(isSamePrimitiveType)
-      }
-      const base = env.checker.getBaseTypeOfLiteralType(sourceType)
-      if (type === 'float') return (base.flags & ts.TypeFlags.NumberLike) !== 0
-      if (type === 'str') return (base.flags & ts.TypeFlags.StringLike) !== 0
-      return (base.flags & ts.TypeFlags.BooleanLike) !== 0
-    }
-    if (source && isSamePrimitiveType(env.checker.getTypeAtLocation(source))) return value
-    return makeFCall(env, 'dataTypeConversion', [value, ts.factory.createStringLiteral(type)])
-  }
+function makeTypeConversion(value: ts.Expression, type: TypeConversionTarget): ts.Expression {
   return ts.factory.createCallExpression(ts.factory.createIdentifier(type), undefined, [value])
 }
 
@@ -137,7 +119,7 @@ function coerceFloatArg(env: Env, spec: MathCallTransform, arg: ts.Expression): 
   if (kind === 'float') return spec.transformExpression(env, spec.context, arg)
   if (kind === 'int' || kind === 'mixed') {
     const valueExpr = spec.transformExpression(env, spec.context, arg)
-    return makeTypeConversion(env, valueExpr, 'float')
+    return makeTypeConversion(valueExpr, 'float')
   }
   const raw = env.checker.typeToString(env.checker.getTypeAtLocation(arg))
   fail(env, arg, `Math argument must be a number (${raw})`)
@@ -604,21 +586,21 @@ export function tryTransformBuiltinCall(
         fail(env, expr, 'Number() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(makeTypeConversion(env, argExpr, 'float', expr.arguments[0]), expr)
+      return withSameRange(makeTypeConversion(argExpr, 'float'), expr)
     }
     if (callee.text === 'String') {
       if (expr.arguments.length !== 1) {
         fail(env, expr, 'String() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(makeTypeConversion(env, argExpr, 'str', expr.arguments[0]), expr)
+      return withSameRange(makeTypeConversion(argExpr, 'str'), expr)
     }
     if (callee.text === 'Boolean') {
       if (expr.arguments.length !== 1) {
         fail(env, expr, 'Boolean() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(makeTypeConversion(env, argExpr, 'bool', expr.arguments[0]), expr)
+      return withSameRange(makeTypeConversion(argExpr, 'bool'), expr)
     }
   }
 
