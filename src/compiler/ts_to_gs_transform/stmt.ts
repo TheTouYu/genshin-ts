@@ -26,7 +26,7 @@ import {
 } from './loops.js'
 import { isAssignmentLikeOperator } from './ops.js'
 import type { CollectionSourceKind, Env, VarPlan, VarPlanEntry } from './types.js'
-import { asBlock, makeFCall, withSameRange } from './utils.js'
+import { asBlock, isClientFMethodAvailable, makeFCall, withSameRange } from './utils.js'
 
 function inferListConcreteType(env: Env, t: ts.Type, declTypeNode?: ts.TypeNode): ListType | null {
   const byNode = inferListTypeFromTypeNode(declTypeNode)
@@ -610,7 +610,10 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         const readsMultiple = u.readCount > 1 || (u.readInLoop && !decl.inLoop)
         const promoteConstReads = decl.isConst && readsMultiple && !isPureInit
         const promoteRandom = u.hasRandomWrite && readsMultiple
-        needsLocalVar = promoteConstReads || promoteRandom
+        // 不支持局部变量的客户端图无法保存一次求值快照。这里保留直接节点连线，
+        // 让 transform 成功，并由 gsts/client-repeated-evaluation 提醒重复求值的语义差异。
+        needsLocalVar =
+          isClientFMethodAvailable(env, 'initLocalVariable') && (promoteConstReads || promoteRandom)
       }
     }
     out.set(symbol, {

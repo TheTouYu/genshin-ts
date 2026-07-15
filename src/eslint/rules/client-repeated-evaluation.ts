@@ -145,8 +145,8 @@ const rule: Rule.RuleModule = {
           node: node.id,
           message: formatMessage(
             options.lang,
-            `非纯 const “${node.id.name}”${zhUsage}；节点图连线在每个使用点都会重新求值，随机数、查询结果或其他时变节点可能得到不同结果。编译器为保持 JavaScript const 初始化只求值一次的语义，会将它提升为局部变量快照，但客户端 ${info.subType} 节点图不支持局部变量`,
-            `Non-pure const "${node.id.name}" ${enUsage}; node-graph connections are reevaluated at every use, so random, query, or other time-varying nodes may produce different results. To preserve JavaScript's once-only const initializer semantics, the compiler promotes it to a local-variable snapshot, but client ${info.subType} graphs do not support local variables`
+            `非纯 const “${node.id.name}”${zhUsage}；节点图连线在每个使用点都会重新求值，随机数、查询结果或其他时变节点可能得到不同结果。支持局部变量时，编译器会将它提升为局部变量快照，以保持 JavaScript const 初始化只求值一次的语义；但客户端 ${info.subType} 节点图不支持局部变量，因此编译器会保留直接节点连线。因此这段代码逻辑你需要考虑变量重复求值的结果，会和实际代码语义有差异`,
+            `Non-pure const "${node.id.name}" ${enUsage}; node-graph connections are reevaluated at every use, so random, query, or other time-varying nodes may produce different results. When local variables are available, the compiler promotes the value to a local-variable snapshot to preserve JavaScript's once-only const initializer semantics; client ${info.subType} graphs do not support local variables, so the compiler keeps direct node connections. You must therefore account for repeated evaluation in this logic, which can differ from the source-code semantics`
           )
         })
       }

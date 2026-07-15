@@ -274,7 +274,7 @@ g.creationStatus().on('start', (_evt, f) => {
       errors: [
         {
           message:
-            /Non-pure const "ready" has 2 read sites.*connections are reevaluated at every use.*random, query, or other time-varying nodes.*local-variable snapshot/
+            /Non-pure const "ready" has 2 read sites.*connections are reevaluated at every use.*random, query, or other time-varying nodes.*local-variable snapshot.*keeps direct node connections.*differ from the source-code semantics/
         }
       ]
     },
@@ -291,7 +291,7 @@ g.creationStatus().on('start', (_evt, f) => {
       errors: [
         {
           message:
-            /“roll”在声明所在循环之外的循环中读取.*节点图连线在每个使用点都会重新求值.*随机数、查询结果或其他时变节点/
+            /“roll”在声明所在循环之外的循环中读取.*节点图连线在每个使用点都会重新求值.*随机数、查询结果或其他时变节点.*保留直接节点连线.*因此这段代码逻辑你需要考虑变量重复求值的结果，会和实际代码语义有差异/
         }
       ]
     },

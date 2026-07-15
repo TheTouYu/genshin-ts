@@ -250,16 +250,54 @@ g.creationStatusDecision().on('start', (_evt, f) => {
 })`,
     /client method "initLocalVariable" is not available in creation_status_decision beyond mode/
   )
-  await expectCompileError(
-    'unavailable-reused-const-local-variable',
+  const repeatedConstGraphIds = {
+    creationStatus: 1082130680,
+    creationStatusDecision: 1082130681,
+    boolFilter: 1082130682,
+    intFilter: 1082130683
+  }
+  const repeatedConstPath = path.join(tempRoot, 'repeated-const-direct-evaluation.ts')
+  fs.writeFileSync(
+    repeatedConstPath,
     `${importG}
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus({ id: ${repeatedConstGraphIds.creationStatus} }).on('start', (_evt, f) => {
   const ready = f.equal(1n, 1n)
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
+})
+g.creationStatusDecision({ id: ${repeatedConstGraphIds.creationStatusDecision} }).on('start', (_evt, f) => {
+  const ready = f.equal(1n, 1n)
+  if (ready) f.absoluteValueOperation(-1n)
+  if (ready) f.absoluteValueOperation(-2n)
+})
+g.boolFilter({ id: ${repeatedConstGraphIds.boolFilter} }).on('start', (_evt, f) => {
+  const ready = f.equal(1n, 1n)
+  return f.logicalAndOperation(ready, ready)
+})
+g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) => {
+  const roll = f.getRandomNumber(0n, 10n)
+  return f.addition(roll, roll)
 })`,
-    /client method "initLocalVariable" is not available in creation_status beyond mode/
+    'utf8'
   )
+  const repeatedConstResult = await compile([relative(repeatedConstPath)])
+  const repeatedConstOutput = fs.readFileSync(repeatedConstResult.entryOutFiles[0], 'utf8')
+  assert.doesNotMatch(repeatedConstOutput, /\.__gstsInitLocalVariable\(/)
+  await import(`${pathToFileURL(repeatedConstResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const repeatedConstGraphIdSet = new Set(Object.values(repeatedConstGraphIds))
+  const repeatedConstDocuments = buildClientGraphRegistriesIRDocuments().filter(
+    (document) =>
+      typeof document.graph.id === 'number' && repeatedConstGraphIdSet.has(document.graph.id)
+  )
+  assert.strictEqual(
+    repeatedConstDocuments.length,
+    repeatedConstGraphIdSet.size,
+    'all reused const graphs must compile and register'
+  )
+  const repeatedConstIr = JSON.stringify(repeatedConstDocuments)
+  assert.match(repeatedConstIr, /"type":"equal"/)
+  assert.match(repeatedConstIr, /"type":"get_random_number"/)
+  assert.doesNotMatch(repeatedConstIr, /"type":"(?:get|set)_local_variable"/)
   await expectRuntimeError(
     'duplicate-client-handler',
     `${importG}
