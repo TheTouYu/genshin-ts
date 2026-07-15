@@ -1,9 +1,9 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2 / P4-W3 / P4-W4 / P4-W5 / P4-W6 / P4-W7 用户核验
+> 状态：P5-W4 用户核验通过并归档；已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2..P4-W7 / P5-W2 / P5-W4
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
-> 最近校验：2026-07-14
-> 适用范围：Phase 3、Phase 4、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
+> 最近校验：2026-07-15
+> 适用范围：Phase 3、Phase 4、Phase 5、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
 
 本文件是用户编辑器/游戏回归候选的唯一权威清单。候选二进制不提交到仓库，应保留在既有外部导出目录；本文件记录
 哪个精确产物被确认过，不能把自动生成、文件复制或编辑器加载写成游戏行为已验证。
@@ -38,6 +38,90 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+### 已通过：P5-W4
+
+以下五份 P5-W4 候选于 2026-07-14 生成，自动 focused/inventory/sentinel 回归通过，均未注入。用户于
+2026-07-15 确认编辑器加载和可观察执行通过，并归档到 `真-测试通过/复合节点`。它们验证删除空的 legacy
+typed-identity adapter 后，vendor-gated boundary 哨兵仍可加载/执行。用户结论绑定下列核验时 SHA。
+
+#### P5-W4-capture
+
+- 工作包/阶段：P5-W4 / Phase 5 empty typed-identity adapter 删除。
+- 目的与覆盖风险：adapter 删除后 capture-only 复合边界不退化。
+- 自动证据：`test-stage3-p5w4-empty-typed-identity-adapter-removal.ts`、
+  `test-stage3-p2w6-capture-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P5W4-capture-vendor.gia`
+- SHA-256：`7d37a964fe98377be35ef97df1ea68029efe4627a55d84bca28d7f16b2e231db`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-15）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-15）。
+- 用户结论与日期：通过，2026-07-15。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 adapter 删除后的 capture sentinel；不证明 wire 全等或 default gate 切换。
+
+#### P5-W4-nested-capture
+
+- 工作包/阶段：P5-W4 / Phase 5。
+- 目的与覆盖风险：nested capture 路由在 adapter 删除后仍经 compositePins 进入 child call。
+- 自动证据：P5-W4 contract、`test-stage3-p2w11-nested-capture-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P5W4-nested-capture-vendor.gia`
+- SHA-256：`52416110d962b58df72f6eab1386e9ff62589d42433dfeb8cb6dcb17ffcda79d`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-15）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-15）。
+- 用户结论与日期：通过，2026-07-15。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested capture sentinel。
+
+#### P5-W4-nested-sparse
+
+- 工作包/阶段：P5-W4 / Phase 5。
+- 目的与覆盖风险：nested sparse/optional binding 在 adapter 删除后不退化。
+- 自动证据：P5-W4 contract、`test-stage3-p2w12-nested-sparse-input-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P5W4-nested-sparse-vendor.gia`
+- SHA-256：`12213296143e4cb7b083cb86b7de19586dfdffa59a6b74028a01c788f4fce0a0`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-15）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-15）。
+- 用户结论与日期：通过，2026-07-15。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested sparse sentinel。
+
+#### P5-W4-multi-inflow-outflow
+
+- 工作包/阶段：P5-W4 / Phase 5。
+- 目的与覆盖风险：multi InFlow/OutFlow 索引路由在 adapter 删除后不退化。
+- 自动证据：P5-W4 contract、`test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P5W4-multi-inflow-outflow-vendor.gia`
+- SHA-256：`0fafd5de8d5e345f66e1c0209a9829b5dcecc7969c434c825b2bbc3eec0b6a14`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-15）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-15）。
+- 用户结论与日期：通过，2026-07-15。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 multi-flow sentinel。
+
+#### P5-W4-nested-call
+
+- 工作包/阶段：P5-W4 / Phase 5。
+- 目的与覆盖风险：nested SysGraph call 与 ordinary vendor nodes 混排在 adapter 删除后不退化。
+- 自动证据：P5-W4 contract、`test-stage3-p2w9-nested-call-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`Beyond_Local_Export/真-测试通过/复合节点/P5W4-nested-call-vendor.gia`
+- SHA-256：`aaeb529e1206c1b0c2e7e999000f6bcbcc4b9cca8a6c87f95a60caeb464bbd00`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-15）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-15）。
+- 用户结论与日期：通过，2026-07-15。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested call flow sentinel。
+
+---
 
 以下五份 P4-W7 候选于 2026-07-14 生成，自动 orchestration/boundary 回归通过，均未注入。用户于 2026-07-14
 确认编辑器加载和可观察执行通过，并归档到 `真-测试通过/复合节点`。它们验证 `composite.ts` orchestration

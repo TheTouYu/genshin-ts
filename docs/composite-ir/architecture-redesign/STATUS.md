@@ -13,12 +13,12 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W2/P5-W3 已完成并提交；用户编辑器核验通过）
-当前唯一工作包：P5-W4 — 删除空的 legacy typed-identity adapter（不改 default gate）
-最近已提交工作包：P5-W3 — root ordinary 能力清单与例外审计；P5-W2 — opt-in beta 配置入口
+当前 Phase：Phase 5 进行中（P5-W1..P5-W4 已完成并提交；用户编辑器核验通过）
+当前唯一工作包：P5-W5 — residual concreteWrapped identity 收口（不改 default gate）
+最近已提交工作包：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
 更早已提交：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
 更早已提交：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
-工作树预期：clean（P5-W2/P5-W3 已提交；.gia 候选不入库）
+工作树预期：clean（P5-W4 已提交；.gia 候选不入库）
 默认 backend：handwritten impl backend
 opt-in beta：options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1
 ```
@@ -597,23 +597,99 @@ git diff --check
 
 说明：P5-W3 是审计/清单包，不改 ordinary materializer 业务语义。用户编辑器核验以同批 P5-W2 候选通过为准（见上节）。
 
-## 当前唯一工作包：P5-W4
+## 最近完成（已提交）：P5-W4
+
+P5-W4 删除已空的 legacy typed-identity adapter 表面；不改 default gate；不删除 handwritten
+pin/materialize 主路径。用户 2026-07-15 确认编辑器加载与可观察执行通过；未注入；已归档。
+
+交付：
 
 ```text
-工作包：P5-W4 — 删除空的 legacy typed-identity adapter
+src/compiler/ir_to_gia_transform/composite.ts
+  删除 LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES
+  删除 usesLegacyImplTypedIdentityAdapter
+  删除 resolveLegacyImplTypedNodeId
+  删除 legacyImplValueTypeSuffix
+  node-graph getter/setter concrete id 仅来自 shared resolveNodeIdentity()
+  （result.gvConcreteNid 字段仍作为 pin/materialize 的 shared concrete 载体）
+
+src/compiler/ir_to_gia_transform/legacy_ordinary_inventory.ts
+  移除 helper 符号与 legacy-typed-identity-adapter call-site
+  remainingHelpers=19；remainingCallSites=12
+
+tests/composite/test-stage3-p5w4-empty-typed-identity-adapter-removal.ts
+tests/composite/test-stage3-resolved-node-contract.ts
+  改为静态断言 adapter 表面已删除
+```
+
+已证明（自动）：
+
+- adapter 四符号在 `composite.ts` 中不存在；
+- inventory 不再列出 typed-identity-adapter family；
+- node-graph float/vec3 getter/setter concrete id 仍由 shared resolver 给出；
+- default gate 仍为 false；legacy pin/materialize 仍存在；
+- P5-W1 / P5-W2 / P5-W3 / P4-W7 / resolved-node / P2-W6 / P4-W1 B4 sentinel 通过。
+
+未证明 / 非目标：
+
+- 未删除 handwritten pin/materialize 主路径；
+- 未默认开启 vendor gate；
+- 无真实 GIA/wire 全等结论；未注入；
+- residual concreteWrapped identity（`resolveImplOrdinaryConcreteNodeId`）仍在，属 P5-W5。
+
+已运行并通过（提交前重跑）：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w4-empty-typed-identity-adapter-removal.ts
+npx tsx tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+npx tsx tests/composite/test-stage3-p5w3-root-ordinary-capability-inventory.ts
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+npx tsx tests/composite/test-stage3-p5w2-beta-config-contract.ts
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P5W4-p2w6-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P5W4-p2w6-vendor.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts /tmp/P5W4-p4w1-b4-vendor.gia
+git diff --check
+```
+
+用户核验候选（未注入；用户 2026-07-15 确认编辑器加载与可观察执行通过；已归档）：
+
+- `Beyond_Local_Export/真-测试通过/复合节点/P5W4-capture-vendor.gia`（B1 capture-only）
+  SHA-256 `7d37a964fe98377be35ef97df1ea68029efe4627a55d84bca28d7f16b2e231db`
+- `Beyond_Local_Export/真-测试通过/复合节点/P5W4-nested-capture-vendor.gia`（nested capture route）
+  SHA-256 `52416110d962b58df72f6eab1386e9ff62589d42433dfeb8cb6dcb17ffcda79d`
+- `Beyond_Local_Export/真-测试通过/复合节点/P5W4-nested-sparse-vendor.gia`（nested sparse binding）
+  SHA-256 `12213296143e4cb7b083cb86b7de19586dfdffa59a6b74028a01c788f4fce0a0`
+- `Beyond_Local_Export/真-测试通过/复合节点/P5W4-multi-inflow-outflow-vendor.gia`（multi InFlow/OutFlow）
+  SHA-256 `0fafd5de8d5e345f66e1c0209a9829b5dcecc7969c434c825b2bbc3eec0b6a14`
+- `Beyond_Local_Export/真-测试通过/复合节点/P5W4-nested-call-vendor.gia`（nested call flow sentinel）
+  SHA-256 `aaeb529e1206c1b0c2e7e999000f6bcbcc4b9cca8a6c87f95a60caeb464bbd00`
+
+说明：本包删除的是已空 adapter（原先恒返回 undefined）。node-graph concrete id 仍走 shared resolver。
+连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused structural contract 为准。
+
+## 当前唯一工作包：P5-W5
+
+```text
+工作包：P5-W5 — residual concreteWrapped identity 收口
 优先级类别：架构阻塞
-解除的上层阻塞：root 能力清单已就位；`LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES` 已为空，
-  可先删除无调用者的 typed-identity adapter 表面，不触及 default gate 与 handwritten pin/materialize 主路径。
-输入与修改范围：`composite.ts` 中 `usesLegacyImplTypedIdentityAdapter` /
-  `resolveLegacyImplTypedNodeId` / `LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES` 及其 inventory/测试引用；
-  更新 STATUS/Phase 5。不改 default，不删除 handwritten pin/materialize，不注入。
-最小观察或失败基线：adapter set 已空但 helper/调用仍存在，阻碍后续分项删除。
-完成条件：空 adapter 表面删除或收口为 no-op 删除闸门；inventory 更新；focused 自动通过；
-  git diff --check 通过。若产生可执行候选则请求用户编辑器核验。
-实际验证命令：npm run build；P5-W4 focused；P5-W1/W3 与相关 sentinel；git diff --check。
-回滚边界：仅 typed-identity adapter 表面；不触及 default gate / vendor materialize / boundary。
+状态：待实现；P5-W4 已完成并提交
+解除的上层阻塞：空 typed-identity adapter 已删；仍有
+  resolveImplOrdinaryConcreteNodeId / concreteWrappedNodeTypes 等 residual 表面，
+  阻碍 legacy inventory 继续消减。
+输入与修改范围：审计仍走 resolveImplOrdinaryConcreteNodeId 的 family；
+  能迁到 shared resolveNodeIdentity 的迁走，不能迁的具名 adapter 与删除条件；
+  inventory/测试；STATUS/Phase 5。
+最小观察或失败基线：P5-W4 后 remainingCallSites=12 / remainingHelpers=19；
+  concrete-wrapper family 仍在 inventory。
+完成条件：每个 residual concreteWrapped family 已迁 shared 或具名并带删除条件；
+  focused contract 通过；用户编辑器核验（若触及生产路径）通过。
+实际验证命令：实现时确定；至少 npm run build + focused contract + git diff --check。
+回滚边界：仅 concreteWrapped identity 路径；不触及 default gate / handwritten pin·materialize 主路径整体删除。
 明确非目标：默认开启 vendor gate、删除 handwritten pin/materialize 主路径、注入、改 capture/call/layout。
-后续候选（非当前工作包）：共享 pin-hole adapter 提升；handwritten pin/materialize 分项删除；default 切换（须用户批准）。
+后续候选（非当前工作包）：
+  共享 pin-hole adapter 提升；handwritten pin/materialize 分项删除；default 切换（须用户批准）。
 用户闸门：若触及 default gate / 主路径 legacy 删除 / 注入，必须停止。
 ```
 

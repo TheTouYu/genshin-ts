@@ -34,9 +34,8 @@ export type CompositeBoundaryModule = (typeof COMPOSITE_BOUNDARY_MODULES)[number
 export const LEGACY_ORDINARY_HELPER_SYMBOLS = [
   'resolveImplNodeId',
   'resolveImplOrdinaryConcreteNodeId',
-  'legacyImplValueTypeSuffix',
-  'resolveLegacyImplTypedNodeId',
-  'usesLegacyImplTypedIdentityAdapter',
+  // P5-W4 deleted empty typed-identity adapter symbols:
+  // legacyImplValueTypeSuffix / resolveLegacyImplTypedNodeId / usesLegacyImplTypedIdentityAdapter
   'argVarBaseClass',
   'argVarType',
   'buildImplNodePins',
@@ -60,7 +59,7 @@ export type LegacyOrdinaryHelperSymbol = (typeof LEGACY_ORDINARY_HELPER_SYMBOLS)
 
 export type LegacyOrdinaryCallSiteFamily =
   | 'identity-resolution'
-  | 'typed-identity-adapter'
+  // P5-W4 removed the empty typed-identity-adapter family from live inventory.
   | 'pin-schema'
   | 'literal-pin'
   | 'connection-pin'
@@ -116,18 +115,7 @@ export const LEGACY_ORDINARY_CALL_SITES: readonly LegacyOrdinaryCallSite[] = [
     ],
     notes: 'Suffix-based concrete id for concreteWrappedNodeTypes when shared path is absent.'
   },
-  {
-    id: 'legacy-typed-identity-adapter',
-    family: 'typed-identity-adapter',
-    symbol: 'resolveLegacyImplTypedNodeId',
-    callers: ['buildImplGraphNodes'],
-    sharedReplacement: 'usesSharedVariantResolution + resolveNodeIdentity',
-    deletionPreconditions: [
-      'LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES remains empty or all members migrate',
-      'usesLegacyImplTypedIdentityAdapter has zero true callers for production families'
-    ],
-    notes: 'Adapter set is currently empty; helpers remain as a queryable deletion gate.'
-  },
+  // P5-W4: legacy-typed-identity-adapter removed (empty set + no production true callers).
   {
     id: 'legacy-pin-builder-entry',
     family: 'pin-schema',

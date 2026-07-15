@@ -2,9 +2,9 @@
 import assert from 'node:assert/strict'
 import { resolveArgumentTypes, resolveNodeIdentity } from '../../dist/src/compiler/ir_to_gia_transform/resolved_node.js'
 import { resolveGiaNodeId } from '../../dist/src/compiler/ir_to_gia_transform/node_id.js'
-import {
-  usesLegacyImplTypedIdentityAdapter
-} from '../../dist/src/compiler/ir_to_gia_transform/composite.js'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const context = {
   scope: { kind: 'composite-impl', name: 'contract-fixture' },
@@ -148,12 +148,15 @@ assert.deepEqual(resolveNodeIdentity(localGetter, localContext), {
   logicalType: 'get_local_variable', genericNodeId: 18, concreteNodeId: 2659
 })
 
-assert.equal(usesLegacyImplTypedIdentityAdapter('get_node_graph_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('get_custom_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('get_local_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('set_local_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('set_node_graph_variable'), false)
-assert.equal(usesLegacyImplTypedIdentityAdapter('set_custom_variable'), false)
+// P5-W4: empty legacy typed-identity adapter surface is deleted.
+const compositeSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../src/compiler/ir_to_gia_transform/composite.ts'),
+  'utf8'
+)
+assert.equal(/\busesLegacyImplTypedIdentityAdapter\b/.test(compositeSource), false)
+assert.equal(/\bresolveLegacyImplTypedNodeId\b/.test(compositeSource), false)
+assert.equal(/\bLEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES\b/.test(compositeSource), false)
+assert.equal(/\blegacyImplValueTypeSuffix\b/.test(compositeSource), false)
 
 assert.throws(() => resolveNodeIdentity({
   id: 3,

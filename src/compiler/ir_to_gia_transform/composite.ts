@@ -331,23 +331,14 @@ function buildImplGraphNodes(
       kind: NodeGraph_Id_Kind.SysCall,
       nodeId: dtcGenericId ?? nodeId
     }
-    // Shared resolution owns the migrated node-graph/custom families. This adapter only
-    // preserves legacy impl fallbacks until vendor Graph materialization replaces this backend.
-    let gvConcreteNid: number | undefined
-    if (node.type === 'get_node_graph_variable') {
-      const nameArg = (node.args ?? [])[0]
-      if (nameArg?.type === 'str' && typeof nameArg.value === 'string') {
-        const implVar = implVariables?.find((variable) => variable.name === nameArg.value)
-        if (implVar) {
-          gvConcreteNid = resolveLegacyImplTypedNodeId(node.type, implVar.type, {
-            allowListElementFallback: true
-          })
-        }
-      }
-    }
-    if (!gvConcreteNid && producedType) {
-      gvConcreteNid = resolveLegacyImplTypedNodeId(node.type, producedType)
-    }
+    // Node-graph/custom/local concrete ids come from shared resolveNodeIdentity().
+    // P5-W4 deleted the empty legacy typed-identity adapter; gvConcreteNid is now only the
+    // shared concrete id for node-graph variable families (pin builder / materialize still use
+    // this field for the temporary vendor Node path).
+    const gvConcreteNid =
+      node.type === 'get_node_graph_variable' || node.type === 'set_node_graph_variable'
+        ? sharedConcreteNid
+        : undefined
     const customVariableConcreteNid =
       node.type === 'get_custom_variable' || node.type === 'set_custom_variable'
         ? sharedConcreteNid
@@ -377,7 +368,7 @@ function buildImplGraphNodes(
           implEdges,
           implOutParamMap,
           implVariables,
-          sharedConcreteNid ?? gvConcreteNid,
+          gvConcreteNid,
           customVariableConcreteNid,
           localVariableConcreteNid
         )
@@ -390,7 +381,7 @@ function buildImplGraphNodes(
       isCompositeCall,
       isDTC: isDTC || false,
       dtcConcreteNid: isDTC ? sharedConcreteNid ?? nodeId : undefined,
-      gvConcreteNid: sharedConcreteNid ?? gvConcreteNid,
+      gvConcreteNid,
       customVariableConcreteNid,
       localVariableConcreteNid,
       ordinaryConcreteNid,
@@ -672,42 +663,6 @@ function getImplArgType(
 ): string | undefined {
   if (!arg) return undefined
   return arg.type === 'conn' ? (arg.value as { type?: string }).type : arg.type
-}
-
-// Migrated ordinary families use resolveNodeIdentity(). Keep the adapter queryable so later
-// slices can prove no local-variable caller remains before its handwritten fallback is removed.
-const LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES = new Set<string>()
-
-export function usesLegacyImplTypedIdentityAdapter(nodeType: string): boolean {
-  return LEGACY_IMPL_TYPED_IDENTITY_NODE_TYPES.has(nodeType)
-}
-
-function legacyImplValueTypeSuffix(valueType: string): string | undefined {
-  if (['bool', 'int', 'float', 'str', 'guid', 'entity', 'faction'].includes(valueType)) {
-    return valueType
-  }
-  if (valueType === 'vec3') return 'vec'
-  if (valueType === 'config_id') return 'config'
-  if (valueType === 'prefab_id') return 'prefab'
-  if (valueType.endsWith('_list')) {
-    const elementSuffix = legacyImplValueTypeSuffix(valueType.slice(0, -5))
-    return elementSuffix ? `list_${elementSuffix}` : undefined
-  }
-  return undefined
-}
-
-function resolveLegacyImplTypedNodeId(
-  nodeType: string,
-  valueType: string,
-  { allowListElementFallback = false }: { allowListElementFallback?: boolean } = {}
-): number | undefined {
-  if (!usesLegacyImplTypedIdentityAdapter(nodeType)) return undefined
-  const suffix = legacyImplValueTypeSuffix(valueType)
-  if (!suffix) return undefined
-  const nodeIds = getNodeIdLowerMap()
-  const direct = nodeIds.get(`${nodeType}__${suffix}`)
-  if (direct || !allowListElementFallback || !suffix.startsWith('list_')) return direct
-  return nodeIds.get(`${nodeType}__${suffix.slice(5)}`)
 }
 
 /**

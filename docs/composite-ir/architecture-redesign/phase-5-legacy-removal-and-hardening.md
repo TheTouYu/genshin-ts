@@ -1,9 +1,9 @@
 # Phase 5：删除 Legacy Backend 与架构硬化
 
-> 状态：进行中；P5-W1/P5-W2/P5-W3 已完成并提交（P5-W2 用户核验通过，2026-07-14）
-> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1/P5-W2/P5-W3 源码观察
-> 最近校验：2026-07-14
-> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W4`
+> 状态：进行中；P5-W1..P5-W4 已完成并提交（用户编辑器核验通过）；当前唯一工作包 P5-W5
+> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W4 源码观察
+> 最近校验：2026-07-15
+> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W5`
 
 ## 目标
 
@@ -15,8 +15,8 @@
 （`LEGACY_ORDINARY_CALL_SITES` / `LEGACY_ORDINARY_HELPER_SYMBOLS`）。以实际调用者为准逐项删除：
 
 - `resolveImplNodeId()`；
-- `resolveImplOrdinaryConcreteNodeId()` / `resolveLegacyImplTypedNodeId()`；
-- impl `legacyImplValueTypeSuffix()` 副本；
+- `resolveImplOrdinaryConcreteNodeId()`（P5-W4 后仍服务 residual concreteWrapped families）；
+- ~~`resolveLegacyImplTypedNodeId()` / `usesLegacyImplTypedIdentityAdapter()` / `legacyImplValueTypeSuffix()`~~（P5-W4 已删；adapter set 本已为空）；
 - ordinary `argVarBaseClass()` / `argVarType()` / `makeVarBaseValue()`；
 - `concreteInputIndex()` / `concreteOutputIndex()`；
 - `needsConcreteWrapping()` / `wrapConcreteValue*()`；
@@ -46,6 +46,8 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
 - [x] P5-W3：可机读能力清单 `root_ordinary_capability_inventory.ts`（19 项已分类：
   shared-path / named-shared-adapter / boundary / root-unsupported）；focused contract 通过；
   不构成全 API 游戏验证声明。
+- [x] P5-W4：删除空的 legacy typed-identity adapter 表面；inventory 12 call-sites / 19 helpers；
+  用户 2026-07-15 确认编辑器加载与可观察执行通过；已提交。
 
 从当前 root compiler 实际可生成的 ordinary node/API 出发，建立并审计能力清单。每项必须分类为：
 
