@@ -83,6 +83,26 @@ export const ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = [
   'less_than_or_equal_to'
 ] as const
 
+/**
+ * Residual scalar families migrated onto shared identity in P5-W7.
+ * enumerations_equal remains a typed-identity residual (enum variants).
+ */
+export const ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES = [
+  'modulo_operation',
+  'exponentiation',
+  'logical_and_operation',
+  'logical_or_operation',
+  'logical_not_operation',
+  'logical_xor_operation',
+  'absolute_value_operation',
+  'sign_operation',
+  'arithmetic_square_root_operation',
+  'round_to_integer_operation',
+  'range_limiting_operation',
+  'take_larger_value',
+  'take_smaller_value'
+] as const
+
 /** Variable getter/setter families already on shared identity resolution. */
 export const ROOT_SHARED_VARIABLE_NODE_TYPES = [
   'set_node_graph_variable',
@@ -248,6 +268,24 @@ export const ROOT_ORDINARY_CAPABILITIES: readonly RootOrdinaryCapability[] = [
     evidenceClass: 'partial-editor-validation',
     notes:
       'Same-type int/float only. Heterogeneous arithmetic/comparison and non-int/float equal remain unclaimed.'
+  },
+  {
+    id: 'shared-residual-scalar-identity',
+    name: 'Residual scalar ordinary shared identity resolution',
+    category: 'shared-path',
+    layer: 'identity-resolution',
+    nodeTypes: ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
+    rootSurfaces: [
+      'resolved_node.ts:resolveNodeIdentity',
+      'resolved_node.ts:usesSharedResidualScalarResolution',
+      'node_id.ts:resolveGiaNodeId'
+    ],
+    sharedOrAdapterPath:
+      'usesSharedResidualScalarResolution + resolveNodeIdentity',
+    compositeLegacyRisk: true,
+    evidenceClass: 'automatic-contract',
+    notes:
+      'P5-W7: residual scalar ops share root/impl concrete identity. Typed int/float variants use primary input suffix; generic-only ops stay on generic. enumerations_equal remains typed-identity residual. Handwritten pin wrapping may still exist under default backend.'
   },
   {
     id: 'adapter-special-node-ids',
@@ -460,6 +498,7 @@ export const ROOT_ORDINARY_CAPABILITY_CONTRACT = {
   sharedVariantNodeTypes: [
     ...ROOT_SHARED_VARIABLE_NODE_TYPES,
     ...ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
+    ...ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
     'data_type_conversion_*'
   ] as const,
   capabilities: ROOT_ORDINARY_CAPABILITIES,
@@ -504,6 +543,13 @@ export function assertSharedVariantInventoryConsistency(): void {
     if (!usesSharedVariantResolution(nodeType)) {
       throw new Error(
         `[root-ordinary-inventory] expected shared variant resolution for ${nodeType}`
+      )
+    }
+  }
+  for (const nodeType of ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
+    if (!usesSharedVariantResolution(nodeType)) {
+      throw new Error(
+        `[root-ordinary-inventory] expected shared residual scalar resolution for ${nodeType}`
       )
     }
   }

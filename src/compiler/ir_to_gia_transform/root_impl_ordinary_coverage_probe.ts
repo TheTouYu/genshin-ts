@@ -1,12 +1,12 @@
 /**
- * P5-W6 encode probes for the root→impl ordinary coverage matrix.
+ * P5-W6/W7 encode probes for the root→impl ordinary coverage matrix.
  *
  * Runs under shared-beta surface only. Does not change production defaults.
  * Evidence class: automatic generation under GSTS_STAGE3_VENDOR_IMPL_GRAPH=1.
  *
- * W1 uses one combined residual fixture (plus print_string) so runtime registries
- * are registered once. Row statuses are derived from the combined encode result
- * plus static classification.
+ * Uses one combined residual-scalar fixture (plus print_string) so runtime
+ * registries are registered once. Row statuses are derived from the combined
+ * encode result plus static classification.
  */
 
 import { RoundingMode } from '../../definitions/enum.js'
@@ -62,10 +62,11 @@ export async function encodeResidualAndGenericFixtureOnce(
 
   const residualUnary = [...RESIDUAL_UNARY_SCALAR_NODE_TYPES]
   const residualBinary = [...RESIDUAL_BINARY_SCALAR_NODE_TYPES]
+  // P5-W7: residual scalar rows live under residual-scalar-* after shared identity migration.
   const exercisedRowIds = [
     'generic-print_string',
-    ...residualUnary.map((t) => `residual-concrete-${t}`),
-    ...residualBinary.map((t) => `residual-concrete-${t}`)
+    ...residualUnary.map((t) => `residual-scalar-${t}`),
+    ...residualBinary.map((t) => `residual-scalar-${t}`)
   ]
 
   const composite = g.defineComposite('P5W6_CoverageProbe_ResidualBatch', {

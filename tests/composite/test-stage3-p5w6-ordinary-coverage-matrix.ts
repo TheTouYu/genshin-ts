@@ -21,6 +21,7 @@ import {
   ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
   ORDINARY_COVERAGE_GRILLING_DECISIONS,
   RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES,
+  SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   listStaticOrdinaryCoverageRows,
   classifyStaticCoverageStatuses,
   listOrdinaryCoverageRowIds,
@@ -40,11 +41,12 @@ const matrixSource = readFileSync(
 const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 
 // --- Contract freezes ---
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W6')
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W6')
+// P5-W7 owns residual scalar shared identity; matrix contract phase advances with it.
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W7')
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W7')
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.deletesLegacyBackend, false)
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, false)
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
 assert.equal(
   COMPOSITE_ORCHESTRATION_CONTRACT.ordinaryCoverageMatrix,
   ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT
@@ -87,18 +89,32 @@ for (const row of staticRows) {
   )
 }
 
-// Residual 14 frozen
-assert.equal(RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length, 14)
+// Residual concrete remainder is enum-only after P5-W7; 13 residual scalars are shared.
+assert.equal(RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length, 1)
+assert.deepEqual([...RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES], ['enumerations_equal'])
+assert.equal(SHARED_RESIDUAL_SCALAR_NODE_TYPES.length, 13)
 for (const nodeType of RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES) {
   assert.equal(
     usesSharedVariantResolution(nodeType),
     false,
-    `${nodeType} should remain residual`
+    `${nodeType} should remain residual concrete`
   )
   assert.ok(
     ids.includes(`residual-concrete-${nodeType}`),
-    `missing residual row for ${nodeType}`
+    `missing residual-concrete row for ${nodeType}`
   )
+}
+for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
+  assert.equal(
+    usesSharedVariantResolution(nodeType),
+    true,
+    `${nodeType} should be on shared residual scalar identity`
+  )
+  assert.ok(
+    ids.includes(`residual-scalar-${nodeType}`),
+    `missing residual-scalar row for ${nodeType}`
+  )
+  assert.equal(ids.includes(`residual-concrete-${nodeType}`), false)
 }
 
 // Shared binaries must not be residual
@@ -116,6 +132,7 @@ for (const nodeType of [
   assert.equal(usesSharedVariantResolution(nodeType), true)
   assert.ok(ids.includes(`scalar-binary-${nodeType}`))
   assert.equal(ids.includes(`residual-concrete-${nodeType}`), false)
+  assert.equal(ids.includes(`residual-scalar-${nodeType}`), false)
 }
 
 // Required family rows present
@@ -156,19 +173,24 @@ assert.equal(
   'unknown'
 )
 assert.equal(
-  classified.find((r) => r.id === 'residual-concrete-modulo_operation')?.status,
+  classified.find((r) => r.id === 'residual-scalar-modulo_operation')?.status,
+  'green',
+  'P5-W7 residual scalar shared identity is static green'
+)
+assert.equal(
+  classified.find((r) => r.id === 'residual-concrete-enumerations_equal')?.status,
   'unknown',
-  'residual encode status filled by probe, not static pass'
+  'enumerations_equal remains residual concrete unknown'
 )
 
-// Source guards: no production encoding change in this pack
-assert.match(matrixSource, /changesProductionEncoding: false/)
-assert.match(matrixSource, /P5-W6/)
+// Source guards: matrix still wired through orchestration; residual table not rewritten into helper
+assert.match(matrixSource, /changesProductionEncoding: true/)
+assert.match(matrixSource, /P5-W7/)
 assert.match(compositeSource, /ordinaryCoverageMatrix/)
 assert.doesNotMatch(
   compositeSource,
   /resolveImplOrdinaryConcreteNodeId[\s\S]{0,80}RESIDUAL_CONCRETE/,
-  'matrix must not rewrite residual identity path in this pack'
+  'matrix must not rewrite residual identity path into composite helper'
 )
 
 // --- Shared-beta encode probes (E3) ---
@@ -184,14 +206,13 @@ assert.equal(
   `print_string probe expected green, got ${printRow.status}: ${printRow.reason}`
 )
 
-for (const nodeType of RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES) {
-  if (nodeType === 'enumerations_equal') continue
-  const row = probeSummary.rows.find((r) => r.id === `residual-concrete-${nodeType}`)
-  assert.ok(row, `missing residual row after probe: ${nodeType}`)
+for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
+  const row = probeSummary.rows.find((r) => r.id === `residual-scalar-${nodeType}`)
+  assert.ok(row, `missing residual-scalar row after probe: ${nodeType}`)
   assert.equal(
     row.status,
     'green',
-    `residual ${nodeType} expected green under shared beta, got ${row.status}: ${row.reason}`
+    `residual-scalar ${nodeType} expected green under shared beta, got ${row.status}: ${row.reason}`
   )
 }
 
@@ -222,10 +243,10 @@ const byFamily = Object.entries(probeSummary.byFamily)
   .join('\n')
 console.log(
   [
-    'P5-W6 ordinary coverage matrix OK',
+    'P5-W6/W7 ordinary coverage matrix OK',
     `total=${probeSummary.total} green=${probeSummary.green} red=${probeSummary.red} unknown=${probeSummary.unknown}`,
     byFamily,
     'defaultVendorImplGraphGate=false',
-    'changesProductionEncoding=false'
+    'changesProductionEncoding=true'
   ].join('\n')
 )

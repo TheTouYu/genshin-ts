@@ -1,5 +1,5 @@
 /**
- * P5-W6: machine-readable root→shared-beta impl ordinary coverage matrix (W1).
+ * P5-W6/W7: machine-readable root→shared-beta impl ordinary coverage matrix.
  *
  * Grilling decisions (shared understanding, 2026-07-15):
  * - A: capability complete on shared surface (not default cutover / legacy delete)
@@ -10,7 +10,7 @@
  * - C4: row green default = structural contract + no composite-only ordinary fork
  * - I4: rows from root live surfaces, mapped to inventory categories
  * - F4: ordinary fixes only in shared layers; boundary modules for boundary only
- * - W1/E3: this pack builds matrix + auto probes; does not change production encoding
+ * - W1/E3: matrix + auto probes; P5-W7 migrates residual scalar identity into shared resolver
  *
  * Evidence class: current source observation + automatic probe under shared beta.
  * Not a full game-validation claim. Does not flip default gate or delete legacy.
@@ -22,6 +22,7 @@ import {
   ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES,
   ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
   ROOT_NAMED_TYPED_IDENTITY_ADAPTER_NODE_TYPES,
+  ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
   ROOT_SHARED_VARIABLE_NODE_TYPES,
   type RootOrdinaryCapabilityCategory
@@ -51,6 +52,7 @@ export type OrdinaryCoverageRow = {
     | 'variable'
     | 'dtc'
     | 'scalar-binary'
+    | 'residual-scalar'
     | 'residual-concrete'
     | 'pin-hole'
     | 'special-arg'
@@ -75,27 +77,18 @@ export type OrdinaryCoverageRow = {
 }
 
 /**
- * Residual concreteWrapped node types still served by resolveImplOrdinaryConcreteNodeId
- * under the handwritten path. Shared identity already covers the 9 same-type binaries.
+ * Residual scalar ordinary families migrated to shared identity in P5-W7.
+ * Still need concrete wrapping on handwritten pin path, but concrete id is shared.
  */
-export const RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES = [
-  'modulo_operation',
-  'exponentiation',
-  'logical_and_operation',
-  'logical_or_operation',
-  'logical_not_operation',
-  'logical_xor_operation',
-  'absolute_value_operation',
-  'sign_operation',
-  'arithmetic_square_root_operation',
-  'round_to_integer_operation',
-  'range_limiting_operation',
-  'take_larger_value',
-  'take_smaller_value',
-  'enumerations_equal'
-] as const
+export const SHARED_RESIDUAL_SCALAR_NODE_TYPES = ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES
 
-/** Unary residual families that take one scalar input in the W1 probe. */
+/**
+ * Residual concreteWrapped node types still served by resolveImplOrdinaryConcreteNodeId
+ * under the handwritten path after P5-W7. enumerations_equal remains enum-typed residual.
+ */
+export const RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES = ['enumerations_equal'] as const
+
+/** Unary residual families exercised by the shared-beta encode probe. */
 export const RESIDUAL_UNARY_SCALAR_NODE_TYPES = [
   'logical_not_operation',
   'absolute_value_operation',
@@ -104,7 +97,7 @@ export const RESIDUAL_UNARY_SCALAR_NODE_TYPES = [
   'round_to_integer_operation'
 ] as const
 
-/** Binary residual families that take two scalar inputs in the W1 probe. */
+/** Binary residual families exercised by the shared-beta encode probe. */
 export const RESIDUAL_BINARY_SCALAR_NODE_TYPES = [
   'modulo_operation',
   'exponentiation',
@@ -136,15 +129,17 @@ export const ORDINARY_COVERAGE_GRILLING_DECISIONS = {
 } as const
 
 export const ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT = {
-  phase: 'P5-W6',
-  workPackage: 'P5-W6',
-  alias: 'W1-coverage-matrix',
+  phase: 'P5-W7',
+  workPackage: 'P5-W7',
+  alias: 'W1-coverage-matrix+residual-scalar-shared-identity',
   defaultVendorImplGraphGate: false,
   deletesLegacyBackend: false,
-  changesProductionEncoding: false,
+  /** P5-W7 changes ordinary concrete identity wiring for residual scalars only. */
+  changesProductionEncoding: true,
   completeSurface: 'shared-vendor-impl-graph-beta',
   grilling: ORDINARY_COVERAGE_GRILLING_DECISIONS,
   highRiskPendingFamilies: COVERAGE_HIGH_RISK_PENDING_FAMILIES,
+  sharedResidualScalarNodeTypes: SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   residualConcreteWrappedNodeTypes: RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES,
   /**
    * Status meanings under E3:
@@ -244,6 +239,27 @@ export function listStaticOrdinaryCoverageRows(): OrdinaryCoverageRow[] {
     )
   }
 
+  for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
+    rows.push(
+      row({
+        id: `residual-scalar-${nodeType}`,
+        nodeType,
+        category: 'shared-path',
+        family: 'residual-scalar',
+        compositeLegacyRisk: true,
+        sharedIdentity: usesSharedVariantResolution(nodeType),
+        probeKind: 'generic-encode',
+        status: 'unknown',
+        reason: 'pending-probe',
+        evidence: [
+          'shared-residual-scalar-identity',
+          'usesSharedResidualScalarResolution',
+          'P5-W7 residual scalar shared identity'
+        ]
+      })
+    )
+  }
+
   for (const nodeType of RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES) {
     rows.push(
       row({
@@ -253,14 +269,13 @@ export function listStaticOrdinaryCoverageRows(): OrdinaryCoverageRow[] {
         family: 'residual-concrete',
         compositeLegacyRisk: true,
         sharedIdentity: usesSharedVariantResolution(nodeType),
-        probeKind:
-          nodeType === 'enumerations_equal' ? 'static-surface' : 'generic-encode',
+        probeKind: 'static-surface',
         status: 'unknown',
         reason: 'pending-probe',
         evidence: [
           'resolveImplOrdinaryConcreteNodeId',
           'concreteWrappedNodeTypes',
-          'P5-W5 residual concreteWrapped identity'
+          'enumerations_equal root typed-identity adapter'
         ]
       })
     )
@@ -506,7 +521,11 @@ export function classifyStaticCoverageStatuses(
         probeKind: 'prior-evidence'
       }
     }
-    if (r.family === 'variable' || r.family === 'scalar-binary') {
+    if (
+      r.family === 'variable' ||
+      r.family === 'scalar-binary' ||
+      r.family === 'residual-scalar'
+    ) {
       return {
         ...r,
         status: r.sharedIdentity ? 'green' : 'red',
@@ -517,20 +536,11 @@ export function classifyStaticCoverageStatuses(
       }
     }
     if (r.family === 'residual-concrete') {
-      if (r.nodeType === 'enumerations_equal') {
-        return {
-          ...r,
-          status: 'unknown',
-          reason: 'typed-enum-sample-not-auto-constructed-in-w1',
-          probeKind: 'static-surface'
-        }
-      }
-      // Encoding probe fills real status; static pass marks unknown until probe.
       return {
         ...r,
         status: 'unknown',
-        reason: 'awaiting-shared-beta-encode-probe',
-        probeKind: 'generic-encode'
+        reason: 'typed-enum-sample-not-auto-constructed-in-p5w7',
+        probeKind: 'static-surface'
       }
     }
     if (
@@ -576,9 +586,8 @@ export function assertCoverageMatrixInvariants(
   if (ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate !== false) {
     throw new Error('[coverage-matrix] must not flip default vendor gate')
   }
-  if (ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding !== false) {
-    throw new Error('[coverage-matrix] W1 must not change production encoding')
-  }
+  // P5-W6 skeleton froze changesProductionEncoding=false; P5-W7 residual scalar
+  // identity migration intentionally sets it true while keeping default gate false.
   if (STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate !== false) {
     throw new Error('[coverage-matrix] stage3 default gate must remain false')
   }
@@ -592,16 +601,28 @@ export function assertCoverageMatrixInvariants(
     if (!r.evidence.length) throw new Error(`[coverage-matrix] ${r.id} missing evidence`)
   }
 
-  // Residual set must stay aligned with composite handwritten concreteWrapped remainder.
-  if (RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length !== 14) {
+  // Residual concrete remainder is enum-only after P5-W7 scalar migration.
+  if (RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length !== 1) {
     throw new Error(
-      `[coverage-matrix] expected 14 residual concrete types, got ${RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length}`
+      `[coverage-matrix] expected 1 residual concrete type, got ${RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length}`
+    )
+  }
+  if (SHARED_RESIDUAL_SCALAR_NODE_TYPES.length !== 13) {
+    throw new Error(
+      `[coverage-matrix] expected 13 shared residual scalar types, got ${SHARED_RESIDUAL_SCALAR_NODE_TYPES.length}`
     )
   }
   for (const nodeType of RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES) {
     if (usesSharedVariantResolution(nodeType)) {
       throw new Error(
         `[coverage-matrix] residual ${nodeType} unexpectedly on shared identity; update residual table`
+      )
+    }
+  }
+  for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
+    if (!usesSharedVariantResolution(nodeType)) {
+      throw new Error(
+        `[coverage-matrix] shared residual scalar ${nodeType} missing shared identity`
       )
     }
   }

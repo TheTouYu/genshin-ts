@@ -112,6 +112,43 @@ for (const [type, genericNodeId, intConcreteNodeId, floatConcreteNodeId] of scal
   }
 }
 
+// P5-W7 residual scalar shared identity (typed + generic-only samples)
+const residualTypedVariants = [
+  ['exponentiation', 209, 210],
+  ['absolute_value_operation', 216, 217],
+  ['take_larger_value', 211, 212]
+]
+for (const [type, intConcreteNodeId, floatConcreteNodeId] of residualTypedVariants) {
+  for (const [valueType, concreteNodeId] of [
+    ['int', intConcreteNodeId],
+    ['float', floatConcreteNodeId]
+  ]) {
+    const args =
+      type === 'absolute_value_operation'
+        ? [{ type: valueType, value: 8 }]
+        : [{ type: valueType, value: 8 }, { type: valueType, value: 2 }]
+    const node = { id: 500 + concreteNodeId, type, args }
+    assert.deepEqual(resolveNodeIdentity(node, context), {
+      logicalType: type,
+      genericNodeId: intConcreteNodeId,
+      concreteNodeId
+    })
+    assert.equal(resolveGiaNodeId(node, context.connectionTypes, context.variablesByName), concreteNodeId)
+  }
+}
+const residualGenericOnly = { id: 560, type: 'modulo_operation', args: [
+  { type: 'int', value: 8 },
+  { type: 'int', value: 3 }
+] }
+const residualGenericIdentity = resolveNodeIdentity(residualGenericOnly, context)
+assert.equal(residualGenericIdentity.logicalType, 'modulo_operation')
+assert.equal(residualGenericIdentity.genericNodeId, 208)
+assert.equal(residualGenericIdentity.concreteNodeId, undefined)
+assert.equal(
+  resolveGiaNodeId(residualGenericOnly, context.connectionTypes, context.variablesByName),
+  208
+)
+
 const customSetter = { id: 8, type: 'set_custom_variable', args: [
   { type: 'entity', value: 0 },
   { type: 'str', value: 'customFloat' },

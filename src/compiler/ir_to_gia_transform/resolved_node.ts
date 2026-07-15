@@ -208,18 +208,7 @@ export function resolveNodeIdentity(
     return { logicalType: node.type, genericNodeId, concreteNodeId }
   }
 
-  const isScalarBinarySameType = [
-    'addition',
-    'subtraction',
-    'multiplication',
-    'division',
-    'equal',
-    'greater_than',
-    'less_than',
-    'greater_than_or_equal_to',
-    'less_than_or_equal_to'
-  ].includes(node.type)
-  if (isScalarBinarySameType) {
+  if (usesSharedScalarSameTypeBinaryResolution(node.type)) {
     const left = inputs[0]?.type
     const right = inputs[1]?.type
     if (
@@ -238,6 +227,30 @@ export function resolveNodeIdentity(
         })
       }
       return { logicalType: node.type, genericNodeId, concreteNodeId }
+    }
+    return { logicalType: node.type, genericNodeId }
+  }
+
+  // P5-W7: residual scalar ops share root/impl concrete identity resolution.
+  // Typed families use primary scalar input suffix; generic-only families stay on generic.
+  if (usesSharedResidualScalarResolution(node.type)) {
+    const primary = resolveResidualScalarPrimaryType(node.type, inputs)
+    if (primary?.kind === 'scalar' && (primary.name === 'int' || primary.name === 'float')) {
+      const concreteNodeId = nodeIds.get(`${lower}__${primary.name}`)
+      if (concreteNodeId !== undefined) {
+        return { logicalType: node.type, genericNodeId, concreteNodeId }
+      }
+      // Generic-only residual ops (modulo/logical/sqrt/round) have no typed suffix.
+      // Keep generic identity rather than inventing composite-only fallbacks.
+      if (SHARED_RESIDUAL_GENERIC_ONLY_SCALAR_NODE_TYPES.has(node.type)) {
+        return { logicalType: node.type, genericNodeId }
+      }
+      report(context, {
+        code: 'E_UNKNOWN_NODE_VARIANT',
+        message: `missing residual scalar variant ${lower}__${primary.name}`,
+        nodeId: node.id,
+        nodeType: node.type
+      })
     }
     return { logicalType: node.type, genericNodeId }
   }
@@ -331,6 +344,63 @@ const SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = new Set([
   'less_than_or_equal_to'
 ])
 
+/**
+ * Residual scalar families previously served only by composite
+ * resolveImplOrdinaryConcreteNodeId (P5-W6 residual table minus enumerations_equal).
+ */
+const SHARED_RESIDUAL_TYPED_SCALAR_NODE_TYPES = new Set([
+  'exponentiation',
+  'absolute_value_operation',
+  'sign_operation',
+  'range_limiting_operation',
+  'take_larger_value',
+  'take_smaller_value'
+])
+
+const SHARED_RESIDUAL_GENERIC_ONLY_SCALAR_NODE_TYPES = new Set([
+  'modulo_operation',
+  'logical_and_operation',
+  'logical_or_operation',
+  'logical_not_operation',
+  'logical_xor_operation',
+  'arithmetic_square_root_operation',
+  'round_to_integer_operation'
+])
+
+const SHARED_RESIDUAL_SCALAR_NODE_TYPES = new Set([
+  ...SHARED_RESIDUAL_TYPED_SCALAR_NODE_TYPES,
+  ...SHARED_RESIDUAL_GENERIC_ONLY_SCALAR_NODE_TYPES
+])
+
+function resolveResidualScalarPrimaryType(
+  nodeType: string,
+  inputs: ResolvedInput[]
+): ResolvedValueType | undefined {
+  // range_limiting uses value/min/max; primary type is the value input.
+  // unary residual ops use inputs[0]; binary residual ops use left when same-type.
+  if (
+    nodeType === 'take_larger_value' ||
+    nodeType === 'take_smaller_value' ||
+    nodeType === 'exponentiation' ||
+    nodeType === 'modulo_operation' ||
+    nodeType === 'logical_and_operation' ||
+    nodeType === 'logical_or_operation' ||
+    nodeType === 'logical_xor_operation'
+  ) {
+    const left = inputs[0]?.type
+    const right = inputs[1]?.type
+    if (
+      left?.kind === 'scalar' &&
+      right?.kind === 'scalar' &&
+      left.name === right.name
+    ) {
+      return left
+    }
+    return left?.kind === 'scalar' ? left : undefined
+  }
+  return inputs[0]?.type
+}
+
 export function usesSharedVariantResolution(nodeType: string): boolean {
   return (
     nodeType === 'set_node_graph_variable' ||
@@ -340,6 +410,7 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
     nodeType === 'set_local_variable' ||
     nodeType === 'get_local_variable' ||
     SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES.has(nodeType) ||
+    SHARED_RESIDUAL_SCALAR_NODE_TYPES.has(nodeType) ||
     nodeType.startsWith('data_type_conversion_')
   )
 }
@@ -347,3 +418,18 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
 export function usesSharedScalarSameTypeBinaryResolution(nodeType: string): boolean {
   return SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES.has(nodeType)
 }
+
+export function usesSharedResidualScalarResolution(nodeType: string): boolean {
+  return SHARED_RESIDUAL_SCALAR_NODE_TYPES.has(nodeType)
+}
+
+export function usesSharedOrdinaryConcreteIdentity(nodeType: string): boolean {
+  return (
+    usesSharedScalarSameTypeBinaryResolution(nodeType) ||
+    usesSharedResidualScalarResolution(nodeType)
+  )
+}
+
+export const SHARED_RESIDUAL_SCALAR_NODE_TYPE_LIST = [
+  ...SHARED_RESIDUAL_SCALAR_NODE_TYPES
+] as const

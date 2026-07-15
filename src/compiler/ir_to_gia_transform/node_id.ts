@@ -426,8 +426,8 @@ export function resolveGiaNodeId(
     return typed
   }
 
-  // Migrated DTC and scalar same-type binary families delegate concrete identity to the
-  // shared resolver rather than maintaining root and composite-impl variant maps.
+  // Migrated DTC / scalar same-type binary / residual scalar families delegate concrete
+  // identity to the shared resolver rather than maintaining root and composite-impl maps.
   if (
     nodeType.startsWith('data_type_conversion_') ||
     [
@@ -439,7 +439,21 @@ export function resolveGiaNodeId(
       'greater_than',
       'less_than',
       'greater_than_or_equal_to',
-      'less_than_or_equal_to'
+      'less_than_or_equal_to',
+      // P5-W7 residual scalar ordinary identities
+      'modulo_operation',
+      'exponentiation',
+      'logical_and_operation',
+      'logical_or_operation',
+      'logical_not_operation',
+      'logical_xor_operation',
+      'absolute_value_operation',
+      'sign_operation',
+      'arithmetic_square_root_operation',
+      'round_to_integer_operation',
+      'range_limiting_operation',
+      'take_larger_value',
+      'take_smaller_value'
     ].includes(nodeType)
   ) {
     const identity = resolveNodeIdentity(node, {

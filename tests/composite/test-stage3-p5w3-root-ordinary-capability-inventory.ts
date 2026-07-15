@@ -30,6 +30,7 @@ import {
   ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
   ROOT_NAMED_TYPED_IDENTITY_ADAPTER_NODE_TYPES,
   ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
+  ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   ROOT_SHARED_VARIABLE_NODE_TYPES,
   assertSharedVariantInventoryConsistency,
   findRootOrdinaryCapability,
@@ -90,6 +91,7 @@ assert.ok(ids.includes('shared-ordinary-edges'))
 assert.ok(ids.includes('shared-variable-identity'))
 assert.ok(ids.includes('shared-dtc-identity'))
 assert.ok(ids.includes('shared-scalar-same-type-binary'))
+assert.ok(ids.includes('shared-residual-scalar-identity'))
 assert.ok(ids.includes('adapter-typed-identity-root'))
 assert.ok(ids.includes('adapter-pin-hole-layouts'))
 assert.ok(ids.includes('adapter-special-arg-layouts'))
@@ -157,6 +159,10 @@ for (const nodeType of ROOT_SHARED_VARIABLE_NODE_TYPES) {
 for (const nodeType of ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES) {
   assert.equal(usesSharedVariantResolution(nodeType), true)
   assert.equal(usesSharedScalarSameTypeBinaryResolution(nodeType), true)
+  assert.match(resolvedSource, new RegExp(String.raw`'${nodeType}'`))
+}
+for (const nodeType of ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
+  assert.equal(usesSharedVariantResolution(nodeType), true)
   assert.match(resolvedSource, new RegExp(String.raw`'${nodeType}'`))
 }
 assert.equal(usesSharedVariantResolution('data_type_conversion_int_to_str'), true)

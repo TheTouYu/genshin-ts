@@ -36,7 +36,7 @@ import { buildCompositePinsOverlay } from './build_composite_pins.js'
 import { computeCompositeImplLayout } from './build_composite_layout.js'
 import {
   resolveNodeIdentity,
-  usesSharedScalarSameTypeBinaryResolution,
+  usesSharedOrdinaryConcreteIdentity,
   usesSharedVariantResolution
 } from './resolved_node.js'
 import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
@@ -107,6 +107,7 @@ export {
   ROOT_ORDINARY_CAPABILITY_CONTRACT,
   ROOT_ORDINARY_CAPABILITIES,
   ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
+  ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   ROOT_SHARED_VARIABLE_NODE_TYPES,
   ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES,
   ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
@@ -127,6 +128,7 @@ export type {
 export {
   ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
   ORDINARY_COVERAGE_GRILLING_DECISIONS,
+  SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES,
   RESIDUAL_UNARY_SCALAR_NODE_TYPES,
   RESIDUAL_BINARY_SCALAR_NODE_TYPES,
@@ -338,8 +340,10 @@ function buildImplGraphNodes(
       implOutParamMap
         .get(node.id)
         ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
+    // P5-W7: residual scalar ordinary concrete ids also come from shared resolveNodeIdentity.
+    // enumerations_equal remains on the handwritten residual helper until enum sample lands.
     const ordinaryConcreteNid =
-      usesSharedScalarSameTypeBinaryResolution(node.type)
+      usesSharedOrdinaryConcreteIdentity(node.type)
         ? sharedConcreteNid
         : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // Synthetic call lowerer owns SysGraph identity; ordinary nodes stay SysCall.
