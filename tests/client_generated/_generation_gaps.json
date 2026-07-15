@@ -1,5 +1,17 @@
 [
   {
+    "subType": "bool_filter",
+    "nodeType": "assemble_structure",
+    "displayName": "拼装结构体",
+    "reason": "local_variable_pins"
+  },
+  {
+    "subType": "bool_filter",
+    "nodeType": "split_structure",
+    "displayName": "拆分结构体",
+    "reason": "local_variable_pins"
+  },
+  {
     "subType": "character_control_skill",
     "nodeType": "assemble_structure",
     "displayName": "拼装结构体",
@@ -55,6 +67,18 @@
   },
   {
     "subType": "creation_status_decision",
+    "nodeType": "split_structure",
+    "displayName": "拆分结构体",
+    "reason": "local_variable_pins"
+  },
+  {
+    "subType": "int_filter",
+    "nodeType": "assemble_structure",
+    "displayName": "拼装结构体",
+    "reason": "local_variable_pins"
+  },
+  {
+    "subType": "int_filter",
     "nodeType": "split_structure",
     "displayName": "拆分结构体",
     "reason": "local_variable_pins"

@@ -1,8 +1,9 @@
-import type { ClientGraphSubType } from '../../runtime/IR.js'
+import varSpec from '../../../resources/client_variable_specialization_seed.json' with { type: 'json' }
+import { isClientNodeTypeAvailable } from '../../definitions/client_method_modes.js'
+import type { ClientGraphMode, ClientGraphSubType } from '../../runtime/IR.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import { requireClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
-import varSpec from '../../../resources/client_variable_specialization_seed.json' with { type: 'json' }
 import type { IRNode } from './types.js'
 
 const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
@@ -68,10 +69,9 @@ const SEED_TYPE_TO_IR: Record<string, string> = {
 }
 
 const TYPE_OFFSET_BY_IR = new Map(
-  (varSpec.typeOffsets as Array<{ type: string; clientVarType: number; offset: number }>).map((e) => [
-    SEED_TYPE_TO_IR[e.type] ?? e.type,
-    e
-  ])
+  (varSpec.typeOffsets as Array<{ type: string; clientVarType: number; offset: number }>).map(
+    (e) => [SEED_TYPE_TO_IR[e.type] ?? e.type, e]
+  )
 )
 
 /** cid/ioc offset of a get_custom_variable output type (seed typeOffsets order) */
@@ -145,6 +145,7 @@ function getCustomVariableConcreteId(
 
 export function resolveClientNodeMetadata(
   subType: ClientGraphSubType,
+  mode: ClientGraphMode,
   node: IRNode
 ): ClientNodeMetadata {
   // IR 与服务器同形：data_type_conversion_<out> 共享同一份 data_type_conversion 元数据
@@ -152,6 +153,12 @@ export function resolveClientNodeMetadata(
     ? 'data_type_conversion'
     : node.type
   const metadata = requireClientNodeMetadata(subType, lookupType)
+  if (!isClientNodeTypeAvailable(subType, mode, metadata.nodeType)) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${subType}.${node.type} is not available in ${mode} mode`
+    )
+  }
   if (metadata.specialKind && UNSUPPORTED_SPECIAL_KINDS.has(metadata.specialKind)) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.UNSUPPORTED_SPECIAL_NODE,

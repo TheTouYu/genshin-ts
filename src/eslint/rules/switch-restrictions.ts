@@ -103,7 +103,8 @@ function constInitializerFromSymbol(sym: ts.Symbol): ts.Expression | null {
 }
 
 function propertyNameText(name: ts.PropertyName): string | null {
-  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) return name.text
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name))
+    return name.text
   return null
 }
 

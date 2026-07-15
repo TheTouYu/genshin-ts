@@ -454,6 +454,25 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Adds a key behavior with the corresponding ID to the Key Behavior Log Panel, and records the current time along with it. The maximum number of key behaviors that can be recorded is 20.
+   *
+   * 添加关键行为: 给关键行为记录板上添加一个对应ID的关键行为，并会将此刻的时间一同记录。可记录的关键行为最大数量为20
+   *
+   * @param keyBehaviorID
+   *
+   * 关键行为ID
+   */
+  addKeyBehavior(keyBehaviorID: IntValue): void {
+    const keyBehaviorIDObj = parseValue(keyBehaviorID, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'add_key_behavior',
+      args: [keyBehaviorIDObj]
+    })
+  }
+
+  /**
    * Applies the Unit Status defined by the configuration ID to the Target
    *
    * 添加单位状态: 为施加目标添加配置ID对应的单位状态
@@ -1077,6 +1096,75 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Makes the character cast the skill that is currently in the foreground for the corresponding skill slot.; For the button to be usable, the skill must be bound to a button and currently be in the foreground
+   *
+   * 施放指定槽位的技能: 使角色施放其对应技能槽位当前处于前台的技能; 按键可用需要满足该技能被绑定到了一个按钮上且当前处于前台
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   * @param checkKeyAvailability Yes: The skill will only be cast when the current button is usable.No: The skill will be cast regardless of whether the current button is usable.
+   *
+   * 是否校验按键可用: 是：当前按键可用时该技能才会被施放否：无论当前按键是否可用该技能都会被施放
+   */
+  castSkillFromSpecifiedSlot(skillSlot: CharacterSkillSlot, checkKeyAvailability: BoolValue): void {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const checkKeyAvailabilityObj = parseValue(checkKeyAvailability, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'cast_skill_from_specified_slot',
+      args: [skillSlotObj, checkKeyAvailabilityObj]
+    })
+  }
+
+  /**
+   * Makes the character cast the skill corresponding to the specified Skill Instance ID.; For the button to be usable, the skill must be bound to a button and currently be in the foreground
+   *
+   * 施放指定技能实例: 使角色施放指定技能实例ID对应的技能; 按键可用需要满足该技能被绑定到了一个按钮上且当前处于前台
+   *
+   * @param skillInstanceID
+   *
+   * 技能实例ID
+   * @param checkKeyAvailability Yes: The skill will only be cast when the current button is usable.No: The skill will be cast regardless of whether the current button is usable.
+   *
+   * 是否校验按键可用: 是：当前按键可用时该技能才会被施放否：无论当前按键是否可用该技能都会被施放
+   */
+  castSpecifiedSkillInstance(skillInstanceID: IntValue, checkKeyAvailability: BoolValue): void {
+    const skillInstanceIDObj = parseValue(skillInstanceID, 'int')
+    const checkKeyAvailabilityObj = parseValue(checkKeyAvailability, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'cast_specified_skill_instance',
+      args: [skillInstanceIDObj, checkKeyAvailabilityObj]
+    })
+  }
+
+  /**
+   * Makes the character blink to the target position, with the direction they are facing post-blink adjustable. The maximum blink distance is 200 meters.
+   *
+   * 角色闪现: 使角色朝目标位置闪现，可以调整闪现后的朝向。可闪现的最大距离为200m
+   *
+   * @param targetLocation
+   *
+   * 目标位置
+   * @param targetOrientation
+   *
+   * 目标朝向
+   */
+  characterBlink(targetLocation: Vec3Value, targetOrientation: Vec3Value): void {
+    const targetLocationObj = parseValue(targetLocation, 'vec3')
+    const targetOrientationObj = parseValue(targetOrientation, 'vec3')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'character_blink',
+      args: [targetLocationObj, targetOrientationObj]
+    })
+  }
+
+  /**
    * Query the preset state value of the target creation corresponding to the preset state index.
    *
    * 查询复杂造物的预设状态值: 查询目标造物对应预设状态索引下的预设状态值
@@ -1107,6 +1195,20 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new int()
     ret.markPin(ref, 'presetStatusValue', 0)
     return ret as unknown as bigint
+  }
+
+  /**
+   * Clears all recorded key behaviors from the Key Behavior Log Panel.
+   *
+   * 清空关键行为记录板: 清空关键行为记录板上已记录的关键行为
+   */
+  clearKeyBehaviorLogPanel(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'clear_key_behavior_log_panel',
+      args: []
+    })
   }
 
   /**
@@ -1849,6 +1951,20 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Finish Current Pre-Aiming
+   *
+   * 完成当前预瞄准: 可以让玩家提前完成当前预瞄准
+   */
+  finishCurrentPreAiming(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'finish_current_pre_aiming',
+      args: []
+    })
+  }
+
+  /**
    * From the [Loop Start Value] to the [Loop End Value], the loop iterates, incrementing the Integer by 1 each time. On each iteration, it executes the Nodes connected to [Loop Body]. After a full iteration, it executes the Nodes connected to [Loop Complete].; Use [Break Loop] to end the iteration early
    *
    * 有限循环: 从【循环起始值】开始到【循环终止值】结束，会遍历其中的循环值，每次整数加一。每次循环会执行一次【循环体】后连接的节点逻辑。完成一次完整遍历后，会执行【循环完成】后连接的节点逻辑。; 可以使用【跳出循环】来提前结束该循环值遍历
@@ -2056,6 +2172,32 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Get Base Object of Specified Pre-Aiming
+   *
+   * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 基准对象
+   */
+  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_base_object_of_specified_pre_aiming',
+      args: [preAimingIndexObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'baseObject', 0)
+    return ret as unknown as entity
+  }
+
+  /**
    * Returns the Character Entity of the specified Player Entity
    *
    * 获取指定玩家的角色实体: 获取指定玩家实体的角色实体
@@ -2177,6 +2319,27 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Get Current Active Pre-Aiming Index
+   *
+   * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 预瞄准序号
+   */
+  getCurrentActivePreAimingIndex(): bigint {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_active_pre_aiming_index',
+      args: []
+    })
+    const ret = new int()
+    ret.markPin(ref, 'preAimingIndex', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
    * Returns the Character Entity currently controlled by this Player's client
    *
    * 获取当前角色: 获取该玩家客户端当前控制的角色实体
@@ -2195,6 +2358,251 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the current client time.
+   *
+   * 获取当前客户端时间: 获取当前客户端的时间; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * 客户端时间
+   */
+  getCurrentClientTime(): number {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time',
+      args: []
+    })
+    const ret = new float()
+    ret.markPin(ref, 'clientTime', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
+   *
+   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * clientTimeS
+   * 客户端时间（s）
+   *
+   * clientTimeMs
+   * 客户端时间（ms）
+   */
+  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time_high_precision',
+      args: []
+    })
+    return {
+      clientTimeS: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeS', 0)
+        return ret as unknown as bigint
+      })(),
+      clientTimeMs: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeMs', 1)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
+   *
+   * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeList
+   * 录入时间列表
+   */
+  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeList: (() => {
+        const ret = new list('float')
+        ret.markPin(ref, 'entryTimeList', 1)
+        return ret as unknown as number[]
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
+   *
+   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeListS
+   * 录入时间列表（s）
+   *
+   * entryTimeListMs
+   * 录入时间列表（ms）
+   */
+  getCurrentKeyBehaviorHighPrecision(): {
+    behaviorIDList: bigint[]
+    entryTimeListS: bigint[]
+    entryTimeListMs: bigint[]
+  } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior_high_precision',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListS: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListS', 1)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListMs: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListMs', 2)
+        return ret as unknown as bigint[]
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Hit Result
+   *
+   * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
+   *
+   * @returns
+   *
+   * hitEntityList
+   * 命中实体列表
+   *
+   * hitPositionList
+   * 命中位置列表
+   *
+   * hitCount
+   * 命中数量
+   */
+  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_hit_result',
+      args: []
+    })
+    return {
+      hitEntityList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'hitEntityList', 0)
+        return ret as unknown as entity[]
+      })(),
+      hitPositionList: (() => {
+        const ret = new list('vec3')
+        ret.markPin(ref, 'hitPositionList', 1)
+        return ret as unknown as vec3[]
+      })(),
+      hitCount: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'hitCount', 2)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Screen Coordinates
+   *
+   * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_screen_coordinates',
+      args: []
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Viewport Coordinates
+   *
+   * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_viewport_coordinates',
+      args: []
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 
   /**
@@ -2732,6 +3140,191 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Returns the Input Direction and Input Strength of the current client player's movement.
+   *
+   * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
+   *
+   * @returns
+   *
+   * inputDirection
+   * 输入方向
+   *
+   * inputStrength
+   * 输入力度
+   */
+  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_movement_input',
+      args: []
+    })
+    return {
+      inputDirection: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputDirection', 0)
+        return ret as unknown as number
+      })(),
+      inputStrength: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputStrength', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Pre-Aiming Collision Detection Result Count
+   *
+   * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结果数量
+   */
+  getPreAimingCollisionDetectionResultCount(preAimingIndex: IntValue): bigint {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_collision_detection_result_count',
+      args: [preAimingIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'resultCount', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Get Pre-Aiming Duration
+   *
+   * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 持续时长（s）
+   */
+  getPreAimingDuration(preAimingIndex: IntValue): number {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_duration',
+      args: [preAimingIndexObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'durationSeconds', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Get Pre-Aiming Ray Hit Info
+   *
+   * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * hitEntity
+   * 命中实体
+   */
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_ray_hit_info',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      hitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'hitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Get Pre-Aiming Result
+   *
+   * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * inRangePosition
+   * 范围内位置
+   *
+   * bestValidTarget
+   * 最优合法目标
+   *
+   * validTargetList
+   * 合法目标列表
+   */
+  getPreAimingResult(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    inRangePosition: vec3
+    bestValidTarget: entity
+    validTargetList: entity[]
+  } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_result',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      inRangePosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'inRangePosition', 1)
+        return ret as unknown as vec3
+      })(),
+      bestValidTarget: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'bestValidTarget', 2)
+        return ret as unknown as entity
+      })(),
+      validTargetList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'validTargetList', 3)
+        return ret as unknown as entity[]
+      })()
+    }
+  }
+
+  /**
    * Returns the Preset Status value of the specified Entity. Returns 0 if the Entity does not have the specified Preset Status
    *
    * 获取预设状态: 获取指定实体的预设状态值。如果该实体没有指定的预设状态，则返回0
@@ -2936,6 +3529,32 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Returns the corresponding Skill Config ID based on the Skill Instance ID provided.
+   *
+   * 根据技能实例ID获取技能配置ID: 根据技能实例ID获取对应的技能配置ID
+   *
+   * @param skillInstanceID
+   *
+   * 技能实例ID
+   *
+   * @returns
+   *
+   * 技能配置ID
+   */
+  getSkillConfigIdBySkillInstanceId(skillInstanceID: IntValue): configId {
+    const skillInstanceIDObj = parseValue(skillInstanceID, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_skill_config_id_by_skill_instance_id',
+      args: [skillInstanceIDObj]
+    })
+    const ret = new configId()
+    ret.markPin(ref, 'skillConfigID', 0)
+    return ret as unknown as configId
+  }
+
+  /**
    * Returns the Attachment Point Location corresponding to the specified Attachment Point Name on the Target Entity
    *
    * 获取目标挂接点位置: 获取指定目标实体上对应挂接点名称的挂接点位置
@@ -3095,6 +3714,53 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Get Whether Cursor Is Active
+   *
+   * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 是否激活
+   */
+  getWhetherCursorIsActive(): boolean {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_cursor_is_active',
+      args: []
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isActive', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   *
+   * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 是否处于死区
+   */
+  getWhetherPreAimingStickIsInDeadZone(preAimingIndex: IntValue): boolean {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+      args: [preAimingIndexObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isInDeadZone', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Returns whether the left value is greater than the right value
    *
    * 是否大于: 返回左值是否大于右值
@@ -3161,6 +3827,29 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Increases the value of the specified skill variable. The increment can be a negative value.
+   *
+   * 增加技能变量值: 给指定的技能变量增加值，增加值可以为负数
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   * @param setValue Modified Value = Original Value + Increase Value
+   *
+   * 增加值: 修改后的值=修改前的值+增加值
+   */
+  increaseSkillVariableValue(skillVariableConfigID: ConfigIdValue, setValue: FloatValue): void {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const setValueObj = parseValue(setValue, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'increase_skill_variable_value',
+      args: [skillVariableConfigIDObj, setValueObj]
+    })
+  }
+
+  /**
    * Available only in Custom Aggro Mode; Modify the aggro value of the specified entity for the aggro owner entity; the increase value can be negative.
    *
    * 增加指定实体的仇恨值: 仅自定义仇恨模式可用; 修改指定实体在仇恨拥有者实体上的仇恨值，增加值可以为负
@@ -3188,6 +3877,20 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       type: 'exec',
       nodeType: 'increase_the_aggro_value_of_the_specified_entity',
       args: [targetEntityObj, aggroOwnerEntityObj, increaseValueObj]
+    })
+  }
+
+  /**
+   * Interrupts the skill currently being cast by the character
+   *
+   * 打断当前技能: 打断角色当前正在施放的技能
+   */
+  interruptCurrentSkill(): void {
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'interrupt_current_skill',
+      args: []
     })
   }
 
@@ -3467,6 +4170,155 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Takes an input parameter as a control expression (supports integers or strings). Multiple branches can be defined based on the value of the control expression.; Execution follows the output pin whose value matches the control expression. If no matching pin is found, it will proceed through the [Default] pin.
+   *
+   * 多分支: 接受一个输入参数作为控制表达式(支持整数或字符串)，根据控制表达式的值可以分出多个不同的分支; 当出引脚上的值与控制表达式的值相等时，会沿该出引脚向后执行逻辑。如果没有找到匹配的引脚，则会走【默认】引脚
+   *
+   * @param controlExpression Supports only integers or strings
+   *
+   * 控制表达式: 仅支持整数或字符串
+   */
+  multipleBranches(
+    controlExpression: IntValue,
+    branches: Record<number, (() => void) | number> & { default?: (() => void) | number }
+  ): void {
+    const controlExpressionObj = parseValue(controlExpression, 'int')
+
+    const rawBranches = branches as Record<string, unknown>
+    const caseKeys = Object.keys(rawBranches).filter((k) => k !== 'default')
+    const caseArgs = caseKeys.map((k) => new int(Number(k)))
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'multiple_branches',
+      args: [controlExpressionObj, ...caseArgs]
+    })
+
+    // 分支执行：按约定 default 的 source_index 固定为 0；其它分支按顺序从 1 开始递增
+    type BranchResult = {
+      terminatedByReturn?: boolean
+      tailEndpoints: Array<{ nodeId: number; sourceIndex?: number }>
+      headNodeId?: number
+    }
+    const branchResults: Array<{ sourceIndex: number } & BranchResult> = []
+
+    const defaultVal = rawBranches.default
+    let defaultResult: BranchResult | undefined
+    const emptyDefault: BranchResult = { terminatedByReturn: false, tailEndpoints: [] }
+
+    if (typeof defaultVal === 'function') {
+      const r = this.registry.withExecBranch(ref.id, 0, () =>
+        globalThis.gsts.ctx.withCtx('client_character_skill_switch', defaultVal as () => void)
+      )
+      defaultResult = r
+      branchResults.push({ sourceIndex: 0, ...r })
+    } else if (defaultVal === undefined) {
+      // 空默认分支视为“未 return 且无节点”，join 时需要从分支节点对应输出直接连出
+      branchResults.push({ sourceIndex: 0, ...emptyDefault })
+    }
+
+    const branchResultsByKey = new Map<string, BranchResult>()
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v !== 'function') return
+      const sourceIndex = i + 1
+      const r = this.registry.withExecBranch(ref.id, sourceIndex, () =>
+        globalThis.gsts.ctx.withCtx('client_character_skill_switch', v as () => void)
+      )
+      branchResultsByKey.set(k, r)
+      branchResults.push({ sourceIndex, ...r })
+    })
+
+    const resolveAliasKey = (input: unknown): string | null => {
+      if (typeof input === 'string') return input
+      if (typeof input === 'number') return String(input)
+      return null
+    }
+
+    const ensureCaseKey = (key: string, origin: string) => {
+      if (!caseKeys.includes(key)) {
+        throw new Error(`[error] multipleBranches: "${origin}" refers to missing case "${key}"`)
+      }
+    }
+
+    const resolveTarget = (
+      key: string,
+      stack: string[]
+    ): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (stack.includes(key)) {
+        throw new Error(
+          `[error] multipleBranches: circular case alias "${stack.join(' -> ')} -> ${key}"`
+        )
+      }
+      const value = rawBranches[key]
+      if (typeof value === 'function') return { kind: 'case', key }
+      const alias = resolveAliasKey(value)
+      if (!alias) {
+        throw new Error(`[error] multipleBranches: "${key}" must be a function or case alias`)
+      }
+      if (alias === 'default') return { kind: 'default' }
+      ensureCaseKey(alias, key)
+      return resolveTarget(alias, [...stack, key])
+    }
+
+    const resolveDefault = (): { kind: 'case'; key: string } | { kind: 'default' } => {
+      if (typeof defaultVal === 'function') return { kind: 'default' }
+      const alias = resolveAliasKey(defaultVal)
+      if (!alias) {
+        throw new Error('[error] multipleBranches: default must be a function or case alias')
+      }
+      if (alias === 'default') {
+        throw new Error('[error] multipleBranches: default alias cannot refer to itself')
+      }
+      ensureCaseKey(alias, 'default')
+      return resolveTarget(alias, ['default'])
+    }
+
+    const attachAlias = (sourceIndex: number, target: BranchResult | undefined) => {
+      const resolved = target ?? emptyDefault
+      if (resolved.headNodeId !== undefined) {
+        this.registry.connectExecBranchOutput(ref.id, sourceIndex, resolved.headNodeId)
+        return
+      }
+      branchResults.push({ sourceIndex, ...resolved })
+    }
+
+    caseKeys.forEach((k, i) => {
+      const v = rawBranches[k]
+      if (typeof v === 'function') return
+      const target = resolveTarget(k, [])
+      if (target.kind === 'default') {
+        attachAlias(i + 1, defaultResult)
+      } else {
+        attachAlias(i + 1, branchResultsByKey.get(target.key))
+      }
+    })
+
+    if (defaultVal !== undefined && typeof defaultVal !== 'function') {
+      const target = resolveDefault()
+      if (target.kind === 'default') {
+        attachAlias(0, defaultResult)
+      } else {
+        attachAlias(0, branchResultsByKey.get(target.key))
+      }
+    }
+
+    // 启用 join：后续顺序代码连接到所有未 return 的分支尾部（空分支则从分支节点输出直接连出）
+    const joinEndpoints: Array<{ nodeId: number; sourceIndex?: number }> = []
+    branchResults.forEach((r) => {
+      if (r.terminatedByReturn) return
+      if (r.tailEndpoints.length) {
+        joinEndpoints.push(...r.tailEndpoints)
+      } else {
+        joinEndpoints.push({ nodeId: ref.id, sourceIndex: r.sourceIndex })
+      }
+    })
+    this.registry.setCurrentExecTailEndpoints(joinEndpoints)
+  }
+
+  /**
    * Performs multiplication, supporting Floating Point and Integer multiplication
    *
    * 乘法运算: 乘法运算，支持浮点数乘法和整数乘法
@@ -3645,6 +4497,32 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'player_turns_to_face_set_direction',
       args: [orientationObj]
     })
+  }
+
+  /**
+   * Returns the skill instance(s) currently in the foreground for the slot specified.
+   *
+   * 查询指定槽位当前生效的技能实例: 查询指定槽位当前位于前台的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_active_skill_instance_list_of_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
   }
 
   /**
@@ -3962,6 +4840,143 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Query Pre-Aiming End Reason
+   *
+   * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结束原因
+   */
+  queryPreAimingEndReason(preAimingIndex: IntValue): PreAimingEndReason {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_pre_aiming_end_reason',
+      args: [preAimingIndexObj]
+    })
+    const ret = new enumeration('PreAimingEndReason')
+    ret.markPin(ref, 'endReason', 0)
+    return ret as unknown as PreAimingEndReason
+  }
+
+  /**
+   * Returns the corresponding skill instance based on the skill slot and Skill Config ID provided.
+   *
+   * 以技能槽位和技能配置ID查询技能实例ID: 根据技能槽位和技能配置ID查询对应的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   * @param skillConfigID
+   *
+   * 技能配置ID
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  querySkillInstanceIdBySkillSlotAndSkillConfigId(
+    skillSlot: CharacterSkillSlot,
+    skillConfigID: ConfigIdValue
+  ): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const skillConfigIDObj = parseValue(skillConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+      args: [skillSlotObj, skillConfigIDObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Searches for all skill instances in the slot specified.
+   *
+   * 查询指定槽位的技能实例列表: 查询指定槽位的所有技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID列表
+   */
+  querySkillInstanceListBySpecifiedSlot(skillSlot: CharacterSkillSlot): bigint[] {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_list_by_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new list('int')
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint[]
+  }
+
+  /**
+   * Searches for the corresponding variable value based on the Skill Variable Config ID.
+   *
+   * 查询技能变量对应值: 根据技能变量配置ID查询对应的变量值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   *
+   * @returns
+   *
+   * 变量值
+   */
+  querySkillVariableValue(skillVariableConfigID: ConfigIdValue): number {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_variable_value',
+      args: [skillVariableConfigIDObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns "Yes" when microphone input is detected from this player's client.; Note: This node only takes effect during multiplayer games (multiplayer test play, actual multiplayer play). It will not work in single-player games (single-player test play, actual single-player play).
+   *
+   * 查询玩家是否正在语音聊天: 当检测到该玩家客户端有麦克风输入时，会返回是; 注意该节点必须在多人游戏(多人试玩、多人正式游玩)中逻辑才会生效，单人游戏(单人试玩、单人正式游玩)均不会生效
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 是否正在语音
+   */
+  queryWhetherPlayerIsCurrentlyInVoiceChat(playerEntity: EntityValue): boolean {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_whether_player_is_currently_in_voice_chat',
+      args: [playerEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'currentlyInVoiceChat', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Converts radians to degrees
    *
    * 弧度转角度: 将弧度值转为角度值
@@ -4111,6 +5126,90 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       nodeType: 'reset_skill_target',
       args: []
     })
+  }
+
+  /**
+   * Screen Coordinates to Viewport Coordinates
+   *
+   * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  screenCoordinatesToViewportCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue
+  ): { viewportX: number; viewportY: number } {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_viewport_coordinates',
+      args: [screenXObj, screenYObj]
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Screen Coordinates to World Coordinates
+   *
+   * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   * @param depth
+   *
+   * 深度值
+   *
+   * @returns
+   *
+   * 世界坐标
+   */
+  screenCoordinatesToWorldCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue,
+    depth: FloatValue
+  ): vec3 {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const depthObj = parseValue(depth, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_world_coordinates',
+      args: [screenXObj, screenYObj, depthObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'worldPosition', 0)
+    return ret as unknown as vec3
   }
 
   /**
@@ -4288,6 +5387,29 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       type: 'exec',
       nodeType: 'set_own_attack_target',
       args: [targetEntityObj, whetherToTurnImmediatelyObj]
+    })
+  }
+
+  /**
+   * Sets the value of the specified skill variable
+   *
+   * 设置技能变量: 给指定的技能变量设置值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   * @param setValue The modified value
+   *
+   * 设置值: 修改后的值
+   */
+  setSkillVariable(skillVariableConfigID: ConfigIdValue, setValue: FloatValue): void {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const setValueObj = parseValue(setValue, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_skill_variable',
+      args: [skillVariableConfigIDObj, setValueObj]
     })
   }
 
@@ -6381,6 +7503,52 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 
   /**
+   * Viewport Coordinates to Screen Coordinates
+   *
+   * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param viewportX
+   *
+   * 视口X
+   * @param viewportY
+   *
+   * 视口Y
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  viewportCoordinatesToScreenCoordinates(
+    viewportX: FloatValue,
+    viewportY: FloatValue
+  ): { screenX: number; screenY: number } {
+    const viewportXObj = parseValue(viewportX, 'float')
+    const viewportYObj = parseValue(viewportY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'viewport_coordinates_to_screen_coordinates',
+      args: [viewportXObj, viewportYObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
    * Query whether the entity has the specified unit status
    *
    * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
@@ -6411,6 +7579,48 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     const ret = new bool()
     ret.markPin(ref, 'hasTheStatus', 0)
     return ret as unknown as boolean
+  }
+
+  /**
+   * World Coordinates to Screen Coordinates
+   *
+   * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param worldPosition
+   *
+   * 世界坐标
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    screenX: number
+    screenY: number
+  } {
+    const worldPositionObj = parseValue(worldPosition, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'world_coordinates_to_screen_coordinates',
+      args: [worldPositionObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 }
 
@@ -15149,6 +16359,32 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Available in Classic Mode only. Returns the Character ID of the Target Character, and can be used to look up the corresponding character in the Appendix Classic Mode Character IDs
+   *
+   * 查询经典模式角色编号: 仅经典模式可用，查询目标角色的角色编号，可以查看附录对应具体是哪位角色经典模式角色编号一览
+   *
+   * @param targetCharacter
+   *
+   * 目标角色
+   *
+   * @returns
+   *
+   * 角色编号
+   */
+  checkClassicModeCharacterId(targetCharacter: EntityValue): bigint {
+    const targetCharacterObj = parseValue(targetCharacter, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'check_classic_mode_character_id',
+      args: [targetCharacterObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'characterID', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
    * Query the preset state value of the target creation corresponding to the preset state index.
    *
    * 查询复杂造物的预设状态值: 查询目标造物对应预设状态索引下的预设状态值
@@ -16091,6 +17327,32 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Available only in Classic Mode. Returns the on-field character in the player's team
+   *
+   * 获取指定玩家的前台角色: 仅经典模式可用，获取玩家队伍内的前台角色
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_active_character_of_specified_player',
+      args: [playerEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'characterEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
    * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity
    *
    * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体
@@ -16242,6 +17504,116 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Get Cursor Hit Result
+   *
+   * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
+   *
+   * @returns
+   *
+   * hitEntityList
+   * 命中实体列表
+   *
+   * hitPositionList
+   * 命中位置列表
+   *
+   * hitCount
+   * 命中数量
+   */
+  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_hit_result',
+      args: []
+    })
+    return {
+      hitEntityList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'hitEntityList', 0)
+        return ret as unknown as entity[]
+      })(),
+      hitPositionList: (() => {
+        const ret = new list('vec3')
+        ret.markPin(ref, 'hitPositionList', 1)
+        return ret as unknown as vec3[]
+      })(),
+      hitCount: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'hitCount', 2)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Screen Coordinates
+   *
+   * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_screen_coordinates',
+      args: []
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Viewport Coordinates
+   *
+   * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_viewport_coordinates',
+      args: []
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 
   /**
@@ -16669,6 +18041,32 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Returns a list of characters in the player's team. Available only in Classic Mode.
+   *
+   * 获取玩家的角色列表: 仅经典模式可用，获取玩家队伍内的角色列表
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色列表
+   */
+  getPlayerSCharacterList(playerEntity: EntityValue): entity[] {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_s_character_list',
+      args: [playerEntityObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'characterList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
    * Returns the Preset Status value of the specified Entity. Returns 0 if the Entity does not have the specified Preset Status
    *
    * 获取预设状态: 获取指定实体的预设状态值。如果该实体没有指定的预设状态，则返回0
@@ -17058,6 +18456,27 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Get Whether Cursor Is Active
+   *
+   * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 是否激活
+   */
+  getWhetherCursorIsActive(): boolean {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_cursor_is_active',
+      args: []
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isActive', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Returns whether the left value is greater than the right value
    *
    * 是否大于: 返回左值是否大于右值
@@ -17121,6 +18540,29 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     const ret = new bool()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as boolean
+  }
+
+  /**
+   * Increases the value of the specified skill variable. The increment can be a negative value.
+   *
+   * 增加技能变量值: 给指定的技能变量增加值，增加值可以为负数
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   * @param setValue Modified Value = Original Value + Increase Value
+   *
+   * 增加值: 修改后的值=修改前的值+增加值
+   */
+  increaseSkillVariableValue(skillVariableConfigID: ConfigIdValue, setValue: FloatValue): void {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const setValueObj = parseValue(setValue, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'increase_skill_variable_value',
+      args: [skillVariableConfigIDObj, setValueObj]
+    })
   }
 
   /**
@@ -17866,6 +19308,32 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Searches for the corresponding variable value based on the Skill Variable Config ID.
+   *
+   * 查询技能变量对应值: 根据技能变量配置ID查询对应的变量值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   *
+   * @returns
+   *
+   * 变量值
+   */
+  querySkillVariableValue(skillVariableConfigID: ConfigIdValue): number {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_variable_value',
+      args: [skillVariableConfigIDObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as number
+  }
+
+  /**
    * Converts radians to degrees
    *
    * 弧度转角度: 将弧度值转为角度值
@@ -17894,7 +19362,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   /**
    * Initiates a one-time HP restoration for the Target Entity
    *
-   * 恢复生命值: 为目标实体发起一次恢复生命值
+   * 造物恢复生命值: 为目标实体发起一次恢复生命值
    *
    * @param targetEntity
    *
@@ -18004,6 +19472,90 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       nodeType: 'resets_the_creation_s_skill_cd',
       args: [skillIDObj]
     })
+  }
+
+  /**
+   * Screen Coordinates to Viewport Coordinates
+   *
+   * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  screenCoordinatesToViewportCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue
+  ): { viewportX: number; viewportY: number } {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_viewport_coordinates',
+      args: [screenXObj, screenYObj]
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Screen Coordinates to World Coordinates
+   *
+   * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   * @param depth
+   *
+   * 深度值
+   *
+   * @returns
+   *
+   * 世界坐标
+   */
+  screenCoordinatesToWorldCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue,
+    depth: FloatValue
+  ): vec3 {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const depthObj = parseValue(depth, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_world_coordinates',
+      args: [screenXObj, screenYObj, depthObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'worldPosition', 0)
+    return ret as unknown as vec3
   }
 
   /**
@@ -18132,6 +19684,29 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       type: 'exec',
       nodeType: 'set_local_variable',
       args: [variableNameObj, variableValueObj]
+    })
+  }
+
+  /**
+   * Sets the value of the specified skill variable
+   *
+   * 设置技能变量: 给指定的技能变量设置值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   * @param setValue The modified value
+   *
+   * 设置值: 修改后的值
+   */
+  setSkillVariable(skillVariableConfigID: ConfigIdValue, setValue: FloatValue): void {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const setValueObj = parseValue(setValue, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_skill_variable',
+      args: [skillVariableConfigIDObj, setValueObj]
     })
   }
 
@@ -20146,6 +21721,261 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 
   /**
+   * Initiate a spherical hitbox at the specified attachment point, and you can set various parameters for this attack.
+   *
+   * 指定挂接点打球形攻击盒: 对指定挂接点发起一次球形攻击盒攻击，可以设置该次攻击的各种参数
+   *
+   * @param targetFactionFilter
+   *
+   * 目标阵营筛选
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   * @param attachmentPointOffset
+   *
+   * 挂接点偏移
+   * @param attachmentPointRotation
+   *
+   * 挂接点旋转
+   * @param damageCoefficient
+   *
+   * 伤害系数
+   * @param damageIncrement
+   *
+   * 伤害增量
+   * @param hitboxEntityTypeFilterList
+   *
+   * 攻击盒实体类型筛选列表
+   * @param triggerType
+   *
+   * 触发类型
+   * @param onHitSceneEffects
+   *
+   * 命中场景特效
+   * @param radiusOfSphereHitbox
+   *
+   * 攻击盒为球体时的半径
+   * @param attackLayerFilter
+   *
+   * 攻击层筛选
+   * @param attackTagList
+   *
+   * 攻击标签列表
+   * @param elementalType
+   *
+   * 元素类型
+   * @param elementalAttackPotency
+   *
+   * 元素攻击强效
+   * @param hitType
+   *
+   * 打击类型
+   * @param attackType
+   *
+   * 攻击类型
+   * @param interruptValue
+   *
+   * 打断值
+   * @param absoluteDamage
+   *
+   * 是否是绝对伤害
+   * @param onHitSpecialEffects
+   *
+   * 命中特效
+   * @param knockbackOrientation
+   *
+   * 受击击退朝向
+   * @param blockDamagePopUp
+   *
+   * 是否屏蔽伤害跳字
+   * @param onHitSceneEffectsOffset
+   *
+   * 命中场景特效偏移
+   * @param onHitSceneEffectsRotation
+   *
+   * 命中场景特效旋转
+   * @param onHitSceneEffectsZoom
+   *
+   * 命中场景特效缩放
+   * @param onHitSpecialEffectsOffset
+   *
+   * 命中特效偏移
+   * @param onHitSpecialEffectsRotation
+   *
+   * 命中特效旋转
+   * @param onHitSpecialEffectsZoom
+   *
+   * 命中特效缩放
+   * @param aggroMultiplierForThisAttack
+   *
+   * 本次攻击的仇恨倍率
+   * @param aggroIncrementForThisAttack
+   *
+   * 本次攻击的仇恨增量
+   * @param hitLevel
+   *
+   * 受击等级
+   * @param onHitHorizontalImpulse
+   *
+   * 命中水平冲量
+   * @param onHitVerticalImpulse
+   *
+   * 命中垂直冲量
+   */
+  triggerSphericalHitboxAtSpecifiedAttachmentPoint(
+    targetFactionFilter: TargetType,
+    attachmentPointName: StrValue,
+    attachmentPointOffset: Vec3Value,
+    attachmentPointRotation: Vec3Value,
+    damageCoefficient: FloatValue,
+    damageIncrement: FloatValue,
+    hitboxEntityTypeFilterList: EntityType[],
+    triggerType: TriggerRestriction,
+    onHitSceneEffects: IntValue,
+    radiusOfSphereHitbox: FloatValue,
+    attackLayerFilter: AttackLayerConfig,
+    attackTagList: StrValue[],
+    elementalType: ElementalType,
+    elementalAttackPotency: FloatValue,
+    hitType: HitType,
+    attackType: AttackType,
+    interruptValue: FloatValue,
+    absoluteDamage: BoolValue,
+    onHitSpecialEffects: IntValue,
+    knockbackOrientation: KnockbackDirectionType,
+    blockDamagePopUp: BoolValue,
+    onHitSceneEffectsOffset: Vec3Value,
+    onHitSceneEffectsRotation: Vec3Value,
+    onHitSceneEffectsZoom: FloatValue,
+    onHitSpecialEffectsOffset: Vec3Value,
+    onHitSpecialEffectsRotation: Vec3Value,
+    onHitSpecialEffectsZoom: FloatValue,
+    aggroMultiplierForThisAttack: FloatValue,
+    aggroIncrementForThisAttack: IntValue,
+    hitLevel: RetracingType,
+    onHitHorizontalImpulse: FloatValue,
+    onHitVerticalImpulse: FloatValue
+  ): void {
+    const targetFactionFilterObj = parseValue(targetFactionFilter, 'enum')
+    const attachmentPointNameObj = parseValue(attachmentPointName, 'str')
+    const attachmentPointOffsetObj = parseValue(attachmentPointOffset, 'vec3')
+    const attachmentPointRotationObj = parseValue(attachmentPointRotation, 'vec3')
+    const damageCoefficientObj = parseValue(damageCoefficient, 'float')
+    const damageIncrementObj = parseValue(damageIncrement, 'float')
+    const hitboxEntityTypeFilterListObj = parseValue(hitboxEntityTypeFilterList, 'enum_list')
+    const triggerTypeObj = parseValue(triggerType, 'enum')
+    const onHitSceneEffectsObj = parseValue(onHitSceneEffects, 'int')
+    const radiusOfSphereHitboxObj = parseValue(radiusOfSphereHitbox, 'float')
+    const attackLayerFilterObj = parseValue(attackLayerFilter, 'enum')
+    const attackTagListObj = parseValue(attackTagList, 'str_list')
+    const elementalTypeObj = parseValue(elementalType, 'enum')
+    const elementalAttackPotencyObj = parseValue(elementalAttackPotency, 'float')
+    const hitTypeObj = parseValue(hitType, 'enum')
+    const attackTypeObj = parseValue(attackType, 'enum')
+    const interruptValueObj = parseValue(interruptValue, 'float')
+    const absoluteDamageObj = parseValue(absoluteDamage, 'bool')
+    const onHitSpecialEffectsObj = parseValue(onHitSpecialEffects, 'int')
+    const knockbackOrientationObj = parseValue(knockbackOrientation, 'enum')
+    const blockDamagePopUpObj = parseValue(blockDamagePopUp, 'bool')
+    const onHitSceneEffectsOffsetObj = parseValue(onHitSceneEffectsOffset, 'vec3')
+    const onHitSceneEffectsRotationObj = parseValue(onHitSceneEffectsRotation, 'vec3')
+    const onHitSceneEffectsZoomObj = parseValue(onHitSceneEffectsZoom, 'float')
+    const onHitSpecialEffectsOffsetObj = parseValue(onHitSpecialEffectsOffset, 'vec3')
+    const onHitSpecialEffectsRotationObj = parseValue(onHitSpecialEffectsRotation, 'vec3')
+    const onHitSpecialEffectsZoomObj = parseValue(onHitSpecialEffectsZoom, 'float')
+    const aggroMultiplierForThisAttackObj = parseValue(aggroMultiplierForThisAttack, 'float')
+    const aggroIncrementForThisAttackObj = parseValue(aggroIncrementForThisAttack, 'int')
+    const hitLevelObj = parseValue(hitLevel, 'enum')
+    const onHitHorizontalImpulseObj = parseValue(onHitHorizontalImpulse, 'float')
+    const onHitVerticalImpulseObj = parseValue(onHitVerticalImpulse, 'float')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'trigger_spherical_hitbox_at_specified_attachment_point',
+      args: [
+        targetFactionFilterObj,
+        attachmentPointNameObj,
+        attachmentPointOffsetObj,
+        attachmentPointRotationObj,
+        damageCoefficientObj,
+        damageIncrementObj,
+        hitboxEntityTypeFilterListObj,
+        triggerTypeObj,
+        onHitSceneEffectsObj,
+        radiusOfSphereHitboxObj,
+        attackLayerFilterObj,
+        attackTagListObj,
+        elementalTypeObj,
+        elementalAttackPotencyObj,
+        hitTypeObj,
+        attackTypeObj,
+        interruptValueObj,
+        absoluteDamageObj,
+        onHitSpecialEffectsObj,
+        knockbackOrientationObj,
+        blockDamagePopUpObj,
+        onHitSceneEffectsOffsetObj,
+        onHitSceneEffectsRotationObj,
+        onHitSceneEffectsZoomObj,
+        onHitSpecialEffectsOffsetObj,
+        onHitSpecialEffectsRotationObj,
+        onHitSpecialEffectsZoomObj,
+        aggroMultiplierForThisAttackObj,
+        aggroIncrementForThisAttackObj,
+        hitLevelObj,
+        onHitHorizontalImpulseObj,
+        onHitVerticalImpulseObj
+      ]
+    })
+  }
+
+  /**
+   * Viewport Coordinates to Screen Coordinates
+   *
+   * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param viewportX
+   *
+   * 视口X
+   * @param viewportY
+   *
+   * 视口Y
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  viewportCoordinatesToScreenCoordinates(
+    viewportX: FloatValue,
+    viewportY: FloatValue
+  ): { screenX: number; screenY: number } {
+    const viewportXObj = parseValue(viewportX, 'float')
+    const viewportYObj = parseValue(viewportY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'viewport_coordinates_to_screen_coordinates',
+      args: [viewportXObj, viewportYObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
    * Query whether the entity has the specified unit status
    *
    * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
@@ -20176,6 +22006,48 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     const ret = new bool()
     ret.markPin(ref, 'hasTheStatus', 0)
     return ret as unknown as boolean
+  }
+
+  /**
+   * World Coordinates to Screen Coordinates
+   *
+   * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param worldPosition
+   *
+   * 世界坐标
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    screenX: number
+    screenY: number
+  } {
+    const worldPositionObj = parseValue(worldPosition, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'world_coordinates_to_screen_coordinates',
+      args: [worldPositionObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 }
 
@@ -27946,6 +29818,344 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -28009,6 +30219,65 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Available in Classic Mode only. Returns the Character ID of the Target Character, and can be used to look up the corresponding character in the Appendix Classic Mode Character IDs
+   *
+   * 查询经典模式角色编号: 仅经典模式可用，查询目标角色的角色编号，可以查看附录对应具体是哪位角色经典模式角色编号一览
+   *
+   * @param targetCharacter
+   *
+   * 目标角色
+   *
+   * @returns
+   *
+   * 角色编号
+   */
+  checkClassicModeCharacterId(targetCharacter: EntityValue): bigint {
+    const targetCharacterObj = parseValue(targetCharacter, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'check_classic_mode_character_id',
+      args: [targetCharacterObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'characterID', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the preset state value of the target creation corresponding to the preset state index.
+   *
+   * 查询复杂造物的预设状态值: 查询目标造物对应预设状态索引下的预设状态值
+   *
+   * @param targetCreation
+   *
+   * 目标造物
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  checkThePresetStatusValueOfTheComplexCreation(
+    targetCreation: EntityValue,
+    presetStatusIndex: IntValue
+  ): bigint {
+    const targetCreationObj = parseValue(targetCreation, 'entity')
+    const presetStatusIndexObj = parseValue(presetStatusIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+      args: [targetCreationObj, presetStatusIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'presetStatusValue', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
    * Calculates the cosine of the input in radians
    *
    * 余弦函数: 计算输入弧度的余弦
@@ -28032,6 +30301,228 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**
@@ -28466,6 +30957,32 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Available only in Classic Mode. Returns the on-field character in the player's team
+   *
+   * 获取指定玩家的前台角色: 仅经典模式可用，获取玩家队伍内的前台角色
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_active_character_of_specified_player',
+      args: [playerEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'characterEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
    * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity
    *
    * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体
@@ -28517,6 +31034,32 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new list('entity')
     ret.markPin(ref, 'objectList', 0)
     return ret as unknown as entity[]
+  }
+
+  /**
+   * Get Base Object of Specified Pre-Aiming
+   *
+   * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 基准对象
+   */
+  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_base_object_of_specified_pre_aiming',
+      args: [preAimingIndexObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'baseObject', 0)
+    return ret as unknown as entity
   }
 
   /**
@@ -28641,6 +31184,27 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Get Current Active Pre-Aiming Index
+   *
+   * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 预瞄准序号
+   */
+  getCurrentActivePreAimingIndex(): bigint {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_active_pre_aiming_index',
+      args: []
+    })
+    const ret = new int()
+    ret.markPin(ref, 'preAimingIndex', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
    * Returns the Character Entity currently controlled by this Player's client
    *
    * 获取当前角色: 获取该玩家客户端当前控制的角色实体
@@ -28659,6 +31223,251 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the current client time.
+   *
+   * 获取当前客户端时间: 获取当前客户端的时间; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * 客户端时间
+   */
+  getCurrentClientTime(): number {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time',
+      args: []
+    })
+    const ret = new float()
+    ret.markPin(ref, 'clientTime', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
+   *
+   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * clientTimeS
+   * 客户端时间（s）
+   *
+   * clientTimeMs
+   * 客户端时间（ms）
+   */
+  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time_high_precision',
+      args: []
+    })
+    return {
+      clientTimeS: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeS', 0)
+        return ret as unknown as bigint
+      })(),
+      clientTimeMs: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeMs', 1)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
+   *
+   * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeList
+   * 录入时间列表
+   */
+  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeList: (() => {
+        const ret = new list('float')
+        ret.markPin(ref, 'entryTimeList', 1)
+        return ret as unknown as number[]
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
+   *
+   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeListS
+   * 录入时间列表（s）
+   *
+   * entryTimeListMs
+   * 录入时间列表（ms）
+   */
+  getCurrentKeyBehaviorHighPrecision(): {
+    behaviorIDList: bigint[]
+    entryTimeListS: bigint[]
+    entryTimeListMs: bigint[]
+  } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior_high_precision',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListS: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListS', 1)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListMs: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListMs', 2)
+        return ret as unknown as bigint[]
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Hit Result
+   *
+   * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
+   *
+   * @returns
+   *
+   * hitEntityList
+   * 命中实体列表
+   *
+   * hitPositionList
+   * 命中位置列表
+   *
+   * hitCount
+   * 命中数量
+   */
+  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_hit_result',
+      args: []
+    })
+    return {
+      hitEntityList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'hitEntityList', 0)
+        return ret as unknown as entity[]
+      })(),
+      hitPositionList: (() => {
+        const ret = new list('vec3')
+        ret.markPin(ref, 'hitPositionList', 1)
+        return ret as unknown as vec3[]
+      })(),
+      hitCount: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'hitCount', 2)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Screen Coordinates
+   *
+   * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_screen_coordinates',
+      args: []
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Viewport Coordinates
+   *
+   * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_viewport_coordinates',
+      args: []
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 
   /**
@@ -28917,6 +31726,34 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.
+   *
+   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 键列表
+   */
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_keys_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list(dictionaryObj.getKeyType())
+    ret.markPin(ref, 'keyList', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+  }
+
+  /**
    * Returns a list of all Player Entities present in the scene
    *
    * 获取在场玩家实体列表: 获取在场所有玩家实体组成的列表
@@ -28935,6 +31772,35 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
     return ret as unknown as entity[]
+  }
+
+  /**
+   * Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.
+   *
+   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 值列表
+   */
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_values_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list(valueType)
+    ret.markPin(ref, 'valueList', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -29058,6 +31924,217 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the Input Direction and Input Strength of the current client player's movement.
+   *
+   * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
+   *
+   * @returns
+   *
+   * inputDirection
+   * 输入方向
+   *
+   * inputStrength
+   * 输入力度
+   */
+  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_movement_input',
+      args: []
+    })
+    return {
+      inputDirection: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputDirection', 0)
+        return ret as unknown as number
+      })(),
+      inputStrength: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputStrength', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Returns a list of characters in the player's team. Available only in Classic Mode.
+   *
+   * 获取玩家的角色列表: 仅经典模式可用，获取玩家队伍内的角色列表
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色列表
+   */
+  getPlayerSCharacterList(playerEntity: EntityValue): entity[] {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_s_character_list',
+      args: [playerEntityObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'characterList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Get Pre-Aiming Collision Detection Result Count
+   *
+   * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结果数量
+   */
+  getPreAimingCollisionDetectionResultCount(preAimingIndex: IntValue): bigint {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_collision_detection_result_count',
+      args: [preAimingIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'resultCount', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Get Pre-Aiming Duration
+   *
+   * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 持续时长（s）
+   */
+  getPreAimingDuration(preAimingIndex: IntValue): number {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_duration',
+      args: [preAimingIndexObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'durationSeconds', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Get Pre-Aiming Ray Hit Info
+   *
+   * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * hitEntity
+   * 命中实体
+   */
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_ray_hit_info',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      hitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'hitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Get Pre-Aiming Result
+   *
+   * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * inRangePosition
+   * 范围内位置
+   *
+   * bestValidTarget
+   * 最优合法目标
+   *
+   * validTargetList
+   * 合法目标列表
+   */
+  getPreAimingResult(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    inRangePosition: vec3
+    bestValidTarget: entity
+    validTargetList: entity[]
+  } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_result',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      inRangePosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'inRangePosition', 1)
+        return ret as unknown as vec3
+      })(),
+      bestValidTarget: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'bestValidTarget', 2)
+        return ret as unknown as entity
+      })(),
+      validTargetList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'validTargetList', 3)
+        return ret as unknown as entity[]
+      })()
+    }
   }
 
   /**
@@ -29265,6 +32342,32 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Returns the corresponding Skill Config ID based on the Skill Instance ID provided.
+   *
+   * 根据技能实例ID获取技能配置ID: 根据技能实例ID获取对应的技能配置ID
+   *
+   * @param skillInstanceID
+   *
+   * 技能实例ID
+   *
+   * @returns
+   *
+   * 技能配置ID
+   */
+  getSkillConfigIdBySkillInstanceId(skillInstanceID: IntValue): configId {
+    const skillInstanceIDObj = parseValue(skillInstanceID, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_skill_config_id_by_skill_instance_id',
+      args: [skillInstanceIDObj]
+    })
+    const ret = new configId()
+    ret.markPin(ref, 'skillConfigID', 0)
+    return ret as unknown as configId
+  }
+
+  /**
    * Returns the Attachment Point Location corresponding to the specified Attachment Point Name on the Target Entity
    *
    * 获取目标挂接点位置: 获取指定目标实体上对应挂接点名称的挂接点位置
@@ -29369,6 +32472,53 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Get Whether Cursor Is Active
+   *
+   * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 是否激活
+   */
+  getWhetherCursorIsActive(): boolean {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_cursor_is_active',
+      args: []
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isActive', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   *
+   * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 是否处于死区
+   */
+  getWhetherPreAimingStickIsInDeadZone(preAimingIndex: IntValue): boolean {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+      args: [preAimingIndexObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isInDeadZone', 0)
+    return ret as unknown as boolean
   }
 
   /**
@@ -29779,6 +32929,99 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Returns the skill instance(s) currently in the foreground for the slot specified.
+   *
+   * 查询指定槽位当前生效的技能实例: 查询指定槽位当前位于前台的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_active_skill_instance_list_of_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the number of key-value pairs in a dictionary
+   *
+   * 查询字典长度: 查询字典中键值对的数量
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 长度
+   */
+  queryDictionarySLength(dictionary: DictValue): bigint
+  queryDictionarySLength(dictionary: DictValue): bigint {
+    const genericType = matchTypes(['dict'], dictionary)
+    const dictionaryObj = parseValue(dictionary, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_s_length',
+      args: [dictionaryObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'length', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.
+   *
+   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 值
+   */
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_value_by_key',
+      args: [dictionaryObj, keyObj]
+    })
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
+    ret.markPin(ref, 'value', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
+  }
+
+  /**
    * Searches for an Entity by GUID
    *
    * 以GUID查询实体: 根据GUID查询实体
@@ -29854,6 +33097,72 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new guid()
     ret.markPin(ref, 'gUID', 0)
     return ret as unknown as guid
+  }
+
+  /**
+   * Query if the specified dictionary contains a specific key
+   *
+   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_key',
+      args: [dictionaryObj, keyObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Query if the specified dictionary contains a specific value
+   *
+   * 查询字典是否包含特定值: 查询指定字典是否包含特定的值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param value
+   *
+   * 值
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_value',
+      args: [dictionaryObj, valueObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
   }
 
   /**
@@ -29934,6 +33243,143 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 
   /**
+   * Query Pre-Aiming End Reason
+   *
+   * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结束原因
+   */
+  queryPreAimingEndReason(preAimingIndex: IntValue): PreAimingEndReason {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_pre_aiming_end_reason',
+      args: [preAimingIndexObj]
+    })
+    const ret = new enumeration('PreAimingEndReason')
+    ret.markPin(ref, 'endReason', 0)
+    return ret as unknown as PreAimingEndReason
+  }
+
+  /**
+   * Returns the corresponding skill instance based on the skill slot and Skill Config ID provided.
+   *
+   * 以技能槽位和技能配置ID查询技能实例ID: 根据技能槽位和技能配置ID查询对应的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   * @param skillConfigID
+   *
+   * 技能配置ID
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  querySkillInstanceIdBySkillSlotAndSkillConfigId(
+    skillSlot: CharacterSkillSlot,
+    skillConfigID: ConfigIdValue
+  ): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const skillConfigIDObj = parseValue(skillConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+      args: [skillSlotObj, skillConfigIDObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Searches for all skill instances in the slot specified.
+   *
+   * 查询指定槽位的技能实例列表: 查询指定槽位的所有技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID列表
+   */
+  querySkillInstanceListBySpecifiedSlot(skillSlot: CharacterSkillSlot): bigint[] {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_list_by_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new list('int')
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint[]
+  }
+
+  /**
+   * Searches for the corresponding variable value based on the Skill Variable Config ID.
+   *
+   * 查询技能变量对应值: 根据技能变量配置ID查询对应的变量值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   *
+   * @returns
+   *
+   * 变量值
+   */
+  querySkillVariableValue(skillVariableConfigID: ConfigIdValue): number {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_variable_value',
+      args: [skillVariableConfigIDObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns "Yes" when microphone input is detected from this player's client.; Note: This node only takes effect during multiplayer games (multiplayer test play, actual multiplayer play). It will not work in single-player games (single-player test play, actual single-player play).
+   *
+   * 查询玩家是否正在语音聊天: 当检测到该玩家客户端有麦克风输入时，会返回是; 注意该节点必须在多人游戏(多人试玩、多人正式游玩)中逻辑才会生效，单人游戏(单人试玩、单人正式游玩)均不会生效
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 是否正在语音
+   */
+  queryWhetherPlayerIsCurrentlyInVoiceChat(playerEntity: EntityValue): boolean {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_whether_player_is_currently_in_voice_chat',
+      args: [playerEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'currentlyInVoiceChat', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Converts radians to degrees
    *
    * 弧度转角度: 将弧度值转为角度值
@@ -29957,6 +33403,90 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Screen Coordinates to Viewport Coordinates
+   *
+   * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  screenCoordinatesToViewportCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue
+  ): { viewportX: number; viewportY: number } {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_viewport_coordinates',
+      args: [screenXObj, screenYObj]
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Screen Coordinates to World Coordinates
+   *
+   * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   * @param depth
+   *
+   * 深度值
+   *
+   * @returns
+   *
+   * 世界坐标
+   */
+  screenCoordinatesToWorldCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue,
+    depth: FloatValue
+  ): vec3 {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const depthObj = parseValue(depth, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_world_coordinates',
+      args: [screenXObj, screenYObj, depthObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'worldPosition', 0)
+    return ret as unknown as vec3
   }
 
   /**
@@ -30100,6 +33630,127 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Viewport Coordinates to Screen Coordinates
+   *
+   * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param viewportX
+   *
+   * 视口X
+   * @param viewportY
+   *
+   * 视口Y
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  viewportCoordinatesToScreenCoordinates(
+    viewportX: FloatValue,
+    viewportY: FloatValue
+  ): { screenX: number; screenY: number } {
+    const viewportXObj = parseValue(viewportX, 'float')
+    const viewportYObj = parseValue(viewportY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'viewport_coordinates_to_screen_coordinates',
+      args: [viewportXObj, viewportYObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Query whether the entity has the specified unit status
+   *
+   * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param unitStatus
+   *
+   * 单位状态
+   *
+   * @returns
+   *
+   * 是否携带
+   */
+  whetherTheEntityHasTheSpecifiedUnitStatus(
+    targetEntity: EntityValue,
+    unitStatus: ConfigIdValue
+  ): boolean {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const unitStatusObj = parseValue(unitStatus, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'whether_the_entity_has_the_specified_unit_status',
+      args: [targetEntityObj, unitStatusObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'hasTheStatus', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * World Coordinates to Screen Coordinates
+   *
+   * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param worldPosition
+   *
+   * 世界坐标
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    screenX: number
+    screenY: number
+  } {
+    const worldPositionObj = parseValue(worldPosition, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'world_coordinates_to_screen_coordinates',
+      args: [worldPositionObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 }
 
@@ -30514,6 +34165,344 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Combine up to 50 key-value pairs into a dictionary.
+   *
+   * 拼装字典: 将至多50个键值对拼合为一个字典
+   *
+   * @param pairs Key-Value Pairs (1-50)
+   *
+   * 键值对: 至多50个键值对
+   *
+   * @returns
+   *
+   * 字典
+   */
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue }[]): ReadonlyDict<'int', 'float'>
+  assemblyDictionary(pairs: { k: IntValue; v: FloatValue[] }[]): ReadonlyDict<'int', 'float_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue }[]): ReadonlyDict<'int', 'int'>
+  assemblyDictionary(pairs: { k: IntValue; v: IntValue[] }[]): ReadonlyDict<'int', 'int_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue }[]): ReadonlyDict<'int', 'bool'>
+  assemblyDictionary(pairs: { k: IntValue; v: BoolValue[] }[]): ReadonlyDict<'int', 'bool_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: ConfigIdValue }[]): ReadonlyDict<'int', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'int', 'config_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue }[]): ReadonlyDict<'int', 'entity'>
+  assemblyDictionary(pairs: { k: IntValue; v: EntityValue[] }[]): ReadonlyDict<'int', 'entity_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: FactionValue }[]): ReadonlyDict<'int', 'faction'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'int', 'faction_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue }[]): ReadonlyDict<'int', 'guid'>
+  assemblyDictionary(pairs: { k: IntValue; v: GuidValue[] }[]): ReadonlyDict<'int', 'guid_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: PrefabIdValue }[]): ReadonlyDict<'int', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: IntValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'int', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue }[]): ReadonlyDict<'int', 'str'>
+  assemblyDictionary(pairs: { k: IntValue; v: StrValue[] }[]): ReadonlyDict<'int', 'str_list'>
+  assemblyDictionary(pairs: { k: IntValue; v: vec3 }[]): ReadonlyDict<'int', 'vec3'>
+  assemblyDictionary(pairs: { k: IntValue; v: Vec3Value[] }[]): ReadonlyDict<'int', 'vec3_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue }[]): ReadonlyDict<'str', 'float'>
+  assemblyDictionary(pairs: { k: StrValue; v: FloatValue[] }[]): ReadonlyDict<'str', 'float_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue }[]): ReadonlyDict<'str', 'int'>
+  assemblyDictionary(pairs: { k: StrValue; v: IntValue[] }[]): ReadonlyDict<'str', 'int_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue }[]): ReadonlyDict<'str', 'bool'>
+  assemblyDictionary(pairs: { k: StrValue; v: BoolValue[] }[]): ReadonlyDict<'str', 'bool_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: ConfigIdValue }[]): ReadonlyDict<'str', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'str', 'config_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue }[]): ReadonlyDict<'str', 'entity'>
+  assemblyDictionary(pairs: { k: StrValue; v: EntityValue[] }[]): ReadonlyDict<'str', 'entity_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: FactionValue }[]): ReadonlyDict<'str', 'faction'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'str', 'faction_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue }[]): ReadonlyDict<'str', 'guid'>
+  assemblyDictionary(pairs: { k: StrValue; v: GuidValue[] }[]): ReadonlyDict<'str', 'guid_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: PrefabIdValue }[]): ReadonlyDict<'str', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: StrValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'str', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue }[]): ReadonlyDict<'str', 'str'>
+  assemblyDictionary(pairs: { k: StrValue; v: StrValue[] }[]): ReadonlyDict<'str', 'str_list'>
+  assemblyDictionary(pairs: { k: StrValue; v: vec3 }[]): ReadonlyDict<'str', 'vec3'>
+  assemblyDictionary(pairs: { k: StrValue; v: Vec3Value[] }[]): ReadonlyDict<'str', 'vec3_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: FloatValue }[]): ReadonlyDict<'entity', 'float'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'entity', 'float_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue }[]): ReadonlyDict<'entity', 'int'>
+  assemblyDictionary(pairs: { k: EntityValue; v: IntValue[] }[]): ReadonlyDict<'entity', 'int_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: BoolValue }[]): ReadonlyDict<'entity', 'bool'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'entity', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'entity', 'config_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: EntityValue }[]): ReadonlyDict<'entity', 'entity'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'entity', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue }[]
+  ): ReadonlyDict<'entity', 'faction'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'entity', 'faction_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: GuidValue }[]): ReadonlyDict<'entity', 'guid'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'entity', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'entity', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue }[]): ReadonlyDict<'entity', 'str'>
+  assemblyDictionary(pairs: { k: EntityValue; v: StrValue[] }[]): ReadonlyDict<'entity', 'str_list'>
+  assemblyDictionary(pairs: { k: EntityValue; v: vec3 }[]): ReadonlyDict<'entity', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: EntityValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'entity', 'vec3_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue }[]): ReadonlyDict<'guid', 'float'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FloatValue[] }[]): ReadonlyDict<'guid', 'float_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue }[]): ReadonlyDict<'guid', 'int'>
+  assemblyDictionary(pairs: { k: GuidValue; v: IntValue[] }[]): ReadonlyDict<'guid', 'int_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue }[]): ReadonlyDict<'guid', 'bool'>
+  assemblyDictionary(pairs: { k: GuidValue; v: BoolValue[] }[]): ReadonlyDict<'guid', 'bool_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: ConfigIdValue }[]): ReadonlyDict<'guid', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'guid', 'config_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: EntityValue }[]): ReadonlyDict<'guid', 'entity'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'guid', 'entity_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: FactionValue }[]): ReadonlyDict<'guid', 'faction'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'guid', 'faction_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue }[]): ReadonlyDict<'guid', 'guid'>
+  assemblyDictionary(pairs: { k: GuidValue; v: GuidValue[] }[]): ReadonlyDict<'guid', 'guid_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: PrefabIdValue }[]): ReadonlyDict<'guid', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: GuidValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'guid', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue }[]): ReadonlyDict<'guid', 'str'>
+  assemblyDictionary(pairs: { k: GuidValue; v: StrValue[] }[]): ReadonlyDict<'guid', 'str_list'>
+  assemblyDictionary(pairs: { k: GuidValue; v: vec3 }[]): ReadonlyDict<'guid', 'vec3'>
+  assemblyDictionary(pairs: { k: GuidValue; v: Vec3Value[] }[]): ReadonlyDict<'guid', 'vec3_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: FloatValue }[]): ReadonlyDict<'faction', 'float'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'faction', 'float_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: IntValue }[]): ReadonlyDict<'faction', 'int'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: IntValue[] }[]
+  ): ReadonlyDict<'faction', 'int_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: BoolValue }[]): ReadonlyDict<'faction', 'bool'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'faction', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'faction', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue }[]
+  ): ReadonlyDict<'faction', 'entity'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'faction', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue }[]
+  ): ReadonlyDict<'faction', 'faction'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'faction', 'faction_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: GuidValue }[]): ReadonlyDict<'faction', 'guid'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'faction', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'faction', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: StrValue }[]): ReadonlyDict<'faction', 'str'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: StrValue[] }[]
+  ): ReadonlyDict<'faction', 'str_list'>
+  assemblyDictionary(pairs: { k: FactionValue; v: vec3 }[]): ReadonlyDict<'faction', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: FactionValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'faction', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'config_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'config_id', 'float_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: IntValue }[]): ReadonlyDict<'config_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'config_id', 'int_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: BoolValue }[]): ReadonlyDict<'config_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'config_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'config_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'config_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: GuidValue }[]): ReadonlyDict<'config_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'config_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'config_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: StrValue }[]): ReadonlyDict<'config_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'config_id', 'str_list'>
+  assemblyDictionary(pairs: { k: ConfigIdValue; v: vec3 }[]): ReadonlyDict<'config_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: ConfigIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'config_id', 'vec3_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue }[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FloatValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'float_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: IntValue }[]): ReadonlyDict<'prefab_id', 'int'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: IntValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'int_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: BoolValue }[]): ReadonlyDict<'prefab_id', 'bool'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: BoolValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'bool_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: ConfigIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'config_id_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue }[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: EntityValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'entity_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue }[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: FactionValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'faction_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: GuidValue }[]): ReadonlyDict<'prefab_id', 'guid'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: GuidValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'guid_list'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: PrefabIdValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: StrValue }[]): ReadonlyDict<'prefab_id', 'str'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: StrValue[] }[]
+  ): ReadonlyDict<'prefab_id', 'str_list'>
+  assemblyDictionary(pairs: { k: PrefabIdValue; v: vec3 }[]): ReadonlyDict<'prefab_id', 'vec3'>
+  assemblyDictionary(
+    pairs: { k: PrefabIdValue; v: Vec3Value[] }[]
+  ): ReadonlyDict<'prefab_id', 'vec3_list'>
+  assemblyDictionary<K extends DictKeyType, V extends DictValueType>(
+    pairs: {
+      k: RuntimeParameterValueTypeMap[K]
+      v: RuntimeParameterValueTypeMap[V]
+    }[]
+  ): ReadonlyDict<K, V> {
+    if (pairs.length === 0) throw new Error('Pairs cannot be empty')
+
+    if (pairs.length > 50) throw new Error('Pairs cannot be more than 50')
+
+    const keys = pairs.map((p) => p.k)
+    const keyType = matchTypes(
+      ['int', 'str', 'entity', 'guid', 'faction', 'config_id', 'prefab_id'],
+      ...keys
+    )
+    const values = pairs.map((p) => p.v)
+    const valueType = matchTypes(
+      [
+        'float',
+        'int',
+        'bool',
+        'config_id',
+        'entity',
+        'faction',
+        'guid',
+        'prefab_id',
+        'str',
+        'vec3'
+      ],
+      ...values
+    )
+
+    const key0to49Obj = keys.map((k) => parseValue(k, keyType))
+
+    const isValueTypeList = values[0] instanceof list
+    const value0to49Obj = isValueTypeList
+      ? values.map((v) =>
+          parseValue(v, (valueType + '_list') as keyof CommonLiteralValueListTypeMap)
+        )
+      : values.map((v) => parseValue(v, valueType))
+
+    const kv0to49Args = key0to49Obj.flatMap((k, i) => [k, value0to49Obj[i]])
+
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'assembly_dictionary',
+      args: kv0to49Args
+    })
+    const retValueType = isValueTypeList ? ((valueType + '_list') as DictValueType) : valueType
+    const ret = new dict(keyType, retValueType) as dict<K, V>
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
+  }
+
+  /**
    * Assembles multiple Input Parameters of the same type (up to 10) into a single List
    *
    * 拼装列表: 将多个类型相同的入参(至多10个)拼装为一个列表
@@ -30577,6 +34566,65 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Available in Classic Mode only. Returns the Character ID of the Target Character, and can be used to look up the corresponding character in the Appendix Classic Mode Character IDs
+   *
+   * 查询经典模式角色编号: 仅经典模式可用，查询目标角色的角色编号，可以查看附录对应具体是哪位角色经典模式角色编号一览
+   *
+   * @param targetCharacter
+   *
+   * 目标角色
+   *
+   * @returns
+   *
+   * 角色编号
+   */
+  checkClassicModeCharacterId(targetCharacter: EntityValue): bigint {
+    const targetCharacterObj = parseValue(targetCharacter, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'check_classic_mode_character_id',
+      args: [targetCharacterObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'characterID', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the preset state value of the target creation corresponding to the preset state index.
+   *
+   * 查询复杂造物的预设状态值: 查询目标造物对应预设状态索引下的预设状态值
+   *
+   * @param targetCreation
+   *
+   * 目标造物
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  checkThePresetStatusValueOfTheComplexCreation(
+    targetCreation: EntityValue,
+    presetStatusIndex: IntValue
+  ): bigint {
+    const targetCreationObj = parseValue(targetCreation, 'entity')
+    const presetStatusIndexObj = parseValue(presetStatusIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+      args: [targetCreationObj, presetStatusIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'presetStatusValue', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
    * Calculates the cosine of the input in radians
    *
    * 余弦函数: 计算输入弧度的余弦
@@ -30600,6 +34648,228 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Create key-value pairs according to the order of the input keys and values list.; This node will create a dictionary based on the shorter of the two lists, and any excess elements will be truncated.; If there are duplicate values in the keys list, the creation will fail, and an empty dictionary will be returned.
+   *
+   * 建立字典: 根据输入的键和值列表的顺序依次建立键值对。; 此节点会按照键和值列表中较短的一个进行字典创建，多余的部分会被截断; 如果键列表中存在重复值，则会创建失败，返回空字典
+   *
+   * @param keyList
+   *
+   * 键列表
+   * @param valueList
+   *
+   * 值列表
+   *
+   * @returns
+   *
+   * 字典
+   */
+  createDictionary(keyList: IntValue[], valueList: FloatValue[]): ReadonlyDict<'int', 'float'>
+  createDictionary(keyList: IntValue[], valueList: IntValue[]): ReadonlyDict<'int', 'int'>
+  createDictionary(keyList: IntValue[], valueList: BoolValue[]): ReadonlyDict<'int', 'bool'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'int', 'config_id'>
+  createDictionary(keyList: IntValue[], valueList: EntityValue[]): ReadonlyDict<'int', 'entity'>
+  createDictionary(keyList: IntValue[], valueList: FactionValue[]): ReadonlyDict<'int', 'faction'>
+  createDictionary(keyList: IntValue[], valueList: GuidValue[]): ReadonlyDict<'int', 'guid'>
+  createDictionary(
+    keyList: IntValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'int', 'prefab_id'>
+  createDictionary(keyList: IntValue[], valueList: StrValue[]): ReadonlyDict<'int', 'str'>
+  createDictionary(keyList: IntValue[], valueList: Vec3Value[]): ReadonlyDict<'int', 'vec3'>
+  createDictionary(keyList: StrValue[], valueList: FloatValue[]): ReadonlyDict<'str', 'float'>
+  createDictionary(keyList: StrValue[], valueList: IntValue[]): ReadonlyDict<'str', 'int'>
+  createDictionary(keyList: StrValue[], valueList: BoolValue[]): ReadonlyDict<'str', 'bool'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'str', 'config_id'>
+  createDictionary(keyList: StrValue[], valueList: EntityValue[]): ReadonlyDict<'str', 'entity'>
+  createDictionary(keyList: StrValue[], valueList: FactionValue[]): ReadonlyDict<'str', 'faction'>
+  createDictionary(keyList: StrValue[], valueList: GuidValue[]): ReadonlyDict<'str', 'guid'>
+  createDictionary(
+    keyList: StrValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'str', 'prefab_id'>
+  createDictionary(keyList: StrValue[], valueList: StrValue[]): ReadonlyDict<'str', 'str'>
+  createDictionary(keyList: StrValue[], valueList: Vec3Value[]): ReadonlyDict<'str', 'vec3'>
+  createDictionary(keyList: EntityValue[], valueList: FloatValue[]): ReadonlyDict<'entity', 'float'>
+  createDictionary(keyList: EntityValue[], valueList: IntValue[]): ReadonlyDict<'entity', 'int'>
+  createDictionary(keyList: EntityValue[], valueList: BoolValue[]): ReadonlyDict<'entity', 'bool'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'entity', 'config_id'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'entity', 'entity'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'entity', 'faction'>
+  createDictionary(keyList: EntityValue[], valueList: GuidValue[]): ReadonlyDict<'entity', 'guid'>
+  createDictionary(
+    keyList: EntityValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'entity', 'prefab_id'>
+  createDictionary(keyList: EntityValue[], valueList: StrValue[]): ReadonlyDict<'entity', 'str'>
+  createDictionary(keyList: EntityValue[], valueList: Vec3Value[]): ReadonlyDict<'entity', 'vec3'>
+  createDictionary(keyList: GuidValue[], valueList: FloatValue[]): ReadonlyDict<'guid', 'float'>
+  createDictionary(keyList: GuidValue[], valueList: IntValue[]): ReadonlyDict<'guid', 'int'>
+  createDictionary(keyList: GuidValue[], valueList: BoolValue[]): ReadonlyDict<'guid', 'bool'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'guid', 'config_id'>
+  createDictionary(keyList: GuidValue[], valueList: EntityValue[]): ReadonlyDict<'guid', 'entity'>
+  createDictionary(keyList: GuidValue[], valueList: FactionValue[]): ReadonlyDict<'guid', 'faction'>
+  createDictionary(keyList: GuidValue[], valueList: GuidValue[]): ReadonlyDict<'guid', 'guid'>
+  createDictionary(
+    keyList: GuidValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'guid', 'prefab_id'>
+  createDictionary(keyList: GuidValue[], valueList: StrValue[]): ReadonlyDict<'guid', 'str'>
+  createDictionary(keyList: GuidValue[], valueList: Vec3Value[]): ReadonlyDict<'guid', 'vec3'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'faction', 'float'>
+  createDictionary(keyList: FactionValue[], valueList: IntValue[]): ReadonlyDict<'faction', 'int'>
+  createDictionary(keyList: FactionValue[], valueList: BoolValue[]): ReadonlyDict<'faction', 'bool'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'faction', 'config_id'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'faction', 'entity'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'faction', 'faction'>
+  createDictionary(keyList: FactionValue[], valueList: GuidValue[]): ReadonlyDict<'faction', 'guid'>
+  createDictionary(
+    keyList: FactionValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'faction', 'prefab_id'>
+  createDictionary(keyList: FactionValue[], valueList: StrValue[]): ReadonlyDict<'faction', 'str'>
+  createDictionary(keyList: FactionValue[], valueList: Vec3Value[]): ReadonlyDict<'faction', 'vec3'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'config_id', 'float'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'config_id', 'int'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'config_id', 'bool'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'config_id', 'config_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'config_id', 'entity'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'config_id', 'faction'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'config_id', 'guid'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'config_id', 'prefab_id'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'config_id', 'str'>
+  createDictionary(
+    keyList: ConfigIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'config_id', 'vec3'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FloatValue[]
+  ): ReadonlyDict<'prefab_id', 'float'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: IntValue[]
+  ): ReadonlyDict<'prefab_id', 'int'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: BoolValue[]
+  ): ReadonlyDict<'prefab_id', 'bool'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: ConfigIdValue[]
+  ): ReadonlyDict<'prefab_id', 'config_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: EntityValue[]
+  ): ReadonlyDict<'prefab_id', 'entity'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: FactionValue[]
+  ): ReadonlyDict<'prefab_id', 'faction'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: GuidValue[]
+  ): ReadonlyDict<'prefab_id', 'guid'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: PrefabIdValue[]
+  ): ReadonlyDict<'prefab_id', 'prefab_id'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: StrValue[]
+  ): ReadonlyDict<'prefab_id', 'str'>
+  createDictionary(
+    keyList: PrefabIdValue[],
+    valueList: Vec3Value[]
+  ): ReadonlyDict<'prefab_id', 'vec3'>
+  createDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    keyList: RuntimeParameterValueTypeMap[K][],
+    valueList: RuntimeParameterValueTypeMap[V][]
+  ): ReadonlyDict<K, V> {
+    const keyListConcreteType = (keyList as unknown as list<K>).getConcreteType()
+    if (!keyListConcreteType) {
+      throw new Error("[error] createDictionary(): keyList must be typed, use list('type', 0)")
+    }
+    const keyListObj = parseValue(
+      keyList,
+      (keyListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const valueListConcreteType = (valueList as unknown as list<V>).getConcreteType()
+    if (!valueListConcreteType) {
+      throw new Error("[error] createDictionary(): valueList must be typed, use list('type', 0)")
+    }
+    const valueListObj = parseValue(
+      valueList,
+      (valueListConcreteType + '_list') as keyof CommonLiteralValueListTypeMap
+    )
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'create_dictionary',
+      args: [keyListObj, valueListObj]
+    })
+    const ret = new dict(keyListConcreteType, valueListConcreteType)
+    ret.markPin(ref, 'dictionary', 0)
+    return ret
   }
 
   /**
@@ -31034,6 +35304,32 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Available only in Classic Mode. Returns the on-field character in the player's team
+   *
+   * 获取指定玩家的前台角色: 仅经典模式可用，获取玩家队伍内的前台角色
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_active_character_of_specified_player',
+      args: [playerEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'characterEntity', 0)
+    return ret as unknown as entity
+  }
+
+  /**
    * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity
    *
    * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体
@@ -31085,6 +35381,32 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new list('entity')
     ret.markPin(ref, 'objectList', 0)
     return ret as unknown as entity[]
+  }
+
+  /**
+   * Get Base Object of Specified Pre-Aiming
+   *
+   * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 基准对象
+   */
+  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_base_object_of_specified_pre_aiming',
+      args: [preAimingIndexObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'baseObject', 0)
+    return ret as unknown as entity
   }
 
   /**
@@ -31209,6 +35531,27 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Get Current Active Pre-Aiming Index
+   *
+   * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 预瞄准序号
+   */
+  getCurrentActivePreAimingIndex(): bigint {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_active_pre_aiming_index',
+      args: []
+    })
+    const ret = new int()
+    ret.markPin(ref, 'preAimingIndex', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
    * Returns the Character Entity currently controlled by this Player's client
    *
    * 获取当前角色: 获取该玩家客户端当前控制的角色实体
@@ -31227,6 +35570,251 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the current client time.
+   *
+   * 获取当前客户端时间: 获取当前客户端的时间; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * 客户端时间
+   */
+  getCurrentClientTime(): number {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time',
+      args: []
+    })
+    const ret = new float()
+    ret.markPin(ref, 'clientTime', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
+   *
+   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
+   *
+   * @returns
+   *
+   * clientTimeS
+   * 客户端时间（s）
+   *
+   * clientTimeMs
+   * 客户端时间（ms）
+   */
+  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_client_time_high_precision',
+      args: []
+    })
+    return {
+      clientTimeS: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeS', 0)
+        return ret as unknown as bigint
+      })(),
+      clientTimeMs: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'clientTimeMs', 1)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
+   *
+   * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeList
+   * 录入时间列表
+   */
+  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeList: (() => {
+        const ret = new list('float')
+        ret.markPin(ref, 'entryTimeList', 1)
+        return ret as unknown as number[]
+      })()
+    }
+  }
+
+  /**
+   * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
+   *
+   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
+   *
+   * @returns
+   *
+   * behaviorIDList
+   * 行为ID列表
+   *
+   * entryTimeListS
+   * 录入时间列表（s）
+   *
+   * entryTimeListMs
+   * 录入时间列表（ms）
+   */
+  getCurrentKeyBehaviorHighPrecision(): {
+    behaviorIDList: bigint[]
+    entryTimeListS: bigint[]
+    entryTimeListMs: bigint[]
+  } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_current_key_behavior_high_precision',
+      args: []
+    })
+    return {
+      behaviorIDList: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'behaviorIDList', 0)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListS: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListS', 1)
+        return ret as unknown as bigint[]
+      })(),
+      entryTimeListMs: (() => {
+        const ret = new list('int')
+        ret.markPin(ref, 'entryTimeListMs', 2)
+        return ret as unknown as bigint[]
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Hit Result
+   *
+   * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
+   *
+   * @returns
+   *
+   * hitEntityList
+   * 命中实体列表
+   *
+   * hitPositionList
+   * 命中位置列表
+   *
+   * hitCount
+   * 命中数量
+   */
+  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_hit_result',
+      args: []
+    })
+    return {
+      hitEntityList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'hitEntityList', 0)
+        return ret as unknown as entity[]
+      })(),
+      hitPositionList: (() => {
+        const ret = new list('vec3')
+        ret.markPin(ref, 'hitPositionList', 1)
+        return ret as unknown as vec3[]
+      })(),
+      hitCount: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'hitCount', 2)
+        return ret as unknown as bigint
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Screen Coordinates
+   *
+   * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_screen_coordinates',
+      args: []
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Get Cursor Viewport Coordinates
+   *
+   * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_cursor_viewport_coordinates',
+      args: []
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 
   /**
@@ -31485,6 +36073,34 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Get a list of all keys in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of keys retrieved may not be in the order they were inserted.
+   *
+   * 获取字典中键组成的列表: 获取字典中所有键组成的列表。由于字典中键值对是无序排列的，所以取出的键列表也不一定按照其插入顺序排列
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 键列表
+   */
+  getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_keys_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list(dictionaryObj.getKeyType())
+    ret.markPin(ref, 'keyList', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+  }
+
+  /**
    * Returns a list of all Player Entities present in the scene
    *
    * 获取在场玩家实体列表: 获取在场所有玩家实体组成的列表
@@ -31503,6 +36119,35 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
     return ret as unknown as entity[]
+  }
+
+  /**
+   * Get a list of all values in the dictionary. Since the key-value pairs in the dictionary are unordered, the list of values retrieved may not be in the order they were inserted.
+   *
+   * 获取字典中值组成的列表: 获取字典中所有值组成的列表。由于字典中键值对是无序排列的，所以取出的值列表也不一定按照其插入顺序排列
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 值列表
+   */
+  getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
+    dictionary: dict<K, V>
+  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueType = dictionaryObj.getValueType() as V
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_list_of_values_from_dictionary',
+      args: [dictionaryObj]
+    })
+    const ret = new list(valueType)
+    ret.markPin(ref, 'valueList', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
   }
 
   /**
@@ -31626,6 +36271,217 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Returns the Input Direction and Input Strength of the current client player's movement.
+   *
+   * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
+   *
+   * @returns
+   *
+   * inputDirection
+   * 输入方向
+   *
+   * inputStrength
+   * 输入力度
+   */
+  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_movement_input',
+      args: []
+    })
+    return {
+      inputDirection: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputDirection', 0)
+        return ret as unknown as number
+      })(),
+      inputStrength: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'inputStrength', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Returns a list of characters in the player's team. Available only in Classic Mode.
+   *
+   * 获取玩家的角色列表: 仅经典模式可用，获取玩家队伍内的角色列表
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 角色列表
+   */
+  getPlayerSCharacterList(playerEntity: EntityValue): entity[] {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_player_s_character_list',
+      args: [playerEntityObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'characterList', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Get Pre-Aiming Collision Detection Result Count
+   *
+   * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结果数量
+   */
+  getPreAimingCollisionDetectionResultCount(preAimingIndex: IntValue): bigint {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_collision_detection_result_count',
+      args: [preAimingIndexObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'resultCount', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Get Pre-Aiming Duration
+   *
+   * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 持续时长（s）
+   */
+  getPreAimingDuration(preAimingIndex: IntValue): number {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_duration',
+      args: [preAimingIndexObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'durationSeconds', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Get Pre-Aiming Ray Hit Info
+   *
+   * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * hitEntity
+   * 命中实体
+   */
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_ray_hit_info',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      hitEntity: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'hitEntity', 1)
+        return ret as unknown as entity
+      })()
+    }
+  }
+
+  /**
+   * Get Pre-Aiming Result
+   *
+   * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * hitPosition
+   * 命中位置
+   *
+   * inRangePosition
+   * 范围内位置
+   *
+   * bestValidTarget
+   * 最优合法目标
+   *
+   * validTargetList
+   * 合法目标列表
+   */
+  getPreAimingResult(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    inRangePosition: vec3
+    bestValidTarget: entity
+    validTargetList: entity[]
+  } {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_pre_aiming_result',
+      args: [preAimingIndexObj]
+    })
+    return {
+      hitPosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'hitPosition', 0)
+        return ret as unknown as vec3
+      })(),
+      inRangePosition: (() => {
+        const ret = new vec3()
+        ret.markPin(ref, 'inRangePosition', 1)
+        return ret as unknown as vec3
+      })(),
+      bestValidTarget: (() => {
+        const ret = new entity()
+        ret.markPin(ref, 'bestValidTarget', 2)
+        return ret as unknown as entity
+      })(),
+      validTargetList: (() => {
+        const ret = new list('entity')
+        ret.markPin(ref, 'validTargetList', 3)
+        return ret as unknown as entity[]
+      })()
+    }
   }
 
   /**
@@ -31833,6 +36689,32 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Returns the corresponding Skill Config ID based on the Skill Instance ID provided.
+   *
+   * 根据技能实例ID获取技能配置ID: 根据技能实例ID获取对应的技能配置ID
+   *
+   * @param skillInstanceID
+   *
+   * 技能实例ID
+   *
+   * @returns
+   *
+   * 技能配置ID
+   */
+  getSkillConfigIdBySkillInstanceId(skillInstanceID: IntValue): configId {
+    const skillInstanceIDObj = parseValue(skillInstanceID, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_skill_config_id_by_skill_instance_id',
+      args: [skillInstanceIDObj]
+    })
+    const ret = new configId()
+    ret.markPin(ref, 'skillConfigID', 0)
+    return ret as unknown as configId
+  }
+
+  /**
    * Returns the Attachment Point Location corresponding to the specified Attachment Point Name on the Target Entity
    *
    * 获取目标挂接点位置: 获取指定目标实体上对应挂接点名称的挂接点位置
@@ -31937,6 +36819,53 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
     return ret as unknown as entity
+  }
+
+  /**
+   * Get Whether Cursor Is Active
+   *
+   * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
+   *
+   * @returns
+   *
+   * 是否激活
+   */
+  getWhetherCursorIsActive(): boolean {
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_cursor_is_active',
+      args: []
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isActive', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   *
+   * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 是否处于死区
+   */
+  getWhetherPreAimingStickIsInDeadZone(preAimingIndex: IntValue): boolean {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+      args: [preAimingIndexObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'isInDeadZone', 0)
+    return ret as unknown as boolean
   }
 
   /**
@@ -32347,6 +37276,99 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Returns the skill instance(s) currently in the foreground for the slot specified.
+   *
+   * 查询指定槽位当前生效的技能实例: 查询指定槽位当前位于前台的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_active_skill_instance_list_of_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the number of key-value pairs in a dictionary
+   *
+   * 查询字典长度: 查询字典中键值对的数量
+   *
+   * @param dictionary
+   *
+   * 字典
+   *
+   * @returns
+   *
+   * 长度
+   */
+  queryDictionarySLength(dictionary: DictValue): bigint
+  queryDictionarySLength(dictionary: DictValue): bigint {
+    const genericType = matchTypes(['dict'], dictionary)
+    const dictionaryObj = parseValue(dictionary, genericType)
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_s_length',
+      args: [dictionaryObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'length', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Query the value corresponding to a key in the dictionary, and return the default value of the type if the key does not exist.
+   *
+   * 以键查询字典值: 根据键查询字典中对应的值，如果键不存在，则返回类型默认值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 值
+   */
+  queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): RuntimeReturnValueTypeMap[V] {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const valueType = dictionaryObj.getValueType()
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_dictionary_value_by_key',
+      args: [dictionaryObj, keyObj]
+    })
+    if (isListType(valueType)) {
+      const ret = new list(getBaseValueType(valueType))
+      ret.markPin(ref, 'value', 0)
+      return ret as unknown as RuntimeReturnValueTypeMap[V]
+    }
+    const ret = new ValueClassMap[valueType]()
+    ret.markPin(ref, 'value', 0)
+    return ret as unknown as RuntimeReturnValueTypeMap[V]
+  }
+
+  /**
    * Searches for an Entity by GUID
    *
    * 以GUID查询实体: 根据GUID查询实体
@@ -32422,6 +37444,72 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new guid()
     ret.markPin(ref, 'gUID', 0)
     return ret as unknown as guid
+  }
+
+  /**
+   * Query if the specified dictionary contains a specific key
+   *
+   * 查询字典是否包含特定键: 查询指定字典是否包含特定的键
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param key
+   *
+   * 键
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificKey<K extends DictKeyType, V extends DictValueType>(
+    dictionary: dict<K, V>,
+    key: RuntimeParameterValueTypeMap[K]
+  ): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const keyObj = parseValue(key, dictionaryObj.getKeyType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_key',
+      args: [dictionaryObj, keyObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Query if the specified dictionary contains a specific value
+   *
+   * 查询字典是否包含特定值: 查询指定字典是否包含特定的值
+   *
+   * @param dictionary
+   *
+   * 字典
+   * @param value
+   *
+   * 值
+   *
+   * @returns
+   *
+   * 是否包含
+   */
+  queryIfDictionaryContainsSpecificValue<
+    K extends DictKeyType,
+    V extends keyof CommonLiteralValueTypeMap
+  >(dictionary: dict<K, V>, value: RuntimeParameterValueTypeMap[V]): boolean {
+    const dictionaryObj = parseValue(dictionary, 'dict')
+    const valueObj = parseValue(value, dictionaryObj.getValueType())
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_if_dictionary_contains_specific_value',
+      args: [dictionaryObj, valueObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'include', 0)
+    return ret as unknown as boolean
   }
 
   /**
@@ -32502,6 +37590,143 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   }
 
   /**
+   * Query Pre-Aiming End Reason
+   *
+   * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
+   *
+   * @param preAimingIndex
+   *
+   * 预瞄准序号
+   *
+   * @returns
+   *
+   * 结束原因
+   */
+  queryPreAimingEndReason(preAimingIndex: IntValue): PreAimingEndReason {
+    const preAimingIndexObj = parseValue(preAimingIndex, 'int')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_pre_aiming_end_reason',
+      args: [preAimingIndexObj]
+    })
+    const ret = new enumeration('PreAimingEndReason')
+    ret.markPin(ref, 'endReason', 0)
+    return ret as unknown as PreAimingEndReason
+  }
+
+  /**
+   * Returns the corresponding skill instance based on the skill slot and Skill Config ID provided.
+   *
+   * 以技能槽位和技能配置ID查询技能实例ID: 根据技能槽位和技能配置ID查询对应的技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   * @param skillConfigID
+   *
+   * 技能配置ID
+   *
+   * @returns
+   *
+   * 技能实例ID
+   */
+  querySkillInstanceIdBySkillSlotAndSkillConfigId(
+    skillSlot: CharacterSkillSlot,
+    skillConfigID: ConfigIdValue
+  ): bigint {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const skillConfigIDObj = parseValue(skillConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+      args: [skillSlotObj, skillConfigIDObj]
+    })
+    const ret = new int()
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint
+  }
+
+  /**
+   * Searches for all skill instances in the slot specified.
+   *
+   * 查询指定槽位的技能实例列表: 查询指定槽位的所有技能实例
+   *
+   * @param skillSlot
+   *
+   * 技能槽位
+   *
+   * @returns
+   *
+   * 技能实例ID列表
+   */
+  querySkillInstanceListBySpecifiedSlot(skillSlot: CharacterSkillSlot): bigint[] {
+    const skillSlotObj = parseValue(skillSlot, 'enum')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_instance_list_by_specified_slot',
+      args: [skillSlotObj]
+    })
+    const ret = new list('int')
+    ret.markPin(ref, 'skillInstanceIDList', 0)
+    return ret as unknown as bigint[]
+  }
+
+  /**
+   * Searches for the corresponding variable value based on the Skill Variable Config ID.
+   *
+   * 查询技能变量对应值: 根据技能变量配置ID查询对应的变量值
+   *
+   * @param skillVariableConfigID
+   *
+   * 技能变量配置ID
+   *
+   * @returns
+   *
+   * 变量值
+   */
+  querySkillVariableValue(skillVariableConfigID: ConfigIdValue): number {
+    const skillVariableConfigIDObj = parseValue(skillVariableConfigID, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_skill_variable_value',
+      args: [skillVariableConfigIDObj]
+    })
+    const ret = new float()
+    ret.markPin(ref, 'variableValue', 0)
+    return ret as unknown as number
+  }
+
+  /**
+   * Returns "Yes" when microphone input is detected from this player's client.; Note: This node only takes effect during multiplayer games (multiplayer test play, actual multiplayer play). It will not work in single-player games (single-player test play, actual single-player play).
+   *
+   * 查询玩家是否正在语音聊天: 当检测到该玩家客户端有麦克风输入时，会返回是; 注意该节点必须在多人游戏(多人试玩、多人正式游玩)中逻辑才会生效，单人游戏(单人试玩、单人正式游玩)均不会生效
+   *
+   * @param playerEntity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * 是否正在语音
+   */
+  queryWhetherPlayerIsCurrentlyInVoiceChat(playerEntity: EntityValue): boolean {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_whether_player_is_currently_in_voice_chat',
+      args: [playerEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'currentlyInVoiceChat', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
    * Converts radians to degrees
    *
    * 弧度转角度: 将弧度值转为角度值
@@ -32525,6 +37750,90 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new float()
     ret.markPin(ref, 'angle', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Screen Coordinates to Viewport Coordinates
+   *
+   * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   *
+   * @returns
+   *
+   * viewportX
+   * 视口X
+   *
+   * viewportY
+   * 视口Y
+   */
+  screenCoordinatesToViewportCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue
+  ): { viewportX: number; viewportY: number } {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_viewport_coordinates',
+      args: [screenXObj, screenYObj]
+    })
+    return {
+      viewportX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportX', 0)
+        return ret as unknown as number
+      })(),
+      viewportY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'viewportY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Screen Coordinates to World Coordinates
+   *
+   * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
+   *
+   * @param screenX
+   *
+   * 屏幕X
+   * @param screenY
+   *
+   * 屏幕Y
+   * @param depth
+   *
+   * 深度值
+   *
+   * @returns
+   *
+   * 世界坐标
+   */
+  screenCoordinatesToWorldCoordinates(
+    screenX: FloatValue,
+    screenY: FloatValue,
+    depth: FloatValue
+  ): vec3 {
+    const screenXObj = parseValue(screenX, 'float')
+    const screenYObj = parseValue(screenY, 'float')
+    const depthObj = parseValue(depth, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'screen_coordinates_to_world_coordinates',
+      args: [screenXObj, screenYObj, depthObj]
+    })
+    const ret = new vec3()
+    ret.markPin(ref, 'worldPosition', 0)
+    return ret as unknown as vec3
   }
 
   /**
@@ -32668,6 +37977,127 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     const ret = new float()
     ret.markPin(ref, 'result', 0)
     return ret as unknown as number
+  }
+
+  /**
+   * Viewport Coordinates to Screen Coordinates
+   *
+   * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param viewportX
+   *
+   * 视口X
+   * @param viewportY
+   *
+   * 视口Y
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  viewportCoordinatesToScreenCoordinates(
+    viewportX: FloatValue,
+    viewportY: FloatValue
+  ): { screenX: number; screenY: number } {
+    const viewportXObj = parseValue(viewportX, 'float')
+    const viewportYObj = parseValue(viewportY, 'float')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'viewport_coordinates_to_screen_coordinates',
+      args: [viewportXObj, viewportYObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
+  }
+
+  /**
+   * Query whether the entity has the specified unit status
+   *
+   * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   * @param unitStatus
+   *
+   * 单位状态
+   *
+   * @returns
+   *
+   * 是否携带
+   */
+  whetherTheEntityHasTheSpecifiedUnitStatus(
+    targetEntity: EntityValue,
+    unitStatus: ConfigIdValue
+  ): boolean {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const unitStatusObj = parseValue(unitStatus, 'config_id')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'whether_the_entity_has_the_specified_unit_status',
+      args: [targetEntityObj, unitStatusObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'hasTheStatus', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * World Coordinates to Screen Coordinates
+   *
+   * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
+   *
+   * @param worldPosition
+   *
+   * 世界坐标
+   *
+   * @returns
+   *
+   * screenX
+   * 屏幕X
+   *
+   * screenY
+   * 屏幕Y
+   */
+  worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    screenX: number
+    screenY: number
+  } {
+    const worldPositionObj = parseValue(worldPosition, 'vec3')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'world_coordinates_to_screen_coordinates',
+      args: [worldPositionObj]
+    })
+    return {
+      screenX: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenX', 0)
+        return ret as unknown as number
+      })(),
+      screenY: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'screenY', 1)
+        return ret as unknown as number
+      })()
+    }
   }
 }
 

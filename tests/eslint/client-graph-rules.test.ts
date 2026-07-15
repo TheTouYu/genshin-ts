@@ -50,7 +50,7 @@ g.intFilter().on('start', (_evt, _f) => 0n)`
     {
       filename,
       code: `${importG}
-const graph = g.characterSkill({ mode: 'classic' })
+const graph = g.creationSkill({ mode: 'classic' })
 graph.on('start', (_evt, _f) => { self })`
     }
   ],
@@ -59,15 +59,23 @@ graph.on('start', (_evt, _f) => { self })`
       filename,
       code: `${importG}
 g.characterSkill().on('start', (_evt, _f) => { setTimeout(() => {}, 1) })`,
-      errors: [{ message: /setTimeout is not available in character_skill beyond mode/ }]
+      errors: [{ message: /setTimeout is not available in character_skill/ }]
     },
     {
       filename,
       code: `${importG}
 const options = { mode: 'classic' } as const
-const graph = g.characterSkill(options)
+const graph = g.creationSkill(options)
 graph.on('start', (_evt, _f) => { setTimeout(() => {}, 1) })`,
-      errors: [{ message: /setTimeout is not available in character_skill classic mode/ }]
+      errors: [{ message: /setTimeout is not available in creation_skill/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+function gstsCreationSkillTimer() {
+  setTimeout(() => {}, 1)
+}`,
+      errors: [{ message: /setTimeout is not available in creation_skill/ }]
     }
   ]
 })
@@ -343,6 +351,18 @@ g.creationStatus().on('start', (_evt, _f) => {
       break
   }
 })`
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, _f) => {
+  switch (1n) {
+    case 1n:
+      break
+    default:
+      break
+  }
+})`
     }
   ],
   invalid: [
@@ -371,19 +391,6 @@ g.intFilter().on('start', (_evt, _f) => {
   }
 })`,
       errors: [{ message: /Client int_filter graphs do not support switch/ }]
-    },
-    {
-      filename,
-      code: `${importG}
-g.characterSkill().on('start', (_evt, _f) => {
-  switch (1n) {
-    case 1n:
-      break
-    default:
-      break
-  }
-})`,
-      errors: [{ message: /Client character_skill graphs do not support switch/ }]
     }
   ]
 })

@@ -13,6 +13,10 @@ export type ClientScopedGlobalCapability = {
   member?: string
   subTypes: ClientGraphSubType[]
   modes: ('beyond' | 'classic')[]
+  availability: Array<{
+    subType: ClientGraphSubType
+    modes: ('beyond' | 'classic')[]
+  }>
   backedBy: Array<{
     subType: ClientGraphSubType
     nodeType: string
@@ -27,7 +31,21 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'send',
     subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -39,7 +57,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: 'send_signal_to_server_node_graph',
         methodName: 'sendSignalToServerNodeGraph',
-        sampleFile: '角色操控技能节点图\\向服务器节点图发送信号_填值.gia'
+        sampleFile: '角色操控技能节点图\\向服务器节点图发送信号_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -55,6 +73,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'player',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap',
     note: 'client graphs have no node to look up a player entity by id; use self / getSelfEntity instead'
@@ -70,19 +89,49 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'get_self_entity',
         methodName: 'getSelfEntity',
-        sampleFile: '角色技能节点图\\字典_Entity到Integer_连线.gia'
+        sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'get_self_entity',
         methodName: 'getSelfEntity',
-        sampleFile: '角色操控技能节点图\\获取实体的类型_连线.gia'
+        sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -120,7 +169,17 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'stage',
     subTypes: ['creation_status', 'creation_status_decision'],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'creation_status',
@@ -141,7 +200,17 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'level',
     subTypes: ['creation_status', 'creation_status_decision'],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'creation_status',
@@ -171,7 +240,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -189,7 +288,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_skill',
         nodeType: 'absolute_value_operation',
         methodName: 'absoluteValueOperation',
-        sampleFile: '造物技能节点图\\恢复生命值_连线.gia'
+        sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -207,13 +306,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: 'absolute_value_operation',
         methodName: 'absoluteValueOperation',
-        sampleFile: '布尔过滤器节点\\是否大于_连线.gia'
+        sampleFile: '布尔过滤器节点\\绝对值运算_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'absolute_value_operation',
         methodName: 'absoluteValueOperation',
-        sampleFile: '整数过滤器节点\\绝对值运算_填值.gia'
+        sampleFile: '整数过滤器节点\\除法运算_连线.gia'
       }
     ],
     status: 'supported'
@@ -223,6 +322,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'FloorToInt',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -231,6 +331,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'CeilToInt',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -239,6 +340,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'RoundToInt',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -247,6 +349,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Sqrt',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -255,6 +358,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Pow',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -263,6 +367,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Log',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -278,7 +383,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -290,7 +425,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: 'sine_function',
         methodName: 'sineFunction',
-        sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia'
+        sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -314,13 +449,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: 'sine_function',
         methodName: 'sineFunction',
-        sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
+        sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'sine_function',
         methodName: 'sineFunction',
-        sampleFile: '整数过滤器节点\\正弦函数_填值.gia'
+        sampleFile: '整数过滤器节点\\正弦函数_连线.gia'
       }
     ],
     status: 'supported'
@@ -337,7 +472,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -349,7 +514,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: 'cosine_function',
         methodName: 'cosineFunction',
-        sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
+        sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -373,13 +538,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: 'cosine_function',
         methodName: 'cosineFunction',
-        sampleFile: '布尔过滤器节点\\余弦函数_填值.gia'
+        sampleFile: '布尔过滤器节点\\余弦函数_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'cosine_function',
         methodName: 'cosineFunction',
-        sampleFile: '整数过滤器节点\\余弦函数_填值.gia'
+        sampleFile: '整数过滤器节点\\余弦函数_连线.gia'
       }
     ],
     status: 'supported'
@@ -396,7 +561,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -432,13 +627,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: 'tangent_function',
         methodName: 'tangentFunction',
-        sampleFile: '布尔过滤器节点\\正切函数_填值.gia'
+        sampleFile: '布尔过滤器节点\\正切函数_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'tangent_function',
         methodName: 'tangentFunction',
-        sampleFile: '整数过滤器节点\\正切函数_填值.gia'
+        sampleFile: '整数过滤器节点\\正切函数_连线.gia'
       }
     ],
     status: 'supported'
@@ -455,7 +650,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -467,7 +692,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '角色操控技能节点图\\是否大于_连线.gia'
+        sampleFile: '角色操控技能节点图\\获取随机数_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -479,7 +704,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+        sampleFile: '造物状态节点图\\获取随机数_连线.gia'
       },
       {
         subType: 'creation_status_decision',
@@ -491,13 +716,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
+        sampleFile: '布尔过滤器节点\\除法运算_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
+        sampleFile: '整数过滤器节点\\获取随机数_连线.gia'
       }
     ],
     status: 'supported'
@@ -514,7 +739,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -526,7 +781,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '角色操控技能节点图\\是否大于_连线.gia'
+        sampleFile: '角色操控技能节点图\\获取随机数_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -538,7 +793,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+        sampleFile: '造物状态节点图\\获取随机数_连线.gia'
       },
       {
         subType: 'creation_status_decision',
@@ -550,13 +805,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '布尔过滤器节点\\获取随机数_填值.gia'
+        sampleFile: '布尔过滤器节点\\除法运算_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'get_random_number',
         methodName: 'getRandomNumber',
-        sampleFile: '整数过滤器节点\\获取随机数_填值.gia'
+        sampleFile: '整数过滤器节点\\获取随机数_连线.gia'
       }
     ],
     status: 'supported'
@@ -573,25 +828,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -603,19 +888,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -633,25 +918,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -663,19 +978,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -693,25 +1008,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -723,19 +1068,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -753,25 +1098,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -783,19 +1158,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -813,25 +1188,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -843,19 +1248,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -873,25 +1278,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -903,19 +1338,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -933,25 +1368,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -963,19 +1428,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -993,25 +1458,55 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+        sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -1023,19 +1518,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status_decision',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+        sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'create3d_vector',
         methodName: 'create3dVector',
-        sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+        sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
       }
     ],
     status: 'supported',
@@ -1053,7 +1548,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1065,7 +1590,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: '_3d_vector_dot_product',
         methodName: '_3dVectorDotProduct',
-        sampleFile: '角色操控技能节点图\\三维向量内积_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1089,13 +1614,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_dot_product',
         methodName: '_3dVectorDotProduct',
-        sampleFile: '布尔过滤器节点\\三维向量内积_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_dot_product',
         methodName: '_3dVectorDotProduct',
-        sampleFile: '整数过滤器节点\\三维向量内积_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量内积_连线.gia'
       }
     ],
     status: 'supported'
@@ -1112,7 +1637,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1124,7 +1679,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: '_3d_vector_cross_product',
         methodName: '_3dVectorCrossProduct',
-        sampleFile: '角色操控技能节点图\\三维向量减法_连线.gia'
+        sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1148,13 +1703,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_cross_product',
         methodName: '_3dVectorCrossProduct',
-        sampleFile: '布尔过滤器节点\\三维向量外积_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_cross_product',
         methodName: '_3dVectorCrossProduct',
-        sampleFile: '整数过滤器节点\\三维向量外积_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量外积_连线.gia'
       }
     ],
     status: 'supported'
@@ -1164,6 +1719,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'Distance',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -1179,7 +1735,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1191,7 +1777,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: '_3d_vector_angle',
         methodName: '_3dVectorAngle',
-        sampleFile: '角色操控技能节点图\\三维向量夹角_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1215,13 +1801,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_angle',
         methodName: '_3dVectorAngle',
-        sampleFile: '布尔过滤器节点\\三维向量夹角_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_angle',
         methodName: '_3dVectorAngle',
-        sampleFile: '整数过滤器节点\\三维向量夹角_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量夹角_连线.gia'
       }
     ],
     status: 'supported'
@@ -1238,31 +1824,61 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
-        sampleFile: '角色技能节点图\\三维向量归一化_连线.gia'
+        sampleFile: '角色技能节点图\\朝向转旋转_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
-        sampleFile: '角色操控技能节点图\\三维向量归一化_填值.gia'
+        sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
-        sampleFile: '造物技能节点图\\三维向量归一化_连线.gia'
+        sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
       },
       {
         subType: 'creation_status',
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
-        sampleFile: '造物状态节点图\\三维向量归一化_连线.gia'
+        sampleFile: '造物状态节点图\\朝向转旋转_连线.gia'
       },
       {
         subType: 'creation_status_decision',
@@ -1274,13 +1890,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
-        sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
+        sampleFile: '布尔过滤器节点\\朝向转旋转_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_normalization',
         methodName: '_3dVectorNormalization',
-        sampleFile: '整数过滤器节点\\三维向量归一化_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量归一化_连线.gia'
       }
     ],
     status: 'supported'
@@ -1297,7 +1913,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1309,7 +1955,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: '_3d_vector_modulo_operation',
         methodName: '_3dVectorModuloOperation',
-        sampleFile: '角色操控技能节点图\\三维向量模运算_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1333,13 +1979,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_modulo_operation',
         methodName: '_3dVectorModuloOperation',
-        sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
+        sampleFile: '布尔过滤器节点\\三维向量模运算_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_modulo_operation',
         methodName: '_3dVectorModuloOperation',
-        sampleFile: '整数过滤器节点\\三维向量模运算_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量模运算_连线.gia'
       }
     ],
     status: 'supported'
@@ -1356,31 +2002,61 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\方向向量转旋转_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '角色操控技能节点图\\三维向量加法_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '造物技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '造物状态节点图\\三维向量加法_连线.gia'
+        sampleFile: '造物状态节点图\\朝向转旋转_连线.gia'
       },
       {
         subType: 'creation_status_decision',
@@ -1392,13 +2068,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '布尔过滤器节点\\三维向量加法_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '整数过滤器节点\\三维向量加法_填值.gia'
+        sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia'
       }
     ],
     status: 'supported'
@@ -1415,7 +2091,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1427,13 +2133,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '角色操控技能节点图\\三维向量减法_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '造物技能节点图\\三维向量减法_连线.gia'
+        sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -1451,13 +2157,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '布尔过滤器节点\\三维向量减法_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量减法_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '整数过滤器节点\\三维向量减法_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量减法_连线.gia'
       }
     ],
     status: 'supported'
@@ -1474,7 +2180,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1486,13 +2222,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
-        sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
+        sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
-        sampleFile: '造物技能节点图\\三维向量夹角_连线.gia'
+        sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -1516,7 +2252,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'int_filter',
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
-        sampleFile: '整数过滤器节点\\三维向量缩放_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量缩放_连线.gia'
       }
     ],
     status: 'supported'
@@ -1533,13 +2269,43 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: '_3d_vector_rotation',
         methodName: '_3dVectorRotation',
-        sampleFile: '角色技能节点图\\三维向量旋转_连线.gia'
+        sampleFile: '角色技能节点图\\定点位移_连线.gia'
       },
       {
         subType: 'character_control_skill',
@@ -1569,13 +2335,13 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_rotation',
         methodName: '_3dVectorRotation',
-        sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
+        sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_rotation',
         methodName: '_3dVectorRotation',
-        sampleFile: '整数过滤器节点\\三维向量旋转_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量旋转_连线.gia'
       }
     ],
     status: 'supported'
@@ -1592,7 +2358,37 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1610,43 +2406,43 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_skill',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '角色技能节点图\\方向向量转旋转_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '角色操控技能节点图\\三维向量减法_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
-        sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
+        sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '角色操控技能节点图\\三维向量加法_填值.gia'
+        sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '造物技能节点图\\三维向量减法_连线.gia'
+        sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
-        sampleFile: '造物技能节点图\\三维向量夹角_连线.gia'
+        sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '造物技能节点图\\三维向量加法_连线.gia'
+        sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
       },
       {
         subType: 'creation_status',
@@ -1664,7 +2460,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'creation_status',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '造物状态节点图\\三维向量加法_连线.gia'
+        sampleFile: '造物状态节点图\\朝向转旋转_连线.gia'
       },
       {
         subType: 'creation_status_decision',
@@ -1688,7 +2484,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '布尔过滤器节点\\三维向量减法_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量减法_连线.gia'
       },
       {
         subType: 'bool_filter',
@@ -1700,25 +2496,25 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'bool_filter',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '布尔过滤器节点\\三维向量加法_填值.gia'
+        sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_subtraction',
         methodName: '_3dVectorSubtraction',
-        sampleFile: '整数过滤器节点\\三维向量减法_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量减法_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_zoom',
         methodName: '_3dVectorZoom',
-        sampleFile: '整数过滤器节点\\三维向量缩放_填值.gia'
+        sampleFile: '整数过滤器节点\\三维向量缩放_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: '_3d_vector_addition',
         methodName: '_3dVectorAddition',
-        sampleFile: '整数过滤器节点\\三维向量加法_填值.gia'
+        sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia'
       }
     ],
     status: 'supported'
@@ -1728,6 +2524,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'ClampMagnitude',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -1741,37 +2538,59 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
       'bool_filter',
       'int_filter'
     ],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
         nodeType: 'query_entity_by_guid',
         methodName: 'queryEntityByGuid',
-        sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
+        sampleFile: '角色技能节点图\\获取实体旋转_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'query_entity_by_guid',
         methodName: 'queryEntityByGuid',
-        sampleFile: '角色操控技能节点图\\以GUID查询实体_填值.gia'
+        sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
       },
       {
         subType: 'creation_skill',
         nodeType: 'query_entity_by_guid',
         methodName: 'queryEntityByGuid',
-        sampleFile: '造物技能节点图\\以GUID查询实体_连线.gia'
+        sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
       },
       {
         subType: 'bool_filter',
         nodeType: 'query_entity_by_guid',
         methodName: 'queryEntityByGuid',
-        sampleFile: '布尔过滤器节点\\以GUID查询实体_填值.gia'
+        sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
       },
       {
         subType: 'int_filter',
         nodeType: 'query_entity_by_guid',
         methodName: 'queryEntityByGuid',
-        sampleFile: '整数过滤器节点\\以GUID查询实体_填值.gia'
+        sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
       }
     ],
     status: 'partial'
@@ -1780,7 +2599,21 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'GameObject',
     member: 'FindWithTag',
     subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1792,19 +2625,19 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_skill',
         nodeType: 'get_corresponding_value_from_list',
         methodName: 'getCorrespondingValueFromList',
-        sampleFile: '角色技能节点图\\列表_Entity_连线.gia'
+        sampleFile: '角色技能节点图\\按比例转移指定实体的仇恨值_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'get_entity_list_by_unit_tag',
         methodName: 'getEntityListByUnitTag',
-        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_填值.gia'
+        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia'
       },
       {
         subType: 'character_control_skill',
         nodeType: 'get_corresponding_value_from_list',
         methodName: 'getCorrespondingValueFromList',
-        sampleFile: '角色操控技能节点图\\指定挂接点打攻击盒_连线.gia'
+        sampleFile: '角色操控技能节点图\\获取操控运动器运动参数_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1825,7 +2658,21 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'GameObject',
     member: 'FindGameObjectsWithTag',
     subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
-    modes: ['beyond'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      }
+    ],
     backedBy: [
       {
         subType: 'character_skill',
@@ -1837,7 +2684,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
         subType: 'character_control_skill',
         nodeType: 'get_entity_list_by_unit_tag',
         methodName: 'getEntityListByUnitTag',
-        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_填值.gia'
+        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia'
       },
       {
         subType: 'creation_skill',
@@ -1853,6 +2700,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     member: 'FindByPrefabId',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'gap'
   },
@@ -1860,6 +2708,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'setTimeout',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'needs_developer_confirmation',
     note: 'no client timer feature proven by resource JSON; server timer globals must not leak into client handlers'
@@ -1868,6 +2717,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'setInterval',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'needs_developer_confirmation',
     note: 'no client timer feature proven by resource JSON; server timer globals must not leak into client handlers'
@@ -1876,6 +2726,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'clearTimeout',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'needs_developer_confirmation',
     note: 'no client timer feature proven by resource JSON; server timer globals must not leak into client handlers'
@@ -1884,6 +2735,7 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     helper: 'clearInterval',
     subTypes: [],
     modes: [],
+    availability: [],
     backedBy: [],
     status: 'needs_developer_confirmation',
     note: 'no client timer feature proven by resource JSON; server timer globals must not leak into client handlers'
@@ -2084,6 +2936,348 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Lerp'
     ],
     GameObject: ['Find']
+  }
+}
+
+export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
+  ClientGraphSubType,
+  Readonly<Record<'beyond' | 'classic', Readonly<Record<string, readonly string[]>>>>
+> = {
+  character_skill: {
+    beyond: {
+      send: [],
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
+    },
+    classic: {}
+  },
+  character_control_skill: {
+    beyond: {
+      send: [],
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
+    },
+    classic: {}
+  },
+  creation_skill: {
+    beyond: {
+      send: [],
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
+    },
+    classic: {
+      send: [],
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
+    }
+  },
+  creation_status: {
+    beyond: {
+      self: [],
+      stage: [],
+      level: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ]
+    },
+    classic: {
+      self: [],
+      stage: [],
+      level: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ]
+    }
+  },
+  creation_status_decision: {
+    beyond: {
+      self: [],
+      stage: [],
+      level: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ]
+    },
+    classic: {
+      self: [],
+      stage: [],
+      level: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ]
+    }
+  },
+  bool_filter: {
+    beyond: {
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find']
+    },
+    classic: {
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find']
+    }
+  },
+  int_filter: {
+    beyond: {
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find']
+    },
+    classic: {
+      self: [],
+      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Random: ['Range', 'value'],
+      Vector3: [
+        'zero',
+        'one',
+        'up',
+        'down',
+        'left',
+        'right',
+        'forward',
+        'back',
+        'Dot',
+        'Cross',
+        'Angle',
+        'Normalize',
+        'Magnitude',
+        'Add',
+        'Sub',
+        'Scale',
+        'Rotation',
+        'Lerp'
+      ],
+      GameObject: ['Find']
+    }
   }
 }
 

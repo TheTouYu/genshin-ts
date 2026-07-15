@@ -28,6 +28,7 @@ const DEFAULT_SAMPLE_ROOT = 'D:\\_S2\\mypy_test\\client_nodes'
 const GIA_PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
 const ROUND3_EVIDENCE_PATH = 'resources/client_structure_evidence.round3.json'
+const CLIENT_NODE_MODES_PATH = 'resources/client_node_modes.json'
 
 const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
   角色技能节点图: 'character_skill',
@@ -46,7 +47,10 @@ const DYNAMIC_GENERIC_ID_MIN = 0x60000000
 
 // The one node present in every sample of a family: begins for skill/status
 // families, the result end node for filter families.
-const UNIVERSAL_NODE_BY_SUB_TYPE: Record<ClientGraphSubType, { genericId: number; nodeType: string }> = {
+const UNIVERSAL_NODE_BY_SUB_TYPE: Record<
+  ClientGraphSubType,
+  { genericId: number; nodeType: string }
+> = {
   character_skill: { genericId: 200042, nodeType: 'node_graph_begins' },
   character_control_skill: { genericId: 200042, nodeType: 'node_graph_begins' },
   creation_skill: { genericId: 200042, nodeType: 'node_graph_begins' },
@@ -123,6 +127,23 @@ type NodeRecord = {
   sampleFile: string
 }
 
+type ClientGraphModeData = {
+  status: 'available' | 'unavailable'
+  reason: string
+  genericIds: number[]
+}
+
+type ClientNodeModeData = {
+  graphs: Record<
+    ClientGraphSubType,
+    {
+      entryGenericId: number
+      beyond: ClientGraphModeData
+      classic: ClientGraphModeData
+    }
+  >
+}
+
 function walkGiaFiles(dir: string): string[] {
   const out: string[] = []
   for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -139,6 +160,114 @@ function walkGiaFiles(dir: string): string[] {
 function writeJson(filePath: string, value: unknown) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + '\n', 'utf8')
+}
+
+function applyEditorStaticMetadata(records: NodeRecord[], modeData: ClientNodeModeData) {
+  const creationRecovery = records.find(
+    (record) => record.subType === 'creation_skill' && record.nodeType === 'recover_creation_s_hp'
+  )
+  if (!creationRecovery) throw new Error('[error] missing sampled creation recovery metadata')
+  creationRecovery.genericId = 200249
+  creationRecovery.displayName = '造物恢复生命值'
+
+  const graphTypeBySubType: Record<ClientGraphSubType, number> = {
+    bool_filter: 20001,
+    int_filter: 20001,
+    character_skill: 20002,
+    character_control_skill: 20002,
+    creation_skill: 20002,
+    creation_status: 20007,
+    creation_status_decision: 20007
+  }
+  const staticSeeds = new Map<number, Omit<NodeRecord, 'subType' | 'graphType'>>([
+    [
+      200242,
+      {
+        nodeType: 'get_player_s_character_list',
+        displayName: '获取玩家的角色列表',
+        genericId: 200242,
+        concreteId: 1067,
+        inputs: [{ index: 0, kind: 'input', type: 'entity', clientVarType: 1 }],
+        outputs: [{ index: 0, kind: 'output', type: 'entity_list', clientVarType: 2 }],
+        sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin'
+      }
+    ],
+    [
+      200251,
+      {
+        nodeType: 'get_active_character_of_specified_player',
+        displayName: '获取指定玩家的前台角色',
+        genericId: 200251,
+        concreteId: 1002,
+        inputs: [{ index: 0, kind: 'input', type: 'entity', clientVarType: 1 }],
+        outputs: [{ index: 0, kind: 'output', type: 'entity', clientVarType: 1 }],
+        sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin'
+      }
+    ],
+    [
+      200254,
+      {
+        nodeType: 'check_classic_mode_character_id',
+        displayName: '查询经典模式角色编号',
+        genericId: 200254,
+        concreteId: 1069,
+        inputs: [{ index: 0, kind: 'input', type: 'entity', clientVarType: 1 }],
+        outputs: [{ index: 0, kind: 'output', type: 'int', clientVarType: 3 }],
+        sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin'
+      }
+    ]
+  ])
+
+  const reused: Array<{
+    subType: ClientGraphSubType
+    genericId: number
+    nodeType: string
+    sourceSubType: ClientGraphSubType | 'static'
+  }> = []
+
+  for (const [subType, graph] of Object.entries(modeData.graphs) as Array<
+    [ClientGraphSubType, ClientNodeModeData['graphs'][ClientGraphSubType]]
+  >) {
+    const supportedIds = new Set([...graph.beyond.genericIds, ...graph.classic.genericIds])
+    for (const genericId of [...supportedIds].sort((a, b) => a - b)) {
+      if (records.some((record) => record.subType === subType && record.genericId === genericId)) {
+        continue
+      }
+
+      const seed = staticSeeds.get(genericId)
+      const source = records
+        .filter((record) => record.genericId === genericId)
+        .sort((a, b) => a.subType.localeCompare(b.subType))[0]
+      if (!seed && !source) {
+        throw new Error(`[error] ${subType}:${genericId} has no sample or static metadata seed`)
+      }
+
+      const record: NodeRecord = seed
+        ? { ...structuredClone(seed), subType, graphType: graphTypeBySubType[subType] }
+        : {
+            ...structuredClone(source!),
+            subType,
+            graphType: graphTypeBySubType[subType]
+          }
+      const conflict = records.find(
+        (item) => item.subType === subType && item.nodeType === record.nodeType
+      )
+      if (conflict) {
+        throw new Error(
+          `[error] ${subType}.${record.nodeType} maps to both ${conflict.genericId} and ${genericId}`
+        )
+      }
+      records.push(record)
+      reused.push({
+        subType,
+        genericId,
+        nodeType: record.nodeType,
+        sourceSubType: source?.subType ?? 'static'
+      })
+    }
+  }
+
+  return reused
 }
 
 /**
@@ -396,9 +525,7 @@ function deriveReflectMap(
   const byConcrete = new Map<number, Map<string, number>>()
   for (const inst of agg.instances) {
     if (inst.concreteId === undefined) continue
-    const typed = new Map(
-      inst.pins.filter((p) => p.kind === 3).map((p) => [p.index, p])
-    )
+    const typed = new Map(inst.pins.filter((p) => p.kind === 3).map((p) => [p.index, p]))
     const keyParts: string[] = []
     let derivable = true
     for (const idx of reflectiveInputIndexes) {
@@ -472,7 +599,10 @@ function deriveReflectMap(
         if (observed.size > 1) {
           outputDrifts.push(
             `concreteId ${cid} output pin #${idx} type drifts across samples: ` +
-              `${[...observed].sort((a, b) => a - b).map((t) => CLIENT_VAR_TYPE_NAMES[t] ?? `client_${t}`).join(' | ')}`
+              `${[...observed]
+                .sort((a, b) => a - b)
+                .map((t) => CLIENT_VAR_TYPE_NAMES[t] ?? `client_${t}`)
+                .join(' | ')}`
           )
           continue
         }
@@ -486,7 +616,11 @@ function deriveReflectMap(
         })
       }
     }
-    variants.push({ concreteId: cid, variantKey: key, pins: variantPins.length ? variantPins : undefined })
+    variants.push({
+      concreteId: cid,
+      variantKey: key,
+      pins: variantPins.length ? variantPins : undefined
+    })
   }
   return { variants, conflicts, underived, outputDrifts }
 }
@@ -522,7 +656,18 @@ function shapeOfVarBase(value: any): unknown {
     if (value.itemType.type_server) it.type_server = '(server)'
     shape.itemType = it
   }
-  for (const field of ['bId', 'bInt', 'bFloat', 'bString', 'bEnum', 'bVector', 'bArray', 'bStruct', 'bMap', 'bMapPair']) {
+  for (const field of [
+    'bId',
+    'bInt',
+    'bFloat',
+    'bString',
+    'bEnum',
+    'bVector',
+    'bArray',
+    'bStruct',
+    'bMap',
+    'bMapPair'
+  ]) {
     if (value[field] !== undefined) shape[field] = `set(${typeof value[field]})`
   }
   if (value.bConcreteValue) {
@@ -535,11 +680,7 @@ function shapeOfVarBase(value: any): unknown {
   return shape
 }
 
-function collectValueShapes(
-  shapes: Map<string, ValueShape>,
-  root: DecodedRoot,
-  relFile: string
-) {
+function collectValueShapes(shapes: Map<string, ValueShape>, root: DecodedRoot, relFile: string) {
   for (const node of graphNodes(root)) {
     for (const pin of node.pins ?? []) {
       if (Number(pin.i1?.kind) !== 3) continue
@@ -723,6 +864,7 @@ function main() {
   if (!fs.existsSync(sampleRoot)) {
     throw new Error(`[error] client sample root not found: ${sampleRoot}`)
   }
+  const modeData = JSON.parse(fs.readFileSync(CLIENT_NODE_MODES_PATH, 'utf8')) as ClientNodeModeData
 
   const giaRootType = loadGiaRootType()
   const files = walkGiaFiles(sampleRoot).sort((a, b) => a.localeCompare(b))
@@ -843,7 +985,12 @@ function main() {
   const pinIndexRemapByGid = loadPinIndexRemap()
   const records: NodeRecord[] = []
   const nodeTypeSeen = new Map<string, string>()
-  const missingEnglishNames: Array<{ subType: string; displayName: string; nodeType: string; genericId: number }> = []
+  const missingEnglishNames: Array<{
+    subType: string
+    displayName: string
+    nodeType: string
+    genericId: number
+  }> = []
   const nodeTypeSources: Record<string, number> = {}
   const serverAliasDivergences: Array<{
     subType: string
@@ -1107,8 +1254,8 @@ function main() {
       (a, b) => a - b
     )
     const underived = observedCids.filter((cid) => !cidToKey.has(cid))
-    const unionVariants = [...union.values()].sort((a, b) =>
-      Number(a.concreteId) - Number(b.concreteId)
+    const unionVariants = [...union.values()].sort(
+      (a, b) => Number(a.concreteId) - Number(b.concreteId)
     )
 
     for (const d of group) {
@@ -1151,23 +1298,20 @@ function main() {
     }
   }
 
-  records.sort(
-    (a, b) => a.subType.localeCompare(b.subType) || a.nodeType.localeCompare(b.nodeType)
-  )
+  const editorStaticReuse = applyEditorStaticMetadata(records, modeData)
+
+  records.sort((a, b) => a.subType.localeCompare(b.subType) || a.nodeType.localeCompare(b.nodeType))
 
   // -------------------------------------------------------------------------
   // Reports
   // -------------------------------------------------------------------------
 
   const capability = Object.fromEntries(
-    [...familyCounts.keys()].sort().map((subType) => [
+    Object.entries(modeData.graphs).map(([subType, graph]) => [
       subType,
       {
-        beyond: { status: 'available', reason: '' },
-        classic: {
-          status: 'unknown',
-          reason: 'client classic mode requires sample confirmation'
-        }
+        beyond: { status: graph.beyond.status, reason: graph.beyond.reason },
+        classic: { status: graph.classic.status, reason: graph.classic.reason }
       }
     ])
   )
@@ -1202,6 +1346,20 @@ function main() {
       missingEnglishName: missingEnglishNames.length,
       nodeTypeSources,
       serverAliasDivergenceCount: serverAliasDivergences.length
+    },
+    editorStaticReuse: {
+      source: CLIENT_NODE_MODES_PATH,
+      recoveredCount: editorStaticReuse.length,
+      recovered: editorStaticReuse,
+      correctedGenericIds: [
+        {
+          subType: 'creation_skill',
+          nodeType: 'recover_creation_s_hp',
+          from: 200075,
+          to: 200249,
+          source: 'BeyondEditorStatic/Node/9073923717836444300.mihoyobin'
+        }
+      ]
     },
     unknownFamily,
     decodeFailures,
@@ -1258,7 +1416,8 @@ function main() {
       'Observed VarBase shapes for literal input pins (alreadySetVal=true) grouped by clientVarType',
     shapeCount: valueShapeList.length,
     byClientVarType: valueShapeList.reduce<Record<string, number>>((acc, s) => {
-      acc[`${s.clientVarType}:${s.typeName}`] = (acc[`${s.clientVarType}:${s.typeName}`] ?? 0) + s.count
+      acc[`${s.clientVarType}:${s.typeName}`] =
+        (acc[`${s.clientVarType}:${s.typeName}`] ?? 0) + s.count
       return acc
     }, {}),
     shapes: valueShapeList

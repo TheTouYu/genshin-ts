@@ -5,58 +5,8 @@
       "reason": ""
     },
     "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
-    }
-  },
-  "character_control_skill": {
-    "beyond": {
       "status": "available",
       "reason": ""
-    },
-    "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
-    }
-  },
-  "character_skill": {
-    "beyond": {
-      "status": "available",
-      "reason": ""
-    },
-    "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
-    }
-  },
-  "creation_skill": {
-    "beyond": {
-      "status": "available",
-      "reason": ""
-    },
-    "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
-    }
-  },
-  "creation_status": {
-    "beyond": {
-      "status": "available",
-      "reason": ""
-    },
-    "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
-    }
-  },
-  "creation_status_decision": {
-    "beyond": {
-      "status": "available",
-      "reason": ""
-    },
-    "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
     }
   },
   "int_filter": {
@@ -65,8 +15,58 @@
       "reason": ""
     },
     "classic": {
-      "status": "unknown",
-      "reason": "client classic mode requires sample confirmation"
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "character_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "unavailable",
+      "reason": "BeyondEditor exposes an explicitly empty classic character skill group"
+    }
+  },
+  "character_control_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "unavailable",
+      "reason": "BeyondEditor exposes no classic character control skill group"
+    }
+  },
+  "creation_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "creation_status_decision": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "creation_status": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
     }
   }
 }

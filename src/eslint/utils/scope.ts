@@ -13,7 +13,7 @@ import {
 
 type RuleContext = Rule.RuleContext
 
-export type ClientScopeInfo = Omit<ClientOnCallInfo, 'handler'> & {
+export type ClientScopeInfo = Pick<ClientOnCallInfo, 'subType'> & {
   kind: 'handler' | 'helper'
 }
 
@@ -69,7 +69,6 @@ export function buildNodeGraphScopeIndex(
     if (esNode) {
       clientScopeRoots.set(esNode, {
         subType: info.subType,
-        mode: info.mode,
         kind: 'handler'
       })
     }
@@ -79,7 +78,7 @@ export function buildNodeGraphScopeIndex(
     const subType = getClientGraphSubTypeForGstsFunctionName(name)
     if (!node || !subType) return false
     const esNode = services.tsNodeToESTreeNodeMap.get(node)
-    if (esNode) clientScopeRoots.set(esNode, { subType, mode: 'beyond', kind: 'helper' })
+    if (esNode) clientScopeRoots.set(esNode, { subType, kind: 'helper' })
     return true
   }
 

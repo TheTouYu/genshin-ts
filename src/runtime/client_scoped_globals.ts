@@ -1,6 +1,6 @@
 import {
   CLIENT_BLOCKED_SERVER_HELPERS,
-  CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE,
+  CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE,
   CLIENT_SCOPED_GLOBALS_CAPABILITY
 } from '../definitions/client_scoped_globals.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
@@ -103,7 +103,7 @@ export function installScopedClientGlobals(
   mode: ClientGraphMode
 ): () => void {
   const root = globalThis as unknown as Record<string, unknown>
-  const supported = CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE[subType]
+  const supported = CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE[subType][mode]
   const saved: Array<{ name: string; descriptor: PropertyDescriptor | undefined }> = []
 
   const define = (name: string, descriptor: PropertyDescriptor): boolean => {

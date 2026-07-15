@@ -12,6 +12,26 @@ export const CLIENT_GRAPH_SUB_TYPES = [
   'int_filter'
 ] as const
 
+export const CLIENT_GRAPH_AVAILABLE_MODES_BY_SUB_TYPE = {
+  character_skill: ['beyond'],
+  character_control_skill: ['beyond'],
+  creation_skill: ['beyond', 'classic'],
+  creation_status: ['beyond', 'classic'],
+  creation_status_decision: ['beyond', 'classic'],
+  bool_filter: ['beyond', 'classic'],
+  int_filter: ['beyond', 'classic']
+} as const
+
+export type ClientGraphAvailableMode<T extends ClientGraphSubType> =
+  (typeof CLIENT_GRAPH_AVAILABLE_MODES_BY_SUB_TYPE)[T][number]
+
+export function isClientGraphModeAvailable(
+  subType: ClientGraphSubType,
+  mode: 'beyond' | 'classic'
+): boolean {
+  return (CLIENT_GRAPH_AVAILABLE_MODES_BY_SUB_TYPE[subType] as readonly string[]).includes(mode)
+}
+
 export const CLIENT_GRAPH_METHOD_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
   character_skill: 'characterSkill',
   character_control_skill: 'characterControlSkill',
@@ -76,58 +96,8 @@ export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = {
       reason: ''
     },
     classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
-    }
-  },
-  character_control_skill: {
-    beyond: {
       status: 'available',
       reason: ''
-    },
-    classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
-    }
-  },
-  character_skill: {
-    beyond: {
-      status: 'available',
-      reason: ''
-    },
-    classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
-    }
-  },
-  creation_skill: {
-    beyond: {
-      status: 'available',
-      reason: ''
-    },
-    classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
-    }
-  },
-  creation_status: {
-    beyond: {
-      status: 'available',
-      reason: ''
-    },
-    classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
-    }
-  },
-  creation_status_decision: {
-    beyond: {
-      status: 'available',
-      reason: ''
-    },
-    classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
     }
   },
   int_filter: {
@@ -136,8 +106,58 @@ export const CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE = {
       reason: ''
     },
     classic: {
-      status: 'unknown',
-      reason: 'client classic mode requires sample confirmation'
+      status: 'available',
+      reason: ''
+    }
+  },
+  character_skill: {
+    beyond: {
+      status: 'available',
+      reason: ''
+    },
+    classic: {
+      status: 'unavailable',
+      reason: 'BeyondEditor exposes an explicitly empty classic character skill group'
+    }
+  },
+  character_control_skill: {
+    beyond: {
+      status: 'available',
+      reason: ''
+    },
+    classic: {
+      status: 'unavailable',
+      reason: 'BeyondEditor exposes no classic character control skill group'
+    }
+  },
+  creation_skill: {
+    beyond: {
+      status: 'available',
+      reason: ''
+    },
+    classic: {
+      status: 'available',
+      reason: ''
+    }
+  },
+  creation_status_decision: {
+    beyond: {
+      status: 'available',
+      reason: ''
+    },
+    classic: {
+      status: 'available',
+      reason: ''
+    }
+  },
+  creation_status: {
+    beyond: {
+      status: 'available',
+      reason: ''
+    },
+    classic: {
+      status: 'available',
+      reason: ''
     }
   }
 } as const

@@ -3,7 +3,7 @@ import { CLIENT_NODE_METHODS_BY_SUB_TYPE } from '../../definitions/client_method
 const CLIENT_SUB_TYPES_WITH_LOCAL_VARIABLES = new Set(
   Object.entries(CLIENT_NODE_METHODS_BY_SUB_TYPE)
     .filter(([, methods]) => {
-      const names: readonly string[] = methods
+      const names = methods as readonly string[]
       return names.includes('getLocalVariable') && names.includes('setLocalVariable')
     })
     .map(([subType]) => subType)

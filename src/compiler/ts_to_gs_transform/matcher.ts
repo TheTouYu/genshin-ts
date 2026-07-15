@@ -83,38 +83,10 @@ export function isServerOnCall(call: ts.CallExpression, checker: ts.TypeChecker)
 
 export type ClientOnCallInfo = {
   subType: ClientGraphSubType
-  mode: 'beyond' | 'classic'
   handler: ts.ArrowFunction | ts.FunctionExpression
 }
 
 type ClientInstanceInfo = Omit<ClientOnCallInfo, 'handler'>
-
-function readClientMode(
-  call: ts.CallExpression,
-  checker: ts.TypeChecker
-): ClientInstanceInfo['mode'] {
-  const options = call.arguments[0]
-  if (!options) return 'beyond'
-  const target = unwrapExpression(options)
-  if (ts.isObjectLiteralExpression(target)) {
-    for (const prop of target.properties) {
-      if (!ts.isPropertyAssignment(prop)) continue
-      const name = prop.name
-      const isMode =
-        (ts.isIdentifier(name) && name.text === 'mode') ||
-        (ts.isStringLiteral(name) && name.text === 'mode')
-      if (!isMode) continue
-      const value = unwrapExpression(prop.initializer)
-      if (ts.isStringLiteral(value) && value.text === 'classic') return 'classic'
-    }
-  }
-
-  const optionsType = checker.getTypeAtLocation(options)
-  const modeSymbol = checker.getPropertyOfType(optionsType, 'mode')
-  const modeType = modeSymbol && checker.getTypeOfSymbolAtLocation(modeSymbol, options)
-  if (modeType?.isStringLiteral() && modeType.value === 'classic') return 'classic'
-  return 'beyond'
-}
 
 function getClientInstanceInfo(
   expr: ts.Expression,
@@ -130,7 +102,7 @@ function getClientInstanceInfo(
       callee.expression.text === 'g'
     ) {
       const subType = CLIENT_GRAPH_SUB_TYPE_BY_METHOD[callee.name.text]
-      if (subType) return { subType, mode: readClientMode(target, checker) }
+      if (subType) return { subType }
     }
   }
   if (!ts.isIdentifier(target)) return undefined

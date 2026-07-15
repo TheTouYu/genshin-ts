@@ -1,5 +1,11 @@
 import { g } from 'genshin-ts/runtime/core'
 
+// scoped client helper globals capability tables are generated and typed
+import {
+  CLIENT_BLOCKED_SERVER_HELPERS,
+  CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE,
+  CLIENT_SCOPED_GLOBALS_CAPABILITY
+} from '../../../src/definitions/client_scoped_globals.js'
 import type {
   ClientBoolFilterExecutionFlowFunctions,
   ClientCharacterSkillExecutionFlowFunctions,
@@ -18,10 +24,15 @@ import type { bool, int } from '../../../src/runtime/value.js'
 
 declare function expectType<T>(value: T): void
 
-const classicZhCharacterSkill = g.characterSkill({ mode: 'classic', lang: 'zh' })
+const classicZhCreationSkill = g.creationSkill({ mode: 'classic', lang: 'zh' })
 expectType<
-  ClientStartGraphApi<ClientFlowFunctionClass<'character_skill', 'classic'>, 'zh', 'classic'>
->(classicZhCharacterSkill)
+  ClientStartGraphApi<ClientFlowFunctionClass<'creation_skill', 'classic'>, 'zh', 'classic'>
+>(classicZhCreationSkill)
+
+// @ts-expect-error BeyondEditor has no classic character skill graph
+g.characterSkill({ mode: 'classic' })
+// @ts-expect-error BeyondEditor has no classic character control skill graph
+g.characterControlSkill({ mode: 'classic' })
 
 const beyondZhIntFilter = g.intFilter({ lang: 'zh' })
 expectType<
@@ -43,6 +54,16 @@ expectType<
   >
 >(classicEnBoolFilter)
 
+declare const classicFilterFns: ClientFlowFunctionClass<'bool_filter', 'classic'>
+classicFilterFns.getPlayerSCharacterList
+// @ts-expect-error current client time is Beyond-only
+classicFilterFns.getCurrentClientTime()
+
+declare const classicCreationFns: ClientFlowFunctionClass<'creation_skill', 'classic'>
+classicCreationFns.checkClassicModeCharacterId
+// @ts-expect-error server notification is Beyond-only in creation skill graphs
+classicCreationFns.notifyServerNodeGraph
+
 expectType<ServerExecutionFlowFunctions>(gsts.f)
 expectType<ServerExecutionFlowFunctions>(gsts.fServer)
 expectType<ClientCharacterSkillExecutionFlowFunctions>(gsts.fCharacterSkill)
@@ -58,13 +79,6 @@ gsts.ctx.assertClientGraphCtx('bool_filter')
 gsts.ctx.withCtx('client_bool_filter_if', () => {})
 gsts.ctx.withCtx('client_bool_filter_loop', () => {})
 gsts.ctx.withCtx('client_bool_filter_switch', () => {})
-
-// scoped client helper globals capability tables are generated and typed
-import {
-  CLIENT_BLOCKED_SERVER_HELPERS,
-  CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE,
-  CLIENT_SCOPED_GLOBALS_CAPABILITY
-} from '../../../src/definitions/client_scoped_globals.js'
 
 expectType<readonly string[]>(CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE.character_skill.Vector3)
 expectType<readonly string[]>(CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE.bool_filter.Mathf)

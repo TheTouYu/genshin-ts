@@ -98,7 +98,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量加法_填值.gia',
+    sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -125,7 +125,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量夹角_填值.gia'
+    sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -151,7 +151,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量外积_填值.gia'
+    sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -177,7 +177,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量内积_填值.gia'
+    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -196,7 +196,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量模运算_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -215,7 +215,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
+    sampleFile: '布尔过滤器节点\\朝向转旋转_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -241,7 +241,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -274,7 +274,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量减法_填值.gia',
+    sampleFile: '布尔过滤器节点\\三维向量减法_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -326,7 +326,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\是否大于_连线.gia',
+    sampleFile: '布尔过滤器节点\\绝对值运算_连线.gia',
     reflectMap: [
       {
         concreteId: 32,
@@ -481,7 +481,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\反余弦函数_填值.gia',
+    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia',
     argPins: [1]
   },
   {
@@ -508,7 +508,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\反正弦函数_填值.gia',
+    sampleFile: '布尔过滤器节点\\反正弦函数_连线.gia',
     argPins: [1]
   },
   {
@@ -535,8 +535,654 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\反正切函数_填值.gia',
+    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'assemble_structure',
+    displayName: '拼装结构体',
+    graphType: 20001,
+    genericId: 200160,
+    concreteId: null,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'local_variable',
+        clientVarType: 22
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'assembly_dictionary',
+    displayName: '拼装字典',
+    graphType: 20001,
+    genericId: 200152,
+    concreteId: 1048,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 2
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 11,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 12,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 13,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 14,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 15,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 16,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 17,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 18,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 19,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 21,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 22,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 23,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 24,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 25,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 26,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 27,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 28,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 29,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 31,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 32,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 33,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 34,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 35,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 37,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 38,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 39,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 40,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 41,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 42,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 43,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 44,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 45,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 46,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 47,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 48,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 49,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 50,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 51,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 52,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 53,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 54,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 55,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 56,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 57,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 58,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 59,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 60,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 61,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 62,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 63,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 64,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 65,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 66,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 67,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 68,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 69,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 70,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 71,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 72,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 73,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 74,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 75,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 76,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 77,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 78,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 79,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 80,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 81,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 82,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 83,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 84,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 85,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 86,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 87,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 88,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 89,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 90,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 91,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 92,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 93,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 94,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 95,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 96,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 97,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 98,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 99,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 100,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -622,7 +1268,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 4
       }
     ],
-    sampleFile: '布尔过滤器节点\\拼装列表_填值.gia',
+    sampleFile: '布尔过滤器节点\\拼装列表_连线.gia',
     reflectMap: [
       {
         concreteId: 1025,
@@ -1276,6 +1922,63 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     specialKind: 'reflect'
   },
   {
+    nodeType: 'check_classic_mode_character_id',
+    displayName: '查询经典模式角色编号',
+    genericId: 200254,
+    concreteId: 1069,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin',
+    subType: 'bool_filter',
+    graphType: 20001
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+    displayName: '查询复杂造物的预设状态值',
+    graphType: 20001,
+    genericId: 200244,
+    concreteId: 1066,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
     subType: 'bool_filter',
     nodeType: 'cosine_function',
     displayName: '余弦函数',
@@ -1299,8 +2002,41 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\余弦函数_填值.gia',
+    sampleFile: '布尔过滤器节点\\余弦函数_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'create_dictionary',
+    displayName: '建立字典',
+    graphType: 20001,
+    genericId: 200153,
+    concreteId: 1049,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -1333,7 +2069,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\创建三维向量_填值.gia'
+    sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -1364,7 +2100,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '布尔过滤器节点\\拼装列表_连线.gia',
+    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -1392,7 +2128,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\角度转弧度_填值.gia',
+    sampleFile: '布尔过滤器节点\\角度转弧度_连线.gia',
     argPins: [1]
   },
   {
@@ -1419,7 +2155,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\方向向量转旋转_填值.gia'
+    sampleFile: '布尔过滤器节点\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -1457,7 +2193,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '布尔过滤器节点\\减法运算_连线.gia',
+    sampleFile: '布尔过滤器节点\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -1533,7 +2269,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\枚举匹配_填值.gia',
+    sampleFile: '布尔过滤器节点\\获得玩家客户端输入设备类型_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -1585,7 +2321,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\以实体查询GUID_连线.gia',
+    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia',
     reflectMap: [
       {
         concreteId: 11,
@@ -1719,7 +2455,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选球体范围内的实体列表_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -1773,7 +2509,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_连线.gia'
+  },
+  {
+    nodeType: 'get_active_character_of_specified_player',
+    displayName: '获取指定玩家的前台角色',
+    genericId: 200251,
+    concreteId: 1002,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin',
+    subType: 'bool_filter',
+    graphType: 20001
   },
   {
     subType: 'bool_filter',
@@ -1798,7 +2559,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取碰撞触发器内所有实体_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取碰撞触发器内所有实体_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -1810,6 +2571,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '布尔过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_base_object_of_specified_pre_aiming',
+    displayName: '获取指定预瞄准的基准对象',
+    graphType: 20001,
+    genericId: 200276,
+    concreteId: 1080,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -1859,7 +2646,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '布尔过滤器节点\\获取列表对应值_填值.gia',
+    sampleFile: '布尔过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 60,
@@ -2028,6 +2815,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'get_current_active_pre_aiming_index',
+    displayName: '获取当前生效的预瞄准序号',
+    graphType: 20001,
+    genericId: 200279,
+    concreteId: 1083,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'get_current_character',
     displayName: '获取当前角色',
     graphType: 20001,
@@ -2035,7 +2840,181 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1032,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\以实体查询GUID_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取当前角色_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_current_client_time',
+    displayName: '获取当前客户端时间',
+    graphType: 20001,
+    genericId: 200269,
+    concreteId: 1074,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_current_client_time_high_precision',
+    displayName: '获取当前客户端时间(高精度)',
+    graphType: 20001,
+    genericId: 200270,
+    concreteId: 1075,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_current_key_behavior',
+    displayName: '获取当前关键行为',
+    graphType: 20001,
+    genericId: 200267,
+    concreteId: 1072,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float_list',
+        clientVarType: 8
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_current_key_behavior_high_precision',
+    displayName: '获取当前关键行为(高精度)',
+    graphType: 20001,
+    genericId: 200268,
+    concreteId: 1073,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_cursor_hit_result',
+    displayName: '获取光标命中结果',
+    graphType: 20001,
+    genericId: 200285,
+    concreteId: 1089,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3_list',
+        clientVarType: 12
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_cursor_screen_coordinates',
+    displayName: '获取光标屏幕坐标',
+    graphType: 20001,
+    genericId: 200286,
+    concreteId: 1090,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_cursor_viewport_coordinates',
+    displayName: '获取光标视口坐标',
+    graphType: 20001,
+    genericId: 200287,
+    concreteId: 1091,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2067,7 +3046,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '布尔过滤器节点\\列表是否包含该值_连线.gia',
+    sampleFile: '布尔过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -2098,7 +3077,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选球体范围内的实体列表_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2116,7 +3095,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体旋转_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2170,7 +3149,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\以GUID查询实体_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2259,7 +3238,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体类型列表_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2277,7 +3256,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\筛选方形范围内的实体列表_连线.gia',
+    sampleFile: '布尔过滤器节点\\获取列表长度_连线.gia',
     reflectMap: [
       {
         concreteId: 81,
@@ -2308,6 +3287,52 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'get_list_of_keys_from_dictionary',
+    displayName: '获取字典中键组成的列表',
+    graphType: 20001,
+    genericId: 200159,
+    concreteId: 1054,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取字典中键组成的列表_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1054,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'get_list_of_player_entities_on_the_field',
     displayName: '获取在场玩家实体列表',
     graphType: 20001,
@@ -2316,6 +3341,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '布尔过滤器节点\\获取在场玩家实体列表_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_list_of_values_from_dictionary',
+    displayName: '获取字典中值组成的列表',
+    graphType: 20001,
+    genericId: 200158,
+    concreteId: 1055,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取列表长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1055,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -2404,7 +3469,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\获取列表最小值_连线.gia',
+    sampleFile: '布尔过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 122,
@@ -2476,6 +3541,183 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'get_player_movement_input',
+    displayName: '获取玩家移动输入',
+    graphType: 20001,
+    genericId: 200255,
+    concreteId: 1070,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+  },
+  {
+    nodeType: 'get_player_s_character_list',
+    displayName: '获取玩家的角色列表',
+    genericId: 200242,
+    concreteId: 1067,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin',
+    subType: 'bool_filter',
+    graphType: 20001
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_pre_aiming_collision_detection_result_count',
+    displayName: '获取预瞄碰撞检测结果数量',
+    graphType: 20001,
+    genericId: 200280,
+    concreteId: 1084,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_pre_aiming_duration',
+    displayName: '获取预瞄持续时长',
+    graphType: 20001,
+    genericId: 200278,
+    concreteId: 1082,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_pre_aiming_ray_hit_info',
+    displayName: '获取预瞄射线命中信息',
+    graphType: 20001,
+    genericId: 200281,
+    concreteId: 1085,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_pre_aiming_result',
+    displayName: '获取预瞄结果',
+    graphType: 20001,
+    genericId: 200277,
+    concreteId: 1081,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 3,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'get_preset_status',
     displayName: '获取预设状态',
     graphType: 20001,
@@ -2497,7 +3739,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取预设状态_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取预设状态_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2528,7 +3770,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '布尔过滤器节点\\获取随机数_填值.gia',
+    sampleFile: '布尔过滤器节点\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 1011,
@@ -2637,7 +3879,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体旋转_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2726,7 +3968,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取射线筛选类型列表_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取射线筛选类型列表_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2738,6 +3980,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_skill_config_id_by_skill_instance_id',
+    displayName: '根据技能实例ID获取技能配置ID',
+    graphType: 20001,
+    genericId: 200272,
+    concreteId: 1076,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2762,7 +4030,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -2820,6 +4088,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'get_whether_cursor_is_active',
+    displayName: '获取光标是否激活',
+    graphType: 20001,
+    genericId: 200284,
+    concreteId: 1088,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+    displayName: '获取预瞄准摇杆是否处于死区',
+    graphType: 20001,
+    genericId: 200282,
+    concreteId: 1086,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'greater_than',
     displayName: '是否大于',
     graphType: 20001,
@@ -2847,7 +4159,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于_填值.gia',
+    sampleFile: '布尔过滤器节点\\是否大于_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -2918,7 +4230,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于等于_填值.gia',
+    sampleFile: '布尔过滤器节点\\逻辑或运算_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -2989,7 +4301,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否小于_填值.gia',
+    sampleFile: '布尔过滤器节点\\是否小于_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -3060,7 +4372,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\余弦函数_连线.gia',
+    sampleFile: '布尔过滤器节点\\是否小于等于_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -3124,7 +4436,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\列表是否包含该值_填值.gia',
+    sampleFile: '布尔过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 100,
@@ -3333,7 +4645,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否大于_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3352,7 +4664,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\逻辑与运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3378,7 +4690,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\是否小于等于_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑或运算_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3404,7 +4716,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\逻辑异或运算_填值.gia'
+    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3442,7 +4754,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '布尔过滤器节点\\乘法运算_填值.gia',
+    sampleFile: '布尔过滤器节点\\乘法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -3520,7 +4832,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量内积_填值.gia'
+    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3550,6 +4862,105 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'bool_filter',
+    nodeType: 'query_active_skill_instance_list_of_specified_slot',
+    displayName: '查询指定槽位当前生效的技能实例',
+    graphType: 20001,
+    genericId: 200274,
+    concreteId: 1077,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_dictionary_s_length',
+    displayName: '查询字典长度',
+    graphType: 20001,
+    genericId: 200157,
+    concreteId: 1053,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1053,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_dictionary_value_by_key',
+    displayName: '以键查询字典值',
+    graphType: 20001,
+    genericId: 200154,
+    concreteId: 1050,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'bool_filter',
     nodeType: 'query_entity_by_guid',
     displayName: '以GUID查询实体',
     graphType: 20001,
@@ -3565,7 +4976,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\以GUID查询实体_填值.gia'
+    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3601,7 +5012,111 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\以GUID查询实体_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取角色归属的玩家实体_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_if_dictionary_contains_specific_key',
+    displayName: '查询字典是否包含特定键',
+    graphType: 20001,
+    genericId: 200155,
+    concreteId: 1051,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1051,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_if_dictionary_contains_specific_value',
+    displayName: '查询字典是否包含特定值',
+    graphType: 20001,
+    genericId: 200156,
+    concreteId: 1052,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1052,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'bool_filter',
@@ -3645,7 +5160,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询阵营是否敌对_填值.gia'
+    sampleFile: '布尔过滤器节点\\查询阵营是否敌对_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3657,6 +5172,142 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '布尔过滤器节点\\查询自身是否已入战_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_pre_aiming_end_reason',
+    displayName: '查询预瞄准结束原因',
+    graphType: 20001,
+    genericId: 200283,
+    concreteId: 1087,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+    displayName: '以技能槽位和技能配置ID查询技能实例ID',
+    graphType: 20001,
+    genericId: 200275,
+    concreteId: 1079,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_skill_instance_list_by_specified_slot',
+    displayName: '查询指定槽位的技能实例列表',
+    graphType: 20001,
+    genericId: 200273,
+    concreteId: 1078,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_skill_variable_value',
+    displayName: '查询技能变量对应值',
+    graphType: 20001,
+    genericId: 200259,
+    concreteId: 1071,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'query_whether_player_is_currently_in_voice_chat',
+    displayName: '查询玩家是否正在语音聊天',
+    graphType: 20001,
+    genericId: 200271,
+    concreteId: 3007,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3682,8 +5333,87 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\弧度转角度_填值.gia',
+    sampleFile: '布尔过滤器节点\\弧度转角度_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'screen_coordinates_to_viewport_coordinates',
+    displayName: '屏幕坐标转视口坐标',
+    graphType: 20001,
+    genericId: 200290,
+    concreteId: 140,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'screen_coordinates_to_world_coordinates',
+    displayName: '屏幕坐标转世界坐标',
+    graphType: 20001,
+    genericId: 200292,
+    concreteId: 142,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3709,8 +5439,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia',
+    sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'split_structure',
+    displayName: '拆分结构体',
+    graphType: 20001,
+    genericId: 200161,
+    concreteId: null,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'local_variable',
+        clientVarType: 22
+      }
+    ],
+    outputs: [],
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3729,7 +5477,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
+    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia'
   },
   {
     subType: 'bool_filter',
@@ -3845,8 +5593,111 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\正切函数_填值.gia',
+    sampleFile: '布尔过滤器节点\\正切函数_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'viewport_coordinates_to_screen_coordinates',
+    displayName: '视口坐标转屏幕坐标',
+    graphType: 20001,
+    genericId: 200291,
+    concreteId: 141,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'whether_the_entity_has_the_specified_unit_status',
+    displayName: '实体是否携带指定单位状态',
+    graphType: 20001,
+    genericId: 200243,
+    concreteId: 1068,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia'
+  },
+  {
+    subType: 'bool_filter',
+    nodeType: 'world_coordinates_to_screen_coordinates',
+    displayName: '世界坐标转屏幕坐标',
+    graphType: 20001,
+    genericId: 200293,
+    concreteId: 143,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -3886,7 +5737,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量加法_填值.gia',
+    sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -3920,7 +5771,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量夹角_填值.gia'
+    sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -3953,7 +5804,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量减法_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -3986,7 +5837,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量内积_填值.gia'
+    sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4012,7 +5863,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量模运算_填值.gia'
+    sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4038,7 +5889,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量归一化_填值.gia'
+    sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4111,7 +5962,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量减法_填值.gia',
+    sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -4145,7 +5996,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4241,7 +6092,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\添加关键行为_填值.gia'
+    sampleFile: '角色操控技能节点图\\添加关键行为_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4292,7 +6143,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\完成当前预瞄准_连线.gia'
+    sampleFile: '角色操控技能节点图\\添加临时加速度_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4419,7 +6270,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\添加单位状态_填值.gia'
+    sampleFile: '角色操控技能节点图\\添加单位状态_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4470,7 +6321,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\添加速度_填值.gia'
+    sampleFile: '角色操控技能节点图\\添加速度_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -4508,7 +6359,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\加法运算_填值.gia',
+    sampleFile: '角色操控技能节点图\\加法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -4593,7 +6444,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\反余弦函数_填值.gia',
+    sampleFile: '角色操控技能节点图\\按比例转移指定实体的仇恨值_连线.gia',
     argPins: [1]
   },
   {
@@ -4627,7 +6478,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\反正弦函数_填值.gia',
+    sampleFile: '角色操控技能节点图\\反正弦函数_连线.gia',
     argPins: [1]
   },
   {
@@ -4661,7 +6512,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\反正切函数_填值.gia',
+    sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia',
     argPins: [1]
   },
   {
@@ -5306,7 +7157,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\拼装字典_填值.gia',
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -5394,7 +7245,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\建立字典_连线.gia',
+    sampleFile: '角色操控技能节点图\\遍历实体列表_连线.gia',
     reflectMap: [
       {
         concreteId: 1025,
@@ -6069,7 +7920,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\有限循环_连线.gia'
+    sampleFile: '角色操控技能节点图\\跳出循环_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6136,7 +7987,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点发射投射物_连线.gia'
+    sampleFile: '角色操控技能节点图\\播放限时特效_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6175,7 +8026,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\施放指定槽位的技能_填值.gia'
+    sampleFile: '角色操控技能节点图\\施放指定槽位的技能_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6214,7 +8065,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\施放指定技能实例_填值.gia'
+    sampleFile: '角色操控技能节点图\\施放指定技能实例_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6253,7 +8104,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\增加技能变量值_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例转移指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6285,7 +8136,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6374,7 +8225,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia',
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
     argPins: [1]
   },
   {
@@ -6406,7 +8257,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\以键查询字典值_连线.gia',
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -6448,7 +8299,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\创建三维向量_填值.gia'
+    sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6479,7 +8330,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点位移_连线.gia',
+    sampleFile: '角色操控技能节点图\\播放限时特效_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -6514,7 +8365,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\角度转弧度_填值.gia',
+    sampleFile: '角色操控技能节点图\\角度转弧度_连线.gia',
     argPins: [1]
   },
   {
@@ -6586,7 +8437,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\乘法运算_连线.gia',
+    sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -6677,7 +8528,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         i2Index: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\双分支_填值.gia'
+    sampleFile: '角色操控技能节点图\\双分支_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -6708,7 +8559,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\枚举匹配_填值.gia',
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -6969,7 +8820,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\筛选方形范围内的实体列表_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取预设状态_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -7048,7 +8899,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         i2Index: 0
       }
     ],
-    sampleFile: '角色操控技能节点图\\增加指定实体的仇恨值_连线.gia'
+    sampleFile: '角色操控技能节点图\\多分支_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -7113,7 +8964,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点位移_填值.gia'
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -7174,7 +9025,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点位移_连线.gia',
+    sampleFile: '角色操控技能节点图\\遍历实体列表_连线.gia',
     specialKind: 'inline_var_type_hint'
   },
   {
@@ -7231,7 +9082,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取碰撞触发器内所有实体_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -7275,7 +9126,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -7474,7 +9325,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打攻击盒_连线.gia',
+    sampleFile: '角色操控技能节点图\\获取操控运动器运动参数_连线.gia',
     reflectMap: [
       {
         concreteId: 60,
@@ -7837,7 +9688,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -7917,7 +9768,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点发射投射物_连线.gia',
+    sampleFile: '角色操控技能节点图\\查询实体阵营_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -7969,7 +9820,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8019,7 +9870,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\筛选方形范围内的实体列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体旋转_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8215,7 +10066,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 17
       }
     ],
-    sampleFile: '角色操控技能节点图\\特定位置打球形攻击盒_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8240,7 +10091,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打球形攻击盒_连线.gia',
+    sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia',
     reflectMap: [
       {
         concreteId: 81,
@@ -8397,7 +10248,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体扫描状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取局部变量_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8422,7 +10273,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    sampleFile: '角色操控技能节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 120,
@@ -8486,7 +10337,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia',
     reflectMap: [
       {
         concreteId: 122,
@@ -8568,7 +10419,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\以实体查询GUID_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取角色归属的玩家实体_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8644,7 +10495,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8720,7 +10571,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄结果_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -8783,7 +10634,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\是否大于_连线.gia',
+    sampleFile: '角色操控技能节点图\\获取随机数_连线.gia',
     reflectMap: [
       {
         concreteId: 1011,
@@ -9001,7 +10852,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 17
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取射线筛选类型列表_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9019,7 +10870,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体的类型_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9045,7 +10896,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\以技能槽位和技能配置ID查询技能实例ID_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9077,7 +10928,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取目标挂接点位置_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取目标挂接点位置_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9109,7 +10960,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9177,7 +11028,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询字典是否包含特定值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定实体是否入战_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9271,7 +11122,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_填值.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9309,7 +11160,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\是否大于_填值.gia',
+    sampleFile: '角色操控技能节点图\\逻辑或运算_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -9387,7 +11238,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\是否大于等于_填值.gia',
+    sampleFile: '角色操控技能节点图\\逻辑异或运算_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -9466,7 +11317,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\增加技能变量值_填值.gia'
+    sampleFile: '角色操控技能节点图\\增加技能变量值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9513,7 +11364,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\增加指定实体的仇恨值_填值.gia'
+    sampleFile: '角色操控技能节点图\\增加指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9537,7 +11388,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\增加技能变量值_连线.gia'
+    sampleFile: '角色操控技能节点图\\遍历实体列表_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9653,7 +11504,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia',
+    sampleFile: '角色操控技能节点图\\逻辑与运算_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -9724,7 +11575,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\以键查询字典值_连线.gia',
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia',
     reflectMap: [
       {
         concreteId: 100,
@@ -9940,7 +11791,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\设置攻击权重_连线.gia'
+    sampleFile: '角色操控技能节点图\\逻辑与运算_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -9966,7 +11817,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\双分支_连线.gia'
+    sampleFile: '角色操控技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10032,7 +11883,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\施放指定技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10074,7 +11925,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\双分支_连线.gia',
+    sampleFile: '角色操控技能节点图\\多分支_连线.gia',
     reflectMap: [
       {
         concreteId: 2000,
@@ -10133,7 +11984,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\乘法运算_填值.gia',
+    sampleFile: '角色操控技能节点图\\乘法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -10196,7 +12047,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 2001,
     inputs: [],
     outputs: [],
-    sampleFile: '角色操控技能节点图\\三维向量内积_填值.gia',
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
     contextDeclaration: {
       kind: 6,
       index: 0
@@ -10248,7 +12099,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\通知服务器节点图_填值.gia'
+    sampleFile: '角色操控技能节点图\\通知服务器节点图_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10281,7 +12132,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\朝向转旋转_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10350,7 +12201,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\嘲讽目标_连线.gia',
+    sampleFile: '角色操控技能节点图\\播放限时特效_连线.gia',
     argPins: [0, 1, 2, 3, 5]
   },
   {
@@ -10383,7 +12234,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\玩家转向_填值.gia'
+    sampleFile: '角色操控技能节点图\\玩家转向_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10416,7 +12267,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\玩家转向指定朝向_填值.gia'
+    sampleFile: '角色操控技能节点图\\玩家转向指定朝向_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10442,7 +12293,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_填值.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10513,7 +12364,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\以GUID查询实体_连线.gia',
+    sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -10541,7 +12392,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\以GUID查询实体_填值.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10591,7 +12442,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 14
       }
     ],
-    sampleFile: '角色操控技能节点图\\以实体查询GUID_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前角色_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10622,7 +12473,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\以实体查询GUID_连线.gia',
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [
       {
         concreteId: 1051,
@@ -10674,7 +12525,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 1052,
@@ -10822,7 +12673,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 13
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_填值.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10855,7 +12706,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\以技能槽位和技能配置ID查询技能实例ID_填值.gia'
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10881,7 +12732,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_填值.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10907,7 +12758,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询技能变量对应值_填值.gia'
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -10965,7 +12816,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\弧度转角度_填值.gia',
+    sampleFile: '角色操控技能节点图\\弧度转角度_连线.gia',
     argPins: [1]
   },
   {
@@ -11084,7 +12935,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\使操控运动器转换至非接地状态_连线.gia',
+    sampleFile: '角色操控技能节点图\\遍历实体列表_连线.gia',
     argPins: [0, 1, 6, 9, 10]
   },
   {
@@ -11116,7 +12967,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\移除指定角色扰动装置_填值.gia'
+    sampleFile: '角色操控技能节点图\\移除指定角色扰动装置_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11195,7 +13046,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\移除单位状态_填值.gia'
+    sampleFile: '角色操控技能节点图\\移除单位状态_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11258,7 +13109,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_填值.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11298,7 +13149,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11328,7 +13179,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\向服务器节点图发送信号_填值.gia'
+    sampleFile: '角色操控技能节点图\\向服务器节点图发送信号_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11366,7 +13217,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\设置攻击权重_填值.gia'
+    sampleFile: '角色操控技能节点图\\设置攻击权重_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11403,7 +13254,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\使操控运动器转换至非接地状态_填值.gia'
+    sampleFile: '角色操控技能节点图\\使操控运动器转换至非接地状态_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11483,7 +13334,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\设置自身攻击目标_填值.gia'
+    sampleFile: '角色操控技能节点图\\设置自身攻击目标_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11522,7 +13373,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\设置技能变量_填值.gia'
+    sampleFile: '角色操控技能节点图\\设置技能变量_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11569,7 +13420,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\设置指定实体的仇恨值_填值.gia'
+    sampleFile: '角色操控技能节点图\\设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11616,7 +13467,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\嘲讽目标_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11649,7 +13500,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia',
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
     argPins: [1]
   },
   {
@@ -11706,7 +13557,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\使操控运动器转换至非接地状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11744,7 +13595,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\减法运算_填值.gia',
+    sampleFile: '角色操控技能节点图\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -11868,7 +13719,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\嘲讽目标_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11922,7 +13773,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\多分支_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例转移指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -11966,7 +13817,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\使操控运动器转换至非接地状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -12318,7 +14169,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\特定位置打攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\特定位置打攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26,
       28, 32, 33, 34, 38, 39, 40, 41, 42, 43, 45, 46
@@ -12709,7 +14560,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\指定挂接点打攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26,
       27, 29, 33, 34, 35, 39, 40, 41, 42, 43, 44, 46, 47
@@ -13065,7 +14916,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\特定位置打矩形攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\特定位置打矩形攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39, 40,
       41, 42, 43, 45, 46
@@ -13456,7 +15307,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打矩形攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\指定挂接点打矩形攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 16, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33, 34, 35, 39, 40,
       41, 42, 43, 44, 46, 47
@@ -13812,7 +15663,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\特定位置打扇形攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\特定位置打扇形攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32,
       33, 34, 38, 39, 40, 41, 42, 43, 45, 46
@@ -14203,7 +16054,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打扇形攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33,
       34, 35, 39, 40, 41, 42, 43, 44, 46, 47
@@ -14559,7 +16410,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\特定位置打球形攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\特定位置打球形攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 10, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39,
       40, 41, 42, 43, 45, 46
@@ -14950,7 +16801,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色操控技能节点图\\指定挂接点打球形攻击盒_填值.gia',
+    sampleFile: '角色操控技能节点图\\指定挂接点打球形攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 16, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33, 34, 35, 39, 40,
       41, 42, 43, 44, 46, 47
@@ -15025,7 +16876,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_填值.gia'
+    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia'
   },
   {
     subType: 'character_control_skill',
@@ -15057,7 +16908,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量外积_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -15097,7 +16948,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量加法_连线.gia',
+    sampleFile: '角色技能节点图\\方向向量转旋转_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -15249,7 +17100,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量归一化_连线.gia'
+    sampleFile: '角色技能节点图\\朝向转旋转_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -15282,7 +17133,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量旋转_连线.gia'
+    sampleFile: '角色技能节点图\\定点位移_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -15424,6 +17275,38 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'add_key_behavior',
+    displayName: '添加关键行为',
+    graphType: 20002,
+    genericId: 200262,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\添加关键行为_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'add_unit_status',
     displayName: '添加单位状态',
     graphType: 20002,
@@ -15506,7 +17389,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\加法运算_连线.gia',
+    sampleFile: '角色技能节点图\\恢复生命值_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -15625,7 +17508,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\反正弦函数_连线.gia',
+    sampleFile: '角色技能节点图\\除法运算_连线.gia',
     argPins: [1]
   },
   {
@@ -16304,7 +18187,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia',
+    sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -16392,7 +18275,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\列表_Entity_连线.gia',
+    sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [
       {
         concreteId: 1025,
@@ -17134,7 +19017,124 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\播放限时特效_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'cast_skill_from_specified_slot',
+    displayName: '施放指定槽位的技能',
+    graphType: 20002,
+    genericId: 200266,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\施放指定槽位的技能_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'cast_specified_skill_instance',
+    displayName: '施放指定技能实例',
+    graphType: 20002,
+    genericId: 200265,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\施放指定技能实例_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'character_blink',
+    displayName: '角色闪现',
+    graphType: 20002,
+    genericId: 200261,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\按比例转移指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -17167,6 +19167,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'clear_key_behavior_log_panel',
+    displayName: '清空关键行为记录板',
+    graphType: 20002,
+    genericId: 200263,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\清空关键行为记录板_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -17263,7 +19287,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\建立字典_连线.gia',
+    sampleFile: '角色技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -17305,7 +19329,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量加法_连线.gia'
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -17336,7 +19360,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打球形攻击盒_连线.gia',
+    sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -17443,7 +19467,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\创建三维向量_连线.gia',
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -17565,7 +19589,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\枚举匹配_连线.gia',
+    sampleFile: '角色技能节点图\\获得玩家客户端输入设备类型_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -17624,7 +19648,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\数据类型转换_连线.gia',
+    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia',
     reflectMap: [
       {
         concreteId: 11,
@@ -17765,7 +19789,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\枚举普查_角色技能_全量排布.gia'
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -17826,7 +19850,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\枚举普查_角色技能_全量排布.gia'
+    sampleFile: '角色技能节点图\\获取列表长度_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'finish_current_pre_aiming',
+    displayName: '完成当前预瞄准',
+    graphType: 20002,
+    genericId: 200288,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\完成当前预瞄准_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -17882,7 +19929,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         i2Index: 0
       }
     ],
-    sampleFile: '角色技能节点图\\增加指定实体的仇恨值_连线.gia'
+    sampleFile: '角色技能节点图\\设置局部变量_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -17947,7 +19994,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18008,7 +20055,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia',
+    sampleFile: '角色技能节点图\\播放限时特效_连线.gia',
     specialKind: 'inline_var_type_hint'
   },
   {
@@ -18033,7 +20080,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\强制退出瞄准状态_连线.gia'
+    sampleFile: '角色技能节点图\\遍历实体列表_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18087,6 +20134,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'get_base_object_of_specified_pre_aiming',
+    displayName: '获取指定预瞄准的基准对象',
+    graphType: 20002,
+    genericId: 200276,
+    concreteId: 1080,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'get_character_entity_of_specified_player',
     displayName: '获取指定玩家的角色实体',
     graphType: 20002,
@@ -18108,7 +20181,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\获取指定玩家的角色实体_连线.gia'
+    sampleFile: '角色技能节点图\\获取角色归属的玩家实体_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18140,7 +20213,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\列表_Entity_连线.gia',
+    sampleFile: '角色技能节点图\\按比例转移指定实体的仇恨值_连线.gia',
     reflectMap: [
       {
         concreteId: 60,
@@ -18309,6 +20382,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'get_current_active_pre_aiming_index',
+    displayName: '获取当前生效的预瞄准序号',
+    graphType: 20002,
+    genericId: 200279,
+    concreteId: 1083,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'get_current_character',
     displayName: '获取当前角色',
     graphType: 20002,
@@ -18323,7 +20414,181 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\以实体查询GUID_连线.gia'
+    sampleFile: '角色技能节点图\\获取当前角色_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_current_client_time',
+    displayName: '获取当前客户端时间',
+    graphType: 20002,
+    genericId: 200269,
+    concreteId: 1074,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_current_client_time_high_precision',
+    displayName: '获取当前客户端时间(高精度)',
+    graphType: 20002,
+    genericId: 200270,
+    concreteId: 1075,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_current_key_behavior',
+    displayName: '获取当前关键行为',
+    graphType: 20002,
+    genericId: 200267,
+    concreteId: 1072,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float_list',
+        clientVarType: 8
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_current_key_behavior_high_precision',
+    displayName: '获取当前关键行为(高精度)',
+    graphType: 20002,
+    genericId: 200268,
+    concreteId: 1073,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_cursor_hit_result',
+    displayName: '获取光标命中结果',
+    graphType: 20002,
+    genericId: 200285,
+    concreteId: 1089,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3_list',
+        clientVarType: 12
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_cursor_screen_coordinates',
+    displayName: '获取光标屏幕坐标',
+    graphType: 20002,
+    genericId: 200286,
+    concreteId: 1090,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_cursor_viewport_coordinates',
+    displayName: '获取光标视口坐标',
+    graphType: 20002,
+    genericId: 200287,
+    concreteId: 1091,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18381,7 +20646,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 18
       }
     ],
-    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '角色技能节点图\\查询字典是否包含特定值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18457,7 +20722,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\筛选方形范围内的实体列表_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体旋转_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18482,7 +20747,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 18
       }
     ],
-    sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体当前生效的扫描标签_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18507,7 +20772,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 13
       }
     ],
-    sampleFile: '角色技能节点图\\枚举匹配_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体扫描状态_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18653,7 +20918,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 17
       }
     ],
-    sampleFile: '角色技能节点图\\结构采样_数据类型转换_拼装列表_信号_射线_攻击盒.gia'
+    sampleFile: '角色技能节点图\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -18678,7 +20943,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '角色技能节点图\\获取列表长度_连线.gia',
     reflectMap: [
       {
         concreteId: 81,
@@ -18860,7 +21125,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    sampleFile: '角色技能节点图\\获取列表最大值_连线.gia',
     reflectMap: [
       {
         concreteId: 120,
@@ -19007,6 +21272,158 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\获取当前角色_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_player_movement_input',
+    displayName: '获取玩家移动输入',
+    graphType: 20002,
+    genericId: 200255,
+    concreteId: 1070,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_pre_aiming_collision_detection_result_count',
+    displayName: '获取预瞄碰撞检测结果数量',
+    graphType: 20002,
+    genericId: 200280,
+    concreteId: 1084,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_pre_aiming_duration',
+    displayName: '获取预瞄持续时长',
+    graphType: 20002,
+    genericId: 200278,
+    concreteId: 1082,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_pre_aiming_ray_hit_info',
+    displayName: '获取预瞄射线命中信息',
+    graphType: 20002,
+    genericId: 200281,
+    concreteId: 1085,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_pre_aiming_result',
+    displayName: '获取预瞄结果',
+    graphType: 20002,
+    genericId: 200277,
+    concreteId: 1081,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 3,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -19287,7 +21704,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 17
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '角色技能节点图\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -19305,7 +21722,33 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\字典_Entity到Integer_连线.gia'
+    sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_skill_config_id_by_skill_instance_id',
+    displayName: '根据技能实例ID获取技能配置ID',
+    graphType: 20002,
+    genericId: 200272,
+    concreteId: 1076,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -19337,7 +21780,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -19463,6 +21906,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_whether_cursor_is_active',
+    displayName: '获取光标是否激活',
+    graphType: 20002,
+    genericId: 200284,
+    concreteId: 1088,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+    displayName: '获取预瞄准摇杆是否处于死区',
+    graphType: 20002,
+    genericId: 200282,
+    concreteId: 1086,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -19622,6 +22109,45 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'increase_skill_variable_value',
+    displayName: '增加技能变量值',
+    graphType: 20002,
+    genericId: 200258,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\增加技能变量值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'increase_the_aggro_value_of_the_specified_entity',
     displayName: '增加指定实体的仇恨值',
     graphType: 20002,
@@ -19666,6 +22192,30 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\增加指定实体的仇恨值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'interrupt_current_skill',
+    displayName: '打断当前技能',
+    graphType: 20002,
+    genericId: 200256,
+    concreteId: 2000,
+    inputs: [],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\遍历实体列表_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -19852,7 +22402,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [
       {
         concreteId: 100,
@@ -20068,7 +22618,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\逻辑与运算_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -20094,7 +22644,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\是否大于_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -20127,7 +22677,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\是否小于等于_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -20160,7 +22710,70 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\是否小于_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑异或运算_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'multiple_branches',
+    displayName: '多分支',
+    graphType: 20002,
+    genericId: 200264,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\多分支_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 2000,
+        variantKey: '3,4',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'int',
+            clientVarType: 3
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'int_list',
+            clientVarType: 4
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'character_skill',
@@ -20198,7 +22811,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量内积_连线.gia',
+    sampleFile: '角色技能节点图\\乘法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -20261,7 +22874,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 2001,
     inputs: [],
     outputs: [],
-    sampleFile: '角色技能节点图\\三维向量内积_连线.gia',
+    sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
     contextDeclaration: {
       kind: 6,
       index: 0
@@ -20346,7 +22959,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -20415,7 +23028,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打矩形攻击盒_连线.gia',
+    sampleFile: '角色技能节点图\\播放限时特效_连线.gia',
     argPins: [0, 1, 2, 3, 5]
   },
   {
@@ -20482,6 +23095,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\玩家转向指定朝向_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_active_skill_instance_list_of_specified_slot',
+    displayName: '查询指定槽位当前生效的技能实例',
+    graphType: 20002,
+    genericId: 200274,
+    concreteId: 1077,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -20552,7 +23191,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia',
+    sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -20580,7 +23219,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体旋转_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -20661,7 +23300,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\以键查询字典值_连线.gia',
+    sampleFile: '角色技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [
       {
         concreteId: 1051,
@@ -20713,7 +23352,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia',
     reflectMap: [
       {
         concreteId: 1052,
@@ -20836,6 +23475,142 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_pre_aiming_end_reason',
+    displayName: '查询预瞄准结束原因',
+    graphType: 20002,
+    genericId: 200283,
+    concreteId: 1087,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+    displayName: '以技能槽位和技能配置ID查询技能实例ID',
+    graphType: 20002,
+    genericId: 200275,
+    concreteId: 1079,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_skill_instance_list_by_specified_slot',
+    displayName: '查询指定槽位的技能实例列表',
+    graphType: 20002,
+    genericId: 200273,
+    concreteId: 1078,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_skill_variable_value',
+    displayName: '查询技能变量对应值',
+    graphType: 20002,
+    genericId: 200259,
+    concreteId: 1071,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'query_whether_player_is_currently_in_voice_chat',
+    displayName: '查询玩家是否正在语音聊天',
+    graphType: 20002,
+    genericId: 200271,
+    concreteId: 3007,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -21126,6 +23901,85 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'screen_coordinates_to_viewport_coordinates',
+    displayName: '屏幕坐标转视口坐标',
+    graphType: 20002,
+    genericId: 200290,
+    concreteId: 140,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'screen_coordinates_to_world_coordinates',
+    displayName: '屏幕坐标转世界坐标',
+    graphType: 20002,
+    genericId: 200292,
+    concreteId: 142,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'send_signal_to_server_node_graph',
     displayName: '向服务器节点图发送信号',
     graphType: 20002,
@@ -21274,6 +24128,45 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'set_skill_variable',
+    displayName: '设置技能变量',
+    graphType: 20002,
+    genericId: 200257,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\设置技能变量_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'set_the_aggro_value_of_specified_entity',
     displayName: '设置指定实体的仇恨值',
     graphType: 20002,
@@ -21364,7 +24257,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia'
+    sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -21454,7 +24347,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量减法_连线.gia'
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -21616,7 +24509,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\向服务器节点图发送信号_连线.gia'
+    sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -21714,7 +24607,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\嘲讽目标_连线.gia'
+    sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'character_skill',
@@ -22457,7 +25350,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '角色技能节点图\\指定挂接点打攻击盒_全参数填值_筛选列表连线.gia',
+    sampleFile: '角色技能节点图\\指定挂接点打攻击盒_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26,
       27, 29, 33, 34, 35, 39, 40, 41, 42, 43, 44, 46, 47
@@ -24706,6 +27599,45 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'character_skill',
+    nodeType: 'viewport_coordinates_to_screen_coordinates',
+    displayName: '视口坐标转屏幕坐标',
+    graphType: 20002,
+    genericId: 200291,
+    concreteId: 141,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+  },
+  {
+    subType: 'character_skill',
     nodeType: 'whether_the_entity_has_the_specified_unit_status',
     displayName: '实体是否携带指定单位状态',
     graphType: 20002,
@@ -24735,6 +27667,38 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia'
+  },
+  {
+    subType: 'character_skill',
+    nodeType: 'world_coordinates_to_screen_coordinates',
+    displayName: '世界坐标转屏幕坐标',
+    graphType: 20002,
+    genericId: 200293,
+    concreteId: 143,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -24774,7 +27738,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量加法_连线.gia',
+    sampleFile: '造物技能节点图\\创建三维向量_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -24926,7 +27890,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量归一化_连线.gia'
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -24999,7 +27963,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量减法_连线.gia',
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -25033,7 +27997,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量夹角_连线.gia'
+    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -25058,7 +28022,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\恢复生命值_连线.gia',
+    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia',
     reflectMap: [
       {
         concreteId: 32,
@@ -25336,7 +28300,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量夹角_连线.gia',
+    sampleFile: '造物技能节点图\\乘法运算_连线.gia',
     argPins: [1]
   },
   {
@@ -25981,7 +28945,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -26069,7 +29033,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\建立字典_连线.gia',
+    sampleFile: '造物技能节点图\\遍历实体列表_连线.gia',
     reflectMap: [
       {
         concreteId: 1025,
@@ -26747,6 +29711,31 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     sampleFile: '造物技能节点图\\跳出循环_连线.gia'
   },
   {
+    nodeType: 'check_classic_mode_character_id',
+    displayName: '查询经典模式角色编号',
+    genericId: 200254,
+    concreteId: 1069,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin',
+    subType: 'creation_skill',
+    graphType: 20002
+  },
+  {
     subType: 'creation_skill',
     nodeType: 'check_the_preset_status_value_of_the_complex_creation',
     displayName: '查询复杂造物的预设状态值',
@@ -26865,7 +29854,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia'
+    sampleFile: '造物技能节点图\\遍历实体列表_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -26906,7 +29895,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\复杂造物瞬移_连线.gia'
+    sampleFile: '造物技能节点图\\遍历实体列表_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -26971,7 +29960,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\建立字典_连线.gia',
+    sampleFile: '造物技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -27013,7 +30002,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\余弦函数_连线.gia'
+    sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -27146,7 +30135,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量外积_连线.gia'
+    sampleFile: '造物技能节点图\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -27184,7 +30173,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\反正切函数_连线.gia',
+    sampleFile: '造物技能节点图\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -27306,7 +30295,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\双分支_连线.gia',
+    sampleFile: '造物技能节点图\\枚举匹配_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -27365,7 +30354,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\数据类型转换_连线.gia',
+    sampleFile: '造物技能节点图\\是否相等_连线.gia',
     reflectMap: [
       {
         concreteId: 11,
@@ -27623,7 +30612,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         i2Index: 0
       }
     ],
-    sampleFile: '造物技能节点图\\增加指定实体的仇恨值_连线.gia'
+    sampleFile: '造物技能节点图\\设置局部变量_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -27684,8 +30673,33 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\定点发射投射物_连线.gia',
+    sampleFile: '造物技能节点图\\遍历实体列表_连线.gia',
     specialKind: 'inline_var_type_hint'
+  },
+  {
+    nodeType: 'get_active_character_of_specified_player',
+    displayName: '获取指定玩家的前台角色',
+    genericId: 200251,
+    concreteId: 1002,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin',
+    subType: 'creation_skill',
+    graphType: 20002
   },
   {
     subType: 'creation_skill',
@@ -27717,7 +30731,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\获取列表最大值_连线.gia'
+    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -27943,6 +30957,84 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'get_cursor_hit_result',
+    displayName: '获取光标命中结果',
+    graphType: 20002,
+    genericId: 200285,
+    concreteId: 1089,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3_list',
+        clientVarType: 12
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_cursor_screen_coordinates',
+    displayName: '获取光标屏幕坐标',
+    graphType: 20002,
+    genericId: 200286,
+    concreteId: 1090,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'get_cursor_viewport_coordinates',
+    displayName: '获取光标视口坐标',
+    graphType: 20002,
+    genericId: 200287,
+    concreteId: 1091,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'get_custom_variable',
     displayName: '获取自定义变量',
     graphType: 20002,
@@ -28022,7 +31114,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取实体位置_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -28047,7 +31139,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\筛选方形范围内的实体列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取实体旋转_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -28072,7 +31164,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 13
       }
     ],
-    sampleFile: '造物技能节点图\\枚举匹配_连线.gia'
+    sampleFile: '造物技能节点图\\获取实体的类型_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -28097,7 +31189,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 4
       }
     ],
-    sampleFile: '造物技能节点图\\获取实体的单位标签列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取局部变量_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -28193,7 +31285,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 17
       }
     ],
-    sampleFile: '造物技能节点图\\获取实体的类型_连线.gia'
+    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -28218,7 +31310,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    sampleFile: '造物技能节点图\\获取列表长度_连线.gia',
     reflectMap: [
       {
         concreteId: 81,
@@ -28400,7 +31492,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia',
+    sampleFile: '造物技能节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 120,
@@ -28464,7 +31556,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia',
     reflectMap: [
       {
         concreteId: 122,
@@ -28528,7 +31620,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
+  },
+  {
+    nodeType: 'get_player_s_character_list',
+    displayName: '获取玩家的角色列表',
+    genericId: 200242,
+    concreteId: 1067,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin',
+    subType: 'creation_skill',
+    graphType: 20002
   },
   {
     subType: 'creation_skill',
@@ -28809,7 +31926,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 17
       }
     ],
-    sampleFile: '造物技能节点图\\指定挂接点打扇形攻击盒_连线.gia'
+    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -28884,7 +32001,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\获取目标挂接点位置_连线.gia'
+    sampleFile: '造物技能节点图\\获取角色归属的玩家实体_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -29013,6 +32130,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'get_whether_cursor_is_active',
+    displayName: '获取光标是否激活',
+    graphType: 20002,
+    genericId: 200284,
+    concreteId: 1088,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'greater_than',
     displayName: '是否大于',
     graphType: 20002,
@@ -29047,7 +32182,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\是否大于_连线.gia',
+    sampleFile: '造物技能节点图\\获取随机数_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -29166,6 +32301,45 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     specialKind: 'reflect',
     argPins: [1, 2]
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'increase_skill_variable_value',
+    displayName: '增加技能变量值',
+    graphType: 20002,
+    genericId: 200258,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\增加技能变量值_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -29399,7 +32573,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia',
     reflectMap: [
       {
         concreteId: 100,
@@ -29615,7 +32789,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\逻辑与运算_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -29641,7 +32815,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\是否大于_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -29674,7 +32848,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\是否小于_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑或运算_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -29745,7 +32919,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量内积_连线.gia',
+    sampleFile: '造物技能节点图\\乘法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -29808,7 +32982,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 2001,
     inputs: [],
     outputs: [],
-    sampleFile: '造物技能节点图\\三维向量内积_连线.gia',
+    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
     contextDeclaration: {
       kind: 6,
       index: 0
@@ -29893,7 +33067,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物技能节点图\\朝向转旋转_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -29962,7 +33136,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia',
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
     argPins: [0, 1, 2, 3, 5]
   },
   {
@@ -30034,7 +33208,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\以GUID查询实体_连线.gia',
+    sampleFile: '造物技能节点图\\查询实体阵营_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -30062,7 +33236,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\以GUID查询实体_连线.gia'
+    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -30195,7 +33369,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物技能节点图\\查询字典是否包含特定值_连线.gia',
     reflectMap: [
       {
         concreteId: 1052,
@@ -30303,6 +33477,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'query_skill_variable_value',
+    displayName: '查询技能变量对应值',
+    graphType: 20002,
+    genericId: 200259,
+    concreteId: 1071,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'radians_to_degrees',
     displayName: '弧度转角度',
     graphType: 20002,
@@ -30332,15 +33532,15 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\弧度转角度_连线.gia',
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
     argPins: [1]
   },
   {
     subType: 'creation_skill',
     nodeType: 'recover_creation_s_hp',
-    displayName: '恢复生命值',
+    displayName: '造物恢复生命值',
     graphType: 20002,
-    genericId: 200075,
+    genericId: 200249,
     concreteId: 2000,
     inputs: [
       {
@@ -30599,6 +33799,85 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'screen_coordinates_to_viewport_coordinates',
+    displayName: '屏幕坐标转视口坐标',
+    graphType: 20002,
+    genericId: 200290,
+    concreteId: 140,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'screen_coordinates_to_world_coordinates',
+    displayName: '屏幕坐标转世界坐标',
+    graphType: 20002,
+    genericId: 200292,
+    concreteId: 142,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'send_signal_to_server_node_graph',
     displayName: '向服务器节点图发送信号',
     graphType: 20002,
@@ -30663,9 +33942,48 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\向服务器节点图发送信号_连线.gia',
+    sampleFile: '造物技能节点图\\获取实体的单位标签列表_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'set_skill_variable',
+    displayName: '设置技能变量',
+    graphType: 20002,
+    genericId: 200257,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\设置技能变量_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -30759,7 +34077,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\将目标实体移除出仇恨列表_连线.gia'
+    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -30890,7 +34208,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\设置造物冷却组的当前时间_连线.gia'
+    sampleFile: '造物技能节点图\\设置造物技能的冷却时间_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -31062,7 +34380,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -31100,7 +34418,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\减法运算_连线.gia',
+    sampleFile: '造物技能节点图\\获取随机数_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -31322,7 +34640,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\以键查询字典值_连线.gia'
+    sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
   },
   {
     subType: 'creation_skill',
@@ -32421,7 +35739,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打矩形攻击盒_连线.gia',
+    sampleFile: '造物技能节点图\\设置造物技能的当前冷却时间_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32, 33, 34, 38, 39, 40,
       41, 42, 43, 45, 46
@@ -33168,7 +36486,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物技能节点图\\特定位置打扇形攻击盒_连线.gia',
+    sampleFile: '造物技能节点图\\获取射线筛选类型列表_连线.gia',
     argPins: [
       0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 28, 32,
       33, 34, 38, 39, 40, 41, 42, 43, 45, 46
@@ -33923,6 +37241,436 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'creation_skill',
+    nodeType: 'trigger_spherical_hitbox_at_specified_attachment_point',
+    displayName: '指定挂接点打球形攻击盒',
+    graphType: 20002,
+    genericId: 200114,
+    concreteId: 2000,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9,
+        defaultValue: ''
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0],
+        i2Index: 6
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0],
+        i2Index: 7
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 3
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 4
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'enum_list',
+        clientVarType: 17,
+        i2Index: 5
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 29
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0,
+        i2Index: 2
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 401,
+        i2Index: 8
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0],
+        i2Index: 9
+      },
+      {
+        index: 11,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 10
+      },
+      {
+        index: 12,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 11
+      },
+      {
+        index: 13,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 12
+      },
+      {
+        index: 14,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 13
+      },
+      {
+        index: 15,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 14
+      },
+      {
+        index: 16,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 15
+      },
+      {
+        index: 17,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 16
+      },
+      {
+        index: 18,
+        kind: 'input',
+        type: 'str_list',
+        clientVarType: 10,
+        i2Index: 17
+      },
+      {
+        index: 19,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 18
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 19
+      },
+      {
+        index: 21,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 20
+      },
+      {
+        index: 22,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 21
+      },
+      {
+        index: 23,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0,
+        i2Index: 22
+      },
+      {
+        index: 24,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0,
+        i2Index: 23
+      },
+      {
+        index: 25,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0,
+        i2Index: 24
+      },
+      {
+        index: 26,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0,
+        i2Index: 25
+      },
+      {
+        index: 27,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 26
+      },
+      {
+        index: 28,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0,
+        i2Index: 27
+      },
+      {
+        index: 29,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0,
+        i2Index: 28
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9,
+        defaultValue: ''
+      },
+      {
+        index: 31,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0
+      },
+      {
+        index: 32,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0
+      },
+      {
+        index: 33,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      },
+      {
+        index: 34,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      },
+      {
+        index: 35,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'str',
+        clientVarType: 9,
+        defaultValue: ''
+      },
+      {
+        index: 37,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0
+      },
+      {
+        index: 38,
+        kind: 'input',
+        type: 'bool',
+        clientVarType: 5,
+        defaultValue: 0
+      },
+      {
+        index: 39,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      },
+      {
+        index: 40,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      },
+      {
+        index: 41,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 42,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 43,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      },
+      {
+        index: 44,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 3200
+      },
+      {
+        index: 45,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      },
+      {
+        index: 46,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 47,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [],
+    flows: [
+      {
+        index: 0,
+        kind: 'client_exec',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\指定挂接点打球形攻击盒_连线.gia',
+    argPins: [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 16, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 33, 34, 35, 39, 40,
+      41, 42, 43, 44, 46, 47
+    ]
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'viewport_coordinates_to_screen_coordinates',
+    displayName: '视口坐标转屏幕坐标',
+    graphType: 20002,
+    genericId: 200291,
+    concreteId: 141,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
     nodeType: 'whether_the_entity_has_the_specified_unit_status',
     displayName: '实体是否携带指定单位状态',
     graphType: 20002,
@@ -33952,6 +37700,38 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\实体是否携带指定单位状态_连线.gia'
+  },
+  {
+    subType: 'creation_skill',
+    nodeType: 'world_coordinates_to_screen_coordinates',
+    displayName: '世界坐标转屏幕坐标',
+    graphType: 20002,
+    genericId: 200293,
+    concreteId: 143,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -33991,7 +37771,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量加法_连线.gia',
+    sampleFile: '造物状态节点图\\朝向转旋转_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -34143,7 +37923,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量归一化_连线.gia'
+    sampleFile: '造物状态节点图\\朝向转旋转_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -34437,7 +38217,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\余弦函数_连线.gia',
+    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia',
     argPins: [1]
   },
   {
@@ -34471,7 +38251,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\创建三维向量_连线.gia',
+    sampleFile: '造物状态节点图\\除法运算_连线.gia',
     argPins: [1]
   },
   {
@@ -34505,7 +38285,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\反正切函数_连线.gia',
+    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia',
     argPins: [1]
   },
   {
@@ -35150,7 +38930,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -35725,7 +39505,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\建立字典_连线.gia',
+    sampleFile: '造物状态节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [
       {
         concreteId: 1049,
@@ -35823,7 +39603,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\多分支_连线.gia',
+    sampleFile: '造物状态节点图\\查询字典是否包含特定值_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -35892,7 +39672,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\战术：旋转到指定朝向_连线.gia'
+    sampleFile: '造物状态节点图\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -35930,7 +39710,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\创建三维向量_连线.gia',
+    sampleFile: '造物状态节点图\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -36013,7 +39793,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\双分支_连线.gia'
+    sampleFile: '造物状态节点图\\多分支_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -36044,7 +39824,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\双分支_连线.gia',
+    sampleFile: '造物状态节点图\\获取前一帧执行战术_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -36103,7 +39883,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [
       {
         concreteId: 11,
@@ -36230,7 +40010,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\最小图_单节点.gia'
+    sampleFile: '造物状态节点图\\继续执行前一帧行为_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -36262,7 +40042,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 60,
@@ -36450,7 +40230,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 13
       }
     ],
-    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
+    sampleFile: '造物状态节点图\\获取实体的类型_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -36475,7 +40255,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物状态节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 80,
@@ -36515,7 +40295,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物状态节点图\\查询字典中键组成的列表_连线.gia',
     reflectMap: [
       {
         concreteId: 1054,
@@ -36607,7 +40387,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\战术：旋转朝向目标实体_连线.gia',
+    sampleFile: '造物状态节点图\\获取列表最大值_连线.gia',
     reflectMap: [
       {
         concreteId: 120,
@@ -36671,7 +40451,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\战术：移动到目标实体_连线.gia',
+    sampleFile: '造物状态节点图\\获取列表最小值_连线.gia',
     reflectMap: [
       {
         concreteId: 122,
@@ -36785,7 +40565,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 9
       }
     ],
-    sampleFile: '造物状态节点图\\枚举匹配_连线.gia'
+    sampleFile: '造物状态节点图\\获取前一帧执行战术_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -36816,7 +40596,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    sampleFile: '造物状态节点图\\获取随机数_连线.gia',
     reflectMap: [
       {
         concreteId: 1011,
@@ -36911,7 +40691,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\获取物件预设状态_连线.gia'
+    sampleFile: '造物状态节点图\\获取目标等级_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -36985,7 +40765,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
+    sampleFile: '造物状态节点图\\获取目标攻击力_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37105,7 +40885,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    sampleFile: '造物状态节点图\\是否大于_连线.gia',
     reflectMap: [
       {
         concreteId: 13,
@@ -37165,7 +40945,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    sampleFile: '造物状态节点图\\是否大于等于_连线.gia',
     reflectMap: [
       {
         concreteId: 13,
@@ -37225,7 +41005,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    sampleFile: '造物状态节点图\\是否小于_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -37303,7 +41083,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia',
+    sampleFile: '造物状态节点图\\是否小于等于_连线.gia',
     reflectMap: [
       {
         concreteId: 13,
@@ -37428,7 +41208,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\是否小于_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑与运算_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37454,7 +41234,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\是否大于_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37487,7 +41267,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\是否小于等于_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37520,7 +41300,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面追击_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37551,7 +41331,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\双分支_连线.gia',
+    sampleFile: '造物状态节点图\\多分支_连线.gia',
     reflectMap: [
       {
         concreteId: 4002,
@@ -37610,7 +41390,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量内积_连线.gia',
+    sampleFile: '造物状态节点图\\乘法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -37680,7 +41460,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量内积_连线.gia',
+    sampleFile: '造物状态节点图\\变量字典覆盖采样.gia',
     specialKind: 'start',
     isStart: true
   },
@@ -37715,7 +41495,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37786,7 +41566,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [
       {
         concreteId: 1050,
@@ -37839,7 +41619,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 16
       }
     ],
-    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
+    sampleFile: '造物状态节点图\\查询实体阵营_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -37903,7 +41683,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物状态节点图\\查询目标点是否寻路可达_连线.gia',
     reflectMap: [
       {
         concreteId: 1052,
@@ -37950,7 +41730,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
+    sampleFile: '造物状态节点图\\查询实体是否在场_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -38107,7 +41887,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_status',
@@ -38507,7 +42287,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面逃跑_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -38589,7 +42369,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面闲逛_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -38685,7 +42465,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -38752,7 +42532,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：移动到目标实体_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -38820,7 +42600,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：移动到目标点_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -38895,7 +42675,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面对峙_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -39024,7 +42804,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态节点图\\战术：地面闲逛_连线.gia'
+    sampleFile: '造物状态节点图\\枚举普查_造物状态_全量排布.gia'
   },
   {
     subType: 'creation_status',
@@ -40357,7 +44137,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典中键组成的列表_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -40856,7 +44636,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身是否正在释放技能_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -40921,7 +44701,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\建立字典_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典长度_连线.gia',
     reflectMap: [
       {
         concreteId: 1049,
@@ -40988,7 +44768,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -41019,7 +44799,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\多分支_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -41088,7 +44868,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '造物状态决策节点图\\朝向转旋转_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -41209,7 +44989,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\多分支_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -41240,7 +45020,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\双分支_连线.gia',
+    sampleFile: '造物状态决策节点图\\获取前一帧执行战术_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -41299,7 +45079,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\数据类型转换_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询实体阵营_连线.gia',
     reflectMap: [
       {
         concreteId: 11,
@@ -41425,7 +45205,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态决策节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 60,
@@ -41533,7 +45313,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询字典是否包含特定值_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -41638,7 +45418,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物状态决策节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 80,
@@ -41724,7 +45504,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典中值组成的列表_连线.gia',
     reflectMap: [
       {
         concreteId: 1055,
@@ -41924,7 +45704,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 18
       }
     ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取前一帧执行状态_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -41948,7 +45728,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 9
       }
     ],
-    sampleFile: '造物状态决策节点图\\枚举匹配_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取前一帧执行战术_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42074,7 +45854,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42519,7 +46299,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态决策节点图\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 101,
@@ -42591,7 +46371,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\逻辑与运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42617,7 +46397,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\是否大于等于_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42650,7 +46430,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\是否大于_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42683,7 +46463,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑异或运算_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42714,7 +46494,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia',
+    sampleFile: '造物状态决策节点图\\多分支_连线.gia',
     reflectMap: [
       {
         concreteId: 4002,
@@ -42773,7 +46553,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia',
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -42843,7 +46623,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询目标点是否寻路可达_连线.gia',
     specialKind: 'start',
     isStart: true
   },
@@ -42878,7 +46658,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -42903,7 +46683,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\拼装字典_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典长度_连线.gia',
     reflectMap: [
       {
         concreteId: 1053,
@@ -42949,7 +46729,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物状态决策节点图\\以键查询字典值_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典长度_连线.gia',
     reflectMap: [
       {
         concreteId: 1050,
@@ -43033,7 +46813,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\建立字典_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -43066,7 +46846,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\列表是否包含该值_连线.gia',
+    sampleFile: '造物状态决策节点图\\查询目标点是否寻路可达_连线.gia',
     reflectMap: [
       {
         concreteId: 1052,
@@ -43270,7 +47050,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
   },
   {
     subType: 'creation_status_decision',
@@ -43400,7 +47180,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'flow'
       }
     ],
-    sampleFile: '造物状态决策节点图\\最小图_单节点.gia',
+    sampleFile: '造物状态决策节点图\\切换自身执行状态_连线.gia',
     specialKind: 'inline_var_type_hint'
   },
   {
@@ -43468,7 +47248,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量加法_填值.gia',
+    sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -43495,7 +47275,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量夹角_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量夹角_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43521,7 +47301,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量外积_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量外积_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43547,7 +47327,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量内积_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43566,7 +47346,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量模运算_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量模运算_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43585,7 +47365,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量归一化_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量归一化_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43611,7 +47391,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量旋转_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量旋转_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43644,7 +47424,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量减法_填值.gia',
+    sampleFile: '整数过滤器节点\\三维向量减法_连线.gia',
     argPins: [1, 2]
   },
   {
@@ -43671,7 +47451,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量缩放_填值.gia'
+    sampleFile: '整数过滤器节点\\三维向量缩放_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -43696,7 +47476,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\绝对值运算_填值.gia',
+    sampleFile: '整数过滤器节点\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 32,
@@ -43878,7 +47658,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\创建三维向量_连线.gia',
+    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia',
     argPins: [1]
   },
   {
@@ -43905,8 +47685,654 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\反正切函数_填值.gia',
+    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'assemble_structure',
+    displayName: '拼装结构体',
+    graphType: 20001,
+    genericId: 200160,
+    concreteId: null,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'local_variable',
+        clientVarType: 22
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'assembly_dictionary',
+    displayName: '拼装字典',
+    graphType: 20001,
+    genericId: 200152,
+    concreteId: 1048,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 2
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 3,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 4,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 5,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 6,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 7,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 8,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 9,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 10,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 11,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 12,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 13,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 14,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 15,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 16,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 17,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 18,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 19,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 20,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 21,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 22,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 23,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 24,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 25,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 26,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 27,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 28,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 29,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 30,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 31,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 32,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 33,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 34,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 35,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 36,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 37,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 38,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 39,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 40,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 41,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 42,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 43,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 44,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 45,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 46,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 47,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 48,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 49,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 50,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 51,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 52,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 53,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 54,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 55,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 56,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 57,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 58,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 59,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 60,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 61,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 62,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 63,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 64,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 65,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 66,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 67,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 68,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 69,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 70,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 71,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 72,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 73,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 74,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 75,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 76,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 77,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 78,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 79,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 80,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 81,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 82,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 83,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 84,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 85,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 86,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 87,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 88,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 89,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 90,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 91,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 92,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 93,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 94,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 95,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 96,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 97,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 98,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 99,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 100,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -43992,7 +48418,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\列表是否包含该值_连线.gia',
+    sampleFile: '整数过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 1025,
@@ -44646,6 +49072,63 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     specialKind: 'reflect'
   },
   {
+    nodeType: 'check_classic_mode_character_id',
+    displayName: '查询经典模式角色编号',
+    genericId: 200254,
+    concreteId: 1069,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin',
+    subType: 'int_filter',
+    graphType: 20001
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'check_the_preset_status_value_of_the_complex_creation',
+    displayName: '查询复杂造物的预设状态值',
+    graphType: 20001,
+    genericId: 200244,
+    concreteId: 1066,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+  },
+  {
     subType: 'int_filter',
     nodeType: 'cosine_function',
     displayName: '余弦函数',
@@ -44669,8 +49152,41 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\余弦函数_填值.gia',
+    sampleFile: '整数过滤器节点\\余弦函数_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'create_dictionary',
+    displayName: '建立字典',
+    graphType: 20001,
+    genericId: 200153,
+    concreteId: 1049,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -44703,7 +49219,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\创建三维向量_填值.gia'
+    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -44734,7 +49250,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\数据类型转换_填值.gia',
+    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia',
     reflectMap: [],
     specialKind: 'reflect'
   },
@@ -44762,7 +49278,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\角度转弧度_填值.gia',
+    sampleFile: '整数过滤器节点\\角度转弧度_连线.gia',
     argPins: [1]
   },
   {
@@ -44789,7 +49305,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\方向向量转旋转_填值.gia'
+    sampleFile: '整数过滤器节点\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -44827,7 +49343,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\反正切函数_连线.gia',
+    sampleFile: '整数过滤器节点\\除法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -44903,7 +49419,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\枚举匹配_填值.gia',
+    sampleFile: '整数过滤器节点\\获得玩家客户端输入设备类型_连线.gia',
     reflectMap: [
       {
         concreteId: 10,
@@ -44955,7 +49471,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\以实体查询GUID_连线.gia',
+    sampleFile: '整数过滤器节点\\查询自身是否已入战_连线.gia',
     reflectMap: [
       {
         concreteId: 11,
@@ -45089,7 +49605,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_填值.gia'
+    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45143,7 +49659,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\筛选方形范围内的实体列表_填值.gia'
+    sampleFile: '整数过滤器节点\\筛选方形范围内的实体列表_连线.gia'
+  },
+  {
+    nodeType: 'get_active_character_of_specified_player',
+    displayName: '获取指定玩家的前台角色',
+    genericId: 200251,
+    concreteId: 1002,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin',
+    subType: 'int_filter',
+    graphType: 20001
   },
   {
     subType: 'int_filter',
@@ -45168,7 +49709,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取碰撞触发器内所有实体_填值.gia'
+    sampleFile: '整数过滤器节点\\获取碰撞触发器内所有实体_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45180,6 +49721,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '整数过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_base_object_of_specified_pre_aiming',
+    displayName: '获取指定预瞄准的基准对象',
+    graphType: 20001,
+    genericId: 200276,
+    concreteId: 1080,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45229,7 +49796,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\列表是否包含该值_连线.gia',
+    sampleFile: '整数过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 60,
@@ -45398,6 +49965,24 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'get_current_active_pre_aiming_index',
+    displayName: '获取当前生效的预瞄准序号',
+    graphType: 20001,
+    genericId: 200279,
+    concreteId: 1083,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'get_current_character',
     displayName: '获取当前角色',
     graphType: 20001,
@@ -45405,7 +49990,181 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1032,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\以实体查询GUID_连线.gia'
+    sampleFile: '整数过滤器节点\\获取当前角色_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_current_client_time',
+    displayName: '获取当前客户端时间',
+    graphType: 20001,
+    genericId: 200269,
+    concreteId: 1074,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_current_client_time_high_precision',
+    displayName: '获取当前客户端时间(高精度)',
+    graphType: 20001,
+    genericId: 200270,
+    concreteId: 1075,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_current_key_behavior',
+    displayName: '获取当前关键行为',
+    graphType: 20001,
+    genericId: 200267,
+    concreteId: 1072,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float_list',
+        clientVarType: 8
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_current_key_behavior_high_precision',
+    displayName: '获取当前关键行为(高精度)',
+    graphType: 20001,
+    genericId: 200268,
+    concreteId: 1073,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_cursor_hit_result',
+    displayName: '获取光标命中结果',
+    graphType: 20001,
+    genericId: 200285,
+    concreteId: 1089,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3_list',
+        clientVarType: 12
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_cursor_screen_coordinates',
+    displayName: '获取光标屏幕坐标',
+    graphType: 20001,
+    genericId: 200286,
+    concreteId: 1090,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_cursor_viewport_coordinates',
+    displayName: '获取光标视口坐标',
+    graphType: 20001,
+    genericId: 200287,
+    concreteId: 1091,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45437,7 +50196,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 1
       }
     ],
-    sampleFile: '整数过滤器节点\\获取自定义变量_填值.gia'
+    sampleFile: '整数过滤器节点\\获取自定义变量_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45448,7 +50207,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1039,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45484,7 +50243,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_连线.gia'
+    sampleFile: '整数过滤器节点\\获取实体旋转_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45520,7 +50279,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体扫描状态_连线.gia'
+    sampleFile: '整数过滤器节点\\获取扫描组件当前扫描到的实体_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45538,7 +50297,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\以GUID查询实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45627,7 +50386,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体类型列表_填值.gia'
+    sampleFile: '整数过滤器节点\\获取射线检测结果_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45676,6 +50435,52 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'get_list_of_keys_from_dictionary',
+    displayName: '获取字典中键组成的列表',
+    graphType: 20001,
+    genericId: 200159,
+    concreteId: 1054,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取字典中键组成的列表_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1054,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 0,
+            kind: 'output',
+            type: 'entity_list',
+            clientVarType: 2
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'get_list_of_player_entities_on_the_field',
     displayName: '获取在场玩家实体列表',
     graphType: 20001,
@@ -45684,6 +50489,46 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '整数过滤器节点\\获取在场玩家实体列表_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_list_of_values_from_dictionary',
+    displayName: '获取字典中值组成的列表',
+    graphType: 20001,
+    genericId: 200158,
+    concreteId: 1055,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取列表长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1055,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -45772,7 +50617,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\获取列表最小值_连线.gia',
+    sampleFile: '整数过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 122,
@@ -45844,6 +50689,183 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'get_player_movement_input',
+    displayName: '获取玩家移动输入',
+    graphType: 20001,
+    genericId: 200255,
+    concreteId: 1070,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+  },
+  {
+    nodeType: 'get_player_s_character_list',
+    displayName: '获取玩家的角色列表',
+    genericId: 200242,
+    concreteId: 1067,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin',
+    subType: 'int_filter',
+    graphType: 20001
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_pre_aiming_collision_detection_result_count',
+    displayName: '获取预瞄碰撞检测结果数量',
+    graphType: 20001,
+    genericId: 200280,
+    concreteId: 1084,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_pre_aiming_duration',
+    displayName: '获取预瞄持续时长',
+    graphType: 20001,
+    genericId: 200278,
+    concreteId: 1082,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_pre_aiming_ray_hit_info',
+    displayName: '获取预瞄射线命中信息',
+    graphType: 20001,
+    genericId: 200281,
+    concreteId: 1085,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_pre_aiming_result',
+    displayName: '获取预瞄结果',
+    graphType: 20001,
+    genericId: 200277,
+    concreteId: 1081,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      },
+      {
+        index: 2,
+        kind: 'output',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 3,
+        kind: 'output',
+        type: 'entity_list',
+        clientVarType: 2
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'get_preset_status',
     displayName: '获取预设状态',
     graphType: 20001,
@@ -45865,7 +50887,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取预设状态_填值.gia'
+    sampleFile: '整数过滤器节点\\获取预设状态_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -45896,7 +50918,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         clientVarType: 3
       }
     ],
-    sampleFile: '整数过滤器节点\\获取随机数_填值.gia',
+    sampleFile: '整数过滤器节点\\获取随机数_连线.gia',
     reflectMap: [
       {
         concreteId: 1011,
@@ -46094,7 +51116,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取射线筛选类型列表_填值.gia'
+    sampleFile: '整数过滤器节点\\获取射线筛选类型列表_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46106,6 +51128,32 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_skill_config_id_by_skill_instance_id',
+    displayName: '根据技能实例ID获取技能配置ID',
+    graphType: 20001,
+    genericId: 200272,
+    concreteId: 1076,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'config_id',
+        clientVarType: 18
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46130,7 +51178,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点位置_填值.gia'
+    sampleFile: '整数过滤器节点\\获取目标挂接点位置_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46155,7 +51203,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_填值.gia'
+    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46188,6 +51236,50 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   },
   {
     subType: 'int_filter',
+    nodeType: 'get_whether_cursor_is_active',
+    displayName: '获取光标是否激活',
+    graphType: 20001,
+    genericId: 200284,
+    concreteId: 1088,
+    inputs: [],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'get_whether_pre_aiming_stick_is_in_dead_zone',
+    displayName: '获取预瞄准摇杆是否处于死区',
+    graphType: 20001,
+    genericId: 200282,
+    concreteId: 1086,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
+  },
+  {
+    subType: 'int_filter',
     nodeType: 'greater_than',
     displayName: '是否大于',
     graphType: 20001,
@@ -46215,7 +51307,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于_填值.gia',
+    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -46286,7 +51378,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于等于_填值.gia',
+    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -46357,7 +51449,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否小于_填值.gia',
+    sampleFile: '整数过滤器节点\\是否小于_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -46428,7 +51520,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否小于等于_填值.gia',
+    sampleFile: '整数过滤器节点\\是否小于等于_连线.gia',
     reflectMap: [
       {
         concreteId: 12,
@@ -46492,7 +51584,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\列表是否包含该值_填值.gia',
+    sampleFile: '整数过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [
       {
         concreteId: 100,
@@ -46701,7 +51793,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑与运算_填值.gia'
+    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46720,7 +51812,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\是否大于_连线.gia'
+    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46746,7 +51838,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑或运算_填值.gia'
+    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46772,7 +51864,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑异或运算_填值.gia'
+    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46810,7 +51902,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia',
+    sampleFile: '整数过滤器节点\\乘法运算_连线.gia',
     reflectMap: [
       {
         concreteId: 30,
@@ -46888,7 +51980,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量内积_填值.gia'
+    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46914,7 +52006,106 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia'
+    sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_active_skill_instance_list_of_specified_slot',
+    displayName: '查询指定槽位当前生效的技能实例',
+    graphType: 20001,
+    genericId: 200274,
+    concreteId: 1077,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_dictionary_s_length',
+    displayName: '查询字典长度',
+    graphType: 20001,
+    genericId: 200157,
+    concreteId: 1053,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1053,
+        variantKey: '24',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_dictionary_value_by_key',
+    displayName: '以键查询字典值',
+    graphType: 20001,
+    genericId: 200154,
+    concreteId: 1050,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
+    reflectMap: [],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -46933,7 +52124,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\以GUID查询实体_填值.gia'
+    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -46969,7 +52160,111 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\以GUID查询实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取角色归属的玩家实体_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_if_dictionary_contains_specific_key',
+    displayName: '查询字典是否包含特定键',
+    graphType: 20001,
+    genericId: 200155,
+    concreteId: 1051,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1051,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_if_dictionary_contains_specific_value',
+    displayName: '查询字典是否包含特定值',
+    graphType: 20001,
+    genericId: 200156,
+    concreteId: 1052,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'generic',
+        reflective: true
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    reflectMap: [
+      {
+        concreteId: 1052,
+        variantKey: '24,1',
+        pins: [
+          {
+            index: 0,
+            kind: 'input',
+            type: 'dict',
+            clientVarType: 24
+          },
+          {
+            index: 1,
+            kind: 'input',
+            type: 'entity',
+            clientVarType: 1
+          }
+        ]
+      }
+    ],
+    specialKind: 'reflect'
   },
   {
     subType: 'int_filter',
@@ -47013,7 +52308,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询阵营是否敌对_填值.gia'
+    sampleFile: '整数过滤器节点\\查询阵营是否敌对_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -47025,6 +52320,142 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     inputs: [],
     outputs: [],
     sampleFile: '整数过滤器节点\\查询自身是否已入战_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_pre_aiming_end_reason',
+    displayName: '查询预瞄准结束原因',
+    graphType: 20001,
+    genericId: 200283,
+    concreteId: 1087,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'int',
+        clientVarType: 3,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'enum',
+        clientVarType: 13
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_skill_instance_id_by_skill_slot_and_skill_config_id',
+    displayName: '以技能槽位和技能配置ID查询技能实例ID',
+    graphType: 20001,
+    genericId: 200275,
+    concreteId: 1079,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int',
+        clientVarType: 3
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_skill_instance_list_by_specified_slot',
+    displayName: '查询指定槽位的技能实例列表',
+    graphType: 20001,
+    genericId: 200273,
+    concreteId: 1078,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'enum',
+        clientVarType: 13,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'int_list',
+        clientVarType: 4
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_skill_variable_value',
+    displayName: '查询技能变量对应值',
+    graphType: 20001,
+    genericId: 200259,
+    concreteId: 1071,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'query_whether_player_is_currently_in_voice_chat',
+    displayName: '查询玩家是否正在语音聊天',
+    graphType: 20001,
+    genericId: 200271,
+    concreteId: 3007,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -47050,8 +52481,87 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\弧度转角度_填值.gia',
+    sampleFile: '整数过滤器节点\\弧度转角度_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'screen_coordinates_to_viewport_coordinates',
+    displayName: '屏幕坐标转视口坐标',
+    graphType: 20001,
+    genericId: 200290,
+    concreteId: 140,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'screen_coordinates_to_world_coordinates',
+    displayName: '屏幕坐标转世界坐标',
+    graphType: 20001,
+    genericId: 200292,
+    concreteId: 142,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 2,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'vec3',
+        clientVarType: 11
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -47077,8 +52587,26 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\正弦函数_填值.gia',
+    sampleFile: '整数过滤器节点\\正弦函数_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'split_structure',
+    displayName: '拆分结构体',
+    graphType: 20001,
+    genericId: 200161,
+    concreteId: null,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'local_variable',
+        clientVarType: 22
+      }
+    ],
+    outputs: [],
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -47097,7 +52625,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量减法_连线.gia'
+    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
   },
   {
     subType: 'int_filter',
@@ -47213,7 +52741,110 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\正切函数_填值.gia',
+    sampleFile: '整数过滤器节点\\正切函数_连线.gia',
     argPins: [1]
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'viewport_coordinates_to_screen_coordinates',
+    displayName: '视口坐标转屏幕坐标',
+    graphType: 20001,
+    genericId: 200291,
+    concreteId: 141,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'float',
+        clientVarType: 7,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'whether_the_entity_has_the_specified_unit_status',
+    displayName: '实体是否携带指定单位状态',
+    graphType: 20001,
+    genericId: 200243,
+    concreteId: 1068,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'entity',
+        clientVarType: 1
+      },
+      {
+        index: 1,
+        kind: 'input',
+        type: 'config_id',
+        clientVarType: 18,
+        defaultValue: 0
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'bool',
+        clientVarType: 5
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia'
+  },
+  {
+    subType: 'int_filter',
+    nodeType: 'world_coordinates_to_screen_coordinates',
+    displayName: '世界坐标转屏幕坐标',
+    graphType: 20001,
+    genericId: 200293,
+    concreteId: 143,
+    inputs: [
+      {
+        index: 0,
+        kind: 'input',
+        type: 'vec3',
+        clientVarType: 11,
+        defaultValue: [0, 0, 0]
+      }
+    ],
+    outputs: [
+      {
+        index: 0,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      },
+      {
+        index: 1,
+        kind: 'output',
+        type: 'float',
+        clientVarType: 7
+      }
+    ],
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
   }
 ] as const

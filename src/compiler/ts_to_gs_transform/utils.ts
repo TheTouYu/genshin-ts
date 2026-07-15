@@ -36,7 +36,7 @@ export function isClientFMethodAvailable(env: Env, method: string): boolean {
 export function assertClientFMethodAvailable(env: Env, method: string, node?: ts.Node): void {
   if (isClientFMethodAvailable(env, method)) return
   const mapped = getClientFMethodName(method)
-  const message = `client method "${mapped}" is not available in ${env.clientSubType} ${env.clientMode ?? 'beyond'} mode`
+  const message = `client method "${mapped}" is not available in ${env.clientSubType}`
   if (node) fail(env, node, message)
   throw new Error(`[error] ${message}`)
 }

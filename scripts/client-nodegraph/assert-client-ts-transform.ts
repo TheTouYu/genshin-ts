@@ -68,6 +68,13 @@ async function expectRuntimeError(
   assert.match(String(error), pattern, `${name}: unexpected graph construction error`)
 }
 
+async function expectRuntimeSuccess(name: string, source: string) {
+  const file = path.join(tempRoot, `${name}.ts`)
+  fs.writeFileSync(file, source, 'utf8')
+  const result = await compile([relative(file)])
+  await import(`${pathToFileURL(result.entryOutFiles[0]).href}?test=${Date.now()}`)
+}
+
 fs.rmSync(tempRoot, { recursive: true, force: true })
 fs.mkdirSync(tempRoot, { recursive: true })
 
@@ -208,6 +215,117 @@ try {
   })
 
   const importG = `import { g } from 'genshin-ts/runtime/core'`
+  const classicCreationGraphId = 1082130670
+  const classicCreationPath = path.join(tempRoot, 'classic-creation-skill.ts')
+  fs.writeFileSync(
+    classicCreationPath,
+    `${importG}
+g.creationSkill({ id: ${classicCreationGraphId}, mode: 'classic' }).on('start', (_evt, f) => {
+  const playerEntity = f.getSelfEntity()
+  const characters = f.getPlayerSCharacterList(playerEntity)
+  const activeCharacter = f.getActiveCharacterOfSpecifiedPlayer(playerEntity)
+  const characterId = f.checkClassicModeCharacterId(activeCharacter)
+  f.recoverCreationSHp(
+    activeCharacter,
+    float(f.getListLength(characters)),
+    f.greaterThan(characterId, 0n)
+  )
+})`,
+    'utf8'
+  )
+  const classicCreationResult = await compile([relative(classicCreationPath)])
+  await import(`${pathToFileURL(classicCreationResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const classicCreationDocument = buildClientGraphRegistriesIRDocuments().find(
+    (document) => document.graph.id === classicCreationGraphId
+  )
+  assert.ok(classicCreationDocument, 'missing classic creation skill graph')
+  assert.strictEqual(classicCreationDocument.graph.mode, 'classic')
+  const classicIr = JSON.stringify(classicCreationDocument)
+  for (const nodeType of [
+    'get_player_s_character_list',
+    'get_active_character_of_specified_player',
+    'check_classic_mode_character_id',
+    'recover_creation_s_hp'
+  ]) {
+    assert.ok(classicIr.includes(`"type":"${nodeType}"`), `missing classic node ${nodeType}`)
+  }
+  const classicBytes = irToGia(classicCreationDocument, { protoPath })
+  const classicMessage = rootMessage.decode(classicBytes.slice(20, -4))
+  const classicDecoded = rootMessage.toObject(classicMessage, {
+    defaults: true,
+    longs: Number
+  }) as GiaRoot
+  assert.strictEqual(classicDecoded.modeFlag, 1, 'classic client GIA must set Root.modeFlag=1')
+  const classicGenericIds = new Set(
+    (classicDecoded.graph?.graph?.inner.graph?.nodes ?? []).map((node) => node.genericId?.nodeId)
+  )
+  for (const genericId of [200242, 200249, 200251, 200254]) {
+    assert.ok(classicGenericIds.has(genericId), `missing classic generic id ${genericId}`)
+  }
+  await expectRuntimeError(
+    'classic-character-skill-unavailable',
+    `${importG}
+g.characterSkill({ mode: 'classic' }).on('start', () => {})`,
+    /character_skill is not available in classic mode/
+  )
+  await expectRuntimeError(
+    'classic-character-control-skill-unavailable',
+    `${importG}
+g.characterControlSkill({ mode: 'classic' }).on('start', () => {})`,
+    /character_control_skill is not available in classic mode/
+  )
+  await expectRuntimeError(
+    'classic-creation-beyond-node',
+    `${importG}
+g.creationSkill({ id: 1082130674, mode: 'classic' }).on('start', (_evt, f) => {
+  f.notifyServerNodeGraph('test', '', '')
+})`,
+    /creation_skill\.notify_server_node_graph is not available in classic mode/
+  )
+  await expectRuntimeError(
+    'classic-helper-beyond-node',
+    `${importG}
+function gstsCreationSkillBeyondOnly() {
+  gsts.fCreationSkill.notifyServerNodeGraph('test', '', '')
+}
+g.creationSkill({ id: 1082130672, mode: 'classic' }).on('start', () => {
+  gstsCreationSkillBeyondOnly()
+})`,
+    /creation_skill\.notify_server_node_graph is not available in classic mode/
+  )
+  await expectRuntimeSuccess(
+    'classic-helper-classic-node',
+    `${importG}
+function gstsCreationSkillClassicOnly() {
+  const selfEntity = gsts.fCreationSkill.getSelfEntity()
+  gsts.fCreationSkill.getPlayerSCharacterList(selfEntity)
+}
+g.creationSkill({ id: 1082130671, mode: 'classic' }).on('start', () => {
+  gstsCreationSkillClassicOnly()
+})`
+  )
+  await expectRuntimeError(
+    'beyond-helper-classic-node',
+    `${importG}
+function gstsCreationSkillClassicOnly() {
+  const selfEntity = gsts.fCreationSkill.getSelfEntity()
+  gsts.fCreationSkill.getPlayerSCharacterList(selfEntity)
+}
+g.creationSkill({ id: 1082130673, mode: 'beyond' }).on('start', () => {
+  gstsCreationSkillClassicOnly()
+})`,
+    /creation_skill\.get_player_s_character_list is not available in beyond mode/
+  )
+  await expectRuntimeError(
+    'classic-filter-beyond-node',
+    `${importG}
+g.boolFilter({ id: 1082130675, mode: 'classic' }).on('start', (_evt, f) => {
+  f.getCurrentClientTime()
+  return true
+})`,
+    /bool_filter\.get_current_client_time is not available in classic mode/
+  )
+
   const wrapperConversionGraphIds = {
     characterSkill: 1082130690,
     creationStatusDecision: 1082130691
@@ -365,7 +483,7 @@ g.characterSkill().on('start', () => { Math.sqrt(4) })`,
     'unavailable-local-variable',
     `${importG}
 g.creationStatus().on('start', () => { let value = 0n; value += 1n })`,
-    /client method "initLocalVariable" is not available in creation_status beyond mode/
+    /client method "initLocalVariable" is not available in creation_status/
   )
   await expectCompileError(
     'unavailable-ternary-local-variable',
@@ -374,7 +492,7 @@ g.creationStatusDecision().on('start', (_evt, f) => {
   const result = f.equal(1n, 1n) ? 1n : 0n
   f.absoluteValueOperation(result)
 })`,
-    /client method "initLocalVariable" is not available in creation_status_decision beyond mode/
+    /client method "initLocalVariable" is not available in creation_status_decision/
   )
   const repeatedConstGraphIds = {
     creationStatus: 1082130680,

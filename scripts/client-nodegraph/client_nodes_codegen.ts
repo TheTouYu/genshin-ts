@@ -8,6 +8,7 @@
  * output pins. Records that cannot be reconciled mechanically are written to
  * the gap report instead of guessed.
  */
+
 import type { ClientEnumBinding } from './client_enum_binding.js'
 import {
   docTypeTag,
@@ -58,7 +59,6 @@ export type FlowMetadataEntry = {
   methodName: string
   nodeType: string
   subTypes: string[]
-  modes: string[]
   kind: 'data' | 'exec' | 'control_flow'
   params: Array<{ name: string; irType: string; docZh: string; docEn: string }>
   returns: Array<{ name: string; irType: string; docZh: string; docEn: string }> | null
@@ -258,31 +258,100 @@ const IR_BY_DOC_TAG: Record<string, string> = {
 /** IR types expressible as generated method parameters */
 const SUPPORTED_PARAM_TYPES = new Set([
   ...Object.keys(PARAM_TS_BY_IR),
-  ...['bool', 'int', 'float', 'str', 'vec3', 'guid', 'entity', 'faction', 'config_id', 'prefab_id', 'enum'].map(
-    (t) => `${t}_list`
-  )
+  ...[
+    'bool',
+    'int',
+    'float',
+    'str',
+    'vec3',
+    'guid',
+    'entity',
+    'faction',
+    'config_id',
+    'prefab_id',
+    'enum'
+  ].map((t) => `${t}_list`)
 ])
 
 /** IR types expressible as generated method returns */
 const SUPPORTED_RETURN_TYPES = new Set([
   ...Object.keys(RETURN_TS_BY_IR),
-  ...['bool', 'int', 'float', 'str', 'vec3', 'guid', 'entity', 'faction', 'config_id', 'prefab_id', 'enum'].map(
-    (t) => `${t}_list`
-  )
+  ...[
+    'bool',
+    'int',
+    'float',
+    'str',
+    'vec3',
+    'guid',
+    'entity',
+    'faction',
+    'config_id',
+    'prefab_id',
+    'enum'
+  ].map((t) => `${t}_list`)
 ])
 
 const RESERVED_WORDS = new Set([
-  'arguments', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger',
-  'default', 'delete', 'do', 'else', 'enum', 'eval', 'export', 'extends', 'false', 'finally',
-  'for', 'function', 'if', 'implements', 'import', 'in', 'instanceof', 'interface', 'let', 'new',
-  'null', 'package', 'private', 'protected', 'public', 'return', 'static', 'super', 'switch',
-  'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield'
+  'arguments',
+  'await',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'debugger',
+  'default',
+  'delete',
+  'do',
+  'else',
+  'enum',
+  'eval',
+  'export',
+  'extends',
+  'false',
+  'finally',
+  'for',
+  'function',
+  'if',
+  'implements',
+  'import',
+  'in',
+  'instanceof',
+  'interface',
+  'let',
+  'new',
+  'null',
+  'package',
+  'private',
+  'protected',
+  'public',
+  'return',
+  'static',
+  'super',
+  'switch',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'typeof',
+  'var',
+  'void',
+  'while',
+  'with',
+  'yield'
 ])
 
 /** identifiers every generated method body may use; params must not shadow them */
 const BODY_BASE_RESERVED = new Set([
-  'ref', 'ret', 'genericType', 'variantKey', 'outputIrType', 'registry',
-  'parseValue', 'matchTypes'
+  'ref',
+  'ret',
+  'genericType',
+  'variantKey',
+  'outputIrType',
+  'registry',
+  'parseValue',
+  'matchTypes'
 ])
 
 // ---------------------------------------------------------------------------
@@ -334,7 +403,9 @@ function identFromDocName(name: string, fallback: string): string {
   if (!cleaned) return fallback
   const parts = cleaned.split(' ')
   let ident = parts
-    .map((p, i) => (i === 0 ? p.charAt(0).toLowerCase() + p.slice(1) : p.charAt(0).toUpperCase() + p.slice(1)))
+    .map((p, i) =>
+      i === 0 ? p.charAt(0).toLowerCase() + p.slice(1) : p.charAt(0).toUpperCase() + p.slice(1)
+    )
     .join('')
   if (/^\d/.test(ident)) ident = `_${ident}`
   if (RESERVED_WORDS.has(ident)) ident = `${ident}_`
@@ -403,7 +474,8 @@ function alignInputs(
     const compatible =
       doc &&
       (docCompatibleWithPin(pin, docTypeTag(doc.en.dataType), candidates) ||
-        (doc.zh !== undefined && docCompatibleWithPin(pin, docTypeTag(doc.zh.dataType), candidates)))
+        (doc.zh !== undefined &&
+          docCompatibleWithPin(pin, docTypeTag(doc.zh.dataType), candidates)))
     if (compatible) {
       bound.push({ pin, doc: doc! })
       d += 1
@@ -419,7 +491,7 @@ function alignInputs(
     return {
       ok: false,
       reason: 'doc_param_alignment_failed',
-      detail: `unbound doc params: ${missed}; pins: ${pins.map((p) => p.reflective ? 'G' : p.type).join(',')}`
+      detail: `unbound doc params: ${missed}; pins: ${pins.map((p) => (p.reflective ? 'G' : p.type)).join(',')}`
     }
   }
   return { ok: true, bound, hidden }
@@ -513,9 +585,16 @@ function buildReflectSpec(record: MetaRecord): ReflectSpec | { gap: GapEntry } {
     const inTypes: string[] = []
     for (const index of pinIndexes) {
       const pin = variant.pins?.find((p) => p.kind === 'input' && p.index === index)
-      if (!pin) return gap('reflect_variant_pin_incomplete', `variant ${variant.variantKey} misses input pin #${index}`)
+      if (!pin)
+        return gap(
+          'reflect_variant_pin_incomplete',
+          `variant ${variant.variantKey} misses input pin #${index}`
+        )
       if (!SUPPORTED_PARAM_TYPES.has(pin.type)) {
-        return gap('reflect_unsupported_pin_type', `variant ${variant.variantKey} input pin #${index} is ${pin.type}`)
+        return gap(
+          'reflect_unsupported_pin_type',
+          `variant ${variant.variantKey} input pin #${index} is ${pin.type}`
+        )
       }
       inTypes.push(pin.type)
       const cands = candidatesByPin.get(index) ?? []
@@ -568,7 +647,10 @@ function buildMethodSpec(
   if (record.specialKind === 'structure_list_unknown_binding') {
     return gap('unsupported_special_kind', record.specialKind)
   }
-  if (record.nodeType === 'get_custom_variable' || record.nodeType === 'send_signal_to_server_node_graph') {
+  if (
+    record.nodeType === 'get_custom_variable' ||
+    record.nodeType === 'send_signal_to_server_node_graph'
+  ) {
     return gap('hand_template', record.nodeType)
   }
 
@@ -654,14 +736,20 @@ function buildMethodSpec(
       // constant output across all variants with evidence; a concrete pin type
       // from samples must agree
       if (concretePinType && concretePinType !== defined[0]) {
-        return gap('reflect_output_type_conflict', `pin ${concretePinType} vs variants ${defined[0]}`)
+        return gap(
+          'reflect_output_type_conflict',
+          `pin ${concretePinType} vs variants ${defined[0]}`
+        )
       }
       return pushReturn(pinIndex, docPair, defined[0], false, fallbackName)
     }
     if (defined.length > 1) {
       // per-variant output types require complete evidence to map every key
       if (outTypes.some((t) => t === undefined)) {
-        return gap('reflect_output_type_unresolved', `partial variant outputs: ${defined.join(', ')}`)
+        return gap(
+          'reflect_output_type_unresolved',
+          `partial variant outputs: ${defined.join(', ')}`
+        )
       }
       if (defined.some((t) => !SUPPORTED_RETURN_TYPES.has(t))) {
         return gap('unsupported_return_type', `reflective output: ${defined.join(', ')}`)
@@ -710,8 +798,7 @@ function buildMethodSpec(
     } else {
       for (const [i, docOut] of docOuts.entries()) {
         const tag = docTypeTag(docOut.en.dataType)
-        const irType =
-          IR_BY_DOC_TAG[tag] ?? IR_BY_DOC_TAG[docTypeTag(docOut.zh?.dataType ?? '')]
+        const irType = IR_BY_DOC_TAG[tag] ?? IR_BY_DOC_TAG[docTypeTag(docOut.zh?.dataType ?? '')]
         if (!irType) {
           return gap('output_type_unresolved', `${docOut.en.name} [${tag}]`)
         }
@@ -848,7 +935,9 @@ function argPinsOf(spec: MethodSpec): number[] | undefined {
   return argPins.some((pin, i) => pin !== i) ? argPins : undefined
 }
 
-function retConstruction(irTypeExpr: { kind: 'literal'; irType: string } | { kind: 'expr'; expr: string; isList: boolean }): string {
+function retConstruction(
+  irTypeExpr: { kind: 'literal'; irType: string } | { kind: 'expr'; expr: string; isList: boolean }
+): string {
   if (irTypeExpr.kind === 'literal') {
     const t = irTypeExpr.irType
     if (isListType(t)) {
@@ -858,15 +947,13 @@ function retConstruction(irTypeExpr: { kind: 'literal'; irType: string } | { kin
     }
     return `new ${CLASS_EXPR_BY_IR[t]}()`
   }
-  return irTypeExpr.isList ? `new list(${irTypeExpr.expr})` : `new ValueClassMap[${irTypeExpr.expr}]()`
+  return irTypeExpr.isList
+    ? `new list(${irTypeExpr.expr})`
+    : `new ValueClassMap[${irTypeExpr.expr}]()`
 }
 
 /** single-return tail: construct ret, markPin, return */
-function emitSingleReturn(
-  r: ReturnSpec,
-  construction: string,
-  tsType: string
-): string[] {
+function emitSingleReturn(r: ReturnSpec, construction: string, tsType: string): string[] {
   return [
     `    const ret = ${construction}`,
     `    ret.markPin(ref, '${r.ident}', ${r.pinIndex})`,
@@ -928,12 +1015,9 @@ function emitNonReflectMethod(spec: MethodSpec): string {
     body.push(`    }`)
   }
 
-  return [
-    buildJsdoc(spec),
-    `  ${spec.methodName}(${sigParams}): ${retTs} {`,
-    ...body,
-    `  }`
-  ].join('\n')
+  return [buildJsdoc(spec), `  ${spec.methodName}(${sigParams}): ${retTs} {`, ...body, `  }`].join(
+    '\n'
+  )
 }
 
 function emitReflectMethod(spec: MethodSpec): string {
@@ -1030,15 +1114,24 @@ function emitReflectMethod(spec: MethodSpec): string {
     body.push(...register)
   } else if (!singleReturn.reflective) {
     body.push(...register)
-    body.push(...emitSingleReturn(singleReturn, retConstructionOf(singleReturn), returnTsOf(singleReturn)))
+    body.push(
+      ...emitSingleReturn(singleReturn, retConstructionOf(singleReturn), returnTsOf(singleReturn))
+    )
   } else {
     // output type depends on the resolved variant
     const outsAreLists = reflect.variants.every((v) => isListType(v.outType!))
     const outsAreScalars = reflect.variants.every((v) => !isListType(v.outType!))
     if (!outsAreLists && !outsAreScalars) {
-      throw new Error(`[bug] reflect method ${spec.subType}.${spec.nodeType} mixes scalar and list outputs`)
+      throw new Error(
+        `[bug] reflect method ${spec.subType}.${spec.nodeType} mixes scalar and list outputs`
+      )
     }
-    if (reflect.joint && reflect.variants.every((v) => variantKeyOf(v) === `${v.inTypes[0]}` && v.outType === v.inTypes[0])) {
+    if (
+      reflect.joint &&
+      reflect.variants.every(
+        (v) => variantKeyOf(v) === `${v.inTypes[0]}` && v.outType === v.inTypes[0]
+      )
+    ) {
       // identity mapping: output type equals the matched input type
       body.push(...register)
       const construction = typeExprByPin.get(reflect.pinIndexes[0])!.isList
@@ -1053,7 +1146,9 @@ function emitReflectMethod(spec: MethodSpec): string {
           return `'${variantKeyOf(v)}': '${outValue}'`
         })
         .join(', ')
-      const outUnion = [...new Set(reflect.variants.map((v) => (outsAreLists ? elemType(v.outType!) : v.outType!)))]
+      const outUnion = [
+        ...new Set(reflect.variants.map((v) => (outsAreLists ? elemType(v.outType!) : v.outType!)))
+      ]
         .map((t) => `'${t}'`)
         .join(' | ')
       body.push(`    const variantKey = [${runtimeKeyParts.join(', ')}].join('|')`)
@@ -1092,7 +1187,9 @@ function emitReflectMethod(spec: MethodSpec): string {
 function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
   const [p1, p2] = spec.params.map((p) => p.ident)
   const r = spec.returns[0]
-  const overloads = enumClasses.map((c) => `  ${spec.methodName}(${p1}: ${c}, ${p2}: ${c}): boolean`)
+  const overloads = enumClasses.map(
+    (c) => `  ${spec.methodName}(${p1}: ${c}, ${p2}: ${c}): boolean`
+  )
   return [
     buildJsdoc(spec),
     ...overloads,
@@ -1222,13 +1319,17 @@ function emitFiniteLoop(subType: string, doc: AlignedDocNode | undefined): strin
   const enOuts = doc?.en.params.filter((p) => p.io === 'out') ?? []
   const param = (i: number, zhFallback: string) => ({
     en: sanitizeDocText(enIns[i]?.description ?? ''),
-    zh: ins[i] ? `${ins[i].name}${ins[i].description ? `: ${sanitizeDocText(ins[i].description)}` : ''}` : zhFallback
+    zh: ins[i]
+      ? `${ins[i].name}${ins[i].description ? `: ${sanitizeDocText(ins[i].description)}` : ''}`
+      : zhFallback
   })
   const p0 = param(0, '循环起始值')
   const p1 = param(1, '循环终止值')
   const r = {
     en: sanitizeDocText(enOuts[0]?.description ?? ''),
-    zh: outs[0] ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}` : '当前循环值'
+    zh: outs[0]
+      ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}`
+      : '当前循环值'
   }
   return `${controlFlowJsdoc(
     doc,
@@ -1276,11 +1377,15 @@ function emitTraverseEntityList(subType: string, doc: AlignedDocNode | undefined
   const enOuts = doc?.en.params.filter((p) => p.io === 'out') ?? []
   const p0 = {
     en: sanitizeDocText(enIns[0]?.description ?? ''),
-    zh: ins[0] ? `${ins[0].name}${ins[0].description ? `: ${sanitizeDocText(ins[0].description)}` : ''}` : '实体列表'
+    zh: ins[0]
+      ? `${ins[0].name}${ins[0].description ? `: ${sanitizeDocText(ins[0].description)}` : ''}`
+      : '实体列表'
   }
   const r = {
     en: sanitizeDocText(enOuts[0]?.description ?? ''),
-    zh: outs[0] ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}` : '当前实体'
+    zh: outs[0]
+      ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}`
+      : '当前实体'
   }
   return `${controlFlowJsdoc(doc, '遍历实体列表', [{ ident: 'entityList', en: p0.en, zh: p0.zh }], r)}
   traverseEntityList(
@@ -1331,11 +1436,15 @@ function emitAssemblyList(record: MetaRecord, doc: AlignedDocNode | undefined): 
   const enOuts = doc?.en.params.filter((p) => p.io === 'out') ?? []
   const p0 = {
     en: sanitizeDocText(enIns[0]?.description ?? ''),
-    zh: ins[0] ? `${ins[0].name}${ins[0].description ? `: ${sanitizeDocText(ins[0].description)}` : ''}` : '0~9'
+    zh: ins[0]
+      ? `${ins[0].name}${ins[0].description ? `: ${sanitizeDocText(ins[0].description)}` : ''}`
+      : '0~9'
   }
   const r = {
     en: sanitizeDocText(enOuts[0]?.description ?? ''),
-    zh: outs[0] ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}` : '列表'
+    zh: outs[0]
+      ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}`
+      : '列表'
   }
   const overloads = types.flatMap((t) => [
     `  assemblyList(_0to9: ${paramTs(t)}[]): ${returnTs(`${t}_list`)}`,
@@ -1527,7 +1636,9 @@ function emitDataTypeConversion(doc: AlignedDocNode | undefined): string {
   const enOuts = doc?.en.params.filter((param) => param.io === 'out') ?? []
   const r = {
     en: sanitizeDocText(enOuts[0]?.description ?? ''),
-    zh: outs[0] ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}` : '转换结果'
+    zh: outs[0]
+      ? `${outs[0].name}${outs[0].description ? `: ${sanitizeDocText(outs[0].description)}` : ''}`
+      : '转换结果'
   }
   return `${controlFlowJsdoc(doc, '数据类型转换', [{ ident: 'input', en: p.en, zh: p.zh }], r)}
   dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
@@ -1719,12 +1830,17 @@ function docParamTextByZhName(
   }
 }
 
-function docReturnText(doc: AlignedDocNode | undefined, zhFallback: string): { en: string; zh: string } {
+function docReturnText(
+  doc: AlignedDocNode | undefined,
+  zhFallback: string
+): { en: string; zh: string } {
   const zh = doc?.zh.params.find((p) => p.io === 'out')
   const en = doc?.en.params.find((p) => p.io === 'out')
   return {
     en: sanitizeDocText(en?.description ?? ''),
-    zh: zh ? `${zh.name}${zh.description ? `: ${sanitizeDocText(zh.description)}` : ''}` : zhFallback
+    zh: zh
+      ? `${zh.name}${zh.description ? `: ${sanitizeDocText(zh.description)}` : ''}`
+      : zhFallback
   }
 }
 
@@ -2055,7 +2171,13 @@ function emitTypeListBuilder(
   return `${controlFlowJsdoc(
     doc,
     zhName,
-    [{ ident: 'types', en: 'Types to assemble into the list (up to 10)', zh: '类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值' }],
+    [
+      {
+        ident: 'types',
+        en: 'Types to assemble into the list (up to 10)',
+        zh: '类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值'
+      }
+    ],
     docReturnText(doc, '列表')
   )}
   ${methodName}(types?: ${enumClass}[]): ${enumClass}[] {
@@ -2172,7 +2294,6 @@ export function generateClientNodes(
       methodName: spec.methodName,
       nodeType: spec.nodeType,
       subTypes: [spec.subType],
-      modes: ['beyond'],
       kind,
       params,
       returns,
@@ -2274,13 +2395,25 @@ export function generateClientNodes(
           break
         case 'get_entity_type_list':
           texts.push(
-            emitTypeListBuilder(doc, 'getEntityTypeList', 'get_entity_type_list', '获取实体类型列表', 'EntityType')
+            emitTypeListBuilder(
+              doc,
+              'getEntityTypeList',
+              'get_entity_type_list',
+              '获取实体类型列表',
+              'EntityType'
+            )
           )
           names.push('getEntityTypeList')
           break
         case 'get_ray_filter_type_list':
           texts.push(
-            emitTypeListBuilder(doc, 'getRayFilterTypeList', 'get_ray_filter_type_list', '获取射线筛选类型列表', 'RayFilterType')
+            emitTypeListBuilder(
+              doc,
+              'getRayFilterTypeList',
+              'get_ray_filter_type_list',
+              '获取射线筛选类型列表',
+              'RayFilterType'
+            )
           )
           names.push('getRayFilterTypeList')
           break
@@ -2359,7 +2492,6 @@ export function generateClientNodes(
       methodName,
       nodeType,
       subTypes: [...subTypes],
-      modes: ['beyond'],
       kind: 'control_flow',
       params,
       returns,
@@ -2389,7 +2521,14 @@ export function generateClientNodes(
         { name: 'loopStartValue', irType: 'int', docZh: '循环起始值', docEn: 'Loop Start Value' },
         { name: 'loopEndValue', irType: 'int', docZh: '循环终止值', docEn: 'Loop End Value' }
       ],
-      [{ name: 'currentLoopValue', irType: 'int', docZh: '当前循环值', docEn: 'Current Loop Value' }],
+      [
+        {
+          name: 'currentLoopValue',
+          irType: 'int',
+          docZh: '当前循环值',
+          docEn: 'Current Loop Value'
+        }
+      ],
       handDocs('有限循环')
     ),
     handEntry(
@@ -2467,16 +2606,44 @@ class ClientExecutionFlowFunctionsBase {
   }
 }
 `
-  const usesIdent = (name: string) => new RegExp(`\\b${name}\\b`).test(dictHelpers + clientFlowBase + bodyText)
+  const usesIdent = (name: string) =>
+    new RegExp(`\\b${name}\\b`).test(dictHelpers + clientFlowBase + bodyText)
 
   const valueClassImports = [
-    'bool', 'configId', 'dict', 'ensureLiteralStr', 'entity', 'enumeration', 'faction', 'float',
-    'generic', 'guid', 'int', 'list', 'prefabId', 'str', 'vec3', 'ValueClassMap'
+    'bool',
+    'configId',
+    'dict',
+    'ensureLiteralStr',
+    'entity',
+    'enumeration',
+    'faction',
+    'float',
+    'generic',
+    'guid',
+    'int',
+    'list',
+    'prefabId',
+    'str',
+    'vec3',
+    'ValueClassMap'
   ].filter(usesIdent)
   const valueTypeImports = [
-    'BoolValue', 'ConfigIdValue', 'DictKeyType', 'DictValue', 'DictValueType', 'EntityValue',
-    'EnumerationValue', 'FactionValue', 'FloatValue', 'GuidValue', 'IntValue', 'PrefabIdValue',
-    'ReadonlyDict', 'StrValue', 'Vec3Value', 'value'
+    'BoolValue',
+    'ConfigIdValue',
+    'DictKeyType',
+    'DictValue',
+    'DictValueType',
+    'EntityValue',
+    'EnumerationValue',
+    'FactionValue',
+    'FloatValue',
+    'GuidValue',
+    'IntValue',
+    'PrefabIdValue',
+    'ReadonlyDict',
+    'StrValue',
+    'Vec3Value',
+    'value'
   ].filter(usesIdent)
   const irTypeImports = ['CommonLiteralValueListTypeMap', 'CommonLiteralValueTypeMap'].filter(
     usesIdent
@@ -2487,9 +2654,7 @@ class ClientExecutionFlowFunctionsBase {
     'EnumerationType',
     'EnumerationTypeMap'
   ].filter(usesIdent)
-  const clientEnumImports = enumBinding.clientOnlyClasses
-    .map((c) => c.className)
-    .filter(usesIdent)
+  const clientEnumImports = enumBinding.clientOnlyClasses.map((c) => c.className).filter(usesIdent)
   const enumImportLines = [
     serverEnumImports.length
       ? `import type { ${serverEnumImports.join(', ')} } from './enum.js'`

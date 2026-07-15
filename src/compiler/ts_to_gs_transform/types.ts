@@ -58,7 +58,6 @@ export type Env = {
   serverCtx?: boolean
   graphDocumentType?: 'server' | 'client'
   clientSubType?: ClientGraphSubType
-  clientMode?: 'beyond' | 'classic'
   /** Distinguishes final client handler returns from reusable client function returns. */
   clientHandler?: boolean
   /**

@@ -45,7 +45,7 @@ const rule: Rule.RuleModule = {
     type: 'problem',
     docs: {
       description:
-        'reject scoped helper globals that the current client graph family or mode cannot support'
+        'reject scoped helper globals that the current client graph family cannot support'
     },
     schema: []
   },
@@ -70,7 +70,7 @@ const rule: Rule.RuleModule = {
         if (!members) {
           context.report({
             node,
-            message: `[client scoped globals] ${node.name} is not available in ${info.subType} ${info.mode} mode`
+            message: `[client scoped globals] ${node.name} is not available in ${info.subType}`
           })
           return
         }
@@ -86,7 +86,7 @@ const rule: Rule.RuleModule = {
         ) {
           context.report({
             node: parent,
-            message: `[client scoped globals] ${node.name}.${parent.property.name} is not available in ${info.subType} ${info.mode} mode`
+            message: `[client scoped globals] ${node.name}.${parent.property.name} is not available in ${info.subType}`
           })
         }
       }

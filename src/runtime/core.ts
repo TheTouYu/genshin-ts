@@ -1,4 +1,5 @@
 import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
+import { isClientNodeTypeAvailable } from '../definitions/client_method_modes.js'
 import { EnumerationType } from '../definitions/enum.js'
 import type { ServerEventPayloadsByMode } from '../definitions/events-payload-mode.js'
 import type { ServerEventPayloads } from '../definitions/events-payload.js'
@@ -21,6 +22,7 @@ import {
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
 import {
   assertClientGraphMode,
+  assertClientGraphModeCompatible,
   assertClientGraphSubType,
   CLIENT_FILTER_END_NODE_TYPES,
   createClientFlowFunctions,
@@ -28,8 +30,10 @@ import {
   normalizeClientIntFilterReturn,
   type ClientFilterGraphApi,
   type ClientFilterGraphOptions,
+  type ClientFilterGraphOptionsForSubType,
   type ClientFlowFunctionClass,
   type ClientGraphOptions,
+  type ClientGraphOptionsForSubType,
   type ClientLang,
   type ClientStartEvent,
   type ClientStartEventName,
@@ -1126,11 +1130,26 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       record.id = this.currentRecordId
     }
 
-    const nodeMode = NODE_MODE_BY_NODE_TYPE.get(record.nodeType)
-    if (nodeMode && nodeMode !== this.graphMode) {
-      throw new Error(
-        `[error] node "${record.nodeType}" is ${nodeMode} mode only (current: ${this.graphMode})`
-      )
+    if (this.graphDocumentType === 'client') {
+      if (
+        !isClientNodeTypeAvailable(
+          this.graphType as ClientGraphSubType,
+          this.graphMode as ClientGraphMode,
+          record.nodeType
+        )
+      ) {
+        throw clientNodegraphError(
+          CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+          `${this.graphType}.${record.nodeType} is not available in ${this.graphMode} mode`
+        )
+      }
+    } else {
+      const nodeMode = NODE_MODE_BY_NODE_TYPE.get(record.nodeType)
+      if (nodeMode && nodeMode !== this.graphMode) {
+        throw new Error(
+          `[error] node "${record.nodeType}" is ${nodeMode} mode only (current: ${this.graphMode})`
+        )
+      }
     }
 
     if (record.type === 'exec') {
@@ -1373,20 +1392,26 @@ type ClientStartApi<
   T extends ClientGraphSubType,
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
-> = ClientStartGraphApi<ClientFlowFunctionClass<T, Mode>, Lang, Mode>
+> = Mode extends ClientGraphMode
+  ? ClientStartGraphApi<ClientFlowFunctionClass<T, Mode>, Lang, Mode>
+  : never
 type ClientBoolFilterApi<
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
-> = ClientFilterGraphApi<ClientFlowFunctionClass<'bool_filter', Mode>, boolean | bool, Lang, Mode>
+> = Mode extends ClientGraphMode
+  ? ClientFilterGraphApi<ClientFlowFunctionClass<'bool_filter', Mode>, boolean | bool, Lang, Mode>
+  : never
 type ClientIntFilterApi<
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
-> = ClientFilterGraphApi<
-  ClientFlowFunctionClass<'int_filter', Mode>,
-  bigint | number | int,
-  Lang,
-  Mode
->
+> = Mode extends ClientGraphMode
+  ? ClientFilterGraphApi<
+      ClientFlowFunctionClass<'int_filter', Mode>,
+      bigint | number | int,
+      Lang,
+      Mode
+    >
+  : never
 
 type ClientGraphOptionsInput = ClientGraphOptions<ClientGraphMode>
 type ClientFilterGraphOptionsInput = ClientFilterGraphOptions<ClientGraphMode>
@@ -1428,6 +1453,7 @@ function createClientGraphApi<T extends ClientGraphSubType>(
 ): ClientGraphApiForSubType<T, ClientLang, ClientGraphMode> {
   const graphType = assertClientGraphSubType(subType)
   const graphMode = assertClientGraphMode(options?.mode)
+  assertClientGraphModeCompatible(graphType, graphMode)
   const isFilter = graphType === 'bool_filter' || graphType === 'int_filter'
   const clientEvaluationInterval = isFilter
     ? (options?.evaluationInterval ?? CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL)
@@ -1498,11 +1524,11 @@ function createClientGraphApi<T extends ClientGraphSubType>(
       return this
     }
   }
-  return api as ClientGraphApiForSubType<T, ClientLang, ClientGraphMode>
+  return api as unknown as ClientGraphApiForSubType<T, ClientLang, ClientGraphMode>
 }
 
 function characterSkill(): ClientStartApi<'character_skill', 'en', 'beyond'>
-function characterSkill<Options extends ClientGraphOptionsInput>(
+function characterSkill<Options extends ClientGraphOptionsForSubType<'character_skill'>>(
   options: Options
 ): ClientGraphApiForOptions<'character_skill', Options>
 function characterSkill(
@@ -1514,9 +1540,9 @@ function characterSkill(
 }
 
 function characterControlSkill(): ClientStartApi<'character_control_skill', 'en', 'beyond'>
-function characterControlSkill<Options extends ClientGraphOptionsInput>(
-  options: Options
-): ClientGraphApiForOptions<'character_control_skill', Options>
+function characterControlSkill<
+  Options extends ClientGraphOptionsForSubType<'character_control_skill'>
+>(options: Options): ClientGraphApiForOptions<'character_control_skill', Options>
 function characterControlSkill(
   options?: ClientGraphOptionsInput
 ): ClientStartApi<'character_control_skill', ClientLang, ClientGraphMode> {
@@ -1526,7 +1552,7 @@ function characterControlSkill(
 }
 
 function creationSkill(): ClientStartApi<'creation_skill', 'en', 'beyond'>
-function creationSkill<Options extends ClientGraphOptionsInput>(
+function creationSkill<Options extends ClientGraphOptionsForSubType<'creation_skill'>>(
   options: Options
 ): ClientGraphApiForOptions<'creation_skill', Options>
 function creationSkill(
@@ -1538,7 +1564,7 @@ function creationSkill(
 }
 
 function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
-function creationStatus<Options extends ClientGraphOptionsInput>(
+function creationStatus<Options extends ClientGraphOptionsForSubType<'creation_status'>>(
   options: Options
 ): ClientGraphApiForOptions<'creation_status', Options>
 function creationStatus(
@@ -1550,9 +1576,9 @@ function creationStatus(
 }
 
 function creationStatusDecision(): ClientStartApi<'creation_status_decision', 'en', 'beyond'>
-function creationStatusDecision<Options extends ClientGraphOptionsInput>(
-  options: Options
-): ClientGraphApiForOptions<'creation_status_decision', Options>
+function creationStatusDecision<
+  Options extends ClientGraphOptionsForSubType<'creation_status_decision'>
+>(options: Options): ClientGraphApiForOptions<'creation_status_decision', Options>
 function creationStatusDecision(
   options?: ClientGraphOptionsInput
 ): ClientStartApi<'creation_status_decision', ClientLang, ClientGraphMode> {
@@ -1562,7 +1588,7 @@ function creationStatusDecision(
 }
 
 function boolFilter(): ClientBoolFilterApi<'en', 'beyond'>
-function boolFilter<Options extends ClientFilterGraphOptionsInput>(
+function boolFilter<Options extends ClientFilterGraphOptionsForSubType<'bool_filter'>>(
   options: Options
 ): ClientGraphApiForOptions<'bool_filter', Options>
 function boolFilter(
@@ -1574,7 +1600,7 @@ function boolFilter(
 }
 
 function intFilter(): ClientIntFilterApi<'en', 'beyond'>
-function intFilter<Options extends ClientFilterGraphOptionsInput>(
+function intFilter<Options extends ClientFilterGraphOptionsForSubType<'int_filter'>>(
   options: Options
 ): ClientGraphApiForOptions<'int_filter', Options>
 function intFilter(

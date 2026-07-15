@@ -7,7 +7,6 @@ import { isEntityLikeType } from '../../shared/ts_type_utils.js'
 import { tryTransformBuiltinCall, tryTransformBuiltinPropertyAccess } from './builtins.js'
 import { fail, warn } from './errors.js'
 import { tryTransformListMethodCall } from './list_methods.js'
-import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   inferArrayListType,
   inferConcreteTypeFromString,
@@ -15,6 +14,7 @@ import {
   makeEmptyListExpr,
   type ListType
 } from './lists.js'
+import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   getBinaryOpInfo,
   getCompoundAssignmentMethod,
@@ -695,7 +695,7 @@ export function isDeclarationName(id: ts.Identifier): boolean {
   return false
 }
 
-function shouldCaptureIdentifier(id: ts.Identifier): boolean {
+export function shouldCaptureIdentifier(id: ts.Identifier): boolean {
   if (isDeclarationName(id)) return false
   const parent = id.parent
   if (!parent) return true

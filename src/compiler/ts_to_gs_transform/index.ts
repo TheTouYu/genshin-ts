@@ -278,7 +278,7 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
   const makeEnv = (
     gstsIdent: string,
     eventName?: string,
-    graph?: Pick<Env, 'graphDocumentType' | 'clientSubType' | 'clientMode'>
+    graph?: Pick<Env, 'graphDocumentType' | 'clientSubType'>
   ): Env => ({
     gstsIdent,
     config: ctx.config,
@@ -685,8 +685,7 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
               : undefined
           const env = makeEnv(gstsIdent, eventName, {
             graphDocumentType: 'client',
-            clientSubType: clientInfo.subType,
-            clientMode: clientInfo.mode
+            clientSubType: clientInfo.subType
           })
           const newHandler = transformHandler(env, context, handler)
           const newArgs = [...node.arguments]
@@ -709,8 +708,7 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
           const gstsIdent = hasTopLevelDeclName(node.body, 'gsts') ? '__gsts' : 'gsts'
           const env = makeEnv(gstsIdent, undefined, {
             graphDocumentType: 'client',
-            clientSubType,
-            clientMode: 'beyond'
+            clientSubType
           })
           return transformGstsServerFunction(env, context, node)
         }
@@ -730,8 +728,7 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
             ? makeEnv(gstsIdent, undefined, { graphDocumentType: 'server' })
             : makeEnv(gstsIdent, undefined, {
                 graphDocumentType: 'client',
-                clientSubType,
-                clientMode: 'beyond'
+                clientSubType
               })
           const nextInit = transformGstsServerFunction(env, context, init)
           changed = true

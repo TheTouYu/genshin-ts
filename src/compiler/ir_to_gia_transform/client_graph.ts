@@ -1,3 +1,7 @@
+import {
+  CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE,
+  isClientGraphModeAvailable
+} from '../../definitions/client_graph_modes.js'
 import { loadGiaProto } from '../../injector/proto.js'
 import {
   CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL,
@@ -10,9 +14,11 @@ import {
   ENUM_MATCH_ROWS_BY_CLASS
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
-import { NodePin_Index_Kind, VarBase_Class } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import {
-  CLIENT_REFLECT_IOC_BY_TYPE,
+  NodePin_Index_Kind,
+  VarBase_Class
+} from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import {
   client_graph_body,
   client_inline_var_value,
   client_list_literal_value,
@@ -20,6 +26,7 @@ import {
   client_node_body,
   client_node_connect_from,
   client_node_connect_to,
+  CLIENT_REFLECT_IOC_BY_TYPE,
   client_signal_name_value,
   client_value_base,
   client_wrapped_value,
@@ -36,8 +43,8 @@ import {
   resolveClientNodeMetadata
 } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
-import { parseEnumValue } from './mappings.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
+import { parseEnumValue } from './mappings.js'
 import { buildConnTypeIndex, type ConnTypeIndex } from './node_id.js'
 import type { IRNode, NodeId } from './types.js'
 
@@ -252,12 +259,18 @@ const DATA_TYPE_CONVERSION_ENUM_NAME: Record<string, string> = {
   'faction->str': 'type_conversion_faction_to_string'
 }
 
-function applyDataTypeConversion(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+function applyDataTypeConversion(
+  node: ClientGiaNode,
+  irNode: IRNode,
+  metadata: ClientNodeMetadata
+) {
   // IR 与服务器同形：data_type_conversion_<out> + 单输入参数；枚举引脚由 in->out 反推
   const inputArg = irNode.args?.[0]
   const outIrType = irNode.type.slice('data_type_conversion_'.length)
   const inIrType = irTypeOfArg(inputArg ?? undefined)
-  const enumName = inIrType ? DATA_TYPE_CONVERSION_ENUM_NAME[`${inIrType}->${outIrType}`] : undefined
+  const enumName = inIrType
+    ? DATA_TYPE_CONVERSION_ENUM_NAME[`${inIrType}->${outIrType}`]
+    : undefined
   if (!enumName) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
@@ -382,7 +395,10 @@ function applyLocalVariableNode(
             arg.value.map((v) => toPinLiteral(clientVarType, v, 1, irNode.type))
           )
         : isValueArg(arg)
-          ? client_literal_value(clientVarType, toPinLiteral(clientVarType, arg.value, 1, irNode.type))
+          ? client_literal_value(
+              clientVarType,
+              toPinLiteral(clientVarType, arg.value, 1, irNode.type)
+            )
           : client_value_base(clientVarType)
     return { clientVarType, value: client_wrapped_value(ioc, inner) }
   }
@@ -474,7 +490,10 @@ function applyDictReflectNode(
   outIrType: string | undefined
 ) {
   const fail = (msg: string) =>
-    clientNodegraphError(CLIENT_ERROR_CODES.NODE_UNAVAILABLE, `${metadata.subType}.${irNode.type} ${msg}`)
+    clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.${irNode.type} ${msg}`
+    )
 
   const dictPin = findInPin(node, 0)
   if (dictPin) {
@@ -527,7 +546,12 @@ function applyDictReflectNode(
 }
 
 /** 键/值槽定型 + ioc；字面量带 payload（innerSet=true），连线/空槽保持 unset */
-function dictSlotValue(clientVarType: number, ioc: number, arg: IrArg | undefined, nodeType: string) {
+function dictSlotValue(
+  clientVarType: number,
+  ioc: number,
+  arg: IrArg | undefined,
+  nodeType: string
+) {
   if (isValueArg(arg)) {
     const literal =
       Array.isArray(arg.value) && arg.type.endsWith('_list')
@@ -542,9 +566,16 @@ function dictSlotValue(clientVarType: number, ioc: number, arg: IrArg | undefine
  * 拼装字典：cid 恒定 1048，in#0 = kv 参数总数（plain int，与 assembly_list 同款），
  * in#1..#100 键/值槽交替（奇=键、偶=值），未用槽位也按键/值类型定型（全语料一致）。
  */
-function applyAssemblyDictionary(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+function applyAssemblyDictionary(
+  node: ClientGiaNode,
+  irNode: IRNode,
+  metadata: ClientNodeMetadata
+) {
   const fail = (msg: string) =>
-    clientNodegraphError(CLIENT_ERROR_CODES.NODE_UNAVAILABLE, `${metadata.subType}.${irNode.type} ${msg}`)
+    clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.${irNode.type} ${msg}`
+    )
   const args = irNode.args ?? []
   if (args.length === 0 || args.length % 2 !== 0 || args.length > 100) {
     throw fail(`expects 1-50 key/value pairs, got ${args.length} args`)
@@ -585,7 +616,10 @@ function applyAssemblyDictionary(node: ClientGiaNode, irNode: IRNode, metadata: 
  */
 function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
   const fail = (msg: string) =>
-    clientNodegraphError(CLIENT_ERROR_CODES.NODE_UNAVAILABLE, `${metadata.subType}.${irNode.type} ${msg}`)
+    clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.${irNode.type} ${msg}`
+    )
   const pins: Array<{ index: number; iocOfElem: (elem: string) => number | undefined }> = [
     { index: 0, iocOfElem: (elem) => DICT_KEY_IOC_BY_IR[elem] },
     { index: 1, iocOfElem: (elem) => DICT_VALUE_IOC_BY_IR[elem] }
@@ -597,7 +631,9 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
     const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
     const ioc = elem ? iocOfElem(elem) : undefined
     if (!clientVarType || ioc === undefined) {
-      throw fail(`cannot resolve ${index === 0 ? 'key' : 'value'} list type from "${irType ?? 'missing'}"`)
+      throw fail(
+        `cannot resolve ${index === 0 ? 'key' : 'value'} list type from "${irType ?? 'missing'}"`
+      )
     }
     const pin = findInPin(node, index)
     if (pin) {
@@ -779,7 +815,11 @@ const SIGNAL_PARAM_DEFAULT_BY_TYPE: Record<number, unknown> = {
   19: 0
 }
 
-function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: ClientNodeMetadata) {
+function applySendSignalToServer(
+  node: ClientGiaNode,
+  irNode: IRNode,
+  metadata: ClientNodeMetadata
+) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
     throw clientNodegraphError(
@@ -821,7 +861,10 @@ function applySendSignalToServer(node: ClientGiaNode, irNode: IRNode, metadata: 
             clientVarType,
             arg.value.map((v) => toPinLiteral(clientVarType, v, i, irNode.type))
           )
-        : client_literal_value(clientVarType, toPinLiteral(clientVarType, arg.value, i, irNode.type))
+        : client_literal_value(
+            clientVarType,
+            toPinLiteral(clientVarType, arg.value, i, irNode.type)
+          )
       : client_value_base(clientVarType, SIGNAL_PARAM_DEFAULT_BY_TYPE[clientVarType])
     paramPins.push({
       i1: { kind: PIN_KIND_IN_PARAM, index: pinIndex },
@@ -910,7 +953,10 @@ function applyLiteralArgs(
           )
         : undefined
       const clientVarType =
-        variantPin?.clientVarType ?? pinMeta.clientVarType ?? CLIENT_VAR_TYPE_BY_IR_TYPE[arg.type] ?? 0
+        variantPin?.clientVarType ??
+        pinMeta.clientVarType ??
+        CLIENT_VAR_TYPE_BY_IR_TYPE[arg.type] ??
+        0
       const elements =
         clientVarType === 17
           ? arg.value.map((v) => toPinLiteral(13, v, argIndex, irNode.type))
@@ -969,6 +1015,14 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const graphId = opts.graphId ?? resolveGraphIdForGraph(ir.graph)
   const name = opts.name ?? ir.graph.name ?? '_GSTS_Generated_Client_Graph'
   const uid = opts.uid ?? 100000001
+  const mode = ir.graph.mode ?? 'beyond'
+  if (!isClientGraphModeAvailable(ir.graph.sub_type, mode)) {
+    const reason = CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE[ir.graph.sub_type][mode].reason
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.MODE_UNAVAILABLE,
+      `${ir.graph.sub_type} is not available in ${mode} mode${reason ? `: ${reason}` : ''}`
+    )
+  }
   if (!ir.nodes?.length) throw new Error('IR document must have at least one node')
   const nodes = expandEnumListLiterals(ir.nodes, ir.graph.sub_type)
   ir = { ...ir, nodes }
@@ -981,7 +1035,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const concreteById = new Map<NodeId, number | string>()
 
   for (const irNode of nodes) {
-    const metadata = resolveClientNodeMetadata(ir.graph.sub_type, irNode)
+    const metadata = resolveClientNodeMetadata(ir.graph.sub_type, mode, irNode)
     metadataById.set(irNode.id, metadata)
     const inferredOutType = inferredOutputIrType(irNode, connIndex)
     const concreteId = resolveClientConcreteVariant(metadata, irNode, inferredOutType)
@@ -1060,6 +1114,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     graph_name: name,
     graphType: encoding.graphType,
     graphWhich: encoding.graphWhich,
+    modeFlag: mode === 'classic' ? 1 : undefined,
     evaluation_interval: isFilter
       ? (ir.graph.evaluation_interval ?? CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL)
       : undefined,

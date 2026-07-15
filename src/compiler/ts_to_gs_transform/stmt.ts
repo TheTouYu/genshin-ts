@@ -13,17 +13,18 @@ import {
   isDeclarationName,
   propagateTimerHandleMeta,
   recordTimerHandleMeta,
+  shouldCaptureIdentifier,
   transformExpression
 } from './expr.js'
 import { isArrayLikeExpression } from './list_utils.js'
 import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
-import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   transformDoStatement,
   transformForOfStatement,
   transformForStatement,
   transformWhileStatement
 } from './loops.js'
+import { getFMethodCall, isFMethodCall } from './matcher.js'
 import { isAssignmentLikeOperator } from './ops.js'
 import type { CollectionSourceKind, Env, VarPlan, VarPlanEntry } from './types.js'
 import { asBlock, isClientFMethodAvailable, makeFCall, withSameRange } from './utils.js'
@@ -281,7 +282,11 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
   }
 
   const isListWrapperCall = (expr: ts.Expression): expr is ts.CallExpression => {
-    return ts.isCallExpression(expr) && ts.isIdentifier(expr.expression) && expr.expression.text === 'list'
+    return (
+      ts.isCallExpression(expr) &&
+      ts.isIdentifier(expr.expression) &&
+      expr.expression.text === 'list'
+    )
   }
 
   const classifyCollectionSource = (expr: ts.Expression | undefined): CollectionSourceKind => {
@@ -875,7 +880,12 @@ function validateNoMutableOuterCaptures(env: Env, body: ts.ConciseBody): void {
   }
 
   const visit = (node: ts.Node) => {
-    if (ts.isIdentifier(node) && !isDeclarationName(node)) {
+    if (
+      ts.isIdentifier(node) &&
+      node.text !== 'gsts' &&
+      node.text !== env.gstsIdent &&
+      shouldCaptureIdentifier(node)
+    ) {
       const rawSymbol = env.checker.getSymbolAtLocation(node)
       const symbol =
         rawSymbol && (rawSymbol.flags & ts.SymbolFlags.Alias) !== 0

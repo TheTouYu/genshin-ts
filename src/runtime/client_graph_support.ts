@@ -1,4 +1,10 @@
-import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
+import {
+  CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE,
+  CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE,
+  isClientGraphModeAvailable,
+  type ClientGraphAvailableMode
+} from '../definitions/client_graph_modes.js'
+import type { ClientNodeMethodForMode } from '../definitions/client_method_modes.js'
 import {
   ClientBoolFilterExecutionFlowFunctions,
   ClientCharacterControlSkillExecutionFlowFunctions,
@@ -105,24 +111,36 @@ export type ClientStartEvent = Record<string, never>
 export type ClientStartEventName = 'start'
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>
 
+type ClientFlowFunctionBase<T extends ClientGraphSubType> = T extends 'character_skill'
+  ? ClientCharacterSkillExecutionFlowFunctions
+  : T extends 'character_control_skill'
+    ? ClientCharacterControlSkillExecutionFlowFunctions
+    : T extends 'creation_skill'
+      ? ClientCreationSkillExecutionFlowFunctions
+      : T extends 'creation_status'
+        ? ClientCreationStatusExecutionFlowFunctions
+        : T extends 'creation_status_decision'
+          ? ClientCreationStatusDecisionExecutionFlowFunctions
+          : T extends 'bool_filter'
+            ? ClientBoolFilterExecutionFlowFunctions
+            : ClientIntFilterExecutionFlowFunctions
+
 export type ClientFlowFunctionClass<
   T extends ClientGraphSubType,
   Mode extends ClientGraphMode = ClientGraphMode
-> = Mode extends ClientGraphMode
-  ? T extends 'character_skill'
-    ? ClientCharacterSkillExecutionFlowFunctions
-    : T extends 'character_control_skill'
-      ? ClientCharacterControlSkillExecutionFlowFunctions
-      : T extends 'creation_skill'
-        ? ClientCreationSkillExecutionFlowFunctions
-        : T extends 'creation_status'
-          ? ClientCreationStatusExecutionFlowFunctions
-          : T extends 'creation_status_decision'
-            ? ClientCreationStatusDecisionExecutionFlowFunctions
-            : T extends 'bool_filter'
-              ? ClientBoolFilterExecutionFlowFunctions
-              : ClientIntFilterExecutionFlowFunctions
-  : never
+> = ClientGraphMode extends Mode
+  ? ClientFlowFunctionBase<T>
+  : Pick<
+      ClientFlowFunctionBase<T>,
+      Extract<ClientNodeMethodForMode<T, Mode>, keyof ClientFlowFunctionBase<T>>
+    >
+
+export type ClientGraphOptionsForSubType<T extends ClientGraphSubType> = ClientGraphOptions<
+  ClientGraphAvailableMode<T>
+>
+
+export type ClientFilterGraphOptionsForSubType<T extends 'bool_filter' | 'int_filter'> =
+  ClientFilterGraphOptions<ClientGraphAvailableMode<T>>
 
 export type ClientStartHandler<F> = (evt: ClientStartEvent, f: F) => void
 export type ClientFilterHandler<F, R> = (evt: ClientStartEvent, f: F) => R
@@ -159,6 +177,18 @@ export function assertClientGraphMode(mode?: ClientGraphMode): ClientGraphMode {
     )
   }
   return resolved
+}
+
+export function assertClientGraphModeCompatible(
+  subType: ClientGraphSubType,
+  mode: ClientGraphMode
+): void {
+  if (isClientGraphModeAvailable(subType, mode)) return
+  const reason = CLIENT_GRAPH_CAPABILITY_BY_SUB_TYPE[subType][mode].reason
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.MODE_UNAVAILABLE,
+    `${subType} is not available in ${mode} mode${reason ? `: ${reason}` : ''}`
+  )
 }
 
 export function assertClientGraphSubType(subType: ClientGraphSubType): ClientGraphSubType {

@@ -23,6 +23,7 @@ export function client_graph_body(body: {
   graph_name: string
   graphType: number
   graphWhich: number
+  modeFlag?: number
   evaluation_interval?: number
   nodes: GraphNode[]
 }): Root {
@@ -31,7 +32,8 @@ export function client_graph_body(body: {
     graph_id: body.graph_id,
     graph_name: body.graph_name,
     nodes: body.nodes,
-    mode: 'server'
+    mode: 'server',
+    modeFlag: body.modeFlag
   })
   root.graph.id = {
     class: GraphUnit_Id_Class.Basic,
