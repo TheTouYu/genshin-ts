@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + 当前 Phase 计划 + ADR-012/013 + 已归档工作包记录
-> 最近校验：2026-07-14
+> 最近校验：2026-07-15
 > 适用范围：`refactor/composite-stage3-architecture`；新会话的最小实时恢复入口
 
 > 历史工作包的目标、命令、候选路径、SHA-256 和失败过程不在本文件重复；见
@@ -13,14 +13,16 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W1..P5-W4 已完成并提交；用户编辑器核验通过）
-当前唯一工作包：P5-W5 — residual concreteWrapped identity 收口（不改 default gate）
-最近已提交工作包：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
+当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6 已提交）
+当前唯一工作包：P5-W7 — 按覆盖矩阵消减最高优先 ordinary 缺口（待矩阵结果调度）
+最近已提交工作包：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
+更早已提交：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
 更早已提交：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
 更早已提交：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
-工作树预期：clean（P5-W4 已提交；.gia 候选不入库）
+工作树预期：clean（P5-W6 已提交；.gia 候选不入库）
 默认 backend：handwritten impl backend
 opt-in beta：options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1
+覆盖完成表面：shared beta（grilling S4）；默认旧路只保历史哨兵
 ```
 
 ## 当前可依赖事实
@@ -669,27 +671,113 @@ git diff --check
 说明：本包删除的是已空 adapter（原先恒返回 undefined）。node-graph concrete id 仍走 shared resolver。
 连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused structural contract 为准。
 
-## 当前唯一工作包：P5-W5
+## 最近完成（已提交）：P5-W6
+
+P5-W6（grilling W1）建立可机读的 root→shared-beta ordinary 覆盖矩阵，并在 shared beta 下自动探测
+residual concrete + generic `print_string`。不改生产编码路径，不切 default gate，不删 legacy，不注入。
+
+Grilling 共享理解（用户确认 2026-07-15）：
 
 ```text
-工作包：P5-W5 — residual concreteWrapped identity 收口
-优先级类别：架构阻塞
-状态：待实现；P5-W4 已完成并提交
-解除的上层阻塞：空 typed-identity adapter 已删；仍有
-  resolveImplOrdinaryConcreteNodeId / concreteWrappedNodeTypes 等 residual 表面，
-  阻碍 legacy inventory 继续消减。
-输入与修改范围：审计仍走 resolveImplOrdinaryConcreteNodeId 的 family；
-  能迁到 shared resolveNodeIdentity 的迁走，不能迁的具名 adapter 与删除条件；
-  inventory/测试；STATUS/Phase 5。
-最小观察或失败基线：P5-W4 后 remainingCallSites=12 / remainingHelpers=19；
-  concrete-wrapper family 仍在 inventory。
-完成条件：每个 residual concreteWrapped family 已迁 shared 或具名并带删除条件；
-  focused contract 通过；用户编辑器核验（若触及生产路径）通过。
-实际验证命令：实现时确定；至少 npm run build + focused contract + git diff --check。
-回滚边界：仅 concreteWrapped identity 路径；不触及 default gate / handwritten pin·materialize 主路径整体删除。
-明确非目标：默认开启 vendor gate、删除 handwritten pin/materialize 主路径、注入、改 capture/call/layout。
+A  能力完成（shared 表面能编能跑；非默认切换/删 legacy）
+A4 分层证据（默认自动合同；哨兵升级编辑器/游戏）
+S4 完成表面 = shared beta；默认旧路只保历史哨兵
+P3 覆盖 root 今天能编的全部 ordinary（含 named adapter）
+M3 一次共享主路径 + 可机读矩阵；禁止按 API 流水线实现
+C4 行通过默认 = 结构合同 + 无 composite 私有 ordinary 分叉
+I4 行来自 root 活代码表面，映射 inventory 分类
+F4 ordinary 失败只修共享层；boundary 可改 boundary 模块
+W1/E3 本包只建矩阵 + shared-beta 自动探测
+```
+
+交付：
+
+```text
+src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts
+  ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT
+  ORDINARY_COVERAGE_GRILLING_DECISIONS
+  RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES（14）
+  listStaticOrdinaryCoverageRows / classifyStaticCoverageStatuses
+
+src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_probe.ts
+  runOrdinaryCoverageProbes / encodeResidualAndGenericFixtureOnce
+
+src/compiler/ir_to_gia_transform/composite.ts
+  COMPOSITE_ORCHESTRATION_CONTRACT.ordinaryCoverageMatrix
+  re-export matrix helpers（不 re-export probe，避免 index↔composite 环）
+
+tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts
+```
+
+自动探测结果（shared beta，2026-07-15）：
+
+```text
+total=73 green=32 red=0 unknown=41
+generic-ordinary: green=1
+variable: green=6
+dtc: green=1
+scalar-binary: green=9
+residual-concrete: green=13 unknown=1（enumerations_equal）
+boundary: green=2
+pin-hole/special-arg/typed-identity/mode/special-id/graph-container/root-unsupported: unknown
+```
+
+已证明（自动）：
+
+- 矩阵行从 root 活表面抽出并映射 inventory 分类；
+- residual 14 与 shared 同型标量二进制 9 互斥且与 `usesSharedVariantResolution` 一致；
+- shared beta 下 residual（除 `enumerations_equal`）+ `print_string` 编码探测绿；
+- default gate 仍为 false；legacy backend 仍存在；生产 ordinary 编码路径未改；
+- P5-W1 / P5-W3 / P4-W7 focused contract 未破坏。
+
+未证明 / 非目标：
+
+- 不宣称 P3 能力完成（unknown=41，含 named adapter 与 enum residual）；
+- 未迁 residual identity 到 shared resolver（旧 P5-W5 议题并入矩阵调度）；
+- 未默认开启 vendor gate；未删除 handwritten pin/materialize；
+- 无新游戏候选、未注入、无真实 GIA/wire 全等结论；无用户编辑器核验义务。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts
+npx tsx tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+npx tsx tests/composite/test-stage3-p5w3-root-ordinary-capability-inventory.ts
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+git diff --check
+```
+
+说明：旧 STATUS 的 P5-W5（residual concreteWrapped identity 收口）被矩阵调度取代为后续候选；
+下一刀以 unknown/red 行 + F4 修复规则重排，不再以单一 14 节点列表作为唯一主线。
+
+## 当前唯一工作包：P5-W7
+
+```text
+工作包：P5-W7 — 按覆盖矩阵消减最高优先 ordinary 缺口
+优先级类别：架构阻塞 / fallback-vendor gap（以矩阵结果定）
+状态：待实现；P5-W6 矩阵已给出基线（green=32 / red=0 / unknown=41）
+解除的上层阻塞：没有可机读“全部 ordinary”定义时无法证明 P3 进度；
+  矩阵已建立；下一步必须把 unknown 中可自动样本化或阻塞 shared 路径的族
+  变成 green，或具名 shared adapter + 删除条件，且禁止 composite 专属 ordinary 分叉。
+输入与修改范围：从 P5-W6 矩阵 unknown 行中选一个最高优先族/包络
+  （候选：enumerations_equal residual；pin-hole 共享提升；special-arg/signal；
+   typed-identity/dict；或 residual identity 迁 shared 以消 legacy inventory）；
+  只修共享层（F4）；更新矩阵状态/测试；STATUS/Phase 5。
+最小观察或失败基线：P5-W6 total=73 green=32 red=0 unknown=41；
+  residual-concrete green=13 / enumerations_equal unknown；legacy helpers=19 callSites=12。
+完成条件：选定族在 shared beta 下由 unknown/red → green（C4 结构合同），
+  或具名 shared adapter 带删除条件；focused contract 通过；
+  若触及生产路径则用户编辑器核验。
+实际验证命令：实现时确定；至少 npm run build +
+  npx tsx tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts +
+  相关 focused + git diff --check。
+回滚边界：仅所选族的 shared identity/adapter/probe；不切 default gate；
+  不整包删除 handwritten pin/materialize。
+明确非目标：默认开启 vendor gate、全量 41 unknown 一次清完、注入、
+  改 capture/call/layout、composite 专属 ordinary 补丁。
 后续候选（非当前工作包）：
-  共享 pin-hole adapter 提升；handwritten pin/materialize 分项删除；default 切换（须用户批准）。
+  其余 unknown 族；legacy inventory 分项删除；default 切换（须用户批准）。
 用户闸门：若触及 default gate / 主路径 legacy 删除 / 注入，必须停止。
 ```
 

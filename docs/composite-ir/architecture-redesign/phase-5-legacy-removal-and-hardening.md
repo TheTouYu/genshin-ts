@@ -1,9 +1,9 @@
 # Phase 5：删除 Legacy Backend 与架构硬化
 
-> 状态：进行中；P5-W1..P5-W4 已完成并提交（用户编辑器核验通过）；当前唯一工作包 P5-W5
-> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W4 源码观察
+> 状态：进行中；P5-W1..P5-W4、P5-W6 已提交；当前唯一工作包 P5-W7
+> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W6 源码观察 + grilling 共享理解
 > 最近校验：2026-07-15
-> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W5`
+> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W7`
 
 ## 目标
 
@@ -48,6 +48,9 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
   不构成全 API 游戏验证声明。
 - [x] P5-W4：删除空的 legacy typed-identity adapter 表面；inventory 12 call-sites / 19 helpers；
   用户 2026-07-15 确认编辑器加载与可观察执行通过；已提交。
+- [x] P5-W6：root→shared-beta ordinary 覆盖矩阵骨架（grilling W1/E3）；
+  `root_impl_ordinary_coverage_matrix.ts` + encode probe；total=73 green=32 red=0 unknown=41；
+  不改生产编码 / default gate；旧 P5-W5 residual 清单并入矩阵调度。
 
 从当前 root compiler 实际可生成的 ordinary node/API 出发，建立并审计能力清单。每项必须分类为：
 

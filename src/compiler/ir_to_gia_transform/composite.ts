@@ -41,6 +41,7 @@ import {
 } from './resolved_node.js'
 import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
 import { ROOT_ORDINARY_CAPABILITY_CONTRACT } from './root_ordinary_capability_inventory.js'
+import { ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT } from './root_impl_ordinary_coverage_matrix.js'
 import {
   STAGE3_BACKEND_CONTRACT,
   isSharedVendorImplGraphEnabled
@@ -90,7 +91,9 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   /** P5-W2: formal opt-in beta surface; default remains handwritten. */
   stage3Backend: STAGE3_BACKEND_CONTRACT,
   /** P5-W3: root ordinary capability inventory; does not flip default or delete legacy. */
-  rootOrdinaryCapabilities: ROOT_ORDINARY_CAPABILITY_CONTRACT
+  rootOrdinaryCapabilities: ROOT_ORDINARY_CAPABILITY_CONTRACT,
+  /** P5-W6: root→shared-beta ordinary coverage matrix; observation only. */
+  ordinaryCoverageMatrix: ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT
 } as const
 
 export {
@@ -120,6 +123,29 @@ export type {
   RootOrdinaryEvidenceClass,
   RootOrdinaryCapability
 } from './root_ordinary_capability_inventory.js'
+
+export {
+  ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
+  ORDINARY_COVERAGE_GRILLING_DECISIONS,
+  RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES,
+  RESIDUAL_UNARY_SCALAR_NODE_TYPES,
+  RESIDUAL_BINARY_SCALAR_NODE_TYPES,
+  listStaticOrdinaryCoverageRows,
+  classifyStaticCoverageStatuses,
+  listOrdinaryCoverageRowIds,
+  findOrdinaryCoverageRow,
+  assertCoverageMatrixInvariants,
+  summarizeOrdinaryCoverage
+} from './root_impl_ordinary_coverage_matrix.js'
+export type {
+  OrdinaryCoverageStatus,
+  OrdinaryCoverageProbeKind,
+  OrdinaryCoverageRow,
+  CoverageProbeSummary
+} from './root_impl_ordinary_coverage_matrix.js'
+// Encode probes live in root_impl_ordinary_coverage_probe.ts and import irToGia from
+// index.ts; they are intentionally NOT re-exported here to avoid a cycle:
+// index -> composite -> probe -> index.
 
 export {
   STAGE3_BACKEND_CONTRACT,
