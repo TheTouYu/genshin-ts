@@ -54,7 +54,8 @@ declare const __entityKind: unique symbol
 export type EntityKind = 'player' | 'character' | 'stage' | 'object' | 'creation'
 type EntityKindMarker<K extends EntityKind> = { readonly [__entityKind]?: K }
 
-export type EntityOf<K extends EntityKind> = entity & EntityKindMarker<K>
+// Node parameters need the entity identity and kind, not a graph mode's full helper surface.
+export type EntityOf<K extends EntityKind> = EntityRuntimeBase & EntityKindMarker<K>
 export type EntityAny = entity
 
 // Generated from src/definitions/nodes.ts (methods whose first param is entity-like).
