@@ -78,6 +78,12 @@ export type CompositeCallPinBuildOutput = {
   captureInputIndexes: number[]
 }
 
+export type CompositeCallFlowConnection = {
+  fromId: number
+  toId: number
+  fromIndex: number
+}
+
 /**
  * Stable contract surface for tests and Phase 4 audits.
  */
@@ -300,6 +306,44 @@ export function resolveCompositeCallIdentity(
       nodeId: compositeId
     }
   }
+}
+
+/**
+ * Reject execution edges that a composite call cannot encode because its definition omitted
+ * the corresponding OutFlow declaration/binding. Without this check the editor silently shows
+ * a broken white execution wire while data wires can remain connected.
+ */
+export function validateCompositeCallOutflowConnections(
+  node: ServerNode,
+  calledDef: CompositeDefIR,
+  flowConnections: readonly CompositeCallFlowConnection[]
+): void {
+  if (!isCompositeCallNode(node) || calledDef.inflows.length === 0) return
+
+  const outgoing = flowConnections.filter((connection) => connection.fromId === node.id)
+  if (outgoing.length === 0) return
+
+  const missingIndexes = [
+    ...new Set(
+      outgoing
+        .map((connection) => connection.fromIndex)
+        .filter((index) => calledDef.outflows[index] === undefined)
+    )
+  ].sort((a, b) => a - b)
+  if (missingIndexes.length === 0) return
+
+  const downstreamIds = [...new Set(outgoing.map((connection) => connection.toId))]
+  throw new Error(
+    `[error] GSTS-COMPOSITE-MISSING-OUTFLOW: execution flow after composite ` +
+      `"${calledDef.name}" (id=${calledDef.id}, callNode=${node.id}) cannot be connected: ` +
+      `OutFlow[${missingIndexes.join(', ')}] is not declared; downstream node(s): ` +
+      `${downstreamIds.join(', ')}.\n` +
+      `Fix the source syntax: add the required entry to defineComposite(..., { ` +
+      `outflows: ['完成'], ... }), then bind the internal exit in build() with ` +
+      `f.outflow('完成', sourceNode, sourceOutflowIndex). Do not only add the declaration: ` +
+      `the f.outflow(...) binding is required. If this composite is intentionally terminal, ` +
+      `remove or move the statements that currently follow its call.`
+  )
 }
 
 /**

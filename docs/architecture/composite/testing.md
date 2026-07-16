@@ -116,6 +116,7 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-mixed-composite-normal.ts`   | 复合调用与普通 `f.method()` 交叉排列                                                                 |
 | `test-composite-game-demo.ts`      | 模拟真实游戏逻辑的复合（条件、变量、多个复合）                                                       |
 | `test-composite-bool-input-gia.ts` | bool input/output 的 `enumId=1` wire 元数据；非 bool 参数不得携带 `enumId`；同时锁定调用 pin literal |
+| `test-stage3-p4w3-call-lowerer-contract.ts` | 复合调用边界；含“下游仍有执行流但定义未声明/绑定 OutFlow”的 `GSTS-COMPOSITE-MISSING-OUTFLOW` 负向诊断 |
 | `analyze-nested-composites.ts`     | 嵌套复合的历史可行性调查；当前行为以 nested focused tests 为准                                       |
 
 ---
@@ -124,7 +125,10 @@ npx tsx tests/composite/test-composite-part3.ts
 
 ### 独立脚本模式
 
-复合测试是独立脚本，**不属于** `npm test` 自动执行流程：
+复合测试是独立脚本，**不属于** `npm test` 自动执行流程。`gsts.test.config.ts` 也会排除
+`tests/composite/_dump*.ts` 和 `recreate-local-variable-reference.ts`：这些脚本直接保存
+`f.node()` 返回的 flow marker 或自行读取/写入 GIA，只能通过下述 focused harness 单独运行，不能作为
+普通用户 DSL 入口参与 Stage 1 的 LocalVariable lowering。
 
 ```bash
 # 运行完整测试集

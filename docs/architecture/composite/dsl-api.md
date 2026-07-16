@@ -248,7 +248,24 @@ const outer = g.defineComposite('Outer', {
 - `f.outflow('完成', nested, 3)` 可把嵌套复合的逻辑 `OutFlow[3]` 直接提升为外层复合出口；这种 compositePins 穿透映射已在真实 GIA 中验证。
 - 空名默认入口不写 `f.inflow('')`；使用 `f.link(f.entry(), 0, firstNode)`。`f.inflow(name, ...)` 用于有明确名称的多 InFlow 接口。
 
-针对性回归：`tests/composite/test-nested-composite-outflow.ts` 同时验证 IR compositePin 和解码后嵌套调用的物理 OutFlow pin。
+如果执行型复合调用后还有语句，复合定义必须同时**声明并绑定**对应出口：
+
+```typescript
+const controller = g.defineComposite('二维移动控制器', {
+  outflows: ['完成'],
+  build(_args, f) {
+    const lastNode = f.node('some_exec_node')
+    f.link(f.entry(), 0, lastNode)
+    f.outflow('完成', lastNode, 0)
+    return {}
+  }
+})
+```
+
+只写 `outflows: ['完成']` 而不调用 `f.outflow(...)` 仍不会生成有效出口。Stage 3 检测到调用点存在下游执行边、但定义缺少对应 OutFlow 时，会报
+`GSTS-COMPOSITE-MISSING-OUTFLOW`，并在诊断中提供上述语法修复方向；这避免生成“数据线仍连接、白色执行线断开”的 GIA。如果复合本来就应终止执行，则应移除或移动调用后的语句，而不是虚构出口。
+
+针对性回归：`tests/composite/test-nested-composite-outflow.ts` 验证 IR compositePin 和解码后嵌套调用的物理 OutFlow pin；`tests/composite/test-stage3-p4w3-call-lowerer-contract.ts` 验证缺失声明的编译诊断。
 
 ---
 

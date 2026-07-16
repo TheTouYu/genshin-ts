@@ -4,6 +4,7 @@
  * 定义两个 exec-only 复合，在主图中依次调用，验证 event 的 OutFlow fork 到两个复合
  */
 import { g, buildServerGraphRegistriesIRDocuments } from '../../dist/src/runtime/core.js'
+import { str } from '../../dist/src/runtime/value.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { writeFileSync } from 'fs'
@@ -15,8 +16,11 @@ const OUT_DIR = './tests/composite/output'
 const comp1 = g.defineComposite('第一个执行', {
   inputs: {},
   outputs: {},
+  outflows: ['完成'],
   build(_inputs: any, f: any) {
-    f.printString('第一个')
+    const print = f.node('print_string', [new str('第一个')])
+    f.link(f.entry(), 0, print)
+    f.outflow('完成', print, 0)
     return {}
   }
 })
@@ -25,8 +29,11 @@ const comp1 = g.defineComposite('第一个执行', {
 const comp2 = g.defineComposite('第二个执行', {
   inputs: {},
   outputs: {},
+  outflows: ['完成'],
   build(_inputs: any, f: any) {
-    f.printString('第二个')
+    const print = f.node('print_string', [new str('第二个')])
+    f.link(f.entry(), 0, print)
+    f.outflow('完成', print, 0)
     return {}
   }
 })
@@ -100,22 +107,14 @@ if (comp1OutFlow) {
   }
 }
 
-// comp2 终端：OutFlow → terminal print_string
+// comp2 调用点是终端：定义保留 OutFlow 契约，主图调用节点不物化无下游的 OutFlow pin
 const gComp2 = execNodes[1]
 const hasOutFlow2 = gComp2?.pins?.some((p: any) => p.i1?.kind === 2)
 if (hasOutFlow2) {
-  const outFlowPin = gComp2.pins.find((p: any) => p.i1?.kind === 2)
-  const targets = outFlowPin?.connects?.map((c: any) => c.id) ?? []
-  const terminalNode = mainNodes.find((n: any) => targets.includes(n.nodeIndex))
-  if (terminalNode && terminalNode.genericId?.nodeId === 1) {
-    console.log(`  ✅ comp2[${gComp2.nodeIndex}] OutFlow → terminal[${targets.join(',')}]`)
-  } else {
-    console.log(`  ❌ comp2[${gComp2.nodeIndex}] OutFlow 未连到终端`)
-    ok = false
-  }
-} else {
-  console.log(`  ❌ comp2[${gComp2.nodeIndex}] 无 OutFlow (应有终端)`)
+  console.log(`  ❌ comp2[${gComp2.nodeIndex}] 终端调用不应物化无下游 OutFlow`)
   ok = false
+} else {
+  console.log(`  ✅ comp2[${gComp2.nodeIndex}] 终端调用无物理 OutFlow pin`)
 }
 
 // 验证 accessories 结构

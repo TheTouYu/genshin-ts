@@ -30,6 +30,11 @@ import {
 } from '../gia_vendor.js'
 import { buildCompositeAccessories } from './composite.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
+import {
+  isCompositeCallNode,
+  readCompositeCallId,
+  validateCompositeCallOutflowConnections
+} from './lower_composite_call.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
 import {
@@ -435,6 +440,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   const compositeDefById = new Map<number, CompositeDefIR>()
   for (const cd of (irDoc.compositeDefs ?? []) as CompositeDefIR[]) {
     compositeDefById.set(cd.id, cd)
+  }
+
+  for (const irNode of ir.nodes!) {
+    if (!isCompositeCallNode(irNode)) continue
+    const compositeId = readCompositeCallId(irNode)
+    const calledDef = compositeId === undefined ? undefined : compositeDefById.get(compositeId)
+    if (calledDef) {
+      validateCompositeCallOutflowConnections(irNode, calledDef, graphInfo.flowConnections)
+    }
   }
 
   ir.nodes!.forEach((irNode) => {

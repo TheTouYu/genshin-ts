@@ -11,11 +11,13 @@
  *   npx tsx tests/composite/test-stage3-p4w3-call-lowerer-contract.ts
  */
 import assert from 'node:assert/strict'
+import { join } from 'node:path'
 
 import {
   NodeGraph_Id_Kind,
   NodePin_Index_Kind
 } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import {
   buildCompositeCallPins,
   classifyCompositeCallBinding,
@@ -24,7 +26,8 @@ import {
   COMPOSITE_CALL_NODE_TYPE,
   isCompositeCallNode,
   readCompositeCallId,
-  resolveCompositeCallIdentity
+  resolveCompositeCallIdentity,
+  validateCompositeCallOutflowConnections
 } from '../../dist/src/compiler/ir_to_gia_transform/lower_composite_call.js'
 
 const childDef = {
@@ -152,6 +155,62 @@ assert.deepEqual(
 )
 assert.equal(outFlows.find((pin) => pin.i1.index === 0)?.compositePinIndex, 20)
 assert.equal(outFlows.find((pin) => pin.i1.index === 1)?.compositePinIndex, 21)
+
+assert.doesNotThrow(() =>
+  validateCompositeCallOutflowConnections(secondOnlyNode, childDef, [
+    { fromId: secondOnlyNode.id, toId: 99, fromIndex: 0 }
+  ])
+)
+const missingOutflowDef = { ...childDef, name: '二维移动控制器', outflows: [] }
+assert.throws(
+  () =>
+    validateCompositeCallOutflowConnections(secondOnlyNode, missingOutflowDef, [
+      { fromId: secondOnlyNode.id, toId: 99, fromIndex: 0 }
+    ]),
+  (error) => {
+    assert.match(error.message, /GSTS-COMPOSITE-MISSING-OUTFLOW/)
+    assert.match(error.message, /二维移动控制器/)
+    assert.match(error.message, /defineComposite\(\.\.\., \{ outflows: \['完成'\]/)
+    assert.match(error.message, /f\.outflow\('完成', sourceNode, sourceOutflowIndex\)/)
+    assert.match(error.message, /downstream node\(s\): 99/)
+    return true
+  },
+  'an exec composite with downstream flow must declare and bind its OutFlow'
+)
+assert.doesNotThrow(() =>
+  validateCompositeCallOutflowConnections(secondOnlyNode, missingOutflowDef, [])
+)
+
+const missingOutflowIr = {
+  ir_version: 1,
+  ir_type: 'node_graph',
+  graph: { name: 'missing-outflow', id: 1073741825, type: 'server', mode: 'beyond' },
+  nodes: [
+    {
+      id: 1,
+      type: 'entity_created_event',
+      args: [],
+      next: [{ node_id: 2, source_index: 0, target_index: 0 }]
+    },
+    {
+      ...secondOnlyNode,
+      next: [{ node_id: 3, source_index: 0, target_index: 0 }]
+    },
+    { id: 3, type: 'print_string', args: [{ type: 'str', value: 'after composite' }] }
+  ],
+  compositeDefs: [missingOutflowDef]
+}
+assert.throws(
+  () =>
+    irToGia(missingOutflowIr, {
+      protoPath: join(
+        process.cwd(),
+        'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
+      )
+    }),
+  /GSTS-COMPOSITE-MISSING-OUTFLOW/,
+  'Stage 3 compile entry must reject the broken execution chain'
+)
 
 const emptyPins = buildCompositeCallPins({
   node: emptyCallNode,
