@@ -60,10 +60,16 @@ export function makeFCall(env: Env, method: string, args: ts.Expression[]) {
         ? '__gstsInitLocalVariable'
         : getClientFMethodName(method)
       : method
+  // Transform 内部统一使用服务器节点的 (list, index) 顺序；客户端同名节点是
+  // (index, list)，在唯一的 f 调用出口集中适配，避免各个 lowering 分支遗漏。
+  const targetArgs =
+    env.graphDocumentType === 'client' && targetMethod === 'getCorrespondingValueFromList'
+      ? [args[1], args[0]]
+      : args
   return ts.factory.createCallExpression(
     ts.factory.createPropertyAccessExpression(makeFObjectExpression(env), targetMethod),
     undefined,
-    args
+    targetArgs
   )
 }
 

@@ -1,9 +1,6 @@
 import z from 'zod'
 
-import {
-  CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE,
-  CLIENT_GRAPH_SUB_TYPES
-} from '../definitions/client_graph_modes.js'
+import type { clientEntity as ClientEntityValue } from '../definitions/client_entity_helpers.js'
 import {
   installEntityHelpers,
   type PlayerEntity,
@@ -11,6 +8,7 @@ import {
 } from '../definitions/entity_helpers.js'
 import { EntityType, RoundingMode } from '../definitions/enum.js'
 import { DataTypeConversionMap, parseValue } from '../definitions/nodes.js'
+import { callActiveGraphFunction, getActiveGraphFunctions } from './active_graph_functions.js'
 import type { MetaCallRegistry, SignalDefinition, SignalParamValues } from './core.js'
 import {
   bool,
@@ -114,27 +112,6 @@ type DataTypeConversionFunctions = {
   ): RuntimeReturnValueTypeMap[U]
 }
 
-function getActiveGraphFunctions(): DataTypeConversionFunctions {
-  const root = globalThis as unknown as {
-    gsts?: {
-      ctx?: {
-        isServerCtx?: () => boolean
-        isClientGraphCtx?: (subType: (typeof CLIENT_GRAPH_SUB_TYPES)[number]) => boolean
-      }
-    } & Record<string, unknown>
-  }
-  const runtime = root.gsts
-  if (runtime?.ctx?.isServerCtx?.()) {
-    return runtime.f as DataTypeConversionFunctions
-  }
-  for (const subType of CLIENT_GRAPH_SUB_TYPES) {
-    if (runtime?.ctx?.isClientGraphCtx?.(subType)) {
-      return runtime[CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE[subType]] as DataTypeConversionFunctions
-    }
-  }
-  throw new Error('[error] data type conversion is only available in a node graph context')
-}
-
 function ensureServerCtx(fnName: string): void {
   if (!inServerCtx()) {
     throw new Error(`[error] ${fnName}: only available in g.server().on handler`)
@@ -206,7 +183,7 @@ function convertIfNeeded<T extends keyof DataTypeConversionMap, U extends DataTy
   const from = detectFromType(input)
   if (!from) return null
   if (!CONVERT[from].has(type)) return null
-  return getActiveGraphFunctions().dataTypeConversion(input, type)
+  return (getActiveGraphFunctions() as DataTypeConversionFunctions).dataTypeConversion(input, type)
 }
 
 function asFloatValue(value: FloatValue | IntValue, name: string): FloatValue {
@@ -407,6 +384,7 @@ export type ServerGlobalFactories = {
   configId: (v: ConfigIdValue) => configId
   faction: (v: FactionValue) => faction
   entity: (guidOrEntity: GuidValue | EntityValue | null) => entity
+  clientEntity: (guidOrEntity: GuidValue | EntityValue | null) => ClientEntityValue
   dict: (<K extends DictKeyType, V extends DictValueType>(
     keyType: K,
     valueType: V,
@@ -449,6 +427,30 @@ export type ServerGlobalFactories = {
 }
 
 function makeFactories(): ServerGlobalFactories {
+  const resolveEntity = (
+    helperName: 'entity' | 'clientEntity',
+    guidOrEntity: GuidValue | EntityValue | null
+  ): entity => {
+    if (helperName === 'clientEntity' && !inClientCtx()) {
+      throw new Error('[error] clientEntity(): only available in a client node graph handler')
+    }
+    if (guidOrEntity === undefined) {
+      throw new Error(
+        `[error] ${helperName}(): use ${helperName}(0) or ${helperName}(null) for type-only declaration`
+      )
+    }
+    if (guidOrEntity === null) return new entityLiteral(0)
+    if (guidOrEntity instanceof entity) return guidOrEntity
+
+    const isGuidLiteral = typeof guidOrEntity === 'bigint' || typeof guidOrEntity === 'number'
+    if (isGuidLiteral && Number(guidOrEntity) === 0) return new entityLiteral(guidOrEntity)
+    if (inServerCtx() || inClientCtx()) {
+      return callActiveGraphFunction<entity>(`${helperName}()`, 'queryEntityByGuid', [guidOrEntity])
+    }
+    if (isGuidLiteral) return new entityLiteral(guidOrEntity)
+    throw new Error(`[error] ${helperName}(): unsupported input type`)
+  }
+
   return {
     raw: (v) => v,
     bool: makeConvertibleFactory('bool'),
@@ -461,26 +463,9 @@ function makeFactories(): ServerGlobalFactories {
     prefabId: makeBasicFactory('prefab_id'),
     configId: makeBasicFactory('config_id'),
     faction: makeBasicFactory('faction'),
-    entity: (guidOrEntity: GuidValue | EntityValue | null) => {
-      if (guidOrEntity === undefined) {
-        throw new Error('[error] entity(): use entity(0) or entity(null) for type-only declaration')
-      }
-      if (guidOrEntity === null) {
-        return new entityLiteral(0)
-      }
-      if (guidOrEntity instanceof entity) return guidOrEntity
-      const isGuidLiteral = typeof guidOrEntity === 'bigint' || typeof guidOrEntity === 'number'
-      if (inServerCtx()) {
-        if (isGuidLiteral && Number(guidOrEntity) === 0) {
-          return new entityLiteral(guidOrEntity)
-        }
-        return gsts.f.queryEntityByGuid(guidOrEntity as guid)
-      }
-      if (isGuidLiteral) {
-        return new entityLiteral(guidOrEntity)
-      }
-      throw new Error('[error] entity(): unsupported input type')
-    },
+    entity: (guidOrEntity) => resolveEntity('entity', guidOrEntity),
+    clientEntity: (guidOrEntity) =>
+      resolveEntity('clientEntity', guidOrEntity) as unknown as ClientEntityValue,
     // @ts-ignore allow
     dict: (arg1: unknown, arg2?: unknown, arg3?: unknown) => {
       if (isNullishPlaceholder(arg1) && arg2 === undefined) {
@@ -500,16 +485,20 @@ function makeFactories(): ServerGlobalFactories {
       if (arg1 instanceof dict) return arg1
       if (arg1 instanceof dictLiteral) return arg1 as unknown as ReadonlyDict
       if (Array.isArray(arg1)) {
-        if (!inServerCtx()) return new dictLiteral(arg1 as never) as unknown as ReadonlyDict
-        return gsts.f.assemblyDictionary(arg1 as never)
+        if (!inServerCtx() && !inClientCtx()) {
+          return new dictLiteral(arg1 as never) as unknown as ReadonlyDict
+        }
+        return callActiveGraphFunction<ReadonlyDict>('dict()', 'assemblyDictionary', [arg1])
       }
       if (arg1 && typeof arg1 === 'object') {
         const obj = arg1 as Record<string, unknown>
         const keys = Object.keys(obj)
         if (keys.length === 0) throw new Error('[error] dict(): object cannot be empty')
         const pairs = keys.map((k) => ({ k, v: obj[k] }))
-        if (!inServerCtx()) return new dictLiteral(pairs as never) as unknown as ReadonlyDict
-        return gsts.f.assemblyDictionary(pairs as never)
+        if (!inServerCtx() && !inClientCtx()) {
+          return new dictLiteral(pairs as never) as unknown as ReadonlyDict
+        }
+        return callActiveGraphFunction<ReadonlyDict>('dict()', 'assemblyDictionary', [pairs])
       }
       throw new Error('[error] dict(): unsupported input type')
     },
@@ -648,6 +637,7 @@ const BASE_NAMES: (keyof ServerGlobalFactories)[] = [
   'configId',
   'faction',
   'entity',
+  'clientEntity',
   'dict',
   'list'
 ]

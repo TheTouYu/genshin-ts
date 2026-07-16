@@ -1,5 +1,6 @@
 import { CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE } from '../definitions/client_graph_modes.js'
 import { isClientNodeTypeAvailable } from '../definitions/client_method_modes.js'
+import { registerClientEntityHelperContext } from '../definitions/entity_helpers.js'
 import { EnumerationType } from '../definitions/enum.js'
 import type { ServerEventPayloadsByMode } from '../definitions/events-payload-mode.js'
 import type { ServerEventPayloads } from '../definitions/events-payload.js'
@@ -21,6 +22,7 @@ import {
 } from '../definitions/zh_aliases.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
 import {
+  applyClientFlowFunctionZhAliases,
   assertClientGraphMode,
   assertClientGraphModeCompatible,
   assertClientGraphSubType,
@@ -32,6 +34,7 @@ import {
   type ClientFilterGraphOptions,
   type ClientFilterGraphOptionsForSubType,
   type ClientFlowFunctionClass,
+  type ClientFlowFunctionClassForLang,
   type ClientGraphOptions,
   type ClientGraphOptionsForSubType,
   type ClientLang,
@@ -1393,20 +1396,25 @@ type ClientStartApi<
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
 > = Mode extends ClientGraphMode
-  ? ClientStartGraphApi<ClientFlowFunctionClass<T, Mode>, Lang, Mode>
+  ? ClientStartGraphApi<ClientFlowFunctionClassForLang<T, Lang, Mode>, Lang, Mode>
   : never
 type ClientBoolFilterApi<
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
 > = Mode extends ClientGraphMode
-  ? ClientFilterGraphApi<ClientFlowFunctionClass<'bool_filter', Mode>, boolean | bool, Lang, Mode>
+  ? ClientFilterGraphApi<
+      ClientFlowFunctionClassForLang<'bool_filter', Lang, Mode>,
+      boolean | bool,
+      Lang,
+      Mode
+    >
   : never
 type ClientIntFilterApi<
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
 > = Mode extends ClientGraphMode
   ? ClientFilterGraphApi<
-      ClientFlowFunctionClass<'int_filter', Mode>,
+      ClientFlowFunctionClassForLang<'int_filter', Lang, Mode>,
       bigint | number | int,
       Lang,
       Mode
@@ -1481,6 +1489,8 @@ function createClientGraphApi<T extends ClientGraphSubType>(
   clientRegistries.push(registry)
   const entrySpec = CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE[graphType]
   const fns = createClientFlowFunctions(graphType, registry)
+  registerClientEntityHelperContext(fns, graphType, graphMode)
+  if (options?.lang === 'zh') applyClientFlowFunctionZhAliases(graphType, graphMode, fns)
   let hasHandler = false
 
   const api = {

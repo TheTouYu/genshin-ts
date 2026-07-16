@@ -4,7 +4,11 @@ import {
   isClientGraphModeAvailable,
   type ClientGraphAvailableMode
 } from '../definitions/client_graph_modes.js'
-import type { ClientNodeMethodForMode } from '../definitions/client_method_modes.js'
+import {
+  CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE,
+  type ClientNodeMethodForMode
+} from '../definitions/client_method_modes.js'
+import { CLIENT_F_ZH_TO_EN_BY_SUB_TYPE } from '../definitions/client_zh_aliases.js'
 import {
   ClientBoolFilterExecutionFlowFunctions,
   ClientCharacterControlSkillExecutionFlowFunctions,
@@ -53,13 +57,13 @@ type ClientGraphOptionsBase = {
   /**
    * [ZH] 语言偏好（仅影响类型提示与中文别名解析）。
    *
-   * 设置为 `zh` 时，客户端节点图 API 使用中文事件名与中文 f 函数别名提示；
-   * 默认 `en` 使用英文事件名与英文 f 函数名。
+   * 设置为 `zh` 时，客户端节点图 API 支持中文 f 函数别名；英文函数名仍然可用。
+   * 默认 `en` 仅使用英文 f 函数名。客户端入口事件名固定为 `start`。
    *
    * [EN] Language hint (affects type hints and zh alias resolution only).
    *
-   * Use `zh` for Chinese event names and Chinese f-function alias hints; the default `en` uses
-   * English event names and English f-function names.
+   * Use `zh` to enable Chinese f-function aliases while retaining English method names. The
+   * default `en` exposes English f-function names only. The client entry event remains `start`.
    */
   lang?: ClientLang
 }
@@ -111,29 +115,56 @@ export type ClientStartEvent = Record<string, never>
 export type ClientStartEventName = 'start'
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>
 
-type ClientFlowFunctionBase<T extends ClientGraphSubType> = T extends 'character_skill'
-  ? ClientCharacterSkillExecutionFlowFunctions
+type ClientFlowFunctionBase<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> = T extends 'character_skill'
+  ? ClientCharacterSkillExecutionFlowFunctions<Mode>
   : T extends 'character_control_skill'
-    ? ClientCharacterControlSkillExecutionFlowFunctions
+    ? ClientCharacterControlSkillExecutionFlowFunctions<Mode>
     : T extends 'creation_skill'
-      ? ClientCreationSkillExecutionFlowFunctions
+      ? ClientCreationSkillExecutionFlowFunctions<Mode>
       : T extends 'creation_status'
-        ? ClientCreationStatusExecutionFlowFunctions
+        ? ClientCreationStatusExecutionFlowFunctions<Mode>
         : T extends 'creation_status_decision'
-          ? ClientCreationStatusDecisionExecutionFlowFunctions
+          ? ClientCreationStatusDecisionExecutionFlowFunctions<Mode>
           : T extends 'bool_filter'
-            ? ClientBoolFilterExecutionFlowFunctions
-            : ClientIntFilterExecutionFlowFunctions
+            ? ClientBoolFilterExecutionFlowFunctions<Mode>
+            : ClientIntFilterExecutionFlowFunctions<Mode>
 
 export type ClientFlowFunctionClass<
   T extends ClientGraphSubType,
   Mode extends ClientGraphMode = ClientGraphMode
 > = ClientGraphMode extends Mode
-  ? ClientFlowFunctionBase<T>
+  ? ClientFlowFunctionBase<T, Mode>
   : Pick<
-      ClientFlowFunctionBase<T>,
-      Extract<ClientNodeMethodForMode<T, Mode>, keyof ClientFlowFunctionBase<T>>
+      ClientFlowFunctionBase<T, Mode>,
+      Extract<ClientNodeMethodForMode<T, Mode>, keyof ClientFlowFunctionBase<T, Mode>>
     >
+
+type ClientFlowFunctionZhAliasMap<T extends ClientGraphSubType> =
+  (typeof CLIENT_F_ZH_TO_EN_BY_SUB_TYPE)[T]
+
+export type ClientFlowFunctionClassZh<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode = ClientGraphMode
+> = ClientFlowFunctionClass<T, Mode> & {
+  [K in keyof ClientFlowFunctionZhAliasMap<T> as Extract<
+    ClientFlowFunctionZhAliasMap<T>[K],
+    keyof ClientFlowFunctionClass<T, Mode>
+  > extends never
+    ? never
+    : K]: ClientFlowFunctionClass<T, Mode>[Extract<
+    ClientFlowFunctionZhAliasMap<T>[K],
+    keyof ClientFlowFunctionClass<T, Mode>
+  >]
+}
+
+export type ClientFlowFunctionClassForLang<
+  T extends ClientGraphSubType,
+  Lang extends ClientLang,
+  Mode extends ClientGraphMode = ClientGraphMode
+> = Lang extends 'zh' ? ClientFlowFunctionClassZh<T, Mode> : ClientFlowFunctionClass<T, Mode>
 
 export type ClientGraphOptionsForSubType<T extends ClientGraphSubType> = ClientGraphOptions<
   ClientGraphAvailableMode<T>
@@ -232,6 +263,38 @@ export const CLIENT_FILTER_END_NODE_TYPES = {
   bool_filter: 'node_graph_end_boolean',
   int_filter: 'node_graph_end_integer'
 } as const
+
+const CLIENT_METHOD_SETS_BY_SUB_TYPE_AND_MODE = Object.fromEntries(
+  Object.entries(CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE).map(([subType, modes]) => [
+    subType,
+    Object.fromEntries(
+      Object.entries(modes).map(([mode, methods]) => [mode, new Set<string>(methods)])
+    )
+  ])
+) as unknown as Record<ClientGraphSubType, Record<ClientGraphMode, ReadonlySet<string>>>
+
+export function applyClientFlowFunctionZhAliases<T extends ClientGraphSubType>(
+  subType: T,
+  mode: ClientGraphMode,
+  fns: ClientFlowFunctionClass<T>
+): void {
+  const target = fns as unknown as Record<string, unknown>
+  const availableMethods = CLIENT_METHOD_SETS_BY_SUB_TYPE_AND_MODE[subType][mode]
+  const aliases = CLIENT_F_ZH_TO_EN_BY_SUB_TYPE[subType] as Readonly<Record<string, string>>
+  for (const [zhName, enName] of Object.entries(aliases)) {
+    if (!availableMethods.has(enName) || Object.prototype.hasOwnProperty.call(target, zhName)) {
+      continue
+    }
+    const fn = target[enName]
+    if (typeof fn !== 'function') continue
+    Object.defineProperty(target, zhName, {
+      value: fn,
+      writable: false,
+      configurable: false,
+      enumerable: false
+    })
+  }
+}
 
 export function createClientFlowFunctions<T extends ClientGraphSubType>(
   subType: T,

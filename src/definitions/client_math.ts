@@ -11,14 +11,55 @@ import {
  */
 export const CLIENT_MATH_METHOD_NODE_REQUIREMENTS = {
   abs: ['absoluteValueOperation'],
+  floor: [
+    'dataTypeConversion',
+    'getLocalVariable',
+    'setLocalVariable',
+    'lessThan',
+    'subtraction',
+    'doubleBranch'
+  ],
+  ceil: [
+    'dataTypeConversion',
+    'getLocalVariable',
+    'setLocalVariable',
+    'greaterThan',
+    'addition',
+    'doubleBranch'
+  ],
+  round: [
+    'dataTypeConversion',
+    'getLocalVariable',
+    'setLocalVariable',
+    'lessThan',
+    'subtraction',
+    'addition',
+    'doubleBranch'
+  ],
   sin: ['sineFunction'],
   cos: ['cosineFunction'],
   tan: ['tangentFunction'],
   asin: ['arcsineFunction'],
   acos: ['arccosineFunction'],
   atan: ['arctangentFunction'],
+  trunc: ['dataTypeConversion'],
+  random: ['getRandomNumber'],
   min: ['assemblyList', 'getMinimumValueFromList'],
-  max: ['assemblyList', 'getMaximumValueFromList']
+  max: ['assemblyList', 'getMaximumValueFromList'],
+  hypot: ['create3dVector', '_3dVectorModuloOperation'],
+  sign: ['getLocalVariable', 'setLocalVariable', 'greaterThan', 'lessThan', 'doubleBranch'],
+  atan2: [
+    'getLocalVariable',
+    'setLocalVariable',
+    'division',
+    'arctangentFunction',
+    'greaterThan',
+    'lessThan',
+    'greaterThanOrEqualTo',
+    'addition',
+    'subtraction',
+    'doubleBranch'
+  ]
 } as const
 
 export type ClientMathMethod = keyof typeof CLIENT_MATH_METHOD_NODE_REQUIREMENTS

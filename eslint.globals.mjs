@@ -20,6 +20,7 @@ export const gstsDslGlobals = {
   configId: 'readonly',
   faction: 'readonly',
   entity: 'readonly',
+  clientEntity: 'readonly',
 
   dict: 'readonly',
   list: 'readonly',

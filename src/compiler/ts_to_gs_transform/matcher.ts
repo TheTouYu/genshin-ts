@@ -4,6 +4,8 @@ import {
   CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE,
   CLIENT_GRAPH_SUB_TYPE_BY_METHOD
 } from '../../definitions/client_graph_modes.js'
+import { getClientFMethodNameFromAlias } from '../../definitions/client_zh_aliases.js'
+import { SERVER_F_ZH_TO_EN } from '../../definitions/zh_aliases.js'
 import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import type { Env } from './types.js'
 import { isIdentifierText } from './utils.js'
@@ -161,7 +163,11 @@ export function getFMethodCall(
   const callee = call.expression
   if (!ts.isPropertyAccessExpression(callee)) return null
   if (!isFObjectExpression(env, callee.expression)) return null
-  return { method: callee.name.text, callee }
+  const method = env.clientSubType
+    ? getClientFMethodNameFromAlias(env.clientSubType, callee.name.text)
+    : ((SERVER_F_ZH_TO_EN as Readonly<Record<string, string>>)[callee.name.text] ??
+      callee.name.text)
+  return { method, callee }
 }
 
 export function isFMethodCall(

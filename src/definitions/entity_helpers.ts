@@ -1,10 +1,11 @@
-import type { ServerGraphMode } from '../runtime/IR.js'
+import type { ClientGraphMode, ClientGraphSubType, ServerGraphMode } from '../runtime/IR.js'
 import {
   entity,
   type BoolValue,
   type configId,
   type ConfigIdValue,
   type dict,
+  type EntityRuntimeBase,
   type EntityValue,
   type faction,
   type FactionValue,
@@ -19,6 +20,12 @@ import {
   type vec3,
   type Vec3Value
 } from '../runtime/value.js'
+import {
+  CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE,
+  CLIENT_ENTITY_HELPER_METHOD_NAMES,
+  type ClientEntityHelperBinding
+} from './client_entity_helpers.js'
+import { CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE, CLIENT_GRAPH_SUB_TYPES } from './client_graph_modes.js'
 import type {
   CharacterSkillSlot,
   DamagePopUpType,
@@ -6363,7 +6370,7 @@ export type EntityHelperForByMode<K extends EntityKind, M extends ServerGraphMod
   Extract<keyof EntityHelperFor<K>, EntityHelperKeysByMode<M>>
 >
 
-export type EntityBase = Omit<entity, keyof EntityHelperAll>
+export type EntityBase = EntityRuntimeBase
 
 export type EntityValueByMode<M extends ServerGraphMode> = EntityBase & EntityHelperAllByMode<M>
 export type EntityOfByMode<K extends EntityKind, M extends ServerGraphMode> = EntityBase &
@@ -6402,6 +6409,71 @@ declare module '../runtime/value.js' {
 
 const kEntityHelpersInstalled = Symbol('gsts.entity_helpers_installed')
 
+const clientEntityHelperContexts = new WeakMap<
+  object,
+  { subType: ClientGraphSubType; mode: ClientGraphMode }
+>()
+
+export function registerClientEntityHelperContext(
+  fns: object,
+  subType: ClientGraphSubType,
+  mode: ClientGraphMode
+): void {
+  clientEntityHelperContexts.set(fns, { subType, mode })
+}
+
+function getActiveClientEntityHelperContext() {
+  if (!gsts.ctx.isClientCtx()) return undefined
+
+  for (const subType of CLIENT_GRAPH_SUB_TYPES) {
+    if (!gsts.ctx.isClientGraphCtx(subType)) continue
+
+    const fns = (gsts as unknown as Record<string, unknown>)[
+      CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE[subType]
+    ]
+    if (!fns || (typeof fns !== 'object' && typeof fns !== 'function')) {
+      throw new Error(`[error] client entity helper context is not bound for ${subType}`)
+    }
+    const context = clientEntityHelperContexts.get(fns)
+    if (!context) {
+      throw new Error(`[error] client entity helper context is not registered for ${subType}`)
+    }
+    return { ...context, fns: fns as Record<string, unknown> }
+  }
+
+  throw new Error(`[error] client entity helper has no matching graph context: ${gsts.ctx.ctxType}`)
+}
+
+function callClientEntityHelper(
+  name: string,
+  kind: ClientEntityHelperBinding['kind'],
+  self: entity,
+  args: unknown[]
+) {
+  const context = getActiveClientEntityHelperContext()
+  if (!context) return { handled: false as const }
+
+  const bindings = CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE[context.subType][
+    context.mode
+  ] as Record<string, ClientEntityHelperBinding>
+  const binding = bindings[name]
+  if (!binding || binding.kind !== kind) {
+    throw new Error(
+      `[error] client entity helper ${name} is not available in ${context.subType} ${context.mode} mode`
+    )
+  }
+
+  const fn = context.fns[binding.methodName]
+  if (typeof fn !== 'function') {
+    throw new Error(
+      `[error] client entity helper ${name} resolved to missing function ${binding.methodName}`
+    )
+  }
+  const callArgs = args.slice()
+  if (binding.insertIndex !== null) callArgs.splice(binding.insertIndex, 0, self)
+  return { handled: true as const, value: fn.call(context.fns, ...callArgs) }
+}
+
 function defineEntityHelperMethod(name: string, insertIndex = 0) {
   const proto = entity.prototype as unknown as Record<PropertyKey, unknown>
   if (Object.prototype.hasOwnProperty.call(proto, name)) return
@@ -6409,6 +6481,9 @@ function defineEntityHelperMethod(name: string, insertIndex = 0) {
     configurable: true,
     enumerable: false,
     value: function (...args: unknown[]) {
+      const clientResult = callClientEntityHelper(name, 'method', this as entity, args)
+      if (clientResult.handled) return clientResult.value
+
       const fn = (gsts.f as unknown as Record<string, (...args: unknown[]) => unknown>)[name]
       if (typeof fn !== 'function') {
         throw new Error(`[error] entity helper not found: ${name}`)
@@ -6427,6 +6502,9 @@ function defineEntityHelperMethodAlias(name: string, sourceName: string) {
     configurable: true,
     enumerable: false,
     value: function (...args: unknown[]) {
+      const clientResult = callClientEntityHelper(name, 'method', this as entity, args)
+      if (clientResult.handled) return clientResult.value
+
       const fn = (gsts.f as unknown as Record<string, (...args: unknown[]) => unknown>)[sourceName]
       if (typeof fn !== 'function') {
         throw new Error(`[error] entity helper not found: ${sourceName}`)
@@ -6443,6 +6521,9 @@ function defineEntityHelperGetter(name: string, getter: (self: entity) => unknow
     configurable: true,
     enumerable: false,
     get: function () {
+      const clientResult = callClientEntityHelper(name, 'getter', this as entity, [])
+      if (clientResult.handled) return clientResult.value
+
       return getter(this as entity)
     }
   })
@@ -6458,6 +6539,10 @@ export function installEntityHelpers(): void {
   })
 
   for (const name of ENTITY_HELPER_METHODS) {
+    defineEntityHelperMethod(name, 0)
+  }
+
+  for (const name of CLIENT_ENTITY_HELPER_METHOD_NAMES) {
     defineEntityHelperMethod(name, 0)
   }
 

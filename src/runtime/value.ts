@@ -8,6 +8,7 @@ import type {
   StageEntity
 } from '../definitions/entity_helpers.js'
 import { EnumerationType } from '../definitions/enum.js'
+import { callActiveGraphFunction } from './active_graph_functions.js'
 import {
   Argument,
   CommonLiteralValueListTypeMap,
@@ -166,6 +167,10 @@ export abstract class value {
   abstract toIRLiteral(): Argument
 }
 
+export interface EntityRuntimeBase extends value {
+  readonly __entityRuntimeBrand: 'entity'
+}
+
 export type BoolValue = bool | boolean
 export class bool extends value {
   declare private readonly __brandBool: 'bool'
@@ -259,15 +264,18 @@ export class vec3 extends value {
   }
 
   get x(): number {
-    return gsts.f.split3dVector(this).xComponent
+    return callActiveGraphFunction<{ xComponent: number }>('vec3.x', 'split3dVector', [this])
+      .xComponent
   }
 
   get y(): number {
-    return gsts.f.split3dVector(this).yComponent
+    return callActiveGraphFunction<{ yComponent: number }>('vec3.y', 'split3dVector', [this])
+      .yComponent
   }
 
   get z(): number {
-    return gsts.f.split3dVector(this).zComponent
+    return callActiveGraphFunction<{ zComponent: number }>('vec3.z', 'split3dVector', [this])
+      .zComponent
   }
 }
 
@@ -292,13 +300,15 @@ export class guid extends value {
 
 export type EntityValue =
   | entity
+  | EntityRuntimeBase
   | PlayerEntity
   | CharacterEntity
   | StageEntity
   | ObjectEntity
   | CreationEntity
-export class entity extends value {
+export class entity extends value implements EntityRuntimeBase {
   declare private readonly __brandEntity: 'entity'
+  declare readonly __entityRuntimeBrand: 'entity'
   constructor() {
     super()
   }
@@ -648,9 +658,7 @@ export class list<K extends ListConcreteType = ListConcreteType> extends value {
  *
  * 用于在 IR JSON 中直接表达 `*_list` 字面量（包括空列表），后续可在 IR->GIA 阶段展开为 assembly_list 并连线。
  */
-export class listLiteral<
-  K extends ListConcreteType = ListConcreteType
-> extends list<K> {
+export class listLiteral<K extends ListConcreteType = ListConcreteType> extends list<K> {
   private items: RuntimeReturnValueTypeMap[K][] | null
 
   constructor(type: K, items: RuntimeReturnValueTypeMap[K][] | null = []) {
@@ -725,7 +733,7 @@ export class dict<
    * 清空字典: 清空指定字典的键值对
    */
   clear(): void {
-    gsts.f.clearDictionary(this)
+    callActiveGraphFunction<void>('dict.clear()', 'clearDictionary', [this])
   }
 
   /**
@@ -738,7 +746,10 @@ export class dict<
    * 键
    */
   delete(key: RuntimeParameterValueTypeMap[K]): void {
-    gsts.f.removeKeyValuePairsFromDictionaryByKey(this, key)
+    callActiveGraphFunction<void>('dict.delete()', 'removeKeyValuePairsFromDictionaryByKey', [
+      this,
+      key
+    ])
   }
 
   /**
@@ -753,11 +764,22 @@ export class dict<
       dict: dict<K, V>
     ) => void
   ): void {
-    const keys = gsts.f.getListOfKeysFromDictionary(this)
-    gsts.f.listIterationLoop(keys as never, (key) => {
-      const value = gsts.f.queryDictionaryValueByKey(this, key as RuntimeParameterValueTypeMap[K])
-      callback(value, key as never, this)
-    })
+    const keys = callActiveGraphFunction<RuntimeReturnValueTypeMap[`${K}_list`]>(
+      'dict.forEach()',
+      'getListOfKeysFromDictionary',
+      [this]
+    )
+    callActiveGraphFunction<void>('dict.forEach()', 'listIterationLoop', [
+      keys,
+      (key: unknown) => {
+        const value = callActiveGraphFunction<RuntimeReturnValueTypeMap[V]>(
+          'dict.forEach()',
+          'queryDictionaryValueByKey',
+          [this, key]
+        )
+        callback(value, key as never, this)
+      }
+    ])
   }
 
   /**
@@ -774,7 +796,11 @@ export class dict<
    * 值
    */
   get(key: RuntimeParameterValueTypeMap[K]): RuntimeReturnValueTypeMap[V] {
-    return gsts.f.queryDictionaryValueByKey(this, key)
+    return callActiveGraphFunction<RuntimeReturnValueTypeMap[V]>(
+      'dict.get()',
+      'queryDictionaryValueByKey',
+      [this, key]
+    )
   }
 
   /**
@@ -791,7 +817,10 @@ export class dict<
    * 是否包含
    */
   has(key: RuntimeParameterValueTypeMap[K]): boolean {
-    return gsts.f.queryIfDictionaryContainsSpecificKey(this, key)
+    return callActiveGraphFunction<boolean>('dict.has()', 'queryIfDictionaryContainsSpecificKey', [
+      this,
+      key
+    ])
   }
 
   /**
@@ -804,7 +833,11 @@ export class dict<
    * 键列表
    */
   keys(): RuntimeReturnValueTypeMap[`${K}_list`] {
-    return gsts.f.getListOfKeysFromDictionary(this)
+    return callActiveGraphFunction<RuntimeReturnValueTypeMap[`${K}_list`]>(
+      'dict.keys()',
+      'getListOfKeysFromDictionary',
+      [this]
+    )
   }
 
   /**
@@ -820,7 +853,11 @@ export class dict<
    * 值
    */
   set(key: RuntimeParameterValueTypeMap[K], value: RuntimeParameterValueTypeMap[V]): void {
-    gsts.f.setOrAddKeyValuePairsToDictionary(this, key, value)
+    callActiveGraphFunction<void>('dict.set()', 'setOrAddKeyValuePairsToDictionary', [
+      this,
+      key,
+      value
+    ])
   }
 
   /**
@@ -833,9 +870,11 @@ export class dict<
    * 值列表
    */
   values(): RuntimeReturnValueTypeMap[`${Extract<V, keyof CommonLiteralValueTypeMap>}_list`] {
-    return gsts.f.getListOfValuesFromDictionary(
+    return callActiveGraphFunction<
+      RuntimeReturnValueTypeMap[`${Extract<V, keyof CommonLiteralValueTypeMap>}_list`]
+    >('dict.values()', 'getListOfValuesFromDictionary', [
       this as unknown as dict<K, Extract<V, keyof CommonLiteralValueTypeMap>>
-    )
+    ])
   }
 
   /**
@@ -848,7 +887,7 @@ export class dict<
    * 长度
    */
   get size(): bigint {
-    return gsts.f.queryDictionarySLength(this)
+    return callActiveGraphFunction<bigint>('dict.size', 'queryDictionarySLength', [this])
   }
 
   override toIRLiteral(): Argument {

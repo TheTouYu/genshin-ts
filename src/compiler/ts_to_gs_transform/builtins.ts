@@ -25,7 +25,7 @@ type MathCallTransform = {
   transformExpression: ExpressionTransformer
 }
 
-type TypeConversionTarget = 'bool' | 'float' | 'str'
+type TypeConversionTarget = 'bool' | 'float' | 'int' | 'str'
 
 const floatZero = () => ts.factory.createNumericLiteral(0)
 const floatOne = () => ts.factory.createNumericLiteral(1)
@@ -168,6 +168,17 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'floor': {
       expectArgs(1, 'Math.floor')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        const rounded = ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier('Mathf'),
+            'FloorToInt'
+          ),
+          undefined,
+          [valueExpr]
+        )
+        return makeTypeConversion(rounded, 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'RoundDown')
@@ -176,6 +187,17 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'ceil': {
       expectArgs(1, 'Math.ceil')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        const rounded = ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier('Mathf'),
+            'CeilToInt'
+          ),
+          undefined,
+          [valueExpr]
+        )
+        return makeTypeConversion(rounded, 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'RoundUp')
@@ -184,6 +206,21 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'round': {
       expectArgs(1, 'Math.round')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        const shifted = makeFCall(env, 'addition', [
+          valueExpr,
+          ts.factory.createNumericLiteral(0.5)
+        ])
+        const rounded = ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier('Mathf'),
+            'FloorToInt'
+          ),
+          undefined,
+          [shifted]
+        )
+        return makeTypeConversion(rounded, 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'RoundToNearest')
@@ -192,6 +229,9 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'trunc': {
       expectArgs(1, 'Math.trunc')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        return makeTypeConversion(makeTypeConversion(valueExpr, 'int'), 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'Truncate')
@@ -257,7 +297,11 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
       if (args.length !== 0) {
         fail(env, spec.expr, 'Math.random does not accept arguments')
       }
-      return makeFCall(env, 'getRandomFloatingPointNumber', [floatZero(), floatOne()])
+      return makeFCall(
+        env,
+        env.graphDocumentType === 'client' ? 'getRandomNumber' : 'getRandomFloatingPointNumber',
+        [floatZero(), floatOne()]
+      )
     }
     case 'min':
     case 'max': {
@@ -282,6 +326,9 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
       const yExpr = coerceFloatArg(env, spec, args[1])
       const zExpr = args[2] ? coerceFloatArg(env, spec, args[2]) : floatZero()
       const vecExpr = makeFCall(env, 'create3dVector', [xExpr, yExpr, zExpr])
+      if (env.graphDocumentType === 'client') {
+        return makeFCall(env, '_3dVectorModuloOperation', [vecExpr])
+      }
       const zeroVec = makeFCall(env, '_3dVectorZeroVector', [])
       return makeFCall(env, 'distanceBetweenTwoCoordinatePoints', [vecExpr, zeroVec])
     }

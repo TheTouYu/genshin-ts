@@ -43,7 +43,30 @@ function callClientF(
   return fn.apply(fns, args)
 }
 
-type MemberFactory = (call: (method: string, args: unknown[]) => unknown) => unknown
+type ClientFCall = (method: string, args: unknown[]) => unknown
+type MemberFactory = (call: ClientFCall) => unknown
+
+function directedRound(call: ClientFCall, value: unknown, direction: 'floor' | 'ceil') {
+  const truncated = call('dataTypeConversion', [value, 'int'])
+  const truncatedFloat = call('dataTypeConversion', [truncated, 'float'])
+  const result = call('__gstsInitLocalVariable', ['int', truncated]) as {
+    localVariable: string
+    value: unknown
+  }
+  const needsCorrection = call(direction === 'floor' ? 'lessThan' : 'greaterThan', [
+    value,
+    truncatedFloat
+  ])
+  call('doubleBranch', [
+    needsCorrection,
+    () => {
+      const corrected = call(direction === 'floor' ? 'subtraction' : 'addition', [truncated, 1n])
+      call('setLocalVariable', [result.localVariable, corrected])
+    },
+    () => {}
+  ])
+  return result.value
+}
 
 /** implementations for capability-proven members; keys are `helper` or `helper.member` */
 const MEMBER_IMPLS: Record<string, MemberFactory> = {
@@ -55,6 +78,8 @@ const MEMBER_IMPLS: Record<string, MemberFactory> = {
     (signalName: unknown, ...params: unknown[]) =>
       call('sendSignalToServerNodeGraph', [signalName, ...params]),
   'Mathf.Abs': (call) => (value: unknown) => call('absoluteValueOperation', [value]),
+  'Mathf.FloorToInt': (call) => (value: unknown) => directedRound(call, value, 'floor'),
+  'Mathf.CeilToInt': (call) => (value: unknown) => directedRound(call, value, 'ceil'),
   'Mathf.Sin': (call) => (radian: unknown) => call('sineFunction', [radian]),
   'Mathf.Cos': (call) => (radian: unknown) => call('cosineFunction', [radian]),
   'Mathf.Tan': (call) => (radian: unknown) => call('tangentFunction', [radian]),
@@ -68,28 +93,40 @@ const MEMBER_IMPLS: Record<string, MemberFactory> = {
   'Vector3.back': (call) => call('create3dVector', [0, 0, -1]),
   'Vector3.Dot': (call) => (a: unknown, b: unknown) => call('_3dVectorDotProduct', [a, b]),
   'Vector3.Cross': (call) => (a: unknown, b: unknown) => call('_3dVectorCrossProduct', [a, b]),
+  'Vector3.Distance': (call) => (a: unknown, b: unknown) => {
+    const diff = call('_3dVectorSubtraction', [a, b])
+    return call('_3dVectorModuloOperation', [diff])
+  },
   'Vector3.Angle': (call) => (a: unknown, b: unknown) => call('_3dVectorAngle', [a, b]),
   'Vector3.Normalize': (call) => (v: unknown) => call('_3dVectorNormalization', [v]),
   'Vector3.Magnitude': (call) => (v: unknown) => call('_3dVectorModuloOperation', [v]),
   'Vector3.Add': (call) => (a: unknown, b: unknown) => call('_3dVectorAddition', [a, b]),
   'Vector3.Sub': (call) => (a: unknown, b: unknown) => call('_3dVectorSubtraction', [a, b]),
-  'Vector3.Scale': (call) => (v: unknown, s: unknown) => call('_3dVectorZoom', [v, s]),
+  'Vector3.Scale': (call) => (v: unknown, s: unknown) => call('_3dVectorZoom', [s, v]),
   'Vector3.Rotation': (call) => (rotate: unknown, v: unknown) =>
-    call('_3dVectorRotation', [rotate, v]),
+    call('_3dVectorRotation', [v, rotate]),
   'Vector3.Lerp': (call) => (a: unknown, b: unknown, t: unknown) => {
     const diff = call('_3dVectorSubtraction', [b, a])
-    const scaled = call('_3dVectorZoom', [diff, t])
+    const scaled = call('_3dVectorZoom', [t, diff])
     return call('_3dVectorAddition', [a, scaled])
+  },
+  'Vector3.ClampMagnitude': (call) => (v: unknown, max: unknown) => {
+    const magnitude = call('_3dVectorModuloOperation', [v])
+    const clampedMagnitude = call('getMinimumValueFromList', [
+      call('assemblyList', [[magnitude, max]])
+    ])
+    const normalized = call('_3dVectorNormalization', [v])
+    return call('_3dVectorZoom', [clampedMagnitude, normalized])
   },
   'GameObject.Find': (call) => (guidValue: unknown) => call('queryEntityByGuid', [guidValue]),
   'GameObject.FindWithTag': (call) => (tag: unknown) => {
     const listValue = call('getEntityListByUnitTag', [tag])
-    return call('getCorrespondingValueFromList', [listValue, 0n])
+    return call('getCorrespondingValueFromList', [0n, listValue])
   },
   'GameObject.FindGameObjectsWithTag': (call) => (tag: unknown) =>
     call('getEntityListByUnitTag', [tag]),
   'Random.Range': (call) => (min: unknown, max: unknown) => call('getRandomNumber', [min, max]),
-  'Random.value': (call) => () => call('getRandomNumber', [0, 1])
+  'Random.value': (call) => call('getRandomNumber', [0, 1])
 }
 
 /** helpers exposed as plain getters (no member object); `send` yields a callable */
