@@ -2,7 +2,7 @@
 
 > 状态：当前实现 + 真实 GIA 验证对照
 > 来源：当前代码实现（gsts 编译器）；部分标注来自真实 GIA 验证
-> 最近校验：2026-07-06
+> 最近校验：2026-07-16
 > 适用范围：gsts 编码逻辑说明；验证段标注了与游戏编辑器的差异。
 
 > 参见：[二进制/JSON 结构详解（architecture）](../architecture/composite/gia-encoding.md)
@@ -116,7 +116,7 @@ npx tsx tools/decode-gia.ts file.gia 2>/dev/null | \
 
 ## 5. SignalDef（which=14）编码
 
-> 参见 `01-ir-types.md §5` 的 SignalDef 类型定义。当前编码器（`composite.ts`）尚不输出 `which=14`——本节记录文件格式以便未来支持。
+> 参见 `01-ir-types.md §5` 的 SignalDef 类型定义。当前编码器由 `build_signal_definition.ts` 输出 `which=14`，但仅接受目标 `.gil` 已注册信号的真实 identity；本节同时记录真实文件格式和当前实现边界。
 
 SignalDef 是一种与 CompositeDef 平级的 accessory 类型，用于定义自定义信号的发送接口。
 
@@ -141,7 +141,30 @@ structureDef 编码:  GraphUnit { which=29, structureDef: {...}, relatedIds: [..
 
 **关键区别**：SignalDef 使用 `compositeDef` 字段存放接口声明，但**没有对应的 `which=9` 附件**作为实现图。`compositeDef.inner.def` 仅包含 inflows/outflows/inputs/outputs，不含 impl 节点。信号的实际逻辑由游戏引擎内置实现。
 
-## 6. structureDef（which=29）编码
+## 6. SignalDef identity 输入边界
+
+`which=14` SignalDef 的真实编辑器身份不能由当前 gsts 输出阶段凭空创建。真实多信号样本
+`多信号2.gia` / `多信号3.gia` 证明：
+
+- 每个信号使用 send / monitor / server-send 三个连续 GraphUnit ID；
+- 三个 ID 通过 `relatedIds` 互相绑定；
+- 同一信号在 `多信号2.gia` 和仅含 B 的 `多信号3.gia` 中保持
+  `1610612751 / 1610612752 / 1610612753`；
+- `1610612747` 等空洞可能被其他 GraphUnit 占用，不能用固定步长 `+6` 推导下一组；
+- 编辑器按 definition identity 解析名称和参数，ClientExec 字符串不是注册动作。
+
+因此当前 `build_signal_definition.ts` 不再自造或复用 SignalDef ID，而是从目标 `.gil` 注册表接收 identity。
+没有注册 identity 的 `defineSignal`，或其参数 schema 与目标地图不一致，会明确失败。
+该方案已用目标地图的 9+9 双信号候选完成用户游戏验证；已验证候选：
+
+```text
+P5W10-two-signal-param-matrix-registered.gia
+SHA-256: f3e7ff15c0e84c2b9896bdce8d2ba8f4dbdbb93e4d14dd35b6029876759315e1
+```
+
+验证范围不包含凭空创建新信号、注入器写回 `.gil` 或其他地图的注册表兼容性。
+
+## 7. structureDef（which=29）编码
 
 > 参见 `01-ir-types.md §6` 的 structureDef 类型定义。当前编码器（`composite.ts`）尚不输出 `which=29`。
 

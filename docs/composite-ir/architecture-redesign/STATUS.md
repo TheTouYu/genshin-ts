@@ -13,9 +13,9 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6..P5-W9 完成；P5-W9 用户核验通过已归档、待提交）
-当前唯一工作包：P5-W10 — special-arg named adapter 最小共享收口（候选）
-最近完成工作包：P5-W9 — pin-hole named adapter 整族共享收口（用户核验通过，已归档，待提交）
+当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6..P5-W10 完成实现；P5-W10 方案 A 已完成用户游戏验证）
+当前唯一工作包：P5-W10 — special-arg 共享 + 已注册信号 scalar/list 参数整族修复（自动通过，用户游戏验证通过）
+最近完成工作包：P5-W9 — pin-hole named adapter 整族共享收口（用户核验通过，已归档，已提交）
 更早完成：P5-W8 — enumerations_equal residual 身份迁 shared resolver
 更早完成：P5-W7 — residual scalar ordinary 身份迁 shared resolver
 更早完成：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
@@ -944,7 +944,7 @@ handwritten pin/materialize 删除。仓库 staging 仅生成中间态；编辑�
 P5-W9 将 9 个 pin-hole 节点的 null-hole 字面量写入与 IR→physical pinIndex remap 抽为
 共享模块 `pin_hole_adapter.ts`。root 与 composite（vendor + legacy）共用同一表；
 capture→pin-hole 的 compositePins 也走同一 remap。用户 2026-07-16 确认编辑器加载与
-可观察执行通过；已归档到 `真-测试通过/复合节点`；待提交。default gate 未切；未注入。
+可观察执行通过；已归档到 `真-测试通过/复合节点`；已提交。default gate 未切；未注入。
 
 交付：
 
@@ -995,24 +995,117 @@ assembly count/element 共享布局、pathfinding obstacle capture→compositePi
 
 说明：assembly_list 仅为 fixture 顺带暴露的最小 special-arg 共享补齐，不宣称 special-arg 整族完成。
 
-## 当前唯一工作包：P5-W10
+## 最近完成（自动）：P5-W10 — 待用户核验
+
+P5-W10 将 5 个 special-arg 节点（`send_signal` / `monitor_signal` / `assembly_list` /
+`assembly_dictionary` / `multiple_branches`）的字面量布局与 IR→physical pin remap 抽为
+共享模块 `special_arg_adapter.ts`。root `applySpecialArgs`、`ordinary_node_factory` 与
+composite vendor/legacy 共用同一表。default gate 未切；未注入。
+
+交付：
 
 ```text
-工作包：P5-W10 — special-arg named adapter 最小共享收口
-优先级类别：fallback-vendor gap / 架构阻塞（矩阵 special-arg unknown 族）
-状态：待实现；P5-W9 用户核验通过并归档，待提交
-解除的上层阻塞：special-arg（signal / assembly / multiple_branches 等）仍在 root 活表面且
-  shared beta 下 unknown；P5-W9 仅最小补了 assembly count/element，未整族收口。
-输入与修改范围：从 ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES 选最小可执行子集或整族
-  （实现前与用户确认范围）；shared adapter / focused contract；更新矩阵/inventory/STATUS/Phase 5。
-最小观察或失败基线：P5-W9 后 pin-hole green=9；special-arg unknown；default gate false。
-完成条件：所选 special-arg 子集 unknown→green，或具名 shared adapter + 删除条件；
-  focused 通过；触及生产路径则用户编辑器核验。
-实际验证命令：实现时确定；至少 npm run build + matrix + focused + git diff --check。
-回滚边界：仅所选 special-arg adapter/probe；不切 default gate；不整包删 handwritten。
-明确非目标：默认开启 vendor gate、typed-identity 全清、注入、改 capture/call/布局。
+src/compiler/ir_to_gia_transform/special_arg_adapter.ts
+  applySpecialArgLiteralArgs / remapSpecialArgInputIndex
+  applyAssemblySpecialArgs / applySignalSpecialArgs / applyMultipleBranchesSpecialArgs
+
+src/compiler/ir_to_gia_transform/index.ts
+  applySpecialArgs 委托 shared special-arg；send_signal mapInputIndex 走 shared remap
+
+src/compiler/ir_to_gia_transform/ordinary_node_factory.ts
+  applyOrdinaryLiteralArgs 委托 shared special-arg 全族
+
+src/compiler/ir_to_gia_transform/composite.ts
+  vendor inputPinIndex + data edge + legacy pin builder + boundaryPins special-arg remap
+
+src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts
+  special-arg family sharedIdentity green=5
+
+src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts
+  adapter-special-arg-layouts → shared special_arg_adapter.ts
+
+tests/composite/test-stage3-p5w10-special-arg-shared-adapter.ts
+```
+
+自动矩阵（shared beta probe）：total=73 green=47 red=0 unknown=26；special-arg green=5；
+pin-hole green=9。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w10-special-arg-shared-adapter.ts /tmp/P5W10-special-arg-shared-adapter.gia
+npx tsx tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts
+npx tsx tests/composite/test-stage3-p5w3-root-ordinary-capability-inventory.ts
+npx tsx tests/composite/test-stage3-p5w9-pin-hole-shared-adapter.ts /tmp/P5W9-recheck.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 边界哨兵 regen
+git diff --check
+```
+
+### P5-W10 信号参修复与方案 A registry 切片（2026-07-16，用户游戏验证通过）
+
+用户反馈 entity / entity_list 收发不正常后，对照真实 GIA 修复 SignalDef ParameterFlow：
+
+| 类型 | 真实 GIA | 修复前 | 修复后 |
+|---|---|---|---|
+| entity | class=0 type1=1 | class=1 (IdBase) | class=0 (Unknown) type1=1 |
+| 任意 `*_list` | class=10002 type1=type2=11 | type1=元素标量 | class=10002 type1=type2=11 |
+
+证据：`test/信号使用-带参数版本.gia`、`test/ts_g_define_全类型覆盖测试.gia`、`user_edit/信号/001.gia`。
+物理 pin 仍用元素感知 VarType（int_list=8 / str_list=11 / vec3_list=15 / entity_list=13）；
+ParameterFlow 的 StringList(11) 只是定义层容器标签。
+
+fixture 扩为 11 参（主图+复合共用发送）：
+`int/float/vec3/bool/prefab_id/str/entity/int_list/str_list/vec3_list/entity_list`。
+新增独立全参对称测试 `tests/composite/test-stage3-p5w10-signal-param-matrix.ts`：
+17 个已支持 scalar/list 类型，主图与复合使用同一发送函数，监听侧统一消费全部参数；
+候选 `P5W10-signal-param-matrix-vendor.gia`，SHA-256
+`7112ec3022ef531290909df38342b4ec2fddd9b0a8d91a0bdc36277f33963d61`，已复制到游戏导出根。
+复合内 entity 标量仍 capture→compositePins（物理 pin 缺位是边界语义，不是丢参）。
+
+用户核验候选（未注入；已复制到游戏导出根目录）：
+
+游戏目录：`C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+WSL：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/`
+仓库 staging 仅中间态：`genshin-ts/Beyond_Local_Export/`（编辑器不看这里）
+
+- `P5W10-two-signal-param-matrix-registered.gia`
+  SHA-256 `f3e7ff15c0e84c2b9896bdce8d2ba8f4dbdbb93e4d14dd35b6029876759315e1`
+  **用户 2026-07-16 确认编辑器/游戏测试通过**；方案 A 使用目标 `.gil` 注册的两个 9 参数信号，root 与 Composite impl 均发送，监听侧完整消费 9+9 参数。
+  未注入；不证明凭空创建新信号。
+
+- `P5W10-special-arg-shared-vendor.gia`
+  SHA-256 `86b1b32a57148710c52dd6a12a5e15ce8ad133e314999f3e5232e49f367bcf0e`
+  （重生：`信号_1` **11 参** 标量+list 整族；SignalDef entity class=0；list type1=11；
+  root/impl 共用发送；monitor 消费全部参；旧 SHA `e484ee5e…` / `ae94df00…` 作废）
+- `P5W10-capture-vendor.gia`
+  SHA-256 `2715f8f79adb78ee8d487a69a34168a91d2a6565f8834cbd0da3e3cbc016301e`
+- `P5W10-nested-capture-vendor.gia`
+  SHA-256 `40ecf34c1c4d13fbb0251954213d64916f805af69108f3186546f5e3b17313c6`
+- `P5W10-nested-sparse-vendor.gia`
+  SHA-256 `7d1f94fc26d1b2a96c2cee31c77cfdd9aabacb0166112f0f68d93be46c516389`
+- `P5W10-multi-inflow-outflow-vendor.gia`
+  SHA-256 `1b157c08b5a20b193a4c27aa54ca9f9185b4f2e83ff7138f3646f3a613bbd098`
+- `P5W10-nested-call-vendor.gia`
+  SHA-256 `97a89628991f28f593de8167f3316c46171d097a15fe60c1a9d60f01974853e7`
+
+说明：自动 PASS ≠ 游戏行为；enum signal params 仍 root-unsupported；
+不宣称 typed-identity 收敛、默认 gate、真实 wire 全等或注入。
+guid/faction/config_id 及对应 list 与本修复同路径（ParameterFlow 规则已覆盖），
+本 fixture 未逐个展开，游戏核验以 11 参矩阵为准。
+
+## 当前唯一工作包：P5-W10（已完成用户核验；后续为独立扩展）
+
+```text
+工作包：P5-W10 — special-arg 共享 + 信号 scalar/list 参数整族修复
+优先级类别：fallback-vendor gap / 用户核验阻塞
+状态：方案 A 的目标地图注册表接入、SignalDef entity/list 类型修复和 9+9 双信号 fixture 已自动通过；用户已确认游戏测试通过。
+解除的上层阻塞：special-arg green=5；信号 ParameterFlow 与真实 GIA 对齐；目标 `.gil` registry → GIA identity 绑定已验证。
+完成条件：P5-W10 目标地图已注册信号路径完成。后续“创建全新未注册信号”属于独立扩展，不纳入本工作包。
+回滚边界：signal ParameterFlow + special-arg adapter/probe；不切 default gate。
+明确非目标：默认 gate、typed-identity 全清、enum signal、注入、改 capture 语义本身。
 后续候选：typed-identity 其余 unknown；legacy inventory 分项删除；default 切换（须用户批准）。
-用户闸门：范围（最小子集 vs 整族）、default gate / 主路径 legacy 删除 / 注入须停止。
+用户闸门：本工作包用户游戏核验已通过；default gate / 主路径 legacy 删除 / 注入仍需独立审批。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

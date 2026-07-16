@@ -174,7 +174,7 @@
 
 | # | 疑点 | 涉及 | 需要什么数据 |
 |:-|:----|:----|:-----------|
-| 8 | **user_edit 中 监听信号/发送信号的 ID 每个文件不同**：复杂gia/中共享复合库的 ID 跨文件一致，但 user_edit 中同名的信号复合有不同 ID。是否表明 user_edit 是 gsts 独立编译产物（每个文件自行定义），而复杂gia/是编辑器保存产物（引用全局库）？ | 01-ir-types | 对比 gsts 输出与编辑器输出的 ID 分配策略 |
+| 8 | **user_edit 中监听信号/发送信号的 ID 每个文件不同**：已用 `多信号2.gia` 与 `多信号3.gia` 交叉确认：同一 B 信号在两文件保持 `1610612751/2752/2753`；不同信号组占用连续三元组，组间可能被其他 GraphUnit 占用。仍待确认 gsts 如何取得外部注册 identity。 | 01-ir-types / 04-validation-signal / 05-gia-encoding | 对比 gsts 输出与编辑器输出的 ID 分配策略；需要地图/信号注册表输入 | 部分关闭：真实 GIA 规律已确认；gsts 接入方式待实现 |
 | 9 | **类型转化.gia 和 类型转化_gen.gia 是唯二空复合文件**：没有 CompositeDef，只有原始节点图。这是测试边界用例，还是 gsts 编译器在无复合定义时的退化输出？ | 01-ir-types / gsts-compiler-gap | 确认 gsts 何时产出空复合 GIA |
 | 10 | **I=1/O=0 终端下沉型是纯 gsts 产物还是通用模式？**：user_edit 中 9 个实例全是小文件（1-3 节点），物理运动.gia 的"设置物理参数"（30 节点，I=1/O=0）规模差异极大。终端下沉型是否应再细分"基础终端"和"大型下沉"？ | 06-advanced-patterns §14 | 更多 medium 规模（10-30 节点）的 I=1/O=0 复合 |
 
@@ -214,10 +214,10 @@
 - [ ] 布局坐标对齐 ← impl 图布局已完成（BFS+Kahn）
 
 **P2**（待验证）：
-- [ ] SignalDef 编码支持（which=14 编码器尚不输出）
+- [~] SignalDef 编码支持：当前 gsts 已有实验性 `build_signal_definition.ts` 输出，但真实编辑器要求外部注册的 SignalDef identity；自造 ID / 固定复用 ID 尚未完成游戏验证，不能视为完成
 - [ ] structureDef 编码支持（which=29 编码器尚不输出）
 - [ ] 多 OutFlow pinIndex 对齐
-- [ ] ClientExec 信号触发支持
+- [~] ClientExec 信号触发支持：节点字符串与 cpi 的自动结构检查存在，但新 signal 的编辑器/游戏接受仍待外部 SignalDef identity 和用户验证
 
 ### 📝 文档：控制流 API 实战速查（2026-07-05 新增）
 

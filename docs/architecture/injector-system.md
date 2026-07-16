@@ -260,9 +260,44 @@ function resolveGraphTypeForTypeValue(typeValue, folderIndexes, idToType) {
 
 ---
 
-## 8. 信号节点补丁：signal_nodes.ts
+## 8. 信号注册与节点补丁：gil_signals.ts / signal_nodes.ts
 
-`patchSignalNodeIds` 修正 `.gia` 中信号节点的 ID，使其与 `.gil` 中的现有信号保持一致，避免信号不匹配。
+> 状态：当前实现；方案 A 已由目标地图用户游戏验证（2026-07-16）
+
+当前信号链路采用“目标地图已注册信号”方案：
+
+```text
+目标 .gil
+  ├─ gil_signals.ts：提取名称、参数 schema、send/monitor/server ID
+  ├─ 编译器 SignalRegistry：校验并编码真实 SignalDef identity
+  └─ signal_nodes.ts：注入阶段按信号名修补占位节点 ID
+```
+
+统一注册项包含：
+
+```ts
+{
+  name,
+  params,
+  sendId,
+  monitorId,
+  serverId
+}
+```
+
+`patchSignalNodeIds` 仍负责将 GIA 中的占位节点：
+
+```text
+300000 → 目标 .gil 的 sendId
+300001 → 目标 .gil 的 monitorId
+```
+
+GIA 编码阶段也使用同一 registry，而不是生成固定 ID、哈希 ID 或 `+6` 推导 ID。
+未注册信号和参数 schema 不一致会在编码阶段失败。ClientExec 字符串不是新信号注册机制。
+
+证据：目标地图 `1073741848.gil` 的 9+9 双信号候选
+`P5W10-two-signal-param-matrix-registered.gia` 已由用户在游戏编辑器/游戏内测试通过。
+该结论只覆盖目标地图已有注册信号，不覆盖凭空创建新信号。
 
 ---
 

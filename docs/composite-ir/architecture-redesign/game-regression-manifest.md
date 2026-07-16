@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：P5-W9 用户核验通过并归档；已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2..P4-W7 / P5-W2 / P5-W4 / P5-W7 / P5-W8 / P5-W9
+> 状态：P5-W10 方案 A 候选已用户游戏验证；P5-W9 及更早已通过归档；已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2..P4-W7 / P5-W2 / P5-W4 / P5-W7 / P5-W8 / P5-W9
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-16
 > 适用范围：Phase 3、Phase 4、Phase 5、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -38,6 +38,84 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+### 已用户游戏验证：P5-W10 方案 A 双信号 registry
+
+以下 P5-W10 方案 A 候选于 2026-07-16 生成，自动结构回归通过，用户已确认编辑器/游戏测试通过。
+均未注入。待用户确认编辑器加载和可观察执行；结论绑定下列生成时 SHA。
+
+游戏目录：`C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+WSL：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/`
+仓库 staging 仅中间态；编辑器以游戏导出根目录为准。六份候选已于 2026-07-16 复制到游戏导出根。
+
+#### P5-W10-two-signal-param-matrix-registered（用户已验证）
+
+- 工作包/阶段：P5-W10 / 方案 A：目标地图已注册信号 registry。
+- 覆盖：两个已注册信号，主图与 Composite impl 各发送；监听侧分别消费全部 9 个参数，共 9+9。
+- 自动证据：`tests/composite/test-stage3-p5w10-two-signal-param-matrix.ts`；自动结构检查通过。
+- 目标 `.gil`：`Beyond_Local_Save_Level/1073741848.gil`。
+- 候选路径：`Beyond_Local_Export/P5W10-two-signal-param-matrix-registered.gia`。
+- SHA-256：`f3e7ff15c0e84c2b9896bdce8d2ba8f4dbdbb93e4d14dd35b6029876759315e1`。
+- 用户游戏验证：2026-07-16，用户确认测试通过。
+- 已验证内容：提取的真实 send/monitor/server ID 被 GIA 编码使用；未再复用或自造 SignalDef ID。
+- 未证明：未注册新信号的凭空创建、注入写回 `.gil`、其他地图 registry 兼容性。
+
+#### P5-W10-special-arg-shared（仍待单独用户核验）
+
+- 工作包/阶段：P5-W10 / Phase 5 special-arg 整族共享 + 信号 scalar/list 参数修复。
+- 目的与覆盖风险：5 个 special-arg 节点在 root+composite shared beta 下使用同一 layout/remap；
+  信号 11 参（标量 + int/str/vec3/entity list）主图与复合共用发送/监听。
+- 自动证据：`test-stage3-p5w10-special-arg-shared-adapter.ts`、matrix special-arg green=5，PASS。
+- 生成命令：`npx tsx tests/composite/test-stage3-p5w10-special-arg-shared-adapter.ts Beyond_Local_Export/P5W10-special-arg-shared-vendor.gia`
+- backend/gate：shared beta；default 仍 false。
+- 候选路径：`.../Beyond_Local_Export/P5W10-special-arg-shared-vendor.gia`
+- SHA-256：`86b1b32a57148710c52dd6a12a5e15ce8ad133e314999f3e5232e49f367bcf0e`
+  （重生：`信号_1` **11 参** int/float/vec3/bool/prefab_id/str/entity +
+  int_list/str_list/vec3_list/entity_list；
+  SignalDef ParameterFlow：entity class=0 type1=1；任意 list class=10002 type1=type2=11；
+  物理 pin 仍元素感知（8/11/15/13）；root 11 物理 InParam；impl 缺 entity 物理脚（capture）；
+  send/monitor SysGraph 1610612738/1610612739、signalVersion=2；
+  旧 SHA `e484ee5e…` 作废）
+- 编辑器加载观察：待用户。
+- 游戏内可观察执行观察：待用户（重点：entity 标量、四类 list、主图+复合发送）。
+- 用户结论与日期：待核验。
+- 注入状态：未注入。
+- 适用范围与未证明事项：不证明 enum signal params、typed-identity 字典族、默认 gate、
+  真实 wire 全等或注入。
+
+#### P5-W10-signal-param-matrix（旧单信号/全类型候选，仍待用户核验）
+
+- 工作包/阶段：P5-W10 / 信号参数全类型对称回归。
+- 目的：主图与复合使用同一 `sendAllSignalParams()`；监听使用同一 `consumeAllSignalParams()`；
+  覆盖 17 个已支持 SignalParamType（bool/int/float/str/vec3/guid/entity/prefab_id/config_id/faction
+  及 bool/int/float/str/vec3/guid/entity list）。
+- 自动证据：`tests/composite/test-stage3-p5w10-signal-param-matrix.ts` PASS；root send 17 pins，
+  impl send 16 physical pins + entity capture，monitor 17 OutParams。
+- 生成命令：`npx tsx tests/composite/test-stage3-p5w10-signal-param-matrix.ts Beyond_Local_Export/P5W10-signal-param-matrix-vendor.gia`
+- 候选：`.../Beyond_Local_Export/P5W10-signal-param-matrix-vendor.gia`
+- SHA-256：`7112ec3022ef531290909df38342b4ec2fddd9b0a8d91a0bdc36277f33963d61`
+- 编辑器加载与游戏内执行：待用户核验；未注入。
+- 核验重点：主图/复合发送均触发同一监听；普通参、四类列表参、entity 标量和 entity_list 均有消费路径。
+
+#### P5-W10-capture / nested-capture / nested-sparse / multi-inflow-outflow / nested-call（仍待用户核验）
+
+- 工作包/阶段：P5-W10 boundary 哨兵。
+- 目的与覆盖风险：special-arg 生产接线后 boundary 不退化。
+- 自动证据：对应 P2-W6 / P2-W11 / P2-W12 / P4-W1 / P2-W9 vendor 测试，PASS。
+- backend/gate：shared beta。
+- 候选路径与 SHA-256（游戏导出根目录）：
+  - `.../Beyond_Local_Export/P5W10-capture-vendor.gia`
+    `2715f8f79adb78ee8d487a69a34168a91d2a6565f8834cbd0da3e3cbc016301e`
+  - `.../Beyond_Local_Export/P5W10-nested-capture-vendor.gia`
+    `40ecf34c1c4d13fbb0251954213d64916f805af69108f3186546f5e3b17313c6`
+  - `.../Beyond_Local_Export/P5W10-nested-sparse-vendor.gia`
+    `7d1f94fc26d1b2a96c2cee31c77cfdd9aabacb0166112f0f68d93be46c516389`
+  - `.../Beyond_Local_Export/P5W10-multi-inflow-outflow-vendor.gia`
+    `1b157c08b5a20b193a4c27aa54ca9f9185b4f2e83ff7138f3646f3a613bbd098`
+  - `.../Beyond_Local_Export/P5W10-nested-call-vendor.gia`
+    `97a89628991f28f593de8167f3316c46171d097a15fe60c1a9d60f01974853e7`
+- 用户结论与日期：待核验。
+- 注入状态：未注入。
 
 ### 已通过：P5-W9
 

@@ -1,6 +1,6 @@
 # Signals
 
-Signals are custom stage-wide events. Define the signal in the editor signal manager before using it; injection fails when a generated graph references a signal that does not exist in the map.
+Signals are custom stage-wide events. Define the signal in the editor signal manager before using it; injection and direct editor loading fail when a generated graph references a signal that does not exist in the target map. The compiler uses the target `.gil` signal registry (name, parameter schema, and send/monitor/server definition IDs) and rejects unregistered or schema-mismatched signals.
 
 ## Basic Usage
 
@@ -65,4 +65,6 @@ In this example, the first parameter is a node output and the other two are lite
 ## Notes
 
 - `Signal.xxx` comes from the extracted map data; after editing signals in the editor, save the map first, then rerun compilation to extract the updated signal information.
+- The extracted registry also carries the real send/monitor/server SignalDef identity used by GIA encoding. ClientExec text alone does not register a new signal.
+- A signal name not registered in the target map, or a parameter schema that differs from the target `.gil`, is a compile-time error under the current map-registered-signal workflow.
 - String-based usage does not provide parameter names or parameter type hints.
