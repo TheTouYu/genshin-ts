@@ -45,7 +45,11 @@ const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 const resolvedSource = readFileSync(join(transformDir, 'resolved_node.ts'), 'utf8')
 const nodeIdSource = readFileSync(join(transformDir, 'node_id.ts'), 'utf8')
 
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W8')
+// Matrix contract phase advances with later packs; P5-W8 only freezes enumerations_equal path.
+assert.ok(
+  ['P5-W8', 'P5-W9'].includes(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage),
+  `unexpected workPackage ${ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage}`
+)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)

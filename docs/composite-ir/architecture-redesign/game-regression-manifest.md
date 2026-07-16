@@ -1,6 +1,6 @@
 # Stage 3 游戏回归 Manifest
 
-> 状态：P5-W7 用户核验通过并归档；已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2..P4-W7 / P5-W2 / P5-W4 / P5-W7
+> 状态：P5-W9 用户核验通过并归档；已完成 P3-W22 / P3.5 / P4-W1 / P2-W18 / P4-W2..P4-W7 / P5-W2 / P5-W4 / P5-W7 / P5-W8 / P5-W9
 > 来源：ADR-013（用户确认的证据治理） + 当前自动生成/哈希 + 用户编辑器/游戏确认
 > 最近校验：2026-07-16
 > 适用范围：Phase 3、Phase 4、Phase 5、opt-in beta、默认切换和 legacy 删除的代表性 GIA 候选；不包含注入
@@ -38,6 +38,52 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 ```
 
 ## 当前条目
+
+### 已通过：P5-W9
+
+以下六份 P5-W9 候选于 2026-07-16 生成（修复重生后），自动 pin-hole/matrix/inventory/sentinel 回归通过，
+均未注入。用户于 2026-07-16 确认编辑器加载和可观察执行通过，并归档到游戏目录
+`真-测试通过/复合节点`。它们验证 9 个 pin-hole 节点共享 adapter 后，主 fixture 与 boundary 哨兵
+仍可加载/执行；用户结论绑定下列核验时 SHA。
+
+游戏目录：`C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+归档：`...\真-测试通过\复合节点\`
+
+#### P5-W9-pin-hole-shared
+
+- 工作包/阶段：P5-W9 / Phase 5 pin-hole 整族共享。
+- 目的与覆盖风险：9 个 pin-hole 节点在 root+composite shared beta 下使用同一 IR→physical hole remap；
+  含 capture→pin-hole compositePins 物理脚位与 assembly count/element 最小共享。
+- 自动证据：`test-stage3-p5w9-pin-hole-shared-adapter.ts`、matrix pin-hole green=9，PASS。
+- 生成命令：`npx tsx tests/composite/test-stage3-p5w9-pin-hole-shared-adapter.ts Beyond_Local_Export/P5W9-pin-hole-shared-vendor.gia`
+- backend/gate：shared beta；default 仍 false。
+- 候选路径：`.../真-测试通过/复合节点/P5W9-pin-hole-shared-vendor.gia`
+- SHA-256：`fd14dd1fe9bbdddc9dbd3395be87e30949cca5ced6d74ebaa8045e6cb9959028`
+- 编辑器加载观察：通过。
+- 游戏内可观察执行观察：通过。
+- 用户结论与日期：通过（2026-07-16）。
+- 注入状态：未注入。
+- 适用范围与未证明事项：不证明 special-arg 整族、typed-identity、画布布局、默认 gate、真实 wire 全等。
+
+#### P5-W9-capture / nested-capture / nested-sparse / multi-inflow-outflow / nested-call
+
+- 工作包/阶段：P5-W9 boundary 哨兵。
+- 目的与覆盖风险：pin-hole 生产接线后 boundary 不退化。
+- 自动证据：对应 P2-W6 / P2-W11 / P2-W12 / P4-W1 / P2-W9 vendor 测试，PASS。
+- backend/gate：shared beta。
+- 候选路径与 SHA-256：
+  - `.../真-测试通过/复合节点/P5W9-capture-vendor.gia`
+    `291efba25f1b2c330368bce8b81f6ba6bf2dd6014904fa66c7f7bf79c3d7fc82`
+  - `.../真-测试通过/复合节点/P5W9-nested-capture-vendor.gia`
+    `3cf958c68f3c5ece4eb8193b97b57ab437825d3f130bec15b569f63af04e1de9`
+  - `.../真-测试通过/复合节点/P5W9-nested-sparse-vendor.gia`
+    `ef1500b0ca47b3693df167549477d6636075411c15a025bc65bc947617f5cf1a`
+  - `.../真-测试通过/复合节点/P5W9-multi-inflow-outflow-vendor.gia`
+    `4a7ff0ca8ccd68ccd471e22ce6a3bf6c4380f85e14f7c2f34f0155ea9320dea0`
+  - `.../真-测试通过/复合节点/P5W9-nested-call-vendor.gia`
+    `5d05237efb323b8a998332627162b099dc2b64ecd04a9373235089ade5fd21a8`
+- 用户结论与日期：通过（2026-07-16）。
+- 注入状态：未注入。
 
 ### 已通过：P5-W8
 

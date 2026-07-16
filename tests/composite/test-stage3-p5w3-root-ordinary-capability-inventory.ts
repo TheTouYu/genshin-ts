@@ -168,12 +168,18 @@ for (const nodeType of ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
 }
 assert.equal(usesSharedVariantResolution('data_type_conversion_int_to_str'), true)
 
-// --- Named adapters still present in root sources ---
+// --- Named adapters: pin-hole family lives in shared pin_hole_adapter.ts (P5-W9) ---
+const pinHoleAdapterSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../src/compiler/ir_to_gia_transform/pin_hole_adapter.ts'),
+  'utf8'
+)
+assert.match(indexSource, /applyPinHoleLiteralArgs|remapPinHoleInputIndex/)
+assert.match(pinHoleAdapterSource, /PIN_HOLE_SPECS/)
 for (const nodeType of ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES) {
   assert.match(
-    indexSource,
-    new RegExp(String.raw`['"]${nodeType}['"]`),
-    `root pin-hole adapter missing live surface: ${nodeType}`
+    pinHoleAdapterSource,
+    new RegExp(String.raw`${nodeType}\s*:`),
+    `shared pin-hole adapter missing node type: ${nodeType}`
   )
 }
 for (const nodeType of ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES) {

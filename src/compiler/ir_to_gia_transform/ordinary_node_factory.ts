@@ -38,6 +38,27 @@ export function applyOrdinaryLiteralArgs(
   node: Node<any>,
   input: Omit<OrdinaryNodeFactoryInput, 'concreteNodeId'>
 ): void {
+  // assembly_list / assembly_dictionary: GIA pin0 is element/kv count; IR args start at pin1.
+  // Root historically owned this in applySpecialArgs; vendor-gated composite must share it
+  // so list elements are not written onto the count pin.
+  if (input.nodeType === 'assembly_list' || input.nodeType === 'assembly_dictionary') {
+    const args = input.args ?? []
+    setLiteralArgValue(node as any, 0, 0, input.nodeType, 'int', args.length)
+    for (let argIndex = 0; argIndex < args.length; argIndex++) {
+      const arg = args[argIndex]
+      if (!arg || arg.type === 'conn' || (input.skipCapturedInputs && (arg as any).capture === true)) {
+        continue
+      }
+      const pinIndex = argIndex + 1
+      if (arg.type === 'enum' || arg.type === 'enumeration') {
+        setEnumArgValue(node as any, pinIndex, argIndex, input.nodeType, arg.value)
+      } else {
+        setLiteralArgValue(node as any, pinIndex, argIndex, input.nodeType, arg.type, arg.value)
+      }
+    }
+    return
+  }
+
   for (let argIndex = 0; argIndex < (input.args ?? []).length; argIndex++) {
     const arg = input.args?.[argIndex]
     if (!arg || arg.type === 'conn' || (input.skipCapturedInputs && (arg as any).capture === true)) continue

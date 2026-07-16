@@ -39,6 +39,11 @@ import {
 } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
+import {
+  applyPinHoleLiteralArgs,
+  isSharedPinHoleAdapterNodeType,
+  remapPinHoleInputIndex
+} from './pin_hole_adapter.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
 
@@ -325,24 +330,6 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     normalizeOrdinaryVendorPins(giaNode as any)
   }
 
-  const applyArgsWithNullHole = (
-    nodeType: string,
-    giaNode: GiaNode,
-    irNode: IRNode,
-    argsLength: number,
-    holeIndex: number
-  ): boolean => {
-    const args = irNode.args ?? []
-    if (args.length !== argsLength) return false
-    const patched: Argument[] = [...args]
-    patched.splice(holeIndex, 0, null)
-    for (let i = 0; i < patched.length; i++) {
-      const a = patched[i]
-      if (isValueArg(a)) setArgValue(giaNode, i, i, nodeType, a)
-    }
-    return true
-  }
-
   const applyGetNodeGraphVariableNamePin = (nodeType: string, giaNode: GiaNode, irNode: IRNode) => {
     if (nodeType !== 'get_node_graph_variable') return
     const nameArg = irNode.args?.[0]
@@ -355,43 +342,9 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   }
 
   const applySpecialArgs = (nodeType: string, giaNode: GiaNode, irNode: IRNode): boolean => {
-    // 存在疑似弃用的参数, 需要占位空值
-    if (nodeType === 'create_prefab') {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 7, 4)) return true
-    }
-
-    // 存在疑似弃用的参数, 需要占位空值
-    if (nodeType === 'create_prefab_group') {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 7, 4)) return true
-    }
-
-    // vendor 节点定义存在隐藏的 Unk 输入 pin，但实际的 GIA 通常不会写入该 pin
-    // nodes.ts 侧只暴露 (Ety, Bol) 两参，这里补一个 null 占位，避免 Bol 错位写入 Unk 导致 thirdparty 警告
-    if (
-      nodeType === 'activate_disable_follow_motion_device' ||
-      nodeType === 'activate_disable_collision_trigger_source' ||
-      nodeType === 'activate_disable_character_disruptor_device'
-    ) {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 2, 1)) return true
-    }
-
-    if (nodeType === 'activate_disable_pathfinding_obstacle_feature') {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 2, 1)) return true
-    }
-    if (nodeType === 'activate_disable_pathfinding_obstacle') {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 3, 0)) return true
-    }
-
-    // vendor 实测：Remove Unit Status 的 removerEntity 写在 pinIndex=4（pinIndex=3 为隐藏/空 pin）
-    // nodes.ts 侧暴露 4 个参数，这里补一个 null 占位，避免 removerEntity 写入错误的 pin。
-    if (nodeType === 'remove_unit_status') {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 4, 3)) return true
-    }
-
-    // 实测：Set Custom Variable 的 triggerEvent 实际写在 pinIndex=4（中间 pinIndex=3 为隐藏/空 pin）
-    // nodes.ts 侧只有 4 个参数，这里补一个 null 占位，避免 triggerEvent 写入错误的 pin。
-    if (nodeType === 'set_custom_variable') {
-      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 4, 3)) return true
+    // Shared pin-hole family (P5-W9): null-hole literal apply for all 9 named adapters.
+    if (isSharedPinHoleAdapterNodeType(nodeType)) {
+      if (applyPinHoleLiteralArgs(nodeType, giaNode, irNode.args)) return true
     }
 
     if (nodeType === 'send_signal' || nodeType === 'monitor_signal') {
@@ -492,28 +445,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   }
 
   const remapInputIndexForHiddenPin = (nodeType: string, idx: number): number => {
-    // 注意：applySpecialArgs 里对这些节点做了“插入 null 占位”来适配 vendor 的 pinIndex 空洞，
-    // 那么 dataConnections 里的 toIndex（仍按 IR 的原始参数顺序）也必须同步 remap。
-    switch (nodeType) {
-      case 'activate_disable_follow_motion_device':
-      case 'activate_disable_collision_trigger_source':
-      case 'activate_disable_character_disruptor_device':
-        return idx >= 1 ? idx + 1 : idx // hole at 1
-      case 'activate_disable_pathfinding_obstacle_feature':
-        return idx >= 1 ? idx + 1 : idx // hole at 1
-      case 'activate_disable_pathfinding_obstacle':
-        return idx + 1 // hole at 0
-      case 'set_custom_variable':
-      case 'remove_unit_status':
-        return idx >= 3 ? idx + 1 : idx // hole at 3
-      case 'create_prefab':
-      case 'create_prefab_group':
-        return idx >= 4 ? idx + 1 : idx // hole at 4
-      case 'send_signal':
-        return idx > 0 ? idx - 1 : idx // signal name is exec literal, data pins shift by -1
-      default:
-        return idx
+    // Shared pin-hole family (P5-W9). special-arg send_signal remains root-local.
+    if (isSharedPinHoleAdapterNodeType(nodeType)) {
+      return remapPinHoleInputIndex(nodeType, idx)
     }
+    if (nodeType === 'send_signal') {
+      // signal name is exec literal, data pins shift by -1
+      return idx > 0 ? idx - 1 : idx
+    }
+    return idx
   }
 
   const remapOutputIndexForHiddenPin = (nodeType: string, idx: number): number => {

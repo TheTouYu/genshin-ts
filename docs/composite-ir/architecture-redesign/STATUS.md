@@ -13,9 +13,10 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6..P5-W8 完成）
-当前唯一工作包：P5-W9 — pin-hole named adapter 最小共享收口（候选）
-最近完成工作包：P5-W8 — enumerations_equal residual 身份迁 shared resolver（用户核验通过，已归档，待提交）
+当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6..P5-W9 完成；P5-W9 用户核验通过已归档、待提交）
+当前唯一工作包：P5-W10 — special-arg named adapter 最小共享收口（候选）
+最近完成工作包：P5-W9 — pin-hole named adapter 整族共享收口（用户核验通过，已归档，待提交）
+更早完成：P5-W8 — enumerations_equal residual 身份迁 shared resolver
 更早完成：P5-W7 — residual scalar ordinary 身份迁 shared resolver
 更早完成：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
 更早完成：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
@@ -847,7 +848,7 @@ P5-W8 将矩阵 residual-concrete 唯一剩余的 `enumerations_equal` 迁入 sh
 `resolveNodeIdentity`（enum-kind concrete id）。生产 ordinary concrete identity 接线已改；
 default gate 未切；handwritten pin/materialize 未删；未注入。自动 focused/matrix/inventory/sentinel
 通过；用户 2026-07-16 确认编辑器加载与可观察执行通过；已归档到游戏目录
-`真-测试通过/复合节点`；待提交。
+`真-测试通过/复合节点`；已提交。
 
 交付：
 
@@ -938,31 +939,80 @@ git diff --check
 说明：本包是 enumerations_equal ordinary identity 共享路径迁移。未改 default gate、capture/call/layout、
 handwritten pin/materialize 删除。仓库 staging 仅生成中间态；编辑器以游戏目录归档路径为准。
 
-## 当前唯一工作包：P5-W9
+## 最近完成：P5-W9
+
+P5-W9 将 9 个 pin-hole 节点的 null-hole 字面量写入与 IR→physical pinIndex remap 抽为
+共享模块 `pin_hole_adapter.ts`。root 与 composite（vendor + legacy）共用同一表；
+capture→pin-hole 的 compositePins 也走同一 remap。用户 2026-07-16 确认编辑器加载与
+可观察执行通过；已归档到 `真-测试通过/复合节点`；待提交。default gate 未切；未注入。
+
+交付：
 
 ```text
-工作包：P5-W9 — pin-hole named adapter 最小共享收口
-优先级类别：fallback-vendor gap / 架构阻塞（矩阵 pin-hole unknown 族）
-状态：待实现；P5-W8 用户核验通过并归档，待提交
-解除的上层阻塞：pin-hole named adapters 仍在 root 活表面且 shared beta 下 unknown；
-  未形成最小共享 adapter + 删除条件，阻塞 ordinary 覆盖矩阵继续收口。
-输入与修改范围：从 ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES 选最小可执行子集（优先 1 族或
-  1 个代表节点）；shared adapter / 诊断 / focused contract；更新矩阵/inventory/STATUS/Phase 5；
-  必要时最小 pin-hole 可执行 fixture。
-最小观察或失败基线：P5-W8 后 residual-concrete empty；enumerations-equal green；
-  pin-hole family unknown；default gate false。
-完成条件：所选 pin-hole 子集在 shared beta 下 unknown→green（C4），或具名 shared adapter +
-  删除条件；focused contract 通过；触及生产路径则用户编辑器核验。
-实际验证命令：实现时确定；至少 npm run build +
-  npx tsx tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts +
-  pin-hole focused + git diff --check。
-回滚边界：仅所选 pin-hole adapter/probe；不切 default gate；不整包删除 handwritten pin/materialize。
-明确非目标：默认开启 vendor gate、全量 pin-hole/special-arg/typed-identity 清完、注入、
-  改 capture/call/layout、composite 专属 ordinary 补丁。
-后续候选（非当前工作包）：
-  special-arg / typed-identity 其余 unknown；legacy inventory 分项删除；
-  default 切换（须用户批准）。
-用户闸门：若触及 default gate / 主路径 legacy 删除 / 注入，必须停止。
+src/compiler/ir_to_gia_transform/pin_hole_adapter.ts
+  PIN_HOLE_SPECS / remapPinHoleInputIndex / applyPinHoleLiteralArgs
+
+src/compiler/ir_to_gia_transform/index.ts
+  applySpecialArgs / remapInputIndexForHiddenPin 委托 shared pin-hole
+
+src/compiler/ir_to_gia_transform/composite.ts
+  vendor inputPinIndex + data edge remap + legacy pin builder + boundaryPins pin-hole remap
+
+src/compiler/ir_to_gia_transform/ordinary_node_factory.ts
+  assembly_list/dictionary count@0 / elements@1+（fixture 暴露的最小共享补齐）
+
+src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts
+  pin-hole family sharedIdentity green=9
+
+src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts
+  adapter-pin-hole-layouts → shared pin_hole_adapter.ts
+
+tests/composite/test-stage3-p5w9-pin-hole-shared-adapter.ts
+```
+
+自动矩阵（shared beta）：total=73 green=42 red=0 unknown=31；pin-hole green=9。
+
+用户核验候选（未注入；用户 2026-07-16 确认通过；已归档）：
+
+游戏目录：`C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+归档：`...\真-测试通过\复合节点\`
+
+- `真-测试通过/复合节点/P5W9-pin-hole-shared-vendor.gia`
+  SHA-256 `fd14dd1fe9bbdddc9dbd3395be87e30949cca5ced6d74ebaa8045e6cb9959028`
+- `真-测试通过/复合节点/P5W9-capture-vendor.gia`
+  SHA-256 `291efba25f1b2c330368bce8b81f6ba6bf2dd6014904fa66c7f7bf79c3d7fc82`
+- `真-测试通过/复合节点/P5W9-nested-capture-vendor.gia`
+  SHA-256 `3cf958c68f3c5ece4eb8193b97b57ab437825d3f130bec15b569f63af04e1de9`
+- `真-测试通过/复合节点/P5W9-nested-sparse-vendor.gia`
+  SHA-256 `ef1500b0ca47b3693df167549477d6636075411c15a025bc65bc947617f5cf1a`
+- `真-测试通过/复合节点/P5W9-multi-inflow-outflow-vendor.gia`
+  SHA-256 `4a7ff0ca8ccd68ccd471e22ce6a3bf6c4380f85e14f7c2f34f0155ea9320dea0`
+- `真-测试通过/复合节点/P5W9-nested-call-vendor.gia`
+  SHA-256 `5d05237efb323b8a998332627162b099dc2b64ecd04a9373235089ade5fd21a8`
+
+用户反馈修复过程（旧 SHA 作废）：root print OutFlow 定义、disruptor 用 registerExecNode、
+assembly count/element 共享布局、pathfinding obstacle capture→compositePins 物理 pin1。
+
+说明：assembly_list 仅为 fixture 顺带暴露的最小 special-arg 共享补齐，不宣称 special-arg 整族完成。
+
+## 当前唯一工作包：P5-W10
+
+```text
+工作包：P5-W10 — special-arg named adapter 最小共享收口
+优先级类别：fallback-vendor gap / 架构阻塞（矩阵 special-arg unknown 族）
+状态：待实现；P5-W9 用户核验通过并归档，待提交
+解除的上层阻塞：special-arg（signal / assembly / multiple_branches 等）仍在 root 活表面且
+  shared beta 下 unknown；P5-W9 仅最小补了 assembly count/element，未整族收口。
+输入与修改范围：从 ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES 选最小可执行子集或整族
+  （实现前与用户确认范围）；shared adapter / focused contract；更新矩阵/inventory/STATUS/Phase 5。
+最小观察或失败基线：P5-W9 后 pin-hole green=9；special-arg unknown；default gate false。
+完成条件：所选 special-arg 子集 unknown→green，或具名 shared adapter + 删除条件；
+  focused 通过；触及生产路径则用户编辑器核验。
+实际验证命令：实现时确定；至少 npm run build + matrix + focused + git diff --check。
+回滚边界：仅所选 special-arg adapter/probe；不切 default gate；不整包删 handwritten。
+明确非目标：默认开启 vendor gate、typed-identity 全清、注入、改 capture/call/布局。
+后续候选：typed-identity 其余 unknown；legacy inventory 分项删除；default 切换（须用户批准）。
+用户闸门：范围（最小子集 vs 整族）、default gate / 主路径 legacy 删除 / 注入须停止。
 ```
 
 工作包排序与例外分类见 [工作包选择协议](work-package-selection.md)。map、注入、覆盖真实参考、删除/清理、默认 gate、

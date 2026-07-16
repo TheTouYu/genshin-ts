@@ -17,6 +17,9 @@
 - 通过 `gia_vendor.ts` 使用 vendor API；不要直接改 `src/thirdparty/`，也不要手写 protobuf 字节。
 - 保持 root 与 Composite impl 的 ordinary-node 类型决策、pin schema 和连接语义一致；
   Composite 特殊逻辑仅限 definition、synthetic call、capture、`compositePins` 和边界布局。
+- pin-hole / hidden-pin 节点：IR 参数序与物理 InParam 不一致时，必须走共享 remap
+  （`pin_hole_adapter.ts`）。凡同时触及 capture 与 pin-hole，vendor/legacy 过滤物理 pin 与
+  `compositePins.innerPinIndex` 必须用同一物理脚位；只 remap 一侧会出现“主图正常、复合丢参”。
 - 改动 capture、nested composite、多 inflow/outflow、sparse input、layout 或 graph metadata 时，
   先建立 focused 回归，不能顺手扩大行为范围。
 - 真实 GIA、自动回归、生成候选、注入和游戏编辑器验证必须分别记录。

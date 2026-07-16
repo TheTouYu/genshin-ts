@@ -21,6 +21,13 @@ import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './ma
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import {
+  PIN_HOLE_ADAPTER_CONTRACT,
+  SHARED_PIN_HOLE_ADAPTER_NODE_TYPES,
+  isSharedPinHoleAdapterNodeType,
+  pinHoleInputPinIndex,
+  remapPinHoleInputIndex
+} from './pin_hole_adapter.js'
+import {
   COMPOSITE_CAPTURE_NODE_TYPE,
   normalizeCompositeCaptures
 } from './normalize_capture.js'
@@ -92,8 +99,10 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   stage3Backend: STAGE3_BACKEND_CONTRACT,
   /** P5-W3: root ordinary capability inventory; does not flip default or delete legacy. */
   rootOrdinaryCapabilities: ROOT_ORDINARY_CAPABILITY_CONTRACT,
-  /** P5-W6: root→shared-beta ordinary coverage matrix; observation only. */
-  ordinaryCoverageMatrix: ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT
+  /** P5-W6..W9: root→shared-beta ordinary coverage matrix (pin-hole shared in W9). */
+  ordinaryCoverageMatrix: ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
+  /** P5-W9: shared pin-hole adapter for all 9 named pin-hole node types. */
+  pinHoleAdapter: PIN_HOLE_ADAPTER_CONTRACT
 } as const
 
 export {
@@ -152,6 +161,18 @@ export type {
 // index -> composite -> probe -> index.
 
 export {
+  PIN_HOLE_ADAPTER_CONTRACT,
+  SHARED_PIN_HOLE_ADAPTER_NODE_TYPES,
+  PIN_HOLE_SPECS,
+  isSharedPinHoleAdapterNodeType,
+  getPinHoleSpec,
+  remapPinHoleInputIndex,
+  pinHoleInputPinIndex,
+  applyPinHoleLiteralArgs
+} from './pin_hole_adapter.js'
+export type { PinHoleSpec } from './pin_hole_adapter.js'
+
+export {
   STAGE3_BACKEND_CONTRACT,
   STAGE3_VENDOR_IMPL_GRAPH_ENV,
   STAGE3_SHARED_IMPL_BETA_CLI_FLAG,
@@ -188,7 +209,22 @@ export function buildCompositeAccessories(
   const implNodesForEncoding = captureNormalized.ordinaryNodes
   const nodeIndexMap = captureNormalized.nodeIndexMap
   const filteredEdges = captureNormalized.ordinaryEdges as Record<number, ImplEdge[]>
-  const boundaryPins = captureNormalized.boundaryPins
+  // IR compositePins use logical argIndex. Pin-hole physical InParam indexes shift by
+  // hole remap (e.g. activate_disable_pathfinding_obstacle entity IR0 → pin1). Align
+  // boundary routes before ordinary materialization and compositePins overlay so
+  // capture-filtered physical pins still match overlay innerPinIndex.
+  const nodeTypeById = new Map(
+    implNodesForEncoding.map((node: any) => [node.id, node.type as string])
+  )
+  const boundaryPins = captureNormalized.boundaryPins.map((pin) => {
+    if (pin.innerPinKind !== 3) return pin
+    const nodeType = nodeTypeById.get(pin.innerNodeId)
+    if (!nodeType) return pin
+    // assembly_list already encoded with +1 in composite_registry IR builder.
+    if (nodeType === 'assembly_list' || nodeType === 'assembly_dictionary') return pin
+    const physical = remapPinHoleInputIndex(nodeType, pin.innerPinIndex)
+    return physical === pin.innerPinIndex ? pin : { ...pin, innerPinIndex: physical }
+  })
 
   // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
   const implOutParamMap = new Map<number, Array<{ pinIndex: number; type: string }>>()
@@ -550,13 +586,14 @@ function materializeImplOrdinaryGraphWithVendor(
       concreteNodeId,
       genericNodeId: genericId.nodeId,
       skipCapturedInputs: true,
-      inputPinIndex: (argIndex) =>
-        node.type === 'set_custom_variable' && argIndex === 3 ? 4 : argIndex
+      inputPinIndex: pinHoleInputPinIndex(node.type)
     })
 
     const capturedInputIndexes = new Set(
       (node.args ?? [])
-        .map((arg: any, index: number) => arg?.capture === true ? index : undefined)
+        .map((arg: any, index: number) =>
+          arg?.capture === true ? remapPinHoleInputIndex(node.type, index) : undefined
+        )
         .filter((index: number | undefined): index is number => index !== undefined)
     )
     vendorNode.pins = vendorNode.pins.filter(
@@ -569,11 +606,22 @@ function materializeImplOrdinaryGraphWithVendor(
   }
 
   const ordinaryDataEdges = ordinaryResults.flatMap((result) =>
-    (result.node.args ?? []).flatMap((arg: any, toIndex: number) =>
-      arg?.type === 'conn' && arg.capture !== true
-        ? [{ fromId: arg.value.node_id, toId: result.node.id, fromIndex: arg.value.index, toIndex }]
-        : []
-    )
+    (result.node.args ?? []).flatMap((arg: any, toIndex: number) => {
+      if (arg?.type !== 'conn' || arg.capture === true) return []
+      // assembly_list/dictionary: IR arg i maps to physical pin i+1 (pin0 = count).
+      // Pin-hole nodes: IR arg i maps via shared hole remap.
+      // Other ordinary nodes: identity.
+      const physicalToIndex =
+        result.node.type === 'assembly_list' || result.node.type === 'assembly_dictionary'
+          ? toIndex + 1
+          : remapPinHoleInputIndex(result.node.type, toIndex)
+      return [{
+        fromId: arg.value.node_id,
+        toId: result.node.id,
+        fromIndex: arg.value.index,
+        toIndex: physicalToIndex
+      }]
+    })
   )
   const ordinaryFlowEdges = Object.entries(implEdges).flatMap(([fromId, edges]) =>
     (edges as ImplEdge[]).flatMap((edge) => {
@@ -924,8 +972,7 @@ function buildImplNodePins(
     for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
       const arg = node.args?.[argIndex]
       if (!arg) continue
-      const physicalPinIndex =
-        node.type === 'set_custom_variable' && argIndex === 3 ? 4 : argIndex
+      const physicalPinIndex = remapPinHoleInputIndex(node.type, argIndex)
       if ((arg as any).capture === true) {
         captureInputIndices.add(physicalPinIndex)
       } else if (arg.type === 'conn') {
@@ -1095,11 +1142,18 @@ function buildImplNodePins(
     const countPin = buildLiteralPin(0, 'int', args.length, node.type)
     pins.push(countPin)
   }
-  let pinIndex = node.type === 'assembly_list' ? 1 : 0
-  for (const arg of args) {
+  // Pin-hole nodes use shared IR→physical remap (P5-W9). assembly_list keeps sequential
+  // pinIndex starting at 1; other nodes map each IR argIndex independently.
+  const usesPinHoleRemap = isSharedPinHoleAdapterNodeType(node.type)
+  let sequentialPinIndex = node.type === 'assembly_list' ? 1 : 0
+  for (let argIndex = 0; argIndex < args.length; argIndex++) {
+    const arg = args[argIndex]
+    const pinIndex = usesPinHoleRemap
+      ? remapPinHoleInputIndex(node.type, argIndex)
+      : sequentialPinIndex
     // Capture-input args are routed via compositePins, not physical InParam pins.
     if (arg && (arg as any).capture === true) {
-      pinIndex++
+      if (!usesPinHoleRemap) sequentialPinIndex++
       continue
     }
     if (arg && arg.type === 'conn') {
@@ -1127,7 +1181,7 @@ function buildImplNodePins(
             upstreamNodeId: conn.node_id,
             upstreamPinIndex: conn.index
           })
-          pinIndex++
+          if (!usesPinHoleRemap) sequentialPinIndex++
           continue
         }
       }
@@ -1144,7 +1198,7 @@ function buildImplNodePins(
         upstreamNodeId: connNum.node_id,
         upstreamPinIndex: connNum.index
       })
-      pinIndex++
+      if (!usesPinHoleRemap) sequentialPinIndex++
       continue
     }
     if (arg) {
@@ -1163,7 +1217,7 @@ function buildImplNodePins(
             } as any,
             type: dtcInfo.varType
           })
-          pinIndex++
+          if (!usesPinHoleRemap) sequentialPinIndex++
           continue
         }
       }
@@ -1171,7 +1225,7 @@ function buildImplNodePins(
     } else {
       pins.push(buildPlaceholderPin(pinIndex, node.type))
     }
-    pinIndex++
+    if (!usesPinHoleRemap) sequentialPinIndex++
   }
 
   const outParams = implOutParamMap.get(node.id)

@@ -10,7 +10,8 @@
  * - C4: row green default = structural contract + no composite-only ordinary fork
  * - I4: rows from root live surfaces, mapped to inventory categories
  * - F4: ordinary fixes only in shared layers; boundary modules for boundary only
- * - W1/E3: matrix + auto probes; P5-W7 residual scalar + P5-W8 enumerations_equal on shared resolver
+ * - W1/E3: matrix + auto probes; P5-W7 residual scalar + P5-W8 enumerations_equal +
+ *   P5-W9 pin-hole shared adapter on shared path
  *
  * Evidence class: current source observation + automatic probe under shared beta.
  * Not a full game-validation claim. Does not flip default gate or delete legacy.
@@ -135,12 +136,12 @@ export const ORDINARY_COVERAGE_GRILLING_DECISIONS = {
 } as const
 
 export const ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT = {
-  phase: 'P5-W8',
-  workPackage: 'P5-W8',
-  alias: 'W1-coverage-matrix+enumerations-equal-shared-identity',
+  phase: 'P5-W9',
+  workPackage: 'P5-W9',
+  alias: 'W1-coverage-matrix+pin-hole-shared-adapter',
   defaultVendorImplGraphGate: false,
   deletesLegacyBackend: false,
-  /** P5-W7/W8 change ordinary concrete identity wiring (residual scalar + enumerations_equal). */
+  /** P5-W7/W8/W9 change ordinary identity / pin-hole shared adapter wiring. */
   changesProductionEncoding: true,
   completeSurface: 'shared-vendor-impl-graph-beta',
   grilling: ORDINARY_COVERAGE_GRILLING_DECISIONS,
@@ -312,12 +313,16 @@ export function listStaticOrdinaryCoverageRows(): OrdinaryCoverageRow[] {
         nodeType,
         category: 'named-shared-adapter',
         family: 'pin-hole',
-        compositeLegacyRisk: true,
-        sharedIdentity: usesSharedVariantResolution(nodeType),
-        probeKind: 'static-surface',
-        status: 'unknown',
-        reason: 'pending-probe',
-        evidence: ['adapter-pin-hole-layouts', 'index.ts:applySpecialArgs']
+        compositeLegacyRisk: false,
+        sharedIdentity: true,
+        probeKind: 'shared-identity',
+        status: 'green',
+        reason: 'shared-pin-hole-adapter-present',
+        evidence: [
+          'adapter-pin-hole-layouts',
+          'pin_hole_adapter.ts',
+          'P5-W9 pin-hole shared adapter'
+        ]
       })
     )
   }
@@ -577,8 +582,17 @@ export function classifyStaticCoverageStatuses(
         probeKind: 'shared-identity'
       }
     }
+    if (r.family === 'pin-hole') {
+      return {
+        ...r,
+        status: r.sharedIdentity ? 'green' : 'red',
+        reason: r.sharedIdentity
+          ? 'shared-pin-hole-adapter-present'
+          : 'missing-shared-pin-hole-adapter',
+        probeKind: 'shared-identity'
+      }
+    }
     if (
-      r.family === 'pin-hole' ||
       r.family === 'special-arg' ||
       r.family === 'typed-identity' ||
       r.family === 'mode-specific' ||

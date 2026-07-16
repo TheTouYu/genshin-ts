@@ -1,9 +1,9 @@
 # Phase 5：删除 Legacy Backend 与架构硬化
 
-> 状态：进行中；P5-W1..P5-W4、P5-W6..P5-W8 完成（P5-W8 用户核验通过已归档、待提交）；当前唯一工作包 P5-W9
-> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W8 源码观察 + grilling 共享理解
+> 状态：进行中；P5-W1..P5-W4、P5-W6..P5-W9 完成（P5-W9 用户核验通过已归档、待提交）；当前唯一工作包 P5-W10
+> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W9 源码观察 + grilling 共享理解
 > 最近校验：2026-07-16
-> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W9`
+> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W10`
 
 ## 目标
 
@@ -56,8 +56,12 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
   自动 focused 通过；用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；已提交。
 - [x] P5-W8：`enumerations_equal` residual 身份迁 shared resolver（矩阵 residual-concrete 清空；
   enumerations-equal green）；生产 ordinary concrete identity 接线已改；自动 focused 通过；
-  用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；待提交。
-- [ ] P5-W9：pin-hole named adapter 最小共享收口（矩阵 pin-hole unknown 族）。
+  用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；已提交。
+- [x] P5-W9：pin-hole named adapter 整族共享收口（9 节点；矩阵 pin-hole green=9；
+  自动 focused/matrix/sentinel 通过；用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；
+  待提交）。顺带最小共享补齐 assembly_list count/element 与 capture→pin-hole compositePins
+  物理脚位；不宣称 special-arg 整族完成。
+- [ ] P5-W10：special-arg named adapter 最小共享收口（矩阵 special-arg unknown 族）。
 
 从当前 root compiler 实际可生成的 ordinary node/API 出发，建立并审计能力清单。每项必须分类为：
 

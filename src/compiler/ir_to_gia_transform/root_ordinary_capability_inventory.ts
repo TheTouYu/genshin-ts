@@ -367,16 +367,17 @@ export const ROOT_ORDINARY_CAPABILITIES: readonly RootOrdinaryCapability[] = [
     layer: 'literal-args',
     nodeTypes: ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES,
     rootSurfaces: [
+      'pin_hole_adapter.ts',
       'index.ts:applySpecialArgs',
       'index.ts:remapInputIndexForHiddenPin',
-      'index.ts:remapOutputIndexForHiddenPin'
+      'composite.ts:pinHoleInputPinIndex'
     ],
     sharedOrAdapterPath:
-      'named pin-hole adapter table (root index.ts; must become shared)',
-    compositeLegacyRisk: true,
+      'pin_hole_adapter.ts (shared IR→physical hole remap + null-hole literal apply)',
+    compositeLegacyRisk: false,
     evidenceClass: 'source-observation',
     notes:
-      'Includes set_custom_variable triggerEvent hole. Vendor-gated impl already hard-codes the set_custom_variable hole; full table is still root-owned.'
+      'P5-W9: full 9-node pin-hole family shared. Root applySpecialArgs and composite vendor/legacy paths call remapPinHoleInputIndex / applyPinHoleLiteralArgs. special-arg and typed-identity remain separate.'
   },
   {
     id: 'adapter-special-arg-layouts',

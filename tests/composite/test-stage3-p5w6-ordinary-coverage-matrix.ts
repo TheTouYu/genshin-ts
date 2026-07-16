@@ -42,9 +42,9 @@ const matrixSource = readFileSync(
 const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 
 // --- Contract freezes ---
-// P5-W8 owns enumerations_equal shared identity; matrix contract phase advances with it.
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W8')
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W8')
+// P5-W9 owns pin-hole shared adapter; matrix contract phase advances with it.
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W9')
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W9')
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.deletesLegacyBackend, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
@@ -184,10 +184,20 @@ assert.equal(
   undefined,
   'enumerations_equal residual-concrete row must be gone'
 )
+assert.equal(
+  classified.find((r) => r.id === 'pin-hole-set_custom_variable')?.status,
+  'green',
+  'P5-W9 pin-hole shared adapter is static green'
+)
+assert.equal(
+  classified.find((r) => r.id === 'pin-hole-create_prefab')?.status,
+  'green',
+  'P5-W9 pin-hole create_prefab is static green'
+)
 
 // Source guards: matrix still wired through orchestration; residual table not rewritten into helper
 assert.match(matrixSource, /changesProductionEncoding: true/)
-assert.match(matrixSource, /P5-W8/)
+assert.match(matrixSource, /P5-W9/)
 assert.match(compositeSource, /ordinaryCoverageMatrix/)
 assert.doesNotMatch(
   compositeSource,
@@ -225,9 +235,8 @@ assert.equal(
   `enumerations_equal probe expected green, got ${enumRow?.status}: ${enumRow?.reason}`
 )
 
-// Named adapters remain unknown in W1 (no auto sample)
+// Pin-hole family shared in P5-W9; other named adapters remain unknown
 for (const id of [
-  'pin-hole-create_prefab',
   'special-arg-monitor_signal',
   'typed-identity-create_dictionary',
   'graph-container-affiliations'
@@ -235,6 +244,12 @@ for (const id of [
   const row = probeSummary.rows.find((r) => r.id === id)
   assert.equal(row?.status, 'unknown', `${id} should stay unknown in W1`)
 }
+const pinHolePrefab = probeSummary.rows.find((r) => r.id === 'pin-hole-create_prefab')
+assert.equal(
+  pinHolePrefab?.status,
+  'green',
+  `pin-hole-create_prefab expected green after P5-W9, got ${pinHolePrefab?.status}`
+)
 
 // Default gate unchanged after probes
 assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
