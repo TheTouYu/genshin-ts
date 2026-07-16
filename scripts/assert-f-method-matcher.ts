@@ -56,7 +56,8 @@ const assemblyCases: CaseExpectation[] = [
   },
   {
     name: 'assembly_global_this_root',
-    description: 'globalThis.gsts.f.assemblyList(array literal) keeps the array literal argument unwrapped',
+    description:
+      'globalThis.gsts.f.assemblyList(array literal) keeps the array literal argument unwrapped',
     includes: [`globalThis.gsts.f.assemblyList([gsts.f.addition(7n, 8n), 9n], 'int')`],
     excludes: [`assemblyList(gsts.f.assemblyList`]
   }
@@ -91,6 +92,16 @@ const multipleBranchesCases: CaseExpectation[] = [
       `const branchCounterGlobalThis = gsts.f.initLocalVariable("int");`,
       `gsts.f.setLocalVariable(branchCounterGlobalThis.localVariable, f.get(Vars.IntValue));`,
       `gsts.f.setLocalVariable(branchCounterGlobalThis.localVariable, gsts.f.addition(branchCounterGlobalThis.value, 3n));`
+    ]
+  },
+  {
+    name: 'multiple_branches_zh_alias',
+    description: 'f.多分支 transforms branch handlers through the server alias mapping',
+    includes: [
+      `f.多分支(4n, {`,
+      `const branchCounterZh = gsts.f.initLocalVariable("int");`,
+      `gsts.f.setLocalVariable(branchCounterZh.localVariable, f.获取节点图变量自动类型推断(Vars.IntValue));`,
+      `gsts.f.setLocalVariable(branchCounterZh.localVariable, gsts.f.addition(branchCounterZh.value, 4n));`
     ]
   }
 ]

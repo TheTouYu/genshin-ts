@@ -6,6 +6,7 @@ enum Vars {
 
 g.server({
   id: 1073741892,
+  lang: 'zh',
   variables: {
     [Vars.IntValue]: 1n
   }
@@ -63,4 +64,17 @@ g.server({
     }
   })
   f.printString('__CASE__:multiple_branches_global_this_root:end')
+
+  f.printString('__CASE__:multiple_branches_zh_alias:start')
+  f.多分支(4n, {
+    4: () => {
+      let branchCounterZh = f.获取节点图变量自动类型推断(Vars.IntValue)
+      branchCounterZh = branchCounterZh + 4n
+      f.打印字符串(str(branchCounterZh))
+    },
+    default: () => {
+      f.打印字符串('default-zh')
+    }
+  })
+  f.printString('__CASE__:multiple_branches_zh_alias:end')
 })

@@ -59,8 +59,11 @@ g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on
     const convertedString = str(wiredInt)
     const convertedBool = bool(wiredInt)
     const convertedInt = int(f.division(1, 2))
+    const indexedValues = list('int', [wiredInt, convertedInt])
+    const firstIndexedValue = indexedValues[0]
+    const secondIndexedValue = indexedValues[idx(1n)]
     f.setAttackWeight(convertedFloat, convertedBool)
-    f.notifyServerNodeGraph(convertedString, str(convertedInt), '')
+    f.notifyServerNodeGraph(convertedString, str(firstIndexedValue), str(secondIndexedValue))
   }
 )
 
@@ -111,22 +114,16 @@ g.creationStatusDecision({
   }
 })
 
-g.boolFilter({ id: 1082130606, name: 'ClientTsTransformBoolFilter' }).on(
-  'start',
-  (_evt, f) => {
-    if (f.equal(1n, 1n)) return gstsBoolFilterNot(gstsClientBoolFilterNot(true))
-    return gstsClientBoolFilterNot(gstsBoolFilterNot(false))
-  }
-)
+g.boolFilter({ id: 1082130606, name: 'ClientTsTransformBoolFilter' }).on('start', (_evt, f) => {
+  if (f.equal(1n, 1n)) return gstsBoolFilterNot(gstsClientBoolFilterNot(true))
+  return gstsClientBoolFilterNot(gstsBoolFilterNot(false))
+})
 
 g.intFilter({
   id: 1082130607,
   name: 'ClientTsTransformIntFilter',
   evaluationInterval: 0.75
-}).on(
-  'start',
-  (_evt, f) => {
-    if (f.greaterThan(1, 0)) return gstsIntFilterAdd(gstsClientIntFilterAdd(0))
-    return gstsClientIntFilterAdd(gstsIntFilterAdd(1))
-  }
-)
+}).on('start', (_evt, f) => {
+  if (f.greaterThan(1, 0)) return gstsIntFilterAdd(gstsClientIntFilterAdd(0))
+  return gstsClientIntFilterAdd(gstsIntFilterAdd(1))
+})

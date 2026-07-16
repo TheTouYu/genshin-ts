@@ -52,6 +52,16 @@ g.intFilter().on('start', (_evt, _f) => 0n)`
       code: `${importG}
 const graph = g.creationSkill({ mode: 'classic' })
 graph.on('start', (_evt, _f) => { self })`
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationSkill().on('start', (_evt, _f) => {
+  Mathf.FloorToInt(-1.5)
+  Mathf.CeilToInt(1.5)
+  Vector3.Distance(Vector3.zero, Vector3.one)
+  Vector3.ClampMagnitude(Vector3.one, 1)
+})`
     }
   ],
   invalid: [
@@ -76,6 +86,24 @@ function gstsCreationSkillTimer() {
   setTimeout(() => {}, 1)
 }`,
       errors: [{ message: /setTimeout is not available in creation_skill/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationSkill().on('start', () => { print('client') })`,
+      errors: [{ message: /print is not available in creation_skill/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationSkill().on('start', () => { Mathf.RoundToInt(1.5) })`,
+      errors: [{ message: /Mathf\.RoundToInt is not available in creation_skill/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', () => { Mathf.FloorToInt(-1.5) })`,
+      errors: [{ message: /Mathf\.FloorToInt is not available in creation_status/ }]
     }
   ]
 })
@@ -128,8 +156,11 @@ ruleTester.run('builtin-math-support client', builtinMathSupport, {
       code: `${importG}
 g.creationSkill().on('start', (_evt, _f) => {
   const values = [
-    Math.abs(-1), Math.sin(1), Math.cos(1), Math.tan(1),
-    Math.asin(1), Math.acos(1), Math.atan(1), Math.min(1, 2), Math.max(1, 2)
+    Math.abs(-1), Math.floor(-1.5), Math.ceil(1.5), Math.round(-1.5),
+    Math.sin(1), Math.cos(1), Math.tan(1),
+    Math.asin(1), Math.acos(1), Math.atan(1), Math.random(),
+    Math.trunc(1.5), Math.min(1, 2), Math.max(1, 2), Math.hypot(3, 4),
+    Math.sign(-1), Math.atan2(1, 1)
   ]
 })`
     }
@@ -140,6 +171,12 @@ g.creationSkill().on('start', (_evt, _f) => {
       code: `${importG}
 g.creationSkill().on('start', (_evt, _f) => { Math.sqrt(4) })`,
       errors: [{ message: /Math\.sqrt is not supported.*available methods: Math\.abs/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, _f) => { Math.floor(-1.5) })`,
+      errors: [{ message: /Math\.floor is not supported.*creation_status/ }]
     }
   ]
 })

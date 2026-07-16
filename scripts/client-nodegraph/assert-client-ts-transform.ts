@@ -88,6 +88,9 @@ try {
   assert.match(output, /\.finiteLoop\(/)
   assert.match(output, /\.multipleBranches\(/)
   assert.match(output, /\.dataTypeConversion\(/)
+  assert.match(output, /\.getCorrespondingValueFromList\(0, indexedValues\)/)
+  assert.match(output, /\.getCorrespondingValueFromList\(idx\(1n\), indexedValues\)/)
+  assert.doesNotMatch(output, /\.getCorrespondingValueFromList\(indexedValues,/)
   assert.match(output, /gsts\.fCreationStatus\.doubleBranch\(/)
   assert.doesNotMatch(output, /gsts\.f\.(?:doubleBranch|finiteLoop|addition)/)
 
@@ -183,7 +186,8 @@ try {
     'data_type_conversion_float',
     'data_type_conversion_int',
     'data_type_conversion_str',
-    'data_type_conversion_bool'
+    'data_type_conversion_bool',
+    'get_corresponding_value_from_list'
   ]) {
     assert.ok(ir.includes(`"type":"${nodeType}"`), `missing transformed node ${nodeType}`)
   }
@@ -262,6 +266,129 @@ g.creationSkill({ id: ${classicCreationGraphId}, mode: 'classic' }).on('start', 
   for (const genericId of [200242, 200249, 200251, 200254]) {
     assert.ok(classicGenericIds.has(genericId), `missing classic generic id ${genericId}`)
   }
+
+  const entityHelperGraphIds = {
+    characterControlSkill: 1082130660,
+    classicCreationSkill: 1082130661
+  }
+  const entityHelperPath = path.join(tempRoot, 'client-entity-helpers.ts')
+  fs.writeFileSync(
+    entityHelperPath,
+    `${importG}
+g.characterControlSkill({ id: ${entityHelperGraphIds.characterControlSkill} }).on('start', (_evt, f) => {
+  const controlMotor = f.getSelfEntity()
+  const position = controlMotor.pos
+  const speed = controlMotor.get('speed').asType('float')
+  controlMotor.addVelocity(speed, position, 0.5)
+  controlMotor.fixedPointProjectileLaunch(10001, [0, 0, 0], [0, 0, 0], 1n)
+})
+g.creationSkill({ id: ${entityHelperGraphIds.classicCreationSkill}, mode: 'classic' }).on('start', (_evt, f) => {
+  const selfEntity = f.getSelfEntity()
+  const characters = selfEntity.characters
+  const score = selfEntity.get('score').asType('int')
+  selfEntity.recoverCreationSHp(float(f.addition(f.getListLength(characters), score)), false)
+})`,
+    'utf8'
+  )
+  const entityHelperResult = await compile([relative(entityHelperPath)])
+  await import(`${pathToFileURL(entityHelperResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const entityHelperDocuments = buildClientGraphRegistriesIRDocuments().filter(
+    (document) =>
+      typeof document.graph.id === 'number' &&
+      Object.values(entityHelperGraphIds).includes(document.graph.id)
+  )
+  assert.strictEqual(entityHelperDocuments.length, 2)
+  const entityHelperIr = JSON.stringify(entityHelperDocuments)
+  for (const nodeType of [
+    'add_velocity',
+    'fixed_point_projectile_launch',
+    'get_entity_location',
+    'get_custom_variable',
+    'recover_creation_s_hp',
+    'get_player_s_character_list'
+  ]) {
+    assert.ok(
+      entityHelperIr.includes(`"type":"${nodeType}"`),
+      `missing client entity helper node ${nodeType}`
+    )
+  }
+  for (const document of entityHelperDocuments) {
+    assert.ok(irToGia(document, { protoPath }).length > 0, 'client entity helper GIA is empty')
+  }
+
+  await expectRuntimeError(
+    'client-entity-set-unavailable',
+    `${importG}
+g.creationSkill({ id: 1082130662 }).on('start', (_evt, f) => {
+  const selfEntity = f.getSelfEntity()
+  ;(selfEntity as unknown as { set(name: string, value: bigint): void }).set('score', 1n)
+})`,
+    /client entity helper set is not available in creation_skill beyond mode/
+  )
+  await expectRuntimeError(
+    'classic-client-entity-helper-unavailable',
+    `${importG}
+g.creationSkill({ id: 1082130663, mode: 'classic' }).on('start', (_evt, f) => {
+  const selfEntity = f.getSelfEntity()
+  ;(selfEntity as unknown as { tauntTarget(): void }).tauntTarget()
+})`,
+    /client entity helper tauntTarget is not available in creation_skill classic mode/
+  )
+
+  const zhClientGraphIds = {
+    characterSkill: 1082130693,
+    classicCreationSkill: 1082130694
+  }
+  const zhClientPath = path.join(tempRoot, 'client-zh-aliases.ts')
+  fs.writeFileSync(
+    zhClientPath,
+    `${importG}
+g.characterSkill({ id: ${zhClientGraphIds.characterSkill}, lang: 'zh' }).on('start', (_evt, f) => {
+  const sum = f.加法运算(1n, 2n)
+  f.多分支(sum, {
+    3: () => { f.通知服务器节点图(String(f.绝对值运算(-1n)), '', '') },
+    default: () => {
+      const time = f.获取当前客户端时间高精度()
+      f.通知服务器节点图(String(time.clientTimeMs), '', '')
+    }
+  })
+})
+g.creationSkill({ id: ${zhClientGraphIds.classicCreationSkill}, mode: 'classic', lang: 'zh' }).on('start', (_evt, f) => {
+  const selfEntity = f.获取自身实体()
+  const characters = f.获取玩家的角色列表(selfEntity)
+  const characterId = f.查询经典模式角色编号(selfEntity)
+  f.造物恢复生命值(
+    selfEntity,
+    float(f.获取列表长度(characters)),
+    f.是否大于(characterId, 0n)
+  )
+})`,
+    'utf8'
+  )
+  const zhClientResult = await compile([relative(zhClientPath)])
+  const zhClientOutput = fs.readFileSync(zhClientResult.entryOutFiles[0], 'utf8')
+  assert.match(zhClientOutput, /f\.加法运算\(1n, 2n\)/)
+  assert.match(zhClientOutput, /f\.多分支\(sum/)
+  assert.match(zhClientOutput, /f\.获取当前客户端时间高精度\(\)/)
+  await import(`${pathToFileURL(zhClientResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const zhClientGraphIdSet = new Set(Object.values(zhClientGraphIds))
+  const zhClientDocuments = buildClientGraphRegistriesIRDocuments().filter(
+    (document) => typeof document.graph.id === 'number' && zhClientGraphIdSet.has(document.graph.id)
+  )
+  assert.strictEqual(zhClientDocuments.length, zhClientGraphIdSet.size)
+  const zhClientIr = JSON.stringify(zhClientDocuments)
+  for (const nodeType of [
+    'addition',
+    'multiple_branches',
+    'absolute_value_operation',
+    'get_current_client_time_high_precision',
+    'get_self_entity',
+    'get_player_s_character_list',
+    'check_classic_mode_character_id'
+  ]) {
+    assert.ok(zhClientIr.includes(`"type":"${nodeType}"`), `missing zh alias node ${nodeType}`)
+  }
+
   await expectRuntimeError(
     'classic-character-skill-unavailable',
     `${importG}
@@ -416,6 +543,195 @@ g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecisio
       .filter((type) => type.startsWith('data_type_conversion_')),
     ['data_type_conversion_float'],
     'creation status decision must use its own client conversion functions'
+  )
+
+  const globalHelperGraphIds = {
+    characterSkill: 1082130695,
+    creationStatus: 1082130696
+  }
+  const globalHelperPath = path.join(tempRoot, 'client-global-helpers.ts')
+  fs.writeFileSync(
+    globalHelperPath,
+    `${importG}
+g.characterSkill({ id: ${globalHelperGraphIds.characterSkill} }).on('start', (_evt, f) => {
+  const found = clientEntity(123n)
+  const legacyFound = entity(124n)
+  const convertedSelf = clientEntity(self)
+  const convertedGameObject = clientEntity(GameObject.Find(125n))
+  const values = list('int', [1n, 2n])
+  const lookup = dict([{ k: 1n, v: 1n }])
+  const lookupValue = lookup.get(1n)
+  const lookupHasValue = lookup.has(1n)
+  const lookupKeyCount = f.getListLength(lookup.keys())
+  const lookupValueCount = f.getListLength(lookup.values())
+  const lookupSize = lookup.size
+  const random = Math.random()
+  const floor = Math.floor(-1.25)
+  const ceil = Math.ceil(1.25)
+  const rounded = Math.round(-1.5)
+  const truncated = Math.trunc(1.75)
+  const hypot = Math.hypot(3, 4)
+  const mathfFloor = Mathf.FloorToInt(-1.25)
+  const mathfCeil = Mathf.CeilToInt(1.25)
+  const sign = Math.sign(f.subtraction(1, 2))
+  const atan2 = Math.atan2(1, 1)
+  const randomValue = Random.value
+  const randomRange = Random.Range(0, 1)
+  const distance = Vector3.Distance(Vector3.zero, Vector3.one)
+  const scaled = Vector3.Scale(Vector3.one, 0.5)
+  const rotated = Vector3.Rotation(Vector3.up, Vector3.forward)
+  const lerped = Vector3.Lerp(Vector3.zero, Vector3.one, 0.5)
+  const clamped = Vector3.ClampMagnitude(Vector3.one, 0.5)
+  const tagged = GameObject.FindWithTag(1n)
+  const vectorX = Vector3.one.x
+  const vectorY = Vector3.one.y
+  const vectorZ = Vector3.one.z
+  f.notifyServerNodeGraph(
+    str(f.getEntityLocation(found)),
+    str(f.getListLength(values)),
+    str(f.queryDictionaryValueByKey(lookup, 1n))
+  )
+  f.notifyServerNodeGraph(str(legacyFound), str(convertedSelf.pos), str(convertedGameObject.pos))
+  f.notifyServerNodeGraph(str(random), str(sign), str(atan2))
+  f.notifyServerNodeGraph(str(floor), str(ceil), '')
+  f.notifyServerNodeGraph(str(rounded), '', '')
+  f.notifyServerNodeGraph(str(truncated), str(hypot), '')
+  f.notifyServerNodeGraph(str(mathfFloor), str(mathfCeil), '')
+  f.notifyServerNodeGraph(str(randomValue), str(randomRange), str(distance))
+  f.notifyServerNodeGraph(str(scaled), str(rotated), str(lerped))
+  f.notifyServerNodeGraph(str(clamped), str(tagged), '')
+  f.notifyServerNodeGraph(str(lookupValue), str(lookupHasValue), str(lookupKeyCount))
+  f.notifyServerNodeGraph(str(lookupValueCount), str(lookupSize), '')
+  f.notifyServerNodeGraph(str(vectorX), str(vectorY), str(vectorZ))
+})
+g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }).on('start', (_evt, f) => {
+  f.doubleBranch(f.equal(entity(0), entity(0)), () => {}, () => {})
+  f.doubleBranch(f.equal(clientEntity(0), clientEntity(null)), () => {}, () => {})
+  f.doubleBranch(
+    f.equal(f.queryDictionaryValueByKey(dict({ status: 1n }), 'status'), 1n),
+    () => {},
+    () => {}
+  )
+  f.doubleBranch(f.equal(f.getListLength(list('bool', [true])), 1n), () => {}, () => {})
+  f.doubleBranch(
+    f.greaterThanOrEqualTo(Vector3.Distance(Vector3.zero, Vector3.one), 0),
+    () => {},
+    () => {}
+  )
+  f.doubleBranch(
+    f.equal(Vector3.ClampMagnitude(Vector3.one, 0.5), Vector3.one),
+    () => {},
+    () => {}
+  )
+  f.doubleBranch(f.greaterThanOrEqualTo(Math.trunc(1.75), 0), () => {}, () => {})
+  f.doubleBranch(f.greaterThanOrEqualTo(Math.hypot(3, 4), 0), () => {}, () => {})
+})`,
+    'utf8'
+  )
+  const globalHelperResult = await compile([relative(globalHelperPath)])
+  const globalHelperOutput = fs.readFileSync(globalHelperResult.entryOutFiles[0], 'utf8')
+  assert.match(globalHelperOutput, /f\.getRandomNumber\(0, 1\)/)
+  assert.match(globalHelperOutput, /f\.__gstsInitLocalVariable\("int", 0n\)/)
+  assert.match(globalHelperOutput, /f\.arctangentFunction\(/)
+  await import(`${pathToFileURL(globalHelperResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const globalHelperDocuments = buildClientGraphRegistriesIRDocuments().filter(
+    (document) =>
+      typeof document.graph.id === 'number' &&
+      Object.values(globalHelperGraphIds).includes(document.graph.id)
+  )
+  assert.strictEqual(globalHelperDocuments.length, 2)
+  const helperTypesById = new Map(
+    globalHelperDocuments.map((document) => [
+      document.graph.id,
+      new Set(document.nodes?.map((node) => node.type) ?? [])
+    ])
+  )
+  const characterHelperTypes = helperTypesById.get(globalHelperGraphIds.characterSkill)
+  assert.ok(characterHelperTypes)
+  for (const nodeType of [
+    'query_entity_by_guid',
+    'assembly_dictionary',
+    'assembly_list',
+    'get_random_number',
+    'data_type_conversion_int',
+    'data_type_conversion_float',
+    'get_local_variable',
+    'set_local_variable',
+    'double_branch',
+    'less_than',
+    'greater_than',
+    'arctangent_function',
+    '_3d_vector_subtraction',
+    '_3d_vector_modulo_operation',
+    '_3d_vector_normalization',
+    '_3d_vector_zoom',
+    '_3d_vector_rotation',
+    'get_minimum_value_from_list',
+    'get_entity_list_by_unit_tag',
+    'get_corresponding_value_from_list',
+    'get_list_of_keys_from_dictionary',
+    'get_list_of_values_from_dictionary',
+    'query_dictionary_s_length',
+    'query_if_dictionary_contains_specific_key',
+    'split3d_vector'
+  ]) {
+    assert.ok(characterHelperTypes.has(nodeType), `client global helper missing ${nodeType}`)
+  }
+  const statusHelperTypes = helperTypesById.get(globalHelperGraphIds.creationStatus)
+  assert.ok(statusHelperTypes)
+  assert.ok(statusHelperTypes.has('assembly_dictionary'))
+  assert.ok(statusHelperTypes.has('assembly_list'))
+  assert.doesNotMatch(
+    JSON.stringify(
+      globalHelperDocuments.find(
+        (document) => document.graph.id === globalHelperGraphIds.creationStatus
+      )
+    ),
+    /query_entity_by_guid/,
+    'entity(0) must remain an unconnected entity placeholder'
+  )
+
+  await expectRuntimeError(
+    'unavailable-client-entity-lookup',
+    `${importG}
+g.creationStatus({ id: 1082130697 }).on('start', () => { entity(123n) })`,
+    /entity\(\) requires client method queryEntityByGuid/
+  )
+  await expectRuntimeError(
+    'unavailable-client-entity-lookup-explicit',
+    `${importG}
+g.creationStatus({ id: 1082130686 }).on('start', () => { clientEntity(123n) })`,
+    /clientEntity\(\) requires client method queryEntityByGuid/
+  )
+  await expectRuntimeError(
+    'unavailable-client-print',
+    `${importG}
+g.creationSkill({ id: 1082130698 }).on('start', () => { print('client') })`,
+    /CLIENT_HELPER_UNAVAILABLE.*print is not available in creation_skill/
+  )
+  await expectRuntimeError(
+    'unavailable-client-dict-mutation',
+    `${importG}
+g.creationSkill({ id: 1082130687 }).on('start', () => {
+  dict([{ k: 1n, v: 1n }]).set(1n, 2n)
+})`,
+    /dict\.set\(\) requires client method setOrAddKeyValuePairsToDictionary/
+  )
+  await expectCompileError(
+    'unavailable-client-list-insert',
+    `${importG}
+g.characterSkill().on('start', () => {
+  list('int', [1n]).push(2n)
+})`,
+    /client method "insertValueIntoList" is not available in character_skill/
+  )
+  await expectCompileError(
+    'unavailable-client-list-iteration',
+    `${importG}
+g.characterSkill().on('start', () => {
+  list('int', [1n]).forEach(() => {})
+})`,
+    /client method "listIterationLoop" is not available in character_skill/
   )
 
   const shadowedWrapperGraphId = 1082130692
