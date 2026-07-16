@@ -8,6 +8,8 @@ import {
   isArrayLikeType as isArrayLikeTypeShared
 } from '../../shared/ts_list_utils.js'
 import { fail } from './errors.js'
+import type { StorableLocalValueType } from './expression_semantics.js'
+import { makeKnownLocalVariableInit } from './local_variable_lowering.js'
 import { type ListType } from './lists.js'
 import type { Env } from './types.js'
 import { makeFCall } from './utils.js'
@@ -240,14 +242,10 @@ export function makeConst(name: string, init: ts.Expression): ts.VariableStateme
 export function makeLocalVarInit(
   env: Env,
   name: string,
-  type: string,
+  type: StorableLocalValueType,
   init?: ts.Expression
 ): ts.VariableStatement {
-  const args = init
-    ? [ts.factory.createStringLiteral(type), init]
-    : [ts.factory.createStringLiteral(type)]
-  const initExpr = makeFCall(env, 'initLocalVariable', args)
-  return makeConst(name, initExpr)
+  return makeConst(name, makeKnownLocalVariableInit(env, init ?? env.file, type, init))
 }
 
 export function makeIife(stmts: ts.Statement[], retExpr: ts.Expression): ts.Expression {

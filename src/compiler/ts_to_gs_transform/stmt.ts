@@ -5,6 +5,11 @@ import { isEntityLikeType as isSharedEntityLikeType } from '../../shared/ts_type
 import { isConstEvaluableExpression, tryEvaluateConstExpression } from './const_eval.js'
 import { fail } from './errors.js'
 import {
+  classifyExpressionSemantics,
+  localValueTypeOf,
+  type ExpressionSemantics
+} from './expression_semantics.js'
+import {
   extractTimerHandleMeta,
   isDeclarationName,
   propagateTimerHandleMeta,
@@ -12,6 +17,12 @@ import {
   transformExpression
 } from './expr.js'
 import { isArrayLikeExpression } from './list_utils.js'
+import {
+  makeCheckedLocalVariableInit,
+  makeCheckedLocalVariableSet,
+  makeKnownLocalVariableInit,
+  makeKnownLocalVariableSet
+} from './local_variable_lowering.js'
 import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
 import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
@@ -92,114 +103,40 @@ function needsCollectionRebindSnapshot(env: Env, expr: ts.Expression): boolean {
   return false
 }
 
-function inferBasicType(env: Env, t: ts.Type): ListType | null {
-  if (t.flags & ts.TypeFlags.Union) {
-    const u = t as ts.UnionType
-    let base: ListType | null = null
-    for (const tt of u.types) {
-      const next = inferBasicType(env, tt)
-      if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
-    }
-    return base
+function declarationSemantics(env: Env, decl: ts.VariableDeclaration): ExpressionSemantics {
+  if (decl.initializer) return classifyExpressionSemantics(env, decl.initializer)
+  if (ts.isIdentifier(decl.name)) {
+    return classifyExpressionSemantics(env, decl.name)
   }
-  if (t.flags & ts.TypeFlags.Intersection) {
-    const it = t as ts.IntersectionType
-    let base: ListType | null = null
-    for (const tt of it.types) {
-      const next = inferBasicType(env, tt)
-      if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
-    }
-    return base
+  return {
+    kind: 'unsupported',
+    typeText: env.checker.typeToString(env.checker.getTypeAtLocation(decl.name)),
+    reason: 'destructuring has no LocalVariable representation'
   }
-  return inferConcreteTypeFromType(env.checker, env.checker.getBaseTypeOfLiteralType(t), env.file)
 }
 
-function inferCompositeOutputType(env: Env, expr: ts.Expression): ListType | null {
-  if (!ts.isPropertyAccessExpression(expr)) return null
-  const call = expr.expression
-  if (!ts.isCallExpression(call) || !ts.isPropertyAccessExpression(call.expression)) return null
-  if (call.expression.name.text !== 'callComposite' || call.arguments.length === 0) return null
-
-  const handleExpr = call.arguments[0]
-  const handleType = env.checker.getTypeAtLocation(handleExpr)
-  const getPropertyType = (type: ts.Type, name: string): ts.Type | null => {
-    const property = env.checker.getPropertyOfType(type, name)
-    return property ? env.checker.getTypeOfSymbolAtLocation(property, expr) : null
-  }
-  const outputsType = getPropertyType(handleType, '__outputs')
-  if (!outputsType) return null
-  const outputType = getPropertyType(outputsType, expr.name.text)
-  if (!outputType) return null
-  const typeProperty = getPropertyType(outputType, 'type')
-  if (!typeProperty) return null
-  const literal = typeProperty.isStringLiteral() ? typeProperty.value : undefined
-  if (literal) return literal as ListType
-
-  const symbol = ts.isIdentifier(handleExpr) ? env.checker.getSymbolAtLocation(handleExpr) : undefined
-  const declaration = symbol?.valueDeclaration
-  if (!declaration || !ts.isVariableDeclaration(declaration) || !declaration.initializer) return null
-  const initializer = declaration.initializer
-  if (!ts.isCallExpression(initializer) || initializer.arguments.length < 2) return null
-  const definition = initializer.arguments[1]
-  if (!ts.isObjectLiteralExpression(definition)) return null
-  const outputs = definition.properties.find(
-    (property): property is ts.PropertyAssignment =>
-      ts.isPropertyAssignment(property) &&
-      ts.isIdentifier(property.name) &&
-      property.name.text === 'outputs'
-  )?.initializer
-  if (!outputs || !ts.isObjectLiteralExpression(outputs)) return null
-  const output = outputs.properties.find(
-    (property): property is ts.PropertyAssignment =>
-      ts.isPropertyAssignment(property) &&
-      ts.isIdentifier(property.name) &&
-      property.name.text === expr.name.text
-  )?.initializer
-  if (!output || !ts.isObjectLiteralExpression(output)) return null
-  const type = output.properties.find(
-    (property): property is ts.PropertyAssignment =>
-      ts.isPropertyAssignment(property) &&
-      ts.isIdentifier(property.name) &&
-      property.name.text === 'type'
-  )?.initializer
-  return type && ts.isStringLiteral(type) ? (type.text as ListType) : null
-}
-
-function makeLocalVarTypeString(
-  env: Env,
-  decl: ts.VariableDeclaration,
-  plan: VarPlanEntry
-): string {
+function makeLocalVarTypeString(env: Env, decl: ts.VariableDeclaration, plan: VarPlanEntry) {
+  if (plan.localValueType) return plan.localValueType
   if (decl.initializer && ts.isPropertyAccessExpression(decl.initializer)) {
-    if (decl.initializer.name.text === 'length') {
-      if (isArrayLikeExpression(env, decl.initializer.expression)) {
-        return 'int'
-      }
+    if (
+      decl.initializer.name.text === 'length' &&
+      isArrayLikeExpression(env, decl.initializer.expression)
+    ) {
+      return 'int' as const
     }
   }
-  const t = env.checker.getTypeAtLocation(decl.name)
-
-  if (plan.isCollection) {
-    const ct = inferListConcreteType(env, t, decl.type)
-    if (!ct) {
-      fail(env, decl, `cannot infer list type, please add type annotation`)
-    }
-    return `${ct}_list`
+  if (plan.semantics.kind === 'composite-result') {
+    fail(
+      env,
+      decl,
+      'cannot store a complete composite result in LocalVariable; select a named output such as result.x'
+    )
   }
-
-  const compositeOutputType = decl.initializer
-    ? inferCompositeOutputType(env, decl.initializer)
-    : null
-  if (compositeOutputType) return compositeOutputType
-
-  const base = inferBasicType(env, t)
-  if (base) return base
-
-  fail(env, decl, `cannot infer type, please add type annotation`)
+  const typeText =
+    plan.semantics.kind === 'unsupported'
+      ? plan.semantics.typeText
+      : plan.semantics.kind
+  fail(env, decl, `cannot store value of type ${typeText} in LocalVariable`)
 }
 
 function buildVarPlan(env: Env, body: ts.Block): VarPlan {
@@ -215,8 +152,8 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
     modified: boolean
     // 变量类型是否为列表或字典等集合类型。
     isCollection: boolean
-    // 变量类型是否为可以映射到千星奇域局部变量的基础值类型。
-    isBasic: boolean
+    // 变量声明初始化值的统一 Stage 1 语义分类。
+    semantics: ExpressionSemantics
     // 变量声明或后续代码中是否出现过对该变量的写入。
     hasWrite: boolean
     // 变量绑定本身是否被赋值或重新赋值, 例如 `x = ...`。
@@ -243,7 +180,11 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
       u = {
         modified: false,
         isCollection: false,
-        isBasic: false,
+        semantics: {
+          kind: 'unsupported',
+          typeText: 'uninitialized',
+          reason: 'declaration has not been classified'
+        },
         hasWrite: false,
         hasBindingWrite: false,
         wroteInExec: false,
@@ -491,7 +432,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         if (u.isCollection) {
           u.collectionSourceKind = classifyCollectionSource(d.initializer)
         }
-        u.isBasic = inferBasicType(env, t) !== null
+        u.semantics = declarationSemantics(env, d)
         if (d.initializer) {
           u.hasWrite = true
           if (hasRandomCall(d.initializer)) u.hasRandomWrite = true
@@ -709,7 +650,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
       } else {
         needsLocalVar = u.modified
       }
-    } else if (u.isBasic) {
+    } else if (localValueTypeOf(u.semantics)) {
       if (decl.isLet || u.wroteInExec) {
         needsLocalVar = true
       } else {
@@ -723,8 +664,28 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         needsLocalVar = promoteConstReads || promoteRandom
       }
     }
+    const localValueType = localValueTypeOf(u.semantics) ?? undefined
+    const storageRequired = u.hasBindingWrite || needsLocalVar
+    if (storageRequired && !localValueType) {
+      if (u.semantics.kind === 'composite-result') {
+        fail(
+          env,
+          decl.decl,
+          'cannot store a complete composite result in LocalVariable; select a named output such as result.x'
+        )
+      }
+      if (u.semantics.kind === 'unsupported') {
+        fail(
+          env,
+          decl.decl,
+          `cannot store value of type ${u.semantics.typeText} in LocalVariable`
+        )
+      }
+    }
     out.set(symbol, {
       needsLocalVar,
+      semantics: u.semantics,
+      localValueType,
       isCollection: u.isCollection,
       collectionSourceKind: u.collectionSourceKind
     })
@@ -1002,9 +963,7 @@ function tryTransformCollectionRebindSnapshot(
               localId,
               undefined,
               undefined,
-              makeFCall(env, 'initLocalVariable', [
-                ts.factory.createStringLiteral(`${concreteType}_list`)
-              ])
+              makeKnownLocalVariableInit(env, expr.right, `${concreteType}_list`)
             )
           ],
           ts.NodeFlags.Const
@@ -1014,10 +973,14 @@ function tryTransformCollectionRebindSnapshot(
     ),
     withSameRange(
       ts.factory.createExpressionStatement(
-        makeFCall(env, 'setLocalVariable', [
+        makeKnownLocalVariableSet(
+          env,
+          expr.right,
           ts.factory.createPropertyAccessExpression(localId, 'localVariable'),
-          rhs
-        ])
+          rhs,
+          `${concreteType}_list`,
+          `${concreteType}_list`
+        )
       ),
       stmt
     ),
@@ -1425,9 +1388,7 @@ export function transformBlockStatements(
           flush(buf.splice(0, buf.length))
 
           const typeStr = makeLocalVarTypeString(env, d, p)
-          const initCall = makeFCall(env, 'initLocalVariable', [
-            ts.factory.createStringLiteral(typeStr)
-          ])
+          const initCall = makeCheckedLocalVariableInit(env, d, typeStr)
           out.push(
             withSameRange(
               ts.factory.createVariableStatement(
@@ -1459,13 +1420,16 @@ export function transformBlockStatements(
             out.push(
               withSameRange(
                 ts.factory.createExpressionStatement(
-                  makeFCall(env, 'setLocalVariable', [
+                  makeCheckedLocalVariableSet(
+                    env,
+                    d.initializer,
                     ts.factory.createPropertyAccessExpression(
                       ts.factory.createIdentifier(name),
                       'localVariable'
                     ),
-                    rhs
-                  ])
+                    rhs,
+                    typeStr
+                  )
                 ),
                 d
               )

@@ -6,8 +6,12 @@ import { inferConcreteTypeFromType, inferListTypeFromType } from '../../shared/t
 import { isEntityLikeType } from '../../shared/ts_type_utils.js'
 import { tryTransformBuiltinCall, tryTransformBuiltinPropertyAccess } from './builtins.js'
 import { fail, warn } from './errors.js'
+import {
+  classifyExpressionSemantics,
+  localValueTypeOf,
+  type StorableLocalValueType
+} from './expression_semantics.js'
 import { tryTransformListMethodCall } from './list_methods.js'
-import { isFMethodCall } from './matcher.js'
 import {
   inferArrayListType,
   inferConcreteTypeFromString,
@@ -15,6 +19,13 @@ import {
   makeEmptyListExpr,
   type ListType
 } from './lists.js'
+import {
+  makeCheckedLocalVariableInit,
+  makeCheckedLocalVariableSet,
+  makeKnownLocalVariableInit,
+  makeKnownLocalVariableSet
+} from './local_variable_lowering.js'
+import { isFMethodCall } from './matcher.js'
 import {
   getBinaryOpInfo,
   getCompoundAssignmentMethod,
@@ -27,7 +38,7 @@ import type { Env, TimerCaptureInfo, TimerHandleMeta, VarPlanEntry } from './typ
 import { makeFCall, withSameRange } from './utils.js'
 
 type NumericKind = 'float' | 'int' | 'mixed' | 'unknown'
-type LocalVarType = ListType | `${ListType}_list`
+type LocalVarType = StorableLocalValueType
 type EnumTypeInfo = {
   isEnum: boolean
   name: string | null
@@ -43,59 +54,8 @@ type TimerCaptureSpec = {
   timerDicts?: TimerCaptureDictMeta[]
 }
 
-function inferLocalVarTypeFromTypeString(s: string): LocalVarType | null {
-  const listType = inferListTypeFromTypeString(s)
-  if (listType) return `${listType}_list`
-  const base = inferConcreteTypeFromString(s)
-  if (base) return base
-  return null
-}
-
-function inferLocalVarTypeFromType(env: Env, t: ts.Type): LocalVarType | null {
-  const aliasName = t.aliasSymbol?.getName()
-  if (aliasName) {
-    const aliased = inferLocalVarTypeFromTypeString(aliasName)
-    if (aliased) return aliased
-  }
-
-  if (t.flags & ts.TypeFlags.Union) {
-    const u = t as ts.UnionType
-    let base: LocalVarType | null = null
-    for (const tt of u.types) {
-      const next = inferLocalVarTypeFromType(env, tt)
-      if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
-    }
-    return base
-  }
-  if (t.flags & ts.TypeFlags.Intersection) {
-    const it = t as ts.IntersectionType
-    let base: LocalVarType | null = null
-    for (const tt of it.types) {
-      const next = inferLocalVarTypeFromType(env, tt)
-      if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
-    }
-    return base
-  }
-
-  if ((t.flags & ts.TypeFlags.BigIntLike) !== 0) return 'int'
-  if ((t.flags & ts.TypeFlags.NumberLike) !== 0) return 'float'
-  if ((t.flags & ts.TypeFlags.BooleanLike) !== 0) return 'bool'
-  if ((t.flags & ts.TypeFlags.StringLike) !== 0) return 'str'
-
-  const listType = inferListTypeFromType(env.checker, t, env.file)
-  if (listType) return `${listType}_list`
-  const base = inferConcreteTypeFromType(env.checker, t, env.file)
-  if (base) return base
-  return null
-}
-
 function inferLocalVarTypeFromExpression(env: Env, expr: ts.Expression): LocalVarType | null {
-  const t = env.checker.getTypeAtLocation(expr)
-  return inferLocalVarTypeFromType(env, t)
+  return localValueTypeOf(classifyExpressionSemantics(env, expr))
 }
 
 function inferConditionalResultType(env: Env, expr: ts.ConditionalExpression): LocalVarType {
@@ -625,49 +585,6 @@ function resolveTimerPoolSize(env: Env, node: ts.Node, kind: TimerKind): number 
   return size
 }
 
-function inferDictValueTypeFromType(env: Env, t: ts.Type): DictValueType | null {
-  if (t.flags & ts.TypeFlags.Any) return null
-  if (t.flags & ts.TypeFlags.Unknown) return null
-  if (isEntityLikeType(env.checker, t, env.file)) return 'entity'
-
-  if (t.flags & ts.TypeFlags.Union) {
-    const u = t as ts.UnionType
-    let base: DictValueType | null = null
-    for (const tt of u.types) {
-      const next = inferDictValueTypeFromType(env, tt)
-      if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
-    }
-    return base
-  }
-  if (t.flags & ts.TypeFlags.Intersection) {
-    const it = t as ts.IntersectionType
-    let base: DictValueType | null = null
-    for (const tt of it.types) {
-      const next = inferDictValueTypeFromType(env, tt)
-      if (!next) return null
-      if (!base) base = next
-      else if (base !== next) return null
-    }
-    return base
-  }
-
-  if ((t.flags & ts.TypeFlags.BigIntLike) !== 0) return 'int'
-  if ((t.flags & ts.TypeFlags.NumberLike) !== 0) return 'float'
-  if ((t.flags & ts.TypeFlags.BooleanLike) !== 0) return 'bool'
-  if ((t.flags & ts.TypeFlags.StringLike) !== 0) return 'str'
-
-  const s = env.checker.typeToString(t)
-  if (s === 'Timeout' || s === 'NodeJS.Timeout') return 'str'
-  if (/\b(dict|ReadonlyDict|generic)\b/.test(s)) return null
-  const listType = inferListTypeFromType(env.checker, t, env.file) ?? inferListTypeFromTypeString(s)
-  if (listType) return `${listType}_list`
-  const scalar =
-    inferConcreteTypeFromType(env.checker, t, env.file) ?? inferConcreteTypeFromString(s)
-  if (scalar) return scalar
-  return null
-}
 
 export function isDeclarationName(id: ts.Identifier): boolean {
   const parent = id.parent
@@ -834,8 +751,20 @@ function collectTimerCaptures(
       if (isSymbolFromDeclarationFile(sym)) return
       const t = env.checker.getTypeAtLocation(node)
       if (isCallableType(env, t)) return
-      const valueType = env.loopIndexSymbols?.has(sym) ? 'int' : inferDictValueTypeFromType(env, t)
+      const semantics = classifyExpressionSemantics(env, node)
+      const valueType = env.loopIndexSymbols?.has(sym)
+        ? 'int'
+        : semantics.kind === 'timer-handle'
+          ? 'str'
+          : localValueTypeOf(semantics)
       if (!valueType) {
+        if (semantics.kind === 'composite-result') {
+          fail(
+            env,
+            node,
+            'cannot store a complete composite result in LocalVariable; select a named output such as result.x'
+          )
+        }
         const raw = env.checker.typeToString(t)
         fail(env, node, `unsupported timer capture type for "${name}": ${raw}`)
       }
@@ -998,23 +927,31 @@ function buildTimerCaptureLocalAssignExpr(
           tmpId,
           undefined,
           undefined,
-          makeFCall(env, 'initLocalVariable', [ts.factory.createStringLiteral(info.valueType)])
+          makeKnownLocalVariableInit(env, leftId, info.valueType)
         )
       ],
       ts.NodeFlags.Const
     )
   )
   const setTmp = ts.factory.createExpressionStatement(
-    makeFCall(env, 'setLocalVariable', [
+    makeKnownLocalVariableSet(
+      env,
+      leftId,
       ts.factory.createPropertyAccessExpression(tmpId, 'localVariable'),
-      valueExpr
-    ])
+      valueExpr,
+      info.valueType,
+      info.valueType
+    )
   )
   const setLocal = ts.factory.createExpressionStatement(
-    makeFCall(env, 'setLocalVariable', [
+    makeKnownLocalVariableSet(
+      env,
+      leftId,
       ts.factory.createPropertyAccessExpression(leftId, 'localVariable'),
-      ts.factory.createPropertyAccessExpression(tmpId, 'value')
-    ])
+      ts.factory.createPropertyAccessExpression(tmpId, 'value'),
+      info.valueType,
+      info.valueType
+    )
   )
   const writeback = ts.factory.createExpressionStatement(
     buildTimerCaptureWritebackExpr(
@@ -1165,27 +1102,23 @@ function buildTimerHandler(
             cap.name,
             undefined,
             undefined,
-            ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(fId, 'initLocalVariable'),
-              undefined,
-              [ts.factory.createStringLiteral(cap.valueType)]
-            )
+            makeKnownLocalVariableInit(env, fn, cap.valueType)
           )
         ],
         ts.NodeFlags.Const
       )
     )
     const setLocal = ts.factory.createExpressionStatement(
-      ts.factory.createCallExpression(
-        ts.factory.createPropertyAccessExpression(fId, 'setLocalVariable'),
-        undefined,
-        [
-          ts.factory.createPropertyAccessExpression(
-            ts.factory.createIdentifier(cap.name),
-            'localVariable'
-          ),
-          valueExpr
-        ]
+      makeKnownLocalVariableSet(
+        env,
+        fn,
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier(cap.name),
+          'localVariable'
+        ),
+        valueExpr,
+        cap.valueType,
+        cap.valueType
       )
     )
     return [initLocal, setLocal]
@@ -1474,6 +1407,35 @@ function transformTimerCall(
   )
 }
 
+const DATA_TYPE_CONVERSION_TARGETS: Readonly<Record<string, readonly string[]>> = {
+  bool: ['int', 'str'],
+  entity: ['str'],
+  faction: ['str'],
+  float: ['int', 'str'],
+  guid: ['str'],
+  int: ['bool', 'float', 'str'],
+  vec3: ['str']
+}
+
+function validateDataTypeConversion(env: Env, expr: ts.CallExpression): void {
+  if (!isFMethodCall(env, expr, ['dataTypeConversion']) || expr.arguments.length < 2) return
+  const [input, target] = expr.arguments
+  if (!ts.isStringLiteralLike(target)) return
+  const inputType = inferConcreteTypeFromType(
+    env.checker,
+    env.checker.getBaseTypeOfLiteralType(env.checker.getTypeAtLocation(input)),
+    input
+  )
+  if (!inputType) return
+  const allowedTargets = DATA_TYPE_CONVERSION_TARGETS[inputType]
+  if (allowedTargets?.includes(target.text)) return
+  fail(
+    env,
+    target,
+    `unsupported dataTypeConversion ${inputType}→${target.text}; supported targets for ${inputType}: ${allowedTargets?.join(', ') || 'none'}`
+  )
+}
+
 export function transformExpression(
   env: Env,
   context: ts.TransformationContext,
@@ -1551,6 +1513,7 @@ export function transformExpression(
   }
 
   if (ts.isCallExpression(expr)) {
+    validateDataTypeConversion(env, expr)
     const builtinCall = tryTransformBuiltinCall(env, context, expr, transformExpression)
     if (builtinCall) return builtinCall
     const listCall = tryTransformListMethodCall(
@@ -1769,7 +1732,7 @@ export function transformExpression(
             tmpId,
             undefined,
             undefined,
-            makeFCall(env, 'initLocalVariable', [ts.factory.createStringLiteral(resultType)])
+            makeCheckedLocalVariableInit(env, expr, resultType)
           )
         ],
         ts.NodeFlags.Const
@@ -1777,16 +1740,22 @@ export function transformExpression(
     )
 
     const setTrue = ts.factory.createExpressionStatement(
-      makeFCall(env, 'setLocalVariable', [
+      makeCheckedLocalVariableSet(
+        env,
+        expr.whenTrue,
         ts.factory.createPropertyAccessExpression(tmpId, 'localVariable'),
-        whenTrue
-      ])
+        whenTrue,
+        resultType
+      )
     )
     const setFalse = ts.factory.createExpressionStatement(
-      makeFCall(env, 'setLocalVariable', [
+      makeCheckedLocalVariableSet(
+        env,
+        expr.whenFalse,
         ts.factory.createPropertyAccessExpression(tmpId, 'localVariable'),
-        whenFalse
-      ])
+        whenFalse,
+        resultType
+      )
     )
 
     const branch = makeFCall(env, 'doubleBranch', [
@@ -1971,11 +1940,17 @@ export function transformExpression(
           fail(env, expr, 'Unsupported assignment operator for local variables')
         }
         if (op === ts.SyntaxKind.EqualsToken) {
+          if (!p.localValueType) {
+            fail(env, expr, 'cannot determine declared LocalVariable type')
+          }
           return withSameRange(
-            makeFCall(env, 'setLocalVariable', [
+            makeCheckedLocalVariableSet(
+              env,
+              expr.right,
               ts.factory.createPropertyAccessExpression(leftId, 'localVariable'),
-              rhs
-            ]),
+              rhs,
+              p.localValueType
+            ),
             expr
           )
         }

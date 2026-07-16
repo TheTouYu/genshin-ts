@@ -247,7 +247,38 @@ f.multipleBranches(controlExpr, {
 
 ## 5. 变量使用规划（VarPlan）
 
+> 状态：当前实现
+> 来源：`expression_semantics.ts`、`local_variable_lowering.ts`、focused Stage 1 回归
+> 最近校验：2026-07-16
+> 适用范围：Stage 1 TS → `.gs.ts`；不改变 Stage 2 IR 或 Stage 3 GIA 编码
+
 在变换执行前，gsts 会扫描整个 handler 体来**分析变量使用模式**（`buildVarPlan` 函数）。
+
+### 5.1 统一表达式语义分类
+
+`src/compiler/ts_to_gs_transform/expression_semantics.ts` 是变量规划、timer capture 和条件表达式
+LocalVariable 类型推断的共同 seam。它把表达式区分为：
+
+- 可存储 runtime value；
+- 带来源信息的 collection reference；
+- Composite 完整结果对象与 Composite 命名输出；
+- timer handle；
+- flow marker；
+- 不支持对象。
+
+`VarPlanEntry` 保存分类结果和可选的 `localValueType`，后续消费者不再各自把未知对象猜成
+`entity`。完整 Composite 结果可以保留为普通 JS `const` 代理并读取命名输出，但不能进入
+LocalVariable；需要重绑定或跨分支存储时会在 Stage 1 给出定位诊断。
+
+### 5.2 checked LocalVariable lowering
+
+`local_variable_lowering.ts` 统一检查通用 `initLocalVariable` / `setLocalVariable`：声明类型必须是
+`StorableLocalValueType`，写入值必须可存储且类型一致。普通声明提升、普通赋值、timer capture、
+conditional 临时变量、collection rebind 和 `list_utils.makeLocalVarInit()` 已接入。
+
+`list_methods.ts` 与 `builtins.ts` 余下 `setLocalVariable` 调用是内部算法的显式 typed 写入；其 init
+已通过 typed `makeLocalVarInit()`，本轮未逐个改写表达式分类。这是 P0 规格允许的审计余项，不是
+任意字符串/未知对象入口。
 
 ### 分析维度
 

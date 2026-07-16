@@ -16,6 +16,7 @@
 - `tests/composite/` 不会被主测试命令自动执行，使用
   `npx tsx tests/composite/<file>.ts` 单独运行；它的输出文件和真实 GIA 样本不能随意覆盖。
 - 新回归应锁定可观察的 IR/GIA 结构或错误契约；自动回归、raw/wire 对比和用户游戏验证分别说明。
+- fixture 必须真实表达声称验证的业务语义。若要验证“仅某分支执行写入”，写入必须位于对应回调内；不要使用空的双分支后接共享写入，因为这种图虽然拓扑合法且忠实于源码，实际写入仍是无条件的，会误导编辑器与游戏核验。
 - 涉及生产 Composite/timer 行为的回归，应保留位于 `tests/` 根目录的最小入口和独立配置，使其可以单独生成 `.gia`；不要只保留无法经过 Stage 1 timer metadata 的 `tests/composite/` runtime harness。
 
 ## 验证

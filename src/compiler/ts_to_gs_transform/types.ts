@@ -2,6 +2,10 @@ import type ts from 'typescript'
 
 import type { DictValueType } from '../../runtime/value.js'
 import type { GstsConfig, GstsFeatureFlags } from '../gsts_config.js'
+import type {
+  ExpressionSemantics,
+  StorableLocalValueType
+} from './expression_semantics.js'
 
 export type TransformCtx = {
   checker: ts.TypeChecker
@@ -31,6 +35,10 @@ export type VarPlanEntry = {
    * 变量需要“局部变量语义”（Get/Set Local Variable）以模拟可变状态
    */
   needsLocalVar: boolean
+  /** Stage 1 对声明初始化值的统一语义分类。 */
+  semantics: ExpressionSemantics
+  /** 仅当 semantics 可由 LocalVariable 表示时存在。 */
+  localValueType?: StorableLocalValueType
   /**
    * 变量被判定为 collection（list/dict）
    */

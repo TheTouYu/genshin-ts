@@ -10,6 +10,7 @@ const config: GstsConfig = {
     '!./tests/generated/classic.events.ts',
     '!./tests/generated/events.ts',
     '!./tests/builtins_math_success_test.ts',
+    '!./tests/data_type_conversion_invalid_test.ts',
     '!./tests/composite/recreate-debug3.ts',
     '!./tests/composite/recreate-debug4-v2.ts',
     '!./tests/composite/recreate-debug5.ts',

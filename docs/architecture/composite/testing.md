@@ -66,6 +66,7 @@ npx tsx tests/composite/test-composite-part1.ts
 ```
 
 验证方式：
+
 - 为每个测试用例生成 `.gia` 输出
 - 与 `tests/composite/ref/` 下的参考文件逐一对比
 - 使用 `gia-compare.ts` 进行结构化比较而非简单字节比较
@@ -94,6 +95,7 @@ npx tsx tests/composite/test-composite-part3.ts
 ```
 
 测试覆盖：
+
 - `CompositeCapture` 的 `isPureData` 判定
 - `compositePins` 的映射正确性（InParam 扫描、OutParam 元数据）
 - `toCompositeDefIR()` 的 `implNodes` 和 `implEdges` 结构
@@ -104,17 +106,17 @@ npx tsx tests/composite/test-composite-part3.ts
 
 ## 3. 主要测试用例
 
-| 测试文件 | 验证重点 |
-|----------|----------|
-| `test-simple-basic-call.ts` | 最简单 exec-only 复合：定义 → 调用 → 编译 |
-| `test-two-composites.ts` | pure data + exec 复合的串联和 compositeDataEdges |
-| `test-basic-call-param.ts` | 带输入/输出参数的复合，参数传递正确性 |
-| `test-two-exec.ts` | 两个 exec 复合在一条执行链上的顺序执行 |
-| `test-type-conversion.ts` | 内部节点含 `data_type_conversion_*` 的复合 |
-| `test-mixed-composite-normal.ts` | 复合调用与普通 `f.method()` 交叉排列 |
-| `test-composite-game-demo.ts` | 模拟真实游戏逻辑的复合（条件、变量、多个复合） |
+| 测试文件                           | 验证重点                                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `test-simple-basic-call.ts`        | 最简单 exec-only 复合：定义 → 调用 → 编译                                                            |
+| `test-two-composites.ts`           | pure data + exec 复合的串联和 compositeDataEdges                                                     |
+| `test-basic-call-param.ts`         | 带输入/输出参数的复合，参数传递正确性                                                                |
+| `test-two-exec.ts`                 | 两个 exec 复合在一条执行链上的顺序执行                                                               |
+| `test-type-conversion.ts`          | 内部节点含 `data_type_conversion_*` 的复合                                                           |
+| `test-mixed-composite-normal.ts`   | 复合调用与普通 `f.method()` 交叉排列                                                                 |
+| `test-composite-game-demo.ts`      | 模拟真实游戏逻辑的复合（条件、变量、多个复合）                                                       |
 | `test-composite-bool-input-gia.ts` | bool input/output 的 `enumId=1` wire 元数据；非 bool 参数不得携带 `enumId`；同时锁定调用 pin literal |
-| `analyze-nested-composites.ts` | 研究嵌套复合的技术可行性（结果：当前不支持） |
+| `analyze-nested-composites.ts`     | 嵌套复合的历史可行性调查；当前行为以 nested focused tests 为准                                       |
 
 ---
 
@@ -161,11 +163,11 @@ npx tsx tests/composite/test-impl-prefab-literal-and-multiple-branches.ts
 ### Timer callback 中的复合输出类型回归
 
 > 状态：已验证
-> 来源：当前代码实现 + 自动 GIA 生成 + 游戏内验证
+> 来源：当前代码实现 + 自动 GIA 生成 + 用户编辑器与游戏内验证
 > 最近校验：2026-07-16
-> 适用范围：gsts 当前输出与游戏编辑器导入
+> 适用范围：gsts 当前输出与游戏编辑器导入/运行
 
-正式回归文件：
+基础回归文件：
 
 ```text
 tests/timer_composite_output_types_test.ts
@@ -185,13 +187,89 @@ node ./bin/gsts.mjs -c gsts.timer-composite-output-types.config.ts --noinject
 dist-timer-composite-output-types/tests/timer_composite_output_types_test.gia
 ```
 
-该 GIA 已复制到 Windows 游戏导出目录：
+该基础 GIA 已复制到 Windows 游戏导出目录：
 
 ```text
 C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\timer_composite_output_types_test.gia
 ```
 
-用户已将该文件导入游戏并完成独立节点测试，结果通过。因此本 Bug 的最终验收层级为：自动生成通过、GIA 导入通过、用户游戏内验证通过。
+用户已将基础文件导入游戏并完成独立节点测试，结果通过。因此基础夹具的最终验收层级为：自动生成通过、GIA 导入通过、用户游戏内验证通过。
+
+复杂多输出回归文件：
+
+```text
+tests/timer_nested_composite_multi_output_test.ts
+gsts.timer-nested-composite-multi-output.config.ts
+```
+
+它覆盖两条曾失败的路径：外层多输出来自嵌套复合调用，以及外层多输出来自
+`split3dVector`。调用方先把完整 `callComposite(...)` 结果保存为 `const`，再多次读取命名输出。
+Stage 1 必须保留这个结果对象，不能把它提升为 `entity` LocalVariable 并将整个 `{ x, y }`
+传给 `setLocalVariable`。
+
+```bash
+npm run build
+node ./bin/gsts.mjs -c gsts.timer-nested-composite-multi-output.config.ts --noinject
+```
+
+P0 实施前的窄修复产物 SHA-256 为
+`5d4106875f4f35552c44c6481a486ca943e3488087b860dd5b87708e57f19205`；该版本曾复制到
+`Beyond_Local_Export` 并逐字节核对一致。用户于 2026-07-16 确认该历史版本成功导入编辑器，
+两个复合节点的 `x/y` 引脚及连线正常，实际运行时 timer、变量写入、比较逻辑，以及嵌套复合与
+`split3dVector` 的多输出消费均通过。
+
+统一 `ExpressionSemantics` / checked LocalVariable P0 实施后的当前产物 SHA-256 为
+`fd7abd9c5cacc933645077e409984c298db34d4edf58e4a15e4bda2990394ce5`，已复制到同名导出文件并
+逐字节核对一致。用户于 2026-07-16 确认本轮当前产物编辑器导入与游戏内核验通过。
+
+核验时观察到 fixture 中空 `doubleBranch(..., () => {}, () => {})` 的“是/否”出口都会汇合到后续
+`set x/y`。这准确对应源码语义：后续写入无条件执行，双分支可删除；它不是控制流编码错误，也不影响
+P0 的 Composite 输出分类和 LocalVariable 安全验收。若 fixture 后续要表达“仅条件满足时写入”，应将
+写入语句移入“是”回调，不能依赖分支后的 continuation。
+
+### `dataTypeConversion` 合法变体边界
+
+> 状态：当前实现
+> 来源：当前生成定义 + 当前 Stage 3 映射 + 自动 GIA 回归
+> 最近校验：2026-07-16
+> 适用范围：gsts 当前公开 API 与 GIA 生成
+
+当前公开 `DataTypeConversionMap` 和 P2-W16 回归覆盖 11 个合法变体：
+`int→bool/float/str`、`entity/guid→str`、`bool→int/str`、`float→int/str`、
+`vec3/faction→str`。`bool→float` 不在公开 API 或已知 GIA concrete variant 中。由于 TypeScript
+泛型推断可能把输入拓宽，Stage 1 还会按同一合法变体表显式校验；非法组合会在 TS→GS 阶段报：
+
+```text
+unsupported dataTypeConversion bool→float; supported targets for bool: int, str
+```
+
+负向回归为 `tests/data_type_conversion_invalid_test.ts` 和
+`gsts.data-type-conversion-invalid.config.ts`。它必须编译失败并包含上述诊断，不能为通过测试而虚构
+GIA 节点 ID。需要浮点值时使用已支持的 `bool→int→float`，或按业务语义使用分支产生浮点常量。
+
+### Stage 1 语义值与 LocalVariable 安全回归
+
+> 状态：当前实现
+> 来源：当前 Stage 1 代码 + 自动回归
+> 最近校验：2026-07-16
+> 适用范围：TS → `.gs.ts` 变量规划、timer capture、conditional 与 LocalVariable lowering
+
+focused 测试：
+
+```bash
+npx tsx tests/stage1_expression_semantics_test.ts
+```
+
+该测试直接调用真实 `transformToGs()` 入口，并同时覆盖纯 `ExpressionSemantics` 分类 seam。它锁定：
+完整 Composite 结果不提升、命名输出保持声明类型、timer/普通对象分类，以及 Composite 完整结果、
+普通对象和类型冲突的 Stage 1 定位诊断。
+
+通用 LocalVariable init/set 已由 checked builder 保护。`list_methods.ts` / `builtins.ts` 中剩余直接
+`setLocalVariable` 是显式 typed 内部算法写入；其初始化入口已收窄为
+`StorableLocalValueType`，未在本轮逐项迁移表达式分类。
+
+本轮自动生成的代表性 GIA 与历史已验证文件不是同一哈希，因此没有沿用历史证据；两份当前哈希文件均
+已复制到 `Beyond_Local_Export`，并由用户于 2026-07-16 确认编辑器导入和游戏内核验通过。
 
 ---
 
@@ -210,7 +288,7 @@ C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\ti
 // "[error] composite "X" already defined"
 
 // 解决方案：每个测试文件独立进程，或在 beforeEach 中清空注册表
-compositeRegistry['definitions'].clear()  // hack: 不推荐
+compositeRegistry['definitions'].clear() // hack: 不推荐
 ```
 
 ### Protobuf round-trip 与字段 presence
@@ -236,12 +314,12 @@ Part 1 的 `.gia` 参考文件需要手动维护。新增测试用例时：
 
 ## 6. 已知限制
 
-| 限制 | 影响 | 状态 |
-|------|------|------|
-| 返回值连线精确对比 | 部分场景中 OutParam pin 索引偏移 | `@pending_ref` |
-| 多次调用同一复合 | 同一复合在两处被调用时 accessories 处理 | `@pending_ref` |
-| 空复合 | build 函数为空时的 IR 和 GIA 表示 | `@pending_ref` |
-| 嵌套复合 | composite build 内部调用另一个复合 | `@pending_ref` |
-| 跨复合类型参数 | 复合输出作为另一复合输入时的类型推导 | timer 输出→普通节点已验证；复合→复合的更多组合仍需扩展 |
+| 限制               | 影响                                    | 状态                                                   |
+| ------------------ | --------------------------------------- | ------------------------------------------------------ |
+| 返回值连线精确对比 | 部分场景中 OutParam pin 索引偏移        | `@pending_ref`                                         |
+| 多次调用同一复合   | 同一复合在两处被调用时 accessories 处理 | `@pending_ref`                                         |
+| 空复合             | build 函数为空时的 IR 和 GIA 表示       | `@pending_ref`                                         |
+| 嵌套复合           | 缺少 Part 2 精确参考 GIA 对比            | 编译与 focused GIA 回归已覆盖；精确参考仍 `@pending_ref` |
+| 跨复合类型参数     | 复合输出作为另一复合输入时的类型推导     | timer/nested 标量路径已自动验证；更多类型组合仍需扩展    |
 
 > 详情参见 [composite_node_testing.md](composite_node_testing.md) 的历史测试记录。

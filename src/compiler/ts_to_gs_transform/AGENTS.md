@@ -15,6 +15,7 @@
 - 保持严格类型，不使用 `any` 规避转换问题。
 - 保持 `Env` 传递、位置诊断格式和 `f` 标识符匹配逻辑；不要假设运行时标识符固定叫 `f`。
 - timer callback 的参数类型可能无法由 checker 完整推断；使用 `f.callComposite(...).output` 时必须保留 CompositeHandle 的声明输出类型，不能回退为 `entity` 或未类型化局部变量。
+- 核验分支或循环控制流时，分别判断“生成拓扑是否合法”“生成结果是否忠实于源码”和“fixture 是否表达声称验证的业务语义”；前两项成立不能证明第三项成立。例如空双分支后的共享 continuation 会无条件执行，不能当作条件写入回归。
 - 用户 DSL 仍受限制：不要引入 Promise、async、递归、JSON、try/throw、with、标签语句或未建模的 JavaScript 语义。
 - 新增列表方法或 Math/builtin 支持时，同步更新对应 ESLint allowlist 与转换实现。
 
