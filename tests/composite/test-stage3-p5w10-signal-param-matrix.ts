@@ -55,7 +55,7 @@ const PROTO_PATH = new URL(
 const OUTPUT_PATH = process.argv[2] ?? '/tmp/P5W10-signal-param-matrix.gia'
 const GRAPH_ID = 1073742492
 const COMPOSITE_NAME = 'P5W10_SignalParam_Matrix'
-const SIGNAL_NAME = '信号_全参矩阵'
+const SIGNAL_NAME = 'GSTS_随机全参数信号_20260716'
 
 /** Full supported signal param family (no enum / unknown). */
 const SIGNAL_PARAM_TYPES = [
@@ -87,7 +87,7 @@ const SignalFull = defineSignal(
   SIGNAL_NAME,
   SIGNAL_PARAM_TYPES.map((type, i) => [`参数_${i + 1}`, type] as const)
 )
-const SignalScalarSink = defineSignal('信号_标量辅助消费', [
+const SignalScalarSink = defineSignal('GSTS_辅助标量消费_20260716', [
   ['配置', 'config_id'],
   ['阵营', 'faction']
 ] as const)
@@ -228,6 +228,8 @@ assert.ok(implGraph, 'impl graph missing')
 
 const BUILTIN_SEND = 1610612738
 const BUILTIN_MONITOR = 1610612739
+const SIGNAL_SEND_ID = 1610612738
+const SIGNAL_MONITOR_ID = 1610612739
 
 function signalNameOf(n: any): string | undefined {
   const pin = (n.pins ?? []).find((p: any) => p.i1?.kind === 5)
@@ -235,11 +237,11 @@ function signalNameOf(n: any): string | undefined {
 }
 function isSendSignalNode(n: any): boolean {
   const id = n.genericId?.nodeId ?? n.concreteId?.nodeId
-  return (id === BUILTIN_SEND || id === 300000) && signalNameOf(n) === SIGNAL_NAME
+  return (id === SIGNAL_SEND_ID || id === 300000) && signalNameOf(n) === SIGNAL_NAME
 }
 function isMonitorSignalNode(n: any): boolean {
   const id = n.genericId?.nodeId ?? n.concreteId?.nodeId
-  return (id === BUILTIN_MONITOR || id === 300001) && signalNameOf(n) === SIGNAL_NAME
+  return (id === SIGNAL_MONITOR_ID || id === 300001) && signalNameOf(n) === SIGNAL_NAME
 }
 
 function dataInParams(node: any): any[] {
@@ -281,7 +283,7 @@ const rootSends = (rootGraph.nodes ?? []).filter(isSendSignalNode)
 assert.equal(rootSends.length, 1, `root should have exactly 1 send, got ${rootSends.length}`)
 const rootSend = rootSends[0]
 assert.equal(rootSend.genericId?.nodeId, BUILTIN_SEND)
-assert.equal(rootSend.signalVersion, 2)
+assert.equal(rootSend.signalVersion, 1)
 const rootNamePin = (rootSend.pins ?? []).find((p: any) => p.i1?.kind === 5)
 assert.equal(
   typeof rootNamePin?.value === 'string' ? rootNamePin.value : rootNamePin?.value?.bString?.val,
@@ -317,8 +319,8 @@ for (const [listType, expectedType] of Object.entries(LIST_PHYSICAL_TYPE)) {
 const implSends = (implGraph.nodes ?? []).filter(isSendSignalNode)
 assert.equal(implSends.length, 1, `impl should have exactly 1 send, got ${implSends.length}`)
 const implSend = implSends[0]
-assert.equal(implSend.genericId?.nodeId, BUILTIN_SEND)
-assert.equal(implSend.signalVersion, 2)
+assert.equal(implSend.genericId?.nodeId, SIGNAL_SEND_ID)
+assert.equal(implSend.signalVersion, 1)
 const implNamePin = (implSend.pins ?? []).find((p: any) => p.i1?.kind === 5)
 assert.equal(
   typeof implNamePin?.value === 'string' ? implNamePin.value : implNamePin?.value?.bString?.val,
@@ -378,8 +380,8 @@ assert.ok(
 const rootMonitors = (rootGraph.nodes ?? []).filter(isMonitorSignalNode)
 assert.equal(rootMonitors.length, 1, 'root should have exactly 1 monitor')
 const mon = rootMonitors[0]
-assert.equal(mon.genericId?.nodeId, BUILTIN_MONITOR)
-assert.equal(mon.signalVersion, 2)
+assert.equal(mon.genericId?.nodeId, SIGNAL_MONITOR_ID)
+assert.equal(mon.signalVersion, 1)
 const monName = (mon.pins ?? []).find((p: any) => p.i1?.kind === 5)
 assert.equal(
   typeof monName?.value === 'string' ? monName.value : monName?.value?.bString?.val,
