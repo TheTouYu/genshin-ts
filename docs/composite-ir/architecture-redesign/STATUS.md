@@ -13,9 +13,10 @@
 
 ```text
 当前分支：refactor/composite-stage3-architecture
-当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6、P5-W7 完成；待提交）
-当前唯一工作包：P5-W8 — enumerations_equal residual 身份迁 shared resolver（候选）
-最近完成工作包：P5-W7 — residual scalar ordinary 身份迁 shared resolver（用户核验通过，已归档，待提交）
+当前 Phase：Phase 5 进行中（P5-W1..P5-W4、P5-W6..P5-W8 完成）
+当前唯一工作包：P5-W9 — pin-hole named adapter 最小共享收口（候选）
+最近完成工作包：P5-W8 — enumerations_equal residual 身份迁 shared resolver（用户核验通过，已归档，待提交）
+更早完成：P5-W7 — residual scalar ordinary 身份迁 shared resolver
 更早完成：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
 更早完成：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
 更早完成：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
@@ -755,9 +756,9 @@ P5-W7 已按最高优先族把 residual scalar identity 迁入 shared resolver�
 ## 最近完成：P5-W7
 
 P5-W7 将矩阵 residual-concrete 中 13 个 scalar residual ordinary 身份迁入 shared
-`resolveNodeIdentity`；`enumerations_equal` 仍为 residual-concrete unknown。
+`resolveNodeIdentity`；`enumerations_equal` 仍为 residual-concrete unknown（由 P5-W8 处理）。
 生产 ordinary concrete identity 接线已改；default gate 未切；handwritten pin/materialize 未删。
-用户 2026-07-16 确认编辑器加载与可观察执行通过；已归档到 `真-测试通过/复合节点`；未注入；待提交。
+用户 2026-07-16 确认编辑器加载与可观察执行通过；已归档到 `真-测试通过/复合节点`；未注入；已提交。
 
 交付：
 
@@ -840,29 +841,126 @@ git diff --check
 handwritten pin/materialize 删除。连续重生字节 SHA 仍可能因既有非确定性变化，自动证据以 focused
 structural contract 为准。
 
-## 当前唯一工作包：P5-W8
+## 最近完成：P5-W8
+
+P5-W8 将矩阵 residual-concrete 唯一剩余的 `enumerations_equal` 迁入 shared
+`resolveNodeIdentity`（enum-kind concrete id）。生产 ordinary concrete identity 接线已改；
+default gate 未切；handwritten pin/materialize 未删；未注入。自动 focused/matrix/inventory/sentinel
+通过；用户 2026-07-16 确认编辑器加载与可观察执行通过；已归档到游戏目录
+`真-测试通过/复合节点`；待提交。
+
+交付：
 
 ```text
-工作包：P5-W8 — enumerations_equal residual 身份迁 shared resolver
-优先级类别：架构阻塞 / fallback-vendor gap（矩阵 residual-concrete 唯一剩余）
-状态：待实现；P5-W7 用户核验通过并归档，待提交
-解除的上层阻塞：enumerations_equal 仍依赖 composite resolveImplOrdinaryConcreteNodeId /
-  root typed-identity adapter；矩阵 residual-concrete unknown=1。
-输入与修改范围：enumerations_equal 共享 enum identity resolution；更新矩阵/inventory/focused；
-  STATUS/Phase 5；必要时最小 enum 可执行 fixture。
-最小观察或失败基线：P5-W7 后 residual-concrete 仅 enumerations_equal unknown；
-  residual-scalar green=13；legacy helpers 仍含 resolveImplOrdinaryConcreteNodeId。
-完成条件：enumerations_equal 在 shared beta 下 unknown → green（C4），或具名 shared adapter +
+src/compiler/ir_to_gia_transform/resolved_node.ts
+  usesSharedEnumerationsEqualResolution + enum-kind shared identity
+  usesSharedOrdinaryConcreteIdentity 覆盖 enumerations_equal
+
+src/compiler/ir_to_gia_transform/node_id.ts
+  root resolveGiaNodeId 委托 shared resolver（删除私有 enumerations_equal 分支）
+
+src/compiler/ir_to_gia_transform/mappings.ts
+  共享 enumKeyLowerFromEnumName / enumKeyLowerFromEnumId
+
+src/compiler/ir_to_gia_transform/composite.ts
+  ordinaryConcreteNid 对 enumerations_equal 走 sharedConcreteNid
+
+src/compiler/ir_to_gia_transform/root_impl_ordinary_coverage_matrix.ts
+  residual-concrete=[]；enumerations-equal family shared-path green
+
+src/compiler/ir_to_gia_transform/root_ordinary_capability_inventory.ts
+  ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES + shared-enumerations-equal-identity
+
+tests/composite/test-stage3-p5w8-enumerations-equal-shared-identity.ts
+```
+
+自动探测结果（shared beta，2026-07-16）：
+
+```text
+total=73 green=33 red=0 unknown=40
+residual-scalar: green=13
+enumerations-equal: green=1
+residual-concrete: empty
+```
+
+已证明（自动 + 用户编辑器）：
+
+- enumerations_equal literal/connection 在 root/impl 使用 shared enum-kind identity（concrete 476 for comparison_operators）；
+- composite ordinaryConcreteNid 对 enumerations_equal 不再依赖 producedType 后缀 helper；
+- 矩阵 residual-concrete 清空；enumerations-equal 行 sharedIdentity=true / green；
+- default gate 仍 false；legacy pin/materialize 主路径未删除；
+- focused：P5-W8 / P5-W6 / P5-W7 / P5-W3 / P5-W1 / P4-W7 / resolved-node；boundary sentinel vendor 生成通过；
+- 用户 2026-07-16 确认主 residual+enum 候选 + 5 份 boundary 哨兵编辑器加载与可观察执行通过。
+
+未证明 / 非目标：
+
+- 未默认开启 vendor gate；未删除 handwritten pin/materialize；
+- 未注入；无真实 GIA/wire 全等结论；不清全部 unknown。
+
+已运行并通过：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-p5w8-enumerations-equal-shared-identity.ts
+npx tsx tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts
+npx tsx tests/composite/test-stage3-p5w7-residual-scalar-shared-identity.ts
+npx tsx tests/composite/test-stage3-resolved-node-contract.ts
+npx tsx tests/composite/test-stage3-p5w3-root-ordinary-capability-inventory.ts
+npx tsx tests/composite/test-stage3-p5w1-legacy-inventory-contract.ts
+npx tsx tests/composite/test-stage3-p4w7-orchestration-contract.ts
+npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts /tmp/P5W8-p2w6-legacy.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts Beyond_Local_Export/P5W8-capture-vendor.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts Beyond_Local_Export/P5W8-nested-capture-vendor.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts Beyond_Local_Export/P5W8-nested-sparse-vendor.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts Beyond_Local_Export/P5W8-multi-inflow-outflow-vendor.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts Beyond_Local_Export/P5W8-nested-call-vendor.gia
+git diff --check
+```
+
+用户核验候选（未注入；用户 2026-07-16 确认编辑器加载与可观察执行通过；已归档）：
+
+游戏目录：`C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+归档：`...\真-测试通过\复合节点\`
+
+- `真-测试通过/复合节点/P5W8-enumerations-equal-shared-vendor.gia`（主 residual+enum）
+  SHA-256 `7d52c9401a68a23ff8e0ec49943df3e1085774fd24a52b847ea80bce04a80d91`
+- `真-测试通过/复合节点/P5W8-capture-vendor.gia`
+  SHA-256 `1d63e54c05ce29eec34bdcda8d323fe0b31e5688be044b74499d01188d6fa108`
+- `真-测试通过/复合节点/P5W8-nested-capture-vendor.gia`
+  SHA-256 `add499fae74190abe7e47cd00f3c5532249a3cb7d17d095defd8d85c36a005f7`
+- `真-测试通过/复合节点/P5W8-nested-sparse-vendor.gia`
+  SHA-256 `446ba283b09e9a03866159be2b33a9e4f90c19da319d42698a3f835829397b13`
+- `真-测试通过/复合节点/P5W8-multi-inflow-outflow-vendor.gia`
+  SHA-256 `a1262b415360081f29cd7448ec7c38937c58d63d9e7d950108dc5ed3decc9227`
+- `真-测试通过/复合节点/P5W8-nested-call-vendor.gia`
+  SHA-256 `971d0929008fb6ac2999f349a0c92b6326b4db4ba6a505caa809e15228b8174c`
+
+说明：本包是 enumerations_equal ordinary identity 共享路径迁移。未改 default gate、capture/call/layout、
+handwritten pin/materialize 删除。仓库 staging 仅生成中间态；编辑器以游戏目录归档路径为准。
+
+## 当前唯一工作包：P5-W9
+
+```text
+工作包：P5-W9 — pin-hole named adapter 最小共享收口
+优先级类别：fallback-vendor gap / 架构阻塞（矩阵 pin-hole unknown 族）
+状态：待实现；P5-W8 用户核验通过并归档，待提交
+解除的上层阻塞：pin-hole named adapters 仍在 root 活表面且 shared beta 下 unknown；
+  未形成最小共享 adapter + 删除条件，阻塞 ordinary 覆盖矩阵继续收口。
+输入与修改范围：从 ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES 选最小可执行子集（优先 1 族或
+  1 个代表节点）；shared adapter / 诊断 / focused contract；更新矩阵/inventory/STATUS/Phase 5；
+  必要时最小 pin-hole 可执行 fixture。
+最小观察或失败基线：P5-W8 后 residual-concrete empty；enumerations-equal green；
+  pin-hole family unknown；default gate false。
+完成条件：所选 pin-hole 子集在 shared beta 下 unknown→green（C4），或具名 shared adapter +
   删除条件；focused contract 通过；触及生产路径则用户编辑器核验。
 实际验证命令：实现时确定；至少 npm run build +
   npx tsx tests/composite/test-stage3-p5w6-ordinary-coverage-matrix.ts +
-  residual/enum focused + git diff --check。
-回滚边界：仅 enumerations_equal shared identity/adapter/probe；不切 default gate；
-  不整包删除 handwritten pin/materialize。
-明确非目标：默认开启 vendor gate、全量 unknown 清完、注入、改 capture/call/layout、
-  composite 专属 ordinary 补丁。
+  pin-hole focused + git diff --check。
+回滚边界：仅所选 pin-hole adapter/probe；不切 default gate；不整包删除 handwritten pin/materialize。
+明确非目标：默认开启 vendor gate、全量 pin-hole/special-arg/typed-identity 清完、注入、
+  改 capture/call/layout、composite 专属 ordinary 补丁。
 后续候选（非当前工作包）：
-  pin-hole / special-arg / typed-identity 其余 unknown；legacy inventory 分项删除；
+  special-arg / typed-identity 其余 unknown；legacy inventory 分项删除；
   default 切换（须用户批准）。
 用户闸门：若触及 default gate / 主路径 legacy 删除 / 注入，必须停止。
 ```

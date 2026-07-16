@@ -9,7 +9,7 @@
  * encode result plus static classification.
  */
 
-import { RoundingMode } from '../../definitions/enum.js'
+import { ComparisonOperator, RoundingMode } from '../../definitions/enum.js'
 import { irToGia } from './index.js'
 import {
   classifyStaticCoverageStatuses,
@@ -18,7 +18,8 @@ import {
   type CoverageProbeSummary,
   type OrdinaryCoverageRow,
   RESIDUAL_BINARY_SCALAR_NODE_TYPES,
-  RESIDUAL_UNARY_SCALAR_NODE_TYPES
+  RESIDUAL_UNARY_SCALAR_NODE_TYPES,
+  SHARED_ENUMERATIONS_EQUAL_NODE_TYPES
 } from './root_impl_ordinary_coverage_matrix.js'
 import { STAGE3_VENDOR_IMPL_GRAPH_ENV } from './stage3_backend.js'
 
@@ -62,11 +63,13 @@ export async function encodeResidualAndGenericFixtureOnce(
 
   const residualUnary = [...RESIDUAL_UNARY_SCALAR_NODE_TYPES]
   const residualBinary = [...RESIDUAL_BINARY_SCALAR_NODE_TYPES]
-  // P5-W7: residual scalar rows live under residual-scalar-* after shared identity migration.
+  const enumerationsEqual = [...SHARED_ENUMERATIONS_EQUAL_NODE_TYPES]
+  // P5-W7/W8: residual scalar + enumerations_equal rows under shared identity.
   const exercisedRowIds = [
     'generic-print_string',
     ...residualUnary.map((t) => `residual-scalar-${t}`),
-    ...residualBinary.map((t) => `residual-scalar-${t}`)
+    ...residualBinary.map((t) => `residual-scalar-${t}`),
+    ...enumerationsEqual.map((t) => `enumerations-equal-${t}`)
   ]
 
   const composite = g.defineComposite('P5W6_CoverageProbe_ResidualBatch', {
@@ -115,6 +118,18 @@ export async function encodeResidualAndGenericFixtureOnce(
         } else {
           result = f[method](asRuntimeValue(inputs.i), new int(3))
         }
+        prints.push(
+          f.node('print_string', [f.dataTypeConversion(asRuntimeValue(result), 'str')])
+        )
+      }
+
+      for (const nodeType of enumerationsEqual) {
+        const method = camelMethod(nodeType)
+        if (typeof f[method] !== 'function') {
+          throw new Error(`runtime missing method ${method} for ${nodeType}`)
+        }
+        // Minimal enum-kind sample: ComparisonOperator.EqualTo selects concrete 476.
+        const result = f[method](ComparisonOperator.EqualTo, ComparisonOperator.EqualTo)
         prints.push(
           f.node('print_string', [f.dataTypeConversion(asRuntimeValue(result), 'str')])
         )

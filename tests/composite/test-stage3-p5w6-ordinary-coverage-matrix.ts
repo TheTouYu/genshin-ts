@@ -21,6 +21,7 @@ import {
   ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
   ORDINARY_COVERAGE_GRILLING_DECISIONS,
   RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES,
+  SHARED_ENUMERATIONS_EQUAL_NODE_TYPES,
   SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   listStaticOrdinaryCoverageRows,
   classifyStaticCoverageStatuses,
@@ -41,9 +42,9 @@ const matrixSource = readFileSync(
 const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 
 // --- Contract freezes ---
-// P5-W7 owns residual scalar shared identity; matrix contract phase advances with it.
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W7')
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W7')
+// P5-W8 owns enumerations_equal shared identity; matrix contract phase advances with it.
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W8')
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W8')
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.deletesLegacyBackend, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
@@ -89,21 +90,11 @@ for (const row of staticRows) {
   )
 }
 
-// Residual concrete remainder is enum-only after P5-W7; 13 residual scalars are shared.
-assert.equal(RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length, 1)
-assert.deepEqual([...RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES], ['enumerations_equal'])
+// Residual-concrete identity empty after P5-W8; residual scalars + enumerations_equal shared.
+assert.equal(RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length, 0)
+assert.deepEqual([...RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES], [])
 assert.equal(SHARED_RESIDUAL_SCALAR_NODE_TYPES.length, 13)
-for (const nodeType of RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES) {
-  assert.equal(
-    usesSharedVariantResolution(nodeType),
-    false,
-    `${nodeType} should remain residual concrete`
-  )
-  assert.ok(
-    ids.includes(`residual-concrete-${nodeType}`),
-    `missing residual-concrete row for ${nodeType}`
-  )
-}
+assert.deepEqual([...SHARED_ENUMERATIONS_EQUAL_NODE_TYPES], ['enumerations_equal'])
 for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
   assert.equal(
     usesSharedVariantResolution(nodeType),
@@ -115,6 +106,12 @@ for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
     `missing residual-scalar row for ${nodeType}`
   )
   assert.equal(ids.includes(`residual-concrete-${nodeType}`), false)
+}
+for (const nodeType of SHARED_ENUMERATIONS_EQUAL_NODE_TYPES) {
+  assert.equal(usesSharedVariantResolution(nodeType), true)
+  assert.ok(ids.includes(`enumerations-equal-${nodeType}`))
+  assert.equal(ids.includes(`residual-concrete-${nodeType}`), false)
+  assert.equal(ids.includes(`typed-identity-${nodeType}`), false)
 }
 
 // Shared binaries must not be residual
@@ -178,14 +175,19 @@ assert.equal(
   'P5-W7 residual scalar shared identity is static green'
 )
 assert.equal(
-  classified.find((r) => r.id === 'residual-concrete-enumerations_equal')?.status,
-  'unknown',
-  'enumerations_equal remains residual concrete unknown'
+  classified.find((r) => r.id === 'enumerations-equal-enumerations_equal')?.status,
+  'green',
+  'P5-W8 enumerations_equal shared identity is static green'
+)
+assert.equal(
+  classified.find((r) => r.id === 'residual-concrete-enumerations_equal'),
+  undefined,
+  'enumerations_equal residual-concrete row must be gone'
 )
 
 // Source guards: matrix still wired through orchestration; residual table not rewritten into helper
 assert.match(matrixSource, /changesProductionEncoding: true/)
-assert.match(matrixSource, /P5-W7/)
+assert.match(matrixSource, /P5-W8/)
 assert.match(compositeSource, /ordinaryCoverageMatrix/)
 assert.doesNotMatch(
   compositeSource,
@@ -216,8 +218,12 @@ for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
   )
 }
 
-const enumRow = probeSummary.rows.find((r) => r.id === 'residual-concrete-enumerations_equal')
-assert.equal(enumRow?.status, 'unknown')
+const enumRow = probeSummary.rows.find((r) => r.id === 'enumerations-equal-enumerations_equal')
+assert.equal(
+  enumRow?.status,
+  'green',
+  `enumerations_equal probe expected green, got ${enumRow?.status}: ${enumRow?.reason}`
+)
 
 // Named adapters remain unknown in W1 (no auto sample)
 for (const id of [

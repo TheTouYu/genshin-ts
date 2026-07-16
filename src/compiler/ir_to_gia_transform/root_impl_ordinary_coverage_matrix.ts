@@ -10,7 +10,7 @@
  * - C4: row green default = structural contract + no composite-only ordinary fork
  * - I4: rows from root live surfaces, mapped to inventory categories
  * - F4: ordinary fixes only in shared layers; boundary modules for boundary only
- * - W1/E3: matrix + auto probes; P5-W7 migrates residual scalar identity into shared resolver
+ * - W1/E3: matrix + auto probes; P5-W7 residual scalar + P5-W8 enumerations_equal on shared resolver
  *
  * Evidence class: current source observation + automatic probe under shared beta.
  * Not a full game-validation claim. Does not flip default gate or delete legacy.
@@ -22,6 +22,7 @@ import {
   ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES,
   ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
   ROOT_NAMED_TYPED_IDENTITY_ADAPTER_NODE_TYPES,
+  ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES,
   ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
   ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
   ROOT_SHARED_VARIABLE_NODE_TYPES,
@@ -54,6 +55,7 @@ export type OrdinaryCoverageRow = {
     | 'scalar-binary'
     | 'residual-scalar'
     | 'residual-concrete'
+    | 'enumerations-equal'
     | 'pin-hole'
     | 'special-arg'
     | 'typed-identity'
@@ -84,9 +86,13 @@ export const SHARED_RESIDUAL_SCALAR_NODE_TYPES = ROOT_SHARED_RESIDUAL_SCALAR_NOD
 
 /**
  * Residual concreteWrapped node types still served by resolveImplOrdinaryConcreteNodeId
- * under the handwritten path after P5-W7. enumerations_equal remains enum-typed residual.
+ * under the handwritten identity path. Empty after P5-W8 (enumerations_equal shared).
+ * Handwritten pin wrapping for migrated families may still use concreteWrappedNodeTypes.
  */
-export const RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES = ['enumerations_equal'] as const
+export const RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES = [] as const
+
+/** enumerations_equal shared enum-kind identity (P5-W8). */
+export const SHARED_ENUMERATIONS_EQUAL_NODE_TYPES = ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES
 
 /** Unary residual families exercised by the shared-beta encode probe. */
 export const RESIDUAL_UNARY_SCALAR_NODE_TYPES = [
@@ -129,17 +135,18 @@ export const ORDINARY_COVERAGE_GRILLING_DECISIONS = {
 } as const
 
 export const ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT = {
-  phase: 'P5-W7',
-  workPackage: 'P5-W7',
-  alias: 'W1-coverage-matrix+residual-scalar-shared-identity',
+  phase: 'P5-W8',
+  workPackage: 'P5-W8',
+  alias: 'W1-coverage-matrix+enumerations-equal-shared-identity',
   defaultVendorImplGraphGate: false,
   deletesLegacyBackend: false,
-  /** P5-W7 changes ordinary concrete identity wiring for residual scalars only. */
+  /** P5-W7/W8 change ordinary concrete identity wiring (residual scalar + enumerations_equal). */
   changesProductionEncoding: true,
   completeSurface: 'shared-vendor-impl-graph-beta',
   grilling: ORDINARY_COVERAGE_GRILLING_DECISIONS,
   highRiskPendingFamilies: COVERAGE_HIGH_RISK_PENDING_FAMILIES,
   sharedResidualScalarNodeTypes: SHARED_RESIDUAL_SCALAR_NODE_TYPES,
+  sharedEnumerationsEqualNodeTypes: SHARED_ENUMERATIONS_EQUAL_NODE_TYPES,
   residualConcreteWrappedNodeTypes: RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES,
   /**
    * Status meanings under E3:
@@ -272,10 +279,27 @@ export function listStaticOrdinaryCoverageRows(): OrdinaryCoverageRow[] {
         probeKind: 'static-surface',
         status: 'unknown',
         reason: 'pending-probe',
+        evidence: ['resolveImplOrdinaryConcreteNodeId', 'concreteWrappedNodeTypes']
+      })
+    )
+  }
+
+  for (const nodeType of SHARED_ENUMERATIONS_EQUAL_NODE_TYPES) {
+    rows.push(
+      row({
+        id: `enumerations-equal-${nodeType}`,
+        nodeType,
+        category: 'shared-path',
+        family: 'enumerations-equal',
+        compositeLegacyRisk: true,
+        sharedIdentity: usesSharedVariantResolution(nodeType),
+        probeKind: 'generic-encode',
+        status: 'unknown',
+        reason: 'pending-probe',
         evidence: [
-          'resolveImplOrdinaryConcreteNodeId',
-          'concreteWrappedNodeTypes',
-          'enumerations_equal root typed-identity adapter'
+          'shared-enumerations-equal-identity',
+          'usesSharedEnumerationsEqualResolution',
+          'P5-W8 enumerations_equal shared identity'
         ]
       })
     )
@@ -539,8 +563,18 @@ export function classifyStaticCoverageStatuses(
       return {
         ...r,
         status: 'unknown',
-        reason: 'typed-enum-sample-not-auto-constructed-in-p5w7',
+        reason: 'no-residual-concrete-identity-remaining-after-p5w8',
         probeKind: 'static-surface'
+      }
+    }
+    if (r.family === 'enumerations-equal') {
+      return {
+        ...r,
+        status: r.sharedIdentity ? 'green' : 'red',
+        reason: r.sharedIdentity
+          ? 'shared-identity-resolution-present'
+          : 'missing-shared-identity',
+        probeKind: 'shared-identity'
       }
     }
     if (
@@ -601,15 +635,20 @@ export function assertCoverageMatrixInvariants(
     if (!r.evidence.length) throw new Error(`[coverage-matrix] ${r.id} missing evidence`)
   }
 
-  // Residual concrete remainder is enum-only after P5-W7 scalar migration.
-  if (RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length !== 1) {
+  // P5-W8: residual-concrete identity table empty; enumerations_equal is shared-path.
+  if (RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length !== 0) {
     throw new Error(
-      `[coverage-matrix] expected 1 residual concrete type, got ${RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length}`
+      `[coverage-matrix] expected 0 residual concrete types, got ${RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length}`
     )
   }
   if (SHARED_RESIDUAL_SCALAR_NODE_TYPES.length !== 13) {
     throw new Error(
       `[coverage-matrix] expected 13 shared residual scalar types, got ${SHARED_RESIDUAL_SCALAR_NODE_TYPES.length}`
+    )
+  }
+  if (SHARED_ENUMERATIONS_EQUAL_NODE_TYPES.length !== 1) {
+    throw new Error(
+      `[coverage-matrix] expected 1 shared enumerations_equal type, got ${SHARED_ENUMERATIONS_EQUAL_NODE_TYPES.length}`
     )
   }
   for (const nodeType of RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES) {
@@ -623,6 +662,13 @@ export function assertCoverageMatrixInvariants(
     if (!usesSharedVariantResolution(nodeType)) {
       throw new Error(
         `[coverage-matrix] shared residual scalar ${nodeType} missing shared identity`
+      )
+    }
+  }
+  for (const nodeType of SHARED_ENUMERATIONS_EQUAL_NODE_TYPES) {
+    if (!usesSharedVariantResolution(nodeType)) {
+      throw new Error(
+        `[coverage-matrix] shared enumerations_equal ${nodeType} missing shared identity`
       )
     }
   }

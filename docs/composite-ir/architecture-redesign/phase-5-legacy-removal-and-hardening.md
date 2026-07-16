@@ -1,9 +1,9 @@
 # Phase 5：删除 Legacy Backend 与架构硬化
 
-> 状态：进行中；P5-W1..P5-W4、P5-W6 已提交；P5-W7 用户核验通过已归档、待提交；当前唯一工作包 P5-W8
-> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W7 源码观察 + grilling 共享理解
+> 状态：进行中；P5-W1..P5-W4、P5-W6..P5-W8 完成（P5-W8 用户核验通过已归档、待提交）；当前唯一工作包 P5-W9
+> 来源：目标架构设计 + Phase 4 checkpoint + P5-W1..W8 源码观察 + grilling 共享理解
 > 最近校验：2026-07-16
-> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W8`
+> 适用范围：前四阶段完成后的清理和长期防回归；当前唯一工作包见 STATUS `P5-W9`
 
 ## 目标
 
@@ -15,7 +15,7 @@
 （`LEGACY_ORDINARY_CALL_SITES` / `LEGACY_ORDINARY_HELPER_SYMBOLS`）。以实际调用者为准逐项删除：
 
 - `resolveImplNodeId()`；
-- `resolveImplOrdinaryConcreteNodeId()`（P5-W7 后仅 residual `enumerations_equal`；13 residual scalar 已走 shared identity）；
+- `resolveImplOrdinaryConcreteNodeId()`（P5-W8 后无 residual identity 调用者；13 residual scalar + enumerations_equal 已走 shared identity；helper 仍可能被 pin 路径引用）；
 - ~~`resolveLegacyImplTypedNodeId()` / `usesLegacyImplTypedIdentityAdapter()` / `legacyImplValueTypeSuffix()`~~（P5-W4 已删；adapter set 本已为空）；
 - ordinary `argVarBaseClass()` / `argVarType()` / `makeVarBaseValue()`；
 - `concreteInputIndex()` / `concreteOutputIndex()`；
@@ -53,8 +53,11 @@ Synthetic composite pins 所需的低层 builder 可以保留，但名称和模�
   不改生产编码 / default gate；旧 P5-W5 residual 清单并入矩阵调度。
 - [x] P5-W7：residual scalar ordinary 身份迁 shared resolver（13 族 shared-path green；
   residual-concrete 仅 `enumerations_equal`）；生产 ordinary concrete identity 接线已改；
-  自动 focused 通过；用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；待提交。
-- [ ] P5-W8：`enumerations_equal` residual 身份迁 shared resolver（矩阵 residual-concrete 唯一剩余）。
+  自动 focused 通过；用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；已提交。
+- [x] P5-W8：`enumerations_equal` residual 身份迁 shared resolver（矩阵 residual-concrete 清空；
+  enumerations-equal green）；生产 ordinary concrete identity 接线已改；自动 focused 通过；
+  用户 2026-07-16 确认编辑器加载与可观察执行通过并归档；待提交。
+- [ ] P5-W9：pin-hole named adapter 最小共享收口（矩阵 pin-hole unknown 族）。
 
 从当前 root compiler 实际可生成的 ordinary node/API 出发，建立并审计能力清单。每项必须分类为：
 

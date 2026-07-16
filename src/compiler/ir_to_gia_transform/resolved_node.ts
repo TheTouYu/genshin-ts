@@ -6,14 +6,20 @@ import type {
   Variable
 } from '../../runtime/IR.js'
 import type { DictKeyType, DictValueType } from '../../runtime/value.js'
-import { SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
+import {
+  SPECIAL_NODE_MAPPINGS,
+  enumKeyLowerFromEnumId,
+  enumKeyLowerFromEnumName,
+  getNodeIdLowerMap,
+  parseEnumValue
+} from './mappings.js'
 import type { ConnTypeIndex, ConnTypeInfo } from './node_id.js'
 
 export type ResolvedValueType =
   | { kind: 'scalar'; name: Exclude<ValueType, 'dict' | 'enum' | 'enumeration' | 'local_variable'> }
   | { kind: 'list'; element: ResolvedValueType }
   | { kind: 'dict'; key: ResolvedValueType; value: ResolvedValueType }
-  | { kind: 'enum'; enumName?: string }
+  | { kind: 'enum'; enumName?: string; enumValue?: string }
   | { kind: 'local-variable'; value?: ResolvedValueType }
 
 export type GraphCompileContext = {
@@ -115,7 +121,13 @@ function fromArgument(
   if (arg.type === 'dict' && arg.dict) {
     return fromTypeInfo({ type: 'dict', dict: arg.dict })
   }
-  if (arg.type === 'enum' || arg.type === 'enumeration') return { kind: 'enum' }
+  if (arg.type === 'enum' || arg.type === 'enumeration') {
+    // Literal enum IR carries the value key only; class name is recovered via parseEnumValue.
+    return {
+      kind: 'enum',
+      enumValue: typeof arg.value === 'string' ? arg.value : undefined
+    }
+  }
   if (arg.type === 'local_variable') return { kind: 'local-variable' }
   return scalarType(arg.type)
 }
@@ -255,6 +267,36 @@ export function resolveNodeIdentity(
     return { logicalType: node.type, genericNodeId }
   }
 
+  // P5-W8: enumerations_equal concrete id is selected by enum kind, not produced bool type.
+  // Must land on typed variant (476/477/...) — generic(475) hides enum values in editor.
+  if (usesSharedEnumerationsEqualResolution(node.type)) {
+    // genericNodeId is required on ResolvedNodeIdentity; missing generic already reported above.
+    const sharedGenericNodeId = genericNodeId ?? 0
+    const enumKey = resolveEnumerationsEqualEnumKey(node, inputs)
+    if (!enumKey) {
+      report(context, {
+        code: 'E_UNKNOWN_NODE_VARIANT',
+        message: 'enumerations_equal requires enum literal value or connection enum metadata',
+        nodeId: node.id,
+        nodeType: node.type,
+        argIndex: 0
+      })
+      return { logicalType: node.type, genericNodeId: sharedGenericNodeId }
+    }
+    const concreteNodeId = nodeIds.get(`enumerations_equal__${enumKey}`)
+    if (concreteNodeId === undefined) {
+      report(context, {
+        code: 'E_UNKNOWN_NODE_VARIANT',
+        message: `enumerations_equal missing typed node id for enum "${enumKey}"`,
+        nodeId: node.id,
+        nodeType: node.type,
+        argIndex: 0
+      })
+      return { logicalType: node.type, genericNodeId: sharedGenericNodeId }
+    }
+    return { logicalType: node.type, genericNodeId: sharedGenericNodeId, concreteNodeId }
+  }
+
   let declaredType: ResolvedValueType | undefined
   const isNodeGraphSetter = node.type === 'set_node_graph_variable'
   const isNodeGraphGetter = node.type === 'get_node_graph_variable'
@@ -344,9 +386,29 @@ const SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = new Set([
   'less_than_or_equal_to'
 ])
 
+function resolveEnumerationsEqualEnumKey(
+  node: ServerNode,
+  inputs: ResolvedInput[]
+): string | undefined {
+  const primary = inputs[0]?.type
+  if (primary?.kind !== 'enum') return undefined
+  if (primary.enumName) {
+    return enumKeyLowerFromEnumName(primary.enumName)
+  }
+  if (primary.enumValue) {
+    try {
+      const { enumId } = parseEnumValue(primary.enumValue, 0, node.type)
+      return enumKeyLowerFromEnumId(enumId)
+    } catch {
+      return undefined
+    }
+  }
+  return undefined
+}
+
 /**
  * Residual scalar families previously served only by composite
- * resolveImplOrdinaryConcreteNodeId (P5-W6 residual table minus enumerations_equal).
+ * resolveImplOrdinaryConcreteNodeId (P5-W6 residual table; enumerations_equal is P5-W8).
  */
 const SHARED_RESIDUAL_TYPED_SCALAR_NODE_TYPES = new Set([
   'exponentiation',
@@ -411,6 +473,7 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
     nodeType === 'get_local_variable' ||
     SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES.has(nodeType) ||
     SHARED_RESIDUAL_SCALAR_NODE_TYPES.has(nodeType) ||
+    nodeType === 'enumerations_equal' ||
     nodeType.startsWith('data_type_conversion_')
   )
 }
@@ -423,10 +486,15 @@ export function usesSharedResidualScalarResolution(nodeType: string): boolean {
   return SHARED_RESIDUAL_SCALAR_NODE_TYPES.has(nodeType)
 }
 
+export function usesSharedEnumerationsEqualResolution(nodeType: string): boolean {
+  return nodeType === 'enumerations_equal'
+}
+
 export function usesSharedOrdinaryConcreteIdentity(nodeType: string): boolean {
   return (
     usesSharedScalarSameTypeBinaryResolution(nodeType) ||
-    usesSharedResidualScalarResolution(nodeType)
+    usesSharedResidualScalarResolution(nodeType) ||
+    usesSharedEnumerationsEqualResolution(nodeType)
   )
 }
 

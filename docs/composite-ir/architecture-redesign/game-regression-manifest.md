@@ -39,6 +39,107 @@ P3-W22 在 Phase 3 退出前建立首批 P3 条目。P2 历史候选只有在目
 
 ## 当前条目
 
+### 已通过：P5-W8
+
+以下六份 P5-W8 候选于 2026-07-16 生成，自动 enum/matrix/inventory/sentinel 回归通过，均未注入。
+用户于 2026-07-16 确认编辑器加载和可观察执行通过，并归档到游戏目录 `真-测试通过/复合节点`。
+它们验证 `enumerations_equal` ordinary 身份迁入 shared resolver 后，主 residual+enum fixture 与
+boundary 哨兵仍可加载/执行。用户结论绑定下列核验时 SHA。
+
+游戏目录：`C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+归档：`...\真-测试通过\复合节点\`
+
+#### P5-W8-enumerations-equal-shared
+
+- 工作包/阶段：P5-W8 / Phase 5 enumerations_equal shared identity。
+- 目的与覆盖风险：enumerations_equal 经 shared enum-kind identity 编码后可加载/执行；顺带回归 residual scalar 批。
+- 自动证据：`test-stage3-p5w8-enumerations-equal-shared-identity.ts`、
+  `test-stage3-p5w6-ordinary-coverage-matrix.ts`，PASS。
+- 生成命令：shared-beta residual+enum fixture encode → 仓库 staging → 复制到游戏导出根目录。
+- backend/gate：vendor-gated impl，`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`。
+- 候选路径：`.../真-测试通过/复合节点/P5W8-enumerations-equal-shared-vendor.gia`
+- SHA-256：`7d52c9401a68a23ff8e0ec49943df3e1085774fd24a52b847ea80bce04a80d91`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-16）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-16）。
+- 用户结论与日期：通过，2026-07-16。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 shared identity fixture；不证明全部 enum 变体、wire 全等或 default gate 切换。
+
+#### P5-W8-capture
+
+- 工作包/阶段：P5-W8 / Phase 5。
+- 目的与覆盖风险：enumerations_equal identity 迁移后 capture-only 边界不退化。
+- 自动证据：P5-W8 contract、`test-stage3-p2w6-capture-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w6-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`.../真-测试通过/复合节点/P5W8-capture-vendor.gia`
+- SHA-256：`1d63e54c05ce29eec34bdcda8d323fe0b31e5688be044b74499d01188d6fa108`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-16）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-16）。
+- 用户结论与日期：通过，2026-07-16。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 capture sentinel。
+
+#### P5-W8-nested-capture
+
+- 工作包/阶段：P5-W8 / Phase 5。
+- 目的与覆盖风险：nested capture 路由在 shared enum identity 后不退化。
+- 自动证据：P5-W8 contract、`test-stage3-p2w11-nested-capture-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w11-nested-capture-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`.../真-测试通过/复合节点/P5W8-nested-capture-vendor.gia`
+- SHA-256：`add499fae74190abe7e47cd00f3c5532249a3cb7d17d095defd8d85c36a005f7`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-16）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-16）。
+- 用户结论与日期：通过，2026-07-16。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested capture sentinel。
+
+#### P5-W8-nested-sparse
+
+- 工作包/阶段：P5-W8 / Phase 5。
+- 目的与覆盖风险：nested sparse binding 在 shared enum identity 后不退化。
+- 自动证据：P5-W8 contract、`test-stage3-p2w12-nested-sparse-input-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`.../真-测试通过/复合节点/P5W8-nested-sparse-vendor.gia`
+- SHA-256：`446ba283b09e9a03866159be2b33a9e4f90c19da319d42698a3f835829397b13`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-16）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-16）。
+- 用户结论与日期：通过，2026-07-16。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested sparse sentinel。
+
+#### P5-W8-multi-inflow-outflow
+
+- 工作包/阶段：P5-W8 / Phase 5。
+- 目的与覆盖风险：multi InFlow/OutFlow 在 shared enum identity 后不退化。
+- 自动证据：P5-W8 contract、`test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`.../真-测试通过/复合节点/P5W8-multi-inflow-outflow-vendor.gia`
+- SHA-256：`a1262b415360081f29cd7448ec7c38937c58d63d9e7d950108dc5ed3decc9227`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-16）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-16）。
+- 用户结论与日期：通过，2026-07-16。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 multi inflow/outflow sentinel。
+
+#### P5-W8-nested-call
+
+- 工作包/阶段：P5-W8 / Phase 5。
+- 目的与覆盖风险：nested call flow 在 shared enum identity 后不退化。
+- 自动证据：P5-W8 contract、`test-stage3-p2w9-nested-call-vendor-graph.ts`，PASS。
+- 生成命令：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w9-nested-call-vendor-graph.ts <候选路径>`。
+- backend/gate：vendor-gated impl。
+- 候选路径：`.../真-测试通过/复合节点/P5W8-nested-call-vendor.gia`
+- SHA-256：`971d0929008fb6ac2999f349a0c92b6326b4db4ba6a505caa809e15228b8174c`（用户核验时）
+- 编辑器加载观察：用户确认通过（2026-07-16）。
+- 游戏内可观察执行观察：用户确认通过（2026-07-16）。
+- 用户结论与日期：通过，2026-07-16。
+- 注入状态：未注入。
+- 适用范围与未证明事项：只覆盖 nested call sentinel。
+
 ### 已通过：P5-W7
 
 以下六份 P5-W7 候选于 2026-07-16 生成，自动 residual-scalar/matrix/inventory/sentinel 回归通过，均未注入。

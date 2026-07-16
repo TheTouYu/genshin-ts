@@ -4,7 +4,7 @@
  *
  * Completes one matrix family envelope:
  * - 13 residual scalar ops use usesSharedVariantResolution / shared concrete id
- * - enumerations_equal remains residual-concrete unknown
+ * - residual-concrete table empty after P5-W8 (enumerations_equal moved)
  * - default gate stays false; handwritten pin path not deleted
  *
  * Run:
@@ -42,7 +42,7 @@ const transformDir = join(root, 'src/compiler/ir_to_gia_transform')
 const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 const resolvedSource = readFileSync(join(transformDir, 'resolved_node.ts'), 'utf8')
 
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W7')
+// Contract phase advances with later residual packs; residual scalar identity still holds.
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
@@ -52,7 +52,7 @@ assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true
 assert.equal(SHARED_RESIDUAL_SCALAR_NODE_TYPES.length, 13)
 assert.equal(ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES.length, 13)
 assert.deepEqual([...SHARED_RESIDUAL_SCALAR_NODE_TYPES].sort(), [...ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES].sort())
-assert.deepEqual([...RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES], ['enumerations_equal'])
+assert.deepEqual([...RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES], [])
 
 const context = {
   scope: { kind: 'composite-impl', name: 'p5w7-residual-scalar' },
@@ -140,11 +140,10 @@ for (const [type, genericNodeId] of genericOnlyResidual) {
   )
 }
 
-assert.equal(usesSharedVariantResolution('enumerations_equal'), false)
+// enumerations_equal is not residual-scalar; P5-W8 owns its shared identity.
 assert.equal(usesSharedResidualScalarResolution('enumerations_equal'), false)
-assert.equal(usesSharedOrdinaryConcreteIdentity('enumerations_equal'), false)
 
-// Matrix: residual scalar rows are shared-path green; enum residual remains unknown.
+// Matrix: residual scalar rows are shared-path green; residual-concrete table empty.
 const staticRows = listStaticOrdinaryCoverageRows()
 assertCoverageMatrixInvariants(staticRows)
 const classified = classifyStaticCoverageStatuses(staticRows)
@@ -159,15 +158,16 @@ for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
   assert.equal(row.status, 'green', `${nodeType}: ${row.reason}`)
 }
 
-const enumRow = classified.find((r) => r.id === 'residual-concrete-enumerations_equal')
-assert.equal(enumRow?.status, 'unknown')
-assert.equal(enumRow?.family, 'residual-concrete')
+assert.equal(
+  classified.find((r) => r.id === 'residual-concrete-enumerations_equal'),
+  undefined
+)
 
 // Source guards: shared ordinary concrete wiring, no residual table rewrite into composite helper.
 assert.match(resolvedSource, /usesSharedResidualScalarResolution/)
 assert.match(resolvedSource, /usesSharedOrdinaryConcreteIdentity/)
 assert.match(compositeSource, /usesSharedOrdinaryConcreteIdentity/)
-assert.match(compositeSource, /P5-W7/)
+assert.match(compositeSource, /P5-W7|P5-W8/)
 assert.doesNotMatch(
   compositeSource,
   /resolveImplOrdinaryConcreteNodeId[\s\S]{0,120}SHARED_RESIDUAL_SCALAR/
@@ -186,8 +186,6 @@ for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
 }
 const printRow = probeSummary.rows.find((r) => r.id === 'generic-print_string')
 assert.equal(printRow?.status, 'green')
-const enumProbe = probeSummary.rows.find((r) => r.id === 'residual-concrete-enumerations_equal')
-assert.equal(enumProbe?.status, 'unknown')
 
 assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)

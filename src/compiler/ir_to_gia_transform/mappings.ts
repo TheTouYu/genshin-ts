@@ -479,6 +479,35 @@ export function parseEnumValue(
   throw new Error(`[error] unknown enum value "${value}" at arg #${index} of ${nodeType}`)
 }
 
+/** Root/shared aliases for enum class names used by typed identity resolution. */
+export const ENUM_NAME_ALIASES: Record<string, string> = {
+  sort_by: 'sorting_rules',
+  character_skill_slot: 'skill_slot',
+  follow_coordinate_system: 'coordinate_system_type',
+  rounding_mode: 'rounding_logic',
+  type_conversion: 'type_conversions',
+  trigonometric_function: 'trigonometric_functions'
+}
+
+const ENUM_ID_TO_LOWER_KEY = new Map<number, string>(
+  [...ENUM_ID_LOWER.entries()].map(([k, id]) => [id, k])
+)
+
+/** Resolve vendor enum_id lower key from a class/name string (connection metadata). */
+export function enumKeyLowerFromEnumName(enumName: string): string | undefined {
+  const snake = enumName.toLowerCase()
+  const key = ENUM_NAME_ALIASES[snake] ?? snake
+  if (ENUM_ID_LOWER.has(key)) return key
+  // fallback: many enum_id keys are pluralized (e.g. comparison_operators)
+  const plural = key.endsWith('s') ? key : `${key}s`
+  return ENUM_ID_LOWER.has(plural) ? plural : undefined
+}
+
+/** Resolve vendor enum_id lower key from numeric enumId (literal parse path). */
+export function enumKeyLowerFromEnumId(enumId: number): string | undefined {
+  return ENUM_ID_TO_LOWER_KEY.get(enumId)
+}
+
 export function getNodeIdLowerMap() {
   return NODE_ID_LOWER
 }

@@ -149,6 +149,48 @@ assert.equal(
   208
 )
 
+// P5-W8 enumerations_equal shared enum-kind identity (literal + connection)
+const enumLiteralNode = {
+  id: 570,
+  type: 'enumerations_equal',
+  args: [
+    { type: 'enum', value: 'comparison_operator_equal_to' },
+    { type: 'enum', value: 'comparison_operator_equal_to' }
+  ]
+}
+assert.deepEqual(resolveNodeIdentity(enumLiteralNode, context), {
+  logicalType: 'enumerations_equal',
+  genericNodeId: 475,
+  concreteNodeId: 476
+})
+assert.equal(
+  resolveGiaNodeId(enumLiteralNode, context.connectionTypes, context.variablesByName),
+  476
+)
+const enumConnContext = {
+  ...context,
+  connectionTypes: new Map([
+    [900, new Map([[0, { type: 'enum', enum: 'comparison_operator' }]])]
+  ])
+}
+const enumConnNode = {
+  id: 571,
+  type: 'enumerations_equal',
+  args: [
+    { type: 'conn', value: { node_id: 900, index: 0, type: 'enum', enum: 'comparison_operator' } },
+    { type: 'conn', value: { node_id: 900, index: 0, type: 'enum', enum: 'comparison_operator' } }
+  ]
+}
+assert.deepEqual(resolveNodeIdentity(enumConnNode, enumConnContext), {
+  logicalType: 'enumerations_equal',
+  genericNodeId: 475,
+  concreteNodeId: 476
+})
+assert.equal(
+  resolveGiaNodeId(enumConnNode, enumConnContext.connectionTypes, enumConnContext.variablesByName),
+  476
+)
+
 const customSetter = { id: 8, type: 'set_custom_variable', args: [
   { type: 'entity', value: 0 },
   { type: 'str', value: 'customFloat' },

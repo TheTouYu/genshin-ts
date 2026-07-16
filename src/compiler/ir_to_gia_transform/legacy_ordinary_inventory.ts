@@ -111,11 +111,11 @@ export const LEGACY_ORDINARY_CALL_SITES: readonly LegacyOrdinaryCallSite[] = [
     callers: ['buildImplGraphNodes'],
     sharedReplacement: 'resolveNodeIdentity concreteNodeId for concrete-wrapped families',
     deletionPreconditions: [
-      'scalar arithmetic/comparison residual scalar and remaining concrete-wrapped families use shared identity',
-      'enumerations_equal residual uses shared enum identity'
+      'scalar arithmetic/comparison residual scalar and enumerations_equal use shared identity',
+      'no remaining concrete-wrapped ordinary family requires producedType suffix helper'
     ],
     notes:
-      'P5-W7: residual scalar ordinary families now use shared identity; helper remains only for enumerations_equal residual concrete id.'
+      'P5-W8: residual scalar + enumerations_equal use shared identity; helper has no residual identity callers left (pin wrapping may still exist under default backend).'
   },
   // P5-W4: legacy-typed-identity-adapter removed (empty set + no production true callers).
   {

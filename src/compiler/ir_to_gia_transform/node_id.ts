@@ -8,9 +8,7 @@ import type {
 } from '../../runtime/IR.js'
 import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import {
-  getEnumIdLowerMap,
   getNodeIdLowerMap,
-  parseEnumValue,
   SPECIAL_NODE_IDS,
   SPECIAL_NODE_MAPPINGS
 } from './mappings.js'
@@ -21,10 +19,6 @@ export type ConnTypeInfo =
   | { type: Exclude<ValueType, 'dict' | 'enum'> }
   | { type: 'enum'; enum: string }
   | { type: 'dict'; dict: { k: DictKeyType; v: DictValueType } }
-
-const ENUM_ID_TO_LOWER_KEY = new Map<number, string>(
-  [...getEnumIdLowerMap().entries()].map(([k, id]) => [id, k])
-)
 
 const MODE_SPECIFIC_NODE_IDS: Record<string, Partial<Record<ServerGraphMode, number>>> = {
   teleport_player: { classic: 805, beyond: 288 }
@@ -112,25 +106,6 @@ function suffixFromValueType(valueType: ValueType): string | undefined {
     return baseSuffix ? `list_${baseSuffix}` : undefined
   }
   return undefined
-}
-
-const ENUM_NAME_ALIASES: Record<string, string> = {
-  sort_by: 'sorting_rules',
-  character_skill_slot: 'skill_slot',
-  follow_coordinate_system: 'coordinate_system_type',
-  rounding_mode: 'rounding_logic',
-  type_conversion: 'type_conversions',
-  trigonometric_function: 'trigonometric_functions'
-}
-
-function enumKeyLowerFromEnumName(enumName: string): string | undefined {
-  const snake = enumName.toLowerCase()
-  const key = ENUM_NAME_ALIASES[snake] ?? snake
-  const enumIdLower = getEnumIdLowerMap()
-  if (enumIdLower.has(key)) return key
-  // fallback: many enum_id keys are pluralized (e.g. comparison_operators)
-  const plural = key.endsWith('s') ? key : `${key}s`
-  return enumIdLower.has(plural) ? plural : undefined
 }
 
 function isListValueSuffix(s: string) {
@@ -376,58 +351,9 @@ export function resolveGiaNodeId(
   const specialId = SPECIAL_NODE_IDS[nodeType]
   if (specialId) return specialId
 
-  // special: enumerations_equal 的具体节点 ID 需要由“枚举类型(enumId)”决定，否则落到 generic(475)
-  // generic 节点在编辑器内不会显示枚举值（vendor .gia 使用 concreteId=476/477/...）
-  if (nodeType === 'enumerations_equal') {
-    const nodeIdLower = getNodeIdLowerMap()
-    const a0 = node.args?.[0]
-    if (!a0) {
-      throw new Error('[error] enumerations_equal requires enumeration args')
-    }
-    // 重要：enumerations_equal 必须落到具体节点（476/477/...），不能 fallback 到 generic(475)
-    // 否则编辑器不会显示枚举值（看起来像“没有填值”）。
-    if (isConnectionArgument(a0)) {
-      const info = connIndex.get(a0.value.node_id)?.get(a0.value.index)
-      if (info?.type === 'enum' && info.enum) {
-        const enumKeyLower = enumKeyLowerFromEnumName(info.enum)
-        if (!enumKeyLower) {
-          throw new Error(
-            `[error] enumerations_equal unknown enum "${info.enum}" from connection ${a0.value.node_id}.${a0.value.index}`
-          )
-        }
-        const typed = nodeIdLower.get(`enumerations_equal__${enumKeyLower}`)
-        if (!typed) {
-          throw new Error(
-            `[error] enumerations_equal missing typed node id for enum "${enumKeyLower}" (from enum=${info.enum})`
-          )
-        }
-        return typed
-      }
-      throw new Error(
-        `[error] enumerations_equal cannot infer enum kind from connection ${a0.value.node_id}.${a0.value.index} (missing enum metadata)`
-      )
-    }
-    if (a0.type !== 'enum') {
-      throw new Error(
-        `[error] enumerations_equal expects enum literal args, got "${a0.type}" at arg #0`
-      )
-    }
-    const { enumId } = parseEnumValue(a0.value, 0, nodeType)
-    const enumKeyLower = ENUM_ID_TO_LOWER_KEY.get(enumId)
-    if (!enumKeyLower) {
-      throw new Error(`[error] enumerations_equal unknown enumId: ${enumId}`)
-    }
-    const typed = nodeIdLower.get(`enumerations_equal__${enumKeyLower}`)
-    if (!typed) {
-      throw new Error(
-        `[error] enumerations_equal missing typed node id for enum "${enumKeyLower}" (enumId=${enumId})`
-      )
-    }
-    return typed
-  }
-
-  // Migrated DTC / scalar same-type binary / residual scalar families delegate concrete
-  // identity to the shared resolver rather than maintaining root and composite-impl maps.
+  // Migrated DTC / scalar same-type binary / residual scalar / enumerations_equal
+  // families delegate concrete identity to the shared resolver rather than
+  // maintaining root and composite-impl maps.
   if (
     nodeType.startsWith('data_type_conversion_') ||
     [
@@ -453,7 +379,9 @@ export function resolveGiaNodeId(
       'round_to_integer_operation',
       'range_limiting_operation',
       'take_larger_value',
-      'take_smaller_value'
+      'take_smaller_value',
+      // P5-W8 enumerations_equal enum-kind identity
+      'enumerations_equal'
     ].includes(nodeType)
   ) {
     const identity = resolveNodeIdentity(node, {

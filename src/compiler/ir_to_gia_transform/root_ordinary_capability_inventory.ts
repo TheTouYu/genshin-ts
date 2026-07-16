@@ -85,7 +85,6 @@ export const ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = [
 
 /**
  * Residual scalar families migrated onto shared identity in P5-W7.
- * enumerations_equal remains a typed-identity residual (enum variants).
  */
 export const ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES = [
   'modulo_operation',
@@ -102,6 +101,9 @@ export const ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES = [
   'take_larger_value',
   'take_smaller_value'
 ] as const
+
+/** enumerations_equal enum-kind identity migrated onto shared resolver in P5-W8. */
+export const ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES = ['enumerations_equal'] as const
 
 /** Variable getter/setter families already on shared identity resolution. */
 export const ROOT_SHARED_VARIABLE_NODE_TYPES = [
@@ -137,7 +139,6 @@ export const ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES = [
 
 /** Root typed-identity adapters still outside usesSharedVariantResolution. */
 export const ROOT_NAMED_TYPED_IDENTITY_ADAPTER_NODE_TYPES = [
-  'enumerations_equal',
   'when_custom_variable_changes',
   'when_node_graph_variable_changes',
   'set_player_settlement_scoreboard_data_display',
@@ -285,7 +286,25 @@ export const ROOT_ORDINARY_CAPABILITIES: readonly RootOrdinaryCapability[] = [
     compositeLegacyRisk: true,
     evidenceClass: 'automatic-contract',
     notes:
-      'P5-W7: residual scalar ops share root/impl concrete identity. Typed int/float variants use primary input suffix; generic-only ops stay on generic. enumerations_equal remains typed-identity residual. Handwritten pin wrapping may still exist under default backend.'
+      'P5-W7: residual scalar ops share root/impl concrete identity. Typed int/float variants use primary input suffix; generic-only ops stay on generic. Handwritten pin wrapping may still exist under default backend.'
+  },
+  {
+    id: 'shared-enumerations-equal-identity',
+    name: 'enumerations_equal shared enum-kind identity resolution',
+    category: 'shared-path',
+    layer: 'identity-resolution',
+    nodeTypes: ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES,
+    rootSurfaces: [
+      'resolved_node.ts:resolveNodeIdentity',
+      'resolved_node.ts:usesSharedEnumerationsEqualResolution',
+      'node_id.ts:resolveGiaNodeId'
+    ],
+    sharedOrAdapterPath:
+      'usesSharedEnumerationsEqualResolution + resolveNodeIdentity',
+    compositeLegacyRisk: true,
+    evidenceClass: 'automatic-contract',
+    notes:
+      'P5-W8: enumerations_equal concrete id selected by enum kind (literal value key or connection enum metadata). Must not fall back to generic(475). Handwritten pin wrapping may still exist under default backend.'
   },
   {
     id: 'adapter-special-node-ids',
@@ -339,7 +358,7 @@ export const ROOT_ORDINARY_CAPABILITIES: readonly RootOrdinaryCapability[] = [
     compositeLegacyRisk: true,
     evidenceClass: 'source-observation',
     notes:
-      'Dict/list/enum/event typed identities still live primarily in root resolveGiaNodeId. Composite handwritten identity must not permanently diverge.'
+      'Dict/list/event typed identities still live primarily in root resolveGiaNodeId. enumerations_equal moved to shared path in P5-W8. Composite handwritten identity must not permanently diverge.'
   },
   {
     id: 'adapter-pin-hole-layouts',
@@ -499,6 +518,7 @@ export const ROOT_ORDINARY_CAPABILITY_CONTRACT = {
     ...ROOT_SHARED_VARIABLE_NODE_TYPES,
     ...ROOT_SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES,
     ...ROOT_SHARED_RESIDUAL_SCALAR_NODE_TYPES,
+    ...ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES,
     'data_type_conversion_*'
   ] as const,
   capabilities: ROOT_ORDINARY_CAPABILITIES,
@@ -550,6 +570,13 @@ export function assertSharedVariantInventoryConsistency(): void {
     if (!usesSharedVariantResolution(nodeType)) {
       throw new Error(
         `[root-ordinary-inventory] expected shared residual scalar resolution for ${nodeType}`
+      )
+    }
+  }
+  for (const nodeType of ROOT_SHARED_ENUMERATIONS_EQUAL_NODE_TYPES) {
+    if (!usesSharedVariantResolution(nodeType)) {
+      throw new Error(
+        `[root-ordinary-inventory] expected shared enumerations_equal resolution for ${nodeType}`
       )
     }
   }
