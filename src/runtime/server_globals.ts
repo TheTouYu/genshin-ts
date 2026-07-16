@@ -118,7 +118,6 @@ function ensureServerCtx(fnName: string): void {
   }
 }
 
-const BOOTSTRAP_STAGE_INIT: unique symbol = Symbol('gstsStageBootstrapInit')
 const TIMER_HANDLER_REGISTRY = new WeakMap<MetaCallRegistry, Set<string>>()
 
 function getRegistry(fnName: string): MetaCallRegistry {
@@ -150,16 +149,18 @@ function registerTimerHandlerOnce(f: unknown, opts: TimerOptions, handler: unkno
 
 function ensureStageBootstrap(): void {
   const registry = getRegistry('stage')
-  const holder = registry as unknown as { [BOOTSTRAP_STAGE_INIT]?: boolean }
-  if (holder[BOOTSTRAP_STAGE_INIT]) return
-  registry.withFlow(registry.ensureBootstrapFlow(), () => {
-    const varName = '__gsts_stage'
-    gsts.f.__gstsEnsureVariable(varName, 'entity')
-    const listValue = gsts.f.getSpecifiedTypeOfEntitiesOnTheField(EntityType.Stage)
-    const stageValue = gsts.f.getCorrespondingValueFromList(listValue, 0n)
-    gsts.f.setNodeGraphVariable(varName, stageValue, false)
-  })
-  holder[BOOTSTRAP_STAGE_INIT] = true
+  const varName = '__gsts_stage'
+  gsts.f.__gstsEnsureVariable(varName, 'entity')
+  registry.ensureServerEventPrelude(
+    'whenEntityIsCreated',
+    'initialize-stage-entity',
+    (f) => {
+      const listValue = f.getSpecifiedTypeOfEntitiesOnTheField(EntityType.Stage)
+      const stageValue = f.getCorrespondingValueFromList(listValue, 0n)
+      f.setNodeGraphVariable(varName, stageValue, false)
+    },
+    { createFallback: true }
+  )
 }
 
 function detectFromType(v: unknown): ConvertibleFrom | null {

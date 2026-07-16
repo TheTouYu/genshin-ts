@@ -43,7 +43,7 @@ import {
   type ClientStartGraphApi
 } from './client_graph_support.js'
 import { installScopedClientGlobals } from './client_scoped_globals.js'
-import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
+import type { ExecContext, ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
 import {
   CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL,
   resolveGraphIdForGraph
@@ -54,6 +54,7 @@ import type {
   ClientGraphSubType,
   GraphMode,
   IRDocument,
+  NextConnection,
   ServerGraphMode,
   ServerGraphSubType,
   Variable
@@ -745,6 +746,12 @@ export interface ExecutionFlowRegistry {
   connectExecBranchOutput(fromNodeId: number, sourceIndex: number, headNodeId: number): void
 }
 
+type ServerEventPrelude = {
+  eventName: ServerEventName
+  build: (f: ServerExecutionFlowFunctions) => void
+  createFallback: boolean
+}
+
 export class MetaCallRegistry implements ExecutionFlowRegistry {
   private recordCounter = 1
   private flows: ExecutionFlow[] = []
@@ -758,7 +765,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
   private readonly prefixName: boolean
   private readonly variables: Variable[]
   private readonly variableMetaByName: Map<string, NodeGraphVariableMeta>
-  private bootstrapFlow?: ExecutionFlow
+  private readonly serverEventPreludes = new Map<string, ServerEventPrelude>()
+  private readonly appliedServerEventPreludes = new WeakMap<ExecutionFlow, Set<string>>()
   /**
    * return调用计数, 通过回调前后比对确认是否调用过return
    */
@@ -790,29 +798,29 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     this.variableMetaByName = variableMetaByName
   }
 
-  ensureBootstrapFlow(): ExecutionFlow {
-    if (this.bootstrapFlow) return this.bootstrapFlow
-    if (this.recordCounter !== 1) {
-      throw new Error('[error] bootstrap flow must be created before any other nodes')
+  /**
+   * 为指定服务器事件的每一条执行流前置同一段节点。
+   *
+   * 节点会在构建 IR 前统一插入，因此不依赖处理器的声明顺序。
+   */
+  ensureServerEventPrelude(
+    eventName: ServerEventName,
+    key: string,
+    build: (f: ServerExecutionFlowFunctions) => void,
+    options?: { createFallback?: boolean }
+  ): void {
+    const existing = this.serverEventPreludes.get(key)
+    if (existing) {
+      if (existing.eventName !== eventName) {
+        throw new Error(
+          `[error] server event prelude "${key}" is already registered for ${existing.eventName}`
+        )
+      }
+      return
     }
-    this.registerEvent('whenEntityIsCreated', ServerEventMetadata, [])
-    const flow = this.flows[this.flows.length - 1]
-    this.bootstrapFlow = flow
-    return flow
-  }
 
-  withFlow<T>(flow: ExecutionFlow, fn: () => T): T {
-    const idx = this.flows.indexOf(flow)
-    if (idx < 0) {
-      throw new Error('[error] flow not found')
-    }
-    const prevFlowStack = this.flowStack
-    this.flowStack = [...prevFlowStack, idx]
-    try {
-      return fn()
-    } finally {
-      this.flowStack = prevFlowStack
-    }
+    const prelude = { eventName, build, createFallback: options?.createFallback === true }
+    this.serverEventPreludes.set(key, prelude)
   }
 
   ensureVariable(variable: Variable, meta?: NodeGraphVariableMeta) {
@@ -854,7 +862,6 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     ) => void,
     inputArgs: value[] = []
   ) {
-    this.ensureBootstrapFlow()
     const evt = this.registerEvent(eventName, ServerEventMetadata, inputArgs)
     const fns = new ServerExecutionFlowFunctions(this)
     const gsts = ensureGsts() as unknown as GstsInternal
@@ -975,6 +982,85 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       list.push(toNodeId)
     } else {
       list.push({ node_id: toNodeId, source_index: sourceIndex })
+    }
+  }
+
+  private connectFromEndpointsToConnection(
+    flow: ExecutionFlow,
+    endpoints: ExecTailEndpoint[],
+    next: NextConnection
+  ): void {
+    const targetNodeId = typeof next === 'number' ? next : next.node_id
+    for (const endpoint of endpoints) {
+      if (typeof next === 'number' && endpoint.sourceIndex === undefined) {
+        this.addEdge(flow, endpoint.nodeId, targetNodeId)
+        continue
+      }
+
+      const connections = (flow.edges[endpoint.nodeId] ??= [])
+      connections.push({
+        node_id: targetNodeId,
+        ...(endpoint.sourceIndex === undefined ? {} : { source_index: endpoint.sourceIndex }),
+        ...(typeof next === 'number' || next.target_index === undefined
+          ? {}
+          : { target_index: next.target_index }),
+        ...(typeof next === 'number' || next.target_sub_index === undefined
+          ? {}
+          : { target_sub_index: next.target_sub_index })
+      })
+    }
+  }
+
+  private getAppliedServerEventPreludes(flow: ExecutionFlow): Set<string> {
+    let applied = this.appliedServerEventPreludes.get(flow)
+    if (!applied) {
+      applied = new Set<string>()
+      this.appliedServerEventPreludes.set(flow, applied)
+    }
+    return applied
+  }
+
+  private prependServerEventPrelude(
+    flow: ExecutionFlow,
+    key: string,
+    prelude: ServerEventPrelude
+  ): void {
+    const applied = this.getAppliedServerEventPreludes(flow)
+    if (applied.has(key)) return
+    applied.add(key)
+
+    const flowIndex = this.flows.indexOf(flow)
+    if (flowIndex < 0) {
+      throw new Error('[error] flow not found')
+    }
+
+    const eventNodeId = flow.eventNode.id
+    const originalNext = [...(flow.edges[eventNodeId] ?? [])]
+    const originalContextStack = flow.execContextStack
+    const preludeContext: ExecContext = { tailEndpoints: [{ nodeId: eventNodeId }] }
+    const previousFlowStack = this.flowStack
+
+    delete flow.edges[eventNodeId]
+    flow.execContextStack = [preludeContext]
+    this.flowStack = [...previousFlowStack, flowIndex]
+    try {
+      prelude.build(new ServerExecutionFlowFunctions(this))
+    } catch (error) {
+      flow.edges[eventNodeId] = originalNext
+      applied.delete(key)
+      throw error
+    } finally {
+      flow.execContextStack = originalContextStack
+      this.flowStack = previousFlowStack
+    }
+
+    if (!preludeContext.headNodeId) {
+      flow.edges[eventNodeId] = originalNext
+      return
+    }
+
+    for (const next of originalNext) {
+      this.connectFromEndpointsToConnection(flow, preludeContext.tailEndpoints, next)
     }
   }
 
@@ -1179,6 +1265,21 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       throw new Error(`registerNode: unknown record type: ${record.type}`)
     }
     return record
+  }
+
+  /** 在服务器 IR 构建前应用事件前置逻辑；重复调用不会重复插入。 */
+  finalizeServerFlows(): void {
+    for (const [key, prelude] of this.serverEventPreludes) {
+      const nodeType = camelToSnake(prelude.eventName)
+      let matchingFlows = this.flows.filter((flow) => flow.eventNode.nodeType === nodeType)
+      if (matchingFlows.length === 0 && prelude.createFallback) {
+        this.registerEvent(prelude.eventName, ServerEventMetadata, [])
+        matchingFlows = [this.flows[this.flows.length - 1]]
+      }
+      for (const flow of matchingFlows) {
+        this.prependServerEventPrelude(flow, key, prelude)
+      }
+    }
   }
 
   getFlows(): ExecutionFlow[] {
@@ -1813,6 +1914,7 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
   }
 
   const list = serverRegistries.map((registry) => {
+    registry.finalizeServerFlows()
     const flows = registry.getFlows()
     const optimizedFlows = removeUnusedNodes
       ? flows.map(removeUnusedNodesFromFlow).filter((flow) => flow !== null)
