@@ -14,12 +14,13 @@
 
 - 保持严格类型，不使用 `any` 规避转换问题。
 - 保持 `Env` 传递、位置诊断格式和 `f` 标识符匹配逻辑；不要假设运行时标识符固定叫 `f`。
+- timer callback 的参数类型可能无法由 checker 完整推断；使用 `f.callComposite(...).output` 时必须保留 CompositeHandle 的声明输出类型，不能回退为 `entity` 或未类型化局部变量。
 - 用户 DSL 仍受限制：不要引入 Promise、async、递归、JSON、try/throw、with、标签语句或未建模的 JavaScript 语义。
 - 新增列表方法或 Math/builtin 支持时，同步更新对应 ESLint allowlist 与转换实现。
 
 ## 验证
 
-- 为新增或修复的语法建立最小编译 fixture；运行对应测试或 `npm run quicktest`。
+- 为新增或修复的语法建立最小编译 fixture；运行对应测试或 `npm run quicktest`。timer/Composite 类型修复必须检查生成的 `.gs.ts` / IR 中没有错误的 `entity` 局部变量，并继续完成 GIA 生成验证。
 - 改动生产 TypeScript 后运行 `npm run build`；最后运行 `git diff --check`。
 
 ## 不要做

@@ -16,10 +16,12 @@
 - `tests/composite/` 不会被主测试命令自动执行，使用
   `npx tsx tests/composite/<file>.ts` 单独运行；它的输出文件和真实 GIA 样本不能随意覆盖。
 - 新回归应锁定可观察的 IR/GIA 结构或错误契约；自动回归、raw/wire 对比和用户游戏验证分别说明。
+- 涉及生产 Composite/timer 行为的回归，应保留位于 `tests/` 根目录的最小入口和独立配置，使其可以单独生成 `.gia`；不要只保留无法经过 Stage 1 timer metadata 的 `tests/composite/` runtime harness。
 
 ## 验证
 
 - 优先运行新增或受影响的测试；必要时使用 `npm run quicktest` 或 `npm test`。
+- 若验收包含游戏验证，报告必须分别列出测试文件、GIA 生成、导入/复制和用户游戏内结果；用户未确认前不得标记为已修复。
 - 改动生产 TypeScript 时先运行 `npm run build`；最后运行 `git diff --check`。
 
 ## 不要做

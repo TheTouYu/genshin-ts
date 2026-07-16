@@ -17,9 +17,20 @@
 - 通过 `gia_vendor.ts` 使用 vendor API；不要直接改 `src/thirdparty/`，也不要手写 protobuf 字节。
 - 保持 root 与 Composite impl 的 ordinary-node 类型决策、pin schema 和连接语义一致；
   Composite 特殊逻辑仅限 definition、synthetic call、capture、`compositePins` 和边界布局。
+- `__composite_call__` 的 OutParam 输出连接到普通节点时，必须绕过 ordinary data-edge pin materializer，使用复合 OutParam overlay 建立连接；新增或修改该路径必须有 timer/Composite focused GIA 回归。
 - pin-hole / hidden-pin 节点：IR 参数序与物理 InParam 不一致时，必须走共享 remap
   （`pin_hole_adapter.ts`）。凡同时触及 capture 与 pin-hole，vendor/legacy 过滤物理 pin 与
   `compositePins.innerPinIndex` 必须用同一物理脚位；只 remap 一侧会出现“主图正常、复合丢参”。
+- special-arg 节点（signal / assembly / multiple_branches）：字面量布局与 IR→physical remap
+  必须走共享 `special_arg_adapter.ts`（P5-W10）。root `applySpecialArgs`、factory 与
+  composite vendor/legacy 不得再各写一套 count@0 / ClientExec name / case-list 逻辑。
+- 信号 send/monitor：编码后必须经 `build_signal_definition.ts` 写出 SignalDef(which=14)+
+  监听信号 CompositeDef，并把占位 300000/300001 修成内置 SysGraph id（1610612738/1610612739）
+  与 compositePinIndex；否则编辑器加载时看不到参数脚位（注入 remap 不能替代这一步）。
+- 信号 ParameterFlow 类型与普通 CompositeDef 不同（真实 GIA）：`entity` 用 class=Unknown(0)
+  type1=Entity(1)；任意 `*_list` 用 class=ArrayBase(10002) 且 type1=type2=StringList(11)
+  （列表元素区分在物理 pin / 接线值，不在 ParameterFlow type1）。勿把 entity 写成 IdBase(1)，
+  也勿把 list 的 type1 写成元素标量类型。
 - 改动 capture、nested composite、多 inflow/outflow、sparse input、layout 或 graph metadata 时，
   先建立 focused 回归，不能顺手扩大行为范围。
 - 真实 GIA、自动回归、生成候选、注入和游戏编辑器验证必须分别记录。
@@ -27,6 +38,7 @@
 ## 验证
 
 - 运行最小 Stage 3 / composite 回归；生产 TypeScript 改动后运行 `npm run build` 和 `git diff --check`。
+- Composite 输出到普通节点的修复，除自动 GIA 生成外，还要分别记录 GIA 导入和用户游戏内验证结果；不能以编译或注入成功替代游戏验证。
 - 共享 Composite 行为变动时，补跑 nested、capture、sparse、root/impl parity 等受影响回归；未运行项明确说明。
 
 ## 不要做
