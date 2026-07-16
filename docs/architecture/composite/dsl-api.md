@@ -281,9 +281,41 @@ export const Triple = g.defineComposite('Triple', {
 })
 ```
 
-`isPureData = true` → 调用方注册 `__composite_call__` 作为 data 类型节点。
+`isPureData = true` → 调用方注册 `__composite_call__` 作为 data 类型节点，不推进调用方的执行流。
 
-### 5.3 exec 复合 + data 复合串联
+### 5.3 分支回调不能作为运行时值合流
+
+`f.doubleBranch(condition, yes, no)` 捕获的是两条**执行路径**。在 `yes` / `no` 回调中给普通
+TypeScript 局部变量赋值，不会生成运行时的 phi/select 值，也不能把两条路径中的不同数据结果自动
+合并到分支后的 `return`：
+
+```typescript
+// 错误：value 是捕获 build() 时的 JS 局部变量，不是游戏运行时的条件选择值。
+let value = args.a
+f.doubleBranch(
+  f.greaterThan(args.b, args.a),
+  () => { value = args.b },
+  () => {}
+)
+return { value }
+```
+
+如果目标是纯数据选择，应使用具有数据输出语义的节点。例如四个浮点值取最大值：
+
+```typescript
+const ab = f.takeLargerValue(args.a, args.b)
+const cd = f.takeLargerValue(args.c, args.d)
+return { value: f.takeLargerValue(ab, cd) }
+```
+
+这种实现保持 `isPureData = true`，主图白色控制流会绕过该复合，输出通过数据连线进入消费者。
+如果目标确实是根据条件执行不同副作用，则保留 `doubleBranch`，并将后续副作用放在各自分支中，
+不要假设分支后的普通 TS 局部变量已经完成运行时合流。
+
+证据边界：2026-07-16 的最小 GIA 自动回归和用户编辑器/游戏测试已验证“纯数据复合绕过执行流 +
+三次 `takeLargerValue` 合并四值”这一模式；该单一样本不自动证明所有数据类型或任意控制流拓扑。
+
+### 5.4 exec 复合 + data 复合串联
 
 ```typescript
 const Triple = g.defineComposite('Triple', { ... })   // pure data
