@@ -13,6 +13,8 @@ import {
   extractGraphType,
   findNodeGraphTargets,
   getGraphId,
+  isClientGraphType,
+  isNodeGraphEmptyForInjection,
   loadGiaGraph,
   setGraphId,
   setGraphType
@@ -116,33 +118,37 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
         throw new Error('[error] target NodeGraph path is unexpected')
       }
 
-      const folderIndexesBefore = collectFolderIndexes(payload, fields)
-      const idToTypeBefore = buildGraphTypeMap(
-        payload,
-        nodeGraphBlobFields.length ? nodeGraphBlobFields : fields,
-        proto.nodeGraphMessage
-      )
-      const entryFieldBefore = findFolderEntryField(payload, fields, targetId)
-      if (!entryFieldBefore) {
-        throw new Error('[error] target id not found in folder index')
-      }
-      const graphType = resolveGraphTypeForTypeValue(
-        entryFieldBefore.entry.typeValue,
-        folderIndexesBefore,
-        idToTypeBefore
-      )
       const existingType = extractGraphType(target.obj)
-      if (existingType !== undefined && existingType !== graphType) {
-        console.warn(
-          t('injector_targetTypeMismatch', {
-            id: targetId,
-            current: fmtGraphType(existingType, t),
-            expected: fmtGraphType(graphType, t)
-          })
+      let graphType = existingType
+      if (graphType === undefined) {
+        const folderIndexesBefore = collectFolderIndexes(payload, fields)
+        const idToTypeBefore = buildGraphTypeMap(
+          payload,
+          nodeGraphBlobFields.length ? nodeGraphBlobFields : fields,
+          proto.nodeGraphMessage
+        )
+        const entryFieldBefore = findFolderEntryField(payload, fields, targetId)
+        if (!entryFieldBefore) {
+          throw new Error('[error] target id not found in folder index')
+        }
+        graphType = resolveGraphTypeForTypeValue(
+          entryFieldBefore.entry.typeValue,
+          folderIndexesBefore,
+          idToTypeBefore
         )
       }
       const incomingType = extractGraphType(newGraph)
-      if (incomingType !== undefined && incomingType !== graphType) {
+      const hasClientGraphType = isClientGraphType(graphType) || isClientGraphType(incomingType)
+      if (hasClientGraphType && incomingType !== graphType) {
+        throw new Error(
+          t('injector_clientTypeMismatch', {
+            id: targetId,
+            current: incomingType ?? t('graphType_unknown'),
+            expected: graphType
+          })
+        )
+      }
+      if (!hasClientGraphType && incomingType !== undefined && incomingType !== graphType) {
         console.warn(
           t('injector_incomingTypeMismatch', {
             id: targetId,
@@ -152,16 +158,12 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
         )
       }
 
-      if (!input.skipNonEmptyCheck) {
-        const targetNodes = (target.obj as { nodes?: unknown }).nodes
-        const nodeCount = Array.isArray(targetNodes) ? targetNodes.length : 0
-        if (nodeCount > 0) {
-          const targetName = (target.obj as { name?: unknown }).name
-          if (typeof targetName !== 'string' || !targetName.startsWith('_GSTS')) {
-            throw new Error(
-              `[error] target NodeGraph not empty and name not _GSTS*: ${String(targetName)}`
-            )
-          }
+      if (!input.skipNonEmptyCheck && !isNodeGraphEmptyForInjection(target.obj)) {
+        const targetName = (target.obj as { name?: unknown }).name
+        if (typeof targetName !== 'string' || !targetName.startsWith('_GSTS')) {
+          throw new Error(
+            `[error] target NodeGraph not empty and name not _GSTS*: ${String(targetName)}`
+          )
         }
       }
 

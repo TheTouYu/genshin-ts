@@ -41,6 +41,7 @@ message GraphUnit {
     CreationStatusDecision = 51;
     CreationSkill = 52;
     CreationStatus = 53;
+    CharacterControlSkill = 64;
   };
 
   Id id = 1;                  // Self id
@@ -150,6 +151,7 @@ message NodeGraph {
       CreationStatusDecision = 20007;
       CreationSkill = 20008;
       CreationStatus = 20009;
+      CharacterControlSkill = 20010;
     };
     enum Kind {
       Unknown3 = 0;

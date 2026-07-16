@@ -84,7 +84,8 @@ export const GraphUnit_Which = {
   IntegerFilter: 47,
   CreationStatusDecision: 51,
   CreationSkill: 52,
-  CreationStatus: 53
+  CreationStatus: 53,
+  CharacterControlSkill: 64
 } as const
 export type GraphUnit_Which = (typeof GraphUnit_Which)[keyof typeof GraphUnit_Which]
 export interface NodeGraphWrapper {
@@ -259,7 +260,8 @@ export const NodeGraph_Id_Type = {
   IntegerFilter: 20006,
   CreationStatusDecision: 20007,
   CreationSkill: 20008,
-  CreationStatus: 20009
+  CreationStatus: 20009,
+  CharacterControlSkill: 20010
 } as const
 export type NodeGraph_Id_Type = (typeof NodeGraph_Id_Type)[keyof typeof NodeGraph_Id_Type]
 export const NodeGraph_Id_Kind = {

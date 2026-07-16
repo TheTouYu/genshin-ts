@@ -101,6 +101,33 @@ export function extractGraphType(obj: unknown): number | undefined {
   return toNumberIfLongLike(type)
 }
 
+const CLIENT_ENTRY_GENERIC_ID_BY_GRAPH_TYPE = new Map<number, number>([
+  [20001, 200000],
+  [20002, 200042],
+  [20006, 200122],
+  [20007, 200126],
+  [20008, 200042],
+  [20009, 200126],
+  [20010, 200042]
+])
+
+export function isClientGraphType(type: number | undefined): type is number {
+  return typeof type === 'number' && CLIENT_ENTRY_GENERIC_ID_BY_GRAPH_TYPE.has(type)
+}
+
+export function isNodeGraphEmptyForInjection(obj: unknown): boolean {
+  const nodes = (obj as { nodes?: unknown } | undefined)?.nodes
+  if (!Array.isArray(nodes) || nodes.length === 0) return true
+  if (nodes.length !== 1) return false
+
+  const entryGenericId = CLIENT_ENTRY_GENERIC_ID_BY_GRAPH_TYPE.get(extractGraphType(obj) ?? -1)
+  if (entryGenericId === undefined) return false
+
+  const genericId = (nodes[0] as { genericId?: { nodeId?: unknown } } | undefined)?.genericId
+    ?.nodeId
+  return toNumberIfLongLike(genericId) === entryGenericId
+}
+
 export function setGraphType(obj: unknown, type: number) {
   const target = obj as { id?: { type?: number } }
   if (!target.id) target.id = {}

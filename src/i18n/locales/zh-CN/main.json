@@ -45,6 +45,7 @@
   "graphType_item": "道具",
   "injector_targetTypeMismatch": "[warn] 目标节点图类型与文件夹分类不一致: id={{id}}, 当前={{current}}, 期望={{expected}}; 已自动修正",
   "injector_incomingTypeMismatch": "[warn] 输入节点图类型与目标分类不一致: id={{id}}, 当前={{current}}, 期望={{expected}}; 已自动修正",
+  "injector_clientTypeMismatch": "[error] 客户端节点图类型不一致: id={{id}}, 输入={{current}}, 目标={{expected}}; 客户端节点图禁止自动修改类型",
   "injector_signalMissing": "[error] 信号“{{signal}}”未定义，注入失败，请先在编辑器内定义信号再进行注入",
   "injector_signalConflict": "[error] 信号“{{signal}}”在 {{kind}} 上存在多个节点 id：{{first}} vs {{second}}",
   "err_invalidValueType": "无效的值类型: {{type}}",
