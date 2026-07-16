@@ -28,6 +28,15 @@ import {
   remapPinHoleInputIndex
 } from './pin_hole_adapter.js'
 import {
+  SPECIAL_ARG_ADAPTER_CONTRACT,
+  SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
+  isAssemblySpecialArgNodeType,
+  isSharedSpecialArgAdapterNodeType,
+  remapSpecialArgInputIndex,
+  specialArgInputPinIndex
+} from './special_arg_adapter.js'
+import { patchEncodedSignalNodes } from './build_signal_definition.js'
+import {
   COMPOSITE_CAPTURE_NODE_TYPE,
   normalizeCompositeCaptures
 } from './normalize_capture.js'
@@ -99,10 +108,12 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
   stage3Backend: STAGE3_BACKEND_CONTRACT,
   /** P5-W3: root ordinary capability inventory; does not flip default or delete legacy. */
   rootOrdinaryCapabilities: ROOT_ORDINARY_CAPABILITY_CONTRACT,
-  /** P5-W6..W9: root→shared-beta ordinary coverage matrix (pin-hole shared in W9). */
+  /** P5-W6..W10: root→shared-beta ordinary coverage matrix (pin-hole W9, special-arg W10). */
   ordinaryCoverageMatrix: ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
   /** P5-W9: shared pin-hole adapter for all 9 named pin-hole node types. */
-  pinHoleAdapter: PIN_HOLE_ADAPTER_CONTRACT
+  pinHoleAdapter: PIN_HOLE_ADAPTER_CONTRACT,
+  /** P5-W10: shared special-arg adapter for all 5 named special-arg node types. */
+  specialArgAdapter: SPECIAL_ARG_ADAPTER_CONTRACT
 } as const
 
 export {
@@ -173,6 +184,25 @@ export {
 export type { PinHoleSpec } from './pin_hole_adapter.js'
 
 export {
+  SPECIAL_ARG_ADAPTER_CONTRACT,
+  SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
+  isSharedSpecialArgAdapterNodeType,
+  isAssemblySpecialArgNodeType,
+  isSignalSpecialArgNodeType,
+  remapSpecialArgInputIndex,
+  specialArgInputPinIndex,
+  applySpecialArgLiteralArgs,
+  applyAssemblySpecialArgs,
+  applyMultipleBranchesSpecialArgs,
+  applySignalSpecialArgs,
+  listSharedSpecialArgAdapterNodeTypes
+} from './special_arg_adapter.js'
+export type {
+  SpecialArgApplyContext,
+  SpecialArgTypeTag
+} from './special_arg_adapter.js'
+
+export {
   STAGE3_BACKEND_CONTRACT,
   STAGE3_VENDOR_IMPL_GRAPH_ENV,
   STAGE3_SHARED_IMPL_BETA_CLI_FLAG,
@@ -221,9 +251,17 @@ export function buildCompositeAccessories(
     const nodeType = nodeTypeById.get(pin.innerNodeId)
     if (!nodeType) return pin
     // assembly_list already encoded with +1 in composite_registry IR builder.
-    if (nodeType === 'assembly_list' || nodeType === 'assembly_dictionary') return pin
-    const physical = remapPinHoleInputIndex(nodeType, pin.innerPinIndex)
-    return physical === pin.innerPinIndex ? pin : { ...pin, innerPinIndex: physical }
+    // Other special-arg / pin-hole physical indexes still need shared remap.
+    if (isAssemblySpecialArgNodeType(nodeType)) return pin
+    if (isSharedPinHoleAdapterNodeType(nodeType)) {
+      const physical = remapPinHoleInputIndex(nodeType, pin.innerPinIndex)
+      return physical === pin.innerPinIndex ? pin : { ...pin, innerPinIndex: physical }
+    }
+    if (isSharedSpecialArgAdapterNodeType(nodeType)) {
+      const physical = remapSpecialArgInputIndex(nodeType, pin.innerPinIndex)
+      return physical === pin.innerPinIndex ? pin : { ...pin, innerPinIndex: physical }
+    }
+    return pin
   })
 
   // 从 compositePins 提取 OutParam 映射，供 impl 节点生成正确的 OutParam pin
@@ -378,13 +416,22 @@ function buildImplGraphNodes(
       implOutParamMap
         .get(node.id)
         ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
+    // assembly_list: resolveImplNodeId may return typed concrete (e.g. 170=str).
+    // Vendor Node must keep generic record id (169) + typed concrete; both-typed yields 0 pins.
+    const assemblyGenericId =
+      node.type === 'assembly_list'
+        ? (getNodeIdLowerMap().get('assembly_list__generic') ?? 169)
+        : undefined
     // P5-W7/W8: residual scalar + enumerations_equal ordinary concrete ids come from
     // shared resolveNodeIdentity. Handwritten resolveImplOrdinaryConcreteNodeId remains
     // only as a non-shared fallback for any still-unmigrated concrete-wrapped family.
+    // assembly typed concrete: nodeId already resolved to variant; keep it as concrete only.
     const ordinaryConcreteNid =
       usesSharedOrdinaryConcreteIdentity(node.type)
         ? sharedConcreteNid
-        : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
+        : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
+          ? nodeId
+          : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // Synthetic call lowerer owns SysGraph identity; ordinary nodes stay SysCall.
     const callIdentity = resolveCompositeCallIdentity(node, compositeDefById)
     const calledDef = callIdentity?.calledDef
@@ -398,7 +445,7 @@ function buildImplGraphNodes(
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
       kind: NodeGraph_Id_Kind.SysCall,
-      nodeId: dtcGenericId ?? nodeId
+      nodeId: dtcGenericId ?? assemblyGenericId ?? nodeId
     }
     // Node-graph/custom/local concrete ids come from shared resolveNodeIdentity().
     // P5-W4 deleted the empty legacy typed-identity adapter; gvConcreteNid is now only the
@@ -480,7 +527,12 @@ function buildImplGraphNodes(
     return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout, nodeIndexMap)
   }
 
-  return nodeResults.map((result) => materializeLegacyImplGraphNode(result, implEdges, layout, nodeIndexMap))
+  const legacyNodes = nodeResults.map((result) =>
+    materializeLegacyImplGraphNode(result, implEdges, layout, nodeIndexMap)
+  )
+  // Same signal SysGraph/cpi patch as vendor path (root still emits SignalDef accessories).
+  patchEncodedSignalNodes(legacyNodes as any)
+  return legacyNodes
 }
 
 function materializeLegacyImplGraphNode(
@@ -577,6 +629,9 @@ function materializeImplOrdinaryGraphWithVendor(
       throw new Error(`[error] vendor impl graph gate cannot resolve ${node.type} (${node.id})`)
     }
 
+    const vendorInputPinIndex = isSharedSpecialArgAdapterNodeType(node.type)
+      ? specialArgInputPinIndex(node.type)
+      : pinHoleInputPinIndex(node.type)
     const vendorNode = createOrdinaryVendorNode({
       nodeId: node.id,
       nodeType: node.type,
@@ -586,14 +641,22 @@ function materializeImplOrdinaryGraphWithVendor(
       concreteNodeId,
       genericNodeId: genericId.nodeId,
       skipCapturedInputs: true,
-      inputPinIndex: pinHoleInputPinIndex(node.type)
+      inputPinIndex: vendorInputPinIndex
     })
 
+    // Capture inputs usually drop physical InParam (compositePins overlay owns them).
+    // multiple_branches control@0 is an exception: keep typed schema pin so case list@1
+    // and outer compositePins → InParam 0 remain editor-visible.
     const capturedInputIndexes = new Set(
       (node.args ?? [])
-        .map((arg: any, index: number) =>
-          arg?.capture === true ? remapPinHoleInputIndex(node.type, index) : undefined
-        )
+        .map((arg: any, index: number) => {
+          if (arg?.capture !== true) return undefined
+          if (node.type === 'multiple_branches' && index === 0) return undefined
+          if (isSharedSpecialArgAdapterNodeType(node.type)) {
+            return remapSpecialArgInputIndex(node.type, index)
+          }
+          return remapPinHoleInputIndex(node.type, index)
+        })
         .filter((index: number | undefined): index is number => index !== undefined)
     )
     vendorNode.pins = vendorNode.pins.filter(
@@ -608,13 +671,11 @@ function materializeImplOrdinaryGraphWithVendor(
   const ordinaryDataEdges = ordinaryResults.flatMap((result) =>
     (result.node.args ?? []).flatMap((arg: any, toIndex: number) => {
       if (arg?.type !== 'conn' || arg.capture === true) return []
-      // assembly_list/dictionary: IR arg i maps to physical pin i+1 (pin0 = count).
-      // Pin-hole nodes: IR arg i maps via shared hole remap.
-      // Other ordinary nodes: identity.
-      const physicalToIndex =
-        result.node.type === 'assembly_list' || result.node.type === 'assembly_dictionary'
-          ? toIndex + 1
-          : remapPinHoleInputIndex(result.node.type, toIndex)
+      // Special-arg (P5-W10): assembly count@0 / send_signal name shift.
+      // Pin-hole (P5-W9): shared hole remap. Other ordinary: identity.
+      const physicalToIndex = isSharedSpecialArgAdapterNodeType(result.node.type)
+        ? remapSpecialArgInputIndex(result.node.type, toIndex)
+        : remapPinHoleInputIndex(result.node.type, toIndex)
       return [{
         fromId: arg.value.node_id,
         toId: result.node.id,
@@ -661,6 +722,9 @@ function materializeImplOrdinaryGraphWithVendor(
   if (encodedNodes.length !== ordinaryResults.length) {
     throw new Error(`[error] vendor impl graph lost nodes: ${encodedNodes.length}/${ordinaryResults.length}`)
   }
+  // Patch send/monitor placeholders to builtin SysGraph ids + compositePinIndex
+  // (root path also runs finalizeSignalEncoding for SignalDef accessories).
+  patchEncodedSignalNodes(encodedNodes as any)
   for (const encodedNode of encodedNodes) {
     const source = nodeResults.find((result) => result.nodeIndex === encodedNode.nodeIndex)
     const pos = source ? layout.get(source.node.id) : undefined
@@ -668,6 +732,21 @@ function materializeImplOrdinaryGraphWithVendor(
     encodedNode.x = pos.x
     encodedNode.y = pos.y
     encodedNode.usingStruct = []
+    // multiple_branches keeps default OutFlow 0 even when the default branch is empty.
+    if (source.node.type === 'multiple_branches') {
+      const hasDefault = (encodedNode.pins ?? []).some(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && pin.i1?.index === 0
+      )
+      if (!hasDefault) {
+        encodedNode.pins = encodedNode.pins ?? []
+        encodedNode.pins.push({
+          i1: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
+          i2: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
+          type: 0,
+          value: undefined as any
+        })
+      }
+    }
   }
   const syntheticNodes = syntheticResults.map((result) =>
     materializeLegacyImplGraphNode(result, implEdges, layout, nodeIndexMap)
@@ -762,11 +841,12 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
   const special = SPECIAL_NODE_IDS[nodeType]
   if (special) return special
 
+  const nodeIdLower = getNodeIdLowerMap()
+
   // data_type_conversion_<outType> 需要组合 inType 查询
   if (nodeType.startsWith('data_type_conversion_')) {
     const outKey = nodeType.slice('data_type_conversion_'.length).trim()
-    const nodeIdLower = getNodeIdLowerMap()
-    
+
     const firstArg = args?.[0]
     let inType: string | undefined
     if (firstArg) {
@@ -784,9 +864,29 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
     return 0
   }
 
+  // assembly_list: mirror root resolveGiaNodeId typed suffix (str/int/...) so
+  // vendor OutParam type matches wired consumers (e.g. send_signal str_list).
+  // assembly_dictionary typed identity is NOT applied here: consumers like
+  // query_dictionary_s_length still lack shared typed resolution (typed-identity pack);
+  // typing only the producer would create pin-type mismatches under vendor beta.
+  if (nodeType === 'assembly_list') {
+    const firstArg = args?.[0]
+    let elementType: string | undefined
+    if (firstArg) {
+      elementType =
+        firstArg.type === 'conn'
+          ? ((firstArg.value as any)?.type as string | undefined)
+          : (firstArg.type as string)
+    }
+    if (elementType && elementType !== 'dict' && elementType !== 'enum') {
+      const suffix = elementType === 'vec3' ? 'vec' : elementType
+      const typed = nodeIdLower.get(`assembly_list__${suffix}`)
+      if (typed) return typed
+    }
+  }
+
   const mapped = SPECIAL_NODE_MAPPINGS[nodeType]
   const key = (mapped ?? nodeType).toLowerCase()
-  const nodeIdLower = getNodeIdLowerMap()
   const direct = nodeIdLower.get(key)
   if (direct) return direct
   const generic = nodeIdLower.get(`${key}__generic`)
@@ -1137,23 +1237,79 @@ function buildImplNodePins(
 
   const args = node.args ?? []
 
-  // assembly_list 节点：第一个 pin 是 count（元素数量的 Int 字面量）
-  if (node.type === 'assembly_list') {
+  // Legacy multiple_branches: reuse shared special-arg layout (control@0 + case list@1)
+  // via a temporary vendor Node. Capture control still gets a typed pin0 schema so
+  // compositePins can target InParam 0; OutFlow pins come from implEdges below.
+  if (node.type === 'multiple_branches') {
+    const tmpGraph = new Graph('server', 0, '', 0)
+    const tmpNode = createOrdinaryVendorNode({
+      nodeId: node.id,
+      nodeType: node.type,
+      args: args as any,
+      nodeIndex: 0,
+      mode: 'server',
+      concreteNodeId: 3,
+      genericNodeId: 3,
+      skipCapturedInputs: true,
+      inputPinIndex: specialArgInputPinIndex(node.type)
+    })
+    normalizeOrdinaryVendorPins(tmpNode)
+    tmpGraph.add_node(tmpNode)
+    const tmpRoot = tmpGraph.encode() as any
+    const encodedNode = tmpRoot.graph?.graph?.inner?.graph?.nodes?.[0]
+    const vendorPins = (encodedNode?.pins ?? []) as NodePin[]
+    for (const pin of vendorPins) {
+      ;(pin as any).connects = undefined
+      pins.push(pin)
+    }
+
+    const outEdges = implEdges[node.id]
+    // Always keep default OutFlow 0 (editor "默认" slot), then case OutFlows 1..n.
+    const outflowIndexes = new Set<number>([0])
+    if (outEdges && outEdges.length > 0) {
+      for (const [sourceIndex] of groupEdgesBySourceIndex(outEdges)) {
+        outflowIndexes.add(sourceIndex)
+      }
+    }
+    for (const sourceIndex of [...outflowIndexes].sort((a, b) => a - b)) {
+      pins.push({
+        i1: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+        i2: { kind: NodePin_Index_Kind.OutFlow, index: sourceIndex },
+        type: 0,
+        value: undefined as any
+      })
+    }
+    return { pins, dataConns }
+  }
+
+  // assembly_list/dictionary：第一个 pin 是 count（元素数量的 Int 字面量）
+  if (isAssemblySpecialArgNodeType(node.type)) {
     const countPin = buildLiteralPin(0, 'int', args.length, node.type)
     pins.push(countPin)
   }
-  // Pin-hole nodes use shared IR→physical remap (P5-W9). assembly_list keeps sequential
-  // pinIndex starting at 1; other nodes map each IR argIndex independently.
+  // Pin-hole (P5-W9) / special-arg (P5-W10) use shared IR→physical remap.
+  // assembly keeps sequential pinIndex starting at 1; other nodes map independently.
   const usesPinHoleRemap = isSharedPinHoleAdapterNodeType(node.type)
-  let sequentialPinIndex = node.type === 'assembly_list' ? 1 : 0
+  const usesSpecialArgRemap =
+    isSharedSpecialArgAdapterNodeType(node.type) && !isAssemblySpecialArgNodeType(node.type)
+  let sequentialPinIndex = isAssemblySpecialArgNodeType(node.type) ? 1 : 0
   for (let argIndex = 0; argIndex < args.length; argIndex++) {
     const arg = args[argIndex]
+    // Signal name is ClientExec (not InParam); shared special-arg layout owns it on vendor path.
+    if (
+      (node.type === 'send_signal' || node.type === 'monitor_signal') &&
+      argIndex === 0
+    ) {
+      continue
+    }
     const pinIndex = usesPinHoleRemap
       ? remapPinHoleInputIndex(node.type, argIndex)
-      : sequentialPinIndex
+      : usesSpecialArgRemap
+        ? remapSpecialArgInputIndex(node.type, argIndex)
+        : sequentialPinIndex
     // Capture-input args are routed via compositePins, not physical InParam pins.
     if (arg && (arg as any).capture === true) {
-      if (!usesPinHoleRemap) sequentialPinIndex++
+      if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
       continue
     }
     if (arg && arg.type === 'conn') {
@@ -1181,7 +1337,7 @@ function buildImplNodePins(
             upstreamNodeId: conn.node_id,
             upstreamPinIndex: conn.index
           })
-          if (!usesPinHoleRemap) sequentialPinIndex++
+          if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
           continue
         }
       }
@@ -1198,7 +1354,7 @@ function buildImplNodePins(
         upstreamNodeId: connNum.node_id,
         upstreamPinIndex: connNum.index
       })
-      if (!usesPinHoleRemap) sequentialPinIndex++
+      if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
       continue
     }
     if (arg) {
@@ -1217,7 +1373,7 @@ function buildImplNodePins(
             } as any,
             type: dtcInfo.varType
           })
-          if (!usesPinHoleRemap) sequentialPinIndex++
+          if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
           continue
         }
       }
@@ -1225,7 +1381,7 @@ function buildImplNodePins(
     } else {
       pins.push(buildPlaceholderPin(pinIndex, node.type))
     }
-    if (!usesPinHoleRemap) sequentialPinIndex++
+    if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
   }
 
   const outParams = implOutParamMap.get(node.id)
@@ -1581,7 +1737,14 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
       }
     }
   } else if (varClass === VarBase_Class.IdBase) {
-    pinValue = { class: varClass, alreadySetVal: false, itemType }
+    // prefab_id / config_id / guid / entity / faction literals need bId + alreadySetVal.
+    // Legacy impl previously dropped value here; editor shows empty/0 defaults.
+    pinValue = {
+      class: varClass,
+      alreadySetVal: true,
+      itemType,
+      bId: { val: Number(value) }
+    }
   }
 
   if (needsConcreteWrapping(nodeType)) {

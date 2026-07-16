@@ -240,7 +240,13 @@ function buildCallLiteralPin(pinIndex: number, argType: string, value: unknown):
       }
     }
   } else if (varClass === VarBase_Class.IdBase) {
-    pinValue = { class: varClass, alreadySetVal: false, itemType }
+    // prefab_id / config_id / guid / entity / faction literals need bId + alreadySetVal.
+    pinValue = {
+      class: varClass,
+      alreadySetVal: true,
+      itemType,
+      bId: { val: Number(value) }
+    }
   }
 
   return {

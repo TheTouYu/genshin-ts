@@ -182,11 +182,21 @@ for (const nodeType of ROOT_NAMED_PIN_HOLE_ADAPTER_NODE_TYPES) {
     `shared pin-hole adapter missing node type: ${nodeType}`
   )
 }
+// special-arg family lives in shared special_arg_adapter.ts (P5-W10)
+const specialArgAdapterSource = readFileSync(
+  join(
+    dirname(fileURLToPath(import.meta.url)),
+    '../../src/compiler/ir_to_gia_transform/special_arg_adapter.ts'
+  ),
+  'utf8'
+)
+assert.match(indexSource, /applySpecialArgLiteralArgs|remapSpecialArgInputIndex/)
+assert.match(specialArgAdapterSource, /applySpecialArgLiteralArgs/)
 for (const nodeType of ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES) {
   assert.match(
-    indexSource,
-    new RegExp(String.raw`['"]${nodeType}['"]`),
-    `root special-arg adapter missing live surface: ${nodeType}`
+    specialArgAdapterSource,
+    new RegExp(nodeType),
+    `shared special-arg adapter missing node type: ${nodeType}`
   )
 }
 for (const nodeType of ROOT_NAMED_TYPED_IDENTITY_ADAPTER_NODE_TYPES) {

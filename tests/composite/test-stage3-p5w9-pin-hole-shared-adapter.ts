@@ -60,8 +60,9 @@ const COMPOSITE_NAME = 'P5W9_PinHole_SharedAdapter'
 assert.equal(PIN_HOLE_ADAPTER_CONTRACT.workPackage, 'P5-W9')
 assert.equal(PIN_HOLE_ADAPTER_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(PIN_HOLE_ADAPTER_CONTRACT.changesProductionEncoding, true)
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W9')
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W9')
+// Matrix phase advances with later packs; pin-hole contract stays P5-W9.
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W10')
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W10')
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.pinHoleAdapter, PIN_HOLE_ADAPTER_CONTRACT)
 assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)

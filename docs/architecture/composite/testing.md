@@ -149,6 +149,15 @@ npm run quicktest
 
 不受复合测试直接影响（复合测试不在 quicktest 中），但复合功能的正确性可以通过编译包含复合调用的测试 `.ts` 文件来验证——56 个 GIA 文件全部生成成功。
 
+默认生产后端（legacy handwritten）专项回归：
+
+```bash
+npm run build
+npx tsx tests/composite/test-impl-prefab-literal-and-multiple-branches.ts
+```
+
+覆盖：impl 内 `prefab_id` 字面量 `bId` + `alreadySetVal`；impl 内 `multiple_branches` 的 capture 控制脚 / case list / 默认 OutFlow 0。证据层级为自动 GIA 结构回归；2026-07-16 的该夹具已由用户导入编辑器核验两项表现，但仍不替代运行时游戏行为核验。
+
 ---
 
 ## 5. 测试注意事项

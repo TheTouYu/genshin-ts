@@ -42,9 +42,9 @@ const matrixSource = readFileSync(
 const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 
 // --- Contract freezes ---
-// P5-W9 owns pin-hole shared adapter; matrix contract phase advances with it.
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W9')
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W9')
+// P5-W10 owns special-arg shared adapter; matrix contract phase advances with it.
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W10')
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W10')
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.deletesLegacyBackend, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
@@ -194,10 +194,20 @@ assert.equal(
   'green',
   'P5-W9 pin-hole create_prefab is static green'
 )
+assert.equal(
+  classified.find((r) => r.id === 'special-arg-send_signal')?.status,
+  'green',
+  'P5-W10 special-arg send_signal is static green'
+)
+assert.equal(
+  classified.find((r) => r.id === 'special-arg-assembly_list')?.status,
+  'green',
+  'P5-W10 special-arg assembly_list is static green'
+)
 
 // Source guards: matrix still wired through orchestration; residual table not rewritten into helper
 assert.match(matrixSource, /changesProductionEncoding: true/)
-assert.match(matrixSource, /P5-W9/)
+assert.match(matrixSource, /P5-W10/)
 assert.match(compositeSource, /ordinaryCoverageMatrix/)
 assert.doesNotMatch(
   compositeSource,
@@ -235,20 +245,22 @@ assert.equal(
   `enumerations_equal probe expected green, got ${enumRow?.status}: ${enumRow?.reason}`
 )
 
-// Pin-hole family shared in P5-W9; other named adapters remain unknown
-for (const id of [
-  'special-arg-monitor_signal',
-  'typed-identity-create_dictionary',
-  'graph-container-affiliations'
-]) {
+// Special-arg family shared in P5-W10; remaining named adapters stay unknown
+for (const id of ['typed-identity-create_dictionary', 'graph-container-affiliations']) {
   const row = probeSummary.rows.find((r) => r.id === id)
-  assert.equal(row?.status, 'unknown', `${id} should stay unknown in W1`)
+  assert.equal(row?.status, 'unknown', `${id} should stay unknown`)
 }
 const pinHolePrefab = probeSummary.rows.find((r) => r.id === 'pin-hole-create_prefab')
 assert.equal(
   pinHolePrefab?.status,
   'green',
   `pin-hole-create_prefab expected green after P5-W9, got ${pinHolePrefab?.status}`
+)
+const specialArgMonitor = probeSummary.rows.find((r) => r.id === 'special-arg-monitor_signal')
+assert.equal(
+  specialArgMonitor?.status,
+  'green',
+  `special-arg-monitor_signal expected green after P5-W10, got ${specialArgMonitor?.status}`
 )
 
 // Default gate unchanged after probes

@@ -38,12 +38,19 @@ import {
   normalizeOrdinaryVendorPins
 } from './ordinary_node_factory.js'
 import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
-import { setClientExecLiteralArgValue, setEnumArgValue, setLiteralArgValue } from './pins.js'
+import { setEnumArgValue, setLiteralArgValue } from './pins.js'
 import {
   applyPinHoleLiteralArgs,
   isSharedPinHoleAdapterNodeType,
   remapPinHoleInputIndex
 } from './pin_hole_adapter.js'
+import {
+  applySpecialArgLiteralArgs,
+  isSharedSpecialArgAdapterNodeType,
+  remapSpecialArgInputIndex,
+  type SpecialArgTypeTag
+} from './special_arg_adapter.js'
+import { finalizeSignalEncoding } from './build_signal_definition.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
 
@@ -347,88 +354,38 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       if (applyPinHoleLiteralArgs(nodeType, giaNode, irNode.args)) return true
     }
 
-    if (nodeType === 'send_signal' || nodeType === 'monitor_signal') {
-      const nameArg = irNode.args?.[0]
-      if (nameArg && nameArg.type === 'conn') {
-        throw new Error(`[error] ${nodeType} does not accept wired signal name`)
-      }
-      if (nameArg && !isValueArg(nameArg)) {
-        throw new Error(`[error] ${nodeType} expects a literal string signal name`)
-      }
-      giaNode.pins = []
-      if (nameArg) {
-        setClientExecLiteralArgValue(giaNode, 0, 0, nodeType, nameArg.type, nameArg.value)
-      }
-      // Create input pins for signal parameters so graph.connect can find them
-      // Signal name is an exec literal (not a data pin), so data pins start at index 0
-      if (nodeType === 'send_signal') {
-        const args = irNode.args ?? []
-        for (let i = 1; i < args.length; i++) {
-          const arg = args[i]
-          if (!arg) continue
-          if (arg.type === 'conn') {
-            const connType = (arg as ConnectionArgument).value.type as ScalarType
-            const pinType = baseNodeType(connType)
-            if (pinType) {
-              const p = new Pin(giaNode.ConcreteId!, 3, i - 1)
-              p.setType(pinType)
-              giaNode.pins.push(p)
-            }
-          } else if (isValueArg(arg)) {
-            setArgValue(giaNode, i - 1, i, nodeType, arg)
-          }
-        }
-      } else {
+    // Shared special-arg family (P5-W10): signal / assembly / multiple_branches.
+    if (isSharedSpecialArgAdapterNodeType(nodeType)) {
+      let monitorOutParams: Map<number, SpecialArgTypeTag> | undefined
+      if (nodeType === 'monitor_signal') {
         const signalParams = connIndex.get(irNode.id)
-        signalParams?.forEach((info, pinIndex) => {
-          if (pinIndex < 3) return
-          const p = new Pin(giaNode.ConcreteId!, 4, pinIndex)
-          p.setType(connTypeInfoToNodeType(info))
-          giaNode.pins.push(p)
-        })
-      }
-      return true
-    }
-
-    if (nodeType === 'assembly_list' || nodeType === 'assembly_dictionary') {
-      // GIA: pin0 为元素数量；IR: args 为元素列表
-      giaNode.setVal(0, irNode.args?.length ?? 0)
-      irNode.args?.forEach((arg, idx) => {
-        if (!isValueArg(arg)) return
-        setArgValue(giaNode, idx + 1, idx, nodeType, arg)
-      })
-      return true
-    }
-
-    if (nodeType === 'multiple_branches') {
-      const args = irNode.args ?? []
-
-      // control expression
-      const controlArg = args[0]
-      if (isValueArg(controlArg)) setArgValue(giaNode, 0, 0, nodeType, controlArg)
-
-      // cases
-      const caseValues: unknown[] = []
-      let caseValueType: string | undefined
-      for (let i = 1; i < args.length; i++) {
-        const a = args[i]
-        if (!a || a.type === 'conn') continue
-        if (caseValueType === undefined) caseValueType = a.type
-        caseValues.push(a.value)
-      }
-
-      if (caseValues.length > 0 && caseValueType) {
-        try {
-          setLiteralArgValue(giaNode, 1, 1, nodeType, `${caseValueType}_list`, caseValues)
-        } catch (e) {
-          console.error(
-            `[error] failed to set value for pin 1 of node ${nodeType} (id=${irNode.id})\n`
-          )
-          throw e
+        if (signalParams) {
+          monitorOutParams = new Map()
+          signalParams.forEach((info, pinIndex) => {
+            if (pinIndex < 3) return
+            if (info.type === 'enum') {
+              monitorOutParams!.set(pinIndex, { kind: 'enum' })
+            } else if (info.type === 'dict') {
+              monitorOutParams!.set(pinIndex, {
+                kind: 'dict',
+                key: info.dict.k as any,
+                value: info.dict.v as any
+              })
+            } else if (info.type.endsWith('_list')) {
+              monitorOutParams!.set(pinIndex, {
+                kind: 'list',
+                element: info.type.slice(0, -5) as any
+              })
+            } else {
+              monitorOutParams!.set(pinIndex, {
+                kind: 'scalar',
+                type: info.type as any
+              })
+            }
+          })
         }
       }
-
-      return true
+      return applySpecialArgLiteralArgs(nodeType, giaNode, irNode.args, { monitorOutParams })
     }
 
     return false
@@ -445,13 +402,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   }
 
   const remapInputIndexForHiddenPin = (nodeType: string, idx: number): number => {
-    // Shared pin-hole family (P5-W9). special-arg send_signal remains root-local.
+    // Shared pin-hole family (P5-W9).
     if (isSharedPinHoleAdapterNodeType(nodeType)) {
       return remapPinHoleInputIndex(nodeType, idx)
     }
+    // Shared special-arg (P5-W10): root layout already patches assembly +1 into
+    // dataConnections; only send_signal name→data shift remains for mapInputIndex.
+    // Composite vendor edges call remapSpecialArgInputIndex directly for full family.
     if (nodeType === 'send_signal') {
-      // signal name is exec literal, data pins shift by -1
-      return idx > 0 ? idx - 1 : idx
+      return remapSpecialArgInputIndex(nodeType, idx)
     }
     return idx
   }
@@ -799,6 +758,28 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     }
   } catch (e) {
     console.error('[composite] failed to build composite accessories:', e)
+  }
+
+  // SignalDef (which=14) + 监听信号 CompositeDef + SysGraph id/cpi patch.
+  // Placeholder 300000/300001 become builtin 1610612738/1610612739 so the editor
+  // can show send/monitor parameters without inject (P5-W10).
+  try {
+    const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
+    const accessoryGraphs = (root.accessories ?? [])
+      .map((acc: any) => acc.graph?.inner?.graph)
+      .filter(Boolean)
+    const signalAccs = finalizeSignalEncoding({
+      ir,
+      rootNodes: mainNodes,
+      accessoryGraphs,
+      connIndex
+    })
+    if (signalAccs.length > 0) {
+      root.accessories.push(...signalAccs)
+    }
+  } catch (e) {
+    console.error('[signal] failed to finalize signal encoding:', e)
+    throw e
   }
 
   if (assemblyDictMeta.size > 0) {

@@ -136,12 +136,12 @@ export const ORDINARY_COVERAGE_GRILLING_DECISIONS = {
 } as const
 
 export const ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT = {
-  phase: 'P5-W9',
-  workPackage: 'P5-W9',
-  alias: 'W1-coverage-matrix+pin-hole-shared-adapter',
+  phase: 'P5-W10',
+  workPackage: 'P5-W10',
+  alias: 'W1-coverage-matrix+special-arg-shared-adapter',
   defaultVendorImplGraphGate: false,
   deletesLegacyBackend: false,
-  /** P5-W7/W8/W9 change ordinary identity / pin-hole shared adapter wiring. */
+  /** P5-W7/W8/W9/W10 change ordinary identity / pin-hole / special-arg shared adapter wiring. */
   changesProductionEncoding: true,
   completeSurface: 'shared-vendor-impl-graph-beta',
   grilling: ORDINARY_COVERAGE_GRILLING_DECISIONS,
@@ -334,12 +334,16 @@ export function listStaticOrdinaryCoverageRows(): OrdinaryCoverageRow[] {
         nodeType,
         category: 'named-shared-adapter',
         family: 'special-arg',
-        compositeLegacyRisk: true,
-        sharedIdentity: usesSharedVariantResolution(nodeType),
-        probeKind: 'static-surface',
-        status: 'unknown',
-        reason: 'pending-probe',
-        evidence: ['adapter-special-arg-layouts', 'index.ts:applySpecialArgs']
+        compositeLegacyRisk: false,
+        sharedIdentity: true,
+        probeKind: 'shared-identity',
+        status: 'green',
+        reason: 'shared-special-arg-adapter-present',
+        evidence: [
+          'adapter-special-arg-layouts',
+          'special_arg_adapter.ts',
+          'P5-W10 special-arg shared adapter'
+        ]
       })
     )
   }
@@ -592,8 +596,17 @@ export function classifyStaticCoverageStatuses(
         probeKind: 'shared-identity'
       }
     }
+    if (r.family === 'special-arg') {
+      return {
+        ...r,
+        status: r.sharedIdentity ? 'green' : 'red',
+        reason: r.sharedIdentity
+          ? 'shared-special-arg-adapter-present'
+          : 'missing-shared-special-arg-adapter',
+        probeKind: 'shared-identity'
+      }
+    }
     if (
-      r.family === 'special-arg' ||
       r.family === 'typed-identity' ||
       r.family === 'mode-specific' ||
       r.family === 'special-id'

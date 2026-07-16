@@ -386,16 +386,17 @@ export const ROOT_ORDINARY_CAPABILITIES: readonly RootOrdinaryCapability[] = [
     layer: 'literal-args',
     nodeTypes: ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
     rootSurfaces: [
+      'special_arg_adapter.ts',
       'index.ts:applySpecialArgs',
-      'pins.ts:setClientExecLiteralArgValue',
-      'index.ts:applyGetNodeGraphVariableNamePin'
+      'ordinary_node_factory.ts:applyOrdinaryLiteralArgs',
+      'composite.ts:specialArgInputPinIndex'
     ],
     sharedOrAdapterPath:
-      'named special-arg adapters (signal / assembly / multiple_branches / getter name pin)',
-    compositeLegacyRisk: true,
-    evidenceClass: 'unproven-game-behavior',
+      'special_arg_adapter.ts (shared signal / assembly / multiple_branches layouts)',
+    compositeLegacyRisk: false,
+    evidenceClass: 'source-observation',
     notes:
-      'Signal and dynamic pin layouts are high-risk. They may generate but are not fully game-proven under shared backend.'
+      'P5-W10: full 5-node special-arg family shared. Root applySpecialArgs and composite vendor/legacy paths call applySpecialArgLiteralArgs / remapSpecialArgInputIndex. Signal game behavior still high-risk pending; get_node_graph_variable name pin is separate.'
   },
   {
     id: 'adapter-graph-values',

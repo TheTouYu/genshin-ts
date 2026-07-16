@@ -1,8 +1,8 @@
 # 复合节点连接边界兼容性矩阵
 
 > 状态：当前实现 / 部分已修复
-> 来源：当前代码实现 + 真实 GIA 文件验证
-> 最近校验：2026-07-06
+> 来源：当前代码实现 + 真实 GIA 文件验证 + 玩法工程回归
+> 最近校验：2026-07-16
 > 适用范围：gsts 当前复合节点连接边界矩阵；表中历史缺口需按当前代码重新确认。
 
 ## 概述
@@ -89,14 +89,16 @@
 
 | 节点类型 | 主图特殊处理 | impl 图状态 |
 |----------|-------------|:--:|
-| `assembly_list` | pin0=count, pin1+=elements | ❌ 按普通 arg 编码，pin 布局不匹配 |
-| `assembly_dictionary` | pin0=kv 数量, pin1+=k/v | ❌ 同上 |
-| `multiple_branches` | pin0=control, pin1=case_list | ❌ 同上 |
-| `send_signal` / `monitor_signal` | 特殊 pin 重建逻辑 | ❌ 信号 pin 布局丢失 |
-| `get_node_graph_variable` | 注入 Str pin 于 index0 | ❌ 变量名 pin 缺失 |
+| `assembly_list` | pin0=count, pin1+=elements | ⚠️ shared special-arg 已共享；默认 legacy 路径仍依赖手工 count pin |
+| `assembly_dictionary` | pin0=kv 数量, pin1+=k/v | ⚠️ 同上 |
+| `multiple_branches` | pin0=control, pin1=case_list | ✅ 默认 legacy 与 vendor beta 均走 shared special-arg；capture 控制脚保留 typed pin0 + case list@1 + 默认 OutFlow 0（2026-07-16 自动回归；用户已将 `/tmp/impl-prefab-mbranch-regression.gia` 导入编辑器核验） |
+| `send_signal` / `monitor_signal` | 特殊 pin 重建逻辑 | ⚠️ vendor beta / P5-W10 已共享；默认 legacy 仍有风险 |
+| `get_node_graph_variable` | 注入 Str pin 于 index0 | ⚠️ 基本可用，部分细节缺失 |
 | `get_local_variable` / `set_local_variable` | 通过 `SPECIAL_NODE_IDS` 映射 | ⚠️ 基本可用，部分细节缺失 |
 
-**影响**: 在复合 build() 中使用 `assembly_list`、`multiple_branches`、信号节点、图变量节点时，生成的 GIA 可能有 pin 布局错误。
+**影响**: 在复合 build() 中使用 `assembly_list`、信号节点、图变量节点时，生成的 GIA 仍可能有 pin 布局风险；`multiple_branches` 的 capture 控制脚与 case list 已在默认生产后端修复。
+
+**关联回归**: `tests/composite/test-impl-prefab-literal-and-multiple-branches.ts`（默认 legacy：impl 内 `prefab_id` 字面量 + `multiple_branches` capture control）。自动结构回归已通过；用户于 2026-07-16 从 BeyondLocal 导出目录导入生成 GIA，确认两项编辑器表现均修复。
 
 ---
 
