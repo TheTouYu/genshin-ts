@@ -51,6 +51,48 @@ const SUB_TYPES: readonly ClientGraphSubType[] = [
   'int_filter'
 ]
 
+const CLIENT_CLASS_NAME_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
+  character_skill: 'ClientCharacterSkillExecutionFlowFunctions',
+  character_control_skill: 'ClientCharacterControlSkillExecutionFlowFunctions',
+  creation_skill: 'ClientCreationSkillExecutionFlowFunctions',
+  creation_status: 'ClientCreationStatusExecutionFlowFunctions',
+  creation_status_decision: 'ClientCreationStatusDecisionExecutionFlowFunctions',
+  bool_filter: 'ClientBoolFilterExecutionFlowFunctions',
+  int_filter: 'ClientIntFilterExecutionFlowFunctions'
+}
+
+type ClientEntityHelperBinding = {
+  kind: 'method' | 'getter'
+  methodName: string
+  insertIndex: number | null
+}
+
+type ClientEntityHelperBindings = Record<
+  ClientGraphSubType,
+  Record<ClientGraphMode, Record<string, ClientEntityHelperBinding>>
+>
+
+const CLIENT_ENTITY_METHOD_ALIAS_SOURCE_OVERRIDES: Readonly<Record<string, string>> = {
+  unitTags: 'getEntitySUnitTagList'
+}
+
+const CLIENT_HAND_ENTITY_METHOD_INSERT_INDEX: Readonly<Record<string, number>> = {
+  // getCustomVariable is emitted from a hand-written node template, so it is absent from flowMetadata.
+  getCustomVariable: 0
+}
+
+const CLIENT_ENTITY_GETTER_SOURCE_OVERRIDES: Readonly<
+  Record<string, { methodName: string; insertIndex?: number | null }>
+> = {
+  pos: { methodName: 'getEntityLocation' },
+  rotation: { methodName: 'getEntityRotation' },
+  forward: { methodName: 'getControlMotorForwardDirection' },
+  type: { methodName: 'getEntitySType' },
+  characters: { methodName: 'getPlayerSCharacterList' },
+  character: { methodName: 'getCharacterEntityOfSpecifiedPlayer' },
+  inputDevice: { methodName: 'getPlayerClientInputDeviceType', insertIndex: null }
+}
+
 const GRAPH_ENCODING_BY_SUB_TYPE: Record<
   ClientGraphSubType,
   { graphType: number; graphWhich: number }
@@ -310,6 +352,10 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
     blocked:
       'client graphs have no node to look up a player entity by id; use self / getSelfEntity instead'
   },
+  {
+    helper: 'print',
+    blocked: 'client graphs have no node that prints a string to the server log'
+  },
   { helper: 'self', requiredMethods: ['getSelfEntity'] },
   {
     helper: 'stage',
@@ -322,8 +368,32 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
     note: 'same mapping as stage'
   },
   { helper: 'Mathf', member: 'Abs', requiredMethods: ['absoluteValueOperation'] },
-  { helper: 'Mathf', member: 'FloorToInt', requiredMethods: ['roundToIntegerOperation'] },
-  { helper: 'Mathf', member: 'CeilToInt', requiredMethods: ['roundToIntegerOperation'] },
+  {
+    helper: 'Mathf',
+    member: 'FloorToInt',
+    requiredMethods: [
+      'dataTypeConversion',
+      'getLocalVariable',
+      'setLocalVariable',
+      'lessThan',
+      'subtraction',
+      'doubleBranch'
+    ],
+    note: 'composed from truncating conversion plus a negative-fraction correction branch'
+  },
+  {
+    helper: 'Mathf',
+    member: 'CeilToInt',
+    requiredMethods: [
+      'dataTypeConversion',
+      'getLocalVariable',
+      'setLocalVariable',
+      'greaterThan',
+      'addition',
+      'doubleBranch'
+    ],
+    note: 'composed from truncating conversion plus a positive-fraction correction branch'
+  },
   { helper: 'Mathf', member: 'RoundToInt', requiredMethods: ['roundToIntegerOperation'] },
   { helper: 'Mathf', member: 'Sqrt', requiredMethods: ['arithmeticSquareRootOperation'] },
   { helper: 'Mathf', member: 'Pow', requiredMethods: ['exponentiation'] },
@@ -352,7 +422,8 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
   {
     helper: 'Vector3',
     member: 'Distance',
-    requiredMethods: ['distanceBetweenTwoCoordinatePoints']
+    requiredMethods: ['_3dVectorSubtraction', '_3dVectorModuloOperation'],
+    note: 'composed from vector subtraction and magnitude nodes'
   },
   { helper: 'Vector3', member: 'Angle', requiredMethods: ['_3dVectorAngle'] },
   { helper: 'Vector3', member: 'Normalize', requiredMethods: ['_3dVectorNormalization'] },
@@ -370,14 +441,13 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
     helper: 'Vector3',
     member: 'ClampMagnitude',
     requiredMethods: [
-      'initLocalVariable',
-      'setLocalVariable',
-      'greaterThan',
-      'doubleBranch',
       '_3dVectorModuloOperation',
       '_3dVectorNormalization',
-      '_3dVectorZoom'
-    ]
+      '_3dVectorZoom',
+      'assemblyList',
+      'getMinimumValueFromList'
+    ],
+    note: 'composed as Normalize(v) * min(Magnitude(v), max)'
   },
   { helper: 'GameObject', member: 'Find', requiredMethods: ['queryEntityByGuid'] },
   {
@@ -405,6 +475,551 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
 // keep leading underscores: `_3dVectorDotProduct` -> `_3d_vector_dot_product`
 function camelToSnake(name: string): string {
   return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
+}
+
+function clientZhAlias(displayName: string): string {
+  let alias = displayName.normalize('NFKC').replace(/[^$_\p{ID_Continue}]/gu, '')
+  if (!alias) throw new Error(`client node has no usable Chinese alias: ${displayName}`)
+  if (!/^[$_\p{ID_Start}]/u.test(alias)) alias = `_${alias}`
+  return alias
+}
+
+function emitClientZhAliases(methodsBySubType: Record<string, string[]>, metadata: MetaRecord[]) {
+  const recordBySubTypeAndNodeType = new Map(
+    metadata.map((record) => [`${record.subType}:${record.nodeType}`, record])
+  )
+  const aliasesBySubType = Object.fromEntries(
+    SUB_TYPES.map((subType) => {
+      const aliases = new Map<string, string>()
+      for (const method of methodsBySubType[subType] ?? []) {
+        const record = recordBySubTypeAndNodeType.get(`${subType}:${camelToSnake(method)}`)
+        if (!record) throw new Error(`${subType}.${method}: missing node metadata for zh alias`)
+        const alias = clientZhAlias(record.displayName)
+        const existing = aliases.get(alias)
+        if (existing && existing !== method) {
+          throw new Error(
+            `${subType}: client zh alias ${alias} maps to both ${existing} and ${method}`
+          )
+        }
+        aliases.set(alias, method)
+      }
+      return [
+        subType,
+        Object.fromEntries([...aliases].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
+      ]
+    })
+  )
+
+  write(
+    'src/definitions/client_zh_aliases.ts',
+    `${generatedHeader()}import type { ClientGraphSubType } from '../runtime/IR.js'
+
+export const CLIENT_F_ZH_TO_EN_BY_SUB_TYPE = ${jsonConst(aliasesBySubType)} as const
+
+export function getClientFMethodNameFromAlias(
+  subType: ClientGraphSubType,
+  method: string
+): string {
+  const aliases = CLIENT_F_ZH_TO_EN_BY_SUB_TYPE[subType] as Readonly<Record<string, string>>
+  return aliases[method] ?? method
+}
+`
+  )
+}
+
+function unwrapConstExpression(expr: ts.Expression): ts.Expression {
+  let current = expr
+  while (
+    ts.isAsExpression(current) ||
+    ts.isSatisfiesExpression(current) ||
+    ts.isParenthesizedExpression(current)
+  ) {
+    current = current.expression
+  }
+  return current
+}
+
+function propertyNameText(name: ts.PropertyName): string | undefined {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
+    return name.text
+  }
+  return undefined
+}
+
+function readEntityHelperMetadata() {
+  const source = fs.readFileSync('src/definitions/entity_helpers.ts', 'utf8')
+  const file = ts.createSourceFile('entity_helpers.ts', source, ts.ScriptTarget.Latest, true)
+  const initializers = new Map<string, ts.Expression>()
+  for (const statement of file.statements) {
+    if (!ts.isVariableStatement(statement)) continue
+    for (const declaration of statement.declarationList.declarations) {
+      if (ts.isIdentifier(declaration.name) && declaration.initializer) {
+        initializers.set(declaration.name.text, unwrapConstExpression(declaration.initializer))
+      }
+    }
+  }
+
+  const readStringArray = (name: string) => {
+    const initializer = initializers.get(name)
+    if (!initializer || !ts.isArrayLiteralExpression(initializer)) {
+      throw new Error(`failed to read ${name} from entity_helpers.ts`)
+    }
+    return initializer.elements.map((element) => {
+      if (!ts.isStringLiteral(element)) throw new Error(`${name} must contain string literals`)
+      return element.text
+    })
+  }
+  const readObject = (name: string) => {
+    const initializer = initializers.get(name)
+    if (!initializer || !ts.isObjectLiteralExpression(initializer)) {
+      throw new Error(`failed to read ${name} from entity_helpers.ts`)
+    }
+    return initializer
+  }
+  const readStringMap = (name: string) =>
+    Object.fromEntries(
+      readObject(name).properties.map((property) => {
+        if (!ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.initializer)) {
+          throw new Error(`${name} must contain string property assignments`)
+        }
+        const key = propertyNameText(property.name)
+        if (!key) throw new Error(`${name} contains an unsupported property name`)
+        return [key, property.initializer.text]
+      })
+    )
+  const readNumberMap = (name: string) =>
+    Object.fromEntries(
+      readObject(name).properties.map((property) => {
+        if (!ts.isPropertyAssignment(property) || !ts.isNumericLiteral(property.initializer)) {
+          throw new Error(`${name} must contain numeric property assignments`)
+        }
+        const key = propertyNameText(property.name)
+        if (!key) throw new Error(`${name} contains an unsupported property name`)
+        return [key, Number(property.initializer.text)]
+      })
+    )
+
+  const methods = readStringArray('ENTITY_HELPER_METHODS')
+  const overrides = readNumberMap('ENTITY_HELPER_OVERRIDE_INDEX')
+  const methodAliases = readStringMap('ENTITY_HELPER_METHOD_ALIAS_SOURCES')
+  const getterAliases = readStringMap('ENTITY_HELPER_ALIAS_SOURCES')
+  return {
+    existingNames: new Set([
+      ...methods,
+      ...Object.keys(overrides),
+      ...Object.keys(methodAliases),
+      ...Object.keys(getterAliases)
+    ]),
+    methodAliases,
+    getterAliases
+  }
+}
+
+function deriveClientEntityHelpers(
+  flowMetadata: FlowMetadataEntry[],
+  methodsBySubType: Record<string, string[]>,
+  metadata: MetaRecord[],
+  modeData: ClientNodeModeData
+) {
+  const entityMetadata = readEntityHelperMetadata()
+  const bindings = Object.fromEntries(
+    SUB_TYPES.map((subType) => [subType, { beyond: {}, classic: {} }])
+  ) as ClientEntityHelperBindings
+  const directMethodNames = new Set<string>()
+  const recordBySubTypeAndNodeType = new Map(
+    metadata.map((record) => [`${record.subType}:${record.nodeType}`, record])
+  )
+  const methodSetBySubType = Object.fromEntries(
+    SUB_TYPES.map((subType) => [subType, new Set(methodsBySubType[subType] ?? [])])
+  ) as unknown as Record<ClientGraphSubType, ReadonlySet<string>>
+
+  const setBinding = (
+    subType: ClientGraphSubType,
+    mode: ClientGraphMode,
+    helperName: string,
+    binding: ClientEntityHelperBinding
+  ) => {
+    const previous = bindings[subType][mode][helperName]
+    if (previous && JSON.stringify(previous) !== JSON.stringify(binding)) {
+      throw new Error(`${subType}.${mode}.${helperName}: conflicting client entity helper bindings`)
+    }
+    bindings[subType][mode][helperName] = binding
+  }
+
+  const modesForMethod = (subType: ClientGraphSubType, methodName: string) => {
+    if (!methodSetBySubType[subType].has(methodName)) return []
+    const record = recordBySubTypeAndNodeType.get(`${subType}:${camelToSnake(methodName)}`)
+    if (!record) throw new Error(`${subType}.${methodName}: missing entity helper node metadata`)
+    return getClientNodeModes(modeData, subType, record.genericId)
+  }
+  for (const subType of SUB_TYPES) {
+    for (const [methodName, insertIndex] of Object.entries(
+      CLIENT_HAND_ENTITY_METHOD_INSERT_INDEX
+    )) {
+      for (const mode of modesForMethod(subType, methodName)) {
+        directMethodNames.add(methodName)
+        setBinding(subType, mode, methodName, {
+          kind: 'method',
+          methodName,
+          insertIndex
+        })
+      }
+    }
+  }
+
+  for (const entry of flowMetadata) {
+    const insertIndex = entry.params.findIndex((param) => param.irType === 'entity')
+    if (insertIndex < 0) continue
+    directMethodNames.add(entry.methodName)
+    for (const rawSubType of entry.subTypes) {
+      const subType = rawSubType as ClientGraphSubType
+      for (const mode of modesForMethod(subType, entry.methodName)) {
+        setBinding(subType, mode, entry.methodName, {
+          kind: 'method',
+          methodName: entry.methodName,
+          insertIndex
+        })
+      }
+    }
+  }
+
+  for (const subType of SUB_TYPES) {
+    for (const mode of ['beyond', 'classic'] as const) {
+      const modeBindings = bindings[subType][mode]
+      for (const [alias, originalSource] of Object.entries(entityMetadata.methodAliases)) {
+        const source = CLIENT_ENTITY_METHOD_ALIAS_SOURCE_OVERRIDES[alias] ?? originalSource
+        const sourceBinding = modeBindings[source]
+        if (!sourceBinding || sourceBinding.kind !== 'method') continue
+        setBinding(subType, mode, alias, { ...sourceBinding, kind: 'method' })
+      }
+      for (const [alias, originalSource] of Object.entries(entityMetadata.getterAliases)) {
+        const override = CLIENT_ENTITY_GETTER_SOURCE_OVERRIDES[alias]
+        const source = override?.methodName ?? originalSource
+        const sourceBinding = modeBindings[source]
+        if (sourceBinding?.kind === 'method') {
+          setBinding(subType, mode, alias, { ...sourceBinding, kind: 'getter' })
+          continue
+        }
+        if (override?.insertIndex !== null) continue
+        if (!modesForMethod(subType, source).includes(mode)) continue
+        setBinding(subType, mode, alias, {
+          kind: 'getter',
+          methodName: source,
+          insertIndex: null
+        })
+      }
+    }
+  }
+
+  const sortedBindings = Object.fromEntries(
+    SUB_TYPES.map((subType) => [
+      subType,
+      Object.fromEntries(
+        (['beyond', 'classic'] as const).map((mode) => [
+          mode,
+          Object.fromEntries(
+            Object.entries(bindings[subType][mode]).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+          )
+        ])
+      )
+    ])
+  ) as ClientEntityHelperBindings
+
+  const knownNames = new Set([...entityMetadata.existingNames, ...directMethodNames])
+  for (const modes of Object.values(sortedBindings)) {
+    for (const modeBindings of Object.values(modes)) {
+      const missing = Object.keys(modeBindings).filter((name) => !knownNames.has(name))
+      if (missing.length)
+        throw new Error(`unknown client entity helper types: ${missing.join(', ')}`)
+    }
+  }
+
+  return {
+    bindings: sortedBindings,
+    directMethodNames: [...directMethodNames].sort(),
+    existingNames: entityMetadata.existingNames
+  }
+}
+
+function readMemberJsDoc(source: ts.SourceFile, members: readonly ts.MethodDeclaration[]) {
+  for (const member of members) {
+    const jsDoc = ts
+      .getJSDocCommentsAndTags(member)
+      .find((node) => node.kind === ts.SyntaxKind.JSDocComment)
+    if (jsDoc) return source.text.slice(jsDoc.pos, jsDoc.end)
+  }
+  return undefined
+}
+
+function omitJsDocParameter(jsDoc: string, parameterName: string | undefined) {
+  if (!parameterName) return jsDoc
+
+  const lines = jsDoc.split('\n')
+  const escapedName = parameterName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const target = new RegExp(`^\\s*\\*\\s*@param\\s+${escapedName}(?:\\s|$)`)
+  const nextTag = /^\s*\*\s*@\w+\b/
+  const kept: string[] = []
+  let omitting = false
+
+  for (const line of lines) {
+    if (!omitting && target.test(line)) {
+      omitting = true
+      continue
+    }
+    if (omitting) {
+      if (!nextTag.test(line) && !/^\s*\*\/$/.test(line)) continue
+      omitting = false
+    }
+    kept.push(line)
+  }
+
+  return kept.join('\n').replace(/(\n\s*\*){3,}/g, '\n *\n *')
+}
+
+function appendClientEntityHelperTypes(
+  classFileBody: string,
+  bindings: ClientEntityHelperBindings
+) {
+  const source = ts.createSourceFile(
+    'client_nodes.ts',
+    classFileBody,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  )
+  const subTypeByClassName = new Map(
+    Object.entries(CLIENT_CLASS_NAME_BY_SUB_TYPE).map(([subType, className]) => [
+      className,
+      subType as ClientGraphSubType
+    ])
+  )
+  const methodSignaturesByName = new Map<string, Set<string>>()
+  const getterTypesByName = new Map<string, Set<string>>()
+  const jsDocByName = new Map<string, string>()
+  const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
+  const normalizeTypeText = (text: string) =>
+    text
+      .replace(/\/\*\*[\s\S]*?\*\/\s*/g, '')
+      .replace(/(?:ClientEntityFor|clientEntity)<['"][^'"]+['"], Mode>/g, 'clientEntity<T, Mode>')
+      .trim()
+
+  for (const statement of source.statements) {
+    if (!ts.isClassDeclaration(statement) || !statement.name) continue
+    const subType = subTypeByClassName.get(statement.name.text)
+    if (!subType) continue
+    const membersByName = new Map<string, ts.MethodDeclaration[]>()
+    for (const member of statement.members) {
+      if (!ts.isMethodDeclaration(member) || !ts.isIdentifier(member.name)) continue
+      const members = membersByName.get(member.name.text) ?? []
+      members.push(member)
+      membersByName.set(member.name.text, members)
+    }
+    for (const mode of ['beyond', 'classic'] as const) {
+      for (const [helperName, binding] of Object.entries(bindings[subType][mode])) {
+        const members = membersByName.get(binding.methodName)
+        if (!members) {
+          throw new Error(
+            `${subType}.${mode}.${helperName}: missing source method ${binding.methodName}`
+          )
+        }
+        const overloads = members.filter((member) => !member.body)
+        const selected = overloads.length ? overloads : members
+        const sourceMember = members.find((member) => member.body) ?? selected[0]
+        const entityParameter =
+          binding.insertIndex === null ? undefined : sourceMember.parameters[binding.insertIndex]
+        if (entityParameter && !ts.isIdentifier(entityParameter.name)) {
+          throw new Error(
+            `${subType}.${binding.methodName}: entity helper parameter must be an identifier`
+          )
+        }
+        const sourceJsDoc = readMemberJsDoc(source, members)
+        if (!sourceJsDoc) {
+          throw new Error(`${subType}.${binding.methodName}: missing entity helper JSDoc`)
+        }
+        const helperJsDoc = omitJsDocParameter(
+          sourceJsDoc,
+          entityParameter && ts.isIdentifier(entityParameter.name)
+            ? entityParameter.name.text
+            : undefined
+        )
+        const existingJsDoc = jsDocByName.get(helperName)
+        if (!existingJsDoc || helperJsDoc.length > existingJsDoc.length) {
+          jsDocByName.set(helperName, helperJsDoc)
+        }
+        for (const member of selected) {
+          if (!member.type) {
+            throw new Error(`${subType}.${binding.methodName}: missing return type`)
+          }
+          if (binding.insertIndex !== null && binding.insertIndex >= member.parameters.length) {
+            throw new Error(
+              `${subType}.${mode}.${helperName}: entity parameter index ${binding.insertIndex} is out of range`
+            )
+          }
+          const parameters = member.parameters.filter((_, index) => index !== binding.insertIndex)
+          if (binding.kind === 'getter') {
+            if (parameters.length) {
+              throw new Error(
+                `${subType}.${mode}.${helperName}: getter source ${binding.methodName} still requires parameters`
+              )
+            }
+            const typeText = normalizeTypeText(
+              printer.printNode(ts.EmitHint.Unspecified, member.type, source)
+            )
+            const types = getterTypesByName.get(helperName) ?? new Set<string>()
+            types.add(typeText)
+            getterTypesByName.set(helperName, types)
+            continue
+          }
+
+          const signature = ts.factory.createMethodSignature(
+            undefined,
+            ts.factory.createIdentifier(helperName),
+            member.questionToken,
+            member.typeParameters,
+            parameters,
+            member.type
+          )
+          const text = normalizeTypeText(
+            printer.printNode(ts.EmitHint.Unspecified, signature, source)
+          )
+          const values = methodSignaturesByName.get(helperName) ?? new Set<string>()
+          values.add(text)
+          methodSignaturesByName.set(helperName, values)
+        }
+      }
+    }
+  }
+
+  const helperNames = new Set(
+    Object.values(bindings).flatMap((modes) =>
+      Object.values(modes).flatMap((modeBindings) => Object.keys(modeBindings))
+    )
+  )
+  const conflicting = [...helperNames].filter(
+    (name) => methodSignaturesByName.has(name) && getterTypesByName.has(name)
+  )
+  if (conflicting.length) {
+    throw new Error(`client entity helpers conflict as methods/getters: ${conflicting.join(', ')}`)
+  }
+  const missing = [...helperNames].filter(
+    (name) => !methodSignaturesByName.has(name) && !getterTypesByName.has(name)
+  )
+  if (missing.length) {
+    throw new Error(`missing generated client entity helper signatures: ${missing.join(', ')}`)
+  }
+  const signatures = [...helperNames]
+    .sort()
+    .map((name) => {
+      const jsDoc = jsDocByName.get(name)
+      if (!jsDoc) throw new Error(`missing generated client entity helper JSDoc: ${name}`)
+      const comment = jsDoc
+        .split('\n')
+        .map((line) => `  ${line}`)
+        .join('\n')
+      const methodSignatures = methodSignaturesByName.get(name)
+      if (methodSignatures) {
+        const declarations = [...methodSignatures]
+          .sort()
+          .map((signature) =>
+            signature
+              .split('\n')
+              .map((line) => `  ${line}`)
+              .join('\n')
+          )
+          .join('\n')
+        return `${comment}\n${declarations}`
+      }
+      const getterTypes = [...(getterTypesByName.get(name) ?? [])].sort()
+      return `${comment}\n  readonly ${name}: ${getterTypes.join(' | ')}`
+    })
+    .join('\n\n')
+
+  return `${classFileBody.trimEnd()}
+
+export interface ClientEntityHelperMethods<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> {
+${signatures}
+}
+`
+}
+
+function emitClientEntityHelpers(
+  classFileBody: string,
+  flowMetadata: FlowMetadataEntry[],
+  methodsBySubType: Record<string, string[]>,
+  metadata: MetaRecord[],
+  modeData: ClientNodeModeData
+) {
+  const { bindings, directMethodNames } = deriveClientEntityHelpers(
+    flowMetadata,
+    methodsBySubType,
+    metadata,
+    modeData
+  )
+  write(
+    'src/definitions/client_entity_helpers.ts',
+    `${generatedHeader()}import type { ClientGraphMode, ClientGraphSubType } from '../runtime/IR.js'
+import type { RuntimeReturnValueTypeMap } from '../runtime/value.js'
+import type { EntityBase, EntityHelperAll } from './entity_helpers.js'
+import type { ClientEntityHelperMethods } from './client_nodes.js'
+
+export type ClientEntityHelperBinding = {
+  kind: 'method' | 'getter'
+  methodName: string
+  insertIndex: number | null
+}
+
+export const CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE = ${jsonConst(bindings)} as const
+
+export const CLIENT_ENTITY_HELPER_METHOD_NAMES = ${jsonConst(directMethodNames)} as const
+
+type ClientEntityHelperSurface<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> = Omit<EntityHelperAll, keyof ClientEntityHelperMethods<T, Mode>> &
+  ClientEntityHelperMethods<T, Mode>
+
+type ClientEntityHelperName<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> = T extends ClientGraphSubType
+  ? Mode extends ClientGraphMode
+    ? keyof (typeof CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE)[T][Mode]
+    : never
+  : never
+
+export type clientEntity<
+  T extends ClientGraphSubType = ClientGraphSubType,
+  Mode extends ClientGraphMode = ClientGraphMode
+> = EntityBase &
+  Pick<
+    ClientEntityHelperSurface<T, Mode>,
+    Extract<ClientEntityHelperName<T, Mode>, keyof ClientEntityHelperSurface<T, Mode>>
+  >
+
+export type ClientEntity<
+  T extends ClientGraphSubType = ClientGraphSubType,
+  Mode extends ClientGraphMode = ClientGraphMode
+> = clientEntity<T, Mode>
+
+/** @deprecated Use clientEntity<T, Mode>. */
+export type ClientEntityFor<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> = clientEntity<T, Mode>
+
+export type ClientRuntimeReturnValueTypeMap<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> = Omit<RuntimeReturnValueTypeMap, 'entity' | 'entity_list'> & {
+  entity: clientEntity<T, Mode>
+  entity_list: clientEntity<T, Mode>[]
+}
+`
+  )
+  return appendClientEntityHelperTypes(classFileBody, bindings)
 }
 
 function deriveScopedGlobalsCapability(
@@ -546,6 +1161,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
 
 /** helper names that must never resolve to server implementations in client handlers */
 export const CLIENT_BLOCKED_SERVER_HELPERS = [
+  'print',
   'setTimeout',
   'setInterval',
   'clearTimeout',
@@ -861,7 +1477,15 @@ function main() {
   emitClientEnums(enumBinding)
   const generated = generateClientNodes(metadata as MetaRecord[], alignment, enumBinding)
   emitClientNodeMetadata(metadata, generated.argPinsBySubType)
-  write('src/definitions/client_nodes.ts', generated.classFileBody)
+  const classFileBody = emitClientEntityHelpers(
+    generated.classFileBody,
+    generated.flowMetadata,
+    generated.methodsBySubType,
+    metadata as MetaRecord[],
+    modeData
+  )
+  write('src/definitions/client_nodes.ts', classFileBody)
+  emitClientZhAliases(generated.methodsBySubType, metadata as MetaRecord[])
   emitClientMethodModes(
     generated.flowMetadata,
     generated.methodsBySubType,

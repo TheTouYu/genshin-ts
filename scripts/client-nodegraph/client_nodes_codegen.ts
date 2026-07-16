@@ -966,9 +966,15 @@ function paramTsOf(p: ParamSpec): string {
   return paramTs(p.irType!)
 }
 
-function returnTsOf(r: ReturnSpec): string {
+function returnTsForIr(irType: string, subType: string): string {
+  if (irType === 'entity') return `clientEntity<'${subType}', Mode>`
+  if (irType === 'entity_list') return `clientEntity<'${subType}', Mode>[]`
+  return returnTs(irType)
+}
+
+function returnTsOf(r: ReturnSpec, subType: string): string {
   if (r.enumClass) return r.irType === 'enum_list' ? `${r.enumClass}[]` : r.enumClass
-  return returnTs(r.irType!)
+  return returnTsForIr(r.irType!, subType)
 }
 
 /** enum returns with a bound class carry the class name (conn typing + hints) */
@@ -983,8 +989,8 @@ function emitNonReflectMethod(spec: MethodSpec): string {
     spec.returns.length === 0
       ? 'void'
       : spec.returns.length === 1
-        ? returnTsOf(spec.returns[0])
-        : `{ ${spec.returns.map((r) => `${r.ident}: ${returnTsOf(r)}`).join('; ')} }`
+        ? returnTsOf(spec.returns[0], spec.subType)
+        : `{ ${spec.returns.map((r) => `${r.ident}: ${returnTsOf(r, spec.subType)}`).join('; ')} }`
 
   const body: string[] = []
   for (const p of spec.params) {
@@ -1002,14 +1008,14 @@ function emitNonReflectMethod(spec: MethodSpec): string {
 
   if (spec.returns.length === 1) {
     const r = spec.returns[0]
-    body.push(...emitSingleReturn(r, retConstructionOf(r), returnTsOf(r)))
+    body.push(...emitSingleReturn(r, retConstructionOf(r), returnTsOf(r, spec.subType)))
   } else if (spec.returns.length > 1) {
     body.push(`    return {`)
     for (const [i, r] of spec.returns.entries()) {
       body.push(`      ${r.ident}: (() => {`)
       body.push(`        const ret = ${retConstructionOf(r)}`)
       body.push(`        ret.markPin(ref, '${r.ident}', ${r.pinIndex})`)
-      body.push(`        return ret as unknown as ${returnTsOf(r)}`)
+      body.push(`        return ret as unknown as ${returnTsOf(r, spec.subType)}`)
       body.push(`      })()${i < spec.returns.length - 1 ? ',' : ''}`)
     }
     body.push(`    }`)
@@ -1039,8 +1045,8 @@ function emitReflectMethod(spec: MethodSpec): string {
       .join(', ')
     const outTs = singleReturn
       ? singleReturn.reflective
-        ? returnTs(variant.outType!)
-        : returnTsOf(singleReturn)
+        ? returnTsForIr(variant.outType!, spec.subType)
+        : returnTsOf(singleReturn, spec.subType)
       : 'void'
     overloads.push(`  ${spec.methodName}(${paramSig}): ${outTs}`)
   }
@@ -1055,8 +1061,8 @@ function emitReflectMethod(spec: MethodSpec): string {
     .join(', ')
   const implRet = singleReturn
     ? singleReturn.reflective
-      ? unionOf(reflect.variants.map((v) => returnTs(v.outType!)))
-      : returnTsOf(singleReturn)
+      ? unionOf(reflect.variants.map((v) => returnTsForIr(v.outType!, spec.subType)))
+      : returnTsOf(singleReturn, spec.subType)
     : 'void'
 
   const body: string[] = []
@@ -1115,7 +1121,11 @@ function emitReflectMethod(spec: MethodSpec): string {
   } else if (!singleReturn.reflective) {
     body.push(...register)
     body.push(
-      ...emitSingleReturn(singleReturn, retConstructionOf(singleReturn), returnTsOf(singleReturn))
+      ...emitSingleReturn(
+        singleReturn,
+        retConstructionOf(singleReturn),
+        returnTsOf(singleReturn, spec.subType)
+      )
     )
   } else {
     // output type depends on the resolved variant
@@ -1208,7 +1218,7 @@ function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
     `      nodeType: '${spec.nodeType}',`,
     `      args: [${p1}Obj, ${p2}Obj]`,
     `    })`,
-    ...emitSingleReturn(r, retConstructionOf(r), returnTsOf(r)),
+    ...emitSingleReturn(r, retConstructionOf(r), returnTsOf(r, spec.subType)),
     `  }`
   ].join('\n')
 }
@@ -1390,7 +1400,7 @@ function emitTraverseEntityList(subType: string, doc: AlignedDocNode | undefined
   return `${controlFlowJsdoc(doc, '遍历实体列表', [{ ident: 'entityList', en: p0.en, zh: p0.zh }], r)}
   traverseEntityList(
     entityList: EntityValue[],
-    loopBody: (currentEntity: entity, breakLoop: () => void) => void
+    loopBody: (currentEntity: clientEntity<'${subType}', Mode>, breakLoop: () => void) => void
   ): void {
     const LOOP_BODY_SOURCE_INDEX = 0
     const LOOP_COMPLETE_SOURCE_INDEX = 1
@@ -1408,7 +1418,10 @@ function emitTraverseEntityList(subType: string, doc: AlignedDocNode | undefined
     this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
       this.registry.withLoop(ref.id, () => {
         globalThis.gsts.ctx.withCtx('client_${subType}_loop', () =>
-          loopBody(ret as unknown as entity, () => this.breakLoop(ref.id))
+          loopBody(
+            ret as unknown as clientEntity<'${subType}', Mode>,
+            () => this.breakLoop(ref.id)
+          )
         )
       })
     })
@@ -1447,8 +1460,8 @@ function emitAssemblyList(record: MetaRecord, doc: AlignedDocNode | undefined): 
       : '列表'
   }
   const overloads = types.flatMap((t) => [
-    `  assemblyList(_0to9: ${paramTs(t)}[]): ${returnTs(`${t}_list`)}`,
-    `  assemblyList(_0to9: ${paramTs(t)}[], type: '${t}'): ${returnTs(`${t}_list`)}`
+    `  assemblyList(_0to9: ${paramTs(t)}[]): ${returnTsForIr(`${t}_list`, record.subType)}`,
+    `  assemblyList(_0to9: ${paramTs(t)}[], type: '${t}'): ${returnTsForIr(`${t}_list`, record.subType)}`
   ])
   const union = types.map((t) => `'${t}'`).join(' | ')
   return `${controlFlowJsdoc(doc, '拼装列表', [{ ident: '_0to9', en: p0.en, zh: p0.zh }], r)}
@@ -1456,7 +1469,7 @@ ${overloads.join('\n')}
   assemblyList<T extends ${union}>(
     _0to9: RuntimeParameterValueTypeMap[T][],
     type?: T
-  ): RuntimeReturnValueTypeMap[\`\${T}_list\`] {
+  ): ClientRuntimeReturnValueTypeMap<'${record.subType}', Mode>[\`\${T}_list\`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(\`[error] assemblyList: expected 1-10 elements, got \${_0to9.length}\`)
     }
@@ -1471,7 +1484,10 @@ ${overloads.join('\n')}
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[\`\${T}_list\`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      '${record.subType}',
+      Mode
+    >[\`\${T}_list\`]
   }`
 }
 
@@ -1852,7 +1868,10 @@ function docReturnText(
 // 运行时从字典对象读取键/值类型构造返回值。
 // ---------------------------------------------------------------------------
 
-function emitGetListOfValuesFromDictionary(doc: AlignedDocNode | undefined): string {
+function emitGetListOfValuesFromDictionary(
+  subType: string,
+  doc: AlignedDocNode | undefined
+): string {
   const p0 = docParamTextByZhName(doc, '字典')
   return `${controlFlowJsdoc(
     doc,
@@ -1863,7 +1882,10 @@ function emitGetListOfValuesFromDictionary(doc: AlignedDocNode | undefined): str
   getListOfValuesFromDictionary<
     K extends DictKeyType,
     V extends keyof CommonLiteralValueTypeMap
-  >(dictionary: dict<K, V>): RuntimeReturnValueTypeMap[\`\${V}_list\`] {
+  >(dictionary: dict<K, V>): ClientRuntimeReturnValueTypeMap<
+    '${subType}',
+    Mode
+  >[\`\${V}_list\`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -1874,11 +1896,14 @@ function emitGetListOfValuesFromDictionary(doc: AlignedDocNode | undefined): str
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[\`\${V}_list\`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      '${subType}',
+      Mode
+    >[\`\${V}_list\`]
   }`
 }
 
-function emitGetListOfKeysFromDictionary(doc: AlignedDocNode | undefined): string {
+function emitGetListOfKeysFromDictionary(subType: string, doc: AlignedDocNode | undefined): string {
   const p0 = docParamTextByZhName(doc, '字典')
   return `${controlFlowJsdoc(
     doc,
@@ -1888,7 +1913,7 @@ function emitGetListOfKeysFromDictionary(doc: AlignedDocNode | undefined): strin
   )}
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[\`\${K}_list\`] {
+  ): ClientRuntimeReturnValueTypeMap<'${subType}', Mode>[\`\${K}_list\`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -1898,11 +1923,14 @@ function emitGetListOfKeysFromDictionary(doc: AlignedDocNode | undefined): strin
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[\`\${K}_list\`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      '${subType}',
+      Mode
+    >[\`\${K}_list\`]
   }`
 }
 
-function emitQueryDictionaryValueByKey(doc: AlignedDocNode | undefined): string {
+function emitQueryDictionaryValueByKey(subType: string, doc: AlignedDocNode | undefined): string {
   const p0 = docParamTextByZhName(doc, '字典')
   const p1 = docParamTextByZhName(doc, '键')
   return `${controlFlowJsdoc(
@@ -1917,7 +1945,7 @@ function emitQueryDictionaryValueByKey(doc: AlignedDocNode | undefined): string 
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'${subType}', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -1930,11 +1958,11 @@ function emitQueryDictionaryValueByKey(doc: AlignedDocNode | undefined): string 
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'${subType}', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'${subType}', Mode>[V]
   }`
 }
 
@@ -2366,15 +2394,15 @@ export function generateClientNodes(
           names.push('setLocalVariable')
           break
         case 'get_list_of_values_from_dictionary':
-          texts.push(emitGetListOfValuesFromDictionary(doc))
+          texts.push(emitGetListOfValuesFromDictionary(record.subType, doc))
           names.push('getListOfValuesFromDictionary')
           break
         case 'get_list_of_keys_from_dictionary':
-          texts.push(emitGetListOfKeysFromDictionary(doc))
+          texts.push(emitGetListOfKeysFromDictionary(record.subType, doc))
           names.push('getListOfKeysFromDictionary')
           break
         case 'query_dictionary_value_by_key':
-          texts.push(emitQueryDictionaryValueByKey(doc))
+          texts.push(emitQueryDictionaryValueByKey(record.subType, doc))
           names.push('queryDictionaryValueByKey')
           break
         case 'query_if_dictionary_contains_specific_key':
@@ -2546,7 +2574,7 @@ export function generateClientNodes(
   // ---- assemble the class file ----
   const classes = SUB_TYPES.map((subType) => {
     const texts = methodTextsBySubType.get(subType)!
-    return `export class ${CLASS_NAME_BY_SUB_TYPE[subType]} extends ClientExecutionFlowFunctionsBase {
+    return `export class ${CLASS_NAME_BY_SUB_TYPE[subType]}<Mode extends ClientGraphMode = ClientGraphMode> extends ClientExecutionFlowFunctionsBase<'${subType}', Mode> {
 ${texts.join('\n\n')}
 }`
   })
@@ -2570,7 +2598,10 @@ function getBaseValueType(
   | keyof CommonLiteralValueTypeMap
   | keyof CommonLiteralValueListTypeMap
 
-class ClientExecutionFlowFunctionsBase {
+class ClientExecutionFlowFunctionsBase<
+  SubType extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> {
   private localVariableCounter = 0
 
   constructor(protected registry: ExecutionFlowRegistry) {}
@@ -2579,7 +2610,7 @@ class ClientExecutionFlowFunctionsBase {
   __gstsInitLocalVariable<T extends ClientLocalVariableType>(
     type: T,
     initialValue?: RuntimeParameterValueTypeMap[T]
-  ): { localVariable: string; value: RuntimeReturnValueTypeMap[T] } {
+  ): { localVariable: string; value: ClientRuntimeReturnValueTypeMap<SubType, Mode>[T] } {
     const localVariable = '__gsts_local_' + type + '_' + ++this.localVariableCounter
     const variableNameObj = parseValue(localVariable, 'str')
     const ref = this.registry.registerNode({
@@ -2590,7 +2621,10 @@ class ClientExecutionFlowFunctionsBase {
     })
     const genericValue = new generic()
     genericValue.markPin(ref, 'variableValue', 0)
-    const value = genericValue.asType(type)
+    const value = genericValue.asType(type) as unknown as ClientRuntimeReturnValueTypeMap<
+      SubType,
+      Mode
+    >[T]
     if (initialValue !== undefined) {
       const setLocalVariable = (
         this as unknown as {
@@ -2645,9 +2679,12 @@ class ClientExecutionFlowFunctionsBase {
     'Vec3Value',
     'value'
   ].filter(usesIdent)
-  const irTypeImports = ['CommonLiteralValueListTypeMap', 'CommonLiteralValueTypeMap'].filter(
-    usesIdent
-  )
+  const irTypeImports = [
+    'ClientGraphMode',
+    'ClientGraphSubType',
+    'CommonLiteralValueListTypeMap',
+    'CommonLiteralValueTypeMap'
+  ].filter((name) => name === 'ClientGraphSubType' || usesIdent(name))
   const nodesImports = ['matchTypes', 'parseValue'].filter(usesIdent)
   const serverEnumImports = [
     ...enumBinding.serverClasses,
@@ -2696,6 +2733,7 @@ const DATA_TYPE_CONVERSIONS = new Set([
 ])
 
 ${enumImportLines.length ? `${enumImportLines.join('\n')}\n` : ''}${irTypeImports.length ? `import type { ${irTypeImports.join(', ')} } from '../runtime/IR.js'\n` : ''}import type { RuntimeParameterValueTypeMap, RuntimeReturnValueTypeMap } from '../runtime/value.js'
+import type { ClientRuntimeReturnValueTypeMap, clientEntity } from './client_entity_helpers.js'
 import type { DataTypeConversionMap } from './nodes.js'
 import { ${nodesImports.join(', ')} } from './nodes.js'
 

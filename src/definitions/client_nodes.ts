@@ -8,7 +8,12 @@ import {
   type SignalDefinition,
   type SignalParamValues
 } from '../runtime/core.js'
-import type { CommonLiteralValueListTypeMap, CommonLiteralValueTypeMap } from '../runtime/IR.js'
+import type {
+  ClientGraphMode,
+  ClientGraphSubType,
+  CommonLiteralValueListTypeMap,
+  CommonLiteralValueTypeMap
+} from '../runtime/IR.js'
 import {
   bool,
   configId,
@@ -44,6 +49,7 @@ import {
   type value,
   type Vec3Value
 } from '../runtime/value.js'
+import type { clientEntity, ClientRuntimeReturnValueTypeMap } from './client_entity_helpers.js'
 import type {
   AttackLayerConfig,
   FilterReturnType,
@@ -125,7 +131,10 @@ function getBaseValueType(
 
 type ClientLocalVariableType = keyof CommonLiteralValueTypeMap | keyof CommonLiteralValueListTypeMap
 
-class ClientExecutionFlowFunctionsBase {
+class ClientExecutionFlowFunctionsBase<
+  SubType extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> {
   private localVariableCounter = 0
 
   constructor(protected registry: ExecutionFlowRegistry) {}
@@ -134,7 +143,7 @@ class ClientExecutionFlowFunctionsBase {
   __gstsInitLocalVariable<T extends ClientLocalVariableType>(
     type: T,
     initialValue?: RuntimeParameterValueTypeMap[T]
-  ): { localVariable: string; value: RuntimeReturnValueTypeMap[T] } {
+  ): { localVariable: string; value: ClientRuntimeReturnValueTypeMap<SubType, Mode>[T] } {
     const localVariable = '__gsts_local_' + type + '_' + ++this.localVariableCounter
     const variableNameObj = parseValue(localVariable, 'str')
     const ref = this.registry.registerNode({
@@ -145,7 +154,10 @@ class ClientExecutionFlowFunctionsBase {
     })
     const genericValue = new generic()
     genericValue.markPin(ref, 'variableValue', 0)
-    const value = genericValue.asType(type)
+    const value = genericValue.asType(type) as unknown as ClientRuntimeReturnValueTypeMap<
+      SubType,
+      Mode
+    >[T]
     if (initialValue !== undefined) {
       const setLocalVariable = (
         this as unknown as {
@@ -161,7 +173,9 @@ class ClientExecutionFlowFunctionsBase {
   }
 }
 
-export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientCharacterSkillExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'character_skill', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -980,8 +994,8 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
   assemblyList(_0to9: ConfigIdValue[]): configId[]
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'character_skill', Mode>[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): clientEntity<'character_skill', Mode>[]
   assemblyList(_0to9: GuidValue[]): guid[]
   assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
@@ -1001,7 +1015,10 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       | 'prefab_id'
       | 'str'
       | 'vec3'
-  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+  >(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -1019,7 +1036,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[`${T}_list`]
   }
 
   /**
@@ -1874,7 +1891,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'character_skill', Mode>[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
     const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
@@ -1887,7 +1904,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -1925,7 +1942,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'character_skill', Mode>[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
     const lengthObj = parseValue(length, 'float')
@@ -1947,7 +1964,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -2136,7 +2153,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   getAllEntitiesWithinTheCollisionTrigger(
     targetEntity: EntityValue,
     triggerID: IntValue
-  ): entity[] {
+  ): clientEntity<'character_skill', Mode>[] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const triggerIDObj = parseValue(triggerID, 'int')
     const ref = this.registry.registerNode({
@@ -2147,7 +2164,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -2159,7 +2176,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 对象列表
    */
-  getAllValidEntitiesThatAreScannableByScanComponent(): entity[] {
+  getAllValidEntitiesThatAreScannableByScanComponent(): clientEntity<'character_skill', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2168,7 +2185,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'objectList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -2184,7 +2201,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 基准对象
    */
-  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+  getBaseObjectOfSpecifiedPreAiming(
+    preAimingIndex: IntValue
+  ): clientEntity<'character_skill', Mode> {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -2194,7 +2213,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'baseObject', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -2210,7 +2229,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 角色实体
    */
-  getCharacterEntityOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getCharacterEntityOfSpecifiedPlayer(
+    playerEntity: EntityValue
+  ): clientEntity<'character_skill', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -2220,7 +2241,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -2243,7 +2264,10 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
   getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'character_skill', Mode>
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
   getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
@@ -2260,7 +2284,16 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       | GuidValue[]
       | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
+  ):
+    | number
+    | bigint
+    | boolean
+    | configId
+    | clientEntity<'character_skill', Mode>
+    | faction
+    | guid
+    | string
+    | vec3 {
     const genericType = matchTypes(
       ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
@@ -2311,7 +2344,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       | bigint
       | boolean
       | configId
-      | entity
+      | clientEntity<'character_skill', Mode>
       | faction
       | guid
       | string
@@ -2348,7 +2381,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 角色实体
    */
-  getCurrentCharacter(): entity {
+  getCurrentCharacter(): clientEntity<'character_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2357,7 +2390,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -2511,7 +2544,11 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * hitCount
    * 命中数量
    */
-  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+  getCursorHitResult(): {
+    hitEntityList: clientEntity<'character_skill', Mode>[]
+    hitPositionList: vec3[]
+    hitCount: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2522,7 +2559,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       hitEntityList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'hitEntityList', 0)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'character_skill', Mode>[]
       })(),
       hitPositionList: (() => {
         const ret = new list('vec3')
@@ -2649,7 +2686,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
-    correspondingEntity: entity
+    correspondingEntity: clientEntity<'character_skill', Mode>
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -2662,7 +2699,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       correspondingEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'correspondingEntity', 0)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_skill', Mode>
       })(),
       scanTagConfigID: (() => {
         const ret = new configId()
@@ -2685,7 +2722,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 实体列表
    */
-  getEntityListByUnitTag(unitTagIndex: IntValue): entity[] {
+  getEntityListByUnitTag(unitTagIndex: IntValue): clientEntity<'character_skill', Mode>[] {
     const unitTagIndexObj = parseValue(unitTagIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -2695,7 +2732,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -2927,7 +2964,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -2937,7 +2974,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[`${K}_list`]
   }
 
   /**
@@ -2949,7 +2986,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 玩家实体列表
    */
-  getListOfPlayerEntitiesOnTheField(): entity[] {
+  getListOfPlayerEntitiesOnTheField(): clientEntity<'character_skill', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2958,7 +2995,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -2976,7 +3013,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -2987,7 +3024,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[`${V}_list`]
   }
 
   /**
@@ -3126,7 +3163,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 所属玩家实体
    */
-  getPlayerEntityToWhichTheCharacterBelongs(characterEntity: EntityValue): entity {
+  getPlayerEntityToWhichTheCharacterBelongs(
+    characterEntity: EntityValue
+  ): clientEntity<'character_skill', Mode> {
     const characterEntityObj = parseValue(characterEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -3136,7 +3175,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -3242,7 +3281,10 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    * hitEntity
    * 命中实体
    */
-  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    hitEntity: clientEntity<'character_skill', Mode>
+  } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -3259,7 +3301,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       hitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'hitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_skill', Mode>
       })()
     }
   }
@@ -3290,8 +3332,8 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   getPreAimingResult(preAimingIndex: IntValue): {
     hitPosition: vec3
     inRangePosition: vec3
-    bestValidTarget: entity
-    validTargetList: entity[]
+    bestValidTarget: clientEntity<'character_skill', Mode>
+    validTargetList: clientEntity<'character_skill', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
@@ -3314,12 +3356,12 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       bestValidTarget: (() => {
         const ret = new entity()
         ret.markPin(ref, 'bestValidTarget', 2)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_skill', Mode>
       })(),
       validTargetList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'validTargetList', 3)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'character_skill', Mode>[]
       })()
     }
   }
@@ -3440,7 +3482,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: entity } {
+  ): { onHitLocation: vec3; onHitEntity: clientEntity<'character_skill', Mode> } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -3471,7 +3513,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
       onHitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'onHitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_skill', Mode>
       })()
     }
   }
@@ -3516,7 +3558,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'character_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -3525,7 +3567,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -3623,7 +3665,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 目标实体
    */
-  getTargetEntity(): entity {
+  getTargetEntity(): clientEntity<'character_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -3632,7 +3674,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -3648,7 +3690,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 仇恨列表
    */
-  getTheAggroListOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity[] {
+  getTheAggroListOfTheSpecifiedEntity(
+    specifiedEntity: EntityValue
+  ): clientEntity<'character_skill', Mode>[] {
     const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -3658,7 +3702,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'aggroList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_skill', Mode>[]
   }
 
   /**
@@ -3674,7 +3718,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 仇恨目标
    */
-  getTheAggroTargetOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity {
+  getTheAggroTargetOfTheSpecifiedEntity(
+    specifiedEntity: EntityValue
+  ): clientEntity<'character_skill', Mode> {
     const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -3684,7 +3730,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'aggroTarget', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -3700,7 +3746,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 攻击目标实体
    */
-  getUnitAttackTarget(unitEntity: EntityValue): entity {
+  getUnitAttackTarget(unitEntity: EntityValue): clientEntity<'character_skill', Mode> {
     const unitEntityObj = parseValue(unitEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -3710,7 +3756,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -4572,7 +4618,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -4585,11 +4631,11 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_skill', Mode>[V]
   }
 
   /**
@@ -4605,7 +4651,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    *
    * 实体
    */
-  queryEntityByGuid(gUID: GuidValue): entity {
+  queryEntityByGuid(gUID: GuidValue): clientEntity<'character_skill', Mode> {
     const gUIDObj = parseValue(gUID, 'guid')
     const ref = this.registry.registerNode({
       id: 0,
@@ -4615,7 +4661,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'entity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_skill', Mode>
   }
 
   /**
@@ -5697,7 +5743,7 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
    */
   traverseEntityList(
     entityList: EntityValue[],
-    loopBody: (currentEntity: entity, breakLoop: () => void) => void
+    loopBody: (currentEntity: clientEntity<'character_skill', Mode>, breakLoop: () => void) => void
   ): void {
     const LOOP_BODY_SOURCE_INDEX = 0
     const LOOP_COMPLETE_SOURCE_INDEX = 1
@@ -5715,7 +5761,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
     this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
       this.registry.withLoop(ref.id, () => {
         globalThis.gsts.ctx.withCtx('client_character_skill_loop', () =>
-          loopBody(ret as unknown as entity, () => this.breakLoop(ref.id))
+          loopBody(ret as unknown as clientEntity<'character_skill', Mode>, () =>
+            this.breakLoop(ref.id)
+          )
         )
       })
     })
@@ -7624,7 +7672,9 @@ export class ClientCharacterSkillExecutionFlowFunctions extends ClientExecutionF
   }
 }
 
-export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientCharacterControlSkillExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'character_control_skill', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -8580,8 +8630,11 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
   assemblyList(_0to9: ConfigIdValue[]): configId[]
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'character_control_skill', Mode>[]
+  assemblyList(
+    _0to9: EntityValue[],
+    type: 'entity'
+  ): clientEntity<'character_control_skill', Mode>[]
   assemblyList(_0to9: GuidValue[]): guid[]
   assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
@@ -8601,7 +8654,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       | 'prefab_id'
       | 'str'
       | 'vec3'
-  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+  >(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): ClientRuntimeReturnValueTypeMap<'character_control_skill', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -8619,7 +8675,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      'character_control_skill',
+      Mode
+    >[`${T}_list`]
   }
 
   /**
@@ -9474,7 +9533,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'character_control_skill', Mode>[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
     const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
@@ -9487,7 +9546,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -9525,7 +9584,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'character_control_skill', Mode>[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
     const lengthObj = parseValue(length, 'float')
@@ -9547,7 +9606,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -9736,7 +9795,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   getAllEntitiesWithinTheCollisionTrigger(
     targetEntity: EntityValue,
     triggerID: IntValue
-  ): entity[] {
+  ): clientEntity<'character_control_skill', Mode>[] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const triggerIDObj = parseValue(triggerID, 'int')
     const ref = this.registry.registerNode({
@@ -9747,7 +9806,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -9759,7 +9818,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 对象列表
    */
-  getAllValidEntitiesThatAreScannableByScanComponent(): entity[] {
+  getAllValidEntitiesThatAreScannableByScanComponent(): clientEntity<
+    'character_control_skill',
+    Mode
+  >[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -9768,7 +9830,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'objectList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -9784,7 +9846,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 基准对象
    */
-  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+  getBaseObjectOfSpecifiedPreAiming(
+    preAimingIndex: IntValue
+  ): clientEntity<'character_control_skill', Mode> {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -9794,7 +9858,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'baseObject', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -9810,7 +9874,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 角色实体
    */
-  getCharacterEntityOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getCharacterEntityOfSpecifiedPlayer(
+    playerEntity: EntityValue
+  ): clientEntity<'character_control_skill', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -9820,7 +9886,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -10024,7 +10090,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
   getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'character_control_skill', Mode>
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
   getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
@@ -10041,7 +10110,16 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       | GuidValue[]
       | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
+  ):
+    | number
+    | bigint
+    | boolean
+    | configId
+    | clientEntity<'character_control_skill', Mode>
+    | faction
+    | guid
+    | string
+    | vec3 {
     const genericType = matchTypes(
       ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
@@ -10092,7 +10170,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       | bigint
       | boolean
       | configId
-      | entity
+      | clientEntity<'character_control_skill', Mode>
       | faction
       | guid
       | string
@@ -10108,7 +10186,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 操控运动器列表
    */
-  getCurrentActiveControlMotorList(): entity[] {
+  getCurrentActiveControlMotorList(): clientEntity<'character_control_skill', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -10117,7 +10195,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'controlMotorList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -10150,7 +10228,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 角色实体
    */
-  getCurrentCharacter(): entity {
+  getCurrentCharacter(): clientEntity<'character_control_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -10159,7 +10237,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -10226,7 +10304,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 跟随操控运动器
    */
-  getCurrentFollowingControlMotor(): entity {
+  getCurrentFollowingControlMotor(): clientEntity<'character_control_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -10235,7 +10313,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'followingControlMotor', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -10334,7 +10412,11 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    * hitCount
    * 命中数量
    */
-  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+  getCursorHitResult(): {
+    hitEntityList: clientEntity<'character_control_skill', Mode>[]
+    hitPositionList: vec3[]
+    hitCount: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -10345,7 +10427,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       hitEntityList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'hitEntityList', 0)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'character_control_skill', Mode>[]
       })(),
       hitPositionList: (() => {
         const ret = new list('vec3')
@@ -10472,7 +10554,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
-    correspondingEntity: entity
+    correspondingEntity: clientEntity<'character_control_skill', Mode>
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -10485,7 +10567,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       correspondingEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'correspondingEntity', 0)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_control_skill', Mode>
       })(),
       scanTagConfigID: (() => {
         const ret = new configId()
@@ -10508,7 +10590,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 实体列表
    */
-  getEntityListByUnitTag(unitTagIndex: IntValue): entity[] {
+  getEntityListByUnitTag(unitTagIndex: IntValue): clientEntity<'character_control_skill', Mode>[] {
     const unitTagIndexObj = parseValue(unitTagIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10518,7 +10600,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -10750,7 +10832,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'character_control_skill', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10760,7 +10842,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      'character_control_skill',
+      Mode
+    >[`${K}_list`]
   }
 
   /**
@@ -10772,7 +10857,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 玩家实体列表
    */
-  getListOfPlayerEntitiesOnTheField(): entity[] {
+  getListOfPlayerEntitiesOnTheField(): clientEntity<'character_control_skill', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -10781,7 +10866,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -10799,7 +10884,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'character_control_skill', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -10810,7 +10895,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      'character_control_skill',
+      Mode
+    >[`${V}_list`]
   }
 
   /**
@@ -10949,7 +11037,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 所属玩家实体
    */
-  getPlayerEntityToWhichTheCharacterBelongs(characterEntity: EntityValue): entity {
+  getPlayerEntityToWhichTheCharacterBelongs(
+    characterEntity: EntityValue
+  ): clientEntity<'character_control_skill', Mode> {
     const characterEntityObj = parseValue(characterEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -10959,7 +11049,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -11065,7 +11155,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    * hitEntity
    * 命中实体
    */
-  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    hitEntity: clientEntity<'character_control_skill', Mode>
+  } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11082,7 +11175,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       hitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'hitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_control_skill', Mode>
       })()
     }
   }
@@ -11113,8 +11206,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   getPreAimingResult(preAimingIndex: IntValue): {
     hitPosition: vec3
     inRangePosition: vec3
-    bestValidTarget: entity
-    validTargetList: entity[]
+    bestValidTarget: clientEntity<'character_control_skill', Mode>
+    validTargetList: clientEntity<'character_control_skill', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
@@ -11137,12 +11230,12 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       bestValidTarget: (() => {
         const ret = new entity()
         ret.markPin(ref, 'bestValidTarget', 2)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_control_skill', Mode>
       })(),
       validTargetList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'validTargetList', 3)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'character_control_skill', Mode>[]
       })()
     }
   }
@@ -11263,7 +11356,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: entity } {
+  ): { onHitLocation: vec3; onHitEntity: clientEntity<'character_control_skill', Mode> } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -11294,7 +11387,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
       onHitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'onHitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'character_control_skill', Mode>
       })()
     }
   }
@@ -11339,7 +11432,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'character_control_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -11348,7 +11441,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -11446,7 +11539,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 目标实体
    */
-  getTargetEntity(): entity {
+  getTargetEntity(): clientEntity<'character_control_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -11455,7 +11548,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -11471,7 +11564,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 仇恨列表
    */
-  getTheAggroListOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity[] {
+  getTheAggroListOfTheSpecifiedEntity(
+    specifiedEntity: EntityValue
+  ): clientEntity<'character_control_skill', Mode>[] {
     const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11481,7 +11576,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new list('entity')
     ret.markPin(ref, 'aggroList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'character_control_skill', Mode>[]
   }
 
   /**
@@ -11497,7 +11592,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 仇恨目标
    */
-  getTheAggroTargetOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity {
+  getTheAggroTargetOfTheSpecifiedEntity(
+    specifiedEntity: EntityValue
+  ): clientEntity<'character_control_skill', Mode> {
     const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11507,7 +11604,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'aggroTarget', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -11523,7 +11620,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 攻击目标实体
    */
-  getUnitAttackTarget(unitEntity: EntityValue): entity {
+  getUnitAttackTarget(unitEntity: EntityValue): clientEntity<'character_control_skill', Mode> {
     const unitEntityObj = parseValue(unitEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -11533,7 +11630,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -12424,7 +12521,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'character_control_skill', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -12437,11 +12534,11 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_control_skill', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'character_control_skill', Mode>[V]
   }
 
   /**
@@ -12457,7 +12554,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    *
    * 实体
    */
-  queryEntityByGuid(gUID: GuidValue): entity {
+  queryEntityByGuid(gUID: GuidValue): clientEntity<'character_control_skill', Mode> {
     const gUIDObj = parseValue(gUID, 'guid')
     const ref = this.registry.registerNode({
       id: 0,
@@ -12467,7 +12564,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     })
     const ret = new entity()
     ret.markPin(ref, 'entity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'character_control_skill', Mode>
   }
 
   /**
@@ -13572,7 +13669,10 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
    */
   traverseEntityList(
     entityList: EntityValue[],
-    loopBody: (currentEntity: entity, breakLoop: () => void) => void
+    loopBody: (
+      currentEntity: clientEntity<'character_control_skill', Mode>,
+      breakLoop: () => void
+    ) => void
   ): void {
     const LOOP_BODY_SOURCE_INDEX = 0
     const LOOP_COMPLETE_SOURCE_INDEX = 1
@@ -13590,7 +13690,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
     this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
       this.registry.withLoop(ref.id, () => {
         globalThis.gsts.ctx.withCtx('client_character_control_skill_loop', () =>
-          loopBody(ret as unknown as entity, () => this.breakLoop(ref.id))
+          loopBody(ret as unknown as clientEntity<'character_control_skill', Mode>, () =>
+            this.breakLoop(ref.id)
+          )
         )
       })
     })
@@ -15499,7 +15601,9 @@ export class ClientCharacterControlSkillExecutionFlowFunctions extends ClientExe
   }
 }
 
-export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientCreationSkillExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'creation_skill', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -16299,8 +16403,8 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
   assemblyList(_0to9: ConfigIdValue[]): configId[]
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'creation_skill', Mode>[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): clientEntity<'creation_skill', Mode>[]
   assemblyList(_0to9: GuidValue[]): guid[]
   assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
@@ -16320,7 +16424,10 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       | 'prefab_id'
       | 'str'
       | 'vec3'
-  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+  >(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -16338,7 +16445,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[`${T}_list`]
   }
 
   /**
@@ -17158,7 +17265,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'creation_skill', Mode>[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
     const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
@@ -17171,7 +17278,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -17209,7 +17316,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'creation_skill', Mode>[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
     const lengthObj = parseValue(length, 'float')
@@ -17231,7 +17338,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -17339,7 +17446,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 角色实体
    */
-  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getActiveCharacterOfSpecifiedPlayer(
+    playerEntity: EntityValue
+  ): clientEntity<'creation_skill', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -17349,7 +17458,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -17371,7 +17480,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   getAllEntitiesWithinTheCollisionTrigger(
     targetEntity: EntityValue,
     triggerID: IntValue
-  ): entity[] {
+  ): clientEntity<'creation_skill', Mode>[] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const triggerIDObj = parseValue(triggerID, 'int')
     const ref = this.registry.registerNode({
@@ -17382,7 +17491,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -17405,7 +17514,10 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
   getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'creation_skill', Mode>
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
   getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
@@ -17422,7 +17534,16 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       | GuidValue[]
       | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
+  ):
+    | number
+    | bigint
+    | boolean
+    | configId
+    | clientEntity<'creation_skill', Mode>
+    | faction
+    | guid
+    | string
+    | vec3 {
     const genericType = matchTypes(
       ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
@@ -17473,7 +17594,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       | bigint
       | boolean
       | configId
-      | entity
+      | clientEntity<'creation_skill', Mode>
       | faction
       | guid
       | string
@@ -17493,7 +17614,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 目标实体
    */
-  getCreationSCurrentTarget(creation: EntityValue): entity {
+  getCreationSCurrentTarget(creation: EntityValue): clientEntity<'creation_skill', Mode> {
     const creationObj = parseValue(creation, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -17503,7 +17624,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -17522,7 +17643,11 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    * hitCount
    * 命中数量
    */
-  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+  getCursorHitResult(): {
+    hitEntityList: clientEntity<'creation_skill', Mode>[]
+    hitPositionList: vec3[]
+    hitCount: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -17533,7 +17658,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       hitEntityList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'hitEntityList', 0)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'creation_skill', Mode>[]
       })(),
       hitPositionList: (() => {
         const ret = new list('vec3')
@@ -17659,7 +17784,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 实体列表
    */
-  getEntityListByUnitTag(unitTagIndex: IntValue): entity[] {
+  getEntityListByUnitTag(unitTagIndex: IntValue): clientEntity<'creation_skill', Mode>[] {
     const unitTagIndexObj = parseValue(unitTagIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -17669,7 +17794,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -17849,7 +17974,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -17859,7 +17984,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[`${K}_list`]
   }
 
   /**
@@ -17871,7 +17996,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 玩家实体列表
    */
-  getListOfPlayerEntitiesOnTheField(): entity[] {
+  getListOfPlayerEntitiesOnTheField(): clientEntity<'creation_skill', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -17880,7 +18005,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -17898,7 +18023,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -17909,7 +18034,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[`${V}_list`]
   }
 
   /**
@@ -18027,7 +18152,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 所属玩家实体
    */
-  getPlayerEntityToWhichTheCharacterBelongs(characterEntity: EntityValue): entity {
+  getPlayerEntityToWhichTheCharacterBelongs(
+    characterEntity: EntityValue
+  ): clientEntity<'creation_skill', Mode> {
     const characterEntityObj = parseValue(characterEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -18037,7 +18164,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -18053,7 +18180,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 角色列表
    */
-  getPlayerSCharacterList(playerEntity: EntityValue): entity[] {
+  getPlayerSCharacterList(playerEntity: EntityValue): clientEntity<'creation_skill', Mode>[] {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -18063,7 +18190,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'characterList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -18182,7 +18309,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: entity } {
+  ): { onHitLocation: vec3; onHitEntity: clientEntity<'creation_skill', Mode> } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -18213,7 +18340,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
       onHitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'onHitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'creation_skill', Mode>
       })()
     }
   }
@@ -18258,7 +18385,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'creation_skill', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -18267,7 +18394,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -18283,7 +18410,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 子实体列表
    */
-  getSubEntityList(targetEntity: EntityValue): entity[] {
+  getSubEntityList(targetEntity: EntityValue): clientEntity<'creation_skill', Mode>[] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -18293,7 +18420,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'subEntityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -18369,7 +18496,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 仇恨列表
    */
-  getTheAggroListOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity[] {
+  getTheAggroListOfTheSpecifiedEntity(
+    specifiedEntity: EntityValue
+  ): clientEntity<'creation_skill', Mode>[] {
     const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -18379,7 +18508,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new list('entity')
     ret.markPin(ref, 'aggroList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'creation_skill', Mode>[]
   }
 
   /**
@@ -18395,7 +18524,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 仇恨目标
    */
-  getTheAggroTargetOfTheSpecifiedEntity(specifiedEntity: EntityValue): entity {
+  getTheAggroTargetOfTheSpecifiedEntity(
+    specifiedEntity: EntityValue
+  ): clientEntity<'creation_skill', Mode> {
     const specifiedEntityObj = parseValue(specifiedEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -18405,7 +18536,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'aggroTarget', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -18442,7 +18573,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 攻击目标实体
    */
-  getUnitAttackTarget(unitEntity: EntityValue): entity {
+  getUnitAttackTarget(unitEntity: EntityValue): clientEntity<'creation_skill', Mode> {
     const unitEntityObj = parseValue(unitEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -18452,7 +18583,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -19061,7 +19192,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -19074,11 +19205,11 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_skill', Mode>[V]
   }
 
   /**
@@ -19094,7 +19225,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    *
    * 实体
    */
-  queryEntityByGuid(gUID: GuidValue): entity {
+  queryEntityByGuid(gUID: GuidValue): clientEntity<'creation_skill', Mode> {
     const gUIDObj = parseValue(gUID, 'guid')
     const ref = this.registry.registerNode({
       id: 0,
@@ -19104,7 +19235,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     })
     const ret = new entity()
     ret.markPin(ref, 'entity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_skill', Mode>
   }
 
   /**
@@ -20124,7 +20255,7 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
    */
   traverseEntityList(
     entityList: EntityValue[],
-    loopBody: (currentEntity: entity, breakLoop: () => void) => void
+    loopBody: (currentEntity: clientEntity<'creation_skill', Mode>, breakLoop: () => void) => void
   ): void {
     const LOOP_BODY_SOURCE_INDEX = 0
     const LOOP_COMPLETE_SOURCE_INDEX = 1
@@ -20142,7 +20273,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
     this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
       this.registry.withLoop(ref.id, () => {
         globalThis.gsts.ctx.withCtx('client_creation_skill_loop', () =>
-          loopBody(ret as unknown as entity, () => this.breakLoop(ref.id))
+          loopBody(ret as unknown as clientEntity<'creation_skill', Mode>, () =>
+            this.breakLoop(ref.id)
+          )
         )
       })
     })
@@ -22051,7 +22184,9 @@ export class ClientCreationSkillExecutionFlowFunctions extends ClientExecutionFl
   }
 }
 
-export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientCreationStatusExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'creation_status', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -22816,12 +22951,12 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   assemblyList(_0to9: FloatValue[], type: 'float'): number[]
   assemblyList(_0to9: IntValue[]): bigint[]
   assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'creation_status', Mode>[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): clientEntity<'creation_status', Mode>[]
   assemblyList<T extends 'float' | 'int' | 'entity'>(
     _0to9: RuntimeParameterValueTypeMap[T][],
     type?: T
-  ): RuntimeReturnValueTypeMap[`${T}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -22836,7 +22971,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[`${T}_list`]
   }
 
   /**
@@ -23750,11 +23885,14 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    */
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'creation_status', Mode>
   getCorrespondingValueFromList(
     iD: IntValue,
     dataList: IntValue[] | BoolValue[] | EntityValue[]
-  ): bigint | boolean | entity {
+  ): bigint | boolean | clientEntity<'creation_status', Mode> {
     const genericType = matchTypes(['int', 'bool', 'entity'], dataList)
     const iDObj = parseValue(iD, 'int')
     const dataListObj = parseValue(dataList, `${genericType}_list` as const)
@@ -23778,7 +23916,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
-    return ret as unknown as bigint | boolean | entity
+    return ret as unknown as bigint | boolean | clientEntity<'creation_status', Mode>
   }
 
   /**
@@ -23953,7 +24091,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -23963,7 +24101,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[`${K}_list`]
   }
 
   /**
@@ -23981,7 +24119,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -23992,7 +24130,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[`${V}_list`]
   }
 
   /**
@@ -24208,7 +24346,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'creation_status', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -24217,7 +24355,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_status', Mode>
   }
 
   /**
@@ -24289,7 +24427,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 关卡实体
    */
-  getStageEntity(): entity {
+  getStageEntity(): clientEntity<'creation_status', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -24298,7 +24436,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'stageEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_status', Mode>
   }
 
   /**
@@ -24349,7 +24487,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
    *
    * 目标实体
    */
-  getTargetEntity(): entity {
+  getTargetEntity(): clientEntity<'creation_status', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -24358,7 +24496,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_status', Mode>
   }
 
   /**
@@ -24979,7 +25117,7 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -24992,11 +25130,11 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status', Mode>[V]
   }
 
   /**
@@ -26141,7 +26279,9 @@ export class ClientCreationStatusExecutionFlowFunctions extends ClientExecutionF
   }
 }
 
-export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientCreationStatusDecisionExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'creation_status_decision', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -26906,12 +27046,15 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   assemblyList(_0to9: FloatValue[], type: 'float'): number[]
   assemblyList(_0to9: IntValue[]): bigint[]
   assemblyList(_0to9: IntValue[], type: 'int'): bigint[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'creation_status_decision', Mode>[]
+  assemblyList(
+    _0to9: EntityValue[],
+    type: 'entity'
+  ): clientEntity<'creation_status_decision', Mode>[]
   assemblyList<T extends 'float' | 'int' | 'entity'>(
     _0to9: RuntimeParameterValueTypeMap[T][],
     type?: T
-  ): RuntimeReturnValueTypeMap[`${T}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status_decision', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -26926,7 +27069,10 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      'creation_status_decision',
+      Mode
+    >[`${T}_list`]
   }
 
   /**
@@ -27803,11 +27949,14 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    */
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'creation_status_decision', Mode>
   getCorrespondingValueFromList(
     iD: IntValue,
     dataList: IntValue[] | BoolValue[] | EntityValue[]
-  ): bigint | boolean | entity {
+  ): bigint | boolean | clientEntity<'creation_status_decision', Mode> {
     const genericType = matchTypes(['int', 'bool', 'entity'], dataList)
     const iDObj = parseValue(iD, 'int')
     const dataListObj = parseValue(dataList, `${genericType}_list` as const)
@@ -27831,7 +27980,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new ValueClassMap[outputIrType]()
     ret.markPin(ref, 'result', 0)
-    return ret as unknown as bigint | boolean | entity
+    return ret as unknown as bigint | boolean | clientEntity<'creation_status_decision', Mode>
   }
 
   /**
@@ -28006,7 +28155,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status_decision', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -28016,7 +28165,10 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      'creation_status_decision',
+      Mode
+    >[`${K}_list`]
   }
 
   /**
@@ -28034,7 +28186,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status_decision', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -28045,7 +28197,10 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<
+      'creation_status_decision',
+      Mode
+    >[`${V}_list`]
   }
 
   /**
@@ -28261,7 +28416,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'creation_status_decision', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -28270,7 +28425,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_status_decision', Mode>
   }
 
   /**
@@ -28342,7 +28497,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 关卡实体
    */
-  getStageEntity(): entity {
+  getStageEntity(): clientEntity<'creation_status_decision', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -28351,7 +28506,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new entity()
     ret.markPin(ref, 'stageEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_status_decision', Mode>
   }
 
   /**
@@ -28402,7 +28557,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
    *
    * 目标实体
    */
-  getTargetEntity(): entity {
+  getTargetEntity(): clientEntity<'creation_status_decision', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -28411,7 +28566,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'creation_status_decision', Mode>
   }
 
   /**
@@ -29035,7 +29190,7 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'creation_status_decision', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -29048,11 +29203,11 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status_decision', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'creation_status_decision', Mode>[V]
   }
 
   /**
@@ -29407,7 +29562,9 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions extends ClientEx
   }
 }
 
-export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientBoolFilterExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'bool_filter', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -30176,8 +30333,8 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
   assemblyList(_0to9: ConfigIdValue[]): configId[]
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'bool_filter', Mode>[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): clientEntity<'bool_filter', Mode>[]
   assemblyList(_0to9: GuidValue[]): guid[]
   assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
@@ -30197,7 +30354,10 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       | 'prefab_id'
       | 'str'
       | 'vec3'
-  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+  >(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -30215,7 +30375,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[`${T}_list`]
   }
 
   /**
@@ -30880,7 +31040,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'bool_filter', Mode>[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
     const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
@@ -30893,7 +31053,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'bool_filter', Mode>[]
   }
 
   /**
@@ -30931,7 +31091,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'bool_filter', Mode>[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
     const lengthObj = parseValue(length, 'float')
@@ -30953,7 +31113,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'bool_filter', Mode>[]
   }
 
   /**
@@ -30969,7 +31129,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 角色实体
    */
-  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getActiveCharacterOfSpecifiedPlayer(
+    playerEntity: EntityValue
+  ): clientEntity<'bool_filter', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -30979,7 +31141,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -31001,7 +31163,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   getAllEntitiesWithinTheCollisionTrigger(
     targetEntity: EntityValue,
     triggerID: IntValue
-  ): entity[] {
+  ): clientEntity<'bool_filter', Mode>[] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const triggerIDObj = parseValue(triggerID, 'int')
     const ref = this.registry.registerNode({
@@ -31012,7 +31174,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'bool_filter', Mode>[]
   }
 
   /**
@@ -31024,7 +31186,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 对象列表
    */
-  getAllValidEntitiesThatAreScannableByScanComponent(): entity[] {
+  getAllValidEntitiesThatAreScannableByScanComponent(): clientEntity<'bool_filter', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -31033,7 +31195,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'objectList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'bool_filter', Mode>[]
   }
 
   /**
@@ -31049,7 +31211,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 基准对象
    */
-  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): clientEntity<'bool_filter', Mode> {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -31059,7 +31221,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'baseObject', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -31075,7 +31237,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 角色实体
    */
-  getCharacterEntityOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getCharacterEntityOfSpecifiedPlayer(
+    playerEntity: EntityValue
+  ): clientEntity<'bool_filter', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -31085,7 +31249,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -31108,7 +31272,10 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
   getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'bool_filter', Mode>
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
   getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
@@ -31125,7 +31292,16 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       | GuidValue[]
       | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
+  ):
+    | number
+    | bigint
+    | boolean
+    | configId
+    | clientEntity<'bool_filter', Mode>
+    | faction
+    | guid
+    | string
+    | vec3 {
     const genericType = matchTypes(
       ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
@@ -31176,7 +31352,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       | bigint
       | boolean
       | configId
-      | entity
+      | clientEntity<'bool_filter', Mode>
       | faction
       | guid
       | string
@@ -31213,7 +31389,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 角色实体
    */
-  getCurrentCharacter(): entity {
+  getCurrentCharacter(): clientEntity<'bool_filter', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -31222,7 +31398,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -31376,7 +31552,11 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    * hitCount
    * 命中数量
    */
-  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+  getCursorHitResult(): {
+    hitEntityList: clientEntity<'bool_filter', Mode>[]
+    hitPositionList: vec3[]
+    hitCount: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -31387,7 +31567,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       hitEntityList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'hitEntityList', 0)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'bool_filter', Mode>[]
       })(),
       hitPositionList: (() => {
         const ret = new list('vec3')
@@ -31514,7 +31694,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
-    correspondingEntity: entity
+    correspondingEntity: clientEntity<'bool_filter', Mode>
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -31527,7 +31707,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       correspondingEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'correspondingEntity', 0)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'bool_filter', Mode>
       })(),
       scanTagConfigID: (() => {
         const ret = new configId()
@@ -31740,7 +31920,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -31750,7 +31930,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[`${K}_list`]
   }
 
   /**
@@ -31762,7 +31942,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 玩家实体列表
    */
-  getListOfPlayerEntitiesOnTheField(): entity[] {
+  getListOfPlayerEntitiesOnTheField(): clientEntity<'bool_filter', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -31771,7 +31951,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'bool_filter', Mode>[]
   }
 
   /**
@@ -31789,7 +31969,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -31800,7 +31980,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[`${V}_list`]
   }
 
   /**
@@ -31913,7 +32093,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 所属玩家实体
    */
-  getPlayerEntityToWhichTheCharacterBelongs(characterEntity: EntityValue): entity {
+  getPlayerEntityToWhichTheCharacterBelongs(
+    characterEntity: EntityValue
+  ): clientEntity<'bool_filter', Mode> {
     const characterEntityObj = parseValue(characterEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -31923,7 +32105,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -31973,7 +32155,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 角色列表
    */
-  getPlayerSCharacterList(playerEntity: EntityValue): entity[] {
+  getPlayerSCharacterList(playerEntity: EntityValue): clientEntity<'bool_filter', Mode>[] {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -31983,7 +32165,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new list('entity')
     ret.markPin(ref, 'characterList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'bool_filter', Mode>[]
   }
 
   /**
@@ -32055,7 +32237,10 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    * hitEntity
    * 命中实体
    */
-  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    hitEntity: clientEntity<'bool_filter', Mode>
+  } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -32072,7 +32257,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       hitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'hitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'bool_filter', Mode>
       })()
     }
   }
@@ -32103,8 +32288,8 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   getPreAimingResult(preAimingIndex: IntValue): {
     hitPosition: vec3
     inRangePosition: vec3
-    bestValidTarget: entity
-    validTargetList: entity[]
+    bestValidTarget: clientEntity<'bool_filter', Mode>
+    validTargetList: clientEntity<'bool_filter', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
@@ -32127,12 +32312,12 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       bestValidTarget: (() => {
         const ret = new entity()
         ret.markPin(ref, 'bestValidTarget', 2)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'bool_filter', Mode>
       })(),
       validTargetList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'validTargetList', 3)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'bool_filter', Mode>[]
       })()
     }
   }
@@ -32253,7 +32438,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: entity } {
+  ): { onHitLocation: vec3; onHitEntity: clientEntity<'bool_filter', Mode> } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -32284,7 +32469,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
       onHitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'onHitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'bool_filter', Mode>
       })()
     }
   }
@@ -32329,7 +32514,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'bool_filter', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -32338,7 +32523,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -32436,7 +32621,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 目标实体
    */
-  getTargetEntity(): entity {
+  getTargetEntity(): clientEntity<'bool_filter', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -32445,7 +32630,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -32461,7 +32646,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 攻击目标实体
    */
-  getUnitAttackTarget(unitEntity: EntityValue): entity {
+  getUnitAttackTarget(unitEntity: EntityValue): clientEntity<'bool_filter', Mode> {
     const unitEntityObj = parseValue(unitEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -32471,7 +32656,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -33001,7 +33186,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -33014,11 +33199,11 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'bool_filter', Mode>[V]
   }
 
   /**
@@ -33034,7 +33219,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
    *
    * 实体
    */
-  queryEntityByGuid(gUID: GuidValue): entity {
+  queryEntityByGuid(gUID: GuidValue): clientEntity<'bool_filter', Mode> {
     const gUIDObj = parseValue(gUID, 'guid')
     const ref = this.registry.registerNode({
       id: 0,
@@ -33044,7 +33229,7 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
     })
     const ret = new entity()
     ret.markPin(ref, 'entity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'bool_filter', Mode>
   }
 
   /**
@@ -33754,7 +33939,9 @@ export class ClientBoolFilterExecutionFlowFunctions extends ClientExecutionFlowF
   }
 }
 
-export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFunctionsBase {
+export class ClientIntFilterExecutionFlowFunctions<
+  Mode extends ClientGraphMode = ClientGraphMode
+> extends ClientExecutionFlowFunctionsBase<'int_filter', Mode> {
   /**
    * Calculates the sum of two 3D Vectors
    *
@@ -34523,8 +34710,8 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   assemblyList(_0to9: BoolValue[], type: 'bool'): boolean[]
   assemblyList(_0to9: ConfigIdValue[]): configId[]
   assemblyList(_0to9: ConfigIdValue[], type: 'config_id'): configId[]
-  assemblyList(_0to9: EntityValue[]): entity[]
-  assemblyList(_0to9: EntityValue[], type: 'entity'): entity[]
+  assemblyList(_0to9: EntityValue[]): clientEntity<'int_filter', Mode>[]
+  assemblyList(_0to9: EntityValue[], type: 'entity'): clientEntity<'int_filter', Mode>[]
   assemblyList(_0to9: GuidValue[]): guid[]
   assemblyList(_0to9: GuidValue[], type: 'guid'): guid[]
   assemblyList(_0to9: PrefabIdValue[]): prefabId[]
@@ -34544,7 +34731,10 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       | 'prefab_id'
       | 'str'
       | 'vec3'
-  >(_0to9: RuntimeParameterValueTypeMap[T][], type?: T): RuntimeReturnValueTypeMap[`${T}_list`] {
+  >(
+    _0to9: RuntimeParameterValueTypeMap[T][],
+    type?: T
+  ): ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[`${T}_list`] {
     if (_0to9.length === 0 || _0to9.length > 10) {
       throw new Error(`[error] assemblyList: expected 1-10 elements, got ${_0to9.length}`)
     }
@@ -34562,7 +34752,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list(genericType)
     ret.markPin(ref, 'list', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[`${T}_list`]
   }
 
   /**
@@ -35227,7 +35417,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'int_filter', Mode>[] {
     const radiusObj = parseValue(radius, 'float')
     const centralLocationObj = parseValue(centralLocation, 'vec3')
     const maximumFilterQuantityObj = parseValue(maximumFilterQuantity, 'int')
@@ -35240,7 +35430,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'int_filter', Mode>[]
   }
 
   /**
@@ -35278,7 +35468,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     centralLocation: Vec3Value,
     maximumFilterQuantity: IntValue,
     filterRules: TargetSortingRules
-  ): entity[] {
+  ): clientEntity<'int_filter', Mode>[] {
     const widthObj = parseValue(width, 'float')
     const heightObj = parseValue(height, 'float')
     const lengthObj = parseValue(length, 'float')
@@ -35300,7 +35490,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('entity')
     ret.markPin(ref, 'filterResults', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'int_filter', Mode>[]
   }
 
   /**
@@ -35316,7 +35506,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 角色实体
    */
-  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getActiveCharacterOfSpecifiedPlayer(playerEntity: EntityValue): clientEntity<'int_filter', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -35326,7 +35516,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -35348,7 +35538,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   getAllEntitiesWithinTheCollisionTrigger(
     targetEntity: EntityValue,
     triggerID: IntValue
-  ): entity[] {
+  ): clientEntity<'int_filter', Mode>[] {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const triggerIDObj = parseValue(triggerID, 'int')
     const ref = this.registry.registerNode({
@@ -35359,7 +35549,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('entity')
     ret.markPin(ref, 'entityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'int_filter', Mode>[]
   }
 
   /**
@@ -35371,7 +35561,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 对象列表
    */
-  getAllValidEntitiesThatAreScannableByScanComponent(): entity[] {
+  getAllValidEntitiesThatAreScannableByScanComponent(): clientEntity<'int_filter', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -35380,7 +35570,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('entity')
     ret.markPin(ref, 'objectList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'int_filter', Mode>[]
   }
 
   /**
@@ -35396,7 +35586,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 基准对象
    */
-  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): entity {
+  getBaseObjectOfSpecifiedPreAiming(preAimingIndex: IntValue): clientEntity<'int_filter', Mode> {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -35406,7 +35596,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'baseObject', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -35422,7 +35612,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 角色实体
    */
-  getCharacterEntityOfSpecifiedPlayer(playerEntity: EntityValue): entity {
+  getCharacterEntityOfSpecifiedPlayer(playerEntity: EntityValue): clientEntity<'int_filter', Mode> {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -35432,7 +35622,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -35455,7 +35645,10 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   getCorrespondingValueFromList(iD: IntValue, dataList: IntValue[]): bigint
   getCorrespondingValueFromList(iD: IntValue, dataList: BoolValue[]): boolean
   getCorrespondingValueFromList(iD: IntValue, dataList: ConfigIdValue[]): configId
-  getCorrespondingValueFromList(iD: IntValue, dataList: EntityValue[]): entity
+  getCorrespondingValueFromList(
+    iD: IntValue,
+    dataList: EntityValue[]
+  ): clientEntity<'int_filter', Mode>
   getCorrespondingValueFromList(iD: IntValue, dataList: FactionValue[]): faction
   getCorrespondingValueFromList(iD: IntValue, dataList: GuidValue[]): guid
   getCorrespondingValueFromList(iD: IntValue, dataList: StrValue[]): string
@@ -35472,7 +35665,16 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       | GuidValue[]
       | StrValue[]
       | Vec3Value[]
-  ): number | bigint | boolean | configId | entity | faction | guid | string | vec3 {
+  ):
+    | number
+    | bigint
+    | boolean
+    | configId
+    | clientEntity<'int_filter', Mode>
+    | faction
+    | guid
+    | string
+    | vec3 {
     const genericType = matchTypes(
       ['float', 'int', 'bool', 'config_id', 'entity', 'faction', 'guid', 'str', 'vec3'],
       dataList
@@ -35523,7 +35725,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       | bigint
       | boolean
       | configId
-      | entity
+      | clientEntity<'int_filter', Mode>
       | faction
       | guid
       | string
@@ -35560,7 +35762,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 角色实体
    */
-  getCurrentCharacter(): entity {
+  getCurrentCharacter(): clientEntity<'int_filter', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -35569,7 +35771,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'characterEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -35723,7 +35925,11 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    * hitCount
    * 命中数量
    */
-  getCursorHitResult(): { hitEntityList: entity[]; hitPositionList: vec3[]; hitCount: bigint } {
+  getCursorHitResult(): {
+    hitEntityList: clientEntity<'int_filter', Mode>[]
+    hitPositionList: vec3[]
+    hitCount: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -35734,7 +35940,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       hitEntityList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'hitEntityList', 0)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'int_filter', Mode>[]
       })(),
       hitPositionList: (() => {
         const ret = new list('vec3')
@@ -35861,7 +36067,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
-    correspondingEntity: entity
+    correspondingEntity: clientEntity<'int_filter', Mode>
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -35874,7 +36080,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       correspondingEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'correspondingEntity', 0)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'int_filter', Mode>
       })(),
       scanTagConfigID: (() => {
         const ret = new configId()
@@ -36087,7 +36293,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    */
   getListOfKeysFromDictionary<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${K}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[`${K}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const ref = this.registry.registerNode({
       id: 0,
@@ -36097,7 +36303,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list(dictionaryObj.getKeyType())
     ret.markPin(ref, 'keyList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${K}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[`${K}_list`]
   }
 
   /**
@@ -36109,7 +36315,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 玩家实体列表
    */
-  getListOfPlayerEntitiesOnTheField(): entity[] {
+  getListOfPlayerEntitiesOnTheField(): clientEntity<'int_filter', Mode>[] {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -36118,7 +36324,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('entity')
     ret.markPin(ref, 'playerEntityList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'int_filter', Mode>[]
   }
 
   /**
@@ -36136,7 +36342,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    */
   getListOfValuesFromDictionary<K extends DictKeyType, V extends keyof CommonLiteralValueTypeMap>(
     dictionary: dict<K, V>
-  ): RuntimeReturnValueTypeMap[`${V}_list`] {
+  ): ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[`${V}_list`] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const valueType = dictionaryObj.getValueType() as V
     const ref = this.registry.registerNode({
@@ -36147,7 +36353,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list(valueType)
     ret.markPin(ref, 'valueList', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[`${V}_list`]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[`${V}_list`]
   }
 
   /**
@@ -36260,7 +36466,9 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 所属玩家实体
    */
-  getPlayerEntityToWhichTheCharacterBelongs(characterEntity: EntityValue): entity {
+  getPlayerEntityToWhichTheCharacterBelongs(
+    characterEntity: EntityValue
+  ): clientEntity<'int_filter', Mode> {
     const characterEntityObj = parseValue(characterEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -36270,7 +36478,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'affiliatedPlayerEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -36320,7 +36528,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 角色列表
    */
-  getPlayerSCharacterList(playerEntity: EntityValue): entity[] {
+  getPlayerSCharacterList(playerEntity: EntityValue): clientEntity<'int_filter', Mode>[] {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -36330,7 +36538,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new list('entity')
     ret.markPin(ref, 'characterList', 0)
-    return ret as unknown as entity[]
+    return ret as unknown as clientEntity<'int_filter', Mode>[]
   }
 
   /**
@@ -36402,7 +36610,10 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    * hitEntity
    * 命中实体
    */
-  getPreAimingRayHitInfo(preAimingIndex: IntValue): { hitPosition: vec3; hitEntity: entity } {
+  getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    hitPosition: vec3
+    hitEntity: clientEntity<'int_filter', Mode>
+  } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
       id: 0,
@@ -36419,7 +36630,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       hitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'hitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'int_filter', Mode>
       })()
     }
   }
@@ -36450,8 +36661,8 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   getPreAimingResult(preAimingIndex: IntValue): {
     hitPosition: vec3
     inRangePosition: vec3
-    bestValidTarget: entity
-    validTargetList: entity[]
+    bestValidTarget: clientEntity<'int_filter', Mode>
+    validTargetList: clientEntity<'int_filter', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
     const ref = this.registry.registerNode({
@@ -36474,12 +36685,12 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       bestValidTarget: (() => {
         const ret = new entity()
         ret.markPin(ref, 'bestValidTarget', 2)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'int_filter', Mode>
       })(),
       validTargetList: (() => {
         const ret = new list('entity')
         ret.markPin(ref, 'validTargetList', 3)
-        return ret as unknown as entity[]
+        return ret as unknown as clientEntity<'int_filter', Mode>[]
       })()
     }
   }
@@ -36600,7 +36811,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: entity } {
+  ): { onHitLocation: vec3; onHitEntity: clientEntity<'int_filter', Mode> } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -36631,7 +36842,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
       onHitEntity: (() => {
         const ret = new entity()
         ret.markPin(ref, 'onHitEntity', 1)
-        return ret as unknown as entity
+        return ret as unknown as clientEntity<'int_filter', Mode>
       })()
     }
   }
@@ -36676,7 +36887,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 自身实体
    */
-  getSelfEntity(): entity {
+  getSelfEntity(): clientEntity<'int_filter', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -36685,7 +36896,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'selfEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -36783,7 +36994,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 目标实体
    */
-  getTargetEntity(): entity {
+  getTargetEntity(): clientEntity<'int_filter', Mode> {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -36792,7 +37003,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'targetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -36808,7 +37019,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 攻击目标实体
    */
-  getUnitAttackTarget(unitEntity: EntityValue): entity {
+  getUnitAttackTarget(unitEntity: EntityValue): clientEntity<'int_filter', Mode> {
     const unitEntityObj = parseValue(unitEntity, 'entity')
     const ref = this.registry.registerNode({
       id: 0,
@@ -36818,7 +37029,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'attackTargetEntity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -37348,7 +37559,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
   queryDictionaryValueByKey<K extends DictKeyType, V extends DictValueType>(
     dictionary: dict<K, V>,
     key: RuntimeParameterValueTypeMap[K]
-  ): RuntimeReturnValueTypeMap[V] {
+  ): ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[V] {
     const dictionaryObj = parseValue(dictionary, 'dict')
     const keyObj = parseValue(key, dictionaryObj.getKeyType())
     const valueType = dictionaryObj.getValueType()
@@ -37361,11 +37572,11 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     if (isListType(valueType)) {
       const ret = new list(getBaseValueType(valueType))
       ret.markPin(ref, 'value', 0)
-      return ret as unknown as RuntimeReturnValueTypeMap[V]
+      return ret as unknown as ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[V]
     }
     const ret = new ValueClassMap[valueType]()
     ret.markPin(ref, 'value', 0)
-    return ret as unknown as RuntimeReturnValueTypeMap[V]
+    return ret as unknown as ClientRuntimeReturnValueTypeMap<'int_filter', Mode>[V]
   }
 
   /**
@@ -37381,7 +37592,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
    *
    * 实体
    */
-  queryEntityByGuid(gUID: GuidValue): entity {
+  queryEntityByGuid(gUID: GuidValue): clientEntity<'int_filter', Mode> {
     const gUIDObj = parseValue(gUID, 'guid')
     const ref = this.registry.registerNode({
       id: 0,
@@ -37391,7 +37602,7 @@ export class ClientIntFilterExecutionFlowFunctions extends ClientExecutionFlowFu
     })
     const ret = new entity()
     ret.markPin(ref, 'entity', 0)
-    return ret as unknown as entity
+    return ret as unknown as clientEntity<'int_filter', Mode>
   }
 
   /**
@@ -38109,4 +38320,1056 @@ export type ClientExecutionFlowFunctionsBySubType = {
   creation_status_decision: ClientCreationStatusDecisionExecutionFlowFunctions
   bool_filter: ClientBoolFilterExecutionFlowFunctions
   int_filter: ClientIntFilterExecutionFlowFunctions
+}
+
+export interface ClientEntityHelperMethods<
+  T extends ClientGraphSubType,
+  Mode extends ClientGraphMode
+> {
+  /**
+   * Available only in Classic Mode. Returns the on-field character in the player's team
+   *
+   * 获取指定玩家的前台角色: 仅经典模式可用，获取玩家队伍内的前台角色
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  readonly activeCharacter: clientEntity<T, Mode>
+
+  /**
+   * Add Temporary Acceleration
+   *
+   * 添加临时加速度: 添加临时加速度，若载具处于接地状态，则只会受到地面所在平面的加速度（在平面上的分量）。
+   *
+   * @param acceleration
+   *
+   * 加速度值
+   * @param direction
+   *
+   * 朝向
+   * @param duration
+   *
+   * 持续时间
+   */
+  addTemporaryAcceleration(
+    acceleration: FloatValue,
+    direction: Vec3Value,
+    duration: FloatValue
+  ): void
+
+  /**
+   * Add Temporary Movement Parameter Values
+   *
+   * 添加临时运动参数值: 添加临时运动参数值。该值将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
+   *
+   * @param forwardAcceleration
+   *
+   * 前进加速度
+   * @param backwardAcceleration
+   *
+   * 后退加速度
+   * @param turningRate
+   *
+   * 转向速率
+   * @param baseDragDeceleration
+   *
+   * 基础阻力减速度
+   * @param dragCoefficient
+   *
+   * 阻力系数
+   * @param maxForwardSpeed
+   *
+   * 最大前进速度
+   * @param maxBackwardSpeed
+   *
+   * 最大后退速度
+   */
+  addTemporaryMovementParameterValues(
+    forwardAcceleration: FloatValue,
+    backwardAcceleration: FloatValue,
+    turningRate: FloatValue,
+    baseDragDeceleration: FloatValue,
+    dragCoefficient: FloatValue,
+    maxForwardSpeed: FloatValue,
+    maxBackwardSpeed: FloatValue
+  ): void
+
+  /**
+   * Applies the Unit Status defined by the configuration ID to the Target
+   *
+   * 添加单位状态: 为施加目标添加配置ID对应的单位状态
+   *
+   * @param stacks
+   *
+   * 层数
+   * @param unitStatusConfigID
+   *
+   * 单位状态配置ID
+   */
+  addUnitStatus(stacks: IntValue, unitStatusConfigID: ConfigIdValue): void
+
+  /**
+   * Add Velocity
+   *
+   * 添加速度: 添加临时加速度，若载具处于接地状态，则只会添加地面所在平面的速度（在平面上的分量）; 添加的速度会在持续时间结束后仍然继承
+   *
+   * @param velocity
+   *
+   * 速度值
+   * @param direction
+   *
+   * 朝向
+   * @param duration
+   *
+   * 持续时间
+   */
+  addVelocity(velocity: FloatValue, direction: Vec3Value, duration: FloatValue): void
+
+  /**
+   * Available only for Custom Aggro Mode; Gets Specific Entity's Aggro List
+   *
+   * 获取指定实体的仇恨列表: 仅自定义仇恨模式可用; 获取指定实体的仇恨列表
+   *
+   * @returns
+   *
+   * 仇恨列表
+   */
+  aggroList(): clientEntity<T, Mode>[]
+
+  /**
+   * Available only for Custom Aggro Mode; Gets Aggro Target of Specific Entity
+   *
+   * 获取指定实体的仇恨目标: 仅自定义仇恨模式可用; 获取指定实体的仇恨目标
+   *
+   * @returns
+   *
+   * 仇恨目标
+   */
+  aggroTarget(): clientEntity<T, Mode>
+
+  /**
+   * Returns a list of characters in the player's team. Available only in Classic Mode.
+   *
+   * 获取玩家的角色列表: 仅经典模式可用，获取玩家队伍内的角色列表
+   *
+   * @returns
+   *
+   * 角色列表
+   */
+  readonly characters: clientEntity<T, Mode>[]
+
+  /**
+   * Available in Classic Mode only. Returns the Character ID of the Target Character, and can be used to look up the corresponding character in the Appendix Classic Mode Character IDs
+   *
+   * 查询经典模式角色编号: 仅经典模式可用，查询目标角色的角色编号，可以查看附录对应具体是哪位角色经典模式角色编号一览
+   *
+   * @returns
+   *
+   * 角色编号
+   */
+  checkClassicModeCharacterId(): bigint
+
+  /**
+   * Query the preset state value of the target creation corresponding to the preset state index.
+   *
+   * 查询复杂造物的预设状态值: 查询目标造物对应预设状态索引下的预设状态值
+   *
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  checkThePresetStatusValueOfTheComplexCreation(presetStatusIndex: IntValue): bigint
+
+  /**
+   * Available in Classic Mode only. Returns the Character ID of the Target Character, and can be used to look up the corresponding character in the Appendix Classic Mode Character IDs
+   *
+   * 查询经典模式角色编号: 仅经典模式可用，查询目标角色的角色编号，可以查看附录对应具体是哪位角色经典模式角色编号一览
+   *
+   * @returns
+   *
+   * 角色编号
+   */
+  readonly classicModeId: bigint
+
+  /**
+   * Available only in Custom Aggro Mode; Clears the Aggro List of the specified Entity; this usually causes the Target to leave battle
+   *
+   * 清空指定实体的仇恨列表: 仅自定义仇恨模式可用; 清空指定实体的仇恨列表，这通常会导致该目标脱战
+   *
+   */
+  clearTheAggroListOfTheSpecifiedEntity(): void
+
+  /**
+   * Return to the specified Creation's current target
+   *
+   * 获取造物当前目标: 返回指定造物当前的目标
+   *
+   * @returns
+   *
+   * 目标实体
+   */
+  readonly currentTarget: clientEntity<T, Mode>
+
+  /**
+   * Searches Target Entity's Faction
+   *
+   * 查询实体阵营: 查询目标实体的阵营
+   *
+   * @returns
+   *
+   * 阵营
+   */
+  faction(): faction
+
+  /**
+   * Spawns a Local Projectile at the specified Location in the World Coordinate System
+   *
+   * 定点发射投射物: 在世界坐标系的指定位置发射本地投射物
+   *
+   * @param projectilesPrefabID
+   *
+   * 投射物的元件ID
+   * @param createLocation
+   *
+   * 创建位置
+   * @param createRotation
+   *
+   * 创建旋转
+   * @param projectileFaction
+   *
+   * 投射物阵营
+   */
+  fixedPointProjectileLaunch(
+    projectilesPrefabID: PrefabIdValue,
+    createLocation: Vec3Value,
+    createRotation: Vec3Value,
+    projectileFaction: FactionValue
+  ): void
+
+  /**
+   * Get Control Motor Forward Direction
+   *
+   * 获取操控运动器前向: 获取指定操控运动器的前向方向向量
+   *
+   * @returns
+   *
+   * 前向
+   */
+  readonly forward: vec3
+
+  /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  get(variableName: StrValue): generic
+
+  /**
+   * Available only in Classic Mode. Returns the on-field character in the player's team
+   *
+   * 获取指定玩家的前台角色: 仅经典模式可用，获取玩家队伍内的前台角色
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getActiveCharacterOfSpecifiedPlayer(): clientEntity<T, Mode>
+
+  /**
+   * Returns all Entities within the Collision Trigger corresponding to a specific ID in the Collision Trigger Component on the Target Entity
+   *
+   * 获取碰撞触发器内所有实体: 获取目标实体上碰撞触发器组件中特定序号对应的碰撞触发器内的所有实体
+   *
+   * @param triggerID
+   *
+   * 触发器序号
+   *
+   * @returns
+   *
+   * 实体列表
+   */
+  getAllEntitiesWithinTheCollisionTrigger(triggerID: IntValue): clientEntity<T, Mode>[]
+
+  /**
+   * Returns the Character Entity of the specified Player Entity
+   *
+   * 获取指定玩家的角色实体: 获取指定玩家实体的角色实体
+   *
+   * @returns
+   *
+   * 角色实体
+   */
+  getCharacterEntityOfSpecifiedPlayer(): clientEntity<T, Mode>
+
+  /**
+   * Get Control Motor Current Velocity
+   *
+   * 获取操控运动器当前速度: 获取指定操控运动器的当前速度（速度大小及单位方向向量）
+   *
+   * @returns
+   *
+   * speed
+   * 速度大小
+   *
+   * velocityDirection
+   * 速度方向
+   */
+  getControlMotorCurrentVelocity(): {
+    speed: number
+    velocityDirection: vec3
+  }
+
+  /**
+   * Get Control Motor Forward Direction
+   *
+   * 获取操控运动器前向: 获取指定操控运动器的前向方向向量
+   *
+   * @returns
+   *
+   * 前向
+   */
+  getControlMotorForwardDirection(): vec3
+
+  /**
+   * Get Control Motor Movement Parameters
+   *
+   * 获取操控运动器运动参数: 获取指定操控运动器的运动参数，包含临时运动参数。临时值的添加将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
+   *
+   * @returns
+   *
+   * forwardAcceleration
+   * 前进加速度
+   *
+   * backwardAcceleration
+   * 后退加速度
+   *
+   * turningRate
+   * 转向速率
+   *
+   * baseDragDeceleration
+   * 基础阻力减速度
+   *
+   * dragCoefficient
+   * 阻力系数
+   *
+   * maxForwardSpeed
+   * 最大前进速度
+   *
+   * maxBackwardSpeed
+   * 最大后退速度
+   */
+  getControlMotorMovementParameters(): {
+    forwardAcceleration: number
+    backwardAcceleration: number
+    turningRate: number
+    baseDragDeceleration: number
+    dragCoefficient: number
+    maxForwardSpeed: number
+    maxBackwardSpeed: number
+  }
+
+  /**
+   * Get Control Motor Target Turning Direction
+   *
+   * 获取操控运动器目标转向方向: 获取操控运动器目标转向方向（移动轮盘输入后，转换成操控运动器的目标转向）
+   *
+   * @returns
+   *
+   * 目标转向方向
+   */
+  getControlMotorTargetTurningDirection(): vec3
+
+  /**
+   * Return to the specified Creation's current target
+   *
+   * 获取造物当前目标: 返回指定造物当前的目标
+   *
+   * @returns
+   *
+   * 目标实体
+   */
+  getCreationSCurrentTarget(): clientEntity<T, Mode>
+
+  /**
+   * Returns the value of the specified Custom Variable from the Target Entity; If the variable does not exist, returns the type's default value
+   *
+   * 获取自定义变量: 获取目标实体的指定自定义变量的值; 如果变量不存在，则返回类型的默认值
+   *
+   * @param variableName
+   *
+   * 目标实体
+   *
+   * @returns Variable value
+   *
+   * 变量值
+   */
+  getCustomVariable(variableName: StrValue): generic
+
+  /**
+   * Returns the Location of the specified Entity
+   *
+   * 获取实体位置: 获取指定实体的位置
+   *
+   * @returns
+   *
+   * 位置
+   */
+  getEntityLocation(): vec3
+
+  /**
+   * Returns the Rotation of the specified Entity in Euler Angles
+   *
+   * 获取实体旋转: 获取指定实体以欧拉角表示的旋转
+   *
+   * @returns
+   *
+   * 旋转
+   */
+  getEntityRotation(): vec3
+
+  /**
+   * Returns the Target Entity's Current Active Scan Tags
+   *
+   * 获取实体当前生效的扫描标签: 获取目标实体当前生效的扫描标签
+   *
+   * @returns
+   *
+   * 扫描标签配置ID
+   */
+  getEntitySCurrentActiveScanTags(): configId
+
+  /**
+   * Get Entity Scan Status
+   *
+   * 获取实体扫描状态: 获取实体扫描状态
+   *
+   * @returns Options: Invisible, Current Scan Target, Candidate Target, Not Eligible
+   *
+   * 扫描状态: 分为不可见、当前扫描目标、候选目标、不满足条件
+   */
+  getEntitySScanStatus(): ScanStatus
+
+  /**
+   * Returns the type of the specified Entity
+   *
+   * 获取实体的类型: 获取指定实体的类型
+   *
+   * @returns
+   *
+   * 实体类型
+   */
+  getEntitySType(): EntityType
+
+  /**
+   * Returns a list of all Unit Tags carried by the Target Entity
+   *
+   * 获取实体的单位标签列表: 获取目标实体上携带的所有单位标签组成的列表
+   *
+   * @returns
+   *
+   * 列表
+   */
+  getEntitySUnitTagList(): bigint[]
+
+  /**
+   * Returns the Player Entity that owns the Character Entity
+   *
+   * 获取角色归属的玩家实体: 获取角色实体所归属的玩家实体
+   *
+   * @returns
+   *
+   * 所属玩家实体
+   */
+  getPlayerEntityToWhichTheCharacterBelongs(): clientEntity<T, Mode>
+
+  /**
+   * Returns a list of characters in the player's team. Available only in Classic Mode.
+   *
+   * 获取玩家的角色列表: 仅经典模式可用，获取玩家队伍内的角色列表
+   *
+   * @returns
+   *
+   * 角色列表
+   */
+  getPlayerSCharacterList(): clientEntity<T, Mode>[]
+
+  /**
+   * Returns the Preset Status value of the specified Entity. Returns 0 if the Entity does not have the specified Preset Status
+   *
+   * 获取预设状态: 获取指定实体的预设状态值。如果该实体没有指定的预设状态，则返回0
+   *
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  getPreset(presetStatusIndex: IntValue): bigint
+
+  /**
+   * Returns the Preset Status value of the specified Entity. Returns 0 if the Entity does not have the specified Preset Status
+   *
+   * 获取预设状态: 获取指定实体的预设状态值。如果该实体没有指定的预设状态，则返回0
+   *
+   * @param presetStatusIndex
+   *
+   * 预设状态索引
+   *
+   * @returns
+   *
+   * 预设状态值
+   */
+  getPresetStatus(presetStatusIndex: IntValue): bigint
+
+  /**
+   * Returns the first Target or On-Hit Location that meets the Filter criteria, ordered from nearest to farthest along the ray
+   *
+   * 获取射线检测结果: 获取射线检测结果，会根据射线命中从近到远的顺序返回满足筛选条件的第一个目标或命中位置
+   *
+   * @param launchLocation
+   *
+   * 出射位置
+   * @param launchDirection
+   *
+   * 出射方向
+   * @param maxRayLength
+   *
+   * 射线最大长度
+   * @param factionFilter
+   *
+   * 阵营筛选
+   * @param entityTypeFilter Includes Stage, Object, Player, Character, Creation
+   *
+   * 实体类型筛选: 分为关卡、物件、玩家、角色、造物
+   * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
+   *
+   * 命中层筛选: 分为受击盒、场景、物件自身碰撞
+   *
+   * @returns
+   *
+   * onHitLocation
+   * 命中位置
+   *
+   * onHitEntity
+   * 命中实体
+   */
+  getRayDetectionResult(
+    launchLocation: Vec3Value,
+    launchDirection: Vec3Value,
+    maxRayLength: FloatValue,
+    factionFilter: TargetType,
+    entityTypeFilter: EntityType[],
+    hitLayerFilter: RayFilterType[]
+  ): {
+    onHitLocation: vec3
+    onHitEntity: clientEntity<T, Mode>
+  }
+
+  /**
+   * Return to the Target Entity's Sub-Entity List
+   *
+   * 获取子实体列表: 返回目标实体的子实体列表
+   *
+   * @returns
+   *
+   * 子实体列表
+   */
+  getSubEntityList(): clientEntity<T, Mode>[]
+
+  /**
+   * Returns the Attachment Point Location corresponding to the specified Attachment Point Name on the Target Entity
+   *
+   * 获取目标挂接点位置: 获取指定目标实体上对应挂接点名称的挂接点位置
+   *
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   *
+   * @returns
+   *
+   * 挂接点位置
+   */
+  getTargetAttachmentPointLocation(attachmentPointName: StrValue): vec3
+
+  /**
+   * Returns the Attachment Point Rotation corresponding to the specified Attachment Point Name on the Target Entity
+   *
+   * 获取目标挂接点旋转: 获取指定目标实体上对应挂接点名称的挂接点旋转
+   *
+   * @param attachmentPointName
+   *
+   * 挂接点名称
+   *
+   * @returns
+   *
+   * 挂接点旋转
+   */
+  getTargetAttachmentPointRotation(attachmentPointName: StrValue): vec3
+
+  /**
+   * Available only for Custom Aggro Mode; Gets Specific Entity's Aggro List
+   *
+   * 获取指定实体的仇恨列表: 仅自定义仇恨模式可用; 获取指定实体的仇恨列表
+   *
+   * @returns
+   *
+   * 仇恨列表
+   */
+  getTheAggroListOfTheSpecifiedEntity(): clientEntity<T, Mode>[]
+
+  /**
+   * Available only for Custom Aggro Mode; Gets Aggro Target of Specific Entity
+   *
+   * 获取指定实体的仇恨目标: 仅自定义仇恨模式可用; 获取指定实体的仇恨目标
+   *
+   * @returns
+   *
+   * 仇恨目标
+   */
+  getTheAggroTargetOfTheSpecifiedEntity(): clientEntity<T, Mode>
+
+  /**
+   * Returns the Target Entity that the Unit Entity is currently attacking
+   *
+   * 获取单位攻击目标: 获取单位实体当前正在攻击的目标实体
+   *
+   * @returns
+   *
+   * 攻击目标实体
+   */
+  getUnitAttackTarget(): clientEntity<T, Mode>
+
+  /**
+   * Get Whether Control Motor Is Grounded
+   *
+   * 获取操控运动器是否接地: 获取指定操控运动器当前是否接地
+   *
+   * @returns
+   *
+   * 是否接地
+   */
+  getWhetherControlMotorIsGrounded(): boolean
+
+  /**
+   * Searches for the GUID of the specified Entity
+   *
+   * 以实体查询GUID: 查询指定实体的GUID
+   *
+   * @returns
+   *
+   * GUID
+   */
+  readonly guid: guid
+
+  /**
+   * Available only in Custom Aggro Mode; Modify the aggro value of the specified entity for the aggro owner entity; the increase value can be negative.
+   *
+   * 增加指定实体的仇恨值: 仅自定义仇恨模式可用; 修改指定实体在仇恨拥有者实体上的仇恨值，增加值可以为负
+   *
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param increaseValue Changed value = original value + increase value
+   *
+   * 增加值: 修改后值=修改前值+增加值
+   */
+  increaseTheAggroValueOfTheSpecifiedEntity(
+    aggroOwnerEntity: EntityValue,
+    increaseValue: IntValue
+  ): void
+
+  /**
+   * Returns the Player's local input device type, as determined by the Interface mapping method
+   *
+   * 获得玩家客户端输入设备类型: 获得玩家的客户端输入设备类型，根据用户界面的映射方式决定
+   *
+   * @returns Includes keyboard/mouse, gamepad, touchscreen
+   *
+   * 输入设备类型: 分为键盘鼠标、手柄、触屏
+   */
+  readonly inputDevice: InputDeviceType
+
+  /**
+   * Available only for Custom Aggro Mode; Searches whether the specified Entity has entered battle
+   *
+   * 查询指定实体是否入战: 仅自定义仇恨模式可用; 查询指定实体是否已经入战
+   *
+   * @returns
+   *
+   * 是否入战
+   */
+  isInCombat(): boolean
+
+  /**
+   * Searches whether the specified Entity is present; Note that Character Entities are still considered present even when Downed
+   *
+   * 查询实体是否在场: 查询指定实体是否在场; 注意角色实体即使处于倒下状态，仍然认为在场
+   *
+   * @returns
+   *
+   * 是否在场
+   */
+  isOnField(): boolean
+
+  /**
+   * Returns the Player Entity that owns the Character Entity
+   *
+   * 获取角色归属的玩家实体: 获取角色实体所归属的玩家实体
+   *
+   * @returns
+   *
+   * 所属玩家实体
+   */
+  readonly player: clientEntity<T, Mode>
+
+  /**
+   * Returns the Location of the specified Entity
+   *
+   * 获取实体位置: 获取指定实体的位置
+   *
+   * @returns
+   *
+   * 位置
+   */
+  readonly pos: vec3
+
+  /**
+   * Searches Target Entity's Faction
+   *
+   * 查询实体阵营: 查询目标实体的阵营
+   *
+   * @returns
+   *
+   * 阵营
+   */
+  queryEntityFaction(): faction
+
+  /**
+   * Searches for the GUID of the specified Entity
+   *
+   * 以实体查询GUID: 查询指定实体的GUID
+   *
+   * @returns
+   *
+   * GUID
+   */
+  queryGuidByEntity(): guid
+
+  /**
+   * Searches whether the specified Entity is present; Note that Character Entities are still considered present even when Downed
+   *
+   * 查询实体是否在场: 查询指定实体是否在场; 注意角色实体即使处于倒下状态，仍然认为在场
+   *
+   * @returns
+   *
+   * 是否在场
+   */
+  queryIfEntityIsOnTheField(): boolean
+
+  /**
+   * Available only for Custom Aggro Mode; Searches whether the specified Entity has entered battle
+   *
+   * 查询指定实体是否入战: 仅自定义仇恨模式可用; 查询指定实体是否已经入战
+   *
+   * @returns
+   *
+   * 是否入战
+   */
+  queryIfSpecifiedEntityIsInCombat(): boolean
+
+  /**
+   * Returns "Yes" when microphone input is detected from this player's client.; Note: This node only takes effect during multiplayer games (multiplayer test play, actual multiplayer play). It will not work in single-player games (single-player test play, actual single-player play).
+   *
+   * 查询玩家是否正在语音聊天: 当检测到该玩家客户端有麦克风输入时，会返回是; 注意该节点必须在多人游戏(多人试玩、多人正式游玩)中逻辑才会生效，单人游戏(单人试玩、单人正式游玩)均不会生效
+   *
+   * @returns
+   *
+   * 是否正在语音
+   */
+  queryWhetherPlayerIsCurrentlyInVoiceChat(): boolean
+
+  /**
+   * Initiates a one-time HP restoration for the Target Entity
+   *
+   * 角色恢复生命值: 为目标实体发起一次恢复生命值
+   *
+   * @param recoveryAmount
+   *
+   * 恢复量
+   * @param ignoreRecoveryAdjustmentEffect
+   *
+   * 是否忽略恢复调整效果
+   * @param aggroMultiplierForThisHealing
+   *
+   * 本次治疗的仇恨倍率
+   * @param aggroIncrementForThisHealing
+   *
+   * 本次治疗的仇恨增量
+   */
+  recoverCharacterSHp(
+    recoveryAmount: FloatValue,
+    ignoreRecoveryAdjustmentEffect: BoolValue,
+    aggroMultiplierForThisHealing: FloatValue,
+    aggroIncrementForThisHealing: IntValue
+  ): void
+
+  /**
+   * Initiates a one-time HP restoration for the Target Entity
+   *
+   * 造物恢复生命值: 为目标实体发起一次恢复生命值
+   *
+   * @param recoveryAmount
+   *
+   * 恢复量
+   * @param ignoreRecoveryAdjustmentEffect
+   *
+   * 是否忽略恢复调整效果
+   */
+  recoverCreationSHp(recoveryAmount: FloatValue, ignoreRecoveryAdjustmentEffect: BoolValue): void
+
+  /**
+   * Available only in Custom Aggro Mode; Removes the Target Entity from the Aggro Owner Entity's Aggro List; this may cause the Target Entity to leave battle
+   *
+   * 将目标实体移除出仇恨列表: 仅自定义仇恨模式可用; 将目标实体移出仇恨拥有者实体的仇恨列表，这可能导致目标实体脱战
+   *
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   */
+  removeTargetEntityFromAggroList(aggroOwnerEntity: EntityValue): void
+
+  /**
+   * Removes the Unit Status corresponding to the specified configuration ID from the Target Entity
+   *
+   * 移除单位状态: 移除目标实体上指定配置ID对应的单位状态
+   *
+   * @param unitStatusConfigID
+   *
+   * 单位状态配置ID
+   */
+  removeUnitStatus(unitStatusConfigID: ConfigIdValue): void
+
+  /**
+   * Returns the Rotation of the specified Entity in Euler Angles
+   *
+   * 获取实体旋转: 获取指定实体以欧拉角表示的旋转
+   *
+   * @returns
+   *
+   * 旋转
+   */
+  readonly rotation: vec3
+
+  /**
+   * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
+   *
+   * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
+   *
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param aggroValue
+   *
+   * 仇恨值
+   */
+  setAggroValue(aggroOwnerEntity: EntityValue, aggroValue: IntValue): void
+
+  /**
+   * Set Control Motor to Ungrounded State
+   *
+   * 使操控运动器转换至非接地状态: 接地状态下的操控运动器将持续找到地面并贴合。若希望通过添加速度实现离地运动（跳跃等效果），可以使用该节点短暂脱离接地状态。
+   *
+   * @param duration
+   *
+   * 持续时间
+   */
+  setControlMotorToUngroundedState(duration: FloatValue): void
+
+  /**
+   * Sets the Target Entity as its Attack Target
+   *
+   * 设置自身攻击目标: 将目标实体设置为自身的攻击目标
+   *
+   * @param whetherToTurnImmediately
+   *
+   * 是否立即转向
+   */
+  setOwnAttackTarget(whetherToTurnImmediately: BoolValue): void
+
+  /**
+   * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
+   *
+   * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
+   *
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param aggroValue
+   *
+   * 仇恨值
+   */
+  setTheAggroValueOfSpecifiedEntity(aggroOwnerEntity: EntityValue, aggroValue: IntValue): void
+
+  /**
+   * Available only in Custom Aggro Mode; Set the aggro value of the target entity for the specified aggro owner proportionally.
+   *
+   * 按比例设置指定实体的仇恨值: 仅自定义仇恨模式可用; 按比例设置目标实体在指定仇恨拥有者上的仇恨值
+   *
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param aggroValueRatio
+   *
+   * 仇恨值比例
+   */
+  setTheAggroValueOfTheSpecifiedEntityProportionally(
+    aggroOwnerEntity: EntityValue,
+    aggroValueRatio: FloatValue
+  ): void
+
+  /**
+   * The Creation moves to the Target Entity
+   *
+   * 战术：移动到目标实体: 造物执行移动到目标实体行为
+   *
+   * @param execute
+   *
+   * 是否执行
+   * @param arrivalDetectionRange If the Distance to the Target Entity is less than or equal to the configured value, it is considered arrived
+   *
+   * 到达判定距离: 与目标实体的距离小于等于配置值则视为到达
+   * @param movementSpeed Walk and Run
+   *
+   * 移动速度: 走、跑
+   * @param turnSpeed
+   *
+   * 转向速度
+   * @param tacticalContext
+   *
+   * 战术上下文
+   * @param canSkillBeInterrupted Default: No
+   *
+   * 是否可以打断技能: 默认为否
+   */
+  tacticMoveToTheTargetEntity(
+    execute: BoolValue,
+    arrivalDetectionRange: FloatValue,
+    movementSpeed: TacticSpeed,
+    turnSpeed: FloatValue,
+    tacticalContext: StrValue,
+    canSkillBeInterrupted: BoolValue
+  ): void
+
+  /**
+   * The Creation rotates to face the Target Entity
+   *
+   * 战术：旋转朝向目标实体: 造物执行旋转朝向目标实体行为
+   *
+   * @param execute
+   *
+   * 是否执行
+   * @param horizontalRotationAngularVelocity
+   *
+   * 水平旋转角速度
+   * @param useRotationAnimation
+   *
+   * 是否使用旋转动画
+   * @param tacticalContext
+   *
+   * 战术上下文
+   * @param canSkillBeInterrupted Default: No
+   *
+   * 是否可以打断技能: 默认为否
+   */
+  tacticRotateToTheTargetEntity(
+    execute: BoolValue,
+    horizontalRotationAngularVelocity: FloatValue,
+    useRotationAnimation: BoolValue,
+    tacticalContext: StrValue,
+    canSkillBeInterrupted: BoolValue
+  ): void
+
+  /**
+   * Available only in Custom Aggro Mode; The Taunter Entity taunts the specified Target Entity
+   *
+   * 嘲讽目标: 仅自定义仇恨模式可用; 嘲讽者实体嘲讽指定目标实体
+   *
+   * @param targetEntity
+   *
+   * 目标实体
+   */
+  tauntTarget(targetEntity: EntityValue): void
+
+  /**
+   * Available only in Custom Aggro Mode; Transfers a percentage of Aggro on the Aggro Owner from the Source Entity to the Target Entity
+   *
+   * 按比例转移指定实体的仇恨值: 仅自定义仇恨模式可用; 将仇恨拥有者上对转移来源实体一定比例的仇恨转移到转移目标实体上
+   *
+   * @param transferSourceEntity
+   *
+   * 转移来源实体
+   * @param aggroOwnerEntity
+   *
+   * 仇恨拥有者实体
+   * @param transferRatio
+   *
+   * 转移比例
+   */
+  transferTheAggroValueOfTheSpecifiedEntityProportionally(
+    transferSourceEntity: EntityValue,
+    aggroOwnerEntity: EntityValue,
+    transferRatio: FloatValue
+  ): void
+
+  /**
+   * Returns the type of the specified Entity
+   *
+   * 获取实体的类型: 获取指定实体的类型
+   *
+   * @returns
+   *
+   * 实体类型
+   */
+  readonly type: EntityType
+
+  /**
+   * Returns a list of all Unit Tags carried by the Target Entity
+   *
+   * 获取实体的单位标签列表: 获取目标实体上携带的所有单位标签组成的列表
+   *
+   * @returns
+   *
+   * 列表
+   */
+  unitTags(): bigint[]
+
+  /**
+   * Query whether the entity has the specified unit status
+   *
+   * 实体是否携带指定单位状态: 查询目标实体是否携带指定的单位状态
+   *
+   * @param unitStatus
+   *
+   * 单位状态
+   *
+   * @returns
+   *
+   * 是否携带
+   */
+  whetherTheEntityHasTheSpecifiedUnitStatus(unitStatus: ConfigIdValue): boolean
 }

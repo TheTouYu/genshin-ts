@@ -1,5 +1,8 @@
 import fs from 'node:fs'
 
+import ts from 'typescript'
+
+import { CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE } from '../src/definitions/client_entity_helpers.js'
 import {
   CLIENT_NODE_METHODS_BY_SUB_TYPE,
   CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE,
@@ -42,6 +45,108 @@ for (const item of CLIENT_NODE_METADATA) {
 }
 
 const errors: string[] = []
+const expectedEntityHelperNames = new Set<string>()
+
+for (const [subType, bindingsByMode] of Object.entries(
+  CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE
+)) {
+  for (const mode of ['beyond', 'classic'] as const) {
+    const availableMethods = CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE[
+      subType as keyof typeof CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE
+    ][mode] as readonly string[]
+    const bindings = bindingsByMode[mode] as Record<
+      string,
+      { kind: 'method' | 'getter'; methodName: string; insertIndex: number | null }
+    >
+    for (const [helperName, binding] of Object.entries(bindings)) {
+      expectedEntityHelperNames.add(helperName)
+      if (!availableMethods.includes(binding.methodName)) {
+        errors.push(
+          `entity helper mode mismatch: ${subType}.${mode}.${helperName} -> ${binding.methodName}`
+        )
+      }
+      if (helperName === 'set') {
+        errors.push(`unsupported client entity set helper exposed: ${subType}.${mode}`)
+      }
+    }
+    if (availableMethods.includes('getCustomVariable')) {
+      if (bindings.get?.methodName !== 'getCustomVariable') {
+        errors.push(`missing client entity get alias: ${subType}.${mode}`)
+      }
+      if (bindings.getCustomVariable?.methodName !== 'getCustomVariable') {
+        errors.push(`missing client entity getCustomVariable helper: ${subType}.${mode}`)
+      }
+    }
+  }
+}
+
+const clientNodesSourceText = fs.readFileSync('src/definitions/client_nodes.ts', 'utf8')
+const clientNodesSource = ts.createSourceFile(
+  'client_nodes.ts',
+  clientNodesSourceText,
+  ts.ScriptTarget.Latest,
+  true,
+  ts.ScriptKind.TS
+)
+const entityHelperInterface = clientNodesSource.statements.find(
+  (statement): statement is ts.InterfaceDeclaration =>
+    ts.isInterfaceDeclaration(statement) && statement.name.text === 'ClientEntityHelperMethods'
+)
+if (!entityHelperInterface) {
+  errors.push('missing ClientEntityHelperMethods interface')
+} else {
+  const documentedNames = new Set<string>()
+  for (const member of entityHelperInterface.members) {
+    if (!member.name || !ts.isIdentifier(member.name)) {
+      errors.push('client entity helper has an unsupported member name')
+      continue
+    }
+    const helperName = member.name.text
+    documentedNames.add(helperName)
+    const jsDoc = ts
+      .getJSDocCommentsAndTags(member)
+      .find((node): node is ts.JSDoc => node.kind === ts.SyntaxKind.JSDocComment)
+    if (!jsDoc) {
+      errors.push(`client entity helper missing JSDoc: ${helperName}`)
+      continue
+    }
+    if (ts.isMethodSignature(member)) {
+      const actualParams = member.parameters.map((parameter) =>
+        parameter.name.getText(clientNodesSource)
+      )
+      const documentedParams: string[] = []
+      for (const tag of jsDoc.tags ?? []) {
+        if (tag.kind === ts.SyntaxKind.JSDocParameterTag) {
+          documentedParams.push((tag as ts.JSDocParameterTag).name.getText(clientNodesSource))
+        }
+      }
+      if (actualParams.join('|') !== documentedParams.join('|')) {
+        errors.push(
+          `client entity helper JSDoc params mismatch: ${helperName} ` +
+            `(${documentedParams.join(', ') || 'none'} vs ${actualParams.join(', ') || 'none'})`
+        )
+      }
+    }
+    const returnsValue =
+      ts.isPropertySignature(member) ||
+      (ts.isMethodSignature(member) && member.type?.kind !== ts.SyntaxKind.VoidKeyword)
+    const hasReturnDoc = (jsDoc.tags ?? []).some((tag) => tag.kind === ts.SyntaxKind.JSDocReturnTag)
+    if (returnsValue && !hasReturnDoc) {
+      errors.push(`client entity helper missing @returns JSDoc: ${helperName}`)
+    }
+  }
+  for (const helperName of expectedEntityHelperNames) {
+    if (!documentedNames.has(helperName)) {
+      errors.push(`client entity helper missing documented signature: ${helperName}`)
+    }
+  }
+  for (const helperName of documentedNames) {
+    if (!expectedEntityHelperNames.has(helperName)) {
+      errors.push(`client entity helper documented but not bound: ${helperName}`)
+    }
+  }
+}
+
 let methodCount = 0
 
 for (const item of CLIENT_NODE_METADATA) {

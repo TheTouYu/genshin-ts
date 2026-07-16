@@ -79,6 +79,15 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
     note: 'client graphs have no node to look up a player entity by id; use self / getSelfEntity instead'
   },
   {
+    helper: 'print',
+    subTypes: [],
+    modes: [],
+    availability: [],
+    backedBy: [],
+    status: 'gap',
+    note: 'client graphs have no node that prints a string to the server log'
+  },
+  {
     helper: 'self',
     subTypes: [
       'character_skill',
@@ -320,20 +329,266 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'Mathf',
     member: 'FloorToInt',
-    subTypes: [],
-    modes: [],
-    availability: [],
-    backedBy: [],
-    status: 'gap'
+    subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      }
+    ],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: 'data_type_conversion',
+        methodName: 'dataTypeConversion',
+        sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'get_local_variable',
+        methodName: 'getLocalVariable',
+        sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'set_local_variable',
+        methodName: 'setLocalVariable',
+        sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'less_than',
+        methodName: 'lessThan',
+        sampleFile: '角色技能节点图\\是否小于_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'subtraction',
+        methodName: 'subtraction',
+        sampleFile: '角色技能节点图\\减法运算_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'double_branch',
+        methodName: 'doubleBranch',
+        sampleFile: '角色技能节点图\\双分支_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'data_type_conversion',
+        methodName: 'dataTypeConversion',
+        sampleFile: '角色操控技能节点图\\播放限时特效_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_local_variable',
+        methodName: 'getLocalVariable',
+        sampleFile: '角色操控技能节点图\\获取局部变量_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'set_local_variable',
+        methodName: 'setLocalVariable',
+        sampleFile: '角色操控技能节点图\\多分支_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'less_than',
+        methodName: 'lessThan',
+        sampleFile: '角色操控技能节点图\\世界坐标转屏幕坐标_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'subtraction',
+        methodName: 'subtraction',
+        sampleFile: '角色操控技能节点图\\除法运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'double_branch',
+        methodName: 'doubleBranch',
+        sampleFile: '角色操控技能节点图\\双分支_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'data_type_conversion',
+        methodName: 'dataTypeConversion',
+        sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'get_local_variable',
+        methodName: 'getLocalVariable',
+        sampleFile: '造物技能节点图\\获取局部变量_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'set_local_variable',
+        methodName: 'setLocalVariable',
+        sampleFile: '造物技能节点图\\获取实体的单位标签列表_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'less_than',
+        methodName: 'lessThan',
+        sampleFile: '造物技能节点图\\是否小于_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'subtraction',
+        methodName: 'subtraction',
+        sampleFile: '造物技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'double_branch',
+        methodName: 'doubleBranch',
+        sampleFile: '造物技能节点图\\双分支_连线.gia'
+      }
+    ],
+    status: 'partial',
+    note: 'composed from truncating conversion plus a negative-fraction correction branch'
   },
   {
     helper: 'Mathf',
     member: 'CeilToInt',
-    subTypes: [],
-    modes: [],
-    availability: [],
-    backedBy: [],
-    status: 'gap'
+    subTypes: ['character_skill', 'character_control_skill', 'creation_skill'],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      }
+    ],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: 'data_type_conversion',
+        methodName: 'dataTypeConversion',
+        sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'get_local_variable',
+        methodName: 'getLocalVariable',
+        sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'set_local_variable',
+        methodName: 'setLocalVariable',
+        sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'greater_than',
+        methodName: 'greaterThan',
+        sampleFile: '角色技能节点图\\是否大于_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'addition',
+        methodName: 'addition',
+        sampleFile: '角色技能节点图\\恢复生命值_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'double_branch',
+        methodName: 'doubleBranch',
+        sampleFile: '角色技能节点图\\双分支_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'data_type_conversion',
+        methodName: 'dataTypeConversion',
+        sampleFile: '角色操控技能节点图\\播放限时特效_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_local_variable',
+        methodName: 'getLocalVariable',
+        sampleFile: '角色操控技能节点图\\获取局部变量_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'set_local_variable',
+        methodName: 'setLocalVariable',
+        sampleFile: '角色操控技能节点图\\多分支_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'greater_than',
+        methodName: 'greaterThan',
+        sampleFile: '角色操控技能节点图\\逻辑或运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'addition',
+        methodName: 'addition',
+        sampleFile: '角色操控技能节点图\\加法运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'double_branch',
+        methodName: 'doubleBranch',
+        sampleFile: '角色操控技能节点图\\双分支_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'data_type_conversion',
+        methodName: 'dataTypeConversion',
+        sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'get_local_variable',
+        methodName: 'getLocalVariable',
+        sampleFile: '造物技能节点图\\获取局部变量_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'set_local_variable',
+        methodName: 'setLocalVariable',
+        sampleFile: '造物技能节点图\\获取实体的单位标签列表_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'greater_than',
+        methodName: 'greaterThan',
+        sampleFile: '造物技能节点图\\获取随机数_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'addition',
+        methodName: 'addition',
+        sampleFile: '造物技能节点图\\加法运算_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'double_branch',
+        methodName: 'doubleBranch',
+        sampleFile: '造物技能节点图\\双分支_连线.gia'
+      }
+    ],
+    status: 'partial',
+    note: 'composed from truncating conversion plus a positive-fraction correction branch'
   },
   {
     helper: 'Mathf',
@@ -1717,11 +1972,134 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'Vector3',
     member: 'Distance',
-    subTypes: [],
-    modes: [],
-    availability: [],
-    backedBy: [],
-    status: 'gap'
+    subTypes: [
+      'character_skill',
+      'character_control_skill',
+      'creation_skill',
+      'creation_status',
+      'creation_status_decision',
+      'bool_filter',
+      'int_filter'
+    ],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '角色技能节点图\\三维向量减法_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '角色技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '造物技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '造物状态节点图\\三维向量减法_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '造物状态节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '造物状态决策节点图\\三维向量减法_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '造物状态决策节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '布尔过滤器节点\\三维向量减法_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '布尔过滤器节点\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: '_3d_vector_subtraction',
+        methodName: '_3dVectorSubtraction',
+        sampleFile: '整数过滤器节点\\三维向量减法_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '整数过滤器节点\\三维向量模运算_连线.gia'
+      }
+    ],
+    status: 'supported',
+    note: 'composed from vector subtraction and magnitude nodes'
   },
   {
     helper: 'Vector3',
@@ -2522,11 +2900,260 @@ export const CLIENT_SCOPED_GLOBALS_CAPABILITY: readonly ClientScopedGlobalCapabi
   {
     helper: 'Vector3',
     member: 'ClampMagnitude',
-    subTypes: [],
-    modes: [],
-    availability: [],
-    backedBy: [],
-    status: 'gap'
+    subTypes: [
+      'character_skill',
+      'character_control_skill',
+      'creation_skill',
+      'creation_status',
+      'creation_status_decision',
+      'bool_filter',
+      'int_filter'
+    ],
+    modes: ['beyond', 'classic'],
+    availability: [
+      {
+        subType: 'character_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'character_control_skill',
+        modes: ['beyond']
+      },
+      {
+        subType: 'creation_skill',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'creation_status_decision',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'bool_filter',
+        modes: ['beyond', 'classic']
+      },
+      {
+        subType: 'int_filter',
+        modes: ['beyond', 'classic']
+      }
+    ],
+    backedBy: [
+      {
+        subType: 'character_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '角色技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '角色技能节点图\\朝向转旋转_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '角色技能节点图\\三维向量缩放_连线.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+      },
+      {
+        subType: 'character_skill',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '角色操控技能节点图\\遍历实体列表_连线.gia'
+      },
+      {
+        subType: 'character_control_skill',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '造物技能节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '造物技能节点图\\遍历实体列表_连线.gia'
+      },
+      {
+        subType: 'creation_skill',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '造物技能节点图\\复杂造物定点位移_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '造物状态节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '造物状态节点图\\朝向转旋转_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '造物状态节点图\\三维向量缩放_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '造物状态节点图\\建立字典_连线.gia'
+      },
+      {
+        subType: 'creation_status',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '造物状态节点图\\获取列表最小值_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '造物状态决策节点图\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '造物状态决策节点图\\三维向量归一化_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '造物状态决策节点图\\三维向量缩放_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '造物状态决策节点图\\建立字典_连线.gia'
+      },
+      {
+        subType: 'creation_status_decision',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '造物状态决策节点图\\获取列表最小值_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '布尔过滤器节点\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '布尔过滤器节点\\朝向转旋转_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '布尔过滤器节点\\三维向量归一化_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '布尔过滤器节点\\拼装列表_连线.gia'
+      },
+      {
+        subType: 'bool_filter',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '布尔过滤器节点\\获取列表对应值_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: '_3d_vector_modulo_operation',
+        methodName: '_3dVectorModuloOperation',
+        sampleFile: '整数过滤器节点\\三维向量模运算_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: '_3d_vector_normalization',
+        methodName: '_3dVectorNormalization',
+        sampleFile: '整数过滤器节点\\三维向量归一化_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: '_3d_vector_zoom',
+        methodName: '_3dVectorZoom',
+        sampleFile: '整数过滤器节点\\三维向量缩放_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: 'assembly_list',
+        methodName: 'assemblyList',
+        sampleFile: '整数过滤器节点\\获取列表对应值_连线.gia'
+      },
+      {
+        subType: 'int_filter',
+        nodeType: 'get_minimum_value_from_list',
+        methodName: 'getMinimumValueFromList',
+        sampleFile: '整数过滤器节点\\获取列表对应值_连线.gia'
+      }
+    ],
+    status: 'supported',
+    note: 'composed as Normalize(v) * min(Magnitude(v), max)'
   },
   {
     helper: 'GameObject',
@@ -2753,7 +3380,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
   character_skill: {
     send: [],
     self: [],
-    Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],
     Vector3: [
       'zero',
@@ -2766,6 +3393,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2773,14 +3401,15 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ],
     GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
   },
   character_control_skill: {
     send: [],
     self: [],
-    Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],
     Vector3: [
       'zero',
@@ -2793,6 +3422,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2800,14 +3430,15 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ],
     GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
   },
   creation_skill: {
     send: [],
     self: [],
-    Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+    Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
     Random: ['Range', 'value'],
     Vector3: [
       'zero',
@@ -2820,6 +3451,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2827,7 +3459,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ],
     GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
   },
@@ -2848,6 +3481,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2855,7 +3489,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ]
   },
   creation_status_decision: {
@@ -2875,6 +3510,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2882,7 +3518,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ]
   },
   bool_filter: {
@@ -2900,6 +3537,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2907,7 +3545,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ],
     GameObject: ['Find']
   },
@@ -2926,6 +3565,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'back',
       'Dot',
       'Cross',
+      'Distance',
       'Angle',
       'Normalize',
       'Magnitude',
@@ -2933,7 +3573,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE: Record<
       'Sub',
       'Scale',
       'Rotation',
-      'Lerp'
+      'Lerp',
+      'ClampMagnitude'
     ],
     GameObject: ['Find']
   }
@@ -2947,7 +3588,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
     beyond: {
       send: [],
       self: [],
-      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
       Random: ['Range', 'value'],
       Vector3: [
         'zero',
@@ -2960,6 +3601,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -2967,7 +3609,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
     },
@@ -2977,7 +3620,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
     beyond: {
       send: [],
       self: [],
-      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
       Random: ['Range', 'value'],
       Vector3: [
         'zero',
@@ -2990,6 +3633,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -2997,7 +3641,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
     },
@@ -3007,7 +3652,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
     beyond: {
       send: [],
       self: [],
-      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
       Random: ['Range', 'value'],
       Vector3: [
         'zero',
@@ -3020,6 +3665,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3027,14 +3673,15 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
     },
     classic: {
       send: [],
       self: [],
-      Mathf: ['Abs', 'Sin', 'Cos', 'Tan'],
+      Mathf: ['Abs', 'FloorToInt', 'CeilToInt', 'Sin', 'Cos', 'Tan'],
       Random: ['Range', 'value'],
       Vector3: [
         'zero',
@@ -3047,6 +3694,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3054,7 +3702,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find', 'FindWithTag', 'FindGameObjectsWithTag']
     }
@@ -3077,6 +3726,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3084,7 +3734,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ]
     },
     classic: {
@@ -3104,6 +3755,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3111,7 +3763,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ]
     }
   },
@@ -3133,6 +3786,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3140,7 +3794,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ]
     },
     classic: {
@@ -3160,6 +3815,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3167,7 +3823,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ]
     }
   },
@@ -3187,6 +3844,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3194,7 +3852,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find']
     },
@@ -3213,6 +3872,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3220,7 +3880,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find']
     }
@@ -3241,6 +3902,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3248,7 +3910,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find']
     },
@@ -3267,6 +3930,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'back',
         'Dot',
         'Cross',
+        'Distance',
         'Angle',
         'Normalize',
         'Magnitude',
@@ -3274,7 +3938,8 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
         'Sub',
         'Scale',
         'Rotation',
-        'Lerp'
+        'Lerp',
+        'ClampMagnitude'
       ],
       GameObject: ['Find']
     }
@@ -3283,6 +3948,7 @@ export const CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE_AND_MODE: Record<
 
 /** helper names that must never resolve to server implementations in client handlers */
 export const CLIENT_BLOCKED_SERVER_HELPERS = [
+  'print',
   'setTimeout',
   'setInterval',
   'clearTimeout',
