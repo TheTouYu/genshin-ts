@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：architecture-redesign 执行协议
-> 最近校验：2026-07-15
+> 最近校验：2026-07-16
 > 适用范围：每次开启新的 Composite Stage 3 Redesign 会话
 
 将下面内容作为新会话的启动消息发送给大模型：
@@ -30,7 +30,9 @@ handover、work-packages/checkpoints、源码、测试或真实 GIA；不要依�
 
 在我同意前不要修改。每轮只推进一个工作包；完成后更新 STATUS.md（语义状态，不写 commit SHA）并提交
 完成报告，等待我审核。未经明确指示不要 git commit，不要切换/合并/rebase 分支，不要修改
-vendor/generated，不要注入或操作游戏目录。
+vendor/generated，不要注入。不要删除/清理游戏目录，不要动 user_edit/真实参考；但若本包需要编辑器核验，
+必须按 COLLABORATION-PLAYBOOK 把名称明确的候选 .gia 复制到游戏导出根目录（长期授权），并在完成报告
+给出“需游戏测试清单”。仓库 Beyond_Local_Export/ 只是 staging，不能代替游戏目录。
 ```
 
 如果希望授权模型在恢复报告后直接执行，但仍不提交，可以追加：

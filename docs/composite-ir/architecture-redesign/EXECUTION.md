@@ -200,6 +200,19 @@ npm run build
 标记“验证完成”或建议提交，直至用户反馈候选的编辑器/游戏结果。阶段退出前再运行完整测试。没有运行的命令必须明确写
 `NOT RUN`，不得写“应该通过”。
 
+触及生产编码、需要用户编辑器核验时，必须按 [COLLABORATION-PLAYBOOK.md](COLLABORATION-PLAYBOOK.md)
+完成候选生命周期，不得只停在仓库 staging：
+
+1. 在仓库 `Beyond_Local_Export/` 或 `/tmp` 生成名称明确的 Stage 3 候选 `.gia`；
+2. **自动复制/覆盖到游戏导出根目录**（长期授权，见 playbook）：
+   `C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\`
+   WSL：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export/`；
+3. 完成报告给出“需游戏测试清单”：游戏目录路径、SHA-256、覆盖点；
+4. 用户确认通过后按 playbook 归档到 `真-测试通过/复合节点/`。
+
+仓库内 `genshin-ts/Beyond_Local_Export/` **不是**游戏目录，编辑器看不到；只写 staging 而未复制到游戏导出根，
+视为未完成用户核验准备。此复制授权不包含注入、`user_edit/`、地图目录、删除/清理或移动真实参考。
+
 严禁未经用户确认注入。`--noinject` 生成不等于注入。
 
 ## 8. 文档更新协议
@@ -240,6 +253,7 @@ Suggested commit:
 Remaining working-tree changes:
 Next work package:
 User decision required:
+需游戏测试清单:   # 若本包需编辑器核验：游戏目录路径 + SHA-256 + 覆盖点；并确认已复制到游戏导出根
 ```
 
 然后停止，等待用户审核和“提交”指令。
