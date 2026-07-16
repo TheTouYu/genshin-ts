@@ -1,0 +1,580 @@
+[
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "server",
+      "mode": "beyond",
+      "sub_type": "entity",
+      "id": 1073742191,
+      "name": "_GSTS_timer-composite-output-types"
+    },
+    "variables": [
+      {
+        "name": "timerValue",
+        "type": "float",
+        "value": 0
+      }
+    ],
+    "nodes": [
+      {
+        "id": 1,
+        "type": "when_entity_is_created",
+        "next": [
+          5
+        ]
+      },
+      {
+        "id": 5,
+        "type": "start_timer",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 4,
+              "index": 0,
+              "type": "entity"
+            }
+          },
+          {
+            "type": "str",
+            "value": "__gsts_interval_0_0"
+          },
+          {
+            "type": "bool",
+            "value": true
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 3,
+              "index": 0,
+              "type": "float_list"
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "type": "division",
+        "args": [
+          {
+            "type": "float",
+            "value": 100
+          },
+          {
+            "type": "float",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "type": "assembly_list",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 2,
+              "index": 0,
+              "type": "float"
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "type": "get_self_entity"
+      },
+      {
+        "id": 6,
+        "type": "when_timer_is_triggered",
+        "next": [
+          8
+        ]
+      },
+      {
+        "id": 8,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 7,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 12,
+            "source_index": 0
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "type": "set_local_variable",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 9,
+              "index": 0,
+              "type": "local_variable"
+            }
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 11,
+              "index": 0,
+              "type": "float"
+            }
+          }
+        ],
+        "next": [
+          14
+        ]
+      },
+      {
+        "id": 14,
+        "type": "double_branch",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 13,
+              "index": 0,
+              "type": "bool"
+            }
+          }
+        ],
+        "next": [
+          {
+            "node_id": 19,
+            "source_index": 0
+          },
+          {
+            "node_id": 19,
+            "source_index": 1
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 18,
+              "index": 0,
+              "type": "str"
+            }
+          }
+        ],
+        "next": [
+          23
+        ]
+      },
+      {
+        "id": 23,
+        "type": "print_string",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 22,
+              "index": 0,
+              "type": "str"
+            }
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "type": "equal",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 6,
+              "index": 2,
+              "type": "str"
+            }
+          },
+          {
+            "type": "str",
+            "value": "__gsts_interval_0_0"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "type": "get_local_variable",
+        "args": [
+          {
+            "type": "float",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "type": "get_node_graph_variable",
+        "args": [
+          {
+            "type": "str",
+            "value": "timerValue"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "type": "__composite_call__",
+        "args": [
+          {
+            "type": "int",
+            "value": 1610700000
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 10,
+              "index": 0,
+              "type": "float"
+            },
+            "compositeInputIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "type": "greater_than",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 9,
+              "index": 1,
+              "type": "float"
+            }
+          },
+          {
+            "type": "float",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "type": "get_node_graph_variable",
+        "args": [
+          {
+            "type": "str",
+            "value": "timerValue"
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "type": "__composite_call__",
+        "args": [
+          {
+            "type": "int",
+            "value": 1610700001
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 9,
+              "index": 1,
+              "type": "float"
+            },
+            "compositeInputIndex": 0
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 15,
+              "index": 0,
+              "type": "float"
+            },
+            "compositeInputIndex": 1
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 16,
+              "index": 0,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "type": "data_type_conversion_str",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 17,
+              "index": 0,
+              "type": "float"
+            }
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "type": "__composite_call__",
+        "args": [
+          {
+            "type": "int",
+            "value": 1610700002
+          },
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 9,
+              "index": 1,
+              "type": "float"
+            },
+            "compositeInputIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "type": "split3d_vector",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 20,
+              "index": 1,
+              "type": "vec3"
+            }
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "type": "data_type_conversion_str",
+        "args": [
+          {
+            "type": "conn",
+            "value": {
+              "node_id": 21,
+              "index": 0,
+              "type": "float"
+            }
+          }
+        ]
+      }
+    ],
+    "compositeDefs": [
+      {
+        "name": "timer 输出 float",
+        "id": 1610700000,
+        "type": "composite",
+        "inflows": [],
+        "outflows": [],
+        "inputs": [
+          {
+            "name": "value",
+            "visible": true,
+            "index": 0,
+            "type": "float",
+            "pinIndex": 100
+          }
+        ],
+        "outputs": [
+          {
+            "name": "value",
+            "visible": true,
+            "index": 0,
+            "type": "float",
+            "pinIndex": 200
+          }
+        ],
+        "implNodes": [
+          {
+            "id": 1,
+            "type": "__composite_capture__",
+            "args": []
+          }
+        ],
+        "implEdges": {},
+        "compositePins": []
+      },
+      {
+        "name": "timer 输出 vec3",
+        "id": 1610700001,
+        "type": "composite",
+        "inflows": [],
+        "outflows": [],
+        "inputs": [
+          {
+            "name": "x",
+            "visible": true,
+            "index": 0,
+            "type": "float",
+            "pinIndex": 100
+          },
+          {
+            "name": "y",
+            "visible": true,
+            "index": 1,
+            "type": "float",
+            "pinIndex": 101
+          }
+        ],
+        "outputs": [
+          {
+            "name": "value",
+            "visible": true,
+            "index": 0,
+            "type": "vec3",
+            "pinIndex": 200
+          }
+        ],
+        "implNodes": [
+          {
+            "id": 1,
+            "type": "__composite_capture__",
+            "args": []
+          },
+          {
+            "id": 2,
+            "type": "create3d_vector",
+            "args": [
+              {
+                "type": "float",
+                "value": null,
+                "capture": true
+              },
+              {
+                "type": "float",
+                "value": null,
+                "capture": true
+              },
+              {
+                "type": "float",
+                "value": 0
+              }
+            ]
+          }
+        ],
+        "implEdges": {},
+        "compositePins": [
+          {
+            "outerPinKind": 3,
+            "outerPinIndex": 0,
+            "innerNodeId": 2,
+            "innerPinKind": 3,
+            "innerPinIndex": 0
+          },
+          {
+            "outerPinKind": 3,
+            "outerPinIndex": 1,
+            "innerNodeId": 2,
+            "innerPinKind": 3,
+            "innerPinIndex": 1
+          },
+          {
+            "outerPinKind": 4,
+            "outerPinIndex": 0,
+            "innerNodeId": 2,
+            "innerPinKind": 4,
+            "innerPinIndex": 0
+          }
+        ]
+      },
+      {
+        "name": "timer 多输出",
+        "id": 1610700002,
+        "type": "composite",
+        "inflows": [],
+        "outflows": [],
+        "inputs": [
+          {
+            "name": "value",
+            "visible": true,
+            "index": 0,
+            "type": "float",
+            "pinIndex": 100
+          }
+        ],
+        "outputs": [
+          {
+            "name": "scalar",
+            "visible": true,
+            "index": 0,
+            "type": "float",
+            "pinIndex": 200
+          },
+          {
+            "name": "vector",
+            "visible": true,
+            "index": 1,
+            "type": "vec3",
+            "pinIndex": 201
+          }
+        ],
+        "implNodes": [
+          {
+            "id": 1,
+            "type": "__composite_capture__",
+            "args": []
+          },
+          {
+            "id": 2,
+            "type": "create3d_vector",
+            "args": [
+              {
+                "type": "float",
+                "value": null,
+                "capture": true
+              },
+              {
+                "type": "float",
+                "value": 0
+              },
+              {
+                "type": "float",
+                "value": 0
+              }
+            ]
+          }
+        ],
+        "implEdges": {},
+        "compositePins": [
+          {
+            "outerPinKind": 3,
+            "outerPinIndex": 0,
+            "innerNodeId": 2,
+            "innerPinKind": 3,
+            "innerPinIndex": 0
+          },
+          {
+            "outerPinKind": 4,
+            "outerPinIndex": 1,
+            "innerNodeId": 2,
+            "innerPinKind": 4,
+            "innerPinIndex": 0
+          }
+        ]
+      }
+    ]
+  }
+]
