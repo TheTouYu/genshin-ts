@@ -32,6 +32,7 @@ import {
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { buildCompositeParameterType } from './build_composite_definition.js'
 import { SPECIAL_NODE_IDS } from './mappings.js'
+import type { RegisteredSignalDefinition, SignalRegistry } from '../signal_registry.js'
 
 /** Builtin editor ids (real GIA SignalDef / 监听信号 CompositeDef). */
 export const BUILTIN_SEND_SIGNAL_NODE_ID = 1610612738
@@ -64,7 +65,7 @@ export const MONITOR_SIGNAL_PIN_INDEX = {
 export const SIGNAL_DEFINITION_CONTRACT = {
   workPackage: 'P5-W10',
   phase: 'P5-W10',
-  signalVersion: 2,
+  signalVersion: 1,
   signalDefWhich: 14 as const,
   signalDefXxx: 1,
   /** Real samples use type.kind=1001 for SignalDef (not Composite=1000). */
@@ -84,6 +85,12 @@ export const SIGNAL_DEFINITION_CONTRACT = {
 export type SignalParamSpec = {
   name: string
   type: string
+}
+
+export type SignalDefinitionIdentity = {
+  sendId: number
+  monitorId: number
+  serverId: number
 }
 
 export type CollectedSignalUsage = {
@@ -226,7 +233,10 @@ function parameterTypeForSignal(type: string): ReturnType<typeof buildCompositeP
  * Build SignalDef (which=14) "发送信号" for the given param schema.
  * Uses builtin id 1610612738 (single-schema editor sample path).
  */
-export function buildSendSignalDefGraphUnit(params: SignalParamSpec[]): GraphUnit {
+export function buildSendSignalDefGraphUnit(
+  params: SignalParamSpec[],
+  identity: SignalDefinitionIdentity
+): GraphUnit {
   const inputs = params.map((p, i) => ({
     name: p.name,
     visible: true,
@@ -241,13 +251,13 @@ export function buildSendSignalDefGraphUnit(params: SignalParamSpec[]): GraphUni
         class: NodeGraph_Id_Class.SystemDefined,
         type: NodeProperty_Type.Server,
         kind: NodeGraph_Id_Kind.SysGraph,
-        id: BUILTIN_SEND_SIGNAL_NODE_ID
+        id: identity.sendId
       },
       concreteId: {
         class: NodeGraph_Id_Class.SystemDefined,
         type: NodeProperty_Type.Server,
         kind: NodeGraph_Id_Kind.SysGraph,
-        id: BUILTIN_SEND_SIGNAL_NODE_ID
+        id: identity.sendId
       },
       graphId: {
         class: NodeGraph_Id_Class.UserDefined,
@@ -286,18 +296,18 @@ export function buildSendSignalDefGraphUnit(params: SignalParamSpec[]): GraphUni
     id: {
       class: GraphUnit_Id_Class.AffiliatedNode,
       type: GraphUnit_Id_Type.ServerGraph,
-      id: BUILTIN_SEND_SIGNAL_NODE_ID
+      id: identity.sendId
     },
     relatedIds: [
       {
         class: GraphUnit_Id_Class.AffiliatedNode,
         type: GraphUnit_Id_Type.ServerGraph,
-        id: BUILTIN_MONITOR_SIGNAL_NODE_ID
+        id: identity.monitorId
       },
       {
         class: GraphUnit_Id_Class.AffiliatedNode,
         type: GraphUnit_Id_Type.ServerGraph,
-        id: BUILTIN_SEND_SERVER_SIGNAL_NODE_ID
+        id: identity.serverId
       }
     ],
     name: '发送信号',
@@ -313,7 +323,10 @@ export function buildSendSignalDefGraphUnit(params: SignalParamSpec[]): GraphUni
 /**
  * Build 监听信号 CompositeDef (which=12, graphId=0) with fixed outs + signal params.
  */
-export function buildMonitorSignalCompositeGraphUnit(params: SignalParamSpec[]): GraphUnit {
+export function buildMonitorSignalCompositeGraphUnit(
+  params: SignalParamSpec[],
+  identity: SignalDefinitionIdentity
+): GraphUnit {
   const fixedOutputs = [
     { name: '事件源实体', type: 'entity', index: 0 },
     { name: '事件源GUID', type: 'guid', index: 1 },
@@ -342,13 +355,13 @@ export function buildMonitorSignalCompositeGraphUnit(params: SignalParamSpec[]):
         class: NodeGraph_Id_Class.SystemDefined,
         type: NodeProperty_Type.Server,
         kind: NodeGraph_Id_Kind.SysGraph,
-        id: BUILTIN_MONITOR_SIGNAL_NODE_ID
+        id: identity.monitorId
       },
       concreteId: {
         class: NodeGraph_Id_Class.SystemDefined,
         type: NodeProperty_Type.Server,
         kind: NodeGraph_Id_Kind.SysGraph,
-        id: BUILTIN_MONITOR_SIGNAL_NODE_ID
+        id: identity.monitorId
       },
       graphId: {
         class: NodeGraph_Id_Class.UserDefined,
@@ -379,9 +392,20 @@ export function buildMonitorSignalCompositeGraphUnit(params: SignalParamSpec[]):
     id: {
       class: GraphUnit_Id_Class.AffiliatedNode,
       type: GraphUnit_Id_Type.ServerGraph,
-      id: BUILTIN_MONITOR_SIGNAL_NODE_ID
+      id: identity.monitorId
     },
-    relatedIds: [],
+    relatedIds: [
+      {
+        class: GraphUnit_Id_Class.AffiliatedNode,
+        type: GraphUnit_Id_Type.ServerGraph,
+        id: identity.sendId
+      },
+      {
+        class: GraphUnit_Id_Class.AffiliatedNode,
+        type: GraphUnit_Id_Type.ServerGraph,
+        id: identity.serverId
+      }
+    ],
     name: '监听信号',
     which: GraphUnit_Which.CompositeGraph,
     compositeDef: {
@@ -396,7 +420,10 @@ export function buildMonitorSignalCompositeGraphUnit(params: SignalParamSpec[]):
  * Optional companion SignalDef for 向服务器节点图发送信号 (present in all real samples).
  * Minimal empty-param shell so relatedIds stay consistent; not required for local send pins.
  */
-export function buildSendServerSignalDefGraphUnit(params: SignalParamSpec[]): GraphUnit {
+export function buildSendServerSignalDefGraphUnit(
+  params: SignalParamSpec[],
+  identity: SignalDefinitionIdentity
+): GraphUnit {
   const inputs = params.map((p, i) => ({
     name: p.name,
     visible: true,
@@ -412,7 +439,7 @@ export function buildSendServerSignalDefGraphUnit(params: SignalParamSpec[]): Gr
         class: NodeGraph_Id_Class.SystemDefined,
         type: 20002,
         kind: NodeGraph_Id_Kind.SysGraph,
-        id: BUILTIN_SEND_SERVER_SIGNAL_NODE_ID
+        id: identity.serverId
       },
       concreteId: {
         class: NodeGraph_Id_Class.SystemDefined,
@@ -457,18 +484,18 @@ export function buildSendServerSignalDefGraphUnit(params: SignalParamSpec[]): Gr
     id: {
       class: GraphUnit_Id_Class.AffiliatedNode,
       type: GraphUnit_Id_Type.ServerGraph,
-      id: BUILTIN_SEND_SERVER_SIGNAL_NODE_ID
+      id: identity.serverId
     },
     relatedIds: [
       {
         class: GraphUnit_Id_Class.AffiliatedNode,
         type: GraphUnit_Id_Type.ServerGraph,
-        id: BUILTIN_MONITOR_SIGNAL_NODE_ID
+        id: identity.monitorId
       },
       {
         class: GraphUnit_Id_Class.AffiliatedNode,
         type: GraphUnit_Id_Type.ServerGraph,
-        id: BUILTIN_SEND_SIGNAL_NODE_ID
+        id: identity.sendId
       }
     ],
     name: '向服务器节点图发送信号',
@@ -486,36 +513,74 @@ export function buildSendServerSignalDefGraphUnit(params: SignalParamSpec[]): Gr
  * Single-schema path: one 发送信号 SignalDef + 监听信号 CompositeDef + 向服务器 shell.
  * Param schema is the longest param list among usages (covers send+monitor).
  */
-export function buildSignalDefinitionAccessories(
-  usages: readonly CollectedSignalUsage[]
-): GraphUnit[] {
-  if (usages.length === 0) return []
-
-  // Merge params: take the longest list (types aligned by index when possible).
-  let params: SignalParamSpec[] = []
-  for (const u of usages) {
-    if (u.params.length > params.length) params = u.params
+function toSignalDefinitionIdentity(
+  entry: RegisteredSignalDefinition
+): SignalDefinitionIdentity {
+  return {
+    sendId: entry.sendId,
+    monitorId: entry.monitorId,
+    serverId: entry.serverId
   }
-  // If only monitor with out indexes but empty params, synthesize.
-  if (params.length === 0) {
-    const maxOut = Math.max(0, ...usages.flatMap((u) => u.monitorOutIndexes))
-    for (let i = 3; i <= maxOut; i++) {
-      params.push({ name: `参数_${i - 2}`, type: 'int' })
-    }
-  }
-
-  const accessories: GraphUnit[] = []
-  accessories.push(buildSendSignalDefGraphUnit(params))
-  accessories.push(buildMonitorSignalCompositeGraphUnit(params))
-  accessories.push(buildSendServerSignalDefGraphUnit(params))
-  return accessories
 }
 
-function isPlaceholderSignalNode(node: any): 'send' | 'monitor' | null {
+function assertRegisteredSchema(
+  usage: CollectedSignalUsage,
+  registered: RegisteredSignalDefinition
+): void {
+  const actual = usage.params.map((param) => param.type)
+  const expected = registered.params.map((param) => param.type)
+  if (actual.length !== expected.length || actual.some((type, i) => type !== expected[i])) {
+    throw new Error(
+      `[error] signal schema mismatch for ${usage.name}: ` +
+      `IR=[${actual.join(', ')}], map=[${expected.join(', ')}]`
+    )
+  }
+}
+
+export function buildSignalDefinitionAccessories(
+  usages: readonly CollectedSignalUsage[],
+  registry: SignalRegistry
+): GraphUnit[] {
+  return usages.flatMap((usage) => {
+    let params = usage.params
+    if (params.length === 0) {
+      const maxOut = Math.max(0, ...usage.monitorOutIndexes)
+      params = Array.from({ length: Math.max(0, maxOut - 2) }, (_, i) => ({
+        name: `参数_${i + 1}`,
+        type: 'int'
+      }))
+    }
+    const registered = registry.get(usage.name)
+    if (!registered) {
+      throw new Error(`[error] signal is not registered in target map: ${usage.name}`)
+    }
+    assertRegisteredSchema(usage, registered)
+    const identity = toSignalDefinitionIdentity(registered)
+    return [
+      buildSendSignalDefGraphUnit(params, identity),
+      buildMonitorSignalCompositeGraphUnit(params, identity),
+      buildSendServerSignalDefGraphUnit(params, identity)
+    ]
+  })
+}
+
+function signalNameFromEncodedNode(node: any): string | undefined {
+  const pin = (node?.pins ?? []).find((p: any) => p.i1?.kind === NodePin_Index_Kind.ClientExecNode || p.i1?.kind === 5)
+  const value = pin?.value
+  const name = typeof value === 'string' ? value : value?.bString?.val
+  return typeof name === 'string' ? name.trim() : undefined
+}
+
+function isPlaceholderSignalNode(
+  node: any,
+  identitiesByName: ReadonlyMap<string, SignalDefinitionIdentity>
+): 'send' | 'monitor' | null {
   const id = node?.genericId?.nodeId ?? node?.concreteId?.nodeId
-  if (id === SIGNAL_PLACEHOLDER_SEND_ID || id === BUILTIN_SEND_SIGNAL_NODE_ID) return 'send'
-  if (id === SIGNAL_PLACEHOLDER_MONITOR_ID || id === BUILTIN_MONITOR_SIGNAL_NODE_ID) {
-    return 'monitor'
+  if (id === SIGNAL_PLACEHOLDER_SEND_ID) return 'send'
+  if (id === SIGNAL_PLACEHOLDER_MONITOR_ID) return 'monitor'
+  for (const identity of identitiesByName.values()) {
+    if (id === identity.sendId) return 'send'
+    if (id === identity.monitorId) return 'monitor'
   }
   return null
 }
@@ -529,14 +594,21 @@ function isPlaceholderSignalNode(node: any): 'send' | 'monitor' | null {
  * - send InParam compositePinIndex = 12+i
  * - monitor OutParam compositePinIndex for fixed+param outputs
  */
-export function patchEncodedSignalNodes(nodes: any[] | undefined): void {
+export function patchEncodedSignalNodes(
+  nodes: any[] | undefined,
+  identitiesByName: ReadonlyMap<string, SignalDefinitionIdentity> = new Map()
+): void {
   if (!nodes) return
   for (const node of nodes) {
-    const kind = isPlaceholderSignalNode(node)
+    const kind = isPlaceholderSignalNode(node, identitiesByName)
     if (!kind) continue
 
-    const targetId =
-      kind === 'send' ? BUILTIN_SEND_SIGNAL_NODE_ID : BUILTIN_MONITOR_SIGNAL_NODE_ID
+    const signalName = signalNameFromEncodedNode(node)
+    const identity = signalName
+      ? identitiesByName.get(signalName)
+      : undefined
+    if (!identity) continue
+    const targetId = kind === 'send' ? identity.sendId : identity.monitorId
 
     if (node.genericId) {
       node.genericId.class = NodeGraph_Id_Class.SystemDefined
@@ -612,16 +684,29 @@ export function finalizeSignalEncoding(input: {
   rootNodes?: any[]
   accessoryGraphs?: Array<{ nodes?: any[] }>
   connIndex?: Map<number, Map<number, { type: string; dict?: { k: string; v: string } }>>
+  signalRegistry?: SignalRegistry
 }): GraphUnit[] {
   const usages = collectSignalUsages(input.ir, input.connIndex)
   if (usages.length === 0) return []
-
-  patchEncodedSignalNodes(input.rootNodes)
+  if (!input.signalRegistry) {
+    throw new Error('[error] signal registry is required when encoding signal nodes')
+  }
+  const identitiesByName = new Map(
+    usages.map((usage) => {
+      const registered = input.signalRegistry!.get(usage.name)
+      if (!registered) {
+        throw new Error(`[error] signal is not registered in target map: ${usage.name}`)
+      }
+      assertRegisteredSchema(usage, registered)
+      return [usage.name, toSignalDefinitionIdentity(registered)] as const
+    })
+  )
+  patchEncodedSignalNodes(input.rootNodes, identitiesByName)
   for (const g of input.accessoryGraphs ?? []) {
-    patchEncodedSignalNodes(g.nodes)
+    patchEncodedSignalNodes(g.nodes, identitiesByName)
   }
 
-  return buildSignalDefinitionAccessories(usages)
+  return buildSignalDefinitionAccessories(usages, input.signalRegistry)
 }
 
 // Keep isValueArg used for future arg inspection helpers.

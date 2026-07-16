@@ -1,6 +1,8 @@
 import type { LenField } from '../injector/types.js'
+import { extractSignalNodeIds } from '../injector/signal_nodes.js'
 import { readVarint } from '../injector/binary.js'
 import type { SignalParamType } from '../runtime/core.js'
+import type { RegisteredSignalDefinition } from '../compiler/signal_registry.js'
 import {
   checkExistingGeneratedFile,
   decodeUtf8,
@@ -188,6 +190,24 @@ function buildSignalsSource(entries: SignalEntry[]): string {
   return lines.join('\n')
 }
 
+export function readRegisteredSignalsFromGil(gilPath: string): RegisteredSignalDefinition[] {
+  const { payload, fields } = readGilPayloadFields(gilPath)
+  const entries = parseSignalEntries(payload, fields)
+  const ids = extractSignalNodeIds(payload, fields)
+  return entries.map((entry) => {
+    const identity = ids.get(entry.name)
+    if (!identity?.send?.nodeId || !identity.monitor?.nodeId) {
+      throw new Error(`[error] incomplete signal identity: ${entry.name}`)
+    }
+    return {
+      ...entry,
+      sendId: identity.send.nodeId!,
+      monitorId: identity.monitor.nodeId!,
+      serverId: identity.sendServer?.nodeId ?? identity.send.nodeId! + 2
+    }
+  })
+}
+
 export function extractSignalsFromGil(params: {
   gilPath: string
   outPath: string
@@ -196,8 +216,7 @@ export function extractSignalsFromGil(params: {
   if (existingCheck) return existingCheck
 
   try {
-    const { payload, fields } = readGilPayloadFields(params.gilPath)
-    const entries = parseSignalEntries(payload, fields)
+    const entries = readRegisteredSignalsFromGil(params.gilPath)
 
     writeGeneratedFile(params.outPath, buildSignalsSource(entries))
     return { status: 'ok', outPath: params.outPath, count: entries.length }

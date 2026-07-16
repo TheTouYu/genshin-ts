@@ -51,6 +51,7 @@ import {
   type SpecialArgTypeTag
 } from './special_arg_adapter.js'
 import { finalizeSignalEncoding } from './build_signal_definition.js'
+import type { SignalRegistry } from '../signal_registry.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
 
@@ -59,6 +60,7 @@ type IrToGiaOptimizeOptions = {
 }
 
 export interface IrToGiaOptions {
+  signalRegistry?: SignalRegistry
   graphId?: number
   uid?: number
   name?: string
@@ -791,7 +793,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       ir,
       rootNodes: mainNodes,
       accessoryGraphs,
-      connIndex
+      connIndex,
+      signalRegistry: opts.signalRegistry
     })
     if (signalAccs.length > 0) {
       root.accessories.push(...signalAccs)

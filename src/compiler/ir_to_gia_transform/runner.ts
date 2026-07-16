@@ -1,4 +1,5 @@
 import { writeGiaFromIrJsonFile } from './shared.js'
+import { createSignalRegistry, type RegisteredSignalDefinition } from '../signal_registry.js'
 
 function parseIndicesCsv(csv: string | undefined): number[] | undefined {
   if (!csv) return undefined
@@ -11,7 +12,7 @@ function parseIndicesCsv(csv: string | undefined): number[] | undefined {
 }
 
 function main() {
-  const [irPathArg, outFileArg, preserveFlag, indicesCsv] = process.argv.slice(2)
+  const [irPathArg, outFileArg, preserveFlag, indicesCsv, registryJson] = process.argv.slice(2)
   if (!irPathArg) {
     console.error('[error] irPath is required')
     process.exit(1)
@@ -21,11 +22,14 @@ function main() {
   const outFile = outFileArg || undefined
   const preserveIndices = preserveFlag === '1'
   const includeIndices = parseIndicesCsv(indicesCsv)
+  const signalRegistry = registryJson
+    ? createSignalRegistry(JSON.parse(registryJson) as RegisteredSignalDefinition[])
+    : undefined
 
   const outputs = writeGiaFromIrJsonFile(
     irPath,
     outFile,
-    { includeIndices, preserveIndices },
+    { includeIndices, preserveIndices, signalRegistry },
     (x) => {
       // Print progress immediately (stderr is inherited by parent).
       process.stderr.write(`[ok] ${x.giaPath} (id=${x.graphId})\n`)

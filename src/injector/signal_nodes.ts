@@ -10,7 +10,7 @@ type NodeGraphIdInfo = {
   nodeId?: number
 }
 
-type SignalNodeIds = {
+export type SignalNodeIds = {
   send?: NodeGraphIdInfo
   monitor?: NodeGraphIdInfo
   sendServer?: NodeGraphIdInfo
@@ -105,7 +105,7 @@ function extractStringFromVarBase(val?: Record<string, unknown>): string | undef
   return undefined
 }
 
-function buildSignalNodeIdMapFromFields(
+export function buildSignalNodeIdMapFromFields(
   payload: Uint8Array,
   fields: LenField[],
   t?: TFunc
@@ -177,6 +177,14 @@ function applyNodeGraphId(
   if (!node.concreteId) node.concreteId = {}
   setFields(node.genericId)
   setFields(node.concreteId)
+}
+
+export function extractSignalNodeIds(
+  payload: Uint8Array,
+  fields: LenField[],
+  t?: TFunc
+): Map<string, SignalNodeIds> {
+  return buildSignalNodeIdMapFromFields(payload, fields, t)
 }
 
 export function patchSignalNodeIds(

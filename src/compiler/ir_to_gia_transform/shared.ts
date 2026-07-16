@@ -4,6 +4,7 @@ import path from 'node:path'
 import { DEFAULT_GIA_PROTO } from '../../injector/proto.js'
 import type { IRDocument } from '../../runtime/IR.js'
 import { irToGia } from './index.js'
+import type { SignalRegistry } from '../signal_registry.js'
 
 function ensurePrefixedDefaultName(raw: string): string {
   if (raw.startsWith('_GSTS')) return raw
@@ -26,6 +27,7 @@ export type WriteGiaFromIrJsonFileOptions = {
    * output file names (e.g. `foo_3.gia`), instead of re-numbering.
    */
   preserveIndices?: boolean
+  signalRegistry?: SignalRegistry
 }
 
 export type GiaWriteResult = {
@@ -81,7 +83,10 @@ export function writeGiaFromIrJsonFile(
       ir.graph.name = ensurePrefixedDefaultName(inputBaseName)
     }
 
-    const bytes = irToGia(ir, { protoPath: DEFAULT_GIA_PROTO })
+    const bytes = irToGia(ir, {
+      protoPath: DEFAULT_GIA_PROTO,
+      signalRegistry: opts?.signalRegistry
+    })
     fs.mkdirSync(path.dirname(target), { recursive: true })
     fs.writeFileSync(target, Buffer.from(bytes))
     const res = { irPath, giaPath: target, graphId: resolveGraphId(ir), sourceIndex: idx }

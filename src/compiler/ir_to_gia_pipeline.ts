@@ -5,6 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { GiaWriteResult, WriteGiaFromIrJsonFileOptions } from './ir_to_gia_transform/shared.js'
+import type { SignalRegistry } from './signal_registry.js'
 
 export { writeGiaFromIrJsonFile } from './ir_to_gia_transform/shared.js'
 export type { GiaWriteResult, WriteGiaFromIrJsonFileOptions } from './ir_to_gia_transform/shared.js'
@@ -21,6 +22,7 @@ export function resolveGiaOutputPath(irJsonPath: string): string {
 export type IrToGiaParallelOptions = {
   maxParallel?: number
   cwd?: string
+  signalRegistry?: SignalRegistry
   /**
    * Called when runner emits an `[ok] ...` progress line.
    * The argument is the message part after `[ok] ` (e.g. `path (id=123)`).
@@ -32,14 +34,15 @@ type GiaTask = { irPath: string; outFile?: string; opts?: WriteGiaFromIrJsonFile
 
 function spawnRunner(
   task: GiaTask,
-  opts?: Pick<IrToGiaParallelOptions, 'cwd' | 'onOkLine'>
+  opts?: Pick<IrToGiaParallelOptions, 'cwd' | 'onOkLine' | 'signalRegistry'>
 ): Promise<GiaWriteResult[]> {
   return new Promise((resolve, reject) => {
     const absIr = path.resolve(task.irPath)
     const out = task.outFile ? path.resolve(task.outFile) : ''
     const preserve = task.opts?.preserveIndices ? '1' : '0'
     const indices = task.opts?.includeIndices?.length ? task.opts.includeIndices.join(',') : ''
-    const args = [tsxCli, runnerPath, absIr, out, preserve, indices]
+    const registry = opts?.signalRegistry ? JSON.stringify([...opts.signalRegistry.values()]) : ''
+    const args = [tsxCli, runnerPath, absIr, out, preserve, indices, registry]
     const child = spawn(process.execPath, args, {
       cwd: opts?.cwd,
       stdio: ['ignore', 'pipe', 'pipe']
