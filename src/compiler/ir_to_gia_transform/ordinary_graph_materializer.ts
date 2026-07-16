@@ -90,7 +90,7 @@ function assertDataPins(
   const targetType = pinType(targetPin)
   if (sourceType && targetType && sourceType !== targetType) {
     throw new Error(
-      `[error] ordinary data edge pin type mismatch: ${edge.fromId}.${fromIndex}->${edge.toId}.${toIndex}`
+      `[error] ordinary data edge pin type mismatch: ${edge.fromId}.${fromIndex}->${edge.toId}.${toIndex} source=${sourceType} target=${targetType}`
     )
   }
 }

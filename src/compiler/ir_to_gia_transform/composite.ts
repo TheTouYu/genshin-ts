@@ -879,7 +879,13 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
           : (firstArg.type as string)
     }
     if (elementType && elementType !== 'dict' && elementType !== 'enum') {
-      const suffix = elementType === 'vec3' ? 'vec' : elementType
+      const suffix = elementType === 'vec3'
+        ? 'vec'
+        : elementType === 'config_id'
+          ? 'config'
+          : elementType === 'prefab_id'
+            ? 'prefab'
+            : elementType
       const typed = nodeIdLower.get(`assembly_list__${suffix}`)
       if (typed) return typed
     }
