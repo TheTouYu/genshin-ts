@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-06
+> 最近校验：2026-07-16
 > 适用范围：gsts 当前复合节点编译管线
 
 > 本文档追踪复合节点定义和调用如何流经编译管线的三个阶段——从 TypeScript 源文件到最终的 `.gia` 二进制文件。
@@ -63,7 +63,7 @@ export const Add = g.defineComposite('Add', { ... })
 const { result } = f.callComposite(DoubleHandle, { x: int(42) })
 ```
 
-在 `.gs.ts` 中保持相同形式。`callComposite` 在阶段二中被 `ServerExecutionFlowFunctions` 解析。
+普通调用在 `.gs.ts` 中保持相同形式。对于 timer callback 中的复合输出，Stage 1 的变量规划会额外读取 `CompositeHandle.__outputs` 类型标记，确保保存 `.value` 或命名 output 时生成 `float` / `vec3` 等正确的局部变量类型；`callComposite` 在阶段二中仍由 `ServerExecutionFlowFunctions` 解析。
 
 ### 特殊处理：handle 引用保持
 
@@ -123,7 +123,7 @@ for (const node of doc.nodes ?? []) {
 doc.compositeDefs = allCompositeDefs.filter(d => calledIds.has(d.id))
 ```
 
-`compositeDataEdges` 也在这个阶段附加到文档顶层。
+`compositeDataEdges` 也在这个阶段附加到文档顶层。复合输出连接到普通节点时，连接仍表现为普通节点参数中的 `conn`，但 Stage 3 会将来源为 `__composite_call__` 的边从普通数据边物化流程中分离，走复合 OutParam overlay 连接路径。
 
 ---
 

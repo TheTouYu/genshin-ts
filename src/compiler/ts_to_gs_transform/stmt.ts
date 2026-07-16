@@ -118,6 +118,57 @@ function inferBasicType(env: Env, t: ts.Type): ListType | null {
   return inferConcreteTypeFromType(env.checker, env.checker.getBaseTypeOfLiteralType(t), env.file)
 }
 
+function inferCompositeOutputType(env: Env, expr: ts.Expression): ListType | null {
+  if (!ts.isPropertyAccessExpression(expr)) return null
+  const call = expr.expression
+  if (!ts.isCallExpression(call) || !ts.isPropertyAccessExpression(call.expression)) return null
+  if (call.expression.name.text !== 'callComposite' || call.arguments.length === 0) return null
+
+  const handleExpr = call.arguments[0]
+  const handleType = env.checker.getTypeAtLocation(handleExpr)
+  const getPropertyType = (type: ts.Type, name: string): ts.Type | null => {
+    const property = env.checker.getPropertyOfType(type, name)
+    return property ? env.checker.getTypeOfSymbolAtLocation(property, expr) : null
+  }
+  const outputsType = getPropertyType(handleType, '__outputs')
+  if (!outputsType) return null
+  const outputType = getPropertyType(outputsType, expr.name.text)
+  if (!outputType) return null
+  const typeProperty = getPropertyType(outputType, 'type')
+  if (!typeProperty) return null
+  const literal = typeProperty.isStringLiteral() ? typeProperty.value : undefined
+  if (literal) return literal as ListType
+
+  const symbol = ts.isIdentifier(handleExpr) ? env.checker.getSymbolAtLocation(handleExpr) : undefined
+  const declaration = symbol?.valueDeclaration
+  if (!declaration || !ts.isVariableDeclaration(declaration) || !declaration.initializer) return null
+  const initializer = declaration.initializer
+  if (!ts.isCallExpression(initializer) || initializer.arguments.length < 2) return null
+  const definition = initializer.arguments[1]
+  if (!ts.isObjectLiteralExpression(definition)) return null
+  const outputs = definition.properties.find(
+    (property): property is ts.PropertyAssignment =>
+      ts.isPropertyAssignment(property) &&
+      ts.isIdentifier(property.name) &&
+      property.name.text === 'outputs'
+  )?.initializer
+  if (!outputs || !ts.isObjectLiteralExpression(outputs)) return null
+  const output = outputs.properties.find(
+    (property): property is ts.PropertyAssignment =>
+      ts.isPropertyAssignment(property) &&
+      ts.isIdentifier(property.name) &&
+      property.name.text === expr.name.text
+  )?.initializer
+  if (!output || !ts.isObjectLiteralExpression(output)) return null
+  const type = output.properties.find(
+    (property): property is ts.PropertyAssignment =>
+      ts.isPropertyAssignment(property) &&
+      ts.isIdentifier(property.name) &&
+      property.name.text === 'type'
+  )?.initializer
+  return type && ts.isStringLiteral(type) ? (type.text as ListType) : null
+}
+
 function makeLocalVarTypeString(
   env: Env,
   decl: ts.VariableDeclaration,
@@ -140,8 +191,14 @@ function makeLocalVarTypeString(
     return `${ct}_list`
   }
 
+  const compositeOutputType = decl.initializer
+    ? inferCompositeOutputType(env, decl.initializer)
+    : null
+  if (compositeOutputType) return compositeOutputType
+
   const base = inferBasicType(env, t)
   if (base) return base
+
   fail(env, decl, `cannot infer type, please add type annotation`)
 }
 

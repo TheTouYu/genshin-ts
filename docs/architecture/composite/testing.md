@@ -158,6 +158,41 @@ npx tsx tests/composite/test-impl-prefab-literal-and-multiple-branches.ts
 
 覆盖：impl 内 `prefab_id` 字面量 `bId` + `alreadySetVal`；impl 内 `multiple_branches` 的 capture 控制脚 / case list / 默认 OutFlow 0。证据层级为自动 GIA 结构回归；2026-07-16 的该夹具已由用户导入编辑器核验两项表现，但仍不替代运行时游戏行为核验。
 
+### Timer callback 中的复合输出类型回归
+
+> 状态：已验证
+> 来源：当前代码实现 + 自动 GIA 生成 + 游戏内验证
+> 最近校验：2026-07-16
+> 适用范围：gsts 当前输出与游戏编辑器导入
+
+正式回归文件：
+
+```text
+tests/timer_composite_output_types_test.ts
+gsts.timer-composite-output-types.config.ts
+```
+
+覆盖 timer callback 中的 `float` / `vec3` 复合输出、多输出 pin，以及输出继续连接比较节点和 `split3dVector`。独立生成命令：
+
+```bash
+npm run build
+node ./bin/gsts.mjs -c gsts.timer-composite-output-types.config.ts --noinject
+```
+
+生成的 GIA：
+
+```text
+dist-timer-composite-output-types/tests/timer_composite_output_types_test.gia
+```
+
+该 GIA 已复制到 Windows 游戏导出目录：
+
+```text
+C:\Users\touyu\AppData\LocalLow\miHoYo\原神\BeyondLocal\Beyond_Local_Export\timer_composite_output_types_test.gia
+```
+
+用户已将该文件导入游戏并完成独立节点测试，结果通过。因此本 Bug 的最终验收层级为：自动生成通过、GIA 导入通过、用户游戏内验证通过。
+
 ---
 
 ## 5. 测试注意事项
@@ -207,6 +242,6 @@ Part 1 的 `.gia` 参考文件需要手动维护。新增测试用例时：
 | 多次调用同一复合 | 同一复合在两处被调用时 accessories 处理 | `@pending_ref` |
 | 空复合 | build 函数为空时的 IR 和 GIA 表示 | `@pending_ref` |
 | 嵌套复合 | composite build 内部调用另一个复合 | `@pending_ref` |
-| 跨复合类型参数 | 复合输出作为另一复合输入时的类型推导 | 需验证 |
+| 跨复合类型参数 | 复合输出作为另一复合输入时的类型推导 | timer 输出→普通节点已验证；复合→复合的更多组合仍需扩展 |
 
 > 详情参见 [composite_node_testing.md](composite_node_testing.md) 的历史测试记录。

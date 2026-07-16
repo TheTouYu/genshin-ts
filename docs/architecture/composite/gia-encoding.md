@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-11
+> 最近校验：2026-07-16
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
@@ -121,6 +121,12 @@ round-trip 检查。
 ## 3. impl NodeGraph 内部结构
 
 ### 3.1 一对 GraphUnit 的 ID 关联
+
+#### 3.1.1 复合输出到普通节点的主图连接
+
+主图中 `__composite_call__` 的输出代理携带 OutParam metadata。若输出继续连接 `setLocalVariable`、比较节点或 `split3dVector` 等普通节点，该边不能交给普通 Graph pin 的 materializer 校验，因为复合调用节点的 OutParam 是 overlay pin。
+
+当前 Stage 3 将来源为 `__composite_call__` 的数据边分离处理，直接建立复合 OutParam 到普通目标 InParam 的 GIA connection；其余普通数据边继续使用 `materializeOrdinaryGraphEdges()`。回归文件为 `tests/timer_composite_output_types_test.ts`，并已完成 GIA 生成和游戏内验证。
 
 每个复合定义在 `accessories` 中占用连续的两个 GraphUnit：
 

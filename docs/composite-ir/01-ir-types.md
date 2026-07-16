@@ -214,7 +214,7 @@ interface CompositeCallMeta {
 | `toMarkerId` | 目标 `__composite_call__` 节点的 ID |
 | `toPinIndex` | 目标复合的 InParam 索引 |
 
-**记录条件**：仅当数据来源节点来自另一个复合的输出（`nodeType === '__composite_call__'`）时记录。普通节点→复合的数据连线由标准 dataConnections 处理。
+**记录条件**：仅当数据来源节点来自另一个复合的输出（`nodeType === '__composite_call__'`）且目标也是复合调用 marker 时记录。普通节点→复合的数据连线由标准 dataConnections 处理；复合输出→普通节点的数据边仍保存在普通节点参数的 `conn` 中，但 Stage 3 不走普通 data-edge pin 校验，而是走复合 OutParam overlay 连接路径。
 
 ---
 

@@ -209,6 +209,7 @@ f.multipleBranches(controlExpr, {
 - **timer handle 元数据提取**：识别 `setTimeout` 和 `setInterval`，分配 timer ID 池
 - **常量折叠**（`const_eval.ts`）：纯字面量表达式在编译期预计算
 - **集合引用快照**（`tryTransformCollectionRebindSnapshot`）：对 `xs = list(…)` 这种集合绑定，插入 `initLocalVariable` + `setLocalVariable` 的快照
+- **timer 中复合输出类型保真**（`inferCompositeOutputType`）：当 timer callback 中的 `f.callComposite(...).output` 因回调参数类型不可见而无法由 TypeScript checker 推断时，从 `CompositeHandle.__outputs` 或同一 `defineComposite` 声明回退读取输出类型，避免生成错误的 `entity` 局部变量。
 
 ### 4.3 ops.ts — 运算符映射
 

@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-06
+> 最近校验：2026-07-16
 > 适用范围：gsts 当前复合节点用户面 API
 
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
@@ -45,16 +45,19 @@ build: (inputs: { [K in keyof Inputs]: value }, f: ServerExecutionFlowFunctions)
 
 ### CompositeHandle
 
-`defineComposite` 返回 `CompositeHandle`——一个携带 `__composite` brand 的轻量句柄：
+`defineComposite` 返回 `CompositeHandle<Outputs>`——一个携带 `__composite` brand 和输出声明类型的轻量句柄：
 
 ```typescript
-type CompositeHandle = {
+type CompositeHandle<Outputs> = {
   readonly __composite: true
   readonly name: string
   readonly id: number          // 从 1610700000 递增分配
   readonly definition: CompositeDefinition
+  readonly __outputs: Outputs  // 仅用于 TypeScript 类型保留
 }
 ```
+
+`__outputs` 是类型标记，不是运行时节点图数据。它使 `f.callComposite(handle, inputs)` 的每个返回 pin 保留声明类型，例如 `float` 输出可继续传给比较节点，`vec3` 输出可继续传给 `split3dVector`。
 
 `id` 在 `CompositeRegistry.define()` 中分配，全局唯一。句柄可作为 `f.callComposite()` 的第一个参数。
 
@@ -89,7 +92,7 @@ const { sum } = f.callComposite(B, { y: val })
 
 ### 返回值解构
 
-返回值是捕获阶段构造的代理值对象。每个属性通过 `markPin(markerRecord, 'output', outIdx)` 绑定到主图 `__composite_call__` 节点的 OutParam pin，因此调用方可以直接将其传递给下游节点。
+返回值是捕获阶段构造的代理值对象。每个属性通过 `markPin(markerRecord, 'output', outIdx)` 绑定到主图 `__composite_call__` 节点的 OutParam pin，因此调用方可以直接将其传递给下游节点。类型上，返回对象按 `outputs` 声明映射到对应的运行时值类型；在 timer callback 中也适用。
 
 内部实现创建一个带 `__markerNodeId` 隐藏属性的代理对象，供 `connectOutFlowBranch` 处理多 OutFlow 时使用。
 
@@ -123,16 +126,21 @@ f.callComposite(Condition, { x: int(-1) })
 
 ## 3. 类型安全
 
-`defineComposite` 的 TypeScript 泛型签名：
+`defineComposite` 会保留 `outputs` 的字符串字面量类型，并由 `callComposite` 映射为具体返回值类型：
 
 ```typescript
-function defineComposite<
-  Inputs extends Record<string, { type: any }>,
-  Outputs extends Record<string, { type: any }>
->(name: string, def: { inputs: Inputs, outputs: Outputs, build: ... }): CompositeHandle
+const direction = f.callComposite(GetDirection, { x, y }).value
+// outputs.value: { type: 'vec3' } → direction: vec3
+
+const parts = f.split3dVector(direction)
 ```
 
-但当前 `Inputs` 和 `Outputs` 中 `{ type: any }` 的 `type` 字段是 `string` 类型而非精确字符串字面量，因此类型安全主要在运行时保证——参数类型不匹配会在阶段二执行时报错。
+这项类型保真同时有两个层面：
+
+- TypeScript/Stage 1：timer callback 中保存复合输出时，编译器可从 handle 的 `__outputs` 读取 `float` / `vec3` 等声明，生成正确的局部变量类型；
+- Stage 2/3：输出代理仍携带 `markPin` metadata，生成 OutParam 数据连接；复合输出连接到普通节点时由 Stage 3 的专用 overlay 路径处理。
+
+输入参数和运行时节点连接仍会在 Stage 2 进行实际类型校验，不能用 TypeScript 类型断言替代运行时验证。
 
 运行时类型映射通过 `composite_registry.ts` 中的 `RUNTIME_TO_GIA_TYPE` 完成：
 

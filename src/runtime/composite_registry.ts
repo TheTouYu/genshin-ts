@@ -3,6 +3,7 @@
 import type { CompositeDefIR, CompositePinEntry, NextConnection, ParamFlowDef } from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
 import { list, type value } from './value.js'
+import type { LiteralValueType } from './IR.js'
 import { parseVariableDefinitions } from './variables.js'
 
 // ============== Constants ==============
@@ -82,11 +83,17 @@ export type CompositeDefinition = {
 /**
  * 复合节点句柄
  */
-export type CompositeHandle = {
+export type CompositeHandle<
+  Outputs extends Record<string, { type: LiteralValueType }> = Record<
+    string,
+    { type: LiteralValueType }
+  >
+> = {
   readonly __composite: true
   readonly name: string
   readonly id: number
-  readonly definition: CompositeDefinition
+  readonly definition: CompositeDefinition & { readonly outputs: Outputs }
+  readonly __outputs: Outputs
 }
 
 // ============== CompositeRegistry ==============

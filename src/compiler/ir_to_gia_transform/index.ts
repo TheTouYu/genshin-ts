@@ -600,7 +600,9 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   materializeOrdinaryGraphEdges({
     graph,
     nodesById,
-    dataEdges: graphInfo.dataConnections,
+    dataEdges: graphInfo.dataConnections.filter(
+      ({ fromId }) => irNodeTypeById.get(fromId) !== '__composite_call__'
+    ),
     mapOutputIndex: (nodeId, pinIndex) =>
       remapOutputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex),
     mapInputIndex: (nodeId, pinIndex) =>
@@ -611,6 +613,23 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       )
     }
   })
+
+  // 复合调用输出是 OutParam overlay pin，不属于普通 Graph pin。
+  // 普通 materializer 必须跳过这些边，否则会按普通节点 pin 校验并报 pin missing。
+  for (const edge of graphInfo.dataConnections) {
+    if (irNodeTypeById.get(edge.fromId) !== '__composite_call__') continue
+    const from = nodesById.get(edge.fromId)
+    const to = nodesById.get(edge.toId)
+    if (!from || !to) {
+      throw new Error(`[error] bad composite output connection ${edge.fromId}->${edge.toId}`)
+    }
+    graph.connect(
+      from,
+      to,
+      edge.fromIndex,
+      remapInputIndexForHiddenPin(irNodeTypeById.get(edge.toId) ?? '', edge.toIndex)
+    )
+  }
 
   // 应用复合节点之间的数据连线
   const compositeDataEdges = (ir as any).compositeDataEdges as

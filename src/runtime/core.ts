@@ -1823,7 +1823,7 @@ export const g = {
  */
 export function defineComposite<
   Inputs extends Record<string, { type: any; pinIndex?: number }> = {},
-  Outputs extends Record<string, { type: any; pinIndex?: number }> = {}
+  Outputs extends Record<string, { type: LiteralValueType; pinIndex?: number }> = {}
 >(
   name: string,
   def: {
@@ -1836,8 +1836,8 @@ export function defineComposite<
       f: ServerExecutionFlowFunctions
     ) => { [K in keyof Outputs]: any }
   }
-): CompositeHandle {
-  return compositeRegistry.define(name, def)
+): CompositeHandle<Outputs> {
+  return compositeRegistry.define(name, def) as CompositeHandle<Outputs>
 }
 
 export function printServerGraphRegistries() {
