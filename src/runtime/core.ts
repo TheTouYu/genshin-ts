@@ -1537,9 +1537,20 @@ function createClientGraphApi<T extends ClientGraphSubType>(
   return api as unknown as ClientGraphApiForSubType<T, ClientLang, ClientGraphMode>
 }
 
+/** Register a character-skill client graph with the default options. / 使用默认配置注册角色技能客户端节点图。 */
 function characterSkill(): ClientStartApi<'character_skill', 'en', 'beyond'>
+/**
+ * Register a character-skill client graph. / 注册角色技能客户端节点图。
+ *
+ * @param options Client graph options. / 客户端节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode; character skills currently support only `'beyond'`. / 节点图模式；角色技能目前仅支持 `'beyond'`。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ */
 function characterSkill<Options extends ClientGraphOptionsForSubType<'character_skill'>>(
-  options: Options
+  options: Options & ClientGraphOptionsForSubType<'character_skill'>
 ): ClientGraphApiForOptions<'character_skill', Options>
 function characterSkill(
   options?: ClientGraphOptionsInput
@@ -1549,10 +1560,23 @@ function characterSkill(
     : createClientGraphApi('character_skill', options)
 }
 
+/** Register a character-control-skill client graph with the default options. / 使用默认配置注册角色控制技能客户端节点图。 */
 function characterControlSkill(): ClientStartApi<'character_control_skill', 'en', 'beyond'>
+/**
+ * Register a character-control-skill client graph. / 注册角色控制技能客户端节点图。
+ *
+ * @param options Client graph options. / 客户端节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode; character control skills currently support only `'beyond'`. / 节点图模式；角色控制技能目前仅支持 `'beyond'`。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ */
 function characterControlSkill<
   Options extends ClientGraphOptionsForSubType<'character_control_skill'>
->(options: Options): ClientGraphApiForOptions<'character_control_skill', Options>
+>(
+  options: Options & ClientGraphOptionsForSubType<'character_control_skill'>
+): ClientGraphApiForOptions<'character_control_skill', Options>
 function characterControlSkill(
   options?: ClientGraphOptionsInput
 ): ClientStartApi<'character_control_skill', ClientLang, ClientGraphMode> {
@@ -1561,9 +1585,20 @@ function characterControlSkill(
     : createClientGraphApi('character_control_skill', options)
 }
 
+/** Register a creation-skill client graph with the default options. / 使用默认配置注册造物技能客户端节点图。 */
 function creationSkill(): ClientStartApi<'creation_skill', 'en', 'beyond'>
+/**
+ * Register a creation-skill client graph. / 注册造物技能客户端节点图。
+ *
+ * @param options Client graph options. / 客户端节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode (`'beyond'` by default, or `'classic'`). / 节点图模式（默认 `'beyond'`，也可使用 `'classic'`）。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ */
 function creationSkill<Options extends ClientGraphOptionsForSubType<'creation_skill'>>(
-  options: Options
+  options: Options & ClientGraphOptionsForSubType<'creation_skill'>
 ): ClientGraphApiForOptions<'creation_skill', Options>
 function creationSkill(
   options?: ClientGraphOptionsInput
@@ -1573,9 +1608,20 @@ function creationSkill(
     : createClientGraphApi('creation_skill', options)
 }
 
+/** Register a creation-status client graph with the default options. / 使用默认配置注册造物状态客户端节点图。 */
 function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
+/**
+ * Register a creation-status client graph. / 注册造物状态客户端节点图。
+ *
+ * @param options Client graph options. / 客户端节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode (`'beyond'` by default, or `'classic'`). / 节点图模式（默认 `'beyond'`，也可使用 `'classic'`）。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ */
 function creationStatus<Options extends ClientGraphOptionsForSubType<'creation_status'>>(
-  options: Options
+  options: Options & ClientGraphOptionsForSubType<'creation_status'>
 ): ClientGraphApiForOptions<'creation_status', Options>
 function creationStatus(
   options?: ClientGraphOptionsInput
@@ -1585,10 +1631,23 @@ function creationStatus(
     : createClientGraphApi('creation_status', options)
 }
 
+/** Register a creation-status-decision client graph with the default options. / 使用默认配置注册造物状态决策客户端节点图。 */
 function creationStatusDecision(): ClientStartApi<'creation_status_decision', 'en', 'beyond'>
+/**
+ * Register a creation-status-decision client graph. / 注册造物状态决策客户端节点图。
+ *
+ * @param options Client graph options. / 客户端节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode (`'beyond'` by default, or `'classic'`). / 节点图模式（默认 `'beyond'`，也可使用 `'classic'`）。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ */
 function creationStatusDecision<
   Options extends ClientGraphOptionsForSubType<'creation_status_decision'>
->(options: Options): ClientGraphApiForOptions<'creation_status_decision', Options>
+>(
+  options: Options & ClientGraphOptionsForSubType<'creation_status_decision'>
+): ClientGraphApiForOptions<'creation_status_decision', Options>
 function creationStatusDecision(
   options?: ClientGraphOptionsInput
 ): ClientStartApi<'creation_status_decision', ClientLang, ClientGraphMode> {
@@ -1597,9 +1656,21 @@ function creationStatusDecision(
     : createClientGraphApi('creation_status_decision', options)
 }
 
+/** Register a bool-filter client graph with the default options. / 使用默认配置注册布尔过滤器客户端节点图。 */
 function boolFilter(): ClientBoolFilterApi<'en', 'beyond'>
+/**
+ * Register a bool-filter client graph. / 注册布尔过滤器客户端节点图。
+ *
+ * @param options Client filter graph options. / 客户端过滤器节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode (`'beyond'` by default, or `'classic'`). / 节点图模式（默认 `'beyond'`，也可使用 `'classic'`）。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ * @param options.evaluationInterval Evaluation interval in seconds; defaults to `0.3`. / 执行时间间隔（秒）；默认 `0.3`。
+ */
 function boolFilter<Options extends ClientFilterGraphOptionsForSubType<'bool_filter'>>(
-  options: Options
+  options: Options & ClientFilterGraphOptionsForSubType<'bool_filter'>
 ): ClientGraphApiForOptions<'bool_filter', Options>
 function boolFilter(
   options?: ClientFilterGraphOptionsInput
@@ -1609,9 +1680,21 @@ function boolFilter(
     : createClientGraphApi('bool_filter', options)
 }
 
+/** Register an int-filter client graph with the default options. / 使用默认配置注册整数过滤器客户端节点图。 */
 function intFilter(): ClientIntFilterApi<'en', 'beyond'>
+/**
+ * Register an int-filter client graph. / 注册整数过滤器客户端节点图。
+ *
+ * @param options Client filter graph options. / 客户端过滤器节点图配置。
+ * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
+ * @param options.name Editor display name; defaults to the entry filename. / 编辑器显示名称；默认使用入口文件名。
+ * @param options.prefix Whether to add the `_GSTS_` prefix; defaults to `true`. / 是否添加 `_GSTS_` 前缀；默认 `true`。
+ * @param options.mode Graph mode (`'beyond'` by default, or `'classic'`). / 节点图模式（默认 `'beyond'`，也可使用 `'classic'`）。
+ * @param options.lang API language; `'zh'` enables Chinese f-function aliases, defaults to `'en'`. / API 语言；`'zh'` 启用中文 f 函数别名，默认 `'en'`。
+ * @param options.evaluationInterval Evaluation interval in seconds; defaults to `0.3`. / 执行时间间隔（秒）；默认 `0.3`。
+ */
 function intFilter<Options extends ClientFilterGraphOptionsForSubType<'int_filter'>>(
-  options: Options
+  options: Options & ClientFilterGraphOptionsForSubType<'int_filter'>
 ): ClientGraphApiForOptions<'int_filter', Options>
 function intFilter(
   options?: ClientFilterGraphOptionsInput
