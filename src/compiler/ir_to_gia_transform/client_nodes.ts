@@ -1,9 +1,12 @@
-import varSpec from '../../../resources/client_variable_specialization_seed.json' with { type: 'json' }
 import { isClientNodeTypeAvailable } from '../../definitions/client_method_modes.js'
 import type { ClientGraphMode, ClientGraphSubType } from '../../runtime/IR.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import { requireClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
 import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+import {
+  CLIENT_CUSTOM_VARIABLE_FAMILY_BY_SUB_TYPE,
+  CLIENT_CUSTOM_VARIABLE_TYPE_OFFSET_BY_IR_TYPE
+} from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_variable_specialization.js'
 import type { IRNode } from './types.js'
 
 const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
@@ -60,31 +63,9 @@ export const CLIENT_VAR_TYPE_BY_IR_TYPE: Record<string, number> = {
   faction_list: 25
 }
 
-/** seed uses camelCase configId/prefabId; IR uses snake_case */
-const SEED_TYPE_TO_IR: Record<string, string> = {
-  configId: 'config_id',
-  prefabId: 'prefab_id',
-  configId_list: 'config_id_list',
-  prefabId_list: 'prefab_id_list'
-}
-
-const TYPE_OFFSET_BY_IR = new Map(
-  (varSpec.typeOffsets as Array<{ type: string; clientVarType: number; offset: number }>).map(
-    (e) => [SEED_TYPE_TO_IR[e.type] ?? e.type, e]
-  )
-)
-
-/** cid/ioc offset of a get_custom_variable output type (seed typeOffsets order) */
+/** cid/ioc offset of a get_custom_variable output type */
 export function customVariableTypeOffset(irType: string): number | undefined {
-  return TYPE_OFFSET_BY_IR.get(irType)?.offset
-}
-
-function getCustomVariableFamily(subType: ClientGraphSubType) {
-  const cs = varSpec.getCustomVariable.characterSkillFamilies
-  if ((cs.appliesTo as string[]).includes(subType)) return cs
-  const st = varSpec.getCustomVariable.creationStatusFamilies
-  if ((st.appliesTo as string[]).includes(subType)) return st
-  return undefined
+  return CLIENT_CUSTOM_VARIABLE_TYPE_OFFSET_BY_IR_TYPE[irType]
 }
 
 function assemblyListVariantKey(elementClientVarType: number): string {
@@ -123,7 +104,7 @@ function getCustomVariableConcreteId(
       `${metadata.subType}.get_custom_variable cannot infer output type from connections`
     )
   }
-  const family = getCustomVariableFamily(metadata.subType)
+  const family = CLIENT_CUSTOM_VARIABLE_FAMILY_BY_SUB_TYPE[metadata.subType]
   if (!family) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
@@ -133,14 +114,14 @@ function getCustomVariableConcreteId(
   if (outputIrType === 'dict') {
     return family.dictCid
   }
-  const entry = TYPE_OFFSET_BY_IR.get(outputIrType)
-  if (!entry) {
+  const offset = customVariableTypeOffset(outputIrType)
+  if (offset === undefined) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
       `${metadata.subType}.get_custom_variable unknown output type "${outputIrType}"`
     )
   }
-  return family.cidBase + entry.offset
+  return family.cidBase + offset
 }
 
 export function resolveClientNodeMetadata(

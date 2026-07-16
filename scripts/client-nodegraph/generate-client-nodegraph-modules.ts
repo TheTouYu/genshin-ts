@@ -22,6 +22,24 @@ type ClientGraphSubType =
 
 type ClientGraphMode = 'beyond' | 'classic'
 
+type ClientCustomVariableFamilySeed = {
+  appliesTo: ClientGraphSubType[]
+  cidBase: number
+  dictCid: number
+}
+
+type ClientVariableSpecializationSeed = {
+  typeOffsets: Array<{
+    offset: number
+    type: string
+    clientVarType: number
+  }>
+  getCustomVariable: {
+    characterSkillFamilies: ClientCustomVariableFamilySeed
+    creationStatusFamilies: ClientCustomVariableFamilySeed
+  }
+}
+
 type ClientGraphCapability = Record<
   ClientGraphSubType,
   {
@@ -167,6 +185,59 @@ export const CLIENT_GRAPH_ENCODING_BY_SUB_TYPE: Record<
 export function getClientGraphEncoding(subType: ClientGraphSubType): ClientGraphEncoding {
   return CLIENT_GRAPH_ENCODING_BY_SUB_TYPE[subType]
 }
+`
+  )
+}
+
+function emitClientVariableSpecialization(seed: ClientVariableSpecializationSeed) {
+  const seedTypeToIr: Record<string, string> = {
+    configId: 'config_id',
+    prefabId: 'prefab_id',
+    configId_list: 'config_id_list',
+    prefabId_list: 'prefab_id_list'
+  }
+  const typeOffsetByIrType: Record<string, number> = {}
+  for (const entry of seed.typeOffsets) {
+    const irType = seedTypeToIr[entry.type] ?? entry.type
+    if (Object.hasOwn(typeOffsetByIrType, irType)) {
+      throw new Error(`duplicate client custom-variable type offset: ${irType}`)
+    }
+    typeOffsetByIrType[irType] = entry.offset
+  }
+
+  const familyBySubType: Partial<Record<ClientGraphSubType, { cidBase: number; dictCid: number }>> =
+    {}
+  const families = [
+    seed.getCustomVariable.characterSkillFamilies,
+    seed.getCustomVariable.creationStatusFamilies
+  ]
+  for (const family of families) {
+    for (const subType of family.appliesTo) {
+      if (!SUB_TYPES.includes(subType)) {
+        throw new Error(`unknown client custom-variable graph sub type: ${subType}`)
+      }
+      if (familyBySubType[subType]) {
+        throw new Error(`duplicate client custom-variable family: ${subType}`)
+      }
+      familyBySubType[subType] = { cidBase: family.cidBase, dictCid: family.dictCid }
+    }
+  }
+
+  write(
+    'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_variable_specialization.ts',
+    `${generatedHeader()}// Runtime-only subset derived from resources/client_variable_specialization_seed.json.
+import type { ClientGraphSubType } from './client_node_metadata.js'
+
+export type ClientCustomVariableFamily = Readonly<{
+  cidBase: number
+  dictCid: number
+}>
+
+export const CLIENT_CUSTOM_VARIABLE_TYPE_OFFSET_BY_IR_TYPE: Readonly<Record<string, number>> = ${jsonConst(typeOffsetByIrType)}
+
+export const CLIENT_CUSTOM_VARIABLE_FAMILY_BY_SUB_TYPE: Readonly<
+  Partial<Record<ClientGraphSubType, ClientCustomVariableFamily>>
+> = ${jsonConst(familyBySubType)}
 `
   )
 }
@@ -1466,9 +1537,13 @@ function main() {
   )
   const metadata = readJson<readonly unknown[]>('resources/client_node_metadata.json')
   const modeData = readJson<ClientNodeModeData>('resources/client_node_modes.json')
+  const variableSpecialization = readJson<ClientVariableSpecializationSeed>(
+    'resources/client_variable_specialization_seed.json'
+  )
 
   assertCompleteCapability(capability)
   emitClientGraphEncoding()
+  emitClientVariableSpecialization(variableSpecialization)
   emitClientGraphModes(capability as ClientGraphCapability, modeData)
   emitClientScopedGlobals(deriveScopedGlobalsCapability(metadata as MetadataRecord[], modeData))
 
