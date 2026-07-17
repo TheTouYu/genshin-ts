@@ -24,7 +24,13 @@ Before editing any documentation:
 2. Read `docs/documentation-map.md`.
 3. Read the shared map:
    `.agents/skills/composite-docs-navigator/references/knowledge-domain-map.md`.
-4. Read the relevant maintenance reference under this skill’s `references/`.
+4. Read the relevant maintenance reference under this skill’s `references/`:
+   - implementation or domain routing: `references/domain-maintenance.md`;
+   - real GIA, protobuf/wire, game evidence, or status labels:
+     `references/evidence-and-status.md`;
+   - history/handover: `references/historical-docs.md`;
+   - coverage/index audit: `references/coverage-audit.md`.
+   Do not infer a reference filename that is not listed here.
 5. Read the target document and current source/test evidence.
 6. Read the nearest `AGENTS.md` for any source or documentation directory involved.
 

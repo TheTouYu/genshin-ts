@@ -1,8 +1,8 @@
 # GIA 编码：复合节点的二进制/JSON 结构
 
-> 状态：当前实现
-> 来源：当前代码实现
-> 最近校验：2026-07-16
+> 状态：已验证
+> 来源：当前代码实现 + 自动回归 + 真实 GIA 验证 + 用户游戏内验证
+> 最近校验：2026-07-17
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
@@ -214,11 +214,26 @@ compositePins: [{
   //   connect2: { kind: OutParam, index: <upstreamPinIndex> } }]
   ```
 
-capture 输入虽然不生成物理 InParam pin，但仍占用原始参数序号。Stage 3 跳过 capture 参数时必须保留 pin index 空洞；例如 `get_custom_variable(capturedEntity, name)` 的实体参数占 `InParam[0]`，变量名应编码到 `InParam[1]`，不能压缩到 index 0。
+大多数 capture 输入不生成物理 InParam pin，但仍占用原始参数序号。Stage 3 跳过 capture 参数时必须保留 pin index 空洞；例如 `get_custom_variable(capturedEntity, name)` 的实体参数占 `InParam[0]`，变量名应编码到 `InParam[1]`，不能压缩到 index 0。
+
+有一个重要例外：当 `data_type_conversion_*` 的 capture 输入被当前复合的 `compositePins` 直接指向时，真实编辑器 GIA 会保留类型化的物理 InParam，并同时生成该转换节点的 OutParam。这个 pin 不是由 `compositePins` 凭空创建的；缺失时，外部参数路由和下游数据边都会指向不存在的物理 pin，游戏运行可能失败。当前 Stage 3 会为这种边界 DTC 保留物理 pin，并对其执行物理 pin 完整性检查。回归见 `tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`。
 
 同一规则适用于 impl 中的嵌套 `__composite_call__`：`args[0]` 仍是子复合 ID，`args[1..]` 中只有非 capture 输入生成物理 InParam；`capture: true` 输入保留逻辑 input index，并仅通过 impl Graph 的 `compositePins` 路由。针对性回归见 `tests/composite/test-nested-composite-capture-pins.ts`。
 
-### 4.2 VarBase 值字段命名规则
+### 4.2 边界物理 pin 完整性
+
+`compositePins` 记录的是外部 pin 到内部节点 pin 的映射，不会替内部节点创建 `NodePin`。因此对必须有物理 pin 的边界路由，编码器需要同时检查：
+
+```text
+outer InParam → impl node InParam
+impl node OutParam → downstream data edge
+```
+
+当前生产编码对 `data_type_conversion_*` 的复合边界输入启用这项检查；其他 capture、稀疏输入和终端节点仍保留各自的物理 pin 空洞兼容规则。`build_composite_pins.ts` 的通用检查器仍可通过 `requirePhysicalPins` 为完整 pin 集合的专项回归启用。
+
+证据分层：真实 `bool参数-导出版本.gia` 与最初编辑器参考都包含 bool→int 转换节点的 bool InParam 和 int OutParam；坏的 gsts 候选该节点 pins 为空。`tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts` 从 `irToGia()` 公共入口同时检查 decoded 结构与 raw protobuf oneof presence；`gsts.composite-bool-boundary-dtc.config.ts` 可独立生成 `tests/composite_bool_parameter_reference_repro.ts` 的候选 GIA。2026-07-17，用户导入 `bool参数-gsts修复版.gia` 后确认游戏测试通过；该游戏证据覆盖本例 bool→int→float→string 复合参数链，不自动推广到所有 capture 节点族。
+
+### 4.3 VarBase 值字段命名规则
 
 构建 VarBase 值时，protobuf 字段名由 `varClass` 决定（对应 `gia.proto` 中 `oneof value` 的字段名）：
 

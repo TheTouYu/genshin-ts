@@ -48,7 +48,10 @@ import {
   resolveCompositeCallIdentity
 } from './lower_composite_call.js'
 import { buildCompositeDefinitionInterface } from './build_composite_definition.js'
-import { buildCompositePinsOverlay } from './build_composite_pins.js'
+import {
+  assertCompositePinsIntegrity,
+  buildCompositePinsOverlay
+} from './build_composite_pins.js'
 import { computeCompositeImplLayout } from './build_composite_layout.js'
 import {
   resolveNodeIdentity,
@@ -69,7 +72,8 @@ import {
  * `composite.ts` wires boundary modules and the ordinary impl backend. It must not
  * re-implement capture/call/definition/compositePins/layout builders. Ordinary pin
  * builders remain free of `__composite_call__` / `__composite_capture__` branches;
- * arg-level `capture: true` only skips physical InParam materialization.
+ * arg-level `capture: true` normally skips physical InParam materialization. A reflective
+ * DTC targeted by compositePins keeps the physical pin required by real editor GIA.
  *
  * Phase 5 inventory of remaining ordinary handwritten surfaces lives in
  * `legacy_ordinary_inventory.ts` and is referenced here without deleting helpers.
@@ -95,10 +99,11 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
     COMPOSITE_CALL_NODE_TYPE
   ] as const,
   /**
-   * Arg-level capture markers on ordinary nodes still skip physical InParam pins.
-   * That is not a second capture-node lowerer; capture nodes are removed earlier.
+   * Arg-level capture markers normally skip physical InParam pins. Boundary DTC pins are
+   * the real-GIA exception; this is not a second capture-node lowerer.
    */
   ordinaryArgCaptureSkip: true,
+  boundaryDtcPhysicalPin: true,
   /** Default production backend remains handwritten until Phase 5. */
   defaultVendorImplGraphGate: false,
   legacyOrdinaryBackendPresent: true,
@@ -302,16 +307,27 @@ export function buildCompositeAccessories(
   // 2. impl NodeGraph（实现图）
   // compositePins overlay is applied after ordinary/call materialization and nodeIndex remap.
   // See build_composite_pins.ts for encode + outer/inner integrity ownership.
+  const definition = {
+    inflows: def.inflows,
+    outflows: def.outflows,
+    inputs: def.inputs,
+    outputs: def.outputs
+  }
   const pinsOverlay = buildCompositePinsOverlay({
     boundaryPins,
     nodeIndexMap,
-    definition: {
-      inflows: def.inflows,
-      outflows: def.outflows,
-      inputs: def.inputs,
-      outputs: def.outputs
-    },
+    definition,
     encodedNodes: implNodes
+  })
+  const dtcBoundaryInputs = pinsOverlay.encodedBoundaryPins.filter(
+    (pin) =>
+      pin.innerPinKind === NodePin_Index_Kind.InParam &&
+      nodeTypeById.get(pin.innerNodeId)?.startsWith('data_type_conversion_')
+  )
+  assertCompositePinsIntegrity(dtcBoundaryInputs, {
+    definition,
+    encodedNodes: implNodes,
+    requirePhysicalPins: true
   })
   const implGraphUnit: GraphUnit = {
     id: {
@@ -397,6 +413,13 @@ function buildImplGraphNodes(
     requiredCompositeCallOutflows.set(pin.innerNodeId, indexes)
   }
   const implConnTypeIndex = buildImplConnTypeIndex(implNodes)
+  const boundaryInputIndexesByNode = new Map<number, Set<number>>()
+  for (const pin of boundaryPins) {
+    if (pin.innerPinKind !== NodePin_Index_Kind.InParam) continue
+    const indexes = boundaryInputIndexesByNode.get(pin.innerNodeId) ?? new Set<number>()
+    indexes.add(pin.innerPinIndex)
+    boundaryInputIndexesByNode.set(pin.innerNodeId, indexes)
+  }
   const nodeResults = implNodes.map((node) => {
     let nodeId = resolveImplNodeId(node.type, node.args as any)
     let sharedConcreteNid: number | undefined
@@ -486,7 +509,8 @@ function buildImplGraphNodes(
           implVariables,
           gvConcreteNid,
           customVariableConcreteNid,
-          localVariableConcreteNid
+          localVariableConcreteNid,
+          boundaryInputIndexesByNode.get(node.id)
         )
     allDataConns.push(...dataConns)
     return {
@@ -974,7 +998,8 @@ function buildImplNodePins(
   implVariables: CompositeDefIR['implVariables'],
   gvConcreteNid?: number,
   customVariableConcreteNid?: number,
-  localVariableConcreteNid?: number
+  localVariableConcreteNid?: number,
+  boundaryInputIndexes: ReadonlySet<number> = new Set<number>()
 ): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
   const pins: NodePin[] = []
   const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
@@ -1313,8 +1338,29 @@ function buildImplNodePins(
       : usesSpecialArgRemap
         ? remapSpecialArgInputIndex(node.type, argIndex)
         : sequentialPinIndex
-    // Capture-input args are routed via compositePins, not physical InParam pins.
+    // Most capture inputs are sparse boundary routes without physical pins. Reflective DTC
+    // nodes are different: real editor GIA keeps the typed InParam targeted by compositePins.
     if (arg && (arg as any).capture === true) {
+      const materializeBoundaryDtcPin =
+        node.type.startsWith('data_type_conversion_') && boundaryInputIndexes.has(pinIndex)
+      if (materializeBoundaryDtcPin) {
+        const dtcInfo = getDtcInParamInfo(arg.type)
+        if (dtcInfo) {
+          pins.push({
+            i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+            i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+            value: {
+              class: 10000,
+              alreadySetVal: true,
+              bConcreteValue: {
+                indexOfConcrete: dtcInfo.indexOfConcrete,
+                value: makeVarBaseValue(dtcInfo.varClass, dtcInfo.varType, false)
+              }
+            } as any,
+            type: dtcInfo.varType
+          })
+        }
+      }
       if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
       continue
     }
@@ -1405,9 +1451,10 @@ function buildImplNodePins(
   }
 
   const hasExplicitOutParam = outParams && outParams.length > 0
-  if (!hasExplicitOutParam && pins.length > 0 && isDataProducerNode(node.type)) {
-    let outType = pins[0].type
-    let outClass = pins[0].value?.bConcreteValue?.value?.class ?? pins[0].value?.class ?? 0
+  const requiresDtcOutput = node.type.startsWith('data_type_conversion_')
+  if (!hasExplicitOutParam && (pins.length > 0 || requiresDtcOutput) && isDataProducerNode(node.type)) {
+    let outType = pins[0]?.type ?? 0
+    let outClass = pins[0]?.value?.bConcreteValue?.value?.class ?? pins[0]?.value?.class ?? 0
     // data_type_conversion 节点：InParam 用了正确类型，但 OutParam 需要独立设置
     // OutParam 类型 = 目标类型（str=6），indexOfConcrete 固定为 2（M17[2]=6=String）
     if (node.type.startsWith('data_type_conversion_')) {
