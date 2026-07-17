@@ -84,8 +84,21 @@ const SCALAR_CLASS_BY_CLIENT_TYPE: Record<number, number> = {
  */
 const LITERAL_PROVEN_CLIENT_TYPES = new Set([3, 5, 7, 9, 11, 13, 14, 16, 18, 19])
 
-/** list client types with observed ArrayBase literal shapes (empty or bArray.entries) */
-const LIST_CLIENT_TYPES = new Set([2, 4, 6, 8, 10, 12, 15, 17, 20, 25])
+/** list client type -> element client type, all observed as ArrayBase */
+const LIST_ELEMENT_CLIENT_TYPE: Record<number, number> = {
+  2: 1,
+  4: 3,
+  6: 5,
+  8: 7,
+  10: 9,
+  12: 11,
+  15: 14,
+  17: 13,
+  20: 18,
+  21: 19,
+  25: 16
+}
+const LIST_CLIENT_TYPES = new Set(Object.keys(LIST_ELEMENT_CLIENT_TYPE).map(Number))
 
 /** reflective indexOfConcrete for data_type_conversion pins (round-2 evidence) */
 export const CLIENT_REFLECT_IOC_BY_TYPE: Record<number, number> = {
@@ -158,19 +171,7 @@ function write_scalar_payload(value: VarBase, scalarClass: number, literal: unkn
 }
 
 function list_elem_client_type(listClientType: number): number {
-  const map: Record<number, number> = {
-    2: 1,
-    4: 3,
-    6: 5,
-    8: 7,
-    10: 9,
-    12: 11,
-    15: 14,
-    17: 13,
-    20: 18,
-    25: 16
-  }
-  return map[listClientType] ?? listClientType
+  return LIST_ELEMENT_CLIENT_TYPE[listClientType] ?? listClientType
 }
 
 /** non-empty list literal: ArrayBase with bArray.entries (round-2 evidence) */
@@ -246,6 +247,59 @@ export function client_wrapped_value(indexOfConcrete: number, inner: VarBase): V
     bConcreteValue: {
       indexOfConcrete: indexOfConcrete === 0 ? undefined : indexOfConcrete,
       value: inner
+    }
+  }
+}
+
+/**
+ * Client dictionary pins carry their key/value types in three places:
+ * ClientContainerBinding, the MapBase item type, and ConcreteBase.structs.
+ * Local/custom variable containers use a different valueClientType marker
+ * from ordinary dictionary node pins.
+ */
+export function client_dictionary_wrapped_value(
+  indexOfConcrete: number,
+  keyClientVarType: number,
+  valueClientVarType: number,
+  variableContainer = false
+): VarBase {
+  return {
+    class: VarBase_Class.ConcreteBase,
+    alreadySetVal: true,
+    bConcreteValue: {
+      indexOfConcrete: indexOfConcrete === 0 ? undefined : indexOfConcrete,
+      value: {
+        class: VarBase_Class.MapBase,
+        alreadySetVal: false,
+        itemType: {
+          classBase: VarBase_ItemType_ClassBase.Client,
+          type_client: {
+            type: 24,
+            implKind: 2,
+            containerBinding: {
+              mode: keyClientVarType,
+              kind: valueClientVarType,
+              keyType: 1,
+              valueType: 2
+            }
+          }
+        },
+        bMap: { mapPairs: [] }
+      },
+      structs: {
+        class: 1,
+        inner: {
+          wrapper: {
+            class: VarBase_Class.MapBase,
+            mapPair: {
+              key: keyClientVarType,
+              value: valueClientVarType,
+              keyClientType: 1,
+              valueClientType: variableContainer ? 1 : 2
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ const UNSUPPORTED_SPECIAL_KINDS = new Set(['structure_list_unknown_binding'])
 export const DICT_REFLECT_NODE_TYPES = new Set([
   'get_list_of_values_from_dictionary',
   'get_list_of_keys_from_dictionary',
+  'query_dictionary_s_length',
   'query_dictionary_value_by_key',
   'query_if_dictionary_contains_specific_key',
   'query_if_dictionary_contains_specific_value'

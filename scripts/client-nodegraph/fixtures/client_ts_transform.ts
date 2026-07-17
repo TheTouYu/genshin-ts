@@ -1,5 +1,5 @@
-import { g } from 'genshin-ts/runtime/core'
 import { TargetType } from 'genshin-ts/definitions/enum'
+import { g } from 'genshin-ts/runtime/core'
 
 import { gstsClientCharacterSkillAdd } from './client_ts_transform_helpers.js'
 
@@ -66,12 +66,14 @@ g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on
     const ordinaryEqual = wiredInt === convertedInt
     const enumEqual = TargetType.None === TargetType.AlliedFaction
     const enumNotEqual = TargetType.None !== TargetType.AlliedFaction
+    const maximum = Math.max(1, 2)
     f.setAttackWeight(convertedFloat, convertedBool)
     f.sendSignalToServerNodeGraph(
       'client_transform_values',
       convertedString,
       str(firstIndexedValue),
       str(secondIndexedValue),
+      str(maximum),
       ordinaryEqual,
       enumEqual,
       enumNotEqual

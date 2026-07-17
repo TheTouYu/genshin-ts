@@ -5,6 +5,7 @@
  * 客户端信号_局部变量类型补充.gia 在 get 侧另证 config_id/prefab_id/entity_list）。
  * 覆盖字面量/连线/字典/列表值与出参定型，IR -> GIA -> decode 后逐引脚断言与语料一致。
  */
+
 import assert from 'node:assert'
 import fs from 'node:fs'
 
@@ -12,6 +13,11 @@ import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { buildClientGraphRegistriesIRDocuments, g } from '../../src/runtime/core.js'
 import { configId, guid, prefabId } from '../../src/runtime/value.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import {
+  assertClientArrayValue,
+  assertClientDictionaryValue,
+  type ClientDictionaryShape
+} from './assert-client-container-shapes.js'
 
 const PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
@@ -86,6 +92,8 @@ type PinExpect = {
   ioc?: number
   innerSet?: boolean
   wired?: boolean
+  arrayType?: number
+  dict?: ClientDictionaryShape
   /** 变量名引脚：普通 str 字面量（无 ioc 包裹） */
   plainStr?: string
 }
@@ -99,7 +107,11 @@ function checkNode(label: string, gid: number, cid: number, pins: PinExpect[], n
       (p: any) => Number(p.i1?.kind) === exp.kind && Number(p.i1?.index) === exp.index
     )
     assert.ok(pin, `${label}: pin k${exp.kind}#${exp.index} missing`)
-    assert.strictEqual(Number(pin.type ?? 0), exp.type, `${label}: pin k${exp.kind}#${exp.index} type`)
+    assert.strictEqual(
+      Number(pin.type ?? 0),
+      exp.type,
+      `${label}: pin k${exp.kind}#${exp.index} type`
+    )
     if (exp.plainStr !== undefined) {
       assert.strictEqual(
         String(pin.value?.bString?.val ?? ''),
@@ -134,6 +146,12 @@ function checkNode(label: string, gid: number, cid: number, pins: PinExpect[], n
         `${label}: pin k${exp.kind}#${exp.index} wired`
       )
     }
+    if (exp.arrayType !== undefined) {
+      assertClientArrayValue(pin.value, exp.arrayType, `${label}: pin k${exp.kind}#${exp.index}`)
+    }
+    if (exp.dict) {
+      assertClientDictionaryValue(pin.value, exp.dict, `${label}: pin k${exp.kind}#${exp.index}`)
+    }
   }
   console.log(`[ok] ${label}: cid=${cid}, ${pins.length} pins verified`)
 }
@@ -147,20 +165,124 @@ checkNode('set int literal', SET, 2000, [
   { kind: 3, index: 1, type: 3, ioc: 0, innerSet: true, wired: false },
   { kind: 5, index: 0, type: 3 }
 ])
-checkNode('set int wired', SET, 2000, [{ kind: 3, index: 1, type: 3, ioc: 0, innerSet: false, wired: true }], 1)
-checkNode('set str wired', SET, 2000, [{ kind: 3, index: 1, type: 9, ioc: 1, innerSet: false, wired: true }], 2)
-checkNode('set faction wired', SET, 2000, [{ kind: 3, index: 1, type: 16, ioc: 18, innerSet: false, wired: true }], 3)
-checkNode('set int_list wired', SET, 2000, [{ kind: 3, index: 1, type: 4, ioc: 7, innerSet: false, wired: true }], 4)
-checkNode('set entity_list wired', SET, 2000, [{ kind: 3, index: 1, type: 2, ioc: 9, innerSet: false, wired: true }], 5)
-checkNode('set prefab_id_list wired', SET, 2000, [{ kind: 3, index: 1, type: 21, ioc: 17, innerSet: false, wired: true }], 6)
-checkNode('set dict wired', SET, 2000, [{ kind: 3, index: 1, type: 24, ioc: 20, innerSet: false, wired: true }], 7)
-checkNode('set float literal', SET, 2000, [{ kind: 3, index: 1, type: 7, ioc: 4, innerSet: true, wired: false }], 8)
-checkNode('set guid literal', SET, 2000, [{ kind: 3, index: 1, type: 14, ioc: 3, innerSet: true, wired: false }], 9)
-checkNode('set bool literal', SET, 2000, [{ kind: 3, index: 1, type: 5, ioc: 6, innerSet: true, wired: false }], 10)
-checkNode('set config_id literal', SET, 2000, [{ kind: 3, index: 1, type: 18, ioc: 14, innerSet: true, wired: false }], 11)
-checkNode('set prefab_id literal', SET, 2000, [{ kind: 3, index: 1, type: 19, ioc: 15, innerSet: true, wired: false }], 12)
-checkNode('set str_list wired', SET, 2000, [{ kind: 3, index: 1, type: 10, ioc: 8, innerSet: false, wired: true }], 13)
-checkNode('set faction_list wired', SET, 2000, [{ kind: 3, index: 1, type: 25, ioc: 19, innerSet: false, wired: true }], 14)
+checkNode(
+  'set int wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 3, ioc: 0, innerSet: false, wired: true }],
+  1
+)
+checkNode(
+  'set str wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 9, ioc: 1, innerSet: false, wired: true }],
+  2
+)
+checkNode(
+  'set faction wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 16, ioc: 18, innerSet: false, wired: true }],
+  3
+)
+checkNode(
+  'set int_list wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 4, ioc: 7, innerSet: false, wired: true, arrayType: 4 }],
+  4
+)
+checkNode(
+  'set entity_list wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 2, ioc: 9, innerSet: false, wired: true, arrayType: 2 }],
+  5
+)
+checkNode(
+  'set prefab_id_list wired',
+  SET,
+  2000,
+  [
+    {
+      kind: 3,
+      index: 1,
+      type: 21,
+      ioc: 17,
+      innerSet: false,
+      wired: true,
+      arrayType: 21
+    }
+  ],
+  6
+)
+checkNode(
+  'set dict wired',
+  SET,
+  2000,
+  [
+    {
+      kind: 3,
+      index: 1,
+      type: 24,
+      ioc: 20,
+      innerSet: false,
+      wired: true,
+      dict: [14, 11, true]
+    }
+  ],
+  7
+)
+checkNode(
+  'set float literal',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 7, ioc: 4, innerSet: true, wired: false }],
+  8
+)
+checkNode(
+  'set guid literal',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 14, ioc: 3, innerSet: true, wired: false }],
+  9
+)
+checkNode(
+  'set bool literal',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 5, ioc: 6, innerSet: true, wired: false }],
+  10
+)
+checkNode(
+  'set config_id literal',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 18, ioc: 14, innerSet: true, wired: false }],
+  11
+)
+checkNode(
+  'set prefab_id literal',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 19, ioc: 15, innerSet: true, wired: false }],
+  12
+)
+checkNode(
+  'set str_list wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 10, ioc: 8, innerSet: false, wired: true, arrayType: 10 }],
+  13
+)
+checkNode(
+  'set faction_list wired',
+  SET,
+  2000,
+  [{ kind: 3, index: 1, type: 25, ioc: 19, innerSet: false, wired: true, arrayType: 25 }],
+  14
+)
 
 // 获取局部变量（按 IR 声明顺序：name/fac 先于 count/e/pos/d 注册）
 checkNode('get str out', GET, 1036, [
@@ -171,7 +293,38 @@ checkNode('get faction out', GET, 1036, [{ kind: 4, index: 0, type: 16, ioc: 18 
 checkNode('get int out', GET, 1036, [{ kind: 4, index: 0, type: 3, ioc: 0 }], 2)
 checkNode('get entity out', GET, 1036, [{ kind: 4, index: 0, type: 1, ioc: 2 }], 3)
 checkNode('get vec3 out', GET, 1036, [{ kind: 4, index: 0, type: 11, ioc: 5 }], 4)
-checkNode('get dict out (set 侧实证 ioc20，get 同表)', GET, 1036, [{ kind: 4, index: 0, type: 24, ioc: 20 }], 5)
+checkNode(
+  'get dict out',
+  GET,
+  1036,
+  [
+    {
+      kind: 4,
+      index: 0,
+      type: 24,
+      ioc: 20,
+      dict: [14, 11, true]
+    }
+  ],
+  5
+)
+
+// 第四个 get_custom_variable 是 guid -> vec3 字典，输出同样使用变量容器标记。
+checkNode(
+  'get custom variable dict out',
+  200016,
+  1056,
+  [
+    {
+      kind: 4,
+      index: 0,
+      type: 24,
+      ioc: 20,
+      dict: [14, 11, true]
+    }
+  ],
+  3
+)
 
 fs.rmSync(OUT_FILE, { force: true })
 console.log('[ok] local variable encoding verified (15 set + 6 get)')

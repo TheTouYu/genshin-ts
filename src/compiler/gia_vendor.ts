@@ -21,6 +21,7 @@ export type { Root } from '../thirdparty/Genshin-Impact-Miliastra-Wonderland-Cod
 
 export {
   CLIENT_REFLECT_IOC_BY_TYPE,
+  client_dictionary_wrapped_value,
   client_graph_body,
   client_inline_var_value,
   client_list_literal_value,

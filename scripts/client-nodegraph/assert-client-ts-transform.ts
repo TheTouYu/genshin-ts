@@ -141,8 +141,7 @@ try {
     'string switch must retain the string/string-list multipleBranches variant'
   )
   const characterSkillDocument = documents.find(
-    (document) =>
-      document.graph.type === 'client' && document.graph.sub_type === 'character_skill'
+    (document) => document.graph.type === 'client' && document.graph.sub_type === 'character_skill'
   )
   const characterSkillNodeTypes = characterSkillDocument?.nodes?.map((node) => node.type) ?? []
   assert.ok(
@@ -279,6 +278,22 @@ try {
       assert.ok(
         Math.abs((clientGraph.evaluationInterval ?? Number.NaN) - expectedInterval) < 1e-6,
         `${subTypes[index]}: unexpected GIA evaluationInterval ${String(clientGraph.evaluationInterval)}`
+      )
+    }
+    if (subTypes[index] === 'character_skill') {
+      const maxList = clientGraph.nodes?.find(
+        (node) =>
+          Number(node.genericId?.nodeId) === 200049 && Number(node.concreteId?.nodeId) === 1028
+      )
+      assert.ok(maxList, 'Math.max must emit a float assembly_list')
+      const countPin = maxList.pins?.find(
+        (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
+      )
+      assert.strictEqual(Number(countPin?.value?.bInt?.val), 2, 'Math.max list count')
+      assert.strictEqual(
+        Boolean(countPin?.value?.alreadySetVal),
+        true,
+        'Math.max non-default list count must be explicitly set'
       )
     }
   })

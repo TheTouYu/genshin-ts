@@ -8,6 +8,7 @@ import {
   resolveGraphIdForGraph
 } from '../../runtime/graph_defaults.js'
 import type { ClientIRDocument } from '../../runtime/IR.js'
+import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import {
   CLIENT_ENUM_VALUES,
@@ -22,6 +23,7 @@ import {
   VarBase_Class
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import {
+  client_dictionary_wrapped_value,
   client_graph_body,
   client_inline_var_value,
   client_list_literal_value,
@@ -66,6 +68,13 @@ type ResolvedClientPinMetadata = ClientPinMetadata & {
 }
 type IrArg = NonNullable<IRNode['args']>[number]
 type ValueArg = Exclude<IrArg, null | { type: 'conn' }>
+type ClientValueTypeInfo = {
+  type: string
+  dict?: {
+    k: DictKeyType
+    v: DictValueType
+  }
+}
 
 function isValueArg(arg: IrArg | null | undefined): arg is ValueArg {
   return arg != null && arg.type !== 'conn'
@@ -137,6 +146,14 @@ function irTypeOfArg(arg: IrArg | undefined): string | undefined {
   return arg.type === 'conn' ? arg.value.type : arg.type
 }
 
+function irTypeInfoOfArg(arg: IrArg | undefined): ClientValueTypeInfo | undefined {
+  const type = irTypeOfArg(arg)
+  if (!type) return undefined
+  if (type !== 'dict') return { type }
+  const dict = arg?.type === 'conn' ? arg.value.dict : arg?.type === 'dict' ? arg.dict : undefined
+  return dict ? { type, dict } : { type }
+}
+
 /** 输出类型由连线推断的反射节点（变量读取 + 字典取值/取键/取值列表） */
 const OUTPUT_INFERRED_NODE_TYPES = new Set([
   'get_custom_variable',
@@ -151,16 +168,16 @@ const OUTPUT_INFERRED_NODE_TYPES = new Set([
  * 关闭未使用节点优化时，编译器生成的局部变量 getter 可能没有消费者；此时
  * 使用同名 setter 的值类型作为可靠后备。
  */
-function inferredOutputIrType(
+function inferredOutputTypeInfo(
   irNode: IRNode,
   connIndex: ConnTypeIndex,
-  localVariableTypes: ReadonlyMap<string, string>
-): string | undefined {
+  localVariableTypes: ReadonlyMap<string, ClientValueTypeInfo>
+): ClientValueTypeInfo | undefined {
   if (!OUTPUT_INFERRED_NODE_TYPES.has(irNode.type)) return undefined
   const outputs = connIndex.get(irNode.id)
   if (outputs) {
     for (const info of outputs.values()) {
-      return info.type
+      return info.type === 'dict' ? { type: info.type, dict: info.dict } : { type: info.type }
     }
   }
   if (irNode.type === 'get_local_variable') {
@@ -172,19 +189,20 @@ function inferredOutputIrType(
   return undefined
 }
 
-function buildLocalVariableTypeIndex(nodes: readonly IRNode[]): Map<string, string> {
-  const types = new Map<string, string>()
+function buildLocalVariableTypeIndex(nodes: readonly IRNode[]): Map<string, ClientValueTypeInfo> {
+  const types = new Map<string, ClientValueTypeInfo>()
   for (const node of nodes) {
     if (node.type !== 'set_local_variable') continue
     const nameArg = node.args?.[0]
-    const valueType = irTypeOfArg(node.args?.[1])
+    const valueType = irTypeInfoOfArg(node.args?.[1])
     if (!isValueArg(nameArg) || nameArg.type !== 'str' || !valueType) continue
     const name = String(nameArg.value)
     const existing = types.get(name)
-    if (existing && existing !== valueType) {
+    if (existing && JSON.stringify(existing) !== JSON.stringify(valueType)) {
       throw clientNodegraphError(
         CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
-        `local variable "${name}" has conflicting setter types "${existing}" and "${valueType}"`
+        `local variable "${name}" has conflicting setter types ` +
+          `"${JSON.stringify(existing)}" and "${JSON.stringify(valueType)}"`
       )
     }
     types.set(name, valueType)
@@ -247,6 +265,14 @@ function applyResolvedReflectivePins(
   }
 }
 
+function setCountPin(node: ClientGiaNode, metadata: ClientNodeMetadata, count: number) {
+  const countPin = findInPin(node, 0)
+  if (!countPin) return
+  const defaultCount = Number(metadata.inputs.find((pin) => pin.index === 0)?.defaultValue ?? 0)
+  countPin.value =
+    count === defaultCount ? client_value_base(3, count) : client_literal_value(3, count)
+}
+
 function applyAssemblyList(
   node: ClientGiaNode,
   irNode: IRNode,
@@ -254,9 +280,7 @@ function applyAssemblyList(
   variant: ClientReflectVariant
 ) {
   const elements = irNode.args ?? []
-  const countPin = findInPin(node, 0)
-  // sample count pins keep alreadySetVal=false while carrying the payload
-  if (countPin) countPin.value = client_value_base(3, elements.length)
+  setCountPin(node, metadata, elements.length)
   elements.forEach((arg, idx) => {
     const pinIndex = idx + 1
     const variantPin = resolvedVariantPin(metadata, variant, 'input', pinIndex)
@@ -383,19 +407,51 @@ function applyDataTypeConversion(
   }
 }
 
+function requireClientDictionaryTypes(
+  typeInfo: ClientValueTypeInfo | undefined,
+  fail: (message: string) => Error
+) {
+  if (typeInfo?.type !== 'dict' || !typeInfo.dict) {
+    throw fail('cannot resolve dictionary key/value types')
+  }
+  const keyClientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[typeInfo.dict.k]
+  const valueClientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[typeInfo.dict.v]
+  if (keyClientVarType === undefined || valueClientVarType === undefined) {
+    throw fail(`unsupported dictionary type "${typeInfo.dict.k}" -> "${typeInfo.dict.v}"`)
+  }
+  return { keyClientVarType, valueClientVarType }
+}
+
 /**
  * get_custom_variable resolves its output pin from the wired output type (the
- * cid table already fixed the variant); corpus shows type + ConcreteBase(ioc =
- * type offset) with an unset inner value. Dict output has no sample evidence
- * and keeps the unresolved placeholder.
+ * cid table already fixed the variant). Dictionary outputs additionally carry
+ * the editor's MapBase key/value metadata.
  */
-function applyCustomVariableOutPin(node: ClientGiaNode, outIrType: string | undefined) {
-  if (!outIrType || outIrType === 'dict') return
+function applyCustomVariableOutPin(
+  node: ClientGiaNode,
+  metadata: ClientNodeMetadata,
+  outTypeInfo: ClientValueTypeInfo | undefined
+) {
+  const outIrType = outTypeInfo?.type
+  if (!outIrType) return
+  const outPin = findOutPin(node, 0)
+  if (!outPin) return
+  if (outIrType === 'dict') {
+    const { keyClientVarType, valueClientVarType } = requireClientDictionaryTypes(
+      outTypeInfo,
+      (message) =>
+        clientNodegraphError(
+          CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
+          `${metadata.subType}.get_custom_variable ${message}`
+        )
+    )
+    outPin.type = 24
+    outPin.value = client_dictionary_wrapped_value(20, keyClientVarType, valueClientVarType, true)
+    return
+  }
   const clientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[outIrType]
   const offset = customVariableTypeOffset(outIrType)
   if (!clientVarType || offset === undefined) return
-  const outPin = findOutPin(node, 0)
-  if (!outPin) return
   outPin.type = clientVarType
   outPin.value = client_wrapped_value(offset, client_value_base(clientVarType))
 }
@@ -441,7 +497,7 @@ function applyLocalVariableNode(
   node: ClientGiaNode,
   irNode: IRNode,
   metadata: ClientNodeMetadata,
-  outIrType: string | undefined
+  outTypeInfo: ClientValueTypeInfo | undefined
 ) {
   const fail = (msg: string) =>
     clientNodegraphError(
@@ -458,11 +514,19 @@ function applyLocalVariableNode(
     }
   }
 
-  const typedPin = (irType: string, arg: IrArg | undefined) => {
+  const typedPin = (typeInfo: ClientValueTypeInfo, arg: IrArg | undefined) => {
+    const irType = typeInfo.type
     const clientVarType = CLIENT_VAR_TYPE_BY_IR_TYPE[irType]
     const ioc = LOCAL_VAR_IOC_BY_IR[irType]
     if (clientVarType === undefined || ioc === undefined) {
       throw fail(`unsupported variable type "${irType}"`)
+    }
+    if (irType === 'dict') {
+      const { keyClientVarType, valueClientVarType } = requireClientDictionaryTypes(typeInfo, fail)
+      return {
+        clientVarType,
+        value: client_dictionary_wrapped_value(ioc, keyClientVarType, valueClientVarType, true)
+      }
     }
     const inner =
       isValueArg(arg) && Array.isArray(arg.value) && irType.endsWith('_list')
@@ -481,11 +545,11 @@ function applyLocalVariableNode(
 
   if (irNode.type === 'set_local_variable') {
     const valueArg = irNode.args?.[1]
-    const irType = irTypeOfArg(valueArg ?? undefined)
-    if (!irType) throw fail('cannot resolve value type from args')
+    const typeInfo = irTypeInfoOfArg(valueArg ?? undefined)
+    if (!typeInfo) throw fail('cannot resolve value type from args')
     const pin = findInPin(node, 1)
     if (pin) {
-      const typed = typedPin(irType, valueArg ?? undefined)
+      const typed = typedPin(typeInfo, valueArg ?? undefined)
       pin.type = typed.clientVarType
       pin.value = typed.value
     }
@@ -493,10 +557,10 @@ function applyLocalVariableNode(
   }
 
   // get_local_variable：优先从输出连线定型；无消费者时从同名 setter 回推。
-  if (!outIrType) throw fail('cannot infer output type from connections')
+  if (!outTypeInfo) throw fail('cannot infer output type from connections')
   const outPin = findOutPin(node, 0)
   if (outPin) {
-    const typed = typedPin(outIrType, undefined)
+    const typed = typedPin(outTypeInfo, undefined)
     outPin.type = typed.clientVarType
     outPin.value = typed.value
   }
@@ -563,7 +627,7 @@ function applyDictReflectNode(
   node: ClientGiaNode,
   irNode: IRNode,
   metadata: ClientNodeMetadata,
-  outIrType: string | undefined
+  outTypeInfo: ClientValueTypeInfo | undefined
 ) {
   const fail = (msg: string) =>
     clientNodegraphError(
@@ -573,8 +637,12 @@ function applyDictReflectNode(
 
   const dictPin = findInPin(node, 0)
   if (dictPin) {
+    const { keyClientVarType, valueClientVarType } = requireClientDictionaryTypes(
+      irTypeInfoOfArg(irNode.args?.[0]),
+      fail
+    )
     dictPin.type = 24
-    dictPin.value = client_wrapped_value(0, client_value_base(24))
+    dictPin.value = client_dictionary_wrapped_value(0, keyClientVarType, valueClientVarType)
   }
 
   const slot = DICT_SECOND_PIN_SLOT[irNode.type]
@@ -608,6 +676,7 @@ function applyDictReflectNode(
 
   const outIocOf = DICT_OUT_IOC_BY_NODE_TYPE[irNode.type]
   if (!outIocOf) return
+  const outIrType = outTypeInfo?.type
   if (!outIrType) throw fail('cannot infer output type from connections')
   const outClientType = CLIENT_VAR_TYPE_BY_IR_TYPE[outIrType]
   const outIoc = outIocOf(outIrType)
@@ -667,8 +736,7 @@ function applyAssemblyDictionary(
     throw fail(`unsupported value type "${valueIr ?? 'missing'}"`)
   }
 
-  const countPin = findInPin(node, 0)
-  if (countPin) countPin.value = client_value_base(3, args.length)
+  setCountPin(node, metadata, args.length)
   for (let pinIndex = 1; pinIndex <= 100; pinIndex++) {
     const pin = findInPin(node, pinIndex)
     if (!pin) continue
@@ -682,7 +750,7 @@ function applyAssemblyDictionary(
   const outPin = findOutPin(node, 0)
   if (outPin) {
     outPin.type = 24
-    outPin.value = client_wrapped_value(0, client_value_base(24))
+    outPin.value = client_dictionary_wrapped_value(0, keyType, valueType)
   }
 }
 
@@ -700,6 +768,7 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
     { index: 0, iocOfElem: (elem) => DICT_KEY_IOC_BY_IR[elem] },
     { index: 1, iocOfElem: (elem) => DICT_VALUE_IOC_BY_IR[elem] }
   ]
+  const elementClientTypes: number[] = []
   for (const { index, iocOfElem } of pins) {
     const arg = irNode.args?.[index]
     const irType = irTypeOfArg(arg ?? undefined)
@@ -711,6 +780,11 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
         `cannot resolve ${index === 0 ? 'key' : 'value'} list type from "${irType ?? 'missing'}"`
       )
     }
+    const elementClientType = elem ? CLIENT_VAR_TYPE_BY_IR_TYPE[elem] : undefined
+    if (elementClientType === undefined) {
+      throw fail(`cannot resolve ${index === 0 ? 'key' : 'value'} element type from "${elem}"`)
+    }
+    elementClientTypes[index] = elementClientType
     const pin = findInPin(node, index)
     if (pin) {
       pin.type = clientVarType
@@ -720,7 +794,7 @@ function applyCreateDictionary(node: ClientGiaNode, irNode: IRNode, metadata: Cl
   const outPin = findOutPin(node, 0)
   if (outPin) {
     outPin.type = 24
-    outPin.value = client_wrapped_value(0, client_value_base(24))
+    outPin.value = client_dictionary_wrapped_value(0, elementClientTypes[0], elementClientTypes[1])
   }
 }
 
@@ -960,7 +1034,7 @@ function applySpecialArgs(
   metadata: ClientNodeMetadata,
   concreteId: number | string,
   variant: ClientReflectVariant | undefined,
-  inferredOutType: string | undefined
+  inferredOutTypeInfo: ClientValueTypeInfo | undefined
 ): boolean {
   if (irNode.type === 'assembly_list') {
     if (!variant) throw new Error('[error] assembly_list reflect variant was not resolved')
@@ -978,15 +1052,15 @@ function applySpecialArgs(
   }
   if (irNode.type === 'get_custom_variable') {
     applyLiteralArgs(node, irNode, metadata, variant)
-    applyCustomVariableOutPin(node, inferredOutType)
+    applyCustomVariableOutPin(node, metadata, inferredOutTypeInfo)
     return true
   }
   if (DICT_REFLECT_NODE_TYPES.has(irNode.type)) {
-    applyDictReflectNode(node, irNode, metadata, inferredOutType)
+    applyDictReflectNode(node, irNode, metadata, inferredOutTypeInfo)
     return true
   }
   if (LOCAL_VARIABLE_NODE_TYPES.has(irNode.type)) {
-    applyLocalVariableNode(node, irNode, metadata, inferredOutType)
+    applyLocalVariableNode(node, irNode, metadata, inferredOutTypeInfo)
     return true
   }
   if (irNode.type === 'assembly_dictionary') {
@@ -1106,7 +1180,8 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, mode, irNode)
     metadataById.set(irNode.id, metadata)
-    const inferredOutType = inferredOutputIrType(irNode, connIndex, localVariableTypes)
+    const inferredOutTypeInfo = inferredOutputTypeInfo(irNode, connIndex, localVariableTypes)
+    const inferredOutType = inferredOutTypeInfo?.type
     const variant = resolveClientReflectVariant(metadata, irNode)
     variantById.set(irNode.id, variant)
     const concreteId = resolveClientConcreteVariant(metadata, irNode, inferredOutType)
@@ -1119,7 +1194,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
       concrete_id: concreteId
     })
     applyResolvedReflectivePins(node, metadata, variant)
-    if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutType)) {
+    if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutTypeInfo)) {
       applyLiteralArgs(node, irNode, metadata, variant)
     }
     builtById.set(irNode.id, node)

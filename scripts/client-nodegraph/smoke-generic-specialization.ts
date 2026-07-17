@@ -4,9 +4,11 @@ import assert from 'node:assert'
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { client_list_literal_value, client_value_base } from '../../src/compiler/gia_vendor.js'
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { TargetEntity } from '../../src/definitions/client_enums.js'
 import { buildClientGraphRegistriesIRDocuments, g } from '../../src/runtime/core.js'
+import { prefabId } from '../../src/runtime/value.js'
 import { requireClientNodeMetadata } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
@@ -14,8 +16,20 @@ const PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
 const OUT_DIR = 'tests/client_generated'
 
+for (const clientVarType of [2, 4, 6, 8, 10, 12, 15, 17, 20, 21, 25]) {
+  const value = client_value_base(clientVarType)
+  assert.strictEqual(value.class, 10002, `client list type ${clientVarType} uses ArrayBase`)
+  assert.strictEqual(value.itemType?.type_client?.type, clientVarType)
+  assert.deepStrictEqual(value.bArray?.entries ?? [], [])
+}
+const prefabListLiteral = client_list_literal_value(21, [1001])
+assert.strictEqual(prefabListLiteral.bArray?.entries[0]?.class, 1)
+assert.strictEqual(prefabListLiteral.bArray?.entries[0]?.itemType?.type_client?.type, 19)
+
 g.characterSkill({ id: 1082130710, name: 'Generic_Character_Skill' }).on('start', (_evt, f) => {
   const values = f.assemblyList([1n, 2n], 'int')
+  const prefabs = f.assemblyList([new prefabId(1001n)], 'prefab_id')
+  f.setLocalVariable('prefabs', prefabs)
   const firstValue = f.getCorrespondingValueFromList(0n, values)
   const lookup = dict([{ k: 1n, v: firstValue }])
   const lookupValue = f.queryDictionaryValueByKey(lookup, 1n)
@@ -83,10 +97,13 @@ function decodeGraph(name: string): DecodedNode[] {
 function findNode(
   nodes: DecodedNode[],
   subType: Parameters<typeof requireClientNodeMetadata>[0],
-  nodeType: string
+  nodeType: string,
+  nth = 0
 ) {
   const metadata = requireClientNodeMetadata(subType, nodeType)
-  const node = nodes.find((candidate) => Number(candidate.genericId?.nodeId) === metadata.genericId)
+  const node = nodes.filter(
+    (candidate) => Number(candidate.genericId?.nodeId) === metadata.genericId
+  )[nth]
   assert.ok(node, `${subType}.${nodeType}: missing gid ${metadata.genericId}`)
   return node
 }
@@ -115,7 +132,47 @@ function checkPin(
 {
   const nodes = decodeGraph('Generic_Character_Skill')
   const listNode = findNode(nodes, 'character_skill', 'assembly_list')
+  const listCountPin = listNode.pins?.find(
+    (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
+  )
+  assert.strictEqual(Number(listCountPin?.value?.bInt?.val), 2, 'two-element list count')
+  assert.strictEqual(
+    Boolean(listCountPin?.value?.alreadySetVal),
+    true,
+    'non-default list count must be marked as explicitly set'
+  )
   checkPin(listNode, 4, 0, 4, 1)
+  assert.strictEqual(
+    Number(
+      listNode.pins?.find((pin) => Number(pin.i1?.kind) === 4 && Number(pin.i1?.index) === 0)?.value
+        ?.bConcreteValue?.value?.class
+    ),
+    10002,
+    'int assembly_list output uses ArrayBase'
+  )
+
+  const prefabListNode = findNode(nodes, 'character_skill', 'assembly_list', 1)
+  assert.strictEqual(Number(prefabListNode.concreteId?.nodeId), 1045)
+  const prefabCountPin = prefabListNode.pins?.find(
+    (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
+  )
+  assert.strictEqual(Number(prefabCountPin?.value?.bInt?.val), 1, 'one-element list count')
+  assert.strictEqual(
+    Boolean(prefabCountPin?.value?.alreadySetVal),
+    false,
+    'default list count remains unset'
+  )
+  checkPin(prefabListNode, 4, 0, 21, 8)
+  const prefabListValue = prefabListNode.pins?.find(
+    (pin) => Number(pin.i1?.kind) === 4 && Number(pin.i1?.index) === 0
+  )?.value?.bConcreteValue?.value
+  assert.strictEqual(Number(prefabListValue?.class), 10002, 'prefab assembly_list ArrayBase')
+  assert.strictEqual(
+    Number(prefabListValue?.itemType?.type_client?.type),
+    21,
+    'prefab assembly_list item type'
+  )
+  assert.deepStrictEqual(prefabListValue?.bArray?.entries ?? [], [], 'prefab assembly_list payload')
 
   const listValueNode = findNode(nodes, 'character_skill', 'get_corresponding_value_from_list')
   assert.strictEqual(Number(listValueNode.concreteId?.nodeId), 61)
@@ -127,6 +184,11 @@ function checkPin(
     (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
   )
   assert.strictEqual(Number(countPin?.value?.bInt?.val), 2, 'dictionary key/value argument count')
+  assert.strictEqual(
+    Boolean(countPin?.value?.alreadySetVal),
+    false,
+    'one-pair dictionary uses the default count'
+  )
   checkPin(dictionaryNode, 3, 1, 3, 2)
   checkPin(dictionaryNode, 3, 2, 3, 2, true)
 }
