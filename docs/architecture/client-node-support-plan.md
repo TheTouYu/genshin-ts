@@ -814,48 +814,47 @@ client binding、执行连接和参数值均无语义差异。将上述 5 个图
 对拍和游戏行为闭环。范围只覆盖该样本，不证明其他客户端节点、Variant、变量、分支、signal、
 `g.client()` 或生产 Stage 3 已受支持。此次只复制 standalone GIA，没有注入或操作地图图 ID。
 
-### 10.5 下一份首批节点 fixture（用户将提供）
+### 10.5 Double Branch 材料化与游戏验证（已完成）
 
-原先把 Vector 输出直接串到 Double Branch 的草案缺少 Boolean 条件来源，不能作为合法类型拓扑。
-下一轮使用一个客户端 `skill` 图同时覆盖数据链和分支执行链：
+2026-07-17，通过项目稳定 vendor adapter 直接构造并生成了两份 Double Branch 候选 fixture，
+使用已验证的 Play Timed Effects 承载两个分支输出。两份文件为：
+
+```text
+gsts-客户端双分支-候选-条件是.gia   graph ID: 1082130439
+gsts-客户端双分支-候选-条件否.gia   graph ID: 1082130440
+```
+
+图结构：
 
 ```text
 Node Graph Begins
-→ Double Branch(Boolean literal)
-   ├─ True  → Play Timed Effects A
-   └─ False → Play Timed Effects B
-
-Get Self Entity
-→ Get Entity Position
-→ 3D Vector Addition(position, [10, 0, 0])
-→ Play Timed Effects A.position
+→ Double Branch
+   ├─ OutFlow shell 0 / kernel 1 → Play Timed Effects A，位置 [10, 0, 0]
+   └─ OutFlow shell 1 / kernel 2 → Play Timed Effects B，位置 [-10, 0, 0]
 ```
 
-用户将提供该真实编辑器导出的最小 fixture。优先提供两份除图身份元数据和条件值外尽量一致的文件：
+两份文件均通过自动检查：容器头校验、protobuf message 逐字节 round-trip、container 逐字节
+round-trip。复制到游戏导出目录后，用户手动导入客户端 skill 图位置，在编辑器中目视确认节点、
+条件和两个分支连接正确，重新导出后结构化对拍无意外字段改写，并在游戏中实际触发确认：
 
-```text
-fixture A: condition = true
-fixture B: condition = false
-```
+- **条件为【是】→ OutFlow shell 0 / kernel 1 → 位置 [10, 0, 0] 播放**
+- **条件为【否】→ OutFlow shell 1 / kernel 2 → 位置 [-10, 0, 0] 播放**
 
-A/B 的特效配置、位置或其他可见参数必须足够可区分，用于分别确认两个 OutFlow；不得使用空分支后接
-共享执行节点冒充条件行为。若先只提供一份，则该份只能验证对应条件分支，另一侧保持待验证。
+这完全校正了第三方 `data.json` 对 Double Branch 的标记 `__todo_set_in_manually`。
 
-收到文件后的第一轮仍为只读：校验容器头和哈希，按文件内部 metadata 配对图身份，直接 message
-round-trip，提取目标节点和物理 pin，再与固定 vendor 候选对账。不得按文件名猜图类型，也不得因样本
-到达而自动复制、注入或操作地图。
+并明确：
 
-当前待样本裁决的重点是：
+- shell `200056` / kernel `2000` 为客户端 Double Branch 身份；
+- Condition pin 对应 `shell InParam 0 → kernel InParam 1`，类型 `ClientVarType.Boolean_`；
+- True OutFlow 对应 `shell OutFlow 0 → kernel OutFlow 1`；
+- False OutFlow 对应 `shell OutFlow 1 → kernel OutFlow 2`；
+- 存在 kind-5 client binding pin，类型 `ClientVarType.UnknownVar_`，指向 shell `200056`；
+- 不包含隐藏 discriminator 或已解释字段之外的其他 pin。
 
-- `Get Entity Position` 候选 shell/kernel 为 `200030/1008`，需确认 Entity 输入、Vector 输出和连接方向；
-- `3D Vector Addition` 候选为 `200071/34`，但 vendor 标记为 Fixed，同时含隐藏
-  `E<CBMO>` pin；本文此前的“Variant/concrete identity”描述只保留为待验证假设；
-- `Double Branch` 候选为 `200056/2000`，vendor 带 `__todo_set_in_manually`，需确认
-  condition pin、kind-5 binding/hidden discriminator（如有）和 True/False OutFlow 序号；
-- `Get Self Entity` 已在第二个 WP0 样本观察到 `200033/1013`，但仍需补可复用 OutParam/data
-  connection materializer 和针对性行为验证。
+本次生成使用项目稳定 vendor adapter (`src/compiler/gia_vendor.ts`，`client_legacy.ts`)，
+不依赖生产 `g.client()`、Stage 1、Stage 3 或完整编译管线。没有注入、没有操作地图或游戏文件覆盖。
 
-官方节点资料与 `resources/node_definitions.json` 已足以确认首批公开签名，但不能决定上述 wire 字段。
+已验证的 focused regression：`tests/composite/test-client-double-branch-materializer.ts`。
 
 ## 11. 验证和完成标准
 
@@ -1121,6 +1120,11 @@ worktree: /home/h/worktrees/gia-vendor-client-legacy
 payload 与导入前逐字节一致。该证据仍只覆盖此样本。vendor 功能补丁为 `5e05133`，审核后的分支头为
 `4033eaf`。WP1-Sync 已将必要的 `client_legacy.ts` 和导出同步到 genshin-ts，并通过
 `src/compiler/gia_vendor.ts` 暴露稳定入口；项目构建、field-101 和最小 client skill materializer
-focused 回归均通过，项目级真实样本 round-trip 也使用两份原始 WP0 样本逐字节通过。运行时、
-Stage 1 和生产 Stage 3 仍未修改，`g.client()` 仍未公开。下一步由用户提供第 10.5 节首批节点真实
-fixture，再进入未取样节点的 vendor materializer 扩展或启动 WP2 的精确设计与授权。
+focused 回归均通过，项目级真实样本 round-trip 也使用两份原始 WP0 样本逐字节通过。
+
+2026-07-17 新增 Double Branch focused materializer 回归
+`tests/composite/test-client-double-branch-materializer.ts`，覆盖 shell `200056`/kernel
+`2000`、True/False OutFlow 物理 index、condition pin 和 protobuf wire round-trip。该回归对应的
+两份候选 GIA 已由用户在游戏中验证 True 和 False 分支行为。运行时、Stage 1 和生产 Stage 3 仍未
+修改，`g.client()` 仍未公开。下一步可进入未取样节点的 vendor materializer 扩展或启动 WP2 的
+精确设计与授权。
