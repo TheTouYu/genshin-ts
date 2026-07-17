@@ -214,7 +214,9 @@ compositePins: [{
   //   connect2: { kind: OutParam, index: <upstreamPinIndex> } }]
   ```
 
-大多数 capture 输入不生成物理 InParam pin，但仍占用原始参数序号。Stage 3 跳过 capture 参数时必须保留 pin index 空洞；例如 `get_custom_variable(capturedEntity, name)` 的实体参数占 `InParam[0]`，变量名应编码到 `InParam[1]`，不能压缩到 index 0。
+大多数非边界 capture 输入不生成物理 InParam pin，但仍占用原始参数序号。Stage 3 跳过 capture 参数时必须保留 pin index 空洞；例如 `get_custom_variable(capturedEntity, name)` 的实体参数占 `InParam[0]`，变量名应编码到 `InParam[1]`，不能压缩到 index 0。
+
+当 capture 输入被当前复合的 `compositePins` 直接指向时，不能套用上述过滤规则：必须在内部 GraphNode 上保留与边界类型一致的物理 InParam pin，再由 `compositePins` 建立外部参数到该 pin 的映射。该规则适用于普通算术、比较、逻辑、向量等数据节点；`data_type_conversion_*` 仍使用其专用 concrete 类型映射。回归见 `tests/composite/reproduce-digital-parameter-operators.ts`、`tests/composite/survey-composite-scalar-families.ts` 和 `tests/composite/survey-composite-vector-families.ts`。当前自动回归已覆盖 legacy 与 vendor impl graph 路径；尚未进行游戏内验证。
 
 有一个重要例外：当 `data_type_conversion_*` 的 capture 输入被当前复合的 `compositePins` 直接指向时，真实编辑器 GIA 会保留类型化的物理 InParam，并同时生成该转换节点的 OutParam。这个 pin 不是由 `compositePins` 凭空创建的；缺失时，外部参数路由和下游数据边都会指向不存在的物理 pin，游戏运行可能失败。当前 Stage 3 会为这种边界 DTC 保留物理 pin，并对其执行物理 pin 完整性检查。回归见 `tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`。
 

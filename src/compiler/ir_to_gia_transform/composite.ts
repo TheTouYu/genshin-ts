@@ -548,7 +548,13 @@ function buildImplGraphNodes(
   }).positions
 
   if (isSharedVendorImplGraphEnabled()) {
-    return materializeImplOrdinaryGraphWithVendor(nodeResults, implEdges, layout, nodeIndexMap)
+    return materializeImplOrdinaryGraphWithVendor(
+      nodeResults,
+      implEdges,
+      layout,
+      nodeIndexMap,
+      boundaryInputIndexesByNode
+    )
   }
 
   const legacyNodes = nodeResults.map((result) =>
@@ -630,7 +636,8 @@ function materializeImplOrdinaryGraphWithVendor(
   nodeResults: any[],
   implEdges: Record<number, ImplEdge[]>,
   layout: Map<number, { x: number; y: number }>,
-  nodeIndexMap: Map<number, number>
+  nodeIndexMap: Map<number, number>,
+  boundaryInputIndexesByNode: Map<number, Set<number>>
 ): GraphNode[] {
   const graph = new Graph('server', 0, '', 0)
   const vendorNodes = new Map<number, Node<any>>()
@@ -671,6 +678,7 @@ function materializeImplOrdinaryGraphWithVendor(
     // Capture inputs usually drop physical InParam (compositePins overlay owns them).
     // multiple_branches control@0 is an exception: keep typed schema pin so case list@1
     // and outer compositePins → InParam 0 remain editor-visible.
+    const boundaryInputIndexes = boundaryInputIndexesByNode.get(node.id) ?? new Set<number>()
     const capturedInputIndexes = new Set(
       (node.args ?? [])
         .map((arg: any, index: number) => {
@@ -679,7 +687,8 @@ function materializeImplOrdinaryGraphWithVendor(
           if (isSharedSpecialArgAdapterNodeType(node.type)) {
             return remapSpecialArgInputIndex(node.type, index)
           }
-          return remapPinHoleInputIndex(node.type, index)
+          const physicalIndex = remapPinHoleInputIndex(node.type, index)
+          return boundaryInputIndexes.has(physicalIndex) ? undefined : physicalIndex
         })
         .filter((index: number | undefined): index is number => index !== undefined)
     )
@@ -1338,12 +1347,11 @@ function buildImplNodePins(
       : usesSpecialArgRemap
         ? remapSpecialArgInputIndex(node.type, argIndex)
         : sequentialPinIndex
-    // Most capture inputs are sparse boundary routes without physical pins. Reflective DTC
-    // nodes are different: real editor GIA keeps the typed InParam targeted by compositePins.
+    // Capture inputs are normally sparse boundary routes without physical pins. Any input
+    // targeted by compositePins is different: the editor expects a typed physical InParam.
     if (arg && (arg as any).capture === true) {
-      const materializeBoundaryDtcPin =
-        node.type.startsWith('data_type_conversion_') && boundaryInputIndexes.has(pinIndex)
-      if (materializeBoundaryDtcPin) {
+      const isBoundaryInput = boundaryInputIndexes.has(pinIndex)
+      if (isBoundaryInput && node.type.startsWith('data_type_conversion_')) {
         const dtcInfo = getDtcInParamInfo(arg.type)
         if (dtcInfo) {
           pins.push({
@@ -1360,6 +1368,13 @@ function buildImplNodePins(
             type: dtcInfo.varType
           })
         }
+      } else if (isBoundaryInput) {
+        const inputType = getImplArgType(arg) ?? inferInputTypeFromNode(node.type, pinIndex)
+        const pin = buildConnPin(pinIndex, inputType)
+        if (needsConcreteWrapping(node.type) && pin.value) {
+          pin.value = wrapConcreteValueForNodeInput(node.type, pin.value, inputType, pinIndex) as any
+        }
+        pins.push(pin)
       }
       if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
       continue
