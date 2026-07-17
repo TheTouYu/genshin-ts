@@ -8,7 +8,11 @@ import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { compileTsToGs } from '../../src/compiler/ts_to_gs_pipeline.js'
 import { loadGiaProto } from '../../src/injector/proto.js'
 import type { IRDocument } from '../../src/runtime/IR.js'
-import type { Root as GiaRoot } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import type {
+  Root as GiaRoot,
+  GraphNode,
+  NodePin
+} from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 const root = process.cwd()
 const tempRoot = path.join(root, 'tests', '.client-ts-transform-tmp')
@@ -157,6 +161,36 @@ try {
     characterSkillNodeTypes.includes('logical_not_operation'),
     'enum !=/!== must negate the client enumerationMatch result'
   )
+  const indexedValueNodes =
+    characterSkillDocument?.nodes?.filter(
+      (node) => node.type === 'get_corresponding_value_from_list'
+    ) ?? []
+  assert.strictEqual(
+    indexedValueNodes.length,
+    3,
+    '[], idx(), and direct f.getCorrespondingValueFromList() must all be retained'
+  )
+  const indexedListNodeIds = indexedValueNodes.map((node) => {
+    const listArg = node.args?.[1]
+    assert.strictEqual(listArg?.type, 'conn', 'list input must be a data connection')
+    if (listArg?.type !== 'conn') throw new Error('expected list connection')
+    return listArg.value.node_id
+  })
+  assert.strictEqual(
+    new Set(indexedListNodeIds).size,
+    1,
+    'all three list reads must share one assembled list'
+  )
+  const indexedListNodeId = indexedListNodeIds[0]
+  const indexedListNode = characterSkillDocument?.nodes?.find(
+    (node) => node.id === indexedListNodeId
+  )
+  assert.strictEqual(indexedListNode?.type, 'assembly_list')
+  assert.deepStrictEqual(
+    indexedListNode?.args?.map((arg) => arg?.type),
+    ['conn', 'int', 'int', 'int'],
+    'list(dynamic, literal...) must preserve one connection and three literal slots'
+  )
   const intervalBySubType = new Map(
     documents.flatMap((document) =>
       document.graph.type === 'client'
@@ -281,6 +315,46 @@ try {
       )
     }
     if (subTypes[index] === 'character_skill') {
+      const indexedList = clientGraph.nodes?.find(
+        (node) => Number(node.nodeIndex) === indexedListNodeId
+      )
+      assert.ok(indexedList, 'indexed values must emit one assembly_list node')
+      const indexedCountPin = indexedList.pins?.find(
+        (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
+      )
+      assert.strictEqual(Number(indexedCountPin?.value?.bInt?.val), 4, 'indexed list count')
+      const dynamicElementPin = indexedList.pins?.find(
+        (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 1
+      )
+      assert.strictEqual(
+        dynamicElementPin?.connects?.length,
+        1,
+        'dynamic list element must remain connected'
+      )
+      for (let pinIndex = 2; pinIndex <= 4; pinIndex++) {
+        const literalPin: NodePin | undefined = indexedList.pins?.find(
+          (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === pinIndex
+        )
+        assert.strictEqual(
+          Number(literalPin?.value?.bConcreteValue?.value?.bInt?.val),
+          pinIndex,
+          `literal list element pin ${pinIndex}`
+        )
+      }
+      for (const valueNode of indexedValueNodes) {
+        const decodedValueNode: GraphNode | undefined = clientGraph.nodes?.find(
+          (node) => Number(node.nodeIndex) === valueNode.id
+        )
+        const listInput: NodePin | undefined = decodedValueNode?.pins?.find(
+          (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 1
+        )
+        assert.strictEqual(
+          Number(listInput?.connects?.[0]?.id),
+          indexedListNodeId,
+          `list reader ${valueNode.id} must connect to the assembled list`
+        )
+      }
+
       const maxList = clientGraph.nodes?.find(
         (node) =>
           Number(node.genericId?.nodeId) === 200049 && Number(node.concreteId?.nodeId) === 1028

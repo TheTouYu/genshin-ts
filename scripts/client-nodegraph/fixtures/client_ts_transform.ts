@@ -60,9 +60,10 @@ g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on
     const convertedString = str(wiredInt)
     const convertedBool = bool(wiredInt)
     const convertedInt = int(f.division(1, 2))
-    const indexedValues = list('int', [wiredInt, convertedInt])
+    const indexedValues = list('int', [wiredInt, 2n, 3n, 4n])
     const firstIndexedValue = indexedValues[0]
     const secondIndexedValue = indexedValues[idx(1n)]
+    const directIndexedValue = f.getCorrespondingValueFromList(0n, indexedValues)
     const ordinaryEqual = wiredInt === convertedInt
     const enumEqual = TargetType.None === TargetType.AlliedFaction
     const enumNotEqual = TargetType.None !== TargetType.AlliedFaction
@@ -73,6 +74,7 @@ g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on
       convertedString,
       str(firstIndexedValue),
       str(secondIndexedValue),
+      str(directIndexedValue),
       str(maximum),
       ordinaryEqual,
       enumEqual,

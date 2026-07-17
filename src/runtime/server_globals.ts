@@ -529,7 +529,7 @@ function makeFactories(): ServerGlobalFactories {
       if (isNullishPlaceholder(items)) {
         return new listLiteral(listType, null) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
       }
-      if (!inServerCtx()) {
+      if (!inServerCtx() && !inClientCtx()) {
         if (items === undefined) {
           return new listLiteral(listType, []) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
         }
@@ -544,6 +544,31 @@ function makeFactories(): ServerGlobalFactories {
             listType,
             items as unknown as RuntimeReturnValueTypeMap[T][]
           ) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+        }
+        throw new Error('[error] list(): unsupported input type')
+      }
+      if (inClientCtx()) {
+        if (items === undefined) {
+          return new listLiteral(listType, []) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+        }
+        if (z.instanceof(listClass).safeParse(items).success) {
+          if ((items as unknown as listClass).getConcreteType() === listType) {
+            return items as RuntimeReturnValueTypeMap[`${T}_list`]
+          }
+          throw new Error(`[error] list(): cannot convert list type`)
+        }
+        if (Array.isArray(items)) {
+          if (items.length === 0) {
+            return new listLiteral(
+              listType,
+              []
+            ) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+          }
+          return callActiveGraphFunction<RuntimeReturnValueTypeMap[`${T}_list`]>(
+            'list()',
+            'assemblyList',
+            [items, listType]
+          )
         }
         throw new Error('[error] list(): unsupported input type')
       }
