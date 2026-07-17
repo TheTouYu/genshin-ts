@@ -96,6 +96,7 @@ try {
 
   await import(`${pathToFileURL(result.entryOutFiles[0]).href}?test=${Date.now()}`)
   const { buildClientGraphRegistriesIRDocuments } = await import('genshin-ts/runtime/core')
+  const { getRuntimeOptions, setRuntimeOptions } = await import('genshin-ts/runtime/runtime_config')
   assert.strictEqual(int(123), 123n)
   assert.strictEqual(float(1), 1)
   assert.strictEqual(bool(true), true)
@@ -1074,6 +1075,51 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
     irToGia(controlFlowDocument, { protoPath }).length > 0,
     'injectable client control-flow example GIA is empty'
   )
+
+  const unoptimizedLoopGraphId = 1082130786
+  await expectRuntimeSuccess(
+    'unoptimized-client-loop-without-return',
+    `${importG}
+g.characterSkill({ id: ${unoptimizedLoopGraphId} }).on('start', (_evt, f) => {
+  let sum = 0n
+  for (let index = 0n; index < 2n; index += 1n) {
+    sum += index
+  }
+  if (sum >= 0n) f.forceExitAimingState()
+})`
+  )
+  const previousRuntimeOptions = getRuntimeOptions()
+  setRuntimeOptions({
+    optimize: {
+      ...previousRuntimeOptions.optimize,
+      removeUnusedNodes: false
+    }
+  })
+  try {
+    const unoptimizedLoopDocument = buildClientGraphRegistriesIRDocuments().find(
+      (document) => document.graph.id === unoptimizedLoopGraphId
+    )
+    assert.ok(unoptimizedLoopDocument, 'missing unoptimized client loop graph')
+    const connectedDataNodeIds = new Set(
+      (unoptimizedLoopDocument.nodes ?? []).flatMap((node) =>
+        (node.args ?? [])
+          .filter((arg) => arg?.type === 'conn')
+          .map((arg) => (arg?.type === 'conn' ? arg.value.node_id : -1))
+      )
+    )
+    assert.ok(
+      unoptimizedLoopDocument.nodes?.some(
+        (node) => node.type === 'get_local_variable' && !connectedDataNodeIds.has(node.id)
+      ),
+      'removeUnusedNodes=false fixture must retain an unconsumed return-gate getter'
+    )
+    assert.ok(
+      irToGia(unoptimizedLoopDocument, { protoPath }).length > 0,
+      'unconsumed local-variable getter must infer its type from the matching setter'
+    )
+  } finally {
+    setRuntimeOptions(previousRuntimeOptions)
+  }
 
   await expectRuntimeError(
     'duplicate-client-handler',

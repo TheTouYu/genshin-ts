@@ -148,16 +148,48 @@ const OUTPUT_INFERRED_NODE_TYPES = new Set([
 
 /**
  * 反射输出类型由输出连线推断（与服务器 inferTypedNodeIdFromOutputs 同思路）。
- * 无消费者的数据节点在 IR 构建阶段已被剪枝，因此这里总有连线可用。
+ * 关闭未使用节点优化时，编译器生成的局部变量 getter 可能没有消费者；此时
+ * 使用同名 setter 的值类型作为可靠后备。
  */
-function inferredOutputIrType(irNode: IRNode, connIndex: ConnTypeIndex): string | undefined {
+function inferredOutputIrType(
+  irNode: IRNode,
+  connIndex: ConnTypeIndex,
+  localVariableTypes: ReadonlyMap<string, string>
+): string | undefined {
   if (!OUTPUT_INFERRED_NODE_TYPES.has(irNode.type)) return undefined
   const outputs = connIndex.get(irNode.id)
-  if (!outputs) return undefined
-  for (const info of outputs.values()) {
-    return info.type
+  if (outputs) {
+    for (const info of outputs.values()) {
+      return info.type
+    }
+  }
+  if (irNode.type === 'get_local_variable') {
+    const nameArg = irNode.args?.[0]
+    if (isValueArg(nameArg) && nameArg.type === 'str') {
+      return localVariableTypes.get(String(nameArg.value))
+    }
   }
   return undefined
+}
+
+function buildLocalVariableTypeIndex(nodes: readonly IRNode[]): Map<string, string> {
+  const types = new Map<string, string>()
+  for (const node of nodes) {
+    if (node.type !== 'set_local_variable') continue
+    const nameArg = node.args?.[0]
+    const valueType = irTypeOfArg(node.args?.[1])
+    if (!isValueArg(nameArg) || nameArg.type !== 'str' || !valueType) continue
+    const name = String(nameArg.value)
+    const existing = types.get(name)
+    if (existing && existing !== valueType) {
+      throw clientNodegraphError(
+        CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
+        `local variable "${name}" has conflicting setter types "${existing}" and "${valueType}"`
+      )
+    }
+    types.set(name, valueType)
+  }
+  return types
 }
 
 function resolvedVariantPin(
@@ -460,7 +492,7 @@ function applyLocalVariableNode(
     return
   }
 
-  // get_local_variable：出参恒为连线（数据节点无消费者时已被剪枝）
+  // get_local_variable：优先从输出连线定型；无消费者时从同名 setter 回推。
   if (!outIrType) throw fail('cannot infer output type from connections')
   const outPin = findOutPin(node, 0)
   if (outPin) {
@@ -1066,6 +1098,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const graphInfo = buildExecutionGraph(nodes)
   const positions = layoutPositions(nodes, graphInfo)
   const connIndex = buildConnTypeIndex(ir)
+  const localVariableTypes = buildLocalVariableTypeIndex(nodes)
   const builtById = new Map<NodeId, ClientGiaNode>()
   const metadataById = new Map<NodeId, ClientNodeMetadata>()
   const variantById = new Map<NodeId, ClientReflectVariant | undefined>()
@@ -1073,7 +1106,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, mode, irNode)
     metadataById.set(irNode.id, metadata)
-    const inferredOutType = inferredOutputIrType(irNode, connIndex)
+    const inferredOutType = inferredOutputIrType(irNode, connIndex, localVariableTypes)
     const variant = resolveClientReflectVariant(metadata, irNode)
     variantById.set(irNode.id, variant)
     const concreteId = resolveClientConcreteVariant(metadata, irNode, inferredOutType)
