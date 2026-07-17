@@ -16,7 +16,7 @@ import {
   shouldCaptureIdentifier,
   transformExpression
 } from './expr.js'
-import { isArrayLikeExpression } from './list_utils.js'
+import { isArrayLikeExpression, SUPPORTED_LIST_METHODS } from './list_utils.js'
 import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
 import {
   transformDoStatement,
@@ -534,6 +534,19 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
           const u = sym ? usage.get(sym) : undefined
           if (u?.isCollection) markModified(sym)
         })
+      }
+
+      if (
+        ts.isPropertyAccessExpression(n.expression) &&
+        SUPPORTED_LIST_METHODS.has(n.expression.name.text)
+      ) {
+        // Scalar `let` declarations already require local variables. Visiting inline callbacks is
+        // still necessary for collection mutations and non-pure `const` read/snapshot analysis.
+        for (const arg of n.arguments) {
+          if (ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) {
+            visit(arg.body, true, true)
+          }
+        }
       }
     }
 
@@ -1094,6 +1107,16 @@ export function transformBlockStatements(
     }
 
     if (ts.isSwitchStatement(s)) {
+      if (
+        env.graphDocumentType === 'client' &&
+        (env.clientSubType === 'bool_filter' || env.clientSubType === 'int_filter')
+      ) {
+        fail(
+          env,
+          s,
+          'client filter graphs do not support switch; use if/return or a conditional expression'
+        )
+      }
       const controlKind = inferSwitchControlKind(env, s.expression)
       const controlExpr = transformExpression(env, context, s.expression)
 
@@ -1236,6 +1259,76 @@ export function transformBlockStatements(
             emptyBranchFn
           )
         )
+      }
+
+      const useClientDoubleBranchFallback =
+        env.graphDocumentType === 'client' &&
+        !isClientFMethodAvailable(env, 'multipleBranches') &&
+        isClientFMethodAvailable(env, 'doubleBranch') &&
+        isClientFMethodAvailable(env, 'equal')
+
+      if (useClientDoubleBranchFallback) {
+        const controlName = `__gsts_switch_control_${env.tempCounter++}`
+        const controlId = ts.factory.createIdentifier(controlName)
+        out.push(
+          ts.factory.createVariableStatement(
+            undefined,
+            ts.factory.createVariableDeclarationList(
+              [ts.factory.createVariableDeclaration(controlId, undefined, undefined, controlExpr)],
+              ts.NodeFlags.Const
+            )
+          )
+        )
+
+        const resolveBodyClause = (startIndex: number): ts.CaseOrDefaultClause | null => {
+          for (let index = startIndex; index < entries.length; index += 1) {
+            if (entries[index].hasBody) return entries[index].clause
+          }
+          return null
+        }
+        const defaultIndex = entries.findIndex((entry) => entry.isDefault)
+        const defaultClause = defaultIndex >= 0 ? resolveBodyClause(defaultIndex) : null
+        let fallback = defaultClause ? makeBranchFn(defaultClause) : emptyBranchFn
+
+        const caseEntries = entries
+          .map((entry, index) => ({ entry, index }))
+          .filter(({ entry }) => !entry.isDefault && entry.key !== null)
+
+        for (let index = caseEntries.length - 1; index >= 0; index -= 1) {
+          const { entry, index: entryIndex } = caseEntries[index]
+          const caseValue = makeAliasValue({ kind: 'case', key: entry.key! })
+          const targetClause = resolveBodyClause(entryIndex)
+          const trueBranch = targetClause ? makeBranchFn(targetClause) : emptyBranchFn
+          const nextCall = makeFCall(env, 'doubleBranch', [
+            makeFCall(env, 'equal', [controlId, caseValue]),
+            trueBranch,
+            fallback
+          ])
+          fallback = ts.factory.createArrowFunction(
+            undefined,
+            undefined,
+            [],
+            undefined,
+            undefined,
+            ts.factory.createBlock([ts.factory.createExpressionStatement(nextCall)], true)
+          )
+        }
+
+        const firstStatement =
+          fallback.body && ts.isBlock(fallback.body) ? fallback.body.statements[0] : undefined
+        if (firstStatement && ts.isExpressionStatement(firstStatement)) {
+          out.push(withSameRange(firstStatement, s))
+        } else {
+          out.push(
+            withSameRange(
+              ts.factory.createExpressionStatement(
+                ts.factory.createCallExpression(fallback, undefined, [])
+              ),
+              s
+            )
+          )
+        }
+        continue
       }
 
       const call = makeFCall(env, 'multipleBranches', [
@@ -1644,7 +1737,12 @@ export function transformHandler(
   env: Env,
   context: ts.TransformationContext,
   fn: ts.ArrowFunction | ts.FunctionExpression,
-  override?: { fIdent?: string; evtIdent?: string }
+  override?: {
+    fIdent?: string
+    evtIdent?: string
+    allowClientMutableOuterCaptures?: boolean
+    inheritOuterScope?: boolean
+  }
 ) {
   const originalBody = fn.body
   const paramFIdent =
@@ -1671,7 +1769,9 @@ export function transformHandler(
         : 'handler',
     returnDepth: 0
   }
-  validateNoMutableOuterCaptures(env2, originalBody)
+  if (!override?.allowClientMutableOuterCaptures) {
+    validateNoMutableOuterCaptures(env2, originalBody)
+  }
   if (!ts.isBlock(originalBody)) {
     if (env.graphDocumentType !== 'client' || !ts.isArrowFunction(fn)) return fn
     return ts.factory.updateArrowFunction(
@@ -1690,10 +1790,22 @@ export function transformHandler(
       ? flattenClientFilterReturns(originalBody)
       : originalBody
 
-  const varPlan = buildVarPlan(env2, body)
-  const localNames = collectLocalNames(body, fn.parameters)
+  const ownVarPlan = buildVarPlan(env2, body)
+  const varPlan =
+    override?.inheritOuterScope && env.varPlan
+      ? new Map<ts.Symbol, VarPlanEntry>([...env.varPlan, ...ownVarPlan])
+      : ownVarPlan
+  const ownLocalNames = collectLocalNames(body, fn.parameters)
+  const localNames =
+    override?.inheritOuterScope && env.localNames
+      ? new Set([...env.localNames, ...ownLocalNames])
+      : ownLocalNames
   const localVarNames = collectLocalVarNames(varPlan)
-  const localSymbols = collectLocalSymbols(body, fn.parameters, env.checker)
+  const ownLocalSymbols = collectLocalSymbols(body, fn.parameters, env.checker)
+  const localSymbols =
+    override?.inheritOuterScope && env.localSymbols
+      ? new Set([...env.localSymbols, ...ownLocalSymbols])
+      : ownLocalSymbols
   const localVarSymbols = collectLocalVarSymbols(varPlan)
   const mergedVarPlan = env.varPlan ? new Map([...env.varPlan, ...varPlan]) : varPlan
   const newBody = transformBlock(

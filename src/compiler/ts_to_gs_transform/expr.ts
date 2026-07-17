@@ -24,7 +24,12 @@ import {
 } from './ops.js'
 import { transformHandler } from './stmt.js'
 import type { Env, TimerCaptureInfo, TimerHandleMeta, VarPlanEntry } from './types.js'
-import { assertClientFMethodAvailable, makeFCall, withSameRange } from './utils.js'
+import {
+  assertClientFMethodAvailable,
+  isClientFMethodAvailable,
+  makeFCall,
+  withSameRange
+} from './utils.js'
 
 type NumericKind = 'float' | 'int' | 'mixed' | 'unknown'
 type LocalVarType = ListType | `${ListType}_list`
@@ -237,6 +242,33 @@ function wrapWithInt(env: Env, expr: ts.Expression): ts.Expression {
   return ts.factory.createCallExpression(ts.factory.createIdentifier('int'), undefined, [expr])
 }
 
+function makeModuloExpression(
+  env: Env,
+  left: ts.Expression,
+  right: ts.Expression,
+  kind: NumericKind
+): ts.Expression {
+  if (env.graphDocumentType !== 'client') {
+    return makeFCall(env, 'moduloOperation', [left, right])
+  }
+  if (kind !== 'int' && kind !== 'float') {
+    fail(env, left, 'client % requires both operands to have the same int or float type')
+  }
+
+  let quotient = makeFCall(env, 'division', [left, right])
+  if (kind === 'float') {
+    quotient = makeFCall(env, 'dataTypeConversion', [
+      quotient,
+      ts.factory.createStringLiteral('int')
+    ])
+    quotient = makeFCall(env, 'dataTypeConversion', [
+      quotient,
+      ts.factory.createStringLiteral('float')
+    ])
+  }
+  return makeFCall(env, 'subtraction', [left, makeFCall(env, 'multiplication', [quotient, right])])
+}
+
 function shouldWrapLoopIndexByContext(env: Env, id: ts.Identifier): boolean {
   if (!isLoopIndexIdentifier(env, id)) return false
   const parent = id.parent
@@ -315,6 +347,17 @@ function tryTransformWrappedArrayLiteral(
     const hasSpread = elements.some((e) => ts.isSpreadElement(e))
     if (!hasSpread) {
       const mapped = elements.map((e) => transformExpression(env, context, e))
+      // Client enum-list pins are not ordinary generic lists. Keep source enum arrays as
+      // JavaScript literals so parseValue(..., 'enum_list') can preserve them for the
+      // IR -> GIA type-list builder expansion.
+      if (
+        env.graphDocumentType === 'client' &&
+        elements.every(
+          (element) => getEnumTypeInfo(env, env.checker.getTypeAtLocation(element)).isEnum
+        )
+      ) {
+        return ts.factory.createArrayLiteralExpression(mapped, false)
+      }
       // vec3 literal: keep as `[x,y,z]` to preserve Vec3Value semantics
       if (shouldKeepArrayLiteralAsVec3(env, arr)) {
         return ts.factory.createArrayLiteralExpression(mapped, false)
@@ -1769,24 +1812,35 @@ export function transformExpression(
     let whenTrue = transformExpression(env, context, expr.whenTrue)
     let whenFalse = transformExpression(env, context, expr.whenFalse)
 
-    if (
+    const clientUsesDataConditional =
       env.graphDocumentType === 'client' &&
-      (env.clientSubType === 'bool_filter' || env.clientSubType === 'int_filter')
-    ) {
+      (env.clientSubType === 'bool_filter' ||
+        env.clientSubType === 'int_filter' ||
+        !isClientFMethodAvailable(env, 'initLocalVariable'))
+
+    if (clientUsesDataConditional) {
       const notCond = makeFCall(env, 'logicalNotOperation', [cond])
-      if (env.clientSubType === 'bool_filter') {
-        if (resultType !== 'bool') {
-          fail(env, expr, 'client bool filter conditional branches must return boolean values')
-        }
+      if (env.clientSubType === 'bool_filter' && resultType !== 'bool') {
+        fail(env, expr, 'client bool filter conditional branches must return boolean values')
+      }
+      if (env.clientSubType === 'int_filter' && resultType !== 'int' && resultType !== 'float') {
+        fail(env, expr, 'client int filter conditional branches must return numeric values')
+      }
+      if (resultType === 'bool') {
         return makeFCall(env, 'logicalOrOperation', [
           makeFCall(env, 'logicalAndOperation', [cond, whenTrue]),
           makeFCall(env, 'logicalAndOperation', [notCond, whenFalse])
         ])
       }
       if (resultType !== 'int' && resultType !== 'float') {
-        fail(env, expr, 'client int filter conditional branches must return numeric values')
+        fail(
+          env,
+          expr,
+          'client conditional expressions without local variables only support bool, int, or float results'
+        )
       }
-      const normalizeIntReturn = resultType === 'float' && env.clientHandler
+      const normalizeIntReturn =
+        resultType === 'float' && env.clientHandler && env.clientSubType === 'int_filter'
       if (normalizeIntReturn) {
         whenTrue = makeFCall(env, 'dataTypeConversion', [
           whenTrue,
@@ -2021,10 +2075,11 @@ export function transformExpression(
         }
         const opMethod = getCompoundAssignmentMethod(op)
         if (!opMethod) fail(env, expr, 'Unsupported compound assignment operator')
-        const computed = makeFCall(env, opMethod, [
-          ts.factory.createPropertyAccessExpression(leftId, 'value'),
-          rhs
-        ])
+        const leftValue = ts.factory.createPropertyAccessExpression(leftId, 'value')
+        const computed =
+          op === ts.SyntaxKind.PercentEqualsToken
+            ? makeModuloExpression(env, leftValue, rhs, getNumericKind(env, leftType))
+            : makeFCall(env, opMethod, [leftValue, rhs])
         const localAssign = buildTimerCaptureLocalAssignExpr(env, leftId, computed, captureInfo)
         return withSameRange(localAssign, expr)
       }
@@ -2047,10 +2102,11 @@ export function transformExpression(
         }
         const opMethod = getCompoundAssignmentMethod(op)
         if (!opMethod) fail(env, expr, 'Unsupported compound assignment operator')
-        const computed = makeFCall(env, opMethod, [
-          ts.factory.createPropertyAccessExpression(leftId, 'value'),
-          rhs
-        ])
+        const leftValue = ts.factory.createPropertyAccessExpression(leftId, 'value')
+        const computed =
+          op === ts.SyntaxKind.PercentEqualsToken
+            ? makeModuloExpression(env, leftValue, rhs, getNumericKind(env, leftType))
+            : makeFCall(env, opMethod, [leftValue, rhs])
         return withSameRange(
           makeFCall(env, 'setLocalVariable', [
             ts.factory.createPropertyAccessExpression(leftId, 'localVariable'),
@@ -2071,7 +2127,10 @@ export function transformExpression(
       }
       const opMethod = getCompoundAssignmentMethod(op)
       if (!opMethod) fail(env, expr, 'Unsupported compound assignment operator')
-      const computed = makeFCall(env, opMethod, [leftId, rhs])
+      const computed =
+        op === ts.SyntaxKind.PercentEqualsToken
+          ? makeModuloExpression(env, leftId, rhs, getNumericKind(env, leftType))
+          : makeFCall(env, opMethod, [leftId, rhs])
       return withSameRange(
         ts.factory.updateBinaryExpression(
           expr,
@@ -2150,6 +2209,14 @@ export function transformExpression(
             }
           }
         }
+      }
+      if (op === ts.SyntaxKind.PercentToken) {
+        return makeModuloExpression(
+          env,
+          left,
+          right,
+          getNumericKind(env, env.checker.getTypeAtLocation(expr.left))
+        )
       }
       if (info.swap) return makeFCall(env, info.method, [right, left])
       return makeFCall(env, info.method, [left, right])

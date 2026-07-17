@@ -30,6 +30,19 @@ export function isClientFMethodAvailable(env: Env, method: string): boolean {
   if (method === 'initLocalVariable' || method === '__gstsInitLocalVariable') {
     return methods.has('getLocalVariable') && methods.has('setLocalVariable')
   }
+  if (method === 'emptyLocalVariableList') {
+    return methods.has('getLocalVariable') && methods.has('setLocalVariable')
+  }
+  if (method === 'listIterationLoop') {
+    return (
+      methods.has('finiteLoop') &&
+      methods.has('getListLength') &&
+      methods.has('getCorrespondingValueFromList') &&
+      methods.has('subtraction')
+    )
+  }
+  if (method === 'continue') return methods.has('finiteLoop')
+  if (method === 'emptyList' || method === 'copyList' || method === 'return') return true
   return methods.has(getClientFMethodName(method))
 }
 
@@ -60,10 +73,11 @@ export function makeFCall(env: Env, method: string, args: ts.Expression[]) {
         ? '__gstsInitLocalVariable'
         : getClientFMethodName(method)
       : method
-  // Transform 内部统一使用服务器节点的 (list, index) 顺序；客户端同名节点是
-  // (index, list)，在唯一的 f 调用出口集中适配，避免各个 lowering 分支遗漏。
+  // Transform 内部统一使用服务器节点的参数顺序；客户端同名节点把索引/目标值
+  // 放在列表前面，在唯一的 f 调用出口集中适配，避免各 lowering 分支遗漏。
   const targetArgs =
-    env.graphDocumentType === 'client' && targetMethod === 'getCorrespondingValueFromList'
+    env.graphDocumentType === 'client' &&
+    (targetMethod === 'getCorrespondingValueFromList' || targetMethod === 'listIncludesThisValue')
       ? [args[1], args[0]]
       : args
   return ts.factory.createCallExpression(
