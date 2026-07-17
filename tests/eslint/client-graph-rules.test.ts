@@ -13,6 +13,7 @@ import clientLiteralArguments from '../../src/eslint/rules/client-literal-argume
 import clientLocalVariableSupport from '../../src/eslint/rules/client-local-variable-support.js'
 import clientRepeatedEvaluation from '../../src/eslint/rules/client-repeated-evaluation.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
+import clientSyntaxCapabilities from '../../src/eslint/rules/client-syntax-capabilities.js'
 import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
 import noJson from '../../src/eslint/rules/no-json.js'
 import switchRestrictions from '../../src/eslint/rules/switch-restrictions.js'
@@ -434,6 +435,8 @@ g.creationStatus().on('start', (_evt, f) => {
   const ready = true
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
+  const result = f.equal(1n, 1n) ? 1n : 0n
+  f.absoluteValueOperation(result)
 })
 g.boolFilter().on('start', (_evt, f) => f.equal(1n, 1n) ? true : false)`
     }
@@ -443,8 +446,8 @@ g.boolFilter().on('start', (_evt, f) => f.equal(1n, 1n) ? true : false)`
       filename,
       code: `${importG}
 g.creationStatusDecision().on('start', (_evt, f) => {
-  const result = f.equal(1n, 1n) ? 1n : 0n
-  f.absoluteValueOperation(result)
+  const result = f.equal(1n, 1n) ? 'yes' : 'no'
+  f.equal(result, 'yes')
 })`,
       errors: [{ message: /conditional expressions require a temporary local variable/ }]
     }
@@ -544,7 +547,16 @@ g.characterSkill().on('start', (_evt, _f) => {
     default:
       break
   }
-})`
+})
+g.creationSkill().on('start', (_evt, _f) => {
+  switch (1n) {
+    case 1n:
+      break
+    default:
+      break
+  }
+})
+`
     }
   ],
   invalid: [
@@ -573,6 +585,114 @@ g.intFilter().on('start', (_evt, _f) => {
   }
 })`,
       errors: [{ message: /Client int_filter graphs do not support switch/ }]
+    }
+  ]
+})
+
+ruleTester.run('client-syntax-capabilities', clientSyntaxCapabilities, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const values = list('int', [1n, 2n, 3n])
+  const complex = values.some((value) => value % 2n === 0n && value > 1n)
+  values.forEach((value) => {
+    f.equal(value, 1n)
+  })
+  for (const value of values) {
+    if (value === 1n) continue
+    if (value === 2n) break
+  }
+  let remainder = 5n
+  remainder %= 2n
+  if (complex) return
+})
+g.creationStatus().on('start', (_evt, f) => {
+  const values = list('int', [1n, 2n])
+  f.doubleBranch(values.some((value) => value === 1n), () => {}, () => {})
+})
+g.boolFilter().on('start', (_evt, _f) =>
+  list('int', [1n, 2n]).some((value) => value === 2n)
+)`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const values = list('int', [1n, 2n])
+  f.doubleBranch(values.some((value) => value > 1n), () => {}, () => {})
+})`,
+      errors: [{ message: /do not support some\(\); missing methods: initLocalVariable/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, _f) => {
+  list('int', [1n]).forEach((value) => {
+    bool(value)
+  })
+})`,
+      errors: [{ message: /do not support forEach\(\); missing methods: listIterationLoop/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, _f) => {
+  list('int', [1n]).push(2n)
+})`,
+      errors: [{ message: /do not support push\(\).*insertValueIntoList/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, _f) => {
+  for (const value of list('int', [1n])) {
+    bool(value)
+  }
+})`,
+      errors: [{ message: /do not support this loop; missing methods: listIterationLoop/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, _f) => {
+  for (let index = 0n; index < 2n; index++) {}
+})`,
+      errors: [{ message: /do not support this loop; missing methods: finiteLoop/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const mixed = f.addition(1n, 2n) % 2
+  f.equal(mixed, 0n)
+})`,
+      errors: [{ message: /Client % requires both operands to have the same int or float type/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, _f) => {
+  let mixed = 5n
+  mixed %= 2
+})`,
+      errors: [{ message: /Client % requires both operands to have the same int or float type/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, _f) => {
+  for (let index = 0n; index < 2n; index++) {
+    return
+  }
+})`,
+      errors: [
+        { message: /do not support this loop; missing methods: finiteLoop/ },
+        { message: /do not support return inside a loop; missing methods: initLocalVariable/ }
+      ]
     }
   ]
 })

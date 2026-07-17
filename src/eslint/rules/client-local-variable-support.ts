@@ -1,4 +1,5 @@
 import type { Rule } from 'eslint'
+import ts from 'typescript'
 
 import { clientSubTypeSupportsLocalVariables } from '../utils/client_capabilities.js'
 import { formatMessage } from '../utils/messages.js'
@@ -11,6 +12,15 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = { lang: 'both' }
+
+function isDataConditionalType(type: ts.Type): boolean {
+  if (type.isUnionOrIntersection()) return type.types.every(isDataConditionalType)
+  return (
+    (type.flags &
+      (ts.TypeFlags.BooleanLike | ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike)) !==
+    0
+  )
+}
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -30,6 +40,7 @@ const rule: Rule.RuleModule = {
     const options = readBaseOptions((context.options[0] ?? {}) as Options, DEFAULTS)
     const services = getParserServices(context)
     if (!services) return {}
+    const checker = services.program.getTypeChecker()
     const scopeIndex = buildNodeGraphScopeIndex(context)
 
     return {
@@ -37,6 +48,8 @@ const rule: Rule.RuleModule = {
         const info = scopeIndex.getEnclosingClientScope(node, { includeNestedFunctions: false })
         if (!info || clientSubTypeSupportsLocalVariables(info.subType)) return
         if (info.subType === 'bool_filter' || info.subType === 'int_filter') return
+        const tsNode = services.esTreeNodeToTSNodeMap.get(node)
+        if (tsNode && isDataConditionalType(checker.getTypeAtLocation(tsNode))) return
         context.report({
           node,
           message: formatMessage(

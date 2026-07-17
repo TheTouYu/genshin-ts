@@ -9,6 +9,7 @@ import clientLiteralArguments from './rules/client-literal-arguments.js'
 import clientLocalVariableSupport from './rules/client-local-variable-support.js'
 import clientRepeatedEvaluation from './rules/client-repeated-evaluation.js'
 import clientScopedGlobals from './rules/client-scoped-globals.js'
+import clientSyntaxCapabilities from './rules/client-syntax-capabilities.js'
 import forStructure from './rules/for-structure.js'
 import gstsFunctionPrefix from './rules/gsts-function-prefix.js'
 import gstsserverCallScope from './rules/gstsserver-call-scope.js'
@@ -56,6 +57,7 @@ export const rules = {
   'client-local-variable-support': clientLocalVariableSupport,
   'client-repeated-evaluation': clientRepeatedEvaluation,
   'client-scoped-globals': clientScopedGlobals,
+  'client-syntax-capabilities': clientSyntaxCapabilities,
   'for-structure': forStructure,
   'gsts-function-prefix': gstsFunctionPrefix,
   'gstsserver-call-scope': gstsserverCallScope,
@@ -140,7 +142,8 @@ export const configs = {
       'gsts/client-literal-arguments': 'error',
       'gsts/client-local-variable-support': 'error',
       'gsts/client-repeated-evaluation': 'warn',
-      'gsts/client-scoped-globals': 'error'
+      'gsts/client-scoped-globals': 'error',
+      'gsts/client-syntax-capabilities': 'error'
     }
   }
 }

@@ -274,18 +274,19 @@ const rule: Rule.RuleModule = {
         const clientInfo = scopeIndex.getEnclosingClientScope(node, {
           includeNestedFunctions: options.includeNestedFunctions
         })
-        if (
-          clientInfo &&
-          !(CLIENT_NODE_METHODS_BY_SUB_TYPE[clientInfo.subType] as readonly string[]).includes(
-            'multipleBranches'
-          )
-        ) {
+        const clientMethods = clientInfo
+          ? (CLIENT_NODE_METHODS_BY_SUB_TYPE[clientInfo.subType] as readonly string[])
+          : []
+        const supportsNativeSwitch = clientMethods.includes('multipleBranches')
+        const supportsDoubleBranchSwitch =
+          clientMethods.includes('doubleBranch') && clientMethods.includes('equal')
+        if (clientInfo && !supportsNativeSwitch && !supportsDoubleBranchSwitch) {
           context.report({
             node,
             message: formatMessage(
               options.lang,
-              `客户端 ${clientInfo.subType} 节点图不支持 switch（缺少 multipleBranches 节点）`,
-              `Client ${clientInfo.subType} graphs do not support switch (multipleBranches is unavailable)`
+              `客户端 ${clientInfo.subType} 节点图不支持 switch（缺少可用的分支节点组合）`,
+              `Client ${clientInfo.subType} graphs do not support switch (no supported branch-node lowering is available)`
             )
           })
           return
