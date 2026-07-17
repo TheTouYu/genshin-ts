@@ -1,7 +1,8 @@
 # 客户端节点支持计划
 
-> 状态：已验证（WP0 真实样本语义与 wire 基线已收口，生产实现尚未开始）
-> 来源：当前代码实现审计 + 上游 vendor 候选数据 + 真实客户端 GIA 观察 + 设计决策
+> 状态：已验证（WP0 已收口；WP1 vendor 最小兼容补丁已提交并通过自动回归、编辑器
+> 导入/回导对拍和首个样本游戏验证，尚未同步项目快照）
+> 来源：当前代码实现审计 + 上游 vendor 候选数据 + 真实客户端 GIA 观察 + 设计决策 + WP1 自动回归
 > 最近校验：2026-07-17
 > 适用范围：gsts 客户端节点支持的实施计划；真实 GIA 结论仅适用于本文记录的两个样本，不代表当前编译器已经支持客户端节点
 
@@ -482,15 +483,26 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions) {
 冻结路线：
 
 ```text
-当前 compat/genshin-ts-legacy-schema 基线
+当前 compat/genshin-ts-legacy-schema schema 基线
 → 建立客户端兼容工作分支/工作树
-→ 从上游 dev 选择性移植客户端能力
-→ 保留 legacy schema 和 field-101 Composite 兼容补丁
+→ 在 legacy Root/GraphUnit schema 上增加真实样本约束的最小客户端物化 seam
+→ 保留 field-101 Composite 兼容补丁
 → 运行 vendor server/client focused tests
 → 形成明确 vendor commit
-→ 同步该 commit 快照到 genshin-ts
+→ 同步该 commit 的必要快照到 genshin-ts
 → 项目只通过 gia_vendor.ts/adapter 使用
 ```
+
+`compat/genshin-ts-legacy-schema@497d9ec` 的精确边界是 protobuf schema 和 field-101
+回归基线，不是可独立运行并整体同步的完整 legacy encoder 基线。该分支中的旧
+`utils/gia_gen/graph.ts` 仍引用后来数据重构中删除的 `node_id.ts`、
+`node_pin_records.ts`、`helpers.ts` 和 `concrete_map.ts`；因此不得从该分支整目录覆盖项目
+vendor 快照。
+
+legacy 客户端数据/编码历史提交 `3309af7`、`ddb3112`、`2a411a4` 和 `7ef34e2`
+均已是 `497d9ec` 的祖先，不需要再次 cherry-pick。`c4f867d` 修改的是新
+`AssetBundle/ResourceEntry/PinInterface` schema，只能作为字段语义辅助来源，不能移植到当前
+`Root/GraphUnit/CompositeDef` schema。
 
 不顺带引入：
 
@@ -763,7 +775,43 @@ custom/local variable 节点及 Variant identity 提供候选证据；它不证�
 metadata、identity 和 pin 候选。它不证明 gsts 已能生成客户端图，不证明编辑器导入或回导行为，
 不证明特效/变量节点游戏行为，也不授权注入。
 
-### 10.4 后续拓扑样本
+### 10.4 WP1 materializer 编辑器与游戏验证
+
+2026-07-17，vendor worktree 的 `client_legacy.ts` 从结构化参数物化了与字面量参考样本逐字节一致的
+standalone GIA，并复制为：
+
+```text
+Beyond_Local_Export/gsts-WP1-client-materialized.gia
+```
+
+导入前文件为 585 bytes，SHA-256 为
+`0470fa9acc2d5ca4b16d6bc6ff735266abbece97a73032ee9fda1d6e641cc0cb`。用户确认：
+
+1. 客户端 skill 图编辑器导入成功；
+2. `Node Graph Begins → Play Timed Effects` 的节点、连线和参数显示正确；
+3. 未做无关编辑后重新导出成功；
+4. 游戏中实际触发并观察到预期特效行为。
+
+回导文件仍使用上述文件名。只读对拍观察到回导文件为 599 bytes，SHA-256 为
+`9140e166840e8739bfc15f451dca6842cc781c266dae42ca1e1b94acd2220deb`。schema 语义 diff 只有：
+
+```text
+graph.id.id:                  1082130433 → 1082130435
+graph.name:                   新建角色技能节点图 → 新建角色技能节点图_2
+inner graph.id.id:            1082130433 → 1082130435
+inner graph.name:             新建角色技能节点图 → 新建角色技能节点图_2
+filePath:                     编辑器按回导文件名和新时间戳重写
+```
+
+`which=11`、`gameVersion="6.7.0"`、两个节点、shell/kernel identity、物理 pin、hidden pin、
+client binding、执行连接和参数值均无语义差异。将上述 5 个图身份/导出元数据字段归一化后，导入前与
+回导后的 protobuf payload 均为 561 bytes 且逐字节一致。
+
+这构成首个字面量 `Play Timed Effects` client skill 图的自动编码、编辑器导入、回导结构/wire
+对拍和游戏行为闭环。范围只覆盖该样本，不证明其他客户端节点、Variant、变量、分支、signal、
+`g.client()` 或生产 Stage 3 已受支持。此次只复制 standalone GIA，没有注入或操作地图图 ID。
+
+### 10.5 后续拓扑样本
 
 首个执行节点基线确定后，仍需准备覆盖以下结构的独立最小图：
 
@@ -894,13 +942,21 @@ gameVersion = "6.7.0"
 - [x] 完成两个样本的逐字节 message round-trip；
 - [x] 记录工具限制、证据范围和剩余不确定性。
 
-### WP1：Vendor 客户端兼容补丁
+### WP1：Vendor 客户端兼容补丁（vendor 已提交，未同步项目快照）
 
-- 在 legacy schema 兼容基线上移植最小客户端图编码；
-- 保留 Composite field-101 补丁；
-- 建立 server/client focused vendor tests；
-- 形成可追溯 vendor commit；
-- 用户授权后同步项目快照。
+- [x] 在 `497d9ec` 上创建独立 `compat/genshin-ts-client-legacy-schema` worktree；
+- [x] 增加不依赖已删除旧 node-data 文件的最小 client skill graph materializer；
+- [x] 固化 Graph Start、Play Timed Effects、物理 pin、hidden pin 和 client binding；
+- [x] 保留并回归 Composite field-101；
+- [x] 两个 WP0 真实样本 message/container 逐字节 round-trip；
+- [x] 最小 client skill graph focused test；
+- [x] 用户编辑器导入并确认节点、连线和参数；
+- [x] 编辑器回导语义对拍，归一化身份元数据后 payload 逐字节一致；
+- [x] 用户确认游戏中实际触发并观察到预期特效；
+- [x] 审阅 vendor diff；
+- [x] 形成可追溯 vendor commit `5e05133`；
+- [ ] 再次授权后同步必要项目快照；
+- [ ] 项目 adapter 和 focused tests（同步阶段，不在本次 vendor worktree 修改内）。
 
 ### WP2：定义生成与覆盖报告
 
@@ -971,5 +1027,18 @@ gameVersion = "6.7.0"
 - 不同步未经精确补丁审查和用户授权的 vendor 客户端快照；
 - 不执行注入或游戏文件操作。
 
-WP0 已收口。下一步是先提交 WP1 vendor 兼容补丁的精确范围、来源、影响文件和验证命令，并取得
-用户授权；在授权前不得开始 vendor 修改、同步或生产实现。
+WP0 已收口。WP1 已获授权并在独立 vendor worktree 实现最小 legacy client materializer：
+
+```text
+branch:   compat/genshin-ts-client-legacy-schema
+base:     497d9ec940c6e13678e3997e6e45f7d5d6caea96
+commit:   5e05133  feat: materialize legacy client skill graphs
+worktree: /home/h/worktrees/gia-vendor-client-legacy
+```
+
+当前新增 `utils/gia_gen/client_legacy.ts` 及两个 focused test，并从 `utils/gia_gen/index.ts`
+导出；field-101、两个 WP0 样本逐字节 round-trip 和最小 skill graph 字段回归均通过。用户已完成首个
+字面量样本的编辑器导入、回导和游戏验证；归一化编辑器重写的图 ID、图名和 `filePath` 后，回导
+payload 与导入前逐字节一致。该证据仍只覆盖此样本。vendor 补丁已提交为 `5e05133`，但尚未同步到
+genshin-ts `src/thirdparty/`，也尚未修改项目 adapter、运行时或 Stage 3。下一步应规划并再次授权
+项目快照同步与 adapter focused tests。
