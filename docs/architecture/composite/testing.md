@@ -2,11 +2,97 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-11
-> 适用范围：gsts 当前复合节点测试脚本和验证流程
+> 最近校验：2026-07-18
+> 适用范围：gsts 当前复合节点测试脚本和验证流程；复合 GIA bug 的完整分析、修复和验收流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
 > 参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md) | [管线追踪](./pipeline-flow.md)
+
+## 0. 复合节点 Bug 的完整分析与修复流程
+
+涉及真实 `.gia`、复合节点输入/输出、`compositePins`、impl GraphNode、物理 pin 或游戏验证时，按下面顺序执行。不要直接根据某个节点的源码或一次生成结果猜测根因。
+
+### 0.1 先建立同构复现和证据基线
+
+1. **读取并保留真实参考文件**：记录路径、文件大小、SHA-256；只读 `user_edit/`，不修改参考样本。
+2. **解码真实 GIA**：先看 `CompositeDef.inputs/outputs`，再看 impl 节点 ID、concrete ID、物理 `InParam/OutParam`、`compositePins` 和数据连线。
+3. **编写最小同构复现**：复现文件放在 `tests/composite/`，输出放在 `tests/composite/output/`。复合名称、参数顺序、参数类型、内部节点族和边界映射应尽量对应参考文件。
+4. **先运行复现，不先修改生产代码**：确认当前输出确实重现用户观察到的结构错误。接口类型正确但物理 pin 缺失、`compositePins` 指向不存在 pin 等，必须分别记录。
+5. **保留 raw/wire 证据**：当语义 JSON 不能区分字段缺失与默认值时，补充 raw protobuf presence 或 round-trip 检查；decoded JSON 默认值不能单独证明 wire 字段存在。
+
+参考命令：
+
+```bash
+sha256sum <reference.gia>
+npx tsx tools/decode-gia.ts <reference.gia>
+NODE_OPTIONS='--no-deprecation' npx tsx tests/composite/<repro.ts>
+```
+
+### 0.2 扩大影响范围，不要把问题归因到第一个节点
+
+最小复现确认后，使用独立测试按节点族扩大范围，至少覆盖适用的几类：
+
+- 标量算术：加、减、乘、除、模、幂；
+- 比较和逻辑：等于、小于、大于、逻辑与/或/异或；
+- 向量：加、减、缩放、点乘、角度等；
+- 类型转换、嵌套复合、稀疏输入和已知特殊节点作为对照。
+
+每个样例都记录：接口声明类型、generic/concrete ID、边界 `compositePins`、物理输入/输出 pin 及类型。结果要区分：
+
+- **公共复合边界问题**：多个普通节点族都出现同一结构错误；
+- **节点族问题**：只有同一 vendor 节点族出现错误；
+- **特殊规则/合法例外**：例如 `data_type_conversion_*` 使用独立 concrete pin 规则；
+- **尚待验证**：只有 vendor 模板差异但没有真实 GIA 或游戏证据的现象。
+
+### 0.3 用主图做对照
+
+使用同一批普通节点、同样的值类型和连接类型，在 `g.server` 主图中直接生成对照 GIA。比较主图和复合 impl 图：
+
+```text
+主图普通节点：物理 InParam/OutParam 是否存在？
+复合 impl：同一节点是否因 capture/compositePins 处理而变化？
+```
+
+主图正常而复合 impl 异常时，优先检查 capture normalization、边界 pin 过滤、impl materializer 和 `compositePins` overlay，不要修改普通节点定义或 vendor schema。
+
+### 0.4 先写红灯回归，再做最小修复
+
+将最小复现改成能断言用户症状的 focused regression，例如：
+
+```text
+每条 InParam compositePin 都有对应的物理 GraphNode InParam；
+物理 pin 的类型与复合接口/连接类型一致；
+OutParam 和数据连线仍然存在；
+非边界 capture 的 pin-hole 行为不被改变。
+```
+
+先运行并确认它在旧实现上失败，再只修改负责该边界的最小函数。复合 Stage 3 同时存在 legacy-handwritten 和 shared-vendor-impl-graph 两条后端时，两条路径都要覆盖；注意 shared vendor 当前由 `stage3_backend.ts` 规定为 opt-in，默认未启用，不能把“显式开启共享路径通过”误报成“默认路径已切换”。
+
+### 0.5 分层验证和记录
+
+修复后按窄到宽执行：
+
+1. 最小红灯回归转绿；
+2. 受影响节点族调查；
+3. 主图对照；
+4. DTC、nested capture、sparse input、root/impl parity 等相邻回归；
+5. legacy 和显式启用 shared vendor 路径；
+6. 生产 TypeScript 改动后运行 `npm run build`，最后运行 `git diff --check`。
+
+报告必须分开写：
+
+- `当前代码实现`：源文件、函数和当前后端选择；
+- `真实 GIA 观察`：样本路径、命令、字段和适用范围；
+- `自动回归`：实际运行的命令和结果；
+- `GIA 文件复制/注入`：实际输出路径和目标，不能等同游戏正确；
+- `游戏内验证`：仅在用户或游戏记录确认后标记；
+- `待验证`：未有足够真实 GIA 或游戏证据的推测。
+
+测试构造错误也必须单独记录。例如无 metadata 的 `new float()` 不能直接作为 IR 节点参数；这类失败是 fixture 错误，不是生产编码失败。生成成功、自动回归通过、文件复制成功、注入成功和游戏内行为通过是不同证据等级，不能合并表述。
+
+### 0.6 修复后的文档与规则反馈
+
+如果修复改变了复合编码不变量，更新本文件或对应的 `gia-encoding.md`，写明当前实现、回归命令、真实 GIA 证据和游戏验证范围。每轮结束检查 `AGENTS.md` 与实际证据是否一致：高频、可复用、已证实的规则才进入 `AGENTS.md`；单个样本路径、临时实验和待验证现象留在测试或权威技术文档中。
 
 ---
 

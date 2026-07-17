@@ -6,6 +6,7 @@
 - 先读取目标目录最近的 `AGENTS.md`，再按任务读取匹配的 `.agents/skills/` 和相关文档。
 - 遇到结构歧义、真实 GIA 结论、游戏状态、布局取舍、注入或其他破坏性操作时，先说明证据、方案和影响，再向用户确认；不要猜测。
 - 确定涉及游戏引擎节点、API 或合法类型组合的工作包范围时，先查本地 docs-search；资料不足或需对齐编辑器公开支持范围时，再用项目级 `miliastra-knowledge` skill 查询官方节点规则。外部资料只用于缩小范围，仍须以当前源码、真实 GIA、自动回归和用户编辑器验证分层确认。
+- 处理或修复复合节点、`.gia`、Composite/GIA Stage 3、复合参数/引脚、`compositePins`、impl GraphNode 或 capture 边界 bug 时，修改前必须阅读 `docs/architecture/composite/testing.md` 的“复合节点 Bug 的完整分析与修复流程”，并按其中的同构复现、节点族影响调查、主图对照、红灯回归、legacy/shared 路径验证和证据分层执行；GIA 编码细节同时阅读 `docs/architecture/composite/gia-encoding.md`。
 - 修改前说明修改范围和验证方式；完成后如实报告已运行与未运行的命令及结果。
 
 ## 代码与文件边界
@@ -15,6 +16,8 @@
 - 不手改 `src/thirdparty/`；vendor 变更走独立的同步/维护流程。
 - `create-genshin-ts/` 是独立 npm 包；其模板中的规则面向最终用户，不能与仓库维护规则混用。
 - `docs/composite-ir/handover/` 仅作历史背景；当前行为以源码、测试和真实 GIA 证据为准。
+- `user_edit/` 是参考样本目录，只能读取用于解码分析，不可写入、修改或删除任何文件。
+  .gia 输出始终写入 `Beyond_Local_Export/` 根目录（游戏加载目录），而不是 `user_edit/` 下。
 
 ## 安全与 Git
 
