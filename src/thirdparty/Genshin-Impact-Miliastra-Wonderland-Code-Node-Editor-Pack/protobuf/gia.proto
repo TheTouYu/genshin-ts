@@ -300,8 +300,10 @@ enum ClientVarType {
   Prefab_ = 19;            // type: Pfb, typeid: 19
   ConfigurationList_ = 20; // type: L<Cfg>, typeid: 20
   PrefabList_ = 21;        // type
-  LocalVariable_ = 22;     // type
+  Structure_ = 22;         // type: Struct
+  StructureList_ = 23;     // type: L<Struct>
   Dictionary_ = 24;        // type: Dict<K,V>
+  FactionList_ = 25;       // type: L<Fct>
 }
 message GraphVariable {
   string name = 2;

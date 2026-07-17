@@ -3224,19 +3224,21 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
     "params": [
       {
         "name": "input1",
-        "irType": "int | bool | config_id | guid | vec3",
+        "irType": "float | int | bool | config_id | entity | faction | guid | prefab_id | str | vec3",
         "docZh": "",
         "docEn": ""
       },
       {
         "name": "input2",
-        "irType": "int | bool | config_id | guid | vec3",
+        "irType": "float | int | bool | config_id | entity | faction | guid | prefab_id | str | vec3",
         "docZh": "",
         "docEn": ""
       }
@@ -3255,10 +3257,15 @@
     },
     "reflect": {
       "variantKeys": [
+        "float|float",
         "int|int",
         "bool|bool",
         "config_id|config_id",
+        "entity|entity",
+        "faction|faction",
         "guid|guid",
+        "prefab_id|prefab_id",
+        "str|str",
         "vec3|vec3"
       ]
     },
@@ -3294,63 +3301,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "equal",
-    "nodeType": "equal",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "input1",
-        "irType": "int | bool | entity | faction | vec3",
-        "docZh": "",
-        "docEn": ""
-      },
-      {
-        "name": "input2",
-        "irType": "int | bool | entity | faction | vec3",
-        "docZh": "",
-        "docEn": ""
-      }
-    ],
-    "returns": [
-      {
-        "name": "result",
-        "irType": "bool",
-        "docZh": "结果",
-        "docEn": "Result"
-      }
-    ],
-    "docs": {
-      "en": "Determines whether two inputs are equal; Some Parameter Types have special comparison rules:; Floating Point Numbers: Floating Point Numbers are compared using approximate equality. When the difference between two Floating Point Numbers is less than an extremely small value, the two numbers are considered equal. For example: 2.0000001 and 2.0 are considered equal; 3D Vector: The x, y, and z components of a 3D Vector are compared using Floating Point approximate equality",
-      "zh": "判断两个输入是否相等; 部分参数类型有较为特殊的判定规则：; 浮点数：浮点数采用近似相等进行比较，当两个浮点数小于一个极小值时，这两个浮点数认为相等。例如：2.0000001与2.0认为相等; 三维向量：三维向量的x、y、z分别采用浮点数近似相等比较"
-    },
-    "reflect": {
-      "variantKeys": [
-        "int|int",
-        "bool|bool",
-        "entity|entity",
-        "faction|faction",
-        "vec3|vec3"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -3359,6 +3309,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"
@@ -4365,6 +4322,8 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
@@ -4377,7 +4336,7 @@
       },
       {
         "name": "dataList",
-        "irType": "float_list | int_list | bool_list | config_id_list | entity_list | faction_list | guid_list | str_list | vec3_list",
+        "irType": "float_list | int_list | bool_list | config_id_list | entity_list | faction_list | guid_list | prefab_id_list | str_list | vec3_list",
         "docZh": "数据列表",
         "docEn": "Data List"
       }
@@ -4385,7 +4344,7 @@
     "returns": [
       {
         "name": "result",
-        "irType": "float | int | bool | config_id | entity | faction | guid | str | vec3",
+        "irType": "float | int | bool | config_id | entity | faction | guid | prefab_id | str | vec3",
         "docZh": "结果",
         "docEn": "Result"
       }
@@ -4403,6 +4362,7 @@
         "entity_list",
         "faction_list",
         "guid_list",
+        "prefab_id_list",
         "str_list",
         "vec3_list"
       ]
@@ -4439,61 +4399,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "getCorrespondingValueFromList",
-    "nodeType": "get_corresponding_value_from_list",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "iD",
-        "irType": "int",
-        "docZh": "序号",
-        "docEn": "ID"
-      },
-      {
-        "name": "dataList",
-        "irType": "int_list | bool_list | entity_list",
-        "docZh": "数据列表",
-        "docEn": "Data List"
-      }
-    ],
-    "returns": [
-      {
-        "name": "result",
-        "irType": "int | bool | entity",
-        "docZh": "结果",
-        "docEn": "Result"
-      }
-    ],
-    "docs": {
-      "en": "Returns the value at the specified ID in the List. IDs start at 0",
-      "zh": "返回列表中指定序号对应的值。列表中序号从0开始"
-    },
-    "reflect": {
-      "variantKeys": [
-        "int_list",
-        "bool_list",
-        "entity_list"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -4502,6 +4407,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"
@@ -5862,13 +5774,15 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
     "params": [
       {
         "name": "inputList",
-        "irType": "int_list | entity_list",
+        "irType": "float_list | int_list | bool_list | config_id_list | entity_list | faction_list | guid_list | prefab_id_list | str_list | vec3_list",
         "docZh": "输入列表",
         "docEn": "Input List"
       }
@@ -5887,8 +5801,16 @@
     },
     "reflect": {
       "variantKeys": [
+        "float_list",
         "int_list",
-        "entity_list"
+        "bool_list",
+        "config_id_list",
+        "entity_list",
+        "faction_list",
+        "guid_list",
+        "prefab_id_list",
+        "str_list",
+        "vec3_list"
       ]
     },
     "modes": [
@@ -5923,53 +5845,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "getListLength",
-    "nodeType": "get_list_length",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "inputList",
-        "irType": "bool_list",
-        "docZh": "输入列表",
-        "docEn": "Input List"
-      }
-    ],
-    "returns": [
-      {
-        "name": "length",
-        "irType": "int",
-        "docZh": "长度",
-        "docEn": "Length"
-      }
-    ],
-    "docs": {
-      "en": "Returns the length of the list (number of elements)",
-      "zh": "获取列表长度（列表中的元素个数）"
-    },
-    "reflect": {
-      "variantKeys": [
-        "bool_list"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -5978,6 +5853,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"
@@ -8264,6 +8146,8 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
@@ -8331,59 +8215,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "greaterThan",
-    "nodeType": "greater_than",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "input1",
-        "irType": "float",
-        "docZh": "",
-        "docEn": ""
-      },
-      {
-        "name": "input2",
-        "irType": "float",
-        "docZh": "",
-        "docEn": ""
-      }
-    ],
-    "returns": [
-      {
-        "name": "result",
-        "irType": "bool",
-        "docZh": "结果",
-        "docEn": "Result"
-      }
-    ],
-    "docs": {
-      "en": "Returns whether the left value is greater than the right value",
-      "zh": "返回左值是否大于右值"
-    },
-    "reflect": {
-      "variantKeys": [
-        "float|float"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -8392,6 +8223,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"
@@ -8407,6 +8245,8 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
@@ -8474,59 +8314,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "greaterThanOrEqualTo",
-    "nodeType": "greater_than_or_equal_to",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "input1",
-        "irType": "float",
-        "docZh": "",
-        "docEn": ""
-      },
-      {
-        "name": "input2",
-        "irType": "float",
-        "docZh": "",
-        "docEn": ""
-      }
-    ],
-    "returns": [
-      {
-        "name": "result",
-        "irType": "bool",
-        "docZh": "结果",
-        "docEn": "Result"
-      }
-    ],
-    "docs": {
-      "en": "Returns whether the left value is greater than or equal to the right value",
-      "zh": "返回左值是否大于等于右值"
-    },
-    "reflect": {
-      "variantKeys": [
-        "float|float"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -8535,6 +8322,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"
@@ -8793,6 +8587,8 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
@@ -8860,59 +8656,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "lessThanOrEqualTo",
-    "nodeType": "less_than_or_equal_to",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "input1",
-        "irType": "float",
-        "docZh": "",
-        "docEn": ""
-      },
-      {
-        "name": "input2",
-        "irType": "float",
-        "docZh": "",
-        "docEn": ""
-      }
-    ],
-    "returns": [
-      {
-        "name": "result",
-        "irType": "bool",
-        "docZh": "结果",
-        "docEn": "Result"
-      }
-    ],
-    "docs": {
-      "en": "Returns whether the left value is less than or equal to the right value",
-      "zh": "返回左值是否小于等于右值"
-    },
-    "reflect": {
-      "variantKeys": [
-        "float|float"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -8921,6 +8664,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"
@@ -8936,6 +8686,8 @@
       "character_control_skill",
       "character_skill",
       "creation_skill",
+      "creation_status",
+      "creation_status_decision",
       "int_filter"
     ],
     "kind": "data",
@@ -9011,60 +8763,6 @@
         ]
       },
       {
-        "subType": "int_filter",
-        "modes": [
-          "beyond",
-          "classic"
-        ]
-      }
-    ]
-  },
-  {
-    "methodName": "listIncludesThisValue",
-    "nodeType": "list_includes_this_value",
-    "subTypes": [
-      "creation_status",
-      "creation_status_decision"
-    ],
-    "kind": "data",
-    "params": [
-      {
-        "name": "value",
-        "irType": "int | entity",
-        "docZh": "值",
-        "docEn": "Value"
-      },
-      {
-        "name": "list",
-        "irType": "int_list | entity_list",
-        "docZh": "列表",
-        "docEn": "List"
-      }
-    ],
-    "returns": [
-      {
-        "name": "result",
-        "irType": "bool",
-        "docZh": "结果",
-        "docEn": "Result"
-      }
-    ],
-    "docs": {
-      "en": "Returns whether the list contains the specified value",
-      "zh": "返回列表中是否包含指定值"
-    },
-    "reflect": {
-      "variantKeys": [
-        "int|int_list",
-        "entity|entity_list"
-      ]
-    },
-    "modes": [
-      "beyond",
-      "classic"
-    ],
-    "availability": [
-      {
         "subType": "creation_status",
         "modes": [
           "beyond",
@@ -9073,6 +8771,13 @@
       },
       {
         "subType": "creation_status_decision",
+        "modes": [
+          "beyond",
+          "classic"
+        ]
+      },
+      {
+        "subType": "int_filter",
         "modes": [
           "beyond",
           "classic"

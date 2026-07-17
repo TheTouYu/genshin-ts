@@ -435,8 +435,10 @@ export const ClientVarType = {
   Prefab_: 19,
   ConfigurationList_: 20,
   PrefabList_: 21,
-  LocalVariable_: 22,
-  Dictionary_: 24
+  Structure_: 22,
+  StructureList_: 23,
+  Dictionary_: 24,
+  FactionList_: 25
 } as const
 export type ClientVarType = (typeof ClientVarType)[keyof typeof ClientVarType]
 export interface GraphVariable {

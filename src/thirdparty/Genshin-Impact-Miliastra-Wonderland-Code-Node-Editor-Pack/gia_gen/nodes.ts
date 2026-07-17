@@ -684,8 +684,8 @@ export function get_id_client(node: NodeType): number {
       switch (node.e) {
         case -1: // Enum type
           return ClientVarType.EnumItem_
-        case 1017: // Local Variable
-          return ClientVarType.LocalVariable_
+        case 1017: // Client local variables are not represented by a ClientVarType handle.
+          return ClientVarType.UnknownVar_
       }
       // 其他枚举类型返回 Entity_ 或处理为 UnknownVar_
       return ClientVarType.Entity_
@@ -718,6 +718,8 @@ export function get_id_client(node: NodeType): number {
           break
         case 'e':
           return ClientVarType.EnumList_
+        case 's':
+          return ClientVarType.StructureList_
         default:
           break
       }
@@ -727,8 +729,7 @@ export function get_id_client(node: NodeType): number {
     case 'r':
       break
     case 's':
-      // 客户端没有 Struct 类型，使用错误处理
-      break
+      return ClientVarType.Structure_
   }
 
   // 不包含类型的走最后的报错逻辑
@@ -773,8 +774,10 @@ export function get_type_client(id: number): NodeType {
       return { t: 'l', i: { t: 'b', b: 'Gid' } }
     case ClientVarType.Faction_:
       return { t: 'b', b: 'Fct' }
-    case ClientVarType.LocalVariable_:
-      return { t: 'e', e: 1022 }
+    case ClientVarType.Structure_:
+      return { t: 's', f: [] }
+    case ClientVarType.StructureList_:
+      return { t: 'l', i: { t: 's', f: [] } }
     case ClientVarType.EnumList_:
       return { t: 'l', i: { t: 'e', e: -1 } }
     case ClientVarType.Configuration_:
@@ -785,6 +788,10 @@ export function get_type_client(id: number): NodeType {
       return { t: 'l', i: { t: 'b', b: 'Cfg' } }
     case ClientVarType.PrefabList_:
       return { t: 'l', i: { t: 'b', b: 'Pfb' } }
+    case ClientVarType.FactionList_:
+      return { t: 'l', i: { t: 'b', b: 'Fct' } }
+    case ClientVarType.Dictionary_:
+      return { t: 'd', k: { t: 'b', b: 'Ety' }, v: { t: 'b', b: 'Ety' } }
   }
   // 对于不支持的 ID，返回 undefined 或抛出错误
   if (STRICT) {

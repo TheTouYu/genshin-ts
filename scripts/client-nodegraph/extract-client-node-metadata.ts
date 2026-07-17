@@ -27,8 +27,9 @@ type DecodedNode = NonNullable<
 const DEFAULT_SAMPLE_ROOT = 'D:\\_S2\\mypy_test\\client_nodes'
 const GIA_PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
-const ROUND3_EVIDENCE_PATH = 'resources/client_structure_evidence.round3.json'
 const CLIENT_NODE_MODES_PATH = 'resources/client_node_modes.json'
+const CLIENT_NODE_STATIC_METADATA_PATH = 'resources/client_node_static_metadata.json'
+const CLIENT_NODE_CONCRETE_VARIANTS_PATH = 'resources/client_node_concrete_variants.json'
 
 const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
   角色技能节点图: 'character_skill',
@@ -44,6 +45,22 @@ const FAMILY_BY_DIR: Record<string, ClientGraphSubType> = {
 // (0x60000018 send / 0x6000001B receive observed in round-2 samples); they are
 // per-graph artifacts, not fixed node types, and are excluded from metadata.
 const DYNAMIC_GENERIC_ID_MIN = 0x60000000
+
+/** Nodes whose reflective pins are specialized by dedicated IR -> GIA handlers. */
+const CUSTOM_REFLECTIVE_PIN_SPECIALIZATION_NODE_TYPES = new Set([
+  'assembly_dictionary',
+  'create_dictionary',
+  'data_type_conversion',
+  'enumeration_match',
+  'get_custom_variable',
+  'get_list_of_keys_from_dictionary',
+  'get_list_of_values_from_dictionary',
+  'get_local_variable',
+  'query_dictionary_value_by_key',
+  'query_if_dictionary_contains_specific_key',
+  'query_if_dictionary_contains_specific_value',
+  'set_local_variable'
+])
 
 // The one node present in every sample of a family: begins for skill/status
 // families, the result end node for filter families.
@@ -84,7 +101,8 @@ const CLIENT_VAR_TYPE_NAMES: Record<number, string> = {
   19: 'prefab_id',
   20: 'config_id_list',
   21: 'prefab_id_list',
-  22: 'local_variable',
+  22: 'structure',
+  23: 'structure_list',
   24: 'dict',
   25: 'faction_list'
 }
@@ -103,11 +121,17 @@ type PinRecord = {
   kind: 'input' | 'output' | 'in_flow' | 'out_flow' | 'client_exec' | 'client_signal'
   type: string
   reflective?: boolean
+  /** editor dropdown row for this concrete reflective pin */
+  indexOfConcrete?: number
   clientVarType?: number
   /** single consistent literal payload observed across all set instances */
   defaultValue?: number | string | boolean | [number, number, number]
-  /** editor i2 index when it differs from i1 (round-3 pinIndexRemap evidence) */
+  /** editor i2 index when it differs from i1 (static Node protobuf evidence) */
   i2Index?: number
+  /** whether the editor exposes a connection socket for this input */
+  connectable?: boolean
+  /** exact editor connection type; enum pins use their enum class id */
+  connectionType?: number
 }
 
 type NodeRecord = {
@@ -142,6 +166,59 @@ type ClientNodeModeData = {
       classic: ClientGraphModeData
     }
   >
+}
+
+type StaticPinRecord = {
+  index: number
+  kind: PinRecord['kind']
+  i2Index?: number
+  clientVarType?: number
+  connectable?: boolean
+  connectionType?: number
+  variants?: Array<{ clientVarType?: number; connectionType?: number }>
+  defaultValue?: number | string | boolean | [number, number, number]
+}
+
+type ClientNodeStaticMetadata = {
+  formatVersion: 2
+  source: {
+    scannedNodeFiles: number
+    selectedClientNodes: number
+    aggregateSha256: string
+  }
+  summary: {
+    inputPins: number
+    connectableInputs: number
+    literalOnlyInputs: number
+    reflectiveInputs: number
+    pinsWithExplicitDefaults: number
+    concreteVariantGroups: number
+    concreteVariants: number
+    concreteVariantBindings: number
+  }
+  nodes: Array<{
+    genericId: number
+    sourceFile: string
+    sha256: string
+    pins: StaticPinRecord[]
+  }>
+}
+
+type StaticVariantBindingTuple = [number, number, number, number?, number?, number?]
+
+type ClientNodeConcreteVariants = {
+  formatVersion: 1
+  sourceAggregateSha256: string
+  nodes: Array<{
+    genericId: number
+    groups: Array<{
+      graphType: number
+      variants: Array<{
+        concreteId: number
+        bindings: StaticVariantBindingTuple[]
+      }>
+    }>
+  }>
 }
 
 function walkGiaFiles(dir: string): string[] {
@@ -270,28 +347,448 @@ function applyEditorStaticMetadata(records: NodeRecord[], modeData: ClientNodeMo
   return reused
 }
 
-/**
- * Round-3 verified i1->i2 pin remap table (32 genericIds, corpus-wide zero
- * conflicts). Keys are `${pinKind}:${i1Index}`, values the editor i2 index.
- */
-function loadPinIndexRemap(): Map<number, Map<string, number>> {
-  const evidence = JSON.parse(fs.readFileSync(ROUND3_EVIDENCE_PATH, 'utf8')) as {
-    pinIndexRemap: { nodes: Array<{ genericId: number; i1ToI2: Record<string, string> }> }
+function applyStaticPinMetadata(records: NodeRecord[], aggregates: GidAggregate[]) {
+  const data = JSON.parse(
+    fs.readFileSync(CLIENT_NODE_STATIC_METADATA_PATH, 'utf8')
+  ) as ClientNodeStaticMetadata
+  if (data.formatVersion !== 2) {
+    throw new Error(`[error] unsupported client static metadata v${data.formatVersion}`)
   }
-  const byGenericId = new Map<number, Map<string, number>>()
-  for (const node of evidence.pinIndexRemap.nodes) {
-    const remap = new Map<string, number>()
-    for (const [from, to] of Object.entries(node.i1ToI2)) {
-      const f = from.match(/^k(\d+)\[(\d+)]$/)
-      const t = to.match(/^k(\d+)\[(\d+)]$/)
-      if (!f || !t || f[1] !== t[1]) {
-        throw new Error(`[error] bad i1ToI2 entry ${from} -> ${to} (genericId ${node.genericId})`)
-      }
-      remap.set(`${f[1]}:${f[2]}`, Number(t[2]))
+  const staticByGenericId = new Map(data.nodes.map((node) => [node.genericId, node]))
+  const observedPinsByGenericId = new Map<number, Set<string>>()
+  const basePinsByGenericId = new Map<number, Set<string>>()
+  const i2Corrections = new Map<
+    string,
+    { genericId: number; kind: PinRecord['kind']; index: number; from: number; to: number }
+  >()
+  const defaultValueCorrections = new Map<
+    string,
+    {
+      genericId: number
+      index: number
+      clientVarType?: number
+      from: PinRecord['defaultValue']
+      to: StaticPinRecord['defaultValue']
     }
-    byGenericId.set(node.genericId, remap)
+  >()
+  let sampleConnectedInputs = 0
+  const distinctSampleConnectedInputs = new Set<string>()
+  const defaultValuesEqual = (
+    sample: PinRecord['defaultValue'],
+    editor: StaticPinRecord['defaultValue'],
+    clientVarType: number | undefined
+  ) => {
+    if (clientVarType === 5) return Boolean(sample) === Boolean(editor)
+    return JSON.stringify(sample) === JSON.stringify(editor)
   }
-  return byGenericId
+
+  const enrichPin = (genericId: number, pin: PinRecord, specialized = false) => {
+    const staticNode = staticByGenericId.get(genericId)
+    if (!staticNode) throw new Error(`[error] missing static metadata for genericId ${genericId}`)
+    const staticPin = staticNode.pins.find(
+      (candidate) => candidate.kind === pin.kind && candidate.index === pin.index
+    )
+    if (!staticPin) {
+      throw new Error(`[error] static metadata misses ${genericId} ${pin.kind} pin #${pin.index}`)
+    }
+    const seen = observedPinsByGenericId.get(genericId) ?? new Set<string>()
+    seen.add(`${pin.kind}:${pin.index}`)
+    observedPinsByGenericId.set(genericId, seen)
+
+    const staticVariant = specialized ? staticPin.variants?.[pin.indexOfConcrete ?? 0] : undefined
+    const expectedClientVarType = staticVariant?.clientVarType ?? staticPin.clientVarType
+    if (
+      (!pin.reflective || specialized) &&
+      pin.clientVarType !== undefined &&
+      expectedClientVarType !== undefined &&
+      pin.clientVarType !== expectedClientVarType
+    ) {
+      throw new Error(
+        `[error] ${genericId} ${pin.kind} pin #${pin.index} type mismatch: ` +
+          `samples=${pin.clientVarType}, static=${expectedClientVarType}`
+      )
+    }
+
+    if (staticPin.variants?.length && !specialized) {
+      pin.type = 'generic'
+      pin.reflective = true
+      delete pin.clientVarType
+    }
+
+    const oldI2 = pin.i2Index ?? pin.index
+    const staticI2 = staticPin.i2Index ?? pin.index
+    if (oldI2 !== staticI2) {
+      i2Corrections.set(`${genericId}:${pin.kind}:${pin.index}`, {
+        genericId,
+        kind: pin.kind,
+        index: pin.index,
+        from: oldI2,
+        to: staticI2
+      })
+    }
+    if (staticI2 === pin.index) delete pin.i2Index
+    else pin.i2Index = staticI2
+
+    if (pin.kind === 'input') pin.connectable = staticPin.connectable ?? false
+    if (pin.kind === 'input' && staticPin.defaultValue !== undefined) {
+      if (
+        pin.defaultValue !== undefined &&
+        !defaultValuesEqual(
+          pin.defaultValue,
+          staticPin.defaultValue,
+          pin.clientVarType ?? staticPin.clientVarType
+        )
+      ) {
+        defaultValueCorrections.set(`${genericId}:${pin.index}`, {
+          genericId,
+          index: pin.index,
+          ...(pin.clientVarType !== undefined ? { clientVarType: pin.clientVarType } : {}),
+          from: pin.defaultValue,
+          to: staticPin.defaultValue
+        })
+      }
+      pin.defaultValue = staticPin.defaultValue
+    }
+    const connectionTypes = (
+      specialized
+        ? [staticVariant?.connectionType ?? staticPin.connectionType]
+        : [
+            staticPin.connectionType,
+            ...(staticPin.variants ?? [])
+              .filter(
+                (variant) =>
+                  pin.clientVarType === undefined || variant.clientVarType === pin.clientVarType
+              )
+              .map((variant) => variant.connectionType)
+          ]
+    ).filter((value): value is number => value !== undefined)
+    const uniqueConnectionTypes = [...new Set(connectionTypes)]
+    if (uniqueConnectionTypes.length === 1) pin.connectionType = uniqueConnectionTypes[0]
+    else delete pin.connectionType
+  }
+
+  for (const record of records) {
+    for (const pin of [...record.inputs, ...record.outputs, ...(record.flows ?? [])]) {
+      const basePins = basePinsByGenericId.get(record.genericId) ?? new Set<string>()
+      basePins.add(`${pin.kind}:${pin.index}`)
+      basePinsByGenericId.set(record.genericId, basePins)
+      enrichPin(record.genericId, pin)
+    }
+    for (const variant of record.reflectMap ?? []) {
+      for (const pin of variant.pins ?? []) enrichPin(record.genericId, pin, true)
+    }
+  }
+
+  for (const aggregate of aggregates) {
+    const staticNode = staticByGenericId.get(aggregate.genericId)
+    if (!staticNode) continue
+    for (const instance of aggregate.instances) {
+      for (const pin of instance.pins) {
+        if (pin.kind !== 3 || !pin.connected) continue
+        sampleConnectedInputs += 1
+        distinctSampleConnectedInputs.add(`${aggregate.genericId}:${pin.index}`)
+        const staticPin = staticNode.pins.find(
+          (candidate) => candidate.kind === 'input' && candidate.index === pin.index
+        )
+        if (!staticPin) {
+          throw new Error(
+            `[error] sample connects missing static input ${aggregate.genericId} pin #${pin.index}`
+          )
+        }
+        if (!staticPin.connectable) {
+          throw new Error(
+            `[error] sample connects literal-only input ${aggregate.genericId} pin #${pin.index}`
+          )
+        }
+        const staticI2 = staticPin.i2Index ?? pin.index
+        if (pin.i2Index !== staticI2) {
+          throw new Error(
+            `[error] sample/static i2 mismatch for ${aggregate.genericId} input #${pin.index}: ` +
+              `sample=${pin.i2Index}, static=${staticI2}`
+          )
+        }
+      }
+    }
+  }
+
+  const missingFromBaseMetadata = data.nodes.flatMap((node) => {
+    const seen = basePinsByGenericId.get(node.genericId) ?? new Set<string>()
+    return node.pins
+      .filter((pin) => !seen.has(`${pin.kind}:${pin.index}`))
+      .map((pin) => ({ genericId: node.genericId, kind: pin.kind, index: pin.index }))
+  })
+  const missingFromAnySample = data.nodes.flatMap((node) => {
+    const seen = observedPinsByGenericId.get(node.genericId) ?? new Set<string>()
+    return node.pins
+      .filter((pin) => !seen.has(`${pin.kind}:${pin.index}`))
+      .map((pin) => ({ genericId: node.genericId, kind: pin.kind, index: pin.index }))
+  })
+  return {
+    source: CLIENT_NODE_STATIC_METADATA_PATH,
+    ...data.source,
+    ...data.summary,
+    i2CorrectionCount: i2Corrections.size,
+    i2Corrections: [...i2Corrections.values()].sort(
+      (a, b) => a.genericId - b.genericId || a.kind.localeCompare(b.kind) || a.index - b.index
+    ),
+    defaultValueCorrectionCount: defaultValueCorrections.size,
+    defaultValueCorrections: [...defaultValueCorrections.values()].sort(
+      (a, b) => a.genericId - b.genericId || a.index - b.index
+    ),
+    pinsAbsentFromBaseMetadata: missingFromBaseMetadata.length,
+    pinsAbsentFromAnySampleEvidence: missingFromAnySample.length,
+    sampleConnectedInputs,
+    distinctSampleConnectedInputs: distinctSampleConnectedInputs.size,
+    absentFromBaseMetadata: missingFromBaseMetadata,
+    absentFromAnySampleEvidence: missingFromAnySample
+  }
+}
+
+function applyStaticConcreteVariants(records: NodeRecord[]) {
+  const pinData = JSON.parse(
+    fs.readFileSync(CLIENT_NODE_STATIC_METADATA_PATH, 'utf8')
+  ) as ClientNodeStaticMetadata
+  const variantData = JSON.parse(
+    fs.readFileSync(CLIENT_NODE_CONCRETE_VARIANTS_PATH, 'utf8')
+  ) as ClientNodeConcreteVariants
+  if (variantData.formatVersion !== 1) {
+    throw new Error(`[error] unsupported client concrete variants v${variantData.formatVersion}`)
+  }
+  if (variantData.sourceAggregateSha256 !== pinData.source.aggregateSha256) {
+    throw new Error('[error] client static pin and concrete variant sources do not match')
+  }
+
+  const staticPinsByGenericId = new Map(pinData.nodes.map((node) => [node.genericId, node]))
+  const variantGroupsByGenericId = new Map(
+    variantData.nodes.map((node) => [node.genericId, node.groups])
+  )
+  const additions = new Map<
+    number,
+    {
+      genericId: number
+      nodeTypes: Set<string>
+      before: Set<string>
+      after: Set<string>
+    }
+  >()
+  const concreteIdCorrections: Array<{
+    subType: ClientGraphSubType
+    nodeType: string
+    genericId: number
+    from: number | string | null
+    to: number | null
+  }> = []
+  let recordsWithStaticVariants = 0
+  let replacedRecords = 0
+  let validatedSampleVariants = 0
+  let customSpecializationRecords = 0
+
+  const expandedBinding = (genericId: number, binding: StaticVariantBindingTuple): PinRecord => {
+    const [encodedKind, index, indexOfConcrete] = binding
+    const kind = PIN_KIND_NAMES[encodedKind]
+    if (!kind) throw new Error(`[error] static variant ${genericId} has pin kind ${encodedKind}`)
+    const staticNode = staticPinsByGenericId.get(genericId)
+    const staticPin = staticNode?.pins.find(
+      (candidate) => candidate.kind === kind && candidate.index === index
+    )
+    if (!staticPin) {
+      throw new Error(`[error] static variant ${genericId} misses ${kind} pin #${index}`)
+    }
+    const resolved =
+      staticPin.variants?.[indexOfConcrete] ?? (indexOfConcrete === 0 ? staticPin : undefined)
+    if (!resolved) {
+      throw new Error(
+        `[error] static variant ${genericId} ${kind} pin #${index} has invalid ` +
+          `indexOfConcrete ${indexOfConcrete}`
+      )
+    }
+    const clientVarType = resolved.clientVarType
+    return {
+      index,
+      kind,
+      type:
+        kind === 'in_flow' || kind === 'out_flow'
+          ? 'flow'
+          : clientVarType === undefined
+            ? 'unknown'
+            : (CLIENT_VAR_TYPE_NAMES[clientVarType] ?? `client_${clientVarType}`),
+      indexOfConcrete,
+      ...(clientVarType !== undefined ? { clientVarType } : {}),
+      ...(staticPin.i2Index !== undefined ? { i2Index: staticPin.i2Index } : {}),
+      ...(kind === 'input' ? { connectable: staticPin.connectable ?? false } : {}),
+      ...(resolved.connectionType !== undefined ? { connectionType: resolved.connectionType } : {})
+    }
+  }
+
+  for (const record of records) {
+    const group = variantGroupsByGenericId
+      .get(record.genericId)
+      ?.find((candidate) => candidate.graphType === record.graphType)
+    if (!group?.variants.length) continue
+    recordsWithStaticVariants += 1
+
+    const expanded = group.variants.map((variant) => ({
+      concreteId: variant.concreteId,
+      bindings: variant.bindings.map((binding) => expandedBinding(record.genericId, binding))
+    }))
+
+    // Every sample-derived pin specialization must occur verbatim in the
+    // editor's static table. This validates old evidence before replacing it.
+    for (const sampleVariant of record.reflectMap ?? []) {
+      const matches = expanded.filter((variant) => variant.concreteId === sampleVariant.concreteId)
+      const matched = matches.some((variant) =>
+        (sampleVariant.pins ?? []).every((samplePin) => {
+          const staticPin = variant.bindings.find(
+            (pin) => pin.kind === samplePin.kind && pin.index === samplePin.index
+          )
+          return (
+            staticPin !== undefined &&
+            (samplePin.clientVarType === undefined ||
+              staticPin.clientVarType === samplePin.clientVarType) &&
+            (samplePin.indexOfConcrete === undefined ||
+              staticPin.indexOfConcrete === samplePin.indexOfConcrete)
+          )
+        })
+      )
+      if (!matched) {
+        throw new Error(
+          `[error] sampled reflect variant is absent from static table: ` +
+            `${record.subType}.${record.nodeType} cid=${sampleVariant.concreteId} ` +
+            `key=${sampleVariant.variantKey}`
+        )
+      }
+      validatedSampleVariants += 1
+    }
+
+    const concreteIds = new Set(group.variants.map((variant) => variant.concreteId))
+    const staticConcreteId = concreteIds.size === 1 ? [...concreteIds][0] : null
+    if (record.concreteId !== staticConcreteId) {
+      concreteIdCorrections.push({
+        subType: record.subType,
+        nodeType: record.nodeType,
+        genericId: record.genericId,
+        from: record.concreteId,
+        to: staticConcreteId
+      })
+      record.concreteId = staticConcreteId
+    }
+
+    if (CUSTOM_REFLECTIVE_PIN_SPECIALIZATION_NODE_TYPES.has(record.nodeType)) {
+      customSpecializationRecords += 1
+      continue
+    }
+
+    const reflectiveInputs = record.inputs
+      .filter((pin) => pin.reflective)
+      .map((pin) => pin.index)
+      .sort((a, b) => a - b)
+    const reflectiveOutputs = record.outputs
+      .filter((pin) => pin.reflective)
+      .map((pin) => pin.index)
+      .sort((a, b) => a - b)
+    if (!reflectiveInputs.length) continue
+
+    const variantsByKey = new Map<string, ReflectVariant>()
+    for (const variant of expanded) {
+      const pins: PinRecord[] = []
+      for (const [kind, indexes] of [
+        ['input', reflectiveInputs],
+        ['output', reflectiveOutputs]
+      ] as const) {
+        for (const index of indexes) {
+          const pin = variant.bindings.find(
+            (candidate) => candidate.kind === kind && candidate.index === index
+          )
+          if (!pin?.clientVarType) {
+            throw new Error(
+              `[error] static ${record.genericId} cid=${variant.concreteId} misses reflective ` +
+                `${kind} pin #${index}`
+            )
+          }
+          pins.push(pin)
+        }
+      }
+      const variantKey = reflectiveInputs
+        .map(
+          (index) => pins.find((pin) => pin.kind === 'input' && pin.index === index)!.clientVarType!
+        )
+        .join(',')
+      const normalized: ReflectVariant = {
+        concreteId: variant.concreteId,
+        variantKey,
+        pins
+      }
+      const prior = variantsByKey.get(variantKey)
+      if (prior) {
+        const comparable = (value: ReflectVariant) =>
+          JSON.stringify({
+            concreteId: value.concreteId,
+            pins: value.pins?.map((pin) => ({
+              kind: pin.kind,
+              index: pin.index,
+              clientVarType: pin.clientVarType,
+              indexOfConcrete: pin.indexOfConcrete
+            }))
+          })
+        if (comparable(prior) !== comparable(normalized)) {
+          throw new Error(
+            `[error] static ${record.genericId} variant key "${variantKey}" is ambiguous`
+          )
+        }
+        continue
+      }
+      variantsByKey.set(variantKey, normalized)
+    }
+
+    const before = new Set(
+      (record.reflectMap ?? []).map((variant) => `${variant.variantKey}:${variant.concreteId}`)
+    )
+    const staticVariants = [...variantsByKey.values()].sort(
+      (a, b) =>
+        Number(a.concreteId) - Number(b.concreteId) || a.variantKey.localeCompare(b.variantKey)
+    )
+    record.reflectMap = staticVariants
+    record.specialKind = 'reflect'
+    replacedRecords += 1
+    const after = new Set(
+      staticVariants.map((variant) => `${variant.variantKey}:${variant.concreteId}`)
+    )
+    const entry = additions.get(record.genericId) ?? {
+      genericId: record.genericId,
+      nodeTypes: new Set<string>(),
+      before: new Set<string>(),
+      after: new Set<string>()
+    }
+    entry.nodeTypes.add(record.nodeType)
+    before.forEach((value) => entry.before.add(value))
+    after.forEach((value) => entry.after.add(value))
+    additions.set(record.genericId, entry)
+  }
+
+  return {
+    source: CLIENT_NODE_CONCRETE_VARIANTS_PATH,
+    recordsWithStaticVariants,
+    replacedRecords,
+    customSpecializationRecords,
+    validatedSampleVariants,
+    concreteIdCorrectionCount: concreteIdCorrections.length,
+    concreteIdCorrections,
+    addedVariantCount: [...additions.values()].reduce(
+      (count, entry) =>
+        count + [...entry.after].filter((variant) => !entry.before.has(variant)).length,
+      0
+    ),
+    additions: [...additions.values()]
+      .map((entry) => ({
+        genericId: entry.genericId,
+        nodeTypes: [...entry.nodeTypes].sort(),
+        before: entry.before.size,
+        after: entry.after.size,
+        added: [...entry.after].filter((variant) => !entry.before.has(variant)).sort()
+      }))
+      .filter((entry) => entry.added.length)
+      .sort((a, b) => a.genericId - b.genericId)
+  }
 }
 
 function familyFromFile(sampleRoot: string, file: string): ClientGraphSubType | undefined {
@@ -373,10 +870,14 @@ function englishNodeType(
 type PinInstance = {
   kind: number
   index: number
+  i2Index: number
   type: number
+  connected: boolean
   // ConcreteBase wrapper with indexOfConcrete === -1 marks an unresolved reflective pin
   unresolvedReflective: boolean
   wrappedConcrete: boolean
+  /** editor dropdown row; omitted only for non-ConcreteBase pins */
+  indexOfConcrete?: number
   /** scalar payload observed on this pin (unwrapped b* field) */
   literal?: { payload: PinLiteral; set: boolean }
 }
@@ -422,12 +923,17 @@ function pinInstances(node: DecodedNode): PinInstance[] {
   return (node.pins ?? []).map((pin) => {
     const ioc = pin.value?.bConcreteValue?.indexOfConcrete
     const payload = pinLiteralPayload(pin.value)
+    const wrappedConcrete = Number(pin.value?.class) === 10000
+    const indexOfConcrete = wrappedConcrete ? Number(ioc ?? 0) : undefined
     return {
       kind: Number(pin.i1?.kind ?? 0),
       index: Number(pin.i1?.index ?? 0),
+      i2Index: Number(pin.i2?.index ?? pin.i1?.index ?? 0),
       type: Number(pin.type ?? 0),
-      unresolvedReflective: Number(pin.value?.class) === 10000 && Number(ioc ?? 0) === -1,
-      wrappedConcrete: Number(pin.value?.class) === 10000,
+      connected: Boolean(pin.connects?.length),
+      unresolvedReflective: indexOfConcrete === -1,
+      wrappedConcrete,
+      ...(indexOfConcrete !== undefined ? { indexOfConcrete } : {}),
       ...(payload !== undefined
         ? { literal: { payload, set: Boolean(pin.value?.alreadySetVal) } }
         : {})
@@ -445,6 +951,7 @@ function mergePins(agg: GidAggregate): {
     index: number
     types: Set<number>
     sawUnresolved: boolean
+    sawConcreteWrapper: boolean
     /** payloads carried by pins the sample author did not touch (editor defaults) */
     unsetPayloads: Set<string>
   }
@@ -457,11 +964,13 @@ function mergePins(agg: GidAggregate): {
         index: pin.index,
         types: new Set<number>(),
         sawUnresolved: false,
+        sawConcreteWrapper: false,
         unsetPayloads: new Set<string>()
       }
       merged.set(key, m)
       if (pin.type !== 0) m.types.add(pin.type)
       if (pin.unresolvedReflective) m.sawUnresolved = true
+      if (pin.wrappedConcrete) m.sawConcreteWrapper = true
       if (pin.literal !== undefined && !pin.literal.set) {
         m.unsetPayloads.add(JSON.stringify(pin.literal.payload))
       }
@@ -477,7 +986,7 @@ function mergePins(agg: GidAggregate): {
       throw new Error(`[error] ${agg.subType}:${agg.genericId} unknown pin kind ${m.kind}`)
     }
     const isFlow = kind === 'in_flow' || kind === 'out_flow'
-    const reflective = !isFlow && (m.sawUnresolved || m.types.size > 1)
+    const reflective = !isFlow && (m.sawUnresolved || m.sawConcreteWrapper || m.types.size > 1)
     const singleType = m.types.size === 1 ? [...m.types][0] : undefined
     const record: PinRecord = {
       index: m.index,
@@ -579,12 +1088,39 @@ function deriveReflectMap(
     )
     const inst = candidates[0]
     if (inst) {
+      const observedIoc = (kind: number, index: number, clientVarType: number) => {
+        const values = new Set(
+          candidates.flatMap((candidate) =>
+            candidate.pins
+              .filter(
+                (pin) =>
+                  pin.kind === kind &&
+                  pin.index === index &&
+                  pin.type === clientVarType &&
+                  pin.indexOfConcrete !== undefined &&
+                  pin.indexOfConcrete >= 0
+              )
+              .map((pin) => pin.indexOfConcrete!)
+          )
+        )
+        if (values.size > 1) {
+          conflicts.push(
+            `concreteId ${cid} pin k${kind}#${index} has multiple indexOfConcrete values: ` +
+              [...values].sort((a, b) => a - b).join(' | ')
+          )
+          return undefined
+        }
+        return [...values][0]
+      }
+
       for (const idx of reflectiveInputIndexes) {
         const pin = inst.pins.find((p) => p.kind === 3 && p.index === idx)!
+        const indexOfConcrete = observedIoc(3, idx, pin.type)
         variantPins.push({
           index: idx,
           kind: 'input',
           type: CLIENT_VAR_TYPE_NAMES[pin.type] ?? `client_${pin.type}`,
+          ...(indexOfConcrete !== undefined ? { indexOfConcrete } : {}),
           clientVarType: pin.type
         })
       }
@@ -608,10 +1144,12 @@ function deriveReflectMap(
         }
         const [type] = observed
         if (type === undefined) continue
+        const indexOfConcrete = observedIoc(4, idx, type)
         variantPins.push({
           index: idx,
           kind: 'output',
           type: CLIENT_VAR_TYPE_NAMES[type] ?? `client_${type}`,
+          ...(indexOfConcrete !== undefined ? { indexOfConcrete } : {}),
           clientVarType: type
         })
       }
@@ -982,7 +1520,6 @@ function main() {
   )
 
   const docAlignment = buildDocNameAlignment()
-  const pinIndexRemapByGid = loadPinIndexRemap()
   const records: NodeRecord[] = []
   const nodeTypeSeen = new Map<string, string>()
   const missingEnglishNames: Array<{
@@ -1014,6 +1551,7 @@ function main() {
   type ReflectDerivation = {
     record: NodeRecord
     reflectiveInputIndexes: number[]
+    reflectiveOutputIndexes: number[]
     observedConcreteIds: number[]
     variants: ReflectVariant[]
     conflicts: string[]
@@ -1077,13 +1615,6 @@ function main() {
     }
 
     const { records: pinRecords, reflectiveInputIndexes, reflectiveOutputIndexes } = mergePins(agg)
-    const i2Remap = pinIndexRemapByGid.get(agg.genericId)
-    if (i2Remap) {
-      for (const [key, pin] of pinRecords) {
-        const i2 = i2Remap.get(key)
-        if (i2 !== undefined) pin.i2Index = i2
-      }
-    }
     const inputs: PinRecord[] = []
     const outputs: PinRecord[] = []
     const flows: PinRecord[] = []
@@ -1125,6 +1656,7 @@ function main() {
       reflectDerivations.push({
         record,
         reflectiveInputIndexes,
+        reflectiveOutputIndexes,
         observedConcreteIds: [...concreteIds].sort((a, b) => a - b),
         variants,
         conflicts,
@@ -1180,12 +1712,25 @@ function main() {
   }
 
   for (const [gid, group] of derivationsByGid) {
-    const conflicts = group.flatMap((d) => d.conflicts)
+    // 这些节点的下拉行还依赖枚举类、目标类型或字典键值类型，转换器有独立
+    // 处理；同一 variantKey 出现多个 ioc 在这里是预期行为。
+    const customPinSpecialization = group.every((derivation) =>
+      CUSTOM_REFLECTIVE_PIN_SPECIALIZATION_NODE_TYPES.has(derivation.record.nodeType)
+    )
+    const conflicts = group
+      .flatMap((d) => d.conflicts)
+      .filter((message) => !(customPinSpecialization && message.includes('indexOfConcrete')))
     const outputDrifts = group.flatMap((d) => d.outputDrifts)
     const indexSets = new Set(group.map((d) => d.reflectiveInputIndexes.join(',')))
     if (indexSets.size > 1) {
       conflicts.push(
         `genericId ${gid} reflective input indexes differ across families: ${[...indexSets].join(' | ')}`
+      )
+    }
+    const outputIndexSets = new Set(group.map((d) => d.reflectiveOutputIndexes.join(',')))
+    if (outputIndexSets.size > 1) {
+      conflicts.push(
+        `genericId ${gid} reflective output indexes differ across families: ${[...outputIndexSets].join(' | ')}`
       )
     }
 
@@ -1215,30 +1760,55 @@ function main() {
         if (!existing) {
           union.set(v.variantKey, v)
         } else {
-          // 同键变体跨族合并：输入引脚按键构造必然一致；输出引脚类型若跨族
-          // 漂移（同 cid 下输出不由变体决定），则该输出不可记录为确定类型，
-          // 且一旦判漂移即永久剔除，后续族不得重新引入
-          const merged: PinRecord[] = (existing.pins ?? []).filter((p) => p.kind === 'input')
-          const existingOuts = (existing.pins ?? []).filter((p) => p.kind === 'output')
-          const incomingOuts = (v.pins ?? []).filter((p) => p.kind === 'output')
-          const outIndexes = new Set([
-            ...existingOuts.map((p) => p.index),
-            ...incomingOuts.map((p) => p.index)
-          ])
-          for (const idx of [...outIndexes].sort((a, b) => a - b)) {
-            const driftKey = `${v.variantKey}#${idx}`
-            if (driftedOutputs.has(driftKey)) continue
-            const a = existingOuts.find((p) => p.index === idx)
-            const b = incomingOuts.find((p) => p.index === idx)
-            if (a && b && a.clientVarType !== b.clientVarType) {
-              driftedOutputs.add(driftKey)
-              outputDrifts.push(
-                `genericId ${gid} key "${v.variantKey}" output pin #${idx} type drifts across families: ` +
-                  `${a.type} | ${b.type}`
-              )
-              continue
+          // 同键变体跨族合并。类型和 indexOfConcrete 都属于具体引脚，不能用
+          // concreteId 排名重新推导；某一族缺少的观测可由另一族补齐。
+          const merged: PinRecord[] = []
+          for (const kind of ['input', 'output'] as const) {
+            const existingPins = (existing.pins ?? []).filter((p) => p.kind === kind)
+            const incomingPins = (v.pins ?? []).filter((p) => p.kind === kind)
+            const indexes = new Set([
+              ...existingPins.map((p) => p.index),
+              ...incomingPins.map((p) => p.index)
+            ])
+            for (const idx of [...indexes].sort((a, b) => a - b)) {
+              const driftKey = `${v.variantKey}#${idx}`
+              if (kind === 'output' && driftedOutputs.has(driftKey)) continue
+              const a = existingPins.find((p) => p.index === idx)
+              const b = incomingPins.find((p) => p.index === idx)
+              if (a && b && a.clientVarType !== b.clientVarType) {
+                if (kind === 'output') {
+                  driftedOutputs.add(driftKey)
+                  outputDrifts.push(
+                    `genericId ${gid} key "${v.variantKey}" output pin #${idx} type drifts across families: ` +
+                      `${a.type} | ${b.type}`
+                  )
+                } else {
+                  conflicts.push(
+                    `genericId ${gid} key "${v.variantKey}" input pin #${idx} type drifts across families: ` +
+                      `${a.type} | ${b.type}`
+                  )
+                }
+                continue
+              }
+              if (
+                a?.indexOfConcrete !== undefined &&
+                b?.indexOfConcrete !== undefined &&
+                a.indexOfConcrete !== b.indexOfConcrete
+              ) {
+                conflicts.push(
+                  `genericId ${gid} key "${v.variantKey}" ${kind} pin #${idx} ` +
+                    `indexOfConcrete drifts across families: ` +
+                    `${a.indexOfConcrete} | ${b.indexOfConcrete}`
+                )
+              }
+              const base = a ?? b
+              if (!base) continue
+              const indexOfConcrete = a?.indexOfConcrete ?? b?.indexOfConcrete
+              merged.push({
+                ...base,
+                ...(indexOfConcrete !== undefined ? { indexOfConcrete } : {})
+              })
             }
-            merged.push((a ?? b)!)
           }
           union.set(v.variantKey, {
             concreteId: existing.concreteId,
@@ -1257,6 +1827,34 @@ function main() {
     const unionVariants = [...union.values()].sort(
       (a, b) => Number(a.concreteId) - Number(b.concreteId)
     )
+    if (!customPinSpecialization) {
+      const reflectiveInputIndexes = group[0]?.reflectiveInputIndexes ?? []
+      const reflectiveOutputIndexes = group[0]?.reflectiveOutputIndexes ?? []
+      for (const variant of unionVariants) {
+        for (const index of reflectiveInputIndexes) {
+          if (!(variant.pins ?? []).some((pin) => pin.kind === 'input' && pin.index === index)) {
+            conflicts.push(
+              `genericId ${gid} key "${variant.variantKey}" is missing reflective input pin #${index}`
+            )
+          }
+        }
+        for (const index of reflectiveOutputIndexes) {
+          if (!(variant.pins ?? []).some((pin) => pin.kind === 'output' && pin.index === index)) {
+            conflicts.push(
+              `genericId ${gid} key "${variant.variantKey}" is missing reflective output pin #${index}`
+            )
+          }
+        }
+        for (const pin of variant.pins ?? []) {
+          if (pin.indexOfConcrete === undefined) {
+            conflicts.push(
+              `genericId ${gid} key "${variant.variantKey}" ${pin.kind} pin #${pin.index} ` +
+                'has no observed indexOfConcrete'
+            )
+          }
+        }
+      }
+    }
 
     for (const d of group) {
       const record = d.record
@@ -1299,6 +1897,11 @@ function main() {
   }
 
   const editorStaticReuse = applyEditorStaticMetadata(records, modeData)
+  const staticPinMetadata = applyStaticPinMetadata(records, [
+    ...gidAggregates.values(),
+    ...universalAggregates.values()
+  ])
+  const staticConcreteVariants = applyStaticConcreteVariants(records)
 
   records.sort((a, b) => a.subType.localeCompare(b.subType) || a.nodeType.localeCompare(b.nodeType))
 
@@ -1361,6 +1964,8 @@ function main() {
         }
       ]
     },
+    staticPinMetadata,
+    staticConcreteVariants,
     unknownFamily,
     decodeFailures,
     clientVarType25: {
