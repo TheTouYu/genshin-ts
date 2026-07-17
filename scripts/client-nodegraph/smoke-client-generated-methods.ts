@@ -40,11 +40,11 @@ g.creationSkill({ id: 1082130434, name: 'GenCreationSkill' }).on('start', (_evt,
   f.notifyServerNodeGraph('a', 'b', 'c')
 })
 
-g.creationStatus({ id: 1082130435, name: 'GenCreationStatus' }).on('start', (_evt, f) => {
+g.creationStatus({ id: 1082130435, name: 'GenCreationStatus' }).on('start1', (_evt, f) => {
   f.executeSkill(true, 3n)
 })
 
-g.creationStatusDecision({ id: 1082130436, name: 'GenDecision' }).on('start', (_evt, f) => {
+g.creationStatusDecision({ id: 1082130436, name: 'GenDecision' }).on('start1', (_evt, f) => {
   f.doubleBranch(
     f.equal(1n, 1n),
     () => {},

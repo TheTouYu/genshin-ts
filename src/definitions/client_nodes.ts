@@ -27584,15 +27584,20 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * If the Tactic executed in the previous frame has not finished, execution will continue until it completes; If the skill was executed in the previous frame, no process will happen
    *
+   * GSTS Note: This node has no successor execution output and must be the final statement of its execution branch.
+   *
    * 继续执行前一帧行为: 若前一帧执行战术未执行完毕，会继续执行，直到完毕; 若前一帧执行技能，则不做处理
+   *
+   * GSTS 注: 本节点没有后继执行引脚，必须作为当前执行分支的最后一条语句。
    */
   continueExecutingPreviousFrameBehavior(): void {
     this.registry.registerNode({
       id: 0,
-      type: 'data',
+      type: 'exec',
       nodeType: 'continue_executing_previous_frame_behavior',
       args: []
     })
+    this.registry.returnFromCurrentExecPath({ countReturn: false })
   }
 
   /**
@@ -28255,7 +28260,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * Execute the skill with the specified skill sequence number
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 执行技能: 执行技能序号对应的技能
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30051,7 +30068,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * A tactic setting where the Creation executes its patrol , using its configured Patrol Template to drive its motion.; Execution Conditions:
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：执行巡逻: 造物执行巡逻行为，依据造物自身配置的巡逻模板来进行移动表现的战术。; 执行条件：
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30107,7 +30136,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation executes a Paving Standoff. It uses four-direction Motion Tactics, with five directions: idle/forward/backward/left/right. Use this to simulate a sustained face-off with the Player.; You can use probability settings to create motion behaviors such as moving left and right around the Player, or preferring to move forward and avoiding moving backward. It also includes settings for adjusting distance to the Player and for obstacle avoidance.; Essentially, it just decides a direction; there is no specific Target Point; Execution Conditions:
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：地面对峙: 造物执行地面对峙行为，四向移动战术，包括静止/前/后/左/右五种方向，可用于来营造与玩家的相持对峙感。; 可以通过概率配置创造出只左右绕玩家移动/喜好前进厌恶后退等移动行为，也包含一些与玩家距离调整和避障的配置。; 本质上是决策出一个方向，并不会有一个具体的目标点; 执行条件：
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30232,7 +30273,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation executes a Paving Escape, a tactic for fleeing from the Target. It attempts to turn its back to the Target and move farther away.; Allows you to configure multiple segments of Escape Motion. Each segment/run calculates one escape point.; Execution Conditions:
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：地面逃跑: 造物执行地面逃跑行为，逃离目标的战术，试图背对目标并向远处移动。; 允许配置多段逃跑移动，每段/每次会计算一个逃跑点位。; 执行条件：
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30333,7 +30386,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation executes a Paving Roam, walking randomly within the AoE; Execution Conditions:; Point Selection Rules:; Because choosing the right Target Point is one of the requirements for entering this Tactic
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：地面闲逛: 造物执行地面闲逛行为，在范围内随机行走; 执行条件：; 选点规则：; 因为选到合适的目标点是进入战术的条件之一
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30413,7 +30478,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation executes a Paving Pursuit; Target Pursuit Tactic automatically selects a suitable location near the Target as the Target Point; Execution Conditions:; [Required]; [Meet any one of the Conditions]
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：地面追击: 造物执行地面追击行为; 追击目标战术，会自主选择目标周围合适的位置做目标点; 执行条件：; 【必须满足】; 【任一满足】
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param input1
    *
@@ -30499,7 +30576,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation moves to the Target Entity
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：移动到目标实体: 造物执行移动到目标实体行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30561,7 +30650,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation moves to the Target Point
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：移动到目标点: 造物执行移动到目标点行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30623,7 +30724,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation returns to the Spawn Point after leaving battle; A tactic that makes a unit return to the initial point when leaving battle. While this tactic is running, the Aggro system is disabled and will not be re-enabled until the tactic ends.; Execution Conditions:; Select Target Points:; The Target Point is selected on the frame you enter the Tactic, and it will not be edited while the Tactic is being executed; Check the following conditions in order. When a condition is met, set the Target Point based on that item.
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：脱战后返回出生点: 造物执行脱战后返回出生点行为; 脱离战斗时，回初始点位的战术。战术执行期间，仇恨系统是关闭的， 直到战术结束才会重新打开。; 执行条件：; 目标点选择：; 目标点选择时机为进入战术那一帧， 不会在战术执行期间修改目标; 以下条件从前往后顺序检查， 若满足对应条件， 则按该条内容确定目标点
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30697,7 +30810,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation rotates by the specified angle, and the Angular Velocity may have minor deviations during actual operation
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：旋转指定角度: 造物执行旋转指定角度行为，角速度在实际运行中会有一定误差
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30756,7 +30881,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation rotates to the Specified Orientation
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：旋转到指定朝向: 造物执行旋转到指定朝向行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30824,7 +30961,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation rotates to face the Target Entity
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：旋转朝向目标实体: 造物执行旋转朝向目标实体行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -30883,7 +31032,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * The Creation executes the Idle behavior
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：静止不动: 造物执行静止不动行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -34458,7 +34619,34 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
   /**
    * Once the execution conditions are met, run the Status Node Graph linked to this config ID
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
+   * GSTS Note: Autonomous Logic Parameter ID selects the matching start1…start10 branch
+   * of the referenced Creation Status graph. Model each branch as a distinct behavior state.
+   * For example, define start1 as the attack state that executes skills and start2 as the
+   * target-acquisition or pursuit state that moves toward the target; the decision graph
+   * switches between them with parameter 1 or 2.
+   * Example: f.switchToSelfExecutionStatus(true, configId(statusGraphId), 1n) selects start1;
+   * passing 2n selects start2.
+   *
    * 切换自身执行状态: 满足执行条件时，执行该配置ID对应的状态节点图
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 【自主逻辑参数序号】1…10 分别切换到目标造物状态节点图的
+   * start1…start10 行为入口。例如可以将 start1 作为调用技能的攻击状态，
+   * 将 start2 作为移动到目标的索敌或追击状态；
+   * 状态决策图分别传入 1 或 2 即可在两种状态之间切换。
+   * 例如 f.switchToSelfExecutionStatus(true, configId(statusGraphId), 1n) 会选择 start1；
+   * 传入 2n 则会选择 start2。
    *
    * @param execute
    *
@@ -34466,9 +34654,9 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * @param statusNodeGraphConfigurationID Config ID for the Creation Status Node Graph
    *
    * 状态节点图配置ID: 造物状态节点图的配置ID
-   * @param autonomousLogicParameterID
+   * @param autonomousLogicParameterID Use 1…10 to select start1…start10 of the referenced Creation Status graph.
    *
-   * 自主逻辑参数序号
+   * 自主逻辑参数序号: 取值 1…10，分别选择目标造物状态节点图的 start1…start10。
    */
   switchToSelfExecutionStatus(
     execute: BoolValue,
@@ -44453,7 +44641,19 @@ export interface ClientEntityHelperMethods<
   /**
    * The Creation moves to the Target Entity
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：移动到目标实体: 造物执行移动到目标实体行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *
@@ -44488,7 +44688,19 @@ export interface ClientEntityHelperMethods<
   /**
    * The Creation rotates to face the Target Entity
    *
+   * GSTS Note: This is intentionally different from normal sequential TypeScript.
+   * Although statements are written in order, the following statement is not executed unconditionally:
+   * it is connected to this node’s [Failure] output and runs only when the preceding action fails.
+   * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
+   * if the skill succeeds or is still running, the following statement does not run.
+   *
    * 战术：旋转朝向目标实体: 造物执行旋转朝向目标实体行为
+   *
+   * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
+   * 但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；
+   * 只有前面的行为执行失败，才会执行后面的语句。
+   * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
+   * 若技能成功或仍在执行，后面的语句不会执行。
    *
    * @param execute
    *

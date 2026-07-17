@@ -107,29 +107,35 @@ g.creationSkill({ id: 1082130603, name: 'ClientTsTransformCreationSkill' }).on(
   }
 )
 
-g.creationStatus({ id: 1082130604, name: 'ClientTsTransformCreationStatus' }).on(
-  'start',
-  (_evt) => {
-    String('status')
-    if (1n === 1n) {
-      gstsClientCreationStatusAdd(-1n)
-    } else {
-      gstsCreationStatusAdd(-1n)
-    }
-    switch ('ready') {
-      case 'ready':
-        gstsClientCreationStatusAdd(-1n)
-        break
-      default:
-        gstsCreationStatusAdd(-1n)
-    }
+const creationStatusGraph = g.creationStatus({
+  id: 1082130604,
+  name: 'ClientTsTransformCreationStatus'
+})
+
+creationStatusGraph.on('start1', (_evt) => {
+  String('status')
+  if (1n === 1n) {
+    gstsClientCreationStatusAdd(-1n)
+  } else {
+    gstsCreationStatusAdd(-1n)
   }
-)
+  switch ('ready') {
+    case 'ready':
+      gstsClientCreationStatusAdd(-1n)
+      break
+    default:
+      gstsCreationStatusAdd(-1n)
+  }
+})
+
+creationStatusGraph.on('start2', (_evt, f) => {
+  f.continueExecutingPreviousFrameBehavior()
+})
 
 g.creationStatusDecision({
   id: 1082130605,
   name: 'ClientTsTransformCreationStatusDecision'
-}).on('start', (_evt, f) => {
+}).on('start1', (_evt, f) => {
   if (f.equal(1n, 1n)) {
     f.absoluteValueOperation(gstsClientCreationStatusDecisionAdd(-1n))
   } else {

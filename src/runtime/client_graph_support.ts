@@ -58,12 +58,14 @@ type ClientGraphOptionsBase = {
    * [ZH] 语言偏好（仅影响类型提示与中文别名解析）。
    *
    * 设置为 `zh` 时，客户端节点图 API 支持中文 f 函数别名；英文函数名仍然可用。
-   * 默认 `en` 仅使用英文 f 函数名。客户端入口事件名固定为 `start`。
+   * 默认 `en` 仅使用英文 f 函数名。技能与过滤器入口事件名为 `start`；
+   * 造物状态和造物状态决策使用 `start1`…`start10`。
    *
    * [EN] Language hint (affects type hints and zh alias resolution only).
    *
    * Use `zh` to enable Chinese f-function aliases while retaining English method names. The
-   * default `en` exposes English f-function names only. The client entry event remains `start`.
+   * default `en` exposes English f-function names only. Skill and filter graphs use `start`;
+   * Creation Status and Creation Status Decision graphs use `start1`…`start10`.
    */
   lang?: ClientLang
 }
@@ -113,6 +115,41 @@ export type ClientFilterGraphOptions<Mode extends ClientGraphMode = ClientGraphM
 
 export type ClientStartEvent = Record<string, never>
 export type ClientStartEventName = 'start'
+/**
+ * [ZH] 造物状态/状态决策的【按顺序唯一执行】入口。
+ *
+ * `start1`…`start10` 分别对应编辑器中的 1…10 号执行引脚；较小编号具有更高优先级。
+ *
+ * GSTS 注: 例如，可以把造物状态图的 `start1` 作为调用技能的攻击状态，把 `start2`
+ * 作为移动到目标的索敌或追击状态；造物状态
+ * 决策图可通过【切换自身执行状态】的【自主逻辑参数序号】1 或 2 切换到对应入口。
+ *
+ * [EN] Ordered-exclusive entry branches for Creation Status and Status Decision graphs.
+ *
+ * `start1`…`start10` map to editor output pins 1…10; lower numbers have higher priority.
+ *
+ * GSTS Note: For example, use Creation Status `start1` as an attack state that executes skills
+ * and `start2` as a target-acquisition or pursuit
+ * state that moves toward the target. A Creation Status Decision graph can select them through
+ * Switch Self Execution Status with Autonomous Logic Parameter ID 1 or 2.
+ */
+export type ClientOrderedStartEventName =
+  | 'start1'
+  | 'start2'
+  | 'start3'
+  | 'start4'
+  | 'start5'
+  | 'start6'
+  | 'start7'
+  | 'start8'
+  | 'start9'
+  | 'start10'
+
+export type ClientStartEventNameForSubType<T extends ClientGraphSubType> = T extends
+  | 'creation_status'
+  | 'creation_status_decision'
+  ? ClientOrderedStartEventName
+  : ClientStartEventName
 export type ClientStartGraphSubType = Exclude<ClientGraphSubType, 'bool_filter' | 'int_filter'>
 
 type ClientFlowFunctionBase<
@@ -203,12 +240,34 @@ export type ClientFilterHandler<F, R> = (evt: ClientStartEvent, f: F) => R
 export type ClientStartGraphApi<
   F,
   Lang extends ClientLang = 'en',
-  Mode extends ClientGraphMode = 'beyond'
+  Mode extends ClientGraphMode = 'beyond',
+  EventName extends string = ClientStartEventName
 > = {
+  /**
+   * Register an entry handler for this client graph.
+   *
+   * GSTS Note: In Creation Status and Creation Status Decision graphs, `start1`…`start10` are
+   * distinct ordered-exclusive entries. Treat Creation Status entries as behavior states—for
+   * example, `start1` for attacking and `start2` for target pursuit—and select them from the
+   * decision graph with Autonomous Logic Parameter ID 1 or 2.
+   *
+   * GSTS Note: Inside those handlers, sequential action calls are connected through [Failure]
+   * outputs. Although the code is written in order, the following statement is not executed
+   * unconditionally; it runs only if the preceding action fails.
+   *
+   * 注册客户端节点图入口处理函数。
+   *
+   * GSTS 注: 在造物状态与造物状态决策节点图中，`start1`…`start10` 是不同的
+   * 【按顺序唯一执行】入口。例如将造物状态的 `start1` 配置为攻击状态、`start2`
+   * 配置为索敌或追击状态，再由状态决策图通过【自主逻辑参数序号】1 或 2 切换。
+   *
+   * GSTS 注: 在这些入口函数中，顺序行为调用通过【失败执行】引脚连接。虽然代码按顺序
+   * 书写，但下一条语句并不是无条件执行；只有前面的行为执行失败，才会执行后面的语句。
+   */
   on(
-    eventName: ClientStartEventName,
+    eventName: EventName,
     handler: ClientStartHandler<F>
-  ): ClientStartGraphApi<F, Lang, Mode>
+  ): ClientStartGraphApi<F, Lang, Mode, EventName>
 }
 
 export type ClientFilterGraphApi<

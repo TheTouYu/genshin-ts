@@ -110,6 +110,9 @@ const RUNTIME_INTERNAL_NODE_TYPES = new Set([
   'node_graph_end_integer'
 ])
 
+const STATUS_GRAPH_SUB_TYPES = new Set(['creation_status', 'creation_status_decision'])
+const TERMINAL_EXEC_NODE_TYPES = new Set(['continue_executing_previous_frame_behavior'])
+
 /** nodes emitted from hand templates, not the auto pipeline (control flow +
  * the three round-2-proven special encodings, task 四.3) */
 const HAND_NODE_TYPES = new Set([
@@ -397,6 +400,10 @@ function sanitizeDocText(text: string): string {
     .replace(/\s+/g, ' ')
     .replace(/\*\//g, '*\\/')
     .trim()
+}
+
+function appendDocParagraph(text: string, paragraph: string): string {
+  return text ? `${text}\n\n${paragraph}` : paragraph
 }
 
 function identFromDocName(name: string, fallback: string): string {
@@ -882,15 +889,91 @@ function buildMethodSpec(
     })
   }
 
-  const docsEn = sanitizeDocText(doc.en.functions.join('; ')) || sanitizeDocText(doc.enName)
-  const docsZh = sanitizeDocText(doc.zh.functions.join('; '))
+  let docsEn = sanitizeDocText(doc.en.functions.join('; ')) || sanitizeDocText(doc.enName)
+  let docsZh = sanitizeDocText(doc.zh.functions.join('; '))
+  const recordType = record.flows?.length ? 'exec' : 'data'
+  const hasFailureSuccessor =
+    recordType === 'exec' &&
+    STATUS_GRAPH_SUB_TYPES.has(record.subType) &&
+    record.flows?.filter((pin) => pin.kind === 'out_flow').length === 1
+
+  if (hasFailureSuccessor) {
+    docsEn = appendDocParagraph(
+      docsEn,
+      [
+        'GSTS Note: This is intentionally different from normal sequential TypeScript.',
+        'Although statements are written in order, the following statement is not executed unconditionally:',
+        'it is connected to this node’s [Failure] output and runs only when the preceding action fails.',
+        'For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;',
+        'if the skill succeeds or is still running, the following statement does not run.'
+      ].join('\n')
+    )
+    docsZh = appendDocParagraph(
+      docsZh,
+      [
+        'GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，',
+        '但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；',
+        '只有前面的行为执行失败，才会执行后面的语句。',
+        '例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；',
+        '若技能成功或仍在执行，后面的语句不会执行。'
+      ].join('\n')
+    )
+  }
+
+  if (record.nodeType === 'switch_to_self_execution_status') {
+    docsEn = appendDocParagraph(
+      docsEn,
+      [
+        'GSTS Note: Autonomous Logic Parameter ID selects the matching start1…start10 branch',
+        'of the referenced Creation Status graph. Model each branch as a distinct behavior state.',
+        'For example, define start1 as the attack state that executes skills and start2 as the',
+        'target-acquisition or pursuit state that moves toward the target; the decision graph',
+        'switches between them with parameter 1 or 2.',
+        'Example: f.switchToSelfExecutionStatus(true, configId(statusGraphId), 1n) selects start1;',
+        'passing 2n selects start2.'
+      ].join('\n')
+    )
+    docsZh = appendDocParagraph(
+      docsZh,
+      [
+        'GSTS 注: 【自主逻辑参数序号】1…10 分别切换到目标造物状态节点图的',
+        'start1…start10 行为入口。例如可以将 start1 作为调用技能的攻击状态，',
+        '将 start2 作为移动到目标的索敌或追击状态；',
+        '状态决策图分别传入 1 或 2 即可在两种状态之间切换。',
+        '例如 f.switchToSelfExecutionStatus(true, configId(statusGraphId), 1n) 会选择 start1；',
+        '传入 2n 则会选择 start2。'
+      ].join('\n')
+    )
+    const parameter = params.find((candidate) => candidate.ident === 'autonomousLogicParameterID')
+    if (parameter) {
+      parameter.docEnDesc = appendDocParagraph(
+        parameter.docEnDesc,
+        'Use 1…10 to select start1…start10 of the referenced Creation Status graph.'
+      )
+      parameter.docZhDesc = appendDocParagraph(
+        parameter.docZhDesc,
+        '取值 1…10，分别选择目标造物状态节点图的 start1…start10。'
+      )
+    }
+  }
+
+  if (TERMINAL_EXEC_NODE_TYPES.has(record.nodeType)) {
+    docsEn = appendDocParagraph(
+      docsEn,
+      'GSTS Note: This node has no successor execution output and must be the final statement of its execution branch.'
+    )
+    docsZh = appendDocParagraph(
+      docsZh,
+      'GSTS 注: 本节点没有后继执行引脚，必须作为当前执行分支的最后一条语句。'
+    )
+  }
 
   return {
     methodName: snakeToCamel(record.nodeType),
     nodeType: record.nodeType,
     subType: record.subType,
     displayName: record.displayName,
-    recordType: record.flows?.length ? 'exec' : 'data',
+    recordType,
     inputPins: record.inputs,
     params,
     returns,
@@ -911,17 +994,23 @@ function jsdocBlock(lines: string[]): string {
 
 function buildJsdoc(spec: MethodSpec): string {
   const lines: string[] = []
-  lines.push(spec.docsEn)
+  lines.push(...spec.docsEn.split('\n'))
   lines.push('')
-  lines.push(spec.docsZh ? `${spec.displayName}: ${spec.docsZh}` : spec.displayName)
+  const zhDocs = spec.docsZh.split('\n')
+  lines.push(zhDocs[0] ? `${spec.displayName}: ${zhDocs[0]}` : spec.displayName)
+  lines.push(...zhDocs.slice(1))
   if (spec.params.length) {
     lines.push('')
     for (const p of spec.params) {
-      lines.push(`@param ${p.ident}${p.docEnDesc ? ` ${p.docEnDesc}` : ''}`)
+      const enDescription = p.docEnDesc.split('\n')
+      lines.push(`@param ${p.ident}${enDescription[0] ? ` ${enDescription[0]}` : ''}`)
+      lines.push(...enDescription.slice(1))
       if (!p.connectable) lines.push('Literal only; wired connections are not allowed.')
       lines.push('')
       const zhName = p.docZhName || p.docEnName || p.ident
-      lines.push(p.docZhDesc ? `${zhName}: ${p.docZhDesc}` : zhName)
+      const zhDescription = p.docZhDesc.split('\n')
+      lines.push(zhDescription[0] ? `${zhName}: ${zhDescription[0]}` : zhName)
+      lines.push(...zhDescription.slice(1))
       if (!p.connectable) lines.push('仅支持字面量，不能连接其他节点的输出。')
     }
   }
@@ -1030,6 +1119,9 @@ function emitNonReflectMethod(spec: MethodSpec): string {
     `    })`
   ]
   body.push(...register)
+  if (TERMINAL_EXEC_NODE_TYPES.has(spec.nodeType)) {
+    body.push(`    this.registry.returnFromCurrentExecPath({ countReturn: false })`)
+  }
 
   if (spec.returns.length === 1) {
     const r = spec.returns[0]

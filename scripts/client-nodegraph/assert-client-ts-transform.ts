@@ -8,10 +8,11 @@ import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import { compileTsToGs } from '../../src/compiler/ts_to_gs_pipeline.js'
 import { loadGiaProto } from '../../src/injector/proto.js'
 import type { IRDocument } from '../../src/runtime/IR.js'
-import type {
-  Root as GiaRoot,
-  GraphNode,
-  NodePin
+import {
+  NodePin_Index_Kind,
+  type Root as GiaRoot,
+  type GraphNode,
+  type NodePin
 } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 const root = process.cwd()
@@ -133,6 +134,42 @@ try {
   )
   const creationStatusDocument = documents.find(
     (document) => document.graph.type === 'client' && document.graph.sub_type === 'creation_status'
+  )
+  const orderedEntryNodes =
+    creationStatusDocument?.nodes?.filter((node) => node.type === 'node_graph_begins') ?? []
+  assert.strictEqual(
+    orderedEntryNodes.length,
+    1,
+    'multiple startN handlers must share one ordered-exclusive entry node'
+  )
+  const orderedEntryNext = orderedEntryNodes[0]?.next ?? []
+  assert.deepStrictEqual(
+    orderedEntryNext
+      .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
+      .sort((a, b) => a - b),
+    [0, 1],
+    'start1/start2 must map to ordered-exclusive output pins 1/2'
+  )
+  const continuePreviousFrameNode = creationStatusDocument?.nodes?.find(
+    (node) => node.type === 'continue_executing_previous_frame_behavior'
+  )
+  assert.ok(continuePreviousFrameNode, 'start2 must retain continue-previous-frame action')
+  assert.strictEqual(
+    continuePreviousFrameNode.next,
+    undefined,
+    'continue-previous-frame action must not have a successor execution edge'
+  )
+  const secondEntry = orderedEntryNext.find(
+    (next) => typeof next !== 'number' && next.source_index === 1
+  )
+  assert.ok(
+    secondEntry && typeof secondEntry !== 'number',
+    'start2 must have a detailed root connection'
+  )
+  assert.strictEqual(
+    secondEntry.node_id,
+    continuePreviousFrameNode.id,
+    'start2 must connect output pin 2 directly to its handler'
   )
   const stringBranches = creationStatusDocument?.nodes?.find(
     (node) => node.type === 'multiple_branches'
@@ -368,6 +405,33 @@ try {
         Boolean(countPin?.value?.alreadySetVal),
         true,
         'Math.max non-default list count must be explicitly set'
+      )
+    }
+    if (subTypes[index] === 'creation_status') {
+      const orderedEntry = clientGraph.nodes?.find(
+        (node) => Number(node.genericId?.nodeId) === 200126
+      )
+      assert.ok(orderedEntry, 'creation status GIA must contain one ordered-exclusive entry node')
+      const connectedEntryPins = (orderedEntry.pins ?? [])
+        .filter(
+          (pin) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && (pin.connects?.length ?? 0) > 0
+        )
+        .map((pin) => Number(pin.i1?.index))
+        .sort((a, b) => a - b)
+      assert.deepStrictEqual(
+        connectedEntryPins,
+        [0, 1],
+        'creation status GIA must connect ordered-exclusive output pins 1/2'
+      )
+
+      const continuePreviousFrame = clientGraph.nodes?.find(
+        (node) => Number(node.genericId?.nodeId) === 200253
+      )
+      assert.ok(continuePreviousFrame, 'creation status GIA must contain continue-previous-frame')
+      assert.strictEqual(
+        continuePreviousFrame.pins?.some((pin) => pin.i1?.kind === NodePin_Index_Kind.OutFlow),
+        false,
+        'continue-previous-frame must not emit an artificial successor pin'
       )
     }
   })
@@ -640,7 +704,7 @@ g.characterSkill({ id: ${wrapperConversionGraphIds.characterSkill} }).on('start'
   f.setAttackWeight(nativeMath, true)
   f.sendSignalToServerNodeGraph('wrapper_conversion', nativeString)
 })
-g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecision} }).on('start', (_evt, f) => {
+g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecision} }).on('start1', (_evt, f) => {
   f.doubleBranch(true, () => {
     const wiredInt = f.absoluteValueOperation(-1n)
     f.doubleBranch(f.greaterThan(float(wiredInt), 0), () => {}, () => {})
@@ -769,7 +833,7 @@ g.characterSkill({ id: ${globalHelperGraphIds.characterSkill} }).on('start', (_e
   f.sendSignalToServerNodeGraph('client_helper_values', str(lookupValueCount), str(lookupSize))
   f.sendSignalToServerNodeGraph('client_helper_values', str(vectorX), str(vectorY), str(vectorZ))
 })
-g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }).on('start', (_evt, f) => {
+g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }).on('start1', (_evt, f) => {
   f.doubleBranch(f.equal(entity(0), entity(0)), () => {}, () => {})
   f.doubleBranch(f.equal(clientEntity(0), clientEntity(null)), () => {}, () => {})
   f.doubleBranch(
@@ -859,13 +923,13 @@ g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }
   await expectRuntimeError(
     'unavailable-client-entity-lookup',
     `${importG}
-g.creationStatus({ id: 1082130697 }).on('start', () => { entity(123n) })`,
+g.creationStatus({ id: 1082130697 }).on('start1', () => { entity(123n) })`,
     /entity\(\) requires client method queryEntityByGuid/
   )
   await expectRuntimeError(
     'unavailable-client-entity-lookup-explicit',
     `${importG}
-g.creationStatus({ id: 1082130686 }).on('start', () => { clientEntity(123n) })`,
+g.creationStatus({ id: 1082130686 }).on('start1', () => { clientEntity(123n) })`,
     /clientEntity\(\) requires client method queryEntityByGuid/
   )
   await expectRuntimeError(
@@ -981,13 +1045,13 @@ g.characterSkill().on('start', () => { Math.sqrt(4) })`,
   await expectCompileError(
     'unavailable-local-variable',
     `${importG}
-g.creationStatus().on('start', () => { let value = 0n; value += 1n })`,
+g.creationStatus().on('start1', () => { let value = 0n; value += 1n })`,
     /client method "initLocalVariable" is not available in creation_status/
   )
   await expectCompileError(
     'unavailable-ternary-local-variable',
     `${importG}
-g.creationStatusDecision().on('start', (_evt, f) => {
+g.creationStatusDecision().on('start1', (_evt, f) => {
   const result = f.equal(1n, 1n) ? 'yes' : 'no'
   f.equal(result, 'yes')
 })`,
@@ -996,7 +1060,7 @@ g.creationStatusDecision().on('start', (_evt, f) => {
   await expectRuntimeSuccess(
     'available-client-data-ternary',
     `${importG}
-g.creationStatusDecision({ id: 1082130781 }).on('start', (_evt, f) => {
+g.creationStatusDecision({ id: 1082130781 }).on('start1', (_evt, f) => {
   const result = f.equal(1n, 1n) ? 1n : 0n
   f.doubleBranch(f.equal(result, 1n), () => {}, () => {})
 })`
@@ -1029,12 +1093,12 @@ g.boolFilter({ id: 1082130782 }).on('start', (_evt, f) => {
   fs.writeFileSync(
     repeatedConstPath,
     `${importG}
-g.creationStatus({ id: ${repeatedConstGraphIds.creationStatus} }).on('start', (_evt, f) => {
+g.creationStatus({ id: ${repeatedConstGraphIds.creationStatus} }).on('start1', (_evt, f) => {
   const ready = f.equal(1n, 1n)
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
 })
-g.creationStatusDecision({ id: ${repeatedConstGraphIds.creationStatusDecision} }).on('start', (_evt, f) => {
+g.creationStatusDecision({ id: ${repeatedConstGraphIds.creationStatusDecision} }).on('start1', (_evt, f) => {
   const ready = f.equal(1n, 1n)
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
@@ -1214,15 +1278,15 @@ g.characterSkill({ id: ${unoptimizedLoopGraphId} }).on('start', (_evt, f) => {
     'duplicate-client-handler',
     `${importG}
 const graph = g.creationStatus({ id: 1082130688 })
-graph.on('start', () => {})
-graph.on('start', () => {})`,
-    /client creation_status graph may only register one start handler/
+graph.on('start1', () => {})
+graph.on('start1', () => {})`,
+    /client creation_status graph may only register one start1 handler/
   )
   await expectRuntimeError(
     'duplicate-client-id',
     `${importG}
-g.creationStatus({ id: 1082130689 }).on('start', () => {})
-g.creationStatus({ id: 1082130689 }).on('start', () => {})`,
+g.creationStatus({ id: 1082130689 }).on('start1', () => {})
+g.creationStatus({ id: 1082130689 }).on('start1', () => {})`,
     /client graph id may only be declared once: id=1082130689/,
     true
   )

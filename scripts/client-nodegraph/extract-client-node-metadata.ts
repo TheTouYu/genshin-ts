@@ -468,6 +468,23 @@ function applyStaticPinMetadata(records: NodeRecord[], aggregates: GidAggregate[
   }
 
   for (const record of records) {
+    const staticNode = staticByGenericId.get(record.genericId)
+    if (!staticNode) {
+      throw new Error(`[error] missing static metadata for genericId ${record.genericId}`)
+    }
+    const flows = (record.flows ??= [])
+    for (const staticPin of staticNode.pins) {
+      if (staticPin.kind !== 'in_flow' && staticPin.kind !== 'out_flow') continue
+      if (flows.some((pin) => pin.kind === staticPin.kind && pin.index === staticPin.index)) continue
+      flows.push({
+        index: staticPin.index,
+        kind: staticPin.kind,
+        type: 'flow',
+        ...(staticPin.i2Index === undefined ? {} : { i2Index: staticPin.i2Index })
+      })
+    }
+    flows.sort((a, b) => a.kind.localeCompare(b.kind) || a.index - b.index)
+
     for (const pin of [...record.inputs, ...record.outputs, ...(record.flows ?? [])]) {
       const basePins = basePinsByGenericId.get(record.genericId) ?? new Set<string>()
       basePins.add(`${pin.kind}:${pin.index}`)

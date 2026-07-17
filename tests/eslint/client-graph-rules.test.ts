@@ -45,8 +45,8 @@ ruleTester.run('client-scoped-globals', clientScopedGlobals, {
 g.characterSkill().on('start', (_evt, _f) => {})
 g.characterControlSkill().on('start', (_evt, _f) => {})
 g.creationSkill().on('start', (_evt, _f) => {})
-g.creationStatus().on('start', (_evt, _f) => {})
-g.creationStatusDecision().on('start', (_evt, _f) => {})
+g.creationStatus().on('start1', (_evt, _f) => {})
+g.creationStatusDecision().on('start1', (_evt, _f) => {})
 g.boolFilter().on('start', (_evt, _f) => true)
 g.intFilter().on('start', (_evt, _f) => 0n)`
     },
@@ -105,7 +105,7 @@ g.creationSkill().on('start', () => { Mathf.RoundToInt(1.5) })`,
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', () => { Mathf.FloorToInt(-1.5) })`,
+g.creationStatus().on('start1', () => { Mathf.FloorToInt(-1.5) })`,
       errors: [{ message: /Mathf\.FloorToInt is not available in creation_status/ }]
     }
   ]
@@ -162,7 +162,7 @@ import { RayFilterType, TargetEntity } from '../../src/definitions/client_enums'
 const Signal = {
   typed: defineSignal('typed_signal', [])
 }
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   f.getCustomVariable(TargetEntity.Self, 'score')
 })
 g.characterSkill().on('start', (_evt, f) => {
@@ -207,7 +207,7 @@ g.characterSkill().on('start', (_evt, f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   const wiredTarget = f.getStageEntity()
   f.getCustomVariable(wiredTarget as never, 'score')
 })`,
@@ -321,7 +321,7 @@ g.creationSkill().on('start', (_evt, _f) => { Math.sqrt(4) })`,
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => { Math.floor(-1.5) })`,
+g.creationStatus().on('start1', (_evt, _f) => { Math.floor(-1.5) })`,
       errors: [{ message: /Math\.floor is not supported.*creation_status/ }]
     }
   ]
@@ -332,7 +332,7 @@ ruleTester.run('builtin-wrapper-arity client conversions', builtinWrapperArity, 
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', () => {
+g.creationStatus().on('start1', () => {
   bool(1n); int(1); float(1n); str(1n)
 })`
     }
@@ -341,7 +341,7 @@ g.creationStatus().on('start', () => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', () => {
+g.creationStatus().on('start1', () => {
   int(); float(1, 2)
 })`,
       errors: [
@@ -431,7 +431,7 @@ g.characterSkill().on('start', (_evt, f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   const ready = true
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
@@ -445,7 +445,7 @@ g.boolFilter().on('start', (_evt, f) => f.equal(1n, 1n) ? true : false)`
     {
       filename,
       code: `${importG}
-g.creationStatusDecision().on('start', (_evt, f) => {
+g.creationStatusDecision().on('start1', (_evt, f) => {
   const result = f.equal(1n, 1n) ? 'yes' : 'no'
   f.equal(result, 'yes')
 })`,
@@ -464,7 +464,7 @@ g.characterSkill().on('start', (_evt, f) => {
   f.absoluteValueOperation(roll)
   f.absoluteValueOperation(roll)
 })
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   const ready = true
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
@@ -481,7 +481,7 @@ g.creationStatus().on('start', (_evt, f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   const ready = f.equal(1n, 1n)
   if (ready) f.absoluteValueOperation(-1n)
   if (ready) f.absoluteValueOperation(-2n)
@@ -497,7 +497,7 @@ g.creationStatus().on('start', (_evt, f) => {
       filename,
       options: [{ lang: 'zh' }],
       code: `${importG}
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   const roll = f.getRandomNumber(0n, 10n)
   while (f.equal(1n, 1n)) {
     f.absoluteValueOperation(roll)
@@ -528,7 +528,7 @@ ruleTester.run('switch-restrictions client capabilities', switchRestrictions, {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => {
+g.creationStatus().on('start1', (_evt, _f) => {
   switch (1n) {
     case 1n:
       break
@@ -608,12 +608,39 @@ g.characterSkill().on('start', (_evt, f) => {
   remainder %= 2n
   if (complex) return
 })
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
   const values = list('int', [1n, 2n])
   f.doubleBranch(values.some((value) => value === 1n), () => {}, () => {})
 })
 g.boolFilter().on('start', (_evt, _f) =>
   list('int', [1n, 2n]).some((value) => value === 2n)
+)`
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start1', (_evt, f) => {
+  if (f.equal(1n, 1n)) {
+    f.continueExecutingPreviousFrameBehavior()
+  }
+  f.executeSkill(true, 1n)
+})`
+    },
+    {
+      filename,
+      code: `${importG}
+function gstsCreationStatusResume() {
+  gsts.fCreationStatus.continueExecutingPreviousFrameBehavior()
+}
+g.creationStatus().on('start1', () => {
+  gstsCreationStatusResume()
+})`
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start1', (_evt, f) =>
+  f.continueExecutingPreviousFrameBehavior()
 )`
     }
   ],
@@ -621,7 +648,28 @@ g.boolFilter().on('start', (_evt, _f) =>
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, f) => {
+g.creationStatus().on('start1', (_evt, f) => {
+  f.continueExecutingPreviousFrameBehavior()
+  f.executeSkill(true, 1n)
+})`,
+      errors: [{ message: /must be the final statement in its branch/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+function gstsCreationStatusResume() {
+  gsts.fCreationStatus.continueExecutingPreviousFrameBehavior()
+  gsts.fCreationStatus.executeSkill(true, 1n)
+}
+g.creationStatus().on('start1', () => {
+  gstsCreationStatusResume()
+})`,
+      errors: [{ message: /must be the final statement in its branch/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start1', (_evt, f) => {
   const values = list('int', [1n, 2n])
   f.doubleBranch(values.some((value) => value > 1n), () => {}, () => {})
 })`,
@@ -630,7 +678,7 @@ g.creationStatus().on('start', (_evt, f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => {
+g.creationStatus().on('start1', (_evt, _f) => {
   list('int', [1n]).forEach((value) => {
     bool(value)
   })
@@ -648,7 +696,7 @@ g.characterSkill().on('start', (_evt, _f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => {
+g.creationStatus().on('start1', (_evt, _f) => {
   for (const value of list('int', [1n])) {
     bool(value)
   }
@@ -658,7 +706,7 @@ g.creationStatus().on('start', (_evt, _f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => {
+g.creationStatus().on('start1', (_evt, _f) => {
   for (let index = 0n; index < 2n; index++) {}
 })`,
       errors: [{ message: /do not support this loop; missing methods: finiteLoop/ }]
@@ -684,7 +732,7 @@ g.characterSkill().on('start', (_evt, _f) => {
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => {
+g.creationStatus().on('start1', (_evt, _f) => {
   for (let index = 0n; index < 2n; index++) {
     return
   }
@@ -703,20 +751,20 @@ ruleTester.run('no-json client default scope', noJson, {
       filename,
       code: `${importG}
 JSON.stringify({ ok: true })
-g.creationStatus().on('start', (_evt, _f) => {})`
+g.creationStatus().on('start1', (_evt, _f) => {})`
     },
     {
       filename,
       options: [{ scope: 'server' }],
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => { JSON.stringify({ ok: true }) })`
+g.creationStatus().on('start1', (_evt, _f) => { JSON.stringify({ ok: true }) })`
     }
   ],
   invalid: [
     {
       filename,
       code: `${importG}
-g.creationStatus().on('start', (_evt, _f) => { JSON.stringify({ ok: true }) })`,
+g.creationStatus().on('start1', (_evt, _f) => { JSON.stringify({ ok: true }) })`,
       errors: [{ message: /Compiler does not support this/ }]
     },
     {

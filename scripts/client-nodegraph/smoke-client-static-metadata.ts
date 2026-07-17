@@ -271,14 +271,18 @@ for (const record of CLIENT_NODE_METADATA) {
   }
 }
 
-const pinsAbsentFromBaseMetadata = staticMetadata.nodes.reduce((count, node) => {
+const pinsAbsentFromBaseMetadata = staticMetadata.nodes.flatMap((node) => {
   const basePins = basePinsByGenericId.get(node.genericId) ?? new Set<string>()
-  return count + node.pins.filter((pin) => !basePins.has(`${pin.kind}:${pin.index}`)).length
-}, 0)
+  return node.pins.filter((pin) => !basePins.has(`${pin.kind}:${pin.index}`))
+})
 assert.strictEqual(CLIENT_NODE_METADATA.length, 907)
 assert.strictEqual(publicParams, 3033)
 assert.strictEqual(literalOnlyPublicParams, 752)
-assert.strictEqual(pinsAbsentFromBaseMetadata, 120)
+assert.strictEqual(pinsAbsentFromBaseMetadata.length, 13)
+assert.ok(
+  pinsAbsentFromBaseMetadata.every((pin) => pin.kind === 'client_signal'),
+  'only editor-internal client signal pins may remain outside generated metadata'
+)
 
 const eslintLiteralArgumentCount = Object.values(
   CLIENT_LITERAL_ARGUMENT_INDEXES_BY_SUB_TYPE
@@ -313,6 +317,28 @@ for (const subType of ['character_skill', 'character_control_skill', 'creation_s
     [0]
   )
 }
+
+const orderedEntry = staticByGenericId.get(200126)
+assert.ok(orderedEntry)
+assert.deepStrictEqual(
+  orderedEntry.pins
+    .filter((pin) => pin.kind === 'out_flow')
+    .map((pin) => pin.index)
+    .sort((a, b) => a - b),
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  'Creation Status and Status Decision entry must expose ordered output pins 1...10'
+)
+const continuePreviousFrame = staticByGenericId.get(200253)
+assert.ok(continuePreviousFrame)
+assert.deepStrictEqual(
+  continuePreviousFrame.pins.filter((pin) => pin.kind === 'in_flow').map((pin) => pin.index),
+  [0]
+)
+assert.deepStrictEqual(
+  continuePreviousFrame.pins.filter((pin) => pin.kind === 'out_flow'),
+  [],
+  'continue-previous-frame must remain a terminal execution node'
+)
 
 const notify = staticByGenericId.get(200039)
 assert.ok(notify)

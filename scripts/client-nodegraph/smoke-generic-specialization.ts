@@ -40,7 +40,7 @@ g.characterSkill({ id: 1082130710, name: 'Generic_Character_Skill' }).on('start'
   )
 })
 
-g.creationStatus({ id: 1082130711, name: 'Generic_Creation_Status' }).on('start', (_evt, f) => {
+g.creationStatus({ id: 1082130711, name: 'Generic_Creation_Status' }).on('start1', (_evt, f) => {
   const sameEntity = f.equal(f.getStageEntity(), f.getStageEntity())
   f.executeSkill(sameEntity, 1n)
   const customValue = f.getCustomVariable(TargetEntity.Self, 'score').asType('int')
@@ -52,7 +52,7 @@ g.creationStatus({ id: 1082130711, name: 'Generic_Creation_Status' }).on('start'
 })
 
 g.creationStatus({ id: 1082130714, name: 'Generic_Default_Only_Branches' }).on(
-  'start',
+  'start1',
   (_evt, f) => {
     f.multipleBranches(1n, {
       default: () => f.executeSkill(true, 1n)
@@ -61,7 +61,7 @@ g.creationStatus({ id: 1082130714, name: 'Generic_Default_Only_Branches' }).on(
 )
 
 g.creationStatusDecision({ id: 1082130712, name: 'Generic_Status_Decision' }).on(
-  'start',
+  'start1',
   (_evt, f) => {
     const helperValue = f.addition(f.getRandomNumber(0n, 2n), 1n)
     const ready = f.greaterThan(float(helperValue), 0)

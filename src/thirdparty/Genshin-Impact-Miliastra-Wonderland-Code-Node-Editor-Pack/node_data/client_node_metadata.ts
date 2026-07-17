@@ -109,6 +109,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -139,7 +140,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -169,7 +171,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量外积_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -199,7 +202,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -220,7 +224,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量模运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -241,7 +246,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\朝向转旋转_连线.gia'
+    sampleFile: '布尔过滤器节点\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -271,7 +277,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量加法_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -311,6 +318,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\三维向量减法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -341,7 +349,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\三维向量归一化_连线.gia'
+    sampleFile: '布尔过滤器节点\\三维向量归一化_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -416,7 +425,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -526,6 +536,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -557,6 +568,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -588,6 +600,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\反正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -619,6 +632,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -638,7 +652,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -1369,7 +1384,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2614,7 +2630,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     nodeType: 'check_classic_mode_character_id',
@@ -2642,7 +2659,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin',
     subType: 'bool_filter',
-    graphType: 20001
+    graphType: 20001,
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2679,7 +2697,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2710,6 +2729,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -2746,7 +2766,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2785,7 +2806,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia'
+    sampleFile: '布尔过滤器节点\\创建三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2821,7 +2843,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2852,6 +2875,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\角度转弧度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -2882,7 +2906,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\方向向量转旋转_连线.gia'
+    sampleFile: '布尔过滤器节点\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -2992,6 +3017,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -3045,7 +3071,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3324,6 +3351,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -3372,7 +3400,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3438,7 +3467,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_连线.gia',
+    flows: []
   },
   {
     nodeType: 'get_active_character_of_specified_player',
@@ -3466,7 +3496,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin',
     subType: 'bool_filter',
-    graphType: 20001
+    graphType: 20001,
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3495,7 +3526,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取碰撞触发器内所有实体_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取碰撞触发器内所有实体_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3506,7 +3538,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1040,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3535,7 +3568,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3555,7 +3589,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取指定玩家的角色实体_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取指定玩家的角色实体_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3846,7 +3881,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3865,7 +3901,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3876,7 +3913,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1032,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取当前角色_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3895,7 +3933,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3921,7 +3960,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3947,7 +3987,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 8
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -3980,7 +4021,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4013,7 +4055,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4039,7 +4082,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4065,7 +4109,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4103,7 +4148,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '布尔过滤器节点\\获取列表对应值_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4114,7 +4160,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1039,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4134,7 +4181,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4154,7 +4202,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体旋转_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4174,7 +4223,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体当前生效的扫描标签_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4194,7 +4244,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体扫描状态_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体扫描状态_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4214,7 +4265,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4325,7 +4377,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取射线检测结果_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4512,7 +4565,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4565,7 +4619,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4576,7 +4631,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1004,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取在场玩家实体列表_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取在场玩家实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4621,7 +4677,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4696,7 +4753,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4771,7 +4829,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4782,7 +4841,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 3004,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获得玩家客户端输入设备类型_连线.gia'
+    sampleFile: '布尔过滤器节点\\获得玩家客户端输入设备类型_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4802,7 +4862,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取当前角色_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4828,7 +4889,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia',
+    flows: []
   },
   {
     nodeType: 'get_player_s_character_list',
@@ -4856,7 +4918,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin',
     subType: 'bool_filter',
-    graphType: 20001
+    graphType: 20001,
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4885,7 +4948,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4914,7 +4978,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -4950,7 +5015,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5000,7 +5066,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5029,7 +5096,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取预设状态_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取预设状态_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5129,7 +5197,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5201,7 +5270,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取射线检测结果_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5302,7 +5372,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取射线筛选类型列表_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取射线筛选类型列表_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5313,7 +5384,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1013,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5342,7 +5414,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5371,7 +5444,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取目标挂接点位置_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5400,7 +5474,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5411,7 +5486,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1014,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取目标实体_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取目标实体_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5431,7 +5507,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5450,7 +5527,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5479,7 +5557,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -5566,6 +5645,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -5653,6 +5733,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -5740,6 +5821,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -5827,6 +5909,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -6096,7 +6179,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6126,7 +6210,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6147,7 +6232,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6177,7 +6263,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\逻辑或运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6207,7 +6294,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia'
+    sampleFile: '布尔过滤器节点\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6317,6 +6405,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -6347,7 +6436,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6377,7 +6467,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia'
+    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6406,7 +6497,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6452,7 +6544,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6488,7 +6581,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6509,7 +6603,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6529,7 +6624,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6549,7 +6645,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\获取角色归属的玩家实体_连线.gia'
+    sampleFile: '布尔过滤器节点\\获取角色归属的玩家实体_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6611,7 +6708,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6673,7 +6771,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6693,7 +6792,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6723,7 +6823,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询阵营是否敌对_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询阵营是否敌对_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6734,7 +6835,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1017,
     inputs: [],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\查询自身是否已入战_连线.gia'
+    sampleFile: '布尔过滤器节点\\查询自身是否已入战_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6763,7 +6865,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210052
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6801,7 +6904,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6830,7 +6934,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6858,7 +6963,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6886,7 +6992,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -6917,6 +7024,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\弧度转角度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -6962,7 +7070,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -7009,7 +7118,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -7040,6 +7150,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\三维向量夹角_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -7060,7 +7171,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -7081,7 +7193,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia'
+    sampleFile: '布尔过滤器节点\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -7191,6 +7304,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -7222,6 +7336,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '布尔过滤器节点\\正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -7267,7 +7382,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -7304,7 +7420,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia',
+    flows: []
   },
   {
     subType: 'bool_filter',
@@ -7340,7 +7457,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7388,6 +7506,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -7426,7 +7545,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7464,7 +7584,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7502,7 +7623,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7531,7 +7653,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7560,7 +7683,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7598,7 +7722,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7646,6 +7771,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\三维向量归一化_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -7684,7 +7810,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia'
+    sampleFile: '角色操控技能节点图\\三维向量加法_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7759,7 +7886,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -7788,6 +7916,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -7851,6 +7984,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -7957,6 +8095,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -8008,6 +8151,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -8071,6 +8219,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -8188,6 +8341,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -8227,6 +8381,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\按比例转移指定实体的仇恨值_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -8266,6 +8421,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\反正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -8305,6 +8461,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -8324,7 +8481,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -9055,7 +9213,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10300,7 +10459,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10318,6 +10478,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -10395,6 +10560,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -10438,6 +10608,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -10487,6 +10662,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -10533,6 +10713,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -10574,7 +10759,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10592,6 +10778,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -10627,6 +10818,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -10673,6 +10869,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -10709,7 +10906,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10756,7 +10954,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia'
+    sampleFile: '角色操控技能节点图\\创建三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10792,7 +10991,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\播放限时特效_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10831,6 +11031,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\角度转弧度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -10869,7 +11070,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色操控技能节点图\\定点位移_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -10979,6 +11181,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -11006,6 +11209,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -11081,7 +11289,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11368,6 +11577,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -11424,7 +11634,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11498,7 +11709,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预设状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预设状态_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11514,6 +11726,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -11569,6 +11786,16 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -11655,6 +11882,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -11725,6 +11957,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -11748,6 +11985,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -11792,7 +12034,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取碰撞触发器内所有实体_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取碰撞触发器内所有实体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11811,7 +12054,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取扫描组件可扫描的所有合法对象_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取扫描组件可扫描的所有合法对象_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11840,7 +12084,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11868,7 +12113,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11903,7 +12149,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取操控运动器当前速度_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取操控运动器当前速度_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -11931,7 +12178,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取操控运动器前向_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取操控运动器前向_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12001,7 +12249,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取操控运动器运动参数_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取操控运动器运动参数_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12029,7 +12278,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取操控运动器目标转向方向_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取操控运动器目标转向方向_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12320,7 +12570,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12339,7 +12590,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前激活操控运动器列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前激活操控运动器列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12358,7 +12610,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12377,7 +12630,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前角色_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12396,7 +12650,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12422,7 +12677,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12441,7 +12697,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前跟随操控运动器_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前跟随操控运动器_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12467,7 +12724,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 8
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12500,7 +12758,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12533,7 +12792,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12559,7 +12819,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12585,7 +12846,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12623,7 +12885,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询实体阵营_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12649,7 +12912,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取扫描组件当前扫描到的实体_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取扫描组件当前扫描到的实体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12678,7 +12942,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取单位标签的实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12706,7 +12971,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体位置_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12734,7 +13000,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12762,7 +13029,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体当前生效的扫描标签_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体当前生效的扫描标签_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12790,7 +13058,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210044
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体扫描状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体扫描状态_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12818,7 +13087,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210015
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体的类型_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体的类型_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12846,7 +13116,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取实体的单位标签列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取实体的单位标签列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -12965,7 +13236,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 17
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取射线检测结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13160,7 +13432,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13213,7 +13486,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13232,7 +13506,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取在场玩家实体列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取在场玩家实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13277,7 +13552,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13304,7 +13580,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取局部变量_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取局部变量_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13379,7 +13656,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13454,7 +13732,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13473,7 +13752,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210046
       }
     ],
-    sampleFile: '角色操控技能节点图\\获得玩家客户端输入设备类型_连线.gia'
+    sampleFile: '角色操控技能节点图\\获得玩家客户端输入设备类型_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13501,7 +13781,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取角色归属的玩家实体_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取角色归属的玩家实体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13527,7 +13808,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13556,7 +13838,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13585,7 +13868,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13621,7 +13905,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13671,7 +13956,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13708,7 +13994,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13808,7 +14095,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -13895,7 +14183,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14004,7 +14293,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 17
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取射线筛选类型列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取射线筛选类型列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14023,7 +14313,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14052,7 +14343,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14089,7 +14381,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取目标挂接点位置_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取目标挂接点位置_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14126,7 +14419,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14145,7 +14439,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取目标实体_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取目标实体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14173,7 +14468,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定实体的仇恨列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取指定实体的仇恨列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14201,7 +14497,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定实体是否入战_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定实体是否入战_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14229,7 +14526,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取单位攻击目标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14257,7 +14555,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取操控运动器是否接地_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取操控运动器是否接地_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14276,7 +14575,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14305,7 +14605,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -14400,6 +14701,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -14495,6 +14797,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -14531,6 +14834,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -14588,6 +14896,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -14610,6 +14923,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -14712,6 +15030,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -14807,6 +15126,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -15084,7 +15404,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15122,7 +15443,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\逻辑与运算_连线.gia'
+    sampleFile: '角色操控技能节点图\\逻辑与运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15151,7 +15473,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '角色操控技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15189,7 +15512,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色操控技能节点图\\定点位移_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15227,7 +15551,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '角色操控技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15263,11 +15588,61 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       },
       {
         index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 2,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 3,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 4,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 5,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 6,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 7,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 8,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 9,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 10,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -15433,6 +15808,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -15450,7 +15826,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       index: 0
     },
     specialKind: 'start',
-    isStart: true
+    isStart: true,
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ]
   },
   {
     subType: 'character_control_skill',
@@ -15496,6 +15879,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -15538,7 +15926,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\朝向转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15615,6 +16004,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -15647,6 +16041,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -15686,6 +16085,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -15719,7 +16123,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15765,7 +16170,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15801,7 +16207,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15830,7 +16237,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15858,7 +16266,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 16
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询实体阵营_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15886,7 +16295,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 14
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前角色_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -15948,7 +16358,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16010,7 +16421,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16038,7 +16450,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询实体是否在场_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16076,7 +16489,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询实体阵营_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16095,7 +16509,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询自身是否已入战_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询自身是否已入战_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16123,7 +16538,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定实体是否入战_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定实体是否入战_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16152,7 +16568,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210052
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16190,7 +16607,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16219,7 +16637,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16247,7 +16666,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16275,7 +16695,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16314,6 +16735,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\弧度转角度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -16450,6 +16872,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -16480,6 +16907,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -16527,6 +16959,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -16571,6 +17008,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -16593,6 +17035,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -16645,7 +17092,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16692,7 +17140,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -16717,6 +17166,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'str',
         clientVarType: 9,
         connectionType: 9
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -16759,6 +17213,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -16805,6 +17264,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -16843,6 +17307,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -16893,6 +17362,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -16933,6 +17407,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -16990,6 +17469,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -17044,6 +17528,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -17087,6 +17576,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -17107,7 +17597,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -17150,7 +17641,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia'
+    sampleFile: '角色操控技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -17260,6 +17752,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -17299,6 +17792,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色操控技能节点图\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -17335,6 +17829,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -17401,6 +17900,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -17440,6 +17944,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -17857,6 +18366,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -18310,6 +18824,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -18723,6 +19242,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -19176,6 +19700,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -19589,6 +20118,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -20042,6 +20576,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -20455,6 +20994,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -20908,6 +21452,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -20961,7 +21510,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -20998,7 +21548,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia',
+    flows: []
   },
   {
     subType: 'character_control_skill',
@@ -21034,7 +21585,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21082,6 +21634,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\方向向量转旋转_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -21120,7 +21673,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量夹角_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21158,7 +21712,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量外积_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量外积_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21196,7 +21751,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21225,7 +21781,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量模运算_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21254,7 +21811,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\朝向转旋转_连线.gia'
+    sampleFile: '角色技能节点图\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21292,7 +21850,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\定点位移_连线.gia'
+    sampleFile: '角色技能节点图\\定点位移_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21340,6 +21899,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\三维向量减法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -21378,7 +21938,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\三维向量缩放_连线.gia'
+    sampleFile: '角色技能节点图\\三维向量缩放_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21453,7 +22014,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -21482,6 +22044,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -21536,6 +22103,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -21653,6 +22225,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -21692,6 +22265,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\乘法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -21731,6 +22305,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\除法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -21770,6 +22345,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\乘法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -21789,7 +22365,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '角色技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -22520,7 +23097,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -23765,7 +24343,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -23783,6 +24362,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -23860,6 +24444,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -23903,6 +24492,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -23952,6 +24546,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -23998,6 +24597,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -24039,7 +24643,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24057,6 +24662,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -24092,6 +24702,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -24138,6 +24753,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -24174,7 +24790,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24221,7 +24838,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24257,7 +24875,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24296,6 +24915,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\角度转弧度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -24334,7 +24954,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24444,6 +25065,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -24471,6 +25093,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -24546,7 +25173,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24833,6 +25461,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -24889,7 +25518,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24963,7 +25593,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\获取列表长度_连线.gia'
+    sampleFile: '角色技能节点图\\获取列表长度_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -24979,6 +25610,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -25034,6 +25670,16 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -25120,6 +25766,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -25190,6 +25841,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -25213,6 +25869,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -25257,7 +25918,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\获取碰撞触发器内所有实体_连线.gia'
+    sampleFile: '角色技能节点图\\获取碰撞触发器内所有实体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25276,7 +25938,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\获取扫描组件可扫描的所有合法对象_连线.gia'
+    sampleFile: '角色技能节点图\\获取扫描组件可扫描的所有合法对象_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25305,7 +25968,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25333,7 +25997,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\获取角色归属的玩家实体_连线.gia'
+    sampleFile: '角色技能节点图\\获取角色归属的玩家实体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25624,7 +26289,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25643,7 +26309,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25662,7 +26329,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\获取当前角色_连线.gia'
+    sampleFile: '角色技能节点图\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25681,7 +26349,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25707,7 +26376,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25733,7 +26403,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 8
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25766,7 +26437,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25799,7 +26471,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25825,7 +26498,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25851,7 +26525,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25889,7 +26564,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25915,7 +26591,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色技能节点图\\查询字典是否包含特定值_连线.gia'
+    sampleFile: '角色技能节点图\\查询字典是否包含特定值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25944,7 +26621,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\获取单位标签的实体列表_连线.gia'
+    sampleFile: '角色技能节点图\\获取单位标签的实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -25972,7 +26650,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体位置_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26000,7 +26679,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体旋转_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26028,7 +26708,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体当前生效的扫描标签_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体当前生效的扫描标签_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26056,7 +26737,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210044
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体扫描状态_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体扫描状态_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26084,7 +26766,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210015
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体的类型_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体的类型_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26112,7 +26795,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体的单位标签列表_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体的单位标签列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26231,7 +26915,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 17
       }
     ],
-    sampleFile: '角色技能节点图\\获取射线检测结果_连线.gia'
+    sampleFile: '角色技能节点图\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26426,7 +27111,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26479,7 +27165,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26498,7 +27185,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\获取在场玩家实体列表_连线.gia'
+    sampleFile: '角色技能节点图\\获取在场玩家实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26543,7 +27231,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26570,7 +27259,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '角色技能节点图\\变量字典覆盖采样.gia'
+    sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26645,7 +27335,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26720,7 +27411,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26739,7 +27431,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210046
       }
     ],
-    sampleFile: '角色技能节点图\\获得玩家客户端输入设备类型_连线.gia'
+    sampleFile: '角色技能节点图\\获得玩家客户端输入设备类型_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26767,7 +27460,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\获取当前角色_连线.gia'
+    sampleFile: '角色技能节点图\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26793,7 +27487,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26822,7 +27517,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26851,7 +27547,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26887,7 +27584,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26937,7 +27635,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -26974,7 +27673,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色技能节点图\\获取预设状态_连线.gia'
+    sampleFile: '角色技能节点图\\获取预设状态_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27074,7 +27774,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27161,7 +27862,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\查询实体阵营_连线.gia'
+    sampleFile: '角色技能节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27270,7 +27972,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 17
       }
     ],
-    sampleFile: '角色技能节点图\\获取射线检测结果_连线.gia'
+    sampleFile: '角色技能节点图\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27289,7 +27992,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia'
+    sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27318,7 +28022,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27355,7 +28060,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia'
+    sampleFile: '角色技能节点图\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27392,7 +28098,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '角色技能节点图\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27411,7 +28118,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27439,7 +28147,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色技能节点图\\获取指定实体的仇恨列表_连线.gia'
+    sampleFile: '角色技能节点图\\获取指定实体的仇恨列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27467,7 +28176,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia'
+    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27495,7 +28205,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia'
+    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27514,7 +28225,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27543,7 +28255,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -27638,6 +28351,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -27733,6 +28447,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -27769,6 +28484,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -27826,6 +28546,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -27848,6 +28573,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -27950,6 +28680,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -28045,6 +28776,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -28322,7 +29054,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -28360,7 +29093,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -28389,7 +29123,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -28427,7 +29162,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -28465,7 +29201,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\逻辑异或运算_连线.gia'
+    sampleFile: '角色技能节点图\\逻辑异或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -28501,11 +29238,61 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       },
       {
         index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 2,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 3,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 4,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 5,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 6,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 7,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 8,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 9,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 10,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -28671,6 +29458,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -28688,7 +29476,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       index: 0
     },
     specialKind: 'start',
-    isStart: true
+    isStart: true,
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ]
   },
   {
     subType: 'character_skill',
@@ -28734,6 +29529,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -28776,7 +29576,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -28853,6 +29654,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -28885,6 +29691,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -28924,6 +29735,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -28957,7 +29773,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29003,7 +29820,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29039,7 +29857,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色技能节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29068,7 +29887,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色技能节点图\\获取实体旋转_连线.gia'
+    sampleFile: '角色技能节点图\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29096,7 +29916,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 16
       }
     ],
-    sampleFile: '角色技能节点图\\查询实体阵营_连线.gia'
+    sampleFile: '角色技能节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29124,7 +29945,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 14
       }
     ],
-    sampleFile: '角色技能节点图\\以实体查询GUID_连线.gia'
+    sampleFile: '角色技能节点图\\以实体查询GUID_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29186,7 +30008,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29248,7 +30071,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29276,7 +30100,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia'
+    sampleFile: '角色技能节点图\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29314,7 +30139,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\查询阵营是否敌对_连线.gia'
+    sampleFile: '角色技能节点图\\查询阵营是否敌对_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29333,7 +30159,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\查询自身是否已入战_连线.gia'
+    sampleFile: '角色技能节点图\\查询自身是否已入战_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29361,7 +30188,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia'
+    sampleFile: '角色技能节点图\\查询指定实体是否入战_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29390,7 +30218,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210052
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29428,7 +30257,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29457,7 +30287,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29485,7 +30316,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29513,7 +30345,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29552,6 +30385,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\弧度转角度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -29688,6 +30522,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -29718,6 +30557,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -29765,6 +30609,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -29809,6 +30658,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -29831,6 +30685,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -29883,7 +30742,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29930,7 +30790,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -29955,6 +30816,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'str',
         clientVarType: 9,
         connectionType: 9
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -30000,6 +30866,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -30038,6 +30909,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -30088,6 +30964,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -30128,6 +31009,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -30185,6 +31071,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -30239,6 +31130,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -30282,6 +31178,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -30302,7 +31199,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '角色技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -30345,7 +31243,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '角色技能节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -30455,6 +31354,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -30494,6 +31394,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '角色技能节点图\\正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -30530,6 +31431,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -30596,6 +31502,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -30635,6 +31546,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -31052,6 +31968,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -31505,6 +32426,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -31918,6 +32844,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -32371,6 +33302,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -32784,6 +33720,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -33237,6 +34178,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -33650,6 +34596,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -34103,6 +35054,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -34156,7 +35112,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -34193,7 +35150,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia'
+    sampleFile: '角色技能节点图\\实体是否携带指定单位状态_连线.gia',
+    flows: []
   },
   {
     subType: 'character_skill',
@@ -34229,7 +35187,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34277,6 +35236,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\创建三维向量_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -34315,7 +35275,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量夹角_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34353,7 +35314,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量减法_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量减法_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34391,7 +35353,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34420,7 +35383,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量模运算_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34449,7 +35413,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\播放限时特效_连线.gia'
+    sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34487,7 +35452,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\三维向量旋转_连线.gia'
+    sampleFile: '造物技能节点图\\三维向量旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34535,6 +35501,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -34573,7 +35540,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34648,7 +35616,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -34695,6 +35664,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -34812,6 +35786,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -34851,6 +35826,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\乘法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -34890,6 +35866,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\乘法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -34929,6 +35906,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\乘法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -34948,7 +35926,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '造物技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '造物技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -35679,7 +36658,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -36924,7 +37904,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -36942,6 +37923,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -36977,7 +37963,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin',
     subType: 'creation_skill',
-    graphType: 20002
+    graphType: 20002,
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37014,7 +38001,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37042,6 +38030,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -37111,6 +38104,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -37157,6 +38155,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -37200,6 +38203,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -37236,7 +38240,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37283,7 +38288,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\创建三维向量_连线.gia'
+    sampleFile: '造物技能节点图\\创建三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37312,6 +38318,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -37355,7 +38366,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物技能节点图\\按比例设置指定实体的仇恨值_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37394,6 +38406,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -37432,7 +38445,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '造物技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37542,6 +38556,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -37569,6 +38584,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -37644,7 +38664,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -37931,6 +38952,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -37987,7 +39009,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia'
+    sampleFile: '造物技能节点图\\筛选球体范围内的实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38061,7 +39084,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38109,6 +39133,16 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -38189,6 +39223,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -38222,7 +39261,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin',
     subType: 'creation_skill',
-    graphType: 20002
+    graphType: 20002,
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38259,7 +39299,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia'
+    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38550,7 +39591,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38578,7 +39620,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\获取造物当前目标_连线.gia'
+    sampleFile: '造物技能节点图\\获取造物当前目标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38611,7 +39654,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38637,7 +39681,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38663,7 +39708,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38699,7 +39745,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\获取自定义变量_连线.gia'
+    sampleFile: '造物技能节点图\\获取自定义变量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38728,7 +39775,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\获取单位标签的实体列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取单位标签的实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38756,7 +39804,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\获取实体位置_连线.gia'
+    sampleFile: '造物技能节点图\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38784,7 +39833,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\获取实体旋转_连线.gia'
+    sampleFile: '造物技能节点图\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38812,7 +39862,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210015
       }
     ],
-    sampleFile: '造物技能节点图\\获取实体的类型_连线.gia'
+    sampleFile: '造物技能节点图\\获取实体的类型_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38840,7 +39891,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '造物技能节点图\\获取局部变量_连线.gia'
+    sampleFile: '造物技能节点图\\获取局部变量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -38959,7 +40011,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 17
       }
     ],
-    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
+    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39154,7 +40207,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39207,7 +40261,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39226,7 +40281,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\获取在场玩家实体列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取在场玩家实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39271,7 +40327,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39298,7 +40355,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '造物技能节点图\\获取局部变量_连线.gia'
+    sampleFile: '造物技能节点图\\获取局部变量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39373,7 +40431,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39448,7 +40507,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39476,7 +40536,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
+    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     nodeType: 'get_player_s_character_list',
@@ -39504,7 +40565,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin',
     subType: 'creation_skill',
-    graphType: 20002
+    graphType: 20002,
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39541,7 +40603,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39641,7 +40704,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39728,7 +40792,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
+    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39837,7 +40902,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 17
       }
     ],
-    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia'
+    sampleFile: '造物技能节点图\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39856,7 +40922,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '造物技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39884,7 +40951,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\获取子实体列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取子实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39921,7 +40989,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\获取角色归属的玩家实体_连线.gia'
+    sampleFile: '造物技能节点图\\获取角色归属的玩家实体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39958,7 +41027,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '造物技能节点图\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -39986,7 +41056,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '造物技能节点图\\获取指定实体的仇恨列表_连线.gia'
+    sampleFile: '造物技能节点图\\获取指定实体的仇恨列表_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40014,7 +41085,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia'
+    sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40033,7 +41105,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia'
+    sampleFile: '造物技能节点图\\获取复杂造物当前释放的技能_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40061,7 +41134,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
+    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40080,7 +41154,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40175,6 +41250,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -40270,6 +41346,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -40306,6 +41383,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -40360,6 +41442,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -40462,6 +41549,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -40557,6 +41645,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -40834,7 +41923,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40872,7 +41962,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40901,7 +41992,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40939,7 +42031,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\逻辑或运算_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -40977,7 +42070,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\逻辑异或运算_连线.gia'
+    sampleFile: '造物技能节点图\\逻辑异或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41087,6 +42181,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -41104,7 +42199,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       index: 0
     },
     specialKind: 'start',
-    isStart: true
+    isStart: true,
+    flows: [
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      }
+    ]
   },
   {
     subType: 'creation_skill',
@@ -41150,6 +42252,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -41192,7 +42299,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物技能节点图\\朝向转旋转_连线.gia'
+    sampleFile: '造物技能节点图\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41269,6 +42377,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -41320,7 +42433,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41356,7 +42470,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物技能节点图\\查询实体阵营_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41385,7 +42500,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia'
+    sampleFile: '造物技能节点图\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41413,7 +42529,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 16
       }
     ],
-    sampleFile: '造物技能节点图\\查询实体阵营_连线.gia'
+    sampleFile: '造物技能节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41441,7 +42558,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 14
       }
     ],
-    sampleFile: '造物技能节点图\\以实体查询GUID_连线.gia'
+    sampleFile: '造物技能节点图\\以实体查询GUID_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41503,7 +42621,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41565,7 +42684,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41593,7 +42713,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\查询实体是否在场_连线.gia'
+    sampleFile: '造物技能节点图\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41631,7 +42752,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\查询阵营是否敌对_连线.gia'
+    sampleFile: '造物技能节点图\\查询阵营是否敌对_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41659,7 +42781,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia'
+    sampleFile: '造物技能节点图\\查询指定实体是否入战_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41687,7 +42810,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -41726,6 +42850,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\播放限时特效_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -41862,6 +42987,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -41892,6 +43022,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -41939,6 +43074,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -41983,6 +43123,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -42016,6 +43161,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42068,7 +43218,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -42115,7 +43266,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -42140,6 +43292,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'str',
         clientVarType: 9,
         connectionType: 9
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42181,6 +43338,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42226,6 +43388,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42283,6 +43450,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -42334,6 +43506,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42393,6 +43570,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -42436,6 +43618,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42485,6 +43672,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -42518,6 +43710,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42577,6 +43774,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -42620,6 +43822,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -42640,7 +43843,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '造物技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '造物技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -42683,7 +43887,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物技能节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -42793,6 +43998,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -42832,6 +44038,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物技能节点图\\正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -42868,6 +44075,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -42934,6 +44146,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -42973,6 +44190,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         index: 0,
         kind: 'client_exec',
         type: 'unknown'
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -43390,6 +44612,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -43843,6 +45070,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -44256,6 +45488,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -44709,6 +45946,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -45122,6 +46364,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -45575,6 +46822,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -45988,6 +47240,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         type: 'int',
         clientVarType: 3,
         connectionType: 3
+      },
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
       },
       {
         index: 0,
@@ -46441,6 +47698,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       },
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -46494,7 +47756,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -46531,7 +47794,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物技能节点图\\实体是否携带指定单位状态_连线.gia'
+    sampleFile: '造物技能节点图\\实体是否携带指定单位状态_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_skill',
@@ -46567,7 +47831,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46615,6 +47880,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\朝向转旋转_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -46653,7 +47919,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量夹角_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46691,7 +47958,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量外积_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量外积_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46729,7 +47997,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46758,7 +48027,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量模运算_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46787,7 +48057,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\朝向转旋转_连线.gia'
+    sampleFile: '造物状态节点图\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46825,7 +48096,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量旋转_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46873,6 +48145,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\三维向量减法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -46911,7 +48184,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\三维向量缩放_连线.gia'
+    sampleFile: '造物状态节点图\\三维向量缩放_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -46986,7 +48260,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -47096,6 +48371,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -47135,6 +48411,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -47174,6 +48451,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\除法运算_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -47213,6 +48491,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -47232,7 +48511,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '造物状态节点图\\拆分结构体_连线.gia'
+    sampleFile: '造物状态节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -47963,7 +49243,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49208,7 +50489,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49227,7 +50509,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身是否在领地中_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身是否在领地中_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49246,7 +50529,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\查询目标点是否寻路可达_连线.gia'
+    sampleFile: '造物状态节点图\\查询目标点是否寻路可达_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49272,7 +50556,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\查询入战时的坐标点_连线.gia'
+    sampleFile: '造物状态节点图\\查询入战时的坐标点_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49291,7 +50576,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的距离_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身距离目标的距离_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49310,7 +50596,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的水平角度_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身距离目标的水平角度_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49329,7 +50616,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的水平距离_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身距离目标的水平距离_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49348,7 +50636,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的垂直角度_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身距离目标的垂直角度_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49367,7 +50656,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身距离目标的垂直距离_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身距离目标的垂直距离_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49386,7 +50676,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身是否处于交战中_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身是否处于交战中_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49412,7 +50703,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49423,7 +50715,14 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 4100,
     inputs: [],
     outputs: [],
-    sampleFile: '造物状态节点图\\继续执行前一帧行为_连线.gia'
+    sampleFile: '造物状态节点图\\继续执行前一帧行为_连线.gia',
+    flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      }
+    ]
   },
   {
     subType: 'creation_status',
@@ -49462,6 +50761,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -49531,7 +50831,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49578,7 +50879,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\乘法运算_连线.gia'
+    sampleFile: '造物状态节点图\\乘法运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49614,7 +50916,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态节点图\\查询字典是否包含特定值_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49653,6 +50956,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\角度转弧度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -49691,7 +50995,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '造物状态节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -49801,6 +51106,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -49823,6 +51129,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -49893,7 +51204,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50180,6 +51492,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -50211,6 +51524,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -50508,7 +51826,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50527,7 +51846,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '造物状态节点图\\获取自身当前执行状态_连线.gia'
+    sampleFile: '造物状态节点图\\获取自身当前执行状态_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50565,7 +51885,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50593,7 +51914,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\获取实体位置_连线.gia'
+    sampleFile: '造物状态节点图\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50621,7 +51943,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\获取实体旋转_连线.gia'
+    sampleFile: '造物状态节点图\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50649,7 +51972,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210015
       }
     ],
-    sampleFile: '造物状态节点图\\获取实体的类型_连线.gia'
+    sampleFile: '造物状态节点图\\获取实体的类型_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50844,7 +52168,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50897,7 +52222,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -50950,7 +52276,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51025,7 +52352,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51100,7 +52428,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51137,7 +52466,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia'
+    sampleFile: '造物状态节点图\\查询自身是否正在释放技能_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51156,7 +52486,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '造物状态节点图\\获取前一帧执行状态_连线.gia'
+    sampleFile: '造物状态节点图\\获取前一帧执行状态_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51182,7 +52513,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 9
       }
     ],
-    sampleFile: '造物状态节点图\\获取前一帧执行战术_连线.gia'
+    sampleFile: '造物状态节点图\\获取前一帧执行战术_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51282,7 +52614,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51301,7 +52634,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物状态节点图\\获取自身实体_连线.gia'
+    sampleFile: '造物状态节点图\\获取自身实体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51330,7 +52664,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\获取目标等级_连线.gia'
+    sampleFile: '造物状态节点图\\获取目标等级_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51356,7 +52691,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\获取出生点位置信息_连线.gia'
+    sampleFile: '造物状态节点图\\获取出生点位置信息_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51375,7 +52711,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物状态节点图\\获取关卡实体_连线.gia'
+    sampleFile: '造物状态节点图\\获取关卡实体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51410,7 +52747,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\获取目标攻击力_连线.gia'
+    sampleFile: '造物状态节点图\\获取目标攻击力_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51429,7 +52767,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物状态节点图\\获取目标实体_连线.gia'
+    sampleFile: '造物状态节点图\\获取目标实体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51471,7 +52810,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\获取目标生命值_连线.gia'
+    sampleFile: '造物状态节点图\\获取目标生命值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51499,7 +52839,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态节点图\\变量字典覆盖采样.gia'
+    sampleFile: '造物状态节点图\\变量字典覆盖采样.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -51594,6 +52935,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -51689,6 +53031,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -51784,6 +53127,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -51879,6 +53223,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -52156,7 +53501,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52194,7 +53540,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\逻辑与运算_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑与运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52223,7 +53570,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52261,7 +53609,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52299,7 +53648,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物状态节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52328,6 +53678,61 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 2,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 3,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 4,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 5,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 6,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 7,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 8,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 9,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 10,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -52493,6 +53898,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -52507,6 +53913,51 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 2,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 3,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 4,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 5,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 6,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 7,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 8,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 9,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -52551,7 +54002,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52597,7 +54049,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52666,7 +54119,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52694,7 +54148,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 16
       }
     ],
-    sampleFile: '造物状态节点图\\查询实体阵营_连线.gia'
+    sampleFile: '造物状态节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52731,7 +54186,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态节点图\\变量字典覆盖采样.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52793,7 +54249,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52821,7 +54278,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\查询实体是否在场_连线.gia'
+    sampleFile: '造物状态节点图\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52859,7 +54317,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态节点图\\查询实体阵营_连线.gia'
+    sampleFile: '造物状态节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -52898,6 +54357,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\弧度转角度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -52937,6 +54397,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -52957,7 +54418,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '造物状态节点图\\拆分结构体_连线.gia'
+    sampleFile: '造物状态节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -53000,7 +54462,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物状态节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status',
@@ -53110,6 +54573,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -53185,6 +54649,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -53350,6 +54819,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -53485,6 +54959,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -53582,6 +55061,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -53701,6 +55185,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -53779,6 +55268,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -53860,6 +55354,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -53952,6 +55451,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -54022,6 +55526,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -54105,6 +55614,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -54176,6 +55690,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -54221,6 +55740,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -54264,6 +55788,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态节点图\\正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -54312,6 +55837,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\三维向量加法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -54350,7 +55876,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量夹角_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54388,7 +55915,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量外积_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量外积_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54426,7 +55954,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54455,7 +55984,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量模运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54484,7 +56014,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量归一化_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量归一化_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54522,7 +56053,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54570,6 +56102,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\三维向量减法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -54608,7 +56141,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\三维向量缩放_连线.gia'
+    sampleFile: '造物状态决策节点图\\三维向量缩放_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54683,7 +56217,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -54793,6 +56328,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -54832,6 +56368,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\反余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -54871,6 +56408,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\反正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -54910,6 +56448,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\反正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -54929,7 +56468,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '造物状态决策节点图\\拆分结构体_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -55660,7 +57200,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态决策节点图\\查询字典中键组成的列表_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -56905,7 +58446,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -56924,7 +58466,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身是否在领地中_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身是否在领地中_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -56943,7 +58486,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询目标点是否寻路可达_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询目标点是否寻路可达_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -56969,7 +58513,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询入战时的坐标点_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询入战时的坐标点_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -56988,7 +58533,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的距离_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的距离_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57007,7 +58553,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平角度_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平角度_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57026,7 +58573,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平距离_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的水平距离_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57045,7 +58593,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直角度_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直角度_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57064,7 +58613,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直距离_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身距离目标的垂直距离_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57083,7 +58633,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身是否处于交战中_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身是否处于交战中_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57109,7 +58660,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询自身是否正在释放技能_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询自身是否正在释放技能_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57148,6 +58700,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -57217,7 +58770,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57264,7 +58818,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57300,7 +58855,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57339,6 +58895,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\角度转弧度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -57377,7 +58934,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\朝向转旋转_连线.gia'
+    sampleFile: '造物状态决策节点图\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57487,6 +59045,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -57509,6 +59068,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -57579,7 +59143,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -57866,6 +59431,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -58157,7 +59723,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58176,7 +59743,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取自身当前执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取自身当前执行状态_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58214,7 +59782,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58242,7 +59811,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取实体位置_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取实体位置_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58270,7 +59840,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取实体旋转_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58298,7 +59869,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210015
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取实体的类型_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取实体的类型_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58493,7 +60065,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58546,7 +60119,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58599,7 +60173,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58674,7 +60249,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58749,7 +60325,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58786,7 +60363,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取物件预设状态_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58805,7 +60383,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取前一帧执行状态_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取前一帧执行状态_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58831,7 +60410,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 9
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取前一帧执行战术_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取前一帧执行战术_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58931,7 +60511,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58950,7 +60531,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询字典是否包含特定值_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询字典是否包含特定值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -58979,7 +60561,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59005,7 +60588,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取出生点位置信息_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取出生点位置信息_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59024,7 +60608,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取关卡实体_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取关卡实体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59059,7 +60644,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取目标攻击力_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取目标攻击力_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59078,7 +60664,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59120,7 +60707,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取目标生命值_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取目标生命值_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59148,7 +60736,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia'
+    sampleFile: '造物状态决策节点图\\获取目标等级_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59243,6 +60832,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -59338,6 +60928,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -59433,6 +61024,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -59528,6 +61120,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -59805,7 +61398,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59843,7 +61437,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59872,7 +61467,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59910,7 +61506,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59948,7 +61545,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\逻辑异或运算_连线.gia'
+    sampleFile: '造物状态决策节点图\\逻辑异或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -59977,6 +61575,61 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
+      {
+        index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 2,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 3,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 4,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 5,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 6,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 7,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 8,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 9,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 10,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -60142,6 +61795,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -60156,6 +61810,51 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     flows: [
       {
         index: 0,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 1,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 2,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 3,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 4,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 5,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 6,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 7,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 8,
+        kind: 'out_flow',
+        type: 'flow'
+      },
+      {
+        index: 9,
         kind: 'out_flow',
         type: 'flow'
       }
@@ -60200,7 +61899,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60246,7 +61946,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60315,7 +62016,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60343,7 +62045,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 16
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询实体阵营_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60380,7 +62083,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '造物状态决策节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60442,7 +62146,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60470,7 +62175,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询实体是否在场_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60508,7 +62214,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '造物状态决策节点图\\查询阵营是否敌对_连线.gia'
+    sampleFile: '造物状态决策节点图\\查询阵营是否敌对_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60547,6 +62254,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\弧度转角度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -60586,6 +62294,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -60606,7 +62315,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '造物状态决策节点图\\拆分结构体_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60649,7 +62359,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia'
+    sampleFile: '造物状态决策节点图\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'creation_status_decision',
@@ -60759,6 +62470,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -60799,6 +62511,11 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     flows: [
+      {
+        index: 0,
+        kind: 'in_flow',
+        type: 'flow'
+      },
       {
         index: 0,
         kind: 'out_flow',
@@ -60845,6 +62562,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     sampleFile: '造物状态决策节点图\\正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -60885,6 +62603,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -60915,7 +62634,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量夹角_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量夹角_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -60945,7 +62665,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量外积_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量外积_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -60975,7 +62696,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量内积_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -60996,7 +62718,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量模运算_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量模运算_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -61017,7 +62740,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量归一化_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量归一化_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -61047,7 +62771,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量旋转_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -61087,6 +62812,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\三维向量减法_连线.gia',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -61117,7 +62843,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\三维向量缩放_连线.gia'
+    sampleFile: '整数过滤器节点\\三维向量缩放_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -61192,7 +62919,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -61302,6 +63030,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -61333,6 +63062,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\创建三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -61364,6 +63094,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -61395,6 +63126,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -61414,7 +63146,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 22
       }
     ],
-    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -62145,7 +63878,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63390,7 +65124,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     nodeType: 'check_classic_mode_character_id',
@@ -63418,7 +65153,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/279208459246344190.mihoyobin',
     subType: 'int_filter',
-    graphType: 20001
+    graphType: 20001,
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63455,7 +65191,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询复杂造物的预设状态值_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63486,6 +65223,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\余弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -63522,7 +65260,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询字典是否包含特定键_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63561,7 +65300,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
+    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63597,7 +65337,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63628,6 +65369,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\角度转弧度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -63658,7 +65400,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\方向向量转旋转_连线.gia'
+    sampleFile: '整数过滤器节点\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -63768,6 +65511,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -63821,7 +65565,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64100,6 +65845,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -64148,7 +65894,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_连线.gia'
+    sampleFile: '整数过滤器节点\\筛选球体范围内的实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64214,7 +65961,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\筛选方形范围内的实体列表_连线.gia'
+    sampleFile: '整数过滤器节点\\筛选方形范围内的实体列表_连线.gia',
+    flows: []
   },
   {
     nodeType: 'get_active_character_of_specified_player',
@@ -64242,7 +65990,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/17432833879509313657.mihoyobin',
     subType: 'int_filter',
-    graphType: 20001
+    graphType: 20001,
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64271,7 +66020,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取碰撞触发器内所有实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取碰撞触发器内所有实体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64282,7 +66032,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1040,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia'
+    sampleFile: '整数过滤器节点\\获取扫描组件可扫描的所有合法对象_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64311,7 +66062,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取指定预瞄准的基准对象_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64331,7 +66083,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取指定玩家的角色实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取指定玩家的角色实体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64622,7 +66375,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64641,7 +66395,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64652,7 +66407,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1032,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取当前角色_连线.gia'
+    sampleFile: '整数过滤器节点\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64671,7 +66427,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64697,7 +66454,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前客户端时间(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64723,7 +66481,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 8
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64756,7 +66515,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前关键行为(高精度)_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64789,7 +66549,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标命中结果_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64815,7 +66576,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标屏幕坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64841,7 +66603,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64877,7 +66640,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         reflective: true
       }
     ],
-    sampleFile: '整数过滤器节点\\获取自定义变量_连线.gia'
+    sampleFile: '整数过滤器节点\\获取自定义变量_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64888,7 +66652,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1039,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64908,7 +66673,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
+    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64928,7 +66694,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体旋转_连线.gia'
+    sampleFile: '整数过滤器节点\\获取实体旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64948,7 +66715,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia'
+    sampleFile: '整数过滤器节点\\获取实体当前生效的扫描标签_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64968,7 +66736,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取扫描组件当前扫描到的实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取扫描组件当前扫描到的实体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -64988,7 +66757,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65099,7 +66869,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取射线检测结果_连线.gia'
+    sampleFile: '整数过滤器节点\\获取射线检测结果_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65286,7 +67057,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65339,7 +67111,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65350,7 +67123,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1004,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取在场玩家实体列表_连线.gia'
+    sampleFile: '整数过滤器节点\\获取在场玩家实体列表_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65395,7 +67169,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65470,7 +67245,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65545,7 +67321,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65556,7 +67333,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 3004,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获得玩家客户端输入设备类型_连线.gia'
+    sampleFile: '整数过滤器节点\\获得玩家客户端输入设备类型_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65576,7 +67354,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取当前角色_连线.gia'
+    sampleFile: '整数过滤器节点\\获取当前角色_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65602,7 +67381,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取玩家移动输入_连线.gia',
+    flows: []
   },
   {
     nodeType: 'get_player_s_character_list',
@@ -65630,7 +67410,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: 'BeyondEditorStatic/Node/16783183026819652111.mihoyobin',
     subType: 'int_filter',
-    graphType: 20001
+    graphType: 20001,
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65659,7 +67440,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65688,7 +67470,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄持续时长_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65724,7 +67507,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 1
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取当前生效的预瞄准序号_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65774,7 +67558,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 2
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄结果_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65803,7 +67588,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取预设状态_连线.gia'
+    sampleFile: '整数过滤器节点\\获取预设状态_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65903,7 +67689,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -65975,7 +67762,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询实体阵营_连线.gia'
+    sampleFile: '整数过滤器节点\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66076,7 +67864,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取射线筛选类型列表_连线.gia'
+    sampleFile: '整数过滤器节点\\获取射线筛选类型列表_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66087,7 +67876,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1013,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia'
+    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66116,7 +67906,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 18
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66145,7 +67936,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点位置_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标挂接点位置_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66174,7 +67966,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标挂接点旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66185,7 +67978,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1014,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取目标实体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66205,7 +67999,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
+    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66224,7 +68019,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取光标是否激活_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66253,7 +68049,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia'
+    sampleFile: '角色操控技能节点图\\获取预瞄准摇杆是否处于死区_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66340,6 +68137,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -66427,6 +68225,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -66514,6 +68313,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -66601,6 +68401,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -66870,7 +68671,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66900,7 +68702,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia'
+    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66921,7 +68724,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia'
+    sampleFile: '整数过滤器节点\\逻辑非运算_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66951,7 +68755,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia'
+    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -66981,7 +68786,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia'
+    sampleFile: '整数过滤器节点\\逻辑或运算_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67091,6 +68897,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -67121,7 +68928,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia'
+    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67151,7 +68959,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia'
+    sampleFile: '整数过滤器节点\\朝向转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67180,7 +68989,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位当前生效的技能实例_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67226,7 +69036,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67262,7 +69073,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     sampleFile: '角色操控技能节点图\\查询字典长度_连线.gia',
     reflectMap: [],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67283,7 +69095,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia'
+    sampleFile: '整数过滤器节点\\获取单位攻击目标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67303,7 +69116,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询实体阵营_连线.gia'
+    sampleFile: '整数过滤器节点\\查询实体阵营_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67323,7 +69137,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\获取角色归属的玩家实体_连线.gia'
+    sampleFile: '整数过滤器节点\\获取角色归属的玩家实体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67385,7 +69200,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67447,7 +69263,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         ]
       }
     ],
-    specialKind: 'reflect'
+    specialKind: 'reflect',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67467,7 +69284,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia'
+    sampleFile: '整数过滤器节点\\查询实体是否在场_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67497,7 +69315,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询阵营是否敌对_连线.gia'
+    sampleFile: '整数过滤器节点\\查询阵营是否敌对_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67508,7 +69327,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     concreteId: 1017,
     inputs: [],
     outputs: [],
-    sampleFile: '整数过滤器节点\\查询自身是否已入战_连线.gia'
+    sampleFile: '整数过滤器节点\\查询自身是否已入战_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67537,7 +69357,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 210052
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询预瞄准结束原因_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67575,7 +69396,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 3
       }
     ],
-    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia'
+    sampleFile: '角色操控技能节点图\\根据技能实例ID获取技能配置ID_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67604,7 +69426,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 4
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询指定槽位的技能实例列表_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67632,7 +69455,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询技能变量对应值_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67660,7 +69484,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia'
+    sampleFile: '角色操控技能节点图\\查询玩家是否正在语音聊天_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67691,6 +69516,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\弧度转角度_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -67736,7 +69562,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转视口坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67783,7 +69610,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 11
       }
     ],
-    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia'
+    sampleFile: '角色操控技能节点图\\方向向量转旋转_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67814,6 +69642,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\正弦函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -67834,7 +69663,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia'
+    sampleFile: '角色操控技能节点图\\拆分结构体_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67855,7 +69685,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     outputs: [],
-    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia'
+    sampleFile: '整数过滤器节点\\拆分三维向量_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -67965,6 +69796,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
       }
     ],
     specialKind: 'reflect',
+    flows: [],
     argPins: [1, 2]
   },
   {
@@ -67996,6 +69828,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
     ],
     outputs: [],
     sampleFile: '整数过滤器节点\\正切函数_连线.gia',
+    flows: [],
     argPins: [1]
   },
   {
@@ -68041,7 +69874,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -68078,7 +69912,8 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 5
       }
     ],
-    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia'
+    sampleFile: '角色操控技能节点图\\实体是否携带指定单位状态_连线.gia',
+    flows: []
   },
   {
     subType: 'int_filter',
@@ -68114,6 +69949,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
         connectionType: 7
       }
     ],
-    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia'
+    sampleFile: '角色操控技能节点图\\屏幕坐标转世界坐标_连线.gia',
+    flows: []
   }
 ] as const

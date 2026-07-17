@@ -38,8 +38,10 @@ import {
   type ClientGraphOptions,
   type ClientGraphOptionsForSubType,
   type ClientLang,
+  type ClientOrderedStartEventName,
   type ClientStartEvent,
   type ClientStartEventName,
+  type ClientStartEventNameForSubType,
   type ClientStartGraphApi
 } from './client_graph_support.js'
 import { installScopedClientGlobals } from './client_scoped_globals.js'
@@ -892,32 +894,37 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     handler: (evt: ClientStartEvent, f: F) => R,
     fns: F,
     normalizeReturn?: (value: R) => value,
-    endNodeType?: string
+    endNodeType?: string,
+    entry?: { sourceIndex: number; reuseStartNode: boolean }
   ) {
-    const eventNode: MetaCallRecord = {
-      id: this.currentRecordId,
-      type: 'event',
-      nodeType: startNodeType,
-      args: []
+    const sourceIndex = entry?.sourceIndex ?? 0
+    let flowIndex = entry?.reuseStartNode
+      ? this.flows.findIndex((flow) => flow.eventNode.nodeType === startNodeType)
+      : -1
+    if (flowIndex < 0) {
+      const eventNode: MetaCallRecord = {
+        id: this.currentRecordId,
+        type: 'event',
+        nodeType: startNodeType,
+        args: []
+      }
+      this.flows.push({
+        eventNode,
+        eventArgs: [],
+        execNodes: [],
+        dataNodes: [],
+        edges: {},
+        execContextStack: [{ tailEndpoints: [{ nodeId: eventNode.id, sourceIndex }] }]
+      })
+      flowIndex = this.flows.length - 1
     }
-
-    this.flows.push({
-      eventNode,
-      eventArgs: [],
-      execNodes: [],
-      dataNodes: [],
-      edges: {},
-      execContextStack: [
-        {
-          tailEndpoints: [{ nodeId: eventNode.id }]
-        }
-      ]
-    })
 
     const prevFlowStack = this.flowStack
     const prevLoopStack = this.loopNodeStack
     const prevReturnCounter = this.returnCallCounter
-    const flowIndex = this.flows.length - 1
+    const flow = this.flows[flowIndex]
+    const prevExecContextStack = flow.execContextStack
+    flow.execContextStack = [{ tailEndpoints: [{ nodeId: flow.eventNode.id, sourceIndex }] }]
     const clientSubType = this.graphType as ClientGraphSubType
     const gsts = ensureGsts() as unknown as GstsInternal
     const clientBindings = (gsts[kClientF] ??= {})
@@ -953,6 +960,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       this.flowStack = prevFlowStack
       this.loopNodeStack = prevLoopStack
       this.returnCallCounter = prevReturnCounter
+      flow.execContextStack = prevExecContextStack
     }
   }
 
@@ -1497,7 +1505,12 @@ type ClientStartApi<
   Lang extends ClientLang = 'en',
   Mode extends ClientGraphMode = 'beyond'
 > = Mode extends ClientGraphMode
-  ? ClientStartGraphApi<ClientFlowFunctionClassForLang<T, Lang, Mode>, Lang, Mode>
+  ? ClientStartGraphApi<
+      ClientFlowFunctionClassForLang<T, Lang, Mode>,
+      Lang,
+      Mode,
+      ClientStartEventNameForSubType<T>
+    >
   : never
 type ClientBoolFilterApi<
   Lang extends ClientLang = 'en',
@@ -1524,6 +1537,7 @@ type ClientIntFilterApi<
 
 type ClientGraphOptionsInput = ClientGraphOptions<ClientGraphMode>
 type ClientFilterGraphOptionsInput = ClientFilterGraphOptions<ClientGraphMode>
+type ClientRuntimeStartEventName = ClientStartEventName | ClientOrderedStartEventName
 
 type ResolvedClientLang<Options> = Options extends { lang: infer Lang extends ClientLang }
   ? Lang
@@ -1592,26 +1606,44 @@ function createClientGraphApi<T extends ClientGraphSubType>(
   const fns = createClientFlowFunctions(graphType, registry)
   registerClientEntityHelperContext(fns, graphType, graphMode)
   if (options?.lang === 'zh') applyClientFlowFunctionZhAliases(graphType, graphMode, fns)
-  let hasHandler = false
+  const registeredEvents = new Set<string>()
+  const usesOrderedStart =
+    graphType === 'creation_status' || graphType === 'creation_status_decision'
 
   const api = {
     on(
-      eventName: ClientStartEventName,
+      eventName: ClientRuntimeStartEventName,
       handler: (evt: ClientStartEvent, f: typeof fns) => unknown
     ) {
-      if (eventName !== entrySpec.event) {
+      let sourceIndex = 0
+      if (usesOrderedStart) {
+        const match = /^start([1-9]|10)$/.exec(eventName)
+        if (!match) {
+          throw clientNodegraphError(
+            CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
+            `client ${graphType} uses start1...start10 for the ordered-exclusive entry pins; got ${eventName}`
+          )
+        }
+        sourceIndex = Number(match[1]) - 1
+      } else if (eventName !== entrySpec.event) {
         throw clientNodegraphError(
           CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
           `unsupported client event: ${eventName}`
         )
       }
-      if (hasHandler) {
+      if (registeredEvents.has(eventName)) {
+        throw clientNodegraphError(
+          CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
+          `client ${graphType} graph may only register one ${eventName} handler`
+        )
+      }
+      if (!usesOrderedStart && registeredEvents.size > 0) {
         throw clientNodegraphError(
           CLIENT_ERROR_CODES.NODE_SYNTAX_UNAVAILABLE,
           `client ${graphType} graph may only register one ${entrySpec.event} handler`
         )
       }
-      hasHandler = true
+      registeredEvents.add(eventName)
 
       if (graphType === 'bool_filter') {
         registry.runClientStartHandler(
@@ -1630,7 +1662,14 @@ function createClientGraphApi<T extends ClientGraphSubType>(
           CLIENT_FILTER_END_NODE_TYPES.int_filter
         )
       } else {
-        registry.runClientStartHandler(entrySpec.startNodeType, handler, fns)
+        registry.runClientStartHandler(
+          entrySpec.startNodeType,
+          handler,
+          fns,
+          undefined,
+          undefined,
+          usesOrderedStart ? { sourceIndex, reuseStartNode: true } : undefined
+        )
       }
       return this
     }
@@ -1709,10 +1748,73 @@ function creationSkill(
     : createClientGraphApi('creation_skill', options)
 }
 
-/** Register a creation-status client graph with the default options. / 使用默认配置注册造物状态客户端节点图。 */
+/**
+ * Register a creation-status client graph with the default options.
+ *
+ * GSTS Note: Treat `start1`…`start10` as distinct behavior states. For example, use `start1` as
+ * the attack state that calls `executeSkill`, and `start2` as the target-acquisition or pursuit
+ * state that calls `tacticMoveToTheTargetEntity`.
+ *
+ * GSTS Note: Although action calls are written as sequential TypeScript statements, the next
+ * statement is not executed unconditionally. It is connected to the preceding action's [Failure]
+ * output and runs only if that action fails. For example, a statement after `executeSkill` runs
+ * when the skill cannot execute because it is on cooldown, but not when the skill succeeds or
+ * remains active.
+ *
+ * 使用默认配置注册造物状态客户端节点图。
+ *
+ * GSTS 注: 例如，可以用 `start1` 表示调用 `executeSkill` 的攻击状态，用 `start2`
+ * 表示调用 `tacticMoveToTheTargetEntity` 的索敌
+ * 或追击状态。
+ *
+ * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，但下一条
+ * 语句并不是无条件执行，而是连接到前一个行为节点的【失败执行】引脚；只有前面的行为
+ * 执行失败，才会执行后面的语句。例如技能处于 CD 导致 `executeSkill` 失败时才会继续，
+ * 技能成功或仍在执行时不会继续。
+ *
+ * @example
+ * const status = g.creationStatus()
+ * status.on('start1', (_evt, f) => {
+ *   f.executeSkill(true, 1n)
+ *   f.continueExecutingPreviousFrameBehavior() // 仅 executeSkill 失败时执行
+ * })
+ * status.on('start2', (_evt, f) => {
+ *   f.tacticMoveToTheTargetEntity(true, f.getTargetEntity(), 1, TacticSpeed.Run, 360, 'pursuit', false)
+ * })
+ */
 function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
 /**
  * Register a creation-status client graph. / 注册造物状态客户端节点图。
+ *
+ * GSTS Note: Use `start1`…`start10` for the editor's ordered-exclusive output pins 1…10, and
+ * treat each entry as a distinct behavior state. For example, use `start1` as the attack state
+ * that calls `executeSkill`, and `start2` as the target-acquisition or pursuit state that calls
+ * `tacticMoveToTheTargetEntity`.
+ *
+ * GSTS Note: Although action calls are written as sequential TypeScript statements, the next
+ * statement is not executed unconditionally. It is connected to the preceding action's [Failure]
+ * output and runs only if that action fails. For example, a statement after `executeSkill` runs
+ * when the skill cannot execute because it is on cooldown, but not when the skill succeeds or
+ * remains active.
+ *
+ * GSTS 注: 使用 `start1`…`start10` 对应编辑器【按顺序唯一执行】的 1…10 号引脚。例如
+ * 可以用 `start1` 表示调用 `executeSkill` 的攻击状态，用 `start2` 表示调用
+ * `tacticMoveToTheTargetEntity` 的索敌或追击状态。
+ *
+ * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，但下一条
+ * 语句并不是无条件执行，而是连接到前一个行为节点的【失败执行】引脚；只有前面的行为
+ * 执行失败，才会执行后面的语句。例如技能处于 CD 导致 `executeSkill` 失败时才会继续，
+ * 技能成功或仍在执行时不会继续。
+ *
+ * @example
+ * const status = g.creationStatus({ id: CREATION_STATUS_GRAPH_ID })
+ * status.on('start1', (_evt, f) => {
+ *   f.executeSkill(true, 1n)
+ *   f.continueExecutingPreviousFrameBehavior() // 仅 executeSkill 失败时执行
+ * })
+ * status.on('start2', (_evt, f) => {
+ *   f.tacticMoveToTheTargetEntity(true, f.getTargetEntity(), 1, TacticSpeed.Run, 360, 'pursuit', false)
+ * })
  *
  * @param options Client graph options. / 客户端节点图配置。
  * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。
@@ -1732,10 +1834,58 @@ function creationStatus(
     : createClientGraphApi('creation_status', options)
 }
 
-/** Register a creation-status-decision client graph with the default options. / 使用默认配置注册造物状态决策客户端节点图。 */
+/**
+ * Register a creation-status-decision client graph with the default options.
+ *
+ * GSTS Note: A decision graph can switch a Creation Status graph between behavior entries through
+ * `switchToSelfExecutionStatus`. For example, pass Autonomous Logic Parameter ID 1 to select the
+ * attack state at `start1`, or 2 to select the target-pursuit state at `start2`.
+ *
+ * GSTS Note: Sequential action statements also use [Failure] outputs. Although they are written
+ * in order, the following statement is not executed unconditionally and runs only if the
+ * preceding action fails.
+ *
+ * 使用默认配置注册造物状态决策客户端节点图。
+ *
+ * GSTS 注: 状态决策图可通过 `switchToSelfExecutionStatus` 切换造物状态图的行为入口。
+ * 例如传入【自主逻辑参数序号】1 切换到 `start1` 的攻击状态，传入 2 切换到 `start2`
+ * 的索敌或追击状态。
+ *
+ * GSTS 注: 顺序行为语句同样连接【失败执行】引脚。虽然 TypeScript 代码按顺序书写，
+ * 但下一条语句并不是无条件执行；只有前面的行为执行失败，才会执行后面的语句。
+ *
+ * @example
+ * g.creationStatusDecision().on('start1', (_evt, f) => {
+ *   f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), shouldAttack ? 1n : 2n)
+ * })
+ */
 function creationStatusDecision(): ClientStartApi<'creation_status_decision', 'en', 'beyond'>
 /**
  * Register a creation-status-decision client graph. / 注册造物状态决策客户端节点图。
+ *
+ * GSTS Note: Use `start1`…`start10` for the editor's ordered-exclusive output pins 1…10; lower
+ * numbers have higher priority. A decision graph can switch a Creation Status graph between
+ * behavior entries through `switchToSelfExecutionStatus`. For example, pass Autonomous Logic
+ * Parameter ID 1 to select the attack state at `start1`, or 2 to select the target-pursuit state
+ * at `start2`.
+ *
+ * GSTS Note: Sequential action statements also use [Failure] outputs. Although they are written
+ * in order, the following statement is not executed unconditionally and runs only if the
+ * preceding action fails.
+ *
+ * GSTS 注: 使用 `start1`…`start10` 对应编辑器【按顺序唯一执行】的 1…10 号引脚，编号越小
+ * 优先级越高。状态决策图可通过 `switchToSelfExecutionStatus` 切换造物状态图的行为入口。
+ * 例如传入【自主逻辑参数序号】1 切换到 `start1` 的攻击状态，传入 2 切换到 `start2`
+ * 的索敌或追击状态。
+ *
+ * GSTS 注: 顺序行为语句同样连接【失败执行】引脚。虽然 TypeScript 代码按顺序书写，
+ * 但下一条语句并不是无条件执行；只有前面的行为执行失败，才会执行后面的语句。
+ *
+ * @example
+ * g.creationStatusDecision({ id: CREATION_STATUS_DECISION_GRAPH_ID }).on('start1', (_evt, f) => {
+ *   const nextState = f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5 ? 1n : 2n
+ *   f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), nextState)
+ * })
  *
  * @param options Client graph options. / 客户端节点图配置。
  * @param options.id Target NodeGraph ID; defaults to `1082130433`. / 目标节点图 ID；默认 `1082130433`。

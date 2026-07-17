@@ -150,7 +150,8 @@ g.creationSkill().on('start', (_evt, f) => {
   f.return()
 })
 
-g.creationStatus().on('start', (_evt, f) => {
+const orderedCreationStatus = g.creationStatus()
+orderedCreationStatus.on('start1', (_evt, f) => {
   f.emptyList('int')
   f.copyList(list('int', [1n]))
   f.return()
@@ -158,6 +159,17 @@ g.creationStatus().on('start', (_evt, f) => {
   f.listIterationLoop(list('int', [1n]), () => {})
   // @ts-expect-error creation status graphs do not have local-variable nodes
   f.initLocalVariable('int', 0n)
+})
+orderedCreationStatus.on('start10', (_evt, f) => {
+  f.continueExecutingPreviousFrameBehavior()
+})
+// @ts-expect-error creation status graphs use numbered start1...start10 events
+orderedCreationStatus.on('start', () => {})
+// @ts-expect-error ordered client entries stop at start10
+orderedCreationStatus.on('start11', () => {})
+
+g.creationStatusDecision().on('start10', (_evt, f) => {
+  f.switchToSelfExecutionStatus(true, configId(1082130604n), 10n)
 })
 
 g.boolFilter().on('start', (_evt, f) => {

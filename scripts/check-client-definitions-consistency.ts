@@ -15,6 +15,10 @@ function camelToSnake(name: string): string {
   return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
 }
 
+function snakeToCamel(name: string): string {
+  return name.replace(/_([a-z0-9])/g, (_, character: string) => character.toUpperCase())
+}
+
 /** graph entry/exit nodes handled by the runtime, never exposed as methods */
 const RUNTIME_INTERNAL_NODE_TYPES = new Set([
   'node_graph_begins',
@@ -69,12 +73,20 @@ for (const [subType, bindingsByMode] of Object.entries(
         errors.push(`unsupported client entity set helper exposed: ${subType}.${mode}`)
       }
     }
-    if (availableMethods.includes('getCustomVariable')) {
+    const customVariableUsesEntityReceiver =
+      subType !== 'creation_status' && subType !== 'creation_status_decision'
+    if (availableMethods.includes('getCustomVariable') && customVariableUsesEntityReceiver) {
       if (bindings.get?.methodName !== 'getCustomVariable') {
         errors.push(`missing client entity get alias: ${subType}.${mode}`)
       }
       if (bindings.getCustomVariable?.methodName !== 'getCustomVariable') {
         errors.push(`missing client entity getCustomVariable helper: ${subType}.${mode}`)
+      }
+    } else if (!customVariableUsesEntityReceiver) {
+      if ('get' in bindings || 'getCustomVariable' in bindings) {
+        errors.push(
+          `TargetEntity custom variable must not become entity helper: ${subType}.${mode}`
+        )
       }
     }
   }
@@ -88,6 +100,67 @@ const clientNodesSource = ts.createSourceFile(
   true,
   ts.ScriptKind.TS
 )
+
+const statusClassNames = {
+  creation_status: 'ClientCreationStatusExecutionFlowFunctions',
+  creation_status_decision: 'ClientCreationStatusDecisionExecutionFlowFunctions'
+} as const
+for (const [subType, className] of Object.entries(statusClassNames)) {
+  const classDeclaration = clientNodesSource.statements.find(
+    (statement): statement is ts.ClassDeclaration =>
+      ts.isClassDeclaration(statement) && statement.name?.text === className
+  )
+  if (!classDeclaration) {
+    errors.push(`missing generated status class: ${className}`)
+    continue
+  }
+
+  for (const item of CLIENT_NODE_METADATA) {
+    if (item.subType !== subType) continue
+    const outFlowCount = item.flows?.filter((pin) => pin.kind === 'out_flow').length ?? 0
+    const requiresFailureNote = outFlowCount === 1
+    const requiresTerminalNote = item.nodeType === 'continue_executing_previous_frame_behavior'
+    if (!requiresFailureNote && !requiresTerminalNote) continue
+
+    const methodName = snakeToCamel(item.nodeType)
+    const member = classDeclaration.members.find(
+      (candidate) =>
+        ts.isMethodDeclaration(candidate) &&
+        ts.isIdentifier(candidate.name) &&
+        candidate.name.text === methodName
+    )
+    if (!member) {
+      errors.push(`missing generated status method for JSDoc check: ${subType}.${methodName}`)
+      continue
+    }
+    const source = member.getFullText(clientNodesSource)
+    if (
+      requiresFailureNote &&
+      (!source.includes('GSTS Note: This is intentionally different') ||
+        !source.includes('GSTS 注: 这是一个容易误解的特殊行为') ||
+        !source.includes('只有前面的行为执行失败，才会执行后面的语句'))
+    ) {
+      errors.push(`status failure-flow JSDoc incomplete: ${subType}.${methodName}`)
+    }
+    if (
+      requiresTerminalNote &&
+      (!source.includes('GSTS Note: This node has no successor execution output') ||
+        !source.includes('GSTS 注: 本节点没有后继执行引脚'))
+    ) {
+      errors.push(`status terminal-flow JSDoc incomplete: ${subType}.${methodName}`)
+    }
+    if (
+      item.nodeType === 'switch_to_self_execution_status' &&
+      (!source.includes('define start1 as the attack state') ||
+        !source.includes('例如可以将 start1 作为调用技能的攻击状态') ||
+        !source.includes('将 start2 作为移动到目标的索敌或追击状态') ||
+        !source.includes('configId(statusGraphId)'))
+    ) {
+      errors.push(`status-switch behavior example JSDoc incomplete: ${subType}.${methodName}`)
+    }
+  }
+}
+
 const entityHelperInterface = clientNodesSource.statements.find(
   (statement): statement is ts.InterfaceDeclaration =>
     ts.isInterfaceDeclaration(statement) && statement.name.text === 'ClientEntityHelperMethods'
