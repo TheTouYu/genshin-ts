@@ -9,6 +9,7 @@ import builtinMathSupport from '../../src/eslint/rules/builtin-math-support.js'
 import builtinWrapperArity from '../../src/eslint/rules/builtin-wrapper-arity.js'
 import clientFilterReturn from '../../src/eslint/rules/client-filter-return.js'
 import clientGraphScopedF from '../../src/eslint/rules/client-graph-scoped-f.js'
+import clientLiteralArguments from '../../src/eslint/rules/client-literal-arguments.js'
 import clientLocalVariableSupport from '../../src/eslint/rules/client-local-variable-support.js'
 import clientRepeatedEvaluation from '../../src/eslint/rules/client-repeated-evaluation.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
@@ -32,6 +33,7 @@ const ruleTester = new RuleTester({
 const importG = `import { g } from 'genshin-ts/runtime/core'`
 
 assert.equal(configs.recommended.rules['gsts/client-local-variable-support'], 'error')
+assert.equal(configs.recommended.rules['gsts/client-literal-arguments'], 'error')
 assert.equal(configs.recommended.rules['gsts/client-repeated-evaluation'], 'warn')
 
 ruleTester.run('client-scoped-globals', clientScopedGlobals, {
@@ -145,6 +147,149 @@ g.characterSkill().on('start', (_evt, _f) => {
       code: `${importG}
 gsts.fCharacterSkill.printString('bad')`,
       errors: [{ message: /only available inside a matching character_skill/ }]
+    }
+  ]
+})
+
+ruleTester.run('client-literal-arguments', clientLiteralArguments, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+import { defineSignal } from '../../src/runtime/core'
+import { RayFilterType, TargetEntity } from '../../src/definitions/client_enums'
+const Signal = {
+  typed: defineSignal('typed_signal', [])
+}
+g.creationStatus().on('start', (_evt, f) => {
+  f.getCustomVariable(TargetEntity.Self, 'score')
+})
+g.characterSkill().on('start', (_evt, f) => {
+  const variableName = 'counter'
+  const self = f.getSelfEntity()
+  f.getLocalVariable(variableName)
+  f.setLocalVariable('result', 1n)
+  self.addUnitStatus(1n, 10001n)
+  self.fixedPointProjectileLaunch(10001n, 1n, 10, self, 1n)
+  f.getRayFilterTypeList([
+    RayFilterType.Hurtbox,
+    RayFilterType.Hurtbox,
+    RayFilterType.Scene
+  ])
+  f.notifyServerNodeGraph('graph', '', '')
+  f.sendSignalToServerNodeGraph(Signal.typed)
+  send('global_signal')
+})`
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill({ lang: 'zh' }).on('start', (_evt, nodes) => {
+  nodes.获取局部变量('counter')
+})`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const dynamicName = str(f.addition(1n, 2n))
+  f.getLocalVariable(dynamicName)
+  f.setLocalVariable(dynamicName, 1n)
+})`,
+      errors: [
+        { message: /Argument 1 of client method getLocalVariable must be a source literal/ },
+        { message: /Argument 1 of client method setLocalVariable must be a source literal/ }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus().on('start', (_evt, f) => {
+  const wiredTarget = f.getStageEntity()
+  f.getCustomVariable(wiredTarget as never, 'score')
+})`,
+      errors: [
+        { message: /Argument 1 of client method getCustomVariable must be a source literal/ }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const wiredTypes = f.getRayFilterTypeList()
+  f.getRayFilterTypeList(wiredTypes)
+})`,
+      errors: [
+        { message: /Argument 1 of client method getRayFilterTypeList must be a source literal/ }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill({ lang: 'zh' }).on('start', (_evt, f) => {
+  const dynamicName = str(f.addition(1n, 2n))
+  f.获取局部变量(dynamicName)
+})`,
+      errors: [{ message: /Argument 1 of client method getLocalVariable must be a source literal/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterControlSkill().on('start', (_evt, f) => {
+  const dynamicGraphName = str(f.addition(1n, 2n))
+  f.notifyServerNodeGraph(dynamicGraphName, '', '')
+})`,
+      errors: [
+        { message: /Argument 1 of client method notifyServerNodeGraph must be a source literal/ }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const dynamicSignalName = str(f.addition(1n, 2n))
+  f.sendSignalToServerNodeGraph(dynamicSignalName)
+  send(dynamicSignalName)
+})`,
+      errors: [
+        {
+          message:
+            /Argument 1 of client method sendSignalToServerNodeGraph must be a source literal/
+        },
+        {
+          message:
+            /Argument 1 of client method sendSignalToServerNodeGraph must be a source literal/
+        }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+function gstsCreationStatusLiteralCheck() {
+  const wiredTarget = gsts.fCreationStatus.getStageEntity()
+  gsts.fCreationStatus.getCustomVariable(wiredTarget as never, 'score')
+}`,
+      errors: [
+        { message: /Argument 1 of client method getCustomVariable must be a source literal/ }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  const self = f.getSelfEntity()
+  const dynamicConfig = f.addition(1n, 2n)
+  self.addUnitStatus(1n, dynamicConfig as never)
+  self.fixedPointProjectileLaunch(dynamicConfig as never, 1n, 10, self, 1n)
+})`,
+      errors: [
+        { message: /Argument 2 of client method addUnitStatus must be a source literal/ },
+        {
+          message: /Argument 1 of client method fixedPointProjectileLaunch must be a source literal/
+        }
+      ]
     }
   ]
 })

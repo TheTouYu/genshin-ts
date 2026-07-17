@@ -15,6 +15,8 @@ type RuleContext = Rule.RuleContext
 
 export type ClientScopeInfo = Pick<ClientOnCallInfo, 'subType'> & {
   kind: 'handler' | 'helper'
+  /** Handler's client flow-function parameter, when one was declared. */
+  fName?: string
 }
 
 export type NodeGraphScopeIndex = {
@@ -67,9 +69,11 @@ export function buildNodeGraphScopeIndex(
   const addClientRoot = (info: ClientOnCallInfo) => {
     const esNode = services.tsNodeToESTreeNodeMap.get(info.handler)
     if (esNode) {
+      const fParam = info.handler.parameters[1]
       clientScopeRoots.set(esNode, {
         subType: info.subType,
-        kind: 'handler'
+        kind: 'handler',
+        ...(fParam && ts.isIdentifier(fParam.name) ? { fName: fParam.name.text } : {})
       })
     }
   }

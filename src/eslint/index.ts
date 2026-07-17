@@ -5,6 +5,7 @@ import builtinMathSupport from './rules/builtin-math-support.js'
 import builtinWrapperArity from './rules/builtin-wrapper-arity.js'
 import clientFilterReturn from './rules/client-filter-return.js'
 import clientGraphScopedF from './rules/client-graph-scoped-f.js'
+import clientLiteralArguments from './rules/client-literal-arguments.js'
 import clientLocalVariableSupport from './rules/client-local-variable-support.js'
 import clientRepeatedEvaluation from './rules/client-repeated-evaluation.js'
 import clientScopedGlobals from './rules/client-scoped-globals.js'
@@ -51,6 +52,7 @@ export const rules = {
   'builtin-wrapper-arity': builtinWrapperArity,
   'client-filter-return': clientFilterReturn,
   'client-graph-scoped-f': clientGraphScopedF,
+  'client-literal-arguments': clientLiteralArguments,
   'client-local-variable-support': clientLocalVariableSupport,
   'client-repeated-evaluation': clientRepeatedEvaluation,
   'client-scoped-globals': clientScopedGlobals,
@@ -135,6 +137,7 @@ export const configs = {
       'gsts/builtin-wrapper-arity': 'error',
       'gsts/client-filter-return': 'error',
       'gsts/client-graph-scoped-f': 'error',
+      'gsts/client-literal-arguments': 'error',
       'gsts/client-local-variable-support': 'error',
       'gsts/client-repeated-evaluation': 'warn',
       'gsts/client-scoped-globals': 'error'
