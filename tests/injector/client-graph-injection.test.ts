@@ -5,6 +5,8 @@ import { createInjector } from '../../src/injector/index.js'
 import { extractGraphType, findNodeGraphTargets } from '../../src/injector/node_graph.js'
 import { loadGiaProto } from '../../src/injector/proto.js'
 import type { LenField } from '../../src/injector/types.js'
+import { client_dictionary_wrapped_value } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/gia_gen/client_basic.js'
+import { ClientVarType } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 function concat(...parts: Uint8Array[]): Uint8Array {
   return Buffer.concat(parts.map((part) => Buffer.from(part)))
@@ -54,6 +56,17 @@ const entryNode = {
   genericId: { class: 10001, type: 20002, kind: 22000, nodeId: 200042 },
   concreteId: { class: 10001, type: 20002, kind: 22000, nodeId: 2001 }
 }
+const prefabDictionaryNode = {
+  nodeIndex: 2,
+  genericId: { class: 10001, type: 20002, kind: 22000, nodeId: 200152 },
+  concreteId: { class: 10001, type: 20002, kind: 22000, nodeId: 2002 },
+  pins: [
+    {
+      i1: { kind: 4, index: 0 },
+      value: client_dictionary_wrapped_value(0, ClientVarType.Prefab_, ClientVarType.Integer_)
+    }
+  ]
+}
 const targetGraph = proto.nodeGraphMessage.create({
   id: { class: 10000, type: 20010, kind: 21001, id: targetId },
   name: '新建角色操控技能节点图',
@@ -80,7 +93,8 @@ const gilBytes = buildFile(concat(folderEntry(200), folderEntry(7400), targetGra
 })
 
 const giaBytes = makeGiaBytes(targetId, 20010, 64, '_GSTS_client_character_control_skill', [
-  entryNode
+  entryNode,
+  prefabDictionaryNode
 ])
 
 const result = createInjector({ lang: 'en' }).injectBytes({ gilBytes, giaBytes })
@@ -96,7 +110,7 @@ const matches = findNodeGraphTargets(payload, nodeGraphBlobFields, proto.nodeGra
 assert.equal(matches.length, 1)
 assert.equal(extractGraphType(matches[0].obj), 20010)
 assert.equal(matches[0].obj.name, '_GSTS_client_character_control_skill')
-assert.equal((matches[0].obj.nodes as unknown[]).length, 1)
+assert.equal((matches[0].obj.nodes as unknown[]).length, 2)
 
 const mismatchedClientGia = makeGiaBytes(targetId, 20008, 52, '_GSTS_wrong_client_subtype', [
   entryNode

@@ -565,10 +565,16 @@ export interface VarBase_ItemType_StructItem {
   structId: number
 }
 export interface VarBase_ItemType_PairItems {
-  /** Index = 1 */
-  key: VarType
-  /** Index = 2 */
-  value: VarType
+  /** Index = 1
+   *
+   * VarType for server dictionaries; ClientVarType for client dictionaries.
+   */
+  key: number
+  /** Index = 2
+   *
+   * VarType for server dictionaries; ClientVarType for client dictionaries.
+   */
+  value: number
   /** Index = 3 */
   structId?: number
   /** Index = 4 */
