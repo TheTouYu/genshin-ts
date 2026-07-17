@@ -1388,6 +1388,7 @@ function emitFiniteLoop(subType: string, doc: AlignedDocNode | undefined): strin
     const LOOP_BODY_SOURCE_INDEX = 0
     const LOOP_COMPLETE_SOURCE_INDEX = 1
 
+    const returned = this.__gstsResetReturnGate()
     const loopStartValueObj = parseValue(loopStartValue, 'int')
     const loopEndValueObj = parseValue(loopEndValue, 'int')
     const ref = this.registry.registerNode({
@@ -1399,6 +1400,7 @@ function emitFiniteLoop(subType: string, doc: AlignedDocNode | undefined): strin
     const ret = new int()
     ret.markPin(ref, 'currentLoopValue', 0)
 
+    const returnMarkBefore = this.registry.getReturnCallCounter()
     this.registry.withExecBranch(ref.id, LOOP_BODY_SOURCE_INDEX, () => {
       this.registry.withLoop(ref.id, () => {
         globalThis.gsts.ctx.withCtx('client_${subType}_loop', () =>
@@ -1406,7 +1408,25 @@ function emitFiniteLoop(subType: string, doc: AlignedDocNode | undefined): strin
         )
       })
     })
-    this.registry.markLinkNextExecFrom(ref.id, LOOP_COMPLETE_SOURCE_INDEX)
+    const hasReturnInBody = this.registry.getReturnCallCounter() !== returnMarkBefore
+
+    if (!hasReturnInBody) {
+      this.registry.markLinkNextExecFrom(ref.id, LOOP_COMPLETE_SOURCE_INDEX)
+      return
+    }
+
+    this.registry.setCurrentExecTailEndpoints([
+      { nodeId: ref.id, sourceIndex: LOOP_COMPLETE_SOURCE_INDEX }
+    ])
+    const returnedObj = parseValue(returned, 'bool')
+    const gate = this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'double_branch',
+      args: [returnedObj]
+    })
+    // Only the false branch (no return) may continue after the loop.
+    this.registry.setCurrentExecTailEndpoints([{ nodeId: gate.id, sourceIndex: 1 }])
   }`
 }
 
@@ -2459,9 +2479,9 @@ export function generateClientNodes(
         case 'send_signal_to_server_node_graph':
           texts.push(emitSendSignalToServer(doc))
           names.push('sendSignalToServerNodeGraph')
-          ;(
-            literalArgumentIndexesBySubType[record.subType] ??= {}
-          ).sendSignalToServerNodeGraph = [0]
+          ;(literalArgumentIndexesBySubType[record.subType] ??= {}).sendSignalToServerNodeGraph = [
+            0
+          ]
           break
         case 'get_local_variable':
           texts.push(emitGetLocalVariable(doc))
@@ -2693,6 +2713,7 @@ class ClientExecutionFlowFunctionsBase<
   Mode extends ClientGraphMode
 > {
   private localVariableCounter = 0
+  private returnGate?: { localVariable: string; value: boolean }
 
   constructor(protected registry: ExecutionFlowRegistry) {}
 
@@ -2728,6 +2749,187 @@ class ClientExecutionFlowFunctionsBase<
     }
     return { localVariable, value }
   }
+
+  /**
+   * @gsts
+   *
+   * Declare a client local variable.
+   *
+   * 声明客户端局部变量。
+   */
+  initLocalVariable<T extends ClientLocalVariableType>(
+    type: T,
+    initialValue?: RuntimeParameterValueTypeMap[T]
+  ): { localVariable: string; value: ClientRuntimeReturnValueTypeMap<SubType, Mode>[T] } {
+    return this.__gstsInitLocalVariable(type, initialValue)
+  }
+
+  /**
+   * @gsts
+   *
+   * Return an empty literal List. This does not create a mutable client List.
+   *
+   * 返回空列表字面量。该列表不是可动态增删的客户端列表。
+   */
+  emptyList<T extends keyof CommonLiteralValueTypeMap>(
+    type: T
+  ): ClientRuntimeReturnValueTypeMap<SubType, Mode>[\`\${T}_list\`] {
+    return new listLiteral(type) as unknown as ClientRuntimeReturnValueTypeMap<
+      SubType,
+      Mode
+    >[\`\${T}_list\`]
+  }
+
+  /**
+   * @gsts
+   *
+   * Mark a List value as a snapshot source. The compiler stores it in a client Local Variable
+   * when a snapshot is required.
+   *
+   * 将列表值标记为快照来源；需要快照时，编译器会将其保存到客户端局部变量。
+   */
+  copyList(input: FloatValue[], type?: 'float'): number[]
+  copyList(input: IntValue[], type?: 'int'): bigint[]
+  copyList(input: BoolValue[], type?: 'bool'): boolean[]
+  copyList(input: ConfigIdValue[], type?: 'config_id'): configId[]
+  copyList(
+    input: EntityValue[],
+    type?: 'entity'
+  ): ClientRuntimeReturnValueTypeMap<SubType, Mode>['entity_list']
+  copyList(input: FactionValue[], type?: 'faction'): faction[]
+  copyList(input: GuidValue[], type?: 'guid'): guid[]
+  copyList(input: PrefabIdValue[], type?: 'prefab_id'): prefabId[]
+  copyList(input: StrValue[], type?: 'str'): string[]
+  copyList(input: Vec3Value[], type?: 'vec3'): vec3[]
+  copyList<T extends keyof CommonLiteralValueTypeMap>(
+    input: RuntimeParameterValueTypeMap[\`\${T}_list\`],
+    _type?: T
+  ): ClientRuntimeReturnValueTypeMap<SubType, Mode>[\`\${T}_list\`] {
+    return input as unknown as ClientRuntimeReturnValueTypeMap<SubType, Mode>[\`\${T}_list\`]
+  }
+
+  /**
+   * @gsts
+   *
+   * Declare an empty client List Local Variable.
+   *
+   * 声明一个空的客户端列表局部变量。
+   */
+  emptyLocalVariableList<T extends keyof CommonLiteralValueTypeMap>(
+    type: T
+  ): {
+    localVariable: string
+    value: ClientRuntimeReturnValueTypeMap<SubType, Mode>[\`\${T}_list\`]
+  } {
+    return this.__gstsInitLocalVariable(
+      \`\${type}_list\` as \`\${T}_list\`
+    ) as {
+      localVariable: string
+      value: ClientRuntimeReturnValueTypeMap<SubType, Mode>[\`\${T}_list\`]
+    }
+  }
+
+  /**
+   * @gsts
+   *
+   * Iterate a client List using the graph's finite-loop and indexed-read nodes.
+   *
+   * 使用当前客户端图的有限循环和按索引取值节点遍历列表。
+   */
+  listIterationLoop<T extends keyof CommonLiteralValueTypeMap>(
+    iterationList: RuntimeParameterValueTypeMap[\`\${T}_list\`],
+    loopBody: (
+      iterationValue: ClientRuntimeReturnValueTypeMap<SubType, Mode>[T],
+      breakLoop: () => void
+    ) => void
+  ): void {
+    const methods = this as unknown as {
+      getListLength(list: RuntimeParameterValueTypeMap[\`\${T}_list\`]): bigint
+      subtraction(input1: bigint, input2: bigint): bigint
+      getCorrespondingValueFromList(
+        index: bigint,
+        list: RuntimeParameterValueTypeMap[\`\${T}_list\`]
+      ): ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]
+      finiteLoop(
+        start: bigint,
+        end: bigint,
+        body: (index: bigint, breakLoop: () => void) => void
+      ): void
+    }
+    const end = methods.subtraction.call(
+      this,
+      methods.getListLength.call(this, iterationList),
+      1n
+    )
+    methods.finiteLoop.call(this, 0n, end, (index, breakLoop) => {
+      loopBody(
+        methods.getCorrespondingValueFromList.call(this, index, iterationList),
+        breakLoop
+      )
+    })
+  }
+
+  /**
+   * @gsts
+   *
+   * Continue the current client loop iteration.
+   *
+   * 跳过当前客户端循环的剩余逻辑，继续下一次迭代。
+   */
+  continue(): void {
+    if (!this.registry.getActiveLoopNodeIds().length) {
+      throw new Error('continue is only supported inside loop bodies')
+    }
+    this.registry.returnFromCurrentExecPath({ countReturn: false })
+  }
+
+  /**
+   * @gsts
+   *
+   * Terminate the current client execution path.
+   *
+   * 终止当前客户端执行路径。
+   */
+  return(): void {
+    const loops = this.registry.getActiveLoopNodeIds()
+    if (loops.length) {
+      const gate = this.__gstsGetOrCreateReturnGate()
+      this.__gstsSetLocalVariable(gate.localVariable, true)
+      const breakLoop = (
+        this as unknown as { breakLoop(...loopNodeIds: bigint[]): void }
+      ).breakLoop
+      if (typeof breakLoop !== 'function') {
+        throw new Error('[error] client return inside loops requires breakLoop')
+      }
+      breakLoop.call(this, ...loops.slice().reverse().map((id) => BigInt(id)))
+    }
+    this.registry.returnFromCurrentExecPath()
+  }
+
+  protected __gstsResetReturnGate(): boolean {
+    const gate = this.__gstsGetOrCreateReturnGate()
+    this.__gstsSetLocalVariable(gate.localVariable, false)
+    return gate.value
+  }
+
+  private __gstsGetOrCreateReturnGate(): { localVariable: string; value: boolean } {
+    if (!this.returnGate) {
+      this.returnGate = this.__gstsInitLocalVariable('bool')
+    }
+    return this.returnGate
+  }
+
+  private __gstsSetLocalVariable(variableName: string, variableValue: boolean): void {
+    const setLocalVariable = (
+      this as unknown as {
+        setLocalVariable(variableName: StrValue, variableValue: BoolValue): void
+      }
+    ).setLocalVariable
+    if (typeof setLocalVariable !== 'function') {
+      throw new Error('[error] client local variables are not available in this graph type')
+    }
+    setLocalVariable.call(this, variableName, variableValue)
+  }
 }
 `
   const usesIdent = (name: string) =>
@@ -2748,6 +2950,7 @@ class ClientExecutionFlowFunctionsBase<
     'guid',
     'int',
     'list',
+    'listLiteral',
     'prefabId',
     'str',
     'vec3',

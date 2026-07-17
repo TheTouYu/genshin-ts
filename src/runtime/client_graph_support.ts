@@ -132,6 +132,27 @@ type ClientFlowFunctionBase<
             ? ClientBoolFilterExecutionFlowFunctions<Mode>
             : ClientIntFilterExecutionFlowFunctions<Mode>
 
+type ClientSyntheticFlowMethod<T extends ClientGraphSubType, Mode extends ClientGraphMode> =
+  | 'copyList'
+  | 'emptyList'
+  | (T extends 'bool_filter' | 'int_filter' ? never : 'return')
+  | ('finiteLoop' extends ClientNodeMethodForMode<T, Mode>
+      ?
+          | 'continue'
+          | ('getListLength' extends ClientNodeMethodForMode<T, Mode>
+              ? 'getCorrespondingValueFromList' extends ClientNodeMethodForMode<T, Mode>
+                ? 'subtraction' extends ClientNodeMethodForMode<T, Mode>
+                  ? 'listIterationLoop'
+                  : never
+                : never
+              : never)
+      : never)
+  | ('getLocalVariable' extends ClientNodeMethodForMode<T, Mode>
+      ? 'setLocalVariable' extends ClientNodeMethodForMode<T, Mode>
+        ? 'emptyLocalVariableList' | 'initLocalVariable'
+        : never
+      : never)
+
 export type ClientFlowFunctionClass<
   T extends ClientGraphSubType,
   Mode extends ClientGraphMode = ClientGraphMode
@@ -139,7 +160,10 @@ export type ClientFlowFunctionClass<
   ? ClientFlowFunctionBase<T, Mode>
   : Pick<
       ClientFlowFunctionBase<T, Mode>,
-      Extract<ClientNodeMethodForMode<T, Mode>, keyof ClientFlowFunctionBase<T, Mode>>
+      Extract<
+        ClientNodeMethodForMode<T, Mode> | ClientSyntheticFlowMethod<T, Mode>,
+        keyof ClientFlowFunctionBase<T, Mode>
+      >
     >
 
 type ClientFlowFunctionZhAliasMap<T extends ClientGraphSubType> =
