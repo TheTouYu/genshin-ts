@@ -1,8 +1,8 @@
 # 客户端节点支持计划
 
-> 状态：已验证（WP0 已收口；WP1 vendor 最小兼容补丁已提交并通过自动回归、编辑器
-> 导入/回导对拍和首个样本游戏验证，尚未同步项目快照）
-> 来源：当前代码实现审计 + 上游 vendor 候选数据 + 真实客户端 GIA 观察 + 设计决策 + WP1 自动回归
+> 状态：已验证（WP0、WP1 和 WP1-Sync 已收口；vendor 最小客户端快照已通过稳定
+> adapter 暴露并完成项目构建、field-101 与 materializer 自动回归；生产 `g.client()` 尚未开始）
+> 来源：当前代码实现审计 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 设计决策 + WP1 自动回归
 > 最近校验：2026-07-17
 > 适用范围：gsts 客户端节点支持的实施计划；真实 GIA 结论仅适用于本文记录的两个样本，不代表当前编译器已经支持客户端节点
 
@@ -14,7 +14,7 @@
 - **上游候选事实**：第三方原仓库包含客户端节点、类型和图编码候选，但其数据版本和准确性不能替代真实编辑器样本。
 - **已冻结设计决策**：本文“已冻结方案”各节记录本轮共同确认的产品和架构方向。
 - **真实 GIA 观察**：两个客户端 `skill` 图样本已提供图级 metadata、节点 identity、物理 pin 和 wire round-trip 基线；结论不得外推到未取样节点族。
-- **待验证假设**：hidden pin 的运行语义、`gameVersion` 的兼容语义和游戏行为仍需后续编辑器/游戏验证。
+- **待验证假设**：未取样节点的 hidden pin、Fixed/Variant identity、`gameVersion` 兼容语义和行为仍需后续真实 GIA、编辑器与游戏验证；首个 `Play Timed Effects` 样本的游戏行为已经用户确认。
 - **完成证据**：自动生成、编辑器导入、编辑器回导对拍和游戏行为验证是不同层级。
 
 ## 1. 目标与非目标
@@ -494,7 +494,10 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions) {
 ```
 
 `compat/genshin-ts-legacy-schema@497d9ec` 的精确边界是 protobuf schema 和 field-101
-回归基线，不是可独立运行并整体同步的完整 legacy encoder 基线。该分支中的旧
+回归基线，不是可独立运行并整体同步的完整 legacy encoder 基线。当前审核后的客户端补丁头为
+`compat/genshin-ts-client-legacy-schema@4033eaf`：功能提交 `5e05133` 增加 materializer 和
+focused tests，后续提交 `4033eaf` 将旧 DSL fixture `src/test/test_def.ts` 排除出标准 TypeScript
+项目，并明确 materializer 的 protobuf wire-presence 类型桥接。该分支中的旧
 `utils/gia_gen/graph.ts` 仍引用后来数据重构中删除的 `node_id.ts`、
 `node_pin_records.ts`、`helpers.ts` 和 `concrete_map.ts`；因此不得从该分支整目录覆盖项目
 vendor 快照。
@@ -811,19 +814,48 @@ client binding、执行连接和参数值均无语义差异。将上述 5 个图
 对拍和游戏行为闭环。范围只覆盖该样本，不证明其他客户端节点、Variant、变量、分支、signal、
 `g.client()` 或生产 Stage 3 已受支持。此次只复制 standalone GIA，没有注入或操作地图图 ID。
 
-### 10.5 后续拓扑样本
+### 10.5 下一份首批节点 fixture（用户将提供）
 
-首个执行节点基线确定后，仍需准备覆盖以下结构的独立最小图：
+原先把 Vector 输出直接串到 Double Branch 的草案缺少 Boolean 条件来源，不能作为合法类型拓扑。
+下一轮使用一个客户端 `skill` 图同时覆盖数据链和分支执行链：
 
 ```text
+Node Graph Begins
+→ Double Branch(Boolean literal)
+   ├─ True  → Play Timed Effects A
+   └─ False → Play Timed Effects B
+
 Get Self Entity
 → Get Entity Position
-→ Vector Addition
-→ Double Branch
-→ 两个可区分的执行结果
+→ 3D Vector Addition(position, [10, 0, 0])
+→ Play Timed Effects A.position
 ```
 
-分支 fixture 必须真实让两个分支产生不同可观察行为，不能使用空分支后接共享执行节点冒充条件行为。
+用户将提供该真实编辑器导出的最小 fixture。优先提供两份除图身份元数据和条件值外尽量一致的文件：
+
+```text
+fixture A: condition = true
+fixture B: condition = false
+```
+
+A/B 的特效配置、位置或其他可见参数必须足够可区分，用于分别确认两个 OutFlow；不得使用空分支后接
+共享执行节点冒充条件行为。若先只提供一份，则该份只能验证对应条件分支，另一侧保持待验证。
+
+收到文件后的第一轮仍为只读：校验容器头和哈希，按文件内部 metadata 配对图身份，直接 message
+round-trip，提取目标节点和物理 pin，再与固定 vendor 候选对账。不得按文件名猜图类型，也不得因样本
+到达而自动复制、注入或操作地图。
+
+当前待样本裁决的重点是：
+
+- `Get Entity Position` 候选 shell/kernel 为 `200030/1008`，需确认 Entity 输入、Vector 输出和连接方向；
+- `3D Vector Addition` 候选为 `200071/34`，但 vendor 标记为 Fixed，同时含隐藏
+  `E<CBMO>` pin；本文此前的“Variant/concrete identity”描述只保留为待验证假设；
+- `Double Branch` 候选为 `200056/2000`，vendor 带 `__todo_set_in_manually`，需确认
+  condition pin、kind-5 binding/hidden discriminator（如有）和 True/False OutFlow 序号；
+- `Get Self Entity` 已在第二个 WP0 样本观察到 `200033/1013`，但仍需补可复用 OutParam/data
+  connection materializer 和针对性行为验证。
+
+官方节点资料与 `resources/node_definitions.json` 已足以确认首批公开签名，但不能决定上述 wire 字段。
 
 ## 11. 验证和完成标准
 
@@ -863,7 +895,7 @@ Get Self Entity
 - 可见 pin 和隐藏 pin；
 - hidden/default pin 与 client binding；
 - 数据连接；
-- Vector Addition Variant；
+- Vector Addition 的真实 Fixed/Variant/concrete identity；
 - Double Branch 两个 OutFlow；
 - `Play Timed Effects` 公开参数到物理 pin 的映射；
 - 编辑器新增、删除或规范化的字段；
@@ -942,7 +974,7 @@ gameVersion = "6.7.0"
 - [x] 完成两个样本的逐字节 message round-trip；
 - [x] 记录工具限制、证据范围和剩余不确定性。
 
-### WP1：Vendor 客户端兼容补丁（vendor 已提交，未同步项目快照）
+### WP1：Vendor 客户端兼容补丁（vendor 补丁序列已提交并同步必要项目快照）
 
 - [x] 在 `497d9ec` 上创建独立 `compat/genshin-ts-client-legacy-schema` worktree；
 - [x] 增加不依赖已删除旧 node-data 文件的最小 client skill graph materializer；
@@ -954,9 +986,55 @@ gameVersion = "6.7.0"
 - [x] 编辑器回导语义对拍，归一化身份元数据后 payload 逐字节一致；
 - [x] 用户确认游戏中实际触发并观察到预期特效；
 - [x] 审阅 vendor diff；
-- [x] 形成可追溯 vendor commit `5e05133`；
-- [ ] 再次授权后同步必要项目快照；
-- [ ] 项目 adapter 和 focused tests（同步阶段，不在本次 vendor worktree 修改内）。
+- [x] 形成功能提交 `5e05133`；
+- [x] 形成类型检查边界修复提交 `4033eaf`，消除旧 DSL fixture 的 `TS1011`；
+- [x] 确认 WP1 新文件 focused TypeScript 检查通过；vendor 根 `tsconfig` 仍有 55 个与本工作包
+  无关的历史基线错误，不宣称全量 `tsc` 通过；
+- [x] 从审核头 `4033eaf` 同步必要项目快照；
+- [x] 增加项目稳定 adapter 和 focused tests。
+
+### WP1-Sync：项目快照同步与稳定 adapter（已完成）
+
+本轮未等待新的拓扑 fixture，先完成已有证据覆盖的项目侧同步。实际范围为：
+
+1. 从 vendor worktree `/home/h/worktrees/gia-vendor-client-legacy` 识别并同步 WP1 必要文件，
+   来源头固定为 `4033eaf`；
+2. 不整目录覆盖项目 vendor，不迁移新 AssetBundle schema，不复制失效的完整 legacy encoder；
+3. 在 `src/compiler/gia_vendor.ts` 暴露项目稳定入口，项目其他代码不得 deep-import vendor 路径；
+4. 增加项目级 focused tests，覆盖 field-101、两个 WP0 样本 wire round-trip，以及已验证的
+   `Node Graph Begins → Play Timed Effects` materializer；
+5. 不增加 `g.client()`，不修改运行时 registry、Stage 1 或生产 Stage 3 分发；
+6. 更新本文的同步文件清单、项目验证结果和未运行项。
+
+实施前已复核 genshin-ts、vendor worktree 和 vendor 主工作树状态。实际同步文件为：
+
+```text
+src/thirdparty/.../gia_gen/client_legacy.ts
+src/thirdparty/.../gia_gen/index.ts
+src/compiler/gia_vendor.ts
+tests/composite/test-client-legacy-materializer.ts
+tests/composite/test-client-real-gia-roundtrip.ts
+```
+
+`client_legacy.ts` 与 `4033eaf` 内容一致，只有项目规范要求的相对导入 `.ts` → `.js` 归一化；
+`gia_gen/index.ts` 只增加必要导出。没有同步 vendor `tsconfig.json`，没有修改 protobuf schema 或生成
+类型，也没有复制失效的完整 legacy encoder。
+
+本轮项目验证结果：
+
+```text
+npm run build                                                    PASS
+npx tsx tests/composite/test-client-legacy-materializer.ts        PASS
+npx tsx tests/composite/test-client-real-gia-roundtrip.ts <两样本> PASS
+npx tsx tests/composite/test-composite-bool-input-gia.ts          PASS
+git diff --check                                                  PASS
+vendor 来源归一化 diff 与 protobuf 未修改检查                    PASS
+```
+
+`tests/composite/test-client-real-gia-roundtrip.ts` 已固定两个 WP0 样本的 SHA-256、大小、图身份和逐字节
+message/container round-trip 契约；本轮使用原始只读样本运行通过。`npm test` 与 `npm run gen` 未运行：
+本轮 focused test 和构建已覆盖改动层，且没有修改定义来源或生成规则。自动回归不升级为新的编辑器或
+游戏证据；本轮没有注入、复制或修改游戏文件，也没有提交项目 commit。
 
 ### WP2：定义生成与覆盖报告
 
@@ -1021,10 +1099,10 @@ gameVersion = "6.7.0"
 - 两份真实 client skill GIA 已完成文件内 ID 配对、语义解码、上游候选对账和逐字节 wire round-trip；
 - 两份样本均为 `gameVersion="6.7.0"`，原 `6.6.0` 计划假设已撤销；
 - “变量版本”明确为节点链且 `graphValues=[]`，不扩大 Client Graph variables 范围；
-- 生产实现尚未开始；
+- 生产客户端编译路径尚未开始；
 - 不公开半成品 `g.client()`；
 - 不修改生产 Stage 3 客户端行为；
-- 不同步未经精确补丁审查和用户授权的 vendor 客户端快照；
+- 只使用已审查并获用户授权的 `4033eaf` 最小 vendor 客户端快照；
 - 不执行注入或游戏文件操作。
 
 WP0 已收口。WP1 已获授权并在独立 vendor worktree 实现最小 legacy client materializer：
@@ -1032,13 +1110,17 @@ WP0 已收口。WP1 已获授权并在独立 vendor worktree 实现最小 legacy
 ```text
 branch:   compat/genshin-ts-client-legacy-schema
 base:     497d9ec940c6e13678e3997e6e45f7d5d6caea96
-commit:   5e05133  feat: materialize legacy client skill graphs
+commits:  5e05133  feat: materialize legacy client skill graphs
+          4033eaf  chore: exclude legacy DSL fixture from typecheck
 worktree: /home/h/worktrees/gia-vendor-client-legacy
 ```
 
 当前新增 `utils/gia_gen/client_legacy.ts` 及两个 focused test，并从 `utils/gia_gen/index.ts`
 导出；field-101、两个 WP0 样本逐字节 round-trip 和最小 skill graph 字段回归均通过。用户已完成首个
 字面量样本的编辑器导入、回导和游戏验证；归一化编辑器重写的图 ID、图名和 `filePath` 后，回导
-payload 与导入前逐字节一致。该证据仍只覆盖此样本。vendor 补丁已提交为 `5e05133`，但尚未同步到
-genshin-ts `src/thirdparty/`，也尚未修改项目 adapter、运行时或 Stage 3。下一步应规划并再次授权
-项目快照同步与 adapter focused tests。
+payload 与导入前逐字节一致。该证据仍只覆盖此样本。vendor 功能补丁为 `5e05133`，审核后的分支头为
+`4033eaf`。WP1-Sync 已将必要的 `client_legacy.ts` 和导出同步到 genshin-ts，并通过
+`src/compiler/gia_vendor.ts` 暴露稳定入口；项目构建、field-101 和最小 client skill materializer
+focused 回归均通过，项目级真实样本 round-trip 也使用两份原始 WP0 样本逐字节通过。运行时、
+Stage 1 和生产 Stage 3 仍未修改，`g.client()` 仍未公开。下一步由用户提供第 10.5 节首批节点真实
+fixture，再进入未取样节点的 vendor materializer 扩展或启动 WP2 的精确设计与授权。
