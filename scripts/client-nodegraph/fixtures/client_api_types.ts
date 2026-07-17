@@ -140,6 +140,32 @@ classicCreationFns.checkClassicModeCharacterId
 // @ts-expect-error server notification is Beyond-only in creation skill graphs
 classicCreationFns.notifyServerNodeGraph
 
+g.creationSkill().on('start', (_evt, f) => {
+  const empty = f.emptyList('int')
+  const copied = f.copyList(empty)
+  f.listIterationLoop(copied, () => {})
+  f.initLocalVariable('int', 0n)
+  f.emptyLocalVariableList('int')
+  f.continue
+  f.return()
+})
+
+g.creationStatus().on('start', (_evt, f) => {
+  f.emptyList('int')
+  f.copyList(list('int', [1n]))
+  f.return()
+  // @ts-expect-error creation status graphs do not have finite loops
+  f.listIterationLoop(list('int', [1n]), () => {})
+  // @ts-expect-error creation status graphs do not have local-variable nodes
+  f.initLocalVariable('int', 0n)
+})
+
+g.boolFilter().on('start', (_evt, f) => {
+  // @ts-expect-error filter handlers return a value instead of calling f.return()
+  f.return()
+  return true
+})
+
 expectType<ServerExecutionFlowFunctions>(gsts.f)
 expectType<ServerExecutionFlowFunctions>(gsts.fServer)
 expectType<ClientCharacterSkillExecutionFlowFunctions>(gsts.fCharacterSkill)

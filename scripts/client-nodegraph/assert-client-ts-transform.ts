@@ -817,13 +817,14 @@ g.characterSkill().on('start', () => {
 })`,
     /client method "insertValueIntoList" is not available in character_skill/
   )
-  await expectCompileError(
-    'unavailable-client-list-iteration',
+  await expectRuntimeSuccess(
+    'available-client-list-iteration',
     `${importG}
-g.characterSkill().on('start', () => {
-  list('int', [1n]).forEach(() => {})
-})`,
-    /client method "listIterationLoop" is not available in character_skill/
+g.characterSkill({ id: 1082130780 }).on('start', (_evt, f) => {
+  list('int', [1n]).forEach(() => {
+    f.forceExitAimingState()
+  })
+})`
   )
 
   const shadowedWrapperGraphId = 1082130692
@@ -897,10 +898,36 @@ g.creationStatus().on('start', () => { let value = 0n; value += 1n })`,
     'unavailable-ternary-local-variable',
     `${importG}
 g.creationStatusDecision().on('start', (_evt, f) => {
-  const result = f.equal(1n, 1n) ? 1n : 0n
-  f.absoluteValueOperation(result)
+  const result = f.equal(1n, 1n) ? 'yes' : 'no'
+  f.equal(result, 'yes')
 })`,
-    /client method "initLocalVariable" is not available in creation_status_decision/
+    /conditional expressions without local variables only support bool, int, or float/
+  )
+  await expectRuntimeSuccess(
+    'available-client-data-ternary',
+    `${importG}
+g.creationStatusDecision({ id: 1082130781 }).on('start', (_evt, f) => {
+  const result = f.equal(1n, 1n) ? 1n : 0n
+  f.doubleBranch(f.equal(result, 1n), () => {}, () => {})
+})`
+  )
+  await expectCompileError(
+    'unavailable-client-filter-switch',
+    `${importG}
+g.boolFilter({ id: 1082130782 }).on('start', (_evt, f) => {
+  const control = f.addition(1n, 1n)
+  switch (control) {
+    case 0n:
+      return false
+    case 1n:
+      return false
+    case 2n:
+      return true
+    default:
+      return false
+  }
+})`,
+    /client filter graphs do not support switch/
   )
   const repeatedConstGraphIds = {
     creationStatus: 1082130680,
@@ -950,6 +977,104 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
   assert.match(repeatedConstIr, /"type":"equal"/)
   assert.match(repeatedConstIr, /"type":"get_random_number"/)
   assert.doesNotMatch(repeatedConstIr, /"type":"(?:get|set)_local_variable"/)
+
+  const controlFlowExample = path.join(root, 'examples/client-control-flow/index.ts')
+  const controlFlowResult = await compile([relative(controlFlowExample)])
+  const controlFlowOutput = fs.readFileSync(controlFlowResult.entryOutFiles[0], 'utf8')
+  assert.match(controlFlowOutput, /\.listIterationLoop\(/)
+  assert.match(controlFlowOutput, /\.continue\(\)/)
+  assert.match(controlFlowOutput, /\.return\(\)/)
+  assert.match(controlFlowOutput, /\.division\(/)
+  assert.match(controlFlowOutput, /\.listIncludesThisValue\(/)
+  assert.match(
+    controlFlowOutput,
+    /const hasFourViaSimpleSome = f\.listIncludesThisValue\(4n,\s*values\.value\)/,
+    'simple some(value => value === expected) must use the native includes node'
+  )
+  assert.match(
+    controlFlowOutput,
+    /setLocalVariable\(forEachSum\.localVariable,\s*f\.addition\(forEachSum\.value,\s*value\)\)/
+  )
+  assert.match(
+    controlFlowOutput,
+    /setLocalVariable\(mutableFloatRemainder\.localVariable,\s*f\.subtraction\(/,
+    'float %= must lower through the client truncating modulo formula'
+  )
+  assert.match(
+    controlFlowOutput,
+    /const classicForSum = f\.__gstsInitLocalVariable\("int"\)[\s\S]*const whileIndex = f\.__gstsInitLocalVariable\("int"\)[\s\S]*const doWhileIndex = f\.__gstsInitLocalVariable\("int"\)/,
+    'injectable example must exercise for, while, and do...while lowering'
+  )
+  assert.match(controlFlowOutput, /f\.enumerationMatch\(f\.getEntitySType\(selfEntity\)/)
+  assert.match(
+    controlFlowOutput,
+    /f\.getRayDetectionResult\([\s\S]*\[EntityType\.Stage,\s*EntityType\.Creation\],[\s\S]*\[RayFilterType\.Hurtbox,\s*RayFilterType\.Scene\]/
+  )
+  assert.doesNotMatch(
+    controlFlowOutput,
+    /assemblyList\(\[EntityType\.Stage|assemblyList\(\[RayFilterType\.Hurtbox/,
+    'client enum-list arguments must remain literals until IR -> GIA expansion'
+  )
+  assert.doesNotMatch(controlFlowOutput, /\.moduloOperation\(/)
+  assert.doesNotMatch(controlFlowOutput, /\.multipleBranches\(/)
+  assert.strictEqual(
+    (controlFlowOutput.match(/\.equal\(__gsts_switch_control_\d+,\s*(?:0|1|2)n?\)/g) ?? []).length,
+    3,
+    'creation_skill switch fallback must emit one comparison for every case'
+  )
+  assert.doesNotMatch(
+    controlFlowOutput,
+    /__gsts_(?:includes|some)_out_/,
+    'server and client includes should use their native data node directly'
+  )
+  await import(`${pathToFileURL(controlFlowResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+  const controlFlowDocument = buildClientGraphRegistriesIRDocuments().find(
+    (document) => document.graph.id === 1082130783
+  )
+  assert.ok(controlFlowDocument, 'missing injectable client control-flow example graph')
+  const controlFlowNodeTypes = new Set(controlFlowDocument.nodes?.map((node) => node.type) ?? [])
+  for (const nodeType of [
+    'finite_loop',
+    'break_loop',
+    'get_corresponding_value_from_list',
+    'get_list_length',
+    'get_local_variable',
+    'set_local_variable',
+    'double_branch',
+    'division',
+    'multiplication',
+    'subtraction',
+    'list_includes_this_value',
+    'enumeration_match',
+    'get_ray_detection_result',
+    'notify_server_node_graph'
+  ]) {
+    assert.ok(controlFlowNodeTypes.has(nodeType), `control-flow example missing ${nodeType}`)
+  }
+  assert.ok(
+    !controlFlowNodeTypes.has('multiple_branches'),
+    'creation_skill switch must lower through doubleBranch'
+  )
+  const ternaryProbeDocument = buildClientGraphRegistriesIRDocuments().find(
+    (document) => document.graph.id === 1082130785
+  )
+  assert.ok(ternaryProbeDocument, 'missing injectable client data-ternary probe graph')
+  const ternaryProbeNodeTypes = new Set(ternaryProbeDocument.nodes?.map((node) => node.type) ?? [])
+  for (const nodeType of [
+    'division',
+    'equal',
+    'logical_not_operation',
+    'data_type_conversion_int',
+    'multiplication',
+    'addition'
+  ]) {
+    assert.ok(ternaryProbeNodeTypes.has(nodeType), `data ternary probe missing ${nodeType}`)
+  }
+  assert.ok(
+    irToGia(controlFlowDocument, { protoPath }).length > 0,
+    'injectable client control-flow example GIA is empty'
+  )
+
   await expectRuntimeError(
     'duplicate-client-handler',
     `${importG}
