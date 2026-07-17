@@ -45,9 +45,9 @@ export const ENUM_ID = {
   Gameplay_Mode: 40,
   Input_Device_Type: 41,
 
+  Movement_Mode: 42,
+  Fixed_Motion_Parameter_Type: 43,
   /** Be careful. the following ids are not verified */
-  Movement_Mode: 1042,
-  Fixed_Motion_Parameter_Type: 1043,
   LocalVariable: 1016, // E<1016> --> Local Variable
   VariableSnapshot: 1028, // E<1028> --> VariableSnapshot
 

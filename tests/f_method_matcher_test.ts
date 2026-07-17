@@ -77,4 +77,20 @@ g.server({
     }
   })
   f.printString('__CASE__:multiple_branches_zh_alias:end')
+
+  f.printString('__CASE__:multiple_branches_default_only_int:start')
+  f.multipleBranches(5n, {
+    default: () => {
+      f.printString('default-only-int')
+    }
+  })
+  f.printString('__CASE__:multiple_branches_default_only_int:end')
+
+  f.printString('__CASE__:multiple_branches_default_only_str:start')
+  f.multipleBranches('ready', {
+    default: () => {
+      f.printString('default-only-str')
+    }
+  })
+  f.printString('__CASE__:multiple_branches_default_only_str:end')
 })
