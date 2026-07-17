@@ -368,27 +368,36 @@ g.characterSkill({
       gsts.fCharacterSkill.notifyServerNodeGraph('start', '', '')
       break
     default:
-      gsts.fCharacterSkill.notifyServerNodeGraph(str(Math.max(1, 2)), '', '')
+      gsts.fCharacterSkill.sendSignalToServerNodeGraph('feature_debug', str(Math.max(1, 2)))
       break
   }
 
-  gsts.fCharacterSkill.notifyServerNodeGraph(
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    'feature_debug',
     str(directFirstValue + rawValue),
     convertedString,
     stringValue
   )
-  gsts.fCharacterSkill.notifyServerNodeGraph(
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    'feature_debug',
     str(numberValue),
     str(booleanValue),
     str(customScore + lookupValue + prefabScore + factionScore)
   )
-  gsts.fCharacterSkill.notifyServerNodeGraph(
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    'feature_debug',
     str(lookupKeyCount + lookupValueCount + lookupSize),
     str(lookupExists),
     str(targetFaction)
   )
-  gsts.fCharacterSkill.notifyServerNodeGraph(str(floorToInt), str(ceilToInt), str(trigonometric))
-  gsts.fCharacterSkill.notifyServerNodeGraph(
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    'feature_debug',
+    str(floorToInt),
+    str(ceilToInt),
+    str(trigonometric)
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    'feature_debug',
     str(Vector3.Magnitude(Vector3.Add(targetPosition, vectorValue))),
     str(Vector3.Magnitude(entityValue.pos)),
     str(Vector3.Magnitude(target))

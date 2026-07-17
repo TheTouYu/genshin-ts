@@ -1,4 +1,5 @@
 import { g } from 'genshin-ts/runtime/core'
+import { TargetType } from 'genshin-ts/definitions/enum'
 
 import { gstsClientCharacterSkillAdd } from './client_ts_transform_helpers.js'
 
@@ -62,8 +63,19 @@ g.characterSkill({ id: 1082130601, name: 'ClientTsTransformCharacterSkill' }).on
     const indexedValues = list('int', [wiredInt, convertedInt])
     const firstIndexedValue = indexedValues[0]
     const secondIndexedValue = indexedValues[idx(1n)]
+    const ordinaryEqual = wiredInt === convertedInt
+    const enumEqual = TargetType.None === TargetType.AlliedFaction
+    const enumNotEqual = TargetType.None !== TargetType.AlliedFaction
     f.setAttackWeight(convertedFloat, convertedBool)
-    f.notifyServerNodeGraph(convertedString, str(firstIndexedValue), str(secondIndexedValue))
+    f.sendSignalToServerNodeGraph(
+      'client_transform_values',
+      convertedString,
+      str(firstIndexedValue),
+      str(secondIndexedValue),
+      ordinaryEqual,
+      enumEqual,
+      enumNotEqual
+    )
   }
 )
 
@@ -99,6 +111,13 @@ g.creationStatus({ id: 1082130604, name: 'ClientTsTransformCreationStatus' }).on
       gstsClientCreationStatusAdd(-1n)
     } else {
       gstsCreationStatusAdd(-1n)
+    }
+    switch ('ready') {
+      case 'ready':
+        gstsClientCreationStatusAdd(-1n)
+        break
+      default:
+        gstsCreationStatusAdd(-1n)
     }
   }
 )

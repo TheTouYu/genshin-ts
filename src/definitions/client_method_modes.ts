@@ -906,6 +906,189 @@ export const CLIENT_NODE_METHODS_BY_SUB_TYPE = {
   ]
 } as const
 
+export const CLIENT_LITERAL_ARGUMENT_INDEXES_BY_SUB_TYPE = {
+  bool_filter: {
+    getRayFilterTypeList: [0],
+    querySkillVariableValue: [0]
+  },
+  character_control_skill: {
+    addUnitStatus: [2],
+    cameraOrientationDetectionData: [0, 2, 3],
+    fixedPointProjectileLaunch: [0],
+    getLocalVariable: [0],
+    getRayFilterTypeList: [0],
+    increaseSkillVariableValue: [0],
+    notifyServerNodeGraph: [0, 1, 2],
+    playTimedEffects: [0],
+    playerTurning: [0],
+    querySkillVariableValue: [0],
+    recoverCharacterSHp: [2],
+    removeSpecifiedCharacterDisruptorDevice: [0],
+    removeUnitStatus: [1],
+    sendSignalToServerNodeGraph: [0],
+    setLocalVariable: [0],
+    setSkillVariable: [0],
+    triggerHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 31, 32, 36, 37
+    ],
+    triggerHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+      31, 32, 33, 37, 38
+    ],
+    triggerRectangularHitboxAtSpecificLocation: [
+      0, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30
+    ],
+    triggerRectangularHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31
+    ],
+    triggerSectorHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      33, 34
+    ],
+    triggerSectorHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 34, 35
+    ],
+    triggerSphericalHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30
+    ],
+    triggerSphericalHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31
+    ]
+  },
+  character_skill: {
+    addUnitStatus: [2],
+    cameraOrientationDetectionData: [0, 2, 3],
+    fixedPointProjectileLaunch: [0],
+    getLocalVariable: [0],
+    getRayFilterTypeList: [0],
+    increaseSkillVariableValue: [0],
+    notifyServerNodeGraph: [0, 1, 2],
+    playTimedEffects: [0],
+    playerTurning: [0],
+    querySkillVariableValue: [0],
+    recoverCharacterSHp: [2],
+    removeSpecifiedCharacterDisruptorDevice: [0],
+    removeUnitStatus: [1],
+    sendSignalToServerNodeGraph: [0],
+    setLocalVariable: [0],
+    setSkillVariable: [0],
+    triggerHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 31, 32, 36, 37
+    ],
+    triggerHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+      31, 32, 33, 37, 38
+    ],
+    triggerRectangularHitboxAtSpecificLocation: [
+      0, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30
+    ],
+    triggerRectangularHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31
+    ],
+    triggerSectorHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      33, 34
+    ],
+    triggerSectorHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 34, 35
+    ],
+    triggerSphericalHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30
+    ],
+    triggerSphericalHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31
+    ]
+  },
+  creation_skill: {
+    addUnitStatus: [2],
+    fixedPointProjectileLaunch: [0],
+    getLocalVariable: [0],
+    getRayFilterTypeList: [0],
+    increaseSkillVariableValue: [0],
+    notifyServerNodeGraph: [0, 1, 2],
+    playTimedEffects: [0],
+    querySkillVariableValue: [0],
+    recoverCreationSHp: [2],
+    removeSpecifiedCharacterDisruptorDevice: [0],
+    removeUnitStatus: [1],
+    sendSignalToServerNodeGraph: [0],
+    setLocalVariable: [0],
+    setSkillVariable: [0],
+    triggerHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 31, 32, 36, 37
+    ],
+    triggerHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+      31, 32, 33, 37, 38
+    ],
+    triggerRectangularHitboxAtSpecificLocation: [
+      0, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30
+    ],
+    triggerRectangularHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31
+    ],
+    triggerSectorHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      33, 34
+    ],
+    triggerSectorHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 34, 35
+    ],
+    triggerSphericalHitboxAtSpecificLocation: [
+      0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30
+    ],
+    triggerSphericalHitboxAtSpecifiedAttachmentPoint: [
+      0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31
+    ]
+  },
+  creation_status: {
+    getCustomVariable: [0],
+    getEntityLocation: [0],
+    getEntityRotation: [0],
+    getEntitySType: [0],
+    getObjectPresetStatus: [0],
+    getTargetAtk: [0],
+    getTargetHp: [0],
+    getTargetLevel: [0],
+    queryEntityFaction: [0],
+    queryIfEntityIsOnTheField: [0],
+    tacticExecutePatrol: [4],
+    tacticGroundConfrontation: [14],
+    tacticGroundEscape: [11],
+    tacticGroundIdleRoaming: [7],
+    tacticGroundPursuit: [9],
+    tacticMoveToTheTargetEntity: [5],
+    tacticMoveToTheTargetPosition: [5],
+    tacticReturnToSpawnPointAfterLeavingBattle: [6],
+    tacticRotateBySpecifiedAngle: [4],
+    tacticRotateToTheSpecifiedDirection: [5],
+    tacticRotateToTheTargetEntity: [4],
+    tacticStandStill: [1]
+  },
+  creation_status_decision: {
+    getCustomVariable: [0],
+    getEntityLocation: [0],
+    getEntityRotation: [0],
+    getEntitySType: [0],
+    getObjectPresetStatus: [0],
+    getTargetAtk: [0],
+    getTargetHp: [0],
+    getTargetLevel: [0],
+    queryEntityFaction: [0],
+    queryIfEntityIsOnTheField: [0]
+  },
+  int_filter: {
+    getRayFilterTypeList: [0],
+    querySkillVariableValue: [0]
+  }
+} as const
+
 export const CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE = {
   character_skill: {
     beyond: [

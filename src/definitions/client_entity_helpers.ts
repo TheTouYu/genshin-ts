@@ -1030,16 +1030,6 @@ export const CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE = {
   },
   creation_status: {
     beyond: {
-      get: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      },
-      getCustomVariable: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      },
       tacticMoveToTheTargetEntity: {
         kind: 'method',
         methodName: 'tacticMoveToTheTargetEntity',
@@ -1052,16 +1042,6 @@ export const CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE = {
       }
     },
     classic: {
-      get: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      },
-      getCustomVariable: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      },
       tacticMoveToTheTargetEntity: {
         kind: 'method',
         methodName: 'tacticMoveToTheTargetEntity',
@@ -1075,30 +1055,8 @@ export const CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE = {
     }
   },
   creation_status_decision: {
-    beyond: {
-      get: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      },
-      getCustomVariable: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      }
-    },
-    classic: {
-      get: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      },
-      getCustomVariable: {
-        kind: 'method',
-        methodName: 'getCustomVariable',
-        insertIndex: 0
-      }
-    }
+    beyond: {},
+    classic: {}
   },
   bool_filter: {
     beyond: {

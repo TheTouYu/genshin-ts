@@ -13,7 +13,10 @@ import {
   CLIENT_ENUM_VALUES,
   ENUM_MATCH_ROWS_BY_CLASS
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
-import type { ClientNodeMetadata } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+import type {
+  ClientNodeMetadata,
+  ClientPinMetadata
+} from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import {
   NodePin_Index_Kind,
   VarBase_Class
@@ -40,7 +43,9 @@ import {
   DICT_REFLECT_NODE_TYPES,
   LOCAL_VARIABLE_NODE_TYPES,
   resolveClientConcreteVariant,
-  resolveClientNodeMetadata
+  resolveClientNodeMetadata,
+  resolveClientReflectVariant,
+  type ClientReflectVariant
 } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
@@ -54,22 +59,11 @@ const PIN_KIND_CLIENT_EXEC = NodePin_Index_Kind.ClientExecNode
 const CLIENT_VAR_TYPE_ENUM = 13
 const CLIENT_SEND_SIGNAL_PLACEHOLDER_GID = 300002
 
-/** element ClientVarType -> list ClientVarType */
-const LIST_TYPE_BY_ELEM_TYPE: Record<number, number> = {
-  1: 2,
-  3: 4,
-  5: 6,
-  7: 8,
-  9: 10,
-  11: 12,
-  13: 17,
-  14: 15,
-  16: 25,
-  18: 20,
-  19: 21
-}
-
 type ClientGiaNode = ReturnType<typeof client_node_body>
+type ResolvedClientPinMetadata = ClientPinMetadata & {
+  clientVarType: number
+  indexOfConcrete: number
+}
 type IrArg = NonNullable<IRNode['args']>[number]
 type ValueArg = Exclude<IrArg, null | { type: 'conn' }>
 
@@ -166,20 +160,24 @@ function inferredOutputIrType(irNode: IRNode, connIndex: ConnTypeIndex): string 
   return undefined
 }
 
-function resolvedVariant(metadata: ClientNodeMetadata, concreteId: number | string) {
-  return metadata.reflectMap?.find((v) => v.concreteId === concreteId)
-}
-
-/**
- * indexOfConcrete of reflective pins = rank of the resolved variant among the
- * node's concrete ids in ascending order. Corpus-proven: 200019 cids 100..109
- * -> ioc 0..9; assembly_list cids 1025..1045 -> ioc 0..8; get_custom_variable
- * ioc = cid - base.
- */
-function variantRank(metadata: ClientNodeMetadata, concreteId: number | string): number {
-  const cids = (metadata.reflectMap ?? []).map((v) => v.concreteId)
-  const rank = [...cids].sort((a, b) => Number(a) - Number(b)).indexOf(concreteId)
-  return rank >= 0 ? rank : 0
+function resolvedVariantPin(
+  metadata: ClientNodeMetadata,
+  variant: ClientReflectVariant | undefined,
+  kind: 'input' | 'output',
+  index: number
+): ResolvedClientPinMetadata {
+  const pin = variant?.pins?.find(
+    (candidate) => candidate.kind === kind && candidate.index === index
+  )
+  if (!pin?.clientVarType || pin.indexOfConcrete === undefined) {
+    throw clientNodegraphError(
+      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+      `${metadata.subType}.${metadata.nodeType} (genericId ${metadata.genericId}, ` +
+        `concreteId ${variant?.concreteId ?? 'unresolved'}) has no confirmed ` +
+        `${kind} pin #${index} specialization`
+    )
+  }
+  return pin as ResolvedClientPinMetadata
 }
 
 function findOutPin(node: ClientGiaNode, pinIndex: number) {
@@ -188,51 +186,88 @@ function findOutPin(node: ClientGiaNode, pinIndex: number) {
   )
 }
 
+/** Apply the editor-observed type and dropdown row to every reflective pin. */
+function applyResolvedReflectivePins(
+  node: ClientGiaNode,
+  metadata: ClientNodeMetadata,
+  variant: ClientReflectVariant | undefined
+) {
+  // enumeration_match uses the enum class, not ClientVarType, to select its row.
+  if (metadata.nodeType === 'enumeration_match') return
+  if (!variant) return
+  for (const pinMeta of variant.pins ?? []) {
+    if (pinMeta.kind !== 'input' && pinMeta.kind !== 'output') continue
+    const basePin = (pinMeta.kind === 'input' ? metadata.inputs : metadata.outputs).find(
+      (pin) => pin.index === pinMeta.index
+    )
+    if (!basePin?.reflective) continue
+    const resolved = resolvedVariantPin(metadata, variant, pinMeta.kind, pinMeta.index)
+    const pin =
+      pinMeta.kind === 'input' ? findInPin(node, pinMeta.index) : findOutPin(node, pinMeta.index)
+    if (!pin) {
+      throw new Error(`[error] missing ${pinMeta.kind} pin index ${pinMeta.index}`)
+    }
+    pin.type = resolved.clientVarType
+    pin.value = client_wrapped_value(
+      resolved.indexOfConcrete,
+      client_value_base(resolved.clientVarType)
+    )
+  }
+}
+
 function applyAssemblyList(
   node: ClientGiaNode,
   irNode: IRNode,
   metadata: ClientNodeMetadata,
-  concreteId: number | string
+  variant: ClientReflectVariant
 ) {
   const elements = irNode.args ?? []
   const countPin = findInPin(node, 0)
   // sample count pins keep alreadySetVal=false while carrying the payload
   if (countPin) countPin.value = client_value_base(3, elements.length)
-  const variant = resolvedVariant(metadata, concreteId)
-  const rank = variantRank(metadata, concreteId)
-  let elemClientType = 0
   elements.forEach((arg, idx) => {
     const pinIndex = idx + 1
-    const variantPin = variant?.pins?.find((p) => p.kind === 'input' && p.index === pinIndex)
-    const clientVarType = variantPin?.clientVarType ?? 0
-    if (clientVarType) elemClientType = clientVarType
+    const variantPin = resolvedVariantPin(metadata, variant, 'input', pinIndex)
+    const clientVarType = variantPin.clientVarType
     if (!isValueArg(arg)) return
     setInPinValue(
       node,
       pinIndex,
       clientVarType,
       client_literal_value(clientVarType, toPinLiteral(clientVarType, arg.value, idx, irNode.type)),
-      rank
+      variantPin.indexOfConcrete
     )
   })
-  const listType = LIST_TYPE_BY_ELEM_TYPE[elemClientType]
+  const outVariantPin = resolvedVariantPin(metadata, variant, 'output', 0)
   const outPin = findOutPin(node, 0)
-  if (outPin && listType) {
-    outPin.type = listType
-    outPin.value = client_wrapped_value(rank, client_value_base(listType))
+  if (outPin) {
+    outPin.type = outVariantPin.clientVarType
+    outPin.value = client_wrapped_value(
+      outVariantPin.indexOfConcrete,
+      client_value_base(outVariantPin.clientVarType)
+    )
   }
 }
 
-function applyMultipleBranches(node: ClientGiaNode, irNode: IRNode) {
+function applyMultipleBranches(
+  node: ClientGiaNode,
+  irNode: IRNode,
+  metadata: ClientNodeMetadata,
+  variant: ClientReflectVariant
+) {
   const args = irNode.args ?? []
   const controlArg = args[0]
+  const controlPin = resolvedVariantPin(metadata, variant, 'input', 0)
   if (isValueArg(controlArg)) {
     setInPinValue(
       node,
       0,
-      3,
-      client_literal_value(3, toPinLiteral(3, controlArg.value, 0, irNode.type)),
-      0
+      controlPin.clientVarType,
+      client_literal_value(
+        controlPin.clientVarType,
+        toPinLiteral(controlPin.clientVarType, controlArg.value, 0, irNode.type)
+      ),
+      controlPin.indexOfConcrete
     )
   }
   const caseValues: unknown[] = []
@@ -241,7 +276,16 @@ function applyMultipleBranches(node: ClientGiaNode, irNode: IRNode) {
     if (!a || a.type === 'conn') continue
     caseValues.push(a.value)
   }
-  if (caseValues.length) setInPinValue(node, 1, 4, client_list_literal_value(4, caseValues), 0)
+  if (caseValues.length) {
+    const casesPin = resolvedVariantPin(metadata, variant, 'input', 1)
+    setInPinValue(
+      node,
+      1,
+      casesPin.clientVarType,
+      client_list_literal_value(casesPin.clientVarType, caseValues),
+      casesPin.indexOfConcrete
+    )
+  }
 }
 
 /** in->out -> TypeConversion 枚举名；枚举值 800..810 由共享枚举表（parseEnumValue）解析 */
@@ -883,14 +927,17 @@ function applySpecialArgs(
   irNode: IRNode,
   metadata: ClientNodeMetadata,
   concreteId: number | string,
+  variant: ClientReflectVariant | undefined,
   inferredOutType: string | undefined
 ): boolean {
   if (irNode.type === 'assembly_list') {
-    applyAssemblyList(node, irNode, metadata, concreteId)
+    if (!variant) throw new Error('[error] assembly_list reflect variant was not resolved')
+    applyAssemblyList(node, irNode, metadata, variant)
     return true
   }
   if (irNode.type === 'multiple_branches') {
-    applyMultipleBranches(node, irNode)
+    if (!variant) throw new Error('[error] multiple_branches reflect variant was not resolved')
+    applyMultipleBranches(node, irNode, metadata, variant)
     return true
   }
   if (metadata.nodeType === 'data_type_conversion') {
@@ -898,7 +945,7 @@ function applySpecialArgs(
     return true
   }
   if (irNode.type === 'get_custom_variable') {
-    applyLiteralArgs(node, irNode, metadata, concreteId)
+    applyLiteralArgs(node, irNode, metadata, variant)
     applyCustomVariableOutPin(node, inferredOutType)
     return true
   }
@@ -937,7 +984,7 @@ function applyLiteralArgs(
   node: ClientGiaNode,
   irNode: IRNode,
   metadata: ClientNodeMetadata,
-  concreteId: number | string
+  variant: ClientReflectVariant | undefined
 ) {
   for (const [argIndex, arg] of (irNode.args ?? []).entries()) {
     if (arg == null || arg.type === 'conn') continue
@@ -948,9 +995,7 @@ function applyLiteralArgs(
       const pin = findInPin(node, pinIndex)
       if (!pin) continue
       const variantPin = pinMeta.reflective
-        ? resolvedVariant(metadata, concreteId)?.pins?.find(
-            (p) => p.kind === 'input' && p.index === pinIndex
-          )
+        ? resolvedVariantPin(metadata, variant, 'input', pinIndex)
         : undefined
       const clientVarType =
         variantPin?.clientVarType ??
@@ -966,9 +1011,7 @@ function applyLiteralArgs(
           ? client_value_base(clientVarType)
           : client_list_literal_value(clientVarType, elements)
       pin.type = clientVarType
-      pin.value = pinMeta.reflective
-        ? client_wrapped_value(variantRank(metadata, concreteId), inner)
-        : inner
+      pin.value = variantPin ? client_wrapped_value(variantPin.indexOfConcrete, inner) : inner
       continue
     }
     const pin = findInPin(node, pinIndex)
@@ -984,17 +1027,10 @@ function applyLiteralArgs(
       continue
     }
     if (pinMeta.reflective) {
-      const variant = resolvedVariant(metadata, concreteId)
-      const variantPin = variant?.pins?.find((p) => p.kind === 'input' && p.index === pinIndex)
-      if (!variantPin?.clientVarType) {
-        throw clientNodegraphError(
-          CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-          `${metadata.subType}.${metadata.nodeType} input #${argIndex}: no variant pin type for literal`
-        )
-      }
+      const variantPin = resolvedVariantPin(metadata, variant, 'input', pinIndex)
       pin.type = variantPin.clientVarType
       pin.value = client_wrapped_value(
-        variantRank(metadata, concreteId),
+        variantPin.indexOfConcrete,
         client_literal_value(
           variantPin.clientVarType,
           toPinLiteral(variantPin.clientVarType, arg.value, argIndex, irNode.type)
@@ -1032,14 +1068,15 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const connIndex = buildConnTypeIndex(ir)
   const builtById = new Map<NodeId, ClientGiaNode>()
   const metadataById = new Map<NodeId, ClientNodeMetadata>()
-  const concreteById = new Map<NodeId, number | string>()
+  const variantById = new Map<NodeId, ClientReflectVariant | undefined>()
 
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, mode, irNode)
     metadataById.set(irNode.id, metadata)
     const inferredOutType = inferredOutputIrType(irNode, connIndex)
+    const variant = resolveClientReflectVariant(metadata, irNode)
+    variantById.set(irNode.id, variant)
     const concreteId = resolveClientConcreteVariant(metadata, irNode, inferredOutType)
-    concreteById.set(irNode.id, concreteId)
     const pos = positions.get(irNode.id) ?? [0, 0]
     const node = client_node_body({
       metadata,
@@ -1048,8 +1085,9 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
       y: pos[1] / 200,
       concrete_id: concreteId
     })
-    if (!applySpecialArgs(node, irNode, metadata, concreteId, inferredOutType)) {
-      applyLiteralArgs(node, irNode, metadata, concreteId)
+    applyResolvedReflectivePins(node, metadata, variant)
+    if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutType)) {
+      applyLiteralArgs(node, irNode, metadata, variant)
     }
     builtById.set(irNode.id, node)
   }
@@ -1082,27 +1120,29 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     const toPinIndex = remapClientInputIndex(toMeta, toIndex)
     const pin = findInPin(to, toPinIndex)
     if (!pin) throw new Error(`[error] missing client input pin ${toId}.${toPinIndex}`)
+    const pinMeta = toMeta.inputs.find((candidate) => candidate.index === toPinIndex)
+    if (pinMeta?.connectable === false) {
+      throw clientNodegraphError(
+        CLIENT_ERROR_CODES.LITERAL_REQUIRED,
+        `${toMeta.subType}.${toMeta.nodeType} input pin #${toPinIndex} only accepts a literal value; ` +
+          'the editor exposes no connection socket'
+      )
+    }
     const fromIndex2 = pinI2Index(metadataById.get(fromId)!, 'output', fromIndex)
     pin.connects = [client_node_connect_from(from.nodeIndex, fromIndex, fromIndex2)]
-    // wired reflective pins keep a typed ConcreteBase placeholder
-    // (ioc = variant rank, inner unset) instead of the unresolved -1 marker
-    const pinMeta = toMeta.inputs.find((p) => p.index === toPinIndex)
+    // Special handlers may leave a connected reflective pin unresolved; use
+    // the exact per-pin specialization captured from editor samples.
     if (
       pinMeta?.reflective &&
       pin.value?.class === VarBase_Class.ConcreteBase &&
       pin.value.bConcreteValue?.indexOfConcrete === -1
     ) {
-      const toConcreteId = concreteById.get(toId)!
-      const variantPin = resolvedVariant(toMeta, toConcreteId)?.pins?.find(
-        (p) => p.kind === 'input' && p.index === toPinIndex
+      const variantPin = resolvedVariantPin(toMeta, variantById.get(toId), 'input', toPinIndex)
+      pin.type = variantPin.clientVarType
+      pin.value = client_wrapped_value(
+        variantPin.indexOfConcrete,
+        client_value_base(variantPin.clientVarType)
       )
-      if (variantPin?.clientVarType) {
-        pin.type = variantPin.clientVarType
-        pin.value = client_wrapped_value(
-          variantRank(toMeta, toConcreteId),
-          client_value_base(variantPin.clientVarType)
-        )
-      }
     }
   }
 

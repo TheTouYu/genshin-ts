@@ -1,7 +1,7 @@
 /**
  * Generate full client execution-flow classes (src/definitions/client_nodes.ts)
- * from sample-extracted metadata (resources/client_node_metadata.json) and the
- * official bilingual docs (resources/node_definitions.json).
+ * from static-editor-enriched metadata (resources/client_node_metadata.json)
+ * and the official bilingual docs (resources/node_definitions.json).
  *
  * Every generated method mirrors the server style: bilingual JSDoc, a real
  * typed signature, parseValue per argument, registry.registerNode, markPin on
@@ -30,6 +30,8 @@ export type MetaPin = {
   reflective?: boolean
   clientVarType?: number
   defaultValue?: unknown
+  connectable?: boolean
+  connectionType?: number
 }
 
 export type MetaRecord = {
@@ -71,6 +73,8 @@ export type CodegenResult = {
   flowMetadata: FlowMetadataEntry[]
   methodsBySubType: Record<string, string[]>
   gaps: GapEntry[]
+  /** subType -> public method name -> arguments that only accept source literals */
+  literalArgumentIndexesBySubType: Record<string, Record<string, number[]>>
   /**
    * subType -> nodeType -> physical input pin index per public method arg.
    * Only present when not identity (hidden pins shift the mapping); consumed
@@ -508,6 +512,8 @@ type ParamSpec = {
   irType?: string
   reflective: boolean
   candidates?: string[]
+  /** false when the editor exposes a literal field without a connection socket */
+  connectable: boolean
   /** concrete TS enum class bound from the enum seeds (four.1) */
   enumClass?: string
   docEnName: string
@@ -581,8 +587,10 @@ function buildReflectSpec(record: MetaRecord): ReflectSpec | { gap: GapEntry } {
 
   const candidatesByPin = new Map<number, string[]>()
   const variants: ReflectSpec['variants'] = []
+  const unsupportedVariants: string[] = []
   for (const variant of record.reflectMap) {
     const inTypes: string[] = []
+    let unsupported: string | undefined
     for (const index of pinIndexes) {
       const pin = variant.pins?.find((p) => p.kind === 'input' && p.index === index)
       if (!pin)
@@ -591,18 +599,28 @@ function buildReflectSpec(record: MetaRecord): ReflectSpec | { gap: GapEntry } {
           `variant ${variant.variantKey} misses input pin #${index}`
         )
       if (!SUPPORTED_PARAM_TYPES.has(pin.type)) {
-        return gap(
-          'reflect_unsupported_pin_type',
-          `variant ${variant.variantKey} input pin #${index} is ${pin.type}`
-        )
+        unsupported = `input pin #${index} is ${pin.type}`
+        break
       }
       inTypes.push(pin.type)
-      const cands = candidatesByPin.get(index) ?? []
-      if (!cands.includes(pin.type)) cands.push(pin.type)
-      candidatesByPin.set(index, cands)
     }
     const outPin = variant.pins?.find((p) => p.kind === 'output')
+    if (outPin && !SUPPORTED_RETURN_TYPES.has(outPin.type)) {
+      unsupported = `output pin #${outPin.index} is ${outPin.type}`
+    }
+    if (unsupported) {
+      unsupportedVariants.push(`${variant.variantKey}: ${unsupported}`)
+      continue
+    }
+    pinIndexes.forEach((index, position) => {
+      const cands = candidatesByPin.get(index) ?? []
+      if (!cands.includes(inTypes[position])) cands.push(inTypes[position])
+      candidatesByPin.set(index, cands)
+    })
     variants.push({ inTypes, ...(outPin ? { outType: outPin.type } : {}) })
+  }
+  if (!variants.length) {
+    return gap('reflect_unsupported_pin_type', unsupportedVariants.join('; '))
   }
 
   // per-pin candidates must not mix scalar and list types (matchTypes cannot)
@@ -832,6 +850,7 @@ function buildMethodSpec(
         pinIndex: b.pin.index,
         ident,
         reflective: true,
+        connectable: b.pin.connectable !== false,
         candidates: reflect!.candidatesByPin.get(b.pin.index),
         docEnName: b.doc.en.name,
         docEnDesc: sanitizeDocText(b.doc.en.description),
@@ -854,6 +873,7 @@ function buildMethodSpec(
       ident,
       irType: b.pin.type,
       reflective: false,
+      connectable: b.pin.connectable !== false,
       ...(enumClass ? { enumClass } : {}),
       docEnName: b.doc.en.name,
       docEnDesc: sanitizeDocText(b.doc.en.description),
@@ -898,9 +918,11 @@ function buildJsdoc(spec: MethodSpec): string {
     lines.push('')
     for (const p of spec.params) {
       lines.push(`@param ${p.ident}${p.docEnDesc ? ` ${p.docEnDesc}` : ''}`)
+      if (!p.connectable) lines.push('Literal only; wired connections are not allowed.')
       lines.push('')
       const zhName = p.docZhName || p.docEnName || p.ident
       lines.push(p.docZhDesc ? `${zhName}: ${p.docZhDesc}` : zhName)
+      if (!p.connectable) lines.push('仅支持字面量，不能连接其他节点的输出。')
     }
   }
   if (spec.returns.length) {
@@ -995,6 +1017,9 @@ function emitNonReflectMethod(spec: MethodSpec): string {
   const body: string[] = []
   for (const p of spec.params) {
     body.push(`    const ${p.ident}Obj = parseValue(${p.ident}, '${p.irType}')`)
+    if (!p.connectable) {
+      body.push(`    assertClientLiteralValue(${p.ident}Obj, '${spec.methodName}.${p.ident}')`)
+    }
   }
   const register = [
     `${spec.returns.length ? '    const ref = ' : '    '}this.registry.registerNode({`,
@@ -1097,6 +1122,9 @@ function emitReflectMethod(spec: MethodSpec): string {
       const t = typeExprByPin.get(p.pinIndex)!
       const typeExpr = t.isList ? `\`\${${t.matched}}_list\` as const` : t.matched
       body.push(`    const ${p.ident}Obj = parseValue(${p.ident}, ${typeExpr})`)
+    }
+    if (!p.connectable) {
+      body.push(`    assertClientLiteralValue(${p.ident}Obj, '${spec.methodName}.${p.ident}')`)
     }
   }
 
@@ -1237,7 +1265,7 @@ function emitMethod(spec: MethodSpec, enumBinding: ClientEnumBinding): string {
 function controlFlowJsdoc(
   doc: AlignedDocNode | undefined,
   zhName: string,
-  extraParams: Array<{ ident: string; en: string; zh: string }>,
+  extraParams: Array<{ ident: string; en: string; zh: string; literalOnly?: boolean }>,
   returns?: { en: string; zh: string }
 ): string {
   const lines: string[] = []
@@ -1249,8 +1277,10 @@ function controlFlowJsdoc(
     lines.push('')
     for (const p of extraParams) {
       lines.push(`@param ${p.ident}${p.en ? ` ${p.en}` : ''}`)
+      if (p.literalOnly) lines.push('Literal only; wired connections are not allowed.')
       lines.push('')
       lines.push(p.zh)
+      if (p.literalOnly) lines.push('仅支持字面量，不能连接其他节点的输出。')
     }
   }
   if (returns) {
@@ -1431,7 +1461,9 @@ function emitTraverseEntityList(subType: string, doc: AlignedDocNode | undefined
 
 /** family element IR types (matchTypes priority order) from the reflect map */
 function assemblyElemTypes(record: MetaRecord): string[] {
-  const types = record.reflectMap!.map((v) => v.pins!.find((p) => p.kind === 'input')!.type)
+  const types = record
+    .reflectMap!.map((v) => v.pins!.find((p) => p.kind === 'input')!.type)
+    .filter((type) => SUPPORTED_PARAM_TYPES.has(type) && SUPPORTED_RETURN_TYPES.has(`${type}_list`))
   return [...new Set(types)].sort((a, b) => typePriority(a) - typePriority(b))
 }
 
@@ -1492,10 +1524,10 @@ ${overloads.join('\n')}
 }
 
 /**
- * 多分支: branch case values live in in[1] (int_list literal); flow-outs use
- * the server convention (default = source 0, cases = 1..N). Ported from the
- * server multipleBranches (int-only: the client node has a single int/int_list
- * variant) so TS switch lowering keeps identical alias/join semantics.
+ * 多分支: branch case values live in in[1] (int_list or str_list literal);
+ * flow-outs use the server convention (default = source 0, cases = 1..N).
+ * The editor static table proves both variants share a CID and differ only in
+ * their per-pin concrete row, so the control type must be preserved in IR.
  */
 function emitMultipleBranches(subType: string, doc: AlignedDocNode | undefined): string {
   const p = docParamText(doc, '控制表达式')
@@ -1503,12 +1535,26 @@ function emitMultipleBranches(subType: string, doc: AlignedDocNode | undefined):
   multipleBranches(
     controlExpression: IntValue,
     branches: Record<number, (() => void) | number> & { default?: (() => void) | number }
+  ): void
+  multipleBranches(
+    controlExpression: StrValue,
+    branches: Record<string, (() => void) | string> & { default?: (() => void) | string }
+  ): void
+  multipleBranches(
+    controlExpression: IntValue | StrValue,
+    branches: Record<string | number, (() => void) | string | number> & {
+      default?: (() => void) | string | number
+    }
   ): void {
-    const controlExpressionObj = parseValue(controlExpression, 'int')
+    const stringControl =
+      typeof controlExpression === 'string' || controlExpression instanceof str
+    const controlExpressionObj = stringControl
+      ? parseValue(controlExpression, 'str')
+      : parseValue(controlExpression, 'int')
 
     const rawBranches = branches as Record<string, unknown>
     const caseKeys = Object.keys(rawBranches).filter((k) => k !== 'default')
-    const caseArgs = caseKeys.map((k) => new int(Number(k)))
+    const caseArgs = caseKeys.map((k) => (stringControl ? new str(k) : new int(Number(k))))
 
     const ref = this.registry.registerNode({
       id: 0,
@@ -1713,20 +1759,30 @@ function customVarFamilySubTypes(nodeType: string): string[] {
 
 function emitGetCustomVariable(subType: string, doc: AlignedDocNode | undefined): string | null {
   if (!customVarFamilySubTypes('get_custom_variable').includes(subType)) return null
-  const p0 = docParamText(doc, '目标实体')
-  const p1 = docParamText(doc, '变量名')
+  const usesTargetEntityEnum =
+    subType === 'creation_status' || subType === 'creation_status_decision'
+  const p0 = docParamTextByZhName(doc, '目标实体')
+  const p1 = docParamTextByZhName(doc, '变量名')
   return `${controlFlowJsdoc(
     doc,
     '获取自定义变量',
     [
-      { ident: 'targetEntity', en: p0.en, zh: p0.zh },
+      {
+        ident: 'targetEntity',
+        en: p0.en,
+        zh: p0.zh,
+        literalOnly: usesTargetEntityEnum
+      },
       { ident: 'variableName', en: p1.en, zh: p1.zh }
     ],
     { en: 'Variable value', zh: '变量值' }
   )}
-  getCustomVariable(targetEntity: EntityValue, variableName: StrValue): generic {
-    const targetEntityObj = parseValue(targetEntity, 'entity')
-    const variableNameObj = parseValue(variableName, 'str')
+  getCustomVariable(
+    targetEntity: ${usesTargetEntityEnum ? 'TargetEntity' : 'EntityValue'},
+    variableName: StrValue
+  ): generic {
+    const targetEntityObj = parseValue(targetEntity, '${usesTargetEntityEnum ? 'enum' : 'entity'}')
+${usesTargetEntityEnum ? "    assertClientLiteralValue(targetEntityObj, 'getCustomVariable.targetEntity')\n" : ''}    const variableNameObj = parseValue(variableName, 'str')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -1769,11 +1825,12 @@ function emitGetLocalVariable(doc: AlignedDocNode | undefined): string {
   return `${controlFlowJsdoc(
     doc,
     '获取局部变量',
-    [{ ident: 'variableName', en: p0.en, zh: p0.zh }],
+    [{ ident: 'variableName', en: p0.en, zh: p0.zh, literalOnly: true }],
     { en: 'Variable value', zh: '变量值' }
   )}
   getLocalVariable(variableName: StrValue): generic {
     const variableNameObj = parseValue(variableName, 'str')
+    assertClientLiteralValue(variableNameObj, 'getLocalVariable.variableName')
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -1795,7 +1852,7 @@ function emitSetLocalVariable(doc: AlignedDocNode | undefined): string {
   const p1 = docParamTextByZhName(doc, '变量值')
   const typeUnion = LOCAL_VAR_VALUE_TYPES.map((t) => `'${t}'`).join(' | ')
   return `${controlFlowJsdoc(doc, '设置局部变量', [
-    { ident: 'variableName', en: p0.en, zh: p0.zh },
+    { ident: 'variableName', en: p0.en, zh: p0.zh, literalOnly: true },
     { ident: 'variableValue', en: p1.en, zh: p1.zh }
   ])}
   setLocalVariable<K extends DictKeyType, V extends DictValueType>(
@@ -1808,6 +1865,7 @@ function emitSetLocalVariable(doc: AlignedDocNode | undefined): string {
   ): void
   setLocalVariable(variableName: StrValue, variableValue: unknown): void {
     const variableNameObj = parseValue(variableName, 'str')
+    assertClientLiteralValue(variableNameObj, 'setLocalVariable.variableName')
     let variableValueObj: value
     if (variableValue instanceof dict) {
       variableValueObj = parseValue(variableValue, 'dict')
@@ -2194,7 +2252,8 @@ function emitTypeListBuilder(
   methodName: string,
   nodeType: string,
   zhName: string,
-  enumClass: string
+  enumClass: string,
+  literalElements: boolean
 ): string {
   return `${controlFlowJsdoc(
     doc,
@@ -2202,17 +2261,26 @@ function emitTypeListBuilder(
     [
       {
         ident: 'types',
-        en: 'Types to assemble into the list (up to 10)',
-        zh: '类型0~9: 放入列表的类型，至多10个；省略时使用编辑器默认值'
+        en: literalElements
+          ? 'Literal types to assemble into the list (up to 10)'
+          : 'Source-level array of types to assemble (up to 10); elements may be wired',
+        zh: literalElements
+          ? '类型0~9: 放入列表的字面量类型，至多10个；省略时使用编辑器默认值'
+          : '类型0~9: 使用源码数组提供类型，元素可以连线，至多10个；省略时使用编辑器默认值',
+        literalOnly: literalElements
       }
     ],
     docReturnText(doc, '列表')
   )}
   ${methodName}(types?: ${enumClass}[]): ${enumClass}[] {
+    assertClientFixedSlotArray(types, '${methodName}.types')
     if (types && types.length > 10) {
       throw new Error(\`[error] ${methodName}: expected at most 10 types, got \${types.length}\`)
     }
-    const typeObjs = (types ?? []).map((t) => parseValue(t, 'enum'))
+    const typeObjs = (types ?? []).map((t, index) => {
+      const typeObj = parseValue(t, 'enum')
+${literalElements ? `      assertClientLiteralValue(typeObj, \`${methodName}.types[\${index}]\`)\n` : ''}      return typeObj
+    })
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2283,6 +2351,7 @@ export function generateClientNodes(
   const methodTextsBySubType = new Map<string, string[]>()
   const methodNamesBySubType = new Map<string, string[]>()
   const argPinsBySubType: Record<string, Record<string, number[]>> = {}
+  const literalArgumentIndexesBySubType: Record<string, Record<string, number[]>> = {}
   for (const subType of SUB_TYPES) {
     methodTextsBySubType.set(subType, [])
     methodNamesBySubType.set(subType, [])
@@ -2378,20 +2447,31 @@ export function generateClientNodes(
           if (t) {
             texts.push(t)
             names.push('getCustomVariable')
+            if (
+              record.subType === 'creation_status' ||
+              record.subType === 'creation_status_decision'
+            ) {
+              ;(literalArgumentIndexesBySubType[record.subType] ??= {}).getCustomVariable = [0]
+            }
           }
           break
         }
         case 'send_signal_to_server_node_graph':
           texts.push(emitSendSignalToServer(doc))
           names.push('sendSignalToServerNodeGraph')
+          ;(
+            literalArgumentIndexesBySubType[record.subType] ??= {}
+          ).sendSignalToServerNodeGraph = [0]
           break
         case 'get_local_variable':
           texts.push(emitGetLocalVariable(doc))
           names.push('getLocalVariable')
+          ;(literalArgumentIndexesBySubType[record.subType] ??= {}).getLocalVariable = [0]
           break
         case 'set_local_variable':
           texts.push(emitSetLocalVariable(doc))
           names.push('setLocalVariable')
+          ;(literalArgumentIndexesBySubType[record.subType] ??= {}).setLocalVariable = [0]
           break
         case 'get_list_of_values_from_dictionary':
           texts.push(emitGetListOfValuesFromDictionary(record.subType, doc))
@@ -2428,7 +2508,8 @@ export function generateClientNodes(
               'getEntityTypeList',
               'get_entity_type_list',
               '获取实体类型列表',
-              'EntityType'
+              'EntityType',
+              false
             )
           )
           names.push('getEntityTypeList')
@@ -2440,10 +2521,12 @@ export function generateClientNodes(
               'getRayFilterTypeList',
               'get_ray_filter_type_list',
               '获取射线筛选类型列表',
-              'RayFilterType'
+              'RayFilterType',
+              true
             )
           )
           names.push('getRayFilterTypeList')
+          ;(literalArgumentIndexesBySubType[record.subType] ??= {}).getRayFilterTypeList = [0]
           break
       }
       continue
@@ -2496,6 +2579,13 @@ export function generateClientNodes(
     const argPins = argPinsOf(spec)
     if (argPins) {
       ;(argPinsBySubType[record.subType] ??= {})[record.nodeType] = argPins
+    }
+    const literalArgumentIndexes = spec.params.flatMap((param, index) =>
+      param.connectable ? [] : [index]
+    )
+    if (literalArgumentIndexes.length) {
+      ;(literalArgumentIndexesBySubType[record.subType] ??= {})[spec.methodName] =
+        literalArgumentIndexes
     }
     pushFlowEntry(spec, spec.recordType === 'data' ? 'data' : 'exec', {
       en: spec.docsEn,
@@ -2644,6 +2734,8 @@ class ClientExecutionFlowFunctionsBase<
     new RegExp(`\\b${name}\\b`).test(dictHelpers + clientFlowBase + bodyText)
 
   const valueClassImports = [
+    'assertClientFixedSlotArray',
+    'assertClientLiteralValue',
     'bool',
     'configId',
     'dict',
@@ -2711,7 +2803,7 @@ class ClientExecutionFlowFunctionsBase<
     : `import type { ${coreTypeImports.join(', ')} } from '../runtime/core.js'`
 
   const classFileBody = `// This file is generated by scripts/client-nodegraph/generate-client-nodegraph-modules.ts.
-// Source of truth: resources/client_node_metadata.json (sample-extracted pins)
+// Source of truth: resources/client_node_metadata.json (editor-static + sample pins)
 // + resources/node_definitions.json (official bilingual docs). Do not edit.
 ${coreImportLine}
 import {
@@ -2761,5 +2853,12 @@ export type ClientExecutionFlowFunctionsBySubType = {
     methodsBySubType[subType] = [...new Set(methodNamesBySubType.get(subType)!)].sort()
   }
 
-  return { classFileBody, flowMetadata, methodsBySubType, gaps, argPinsBySubType }
+  return {
+    classFileBody,
+    flowMetadata,
+    methodsBySubType,
+    gaps,
+    argPinsBySubType,
+    literalArgumentIndexesBySubType
+  }
 }

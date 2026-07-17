@@ -126,6 +126,37 @@ try {
       'int_filter'
     ])
   )
+  const creationStatusDocument = documents.find(
+    (document) => document.graph.type === 'client' && document.graph.sub_type === 'creation_status'
+  )
+  const stringBranches = creationStatusDocument?.nodes?.find(
+    (node) => node.type === 'multiple_branches'
+  )
+  assert.deepStrictEqual(
+    stringBranches?.args
+      ?.slice(0, 2)
+      .map((arg) => (arg?.type === 'conn' ? arg.value.type : arg?.type)),
+    ['str', 'str'],
+    'string switch must retain the string/string-list multipleBranches variant'
+  )
+  const characterSkillDocument = documents.find(
+    (document) =>
+      document.graph.type === 'client' && document.graph.sub_type === 'character_skill'
+  )
+  const characterSkillNodeTypes = characterSkillDocument?.nodes?.map((node) => node.type) ?? []
+  assert.ok(
+    characterSkillNodeTypes.includes('equal'),
+    'ordinary ==/=== must lower to the client equal node'
+  )
+  assert.strictEqual(
+    characterSkillNodeTypes.filter((type) => type === 'enumeration_match').length,
+    2,
+    'enum equality and inequality must lower through client enumerationMatch'
+  )
+  assert.ok(
+    characterSkillNodeTypes.includes('logical_not_operation'),
+    'enum !=/!== must negate the client enumerationMatch result'
+  )
   const intervalBySubType = new Map(
     documents.flatMap((document) =>
       document.graph.type === 'client'
@@ -197,6 +228,39 @@ try {
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
   )
   const { rootMessage } = loadGiaProto(protoPath)
+  assert.throws(
+    () =>
+      irToGia(
+        {
+          ir_version: 1,
+          ir_type: 'node_graph',
+          graph: {
+            type: 'client',
+            sub_type: 'character_skill',
+            mode: 'beyond',
+            id: 1082130676
+          },
+          nodes: [
+            {
+              id: 1,
+              type: 'data_type_conversion_str',
+              args: [{ type: 'int', value: 1 }]
+            },
+            {
+              id: 2,
+              type: 'notify_server_node_graph',
+              args: [
+                { type: 'conn', value: { node_id: 1, index: 0, type: 'str' } },
+                { type: 'str', value: '' },
+                { type: 'str', value: '' }
+              ]
+            }
+          ]
+        },
+        { protoPath }
+      ),
+    /CLIENT_LITERAL_REQUIRED.*notify_server_node_graph input pin #0/
+  )
   documents.forEach((document, index) => {
     const bytes = irToGia(document, { protoPath })
     assert.ok(bytes.length > 0, `${subTypes[index]}: empty GIA output`)
@@ -219,6 +283,14 @@ try {
   })
 
   const importG = `import { g } from 'genshin-ts/runtime/core'`
+  await expectRuntimeError(
+    'client-literal-only-input',
+    `${importG}
+g.characterSkill({ id: 1082130676 }).on('start', (_evt, f) => {
+  f.notifyServerNodeGraph(str(f.addition(1n, 2n)), '', '')
+})`,
+    /CLIENT_LITERAL_REQUIRED.*notifyServerNodeGraph\.string1.*data_type_conversion_str\.output/
+  )
   const classicCreationGraphId = 1082130670
   const classicCreationPath = path.join(tempRoot, 'classic-creation-skill.ts')
   fs.writeFileSync(
@@ -232,8 +304,9 @@ g.creationSkill({ id: ${classicCreationGraphId}, mode: 'classic' }).on('start', 
   f.recoverCreationSHp(
     activeCharacter,
     float(f.getListLength(characters)),
-    f.greaterThan(characterId, 0n)
+    false
   )
+  f.sendSignalToServerNodeGraph('classic_creation_character', characterId)
 })`,
     'utf8'
   )
@@ -346,10 +419,10 @@ g.creationSkill({ id: 1082130663, mode: 'classic' }).on('start', (_evt, f) => {
 g.characterSkill({ id: ${zhClientGraphIds.characterSkill}, lang: 'zh' }).on('start', (_evt, f) => {
   const sum = f.加法运算(1n, 2n)
   f.多分支(sum, {
-    3: () => { f.通知服务器节点图(String(f.绝对值运算(-1n)), '', '') },
+    3: () => { f.向服务器节点图发送信号('zh_alias_debug', String(f.绝对值运算(-1n))) },
     default: () => {
       const time = f.获取当前客户端时间高精度()
-      f.通知服务器节点图(String(time.clientTimeMs), '', '')
+      f.向服务器节点图发送信号('zh_alias_debug', String(time.clientTimeMs))
     }
   })
 })
@@ -360,8 +433,9 @@ g.creationSkill({ id: ${zhClientGraphIds.classicCreationSkill}, mode: 'classic',
   f.造物恢复生命值(
     selfEntity,
     float(f.获取列表长度(characters)),
-    f.是否大于(characterId, 0n)
+    false
   )
+  f.向服务器节点图发送信号('zh_alias_debug', characterId)
 })`,
     'utf8'
   )
@@ -474,7 +548,7 @@ g.characterSkill({ id: ${wrapperConversionGraphIds.characterSkill} }).on('start'
   f.setAttackWeight(convertedFloat, true)
   f.setAttackWeight(nativeFloat, nativeBool)
   f.setAttackWeight(nativeMath, true)
-  f.notifyServerNodeGraph(nativeString, '', '')
+  f.sendSignalToServerNodeGraph('wrapper_conversion', nativeString)
 })
 g.creationStatusDecision({ id: ${wrapperConversionGraphIds.creationStatusDecision} }).on('start', (_evt, f) => {
   f.doubleBranch(true, () => {
@@ -586,23 +660,24 @@ g.characterSkill({ id: ${globalHelperGraphIds.characterSkill} }).on('start', (_e
   const vectorX = Vector3.one.x
   const vectorY = Vector3.one.y
   const vectorZ = Vector3.one.z
-  f.notifyServerNodeGraph(
+  f.sendSignalToServerNodeGraph(
+    'client_helper_values',
     str(f.getEntityLocation(found)),
     str(f.getListLength(values)),
     str(f.queryDictionaryValueByKey(lookup, 1n))
   )
-  f.notifyServerNodeGraph(str(legacyFound), str(convertedSelf.pos), str(convertedGameObject.pos))
-  f.notifyServerNodeGraph(str(random), str(sign), str(atan2))
-  f.notifyServerNodeGraph(str(floor), str(ceil), '')
-  f.notifyServerNodeGraph(str(rounded), '', '')
-  f.notifyServerNodeGraph(str(truncated), str(hypot), '')
-  f.notifyServerNodeGraph(str(mathfFloor), str(mathfCeil), '')
-  f.notifyServerNodeGraph(str(randomValue), str(randomRange), str(distance))
-  f.notifyServerNodeGraph(str(scaled), str(rotated), str(lerped))
-  f.notifyServerNodeGraph(str(clamped), str(tagged), '')
-  f.notifyServerNodeGraph(str(lookupValue), str(lookupHasValue), str(lookupKeyCount))
-  f.notifyServerNodeGraph(str(lookupValueCount), str(lookupSize), '')
-  f.notifyServerNodeGraph(str(vectorX), str(vectorY), str(vectorZ))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(legacyFound), str(convertedSelf.pos), str(convertedGameObject.pos))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(random), str(sign), str(atan2))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(floor), str(ceil))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(rounded))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(truncated), str(hypot))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(mathfFloor), str(mathfCeil))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(randomValue), str(randomRange), str(distance))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(scaled), str(rotated), str(lerped))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(clamped), str(tagged))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(lookupValue), str(lookupHasValue), str(lookupKeyCount))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(lookupValueCount), str(lookupSize))
+  f.sendSignalToServerNodeGraph('client_helper_values', str(vectorX), str(vectorY), str(vectorZ))
 })
 g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }).on('start', (_evt, f) => {
   f.doubleBranch(f.equal(entity(0), entity(0)), () => {}, () => {})
@@ -716,6 +791,23 @@ g.creationSkill({ id: 1082130687 }).on('start', () => {
   dict([{ k: 1n, v: 1n }]).set(1n, 2n)
 })`,
     /dict\.set\(\) requires client method setOrAddKeyValuePairsToDictionary/
+  )
+  await expectRuntimeError(
+    'client-local-variable-name-must-be-literal',
+    `${importG}
+g.characterSkill({ id: 1082130658 }).on('start', (_evt, f) => {
+  const dynamicName = str(f.addition(1n, 2n))
+  f.getLocalVariable(dynamicName)
+})`,
+    /CLIENT_LITERAL_REQUIRED.*getLocalVariable\.variableName/
+  )
+  await expectRuntimeError(
+    'client-ray-filter-list-must-be-source-array',
+    `${importG}
+g.characterSkill({ id: 1082130659 }).on('start', (_evt, f) => {
+  f.getRayFilterTypeList(f.getRayFilterTypeList())
+})`,
+    /CLIENT_LITERAL_REQUIRED.*getRayFilterTypeList\.types.*source-level array/
   )
   await expectCompileError(
     'unavailable-client-list-insert',

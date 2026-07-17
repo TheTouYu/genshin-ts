@@ -72,26 +72,86 @@ function assemblyListVariantKey(elementClientVarType: number): string {
   return Array.from({ length: 10 }, () => String(elementClientVarType)).join(',')
 }
 
-function assemblyListConcreteId(metadata: ClientNodeMetadata, irNode: IRNode): number | string {
-  const firstArg = irNode.args?.[0]
-  const irType =
-    firstArg == null ? undefined : firstArg.type === 'conn' ? firstArg.value.type : firstArg.type
+export type ClientReflectVariant = NonNullable<ClientNodeMetadata['reflectMap']>[number]
+
+function irTypeOfArg(arg: NonNullable<IRNode['args']>[number] | undefined) {
+  return arg == null ? undefined : arg.type === 'conn' ? arg.value.type : arg.type
+}
+
+function requireClientVarType(
+  metadata: ClientNodeMetadata,
+  irType: string | undefined,
+  detail: string
+) {
   const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
   if (clientVarType === undefined) {
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.assembly_list cannot derive element type from args`
+      `${metadata.subType}.${metadata.nodeType} (genericId ${metadata.genericId}) ` +
+        `cannot derive variant key: ${detail} has unresolvable type "${irType ?? 'missing'}"`
     )
   }
-  const key = assemblyListVariantKey(clientVarType)
-  const match = metadata.reflectMap?.find((v) => v.variantKey === key)
-  if (!match) {
+  return clientVarType
+}
+
+function matchReflectVariant(metadata: ClientNodeMetadata, key: string): ClientReflectVariant {
+  const matches = metadata.reflectMap?.filter((variant) => variant.variantKey === key) ?? []
+  if (matches.length !== 1) {
+    const candidates = metadata.reflectMap?.map((variant) => variant.variantKey).join(' | ')
     throw clientNodegraphError(
       CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.assembly_list has no reflect variant for key "${key}"`
+      `${metadata.subType}.${metadata.nodeType} (genericId ${metadata.genericId}) ` +
+        `${matches.length === 0 ? 'has no' : 'has multiple'} reflect variants for key "${key}" ` +
+        `(candidates: ${candidates || 'none confirmed'})`
     )
   }
-  return match.concreteId
+  return matches[0]
+}
+
+/** Resolve the full static variant, including per-pin type and IOC data. */
+export function resolveClientReflectVariant(
+  metadata: ClientNodeMetadata,
+  node: IRNode
+): ClientReflectVariant | undefined {
+  if (!metadata.reflectMap) return undefined
+  if (
+    metadata.nodeType === 'data_type_conversion' ||
+    metadata.nodeType === 'get_custom_variable' ||
+    metadata.nodeType === 'enumeration_match' ||
+    DICT_REFLECT_NODE_TYPES.has(metadata.nodeType) ||
+    DICT_BUILD_NODE_TYPES.has(metadata.nodeType) ||
+    LOCAL_VARIABLE_NODE_TYPES.has(metadata.nodeType)
+  ) {
+    return undefined
+  }
+
+  if (metadata.nodeType === 'assembly_list') {
+    const irType = irTypeOfArg(node.args?.[0])
+    const clientVarType = requireClientVarType(metadata, irType, 'first list element')
+    return matchReflectVariant(metadata, assemblyListVariantKey(clientVarType))
+  }
+
+  if (metadata.nodeType === 'multiple_branches') {
+    const controlType = irTypeOfArg(node.args?.[0])
+    const controlClientVarType = requireClientVarType(metadata, controlType, 'control value')
+    const caseListClientVarType = requireClientVarType(
+      metadata,
+      controlType ? `${controlType}_list` : undefined,
+      'case value list'
+    )
+    return matchReflectVariant(metadata, `${controlClientVarType},${caseListClientVarType}`)
+  }
+
+  const reflectiveIndexes = metadata.inputs
+    .filter((pin) => pin.reflective)
+    .map((pin) => pin.index)
+    .sort((a, b) => a - b)
+  const keyParts = reflectiveIndexes.map((index) => {
+    const argIndex = metadata.argPins ? metadata.argPins.indexOf(index) : index
+    const irType = irTypeOfArg(argIndex < 0 ? undefined : node.args?.[argIndex])
+    return String(requireClientVarType(metadata, irType, `input pin #${index}`))
+  })
+  return matchReflectVariant(metadata, keyParts.join(','))
 }
 
 function getCustomVariableConcreteId(
@@ -162,13 +222,19 @@ export function resolveClientConcreteVariant(
     return 130
   }
   if (metadata.nodeType === 'assembly_list') {
-    return assemblyListConcreteId(metadata, node)
+    return resolveClientReflectVariant(metadata, node)!.concreteId
   }
   if (metadata.nodeType === 'get_custom_variable') {
     return getCustomVariableConcreteId(metadata, customVarOutputIrType)
   }
-  if (metadata.nodeType === 'multiple_branches') {
-    return metadata.concreteId ?? 4002
+  if (metadata.nodeType === 'enumeration_match') {
+    if (metadata.concreteId == null) {
+      throw clientNodegraphError(
+        CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
+        `${metadata.subType}.${metadata.nodeType} has no constant concrete id in metadata`
+      )
+    }
+    return metadata.concreteId
   }
   if (
     DICT_REFLECT_NODE_TYPES.has(metadata.nodeType) ||
@@ -200,40 +266,5 @@ export function resolveClientConcreteVariant(
     return metadata.concreteId
   }
 
-  const reflectiveIndexes = metadata.inputs
-    .filter((pin) => pin.reflective)
-    .map((pin) => pin.index)
-    .sort((a, b) => a - b)
-
-  const argIndexOfPin = (pinIndex: number) =>
-    metadata.argPins ? metadata.argPins.indexOf(pinIndex) : pinIndex
-
-  const keyParts: string[] = []
-  for (const index of reflectiveIndexes) {
-    const argIndex = argIndexOfPin(index)
-    const arg = argIndex < 0 ? undefined : node.args?.[argIndex]
-    const irType = arg == null ? undefined : arg.type === 'conn' ? arg.value.type : arg.type
-    const clientVarType = irType ? CLIENT_VAR_TYPE_BY_IR_TYPE[irType] : undefined
-    if (clientVarType === undefined) {
-      throw clientNodegraphError(
-        CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-        `${metadata.subType}.${metadata.nodeType} (genericId ${metadata.genericId}) cannot derive variant key: ` +
-          `input pin #${index} has unresolvable type "${irType ?? 'missing'}"`
-      )
-    }
-    keyParts.push(String(clientVarType))
-  }
-  const key = keyParts.join(',')
-
-  const matches = metadata.reflectMap.filter((variant) => variant.variantKey === key)
-  if (matches.length !== 1) {
-    const candidates = metadata.reflectMap.map((v) => v.variantKey).join(' | ')
-    throw clientNodegraphError(
-      CLIENT_ERROR_CODES.NODE_UNAVAILABLE,
-      `${metadata.subType}.${metadata.nodeType} (genericId ${metadata.genericId}) ` +
-        `${matches.length === 0 ? 'has no' : 'has multiple'} reflect variants for key "${key}" ` +
-        `(candidates: ${candidates || 'none confirmed'})`
-    )
-  }
-  return matches[0].concreteId
+  return resolveClientReflectVariant(metadata, node)!.concreteId
 }

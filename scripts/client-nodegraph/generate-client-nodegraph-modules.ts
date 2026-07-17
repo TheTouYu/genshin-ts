@@ -727,6 +727,12 @@ function deriveClientEntityHelpers(
     for (const [methodName, insertIndex] of Object.entries(
       CLIENT_HAND_ENTITY_METHOD_INSERT_INDEX
     )) {
+      if (
+        methodName === 'getCustomVariable' &&
+        (subType === 'creation_status' || subType === 'creation_status_decision')
+      ) {
+        continue
+      }
       for (const mode of modesForMethod(subType, methodName)) {
         directMethodNames.add(methodName)
         setBinding(subType, mode, methodName, {
@@ -1295,6 +1301,7 @@ function extractServerMethodSignatures(): Map<string, ServerMethodSignature> {
 function emitClientMethodModes(
   flowMetadata: FlowMetadataEntry[],
   methodsBySubType: Record<string, string[]>,
+  literalArgumentIndexesBySubType: Record<string, Record<string, number[]>>,
   metadata: MetaRecord[],
   modeData: ClientNodeModeData
 ) {
@@ -1361,6 +1368,8 @@ function emitClientMethodModes(
 import type { ClientGraphMode } from '../runtime/IR.js'
 
 export const CLIENT_NODE_METHODS_BY_SUB_TYPE = ${jsonConst(methodsBySubType)} as const
+
+export const CLIENT_LITERAL_ARGUMENT_INDEXES_BY_SUB_TYPE = ${jsonConst(literalArgumentIndexesBySubType)} as const
 
 export const CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE = ${jsonConst(methodsBySubTypeAndMode)} as const
 
@@ -1564,6 +1573,7 @@ function main() {
   emitClientMethodModes(
     generated.flowMetadata,
     generated.methodsBySubType,
+    generated.literalArgumentIndexesBySubType,
     metadata as MetaRecord[],
     modeData
   )

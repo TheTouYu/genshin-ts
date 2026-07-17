@@ -8,6 +8,7 @@ import type {
   StageEntity
 } from '../definitions/entity_helpers.js'
 import { EnumerationType } from '../definitions/enum.js'
+import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
 import { callActiveGraphFunction } from './active_graph_functions.js'
 import {
   Argument,
@@ -246,6 +247,27 @@ export function ensureLiteralStr(input: StrValue, label = 'value'): str {
     if (meta?.kind === 'literal') return input
   }
   throw new Error(`[error] ${label} must be a literal string (no wired connection)`)
+}
+
+export function assertClientLiteralValue(input: value, label = 'value'): void {
+  const metadata = input.getMetadata()
+  if (metadata?.kind !== 'pin') return
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.LITERAL_REQUIRED,
+    `${label} only accepts a literal value; received ${metadata.record.nodeType}.${metadata.pinName} ` +
+      'but the editor exposes no connection socket'
+  )
+}
+
+export function assertClientFixedSlotArray(
+  input: unknown,
+  label = 'value'
+): asserts input is unknown[] | undefined {
+  if (input === undefined || Array.isArray(input)) return
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.LITERAL_REQUIRED,
+    `${label} must be a source-level array; a wired list cannot determine the fixed input slots`
+  )
 }
 
 export type Vec3Value = vec3 | [number, number, number]
