@@ -23,6 +23,8 @@
 ### 架构文档 (architecture/)
 - 编译管线三个阶段文档
 - 复合节点机制（API、IR 表示、Capture、GIA 编码、Pipeline 流程）
+- 客户端节点支持的冻结方案与真实 GIA 验证门禁：
+  [`architecture/client-node-support-plan.md`](architecture/client-node-support-plan.md)
 - 验证与测试
 - **推荐入口**: `architecture/composite/pipeline-flow.md`
 

@@ -12,7 +12,8 @@
 
 不包含：
 
-- `client` 节点
+- `client` 节点；客户端支持不得套用本服务器例行维护流程，当前计划与真实 GIA 门禁见
+  [`../architecture/client-node-support-plan.md`](../architecture/client-node-support-plan.md)
 - 造物状态图等当前仓库未完整支持的体系
 - 与本轮无关的重构
 

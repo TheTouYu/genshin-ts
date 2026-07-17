@@ -10,6 +10,10 @@
 
 **用途**：将原神·千星奇域节点编辑器的底层数据（节点类型、事件、枚举、函数签章等）映射为 TypeScript 类型，提供完整的类型提示（intellisense）和编译期校验。
 
+> 客户端节点当前尚未形成可工作的生产编译路径。其来源分层、两个真实 6.7 client skill GIA
+> 的 WP0 基线和分批开放策略见 [`client-node-support-plan.md`](client-node-support-plan.md)。
+> 该计划不能作为当前已支持 API 清单。
+
 ---
 
 ## 2. 定义结构

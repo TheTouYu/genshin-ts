@@ -1,0 +1,975 @@
+# 客户端节点支持计划
+
+> 状态：已验证（WP0 真实样本语义与 wire 基线已收口，生产实现尚未开始）
+> 来源：当前代码实现审计 + 上游 vendor 候选数据 + 真实客户端 GIA 观察 + 设计决策
+> 最近校验：2026-07-17
+> 适用范围：gsts 客户端节点支持的实施计划；真实 GIA 结论仅适用于本文记录的两个样本，不代表当前编译器已经支持客户端节点
+
+本文档记录 gsts 增加客户端节点支持的当前权威计划，防止跨会话丢失设计决策、证据边界和验证门禁。
+
+当前必须明确区分：
+
+- **当前代码事实**：当前 IR 已预留客户端文档类型，但生产运行时和 Stage 3 尚未形成可工作的客户端路径。
+- **上游候选事实**：第三方原仓库包含客户端节点、类型和图编码候选，但其数据版本和准确性不能替代真实编辑器样本。
+- **已冻结设计决策**：本文“已冻结方案”各节记录本轮共同确认的产品和架构方向。
+- **真实 GIA 观察**：两个客户端 `skill` 图样本已提供图级 metadata、节点 identity、物理 pin 和 wire round-trip 基线；结论不得外推到未取样节点族。
+- **待验证假设**：hidden pin 的运行语义、`gameVersion` 的兼容语义和游戏行为仍需后续编辑器/游戏验证。
+- **完成证据**：自动生成、编辑器导入、编辑器回导对拍和游戏行为验证是不同层级。
+
+## 1. 目标与非目标
+
+### 1.1 最终目标
+
+为 gsts 增加可维护、可审计的客户端节点编译能力：
+
+```text
+TypeScript 客户端 DSL
+→ .gs.ts
+→ ClientIRDocument
+→ 客户端 GIA
+→ 编辑器导入/回导对拍
+→ 游戏行为验证
+```
+
+最终覆盖目标分为两个统计口径：
+
+1. **客户端节点数据覆盖**：生成器识别、分类和审计上游全部客户端节点。
+2. **用户公开 API 覆盖**：编辑器公开节点按风险族完成放行门槛后进入正式 API。
+
+Hidden/Test 节点计入数据覆盖，但默认不计入用户公开 API 覆盖。
+
+### 1.2 当前非目标
+
+以下能力不属于首批典型节点闭环，也不因“全量节点 API”自动获得支持：
+
+- 客户端 Composite；
+- 客户端 Graph variables；
+- 客户端注入、地图扫描或目标图替换；
+- 未审计的低层 raw client node API；
+- 同一入口文件混写服务器图和客户端图；
+- 多游戏版本客户端兼容层；
+- 以 `any`、`unknown` 或警告模式暴露尚未验证的客户端节点。
+
+这些能力应在取得各自真实 GIA 证据后建立独立工作包。
+
+## 2. 当前实现审计
+
+### 2.1 已存在的客户端 IR 外形
+
+`src/runtime/IR.d.ts` 当前已经定义：
+
+```ts
+export type IRDocument = ServerIRDocument | ClientIRDocument
+
+export type ClientIRDocument = SimplifyDeep<
+  BaseIRDocument & {
+    graph: ClientGraphInfo
+    nodes?: ClientNode[]
+  }
+>
+
+export interface ClientGraphInfo {
+  name?: string
+  id?: number
+  type: 'client'
+}
+```
+
+这只证明跨阶段类型契约预留了客户端分支，不证明运行时能产生它，也不证明 Stage 3 能正确消费它。
+
+### 2.2 当前运行时缺口
+
+当前 `src/runtime/core.ts` 只有 `g.server()`、服务器 registry、服务器事件和
+`buildServerGraphRegistriesIRDocuments()`。尚无：
+
+- `g.client()`；
+- `ClientGraphRegistry`；
+- `ClientExecutionFlowFunctions`；
+- `onStart()`；
+- 客户端 IR builder；
+- 客户端节点 allowlist 和类型化定义。
+
+### 2.3 当前 Stage 3 缺口
+
+`src/compiler/ir_to_gia_transform/index.ts` 当前虽然接收 `IRDocument`，但图构造路径仍以服务器图为中心：
+
+- 根据 server subtype 选择 `server/status/class/item`；
+- 创建服务器 `Graph`；
+- 使用服务器节点 ID 解析；
+- 使用服务器 `VarType` 和服务器 graph metadata；
+- Composite、signal 和 graph variables 也都是服务器语义。
+
+因此当前 `ClientIRDocument` 进入该路径时不能得到可信的客户端 GIA。
+
+### 2.4 当前 vendored 能力边界
+
+当前 `src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/` 已包含部分客户端数据：
+
+- `CLIENT_NODE_ID`；
+- protobuf `ClientVarType`；
+- 客户端类型候选；
+- `Graph` 类型中的 `bool | int | skill` 外形。
+
+但当前 vendored `gia_gen/basic.ts` 的生产图物化仍主要采用服务器 GraphUnit、NodeGraph 和
+`VarType` 规则。不能因接口接受客户端 mode，就声称最终 wire 已经支持客户端图。
+
+### 2.5 外部上游候选
+
+只读调查仓库：
+
+```text
+/home/h/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack
+```
+
+上游候选数据统计（来自其 `utils/node_data/data.json`，不是当前游戏真值）：
+
+- 客户端节点：124；
+- Fixed：102；
+- Variant：22；
+- 客户端枚举类型：48；
+- Domain：Arithmetic 39、Query 42、Execution 35、Control 1、Others 3、Hidden 4。
+
+其客户端实现还表明以下高风险差异：
+
+- 客户端 concrete identity 可由 generic shell ID、kernel ID 和泛型类型共同组成；
+- 部分客户端执行节点共享 kernel（候选值常见为 `2000`）；
+- 节点语义可能由隐藏 Type-5 opcode/default pin 区分；
+- 客户端 pin 使用 `ClientVarType`，不能复用服务器 `VarType`；
+- 客户端图候选类别为 `bool | int | skill`；
+- 客户端与服务器 graph constants 不同。
+
+这些内容只有与第 10.3 节两个真实样本一致的部分获得了样本级支持；其余仍是**编码候选**，不能升级为编辑器规范。
+
+## 3. 已冻结的产品路线
+
+### 3.1 总体顺序
+
+采用以下顺序，不允许跳过首轮真实验证直接宣称全量支持：
+
+```text
+Phase 0：取得并分析最小真实客户端 GIA（已完成两个样本的语义与 wire 基线）
+→ Phase 1：典型 API 闭环
+→ 首次编辑器导入、回导结构对拍和游戏行为验证
+→ 跨端信号专项
+→ 按节点族分批开放全量公开 API
+→ 持续编辑器/游戏验证
+```
+
+### 3.2 首批公共图类型
+
+第一版公共 API 只支持 `skill` 客户端图，实际公共类型为：
+
+```ts
+type SupportedClientGraphType = 'skill'
+```
+
+内部 IR/数据模型可以预留：
+
+```ts
+type ClientGraphType = 'bool' | 'int' | 'skill'
+```
+
+但 `bool` 和 `int` 必须分别取得真实图证据后才进入公共类型。不得让类型提示包含暂不可用值。
+
+### 3.3 用户入口 API
+
+冻结的首版入口为：
+
+```ts
+g.client({
+  type: 'skill',
+  id: 1082130433
+}).onStart((f) => {
+  // 客户端节点
+})
+```
+
+约束：
+
+- `type` 必填；
+- `id` 必填；
+- `onStart()` 每张客户端图只能声明一次；
+- `onStart()` 第一版只传 `f`，不伪造空 `evt` 或推测性上下文；
+- `Node Graph Begins` 由运行时/编译器隐式物化，不作为普通公共节点；
+- 上下文通过已验证的客户端查询节点取得，例如 `getSelfEntity()`；
+- 客户端第一版每个入口文件最多声明一张客户端图。
+
+### 3.4 图 ID 契约
+
+当前上游候选给出的客户端图 ID 起点是：
+
+```text
+1082130432
+0x40800000
+```
+
+首版按当前已知范围严格校验：
+
+```text
+1082130432..1082169753
+0x40800000..0x40809999
+```
+
+规则：
+
+- 越界直接报错；
+- 同次编译重复 ID 直接报错；
+- 不要求 ID 连续；
+- 不自动选择“下一个”ID；
+- 用户从编辑器或项目规划中提供 ID；
+- 该 ID 是生成图身份，不等同于注入授权，也不能由编译器猜成地图目标 `nodeGraphId`；
+- 若真实编辑器样本出现范围外合法 ID，应先保留样本和证据，再调整范围。
+
+### 3.5 文件组织
+
+采用以下硬边界和维护建议：
+
+- 同一入口文件不得混合声明 `g.server()` 与 `g.client()`；
+- 普通业务代码推荐一文件一图；
+- 推荐 `server/`、`client/` 分目录；
+- 暂时保留现有同文件多服务器图能力，避免客户端功能造成无关破坏性变更；
+- 第一版客户端文件最多一张客户端图。
+
+推荐结构：
+
+```text
+src/
+├── server/
+│   ├── combat-system.ts
+│   └── signal-receiver.ts
+└── client/
+    └── skill-effects.ts
+```
+
+## 4. 首批典型 API
+
+首批公开能力冻结为：
+
+| API/能力 | 主要验证目标 |
+|---|---|
+| 隐式 `Node Graph Begins` | 客户端 skill 图入口、graph metadata 和执行链起点 |
+| `getSelfEntity()` | 无参查询、客户端 Entity 输出 |
+| `getEntityPosition(entity)` | 客户端数据连接和 Vector 输出 |
+| `addVector3(a, b)` | 客户端 Variant/concrete identity |
+| `doubleBranch(condition, trueBranch, falseBranch)` | 多 OutFlow 与回调执行流 |
+| `playTimedEffects(...)` | 执行节点、共享 kernel/hidden pin、多种字面量 |
+
+用户侧命名复用相同语义的服务器方法名，但只复用名称和用户语义：
+
+- 客户端定义独立生成；
+- 客户端节点身份独立；
+- 客户端 pin schema 独立；
+- 两端签名不同时保留各自真实签名；
+- 不增加冗余 `client` 方法名前缀。
+
+`sendSignalToServerNodeGraph` 不进入第一份基础闭环。它在基础图验证后作为第一个独立专项，原因是上游候选已经提示其可能依赖 complex definition，不能当作普通节点处理。
+
+## 5. TypeScript 子集
+
+首批支持经过白名单审计的普通 `if/else`：
+
+```ts
+if (condition) {
+  f.playTimedEffects(...)
+} else {
+  f.playTimedEffects(...)
+}
+```
+
+Stage 1 必须在客户端回调上下文中降低为客户端 `double_branch`，不能静默生成服务器节点。
+
+同时保留显式形式：
+
+```ts
+f.doubleBranch(condition, () => {}, () => {})
+```
+
+首批向量加法使用显式：
+
+```ts
+const target = f.addVector3(position, offset)
+```
+
+以下语法在所属节点族完成审计前必须明确拒绝，而非回退到服务器 lowering：
+
+- 未审计的标量算术和比较运算符；
+- 循环；
+- 列表语法；
+- 变量重写；
+- 其他依赖未支持客户端节点的语法糖。
+
+诊断应说明当前客户端 skill 图尚不支持该语法，并引导用户使用已经开放的客户端节点 API。
+
+## 6. 定义和生成策略
+
+### 6.1 来源分层
+
+多个来源冲突时采用分层裁决：
+
+| 内容 | 首选来源 |
+|---|---|
+| 用户可见名称、描述和参数语义 | `resources/node_definitions.json` |
+| shell/kernel、物理 pin 候选、hidden/default、Variant identity | 固定版本 vendor 快照 |
+| 最终编辑器编码规律 | 当前版本真实客户端 GIA；现有两个样本内部 `gameVersion=6.7.0` |
+| gsts 当前行为 | 当前源码和自动回归 |
+
+生成器对账：
+
+```text
+官方参数
+↔ shell 可见 pin
+↔ kernel 物理 pin
+↔ hidden/default injection
+```
+
+节点进入公共 allowlist 的最低条件：
+
+- 可见参数可以一一映射；
+- 输入输出方向一致；
+- 类型可映射到当前 runtime ValueType；
+- hidden pin 有明确默认值或专用 adapter；
+- Fixed/Variant identity 可唯一解析；
+- 没有未解释的 pin 空洞或来源冲突。
+
+冲突节点必须：
+
+- 写入机器可读诊断报告；
+- 不进入公共类型；
+- 不使用 `any`、`unknown` 或静默默认掩盖；
+- 取得最小真实 GIA 后再修正数据、adapter 和回归。
+
+### 6.2 生成器从第一天面向全量
+
+不先手写五个 API 再推翻。生成器从开始读取和分析全部客户端节点，但首批只公开 allowlist。
+
+建议生成物（具体命名可在实现前按现有生成器结构复核）：
+
+```text
+src/definitions/client_nodes.ts
+src/definitions/client_enums.ts
+src/definitions/client_node_metadata.ts
+src/definitions/client_zh_aliases.ts
+```
+
+这些文件均属于生成物，不手改。
+
+### 6.3 静态方法与共享调用内核
+
+公共 API 生成真实静态 TypeScript 方法，不使用动态 `Proxy`：
+
+```ts
+getEntityPosition(target: EntityValue): Vec3Value {
+  return this.invokeGeneratedClientNode(CLIENT_NODE_KEYS.getEntityPosition, [target])
+}
+```
+
+分工：
+
+- 生成方法：稳定 API 名、类型签名和返回类型；
+- 共享客户端调用内核：支持状态、公开参数校验、IR 节点和输出标记；
+- Stage 3 client adapter：kernel identity、KernelIndex、hidden/default、`ClientVarType` 和物理 pin；
+- 专用 adapter：入口、`doubleBranch`、signal complex definition 和其他异常节点。
+
+不得为了减少代码而将客户端 `f` 强转成服务器 `f`。
+
+### 6.4 中文别名
+
+首批英文 API 与中文别名同时支持，例如：
+
+```ts
+g.client({ type: 'skill', id, lang: 'zh' }).onStart((f) => {
+  const self = f.获取自身实体()
+})
+```
+
+约束：
+
+- 中英文按稳定节点身份匹配，不按资源数组下标匹配；
+- 优先使用官方中文显示名，再与 vendor Identifier、英文名和 alias 对账；
+- 无法唯一匹配时不生成中文别名；
+- 中文缺失不阻塞可靠英文 API；
+- 中文覆盖率单独统计；
+- 中文别名只影响用户方法名，不改变 IR node type 或客户端 identity。
+
+## 7. 运行时与值模型
+
+### 7.1 Registry 架构
+
+不在现有服务器 `MetaCallRegistry` 中散布大量 `if (client)`，也不复制整套服务器 registry。
+
+目标为渐进抽取：
+
+```text
+GraphRecordCore
+├── 节点 ID 分配
+├── exec/data node records
+├── tail endpoints
+├── flow/data edges
+├── branch context
+└── value ownership
+
+ServerGraphRegistry
+├── server events
+├── classic/beyond
+├── server subtype
+├── Composite
+├── graph variables
+└── ServerExecutionFlowFunctions
+
+ClientGraphRegistry
+├── onStart
+├── client graph type
+├── client node allowlist
+├── ClientExecutionFlowFunctions
+└── Client IR builder
+```
+
+实施时不为追求理想结构预先重写整个服务器运行时。只抽取客户端首批真正需要的无端语义内核，并用服务器 focused 回归证明 IR 输出未改变。
+
+### 7.2 值类型
+
+基础字面量构造器两端共用：
+
+```text
+bool / int / float / str / vec3 / guid / entity
+configId / prefabId / faction
+```
+
+它们表达用户语义值，不预先绑定 protobuf `VarType` 或 `ClientVarType`。
+
+节点输出必须记录所属 registry/graph，禁止跨图直接接线。Stage 3 按图端选择底层类型：
+
+```text
+server vec3 → VarType.Vector
+client vec3 → ClientVarType.Vector_
+```
+
+客户端枚举独立生成和解析。即使显示名与服务器枚举相同，也不得按名称复用服务器 enum ID。
+
+首批只实现客户端所需的最小 value ownership，不借机无范围地改变现有服务器行为。
+
+## 8. Stage 3 和 vendor 边界
+
+### 8.1 Stage 3 显式分发
+
+目标入口应按判别字段分发，而不是在服务器路径中散布 client 条件：
+
+```ts
+export function irToGia(ir: IRDocument, opts: IrToGiaOptions) {
+  return ir.graph.type === 'client'
+    ? clientIrToGia(ir, opts)
+    : serverIrToGia(ir, opts)
+}
+```
+
+客户端 lowering 负责：
+
+- client graph category；
+- client graph ID；
+- client graph metadata；
+- client node identity；
+- `ClientVarType`；
+- 客户端字面量、执行流和数据流；
+- hidden/default injection；
+- Variant concrete identity。
+
+服务器 Composite、server graph variables 和服务器 signal 逻辑不应进入客户端普通 lowering。
+
+### 8.2 Vendor 同步路线
+
+禁止直接手改项目 `src/thirdparty/`，也禁止把 vendor 数据复制到 `resources/` 绕过同步。
+
+冻结路线：
+
+```text
+当前 compat/genshin-ts-legacy-schema 基线
+→ 建立客户端兼容工作分支/工作树
+→ 从上游 dev 选择性移植客户端能力
+→ 保留 legacy schema 和 field-101 Composite 兼容补丁
+→ 运行 vendor server/client focused tests
+→ 形成明确 vendor commit
+→ 同步该 commit 快照到 genshin-ts
+→ 项目只通过 gia_vendor.ts/adapter 使用
+```
+
+不顺带引入：
+
+- 上游全新 AssetBundle schema；
+- 与客户端闭环无关的大规模数据重构；
+- 对现有 Composite 编码的替换；
+- 未经真实样本校正的全量客户端公共 API。
+
+在实际修改 vendor 分支、执行 commit 或同步前，必须再次向用户列出：
+
+- 来源提交；
+- 目标分支/工作树；
+- 影响文件；
+- 再生成步骤；
+- vendor 和项目验证命令；
+- 对当前未提交工作树的避让方案。
+
+未经明确授权不执行 `git commit` 或分支操作。
+
+### 8.3 可复现来源
+
+项目日常生成流程不得依赖：
+
+```text
+/home/h/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack
+```
+
+该外部仓库只用于准备、研究和验证 vendor 补丁。合入后的 `npm run gen` 必须只读取仓库内固定来源：
+
+- `resources/node_definitions.json`；
+- 固定版本 vendor 快照；
+- 项目生成 adapter。
+
+这样同一个 genshin-ts commit 在 CI 和其他机器上能重现相同定义。
+
+## 9. 分批全量支持
+
+生成器始终分析全部客户端节点，但公共 API 按风险族放行：
+
+1. **基础闭环**：入口、查询、数据连接、Vector Variant、分支、典型执行节点。
+2. **普通 Fixed 查询和算术节点**：无未解释 hidden pin/complex definition。
+3. **Variant/泛型节点**：比较、算术、列表等 concrete identity。
+4. **客户端枚举节点**：客户端 enum type/value 严格与服务器分离。
+5. **共享 kernel 执行节点**：shell/kernel 和 hidden opcode 明确。
+6. **跨端信号和 complex definition**：`sendSignalToServerNodeGraph` 专项。
+7. **异常和高风险节点**：hitbox、上游手工修补、pin 类型冲突等。
+
+每批放行门槛：
+
+```text
+来源对账通过
+→ 生成诊断无未解释冲突
+→ TypeScript 类型测试
+→ IR 回归
+→ GIA 结构回归
+→ 代表节点编辑器回导对拍
+→ 扩大公共 allowlist
+```
+
+节点内部状态建议至少包括：
+
+```text
+recognized
+reconciled
+lowering-ready
+structure-tested
+editor-roundtrip-verified
+game-verified
+blocked
+```
+
+尚未开放的节点：
+
+- 不进入公共类型；
+- IDE 不展示；
+- 通过 `any`、手写 IR 或 `.gs.ts` 绕过时，运行时或 Stage 3 仍拒绝；
+- 覆盖报告说明阻塞原因、节点族和缺失证据；
+- 不提供 `experimental` 或 `f.internal.*` 公共后门。
+
+Hidden/Test 节点默认只用于数据完整性、类型探测和 complex definition 研究。只有真实编辑器证据证明其是稳定公开能力后，才重新决定是否提升。
+
+## 10. Phase 0：真实样本门禁
+
+### 10.1 第一份样本（已到达）
+
+生产实现开始前要求提供独立测试用客户端 `skill` 图；本轮已收到以下最小结构：
+
+```text
+Node Graph Begins
+→ Play Timed Effects
+```
+
+推荐使用易辨识的非默认参数：
+
+```text
+位置：[1, 2, 3]
+旋转：[10, 20, 30]
+缩放：1.25
+默认音效：No
+```
+
+特效配置 ID 必须由用户选择并确认在当前环境有效。不得由编译器维护者猜测资源 ID。
+
+本轮已从文件内部完成文件与图 ID 配对，不能按文件顺序猜测：
+
+```text
+播放限时特效.gia          → 1082130433
+播放限时特效-变量版本.gia → 1082130434
+```
+
+字面量样本中观察到配置 ID `27`、位置 `[1,2,3]`、旋转 `[10,20,30]`、缩放
+`1.25` 和默认音效枚举值 `0`。这些是文件编码观察，不证明资源在游戏中有效，也不证明默认音效的实际行为。
+
+### 10.2 样本到达后的只读步骤
+
+第一轮只执行：
+
+```text
+原始 GIA 只读解码
+→ 提取 graph/node/pin/wire 事实
+→ 与上游候选逐字段对账
+→ 报告冲突和证据等级
+→ 确定 vendor 兼容补丁精确范围
+→ 再请求修改与 vendor commit 授权
+```
+
+不得自动：
+
+- 注入；
+- 覆盖地图或业务图；
+- 猜 `mapId` / `nodeGraphId`；
+- 修改游戏文件；
+- 在真实样本校正前同步大批 vendor 快照。
+
+### 10.3 两份真实样本的 WP0 证据
+
+#### 样本与命令
+
+样本来源使用不含本机用户名的相对描述：
+
+```text
+Beyond_Local_Export/user_edit/客户端/播放限时特效.gia
+Beyond_Local_Export/user_edit/客户端/播放限时特效-变量版本.gia
+```
+
+2026-07-17 执行了以下只读检查；`<export>` 表示本机定位到的
+`Beyond_Local_Export` 目录：
+
+```bash
+sha256sum '<export>/user_edit/客户端/播放限时特效.gia' \
+  '<export>/user_edit/客户端/播放限时特效-变量版本.gia'
+stat -c '%s %n' '<export>/user_edit/客户端/播放限时特效.gia' \
+  '<export>/user_edit/客户端/播放限时特效-变量版本.gia'
+NODE_OPTIONS='--no-deprecation' npx tsx tools/decode-gia.ts \
+  --check-header --compact '<file.gia>'
+```
+
+无修改 round-trip 使用显式
+`src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto`
+加载 `protobufjs` message，直接执行 message decode→encode，再包装为 GIA 容器。该临时核验脚本位于
+`/tmp`，没有写入仓库或修改生产工具。
+
+| 文件 | 原始/回编码大小 | 原始/回编码 SHA-256 | 逐字节比较 |
+|---|---:|---|---|
+| `播放限时特效.gia` | 585 / 585 bytes | `0470fa9acc2d5ca4b16d6bc6ff735266abbece97a73032ee9fda1d6e641cc0cb` | 相同，0 个差异 |
+| `播放限时特效-变量版本.gia` | 1544 / 1544 bytes | `d52127d7c6501bdf0f893bf7831206be461787394392ddee0c9ab9966188525a` | 相同，0 个差异 |
+
+两份文件的容器头校验均通过。完整容器和 protobuf payload 都能逐字节 round-trip，说明当前
+schema 对这两个样本没有观察到未知字段丢失或字段重排；这不证明 schema 已覆盖其他客户端图。
+
+`decode_gia_file()` 会通过 `{ defaults: true }` 转成普通对象。将该对象交给
+`encode_gia_file()` 会把默认值显式重编码，两个文件分别变为 625 和 1706 bytes。因此该 helper
+组合适合语义解码，不适合作为 wire-preserving round-trip；上述 wire 结论来自 message 直接回编码。
+
+#### 共同图级 metadata
+
+两个样本都观察到：
+
+```text
+GraphUnit.id.class = 1
+GraphUnit.id.type = 3
+GraphUnit.which = 11
+NodeGraph.id.class = 10000
+NodeGraph.id.type = 20002
+NodeGraph.id.kind = 21001
+NodeGraph.entrySlotIndex = 1
+accessories = []
+gameVersion = "6.7.0"
+```
+
+`GraphUnit` ID 与内部 `NodeGraph` ID 在各自文件内一致。`id.type=3` 与客户端图候选一致，
+`which=11` 与 skill 图候选一致。`gameVersion` 只记录为样本字段值；它是否参与兼容或运行行为仍待验证。
+
+#### 字面量版本
+
+`播放限时特效.gia` 只有两个节点：
+
+1. `Node Graph Begins`：node index `1`，shell `200042`，kernel `2001`，
+   `contextDeclaration={ kind: 6, index: 0 }`；OutFlow `0` 连接节点 2 InFlow `0`。
+2. `Play Timed Effects`：node index `2`，shell `200038`，kernel `2000`。
+
+`Play Timed Effects` 的数据 pin 为：
+
+| `i1.index` | `i2.index` | `ClientVarType` 数值 | 样本值 |
+|---:|---:|---:|---|
+| 0 | 4 | 18 | config ID `27` |
+| 1 | 1 | 11 | vector `[1,2,3]` |
+| 2 | 2 | 11 | vector `[10,20,30]` |
+| 3 | 3 | 7 | float `1.25` |
+| 4 | 0 | 3 | hidden int `0`，`alreadySetVal=false` |
+| 5 | 5 | 5 | bool/enum `0`，`alreadySetVal=true` |
+
+另有一个 `kind=5` client binding pin：
+
+```text
+i1/i2 = { kind: 5, index: 0 }
+type = 3
+value = int 0, alreadySetVal=false
+clientExecNode = { kind: 5, index: 1, nodeId.id: 200038 }
+```
+
+不能把 hidden int pin 4 直接命名为 opcode。样本同时在
+`clientExecNode.nodeId.id=200038` 中明确记录 shell 身份；两者具体运行语义仍待游戏证据。
+
+与上游 `utils/node_data/data.json` 的样本级对账一致：`Node Graph Begins` 为 shell
+`200042`/kernel `2001`，`Play Timed FX` 为 shell `200038`/kernel `2000`，公开 pin
+类型为 Cfg/Vec/Vec/Flt/Bol，中间存在 hidden Int pin。真实样本还证明不能假设客户端节点所有
+`i1/i2` index 相同：config pin 为 `0→4`，hidden int pin 为 `4→0`。后续实现应以物理 pin
+adapter 表达该差异，而不是用公开参数顺序猜测。
+
+#### “变量版本”的范围
+
+`播放限时特效-变量版本.gia` 的：
+
+```text
+innerGraph.graphValues = []
+```
+
+它使用节点链，而不是 GraphVariable metadata：Get Self Entity（shell `200033`/kernel
+`1013`）、Get Custom Variable<bool>（`200016`/`40`）、Set Local Variable<bool>
+（`200081`/`2000`）、Get Local Variable<vec|bool>（`200082`/`1036`）、Get Custom
+Variable<float>（`200016`/`42`）和 Play Timed Effects（`200038`/`2000`）。执行流为：
+
+```text
+1 (Graph Start) → 6 (Set Local Variable<bool>) → 8 (Play Timed Effects)
+```
+
+数据流为：
+
+```text
+5.0 (Get Self) → 3.0 (Get Custom Variable<bool> target)
+3.0 → 6.1 (Set Local Variable<bool> value)
+4.0 (Get Local vec) → 8.2 (rotation)
+9.0 (Get Custom Variable<float>) → 8.3 (scale)
+10.0 (Get Local bool) → 8.5 (play default sfx)
+5.0 (Get Self) → 9.0 (Get Custom Variable<float> target)
+```
+
+样本中的 custom/local variable 名称分别为 `自定义变量` 和 `布局变量`。该文件只为客户端
+custom/local variable 节点及 Variant identity 提供候选证据；它不证明 `g.client({ variables })`
+或客户端 `graphValues` 编码，因而不扩大首批 Client Graph variables 范围。
+
+#### 工具和证据边界
+
+当前 `tests/composite/gia-inspect.ts` 对这两个客户端图输出 `which: undefined`、`nodes: 0`，
+而 schema 解码明确得到 `which=11` 和实际节点。这是 inspect 工具按服务器/旧结构取字段的已知限制，
+不能据此判断样本为空；WP0 不修改该工具。
+
+本节证明两个真实文件的结构与 wire 可由当前 schema 无损读取，并校正了首个 skill 图的
+metadata、identity 和 pin 候选。它不证明 gsts 已能生成客户端图，不证明编辑器导入或回导行为，
+不证明特效/变量节点游戏行为，也不授权注入。
+
+### 10.4 后续拓扑样本
+
+首个执行节点基线确定后，仍需准备覆盖以下结构的独立最小图：
+
+```text
+Get Self Entity
+→ Get Entity Position
+→ Vector Addition
+→ Double Branch
+→ 两个可区分的执行结果
+```
+
+分支 fixture 必须真实让两个分支产生不同可观察行为，不能使用空分支后接共享执行节点冒充条件行为。
+
+## 11. 验证和完成标准
+
+### 11.1 首批证据链
+
+首批典型 API 只有完成以下全部层级，才标记为已支持：
+
+1. TypeScript/生产构建成功；
+2. 自动 IR/GIA 结构回归通过；
+3. standalone 客户端 `.gia` 生成成功；
+4. 用户在正确的客户端 skill 图位置手动导入成功；
+5. 节点、参数、数据线和分支目视正确；
+6. 用户不做无关编辑后重新导出；
+7. 候选与回导 GIA 完成结构化对拍；
+8. 在游戏中实际触发图并观察预期行为。
+
+必须分别报告，不得相互替代：
+
+```text
+编码成功
+自动回归通过
+编辑器导入成功
+编辑器回导对拍通过
+游戏行为验证通过
+```
+
+### 11.2 首次结构对拍字段
+
+至少比较：
+
+- GraphUnit class/type/which；
+- NodeGraph class/type/kind；
+- graph ID 是否保留或被编辑器改写；
+- `Node Graph Begins` identity；
+- 首批节点 generic/kernel/concrete identity；
+- `ClientVarType`；
+- 可见 pin 和隐藏 pin；
+- hidden/default pin 与 client binding；
+- 数据连接；
+- Vector Addition Variant；
+- Double Branch 两个 OutFlow；
+- `Play Timed Effects` 公开参数到物理 pin 的映射；
+- 编辑器新增、删除或规范化的字段；
+- `gameVersion` 是否保留、改写或忽略。
+
+涉及 protobuf 字段存在性时，decoded 默认 JSON 不足以证明 wire presence；按需保留 raw wire 或 round-trip 证据。
+
+### 11.3 首次游戏行为
+
+最小游戏验证至少观察：
+
+- `onStart()` 是否实际触发；
+- `getSelfEntity()` 是否取得正确客户端自身实体；
+- `getEntityPosition()` 是否驱动正确位置；
+- `addVector3()` 是否产生可见偏移；
+- `doubleBranch` 是否只执行预期一侧；
+- `playTimedEffects` 的配置、缩放和默认音效参数是否生效。
+
+## 12. 注入安全边界
+
+首批仅生成 standalone `.gia`，使用 `--noinject`；不修改 injector。
+
+用户手动：
+
+```text
+选择正确客户端 skill 图位置
+→ 导入 standalone GIA
+→ 检查
+→ 重新导出
+```
+
+客户端注入应在编码稳定后建立独立工作包：
+
+```text
+读取真实地图
+→ 只读识别客户端 GraphUnit
+→ 列出候选目标
+→ 用户确认 map/player/nodeGraphId
+→ 备份
+→ 注入
+→ 回读确认
+```
+
+任何注入、覆盖、复制或删除游戏文件前都必须再次获得明确确认。注入成功不等于游戏行为验证成功。
+
+## 13. 版本策略
+
+上游 `data.json` 中的 `GameVersion: 6.2.0` 只作为旧数据快照标签，不作为当前编辑器真值。
+两个 2026-07-17 客户端样本内部均观察到：
+
+```text
+gameVersion = "6.7.0"
+```
+
+这替代了此前“客户端输出暂定 6.6.0”的计划假设，但只证明样本字段值，不证明该字段参与兼容或
+运行行为。生产实现确定固定值前仍需结合编辑器回导观察。
+
+规则：
+
+- 不暴露为 `g.client()` 配置；
+- 不暴露为首批 `gsts.config.ts` 配置；
+- 不用该字段判断客户端节点是否合法；
+- 真实回导时记录编辑器是否保留或改写；
+- 字段语义在获得行为证据前保持“待验证”；
+- 不因同步旧客户端数据将输出回退到 6.2，也不把单次 `6.7.0` 观察推广为多版本兼容规则。
+
+## 14. 预期实施工作包
+
+真实样本校正后，建议按以下工作包执行，每个包开始前重新确认精确 diff：
+
+### WP0：真实样本分析（本轮已完成）
+
+- [x] 解码两个真实 client skill GIA；
+- [x] 对比上游数据；
+- [x] 固化图级 metadata、典型节点和物理 pin 事实；
+- [x] 完成两个样本的逐字节 message round-trip；
+- [x] 记录工具限制、证据范围和剩余不确定性。
+
+### WP1：Vendor 客户端兼容补丁
+
+- 在 legacy schema 兼容基线上移植最小客户端图编码；
+- 保留 Composite field-101 补丁；
+- 建立 server/client focused vendor tests；
+- 形成可追溯 vendor commit；
+- 用户授权后同步项目快照。
+
+### WP2：定义生成与覆盖报告
+
+- 增加客户端结构化数据 adapter；
+- 建立全量识别、对账、阻塞状态和 allowlist；
+- 生成首批英文/中文静态 API；
+- 保证 `npm run gen` 无外部绝对路径依赖。
+
+### WP3：运行时和 Client IR
+
+- 渐进抽取 `GraphRecordCore`；
+- 增加 `ClientGraphRegistry`；
+- 增加 `g.client({ type: 'skill', id }).onStart()`；
+- 增加 client value ownership；
+- 生成 `ClientIRDocument`；
+- 拒绝同文件混端和多 client 图。
+
+### WP4：Stage 1 客户端上下文
+
+- 识别 `onStart()` 客户端回调；
+- 支持首批 `if/else`；
+- 拒绝未审计服务器 lowering 泄漏；
+- 增加端隔离诊断。
+
+### WP5：Stage 3 客户端 lowering
+
+- 显式 server/client 分发；
+- client graph metadata；
+- client identity 和 pin materializer；
+- `ClientVarType`；
+- hidden/default adapter；
+- 首批典型节点和分支。
+
+### WP6：首批端到端验证
+
+- 生成 standalone 客户端 GIA；
+- 用户手动导入和回导；
+- 结构化 diff；
+- 修正并固化回归；
+- 用户游戏行为验证。
+
+### WP7：信号专项
+
+- 最小真实 `sendSignalToServerNodeGraph` 样本；
+- complex definition/动态参数研究；
+- 客户端与服务器参数契约；
+- 回导与游戏通信验证。
+
+### WP8：按节点族扩大覆盖
+
+- Fixed；
+- Variant；
+- enum；
+- kernel 执行节点；
+- 异常节点；
+- 持续覆盖报告与代表性游戏验证。
+
+## 15. Phase 0 冻结状态
+
+截至 2026-07-17：
+
+- 两份真实 client skill GIA 已完成文件内 ID 配对、语义解码、上游候选对账和逐字节 wire round-trip；
+- 两份样本均为 `gameVersion="6.7.0"`，原 `6.6.0` 计划假设已撤销；
+- “变量版本”明确为节点链且 `graphValues=[]`，不扩大 Client Graph variables 范围；
+- 生产实现尚未开始；
+- 不公开半成品 `g.client()`；
+- 不修改生产 Stage 3 客户端行为；
+- 不同步未经精确补丁审查和用户授权的 vendor 客户端快照；
+- 不执行注入或游戏文件操作。
+
+WP0 已收口。下一步是先提交 WP1 vendor 兼容补丁的精确范围、来源、影响文件和验证命令，并取得
+用户授权；在授权前不得开始 vendor 修改、同步或生产实现。
