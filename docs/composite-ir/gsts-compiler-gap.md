@@ -51,6 +51,7 @@
 | 11 | **多 OutFlow 复合** | gsts 的 pinIndex（8+idx）vs 编辑器自定义值 | 编译一个多出口复合 + 对比顺序执行.gia |
 | 12 | **多个复合定义（跨文件共享）** | gsts 使用 `1610700000+` 空间；编辑器使用 `16106128xx` | inject 到真实游戏环境后 gsts 的 ID 是否冲突 |
 | 13 | **ClientExec 信号触发** | gsts 是否支持信号驱动架构（无 event） | 编译一个 `event.monitorSignal` 测试用例 |
+| 14 | **DTC 边界物理引脚缺失** | composite capture 输入跳过 DTC 节点的物理 InParam，导致 OutParam 也不生成，compositePins 和数据边全部悬空 | 为 `data_type_conversion_*` 的边界 capture 保留物理 pin，并检查下游 OutParam |
 
 ---
 
@@ -62,6 +63,7 @@
 | 3 | event nodeIndex (`2` → `1`) | `core.ts:551-570`：引导流不消耗 id=1；`index.ts:565`：事件强制 nIdx=1 | 运行任意测试，检查 GIA 的 event nodeIndex |
 | 7 | Impl 图 nodeIndex 起始 (`1` → `2`) | `composite.ts:33`：`i+1` → `i+2` | 运行任意测试，检查 impl 图 nodeIndex |
 | 8 | 布局坐标 (800/600 → 500/400) | `layout.ts:273-278` + `composite.ts:203-206`：缩小间距 | `npx tsx tests/composite/dump-nodes.ts` |
+| 14 | DTC 边界物理引脚 | `composite.ts`：DTC capture 被 compositePins 指向时保留物理 InParam，独立生成 OutParam，启用 `requirePhysicalPins` 检查 | `npx tsx tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts` + 游戏验证通过 |
 
 ---
 

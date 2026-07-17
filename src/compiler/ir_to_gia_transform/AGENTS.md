@@ -21,6 +21,10 @@
 - pin-hole / hidden-pin 节点：IR 参数序与物理 InParam 不一致时，必须走共享 remap
   （`pin_hole_adapter.ts`）。凡同时触及 capture 与 pin-hole，vendor/legacy 过滤物理 pin 与
   `compositePins.innerPinIndex` 必须用同一物理脚位；只 remap 一侧会出现“主图正常、复合丢参”。
+- `data_type_conversion_*` 的 capture 输入被当前复合 `compositePins` 直接指向时，必须保留类型化
+  物理 InParam pin（ConcreteBase/EnumBase oneof），并独立生成该节点的 OutParam。
+  普通 capture 输入跳过物理 pin 的规则不适用于这种边界路由场景。
+  回归：`tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`。
 - special-arg 节点（signal / assembly / multiple_branches）：字面量布局与 IR→physical remap
   必须走共享 `special_arg_adapter.ts`（P5-W10）。root `applySpecialArgs`、factory 与
   composite vendor/legacy 不得再各写一套 count@0 / ClientExec name / case-list 逻辑。

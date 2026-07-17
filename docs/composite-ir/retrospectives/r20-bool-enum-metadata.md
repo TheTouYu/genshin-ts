@@ -368,3 +368,60 @@ genshin-ts 中对应提交：
 ## 12. 一句话总结
 
 这次修复的真正成果不是单独补上 `enumId=1`，而是确认了 GIA 问题必须同时在游戏表现、IR、protobuf schema、wire presence 和 vendor 版本五个层次闭环验证；其中任何一层缺失，都可能让“看起来相同”的 JSON 继续生成游戏无法识别的文件。
+
+---
+
+## 附录 1：后续发现——DTC 边界物理引脚缺失
+
+### 1.1 场景
+
+同样使用 `bool参数.gia` 参考文件，这次问题是复合节点的 `bool→int→float→str` 转换链在游戏中
+无法正常运行，而非 bool 控件的显示异常。
+
+### 1.2 新的根因
+
+复合外部 bool 输入通过 capture 路由到 impl 内部的 `data_type_conversion_int` 节点时，
+该节点的物理 InParam pin 被错误跳过（因为 `capture: true` 标记触发了通用跳过逻辑），
+随后 OutParam 也因 `pins.length === 0` 而没有生成。最终 `compositePins` 和下游数据边
+都指向不存在的物理 pin。
+
+### 1.3 症状区别
+
+| 维度 | 最初 fix（field 101） | 本 fix（物理引脚） |
+|---|---|---|
+| 表现 | bool 参数选择框空白 | 复合节点无法运行 |
+| 定位层 | protobuf oneof | GraphNode.pins wire presence |
+| 影响节点 | CompositeDef ParameterFlow 定义 | Impl 内 DTC 节点的 NodePin 数组 |
+| 触发条件 | bool 类型参数 | 通过 capture 传入 DTC 的边界参数 |
+| 修复范围 | `build_composite_definition.ts` schema | `buildImplNodePins()` 中 capture 跳过逻辑 |
+
+### 1.4 修复
+
+`src/compiler/ir_to_gia_transform/composite.ts` 中：
+
+1. `buildImplNodePins()`：当 DTC 节点的 capture 参数被 `compositePins` 指向时，保留类型化的
+   ConcreteBase（InParam）物理 pin，含正确的 `indexOfConcrete` 和 VarBase oneof。
+2. `buildImplNodePins()`：DTC OutParam 自动生成不再依赖 `pins.length > 0`，使用节点类型判断。
+3. `buildCompositeAccessories()`：对 DTC 边界 InParam 路由启用 `requirePhysicalPins: true`。
+
+### 1.5 回归
+
+新增 `tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`，从 JSON 解码和 raw protobuf
+两层断言物理 pin 存在性与 oneof 分支。
+
+### 1.6 证据
+
+- 坏样本（`bool参数-gsts复现.gia`，`d9ac7be8`）：复合 impl 首 DTC 节点 `pins=[]`。
+- 修复样本（经过用户从编辑器重新导出并修正，`9b8187fc`）：该节点 `pins=2`（bool InParam + int OutParam）。
+- 真实参考（`bool参数.gia`，`eb281637`）：同样 `pins=2`。
+- 修复后 gsts 输出（`bool参数-gsts修复版.gia`，`4cfda81b`）：`pins=2`，语义完全一致。
+
+三者 raw protobuf 确认字段 presence，不是 JSON 默认值展示差异。
+
+### 1.7 总结
+
+这次问题暴露了 Stage 3 通用 capture 跳过硬编码假设的局限：`capture: true` 不自动等同于
+“不需要物理 pin”。`compositePins` 只是路由声明，不会替内部节点创建 `NodePin`。
+因此边界 DTC 必须同时生成目标物理 pin，否则边界路由和数据链双双悬空。
+
+参见 handover：[handover/dtc-boundary-physical-pins.md](../handover/dtc-boundary-physical-pins.md)
