@@ -12,13 +12,13 @@
  * 图 ID 接续 client-control-flow 示例使用的默认 ID 区间：
  *   1073741827  FeatureAllInOneBeyond               服务器图
  *   1073741828  FeatureZhHoverBeyond                服务器中文别名图
- *   1082130437  FeatureCharacterSkillBeyond         角色技能
- *   1082130438  FeatureCharacterControlSkillBeyond  角色操控技能
- *   1082130439  FeatureCreationSkillBeyond          造物技能
- *   1082130440  FeatureCreationStatusBeyond         造物状态
- *   1082130441  FeatureCreationStatusDecisionBeyond 造物状态决策
- *   1082130442  FeatureBoolFilterBeyond              bool filter
- *   1082130443  FeatureIntFilterBeyond               int filter
+ *   1082130435  FeatureCharacterSkillBeyond         角色技能
+ *   1082130436  FeatureCharacterControlSkillBeyond  角色操控技能
+ *   1082130437  FeatureCreationSkillBeyond          造物技能
+ *   1082130438  FeatureCreationStatusBeyond         造物状态
+ *   1082130439  FeatureCreationStatusDecisionBeyond 造物状态决策
+ *   1082130440  FeatureBoolFilterBeyond              bool filter
+ *   1082130441  FeatureIntFilterBeyond               int filter
  */
 
 import { TacticSpeed } from 'genshin-ts/definitions/client_enums'
@@ -40,9 +40,9 @@ const FeatureLogSignal = defineSignal('gsts_feature_log', [
 ])
 
 const MODE = 'beyond'
-const CREATION_SKILL_GRAPH_ID = 1082130439
-const CREATION_STATUS_GRAPH_ID = 1082130440
-const CREATION_STATUS_DECISION_GRAPH_ID = 1082130441
+const CREATION_SKILL_GRAPH_ID = 1082130437
+const CREATION_STATUS_GRAPH_ID = 1082130438
+const CREATION_STATUS_DECISION_GRAPH_ID = 1082130439
 
 // gsts 从地图提取的 resources/prefabs.ts 也使用这种对象形状。
 const CustomPrefab = {
@@ -324,7 +324,7 @@ g.server({
 
 // 七类客户端图同样覆盖配置、语言/模式、直接运算、流程控制、全局别名和 gsts.fXxx。
 g.characterSkill({
-  id: 1082130437,
+  id: 1082130435,
   name: 'FeatureCharacterSkillBeyond',
   prefix: true,
   mode: MODE,
@@ -497,7 +497,7 @@ g.characterSkill({
 
 // lang: 'zh' 开启客户端 f 的中文节点别名；start 是客户端固定入口事件名。
 g.characterControlSkill({
-  id: 1082130438,
+  id: 1082130436,
   name: 'FeatureCharacterControlSkillBeyondZh',
   mode: MODE,
   lang: 'zh'
@@ -591,7 +591,7 @@ g.creationStatusDecision({
 })
 
 g.boolFilter({
-  id: 1082130442,
+  id: 1082130440,
   name: 'FeatureBoolFilterBeyondZh',
   mode: MODE,
   lang: 'zh'
@@ -602,7 +602,7 @@ g.boolFilter({
 })
 
 g.intFilter({
-  id: 1082130443,
+  id: 1082130441,
   name: 'FeatureIntFilterBeyond',
   mode: MODE,
   evaluationInterval: 0.5

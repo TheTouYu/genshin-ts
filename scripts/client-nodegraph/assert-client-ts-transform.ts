@@ -1407,17 +1407,17 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
       mode: 'beyond',
       file: path.join(root, 'tests/manual/features/beyond.ts'),
       graphs: [
-        [1082130437, 'character_skill'],
-        [1082130438, 'character_control_skill'],
-        [1082130439, 'creation_skill'],
-        [1082130440, 'creation_status'],
-        [1082130441, 'creation_status_decision'],
-        [1082130442, 'bool_filter'],
-        [1082130443, 'int_filter']
+        [1082130435, 'character_skill'],
+        [1082130436, 'character_control_skill'],
+        [1082130437, 'creation_skill'],
+        [1082130438, 'creation_status'],
+        [1082130439, 'creation_status_decision'],
+        [1082130440, 'bool_filter'],
+        [1082130441, 'int_filter']
       ],
-      statusId: 1082130440,
-      decisionId: 1082130441,
-      signalGraphIds: [1082130437, 1082130438, 1082130439]
+      statusId: 1082130438,
+      decisionId: 1082130439,
+      signalGraphIds: [1082130435, 1082130436, 1082130437]
     },
     {
       mode: 'classic',
