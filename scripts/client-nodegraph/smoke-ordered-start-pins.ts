@@ -6,6 +6,8 @@ import { loadGiaProto } from '../../src/injector/proto.js'
 import { buildClientGraphRegistriesIRDocuments, g } from '../../src/runtime/core.js'
 import { configId } from '../../src/runtime/value.js'
 import {
+  GraphUnit_Id_Class,
+  GraphUnit_Id_Type,
   NodePin_Index_Kind,
   type Root as GiaRoot
 } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
@@ -55,6 +57,25 @@ for (const [graphId, expectedCount] of [
   const bytes = irToGia(document, { protoPath })
   const message = rootMessage.decode(bytes.slice(20, -4))
   const root = rootMessage.toObject(message, { defaults: true, longs: Number }) as GiaRoot
+  assert.strictEqual(Number(root.graph?.id?.class), GraphUnit_Id_Class.Node)
+  assert.strictEqual(Number(root.graph?.id?.type), GraphUnit_Id_Type.ClientGraph)
+  assert.strictEqual(Number(root.graph?.graph?.inner.graph?.entrySlotIndex), 1)
+  assert.deepStrictEqual(
+    root.graph?.relatedIds?.map((id) => ({
+      class: Number(id.class),
+      type: Number(id.type),
+      id: Number(id.id)
+    })) ?? [],
+    graphId === decisionId
+      ? [
+          {
+            class: GraphUnit_Id_Class.Node,
+            type: GraphUnit_Id_Type.ClientGraph,
+            id: statusId
+          }
+        ]
+      : []
+  )
   const startNode = root.graph?.graph?.inner.graph?.nodes?.find(
     (node) => Number(node.genericId?.nodeId) === 200126
   )

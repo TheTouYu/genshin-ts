@@ -1268,6 +1268,17 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
 
   const encoding = getClientGraphEncoding(ir.graph.sub_type)
   const isFilter = ir.graph.sub_type === 'bool_filter' || ir.graph.sub_type === 'int_filter'
+  const relatedStatusGraphIds = [
+    ...new Set(
+      nodes.flatMap((node) => {
+        if (node.type !== 'switch_to_self_execution_status') return []
+        const statusGraphId = node.args?.[1]
+        if (!isValueArg(statusGraphId) || statusGraphId.type !== 'config_id') return []
+        const id = Number(statusGraphId.value)
+        return Number.isSafeInteger(id) && id > 0 ? [id] : []
+      })
+    )
+  ]
   const root: GiaRoot = client_graph_body({
     uid,
     graph_id: graphId,
@@ -1278,6 +1289,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     evaluation_interval: isFilter
       ? (ir.graph.evaluation_interval ?? CLIENT_FILTER_DEFAULT_EVALUATION_INTERVAL)
       : undefined,
+    related_graph_ids: relatedStatusGraphIds,
     nodes: [...builtById.values()]
   })
 

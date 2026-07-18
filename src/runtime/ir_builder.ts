@@ -135,7 +135,7 @@ const buildDefaultNode: NodeBuilder = (record, next) => {
   return node
 }
 
-const buildBreakLoopNode: NodeBuilder = (record, next, isClient) => {
+const buildBreakLoopNode: NodeBuilder = (record) => {
   const node: ServerNode = {
     id: record.id,
     type: record.nodeType
@@ -145,9 +145,9 @@ const buildBreakLoopNode: NodeBuilder = (record, next, isClient) => {
   // break_loop has no exec output; only connect to loop break input pins.
   // if (next?.length) out.push(...next)
 
-  // Server loop nodes take the break signal on InFlow index 1; client loop
-  // nodes receive it on InFlow index 0 (sample: 跳出循环_连线.gia).
-  const breakTargetIndex = isClient ? 0 : 1
+  // Both server and client finite-loop nodes take the break signal on their
+  // second InFlow pin (index 1), distinct from the normal entry pin (index 0).
+  const breakTargetIndex = 1
 
   for (const arg of record.args) {
     const lit = arg.toIRLiteral()

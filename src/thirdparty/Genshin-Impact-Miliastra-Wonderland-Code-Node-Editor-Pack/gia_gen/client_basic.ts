@@ -25,6 +25,7 @@ export function client_graph_body(body: {
   graphWhich: number
   modeFlag?: number
   evaluation_interval?: number
+  related_graph_ids?: number[]
   nodes: GraphNode[]
 }): Root {
   const root = graph_body({
@@ -36,10 +37,15 @@ export function client_graph_body(body: {
     modeFlag: body.modeFlag
   })
   root.graph.id = {
-    class: GraphUnit_Id_Class.Basic,
+    class: GraphUnit_Id_Class.Node,
     type: GraphUnit_Id_Type.ClientGraph,
     id: body.graph_id
   }
+  root.graph.relatedIds = (body.related_graph_ids ?? []).map((id) => ({
+    class: GraphUnit_Id_Class.Node,
+    type: GraphUnit_Id_Type.ClientGraph,
+    id
+  }))
   root.graph.which = body.graphWhich
   root.graph.graph!.inner.graph.id = {
     class: NodeGraph_Id_Class.UserDefined,
@@ -47,6 +53,7 @@ export function client_graph_body(body: {
     kind: NodeGraph_Id_Kind.NodeGraph,
     id: body.graph_id
   }
+  root.graph.graph!.inner.graph.entrySlotIndex = 1
   if (body.evaluation_interval !== undefined) {
     root.graph.graph!.inner.graph.evaluationInterval = body.evaluation_interval
   }
@@ -387,6 +394,20 @@ export function client_node_body(body: {
     ...body.metadata.outputs.map((p) => client_pin_body(p)),
     ...(body.metadata.flows ?? []).map((p) => client_pin_body(p))
   ]
+  for (const pin of pins) {
+    if (pin.i1.kind === NodePin_Index_Kind.ClientExecNode) {
+      pin.clientExecNode = {
+        kind: NodePin_Index_Kind.ClientExecNode,
+        index: 1,
+        nodeId: { id: body.metadata.genericId }
+      }
+    } else if (pin.i1.kind === NodePin_Index_Kind.ClientSignal) {
+      pin.clientExecNode = {
+        kind: NodePin_Index_Kind.ClientSignal,
+        index: 1
+      }
+    }
+  }
   const node: GraphNode = {
     nodeIndex: body.unique_index,
     genericId: {

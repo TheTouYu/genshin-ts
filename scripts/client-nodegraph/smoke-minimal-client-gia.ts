@@ -4,9 +4,10 @@ import path from 'node:path'
 
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
 import type { ClientGraphSubType, ClientIRDocument } from '../../src/runtime/IR.js'
-import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { getClientGraphEncoding } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_graph_encoding.js'
 import { requireClientNodeMetadata } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_helpers.js'
+import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
+import { GraphUnit_Id_Class } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 
 const PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
@@ -48,9 +49,15 @@ for (const [subType, nodeType] of Object.entries(MINIMAL_NODE_TYPE_BY_SUB_TYPE) 
     GRAPH_UNIT_ID_TYPE_CLIENT_GRAPH,
     `${subType}: GraphUnit.id.type`
   )
+  assert.strictEqual(
+    Number(decoded.graph.id.class),
+    GraphUnit_Id_Class.Node,
+    `${subType}: GraphUnit.id.class`
+  )
   assert.strictEqual(Number(decoded.graph.which), encoding.graphWhich, `${subType}: which`)
   const innerGraph = decoded.graph.graph?.inner.graph
   assert.ok(innerGraph, `${subType}: inner NodeGraph missing`)
+  assert.strictEqual(Number(innerGraph.entrySlotIndex), 1, `${subType}: entrySlotIndex`)
   assert.strictEqual(
     Number(innerGraph.id.type),
     encoding.graphType,
