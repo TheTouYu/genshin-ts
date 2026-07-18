@@ -1,9 +1,17 @@
 import ts from 'typescript'
 
-import { CLIENT_GRAPH_SUB_TYPE_BY_METHOD } from '../../definitions/client_graph_modes.js'
+import {
+  CLIENT_GRAPH_SUB_TYPE_BY_METHOD,
+  CLIENT_GSTS_FUNCTION_PREFIXES,
+  getClientGraphSubTypeForGstsFunctionName
+} from '../../definitions/client_graph_modes.js'
 import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 
 export const DEFAULT_GSTS_SERVER_PREFIX = 'gstsServer'
+export const DEFAULT_GSTS_FUNCTION_PREFIXES = [
+  DEFAULT_GSTS_SERVER_PREFIX,
+  ...CLIENT_GSTS_FUNCTION_PREFIXES
+]
 
 export function isGstsServerName(
   name: string | undefined,
@@ -61,6 +69,26 @@ export function isGstsServerCall(
   const sym = getCallSymbol(call, checker)
   if (!sym) return false
   return isGstsServerSymbol(sym, checker, prefixes)
+}
+
+export function getGstsClientSymbolSubType(
+  sym: ts.Symbol,
+  checker: ts.TypeChecker
+): ClientGraphSubType | undefined {
+  const target = resolveAliasedSymbol(sym, checker)
+  const subType = getClientGraphSubTypeForGstsFunctionName(target.getName())
+  if (!subType) return undefined
+  const decls = target.getDeclarations() ?? []
+  if (!decls.length || decls.some((decl) => isGstsServerFunctionDecl(decl))) return subType
+  return undefined
+}
+
+export function getGstsClientCallSubType(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientGraphSubType | undefined {
+  const symbol = getCallSymbol(call, checker)
+  return symbol ? getGstsClientSymbolSubType(symbol, checker) : undefined
 }
 
 export function isTopLevelVarDeclaration(decl: ts.VariableDeclaration): boolean {

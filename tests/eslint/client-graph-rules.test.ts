@@ -15,6 +15,12 @@ import clientRepeatedEvaluation from '../../src/eslint/rules/client-repeated-eva
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
 import clientSyntaxCapabilities from '../../src/eslint/rules/client-syntax-capabilities.js'
 import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
+import gstsserverCallScope from '../../src/eslint/rules/gstsserver-call-scope.js'
+import gstsserverParams from '../../src/eslint/rules/gstsserver-params.js'
+import gstsserverReturn from '../../src/eslint/rules/gstsserver-return.js'
+import gstsserverTopLevel from '../../src/eslint/rules/gstsserver-top-level.js'
+import listMethodTypeConstraints from '../../src/eslint/rules/list-method-type-constraints.js'
+import noGstsserverRecursion from '../../src/eslint/rules/no-gstsserver-recursion.js'
 import noJson from '../../src/eslint/rules/no-json.js'
 import switchRestrictions from '../../src/eslint/rules/switch-restrictions.js'
 
@@ -107,6 +113,57 @@ g.creationSkill().on('start', () => { Mathf.RoundToInt(1.5) })`,
       code: `${importG}
 g.creationStatus().on('start1', () => { Mathf.FloorToInt(-1.5) })`,
       errors: [{ message: /Mathf\.FloorToInt is not available in creation_status/ }]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationSkill().on('start', () => { console.log('client') })`,
+      errors: [{ message: /console is not available in creation_skill/ }]
+    },
+    {
+      filename,
+      options: [{ lang: 'zh' }],
+      code: `${importG}
+g.creationSkill().on('start', () => { setTimeout(() => {}, 1) })`,
+      errors: [{ message: /客户端 creation_skill 节点图中不可使用 setTimeout/ }]
+    }
+  ]
+})
+
+ruleTester.run('list-method-type-constraints', listMethodTypeConstraints, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+g.server().on('update', (_evt, _f) => {
+  const entities = list('entity', [entity(0)])
+  entities.forEach((value) => { str(value) })
+})`
+    },
+    {
+      filename,
+      code: `${importG}
+g.characterSkill().on('start', (_evt, _f) => {
+  const entities = list('entity', [entity(0)])
+  entities.forEach((value) => { str(value) })
+})`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+g.server().on('update', (_evt, _f) => {
+  const entities = list('entity', [entity(0)])
+  entities.find(() => false)
+  entities.pop()
+  entities.shift()
+})`,
+      errors: [
+        { message: /find\(\) only supports list types/ },
+        { message: /pop\(\) only supports list types/ },
+        { message: /shift\(\) only supports list types/ }
+      ]
     }
   ]
 })
@@ -807,11 +864,113 @@ function gstsUnknownShared() {}
 const gstsClientShared = () => {}`,
       errors: [
         {
-          message:
-            /available prefixes: gstsServer,[\s\S]*gstsClientCharacterSkill[\s\S]*gstsCharacterSkill/
+          message: /available prefixes: (?![^\n]*gstsClient)gstsServer,[\s\S]*gstsCharacterSkill/
         },
         { message: /Function name "gstsClientShared" uses an unknown gsts prefix/ }
       ]
+    }
+  ]
+})
+
+ruleTester.run('gstsserver-top-level-client-functions', gstsserverTopLevel, {
+  valid: [
+    {
+      filename,
+      code: `
+function gstsCreationSkillShared() {}
+const gstsClientCharacterSkillShared = () => {}`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `
+function wrapper() {
+  function gstsCreationSkillNested() {}
+}`,
+      errors: [{ message: /Graph functions must be declared at top level/ }]
+    }
+  ]
+})
+
+ruleTester.run('gstsserver-params-client-functions', gstsserverParams, {
+  valid: [
+    {
+      filename,
+      code: `function gstsCreationSkillShared(value: bigint) { return value }`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `function gstsCreationSkillBad({ value }: { value: bigint }) { return value }`,
+      errors: [{ message: /Graph-function params must be unique identifiers/ }]
+    }
+  ]
+})
+
+ruleTester.run('gstsserver-return-client-functions', gstsserverReturn, {
+  valid: [
+    {
+      filename,
+      code: `function gstsCreationSkillShared(value: bigint) { return value }`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `
+function gstsCreationSkillBad(value: bigint) {
+  if (value > 0n) return value
+  return 0n
+}`,
+      errors: [{ message: /graph function must use one value-returning return/i }]
+    }
+  ]
+})
+
+ruleTester.run('gstsserver-call-scope-client-functions', gstsserverCallScope, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+function gstsCreationSkillShared(value: bigint) { return value }
+function gstsClientCreationSkillCaller() { return gstsCreationSkillShared(1n) }
+g.creationSkill().on('start', () => { gstsCreationSkillShared(1n) })`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+function gstsCreationSkillShared() { return 1n }
+gstsCreationSkillShared()
+g.characterSkill().on('start', () => { gstsCreationSkillShared() })
+g.server().on('update', () => { gstsCreationSkillShared() })`,
+      errors: [
+        { message: /can only be called from the same client graph family/ },
+        { message: /can only be called from the same client graph family/ },
+        { message: /can only be called from the same client graph family/ }
+      ]
+    }
+  ]
+})
+
+ruleTester.run('no-gstsserver-recursion-client-functions', noGstsserverRecursion, {
+  valid: [
+    {
+      filename,
+      code: `function gstsCreationSkillShared() { return 1n }`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `
+function gstsCreationSkillLoop(): bigint {
+  return gstsCreationSkillLoop()
+}`,
+      errors: [{ message: /Node-graph functions must not be recursive/ }]
     }
   ]
 })

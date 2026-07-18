@@ -5,7 +5,11 @@ import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
 import { getParserServices } from '../utils/parser.js'
 import { buildServerScopeIndex } from '../utils/scope.js'
-import { DEFAULT_GSTS_SERVER_PREFIX, isGstsServerCall } from '../utils/ts_matchers.js'
+import {
+  DEFAULT_GSTS_SERVER_PREFIX,
+  getGstsClientCallSubType,
+  isGstsServerCall
+} from '../utils/ts_matchers.js'
 
 type Options = {
   prefixes?: string[]
@@ -46,21 +50,39 @@ const rule: Rule.RuleModule = {
       CallExpression(node) {
         const tsNode = services.esTreeNodeToTSNodeMap.get(node)
         if (!tsNode || !ts.isCallExpression(tsNode)) return
-        if (!isGstsServerCall(tsNode, checker, options.prefixes)) return
-        if (
-          scopeIndex.isInServerScope(node, {
-            scope: 'server',
-            includeNestedFunctions: options.includeNestedFunctions
+        if (isGstsServerCall(tsNode, checker, options.prefixes)) {
+          if (
+            scopeIndex.isInServerScope(node, {
+              scope: 'server',
+              includeNestedFunctions: options.includeNestedFunctions
+            })
+          ) {
+            return
+          }
+          context.report({
+            node,
+            message: formatMessage(
+              options.lang,
+              'gstsServer 仅允许在 g.server().on/onSignal 或其他 gstsServer 内调用',
+              'gstsServer calls are only allowed inside server scope'
+            )
           })
-        ) {
           return
         }
+
+        const targetSubType = getGstsClientCallSubType(tsNode, checker)
+        if (!targetSubType) return
+        const clientInfo = scopeIndex.getEnclosingClientScope(node, {
+          includeNestedFunctions: options.includeNestedFunctions
+        })
+        if (clientInfo?.subType === targetSubType) return
+
         context.report({
           node,
           message: formatMessage(
             options.lang,
-            'gstsServer 仅允许在 g.server().on/onSignal 或其他 gstsServer 内调用',
-            'gstsServer calls are only allowed inside server scope'
+            `客户端 ${targetSubType} 节点图函数只能在同类型客户端图中调用`,
+            `Client ${targetSubType} graph functions can only be called from the same client graph family`
           )
         })
       }

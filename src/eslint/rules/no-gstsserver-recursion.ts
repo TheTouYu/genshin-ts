@@ -5,7 +5,7 @@ import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
 import { getParserServices, getSourceCode } from '../utils/parser.js'
 import {
-  DEFAULT_GSTS_SERVER_PREFIX,
+  DEFAULT_GSTS_FUNCTION_PREFIXES,
   getCallSymbol,
   isFunctionInitializer,
   isGstsServerName,
@@ -18,7 +18,7 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = {
-  prefixes: [DEFAULT_GSTS_SERVER_PREFIX],
+  prefixes: [...DEFAULT_GSTS_FUNCTION_PREFIXES],
   lang: 'both'
 }
 

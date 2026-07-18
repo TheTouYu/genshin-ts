@@ -18,6 +18,7 @@ type VariableDeclaratorNode = Rule.Node & {
 const DEFAULTS: Required<Options> = { lang: 'both' }
 const SERVER_PREFIX = 'gstsServer'
 const AVAILABLE_PREFIXES = [SERVER_PREFIX, ...CLIENT_GSTS_FUNCTION_PREFIXES]
+const DISPLAY_PREFIXES = AVAILABLE_PREFIXES.filter((prefix) => !prefix.startsWith('gstsClient'))
 
 function isIdentifier(node: Rule.Node | null | undefined): node is IdentifierNode {
   return node?.type === 'Identifier'
@@ -47,7 +48,7 @@ const rule: Rule.RuleModule = {
   },
   create(context) {
     const options = readBaseOptions((context.options[0] ?? {}) as Options, DEFAULTS)
-    const available = AVAILABLE_PREFIXES.join(', ')
+    const available = DISPLAY_PREFIXES.join(', ')
 
     const check = (identifier: IdentifierNode | null | undefined) => {
       if (!identifier || !identifier.name.startsWith('gsts') || hasValidPrefix(identifier.name)) {

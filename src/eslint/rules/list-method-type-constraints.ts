@@ -1,7 +1,6 @@
 import type { Rule } from 'eslint'
 
 import { getMemberName } from '../utils/ast.js'
-import { SUPPORTED_LIST_METHODS } from '../utils/list_methods.js'
 import { inferListTypeFromExpression } from '../utils/list.js'
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
@@ -21,6 +20,10 @@ const DEFAULTS: Required<Options> = {
   scope: 'nodegraph',
   includeNestedFunctions: true
 }
+
+// These methods must synthesize a value for an empty/no-match list. The compiler
+// can currently create defaults only for the configured scalar/vector types.
+const DEFAULT_VALUE_METHODS = new Set(['find', 'pop', 'shift'])
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -52,7 +55,7 @@ const rule: Rule.RuleModule = {
         if (!scopeIndex.isInServerScope(node, options)) return
         if (!node.callee || node.callee.type !== 'MemberExpression') return
         const method = getMemberName(node.callee)
-        if (!method || !SUPPORTED_LIST_METHODS.has(method)) return
+        if (!method || !DEFAULT_VALUE_METHODS.has(method)) return
         const tsTarget = services.esTreeNodeToTSNodeMap.get(node.callee.object)
         if (!tsTarget) return
         const listType = inferListTypeFromExpression(checker, tsTarget)

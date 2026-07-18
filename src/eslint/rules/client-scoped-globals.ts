@@ -4,10 +4,19 @@ import {
   CLIENT_BLOCKED_SERVER_HELPERS,
   CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE
 } from '../../definitions/client_scoped_globals.js'
+import { formatMessage } from '../utils/messages.js'
+import { readBaseOptions } from '../utils/options.js'
 import { buildNodeGraphScopeIndex } from '../utils/scope.js'
+
+type Options = {
+  lang?: 'zh' | 'en' | 'both'
+}
+
+const DEFAULTS: Required<Options> = { lang: 'both' }
 
 /** helpers that exist in server handlers and are guarded per client capability */
 const GUARDED_HELPERS = new Set([
+  'console',
   'send',
   'player',
   'self',
@@ -47,9 +56,16 @@ const rule: Rule.RuleModule = {
       description:
         'reject scoped helper globals that the current client graph family cannot support'
     },
-    schema: []
+    schema: [
+      {
+        type: 'object',
+        properties: { lang: { enum: ['zh', 'en', 'both'] } },
+        additionalProperties: false
+      }
+    ]
   },
   create(context) {
+    const options = readBaseOptions((context.options[0] ?? {}) as Options, DEFAULTS)
     const scopeIndex = buildNodeGraphScopeIndex(context)
 
     return {
@@ -70,7 +86,11 @@ const rule: Rule.RuleModule = {
         if (!members) {
           context.report({
             node,
-            message: `[client scoped globals] ${node.name} is not available in ${info.subType}`
+            message: formatMessage(
+              options.lang,
+              `[client scoped globals] 客户端 ${info.subType} 节点图中不可使用 ${node.name}`,
+              `[client scoped globals] ${node.name} is not available in ${info.subType}`
+            )
           })
           return
         }
@@ -86,7 +106,11 @@ const rule: Rule.RuleModule = {
         ) {
           context.report({
             node: parent,
-            message: `[client scoped globals] ${node.name}.${parent.property.name} is not available in ${info.subType}`
+            message: formatMessage(
+              options.lang,
+              `[client scoped globals] 客户端 ${info.subType} 节点图中不可使用 ${node.name}.${parent.property.name}`,
+              `[client scoped globals] ${node.name}.${parent.property.name} is not available in ${info.subType}`
+            )
           })
         }
       }

@@ -2,7 +2,7 @@ import type { Rule } from 'eslint'
 
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
-import { DEFAULT_GSTS_SERVER_PREFIX, isGstsServerName } from '../utils/ts_matchers.js'
+import { DEFAULT_GSTS_FUNCTION_PREFIXES, isGstsServerName } from '../utils/ts_matchers.js'
 
 type Options = {
   prefixes?: string[]
@@ -10,7 +10,7 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = {
-  prefixes: [DEFAULT_GSTS_SERVER_PREFIX],
+  prefixes: [...DEFAULT_GSTS_FUNCTION_PREFIXES],
   lang: 'both'
 }
 
@@ -19,8 +19,8 @@ function reportInvalid(context: Rule.RuleContext, node: any, lang: Options['lang
     node,
     message: formatMessage(
       lang ?? 'both',
-      'gstsServer参数必须为标识符且唯一, 不支持解构/默认值/rest',
-      'gstsServer params must be unique identifiers; no destructuring/default/rest'
+      '节点图函数参数必须为标识符且唯一，不支持解构、默认值或 rest',
+      'Graph-function params must be unique identifiers; no destructuring, defaults, or rest'
     )
   })
 }

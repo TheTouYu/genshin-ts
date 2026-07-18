@@ -2,7 +2,7 @@ import type { Rule } from 'eslint'
 
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
-import { DEFAULT_GSTS_SERVER_PREFIX, isGstsServerName } from '../utils/ts_matchers.js'
+import { DEFAULT_GSTS_FUNCTION_PREFIXES, isGstsServerName } from '../utils/ts_matchers.js'
 
 type Options = {
   prefixes?: string[]
@@ -10,7 +10,7 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = {
-  prefixes: [DEFAULT_GSTS_SERVER_PREFIX],
+  prefixes: [...DEFAULT_GSTS_FUNCTION_PREFIXES],
   lang: 'both'
 }
 
@@ -36,18 +36,18 @@ const rule: Rule.RuleModule = {
     }
     const msg = formatMessage(
       options.lang,
-      'gstsServer函数必须顶层声明',
-      'gstsServer functions must be declared at top level'
+      '节点图函数必须在顶层声明',
+      'Graph functions must be declared at top level'
     )
     const msgInit = formatMessage(
       options.lang,
-      'gstsServer函数必须使用函数初始化',
-      'gstsServer functions must be declared with a function initializer'
+      '节点图函数必须使用函数初始化',
+      'Graph functions must be declared with a function initializer'
     )
     const msgAssign = formatMessage(
       options.lang,
-      'gstsServer不支持赋值, 请声明顶层函数',
-      'gstsServer assignment is not supported; declare a top-level function'
+      '节点图函数不支持赋值，请声明顶层函数',
+      'Graph-function assignment is not supported; declare a top-level function'
     )
 
     return {

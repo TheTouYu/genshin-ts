@@ -2,7 +2,7 @@ import type { Rule } from 'eslint'
 
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
-import { DEFAULT_GSTS_SERVER_PREFIX, isGstsServerName } from '../utils/ts_matchers.js'
+import { DEFAULT_GSTS_FUNCTION_PREFIXES, isGstsServerName } from '../utils/ts_matchers.js'
 
 type Options = {
   prefixes?: string[]
@@ -10,7 +10,7 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = {
-  prefixes: [DEFAULT_GSTS_SERVER_PREFIX],
+  prefixes: [...DEFAULT_GSTS_FUNCTION_PREFIXES],
   lang: 'both'
 }
 
@@ -66,8 +66,8 @@ function checkReturnRules(context: Rule.RuleContext, fn: any, lang: Options['lan
 
   const msg = formatMessage(
     lang ?? 'both',
-    'gstsServer return 必须是函数末尾单一return且带值',
-    'gstsServer must end with a single `return <expr>`'
+    '节点图函数的 return 必须是函数末尾唯一且带值的 return',
+    'A graph function must use one value-returning return at the end of its body'
   )
 
   if (invalidNested) {
