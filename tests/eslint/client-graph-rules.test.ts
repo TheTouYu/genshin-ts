@@ -4,7 +4,7 @@ import path from 'node:path'
 import parser from '@typescript-eslint/parser'
 import { RuleTester } from 'eslint'
 
-import { configs } from '../../src/eslint/index.js'
+import { configs, rules } from '../../src/eslint/index.js'
 import builtinMathSupport from '../../src/eslint/rules/builtin-math-support.js'
 import builtinWrapperArity from '../../src/eslint/rules/builtin-wrapper-arity.js'
 import clientFilterReturn from '../../src/eslint/rules/client-filter-return.js'
@@ -14,13 +14,13 @@ import clientLocalVariableSupport from '../../src/eslint/rules/client-local-vari
 import clientRepeatedEvaluation from '../../src/eslint/rules/client-repeated-evaluation.js'
 import clientScopedGlobals from '../../src/eslint/rules/client-scoped-globals.js'
 import clientSyntaxCapabilities from '../../src/eslint/rules/client-syntax-capabilities.js'
+import graphFunctionCallScope from '../../src/eslint/rules/graph-function-call-scope.js'
+import graphFunctionParameters from '../../src/eslint/rules/graph-function-parameters.js'
+import graphFunctionReturn from '../../src/eslint/rules/graph-function-return.js'
+import graphFunctionTopLevel from '../../src/eslint/rules/graph-function-top-level.js'
 import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
-import gstsserverCallScope from '../../src/eslint/rules/gstsserver-call-scope.js'
-import gstsserverParams from '../../src/eslint/rules/gstsserver-params.js'
-import gstsserverReturn from '../../src/eslint/rules/gstsserver-return.js'
-import gstsserverTopLevel from '../../src/eslint/rules/gstsserver-top-level.js'
 import listMethodTypeConstraints from '../../src/eslint/rules/list-method-type-constraints.js'
-import noGstsserverRecursion from '../../src/eslint/rules/no-gstsserver-recursion.js'
+import noGraphFunctionRecursion from '../../src/eslint/rules/no-graph-function-recursion.js'
 import noJson from '../../src/eslint/rules/no-json.js'
 import switchRestrictions from '../../src/eslint/rules/switch-restrictions.js'
 
@@ -42,6 +42,38 @@ const importG = `import { g } from 'genshin-ts/runtime/core'`
 assert.equal(configs.recommended.rules['gsts/client-local-variable-support'], 'error')
 assert.equal(configs.recommended.rules['gsts/client-literal-arguments'], 'error')
 assert.equal(configs.recommended.rules['gsts/client-repeated-evaluation'], 'warn')
+
+const renamedSharedRuleIds = [
+  'no-graph-function-recursion',
+  'graph-function-top-level',
+  'graph-function-parameters',
+  'graph-function-return',
+  'graph-function-call-scope',
+  'require-bigint-index-wrapper'
+]
+const removedServerRuleIds = [
+  'no-gstsserver-recursion',
+  'gstsserver-top-level',
+  'gstsserver-params',
+  'gstsserver-return',
+  'gstsserver-call-scope',
+  'bigint-index-in-server'
+]
+
+for (const ruleId of renamedSharedRuleIds) {
+  assert.ok(Object.hasOwn(rules, ruleId), `missing renamed rule: ${ruleId}`)
+  assert.ok(
+    Object.hasOwn(configs.recommended.rules, `gsts/${ruleId}`),
+    `missing recommended rule: gsts/${ruleId}`
+  )
+}
+for (const ruleId of removedServerRuleIds) {
+  assert.ok(!Object.hasOwn(rules, ruleId), `obsolete rule is still exported: ${ruleId}`)
+  assert.ok(
+    !Object.hasOwn(configs.recommended.rules, `gsts/${ruleId}`),
+    `obsolete recommended rule still exists: gsts/${ruleId}`
+  )
+}
 
 ruleTester.run('client-scoped-globals', clientScopedGlobals, {
   valid: [
@@ -872,7 +904,7 @@ const gstsClientShared = () => {}`,
   ]
 })
 
-ruleTester.run('gstsserver-top-level-client-functions', gstsserverTopLevel, {
+ruleTester.run('graph-function-top-level-client-functions', graphFunctionTopLevel, {
   valid: [
     {
       filename,
@@ -893,7 +925,7 @@ function wrapper() {
   ]
 })
 
-ruleTester.run('gstsserver-params-client-functions', gstsserverParams, {
+ruleTester.run('graph-function-parameters-client-functions', graphFunctionParameters, {
   valid: [
     {
       filename,
@@ -904,12 +936,12 @@ ruleTester.run('gstsserver-params-client-functions', gstsserverParams, {
     {
       filename,
       code: `function gstsCreationSkillBad({ value }: { value: bigint }) { return value }`,
-      errors: [{ message: /Graph-function params must be unique identifiers/ }]
+      errors: [{ message: /Graph-function parameters must be unique identifiers/ }]
     }
   ]
 })
 
-ruleTester.run('gstsserver-return-client-functions', gstsserverReturn, {
+ruleTester.run('graph-function-return-client-functions', graphFunctionReturn, {
   valid: [
     {
       filename,
@@ -929,7 +961,7 @@ function gstsCreationSkillBad(value: bigint) {
   ]
 })
 
-ruleTester.run('gstsserver-call-scope-client-functions', gstsserverCallScope, {
+ruleTester.run('graph-function-call-scope-client-functions', graphFunctionCallScope, {
   valid: [
     {
       filename,
@@ -956,7 +988,7 @@ g.server().on('update', () => { gstsCreationSkillShared() })`,
   ]
 })
 
-ruleTester.run('no-gstsserver-recursion-client-functions', noGstsserverRecursion, {
+ruleTester.run('no-graph-function-recursion-client-functions', noGraphFunctionRecursion, {
   valid: [
     {
       filename,

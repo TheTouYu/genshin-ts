@@ -2717,7 +2717,8 @@ Review existing server/nodegraph rules and classify them as:
 At minimum, evaluate:
 
 ```text
-gstsserver-*
+graph-function-*
+no-graph-function-recursion
 no-gsts-f-outside-server
 timer-*
 no-unsupported-statement

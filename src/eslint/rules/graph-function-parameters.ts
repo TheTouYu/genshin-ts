@@ -2,7 +2,7 @@ import type { Rule } from 'eslint'
 
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
-import { DEFAULT_GSTS_FUNCTION_PREFIXES, isGstsServerName } from '../utils/ts_matchers.js'
+import { DEFAULT_GRAPH_FUNCTION_PREFIXES, isGraphFunctionName } from '../utils/ts_matchers.js'
 
 type Options = {
   prefixes?: string[]
@@ -10,7 +10,7 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = {
-  prefixes: [...DEFAULT_GSTS_FUNCTION_PREFIXES],
+  prefixes: [...DEFAULT_GRAPH_FUNCTION_PREFIXES],
   lang: 'both'
 }
 
@@ -20,7 +20,7 @@ function reportInvalid(context: Rule.RuleContext, node: any, lang: Options['lang
     message: formatMessage(
       lang ?? 'both',
       '节点图函数参数必须为标识符且唯一，不支持解构、默认值或 rest',
-      'Graph-function params must be unique identifiers; no destructuring, defaults, or rest'
+      'Graph-function parameters must be unique identifiers; no destructuring, defaults, or rest'
     )
   })
 }
@@ -64,12 +64,12 @@ const rule: Rule.RuleModule = {
 
     return {
       FunctionDeclaration(node) {
-        if (!isGstsServerName(node.id?.name, options.prefixes)) return
+        if (!isGraphFunctionName(node.id?.name, options.prefixes)) return
         checkParams(context, node, options.lang)
       },
       VariableDeclarator(node) {
         if (!node.id || node.id.type !== 'Identifier') return
-        if (!isGstsServerName(node.id.name, options.prefixes)) return
+        if (!isGraphFunctionName(node.id.name, options.prefixes)) return
         if (
           !node.init ||
           (node.init.type !== 'FunctionExpression' && node.init.type !== 'ArrowFunctionExpression')

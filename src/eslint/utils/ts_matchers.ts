@@ -8,16 +8,23 @@ import {
 import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 
 export const DEFAULT_GSTS_SERVER_PREFIX = 'gstsServer'
-export const DEFAULT_GSTS_FUNCTION_PREFIXES = [
+export const DEFAULT_GRAPH_FUNCTION_PREFIXES = [
   DEFAULT_GSTS_SERVER_PREFIX,
   ...CLIENT_GSTS_FUNCTION_PREFIXES
 ]
+
+export function isGraphFunctionName(
+  name: string | undefined,
+  prefixes = DEFAULT_GRAPH_FUNCTION_PREFIXES
+) {
+  return !!name && prefixes.some((prefix) => name.startsWith(prefix))
+}
 
 export function isGstsServerName(
   name: string | undefined,
   prefixes = [DEFAULT_GSTS_SERVER_PREFIX]
 ) {
-  return !!name && prefixes.some((prefix) => name.startsWith(prefix))
+  return isGraphFunctionName(name, prefixes)
 }
 
 export function isFunctionInitializer(

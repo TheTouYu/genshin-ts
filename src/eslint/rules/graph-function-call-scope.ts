@@ -23,7 +23,7 @@ const DEFAULTS: Required<Options> = {
   includeNestedFunctions: true
 }
 
-const rule: Rule.RuleModule = {
+const graphFunctionCallScope: Rule.RuleModule = {
   meta: {
     type: 'problem',
     schema: [
@@ -90,4 +90,4 @@ const rule: Rule.RuleModule = {
   }
 }
 
-export default rule
+export default graphFunctionCallScope

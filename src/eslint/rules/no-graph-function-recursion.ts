@@ -5,10 +5,10 @@ import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
 import { getParserServices, getSourceCode } from '../utils/parser.js'
 import {
-  DEFAULT_GSTS_FUNCTION_PREFIXES,
+  DEFAULT_GRAPH_FUNCTION_PREFIXES,
   getCallSymbol,
   isFunctionInitializer,
-  isGstsServerName,
+  isGraphFunctionName,
   resolveAliasedSymbol
 } from '../utils/ts_matchers.js'
 
@@ -18,7 +18,7 @@ type Options = {
 }
 
 const DEFAULTS: Required<Options> = {
-  prefixes: [...DEFAULT_GSTS_FUNCTION_PREFIXES],
+  prefixes: [...DEFAULT_GRAPH_FUNCTION_PREFIXES],
   lang: 'both'
 }
 
@@ -56,7 +56,7 @@ const rule: Rule.RuleModule = {
         for (const stmt of tsRoot.statements) {
           if (
             ts.isFunctionDeclaration(stmt) &&
-            isGstsServerName(stmt.name?.text, options.prefixes)
+            isGraphFunctionName(stmt.name?.text, options.prefixes)
           ) {
             const sym = stmt.name ? checker.getSymbolAtLocation(stmt.name) : null
             if (sym && !seen.has(sym)) {
@@ -68,7 +68,7 @@ const rule: Rule.RuleModule = {
           if (ts.isVariableStatement(stmt)) {
             for (const decl of stmt.declarationList.declarations) {
               if (!ts.isIdentifier(decl.name)) continue
-              if (!isGstsServerName(decl.name.text, options.prefixes)) continue
+              if (!isGraphFunctionName(decl.name.text, options.prefixes)) continue
               if (!isFunctionInitializer(decl.initializer)) continue
               const sym = checker.getSymbolAtLocation(decl.name)
               if (sym && !seen.has(sym)) {

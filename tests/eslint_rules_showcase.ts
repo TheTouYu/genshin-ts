@@ -55,7 +55,7 @@ function gstsServerRules01To05() {
   }
 }
 
-// 06. gsts/no-gstsserver-recursion
+// 06. gsts/no-graph-function-recursion
 // ✅ 正例：服务器和客户端辅助函数都可以进行非递归调用。
 function gstsServerClampThreat(value: bigint) {
   return value > 10n ? 10n : value
@@ -105,7 +105,7 @@ function gstsServerRules07To11() {
   const _invalidLane = 5 % 2
 }
 
-// 12. gsts/gstsserver-top-level
+// 12. gsts/graph-function-top-level
 // ✅ 正例：上面的服务器和客户端辅助函数都在模块顶层声明。
 function _createNestedGraphFunctionProbe() {
   // ❌ 反例：客户端辅助函数也不能嵌套声明。
@@ -115,7 +115,7 @@ function _createNestedGraphFunctionProbe() {
 
 const _nestedGraphFunctionProbe = _createNestedGraphFunctionProbe()
 
-// 13. gsts/gstsserver-params
+// 13. gsts/graph-function-parameters
 // ✅ 正例：服务器辅助函数参数是唯一的普通标识符。
 function gstsServerValidParams(value: bigint) {
   return value
@@ -126,7 +126,7 @@ function gstsCreationSkillInvalidParams(value = 1n) {
   return value
 }
 
-// 14. gsts/gstsserver-return
+// 14. gsts/graph-function-return
 // ✅ 正例：服务器辅助函数只有末尾存在一个带值 return。
 function gstsServerValidReturn(ready: boolean) {
   const result = ready ? 1n : 0n
@@ -139,7 +139,7 @@ function gstsCreationSkillInvalidReturn(ready: boolean) {
   return 0n
 }
 
-// 15. gsts/gstsserver-call-scope
+// 15. gsts/graph-function-call-scope
 function gstsServerValidCallScope() {
   // ✅ 正例：服务器辅助函数在服务器作用域中调用。
   const score = gstsServerValidParams(1n)
@@ -258,7 +258,7 @@ function gstsServerRules23To39(maybeThreat: bigint | null) {
   // ❌ 反例：赋值表达式嵌在变量初始化中。
   const _nestedThreatAssignment = (threat += 1n)
 
-  // 25. gsts/bigint-index-in-server
+  // 25. gsts/require-bigint-index-wrapper
   const laneThreats = list('int', [2n, 4n, 6n])
   const dynamicLane = gsts.f.getRandomInteger(0n, 2n)
   // ✅ 正例：idx() 只帮助 TypeScript 接受 bigint 下标，不改变运行时值。
@@ -591,7 +591,7 @@ if (RUN_ESLINT_SHOWCASE) {
     // ❌ 客户端反例：赋值表达式不能嵌入初始化。
     const _clientNestedAssignment = (clientAssignedThreat += 1n)
 
-    // C25. gsts/bigint-index-in-server
+    // C25. gsts/require-bigint-index-wrapper
     const clientDynamicLane = f.addition(0n, 1n)
     // ✅ 客户端正例：bigint 下标使用 idx() 包裹。
     const _clientSafeLane = clientLaneThreats[idx(clientDynamicLane)]

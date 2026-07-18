@@ -1,5 +1,4 @@
 import assignmentRestrictions from './rules/assignment-restrictions.js'
-import bigintIndexInServer from './rules/bigint-index-in-server.js'
 import builtinConsoleLogArity from './rules/builtin-console-log-arity.js'
 import builtinMathSupport from './rules/builtin-math-support.js'
 import builtinWrapperArity from './rules/builtin-wrapper-arity.js'
@@ -11,18 +10,18 @@ import clientRepeatedEvaluation from './rules/client-repeated-evaluation.js'
 import clientScopedGlobals from './rules/client-scoped-globals.js'
 import clientSyntaxCapabilities from './rules/client-syntax-capabilities.js'
 import forStructure from './rules/for-structure.js'
+import graphFunctionCallScope from './rules/graph-function-call-scope.js'
+import graphFunctionParameters from './rules/graph-function-parameters.js'
+import graphFunctionReturn from './rules/graph-function-return.js'
+import graphFunctionTopLevel from './rules/graph-function-top-level.js'
 import gstsFunctionPrefix from './rules/gsts-function-prefix.js'
-import gstsserverCallScope from './rules/gstsserver-call-scope.js'
-import gstsserverParams from './rules/gstsserver-params.js'
-import gstsserverReturn from './rules/gstsserver-return.js'
-import gstsserverTopLevel from './rules/gstsserver-top-level.js'
 import listCallbackReturn from './rules/list-callback-return.js'
 import listCallbackSignature from './rules/list-callback-signature.js'
 import listMethodTypeConstraints from './rules/list-method-type-constraints.js'
 import listMethodUsage from './rules/list-method-usage.js'
 import listTypeAnnotation from './rules/list-type-annotation.js'
+import noGraphFunctionRecursion from './rules/no-graph-function-recursion.js'
 import noGstsFOutsideServer from './rules/no-gsts-f-outside-server.js'
-import noGstsServerRecursion from './rules/no-gstsserver-recursion.js'
 import noInnerDeclarations from './rules/no-inner-declarations.js'
 import noJson from './rules/no-json.js'
 import noNullishCoalesce from './rules/no-nullish-coalesce.js'
@@ -37,6 +36,7 @@ import noUnsupportedStatement from './rules/no-unsupported-statement.js'
 import noWhileTrue from './rules/no-while-true.js'
 import preferBigint from './rules/prefer-bigint.js'
 import preferConstOutsideServer from './rules/prefer-const-outside-server.js'
+import requireBigintIndexWrapper from './rules/require-bigint-index-wrapper.js'
 import requireBooleanCondition from './rules/require-boolean-condition.js'
 import switchRestrictions from './rules/switch-restrictions.js'
 import ternaryBranchType from './rules/ternary-branch-type.js'
@@ -47,7 +47,6 @@ import unsupportedBinaryOperator from './rules/unsupported-binary-operator.js'
 
 export const rules = {
   'assignment-restrictions': assignmentRestrictions,
-  'bigint-index-in-server': bigintIndexInServer,
   'builtin-console-log-arity': builtinConsoleLogArity,
   'builtin-math-support': builtinMathSupport,
   'builtin-wrapper-arity': builtinWrapperArity,
@@ -59,18 +58,18 @@ export const rules = {
   'client-scoped-globals': clientScopedGlobals,
   'client-syntax-capabilities': clientSyntaxCapabilities,
   'for-structure': forStructure,
+  'graph-function-call-scope': graphFunctionCallScope,
+  'graph-function-parameters': graphFunctionParameters,
+  'graph-function-return': graphFunctionReturn,
+  'graph-function-top-level': graphFunctionTopLevel,
   'gsts-function-prefix': gstsFunctionPrefix,
-  'gstsserver-call-scope': gstsserverCallScope,
-  'gstsserver-params': gstsserverParams,
-  'gstsserver-return': gstsserverReturn,
-  'gstsserver-top-level': gstsserverTopLevel,
   'list-callback-return': listCallbackReturn,
   'list-callback-signature': listCallbackSignature,
   'list-method-type-constraints': listMethodTypeConstraints,
   'list-method-usage': listMethodUsage,
   'list-type-annotation': listTypeAnnotation,
   'no-gsts-f-outside-server': noGstsFOutsideServer,
-  'no-gstsserver-recursion': noGstsServerRecursion,
+  'no-graph-function-recursion': noGraphFunctionRecursion,
   'no-inner-declarations': noInnerDeclarations,
   'no-json': noJson,
   'no-nullish-coalesce': noNullishCoalesce,
@@ -85,6 +84,7 @@ export const rules = {
   'no-while-true': noWhileTrue,
   'prefer-bigint': preferBigint,
   'prefer-const-outside-server': preferConstOutsideServer,
+  'require-bigint-index-wrapper': requireBigintIndexWrapper,
   'require-boolean-condition': requireBooleanCondition,
   'switch-restrictions': switchRestrictions,
   'ternary-branch-type': ternaryBranchType,
@@ -103,16 +103,16 @@ export const configs = {
       'gsts/no-plain-object': 'warn',
       'gsts/require-boolean-condition': 'warn',
       'gsts/no-timer-in-loop': 'warn',
-      'gsts/no-gstsserver-recursion': 'error',
+      'gsts/no-graph-function-recursion': 'error',
       'gsts/no-promise': 'warn',
       'gsts/no-json': 'warn',
       'gsts/no-string-ops': 'error',
       'gsts/no-while-true': 'warn',
       'gsts/prefer-bigint': 'warn',
-      'gsts/gstsserver-top-level': 'error',
-      'gsts/gstsserver-params': 'error',
-      'gsts/gstsserver-return': 'error',
-      'gsts/gstsserver-call-scope': 'error',
+      'gsts/graph-function-top-level': 'error',
+      'gsts/graph-function-parameters': 'error',
+      'gsts/graph-function-return': 'error',
+      'gsts/graph-function-call-scope': 'error',
       'gsts/no-gsts-f-outside-server': 'error',
       'gsts/prefer-const-outside-server': 'error',
       'gsts/no-unsupported-statement': 'error',
@@ -122,7 +122,7 @@ export const configs = {
       'gsts/gsts-function-prefix': 'error',
       'gsts/no-nullish-coalesce': 'error',
       'gsts/assignment-restrictions': 'error',
-      'gsts/bigint-index-in-server': 'warn',
+      'gsts/require-bigint-index-wrapper': 'warn',
       'gsts/unsupported-binary-operator': 'error',
       'gsts/ternary-branch-type': 'error',
       'gsts/no-spread-array-without-type': 'error',

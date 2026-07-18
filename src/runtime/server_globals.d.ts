@@ -66,11 +66,11 @@ declare global {
    * `arr[idx(i)]`.
    *
    * `idx(...)` has no runtime effect; it is only used to pass type-checking.
-   * You can apply this automatically via ESLint fix (`gsts/bigint-index-in-server`).
+   * You can apply this automatically via ESLint fix (`gsts/require-bigint-index-wrapper`).
    *
    * If this appears as a warning (not an error), the TypeScript plugin is usually active and
    * bigint is already treated as a valid index type in this scope. In that case, you may disable
-   * `gsts/bigint-index-in-server`.
+   * `gsts/require-bigint-index-wrapper`.
    *
    * If VSCode/Cursor still shows TS2538 (bigint cannot be used as an index type), switch to
    * workspace TypeScript:
@@ -84,10 +84,10 @@ declare global {
    * `arr[idx(i)]`。
    *
    * `idx(...)` 不产生运行时作用，仅用于通过类型检查。
-   * 你可以通过 ESLint 规则（`gsts/bigint-index-in-server`）自动修复直接应用。
+   * 你可以通过 ESLint 规则（`gsts/require-bigint-index-wrapper`）自动修复直接应用。
    *
    * 如果这里显示的是“警告”而不是“错误”，通常说明 TypeScript 插件已生效，
-   * 当前作用域已将 bigint 视作可索引类型；此时可按需禁用 `gsts/bigint-index-in-server`。
+   * 当前作用域已将 bigint 视作可索引类型；此时可按需禁用 `gsts/require-bigint-index-wrapper`。
    *
    * 如果 VSCode/Cursor 仍显示 TS2538（bigint 不能作为索引类型），请切换到工作区 TypeScript：
    * - `typescript.tsdk = "node_modules/typescript/lib"`
