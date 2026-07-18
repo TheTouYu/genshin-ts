@@ -368,6 +368,26 @@ try {
         `${subTypes[index]}: unexpected GIA evaluationInterval ${String(clientGraph.evaluationInterval)}`
       )
     }
+    if (subTypes[index] === 'bool_filter' || subTypes[index] === 'int_filter') {
+      const endGenericId = subTypes[index] === 'bool_filter' ? 200000 : 200122
+      const endNode = clientGraph.nodes?.find(
+        (node) => Number(node.genericId?.nodeId) === endGenericId
+      )
+      assert.ok(endNode, `${subTypes[index]}: missing filter result node`)
+      assert.strictEqual(
+        Number(endNode.nodeIndex),
+        1,
+        `${subTypes[index]}: filter result node must use the editor-reserved index 1`
+      )
+      const resultPin = endNode.pins?.find(
+        (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
+      )
+      assert.strictEqual(
+        resultPin?.connects?.length,
+        1,
+        `${subTypes[index]}: filter result must remain connected after node-index remapping`
+      )
+    }
     if (subTypes[index] === 'character_skill') {
       const indexedList = clientGraph.nodes?.find(
         (node) => Number(node.nodeIndex) === indexedListNodeId
