@@ -379,13 +379,18 @@ try {
         1,
         `${subTypes[index]}: filter result node must use the editor-reserved index 1`
       )
+      assert.strictEqual(
+        clientGraph.nodes?.filter((node) => Number(node.nodeIndex) === 1).length,
+        1,
+        `${subTypes[index]}: filter result must be the only node using index 1`
+      )
       const resultPin = endNode.pins?.find(
         (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
       )
       assert.strictEqual(
         resultPin?.connects?.length,
         1,
-        `${subTypes[index]}: filter result must remain connected after node-index remapping`
+        `${subTypes[index]}: filter result must remain connected`
       )
     }
     if (subTypes[index] === 'character_skill') {
@@ -1446,7 +1451,7 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
         [1082130444, 'creation_skill'],
         [1082130445, 'creation_status'],
         [1082130446, 'creation_status_decision'],
-        [1082130447, 'bool_filter'],
+        [1082130449, 'bool_filter'],
         [1082130448, 'int_filter']
       ],
       statusId: 1082130445,

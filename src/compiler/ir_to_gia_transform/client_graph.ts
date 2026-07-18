@@ -60,10 +60,6 @@ const PIN_KIND_IN_PARAM = NodePin_Index_Kind.InParam
 const PIN_KIND_CLIENT_EXEC = NodePin_Index_Kind.ClientExecNode
 const CLIENT_VAR_TYPE_ENUM = 13
 const CLIENT_SEND_SIGNAL_PLACEHOLDER_GID = 300002
-const CLIENT_FILTER_END_NODE_TYPES = new Set([
-  'node_graph_end_boolean',
-  'node_graph_end_integer'
-])
 
 type ClientGiaNode = ReturnType<typeof client_node_body>
 type ResolvedClientPinMetadata = ClientPinMetadata & {
@@ -82,34 +78,6 @@ type ClientValueTypeInfo = {
 
 function isValueArg(arg: IrArg | null | undefined): arg is ValueArg {
   return arg != null && arg.type !== 'conn'
-}
-
-function buildClientNodeIndexMap(nodes: IRNode[], isFilter: boolean): Map<NodeId, number> {
-  if (!isFilter) return new Map(nodes.map((node) => [node.id, node.id]))
-
-  const endNodes = nodes.filter((node) => CLIENT_FILTER_END_NODE_TYPES.has(node.type))
-  if (endNodes.length !== 1) {
-    throw new Error(`client filter IR must contain exactly one result node; got ${endNodes.length}`)
-  }
-
-  // Filter GIA reserves index 1 for the result node. Preserve every other IR
-  // id when possible, then relocate an ordinary node 1 to the first free index.
-  const indexById = new Map<NodeId, number>([[endNodes[0].id, 1]])
-  const occupied = new Set<number>([1])
-  for (const node of nodes) {
-    if (node.id === endNodes[0].id || node.id === 1) continue
-    indexById.set(node.id, node.id)
-    occupied.add(node.id)
-  }
-
-  let nextIndex = 2
-  for (const node of nodes) {
-    if (indexById.has(node.id)) continue
-    while (occupied.has(nextIndex)) nextIndex += 1
-    indexById.set(node.id, nextIndex)
-    occupied.add(nextIndex)
-  }
-  return indexById
 }
 
 function toPinLiteral(clientVarType: number, value: unknown, argIndex: number, nodeType: string) {
@@ -1201,7 +1169,6 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const nodes = expandEnumListLiterals(ir.nodes, ir.graph.sub_type)
   ir = { ...ir, nodes }
   const isFilter = ir.graph.sub_type === 'bool_filter' || ir.graph.sub_type === 'int_filter'
-  const emittedNodeIndexById = buildClientNodeIndexMap(nodes, isFilter)
 
   const graphInfo = buildExecutionGraph(nodes)
   const positions = layoutPositions(nodes, graphInfo)
@@ -1220,9 +1187,11 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     variantById.set(irNode.id, variant)
     const concreteId = resolveClientConcreteVariant(metadata, irNode, inferredOutType)
     const pos = positions.get(irNode.id) ?? [0, 0]
+    const isFilterResult =
+      irNode.type === 'node_graph_end_boolean' || irNode.type === 'node_graph_end_integer'
     const node = client_node_body({
       metadata,
-      unique_index: emittedNodeIndexById.get(irNode.id)!,
+      unique_index: isFilterResult ? 1 : irNode.id,
       x: pos[0] / 300,
       y: pos[1] / 200,
       concrete_id: concreteId

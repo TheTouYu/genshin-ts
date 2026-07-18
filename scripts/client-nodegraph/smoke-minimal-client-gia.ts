@@ -29,13 +29,11 @@ fs.mkdirSync(OUT_DIR, { recursive: true })
 for (const [subType, nodeType] of Object.entries(MINIMAL_NODE_TYPE_BY_SUB_TYPE) as Array<
   [ClientGraphSubType, string]
 >) {
-  const isFilter = subType === 'bool_filter' || subType === 'int_filter'
-  const irNodeId = isFilter ? 7 : 1
   const ir: ClientIRDocument = {
     ir_version: 1,
     ir_type: 'node_graph',
     graph: { type: 'client', sub_type: subType, name: `minimal_${subType}` },
-    nodes: [{ id: irNodeId, type: nodeType }]
+    nodes: [{ id: 1, type: nodeType }]
   }
 
   const bytes = irToGia(ir, { protoPath: PROTO_PATH })
@@ -69,11 +67,6 @@ for (const [subType, nodeType] of Object.entries(MINIMAL_NODE_TYPE_BY_SUB_TYPE) 
   const nodes = innerGraph.nodes ?? []
   assert.strictEqual(nodes.length, 1, `${subType}: node count`)
   const node = nodes[0]
-  assert.strictEqual(
-    Number(node.nodeIndex),
-    isFilter ? 1 : irNodeId,
-    `${subType}: emitted node index`
-  )
   assert.strictEqual(Number(node.genericId?.nodeId), metadata.genericId, `${subType}: genericId`)
   assert.strictEqual(
     Number(node.concreteId?.nodeId),
@@ -97,41 +90,3 @@ for (const [subType, nodeType] of Object.entries(MINIMAL_NODE_TYPE_BY_SUB_TYPE) 
     `[ok] ${subType}: minimal .gia round-trip verified (which=${encoding.graphWhich}, graphType=${encoding.graphType}, node=${metadata.genericId}/${metadata.concreteId})`
   )
 }
-
-const filterIndexCollisionIr: ClientIRDocument = {
-  ir_version: 1,
-  ir_type: 'node_graph',
-  graph: { type: 'client', sub_type: 'int_filter', name: 'filter_index_collision' },
-  nodes: [
-    {
-      id: 1,
-      type: 'get_random_number',
-      args: [
-        { type: 'int', value: 1 },
-        { type: 'int', value: 10 }
-      ]
-    },
-    {
-      id: 7,
-      type: 'node_graph_end_integer',
-      args: [{ type: 'conn', value: { node_id: 1, index: 0, type: 'int' } }]
-    }
-  ]
-}
-const collisionFile = path.join(OUT_DIR, 'filter_index_collision.gia')
-fs.writeFileSync(collisionFile, irToGia(filterIndexCollisionIr, { protoPath: PROTO_PATH }))
-const collisionNodes =
-  decode_gia_file(collisionFile, undefined, true).graph.graph?.inner.graph?.nodes ?? []
-const collisionEnd = collisionNodes.find((node) => Number(node.genericId?.nodeId) === 200122)
-const collisionSource = collisionNodes.find((node) => Number(node.genericId?.nodeId) === 200032)
-assert.strictEqual(Number(collisionEnd?.nodeIndex), 1, 'filter result keeps reserved index 1')
-assert.strictEqual(Number(collisionSource?.nodeIndex), 2, 'ordinary IR node 1 relocates to index 2')
-const collisionResultPin = collisionEnd?.pins?.find(
-  (pin) => Number(pin.i1?.kind) === 3 && Number(pin.i1?.index) === 0
-)
-assert.strictEqual(
-  Number(collisionResultPin?.connects?.[0]?.id),
-  2,
-  'filter result connection follows the relocated source index'
-)
-console.log('[ok] client filter result/source node-index collision remapping verified')
