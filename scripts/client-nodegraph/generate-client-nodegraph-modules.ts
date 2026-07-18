@@ -1519,11 +1519,37 @@ function emitClientNodeMetadata(
   metadata: readonly unknown[],
   argPinsBySubType: Record<string, Record<string, number[]>>
 ) {
+  type MetadataPin = Record<string, unknown> & { name?: string }
+  type MetadataRecord = Record<string, unknown> & {
+    subType: string
+    nodeType: string
+    inputs: MetadataPin[]
+    outputs: MetadataPin[]
+    flows?: MetadataPin[]
+    reflectMap?: Array<Record<string, unknown> & { pins?: MetadataPin[] }>
+  }
+  const stripPinNames = (pins: MetadataPin[] | undefined) =>
+    pins?.map(({ name: _name, ...pin }) => pin)
+
   // enrich extractor records with the codegen-derived arg->pin mapping so the
   // IR->GIA transform can fill hidden pins while IR args stay signature-ordered
-  const enriched = (metadata as Array<{ subType: string; nodeType: string }>).map((record) => {
+  const enriched = (metadata as MetadataRecord[]).map((record) => {
     const argPins = argPinsBySubType[record.subType]?.[record.nodeType]
-    return argPins ? { ...record, argPins } : record
+    const runtimeRecord = {
+      ...record,
+      inputs: stripPinNames(record.inputs),
+      outputs: stripPinNames(record.outputs),
+      ...(record.flows ? { flows: stripPinNames(record.flows) } : {}),
+      ...(record.reflectMap
+        ? {
+            reflectMap: record.reflectMap.map((variant) => ({
+              ...variant,
+              ...(variant.pins ? { pins: stripPinNames(variant.pins) } : {})
+            }))
+          }
+        : {})
+    }
+    return argPins ? { ...runtimeRecord, argPins } : runtimeRecord
   })
   const metadataPath =
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.ts'

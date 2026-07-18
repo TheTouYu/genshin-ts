@@ -1,0 +1,250 @@
+{
+  "format": 1,
+  "seed": 1835625577,
+  "graphs": [
+    {
+      "mode": "beyond",
+      "subType": "character_skill",
+      "registerMethod": "characterSkill",
+      "id": 1082130435,
+      "name": "AllClientNodesCharacterSkillBeyond",
+      "methodCount": 164,
+      "expectedNodeTypeCount": 167,
+      "literalArgs": 360,
+      "wiredArgs": 158,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "beyond",
+      "subType": "character_control_skill",
+      "registerMethod": "characterControlSkill",
+      "id": 1082130436,
+      "name": "AllClientNodesCharacterControlSkillBeyond",
+      "methodCount": 175,
+      "expectedNodeTypeCount": 178,
+      "literalArgs": 372,
+      "wiredArgs": 169,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "beyond",
+      "subType": "creation_skill",
+      "registerMethod": "creationSkill",
+      "id": 1082130437,
+      "name": "AllClientNodesCreationSkillBeyond",
+      "methodCount": 133,
+      "expectedNodeTypeCount": 136,
+      "literalArgs": 350,
+      "wiredArgs": 148,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "beyond",
+      "subType": "creation_status",
+      "registerMethod": "creationStatus",
+      "id": 1082130438,
+      "name": "AllClientNodesCreationStatusBeyond",
+      "methodCount": 97,
+      "expectedNodeTypeCount": 100,
+      "literalArgs": 117,
+      "wiredArgs": 85,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "beyond",
+      "subType": "creation_status_decision",
+      "registerMethod": "creationStatusDecision",
+      "id": 1082130439,
+      "name": "AllClientNodesCreationStatusDecisionBeyond",
+      "methodCount": 84,
+      "expectedNodeTypeCount": 87,
+      "literalArgs": 40,
+      "wiredArgs": 64,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "beyond",
+      "subType": "bool_filter",
+      "registerMethod": "boolFilter",
+      "id": 1082130440,
+      "name": "AllClientNodesBoolFilterBeyond",
+      "methodCount": 112,
+      "expectedNodeTypeCount": 115,
+      "literalArgs": 63,
+      "wiredArgs": 90,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "beyond",
+      "subType": "int_filter",
+      "registerMethod": "intFilter",
+      "id": 1082130441,
+      "name": "AllClientNodesIntFilterBeyond",
+      "methodCount": 112,
+      "expectedNodeTypeCount": 115,
+      "literalArgs": 90,
+      "wiredArgs": 63,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "classic",
+      "subType": "creation_skill",
+      "registerMethod": "creationSkill",
+      "id": 1082130444,
+      "name": "AllClientNodesCreationSkillClassic",
+      "methodCount": 117,
+      "expectedNodeTypeCount": 120,
+      "literalArgs": 344,
+      "wiredArgs": 125,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "classic",
+      "subType": "creation_status",
+      "registerMethod": "creationStatus",
+      "id": 1082130445,
+      "name": "AllClientNodesCreationStatusClassic",
+      "methodCount": 97,
+      "expectedNodeTypeCount": 100,
+      "literalArgs": 107,
+      "wiredArgs": 95,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "classic",
+      "subType": "creation_status_decision",
+      "registerMethod": "creationStatusDecision",
+      "id": 1082130446,
+      "name": "AllClientNodesCreationStatusDecisionClassic",
+      "methodCount": 84,
+      "expectedNodeTypeCount": 87,
+      "literalArgs": 65,
+      "wiredArgs": 39,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "classic",
+      "subType": "bool_filter",
+      "registerMethod": "boolFilter",
+      "id": 1082130449,
+      "name": "AllClientNodesBoolFilterClassic",
+      "methodCount": 86,
+      "expectedNodeTypeCount": 89,
+      "literalArgs": 75,
+      "wiredArgs": 58,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    },
+    {
+      "mode": "classic",
+      "subType": "int_filter",
+      "registerMethod": "intFilter",
+      "id": 1082130448,
+      "name": "AllClientNodesIntFilterClassic",
+      "methodCount": 86,
+      "expectedNodeTypeCount": 89,
+      "literalArgs": 55,
+      "wiredArgs": 78,
+      "uncoveredNodeTypes": ["assemble_structure", "split_structure"]
+    }
+  ],
+  "knownGenerationGaps": [
+    {
+      "subType": "bool_filter",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "assemble_structure",
+      "displayName": "拼装结构体",
+      "reason": "unsupported_return_type",
+      "detail": "Structure: structure"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "split_structure",
+      "displayName": "拆分结构体",
+      "reason": "doc_param_alignment_failed",
+      "detail": "unbound doc params: Structure [T]; pins: structure"
+    }
+  ]
+}

@@ -6385,7 +6385,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSceneSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -6786,7 +6786,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -7157,7 +7157,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -7492,7 +7492,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -7859,7 +7859,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -8245,7 +8245,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -8613,7 +8613,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -8951,7 +8951,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -15705,7 +15705,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSceneSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -16106,7 +16106,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -16477,7 +16477,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -16812,7 +16812,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -17179,7 +17179,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -17565,7 +17565,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -17933,7 +17933,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -18271,7 +18271,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -23654,7 +23654,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSceneSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -24055,7 +24055,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -24426,7 +24426,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -24761,7 +24761,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -25128,7 +25128,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -25514,7 +25514,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -25882,7 +25882,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {
@@ -26220,7 +26220,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
     onHitSpecialEffectsZoom: FloatValue,
     aggroMultiplierForThisAttack: FloatValue,
     aggroIncrementForThisAttack: IntValue,
-    hitLevel: RetracingType,
+    hitLevel: HitLevel,
     onHitHorizontalImpulse: FloatValue,
     onHitVerticalImpulse: FloatValue
   ): void {

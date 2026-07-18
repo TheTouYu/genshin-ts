@@ -23,6 +23,7 @@ type StaticPin = StaticTypeVariant & {
   connectable?: boolean
   variants?: StaticTypeVariant[]
   nameHash?: number
+  name?: string
   defaultValue?: StaticLiteral
 }
 
@@ -50,6 +51,7 @@ type ClientNodeModeData = {
 
 const DEFAULT_NODE_ROOT =
   'D:\\Genshin Impact\\Genshin Impact Game\\BeyondAssets\\BeyondAssistEditor\\Resource\\Json\\Beyond\\Node'
+const CHS_TEXT_MAP_FILE = '17720714722766726369.mihoyobin'
 const MODE_DATA_PATH = 'resources/client_node_modes.json'
 const OUTPUT_PATH = 'resources/client_node_static_metadata.json'
 const VARIANT_OUTPUT_PATH = 'resources/client_node_concrete_variants.json'
@@ -168,6 +170,22 @@ function float32Field(fields: WireField[], field: number): number | undefined {
 function stringField(fields: WireField[], field: number): string | undefined {
   const bytes = bytesField(fields, field)
   return bytes ? new TextDecoder().decode(bytes) : undefined
+}
+
+function readLocalizedTextByHash(textMapPath: string) {
+  const raw = fs.readFileSync(textMapPath)
+  const decoded = Uint8Array.from(raw, (byte) => byte ^ XOR_KEY)
+  const byHash = new Map<number, string | undefined>()
+
+  for (const entry of repeatedMessages(parseMessage(decoded), 2)) {
+    const hash = numberField(entry, 2)
+    if (hash === undefined) throw new Error('[error] CHS TextMap entry has no hash')
+    const text = stringField(entry, 3)
+    if (byHash.has(hash)) throw new Error(`[error] duplicate CHS TextMap hash ${hash}`)
+    byHash.set(hash, text)
+  }
+
+  return { byHash, sha256: sha256(raw) }
 }
 
 /** The embedded default uses the same VarBase wire layout as gia.proto. */
@@ -343,6 +361,18 @@ function main() {
         'Pass it as the first argument or set BEYOND_EDITOR_NODE_ROOT.'
     )
   }
+  const textMapPath = path.resolve(
+    process.argv[3] ??
+      process.env.BEYOND_EDITOR_CHS_TEXT_MAP ??
+      path.join(nodeRoot, '..', '..', 'TextMap', 'CHS', CHS_TEXT_MAP_FILE)
+  )
+  if (!fs.existsSync(textMapPath)) {
+    throw new Error(
+      `[error] BeyondEditor CHS TextMap not found: ${textMapPath}\n` +
+        'Pass it as the second argument or set BEYOND_EDITOR_CHS_TEXT_MAP.'
+    )
+  }
+  const localizedText = readLocalizedTextByHash(textMapPath)
 
   const modeData = JSON.parse(fs.readFileSync(MODE_DATA_PATH, 'utf8')) as ClientNodeModeData
   const selectedIds = new Set<number>()
@@ -383,6 +413,17 @@ function main() {
         parsePin(descriptor, group.kind, index)
       )
     )
+    for (const pin of pins) {
+      if (pin.nameHash === undefined) continue
+      if (!localizedText.byHash.has(pin.nameHash)) {
+        throw new Error(
+          `[error] static Node ${genericId} ${pin.kind} pin #${pin.index} ` +
+            `has unknown CHS TextMap hash ${pin.nameHash}`
+        )
+      }
+      const name = localizedText.byHash.get(pin.nameHash)
+      if (name !== undefined) pin.name = name
+    }
     const pinByEncodedIndex = new Map(
       pins.map((pin) => {
         const encodedKind = PIN_GROUPS.find((group) => group.kind === pin.kind)!.encodedKind
@@ -412,7 +453,8 @@ function main() {
       encoding: 'xor-0xe5 protobuf wire format',
       scannedNodeFiles: files.length,
       selectedClientNodes: nodes.length,
-      aggregateSha256: sha256(sourceHashes.join('\n'))
+      aggregateSha256: sha256(sourceHashes.join('\n')),
+      chsTextMapSha256: localizedText.sha256
     },
     summary: {
       inputPins: inputPins.length,
@@ -422,6 +464,7 @@ function main() {
       pinsWithExplicitDefaults: nodes
         .flatMap((node) => node.pins)
         .filter((pin) => pin.defaultValue !== undefined).length,
+      namedPins: nodes.flatMap((node) => node.pins).filter((pin) => pin.name !== undefined).length,
       concreteVariantGroups: concreteVariantGroups.filter((group) => group.variants.length).length,
       concreteVariants: concreteVariants.length,
       concreteVariantBindings: concreteVariants.reduce(
@@ -450,7 +493,8 @@ function main() {
   fs.writeFileSync(VARIANT_OUTPUT_PATH, `${JSON.stringify(variantOutput)}\n`, 'utf8')
   console.log(
     `[ok] wrote ${OUTPUT_PATH}: ${nodes.length} nodes, ${inputPins.length} inputs, ` +
-      `${output.summary.literalOnlyInputs} literal-only; ${VARIANT_OUTPUT_PATH}: ` +
+      `${output.summary.literalOnlyInputs} literal-only, ${output.summary.namedPins} named pins; ` +
+      `${VARIANT_OUTPUT_PATH}: ` +
       `${concreteVariants.length} concrete variants`
   )
 }

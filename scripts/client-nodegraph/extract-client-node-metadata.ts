@@ -120,6 +120,8 @@ type PinRecord = {
   index: number
   kind: 'input' | 'output' | 'in_flow' | 'out_flow' | 'client_exec' | 'client_signal'
   type: string
+  /** localized editor pin name decoded from the static Node/TextMap resources */
+  name?: string
   reflective?: boolean
   /** editor dropdown row for this concrete reflective pin */
   indexOfConcrete?: number
@@ -172,6 +174,7 @@ type StaticPinRecord = {
   index: number
   kind: PinRecord['kind']
   i2Index?: number
+  name?: string
   clientVarType?: number
   connectable?: boolean
   connectionType?: number
@@ -429,6 +432,8 @@ function applyStaticPinMetadata(records: NodeRecord[], aggregates: GidAggregate[
     if (staticI2 === pin.index) delete pin.i2Index
     else pin.i2Index = staticI2
 
+    if (staticPin.name === undefined) delete pin.name
+    else pin.name = staticPin.name
     if (pin.kind === 'input') pin.connectable = staticPin.connectable ?? false
     if (pin.kind === 'input' && staticPin.defaultValue !== undefined) {
       if (
@@ -475,7 +480,8 @@ function applyStaticPinMetadata(records: NodeRecord[], aggregates: GidAggregate[
     const flows = (record.flows ??= [])
     for (const staticPin of staticNode.pins) {
       if (staticPin.kind !== 'in_flow' && staticPin.kind !== 'out_flow') continue
-      if (flows.some((pin) => pin.kind === staticPin.kind && pin.index === staticPin.index)) continue
+      if (flows.some((pin) => pin.kind === staticPin.kind && pin.index === staticPin.index))
+        continue
       flows.push({
         index: staticPin.index,
         kind: staticPin.kind,

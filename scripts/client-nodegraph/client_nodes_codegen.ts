@@ -27,6 +27,8 @@ export type MetaPin = {
   index: number
   kind: 'input' | 'output' | 'in_flow' | 'out_flow' | 'client_exec' | 'client_signal'
   type: string
+  /** localized editor pin name from the static Node/TextMap resources */
+  name?: string
   reflective?: boolean
   clientVarType?: number
   defaultValue?: unknown
@@ -464,12 +466,26 @@ function docCompatibleWithPin(pin: MetaPin, docTag: string, candidates?: string[
   return (DOC_TAGS_BY_PIN_TYPE[pin.type] ?? []).includes(docTag)
 }
 
+function docPairCompatibleWithPin(pin: MetaPin, doc: DocParamPair, candidates?: string[]): boolean {
+  return (
+    docCompatibleWithPin(pin, docTypeTag(doc.en.dataType), candidates) ||
+    (doc.zh !== undefined && docCompatibleWithPin(pin, docTypeTag(doc.zh.dataType), candidates))
+  )
+}
+
+function pinNameMatchesDoc(pin: MetaPin, doc: DocParamPair): boolean {
+  const pinName = pin.name?.trim()
+  const docName = doc.zh?.name.trim()
+  return Boolean(pinName && docName && pinName === docName)
+}
+
 /**
  * Greedy in-order alignment: every doc input param must bind to a pin (same
  * relative order); pins that match no doc param are hidden (kept at editor
- * defaults). Any unbound doc param fails the record. The en and zh data_type
- * columns occasionally disagree (doc typos); a pin binds when either language
- * is compatible.
+ * defaults). When several same-typed pins are adjacent, a later exact localized
+ * name match wins over an earlier type-only match. Any unbound doc param fails
+ * the record. The en and zh data_type columns occasionally disagree (doc
+ * typos); a pin binds when either language is compatible.
  */
 function alignInputs(
   pins: MetaPin[],
@@ -479,15 +495,22 @@ function alignInputs(
   const bound: BoundParam[] = []
   const hidden: MetaPin[] = []
   let d = 0
-  for (const pin of pins) {
+  for (const [pinOffset, pin] of pins.entries()) {
     const doc = docIns[d]
     const candidates = doc ? candidatesByPin.get(pin.index) : undefined
-    const compatible =
-      doc &&
-      (docCompatibleWithPin(pin, docTypeTag(doc.en.dataType), candidates) ||
-        (doc.zh !== undefined &&
-          docCompatibleWithPin(pin, docTypeTag(doc.zh.dataType), candidates)))
-    if (compatible) {
+    const compatible = doc !== undefined && docPairCompatibleWithPin(pin, doc, candidates)
+    const laterExactNameMatch =
+      doc !== undefined &&
+      compatible &&
+      !pinNameMatchesDoc(pin, doc) &&
+      pins.slice(pinOffset + 1).some((candidate) => {
+        const candidateTypes = candidatesByPin.get(candidate.index)
+        return (
+          pinNameMatchesDoc(candidate, doc) &&
+          docPairCompatibleWithPin(candidate, doc, candidateTypes)
+        )
+      })
+    if (compatible && !laterExactNameMatch) {
       bound.push({ pin, doc: doc! })
       d += 1
     } else {

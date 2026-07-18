@@ -17,6 +17,7 @@ type StaticPin = {
   kind: ClientPinMetadata['kind']
   index: number
   i2Index?: number
+  name?: string
   clientVarType?: number
   connectable?: boolean
   connectionType?: number
@@ -33,6 +34,7 @@ type StaticMetadata = {
     literalOnlyInputs: number
     reflectiveInputs: number
     pinsWithExplicitDefaults: number
+    namedPins: number
     concreteVariantGroups: number
     concreteVariants: number
     concreteVariantBindings: number
@@ -52,14 +54,28 @@ type ConcreteVariants = {
   }>
 }
 
+type FlowMetadataEntry = {
+  nodeType: string
+  subTypes: string[]
+  params: Array<{ docZh: string }>
+}
+
 const staticMetadata = JSON.parse(
   fs.readFileSync('resources/client_node_static_metadata.json', 'utf8')
 ) as StaticMetadata
 const concreteVariants = JSON.parse(
   fs.readFileSync('resources/client_node_concrete_variants.json', 'utf8')
 ) as ConcreteVariants
+const flowMetadata = JSON.parse(
+  fs.readFileSync('resources/client_execution_flow_metadata.json', 'utf8')
+) as FlowMetadataEntry[]
 const staticByGenericId = new Map(
   staticMetadata.nodes.map((node) => [node.genericId, node] as const)
+)
+const flowBySubTypeAndNodeType = new Map(
+  flowMetadata.flatMap((entry) =>
+    entry.subTypes.map((subType) => [`${subType}.${entry.nodeType}`, entry] as const)
+  )
 )
 
 assert.strictEqual(staticMetadata.formatVersion, 2)
@@ -72,6 +88,7 @@ assert.deepStrictEqual(staticMetadata.summary, {
   literalOnlyInputs: 345,
   reflectiveInputs: 309,
   pinsWithExplicitDefaults: 109,
+  namedPins: 1446,
   concreteVariantGroups: 88,
   concreteVariants: 4259,
   concreteVariantBindings: 53934
@@ -238,6 +255,7 @@ assert.deepStrictEqual(
 const basePinsByGenericId = new Map<number, Set<string>>()
 let publicParams = 0
 let literalOnlyPublicParams = 0
+let nameCheckedPublicParams = 0
 
 for (const record of CLIENT_NODE_METADATA) {
   const staticNode = staticByGenericId.get(record.genericId)
@@ -263,6 +281,34 @@ for (const record of CLIENT_NODE_METADATA) {
   basePinsByGenericId.set(record.genericId, basePins)
 
   const argPins = record.argPins ?? record.inputs.map((pin) => pin.index)
+  const flow = flowBySubTypeAndNodeType.get(`${record.subType}.${record.nodeType}`)
+  const nameCheckArgPins = record.argPins ?? flow?.params.map((_, index) => index)
+  if (flow && nameCheckArgPins?.length === flow.params.length) {
+    for (const [argIndex, pinIndex] of nameCheckArgPins.entries()) {
+      const docName: string | undefined = flow.params[argIndex]?.docZh.trim()
+      if (!docName) continue
+      const mappedName: string | undefined = staticNode.pins.find(
+        (pin) => pin.kind === 'input' && pin.index === pinIndex
+      )?.name
+      const exactAlternatives: ClientPinMetadata[] = record.inputs.filter(
+        (input) =>
+          staticNode.pins.find((pin) => pin.kind === 'input' && pin.index === input.index)?.name ===
+          docName
+      )
+      assert.ok(
+        exactAlternatives.length,
+        `${record.subType}.${record.nodeType} arg #${argIndex} "${docName}" has no ` +
+          'exact-name static input pin'
+      )
+      nameCheckedPublicParams += 1
+      assert.ok(
+        exactAlternatives.some((pin) => pin.index === pinIndex),
+        `${record.subType}.${record.nodeType} arg #${argIndex} "${docName}" maps to ` +
+          `pin #${pinIndex} "${mappedName ?? ''}" instead of exact-name pin ` +
+          `${exactAlternatives.map((pin) => `#${pin.index}`).join('/')}`
+      )
+    }
+  }
   for (const pinIndex of argPins) {
     publicParams += 1
     const input = record.inputs.find((pin) => pin.index === pinIndex)
@@ -278,6 +324,7 @@ const pinsAbsentFromBaseMetadata = staticMetadata.nodes.flatMap((node) => {
 assert.strictEqual(CLIENT_NODE_METADATA.length, 907)
 assert.strictEqual(publicParams, 3033)
 assert.strictEqual(literalOnlyPublicParams, 752)
+assert.ok(nameCheckedPublicParams > 0, 'public argument mappings must be checked against pin names')
 assert.strictEqual(pinsAbsentFromBaseMetadata.length, 13)
 assert.ok(
   pinsAbsentFromBaseMetadata.every((pin) => pin.kind === 'client_signal'),
@@ -356,12 +403,24 @@ assert.ok(hitbox)
 const hitboxPublicPins = hitbox.argPins ?? hitbox.inputs.map((pin) => pin.index)
 assert.deepStrictEqual(
   hitboxPublicPins.filter((index) => hitbox.inputs.find((pin) => pin.index === index)?.connectable),
-  [2, 3, 4, 5, 6, 42, 43, 44]
+  [2, 3, 4, 5, 6, 42, 43, 45],
+  'public hit-level input must use the connectable duplicate pin #45, not hidden pin #27'
 )
 
 const recoverCreationHp = CLIENT_NODE_METADATA.find(
   (record) => record.subType === 'creation_skill' && record.nodeType === 'recover_creation_s_hp'
 )
+
+for (const subType of ['character_skill', 'character_control_skill'] as const) {
+  const recoverCharacterHp = CLIENT_NODE_METADATA.find(
+    (record) => record.subType === subType && record.nodeType === 'recover_character_s_hp'
+  )
+  assert.deepStrictEqual(
+    recoverCharacterHp?.argPins,
+    [0, 1, 7, 9, 10],
+    `${subType}.recover_character_s_hp must skip the hidden bool pin #6`
+  )
+}
 assert.strictEqual(
   recoverCreationHp?.inputs.find((pin) => pin.index === 9)?.defaultValue,
   1,
