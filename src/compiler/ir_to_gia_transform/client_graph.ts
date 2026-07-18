@@ -1193,6 +1193,18 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
       y: pos[1] / 200,
       concrete_id: concreteId
     })
+    if (metadata.specialKind === 'start' && metadata.subType.startsWith('creation_status')) {
+      const outputCount = Math.max(
+        1,
+        ...(irNode.next ?? []).map((next) =>
+          typeof next === 'number' ? 1 : (next.source_index ?? 0) + 1
+        )
+      )
+      node.statusNodeExtension = { type: 1, inner: { value: outputCount } }
+      node.pins = node.pins.filter(
+        (pin) => pin.i1?.kind !== PIN_KIND_OUT_FLOW || Number(pin.i1.index) < outputCount
+      )
+    }
     applyResolvedReflectivePins(node, metadata, variant)
     if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutTypeInfo)) {
       applyLiteralArgs(node, irNode, metadata, variant)
