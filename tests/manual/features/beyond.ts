@@ -4,6 +4,7 @@
  * 在仓库根目录运行：
  *   npm run build
  *   node ./bin/gsts.mjs tests/manual/features/beyond.ts --noinject
+ *   node tests/manual/features/beyond.simulate.mjs
  *
  * 注入前请创建两个信号：
  *   feature_probe(amount: int, message: str, enabled: bool, targets: entity_list)
@@ -399,7 +400,7 @@ g.characterSkill({
         MODE,
         'character-skill-math-max',
         str(Math.max(1, 2)),
-        '2'
+        '2.0'
       )
       break
   }
@@ -416,7 +417,7 @@ g.characterSkill({
     MODE,
     'character-skill-wrapper-number',
     str(numberValue),
-    '2'
+    '2.0'
   )
   gsts.fCharacterSkill.sendSignalToServerNodeGraph(
     FeatureLogSignal,

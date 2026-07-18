@@ -4,6 +4,7 @@
  * 在仓库根目录运行：
  *   npm run build
  *   node ./bin/gsts.mjs tests/manual/features/classic.ts --noinject
+ *   node tests/manual/features/classic.simulate.mjs
  *
  * 注入前请创建两个信号：
  *   feature_probe(amount: int, message: str, enabled: bool, targets: entity_list)
@@ -14,7 +15,7 @@
  *   1082130444  FeatureCreationSkillClassicZh        造物技能
  *   1082130445  FeatureCreationStatusClassic         造物状态
  *   1082130446  FeatureCreationStatusDecisionClassic 造物状态决策
- *   1082130447  FeatureBoolFilterClassicZh           bool filter
+ *   1082130449  FeatureBoolFilterClassicZh           bool filter
  *   1082130448  FeatureIntFilterClassic              int filter
  *
  * 角色技能和角色操控技能没有经典模式，因此不在本文件中生成。
@@ -193,7 +194,7 @@ g.creationStatusDecision({
 })
 
 g.boolFilter({
-  id: 1082130447,
+  id: 1082130449,
   name: 'FeatureBoolFilterClassicZh',
   mode: MODE,
   lang: 'zh',

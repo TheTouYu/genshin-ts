@@ -3,6 +3,8 @@
  *
  * 生成：
  *   node ./bin/gsts.mjs tests/manual/client-control-flow/classic.ts --noinject
+ * 本地等价模拟与逐项期望：
+ *   node tests/manual/client-control-flow/classic.simulate.mjs
  *
  * 注入前请在地图中创建信号 `gsts_client_flow_log`，参数依次为：
  *   mode: str, check: str, actual: str, expected: str
