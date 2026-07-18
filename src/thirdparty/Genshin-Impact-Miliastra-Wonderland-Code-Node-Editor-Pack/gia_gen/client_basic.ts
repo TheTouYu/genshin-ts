@@ -191,19 +191,27 @@ export function client_list_literal_value(clientVarType: number, elements: unkno
   }
 }
 
-/** t18/t19 inline dropdown payload (round-3 varBaseField3 evidence) */
-export function client_inline_var_value(clientVarType: 18 | 19, literal: number): VarBase {
-  const typeTag = clientVarType === 19 ? 3 : 12
-  const binding =
+/**
+ * t18/t19 ID value with the editor's fixed inline-selector metadata.
+ *
+ * The selected config/prefab ID belongs in bId. clientInlineBinding describes
+ * the editor selector itself and stays constant when the selected ID changes.
+ */
+export function client_inline_var_value(
+  clientVarType: 18 | 19,
+  literal: number,
+  alreadySetVal = true
+): VarBase {
+  const inlineBinding =
     clientVarType === 19
-      ? { bindingInt: { val: Number(literal) } }
-      : { bindingEnum: { val: Number(literal) } }
+      ? { typeTag: 3, bindingInt: { val: 50000 } }
+      : { typeTag: 12, bindingEnum: { val: 1 } }
   return {
     class: VarBase_Class.IdBase,
-    alreadySetVal: false,
+    alreadySetVal,
     itemType: client_item_type(clientVarType),
-    bId: { val: 0 },
-    clientInlineBinding: { typeTag, ...binding }
+    bId: { val: Number(literal) },
+    clientInlineBinding: inlineBinding
   }
 }
 
@@ -366,7 +374,16 @@ export function client_node_body(body: {
   concrete_id?: number | string
 }): GraphNode {
   const pins = [
-    ...body.metadata.inputs.map((p) => client_pin_body(p)),
+    ...body.metadata.inputs.map((p) => {
+      const pin = client_pin_body(p)
+      if (
+        body.metadata.specialKind === 'inline_var_type_hint' &&
+        (p.clientVarType === 18 || p.clientVarType === 19)
+      ) {
+        pin.value = client_inline_var_value(p.clientVarType, Number(p.defaultValue ?? 0), false)
+      }
+      return pin
+    }),
     ...body.metadata.outputs.map((p) => client_pin_body(p)),
     ...(body.metadata.flows ?? []).map((p) => client_pin_body(p))
   ]

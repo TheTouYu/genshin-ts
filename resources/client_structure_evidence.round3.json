@@ -1146,7 +1146,7 @@
     ]
   },
   "varBaseField3": {
-    "finding": "inline_var_type_hint 定性完成：VarBase 未知 field#3 是特殊客户端类型(t18 执行状态 / t19 投射物预设)的真实取值载荷，UI 上是常规下拉，无特殊参数外观。结构：{f1:类型标签, f102/f106:{f1:实际取值}}。主 value 域恒为 bId=0/unset",
+    "finding": "inline_var_type_hint 已由用户实测导出纠正：VarBase field#3 是 t18/t19 编辑器选择器的固定元数据，不是用户填写的实际 ID。实际配置/预设 ID 写入主 bId；未填写时 bId=0、alreadySetVal=false，填写后 bId=实际 ID、alreadySetVal=true。t18 固定为 {typeTag:12,bindingEnum:1}，t19 固定为 {typeTag:3,bindingInt:50000}。",
     "cases": [
       {
         "node": "定点发射投射物 fixed_point_projectile_launch (200052, 角色技能/造物技能)",
@@ -1158,7 +1158,7 @@
             "f1_presetId": 50000
           }
         },
-        "meaning": "UI 上是普通预设选择下拉；选中的投射物预设 ID 存在 VarBase 未知 field#3 内（主 value 域保持 bId=0/unset）"
+        "meaning": "field#3 固定描述投射物预设选择器；实际预设 ID 位于主 bId。填值样本保持 bindingInt=50000，同时将 bId 从 0 改为所选 ID。"
       },
       {
         "node": "切换自身执行状态 switch_to_self_execution_status (200128, 状态决策)",
@@ -1170,10 +1170,10 @@
             "f1_statusIndex": 1
           }
         },
-        "meaning": "选中的执行状态序号存在 field#3；同上，主 value 域为 bId=0/unset"
+        "meaning": "field#3 固定描述状态图配置选择器；实际造物状态图配置 ID 位于主 bId。用户在编辑器补填并重新导出后，bindingEnum 仍为 1，bId 变为目标图 ID。"
       }
     ],
-    "encoderNote": "编码器需为 t18/t19 参数生成 field#3（按类型标签选 f102/f106 槽位）；仅 2 个节点受影响（200052 / 200128），可按样本字节结构直写"
+    "encoderNote": "编码器需为 200052/200128 保留固定 field#3 选择器元数据，并把用户字面量写入 bId；连接状态下保留 field#3、bId=0、alreadySetVal=false。"
   },
   "enumListDualSource": {
     "finding": "攻击盒实体类型筛选列表可同时接收两种枚举列表来源：实体类型列表(1401关卡/1402物件/1403玩家/1404角色?/1405造物?) 与 射线筛选类型列表(2601受击盒/2602场景/2605物件自身碰撞/2606光标碰撞盒)。按 2026-07-06 决策 enum_list 以常规数组(EnumerationValue[])表达，双源天然兼容；未来精化为联合类型",

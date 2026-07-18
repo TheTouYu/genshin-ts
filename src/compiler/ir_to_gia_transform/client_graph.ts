@@ -1126,8 +1126,8 @@ function applyLiteralArgs(
       metadata.specialKind === 'inline_var_type_hint' &&
       (pinMeta.clientVarType === 18 || pinMeta.clientVarType === 19)
     ) {
-      // only 200052/200128 store t18/t19 dropdowns in the field#3 inline
-      // binding; ordinary t18/t19 pins carry plain bId literals
+      // Only 200052/200128 carry fixed editor-selector metadata in field #3.
+      // The selected prefab/config ID itself is still stored in bId.
       pin.type = pinMeta.clientVarType
       pin.value = client_inline_var_value(pinMeta.clientVarType as 18 | 19, Number(arg.value))
       continue
