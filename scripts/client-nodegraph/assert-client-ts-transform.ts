@@ -1,4 +1,5 @@
 import assert from 'node:assert'
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -23,6 +24,22 @@ const helperFixture = 'scripts/client-nodegraph/fixtures/client_ts_transform_hel
 
 function relative(file: string) {
   return path.relative(root, file).replace(/\\/g, '/')
+}
+
+function buildClientDocumentsInIsolatedProcess(entryOutFile: string): IRDocument[] {
+  const marker = '__GSTS_CLIENT_DOCUMENTS__'
+  const script = `
+await import(${JSON.stringify(pathToFileURL(entryOutFile).href)})
+const { buildClientGraphRegistriesIRDocuments } = await import('genshin-ts/runtime/core')
+process.stdout.write(${JSON.stringify(marker)} + JSON.stringify(buildClientGraphRegistriesIRDocuments()))
+`
+  const output = execFileSync(process.execPath, ['--input-type=module', '--eval', script], {
+    cwd: root,
+    encoding: 'utf8'
+  })
+  const markerIndex = output.lastIndexOf(marker)
+  assert.notStrictEqual(markerIndex, -1, 'isolated client graph process did not return IR')
+  return JSON.parse(output.slice(markerIndex + marker.length)) as IRDocument[]
 }
 
 async function compile(entries: string[]) {
@@ -1132,102 +1149,398 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
   assert.match(repeatedConstIr, /"type":"get_random_number"/)
   assert.doesNotMatch(repeatedConstIr, /"type":"(?:get|set)_local_variable"/)
 
-  const controlFlowExample = path.join(root, 'examples/client-control-flow/index.ts')
-  const controlFlowResult = await compile([relative(controlFlowExample)])
-  const controlFlowOutput = fs.readFileSync(controlFlowResult.entryOutFiles[0], 'utf8')
-  assert.match(controlFlowOutput, /\.listIterationLoop\(/)
-  assert.match(controlFlowOutput, /\.continue\(\)/)
-  assert.match(controlFlowOutput, /\.return\(\)/)
-  assert.match(controlFlowOutput, /\.division\(/)
-  assert.match(controlFlowOutput, /\.listIncludesThisValue\(/)
-  assert.match(
-    controlFlowOutput,
-    /const hasFourViaSimpleSome = f\.listIncludesThisValue\(4n,\s*values\.value\)/,
-    'simple some(value => value === expected) must use the native includes node'
-  )
-  assert.match(
-    controlFlowOutput,
-    /setLocalVariable\(forEachSum\.localVariable,\s*f\.addition\(forEachSum\.value,\s*value\)\)/
-  )
-  assert.match(
-    controlFlowOutput,
-    /setLocalVariable\(mutableFloatRemainder\.localVariable,\s*f\.subtraction\(/,
-    'float %= must lower through the client truncating modulo formula'
-  )
-  assert.match(
-    controlFlowOutput,
-    /const classicForSum = f\.__gstsInitLocalVariable\("int"\)[\s\S]*const whileIndex = f\.__gstsInitLocalVariable\("int"\)[\s\S]*const doWhileIndex = f\.__gstsInitLocalVariable\("int"\)/,
-    'injectable example must exercise for, while, and do...while lowering'
-  )
-  assert.match(controlFlowOutput, /f\.enumerationMatch\(f\.getEntitySType\(selfEntity\)/)
-  assert.match(
-    controlFlowOutput,
-    /f\.getRayDetectionResult\([\s\S]*\[EntityType\.Stage,\s*EntityType\.Creation\],[\s\S]*\[RayFilterType\.Hurtbox,\s*RayFilterType\.Scene\]/
-  )
-  assert.doesNotMatch(
-    controlFlowOutput,
-    /assemblyList\(\[EntityType\.Stage|assemblyList\(\[RayFilterType\.Hurtbox/,
-    'client enum-list arguments must remain literals until IR -> GIA expansion'
-  )
-  assert.doesNotMatch(controlFlowOutput, /\.moduloOperation\(/)
-  assert.doesNotMatch(controlFlowOutput, /\.multipleBranches\(/)
-  assert.strictEqual(
-    (controlFlowOutput.match(/\.equal\(__gsts_switch_control_\d+,\s*(?:0|1|2)n?\)/g) ?? []).length,
-    3,
-    'creation_skill switch fallback must emit one comparison for every case'
-  )
-  assert.doesNotMatch(
-    controlFlowOutput,
-    /__gsts_(?:includes|some)_out_/,
-    'server and client includes should use their native data node directly'
-  )
-  await import(`${pathToFileURL(controlFlowResult.entryOutFiles[0]).href}?test=${Date.now()}`)
-  const controlFlowDocument = buildClientGraphRegistriesIRDocuments().find(
-    (document) => document.graph.id === 1082130783
-  )
-  assert.ok(controlFlowDocument, 'missing injectable client control-flow example graph')
-  const controlFlowNodeTypes = new Set(controlFlowDocument.nodes?.map((node) => node.type) ?? [])
-  for (const nodeType of [
-    'finite_loop',
-    'break_loop',
-    'get_corresponding_value_from_list',
-    'get_list_length',
-    'get_local_variable',
-    'set_local_variable',
-    'double_branch',
-    'division',
-    'multiplication',
-    'subtraction',
-    'list_includes_this_value',
-    'enumeration_match',
-    'get_ray_detection_result',
-    'notify_server_node_graph'
-  ]) {
-    assert.ok(controlFlowNodeTypes.has(nodeType), `control-flow example missing ${nodeType}`)
+  const controlFlowExamples = [
+    {
+      mode: 'beyond',
+      file: path.join(root, 'tests/manual/client-control-flow/beyond.ts'),
+      graphId: 1082130437,
+      ternaryId: 1082130441,
+      statusId: 1082130438,
+      decisionId: 1082130439
+    },
+    {
+      mode: 'classic',
+      file: path.join(root, 'tests/manual/client-control-flow/classic.ts'),
+      graphId: 1082130435,
+      ternaryId: 1082130436,
+      statusId: 1082130433,
+      decisionId: 1082130434
+    }
+  ] as const
+  let referenceControlFlowCounts: Record<string, number> | undefined
+
+  for (const example of controlFlowExamples) {
+    const controlFlowResult = await compile([relative(example.file)])
+    const controlFlowOutput = fs.readFileSync(controlFlowResult.entryOutFiles[0], 'utf8')
+    assert.match(controlFlowOutput, /\.listIterationLoop\(/)
+    assert.match(controlFlowOutput, /\.continue\(\)/)
+    assert.match(controlFlowOutput, /\.return\(\)/)
+    assert.match(controlFlowOutput, /\.division\(/)
+    assert.match(controlFlowOutput, /\.listIncludesThisValue\(/)
+    assert.match(controlFlowOutput, /\.sendSignalToServerNodeGraph\(/)
+    assert.match(
+      controlFlowOutput,
+      /const hasFourViaSimpleSome = f\.listIncludesThisValue\(4n,\s*values\.value\)/,
+      'simple some(value => value === expected) must use the native includes node'
+    )
+    assert.match(
+      controlFlowOutput,
+      /setLocalVariable\(forEachSum\.localVariable,\s*f\.addition\(forEachSum\.value,\s*value\)\)/
+    )
+    assert.match(
+      controlFlowOutput,
+      /setLocalVariable\(mutableFloatRemainder\.localVariable,\s*f\.subtraction\(/,
+      'float %= must lower through the client truncating modulo formula'
+    )
+    assert.match(
+      controlFlowOutput,
+      /const classicForSum = f\.__gstsInitLocalVariable\("int"\)[\s\S]*const whileIndex = f\.__gstsInitLocalVariable\("int"\)[\s\S]*const doWhileIndex = f\.__gstsInitLocalVariable\("int"\)/,
+      'injectable example must exercise for, while, and do...while lowering'
+    )
+    assert.match(controlFlowOutput, /f\.enumerationMatch\(f\.getEntitySType\(selfEntity\)/)
+    assert.match(
+      controlFlowOutput,
+      /f\.getRayDetectionResult\([\s\S]*\[EntityType\.Stage,\s*EntityType\.Creation\],[\s\S]*\[RayFilterType\.Hurtbox,\s*RayFilterType\.Scene\]/
+    )
+    assert.doesNotMatch(
+      controlFlowOutput,
+      /assemblyList\(\[EntityType\.Stage|assemblyList\(\[RayFilterType\.Hurtbox/,
+      'client enum-list arguments must remain literals until IR -> GIA expansion'
+    )
+    assert.doesNotMatch(controlFlowOutput, /\.moduloOperation\(/)
+    assert.doesNotMatch(controlFlowOutput, /\.multipleBranches\(/)
+    assert.strictEqual(
+      (controlFlowOutput.match(/\.equal\(__gsts_switch_control_\d+,\s*(?:0|1|2)n?\)/g) ?? [])
+        .length,
+      3,
+      'creation_skill switch fallback must emit one comparison for every case'
+    )
+    assert.doesNotMatch(
+      controlFlowOutput,
+      /__gsts_(?:includes|some)_out_/,
+      'server and client includes should use their native data node directly'
+    )
+
+    await import(`${pathToFileURL(controlFlowResult.entryOutFiles[0]).href}?test=${Date.now()}`)
+    const documents = buildClientGraphRegistriesIRDocuments()
+    const controlFlowDocument = documents.find((document) => document.graph.id === example.graphId)
+    assert.ok(controlFlowDocument, `missing ${example.mode} client control-flow example graph`)
+    assert.strictEqual(controlFlowDocument.graph.mode, example.mode)
+    const controlFlowNodeTypes = new Set(controlFlowDocument.nodes?.map((node) => node.type) ?? [])
+    for (const nodeType of [
+      'finite_loop',
+      'break_loop',
+      'get_corresponding_value_from_list',
+      'get_list_length',
+      'get_local_variable',
+      'set_local_variable',
+      'double_branch',
+      'division',
+      'multiplication',
+      'subtraction',
+      'list_includes_this_value',
+      'enumeration_match',
+      'get_ray_detection_result',
+      'send_signal_to_server_node_graph'
+    ]) {
+      assert.ok(
+        controlFlowNodeTypes.has(nodeType),
+        `${example.mode} control-flow example missing ${nodeType}`
+      )
+    }
+    assert.ok(
+      !controlFlowNodeTypes.has('multiple_branches'),
+      'creation_skill switch must lower through doubleBranch'
+    )
+
+    const finiteLoopCount =
+      controlFlowDocument.nodes?.filter((node) => node.type === 'finite_loop').length ?? 0
+    const falseWritesByVariable = new Map<string, number>()
+    for (const node of controlFlowDocument.nodes ?? []) {
+      if (
+        node.type !== 'set_local_variable' ||
+        node.args?.[0]?.type !== 'str' ||
+        node.args?.[1]?.type !== 'bool' ||
+        node.args[1].value !== false
+      ) {
+        continue
+      }
+      const name = node.args[0].value
+      falseWritesByVariable.set(name, (falseWritesByVariable.get(name) ?? 0) + 1)
+    }
+    const [returnGateName, returnGateResetCount] = [...falseWritesByVariable].sort(
+      (left, right) => right[1] - left[1]
+    )[0] ?? ['', 0]
+    assert.ok(finiteLoopCount > 0, `${example.mode} example must contain finite loops`)
+    assert.strictEqual(
+      returnGateResetCount,
+      finiteLoopCount,
+      `${example.mode} must reset one shared return gate before every finite loop`
+    )
+    assert.ok(
+      (controlFlowDocument.nodes ?? []).some(
+        (node) =>
+          node.type === 'set_local_variable' &&
+          node.args?.[0]?.type === 'str' &&
+          node.args[0].value === returnGateName &&
+          node.args?.[1]?.type === 'bool' &&
+          node.args[1].value === true
+      ),
+      `${example.mode} nested return must write the shared return gate`
+    )
+
+    const currentCounts = Object.fromEntries(
+      [
+        'finite_loop',
+        'get_local_variable',
+        'set_local_variable',
+        'double_branch',
+        'send_signal_to_server_node_graph'
+      ].map((nodeType) => [
+        nodeType,
+        controlFlowDocument.nodes?.filter((node) => node.type === nodeType).length ?? 0
+      ])
+    )
+    if (referenceControlFlowCounts) {
+      assert.deepStrictEqual(
+        currentCounts,
+        referenceControlFlowCounts,
+        'classic and beyond examples must retain the same control-flow structure'
+      )
+    } else {
+      referenceControlFlowCounts = currentCounts
+    }
+
+    const ternaryProbeDocument = documents.find(
+      (document) => document.graph.id === example.ternaryId
+    )
+    assert.ok(ternaryProbeDocument, `missing ${example.mode} client data-ternary probe graph`)
+    assert.strictEqual(ternaryProbeDocument.graph.mode, example.mode)
+    const ternaryProbeNodeTypes = new Set(
+      ternaryProbeDocument.nodes?.map((node) => node.type) ?? []
+    )
+    for (const nodeType of [
+      'division',
+      'equal',
+      'logical_not_operation',
+      'data_type_conversion_int',
+      'multiplication',
+      'addition'
+    ]) {
+      assert.ok(
+        ternaryProbeNodeTypes.has(nodeType),
+        `${example.mode} data ternary probe missing ${nodeType}`
+      )
+    }
+
+    const statusDocument = documents.find((document) => document.graph.id === example.statusId)
+    assert.ok(statusDocument, `missing ${example.mode} control-flow status graph`)
+    const statusEntry = statusDocument.nodes?.find((node) => node.type === 'node_graph_begins')
+    assert.deepStrictEqual(
+      (statusEntry?.next ?? [])
+        .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
+        .sort((a, b) => a - b),
+      [0, 1],
+      `${example.mode} control-flow status graph must expose attack=start1 and pursuit=start2`
+    )
+    const terminalNodeIds = new Set(
+      statusDocument.nodes
+        ?.filter((node) => node.type === 'continue_executing_previous_frame_behavior')
+        .map((node) => node.id) ?? []
+    )
+    assert.strictEqual(terminalNodeIds.size, 2)
+    for (const actionType of ['execute_skill', 'tactic_move_to_the_target_entity']) {
+      const action = statusDocument.nodes?.find((node) => node.type === actionType)
+      const next = action?.next?.[0]
+      assert.ok(
+        next !== undefined && terminalNodeIds.has(typeof next === 'number' ? next : next.node_id),
+        `${example.mode} control-flow ${actionType} failure output must lead to its terminal fallback`
+      )
+    }
+
+    const decisionDocument = documents.find((document) => document.graph.id === example.decisionId)
+    assert.ok(decisionDocument, `missing ${example.mode} control-flow decision graph`)
+    for (const nodeType of [
+      'check_whether_self_is_in_battle',
+      'check_the_horizontal_distance_from_self_to_target',
+      'less_than',
+      'double_branch',
+      'switch_to_self_execution_status'
+    ]) {
+      assert.ok(
+        decisionDocument.nodes?.some((node) => node.type === nodeType),
+        `${example.mode} control-flow decision graph misses ${nodeType}`
+      )
+    }
+    const switchIndexes =
+      decisionDocument.nodes
+        ?.filter((node) => node.type === 'switch_to_self_execution_status')
+        .map((node) => {
+          assert.strictEqual(node.args?.[1]?.type, 'config_id')
+          assert.strictEqual(node.args?.[1]?.value, example.statusId)
+          assert.strictEqual(node.args?.[2]?.type, 'int')
+          return Number(node.args?.[2]?.value)
+        })
+        .sort((a, b) => a - b) ?? []
+    assert.deepStrictEqual(
+      switchIndexes,
+      [1, 2],
+      `${example.mode} control-flow decision graph must switch to status start1/start2`
+    )
+
+    assert.ok(
+      irToGia(controlFlowDocument, { protoPath }).length > 0,
+      `${example.mode} client control-flow example GIA is empty`
+    )
+    assert.ok(
+      irToGia(statusDocument, { protoPath }).length > 0,
+      `${example.mode} control-flow status GIA is empty`
+    )
+    assert.ok(
+      irToGia(decisionDocument, { protoPath }).length > 0,
+      `${example.mode} control-flow decision GIA is empty`
+    )
   }
-  assert.ok(
-    !controlFlowNodeTypes.has('multiple_branches'),
-    'creation_skill switch must lower through doubleBranch'
-  )
-  const ternaryProbeDocument = buildClientGraphRegistriesIRDocuments().find(
-    (document) => document.graph.id === 1082130785
-  )
-  assert.ok(ternaryProbeDocument, 'missing injectable client data-ternary probe graph')
-  const ternaryProbeNodeTypes = new Set(ternaryProbeDocument.nodes?.map((node) => node.type) ?? [])
-  for (const nodeType of [
-    'division',
-    'equal',
-    'logical_not_operation',
-    'data_type_conversion_int',
-    'multiplication',
-    'addition'
-  ]) {
-    assert.ok(ternaryProbeNodeTypes.has(nodeType), `data ternary probe missing ${nodeType}`)
+
+  const featureExamples = [
+    {
+      mode: 'beyond',
+      file: path.join(root, 'tests/manual/features/beyond.ts'),
+      graphs: [
+        [1082130437, 'character_skill'],
+        [1082130438, 'character_control_skill'],
+        [1082130439, 'creation_skill'],
+        [1082130440, 'creation_status'],
+        [1082130441, 'creation_status_decision'],
+        [1082130442, 'bool_filter'],
+        [1082130443, 'int_filter']
+      ],
+      statusId: 1082130440,
+      decisionId: 1082130441,
+      signalGraphIds: [1082130437, 1082130438, 1082130439]
+    },
+    {
+      mode: 'classic',
+      file: path.join(root, 'tests/manual/features/classic.ts'),
+      graphs: [
+        [1082130444, 'creation_skill'],
+        [1082130445, 'creation_status'],
+        [1082130446, 'creation_status_decision'],
+        [1082130447, 'bool_filter'],
+        [1082130448, 'int_filter']
+      ],
+      statusId: 1082130445,
+      decisionId: 1082130446,
+      signalGraphIds: [1082130444]
+    }
+  ] as const
+
+  for (const example of featureExamples) {
+    const result = await compile([relative(example.file)])
+    const output = fs.readFileSync(result.entryOutFiles[0], 'utf8')
+    assert.match(output, /\.sendSignalToServerNodeGraph\(/)
+    assert.match(output, /gstsClientCreationSkillIncrement/)
+    assert.match(output, /gstsClientCreationStatusIncrement/)
+    assert.match(output, /gstsClientCreationStatusDecisionIncrement/)
+    assert.match(output, /gstsClientBoolFilterNot/)
+    assert.match(output, /gstsClientIntFilterIncrement/)
+
+    const documents = buildClientDocumentsInIsolatedProcess(result.entryOutFiles[0])
+    for (const [graphId, subType] of example.graphs) {
+      const document = documents.find((candidate) => candidate.graph.id === graphId)
+      assert.ok(document, `missing ${example.mode} feature graph id=${graphId}`)
+      assert.strictEqual(document.graph.mode, example.mode)
+      assert.strictEqual(document.graph.sub_type, subType)
+      assert.ok(
+        irToGia(document, { protoPath }).length > 0,
+        `${example.mode} feature graph id=${graphId} GIA is empty`
+      )
+    }
+    for (const graphId of example.signalGraphIds) {
+      const document = documents.find((candidate) => candidate.graph.id === graphId)
+      assert.ok(
+        document?.nodes?.some((node) => node.type === 'send_signal_to_server_node_graph'),
+        `${example.mode} feature graph id=${graphId} must report through the server signal`
+      )
+    }
+
+    const statusDocument = documents.find((candidate) => candidate.graph.id === example.statusId)
+    assert.ok(statusDocument, `missing ${example.mode} movable-monster status graph`)
+    const statusEntry = statusDocument.nodes?.find((node) => node.type === 'node_graph_begins')
+    assert.ok(statusEntry, `${example.mode} status graph must contain its ordered entry`)
+    assert.deepStrictEqual(
+      (statusEntry.next ?? [])
+        .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
+        .sort((a, b) => a - b),
+      [0, 1],
+      `${example.mode} status graph must expose attack=start1 and pursuit=start2`
+    )
+    const statusNodeTypes = statusDocument.nodes?.map((node) => node.type) ?? []
+    for (const nodeType of [
+      'execute_skill',
+      'tactic_move_to_the_target_entity',
+      'continue_executing_previous_frame_behavior'
+    ]) {
+      assert.ok(
+        statusNodeTypes.includes(nodeType),
+        `${example.mode} movable-monster status graph misses ${nodeType}`
+      )
+    }
+    const terminalNodeIds = new Set(
+      statusDocument.nodes
+        ?.filter((node) => node.type === 'continue_executing_previous_frame_behavior')
+        .map((node) => node.id) ?? []
+    )
+    assert.strictEqual(
+      terminalNodeIds.size,
+      2,
+      `${example.mode} attack and pursuit branches must each end in a terminal fallback`
+    )
+    for (const actionType of ['execute_skill', 'tactic_move_to_the_target_entity']) {
+      const action = statusDocument.nodes?.find((node) => node.type === actionType)
+      const next = action?.next?.[0]
+      assert.ok(
+        next !== undefined && terminalNodeIds.has(typeof next === 'number' ? next : next.node_id),
+        `${example.mode} ${actionType} failure output must lead to its terminal fallback`
+      )
+    }
+
+    const decisionDocument = documents.find(
+      (candidate) => candidate.graph.id === example.decisionId
+    )
+    assert.ok(decisionDocument, `missing ${example.mode} movable-monster decision graph`)
+    const decisionNodeTypes = decisionDocument.nodes?.map((node) => node.type) ?? []
+    for (const nodeType of [
+      'check_whether_self_is_in_battle',
+      'check_the_horizontal_distance_from_self_to_target',
+      'less_than',
+      'double_branch',
+      'switch_to_self_execution_status'
+    ]) {
+      assert.ok(
+        decisionNodeTypes.includes(nodeType),
+        `${example.mode} movable-monster decision graph misses ${nodeType}`
+      )
+    }
+    const switches =
+      decisionDocument.nodes?.filter((node) => node.type === 'switch_to_self_execution_status') ??
+      []
+    assert.strictEqual(switches.length, 2)
+    assert.deepStrictEqual(
+      switches
+        .map((node) => {
+          const statusId = node.args?.[1]
+          const startIndex = node.args?.[2]
+          assert.strictEqual(statusId?.type, 'config_id')
+          assert.strictEqual(statusId?.value, example.statusId)
+          assert.strictEqual(startIndex?.type, 'int')
+          return Number(startIndex?.value)
+        })
+        .sort((a, b) => a - b),
+      [1, 2],
+      `${example.mode} decision graph must switch to status start1/start2`
+    )
   }
-  assert.ok(
-    irToGia(controlFlowDocument, { protoPath }).length > 0,
-    'injectable client control-flow example GIA is empty'
-  )
 
   const unoptimizedLoopGraphId = 1082130786
   await expectRuntimeSuccess(

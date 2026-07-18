@@ -1,19 +1,27 @@
 /**
- * GSTS 单文件功能回归案例。
+ * GSTS 超限模式综合功能回归案例。
  *
  * 在仓库根目录运行：
  *   npm run build
- *   node ./bin/gsts.mjs examples/features/index.ts --noinject
+ *   node ./bin/gsts.mjs tests/manual/features/beyond.ts --noinject
  *
- * CLI / 注入相关功能：
- *   node ./bin/gsts.mjs maps
- *   node ./bin/gsts.mjs open backup
- *   node ./bin/gsts.mjs dev
+ * 注入前请创建两个信号：
+ *   feature_probe(amount: int, message: str, enabled: bool, targets: entity_list)
+ *   gsts_feature_log(mode: str, check: str, actual: str, expected: str)
  *
- * 注入、资源提取、信号提取和 dev 自动重新注入由 gsts.config.ts 的 inject 配置控制；
- * 本文件只使用提取结果相同的数据形状，避免回归编译时修改真实地图。
+ * 图 ID 接续 client-control-flow 示例使用的默认 ID 区间：
+ *   1073741827  FeatureAllInOneBeyond               服务器图
+ *   1073741828  FeatureZhHoverBeyond                服务器中文别名图
+ *   1082130437  FeatureCharacterSkillBeyond         角色技能
+ *   1082130438  FeatureCharacterControlSkillBeyond  角色操控技能
+ *   1082130439  FeatureCreationSkillBeyond          造物技能
+ *   1082130440  FeatureCreationStatusBeyond         造物状态
+ *   1082130441  FeatureCreationStatusDecisionBeyond 造物状态决策
+ *   1082130442  FeatureBoolFilterBeyond              bool filter
+ *   1082130443  FeatureIntFilterBeyond               int filter
  */
 
+import { TacticSpeed } from 'genshin-ts/definitions/client_enums'
 import { CharacterPrefab, CharacterPrefabZh } from 'genshin-ts/definitions/prefabs'
 import { defineSignal, g } from 'genshin-ts/runtime/core'
 
@@ -23,6 +31,18 @@ const FeatureSignal = defineSignal('feature_probe', [
   ['enabled', 'bool'],
   ['targets', 'entity_list']
 ])
+
+const FeatureLogSignal = defineSignal('gsts_feature_log', [
+  ['mode', 'str'],
+  ['check', 'str'],
+  ['actual', 'str'],
+  ['expected', 'str']
+])
+
+const MODE = 'beyond'
+const CREATION_SKILL_GRAPH_ID = 1082130439
+const CREATION_STATUS_GRAPH_ID = 1082130440
+const CREATION_STATUS_DECISION_GRAPH_ID = 1082130441
 
 // gsts 从地图提取的 resources/prefabs.ts 也使用这种对象形状。
 const CustomPrefab = {
@@ -90,11 +110,11 @@ const gstsIntFilterDouble = (value: bigint) => value + value
 
 const server = g.server({
   // 悬停以下参数、on 的事件名、evt 和 f，可核验中英文注释。
-  id: 1073742401,
-  name: 'Feature_All_In_One',
+  id: 1073741827,
+  name: 'FeatureAllInOneBeyond',
   prefix: true,
   type: 'entity',
-  mode: 'beyond',
+  mode: MODE,
   lang: 'en',
   variables: {
     score: 0n,
@@ -277,31 +297,37 @@ server
     f.printString(str(evt.params.enabled))
     f.printString(str(evt.params.targets.length))
   })
+  .onSignal(FeatureLogSignal, (evt, f) => {
+    if (evt.params.mode === MODE) {
+      if (evt.params.expected === '<observe>') {
+        f.printString('OBSERVE')
+      } else if (evt.params.actual === evt.params.expected) {
+        f.printString('PASS')
+      } else {
+        f.printString('FAIL')
+      }
+      f.printString(evt.params.check)
+      f.printString(evt.params.actual)
+      f.printString(evt.params.expected)
+    }
+  })
 
 // 中文事件名和中文 f 别名。
-g.server({ id: 1073742402, name: 'Feature_Zh_Hover', lang: 'zh' }).on('实体创建时', (evt, f) => {
+g.server({
+  id: 1073741828,
+  name: 'FeatureZhHoverBeyond',
+  mode: MODE,
+  lang: 'zh'
+}).on('实体创建时', (evt, f) => {
   f.打印字符串(str(evt.eventSourceGuid))
 })
 
-// 经典模式专属事件、节点和 player() 快捷成员。
-g.server({ id: 1073742403, name: 'Feature_Classic', mode: 'classic' })
-  .on('whenEntityIsCreated', (_evt, f) => {
-    const firstPlayer = player(1n)
-    const activeCharacter = firstPlayer.activeCharacter
-    activeCharacter.addElementalEnergy(5)
-    activeCharacter.setElementalEnergy(25)
-    f.printString(str(activeCharacter.classicModeId))
-  })
-  .on('whenTheActiveCharacterChanges', (_evt, f) => {
-    f.printString('active character changed')
-  })
-
 // 七类客户端图同样覆盖配置、语言/模式、直接运算、流程控制、全局别名和 gsts.fXxx。
 g.characterSkill({
-  id: 1082130701,
-  name: 'Feature_Character_Skill',
+  id: 1082130437,
+  name: 'FeatureCharacterSkillBeyond',
   prefix: true,
-  mode: 'beyond',
+  mode: MODE,
   lang: 'en'
 }).on('start', (_evt, f) => {
   // gstsCharacterXxx 函数、直接算术运算和客户端 Vector3 / Mathf / GameObject 别名。
@@ -368,94 +394,206 @@ g.characterSkill({
       gsts.fCharacterSkill.notifyServerNodeGraph('start', '', '')
       break
     default:
-      gsts.fCharacterSkill.sendSignalToServerNodeGraph('feature_debug', str(Math.max(1, 2)))
+      gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+        FeatureLogSignal,
+        MODE,
+        'character-skill-math-max',
+        str(Math.max(1, 2)),
+        '2'
+      )
       break
   }
 
   gsts.fCharacterSkill.sendSignalToServerNodeGraph(
-    'feature_debug',
+    FeatureLogSignal,
+    MODE,
+    'character-skill-arithmetic',
     str(directFirstValue + rawValue),
-    convertedString,
-    stringValue
+    '25'
   )
   gsts.fCharacterSkill.sendSignalToServerNodeGraph(
-    'feature_debug',
+    FeatureLogSignal,
+    MODE,
+    'character-skill-wrapper-number',
     str(numberValue),
-    str(booleanValue),
-    str(customScore + lookupValue + prefabScore + factionScore)
+    '2'
   )
   gsts.fCharacterSkill.sendSignalToServerNodeGraph(
-    'feature_debug',
+    FeatureLogSignal,
+    MODE,
+    'character-skill-wrapper-string-native',
+    stringValue,
+    '2'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-wrapper-bool',
+    str(int(booleanValue)),
+    '1'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-wrapper-string',
+    convertedString,
+    '<observe>'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-dictionary-size',
     str(lookupKeyCount + lookupValueCount + lookupSize),
-    str(lookupExists),
-    str(targetFaction)
+    '3'
   )
   gsts.fCharacterSkill.sendSignalToServerNodeGraph(
-    'feature_debug',
-    str(floorToInt),
-    str(ceilToInt),
-    str(trigonometric)
+    FeatureLogSignal,
+    MODE,
+    'character-skill-dictionary-has',
+    str(int(lookupExists)),
+    '1'
   )
   gsts.fCharacterSkill.sendSignalToServerNodeGraph(
-    'feature_debug',
-    str(Vector3.Magnitude(Vector3.Add(targetPosition, vectorValue))),
-    str(Vector3.Magnitude(entityValue.pos)),
-    str(Vector3.Magnitude(target))
+    FeatureLogSignal,
+    MODE,
+    'character-skill-rounding',
+    str(floorToInt + ceilToInt),
+    '0'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-trigonometric',
+    str(trigonometric),
+    '<observe>'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-scene-int-values',
+    str(customScore + lookupValue + prefabScore + factionScore),
+    '<observe>'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-scene-faction',
+    str(targetFaction),
+    '<observe>'
+  )
+  gsts.fCharacterSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-skill-scene-vector-values',
+    str(
+      Vector3.Magnitude(Vector3.Add(targetPosition, vectorValue)) +
+        Vector3.Magnitude(entityValue.pos) +
+        Vector3.Magnitude(target)
+    ),
+    '<observe>'
   )
   send(FeatureSignal, directValue, 'client', true, [targetEntity])
 })
 
 // lang: 'zh' 开启客户端 f 的中文节点别名；start 是客户端固定入口事件名。
 g.characterControlSkill({
-  id: 1082130702,
-  name: 'Feature_Character_Control_Skill_Zh',
+  id: 1082130438,
+  name: 'FeatureCharacterControlSkillBeyondZh',
+  mode: MODE,
   lang: 'zh'
 }).on('start', (_evt, f) => {
   const motor = f.获取当前跟随操控运动器()
   const helperValue = gstsClientCharacterControlSkillIncrement(gstsCharacterControlSkillDouble(1n))
   f.添加速度(motor, float(helperValue), Vector3.up, 0.5)
   gsts.fCharacterControlSkill.setControlMotorToUngroundedState(motor, 0.2)
+  gsts.fCharacterControlSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'character-control-helper',
+    str(helperValue),
+    '3'
+  )
 })
 
-// 造物技能支持经典模式；同时核验中文别名、经典专属节点、self 和直接算术。
+// 造物技能超限模式：辅助函数、中文别名、实体移动和技能变量。
 g.creationSkill({
-  id: 1082130703,
-  name: 'Feature_Creation_Skill_Classic_Zh',
-  mode: 'classic',
+  id: CREATION_SKILL_GRAPH_ID,
+  name: 'FeatureCreationSkillBeyondZh',
+  mode: MODE,
   lang: 'zh'
 }).on('start', (_evt, f) => {
-  const classicCharacterId = f.查询经典模式角色编号(self)
-  const helperValue = gstsClientCreationSkillIncrement(gstsCreationSkillDouble(classicCharacterId))
+  const helperValue = gstsClientCreationSkillIncrement(gstsCreationSkillDouble(1n))
   f.复杂造物瞬移(Vector3.Add(Vector3.up, Vector3.forward), Vector3.zero)
   gsts.fCreationSkill.setSkillVariable(configId(1n), float(helperValue))
+  gsts.fCreationSkill.sendSignalToServerNodeGraph(
+    FeatureLogSignal,
+    MODE,
+    'creation-skill-helper',
+    str(helperValue),
+    '3'
+  )
 })
 
-g.creationStatus({ id: 1082130704, name: 'Feature_Creation_Status' }).on('start', (_evt, f) => {
-  const skillIndex = f.getRandomNumber(0n, 2n) + 1n
-  const helperIndex = gstsClientCreationStatusIncrement(gstsCreationStatusDouble(skillIndex))
-  const sameStageEntity = f.equal(stage, level)
-  gsts.fCreationStatus.executeSkill(sameStageEntity, helperIndex)
+/**
+ * 可动怪物的状态图：
+ *
+ * - start1：攻击状态，释放造物技能序号 1。
+ * - start2：索敌/追击状态，移动到当前目标实体。
+ *
+ * 下面每组代码虽然按顺序书写，但第二条只连接到第一条行为节点的【失败执行】引脚；
+ * 因此前一行为成功或持续执行时，不会执行“继续执行前一帧行为”。
+ */
+const creationStatusBeyond = g.creationStatus({
+  id: CREATION_STATUS_GRAPH_ID,
+  name: 'FeatureCreationStatusBeyond',
+  mode: MODE
 })
 
-g.creationStatusDecision({ id: 1082130705, name: 'Feature_Creation_Status_Decision' }).on(
-  'start',
-  (_evt, f) => {
-    const helperValue = gstsClientCreationStatusDecisionIncrement(
-      gstsCreationStatusDecisionDouble(1n)
-    )
-    const ready = f.greaterThan(float(helperValue), 0)
-    gsts.fCreationStatusDecision.doubleBranch(
-      ready,
-      () => {},
-      () => {}
-    )
+creationStatusBeyond.on('start1', (_evt, f) => {
+  f.executeSkill(true, 1n)
+  f.continueExecutingPreviousFrameBehavior()
+})
+
+creationStatusBeyond.on('start2', (_evt, f) => {
+  f.tacticMoveToTheTargetEntity(
+    true,
+    f.getTargetEntity(),
+    1,
+    TacticSpeed.Run,
+    360,
+    'feature-pursuit',
+    false
+  )
+  f.continueExecutingPreviousFrameBehavior()
+})
+
+/**
+ * 可动怪物的状态决策图：
+ *
+ * 交战中且距离目标小于 1.5 时切换到状态图 start1（攻击），否则切换到
+ * start2（追击）。【自主逻辑参数序号】1/2 正好对应 start1/start2。
+ *
+ * 在编辑器的造物配置中，将技能序号 1 绑定到 CREATION_SKILL_GRAPH_ID，
+ * 并让自主逻辑引用本决策图与 CREATION_STATUS_GRAPH_ID。
+ */
+g.creationStatusDecision({
+  id: CREATION_STATUS_DECISION_GRAPH_ID,
+  name: 'FeatureCreationStatusDecisionBeyond',
+  mode: MODE
+}).on('start1', (_evt, f) => {
+  if (f.checkWhetherSelfIsInBattle()) {
+    if (f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5) {
+      f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), 1n)
+    } else {
+      f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), 2n)
+    }
   }
-)
+})
 
 g.boolFilter({
-  id: 1082130706,
-  name: 'Feature_Bool_Filter_Classic_Zh',
-  mode: 'classic',
+  id: 1082130442,
+  name: 'FeatureBoolFilterBeyondZh',
+  mode: MODE,
   lang: 'zh'
 }).on('start', (_evt, f) => {
   const roll = f.获取随机数(1n, 10n)
@@ -464,8 +602,9 @@ g.boolFilter({
 })
 
 g.intFilter({
-  id: 1082130707,
-  name: 'Feature_Int_Filter',
+  id: 1082130443,
+  name: 'FeatureIntFilterBeyond',
+  mode: MODE,
   evaluationInterval: 0.5
 }).on('start', (_evt, f) => {
   const roll = f.getRandomNumber(1n, 10n)
@@ -488,8 +627,8 @@ g.intFilter({
  * 客户端边界负例（按需取消注释，应当分别报错）：
  *
  * const clientGraph = g.creationStatus({ id: 1082130790 })
- * clientGraph.on('start', () => {})
- * clientGraph.on('start', () => {}) // 一个客户端图只能注册一个 start
+ * clientGraph.on('start1', () => {})
+ * clientGraph.on('start1', () => {}) // 同一编号只能注册一次
  * g.characterSkill().on('start', () => {
  *   list('int', [1n]).push(2n)       // 客户端没有列表插入节点
  *   self.set('score', 1n)            // 客户端没有自定义变量写入节点
