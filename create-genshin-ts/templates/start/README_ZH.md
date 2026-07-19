@@ -118,6 +118,78 @@ g.server({
 - 新建节点图后必须 **保存地图**，注入器才能识别该 `id`。
 - 建议先创建好一批节点图并保存，再一次性编译注入；否则可能出现“注入 -> 新建 -> 保存”导致注入内容被覆盖的问题。
 
+## 客户端节点图
+
+客户端图也使用 `g.<类型>({ id }).on(...)` 注册。注入前，必须先在编辑器中创建并保存类型相同的客户端节点图，再填写它的真实 ID。
+
+| 节点图类型   | 入口                            | 事件 / 返回值       | 模式       | 用途                                       |
+| ------------ | ------------------------------- | ------------------- | ---------- | ------------------------------------------ |
+| 角色技能     | `g.characterSkill(...)`         | `start`             | 仅超限     | 角色技能的位移、投射物、攻击盒、预瞄等逻辑 |
+| 角色操控技能 | `g.characterControlSkill(...)`  | `start`             | 仅超限     | 操控运动器、移动、转向和预瞄等逻辑         |
+| 造物技能     | `g.creationSkill(...)`          | `start`             | 超限、经典 | 造物技能的表现与执行逻辑                   |
+| 造物状态     | `g.creationStatus(...)`         | `start1`～`start10` | 超限、经典 | 造物的攻击、索敌、移动等持续行为           |
+| 造物状态决策 | `g.creationStatusDecision(...)` | `start1`～`start10` | 超限、经典 | 按条件选择要执行的造物状态图               |
+| 布尔过滤器   | `g.boolFilter(...)`             | `start`，返回布尔值 | 超限、经典 | 向引用方输出最终布尔结果                   |
+| 整数过滤器   | `g.intFilter(...)`              | `start`，返回整数   | 超限、经典 | 向引用方输出最终整数结果                   |
+
+```ts
+g.characterSkill({ id: CHARACTER_SKILL_ID }).on('start', (_evt, f) => {})
+g.characterControlSkill({ id: CHARACTER_CONTROL_SKILL_ID }).on('start', (_evt, f) => {})
+g.creationSkill({ id: CREATION_SKILL_ID, mode: 'classic' }).on('start', (_evt, f) => {})
+
+g.creationStatus({ id: CREATION_STATUS_ID }).on('start1', (_evt, f) => {
+  f.executeSkill(true, 1)
+})
+
+g.creationStatusDecision({ id: CREATION_STATUS_DECISION_ID }).on('start1', (_evt, f) => {
+  f.switchToSelfExecutionStatus(true, CREATION_STATUS_ID, 1)
+})
+
+g.boolFilter({
+  id: BOOL_FILTER_ID,
+  evaluationInterval: 0.5
+}).on('start', (_evt, f) => {
+  return f.getRandomNumber(1, 10) > 5
+})
+
+g.intFilter({ id: INT_FILTER_ID }).on('start', (_evt, f) => {
+  return f.getRandomNumber(1, 10)
+})
+```
+
+要点：
+
+- 所有客户端入口都支持 `id`、`name`、`prefix`、`mode`、`lang`；`lang: 'zh'` 会开启当前图的中文 `f` 别名。
+- 过滤器额外支持 `evaluationInterval`，单位为秒，默认 `0.3`。
+- 造物状态和造物状态决策的 `start1`～`start10` 对应【按顺序唯一执行】引脚，用于拆分代码，不是十个独立状态。
+- 这两类状态图内顺序书写的行为通过前一个行为的【失败执行】引脚连接；下一条语句只在前一个行为失败时执行。
+- `f` 会按客户端图类型和模式提供不同的方法；服务器图函数不一定可用，请以类型提示和 ESLint 为准。
+- 常用算术和比较运算符可以直接写，例如 `value > 5` 会编译为当前客户端图的 `greaterThan` 节点。
+
+### `clientEntity(...)`
+
+该全局辅助函数只能在客户端图处理函数内使用：
+
+- `clientEntity(0)` / `clientEntity(null)`：实体占位，保持参数引脚不连接。
+- `clientEntity(10001)`：使用当前客户端图的 GUID 查询节点获取实体；当前图没有该节点时会报错。
+- `clientEntity(otherEntity)`：保持原实体值，并将类型收窄为当前客户端图可用的实体快捷方法，适合包装 `self` 或 `GameObject.Find(...)` 的结果。
+
+```ts
+g.characterSkill({ id: CHARACTER_SKILL_ID }).on('start', (_evt, f) => {
+  const byGuid = clientEntity(10001)
+  const found = clientEntity(GameObject.Find(10002))
+  const placeholder = clientEntity(0)
+
+  // 客户端 f 返回的实体已经是正确的 clientEntity 类型。
+  const typedTarget = f.queryEntityByGuid(10003)
+  const targetPosition = found.pos
+})
+```
+
+需要在顶层客户端复用函数中访问节点 API 时，使用与图类型对应的 `gsts.fCharacterSkill`、`gsts.fCharacterControlSkill`、`gsts.fCreationSkill`、`gsts.fCreationStatus`、`gsts.fCreationStatusDecision`、`gsts.fBoolFilter` 或 `gsts.fIntFilter`。`gsts.f` / `gsts.fServer` 仍属于服务器节点图。
+
+完整说明与示例见：`https://gsts.moe/zh/doc/events/client-graphs`。
+
 ## gsts.config 优化配置（默认启用）
 
 `gsts.config.ts` 的 `options.optimize` 默认全开，常见项：
@@ -169,6 +241,7 @@ g.server({
 - `bool(...)` / `int(...)` / `float(...)` / `str(...)`：显式类型转换。
 - `idx(...)`：用于让 `bigint` / `IntValue` 索引通过 TypeScript 类型检查（仅用于通过类型检查，不改变节点图整数语义）。
 - `vec3(...)` / `guid(...)` / `prefabId(...)` / `configId(...)` / `faction(...)` / `entity(...)`：常用类型构造。
+- `clientEntity(...)`：仅客户端图使用；查询或收窄实体，并提供当前客户端图可用的实体快捷方法。
 - `list('int', items)`：显式声明列表类型（空数组时尤为重要）。
 - `dict(...)`：声明只读字典（节点图变量字典需用 `f.get` / `f.set`）。
 - `raw(...)`：编译器不处理，按 JS 原生语义执行（仅在必要时使用）。
