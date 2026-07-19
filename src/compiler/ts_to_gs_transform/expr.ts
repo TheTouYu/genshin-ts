@@ -198,7 +198,7 @@ function getEnumTypeInfo(env: Env, t: ts.Type): EnumTypeInfo {
         else if (name !== info.name) name = null
       }
     }
-    return { isEnum: u.types.length > 0, name }
+    return { isEnum: u.types.length > 0, name: t.aliasSymbol?.getName() ?? name }
   }
 
   if (t.flags & ts.TypeFlags.Intersection) {
@@ -212,13 +212,66 @@ function getEnumTypeInfo(env: Env, t: ts.Type): EnumTypeInfo {
         else if (name !== info.name) name = null
       }
     }
-    return { isEnum: it.types.length > 0, name }
+    return { isEnum: it.types.length > 0, name: t.aliasSymbol?.getName() ?? name }
   }
 
   if (!isEnumClassType(env, t)) return { isEnum: false, name: null }
   const sym = t.getSymbol() ?? t.aliasSymbol
   const name = sym?.getName() ?? null
   return { isEnum: true, name: name === 'enumeration' ? null : name }
+}
+
+/**
+ * Returns the shared/server enum class behind a branded client-only interface.
+ * For example, both BasicMathematicalOperator and QuickMathematicalOperator
+ * resolve to MathematicalOperator. Client graph comparisons still use their
+ * immediate type names so different editor rows remain incompatible. Classes
+ * declared only in client_enums.ts intentionally do not resolve here.
+ */
+function getEnumRuntimeClassName(env: Env, t: ts.Type): string | null {
+  const seen = new Set<ts.Type>()
+  const visit = (current: ts.Type): string | null => {
+    if (seen.has(current)) return null
+    seen.add(current)
+
+    if (current.flags & ts.TypeFlags.TypeParameter) {
+      const constraint = env.checker.getBaseConstraintOfType(current)
+      return constraint ? visit(constraint) : null
+    }
+    if (current.flags & (ts.TypeFlags.Union | ts.TypeFlags.Intersection)) {
+      const names = new Set(
+        (current as ts.UnionOrIntersectionType).types
+          .map(visit)
+          .filter((name): name is string => name !== null)
+      )
+      return names.size === 1 ? [...names][0] : null
+    }
+    if ((current.flags & ts.TypeFlags.Object) === 0) return null
+
+    const symbol = current.getSymbol() ?? current.aliasSymbol
+    const name = symbol?.getName()
+    const classDeclaration = symbol?.declarations?.find((declaration) =>
+      ts.isClassDeclaration(declaration)
+    )
+    if (
+      name &&
+      name !== 'enumeration' &&
+      classDeclaration &&
+      /[\\/]definitions[\\/]enum(?:\.d)?\.ts$/i.test(classDeclaration.getSourceFile().fileName) &&
+      isEnumClassType(env, current)
+    ) {
+      return name
+    }
+
+    const object = current as ts.ObjectType
+    if ((object.objectFlags & ts.ObjectFlags.ClassOrInterface) === 0) return null
+    for (const base of env.checker.getBaseTypes(object as ts.InterfaceType) ?? []) {
+      const baseName = visit(base)
+      if (baseName) return baseName
+    }
+    return null
+  }
+  return visit(t)
 }
 
 function isLoopIndexIdentifier(env: Env, expr: ts.Expression): expr is ts.Identifier {
@@ -2151,14 +2204,24 @@ export function transformExpression(
       op === ts.SyntaxKind.ExclamationEqualsToken ||
       op === ts.SyntaxKind.ExclamationEqualsEqualsToken
     ) {
-      const leftEnum = getEnumTypeInfo(env, env.checker.getTypeAtLocation(expr.left))
-      const rightEnum = getEnumTypeInfo(env, env.checker.getTypeAtLocation(expr.right))
+      const leftType = env.checker.getTypeAtLocation(expr.left)
+      const rightType = env.checker.getTypeAtLocation(expr.right)
+      const leftEnum = getEnumTypeInfo(env, leftType)
+      const rightEnum = getEnumTypeInfo(env, rightType)
       if (leftEnum.isEnum || rightEnum.isEnum) {
         if (!leftEnum.isEnum || !rightEnum.isEnum) {
           fail(env, expr, 'enum comparison requires both sides to be enum values')
         }
         if (leftEnum.name && rightEnum.name && leftEnum.name !== rightEnum.name) {
-          fail(env, expr, `enum comparison type mismatch (${leftEnum.name} vs ${rightEnum.name})`)
+          const leftRuntimeClass =
+            env.graphDocumentType === 'server' ? getEnumRuntimeClassName(env, leftType) : null
+          const sameServerEnumClass =
+            env.graphDocumentType === 'server' &&
+            leftRuntimeClass !== null &&
+            leftRuntimeClass === getEnumRuntimeClassName(env, rightType)
+          if (!sameServerEnumClass) {
+            fail(env, expr, `enum comparison type mismatch (${leftEnum.name} vs ${rightEnum.name})`)
+          }
         }
         const eq = makeFCall(env, 'enumerationsEqual', [left, right])
         return op === ts.SyntaxKind.EqualsEqualsToken ||

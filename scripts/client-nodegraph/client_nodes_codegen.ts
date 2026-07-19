@@ -1469,11 +1469,10 @@ function emitReflectMethod(spec: MethodSpec): string {
 }
 
 /**
- * 枚举匹配 mirrors the server's enumerationsEqual: one same-class overload per
- * census-representable enum class (编辑器下拉行) plus a generic implementation
- * signature, so IntelliSense offers concrete classes and mixed-class
- * comparisons fail to compile. Non-census classes (RayFilterType 等) are not
- * selectable in the editor and get no overload.
+ * 枚举匹配 mirrors the server's enumerationsEqual: one overload per editor
+ * dropdown row. Rows that split one server enum use branded value subtypes;
+ * client-only duplicate rows use their own enum classes. Mixed-row and
+ * mixed-class comparisons therefore fail during type checking.
  */
 function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
   const [p1, p2] = spec.params.map((p) => p.ident)
@@ -3275,7 +3274,9 @@ class ClientExecutionFlowFunctionsBase<
     'EnumerationType',
     'EnumerationTypeMap'
   ].filter(usesIdent)
-  const clientEnumImports = enumBinding.clientOnlyClasses.map((c) => c.className).filter(usesIdent)
+  const clientEnumImports = enumBinding.clientOnlyClasses
+    .flatMap((c) => [c.className, ...(c.typeInterfaces ?? []).map((type) => type.name)])
+    .filter(usesIdent)
   const enumImportLines = [
     serverEnumImports.length
       ? `import type { ${serverEnumImports.join(', ')} } from './enum.js'`

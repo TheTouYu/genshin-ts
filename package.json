@@ -64,7 +64,7 @@
   ],
   "scripts": {
     "pretest": "node scripts/clean-tests.mjs",
-    "test": "npm run build && tsx scripts/generate-node-gia-tests.ts && tsx scripts/generate-enum-gia-tests.ts && node ./bin/gsts.mjs -c gsts.test.config.ts",
+    "test": "npm run build && tsx scripts/generate-node-gia-tests.ts && tsx scripts/generate-enum-gia-tests.ts && node ./bin/gsts.mjs -c gsts.test.config.ts && tsx scripts/nodegraph/assert-enum-combinations.ts",
     "quicktest": "npm run build && node ./bin/gsts.mjs -c gsts.test.config.ts",
     "test:eslint": "tsx tests/eslint/node-graph-rules.test.ts",
     "test:injector": "tsx tests/injector/client-graph-injection.test.ts",
@@ -91,6 +91,7 @@
     "test:client:fixed-pins": "node ./bin/gsts.mjs tests/manual/client-nodes/fixed-pin-regression.ts -c ./gsts.test.config.ts --noinject && tsx ./scripts/client-nodegraph/assert-client-fixed-pin-regression.ts",
     "test:server:metadata": "tsx ./scripts/server-nodegraph/generate-server-node-metadata.ts --check && tsx ./scripts/server-nodegraph/assert-server-generic-metadata.ts",
     "test:server:enum-equality": "node ./bin/gsts.mjs tests/enum_operator_equal.ts -c ./gsts.test.config.ts --noinject && tsx ./scripts/server-nodegraph/assert-server-enum-equality.ts",
+    "test:enum-combinations": "npm run build && tsx scripts/nodegraph/assert-enum-combinations.ts",
     "test:server:latest": "npm run test:server:metadata && npm run build && npm run test:server:enum-equality && node ./bin/gsts.mjs tests/manual_verify_2026_07_server_nodes.ts -c ./gsts.test.config.ts --noinject && tsx ./scripts/server-nodegraph/assert-latest-server-nodes.ts",
     "smoke:client": "npm run build && node ./scripts/smoke-client-capability.mjs",
     "to-gs": "tsx ./src/compiler/ts_to_gs.ts",

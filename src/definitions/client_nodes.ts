@@ -55,6 +55,7 @@ import {
 import type { clientEntity, ClientRuntimeReturnValueTypeMap } from './client_entity_helpers.js'
 import type {
   AttackLayerConfig,
+  CreationStatusTypeConversionSame,
   FilterReturnType,
   HitLevel,
   KnockbackDirectionType,
@@ -68,13 +69,18 @@ import type {
   TacticSpeed,
   TacticType,
   TargetEntity,
-  TargetSortingRules
+  TargetSortingRules,
+  TargetTypeForCameraOrientationNode,
+  TypeConversionSame
 } from './client_enums.js'
 import type {
   AttackShape,
   AttackType,
+  BasicMathematicalOperator,
   CauseOfBeingDown,
   CharacterSkillSlot,
+  ClientElementalReactionType,
+  ClientRoundingMode,
   ComparisonOperator,
   DisruptorDeviceOrientation,
   DisruptorDeviceType,
@@ -89,11 +95,10 @@ import type {
   HitType,
   InputDeviceType,
   LogicalOperator,
-  MathematicalOperator,
   MotionPathPointType,
   MotionType,
+  QuickMathematicalOperator,
   RevivePointSelectionStrategy,
-  RoundingMode,
   SortBy,
   SurvivalStatus,
   TargetType,
@@ -101,7 +106,8 @@ import type {
   TrigonometricFunction,
   TypeConversion,
   UIControlGroupStatus,
-  UnitStatusAdditionResult,
+  UnitStatusAdditionFailureReason,
+  UnitStatusAdditionSuccessType,
   UnitStatusRemovalReason,
   UnitStatusRemovalStrategy
 } from './enum.js'
@@ -1956,7 +1962,12 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -1964,8 +1975,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -1984,17 +1995,19 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -2005,14 +2018,23 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: TypeConversionSame, enumeration2: TypeConversionSame): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,
@@ -11127,7 +11149,12 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -11135,8 +11162,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -11155,17 +11182,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -11176,14 +11205,23 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: TypeConversionSame, enumeration2: TypeConversionSame): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,
@@ -20388,7 +20426,12 @@ export class ClientCreationSkillExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -20396,8 +20439,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -20416,17 +20459,19 @@ export class ClientCreationSkillExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -20437,14 +20482,23 @@ export class ClientCreationSkillExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: TypeConversionSame, enumeration2: TypeConversionSame): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,
@@ -28455,16 +28509,25 @@ export class ClientCreationStatusExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: CreationStatusTypeConversionSame,
+    enumeration2: CreationStatusTypeConversionSame
+  ): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
     enumeration2: DisruptorDeviceOrientation
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -28483,16 +28546,18 @@ export class ClientCreationStatusExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -28504,14 +28569,22 @@ export class ClientCreationStatusExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,
@@ -33221,16 +33294,25 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
+  enumerationMatch(
+    enumeration1: CreationStatusTypeConversionSame,
+    enumeration2: CreationStatusTypeConversionSame
+  ): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
     enumeration2: DisruptorDeviceOrientation
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -33249,16 +33331,18 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -33270,14 +33354,22 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,
@@ -36630,7 +36722,12 @@ export class ClientBoolFilterExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -36638,8 +36735,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -36658,17 +36755,19 @@ export class ClientBoolFilterExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -36679,14 +36778,23 @@ export class ClientBoolFilterExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: TypeConversionSame, enumeration2: TypeConversionSame): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,
@@ -41226,7 +41334,12 @@ export class ClientIntFilterExecutionFlowFunctions<
   enumerationMatch(enumeration1: AttackLayerConfig, enumeration2: AttackLayerConfig): boolean
   enumerationMatch(enumeration1: AttackShape, enumeration2: AttackShape): boolean
   enumerationMatch(enumeration1: AttackType, enumeration2: AttackType): boolean
+  enumerationMatch(
+    enumeration1: BasicMathematicalOperator,
+    enumeration2: BasicMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: CauseOfBeingDown, enumeration2: CauseOfBeingDown): boolean
+  enumerationMatch(enumeration1: ClientRoundingMode, enumeration2: ClientRoundingMode): boolean
   enumerationMatch(enumeration1: ComparisonOperator, enumeration2: ComparisonOperator): boolean
   enumerationMatch(
     enumeration1: DisruptorDeviceOrientation,
@@ -41234,8 +41347,8 @@ export class ClientIntFilterExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: DisruptorDeviceType, enumeration2: DisruptorDeviceType): boolean
   enumerationMatch(
-    enumeration1: ElementalReactionType,
-    enumeration2: ElementalReactionType
+    enumeration1: ElementalReactionType | ClientElementalReactionType,
+    enumeration2: ElementalReactionType | ClientElementalReactionType
   ): boolean
   enumerationMatch(enumeration1: ElementalType, enumeration2: ElementalType): boolean
   enumerationMatch(enumeration1: EntityType, enumeration2: EntityType): boolean
@@ -41254,17 +41367,19 @@ export class ClientIntFilterExecutionFlowFunctions<
     enumeration2: KnockbackDirectionType
   ): boolean
   enumerationMatch(enumeration1: LogicalOperator, enumeration2: LogicalOperator): boolean
-  enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
   enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
+  enumerationMatch(
+    enumeration1: QuickMathematicalOperator,
+    enumeration2: QuickMathematicalOperator
+  ): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
     enumeration2: RevivePointSelectionStrategy
   ): boolean
   enumerationMatch(enumeration1: RotationType, enumeration2: RotationType): boolean
-  enumerationMatch(enumeration1: RoundingMode, enumeration2: RoundingMode): boolean
   enumerationMatch(enumeration1: ScanStatus, enumeration2: ScanStatus): boolean
   enumerationMatch(
     enumeration1: SectorDetectionDirection,
@@ -41275,14 +41390,23 @@ export class ClientIntFilterExecutionFlowFunctions<
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
+    enumeration1: TargetTypeForCameraOrientationNode,
+    enumeration2: TargetTypeForCameraOrientationNode
+  ): boolean
+  enumerationMatch(
     enumeration1: TrigonometricFunction,
     enumeration2: TrigonometricFunction
   ): boolean
   enumerationMatch(enumeration1: TypeConversion, enumeration2: TypeConversion): boolean
+  enumerationMatch(enumeration1: TypeConversionSame, enumeration2: TypeConversionSame): boolean
   enumerationMatch(enumeration1: UIControlGroupStatus, enumeration2: UIControlGroupStatus): boolean
   enumerationMatch(
-    enumeration1: UnitStatusAdditionResult,
-    enumeration2: UnitStatusAdditionResult
+    enumeration1: UnitStatusAdditionFailureReason,
+    enumeration2: UnitStatusAdditionFailureReason
+  ): boolean
+  enumerationMatch(
+    enumeration1: UnitStatusAdditionSuccessType,
+    enumeration2: UnitStatusAdditionSuccessType
   ): boolean
   enumerationMatch(
     enumeration1: UnitStatusRemovalReason,

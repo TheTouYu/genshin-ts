@@ -128,6 +128,7 @@ const ENUM_NAME_ALIASES: Record<string, string> = {
   sort_by: 'sorting_rules',
   character_skill_slot: 'skill_slot',
   follow_coordinate_system: 'coordinate_system_type',
+  u_i_control_group_status: 'ui_control_group_status',
   rounding_mode: 'rounding_logic',
   type_conversion: 'type_conversions',
   trigonometric_function: 'trigonometric_functions'

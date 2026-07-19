@@ -479,6 +479,17 @@ try {
   })
 
   const importG = `import { g } from 'genshin-ts/runtime/core'`
+  await expectCompileError(
+    'client-cross-row-enum-operator',
+    `import { MathematicalOperator } from 'genshin-ts/definitions/enum'
+${importG}
+g.characterSkill().on('start', (_evt, f) => {
+  if (MathematicalOperator.Addition == MathematicalOperator.Logarithm) {
+    f.forceExitAimingState()
+  }
+})`,
+    /enum comparison type mismatch \(BasicMathematicalOperator vs QuickMathematicalOperator\)/
+  )
   await expectRuntimeError(
     'client-literal-only-input',
     `${importG}

@@ -13,7 +13,7 @@ import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_ca
 import {
   CLIENT_ENUM_VALUES,
   ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID,
-  ENUM_MATCH_ROWS_BY_CLASS
+  ENUM_MATCH_ROWS_BY_GENERIC_ID
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
 import type {
   ClientNodeMetadata,
@@ -879,9 +879,9 @@ function applyTypeListBuilder(node: ClientGiaNode, irNode: IRNode, metadata: Cli
  * snake（u_i_control_group_status）与值 key（ui_control_group_status_*）的差异，
  * 键按长度降序保证取最长匹配（如 hit_performance_level 优先于 hit_type）。
  */
-const ENUM_MATCH_CLASS_KEYS = Object.keys(ENUM_MATCH_ROWS_BY_CLASS).sort(
-  (a, b) => b.length - a.length
-)
+const ENUM_MATCH_CLASS_KEYS = [
+  ...new Set(Object.values(ENUM_MATCH_ROWS_BY_GENERIC_ID).flatMap((rows) => Object.keys(rows)))
+].sort((a, b) => b.length - a.length)
 
 function enumMatchClassOfLiteral(valueKey: string): string | undefined {
   const collapsed = valueKey.replace(/_/g, '')
@@ -890,7 +890,7 @@ function enumMatchClassOfLiteral(valueKey: string): string | undefined {
 
 /**
  * 枚举匹配（cid 恒定 10）：双枚举引脚 indexOfConcrete = 枚举类在编辑器下拉
- * 中的行号（两族 census，见 ENUM_MATCH_ROWS_BY_CLASS）。字面量由值命中的行
+ * 中的行号（两族 census，见 ENUM_MATCH_ROWS_BY_GENERIC_ID）。字面量由值命中的行
  * 定行（区分 状态添加结果 14/15 两半），连线由 conn.enum 类名取该类首行；
  * 两引脚共享同一行号（编辑器下拉是节点级单选）。
  */
@@ -901,8 +901,12 @@ function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: Cl
       `${metadata.subType}.${irNode.type} ${msg}`
     )
   const allowedClasses = ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID[metadata.genericId]
+  const rowsByClass = ENUM_MATCH_ROWS_BY_GENERIC_ID[metadata.genericId]
   if (!allowedClasses) {
     throw fail(`generic ${metadata.genericId} has no enum census`)
+  }
+  if (!rowsByClass) {
+    throw fail(`generic ${metadata.genericId} has no enum row table`)
   }
   const args = [irNode.args?.[0], irNode.args?.[1]]
   const infos = args.map((arg, i) => {
@@ -913,14 +917,21 @@ function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: Cl
       if (!allowedClasses.includes(cls)) {
         throw fail(`enum class "${cls}" (arg #${i}) is unavailable in this graph family`)
       }
-      const rows = ENUM_MATCH_ROWS_BY_CLASS[cls]
+      const rows = rowsByClass[cls]
+      if (!rows) {
+        throw fail(`enum class "${cls}" (arg #${i}) is unavailable in this graph family`)
+      }
       const numeric = Number(toPinLiteral(13, key, i, irNode.type))
-      return { cls, literalIoc: (rows.find((r) => r.values.includes(numeric)) ?? rows[0]).ioc }
+      const row = rows.find((candidate) => candidate.values.includes(numeric))
+      if (!row) {
+        throw fail(`enum value "${key}" (arg #${i}) is not selectable in this node`)
+      }
+      return { cls, literalIoc: row.ioc }
     }
     if (arg?.type === 'conn') {
       const cls = arg.value.enum
       if (!cls) return undefined
-      if (!ENUM_MATCH_ROWS_BY_CLASS[cls]) {
+      if (!rowsByClass[cls]) {
         throw fail(`enum class "${cls}" (arg #${i}) is not selectable in this node`)
       }
       if (!allowedClasses.includes(cls)) {
@@ -944,7 +955,7 @@ function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: Cl
       `enum values map to different editor dropdown rows (ioc ${literalIocs[0]} vs ${literalIocs[1]})`
     )
   }
-  const ioc = literalIocs[0] ?? ENUM_MATCH_ROWS_BY_CLASS[resolved[0].cls][0].ioc
+  const ioc = literalIocs[0] ?? rowsByClass[resolved[0].cls][0].ioc
 
   args.forEach((arg, i) => {
     const pin = findInPin(node, argPinIndex(metadata, i))

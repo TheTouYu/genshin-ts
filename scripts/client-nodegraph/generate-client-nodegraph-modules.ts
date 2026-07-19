@@ -1530,6 +1530,14 @@ function deriveServerSignatureDrift(
 function emitClientEnums(binding: ClientEnumBinding) {
   const classes = binding.clientOnlyClasses
     .map((cls) => {
+      const interfaces = (cls.typeInterfaces ?? [])
+        .map(
+          (type) => `/** ${type.zhName} */
+export interface ${type.name} extends ${cls.className} {
+  readonly __brand${type.name}: '${type.name}'
+}`
+        )
+        .join('\n\n')
       const members = cls.members
         .map(
           (m) => `  /**
@@ -1537,10 +1545,12 @@ function emitClientEnums(binding: ClientEnumBinding) {
    *
    * ${m.zhName}
    */
-  static readonly ${m.name} = new enumeration('${cls.className}', '${m.key}') as ${cls.className}`
+  static readonly ${m.name} = new enumeration('${cls.className}', '${m.key}') as ${
+    m.typeName ?? cls.className
+  }`
         )
         .join('\n')
-      return `/** ${cls.zhName} */
+      return `${interfaces ? `${interfaces}\n\n` : ''}/** ${cls.zhName} */
 export class ${cls.className} extends enumeration {
   declare private readonly __brand${cls.className}: '${cls.className}'
   private constructor() {
@@ -1570,19 +1580,20 @@ ${classes}
   )
   write(
     'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.ts',
-    `${generatedHeader()}/** enumeration value string -> gia numeric value (client-only enum classes) */
+    `${generatedHeader()}/** enumeration value string -> gia numeric value (client-only values/classes) */
 export const CLIENT_ENUM_VALUES: Record<string, number> = ${jsonConst(binding.valueByKey)}
 
 /**
- * 枚举匹配 census：类名（ir conn.enum 同款 snake）-> 下拉行（ioc 升序）。
- * 双引脚 indexOfConcrete = 类所在下拉行号；同类多行（类型转换 7/34、
- * 目标类型 24/39、状态添加结果两半 14/15、数字运算 2/25）按字面量值命中的
- * 首行取值，连线取首行。
+ * 枚举匹配 census：generic id -> 类名（ir conn.enum 同款 snake）
+ * -> 下拉行（ioc 升序）。
+ * 双引脚 indexOfConcrete = 类所在下拉行号；同一运行时枚举类的分组行
+ * （状态添加结果 14/15、数字运算 2/25）按字面量值定行，连线在没有
+ * 字面量辅助时取首行。
  */
-export const ENUM_MATCH_ROWS_BY_CLASS: Record<
-  string,
-  Array<{ ioc: number; values: number[] }>
-> = ${jsonConst(binding.matchRowsByClass)}
+export const ENUM_MATCH_ROWS_BY_GENERIC_ID: Record<
+  number,
+  Record<string, Array<{ ioc: number; values: number[] }>>
+> = ${jsonConst(binding.matchRowsByGenericId)}
 
 /** 枚举匹配 generic id -> 当前节点族下拉中可选择的 IR 枚举类名 */
 export const ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID: Record<number, readonly string[]> = ${jsonConst(

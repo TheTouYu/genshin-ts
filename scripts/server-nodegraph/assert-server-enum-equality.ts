@@ -32,13 +32,16 @@ function inputPin(node: GraphNode, index: number): NodePin {
 }
 
 const expected = new Map([
-  [851, { ioc: 42, values: [6700, 6701] }],
-  [852, { ioc: 43, values: [6710, 6711] }]
+  [478, { count: 1, ioc: 3, values: [300, 308] }],
+  [482, { count: 1, ioc: 7, values: [700, 703] }],
+  [491, { count: 1, ioc: 16, values: [1500, 1504] }],
+  [851, { count: 2, ioc: 42, values: [6700, 6701] }],
+  [852, { count: 2, ioc: 43, values: [6710, 6711] }]
 ])
 
 for (const [id, expectation] of expected) {
   const equalityNodes = nodes.filter((node) => nodeId(node) === id)
-  assert.equal(equalityNodes.length, 2, `expected operator and direct-call nodes for ${id}`)
+  assert.equal(equalityNodes.length, expectation.count, `unexpected equality node count for ${id}`)
   for (const node of equalityNodes) {
     for (const index of [0, 1]) {
       const wrapped = inputPin(node, index).value?.bConcreteValue
@@ -58,4 +61,4 @@ assert.equal(
   'Enumerations Equal must not fall back to generic node 475'
 )
 
-console.log('[ok] server enum equality emits concrete nodes 851/852 with IOC 42/43')
+console.log('[ok] server enum equality preserves base-family operators and concrete IOC variants')

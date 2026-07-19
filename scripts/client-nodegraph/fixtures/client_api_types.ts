@@ -1,13 +1,27 @@
 import { g } from 'genshin-ts/runtime/core'
 
 import type { clientEntity as ClientEntityType } from '../../../src/definitions/client_entity_helpers.js'
-import { PreAimingEndReason, TacticType } from '../../../src/definitions/client_enums.js'
+import {
+  PreAimingEndReason,
+  TacticType,
+  TargetTypeForCameraOrientationNode,
+  TypeConversionSame
+} from '../../../src/definitions/client_enums.js'
 // scoped client helper globals capability tables are generated and typed
 import {
   CLIENT_BLOCKED_SERVER_HELPERS,
   CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE,
   CLIENT_SCOPED_GLOBALS_CAPABILITY
 } from '../../../src/definitions/client_scoped_globals.js'
+import {
+  ElementalReactionType,
+  MathematicalOperator,
+  RoundingMode,
+  TargetType,
+  TypeConversion,
+  UnitStatusAdditionResult,
+  UnitStatusRemovalReason
+} from '../../../src/definitions/enum.js'
 import type {
   ClientBoolFilterExecutionFlowFunctions,
   ClientCharacterSkillExecutionFlowFunctions,
@@ -94,6 +108,43 @@ g.creationSkill().on('start', (_evt, f) => {
   const selfEntity = f.getSelfEntity()
   selfEntity.tauntTarget
   f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
+  f.enumerationMatch(MathematicalOperator.Addition, MathematicalOperator.Division)
+  f.enumerationMatch(MathematicalOperator.ModuloOperation, MathematicalOperator.Logarithm)
+  // @ts-expect-error basic and quick mathematical operators are different editor rows
+  f.enumerationMatch(MathematicalOperator.Addition, MathematicalOperator.Logarithm)
+  f.enumerationMatch(RoundingMode.RoundUp, RoundingMode.RoundToNearest)
+  // @ts-expect-error Truncate is not present in the client enum-match dropdown
+  f.enumerationMatch(RoundingMode.Truncate, RoundingMode.RoundUp)
+  f.enumerationMatch(
+    UnitStatusAdditionResult.FailedUnexpectedError,
+    UnitStatusAdditionResult.FailedUnableToAddAdditionalStack
+  )
+  f.enumerationMatch(
+    UnitStatusAdditionResult.SuccessNewStatusApplied,
+    UnitStatusAdditionResult.SuccessSlotStacking
+  )
+  f.enumerationMatch(
+    // @ts-expect-error failure and success results are different editor rows
+    UnitStatusAdditionResult.FailedUnexpectedError,
+    UnitStatusAdditionResult.SuccessNewStatusApplied
+  )
+  f.enumerationMatch(TypeConversion.FactionToString, TypeConversion.IntegerToBoolean)
+  f.enumerationMatch(TypeConversionSame.IntegerToBoolean, TypeConversionSame.Vector3ToString)
+  // @ts-expect-error the two type-conversion dropdown rows must be selected explicitly
+  f.enumerationMatch(TypeConversion.IntegerToBoolean, TypeConversionSame.IntegerToBoolean)
+  f.enumerationMatch(TargetType.Self, TargetType.All)
+  f.enumerationMatch(
+    TargetTypeForCameraOrientationNode.None,
+    TargetTypeForCameraOrientationNode.AllExceptSelf
+  )
+  // @ts-expect-error the camera-orientation target row is distinct from the full target row
+  f.enumerationMatch(TargetType.None, TargetTypeForCameraOrientationNode.None)
+  f.enumerationMatch(ElementalReactionType.LunarCharged, ElementalReactionType.Burned)
+  f.enumerationMatch(ElementalReactionType.StellarConduct, ElementalReactionType.Fire)
+  f.enumerationMatch(
+    UnitStatusRemovalReason.AffixExpired,
+    UnitStatusRemovalReason.ShieldDepletedToZero
+  )
   // @ts-expect-error TacticType is the status-family row 42 enum
   f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
   // @ts-expect-error classic-only player character list shortcut
@@ -159,6 +210,12 @@ orderedCreationStatus.on('start1', (_evt, f) => {
   f.emptyList('int')
   f.copyList(list('int', [1n]))
   f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
+  f.enumerationMatch(TypeConversionSame.IntegerToBoolean, TypeConversionSame.Vector3ToString)
+  f.enumerationMatch(
+    // @ts-expect-error FloatingPointToInteger is absent from creation-status row 34
+    TypeConversionSame.FloatingPointToInteger,
+    TypeConversionSame.IntegerToBoolean
+  )
   // @ts-expect-error PreAimingEndReason is the skill-family row 42 enum
   f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
   f.return()
@@ -187,6 +244,13 @@ g.boolFilter().on('start', (_evt, f) => {
 
 expectType<ServerExecutionFlowFunctions>(gsts.f)
 expectType<ServerExecutionFlowFunctions>(gsts.fServer)
+gsts.f.enumerationsEqual(ElementalReactionType.Shatter, ElementalReactionType.LunarCrystallize)
+gsts.f.enumerationsEqual(
+  UnitStatusRemovalReason.AffixExpired,
+  UnitStatusRemovalReason.ShieldDepletedToZero
+)
+// @ts-expect-error client-only elemental reaction values are unavailable in server graphs
+gsts.f.enumerationsEqual(ElementalReactionType.Burned, ElementalReactionType.Fire)
 expectType<ClientCharacterSkillExecutionFlowFunctions>(gsts.fCharacterSkill)
 expectType<ClientCreationSkillExecutionFlowFunctions>(gsts.fCreationSkill)
 expectType<ClientCreationStatusExecutionFlowFunctions>(gsts.fCreationStatus)

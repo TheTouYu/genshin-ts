@@ -21,6 +21,8 @@ export type ClientEnumerationTypeMap = {
   TacticType: TacticType
   TargetEntity: TargetEntity
   TargetSortingRules: TargetSortingRules
+  TargetTypeForCameraOrientationNode: TargetTypeForCameraOrientationNode
+  TypeConversionSame: TypeConversionSame
 }
 
 /** 攻击盒层级配置 */
@@ -729,4 +731,166 @@ export class TargetSortingRules extends enumeration {
     'TargetSortingRules',
     'target_sorting_rules_sort_from_near_to_far'
   ) as TargetSortingRules
+}
+
+/** 目标类型（镜头朝向节点用） */
+export class TargetTypeForCameraOrientationNode extends enumeration {
+  declare private readonly __brandTargetTypeForCameraOrientationNode: 'TargetTypeForCameraOrientationNode'
+  private constructor() {
+    super('')
+    // 防止用户通过字符串传参构造枚举导致的意外行为
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * None
+   *
+   * 不找目标
+   */
+  static readonly None = new enumeration(
+    'TargetTypeForCameraOrientationNode',
+    'target_type_for_camera_orientation_node_none'
+  ) as TargetTypeForCameraOrientationNode
+  /**
+   * AlliedFaction
+   *
+   * 友善阵营
+   */
+  static readonly AlliedFaction = new enumeration(
+    'TargetTypeForCameraOrientationNode',
+    'target_type_for_camera_orientation_node_allied_faction'
+  ) as TargetTypeForCameraOrientationNode
+  /**
+   * HostileFaction
+   *
+   * 敌对阵营
+   */
+  static readonly HostileFaction = new enumeration(
+    'TargetTypeForCameraOrientationNode',
+    'target_type_for_camera_orientation_node_hostile_faction'
+  ) as TargetTypeForCameraOrientationNode
+  /**
+   * OwnFaction
+   *
+   * 自身所在阵营
+   */
+  static readonly OwnFaction = new enumeration(
+    'TargetTypeForCameraOrientationNode',
+    'target_type_for_camera_orientation_node_own_faction'
+  ) as TargetTypeForCameraOrientationNode
+  /**
+   * AllExceptSelf
+   *
+   * 除自身外全部
+   */
+  static readonly AllExceptSelf = new enumeration(
+    'TargetTypeForCameraOrientationNode',
+    'target_type_for_camera_orientation_node_all_except_self'
+  ) as TargetTypeForCameraOrientationNode
+}
+
+/** 客户端造物状态图“类型转换”下拉中的值 */
+export interface CreationStatusTypeConversionSame extends TypeConversionSame {
+  readonly __brandCreationStatusTypeConversionSame: 'CreationStatusTypeConversionSame'
+}
+
+/** 类型转换 */
+export class TypeConversionSame extends enumeration {
+  declare private readonly __brandTypeConversionSame: 'TypeConversionSame'
+  private constructor() {
+    super('')
+    // 防止用户通过字符串传参构造枚举导致的意外行为
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * IntegerToBoolean
+   *
+   * 整数转布尔型
+   */
+  static readonly IntegerToBoolean = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_integer_to_boolean'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * IntegerToFloatingPoint
+   *
+   * 整数转浮点数
+   */
+  static readonly IntegerToFloatingPoint = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_integer_to_floating_point'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * IntegerToString
+   *
+   * 整数转字符串型
+   */
+  static readonly IntegerToString = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_integer_to_string'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * EntityToString
+   *
+   * 实体转字符串型
+   */
+  static readonly EntityToString = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_entity_to_string'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * GuidToString
+   *
+   * GUID转字符串型
+   */
+  static readonly GuidToString = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_guid_to_string'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * BooleanToInteger
+   *
+   * 布尔型转整数
+   */
+  static readonly BooleanToInteger = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_boolean_to_integer'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * BooleanToString
+   *
+   * 布尔型转字符串型
+   */
+  static readonly BooleanToString = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_boolean_to_string'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * FloatingPointToInteger
+   *
+   * 浮点数转整数
+   */
+  static readonly FloatingPointToInteger = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_floating_point_to_integer'
+  ) as TypeConversionSame
+  /**
+   * FloatingPointToString
+   *
+   * 浮点数转字符串型
+   */
+  static readonly FloatingPointToString = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_floating_point_to_string'
+  ) as CreationStatusTypeConversionSame
+  /**
+   * Vector3ToString
+   *
+   * 三维向量转字符串型
+   */
+  static readonly Vector3ToString = new enumeration(
+    'TypeConversionSame',
+    'type_conversion_same_vector3_to_string'
+  ) as CreationStatusTypeConversionSame
 }

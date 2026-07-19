@@ -880,6 +880,28 @@ export class LogicalOperator extends enumeration {
   ) as LogicalOperator
 }
 
+interface BasicMathematicalOperatorValue extends MathematicalOperator {
+  readonly __brandBasicMathematicalOperator: 'BasicMathematicalOperator'
+}
+
+interface QuickMathematicalOperatorValue extends MathematicalOperator {
+  readonly __brandQuickMathematicalOperator: 'QuickMathematicalOperator'
+}
+
+interface MathematicalOperatorComparisonOverlap extends MathematicalOperator {
+  readonly __brandMathematicalOperatorComparisonOverlap: 'MathematicalOperatorComparisonOverlap'
+}
+
+/** 客户端“基础数学运算”下拉中的值。 */
+export type BasicMathematicalOperator =
+  | BasicMathematicalOperatorValue
+  | MathematicalOperatorComparisonOverlap
+
+/** 客户端“便捷数学运算”下拉中的值。 */
+export type QuickMathematicalOperator =
+  | QuickMathematicalOperatorValue
+  | MathematicalOperatorComparisonOverlap
+
 /** 数学运算 */
 export class MathematicalOperator extends enumeration {
   declare private readonly __brandMathematicalOperator: 'MathematicalOperator'
@@ -896,7 +918,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Addition = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_addition'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Subtraction
    *
@@ -905,7 +927,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Subtraction = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_subtraction'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Multiplication
    *
@@ -914,7 +936,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Multiplication = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_multiplication'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Division
    *
@@ -923,7 +945,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Division = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_division'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Modulo Operation
    *
@@ -932,7 +954,7 @@ export class MathematicalOperator extends enumeration {
   static readonly ModuloOperation = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_modulo_operation'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Exponentiation
    *
@@ -941,7 +963,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Exponentiation = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_exponentiation'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Get Maximum Value
    *
@@ -950,7 +972,7 @@ export class MathematicalOperator extends enumeration {
   static readonly GetMaximumValue = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_get_maximum_value'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Get Minimum Value
    *
@@ -959,7 +981,7 @@ export class MathematicalOperator extends enumeration {
   static readonly GetMinimumValue = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_get_minimum_value'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Logarithm
    *
@@ -968,7 +990,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Logarithm = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_logarithm'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
 }
 
 /** 三角函数 */
@@ -1410,6 +1432,11 @@ export class ScanRuleType extends enumeration {
   ) as ScanRuleType
 }
 
+/** 客户端“取整逻辑”下拉中可选的值。 */
+export interface ClientRoundingMode extends RoundingMode {
+  readonly __clientRoundingMode: 'client'
+}
+
 /** 取整逻辑 */
 export class RoundingMode extends enumeration {
   declare private readonly __brandRoundingMode: 'RoundingMode'
@@ -1426,7 +1453,7 @@ export class RoundingMode extends enumeration {
   static readonly RoundToNearest = new enumeration(
     'RoundingMode',
     'rounding_mode_round_to_nearest'
-  ) as RoundingMode
+  ) as ClientRoundingMode
   /**
    * Round Up: Returns the smallest integer greater than the input value. For example: input 1.2 → 2; input −2.3 → −2
    *
@@ -1435,7 +1462,7 @@ export class RoundingMode extends enumeration {
   static readonly RoundUp = new enumeration(
     'RoundingMode',
     'rounding_mode_round_up'
-  ) as RoundingMode
+  ) as ClientRoundingMode
   /**
    * Round Down: Returns the largest integer smaller than the input value. For example: input 1.2 → 1; input −2.3 → −3
    *
@@ -1444,7 +1471,7 @@ export class RoundingMode extends enumeration {
   static readonly RoundDown = new enumeration(
     'RoundingMode',
     'rounding_mode_round_down'
-  ) as RoundingMode
+  ) as ClientRoundingMode
   /**
    * Truncate: Removes the decimal part of the floating point number (rounds toward zero). For example: input 1.2 → 1; input −2.3 → −2
    *
@@ -1705,6 +1732,29 @@ export class UnitStatusRemovalReason extends enumeration {
     'UnitStatusRemovalReason',
     'unit_status_removal_reason_class_changed'
   ) as UnitStatusRemovalReason
+  /**
+   * Affix Expired
+   *
+   * 词条失效
+   */
+  static readonly AffixExpired = new enumeration(
+    'UnitStatusRemovalReason',
+    'unit_status_removal_reason_affix_expired'
+  ) as UnitStatusRemovalReason
+  /**
+   * Shield Depleted to Zero
+   *
+   * 护盾含量归零
+   */
+  static readonly ShieldDepletedToZero = new enumeration(
+    'UnitStatusRemovalReason',
+    'unit_status_removal_reason_shield_depleted_to_zero'
+  ) as UnitStatusRemovalReason
+}
+
+/** 仅客户端元素反应选项使用的值。 */
+export interface ClientElementalReactionType extends enumeration {
+  readonly __brandClientElementalReactionType: 'ClientElementalReactionType'
 }
 
 /** 元素反应类型 */
@@ -1913,6 +1963,229 @@ export class ElementalReactionType extends enumeration {
     'ElementalReactionType',
     'elemental_reaction_type_hyperbloom'
   ) as ElementalReactionType
+
+  /**
+   * Shatter
+   *
+   * 碎冰
+   */
+  static readonly Shatter = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_shatter'
+  ) as ElementalReactionType
+
+  /**
+   * Lunar-Charged
+   *
+   * 月感电
+   */
+  static readonly LunarCharged = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_lunar_charged'
+  ) as ElementalReactionType
+
+  /**
+   * Lunar-Bloom
+   *
+   * 月绽放
+   */
+  static readonly LunarBloom = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_lunar_bloom'
+  ) as ElementalReactionType
+
+  /**
+   * Lunar-Crystallize
+   *
+   * 月结晶
+   */
+  static readonly LunarCrystallize = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_lunar_crystallize'
+  ) as ElementalReactionType
+
+  /**
+   * Stellar-Conduct
+   *
+   * 星超导
+   */
+  static readonly StellarConduct = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stellar_conduct'
+  ) as ElementalReactionType
+
+  /** Client alias: Explode / 客户端别名：Explode */
+  static readonly Explode =
+    ElementalReactionType.Overloaded as unknown as ClientElementalReactionType
+
+  /** Client alias: Stream / 客户端别名：Stream */
+  static readonly Stream = ElementalReactionType.Vaporize as unknown as ClientElementalReactionType
+
+  /** Client: Burned / 客户端：Burned */
+  static readonly Burned = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_burned'
+  ) as ClientElementalReactionType
+
+  /** Client alias: Overgrow / 客户端别名：Overgrow */
+  static readonly Overgrow = ElementalReactionType.Bloom as unknown as ClientElementalReactionType
+
+  /** Client alias: Freeze / 客户端别名：Freeze */
+  static readonly Freeze = ElementalReactionType.Frozen as unknown as ClientElementalReactionType
+
+  /** Client: AntiFire / 客户端：AntiFire */
+  static readonly AntiFire = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_anti_fire'
+  ) as ClientElementalReactionType
+
+  /** Client: Rock / 客户端：Rock */
+  static readonly Rock = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_rock'
+  ) as ClientElementalReactionType
+
+  /** Client: SlowDown / 客户端：SlowDown */
+  static readonly SlowDown = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_slow_down'
+  ) as ClientElementalReactionType
+
+  /** Client alias: Shock / 客户端别名：Shock */
+  static readonly Shock =
+    ElementalReactionType.ElectroCharged as unknown as ClientElementalReactionType
+
+  /** Client: Wind / 客户端：Wind */
+  static readonly Wind = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_wind'
+  ) as ClientElementalReactionType
+
+  /** Client: Electric / 客户端：Electric */
+  static readonly Electric = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_electric'
+  ) as ClientElementalReactionType
+
+  /** Client: Fire / 客户端：Fire */
+  static readonly Fire = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_fire'
+  ) as ClientElementalReactionType
+
+  /** Client alias: Superconductor / 客户端别名：Superconductor */
+  static readonly Superconductor =
+    ElementalReactionType.Superconduct as unknown as ClientElementalReactionType
+
+  /** Client alias: SwirlFire / 客户端别名：SwirlFire */
+  static readonly SwirlFire =
+    ElementalReactionType.SwirlPyro as unknown as ClientElementalReactionType
+
+  /** Client alias: SwirlWater / 客户端别名：SwirlWater */
+  static readonly SwirlWater =
+    ElementalReactionType.SwirlHydro as unknown as ClientElementalReactionType
+
+  /** Client alias: SwirlElectric / 客户端别名：SwirlElectric */
+  static readonly SwirlElectric =
+    ElementalReactionType.SwirlElectro as unknown as ClientElementalReactionType
+
+  /** Client alias: SwirlIce / 客户端别名：SwirlIce */
+  static readonly SwirlIce =
+    ElementalReactionType.SwirlCryo as unknown as ClientElementalReactionType
+
+  /** Client: SwirlFireAccu / 客户端：SwirlFireAccu */
+  static readonly SwirlFireAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_fire_accu'
+  ) as ClientElementalReactionType
+
+  /** Client: SwirlWaterAccu / 客户端：SwirlWaterAccu */
+  static readonly SwirlWaterAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_water_accu'
+  ) as ClientElementalReactionType
+
+  /** Client: SwirlElectricAccu / 客户端：SwirlElectricAccu */
+  static readonly SwirlElectricAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_electric_accu'
+  ) as ClientElementalReactionType
+
+  /** Client: SwirlIceAccu / 客户端：SwirlIceAccu */
+  static readonly SwirlIceAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_ice_accu'
+  ) as ClientElementalReactionType
+
+  /** Client: StickRock / 客户端：StickRock */
+  static readonly StickRock = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stick_rock'
+  ) as ClientElementalReactionType
+
+  /** Client: StickWater / 客户端：StickWater */
+  static readonly StickWater = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stick_water'
+  ) as ClientElementalReactionType
+
+  /** Client alias: CrystallizeFire / 客户端别名：CrystallizeFire */
+  static readonly CrystallizeFire =
+    ElementalReactionType.CrystallizePyro as unknown as ClientElementalReactionType
+
+  /** Client alias: CrystallizeWater / 客户端别名：CrystallizeWater */
+  static readonly CrystallizeWater =
+    ElementalReactionType.CrystallizeHydro as unknown as ClientElementalReactionType
+
+  /** Client alias: CrystallizeElectric / 客户端别名：CrystallizeElectric */
+  static readonly CrystallizeElectric =
+    ElementalReactionType.CrystallizeElectro as unknown as ClientElementalReactionType
+
+  /** Client alias: CrystallizeIce / 客户端别名：CrystallizeIce */
+  static readonly CrystallizeIce =
+    ElementalReactionType.CrystallizeCryo as unknown as ClientElementalReactionType
+
+  /** Client alias: FrozenBroken / 客户端别名：FrozenBroken */
+  static readonly FrozenBroken =
+    ElementalReactionType.Shatter as unknown as ClientElementalReactionType
+
+  /** Client: StickGrass / 客户端：StickGrass */
+  static readonly StickGrass = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stick_grass'
+  ) as ClientElementalReactionType
+
+  /** Client alias: Overdose / 客户端别名：Overdose */
+  static readonly Overdose =
+    ElementalReactionType.Catalyze as unknown as ClientElementalReactionType
+
+  /** Client alias: OverdoseElectric / 客户端别名：OverdoseElectric */
+  static readonly OverdoseElectric =
+    ElementalReactionType.Aggravate as unknown as ClientElementalReactionType
+
+  /** Client alias: OverdoseGrass / 客户端别名：OverdoseGrass */
+  static readonly OverdoseGrass =
+    ElementalReactionType.Spread as unknown as ClientElementalReactionType
+
+  /** Client alias: OvergrowMushroomFire / 客户端别名：OvergrowMushroomFire */
+  static readonly OvergrowMushroomFire =
+    ElementalReactionType.Burgeon as unknown as ClientElementalReactionType
+
+  /** Client alias: OvergrowMushroomElectric / 客户端别名：OvergrowMushroomElectric */
+  static readonly OvergrowMushroomElectric =
+    ElementalReactionType.Hyperbloom as unknown as ClientElementalReactionType
+
+  /** Client: PhlogistonSolidification / 客户端：PhlogistonSolidification */
+  static readonly PhlogistonSolidification = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_phlogiston_solidification'
+  ) as ClientElementalReactionType
+
+  /** Client: PhlogistonSolidificationEnd / 客户端：PhlogistonSolidificationEnd */
+  static readonly PhlogistonSolidificationEnd = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_phlogiston_solidification_end'
+  ) as ClientElementalReactionType
 }
 
 /** 选择完成原因 */
@@ -1986,6 +2259,16 @@ export class ReasonForItemChange extends enumeration {
     super('')
     throw new Error('you should not create an enum instance')
   }
+
+  /**
+   * Default
+   *
+   * 默认
+   */
+  static readonly Default = new enumeration(
+    'ReasonForItemChange',
+    'reason_for_item_change_default'
+  ) as ReasonForItemChange
 
   /**
    * Destroy
@@ -2348,6 +2631,28 @@ export class HitPerformanceLevel extends enumeration {
   ) as HitPerformanceLevel
 }
 
+interface UnitStatusAdditionFailureReasonValue extends UnitStatusAdditionResult {
+  readonly __brandUnitStatusAdditionFailureReason: 'UnitStatusAdditionFailureReason'
+}
+
+interface UnitStatusAdditionSuccessTypeValue extends UnitStatusAdditionResult {
+  readonly __brandUnitStatusAdditionSuccessType: 'UnitStatusAdditionSuccessType'
+}
+
+interface UnitStatusAdditionResultComparisonOverlap extends UnitStatusAdditionResult {
+  readonly __brandUnitStatusAdditionResultComparisonOverlap: 'UnitStatusAdditionResultComparisonOverlap'
+}
+
+/** 客户端“单位状态添加失败原因”下拉中的值。 */
+export type UnitStatusAdditionFailureReason =
+  | UnitStatusAdditionFailureReasonValue
+  | UnitStatusAdditionResultComparisonOverlap
+
+/** 客户端“单位状态添加成功类型”下拉中的值。 */
+export type UnitStatusAdditionSuccessType =
+  | UnitStatusAdditionSuccessTypeValue
+  | UnitStatusAdditionResultComparisonOverlap
+
 /** 单位状态添加结果 */
 export class UnitStatusAdditionResult extends enumeration {
   declare private readonly __brandUnitStatusAdditionResult: 'UnitStatusAdditionResult'
@@ -2364,7 +2669,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedUnexpectedError = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_unexpected_error'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Failed - Operation Paused For Another Process
    *
@@ -2373,7 +2678,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedOperationPausedForAnotherProcess = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_operation_paused_for_another_process'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Failed - Maximum Coexistence Limit Reached
    *
@@ -2382,7 +2687,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedMaximumCoexistenceLimitReached = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_maximum_coexistence_limit_reached'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Failed - Unable To Add Additional Stack
    *
@@ -2391,7 +2696,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedUnableToAddAdditionalStack = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_unable_to_add_additional_stack'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Success - New Status Applied
    *
@@ -2400,7 +2705,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly SuccessNewStatusApplied = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_success_new_status_applied'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionSuccessType
   /**
    * Success - Slot Stacking
    *
@@ -2409,7 +2714,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly SuccessSlotStacking = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_success_slot_stacking'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionSuccessType
 }
 
 /** 单位状态移除策略 */

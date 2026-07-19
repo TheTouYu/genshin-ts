@@ -2,15 +2,22 @@
  * 枚举匹配 IOC 冒烟：构建 character_skill / creation_status 两族图，
  * IR -> GIA -> decode 后断言双枚举引脚的 indexOfConcrete
  * 等于枚举类在编辑器下拉中的行号（census 表见 client_enum_values.ts
- * ENUM_MATCH_ROWS_BY_CLASS），覆盖 客户端专属类 / 连线 / 服务器类 /
- * 同类多行（类型转换 7、状态添加结果 14/15）及两族各自不同的第 42 行。
+ * ENUM_MATCH_ROWS_BY_GENERIC_ID），覆盖 客户端专属类 / 连线 / 服务器类 /
+ * 拆分行（状态添加结果 14/15、类型转换 7/34、目标类型 24/39）
+ * 及两族各自不同的第 42 行。
  */
 
 import assert from 'node:assert'
 import fs from 'node:fs'
 
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
-import { PreAimingEndReason, ScanStatus, TacticType } from '../../src/definitions/client_enums.js'
+import {
+  PreAimingEndReason,
+  ScanStatus,
+  TacticType,
+  TargetTypeForCameraOrientationNode,
+  TypeConversionSame
+} from '../../src/definitions/client_enums.js'
 import { TargetType, TypeConversion, UnitStatusAdditionResult } from '../../src/definitions/enum.js'
 import { buildClientGraphRegistriesIRDocuments, g } from '../../src/runtime/core.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
@@ -30,21 +37,29 @@ g.characterSkill({ id: 1082130441, name: 'EnumMatch' }).on('start', (_evt, f) =>
   const m1 = f.enumerationMatch(ScanStatus.CandidateTarget, ScanStatus.UnusableTarget)
   // 2) 连线 + 字面量（连线由 conn.enum 类名定行）
   const m2 = f.enumerationMatch(f.getEntitySScanStatus(self), ScanStatus.ConditionNotMet)
-  // 3) 服务器类字面量对（类型转换有 7/34 两行，值 800/802 均命中首行 7）
+  // 3/4) 类型转换的完整行 7 与相同值集合的独立行 34
   const m3 = f.enumerationMatch(TypeConversion.IntegerToBoolean, TypeConversion.IntegerToString)
-  // 4) 目标类型（2000 系有 24/39 两行，取全集行 24）
-  const m4 = f.enumerationMatch(TargetType.None, TargetType.AlliedFaction)
-  // 5/6) 状态添加结果拆成 14（失败半）/ 15（成功半）两行，按值精确定行
-  const m5 = f.enumerationMatch(
+  const m4 = f.enumerationMatch(
+    TypeConversionSame.IntegerToBoolean,
+    TypeConversionSame.IntegerToString
+  )
+  // 5/6) 完整目标类型行 24 与镜头朝向节点专用子集行 39
+  const m5 = f.enumerationMatch(TargetType.None, TargetType.AlliedFaction)
+  const m6 = f.enumerationMatch(
+    TargetTypeForCameraOrientationNode.None,
+    TargetTypeForCameraOrientationNode.AlliedFaction
+  )
+  // 7/8) 状态添加结果拆成 14（失败半）/ 15（成功半）两行，按值精确定行
+  const m7 = f.enumerationMatch(
     UnitStatusAdditionResult.FailedUnexpectedError,
     UnitStatusAdditionResult.FailedUnableToAddAdditionalStack
   )
-  const m6 = f.enumerationMatch(
+  const m8 = f.enumerationMatch(
     UnitStatusAdditionResult.SuccessNewStatusApplied,
     UnitStatusAdditionResult.SuccessSlotStacking
   )
-  // 7) 角色/造物技能族专属第 42 行
-  const m7 = f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
+  // 9) 角色/造物技能族专属第 42 行
+  const m9 = f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
   const consume = (matches: boolean[]) => {
     const [head, ...rest] = matches
     if (head === undefined) return
@@ -54,15 +69,25 @@ g.characterSkill({ id: 1082130441, name: 'EnumMatch' }).on('start', (_evt, f) =>
       () => consume(rest)
     )
   }
-  consume([m1, m2, m3, m4, m5, m6, m7])
+  consume([m1, m2, m3, m4, m5, m6, m7, m8, m9])
 })
 
 g.creationStatus({ id: 1082130442, name: 'EnumMatchStatus' }).on('start1', (_evt, f) => {
+  // 状态族第 34 行缺少 807，但其余类型转换值仍可用
+  const typeConversionMatches = f.enumerationMatch(
+    TypeConversionSame.IntegerToBoolean,
+    TypeConversionSame.Vector3ToString
+  )
   // 状态族专属第 42 行
-  const matches = f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
+  const tacticMatches = f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
   f.doubleBranch(
-    matches,
-    () => f.continueExecutingPreviousFrameBehavior(),
+    typeConversionMatches,
+    () =>
+      f.doubleBranch(
+        tacticMatches,
+        () => f.continueExecutingPreviousFrameBehavior(),
+        () => f.continueExecutingPreviousFrameBehavior()
+      ),
     () => f.continueExecutingPreviousFrameBehavior()
   )
 })
@@ -80,7 +105,7 @@ const statusDoc = documents.find((d) => d.graph.name?.includes('EnumMatchStatus'
 function assertFamilyRejects(
   document: typeof doc,
   values: [string, string],
-  expectedSubType: string
+  expectedMessage: RegExp
 ) {
   const forged = globalThis.structuredClone(document)
   const matchNode = forged.nodes?.find((node) => node.type === 'enumeration_match')
@@ -92,19 +117,27 @@ function assertFamilyRejects(
   }
   assert.throws(
     () => irToGia(forged, { protoPath: PROTO_PATH }),
-    new RegExp(`${expectedSubType}\\.enumeration_match.*unavailable in this graph family`)
+    expectedMessage
   )
 }
 
 assertFamilyRejects(
   doc,
   ['tactic_type_stay_motionless', 'tactic_type_ground_pursuit'],
-  'character_skill'
+  /character_skill\.enumeration_match.*unavailable in this graph family/
 )
 assertFamilyRejects(
   statusDoc,
   ['pre_aiming_end_reason_completed', 'pre_aiming_end_reason_cancelled'],
-  'creation_status'
+  /creation_status\.enumeration_match.*unavailable in this graph family/
+)
+assertFamilyRejects(
+  statusDoc,
+  [
+    'type_conversion_same_floating_point_to_integer',
+    'type_conversion_same_integer_to_boolean'
+  ],
+  /creation_status\.enumeration_match.*not selectable in this node/
 )
 
 fs.writeFileSync(STATUS_OUT_FILE, irToGia(statusDoc, { protoPath: PROTO_PATH }))
@@ -122,8 +155,8 @@ type PinExpect = {
 const matchNodes = nodes.filter((node) => Number(node.genericId?.nodeId) === 200005)
 assert.strictEqual(
   matchNodes.length,
-  7,
-  `expects 7 enumeration_match nodes, got ${matchNodes.length}`
+  9,
+  `expects 9 enumeration_match nodes, got ${matchNodes.length}`
 )
 
 function checkMatch(
@@ -175,28 +208,45 @@ checkMatch('TypeConversion (row 7 of 7/34)', 2, [
   { index: 0, ioc: 7, innerSet: true, enumVal: 800 },
   { index: 1, ioc: 7, innerSet: true, enumVal: 802 }
 ])
-checkMatch('TargetType (row 24 of 24/39)', 3, [
+checkMatch('TypeConversionSame (row 34)', 3, [
+  { index: 0, ioc: 34, innerSet: true, enumVal: 800 },
+  { index: 1, ioc: 34, innerSet: true, enumVal: 802 }
+])
+checkMatch('TargetType (row 24 of 24/39)', 4, [
   { index: 0, ioc: 24, innerSet: true, enumVal: 2000 },
   { index: 1, ioc: 24, innerSet: true, enumVal: 2001 }
 ])
-checkMatch('UnitStatusAdditionResult failed half (row 14)', 4, [
+checkMatch('TargetTypeForCameraOrientationNode (row 39)', 5, [
+  { index: 0, ioc: 39, innerSet: true, enumVal: 2000 },
+  { index: 1, ioc: 39, innerSet: true, enumVal: 2001 }
+])
+checkMatch('UnitStatusAdditionResult failed half (row 14)', 6, [
   { index: 0, ioc: 14, innerSet: true, enumVal: 1500 },
   { index: 1, ioc: 14, innerSet: true, enumVal: 1503 }
 ])
-checkMatch('UnitStatusAdditionResult success half (row 15)', 5, [
+checkMatch('UnitStatusAdditionResult success half (row 15)', 7, [
   { index: 0, ioc: 15, innerSet: true, enumVal: 1504 },
   { index: 1, ioc: 15, innerSet: true, enumVal: 1505 }
 ])
-checkMatch('PreAimingEndReason (character family row 42)', 6, [
+checkMatch('PreAimingEndReason (character family row 42)', 8, [
   { index: 0, ioc: 42, innerSet: true, enumVal: 6801 },
   { index: 1, ioc: 42, innerSet: true, enumVal: 6802 }
 ])
 
 const statusMatchNodes = statusNodes.filter((node) => Number(node.genericId?.nodeId) === 200178)
-assert.strictEqual(statusMatchNodes.length, 1)
+assert.strictEqual(statusMatchNodes.length, 2)
+checkMatch(
+  'TypeConversionSame (status row 34 subset)',
+  0,
+  [
+    { index: 0, ioc: 34, innerSet: true, enumVal: 800 },
+    { index: 1, ioc: 34, innerSet: true, enumVal: 809 }
+  ],
+  statusMatchNodes
+)
 checkMatch(
   'TacticType (status family row 42)',
-  0,
+  1,
   [
     { index: 0, ioc: 42, innerSet: true, enumVal: 6200 },
     { index: 1, ioc: 42, innerSet: true, enumVal: 6205 }
@@ -206,4 +256,4 @@ checkMatch(
 
 fs.rmSync(OUT_FILE, { force: true })
 fs.rmSync(STATUS_OUT_FILE, { force: true })
-console.log('[ok] enumeration_match IOC encoding verified across both client families (8 nodes)')
+console.log('[ok] enumeration_match IOC encoding verified across both client families (11 nodes)')

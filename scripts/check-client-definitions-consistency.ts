@@ -11,7 +11,7 @@ import {
 import { CLIENT_F_ZH_TO_EN_BY_SUB_TYPE } from '../src/definitions/client_zh_aliases.js'
 import {
   ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID,
-  ENUM_MATCH_ROWS_BY_CLASS
+  ENUM_MATCH_ROWS_BY_GENERIC_ID
 } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
 import { CLIENT_NODE_METADATA } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import { buildClientEnumBinding } from './client-nodegraph/client_enum_binding.js'
@@ -322,17 +322,21 @@ const statusOnlyClasses = statusMatchClasses.filter(
   (className) => !characterMatchClasses.includes(className)
 )
 if (
-  JSON.stringify(characterOnlyClasses) !== JSON.stringify(['PreAimingEndReason']) ||
-  JSON.stringify(statusOnlyClasses) !== JSON.stringify(['TacticType'])
+  JSON.stringify(characterOnlyClasses) !==
+    JSON.stringify(['PreAimingEndReason', 'TypeConversionSame']) ||
+  JSON.stringify(statusOnlyClasses) !==
+    JSON.stringify(['CreationStatusTypeConversionSame', 'TacticType'])
 ) {
   errors.push(
     `client enumeration_match family difference is stale: ` +
       `200005-only=${characterOnlyClasses.join(',')}, 200178-only=${statusOnlyClasses.join(',')}`
   )
 }
-for (const [classKey, rows] of Object.entries(ENUM_MATCH_ROWS_BY_CLASS)) {
-  if (rows.some((row) => row.ioc < 0 || row.ioc > 42)) {
-    errors.push(`generated enum-match rows out of range for ${classKey}`)
+for (const [genericId, rowsByClass] of Object.entries(ENUM_MATCH_ROWS_BY_GENERIC_ID)) {
+  for (const [classKey, rows] of Object.entries(rowsByClass)) {
+    if (rows.some((row) => row.ioc < 0 || row.ioc > 42)) {
+      errors.push(`generated enum-match rows out of range for ${genericId}/${classKey}`)
+    }
   }
 }
 

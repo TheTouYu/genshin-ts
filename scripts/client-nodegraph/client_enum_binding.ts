@@ -8,9 +8,8 @@
  * - the client-only class specs emitted into src/definitions/client_enums.ts;
  * - the value-string -> gia numeric table consumed by the encoder.
  *
- * Value spaces are shared with the server editor (census values are covered
- * by the vendor ENUM_VALUE table for all reused classes), so reused classes
- * encode through the existing parseEnumValue path unchanged.
+ * Shared values encode through parseEnumValue. Client-only values that live
+ * in an otherwise shared enum family are emitted into CLIENT_ENUM_VALUES.
  */
 
 import fs from 'node:fs'
@@ -48,12 +47,15 @@ export type ClientEnumMember = {
   value: number
   /** globally unique snake key: the enumeration value string in IR literals */
   key: string
+  /** narrower public type for values available only in a subset of graph families */
+  typeName?: string
 }
 
 export type ClientEnumClass = {
   className: string
   zhName: string
   members: ClientEnumMember[]
+  typeInterfaces?: Array<{ name: string; zhName: string }>
 }
 
 export type EnumMatchRow = { ioc: number; values: number[] }
@@ -75,13 +77,13 @@ export type ClientEnumBinding = {
   allClasses: string[]
   /** 枚举匹配 classes available to each generic node family, in TS and IR naming forms */
   enumMatchByGenericId: Record<number, { classes: string[]; classKeys: string[] }>
-  /** ir snake class name -> census rows (ioc ascending), for encoder ioc lookup */
-  matchRowsByClass: Record<string, EnumMatchRow[]>
+  /** generic id -> ir snake class name -> census rows, for encoder ioc lookup */
+  matchRowsByGenericId: Record<number, Record<string, EnumMatchRow[]>>
   /** classes reused from src/definitions/enum.ts, for import emission */
   serverClasses: string[]
   /** client-only classes to emit into src/definitions/client_enums.ts */
   clientOnlyClasses: ClientEnumClass[]
-  /** enumeration value string -> gia numeric value (client-only classes) */
+  /** enumeration value string -> gia numeric value (client-only values/classes) */
   valueByKey: Record<string, number>
 }
 
@@ -96,11 +98,9 @@ const ENUM_MATCH_GENERIC_ID_BY_FAMILY: Record<string, number> = {
 }
 
 /**
- * ioc -> existing server enum class (values verified shared: every census
- * value of these rows exists in the vendor ENUM_VALUE table). 14/15 are the
- * failure/success halves of one server class; 25 is the "quick" operator
- * dropdown sharing the server operator value space; 39 is the camera-node
- * TargetType subset.
+ * ioc -> existing server enum runtime class. Some rows use a narrower TS type
+ * below while retaining this runtime class so existing static enum members
+ * continue to select the correct editor row by numeric value.
  */
 const SERVER_CLASS_BY_IOC: Record<number, string> = {
   0: 'ComparisonOperator',
@@ -132,10 +132,23 @@ const SERVER_CLASS_BY_IOC: Record<number, string> = {
   26: 'HitType',
   27: 'AttackType',
   28: 'HitPerformanceLevel',
-  34: 'TypeConversion',
   37: 'ElementalReactionType',
-  39: 'TargetType',
   41: 'InputDeviceType'
+}
+
+/** Narrow client overload types for editor rows that split one server enum class. */
+const ENUM_MATCH_TS_TYPE_BY_IOC: Record<number, string> = {
+  2: 'BasicMathematicalOperator',
+  6: 'ClientRoundingMode',
+  14: 'UnitStatusAdditionFailureReason',
+  15: 'UnitStatusAdditionSuccessType',
+  25: 'QuickMathematicalOperator',
+  37: 'ElementalReactionType | ClientElementalReactionType'
+}
+
+/** Family-specific row subsets that need a narrower TS overload. */
+const ENUM_MATCH_TS_TYPE_BY_FAMILY_IOC: Record<string, string> = {
+  'creation_status:34': 'CreationStatusTypeConversionSame'
 }
 
 type ClientOnlySpec = {
@@ -143,6 +156,7 @@ type ClientOnlySpec = {
   zhName: string
   /** English member name per gia value (vendor comments + doc translations) */
   memberByValue: Record<number, string>
+  typeInterfaceByFamily?: Record<string, { name: string; zhName: string }>
 }
 
 /** census rows without a server counterpart (client-only dropdown classes) */
@@ -191,6 +205,28 @@ const CLIENT_ONLY_SPEC_BY_IOC: Record<number, ClientOnlySpec> = {
     zhName: '扇形检测方向',
     memberByValue: { 450: 'FromInsideOut', 451: 'Clockwise', 452: 'Counterclockwise' }
   },
+  34: {
+    className: 'TypeConversionSame',
+    zhName: '类型转换',
+    typeInterfaceByFamily: {
+      creation_status: {
+        name: 'CreationStatusTypeConversionSame',
+        zhName: '客户端造物状态图“类型转换”下拉中的值'
+      }
+    },
+    memberByValue: {
+      800: 'IntegerToBoolean',
+      801: 'IntegerToFloatingPoint',
+      802: 'IntegerToString',
+      803: 'EntityToString',
+      804: 'GuidToString',
+      805: 'BooleanToInteger',
+      806: 'BooleanToString',
+      807: 'FloatingPointToInteger',
+      808: 'FloatingPointToString',
+      809: 'Vector3ToString'
+    }
+  },
   35: {
     className: 'RetracingType',
     zhName: '溯源类型',
@@ -211,6 +247,17 @@ const CLIENT_ONLY_SPEC_BY_IOC: Record<number, ClientOnlySpec> = {
     className: 'FilterReturnType',
     zhName: '筛选器返回类型',
     memberByValue: { 1000010: 'ReturnBoolean', 10000011: 'ReturnInteger' }
+  },
+  39: {
+    className: 'TargetTypeForCameraOrientationNode',
+    zhName: '目标类型（镜头朝向节点用）',
+    memberByValue: {
+      2000: 'None',
+      2001: 'AlliedFaction',
+      2002: 'HostileFaction',
+      2004: 'OwnFaction',
+      2006: 'AllExceptSelf'
+    }
   },
   40: {
     className: 'ScanStatus',
@@ -356,7 +403,36 @@ const LIST_CLASS_BY_NODE_TYPE: Record<string, string> = {
 }
 
 /** server classes referenced by the zh maps beyond SERVER_CLASS_BY_IOC */
-const EXTRA_SERVER_CLASSES = ['TriggerRestriction', 'CharacterSkillSlot']
+const EXTRA_SERVER_CLASSES = [
+  'BasicMathematicalOperator',
+  'CharacterSkillSlot',
+  'ClientElementalReactionType',
+  'ClientRoundingMode',
+  'QuickMathematicalOperator',
+  'TriggerRestriction',
+  'UnitStatusAdditionFailureReason',
+  'UnitStatusAdditionSuccessType'
+]
+
+/** Values present only in the client Elemental Reaction Type dropdown. */
+const CLIENT_ELEMENTAL_REACTION_MEMBER_BY_VALUE: Record<number, string> = {
+  4704: 'Burned',
+  4709: 'AntiFire',
+  4710: 'Rock',
+  4711: 'SlowDown',
+  4713: 'Wind',
+  4714: 'Electric',
+  4715: 'Fire',
+  4721: 'SwirlFireAccu',
+  4722: 'SwirlWaterAccu',
+  4723: 'SwirlElectricAccu',
+  4724: 'SwirlIceAccu',
+  4725: 'StickRock',
+  4726: 'StickWater',
+  4732: 'StickGrass',
+  4738: 'PhlogistonSolidification',
+  4739: 'PhlogistonSolidificationEnd'
+}
 
 /**
  * 目标实体 dropdown reuse nodes beyond targetEntityParam.sampledNodes, per the
@@ -393,40 +469,59 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   const seeds = SEED_PATHS.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')) as EnumSeed)
 
   const classByValue = new Map<number, string>()
-  const bindValue = (value: number, className: string) => {
+  const bindValue = (value: number, className: string, allowDuplicate = false) => {
     const existing = classByValue.get(value)
     if (existing && existing !== className) {
+      if (allowDuplicate) return
       throw new Error(`[error] enum value ${value} claimed by both ${existing} and ${className}`)
     }
     classByValue.set(value, className)
   }
 
-  // 枚举匹配 dropdown rows: TS class -> ioc -> value set (both families merged;
-  // rows 0-41 are family-invariant, row 42 maps to a distinct class per family)
+  // 枚举匹配 dropdown rows: generic id -> runtime enum class -> ioc -> value set.
+  // The family dimension is required because creation_status row 34 omits value 807.
   const matchTsClassesByGenericId = new Map<number, Set<string>>()
-  const matchRowsByTsClass = new Map<string, Map<number, Set<number>>>()
-  const recordMatchRow = (className: string, row: CensusRow) => {
-    const rows = matchRowsByTsClass.get(className) ?? new Map<number, Set<number>>()
-    matchRowsByTsClass.set(className, rows)
+  const matchClassKeysByGenericId = new Map<number, Set<string>>()
+  const matchRowsByRuntimeClassByGenericId = new Map<
+    number,
+    Map<string, Map<number, Set<number>>>
+  >()
+  const recordMatchRow = (genericId: number, className: string, row: CensusRow) => {
+    const rowsByClass =
+      matchRowsByRuntimeClassByGenericId.get(genericId) ??
+      new Map<string, Map<number, Set<number>>>()
+    matchRowsByRuntimeClassByGenericId.set(genericId, rowsByClass)
+    const rows = rowsByClass.get(className) ?? new Map<number, Set<number>>()
+    rowsByClass.set(className, rows)
     const values = rows.get(row.ioc) ?? new Set<number>()
     rows.set(row.ioc, values)
     for (const value of row.values) values.add(value)
   }
 
+  const supplementalValueByKey: Record<string, number> = {}
   const clientOnlyByName = new Map<string, ClientEnumClass>()
   const addClientOnlyClass = (
     spec: ClientOnlySpec,
-    options: Array<{ value: number; name: string }>
+    options: Array<{ value: number; name: string }>,
+    family?: string
   ) => {
+    const typeInterface = family ? spec.typeInterfaceByFamily?.[family] : undefined
     const existing = clientOnlyByName.get(spec.className)
     const cls: ClientEnumClass = existing ?? {
       className: spec.className,
       zhName: spec.zhName,
-      members: []
+      members: [],
+      typeInterfaces: spec.typeInterfaceByFamily
+        ? Object.values(spec.typeInterfaceByFamily)
+        : undefined
     }
     if (!existing) clientOnlyByName.set(spec.className, cls)
     for (const option of options) {
-      if (cls.members.some((m) => m.value === option.value)) continue
+      const existingMember = cls.members.find((member) => member.value === option.value)
+      if (existingMember) {
+        if (typeInterface) existingMember.typeName = typeInterface.name
+        continue
+      }
       const name = spec.memberByValue[option.value]
       if (!name) {
         throw new Error(
@@ -437,7 +532,8 @@ export function buildClientEnumBinding(): ClientEnumBinding {
         name,
         zhName: memberZhName(spec.className, spec.zhName, option.name),
         value: option.value,
-        key: `${camelToSnakeKey(spec.className)}_${camelToSnakeKey(name)}`
+        key: `${camelToSnakeKey(spec.className)}_${camelToSnakeKey(name)}`,
+        typeName: typeInterface?.name
       })
     }
   }
@@ -450,6 +546,9 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     const familyMatchClasses =
       matchTsClassesByGenericId.get(enumMatchGenericId) ?? new Set<string>()
     matchTsClassesByGenericId.set(enumMatchGenericId, familyMatchClasses)
+    const familyMatchClassKeys =
+      matchClassKeysByGenericId.get(enumMatchGenericId) ?? new Set<string>()
+    matchClassKeysByGenericId.set(enumMatchGenericId, familyMatchClassKeys)
     for (const row of seed.enumMatchCensus.rows) {
       const spec =
         row.ioc === 42
@@ -465,11 +564,22 @@ export function buildClientEnumBinding(): ClientEnumBinding {
         )
       }
       for (const value of row.values) {
-        if (value > 0) bindValue(value, className)
+        if (value > 0) bindValue(value, className, row.ioc === 34 || row.ioc === 39)
+        const clientElementalMember = CLIENT_ELEMENTAL_REACTION_MEMBER_BY_VALUE[value]
+        if (row.ioc === 37 && clientElementalMember) {
+          supplementalValueByKey[
+            `elemental_reaction_type_${camelToSnakeKey(clientElementalMember)}`
+          ] = value
+        }
       }
-      recordMatchRow(className, row)
-      familyMatchClasses.add(className)
-      if (spec) addClientOnlyClass(spec, row.options)
+      recordMatchRow(enumMatchGenericId, className, row)
+      familyMatchClasses.add(
+        ENUM_MATCH_TS_TYPE_BY_FAMILY_IOC[`${seed.family}:${row.ioc}`] ??
+          ENUM_MATCH_TS_TYPE_BY_IOC[row.ioc] ??
+          className
+      )
+      familyMatchClassKeys.add(irSnakeClassName(className))
+      if (spec) addClientOnlyClass(spec, row.options, seed.family)
     }
     for (const tactic of seed.tacticEnums ?? []) {
       const spec = EXTRA_SPEC_BY_ZH[tactic.className]
@@ -513,7 +623,7 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   )
   for (const cls of clientOnlyClasses) cls.members.sort((a, b) => a.value - b.value)
 
-  const valueByKey: Record<string, number> = {}
+  const valueByKey: Record<string, number> = { ...supplementalValueByKey }
   for (const cls of clientOnlyClasses) {
     for (const m of cls.members) valueByKey[m.key] = m.value
   }
@@ -522,18 +632,22 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     ...new Set([...Object.values(SERVER_CLASS_BY_IOC), ...EXTRA_SERVER_CLASSES])
   ].sort()
 
-  const matchRowsByClass: Record<string, EnumMatchRow[]> = {}
-  for (const className of [...matchRowsByTsClass.keys()].sort()) {
-    matchRowsByClass[irSnakeClassName(className)] = [...matchRowsByTsClass.get(className)!]
-      .sort(([a], [b]) => a - b)
-      .map(([ioc, values]) => ({ ioc, values: [...values].sort((a, b) => a - b) }))
+  const matchRowsByGenericId: Record<number, Record<string, EnumMatchRow[]>> = {}
+  for (const [genericId, rowsByClass] of matchRowsByRuntimeClassByGenericId) {
+    const result: Record<string, EnumMatchRow[]> = {}
+    matchRowsByGenericId[genericId] = result
+    for (const className of [...rowsByClass.keys()].sort()) {
+      result[irSnakeClassName(className)] = [...rowsByClass.get(className)!]
+        .sort(([a], [b]) => a - b)
+        .map(([ioc, values]) => ({ ioc, values: [...values].sort((a, b) => a - b) }))
+    }
   }
   const enumMatchByGenericId: Record<number, { classes: string[]; classKeys: string[] }> = {}
   for (const [genericId, classes] of matchTsClassesByGenericId) {
     const sortedClasses = [...classes].sort()
     enumMatchByGenericId[genericId] = {
       classes: sortedClasses,
-      classKeys: sortedClasses.map(irSnakeClassName)
+      classKeys: [...(matchClassKeysByGenericId.get(genericId) ?? [])].sort()
     }
   }
 
@@ -563,6 +677,6 @@ export function buildClientEnumBinding(): ClientEnumBinding {
       ...new Set([...serverClasses, ...clientOnlyClasses.map((c) => c.className)])
     ].sort(),
     enumMatchByGenericId,
-    matchRowsByClass
+    matchRowsByGenericId
   }
 }
