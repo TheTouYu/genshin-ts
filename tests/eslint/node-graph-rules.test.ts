@@ -22,9 +22,10 @@ import gstsFunctionPrefix from '../../src/eslint/rules/gsts-function-prefix.js'
 import listMethodTypeConstraints from '../../src/eslint/rules/list-method-type-constraints.js'
 import noGraphFunctionRecursion from '../../src/eslint/rules/no-graph-function-recursion.js'
 import noJson from '../../src/eslint/rules/no-json.js'
+import serverLiteralArguments from '../../src/eslint/rules/server-literal-arguments.js'
 import switchRestrictions from '../../src/eslint/rules/switch-restrictions.js'
 
-const filename = path.join(process.cwd(), 'tests/eslint/client-graph-rules.test.ts')
+const filename = path.join(process.cwd(), 'tests/eslint/node-graph-rules.test.ts')
 const ruleTester = new RuleTester({
   languageOptions: {
     parser,
@@ -41,6 +42,7 @@ const importG = `import { g } from 'genshin-ts/runtime/core'`
 
 assert.equal(configs.recommended.rules['gsts/client-local-variable-support'], 'error')
 assert.equal(configs.recommended.rules['gsts/client-literal-arguments'], 'error')
+assert.equal(configs.recommended.rules['gsts/server-literal-arguments'], 'error')
 assert.equal(configs.recommended.rules['gsts/client-repeated-evaluation'], 'warn')
 
 const renamedSharedRuleIds = [
@@ -253,6 +255,8 @@ const Signal = {
 }
 g.creationStatus().on('start1', (_evt, f) => {
   f.getCustomVariable(TargetEntity.Self, 'score')
+  f.queryEntityFaction(TargetEntity.Self)
+  f.queryIfEntityIsOnTheField(TargetEntity.Self)
 })
 g.characterSkill().on('start', (_evt, f) => {
   const variableName = 'counter'
@@ -299,9 +303,26 @@ g.characterSkill().on('start', (_evt, f) => {
 g.creationStatus().on('start1', (_evt, f) => {
   const wiredTarget = f.getStageEntity()
   f.getCustomVariable(wiredTarget as never, 'score')
+  f.queryEntityFaction(wiredTarget as never)
+  f.queryIfEntityIsOnTheField(wiredTarget as never)
 })`,
       errors: [
-        { message: /Argument 1 of client method getCustomVariable must be a source literal/ }
+        { message: /Argument 1 of client method getCustomVariable must be a source literal/ },
+        { message: /Argument 1 of client method queryEntityFaction must be a source literal/ },
+        {
+          message: /Argument 1 of client method queryIfEntityIsOnTheField must be a source literal/
+        }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+g.creationStatus({ lang: 'zh' }).on('start1', (_evt, nodes) => {
+  const wiredTarget = nodes.getStageEntity()
+  nodes.查询实体阵营(wiredTarget as never)
+})`,
+      errors: [
+        { message: /Argument 1 of client method queryEntityFaction must be a source literal/ }
       ]
     },
     {
@@ -378,6 +399,64 @@ g.characterSkill().on('start', (_evt, f) => {
         { message: /Argument 2 of client method addUnitStatus must be a source literal/ },
         {
           message: /Argument 1 of client method fixedPointProjectileLaunch must be a source literal/
+        }
+      ]
+    }
+  ]
+})
+
+ruleTester.run('server-literal-arguments', serverLiteralArguments, {
+  valid: [
+    {
+      filename,
+      code: `${importG}
+import type { PlayerEntity } from '../../src/definitions/entity_helpers'
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const player = f.getSelfEntity() as unknown as PlayerEntity
+  const maximumTargets = f.addition(1n, 2n)
+  f.setPlayerSCursorClickSelectableTargets(player, 10n, maximumTargets)
+  player.setPlayerSCursorClickSelectableTargets(11n, maximumTargets)
+  const unrelated = {
+    setPlayerSCursorClickSelectableTargets(_wired: bigint) {}
+  }
+  unrelated.setPlayerSCursorClickSelectableTargets(maximumTargets)
+})`
+    }
+  ],
+  invalid: [
+    {
+      filename,
+      code: `${importG}
+import type { PlayerEntity } from '../../src/definitions/entity_helpers'
+g.server().on('whenEntityIsCreated', (_evt, f) => {
+  const player = f.getSelfEntity() as unknown as PlayerEntity
+  const wiredLayer = f.addition(1n, 2n)
+  f.setPlayerSCursorClickSelectableTargets(player, wiredLayer as never, 1n)
+  player.setPlayerSCursorClickSelectableTargets(wiredLayer as never, 1n)
+})`,
+      errors: [
+        {
+          message:
+            /Argument 2 of server method setPlayerSCursorClickSelectableTargets must be a source literal/
+        },
+        {
+          message:
+            /Argument 1 of server method setPlayerSCursorClickSelectableTargets must be a source literal/
+        }
+      ]
+    },
+    {
+      filename,
+      code: `${importG}
+import type { PlayerEntity } from '../../src/definitions/entity_helpers'
+g.server({ lang: 'zh' }).on('实体创建时', (_evt, f) => {
+  const player = f.获取自身实体() as unknown as PlayerEntity
+  const wiredLayer = f.加法运算(1n, 2n)
+  f.设置玩家光标点击可选取目标(player, wiredLayer as never, 1n)
+})`,
+      errors: [
+        {
+          message: /服务端方法 setPlayerSCursorClickSelectableTargets 的第 2 个参数仅支持字面量/
         }
       ]
     }
