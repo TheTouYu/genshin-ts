@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-18
+> 最近校验：2026-07-19
 > 适用范围：gsts 当前复合节点测试脚本和验证流程；复合 GIA bug 的完整分析、修复和验收流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
@@ -305,9 +305,15 @@ NODE_OPTIONS='--no-deprecation' npx tsx tests/composite/test-multi-outflow-defau
 该回归锁定普通 `doubleBranch` 和多出口 Composite 的自然顺序 continuation 都只连接
 `OutFlow[0]`，输出稳定诊断 `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION`，并断言 warning 给出
 “将逻辑移入对应 branch callback”及 `f.node()/f.link()` / `connectOutFlow()` 的修复建议。
-普通节点的通用分支元数据由运行时捕获，不按 `double_branch` 节点名特判。当前完成自动 IR 和 Timer GIA 生成验证，覆盖 `doubleBranch`、4 路 `multipleBranches`、
-`finiteLoop`、`listIterationLoop`、多出口 Composite、nested Composite 和显式 wiring；尚未进行
-编辑器导入或游戏内验证。
+普通节点的通用分支元数据由运行时捕获，不按 `double_branch` 节点名特判。当前已完成自动 IR、Timer GIA 生成和用户游戏内验证，覆盖 `doubleBranch`、4 路
+`multipleBranches`、`finiteLoop`、`listIterationLoop`、多出口 Composite、nested Composite 和显式
+wiring。自动验证使用 `tests/composite/test-multi-outflow-default-continuation-warning.ts`、
+`tests/timer_multi_outflow_node_families.ts` 和 `tests/timer_multi_outflow_default_continuation_warning.ts`；
+Timer GIA 分别由 `gsts.timer-multi-outflow-node-families.config.ts` 和
+`gsts.timer-multi-outflow-default-continuation-warning.config.ts` 生成。用户已确认导入并测试通过的
+最终文件为 `Beyond_Local_Export/timer_multi_outflow_node_families.gia` 和
+`Beyond_Local_Export/timer_multi_outflow_default_continuation_warning_v3.gia`。本段游戏结论仅适用于
+用户实际测试的这两份产物，不推广到未覆盖的节点定义或未来版本。
 
 ```bash
 npm run quicktest

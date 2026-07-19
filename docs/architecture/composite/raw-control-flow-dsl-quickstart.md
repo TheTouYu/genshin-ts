@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：当前代码实现 + recreate-debug5/6 验证
-> 最近校验：2026-07-06
+> 最近校验：2026-07-19
 > 适用范围：gsts 当前低层手动控制流 DSL
 
 这份文档介绍新版低层控制流 DSL。它适合两类场景：
@@ -47,10 +47,11 @@ Timer 注册的语义仍是“编译期把 Timer 注册节点放入当前图，�
 
 在 Composite `build()` 中，单出口执行子 Composite 后的普通顺序调用可直接使用
 `f.callComposite(child, {})`，再写后续执行节点；当前 capture 实现会自动从 child 的
-`OutFlow[0]` continuation。所有多出口执行节点（普通节点和 Composite）遇到普通顺序后续时，
+`OutFlow[0]` continuation。条件/派发型多出口执行节点（普通节点和 Composite）遇到普通顺序后续时，
 同样只从 `OutFlow[0]` 继续，并输出 `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION` warning。
-warning 会建议把各分支逻辑移入对应 callback；需要精确处理其它出口时，使用
-`declareDetached()` + `f.link()` 或 `connectOutFlow()` 显式连线。
+warning 会建议把各分支逻辑移入对应 callback；普通节点可用 `f.node()/f.link()`，Composite 可用
+`declareDetached()` + `f.link()` 或 `connectOutFlow()` 显式连线。有限循环和列表迭代是例外：
+高层 API 已明确把普通后续接到 Loop Complete `OutFlow[1]`，不要手动把它改接循环体出口。
 
 ## 核心概念
 

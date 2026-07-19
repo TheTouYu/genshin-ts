@@ -2,7 +2,7 @@
 
 > 状态：部分已验证 / 部分待验证
 > 来源：真实 GIA 验证 + 当前代码实现 + 历史实战记录
-> 最近校验：2026-07-10
+> 最近校验：2026-07-19
 > 适用范围：控制流模式参考。新代码优先从 `raw-control-flow-dsl-quickstart.md` 开始；本文中标注“感觉正确”或“待验证”的内容仍需单独核验。
 
 > **本文档定位**: 衔接 `dsl-api.md` (基础 API) 与 `multi-outflow-composite-guide.md` (GIA 端分析)。
@@ -793,6 +793,13 @@ g.server().on('whenEntityIsCreated', (_e, f) => {
 
 ## 9. 速查 — 6 种"我想做" → API 对照
 
+> **大模型易错提示**：Composite `build()` 内调用单出口执行 Composite 后，如果只是普通顺序继续，直接使用
+> `f.callComposite(child, {})` 即可。当前 capture 会把后续节点接到 child 的 `OutFlow[0]`。
+> 条件/派发型多出口节点或 Composite 后的普通顺序 continuation 也只默认接 `OutFlow[0]`，并输出
+> `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION` warning；应把各分支逻辑写入对应 callback，或用
+> `f.node()/f.link()`、`f.connectOutFlow()` 显式处理。`finiteLoop` / `listIterationLoop` 的高层 API
+> 已明确把普通后续接到 Loop Complete `OutFlow[1]`，不要把该循环例外误归入条件分支默认规则。
+
 | 你想做什么 | 写法 | 关键 API |
 |------------|------|----------|
 | **单链** A → B → C | `f.A(); f.B(); f.C()` | 直接调用 |
@@ -800,7 +807,7 @@ g.server().on('whenEntityIsCreated', (_e, f) => {
 | **顺序执行 N 步** | 先定义 `g.defineComposite('顺序执行', ...)`, 再 `f.callComposite(...)` + 多个 `f.connectOutFlow` | 顺序执行 复合 + f.connectOutFlow |
 | **是/否 2 分支** | `f.doubleBranch(cond, () => {}, () => {})` | f.doubleBranch |
 | **case 派发** (10 case) | `f.multipleBranches(ctrlExpr, { 0: cb, 1: cb, ..., default: cb })` | f.multipleBranches |
-| **循环** | `f.finiteLoop(start, end)` + 接 OutFlow[0] (循环体) 和 OutFlow[1] (循环完成) | f.finiteLoop |
+| **循环** | `f.finiteLoop(start, end)` / `f.listIterationLoop(list)`；循环体是 OutFlow[0]，普通后续是 Loop Complete OutFlow[1] | f.finiteLoop / f.listIterationLoop |
 | **调用复合** | `f.callComposite(handle, inputs)` | f.callComposite |
 | **接复合的 OutFlow** | `f.connectOutFlow(result, idx, callback)` | f.connectOutFlow |
 | **fan-in 共享节点** (1 节点被多源触发) | `f.declareDetached(h, i)` 创建 + `f.linkTo(src, idx, dst)` 连边 | **f.declareDetached + f.linkTo** ✨ |
@@ -836,6 +843,9 @@ g.server().on('whenEntityIsCreated', (_e, f) => {
 | `tests/composite/test-phase1-system-nodes.ts` | **完整定义 顺序执行 复合 + f.connectOutFlow 接续** |
 | `tests/composite/test-bool-input.ts` | **f.fork + f.doubleBranch + f.callComposite** |
 | `tests/composite/test-mixed-composite-normal.ts` | 混合复合 + 普通节点链 |
+| `tests/composite/test-multi-outflow-default-continuation-warning.ts` | 普通 doubleBranch、4 路 multipleBranches、两类 loop、多出口 Composite、nested Composite 和显式 wiring |
+| `tests/timer_multi_outflow_node_families.ts` | Timer/主图生成路径中的普通多出口节点族 |
+| `tests/timer_multi_outflow_default_continuation_warning.ts` | Timer/Composite 多出口默认 continuation 与 warning |
 | `tests/composite/test-composite-game-demo.ts` | 4 个复合, 嵌套调用 |
 | `tests/composite/simple-double.ts` | 纯数据复合 + 嵌套调用 |
 | `tests/composite/exec-with-data.ts` | exec + data 混合 |

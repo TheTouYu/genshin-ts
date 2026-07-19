@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-16
+> 最近校验：2026-07-19
 > 适用范围：gsts 当前复合节点用户面 API
 
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
@@ -71,7 +71,7 @@ type CompositeHandle<Outputs> = {
 |---|---|---|
 | 主图调用执行 Composite，后续还有普通节点 | `f.callComposite(child, {})` | 调用 marker 按主图当前 tail 自动串联 |
 | Composite `build()` 内调用**单出口执行 Composite**，后续还有节点 | `f.callComposite(child, {})` | 自动从 child 的 `OutFlow[0]` 继续；无需 `declareDetached()` + `f.link()` |
-| Composite `build()` 内调用多出口执行 Composite | `f.declareDetached(child, {})` + `f.link(...)` | 必须显式选择出口，禁止猜测 |
+| Composite `build()` 内调用多出口执行 Composite | 普通顺序可直接 `f.callComposite(child, {})`；精确分支用 `f.declareDetached(child, {})` + `f.link(...)` | 普通顺序默认只接 `OutFlow[0]` 并 warning；精确拓扑必须显式选择出口 |
 | 需要 fan-in、fan-out 或精确拓扑 | `f.declareDetached(...)` + `f.link(...)` | 完全由调用方控制 |
 | 纯数据 Composite | `f.callComposite(...)` | 保持数据节点语义，不参与执行流 continuation |
 | 执行 Composite 是终点 | `f.callComposite(...)` | 不需要虚构后续边 |
@@ -258,13 +258,14 @@ const outer = g.defineComposite('Outer', {
 })
 ```
 
-当前实现会把多出口执行节点后的普通顺序 continuation 默认限制到 `OutFlow[0]`，包括普通
-`doubleBranch` / `multipleBranches` / loop 和执行 Composite；编译继续生成并输出
+当前实现会把条件/派发型多出口执行节点后的普通顺序 continuation 默认限制到 `OutFlow[0]`，包括普通
+`doubleBranch`、`multipleBranches` 和执行 Composite；编译继续生成并输出
 `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION` warning，提示未使用的出口。warning 建议将每条分支
-自己的逻辑移入对应 callback；Composite 还可以使用 `connectOutFlow(result, index, callback)`，
-或使用 `declareDetached()` + `f.link()` 显式连线。显式 wiring 不触发该 warning。单出口 Composite
-仍可在 build 中自然继续到 `OutFlow[0]`，纯数据 Composite 不参与执行 continuation。自动生成与 IR
-回归不等同于游戏内行为验证。
+自己的逻辑移入对应 callback；普通节点也可以使用 `f.node()/f.link()` 显式连线，Composite 还可以
+使用 `connectOutFlow(result, index, callback)` 或 `declareDetached()` + `f.link()`。显式 wiring
+不触发该 warning。`finiteLoop` / `listIterationLoop` 是已封装的循环 API，普通后续按其明确的
+Loop Complete `OutFlow[1]` 继续，不属于默认猜测 `OutFlow[0]` 的条件分支规则。单出口 Composite
+仍可在 build 中自然继续到 `OutFlow[0]`，纯数据 Composite 不参与执行 continuation。
 
 
 ```typescript
