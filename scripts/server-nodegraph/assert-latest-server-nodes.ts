@@ -3,15 +3,18 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { irToGia } from '../../src/compiler/ir_to_gia_transform/index.js'
+import type { PlayerEntity } from '../../src/definitions/entity_helpers.js'
 import { ServerEventMetadata } from '../../src/definitions/events.js'
 import { NODE_TYPE_BY_METHOD } from '../../src/definitions/node_modes.js'
+import { ServerExecutionFlowFunctions } from '../../src/definitions/nodes.js'
 import {
   SERVER_LITERAL_ARGUMENT_INDEXES_BY_METHOD,
   SERVER_LITERAL_ARGUMENT_INDEXES_BY_NODE_TYPE
 } from '../../src/definitions/server_node_metadata.js'
+import { MetaCallRegistry } from '../../src/runtime/core.js'
 import { SERVER_DEFAULT_GRAPH_ID } from '../../src/runtime/graph_defaults.js'
 import type { IRDocument } from '../../src/runtime/IR.js'
-import { assertServerLiteralValue, int } from '../../src/runtime/value.js'
+import { assertServerLiteralValue, entity, int } from '../../src/runtime/value.js'
 import {
   ENUM_ID,
   ENUM_VALUE
@@ -372,6 +375,17 @@ for (const officialEventLabel of [
 for (const source of [nodeDefinitionsSource, entityHelpersSource, eventPayloadSource]) {
   assert.doesNotMatch(source, /Official editor|官方编辑器|compatibility alias|兼容别名/)
 }
+for (const source of [nodeDefinitionsSource, entityHelpersSource]) {
+  for (const note of [
+    'GSTS Note: This value is a four-bit mask, not a single layer ID.',
+    'Scene = 1 (bit 0), Hurtbox = 2 (bit 1),',
+    'Object Collision = 4 (bit 2), Cursor Collision = 8 (bit 3).',
+    'GSTS 注: 该值是四位位掩码，并非单个层级ID。',
+    '场景 = 1（第0位）、受击盒 = 2（第1位）、物件碰撞 = 4（第2位）、光标碰撞 = 8（第3位）。'
+  ]) {
+    assert.ok(source.includes(note), `cursor layer-mask JSDoc is missing: ${note}`)
+  }
+}
 
 assert.deepEqual(SERVER_LITERAL_ARGUMENT_INDEXES_BY_METHOD.setPlayerSCursorClickSelectableTargets, [
   1
@@ -384,6 +398,24 @@ assert.doesNotThrow(() => assertServerLiteralValue(new int(10n)))
 const wiredInt = new int()
 wiredInt.markPin({ id: 1, type: 'data', nodeType: 'addition', args: [] }, 'result', 0)
 assert.throws(() => assertServerLiteralValue(wiredInt), /only accepts a literal value/)
+const cursorRangeFunctions = new ServerExecutionFlowFunctions(new MetaCallRegistry())
+const cursorRangePlayer = new entity() as unknown as PlayerEntity
+for (const invalidMask of [-1n, 16n]) {
+  assert.throws(
+    () =>
+      cursorRangeFunctions.setPlayerSCursorClickSelectableTargets(
+        cursorRangePlayer,
+        invalidMask,
+        1n
+      ),
+    new RegExp(`must be an integer literal between 0 and 15.*received ${invalidMask}`)
+  )
+}
+assert.throws(
+  () =>
+    cursorRangeFunctions.setPlayerSCursorClickSelectableTargets(cursorRangePlayer, new int(), 1n),
+  /must be an integer literal between 0 and 15.*received undefined/
+)
 
 const staticMetadata = JSON.parse(
   fs.readFileSync(path.join(repoRoot, 'resources/server_node_static_metadata.json'), 'utf8')
@@ -498,13 +530,26 @@ const secondBeyondTargetNodes = secondBeyondNodes.filter((node) =>
 )
 assert.deepEqual(
   [...new Set(secondBeyondTargetNodes.map(nodeId))].sort((a, b) => (a ?? 0) - (b ?? 0)),
-  [835, 836, 855]
+  [835, 836, 847, 855]
 )
 for (const node of secondBeyondTargetNodes) {
   const id = nodeId(node)!
   assert.equal(pinSignature(node), expectedPins.get(id), `second beyond node ${id} emitted pins`)
 }
 assertAllParametersAndOutputsUsed(secondBeyondTargetNodes, secondBeyondNodes, 'second beyond')
+
+const secondBeyondCursorNodes = secondBeyondTargetNodes.filter((node) => nodeId(node) === 847)
+assert.equal(secondBeyondCursorNodes.length, 16, 'all four-bit cursor layer masks must be emitted')
+assert.deepEqual(
+  secondBeyondCursorNodes
+    .map((node) => inputPin(node, 1).value?.bInt?.val)
+    .sort((a, b) => (a ?? 0) - (b ?? 0)),
+  Array.from({ length: 16 }, (_, value) => value)
+)
+for (const cursorNode of secondBeyondCursorNodes) {
+  assert.equal(inputPin(cursorNode, 1).connects.length, 0)
+  assert.equal(inputPin(cursorNode, 2).value?.bInt?.val, 1)
+}
 
 const secondBeyondLiteralModelNode = secondBeyondTargetNodes.find(
   (node) =>

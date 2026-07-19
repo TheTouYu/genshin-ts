@@ -130,6 +130,25 @@ g.server({
   const wiredBool = f.equal(wiredInt, wiredInt)
   const wiredFloat = f.division(7.0, 4.0)
 
+  // ID 847: all four-bit layer-mask combinations for imported-editor verification.
+  // The maximum target count stays at 1 so only the layer selection changes.
+  f.setPlayerSCursorClickSelectableTargets(player, 0n, 1n) // None
+  f.setPlayerSCursorClickSelectableTargets(player, 1n, 1n) // Scene
+  f.setPlayerSCursorClickSelectableTargets(player, 2n, 1n) // Hurtbox
+  f.setPlayerSCursorClickSelectableTargets(player, 3n, 1n) // Scene + Hurtbox
+  f.setPlayerSCursorClickSelectableTargets(player, 4n, 1n) // Object Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 5n, 1n) // Scene + Object Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 6n, 1n) // Hurtbox + Object Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 7n, 1n) // Scene + Hurtbox + Object Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 8n, 1n) // Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 9n, 1n) // Scene + Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 10n, 1n) // Hurtbox + Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 11n, 1n) // Scene + Hurtbox + Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 12n, 1n) // Object Collision + Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 13n, 1n) // Scene + Object Collision + Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 14n, 1n) // Hurtbox + Object Collision + Cursor Collision
+  f.setPlayerSCursorClickSelectableTargets(player, 15n, 1n) // All four layers
+
   // Dual-mode IDs 835/836: non-first enums plus mixed literal/wired parameters.
   f.modifyModelColorAndMaterial(
     object,

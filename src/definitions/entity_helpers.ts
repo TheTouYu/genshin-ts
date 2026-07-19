@@ -6579,7 +6579,18 @@ interface EntityHelperMethodAliases {
    * @param cursorClickableLayerFilterId Cursor Clickable Layer Filter ID. Literal only; wired
    * connections are not allowed.
    *
+   * GSTS Note: This value is a four-bit mask, not a single layer ID. Add the selected layer
+   * values and pass the result as an integer literal: Scene = 1 (bit 0), Hurtbox = 2 (bit 1),
+   * Object Collision = 4 (bit 2), Cursor Collision = 8 (bit 3). The valid combinations are
+   * 0-15; 0 selects none and 15 selects all. For example, 10 selects Hurtbox and Cursor
+   * Collision, while 11 additionally selects Scene. Do not use bits above bit 3.
+   *
    * 光标可点击层级筛选id: 仅支持字面量，不能连接其他节点的输出
+   *
+   * GSTS 注: 该值是四位位掩码，并非单个层级ID。请将所需层级的数值相加，并把结果作为整数字面量传入:
+   * 场景 = 1（第0位）、受击盒 = 2（第1位）、物件碰撞 = 4（第2位）、光标碰撞 = 8（第3位）。
+   * 有效组合为0-15；0表示全部不选，15表示全部选中。例如10表示“受击盒 + 光标碰撞”，
+   * 11则在此基础上增加“场景”。不要使用第3位以上的未知位。
    * @param maximumSelectableTargets Max Selectable Targets
    *
    * 光标最多可选取目标
