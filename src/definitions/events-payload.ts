@@ -62,6 +62,22 @@ export type ServerEventPayloads = {
    * This event is triggered when the Custom Variable of the Entity associated with the current Node Graph changes; The previous and current values are Generic. Determine the Generic type before you can correctly receive events for Custom Variables of the corresponding type; Vessel-type Custom Variables do not provide before-value and after-value Output Parameters
    *
    * 自定义变量变化时: 当前节点图所关联实体的自定义变量发生变化时，触发该事件; 注意变化前值和变化后值为泛型，需确定其泛型类型后，才能正确接收到对应类型自定义变量的事件; 容器类型的自定义变量没有变化前值和变化后值出参
+   *
+   * GSTS Note: The concrete type selected for `preChangeValue` or `postChangeValue` also determines which Custom Variable changes this event can detect; only variables of that type trigger it. If the handler only needs the event and does not consume either value, the generated event node has no concrete type information and cannot listen for changes correctly. Explicitly narrow one value with `asType()` and consume it with a Print String node:
+   *
+   * ```ts
+   * print(str(evt.postChangeValue.asType('int')))
+   * ```
+   *
+   * Replace `'int'` with the Custom Variable's actual type.
+   *
+   * GSTS 注: `preChangeValue` 或 `postChangeValue` 确定的具体类型同时决定本事件能检测哪一类自定义变量变化；只有该类型的变量变化才会触发。若处理函数只需要事件本身而未消费这两个值，编译生成的事件节点将不具备具体类型信息，无法正常监听变化。请对其中一个值显式调用 `asType()`，并通过【打印字符串】节点消费:
+   *
+   * ```ts
+   * print(str(evt.postChangeValue.asType('int')))
+   * ```
+   *
+   * 请将 `'int'` 替换为自定义变量的实际类型。
    */
   whenCustomVariableChanges: {
     /**

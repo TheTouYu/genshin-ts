@@ -13,3 +13,7 @@ g.server({ id: 1073741862 }).on('whenNodeGraphVariableChanges', (evt, f) => {
   const postVal = f.queryDictionaryValueByKey(postDict, 'k')
   f.addition(preVal, postVal)
 })
+
+g.server({ id: 1073741863 }).on('whenCustomVariableChanges', (evt, _f) => {
+  print(str(evt.postChangeValue.asType('int')))
+})

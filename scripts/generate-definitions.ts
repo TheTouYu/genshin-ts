@@ -387,6 +387,26 @@ function buildGenericContext(
 function buildEvents() {
   const eventDef = rawDef['server_event_en-us']
   const eventDefZh = rawDef['server_event_zh-cn']
+  const eventDocAppendices: Record<string, string[]> = {
+    whenCustomVariableChanges: [
+      '',
+      'GSTS Note: The concrete type selected for `preChangeValue` or `postChangeValue` also determines which Custom Variable changes this event can detect; only variables of that type trigger it. If the handler only needs the event and does not consume either value, the generated event node has no concrete type information and cannot listen for changes correctly. Explicitly narrow one value with `asType()` and consume it with a Print String node:',
+      '',
+      '```ts',
+      "print(str(evt.postChangeValue.asType('int')))",
+      '```',
+      '',
+      "Replace `'int'` with the Custom Variable's actual type.",
+      '',
+      'GSTS 注: `preChangeValue` 或 `postChangeValue` 确定的具体类型同时决定本事件能检测哪一类自定义变量变化；只有该类型的变量变化才会触发。若处理函数只需要事件本身而未消费这两个值，编译生成的事件节点将不具备具体类型信息，无法正常监听变化。请对其中一个值显式调用 `asType()`，并通过【打印字符串】节点消费:',
+      '',
+      '```ts',
+      "print(str(evt.postChangeValue.asType('int')))",
+      '```',
+      '',
+      "请将 `'int'` 替换为自定义变量的实际类型。"
+    ]
+  }
   const events: {
     name: string
     nameZh: string
@@ -489,6 +509,9 @@ function buildEvents() {
     payloadLines.push(` * ${e.desc}`)
     payloadLines.push(` *`)
     payloadLines.push(` * ${e.nameZh}: ${e.descZh}`)
+    for (const line of eventDocAppendices[e.name] ?? []) {
+      payloadLines.push(line ? ` * ${line}` : ` *`)
+    }
     payloadLines.push(` */`)
     payloadLines.push(`${e.name}: {`)
     payloadLines.push(...paramLines)
