@@ -101,6 +101,33 @@ const clientNodesSource = ts.createSourceFile(
   ts.ScriptKind.TS
 )
 
+let tacticalContextMethodCount = 0
+function checkTacticalContextDocs(node: ts.Node): void {
+  if (
+    (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) &&
+    node.parameters.some(
+      (parameter) => ts.isIdentifier(parameter.name) && parameter.name.text === 'tacticalContext'
+    )
+  ) {
+    tacticalContextMethodCount += 1
+    const source = node.getFullText(clientNodesSource)
+    if (
+      !source.includes('GSTS Note: Tactical Context is only text used as an identifier') ||
+      !source.includes('GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本') ||
+      !source.includes('可以留空') ||
+      !source.includes('When Execute is false, this tactic is treated as failed') ||
+      !source.includes('当【是否执行】为 false 时，该战术等同于执行失败')
+    ) {
+      errors.push(`tacticalContext JSDoc incomplete: ${node.name.getText(clientNodesSource)}`)
+    }
+  }
+  ts.forEachChild(node, checkTacticalContextDocs)
+}
+checkTacticalContextDocs(clientNodesSource)
+if (tacticalContextMethodCount === 0) {
+  errors.push('no generated tacticalContext parameters found')
+}
+
 const statusClassNames = {
   creation_status: 'ClientCreationStatusExecutionFlowFunctions',
   creation_status_decision: 'ClientCreationStatusDecisionExecutionFlowFunctions'

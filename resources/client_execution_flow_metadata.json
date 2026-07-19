@@ -12057,8 +12057,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "A tactic setting where the Creation executes its patrol , using its configured Patrol Template to drive its motion.; Execution Conditions:\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行巡逻行为，依据造物自身配置的巡逻模板来进行移动表现的战术。; 执行条件：\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "A tactic setting where the Creation executes its patrol , using its configured Patrol Template to drive its motion.; Execution Conditions:\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行巡逻行为，依据造物自身配置的巡逻模板来进行移动表现的战术。; 执行条件：\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12181,8 +12181,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation executes a Paving Standoff. It uses four-direction Motion Tactics, with five directions: idle/forward/backward/left/right. Use this to simulate a sustained face-off with the Player.; You can use probability settings to create motion behaviors such as moving left and right around the Player, or preferring to move forward and avoiding moving backward. It also includes settings for adjusting distance to the Player and for obstacle avoidance.; Essentially, it just decides a direction; there is no specific Target Point; Execution Conditions:\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行地面对峙行为，四向移动战术，包括静止/前/后/左/右五种方向，可用于来营造与玩家的相持对峙感。; 可以通过概率配置创造出只左右绕玩家移动/喜好前进厌恶后退等移动行为，也包含一些与玩家距离调整和避障的配置。; 本质上是决策出一个方向，并不会有一个具体的目标点; 执行条件：\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation executes a Paving Standoff. It uses four-direction Motion Tactics, with five directions: idle/forward/backward/left/right. Use this to simulate a sustained face-off with the Player.; You can use probability settings to create motion behaviors such as moving left and right around the Player, or preferring to move forward and avoiding moving backward. It also includes settings for adjusting distance to the Player and for obstacle avoidance.; Essentially, it just decides a direction; there is no specific Target Point; Execution Conditions:\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行地面对峙行为，四向移动战术，包括静止/前/后/左/右五种方向，可用于来营造与玩家的相持对峙感。; 可以通过概率配置创造出只左右绕玩家移动/喜好前进厌恶后退等移动行为，也包含一些与玩家距离调整和避障的配置。; 本质上是决策出一个方向，并不会有一个具体的目标点; 执行条件：\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12287,8 +12287,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation executes a Paving Escape, a tactic for fleeing from the Target. It attempts to turn its back to the Target and move farther away.; Allows you to configure multiple segments of Escape Motion. Each segment/run calculates one escape point.; Execution Conditions:\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行地面逃跑行为，逃离目标的战术，试图背对目标并向远处移动。; 允许配置多段逃跑移动，每段/每次会计算一个逃跑点位。; 执行条件：\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation executes a Paving Escape, a tactic for fleeing from the Target. It attempts to turn its back to the Target and move farther away.; Allows you to configure multiple segments of Escape Motion. Each segment/run calculates one escape point.; Execution Conditions:\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行地面逃跑行为，逃离目标的战术，试图背对目标并向远处移动。; 允许配置多段逃跑移动，每段/每次会计算一个逃跑点位。; 执行条件：\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12369,8 +12369,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation executes a Paving Roam, walking randomly within the AoE; Execution Conditions:; Point Selection Rules:; Because choosing the right Target Point is one of the requirements for entering this Tactic\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行地面闲逛行为，在范围内随机行走; 执行条件：; 选点规则：; 因为选到合适的目标点是进入战术的条件之一\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation executes a Paving Roam, walking randomly within the AoE; Execution Conditions:; Point Selection Rules:; Because choosing the right Target Point is one of the requirements for entering this Tactic\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行地面闲逛行为，在范围内随机行走; 执行条件：; 选点规则：; 因为选到合适的目标点是进入战术的条件之一\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12533,8 +12533,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation moves to the Target Entity\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行移动到目标实体行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation moves to the Target Entity\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行移动到目标实体行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12603,8 +12603,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation moves to the Target Point\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行移动到目标点行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation moves to the Target Point\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行移动到目标点行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12679,8 +12679,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation returns to the Spawn Point after leaving battle; A tactic that makes a unit return to the initial point when leaving battle. While this tactic is running, the Aggro system is disabled and will not be re-enabled until the tactic ends.; Execution Conditions:; Select Target Points:; The Target Point is selected on the frame you enter the Tactic, and it will not be edited while the Tactic is being executed; Check the following conditions in order. When a condition is met, set the Target Point based on that item.\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行脱战后返回出生点行为; 脱离战斗时，回初始点位的战术。战术执行期间，仇恨系统是关闭的， 直到战术结束才会重新打开。; 执行条件：; 目标点选择：; 目标点选择时机为进入战术那一帧， 不会在战术执行期间修改目标; 以下条件从前往后顺序检查， 若满足对应条件， 则按该条内容确定目标点\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation returns to the Spawn Point after leaving battle; A tactic that makes a unit return to the initial point when leaving battle. While this tactic is running, the Aggro system is disabled and will not be re-enabled until the tactic ends.; Execution Conditions:; Select Target Points:; The Target Point is selected on the frame you enter the Tactic, and it will not be edited while the Tactic is being executed; Check the following conditions in order. When a condition is met, set the Target Point based on that item.\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行脱战后返回出生点行为; 脱离战斗时，回初始点位的战术。战术执行期间，仇恨系统是关闭的， 直到战术结束才会重新打开。; 执行条件：; 目标点选择：; 目标点选择时机为进入战术那一帧， 不会在战术执行期间修改目标; 以下条件从前往后顺序检查， 若满足对应条件， 则按该条内容确定目标点\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12743,8 +12743,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation rotates by the specified angle, and the Angular Velocity may have minor deviations during actual operation\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行旋转指定角度行为，角速度在实际运行中会有一定误差\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation rotates by the specified angle, and the Angular Velocity may have minor deviations during actual operation\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行旋转指定角度行为，角速度在实际运行中会有一定误差\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12813,8 +12813,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation rotates to the Specified Orientation\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行旋转到指定朝向行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation rotates to the Specified Orientation\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行旋转到指定朝向行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12877,8 +12877,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation rotates to face the Target Entity\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行旋转朝向目标实体行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation rotates to face the Target Entity\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行旋转朝向目标实体行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",
@@ -12923,8 +12923,8 @@
     ],
     "returns": null,
     "docs": {
-      "en": "The Creation executes the Idle behavior\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.",
-      "zh": "造物执行静止不动行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。"
+      "en": "The Creation executes the Idle behavior\n\nGSTS Note: This is intentionally different from normal sequential TypeScript.\nAlthough statements are written in order, the following statement is not executed unconditionally:\nit is connected to this node’s [Failure] output and runs only when the preceding action fails.\nFor example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;\nif the skill succeeds or is still running, the following statement does not run.\n\nGSTS Note: When Execute is false, this tactic is treated as failed, so execution continues\nthrough its [Failure] output to the following statement.",
+      "zh": "造物执行静止不动行为\n\nGSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，\n但下一条语句并不是无条件执行，而是连接到本节点的【失败执行】引脚；\n只有前面的行为执行失败，才会执行后面的语句。\n例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；\n若技能成功或仍在执行，后面的语句不会执行。\n\nGSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，\n会从【失败执行】引脚继续执行后续语句。"
     },
     "modes": [
       "beyond",

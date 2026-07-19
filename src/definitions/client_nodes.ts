@@ -30074,6 +30074,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：执行巡逻: 造物执行巡逻行为，依据造物自身配置的巡逻模板来进行移动表现的战术。; 执行条件：
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30081,6 +30084,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30097,8 +30103,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30142,6 +30154,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：地面对峙: 造物执行地面对峙行为，四向移动战术，包括静止/前/后/左/右五种方向，可用于来营造与玩家的相持对峙感。; 可以通过概率配置创造出只左右绕玩家移动/喜好前进厌恶后退等移动行为，也包含一些与玩家距离调整和避障的配置。; 本质上是决策出一个方向，并不会有一个具体的目标点; 执行条件：
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30149,6 +30164,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30195,8 +30213,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30279,6 +30303,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：地面逃跑: 造物执行地面逃跑行为，逃离目标的战术，试图背对目标并向远处移动。; 允许配置多段逃跑移动，每段/每次会计算一个逃跑点位。; 执行条件：
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30286,6 +30313,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30323,8 +30353,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30392,6 +30428,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：地面闲逛: 造物执行地面闲逛行为，在范围内随机行走; 执行条件：; 选点规则：; 因为选到合适的目标点是进入战术的条件之一
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30399,6 +30438,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30424,8 +30466,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30582,6 +30630,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：移动到目标实体: 造物执行移动到目标实体行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30589,6 +30640,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30608,8 +30662,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30656,6 +30716,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：移动到目标点: 造物执行移动到目标点行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30663,6 +30726,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30682,8 +30748,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30730,6 +30802,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：脱战后返回出生点: 造物执行脱战后返回出生点行为; 脱离战斗时，回初始点位的战术。战术执行期间，仇恨系统是关闭的， 直到战术结束才会重新打开。; 执行条件：; 目标点选择：; 目标点选择时机为进入战术那一帧， 不会在战术执行期间修改目标; 以下条件从前往后顺序检查， 若满足对应条件， 则按该条内容确定目标点
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30737,6 +30812,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30759,8 +30837,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30816,6 +30900,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：旋转指定角度: 造物执行旋转指定角度行为，角速度在实际运行中会有一定误差
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30823,6 +30910,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30839,8 +30929,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30887,6 +30983,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：旋转到指定朝向: 造物执行旋转到指定朝向行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30894,6 +30993,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30913,8 +31015,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -30967,6 +31075,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：旋转朝向目标实体: 造物执行旋转朝向目标实体行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30974,6 +31085,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -30990,8 +31104,14 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -31038,6 +31158,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：静止不动: 造物执行静止不动行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -31046,14 +31169,23 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
    *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
+   *
    * @param execute
    *
    * 是否执行
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -44647,6 +44779,9 @@ export interface ClientEntityHelperMethods<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：移动到目标实体: 造物执行移动到目标实体行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -44654,6 +44789,9 @@ export interface ClientEntityHelperMethods<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -44670,8 +44808,14 @@ export interface ClientEntityHelperMethods<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
@@ -44694,6 +44838,9 @@ export interface ClientEntityHelperMethods<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：旋转朝向目标实体: 造物执行旋转朝向目标实体行为
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -44701,6 +44848,9 @@ export interface ClientEntityHelperMethods<
    * 只有前面的行为执行失败，才会执行后面的语句。
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
+   *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
    *
    * @param execute
    *
@@ -44714,8 +44864,14 @@ export interface ClientEntityHelperMethods<
    * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否

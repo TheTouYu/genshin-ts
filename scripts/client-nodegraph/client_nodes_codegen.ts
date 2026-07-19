@@ -550,6 +550,8 @@ type ParamSpec = {
   docEnDesc: string
   docZhName: string
   docZhDesc: string
+  noteEn?: string
+  noteZh?: string
 }
 
 type ReturnSpec = {
@@ -992,6 +994,32 @@ function buildMethodSpec(
     )
   }
 
+  const tacticalContext = params.find((parameter) => parameter.ident === 'tacticalContext')
+  if (tacticalContext) {
+    docsEn = appendDocParagraph(
+      docsEn,
+      [
+        'GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues',
+        'through its [Failure] output to the following statement.'
+      ].join('\n')
+    )
+    docsZh = appendDocParagraph(
+      docsZh,
+      [
+        'GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，',
+        '会从【失败执行】引脚继续执行后续语句。'
+      ].join('\n')
+    )
+    tacticalContext.noteEn = [
+      'GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.',
+      'It can be used for conditional special-case handling when needed and may be empty.'
+    ].join('\n')
+    tacticalContext.noteZh = [
+      'GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，',
+      '方便在需要时进行条件特判；可以留空。'
+    ].join('\n')
+  }
+
   return {
     methodName: snakeToCamel(record.nodeType),
     nodeType: record.nodeType,
@@ -1030,12 +1058,20 @@ function buildJsdoc(spec: MethodSpec): string {
       lines.push(`@param ${p.ident}${enDescription[0] ? ` ${enDescription[0]}` : ''}`)
       lines.push(...enDescription.slice(1))
       if (!p.connectable) lines.push('Literal only; wired connections are not allowed.')
+      if (p.noteEn) {
+        lines.push('')
+        lines.push(...p.noteEn.split('\n'))
+      }
       lines.push('')
       const zhName = p.docZhName || p.docEnName || p.ident
       const zhDescription = p.docZhDesc.split('\n')
       lines.push(zhDescription[0] ? `${zhName}: ${zhDescription[0]}` : zhName)
       lines.push(...zhDescription.slice(1))
       if (!p.connectable) lines.push('仅支持字面量，不能连接其他节点的输出。')
+      if (p.noteZh) {
+        lines.push('')
+        lines.push(...p.noteZh.split('\n'))
+      }
     }
   }
   if (spec.returns.length) {
