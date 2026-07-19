@@ -49,6 +49,10 @@ const SIGNAL_SERVER_KERNEL_ID = 2000
 const GRAPH_START_SHELL_ID = 200042
 const GRAPH_START_KERNEL_ID = 2001
 const BINDING_NODE_ID = 200124
+const SELF_ENTITY_GENERIC_ID = 200033
+const SELF_ENTITY_CONCRETE_ID = 1013
+const QUERY_GUID_GENERIC_ID = 200027
+const QUERY_GUID_CONCRETE_ID = 1005
 const REFERENCE_SIGNAL_PATH = `${DEFAULT_REFERENCE_DIR}/信号.gia`
 const REFERENCE_SIGNAL_WITH_PARAMS_PATH = `${DEFAULT_REFERENCE_DIR}/信号-参数.gia`
 
@@ -109,6 +113,12 @@ function clientDefaultIdValue(type: ClientVarType): AnyRecord {
     itemType: { classBase: 2, type_client: { type } },
     bId: { val: 0 }
   }
+}
+
+const SIGNAL_PARAM_COMPOSITE_PIN_INDEX: Record<number, number[]> = {
+  1610612740: [65, 66, 70, 71, 79],
+  1610612746: [176, 177, 178, 179, 180, 181, 182, 183, 184],
+  1610612743: [137, 138, 139, 140, 141, 142, 143, 144, 145]
 }
 
 function inParamPin(
@@ -182,11 +192,11 @@ function valueForParam(type: string, withValues: boolean): { type: ClientVarType
       break
     case 'vec3':
       clientType = ClientVarType.Vector_
-      value = withValues ? clientVectorValue([1, 2, 3]) : clientVectorValue([0, 0, 0])
+      value = withValues ? clientVectorValue([1, 2, 3.4]) : clientVectorValue([0, 0, 0])
       break
     case 'guid':
       clientType = ClientVarType.GUID_
-      value = withValues ? clientIdValue(clientType, 4) : clientDefaultIdValue(clientType)
+      value = withValues ? clientIdValue(clientType, 3) : clientDefaultIdValue(clientType)
       break
     case 'bool':
       clientType = ClientVarType.Boolean_
@@ -198,15 +208,15 @@ function valueForParam(type: string, withValues: boolean): { type: ClientVarType
       break
     case 'prefab_id':
       clientType = ClientVarType.Prefab_
-      value = withValues ? clientIdValue(clientType, 23) : clientDefaultIdValue(clientType)
+      value = withValues ? clientIdValue(clientType, 2345) : clientDefaultIdValue(clientType)
       break
     case 'config_id':
       clientType = ClientVarType.Configuration_
-      value = withValues ? clientIdValue(clientType, 55) : clientDefaultIdValue(clientType)
+      value = withValues ? clientIdValue(clientType, 3453544) : clientDefaultIdValue(clientType)
       break
     case 'str':
       clientType = ClientVarType.String_
-      value = withValues ? clientStringValue('测试') : clientStringValue('')
+      value = withValues ? clientStringValue('字符串') : clientStringValue('')
       value.alreadySetVal = withValues ? true : false
       break
     default:
@@ -236,7 +246,8 @@ function makeSendSignalNode(
 ): AnyRecord {
   const dataPins = signal.params.map((param, index) => {
     const paramValue = valueForParam(param.type, withValues)
-    return inParamPin(index, paramValue.type, paramValue.value, 137 + index)
+    const compositePinIndex = SIGNAL_PARAM_COMPOSITE_PIN_INDEX[signal.serverId]?.[index] ?? 137 + index
+    return inParamPin(index, paramValue.type, paramValue.value, compositePinIndex)
   })
 
   return {
@@ -340,6 +351,212 @@ function makeFlowPin(targetNodeIndex: number): AnyRecord {
   }
 }
 
+function makeSelfEntityNode(nodeIndex: number): AnyRecord {
+  return {
+    nodeIndex,
+    genericId: { class: 10001, type: 20002, kind: 22000, nodeId: SELF_ENTITY_GENERIC_ID },
+    concreteId: { class: 10001, type: 20002, kind: 22000, nodeId: SELF_ENTITY_CONCRETE_ID },
+    pins: [
+      {
+        i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+        i2: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+        value: clientDefaultIdValue(ClientVarType.Entity_),
+        type: ClientVarType.Entity_,
+        connects: []
+      }
+    ],
+    x: -526.8571,
+    y: -70.8286,
+    usingStruct: []
+  }
+}
+
+function makeQueryGuidNode(nodeIndex: number, selfEntityNodeIndex: number): AnyRecord {
+  return {
+    nodeIndex,
+    genericId: { class: 10001, type: 20002, kind: 22000, nodeId: QUERY_GUID_GENERIC_ID },
+    concreteId: { class: 10001, type: 20002, kind: 22000, nodeId: QUERY_GUID_CONCRETE_ID },
+    pins: [
+      {
+        i1: { kind: NodePin_Index_Kind.InParam, index: 0 },
+        i2: { kind: NodePin_Index_Kind.InParam, index: 0 },
+        value: clientDefaultIdValue(ClientVarType.Entity_),
+        type: ClientVarType.Entity_,
+        connects: [
+          {
+            id: selfEntityNodeIndex,
+            connect: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+            connect2: { kind: NodePin_Index_Kind.OutParam, index: 0 }
+          }
+        ]
+      },
+      {
+        i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+        i2: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+        value: clientDefaultIdValue(ClientVarType.GUID_),
+        type: ClientVarType.GUID_,
+        connects: []
+      }
+    ],
+    x: -118.8571,
+    y: -123.8571,
+    usingStruct: []
+  }
+}
+
+function connectSignalParam(
+  signalNode: AnyRecord,
+  paramIndex: number,
+  sourceNodeIndex: number
+): void {
+  const pin = signalNode.pins.find(
+    (candidate: AnyRecord) =>
+      candidate.i1?.kind === NodePin_Index_Kind.InParam && candidate.i1.index === paramIndex
+  )
+  assert.ok(pin, `signal parameter ${paramIndex} must exist`)
+  pin.connects = [
+    {
+      id: sourceNodeIndex,
+      connect: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+      connect2: { kind: NodePin_Index_Kind.OutParam, index: 0 }
+    }
+  ]
+}
+
+const ASSEMBLY_LIST_SPECS = [
+  { targetSignalIndex: 1, element: 'entity', concreteId: 1025, signalIndex: 4 },
+  { targetSignalIndex: 2, element: 'config_id', concreteId: 568, signalIndex: 0 },
+  { targetSignalIndex: 2, element: 'prefab_id', concreteId: 569, signalIndex: 1 },
+  { targetSignalIndex: 2, element: 'entity', concreteId: 1025, signalIndex: 2 },
+  { targetSignalIndex: 2, element: 'guid', concreteId: 1043, signalIndex: 3 },
+  { targetSignalIndex: 2, element: 'bool', concreteId: 1027, signalIndex: 4 },
+  { targetSignalIndex: 2, element: 'vec3', concreteId: 1030, signalIndex: 5 },
+  { targetSignalIndex: 2, element: 'str', concreteId: 1029, signalIndex: 6 },
+  { targetSignalIndex: 2, element: 'float', concreteId: 173, signalIndex: 7 },
+  { targetSignalIndex: 2, element: 'int', concreteId: 1026, signalIndex: 8 }
+] as const
+
+const ASSEMBLY_LIST_TYPES: Record<string, ClientVarType> = {
+  entity: ClientVarType.EntityList_,
+  guid: ClientVarType.GUIDList_,
+  bool: ClientVarType.BooleanList_,
+  vec3: ClientVarType.VectorList_,
+  str: ClientVarType.StringList_,
+  int: ClientVarType.IntegerList_,
+  float: ClientVarType.FloatList_,
+  config_id: ClientVarType.ConfigurationList_,
+  prefab_id: ClientVarType.PrefabList_
+}
+
+function assemblyElementValue(element: string, index = 0): AnyRecord {
+  switch (element) {
+    case 'entity':
+      return clientEntityValue()
+    case 'guid':
+      return clientDefaultIdValue(ClientVarType.GUID_)
+    case 'bool':
+      return clientBoolValue(index === 1)
+    case 'vec3':
+      return clientVectorValue(index === 0 ? [3, 0, 2] : [0, 0, 0])
+    case 'str':
+      return clientStringValue(index === 0 ? '测试' : '')
+    case 'int':
+      return clientIntValue(index === 0 ? 3 : 0)
+    case 'float':
+      return clientFloatValue(index === 0 ? 2.2 : 0)
+    case 'config_id':
+      return clientIdValue(ClientVarType.Configuration_, index === 0 ? 3453544 : 0)
+    case 'prefab_id':
+      return clientIdValue(ClientVarType.Prefab_, index === 0 ? 2345 : 0)
+    default:
+      throw new Error(`unsupported assembly element: ${element}`)
+  }
+}
+
+function assemblyElementCount(element: string): number {
+  return element === 'bool' ? 2 : 1
+}
+
+function wrappedAssemblyValue(value: AnyRecord, indexOfConcrete: number): AnyRecord {
+  return {
+    class: 10000,
+    alreadySetVal: true,
+    bConcreteValue: { indexOfConcrete, value }
+  }
+}
+
+function makeAssemblyListNode(
+  nodeIndex: number,
+  element: string,
+  concreteId: number,
+  source?: { nodeIndex: number; pinIndex: number }
+): AnyRecord {
+  const listType = ASSEMBLY_LIST_TYPES[element]
+  const elementValue = assemblyElementValue(element)
+  const elementCount = assemblyElementCount(element)
+  const elementConcreteIndex: Record<string, number> = {
+    entity: 0,
+    guid: 6,
+    bool: 2,
+    vec3: 5,
+    str: 4,
+    int: 1,
+    float: 3,
+    config_id: 7,
+    prefab_id: 8
+  }[element]
+  const pins: AnyRecord[] = [
+    {
+      i1: { kind: NodePin_Index_Kind.InParam, index: 0 },
+      i2: { kind: NodePin_Index_Kind.InParam, index: 0 },
+      value: clientIntValue(elementCount),
+      type: ClientVarType.Integer_,
+      connects: []
+    }
+  ]
+  for (let index = 1; index <= 10; index++) {
+    const pin: AnyRecord = {
+      i1: { kind: NodePin_Index_Kind.InParam, index },
+      i2: { kind: NodePin_Index_Kind.InParam, index },
+      value: wrappedAssemblyValue(assemblyElementValue(element, index - 1), elementConcreteIndex),
+      type: assemblyElementValue(element, index - 1).itemType.type_client.type,
+      connects: []
+    }
+    if (index === 1 && source) {
+      pin.connects = [{
+        id: source.nodeIndex,
+        connect: { kind: NodePin_Index_Kind.OutParam, index: source.pinIndex },
+        connect2: { kind: NodePin_Index_Kind.OutParam, index: source.pinIndex }
+      }]
+    }
+    pins.push(pin)
+  }
+  pins.push({
+    i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+    i2: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+    value: wrappedAssemblyValue(
+      {
+        class: 10002,
+        alreadySetVal: false,
+        itemType: { classBase: 2, type_client: { type: listType } },
+        bArray: { entries: [] }
+      },
+      elementConcreteIndex
+    ),
+    type: listType,
+    connects: []
+  })
+  return {
+    nodeIndex,
+    genericId: { class: 10001, type: 20002, kind: 22000, nodeId: 200049 },
+    concreteId: { class: 10001, type: 20002, kind: 22000, nodeId: concreteId },
+    pins,
+    x: -500,
+    y: 200,
+    usingStruct: []
+  }
+}
+
 function buildCombinedSignalGraph(
   graphId: number,
   signals: TargetSignal[],
@@ -367,6 +584,61 @@ function buildCombinedSignalGraph(
     if (index < signals.length - 1) node.pins.push(makeFlowPin(nodeIndex + 1))
     nodes.push(node)
   })
+
+  if (withValues) {
+    const selfEntityNodeIndex = signals.length + 2
+    const queryGuidNodeIndex = signals.length + 3
+    const completeSignalNode = nodes[signals.length]
+    nodes.push(
+      makeSelfEntityNode(selfEntityNodeIndex),
+      makeQueryGuidNode(queryGuidNodeIndex, selfEntityNodeIndex)
+    )
+    connectSignalParam(completeSignalNode, 5, selfEntityNodeIndex)
+    connectSignalParam(completeSignalNode, 3, queryGuidNodeIndex)
+    const queryGuidOut = nodes[nodes.length - 1].pins.find(
+      (pin: AnyRecord) => pin.i1?.kind === NodePin_Index_Kind.OutParam
+    )
+    assert.ok(queryGuidOut)
+    queryGuidOut.connects = [
+      {
+        id: completeSignalNode.nodeIndex,
+        connect: { kind: NodePin_Index_Kind.InParam, index: 3 },
+        connect2: { kind: NodePin_Index_Kind.InParam, index: 3 }
+      }
+    ]
+
+    for (const [offset, spec] of ASSEMBLY_LIST_SPECS.entries()) {
+      const assemblyNodeIndex = signals.length + 4 + offset
+      const source = spec.element === 'entity'
+        ? { nodeIndex: selfEntityNodeIndex, pinIndex: 0 }
+        : spec.element === 'guid'
+          ? { nodeIndex: queryGuidNodeIndex, pinIndex: 0 }
+          : undefined
+      const assemblyNode = makeAssemblyListNode(
+        assemblyNodeIndex,
+        spec.element,
+        spec.concreteId,
+        source
+      )
+      nodes.push(assemblyNode)
+      const targetSignalNode = nodes[spec.targetSignalIndex]
+      const signalPin = targetSignalNode.pins.find(
+        (pin: AnyRecord) => pin.i1?.kind === NodePin_Index_Kind.InParam && pin.i1.index === spec.signalIndex
+      )
+      assert.ok(signalPin)
+      signalPin.connects = [{
+        id: assemblyNodeIndex,
+        connect: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+        connect2: { kind: NodePin_Index_Kind.OutParam, index: 0 }
+      }]
+      const outputPin = assemblyNode.pins[assemblyNode.pins.length - 1]
+      outputPin.connects = [{
+        id: targetSignalNode.nodeIndex,
+        connect: { kind: NodePin_Index_Kind.InParam, index: spec.signalIndex },
+        connect2: { kind: NodePin_Index_Kind.InParam, index: spec.signalIndex }
+      }]
+    }
+  }
 
   return {
     graph: {
@@ -404,19 +676,55 @@ function verifyCombinedGraph(data: AnyRecord, signals: TargetSignal[]): void {
   )
 
   const nodes = data.graph.graph.inner.graph.nodes as AnyRecord[]
-  assert.equal(nodes.length, signals.length + 1)
+  assert.equal(nodes.length, signals.length + 3 + ASSEMBLY_LIST_SPECS.length)
   assert.deepEqual(
-    nodes.slice(1).map((node) => node.genericId.nodeId),
+    nodes.slice(1, signals.length + 1).map((node) => node.genericId.nodeId),
     signals.map((signal) => signal.serverId)
   )
   assert.deepEqual(
-    nodes.slice(1).map((node) => node.pins.find((pin: AnyRecord) => pin.i1.kind === 5 && pin.i1.index === 1)?.value.bString.val),
+    nodes
+      .slice(1, signals.length + 1)
+      .map((node) => node.pins.find((pin: AnyRecord) => pin.i1.kind === 5 && pin.i1.index === 1)?.value.bString.val),
     signals.map((signal) => signal.name)
   )
   assert.deepEqual(
-    nodes.slice(1).map((node) => node.pins.filter((pin: AnyRecord) => pin.i1.kind === 3).length),
+    nodes
+      .slice(1, signals.length + 1)
+      .map((node) => node.pins.filter((pin: AnyRecord) => pin.i1.kind === 3).length),
     signals.map((signal) => signal.params.length)
   )
+
+  const completeSignal = nodes[signals.length]
+  const selfEntity = nodes[signals.length + 1]
+  const queryGuid = nodes[signals.length + 2]
+  assert.equal(selfEntity.concreteId.nodeId, SELF_ENTITY_CONCRETE_ID)
+  assert.equal(selfEntity.pins[0].type, ClientVarType.Entity_)
+  assert.equal(queryGuid.concreteId.nodeId, QUERY_GUID_CONCRETE_ID)
+  assert.equal(queryGuid.pins[0].connects[0].id, selfEntity.nodeIndex)
+  assert.equal(queryGuid.pins[1].type, ClientVarType.GUID_)
+  assert.equal(queryGuid.pins[1].connects[0].id, completeSignal.nodeIndex)
+  assert.equal(queryGuid.pins[1].connects[0].connect.index, 3)
+  assert.equal(completeSignal.pins.find((pin: AnyRecord) => pin.i1.kind === 3 && pin.i1.index === 5).connects[0].id, selfEntity.nodeIndex)
+  assert.equal(completeSignal.pins.find((pin: AnyRecord) => pin.i1.kind === 3 && pin.i1.index === 3).connects[0].id, queryGuid.nodeIndex)
+
+  const assemblyNodes = ASSEMBLY_LIST_SPECS.map((_, offset) => nodes[signals.length + 3 + offset])
+  assert.deepEqual(
+    assemblyNodes.map((node) => node.concreteId.nodeId),
+    ASSEMBLY_LIST_SPECS.map((spec) => spec.concreteId)
+  )
+  for (const [index, spec] of ASSEMBLY_LIST_SPECS.entries()) {
+    const assembly = assemblyNodes[index]
+    const target = nodes[spec.targetSignalIndex]
+    const listPin = target.pins.find(
+      (pin: AnyRecord) => pin.i1?.kind === NodePin_Index_Kind.InParam && pin.i1.index === spec.signalIndex
+    )
+    assert.equal(listPin.type, ASSEMBLY_LIST_TYPES[spec.element])
+    assert.equal(listPin.connects[0].id, assembly.nodeIndex)
+    assert.equal(assembly.pins[0].type, ClientVarType.Integer_)
+    assert.equal(assembly.pins[1].connects[0]?.id, spec.element === 'entity' ? selfEntity.nodeIndex : spec.element === 'guid' ? queryGuid.nodeIndex : undefined)
+    assert.equal(assembly.pins[assembly.pins.length - 1].type, ASSEMBLY_LIST_TYPES[spec.element])
+    assert.equal(assembly.pins[assembly.pins.length - 1].connects[0].id, target.nodeIndex)
+  }
 
   for (let index = 0; index < signals.length; index++) {
     const flowPin = nodes[index].pins.find(
@@ -424,6 +732,54 @@ function verifyCombinedGraph(data: AnyRecord, signals: TargetSignal[]): void {
     )
     assert.ok(flowPin, `signal ${index} must have an execution flow`)
     assert.equal(flowPin.connects[0].id, index + 2)
+  }
+}
+
+function verifyCompleteScalarSignal(data: AnyRecord, targetSignal: TargetSignal): void {
+  const nodes = data.graph.graph.inner.graph.nodes as AnyRecord[]
+  const signal = nodes.find((node) => node.genericId?.nodeId === targetSignal.serverId)
+  assert.ok(signal, 'complete scalar signal node exists')
+
+  const expected = [
+    { type: ClientVarType.Integer_, class: 2, field: 'bInt', value: 1 },
+    { type: ClientVarType.Float_, class: 4, field: 'bFloat', value: 2.2 },
+    { type: ClientVarType.Vector_, class: 7, field: 'bVector', value: { x: 1, y: 2, z: 3.4 } },
+    { type: ClientVarType.GUID_, class: 1, field: 'bId', value: 3 },
+    { type: ClientVarType.Boolean_, class: 6, field: 'bEnum', value: 1 },
+    { type: ClientVarType.Entity_, class: 0, field: undefined, value: undefined },
+    { type: ClientVarType.Prefab_, class: 1, field: 'bId', value: 2345 },
+    { type: ClientVarType.Configuration_, class: 1, field: 'bId', value: 3453544 },
+    { type: ClientVarType.String_, class: 5, field: 'bString', value: '字符串' }
+  ]
+
+  const pins = (signal.pins as AnyRecord[])
+    .filter((pin) => pin.i1?.kind === NodePin_Index_Kind.InParam)
+    .sort((a, b) => a.i1.index - b.i1.index)
+  assert.equal(pins.length, expected.length)
+  for (const [index, spec] of expected.entries()) {
+    const pin = pins[index]
+    assert.equal(pin.i1.index, index)
+    assert.equal(pin.type, spec.type)
+    assert.equal(pin.compositePinIndex, 137 + index)
+    assert.equal(pin.value.class, spec.class)
+    assert.equal(pin.value.alreadySetVal, spec.field !== undefined)
+    assert.equal(pin.value.itemType.type_client.type, spec.type)
+    if (spec.field) {
+      const value = pin.value[spec.field]
+      assert.ok(value, `parameter ${index + 1} must use ${spec.field}`)
+      if (spec.field === 'bVector') {
+        assert.deepEqual(
+          { x: value.val.x, y: value.val.y, z: Number(value.val.z.toFixed(1)) },
+          spec.value
+        )
+      } else {
+        assert.equal(value.val, spec.value)
+      }
+    } else {
+      assert.equal(pin.value.bId, undefined)
+      assert.equal(pin.value.bEnum, undefined)
+      assert.equal(pin.value.bString, undefined)
+    }
   }
 }
 
@@ -505,15 +861,12 @@ function main() {
         withValues
       })
       verifyGraph(graph, `${signal.name}_${suffix}`, signal)
+      if (signal.name === TARGET_SIGNAL_NAME && withValues) {
+        verifyCompleteScalarSignal(graph, signal)
+      }
       roundTrip(graph)
       console.log(`    PASS — ${suffix}`)
 
-      if (shouldOutput) {
-        outputGia(
-          graph,
-          `${DEFAULT_OUTPUT_DIR}/${DEFAULT_OUTPUT_STEM}_${testCase.signalName}_${suffix}.gia`
-        )
-      }
     }
   }
 
@@ -530,7 +883,7 @@ function main() {
   if (shouldOutput) {
     outputGia(
       combinedGraph,
-      `${DEFAULT_OUTPUT_DIR}/${DEFAULT_OUTPUT_STEM}_三个信号顺序发送_带参数.gia`
+      `${DEFAULT_OUTPUT_DIR}/${DEFAULT_OUTPUT_STEM}_三个信号顺序发送_带参数_实体GUID.gia`
     )
   }
 

@@ -1,11 +1,14 @@
 # 客户端节点支持计划
 
-> 状态：已验证（WP0、WP1、WP1-Sync 已收口；客户端已有地图信号 materializer v2 已完成自动回归和组合图游戏核验；特殊参数仍待补充参考）
+> 状态：已验证（WP0、WP1、WP1-Sync 已收口；客户端已有地图信号 materializer v2、标量/entity-GUID/全列表参数组合图均已完成自动回归和用户游戏核验）
 > 来源：当前代码实现审计 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 目标地图信号资源 + 用户游戏验证
 > 最近校验：2026-07-19
 > 适用范围：gsts 客户端节点支持实施计划；客户端信号结论仅适用于目标地图已有信号和本文记录的样本，不代表生产 `g.client()` 或完整客户端参数支持
 
 本文档记录 gsts 增加客户端节点支持的当前权威计划，防止跨会话丢失设计决策、证据边界和验证门禁。
+
+客户端 GIA 字段、signal、VarBase、列表 assembly 和 wire 编码细节以
+[`client-gia-encoding.md`](./client-gia-encoding.md) 为专门权威入口；本文保留路线、API、阶段工作包和支持边界。
 
 当前必须明确区分：
 
@@ -1108,7 +1111,7 @@ signal name = ClientExec pin(kind=6) 的 bString
 信号_全部参数测试        → sendServerId 1610612743，9 个标量参数
 ```
 
-materializer 保留三个信号的独立样本，并额外生成组合图：
+materializer 在内存中覆盖三个信号的独立样本，并只将组合图输出到游戏导出目录：
 
 ```text
 Node Graph Begins → 信号_1 → 信号_全部列表参数测试 → 信号_全部参数测试
@@ -1124,10 +1127,169 @@ Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数.gia
 节点顺序、`relatedIds`、信号名 pin 和参数数量回归；用户已确认游戏测试通过。自动回归和游戏
 核验只证明目标地图已有信号的当前样本，不证明任意地图、任意客户端信号或全部特殊参数的编码。
 
-当前已知限制：部分信号参数需要特殊的客户端 GIA 编码，尤其是列表/容器及下一轮将提供的特殊
-参数参考。当前测试中的列表值是 materializer 的最小占位值，不应在获得真实参考前推广为完整
-参数实现。下一轮应先读取用户提供的特殊参数参考，逐类型对照真实 pin、VarBase/container
-字段和游戏行为，再扩展 `valueForParam()` 与 focused regression。
+2026-07-19 新增真实参考样本：`Beyond_Local_Export/user_edit/客户端/信号-参数-完整.gia`，
+SHA-256 为 `13543f2453b48ea24c2068865858ce22b0ed34ebbe80e97f5aaf42d9701ed218`，文件大小
+2954 bytes。使用 `npx tsx tools/decode-gia.ts` 和 `npx tsx tools/decode-gil-raw.ts` 解码/扫描后，
+确认 `向服务器节点图发送信号` 节点（serverId `1610612743`、concreteId `2000`）的 9 个标量
+参数均为物理 `InParam[0..8]`，`compositePinIndex=137..145`。参考值的 VarBase oneof 契约为：
+`int→bInt`、`float→bFloat`、`vec3→bVector`、`guid/prefab_id/config_id→bId`、
+`bool→bEnum`、`entity→alreadySetVal=false 且无具体值`、`str→bString`；其 `itemType.type_client.type`
+分别与客户端参数类型一致，信号名仍是 `ClientExecNode(kind=6)`。
+
+当前 `tests/composite/test-client-signal-materializer.ts` 已按该样本锁定上述字段、值、CPI 和
+message/container round-trip；`npx tsx tests/composite/test-client-signal-materializer.ts` 已通过。
+因此当前实现已覆盖本样本的完整标量参数获取/编码（自动回归证据）。列表/容器随后通过独立真实
+参考完成逐类型对照，并在组合候选中完成自动结构验证和用户游戏核验；这些结论仍只适用于当前目标
+地图已有信号和本文记录的参数族，不自动推广到任意客户端节点。
+
+#### 三信号组合图补齐 entity/GUID 数据源（2026-07-19）
+
+在上一轮组合图基础上，新增候选文件：
+
+```text
+Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数_实体GUID.gia
+```
+
+第三个“信号_全部参数测试”节点的参数连接为：
+
+```text
+get_self_entity（generic=200033, concrete=1013, OutParam[0], Entity）
+  ├─→ sendServer 参数_6（Entity）
+  └─→ query_guid_by_entity（generic=200027, concrete=1005, InParam[0]）
+        └─→ sendServer 参数_4（GUID）
+```
+
+辅助节点的实体 pin 使用真实参考中的 `class=IdBase`、`bId.val=0` 类型占位；信号节点本身的
+Entity 参数保留 `class=Unknown`、`alreadySetVal=false`，随后由 `connects` 提供实际值。focused
+回归同时检查节点 ID、类型、三条数据连线、三信号执行顺序和 protobuf/container round-trip。
+该文件已通过自动结构验证，并由用户完成编辑器/游戏行为核验。
+
+#### 完整列表参数参考（2026-07-19）
+
+新增真实参考样本：`Beyond_Local_Export/user_edit/客户端/信号-参数-完整-列表.gia`，大小
+11308 bytes，SHA-256 为 `7f7da67532054a407fa848de8b83668befb0eed6bb3db8ddca00a53e6add9304`。
+该样本直接观察到三类列表参数未连线、仅携带数组值，以及六类列表参数通过 `assembly_list` 连线；
+结合前面已验证的具体类型节点规律，最终生产候选统一采用“具体类型值 → typed `assembly_list` →
+信号列表 pin”的路径。类型和节点规律为：
+
+- 所有列表 signal pin 使用 `ArrayBase + bArray.entries`，列表 `itemType` 使用对应
+  `ClientVarType.*List_`；
+- `assembly_list` 使用 generic `200049` 和 typed concrete，元素位于 `InParam[1..10]`，列表从
+  `OutParam[0]` 输出；本轮最终候选的 concrete 为 `config=568`、`prefab=569`、`entity=1025`、
+  `guid=1043`、`bool=1027`、`vec3=1030`、`str=1029`、`float=173`、`int=1026`；
+- `entity_list` 的元素来源为 `get_self_entity`，`guid_list` 的元素来源为
+  `query_guid_by_entity`；
+- 列表发送 pin 仍保留 `ArrayBase`，数组元素使用对应标量 `ClientVarType`，而不是列表类型。
+
+`tests/composite/test-client-signal-materializer.ts` 已按该样本补齐 assembly 节点、元素类型、
+ConcreteBase 包装、列表连线和 protobuf/container round-trip。新候选仍只输出一个组合文件：
+`Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数_实体GUID.gia`。当前证据为真实 GIA
+结构对照和自动回归；随后生成的组合候选已由用户完成编辑器/游戏核验。
+
+随后根据参考文件中故意未连线的三个列表参数，补齐了过拟合遗漏：`config_id_list`、
+`prefab_id_list`、`float_list` 也统一使用具体类型值 → 对应 typed `assembly_list` → 信号列表
+pin 的路径。vendor 节点 ID 表提供的 concrete 分别为 `568`、`569`、`173`。当前候选的 9 种
+列表参数均有 assembly 输出连线，并按参考样本补齐了 assembly 的数量和实际元素值：`str_list` 为一个
+`测试` 字符串，`bool_list` 为两个元素 `false/true`，`vec3_list` 为一个 `(3,0,2)` 向量；
+未使用槽位保留对应类型的默认值。该候选已通过自动结构验证，并已由用户确认游戏测试通过。
+
+### TS → IR → GIA 直接生成的前置契约（下一工作包基线）
+
+本节把本轮 materializer 已确认的客户端信号规律转换为生产管线可消费的契约。它描述的是
+`g.client()`/Client IR/Stage 3 下一步的输入和输出边界，**不是**声称这些生产入口已经存在。
+
+#### 1. 生产 IR 应表达的语义节点
+
+建议 Client IR 保留普通数据连接，而不是让 signal materializer 读取字符串或猜测节点：
+
+```text
+get_self_entity() -> entity
+query_guid_by_entity(entity) -> guid
+assembly_list<T>(count, values[0..n-1]) -> T[]
+send_signal_to_server(signalName, params[0..n-1])
+```
+
+列表必须在 IR 中保留元素类型和元素顺序；`assembly_list` 的 count 由元素数生成，不能由 GIA
+编码器根据默认槽位反推。`entity`/`guid` 数据源必须是普通 IR `conn`，不能写成信号参数的
+`alreadySetVal` 字面量替代品。
+
+#### 2. 客户端类型与 GIA 类型映射
+
+| TS/IR 类型 | 信号 pin `ClientVarType` | 列表 assembly concrete | 元素 `ClientVarType` |
+|---|---:|---:|---:|
+| `float_list` | 8 | 173 | 7 |
+| `config_id_list` | 20 | 568 | 18 |
+| `prefab_id_list` | 21 | 569 | 19 |
+| `entity_list` | 2 | 1025 | 1 |
+| `guid_list` | 15 | 1043 | 14 |
+| `bool_list` | 6 | 1027 | 5 |
+| `vec3_list` | 12 | 1030 | 11 |
+| `str_list` | 10 | 1029 | 9 |
+| `int_list` | 4 | 1026 | 3 |
+
+列表 signal pin 的 `value` 使用 `ArrayBase + bArray.entries`，`itemType.type_client.type`
+使用列表类型；assembly 元素 pin 使用标量类型，不能把列表类型写进元素槽位。
+
+#### 3. assembly_list 物理布局
+
+- generic node：`200049`；concrete 使用上表 typed ID；
+- `InParam[0]`：Int 元素数量，值为实际元素数；
+- `InParam[1..10]`：元素槽位，前 `count` 个槽位写入实际元素；
+- 元素 pin 使用 `ConcreteBase(class=10000)`，`bConcreteValue.indexOfConcrete` 使用元素类型
+  的 concrete index；
+- `OutParam[0]`：`ConcreteBase` 包裹的空 `ArrayBase` 类型输出；
+- assembly `OutParam[0]` 必须连接到目标 signal 的对应 `InParam`；
+- 未使用槽位保留同类型默认值，但不能增加 count。
+
+本轮已观察到的值规律：`str_list=['测试']`、`bool_list=[false,true]`、
+`vec3_list=[(3,0,2)]`。这些是参考/候选样本值，不应硬编码进生产 API；生产 IR 应来自 TS
+表达式或字面量。
+
+#### 4. 标量与实体/GUID 连接
+
+普通标量 signal 参数直接使用客户端 VarBase oneof：`int→bInt`、`float→bFloat`、
+`vec3→bVector`、`guid/prefab_id/config_id→bId`、`bool→bEnum`、`str→bString`。
+实体参数使用 `class=Unknown`、`alreadySetVal=false` 的 typed placeholder，并通过连接提供值。
+
+已验证的实体/GUID 数据源为：
+
+```text
+get_self_entity generic=200033 concrete=1013 OutParam[0]
+  ├─→ entity signal pin
+  └─→ query_guid_by_entity generic=200027 concrete=1005 InParam[0]
+        └─→ guid signal pin
+```
+
+#### 5. signal 节点与图级元数据
+
+- 当前目标地图已有信号使用 `accessories=[]`；定义/identity 来自目标 `.gil` 的
+  `readRegisteredSignalsFromGil()`，不能从参考 GIA 复制 SignalDef accessories；
+- root `relatedIds` 列出实际使用的 sendServer ID；
+- signal node `genericId.nodeId` 使用同一 sendServer ID，`concreteId.nodeId=2000`；
+- signal name 使用 `ClientExecNode(kind=6,index=1)` 的 `bString`；
+- `signalVersion=1`；
+- 参数物理 pin index 是参数序号 `0..n-1`，CPI 由目标 signal definition 的 pinIndex 提供，
+  不能对所有信号写死同一 CPI（本轮三个信号分别为 `65..79`、`176..184`、`137..145`）。
+
+#### 6. 下一步生产实现拆分
+
+1. **Client runtime/Stage 1**：把 `g.client({ type: 'skill', id }).onStart()` 回调产出 Client IR，
+   建立 signal registry 引用、类型化值和普通数据 conn；
+2. **Client Stage 3 adapter**：复用当前 `assembly_list` typed identity 与 special-arg count/element
+   布局，但改为客户端 `ClientVarType`/VarBase 编码，不复用服务器 `VarType`；
+3. **Signal materializer**：把 `.gia` fixture 中的手工值构造收敛为生产 `buildClientSignalNode`，
+   从 registry 解析 sendServer ID、参数 CPI 和 concrete kernel；
+4. **数据源 lowering**：先支持 `get_self_entity`、`query_guid_by_entity`，再扩展其它客户端数据源；
+5. **回归门禁**：先复现当前组合图的 3 个信号、9 个列表、entity/GUID 连接和 round-trip，再接入
+   TS 入口；用户编辑器/游戏核验必须继续单独记录。
+
+#### 7. 当前禁止的推广
+
+- 不把 `tests/composite/test-client-signal-materializer.ts` 的手工构造函数当成生产 API；
+- 不把目标地图 signal ID 推广为任意地图固定 ID；
+- 不复制参考 GIA 的 SignalDef accessories 到当前 `accessories=[]` 方案；
+- 不把自动回归、GIA 输出或注入成功等同于游戏行为通过；
+- 不在没有新真实 GIA 证据时扩大到未覆盖的客户端节点族。
 
 ### WP8：按节点族扩大覆盖
 
@@ -1177,8 +1339,10 @@ focused 回归均通过，项目级真实样本 round-trip 也使用两份原始
 
 2026-07-19，客户端已有地图信号专项新增 `tests/composite/test-client-signal-materializer.ts`。
 该回归读取目标地图 `1073741848.gil` 的三个已注册信号，验证 `accessories=[]`、目标地图
-`sendServerId`、ClientSignal 名称 pin、标量/列表参数 pin、顺序执行链和 protobuf/container
-round-trip。用户已确认组合候选
-`Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数.gia` 的游戏测试通过。
-这不覆盖下一轮将提供的特殊参数参考；下一步应在本专项基础上扩展真实参数编码，不应先扩大
-生产 `g.client()` 或 Stage 3。
+`sendServerId`、ClientSignal 名称 pin、标量/列表参数 pin、entity/GUID 数据源、9 种列表
+assembly、顺序执行链和 protobuf/container round-trip。默认不写出 GIA；使用 `--output` 时只输出
+组合候选，避免在游戏导出目录生成 standalone 参数样本。最终组合候选
+`Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数_实体GUID.gia`（最终自动回归产物
+SHA-256：`30e1fca4f97047559c990ecb8a452aea4b126957bbac5aa965cd65f3417e94a4`）已由用户确认
+编辑器/游戏测试通过。该证据只覆盖目标地图已有信号和本节列出的参数族；下一步可据此设计
+生产 TS → Client IR → GIA 的信号 lowering，但不等于生产 `g.client()` 或全量客户端节点已开放。
