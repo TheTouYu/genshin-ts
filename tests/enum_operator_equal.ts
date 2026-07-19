@@ -1,8 +1,7 @@
 import {
+  ColorBlendType,
   ComparisonOperator,
-  EntityType,
-  FixedMotionParameterType,
-  MovementMode,
+  FillMaterial,
   SortBy,
   TargetType
 } from 'genshin-ts/definitions/enum'
@@ -13,13 +12,19 @@ g.server({ id: 1073741866 })
     const litEq = SortBy.Ascending === SortBy.Descending
     const litNe = TargetType.None !== TargetType.All
     const x = evt.conditionComparisonType === ComparisonOperator.GreaterThan
-    const movementModeEq = MovementMode.InstantMovement === MovementMode.UniformLinearMotion
-    const fixedParameterEq =
-      FixedMotionParameterType.FixedSpeed === FixedMotionParameterType.FixedTime
+    const colorBlendTypeEq = ColorBlendType.Override === ColorBlendType.Multiply
+    const fillMaterialEq = FillMaterial.Freeze === FillMaterial.Petrification
+    const colorBlendTypeNodeEq = f.enumerationsEqual(
+      ColorBlendType.Override,
+      ColorBlendType.Multiply
+    )
+    const fillMaterialNodeEq = f.enumerationsEqual(FillMaterial.Freeze, FillMaterial.Petrification)
     f.printString(str(litEq))
     f.printString(str(litNe))
     f.printString(str(x))
-    f.printString(str(movementModeEq))
-    f.printString(str(fixedParameterEq))
+    f.printString(str(colorBlendTypeEq))
+    f.printString(str(fillMaterialEq))
+    f.printString(str(colorBlendTypeNodeEq))
+    f.printString(str(fillMaterialNodeEq))
   })
   .on('whenAggroTargetChanges', () => {})

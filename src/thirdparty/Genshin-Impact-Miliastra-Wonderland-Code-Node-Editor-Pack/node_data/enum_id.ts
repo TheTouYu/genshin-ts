@@ -1,6 +1,6 @@
 // @ts-nocheck thirdparty
 
-/** Also used as EnumEqual IndexOfConcrete */
+/** Enum type ids; EnumEqual-supported types also use these as IndexOfConcrete. */
 export const ENUM_ID = {
   Generic: 0,
   Comparison_Operators: 1,
@@ -46,13 +46,16 @@ export const ENUM_ID = {
   Gameplay_Mode: 40,
   Input_Device_Type: 41,
 
-  Movement_Mode: 42,
-  Fixed_Point_Motion_Device_Motion_Type: 42,
-  Fixed_Motion_Parameter_Type: 43,
-  Fixed_Point_Motion_Device_Parameter_Conversion_Type: 43,
-  Color_Overlay_Type: 48,
-  Color_Blend_Type: 48,
-  Fill_Material: 49,
+  // Enumerations Equal selectors; BeyondGlobal records these families as 48/49.
+  Color_Overlay_Type: 42,
+  Color_Blend_Type: 42,
+  Fill_Material: 43,
+
+  // Fixed-motion pins use these vendor type ids and have no Enumerations Equal variants.
+  Movement_Mode: 1042,
+  Fixed_Point_Motion_Device_Motion_Type: 1042,
+  Fixed_Motion_Parameter_Type: 1043,
+  Fixed_Point_Motion_Device_Parameter_Conversion_Type: 1043,
   /** Be careful. the following ids are not verified */
   LocalVariable: 1016, // E<1016> --> Local Variable
   VariableSnapshot: 1028, // E<1028> --> VariableSnapshot

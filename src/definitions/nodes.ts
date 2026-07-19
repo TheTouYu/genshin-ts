@@ -993,6 +993,8 @@ export class ServerExecutionFlowFunctions {
   enumerationsEqual(enumeration1: InterruptStatus, enumeration2: InterruptStatus): boolean
   enumerationsEqual(enumeration1: GameplayMode, enumeration2: GameplayMode): boolean
   enumerationsEqual(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationsEqual(enumeration1: ColorBlendType, enumeration2: ColorBlendType): boolean
+  enumerationsEqual(enumeration1: FillMaterial, enumeration2: FillMaterial): boolean
   enumerationsEqual<T extends EnumerationType>(
     enumeration1: EnumerationTypeMap[T],
     enumeration2: EnumerationTypeMap[T]

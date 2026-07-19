@@ -635,6 +635,7 @@ type ReflectSpec = {
 }
 
 type MethodSpec = {
+  genericId: number
   methodName: string
   editorNameEn: string
   nodeType: string
@@ -935,8 +936,7 @@ function buildMethodSpec(
   for (const [i, b] of aligned.bound.entries()) {
     const officialPin = editorPinName(record, 'input', b.pin.index)
     const officialNameEn = officialPin?.nameEn?.trim()
-    const identifierOverride =
-      PARAMETER_IDENTIFIER_OVERRIDES[`${record.nodeType}.${b.pin.index}`]
+    const identifierOverride = PARAMETER_IDENTIFIER_OVERRIDES[`${record.nodeType}.${b.pin.index}`]
     const ident = uniqueIdent(
       identifierOverride ?? identFromDocName(b.doc.en.name, `input${i + 1}`),
       usedIdents,
@@ -1090,6 +1090,7 @@ function buildMethodSpec(
   }
 
   return {
+    genericId: record.genericId,
     methodName: record.methodName,
     editorNameEn: record.editorNameEn,
     nodeType: record.nodeType,
@@ -1505,7 +1506,11 @@ function emitEnumerationMatch(spec: MethodSpec, enumClasses: string[]): string {
 
 function emitMethod(spec: MethodSpec, enumBinding: ClientEnumBinding): string {
   if (spec.nodeType === 'enumeration_match') {
-    return emitEnumerationMatch(spec, enumBinding.matchClasses)
+    const enumClasses = enumBinding.enumMatchByGenericId[spec.genericId]?.classes
+    if (!enumClasses) {
+      throw new Error(`enumeration_match generic ${spec.genericId} has no enum census`)
+    }
+    return emitEnumerationMatch(spec, enumClasses)
   }
   return spec.reflect ? emitReflectMethod(spec) : emitNonReflectMethod(spec)
 }

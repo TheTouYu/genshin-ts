@@ -7,6 +7,7 @@ import type {
   Variable
 } from '../../runtime/IR.js'
 import type { DictKeyType, DictValueType } from '../../runtime/value.js'
+import { NODE_PIN_RECORDS } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
 import {
   getEnumIdLowerMap,
   getNodeIdLowerMap,
@@ -21,8 +22,18 @@ export type ConnTypeInfo =
   | { type: 'enum'; enum: string }
   | { type: 'dict'; dict: { k: DictKeyType; v: DictValueType } }
 
-const ENUM_ID_TO_LOWER_KEY = new Map<number, string>(
-  [...getEnumIdLowerMap().entries()].map(([k, id]) => [id, k])
+const enumEqualRecord = NODE_PIN_RECORDS.find((record) => record.id === 475)
+if (!enumEqualRecord || !('reflectMap' in enumEqualRecord) || !enumEqualRecord.reflectMap) {
+  throw new Error('[error] missing Enumerations Equal reflect map')
+}
+const ENUM_EQUAL_NODE_ID_BY_ENUM_ID = new Map(
+  enumEqualRecord.reflectMap.map(([nodeId, reflectType]) => {
+    const match = /^S<T:E<(\d+)>>$/.exec(reflectType)
+    if (!match) {
+      throw new Error(`[error] invalid Enumerations Equal reflect type: ${reflectType}`)
+    }
+    return [Number(match[1]), nodeId] as const
+  })
 )
 
 const MODE_SPECIFIC_NODE_IDS: Record<string, Partial<Record<ServerGraphMode, number>>> = {
@@ -377,7 +388,6 @@ export function resolveGiaNodeId(
   // special: enumerations_equal 的具体节点 ID 需要由“枚举类型(enumId)”决定，否则落到 generic(475)
   // generic 节点在编辑器内不会显示枚举值（vendor .gia 使用 concreteId=476/477/...）
   if (nodeType === 'enumerations_equal') {
-    const nodeIdLower = getNodeIdLowerMap()
     const a0 = node.args?.[0]
     if (!a0) {
       throw new Error('[error] enumerations_equal requires enumeration args')
@@ -393,10 +403,11 @@ export function resolveGiaNodeId(
             `[error] enumerations_equal unknown enum "${info.enum}" from connection ${a0.value.node_id}.${a0.value.index}`
           )
         }
-        const typed = nodeIdLower.get(`enumerations_equal__${enumKeyLower}`)
+        const enumId = getEnumIdLowerMap().get(enumKeyLower)
+        const typed = enumId === undefined ? undefined : ENUM_EQUAL_NODE_ID_BY_ENUM_ID.get(enumId)
         if (!typed) {
           throw new Error(
-            `[error] enumerations_equal missing typed node id for enum "${enumKeyLower}" (from enum=${info.enum})`
+            `[error] enumerations_equal does not support enum "${enumKeyLower}" (from enum=${info.enum})`
           )
         }
         return typed
@@ -411,15 +422,9 @@ export function resolveGiaNodeId(
       )
     }
     const { enumId } = parseEnumValue(a0.value, 0, nodeType)
-    const enumKeyLower = ENUM_ID_TO_LOWER_KEY.get(enumId)
-    if (!enumKeyLower) {
-      throw new Error(`[error] enumerations_equal unknown enumId: ${enumId}`)
-    }
-    const typed = nodeIdLower.get(`enumerations_equal__${enumKeyLower}`)
+    const typed = ENUM_EQUAL_NODE_ID_BY_ENUM_ID.get(enumId)
     if (!typed) {
-      throw new Error(
-        `[error] enumerations_equal missing typed node id for enum "${enumKeyLower}" (enumId=${enumId})`
-      )
+      throw new Error(`[error] enumerations_equal does not support enumId ${enumId}`)
     }
     return typed
   }

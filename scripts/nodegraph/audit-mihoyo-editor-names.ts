@@ -450,10 +450,10 @@ function main() {
   }
 
   const officialNameEnumIdAliases = {
-    Fixed_Point_Motion_Device_Motion_Type: 42,
-    Fixed_Point_Motion_Device_Parameter_Conversion_Type: 43,
-    Color_Blend_Type: 48,
-    Fill_Material: 49,
+    Fixed_Point_Motion_Device_Motion_Type: 1042,
+    Fixed_Point_Motion_Device_Parameter_Conversion_Type: 1043,
+    Color_Blend_Type: 42,
+    Fill_Material: 43,
     Top_of_Stack_Skill_Destruction_Type: 52,
     Class_Switch_Skill_Handling: 53
   } as const

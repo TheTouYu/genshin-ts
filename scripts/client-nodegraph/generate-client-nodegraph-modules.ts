@@ -1583,6 +1583,16 @@ export const ENUM_MATCH_ROWS_BY_CLASS: Record<
   string,
   Array<{ ioc: number; values: number[] }>
 > = ${jsonConst(binding.matchRowsByClass)}
+
+/** 枚举匹配 generic id -> 当前节点族下拉中可选择的 IR 枚举类名 */
+export const ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID: Record<number, readonly string[]> = ${jsonConst(
+      Object.fromEntries(
+        Object.entries(binding.enumMatchByGenericId).map(([genericId, value]) => [
+          genericId,
+          value.classKeys
+        ])
+      )
+    )}
 `
   )
 }

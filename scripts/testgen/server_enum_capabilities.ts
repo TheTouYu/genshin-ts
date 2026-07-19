@@ -3,7 +3,6 @@
  * Enumerations Equal concrete variants.
  */
 export const SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE = new Set([
-  'ColorOverlayType',
-  'ColorBlendType',
-  'FillMaterial'
+  'MovementMode',
+  'FixedMotionParameterType'
 ])

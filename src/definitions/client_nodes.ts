@@ -2002,7 +2002,6 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
   enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
-  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
@@ -11174,7 +11173,6 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
   enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
-  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
@@ -20436,7 +20434,6 @@ export class ClientCreationSkillExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
   enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
-  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
@@ -28489,7 +28486,6 @@ export class ClientCreationStatusExecutionFlowFunctions<
   enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
-  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -33256,7 +33252,6 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
   enumerationMatch(enumeration1: MathematicalOperator, enumeration2: MathematicalOperator): boolean
   enumerationMatch(enumeration1: MotionPathPointType, enumeration2: MotionPathPointType): boolean
   enumerationMatch(enumeration1: MotionType, enumeration2: MotionType): boolean
-  enumerationMatch(enumeration1: PreAimingEndReason, enumeration2: PreAimingEndReason): boolean
   enumerationMatch(enumeration1: RetracingType, enumeration2: RetracingType): boolean
   enumerationMatch(
     enumeration1: RevivePointSelectionStrategy,
@@ -36681,7 +36676,6 @@ export class ClientBoolFilterExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
   enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
-  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(
@@ -41278,7 +41272,6 @@ export class ClientIntFilterExecutionFlowFunctions<
   ): boolean
   enumerationMatch(enumeration1: SortBy, enumeration2: SortBy): boolean
   enumerationMatch(enumeration1: SurvivalStatus, enumeration2: SurvivalStatus): boolean
-  enumerationMatch(enumeration1: TacticType, enumeration2: TacticType): boolean
   enumerationMatch(enumeration1: TargetSortingRules, enumeration2: TargetSortingRules): boolean
   enumerationMatch(enumeration1: TargetType, enumeration2: TargetType): boolean
   enumerationMatch(

@@ -12,6 +12,7 @@
  * by the vendor ENUM_VALUE table for all reused classes), so reused classes
  * encode through the existing parseEnumValue path unchanged.
  */
+
 import fs from 'node:fs'
 
 type SeedOption = { order?: number; name: string; value: number }
@@ -72,8 +73,8 @@ export type ClientEnumBinding = {
   resolveListReturn(nodeType: string): string | undefined
   /** every bindable class (server + client-only), for same-class overload emission */
   allClasses: string[]
-  /** classes representable in the 枚举匹配 dropdown (census rows), for overload emission */
-  matchClasses: string[]
+  /** 枚举匹配 classes available to each generic node family, in TS and IR naming forms */
+  enumMatchByGenericId: Record<number, { classes: string[]; classKeys: string[] }>
   /** ir snake class name -> census rows (ioc ascending), for encoder ioc lookup */
   matchRowsByClass: Record<string, EnumMatchRow[]>
   /** classes reused from src/definitions/enum.ts, for import emission */
@@ -88,6 +89,11 @@ const SEED_PATHS = [
   'resources/client_enum_seed.character_skill.json',
   'resources/client_enum_seed.creation_status.json'
 ]
+
+const ENUM_MATCH_GENERIC_ID_BY_FAMILY: Record<string, number> = {
+  character_skill: 200005,
+  creation_status: 200178
+}
 
 /**
  * ioc -> existing server enum class (values verified shared: every census
@@ -144,7 +150,11 @@ const CLIENT_ONLY_SPEC_BY_IOC: Record<number, ClientOnlySpec> = {
   29: {
     className: 'TargetSortingRules',
     zhName: '筛选规则',
-    memberByValue: { 1000001: 'DefaultSorting', 1000002: 'RandomOrder', 1000003: 'SortFromNearToFar' }
+    memberByValue: {
+      1000001: 'DefaultSorting',
+      1000002: 'RandomOrder',
+      1000003: 'SortFromNearToFar'
+    }
   },
   30: {
     className: 'AttackLayerConfig',
@@ -248,7 +258,10 @@ const CLIENT_ONLY_SPEC_BY_FAMILY_IOC42: Record<string, ClientOnlySpec> = {
  * (受击盒/场景/物件自身碰撞/光标碰撞盒); vendor comments confirm
  * 2605 = ObjectSelfCollision, and 光标碰撞盒 is the 4th editor option.
  */
-const SAMPLED_ONLY_CLASSES: Array<{ spec: ClientOnlySpec; options: Array<{ value: number; name: string }> }> = [
+const SAMPLED_ONLY_CLASSES: Array<{
+  spec: ClientOnlySpec
+  options: Array<{ value: number; name: string }>
+}> = [
   {
     spec: {
       className: 'RayFilterType',
@@ -377,9 +390,7 @@ function memberZhName(className: string, zhClassName: string, optionName: string
 }
 
 export function buildClientEnumBinding(): ClientEnumBinding {
-  const seeds = SEED_PATHS.map(
-    (p) => JSON.parse(fs.readFileSync(p, 'utf8')) as EnumSeed
-  )
+  const seeds = SEED_PATHS.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')) as EnumSeed)
 
   const classByValue = new Map<number, string>()
   const bindValue = (value: number, className: string) => {
@@ -392,10 +403,9 @@ export function buildClientEnumBinding(): ClientEnumBinding {
 
   // 枚举匹配 dropdown rows: TS class -> ioc -> value set (both families merged;
   // rows 0-41 are family-invariant, row 42 maps to a distinct class per family)
-  const matchTsClasses = new Set<string>()
+  const matchTsClassesByGenericId = new Map<number, Set<string>>()
   const matchRowsByTsClass = new Map<string, Map<number, Set<number>>>()
   const recordMatchRow = (className: string, row: CensusRow) => {
-    matchTsClasses.add(className)
     const rows = matchRowsByTsClass.get(className) ?? new Map<number, Set<number>>()
     matchRowsByTsClass.set(className, rows)
     const values = rows.get(row.ioc) ?? new Set<number>()
@@ -404,9 +414,16 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   }
 
   const clientOnlyByName = new Map<string, ClientEnumClass>()
-  const addClientOnlyClass = (spec: ClientOnlySpec, options: Array<{ value: number; name: string }>) => {
+  const addClientOnlyClass = (
+    spec: ClientOnlySpec,
+    options: Array<{ value: number; name: string }>
+  ) => {
     const existing = clientOnlyByName.get(spec.className)
-    const cls: ClientEnumClass = existing ?? { className: spec.className, zhName: spec.zhName, members: [] }
+    const cls: ClientEnumClass = existing ?? {
+      className: spec.className,
+      zhName: spec.zhName,
+      members: []
+    }
     if (!existing) clientOnlyByName.set(spec.className, cls)
     for (const option of options) {
       if (cls.members.some((m) => m.value === option.value)) continue
@@ -426,6 +443,13 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   }
 
   for (const seed of seeds) {
+    const enumMatchGenericId = ENUM_MATCH_GENERIC_ID_BY_FAMILY[seed.family]
+    if (enumMatchGenericId === undefined) {
+      throw new Error(`[error] enum-match seed family "${seed.family}" has no generic id`)
+    }
+    const familyMatchClasses =
+      matchTsClassesByGenericId.get(enumMatchGenericId) ?? new Set<string>()
+    matchTsClassesByGenericId.set(enumMatchGenericId, familyMatchClasses)
     for (const row of seed.enumMatchCensus.rows) {
       const spec =
         row.ioc === 42
@@ -444,6 +468,7 @@ export function buildClientEnumBinding(): ClientEnumBinding {
         if (value > 0) bindValue(value, className)
       }
       recordMatchRow(className, row)
+      familyMatchClasses.add(className)
       if (spec) addClientOnlyClass(spec, row.options)
     }
     for (const tactic of seed.tacticEnums ?? []) {
@@ -471,7 +496,9 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     for (const entry of Object.values(seed.nodeParamEnums ?? {})) {
       const className = classByValue.get(entry.options[0].value)
       if (!className) {
-        throw new Error(`[error] nodeParamEnums ${entry.zh}: value ${entry.options[0].value} unmapped`)
+        throw new Error(
+          `[error] nodeParamEnums ${entry.zh}: value ${entry.options[0].value} unmapped`
+        )
       }
       explicitByGenericId.set(entry.genericId, className)
     }
@@ -501,6 +528,14 @@ export function buildClientEnumBinding(): ClientEnumBinding {
       .sort(([a], [b]) => a - b)
       .map(([ioc, values]) => ({ ioc, values: [...values].sort((a, b) => a - b) }))
   }
+  const enumMatchByGenericId: Record<number, { classes: string[]; classKeys: string[] }> = {}
+  for (const [genericId, classes] of matchTsClassesByGenericId) {
+    const sortedClasses = [...classes].sort()
+    enumMatchByGenericId[genericId] = {
+      classes: sortedClasses,
+      classKeys: sortedClasses.map(irSnakeClassName)
+    }
+  }
 
   return {
     resolve(record, pin, zhParamName) {
@@ -524,8 +559,10 @@ export function buildClientEnumBinding(): ClientEnumBinding {
     serverClasses,
     clientOnlyClasses,
     valueByKey,
-    allClasses: [...new Set([...serverClasses, ...clientOnlyClasses.map((c) => c.className)])].sort(),
-    matchClasses: [...matchTsClasses].sort(),
+    allClasses: [
+      ...new Set([...serverClasses, ...clientOnlyClasses.map((c) => c.className)])
+    ].sort(),
+    enumMatchByGenericId,
     matchRowsByClass
   }
 }

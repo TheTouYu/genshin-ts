@@ -129,11 +129,11 @@ const expectedRecords = new Map<number, { inputs: string[]; outputs: string[] }>
   [
     835,
     {
-      inputs: ['Ety', 'Bol', 'Bol', 'Int', 'Flt', 'E<48>', 'Bol', 'Bol', 'E<49>'],
+      inputs: ['Ety', 'Bol', 'Bol', 'Int', 'Flt', 'E<42>', 'Bol', 'Bol', 'E<43>'],
       outputs: []
     }
   ],
-  [836, { inputs: ['Ety'], outputs: ['Bol', 'E<48>', 'Int', 'Flt', 'Bol', 'E<49>'] }],
+  [836, { inputs: ['Ety'], outputs: ['Bol', 'E<42>', 'Int', 'Flt', 'Bol', 'E<43>'] }],
   [837, { inputs: ['Ety', 'Ety'], outputs: [] }],
   [838, { inputs: ['Ety'], outputs: [] }],
   [839, { inputs: ['Ety', 'L<Ety>'], outputs: [] }],
@@ -235,9 +235,11 @@ for (const [key, expectedId] of Object.entries(nodeIdByKey)) {
   assert.equal(NODE_ID[key as keyof typeof NODE_ID], expectedId, `${key} id`)
 }
 
-assert.equal(ENUM_ID.Color_Overlay_Type, 48)
-assert.equal(ENUM_ID.Color_Blend_Type, 48)
-assert.equal(ENUM_ID.Fill_Material, 49)
+assert.equal(ENUM_ID.Color_Overlay_Type, 42)
+assert.equal(ENUM_ID.Color_Blend_Type, 42)
+assert.equal(ENUM_ID.Fill_Material, 43)
+assert.equal(ENUM_ID.Movement_Mode, 1042)
+assert.equal(ENUM_ID.Fixed_Motion_Parameter_Type, 1043)
 assert.equal(ENUM_VALUE.ColorOverlayType_Overwrite, 6700)
 assert.equal(ENUM_VALUE.ColorOverlayType_Multiply, 6701)
 assert.equal(ENUM_VALUE.FillMaterial_Frozen, 6710)

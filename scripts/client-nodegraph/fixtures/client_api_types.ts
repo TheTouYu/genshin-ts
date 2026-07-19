@@ -1,6 +1,7 @@
 import { g } from 'genshin-ts/runtime/core'
 
 import type { clientEntity as ClientEntityType } from '../../../src/definitions/client_entity_helpers.js'
+import { PreAimingEndReason, TacticType } from '../../../src/definitions/client_enums.js'
 // scoped client helper globals capability tables are generated and typed
 import {
   CLIENT_BLOCKED_SERVER_HELPERS,
@@ -92,6 +93,9 @@ g.characterControlSkill().on('start', (_evt, f) => {
 g.creationSkill().on('start', (_evt, f) => {
   const selfEntity = f.getSelfEntity()
   selfEntity.tauntTarget
+  f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
+  // @ts-expect-error TacticType is the status-family row 42 enum
+  f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
   // @ts-expect-error classic-only player character list shortcut
   selfEntity.characters
 })
@@ -154,6 +158,9 @@ const orderedCreationStatus = g.creationStatus()
 orderedCreationStatus.on('start1', (_evt, f) => {
   f.emptyList('int')
   f.copyList(list('int', [1n]))
+  f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
+  // @ts-expect-error PreAimingEndReason is the skill-family row 42 enum
+  f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
   f.return()
   // @ts-expect-error creation status graphs do not have finite loops
   f.listIterationLoop(list('int', [1n]), () => {})

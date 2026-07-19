@@ -4603,14 +4603,14 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Edit Model Color & Material',
     id: 835,
-    inputs: ['Ety', 'Bol', 'Bol', 'Int', 'Flt', 'E<48>', 'Bol', 'Bol', 'E<49>'],
+    inputs: ['Ety', 'Bol', 'Bol', 'Int', 'Flt', 'E<42>', 'Bol', 'Bol', 'E<43>'],
     outputs: []
   },
   {
     name: 'Get Model Color & Material',
     id: 836,
     inputs: ['Ety'],
-    outputs: ['Bol', 'E<48>', 'Int', 'Flt', 'Bol', 'E<49>']
+    outputs: ['Bol', 'E<42>', 'Int', 'Flt', 'Bol', 'E<43>']
   },
   {
     name: 'Set Player to Follow Control Motion Device',

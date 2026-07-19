@@ -460,11 +460,12 @@ function main() {
         return [`${encodedKind}:${pin.index}`, pin] as const
       })
     )
-    // Server Node metadata contains unrelated group payloads that do not all use the client
-    // concrete-variant shape. Its fixed pin truth is still available without parsing those groups.
-    const concreteVariants = serverMode
-      ? []
-      : parseConcreteVariantGroups(fields, genericId, pinByEncodedIndex)
+    // Most server Node group payloads are unrelated to concrete variants. Enumerations Equal
+    // (475) uses this shape and is retained so its official concrete ids/selectors can be audited.
+    const concreteVariants =
+      serverMode && genericId !== 475
+        ? []
+        : parseConcreteVariantGroups(fields, genericId, pinByEncodedIndex)
     nodes.push({
       genericId,
       sourceFile: `Node/${name}`,
@@ -529,6 +530,13 @@ function main() {
         0
       )
     },
+    ...(serverMode
+      ? {
+          concreteVariantNodes: nodes
+            .filter((node) => node.concreteVariants.length)
+            .map((node) => ({ genericId: node.genericId, groups: node.concreteVariants }))
+        }
+      : {}),
     nodes: nodes.map(({ concreteVariants: _concreteVariants, ...node }) => node)
   }
   fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8')

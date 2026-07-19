@@ -12,6 +12,7 @@ import type { DictKeyType, DictValueType } from '../../runtime/value.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../../shared/client_capability_errors.js'
 import {
   CLIENT_ENUM_VALUES,
+  ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID,
   ENUM_MATCH_ROWS_BY_CLASS
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
 import type {
@@ -899,12 +900,19 @@ function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: Cl
       CLIENT_ERROR_CODES.VALUE_TYPE_UNAVAILABLE,
       `${metadata.subType}.${irNode.type} ${msg}`
     )
+  const allowedClasses = ENUM_MATCH_CLASS_KEYS_BY_GENERIC_ID[metadata.genericId]
+  if (!allowedClasses) {
+    throw fail(`generic ${metadata.genericId} has no enum census`)
+  }
   const args = [irNode.args?.[0], irNode.args?.[1]]
   const infos = args.map((arg, i) => {
     if (isValueArg(arg)) {
       const key = String(arg.value)
       const cls = enumMatchClassOfLiteral(key)
       if (!cls) throw fail(`enum value "${key}" (arg #${i}) is not selectable in this node`)
+      if (!allowedClasses.includes(cls)) {
+        throw fail(`enum class "${cls}" (arg #${i}) is unavailable in this graph family`)
+      }
       const rows = ENUM_MATCH_ROWS_BY_CLASS[cls]
       const numeric = Number(toPinLiteral(13, key, i, irNode.type))
       return { cls, literalIoc: (rows.find((r) => r.values.includes(numeric)) ?? rows[0]).ioc }
@@ -914,6 +922,9 @@ function applyEnumerationMatch(node: ClientGiaNode, irNode: IRNode, metadata: Cl
       if (!cls) return undefined
       if (!ENUM_MATCH_ROWS_BY_CLASS[cls]) {
         throw fail(`enum class "${cls}" (arg #${i}) is not selectable in this node`)
+      }
+      if (!allowedClasses.includes(cls)) {
+        throw fail(`enum class "${cls}" (arg #${i}) is unavailable in this graph family`)
       }
       return { cls, literalIoc: undefined }
     }
