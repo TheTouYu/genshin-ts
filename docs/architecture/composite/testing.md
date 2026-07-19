@@ -225,7 +225,30 @@ npx tsx tests/composite/test-composite-part3.ts
 
 ---
 
-## 4. 运行方式
+## 4. 跨 NodeGraph Composite ID 冲突回归
+
+> 状态：当前实现
+> 来源：当前代码实现 + 自动回归
+> 最近校验：2026-07-19
+> 适用范围：gsts IR 合并路径；未进行注入或游戏内验证
+
+多个 entry 独立编译时可能各自从相同的 Composite ID 起点分配 ID。CLI 处理所有待输出的
+IR 文档前，`src/compiler/ir_merge.ts` 会跨文档比较 `compositeDefs` 的定义内容：
+相同定义复用原 ID，不同定义分配新的 ID，并同步重写主图调用、impl 图中的嵌套调用和
+`compositeCalls` 元数据。合并结果保留全部 Composite 定义。
+
+最小回归：
+
+```bash
+npm run build
+npx tsx tests/ir_merge_composite_id_collision_test.ts
+```
+
+该测试先在旧实现上确认 `compositeDefs` 被覆盖而失败，再验证修复后的两个定义拥有
+不同 ID，主图调用和嵌套调用都指向重映射后的定义。它证明的是 IR 合并结构，不等同于
+GIA 注入成功或游戏行为正确。
+
+## 5. 运行方式
 
 ### 独立脚本模式
 

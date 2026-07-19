@@ -6,6 +6,8 @@ import type {
   Argument,
   ClientIRDocument,
   ClientNode,
+  CompositeCallMeta,
+  CompositeDefIR,
   ConnectionArgument,
   IRDocument,
   NextConnection,
@@ -200,6 +202,56 @@ function remapNodeIdsInNode(node: AnyIRNode, map: Map<number, number>) {
   if (node.next?.length) node.next = node.next.map((n) => remapNextConn(n, map))
 }
 
+function compositeDefinitionSignature(def: CompositeDefIR): string {
+  const { id: _id, ...withoutId } = def
+  return JSON.stringify(withoutId)
+}
+
+function rewriteCompositeIdInNode(node: ServerNode, ids: Map<number, number>) {
+  if (node.type === '__composite_call__') {
+    const arg = node.args?.[0]
+    if (arg && arg.type !== 'conn' && typeof arg.value === 'number') {
+      arg.value = ids.get(arg.value) ?? arg.value
+    }
+  }
+}
+
+function remapCompositeIds(doc: IRDocument, ids: Map<number, number>) {
+  if (doc.graph.type !== 'server') return
+  const serverDoc = doc as ServerIRDocument
+  for (const node of serverDoc.nodes ?? []) rewriteCompositeIdInNode(node, ids)
+  for (const def of serverDoc.compositeDefs ?? []) {
+    def.id = ids.get(def.id) ?? def.id
+    for (const node of def.implNodes) rewriteCompositeIdInNode(node, ids)
+  }
+  for (const call of (serverDoc.compositeCalls ?? []) as CompositeCallMeta[]) {
+    call.compositeId = ids.get(call.compositeId) ?? call.compositeId
+  }
+}
+
+function allocateCompositeIds(docs: { doc: IRDocument; source: string }[]) {
+  const used = new Map<number, { signature: string; source: string }>()
+  let nextId = 2000000000
+  for (const { doc, source } of docs) {
+    if (doc.graph.type !== 'server') continue
+    const ids = new Map<number, number>()
+    for (const def of (doc as ServerIRDocument).compositeDefs ?? []) {
+      const signature = compositeDefinitionSignature(def)
+      const previous = used.get(def.id)
+      if (!previous) {
+        used.set(def.id, { signature, source })
+        continue
+      }
+      if (previous.signature === signature) continue
+      while (used.has(nextId)) nextId++
+      ids.set(def.id, nextId)
+      used.set(nextId, { signature, source })
+      nextId++
+    }
+    if (ids.size) remapCompositeIds(doc, ids)
+  }
+}
+
 function normalizeGraphCompatibility(base: IRDocument, next: IRDocument, _sourceJsonPath: string) {
   const a = base.graph
   const b = next.graph
@@ -267,6 +319,8 @@ export function mergeIrJsonFilesByGraphId(params: {
       items.push({ doc, sourceJsonPath: p, sourceIndex: idx })
     })
   }
+
+  allocateCompositeIds(items.map((it) => ({ doc: it.doc, source: it.sourceJsonPath })))
 
   const groups = new Map<number, IrSource[]>()
   for (const it of items) {
@@ -362,6 +416,15 @@ export function mergeIrJsonFilesByGraphId(params: {
     const mergedVars = mergeVariablesOrThrowByName(varsAfterRename)
     if (mergedVars?.length) base.variables = mergedVars
     base.nodes = mergedNodes
+
+    const mergedCompositeDefs = new Map<number, CompositeDefIR>()
+    for (const it of ordered) {
+      for (const def of (it.doc as ServerIRDocument).compositeDefs ?? []) {
+        mergedCompositeDefs.set(def.id, deepClone(def))
+      }
+    }
+    if (mergedCompositeDefs.size)
+      (base as ServerIRDocument).compositeDefs = [...mergedCompositeDefs.values()]
 
     const outJsonPath = path.join(topDir, `${fileBaseName}.json`)
     const sourceJsonPaths = [...new Set(ordered.map((x) => x.sourceJsonPath))]
