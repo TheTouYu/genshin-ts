@@ -2,6 +2,8 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { NODE_PIN_RECORDS } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.js'
+
 type WireField =
   | { field: number; wire: 0; value: bigint }
   | { field: number; wire: 1; bytes: Uint8Array }
@@ -25,6 +27,7 @@ type StaticPin = StaticTypeVariant & {
   nameHash?: number
   name?: string
   defaultValue?: StaticLiteral
+  unsupportedDefaultPayload?: string
 }
 
 /** [encodedKind, pinIndex, indexOfConcrete, role?, keyClientVarType?, valueClientVarType?] */
@@ -53,8 +56,9 @@ const DEFAULT_NODE_ROOT =
   'D:\\Genshin Impact\\Genshin Impact Game\\BeyondAssets\\BeyondAssistEditor\\Resource\\Json\\Beyond\\Node'
 const CHS_TEXT_MAP_FILE = '17720714722766726369.mihoyobin'
 const MODE_DATA_PATH = 'resources/client_node_modes.json'
-const OUTPUT_PATH = 'resources/client_node_static_metadata.json'
-const VARIANT_OUTPUT_PATH = 'resources/client_node_concrete_variants.json'
+const CLIENT_OUTPUT_PATH = 'resources/client_node_static_metadata.json'
+const CLIENT_VARIANT_OUTPUT_PATH = 'resources/client_node_concrete_variants.json'
+const SERVER_OUTPUT_PATH = 'resources/server_node_static_metadata.json'
 const XOR_KEY = 0xe5
 
 const PIN_GROUPS = [
@@ -235,7 +239,12 @@ function explicitDefault(
   return fields.length ? explicitDefaultFromVarBase(fields, clientVarType) : undefined
 }
 
-function parsePin(descriptor: WireField[], kind: StaticPin['kind'], index: number): StaticPin {
+function parsePin(
+  descriptor: WireField[],
+  kind: StaticPin['kind'],
+  index: number,
+  recordUnsupportedDefault = false
+): StaticPin {
   const indexFields = messageField(descriptor, 3)
   const encodedKind = numberField(indexFields, 1)
   const expectedKind = PIN_GROUPS.find((group) => group.kind === kind)!.encodedKind
@@ -262,7 +271,14 @@ function parsePin(descriptor: WireField[], kind: StaticPin['kind'], index: numbe
     }
   }
   const nameHash = numberField(descriptor, 7)
-  const defaultValue = explicitDefault(typeFields, base.clientVarType)
+  let defaultValue: StaticLiteral | undefined
+  let unsupportedDefaultPayload: string | undefined
+  try {
+    defaultValue = explicitDefault(typeFields, base.clientVarType)
+  } catch (error) {
+    if (!recordUnsupportedDefault) throw error
+    unsupportedDefaultPayload = error instanceof Error ? error.message : String(error)
+  }
 
   return {
     kind,
@@ -272,7 +288,8 @@ function parsePin(descriptor: WireField[], kind: StaticPin['kind'], index: numbe
     ...(kind === 'input' ? { connectable } : {}),
     ...(variants.length ? { variants } : {}),
     ...(nameHash !== undefined ? { nameHash } : {}),
-    ...(defaultValue !== undefined ? { defaultValue } : {})
+    ...(defaultValue !== undefined ? { defaultValue } : {}),
+    ...(unsupportedDefaultPayload !== undefined ? { unsupportedDefaultPayload } : {})
   }
 }
 
@@ -352,8 +369,10 @@ function sha256(bytes: Uint8Array | string): string {
 }
 
 function main() {
+  const serverMode = process.argv.includes('--server')
+  const positionalArgs = process.argv.slice(2).filter((arg) => arg !== '--server')
   const nodeRoot = path.resolve(
-    process.argv[2] ?? process.env.BEYOND_EDITOR_NODE_ROOT ?? DEFAULT_NODE_ROOT
+    positionalArgs[0] ?? process.env.BEYOND_EDITOR_NODE_ROOT ?? DEFAULT_NODE_ROOT
   )
   if (!fs.existsSync(nodeRoot)) {
     throw new Error(
@@ -362,7 +381,7 @@ function main() {
     )
   }
   const textMapPath = path.resolve(
-    process.argv[3] ??
+    positionalArgs[1] ??
       process.env.BEYOND_EDITOR_CHS_TEXT_MAP ??
       path.join(nodeRoot, '..', '..', 'TextMap', 'CHS', CHS_TEXT_MAP_FILE)
   )
@@ -375,11 +394,19 @@ function main() {
   const localizedText = readLocalizedTextByHash(textMapPath)
 
   const modeData = JSON.parse(fs.readFileSync(MODE_DATA_PATH, 'utf8')) as ClientNodeModeData
-  const selectedIds = new Set<number>()
+  const clientIds = new Set<number>()
   for (const graph of Object.values(modeData.graphs)) {
-    selectedIds.add(graph.entryGenericId)
-    graph.beyond.genericIds.forEach((id) => selectedIds.add(id))
-    graph.classic.genericIds.forEach((id) => selectedIds.add(id))
+    clientIds.add(graph.entryGenericId)
+    graph.beyond.genericIds.forEach((id) => clientIds.add(id))
+    graph.classic.genericIds.forEach((id) => clientIds.add(id))
+  }
+  const selectedIds = new Set<number>()
+  if (serverMode) {
+    for (const record of NODE_PIN_RECORDS) {
+      if (record.id < 200000) selectedIds.add(record.id)
+    }
+  } else {
+    clientIds.forEach((id) => selectedIds.add(id))
   }
 
   const files = fs
@@ -395,6 +422,7 @@ function main() {
     concreteVariants: StaticConcreteVariantGroup[]
   }>
   const seenIds = new Set<number>()
+  const scannedIds = new Set<number>()
 
   for (const name of files) {
     const raw = fs.readFileSync(path.join(nodeRoot, name))
@@ -403,14 +431,16 @@ function main() {
     const decoded = Uint8Array.from(raw, (byte) => byte ^ XOR_KEY)
     const fields = parseMessage(decoded)
     const genericId = genericIdFromNode(fields)
-    if (!selectedIds.has(genericId)) continue
+    scannedIds.add(genericId)
+    const isUnmappedServerNode = serverMode && genericId < 200000 && !clientIds.has(genericId)
+    if (!selectedIds.has(genericId) && !isUnmappedServerNode) continue
     if (seenIds.has(genericId))
       throw new Error(`[error] duplicate static Node generic id ${genericId}`)
     seenIds.add(genericId)
 
     const pins = PIN_GROUPS.flatMap((group) =>
       repeatedMessages(fields, group.field).map((descriptor, index) =>
-        parsePin(descriptor, group.kind, index)
+        parsePin(descriptor, group.kind, index, serverMode)
       )
     )
     for (const pin of pins) {
@@ -430,7 +460,11 @@ function main() {
         return [`${encodedKind}:${pin.index}`, pin] as const
       })
     )
-    const concreteVariants = parseConcreteVariantGroups(fields, genericId, pinByEncodedIndex)
+    // Server Node metadata contains unrelated group payloads that do not all use the client
+    // concrete-variant shape. Its fixed pin truth is still available without parsing those groups.
+    const concreteVariants = serverMode
+      ? []
+      : parseConcreteVariantGroups(fields, genericId, pinByEncodedIndex)
     nodes.push({
       genericId,
       sourceFile: `Node/${name}`,
@@ -441,9 +475,23 @@ function main() {
   }
 
   const missing = [...selectedIds].filter((id) => !seenIds.has(id)).sort((a, b) => a - b)
-  if (missing.length) throw new Error(`[error] no static Node metadata for: ${missing.join(', ')}`)
+  if (missing.length) {
+    throw new Error(
+      `[error] no static ${serverMode ? 'server ' : ''}Node metadata for: ${missing.join(', ')}`
+    )
+  }
   nodes.sort((a, b) => a.genericId - b.genericId)
+  if (serverMode) {
+    const unmappedIds = [...scannedIds]
+      .filter((id) => !selectedIds.has(id) && !clientIds.has(id))
+      .sort((a, b) => a - b)
+    console.log(
+      `[note] ${unmappedIds.length} static Node ids are in neither server vendor records nor client pools: ` +
+        (unmappedIds.join(', ') || '(none)')
+    )
+  }
 
+  const outputPath = serverMode ? SERVER_OUTPUT_PATH : CLIENT_OUTPUT_PATH
   const inputPins = nodes.flatMap((node) => node.pins.filter((pin) => pin.kind === 'input'))
   const concreteVariantGroups = nodes.flatMap((node) => node.concreteVariants)
   const concreteVariants = concreteVariantGroups.flatMap((group) => group.variants)
@@ -452,7 +500,9 @@ function main() {
     source: {
       encoding: 'xor-0xe5 protobuf wire format',
       scannedNodeFiles: files.length,
-      selectedClientNodes: nodes.length,
+      ...(serverMode
+        ? { selectedServerNodes: nodes.length }
+        : { selectedClientNodes: nodes.length }),
       aggregateSha256: sha256(sourceHashes.join('\n')),
       chsTextMapSha256: localizedText.sha256
     },
@@ -464,6 +514,13 @@ function main() {
       pinsWithExplicitDefaults: nodes
         .flatMap((node) => node.pins)
         .filter((pin) => pin.defaultValue !== undefined).length,
+      ...(serverMode
+        ? {
+            pinsWithUnsupportedDefaults: nodes
+              .flatMap((node) => node.pins)
+              .filter((pin) => pin.unsupportedDefaultPayload !== undefined).length
+          }
+        : {}),
       namedPins: nodes.flatMap((node) => node.pins).filter((pin) => pin.name !== undefined).length,
       concreteVariantGroups: concreteVariantGroups.filter((group) => group.variants.length).length,
       concreteVariants: concreteVariants.length,
@@ -474,28 +531,31 @@ function main() {
     },
     nodes: nodes.map(({ concreteVariants: _concreteVariants, ...node }) => node)
   }
-  fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(output, null, 2)}\n`, 'utf8')
-  const variantOutput = {
-    formatVersion: 1,
-    sourceAggregateSha256: output.source.aggregateSha256,
-    bindingTuple: [
-      'encodedKind',
-      'pinIndex',
-      'indexOfConcrete',
-      'role?',
-      'keyClientVarType?',
-      'valueClientVarType?'
-    ],
-    nodes: nodes
-      .filter((node) => node.concreteVariants.some((group) => group.variants.length))
-      .map((node) => ({ genericId: node.genericId, groups: node.concreteVariants }))
+  fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8')
+  if (!serverMode) {
+    const variantOutput = {
+      formatVersion: 1,
+      sourceAggregateSha256: output.source.aggregateSha256,
+      bindingTuple: [
+        'encodedKind',
+        'pinIndex',
+        'indexOfConcrete',
+        'role?',
+        'keyClientVarType?',
+        'valueClientVarType?'
+      ],
+      nodes: nodes
+        .filter((node) => node.concreteVariants.some((group) => group.variants.length))
+        .map((node) => ({ genericId: node.genericId, groups: node.concreteVariants }))
+    }
+    fs.writeFileSync(CLIENT_VARIANT_OUTPUT_PATH, `${JSON.stringify(variantOutput)}\n`, 'utf8')
   }
-  fs.writeFileSync(VARIANT_OUTPUT_PATH, `${JSON.stringify(variantOutput)}\n`, 'utf8')
   console.log(
-    `[ok] wrote ${OUTPUT_PATH}: ${nodes.length} nodes, ${inputPins.length} inputs, ` +
-      `${output.summary.literalOnlyInputs} literal-only, ${output.summary.namedPins} named pins; ` +
-      `${VARIANT_OUTPUT_PATH}: ` +
-      `${concreteVariants.length} concrete variants`
+    `[ok] wrote ${outputPath}: ${nodes.length} nodes, ${inputPins.length} inputs, ` +
+      `${output.summary.literalOnlyInputs} literal-only, ${output.summary.namedPins} named pins` +
+      (serverMode
+        ? ''
+        : `; ${CLIENT_VARIANT_OUTPUT_PATH}: ${concreteVariants.length} concrete variants`)
   )
 }
 

@@ -280,6 +280,12 @@ function toIdentifier(name: string) {
   }
 }
 
+// Upstream documentation typo corrections. Keep the raw snapshot unchanged,
+// but never expose its misspellings in the generated TypeScript API.
+const PARAMETER_IDENTIFIER_OVERRIDES: Record<string, string> = {
+  'querySpecifiedMiniMapMarkerInformation.activationStaet': 'activationStatus'
+}
+
 function replaceBetweenMarkers(
   content: string,
   startMarker: string,
@@ -704,7 +710,9 @@ function buildNodes() {
                   return isValid
                 })
                 .map((p) => {
-                  const rawName = toIdentifier(p.paramName)
+                  const generatedName = toIdentifier(p.paramName)
+                  const rawName =
+                    PARAMETER_IDENTIFIER_OVERRIDES[`${nodeName}.${generatedName}`] ?? generatedName
                   const adjustedName =
                     nodeName === 'equal' && /^enumeration\d+$/.test(rawName)
                       ? rawName.replace('enumeration', 'input')

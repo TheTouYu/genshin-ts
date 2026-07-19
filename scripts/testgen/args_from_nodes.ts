@@ -175,6 +175,14 @@ export function emitArgFromNodesTypeText(
   if (m.name === 'sendSignal' && m.params[paramIndex]?.name === 'signalName') {
     return JSON.stringify(`${mode}_signal`)
   }
+  if (m.name === 'copyList') {
+    if (m.params[paramIndex]?.name === 'input') {
+      return mode === 'literal'
+        ? '[1n, 2n]'
+        : `f.assemblyList([f.addition(1n, 2n), f.addition(3n, 4n)], 'int')`
+    }
+    return JSON.stringify('int')
+  }
 
   const t = trim(typeText)
 

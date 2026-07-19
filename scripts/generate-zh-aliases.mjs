@@ -139,6 +139,23 @@ function parseEvents() {
   const entries = []
   const missing = []
 
+  function eventNameFromType(typeNode) {
+    if (ts.isLiteralTypeNode(typeNode) && ts.isStringLiteral(typeNode.literal)) {
+      return typeNode.literal.text
+    }
+    if (
+      ts.isTypeReferenceNode(typeNode) &&
+      ts.isIdentifier(typeNode.typeName) &&
+      typeNode.typeName.text === 'EventNameByLang'
+    ) {
+      const eventType = typeNode.typeArguments?.[1]
+      if (eventType && ts.isLiteralTypeNode(eventType) && ts.isStringLiteral(eventType.literal)) {
+        return eventType.literal.text
+      }
+    }
+    return null
+  }
+
   function visit(node) {
     if (ts.isInterfaceDeclaration(node) && node.name.text === 'ServerOnOverloads') {
       for (const member of node.members) {
@@ -146,9 +163,8 @@ function parseEvents() {
         if (!ts.isIdentifier(member.name) || member.name.text !== 'on') continue
         const eventParam = member.parameters[0]
         if (!eventParam || !eventParam.type) continue
-        if (!ts.isLiteralTypeNode(eventParam.type)) continue
-        if (!ts.isStringLiteral(eventParam.type.literal)) continue
-        const enName = eventParam.type.literal.text
+        const enName = eventNameFromType(eventParam.type)
+        if (!enName) continue
         const comment = getLeadingCommentText(sourceText, member)
         const lines = cleanCommentLines(comment)
         const zhTitle = extractZhTitle(lines)

@@ -259,6 +259,15 @@ export function assertClientLiteralValue(input: value, label = 'value'): void {
   )
 }
 
+export function assertServerLiteralValue(input: value, label = 'value'): void {
+  const metadata = input.getMetadata()
+  if (metadata?.kind !== 'pin') return
+  throw new Error(
+    `[error] ${label} only accepts a literal value; received ` +
+      `${metadata.record.nodeType}.${metadata.pinName}, but the editor exposes no connection socket`
+  )
+}
+
 export function assertClientFixedSlotArray(
   input: unknown,
   label = 'value'

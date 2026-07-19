@@ -710,6 +710,45 @@ export interface ServerOnOverloads<
     ) => void
   ): this
 
+  /**
+   * Triggered when a player's active control motor list changes.
+   *
+   * When Player's Activated Control Motion Device List Changes
+   *
+   * 玩家激活操控运动器列表变化时: 玩家激活的操控运动器列表发生变化时触发
+   */
+  on(
+    eventName: EventNameByLang<Mode, 'whenPlayerSActiveControlMotorListChanges', AllowZh>,
+    handler: (
+      evt: ServerEventPayloadsByMode<Mode>['whenPlayerSActiveControlMotorListChanges'],
+      f: F
+    ) => void
+  ): this
+
+  /**
+   * Triggered when a player follows a control motor.
+   *
+   * When Player Follows Control Motion Device
+   *
+   * 玩家跟随操控运动器时: 玩家开始跟随操控运动器时触发
+   */
+  on(
+    eventName: EventNameByLang<Mode, 'whenPlayerFollowsControlMotor', AllowZh>,
+    handler: (evt: ServerEventPayloadsByMode<Mode>['whenPlayerFollowsControlMotor'], f: F) => void
+  ): this
+
+  /**
+   * Triggered when a player leaves a control motor.
+   *
+   * When Player Leaves Control Motion Device
+   *
+   * 玩家离开操控运动器时: 玩家离开操控运动器时触发
+   */
+  on(
+    eventName: EventNameByLang<Mode, 'whenPlayerLeavesControlMotor', AllowZh>,
+    handler: (evt: ServerEventPayloadsByMode<Mode>['whenPlayerLeavesControlMotor'], f: F) => void
+  ): this
+
   on<E extends EventNameByLang<Mode, keyof ServerEventPayloads, AllowZh>>(
     eventName: E,
     handler: (evt: ServerEventPayloadsByMode<Mode>[EventNameToEn<E>], f: F) => void

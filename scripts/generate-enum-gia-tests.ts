@@ -42,6 +42,17 @@ function extractEnumMembers(enumTsPath: string): EnumMembersMap {
     ts.forEachChild(node, visit)
   }
   ts.forEachChild(sf, visit)
+  const aliases = {
+    FixedPointMotionDeviceMotionType: 'MovementMode',
+    FixedPointMotionDeviceParameterConversionType: 'FixedMotionParameterType',
+    ColorBlendType: 'ColorOverlayType',
+    TopOfStackSkillDestructionType: 'OriginalSlotSkillHandling',
+    ClassSwitchSkillHandling: 'ExistingSkillHandling'
+  } as const
+  for (const [alias, target] of Object.entries(aliases)) {
+    const members = map.get(target)
+    if (members) map.set(alias, members)
+  }
   return map
 }
 
@@ -200,7 +211,13 @@ function pickMethodForEnum(methods: MethodSig[], enumType: string): MethodSig | 
 
 function litOfParam(t: string): string {
   const type = t.trim()
-  if (type === 'EntityValue') return 'e'
+  if (
+    type === 'EntityValue' ||
+    /^(?:Player|Character|Stage|Object|Creation)Entity$/.test(type) ||
+    /^EntityOf\s*</.test(type)
+  ) {
+    return 'e'
+  }
   if (type === 'IntValue') return '1n'
   if (type === 'FloatValue') return '1.25'
   if (type === 'BoolValue' || type === 'boolean') return 'true'

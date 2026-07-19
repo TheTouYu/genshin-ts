@@ -1,3 +1,4 @@
+import { SERVER_LITERAL_ARGUMENT_INDEXES_BY_NODE_TYPE } from '../../definitions/server_node_metadata.js'
 import { loadGiaProto } from '../../injector/proto.js'
 import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type {
@@ -315,6 +316,9 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     if (nodeType === 'activate_disable_pathfinding_obstacle') {
       if (applyArgsWithNullHole(nodeType, giaNode, irNode, 3, 0)) return true
     }
+    if (nodeType === 'activate_disable_cursor_collision_box') {
+      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 3, 0)) return true
+    }
 
     // vendor 实测：Remove Unit Status 的 removerEntity 写在 pinIndex=4（pinIndex=3 为隐藏/空 pin）
     // nodes.ts 侧暴露 4 个参数，这里补一个 null 占位，避免 removerEntity 写入错误的 pin。
@@ -432,6 +436,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       case 'activate_disable_pathfinding_obstacle_feature':
         return idx >= 1 ? idx + 1 : idx // hole at 1
       case 'activate_disable_pathfinding_obstacle':
+      case 'activate_disable_cursor_collision_box':
         return idx + 1 // hole at 0
       case 'set_custom_variable':
       case 'remove_unit_status':
@@ -513,6 +518,15 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     }
     const fromType = irNodeTypeById.get(fromId) ?? ''
     const toType = irNodeTypeById.get(toId) ?? ''
+    const literalOnlyIndexes = (
+      SERVER_LITERAL_ARGUMENT_INDEXES_BY_NODE_TYPE as Record<string, readonly number[]>
+    )[toType]
+    if (literalOnlyIndexes?.includes(toIndex)) {
+      throw new Error(
+        `[error] ${toType} input #${toIndex} only accepts a literal value; ` +
+          'the editor exposes no connection socket'
+      )
+    }
     const mappedFromIndex = remapOutputIndexForHiddenPin(fromType, fromIndex)
     const mappedToIndex = remapInputIndexForHiddenPin(toType, toIndex)
     graph.connect(from, to, mappedFromIndex, mappedToIndex)

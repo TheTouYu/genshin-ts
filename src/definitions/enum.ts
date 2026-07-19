@@ -10,6 +10,8 @@ export type EnumerationTypeMap = ClientEnumerationTypeMap & {
   DamagePopUpType: DamagePopUpType
   MovementMode: MovementMode
   FixedMotionParameterType: FixedMotionParameterType
+  ColorOverlayType: ColorOverlayType
+  FillMaterial: FillMaterial
   FollowCoordinateSystem: FollowCoordinateSystem
   FollowLocationType: FollowLocationType
   RemovalMethod: RemovalMethod
@@ -141,7 +143,15 @@ export class MovementMode extends enumeration {
   ) as MovementMode
 }
 
-/** 定点运动器参数类型 */
+/**
+ * Official editor type-name alias for {@link MovementMode}; both names refer to the same enum
+ * type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link MovementMode}；两个名称指向同一枚举类型。
+ */
+export { MovementMode as FixedPointMotionDeviceMotionType }
+
+/** 定点运动器参数转化类型 */
 export class FixedMotionParameterType extends enumeration {
   declare private readonly __brandFixedMotionParameterType: 'FixedMotionParameterType'
   private constructor() {
@@ -169,6 +179,98 @@ export class FixedMotionParameterType extends enumeration {
   ) as FixedMotionParameterType
 }
 
+/**
+ * Official editor type-name alias for {@link FixedMotionParameterType}; both names refer to the
+ * same enum type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link FixedMotionParameterType}；两个名称指向同一枚举类型。
+ */
+export { FixedMotionParameterType as FixedPointMotionDeviceParameterConversionType }
+
+/** 颜色叠加类型 */
+export class ColorOverlayType extends enumeration {
+  declare private readonly __brandColorOverlayType: 'ColorOverlayType'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Overwrite
+   *
+   * 覆盖
+   */
+  static readonly Overwrite = new enumeration(
+    'ColorOverlayType',
+    'color_overlay_type_overwrite'
+  ) as ColorOverlayType
+
+  /**
+   * Official editor label alias that refers to the same enum value as {@link Overwrite}.
+   *
+   * 官方编辑器名称别名，与 {@link Overwrite} 指向同一枚举值。
+   */
+  static readonly Override = ColorOverlayType.Overwrite
+
+  /**
+   * Multiply
+   *
+   * 正片叠底
+   */
+  static readonly Multiply = new enumeration(
+    'ColorOverlayType',
+    'color_overlay_type_multiply'
+  ) as ColorOverlayType
+}
+
+/**
+ * Official editor type-name alias for {@link ColorOverlayType}; both names refer to the same enum
+ * type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link ColorOverlayType}；两个名称指向同一枚举类型。
+ */
+export { ColorOverlayType as ColorBlendType }
+
+/** 填充材质 */
+export class FillMaterial extends enumeration {
+  declare private readonly __brandFillMaterial: 'FillMaterial'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Frozen
+   *
+   * 冰冻
+   */
+  static readonly Frozen = new enumeration('FillMaterial', 'fill_material_frozen') as FillMaterial
+
+  /**
+   * Official editor label alias that refers to the same enum value as {@link Frozen}.
+   *
+   * 官方编辑器名称别名，与 {@link Frozen} 指向同一枚举值。
+   */
+  static readonly Freeze = FillMaterial.Frozen
+
+  /**
+   * Petrified
+   *
+   * 石化
+   */
+  static readonly Petrified = new enumeration(
+    'FillMaterial',
+    'fill_material_petrified'
+  ) as FillMaterial
+
+  /**
+   * Official editor label alias that refers to the same enum value as {@link Petrified}.
+   *
+   * 官方编辑器名称别名，与 {@link Petrified} 指向同一枚举值。
+   */
+  static readonly Petrification = FillMaterial.Petrified
+}
+
 /** 跟随坐标系 */
 export class FollowCoordinateSystem extends enumeration {
   declare private readonly __brandFollowCoordinateSystem: 'FollowCoordinateSystem'
@@ -186,6 +288,14 @@ export class FollowCoordinateSystem extends enumeration {
     'FollowCoordinateSystem',
     'follow_coordinate_system_relative_coordinate_system'
   ) as FollowCoordinateSystem
+
+  /**
+   * Current editor label alias that refers to the same enum value as
+   * {@link RelativeCoordinateSystem}.
+   *
+   * 当前编辑器名称别名，与 {@link RelativeCoordinateSystem} 指向同一枚举值。
+   */
+  static readonly LocalCoordinateSystem = FollowCoordinateSystem.RelativeCoordinateSystem
   /**
    * World Coordinate System
    *
@@ -196,6 +306,14 @@ export class FollowCoordinateSystem extends enumeration {
     'follow_coordinate_system_world_coordinate_system'
   ) as FollowCoordinateSystem
 }
+
+/**
+ * Official editor type-name alias for {@link FollowCoordinateSystem}; both names refer to the same
+ * enum type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link FollowCoordinateSystem}；两个名称指向同一枚举类型。
+ */
+export { FollowCoordinateSystem as CoordinateSystemType }
 
 /** 跟随类型 */
 export class FollowLocationType extends enumeration {
@@ -299,7 +417,7 @@ export class UIControlGroupStatus extends enumeration {
   ) as UIControlGroupStatus
 }
 
-/** 抗动装置类型 */
+/** 扰动装置类型 */
 export class DisruptorDeviceType extends enumeration {
   declare private readonly __brandDisruptorDeviceType: 'DisruptorDeviceType'
   private constructor() {
@@ -336,7 +454,15 @@ export class DisruptorDeviceType extends enumeration {
   ) as DisruptorDeviceType
 }
 
-/** 抗动装置朝向 */
+/**
+ * Official editor type-name alias for {@link DisruptorDeviceType}; both names refer to the same
+ * enum type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link DisruptorDeviceType}；两个名称指向同一枚举类型。
+ */
+export { DisruptorDeviceType as DisruptorDeviceTypes }
+
+/** 扰动装置朝向 */
 export class DisruptorDeviceOrientation extends enumeration {
   declare private readonly __brandDisruptorDeviceOrientation: 'DisruptorDeviceOrientation'
   private constructor() {
@@ -390,6 +516,13 @@ export class CharacterSkillSlot extends enumeration {
     'CharacterSkillSlot',
     'character_skill_slot_dash_skill'
   ) as CharacterSkillSlot
+
+  /**
+   * Official editor label alias that refers to the same enum value as {@link DashSkill}.
+   *
+   * 官方编辑器名称别名，与 {@link DashSkill} 指向同一枚举值。
+   */
+  static readonly SprintSkill = CharacterSkillSlot.DashSkill
   /**
    * Skill 1-E
    *
@@ -589,6 +722,13 @@ export class OriginalSlotSkillHandling extends enumeration {
     'OriginalSlotSkillHandling',
     'original_slot_skill_handling_keep_slot_relation'
   ) as OriginalSlotSkillHandling
+
+  /**
+   * Official editor label alias that refers to the same enum value as {@link KeepSlotRelation}.
+   *
+   * 官方编辑器名称别名，与 {@link KeepSlotRelation} 指向同一枚举值。
+   */
+  static readonly PreserveSlotBinding = OriginalSlotSkillHandling.KeepSlotRelation
   /**
    * Remove Slot Binding: The skill must be reassigned to the specified slot in order to be displayed in that slot
    *
@@ -598,7 +738,23 @@ export class OriginalSlotSkillHandling extends enumeration {
     'OriginalSlotSkillHandling',
     'original_slot_skill_handling_detach_from_slot_relation'
   ) as OriginalSlotSkillHandling
+
+  /**
+   * Official editor label alias that refers to the same enum value as
+   * {@link DetachFromSlotRelation}.
+   *
+   * 官方编辑器名称别名，与 {@link DetachFromSlotRelation} 指向同一枚举值。
+   */
+  static readonly RemoveSlotBinding = OriginalSlotSkillHandling.DetachFromSlotRelation
 }
+
+/**
+ * Official editor type-name alias for {@link OriginalSlotSkillHandling}; both names refer to the
+ * same enum type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link OriginalSlotSkillHandling}；两个名称指向同一枚举类型。
+ */
+export { OriginalSlotSkillHandling as TopOfStackSkillDestructionType }
 
 /** 已有技能处理方式 */
 export class ExistingSkillHandling extends enumeration {
@@ -626,7 +782,23 @@ export class ExistingSkillHandling extends enumeration {
     'ExistingSkillHandling',
     'existing_skill_handling_keep_irrelevant_skills'
   ) as ExistingSkillHandling
+
+  /**
+   * Official editor label alias that refers to the same enum value as
+   * {@link KeepIrrelevantSkills}.
+   *
+   * 官方编辑器名称别名，与 {@link KeepIrrelevantSkills} 指向同一枚举值。
+   */
+  static readonly PreserveUnrelatedSkills = ExistingSkillHandling.KeepIrrelevantSkills
 }
+
+/**
+ * Official editor type-name alias for {@link ExistingSkillHandling}; both names refer to the same
+ * enum type.
+ *
+ * 官方编辑器类型名称别名，等同于 {@link ExistingSkillHandling}；两个名称指向同一枚举类型。
+ */
+export { ExistingSkillHandling as ClassSwitchSkillHandling }
 
 /** 声音衰减方式 */
 export class SoundAttenuationMode extends enumeration {
@@ -2335,6 +2507,14 @@ export class InterruptStatus extends enumeration {
     'InterruptStatus',
     'interrupt_status_interrupt_vulnerability_status'
   ) as InterruptStatus
+
+  /**
+   * Official editor label alias that refers to the same enum value as
+   * {@link InterruptVulnerabilityStatus}.
+   *
+   * 官方编辑器名称别名，与 {@link InterruptVulnerabilityStatus} 指向同一枚举值。
+   */
+  static readonly InterruptVulnerableState = InterruptStatus.InterruptVulnerabilityStatus
   /**
    * Protected Status
    *
@@ -2360,6 +2540,13 @@ export class GameplayMode extends enumeration {
    * 普通玩法
    */
   static readonly Play = new enumeration('GameplayMode', 'gameplay_mode_play') as GameplayMode
+
+  /**
+   * Official editor label alias that refers to the same enum value as {@link Play}.
+   *
+   * 官方编辑器名称别名，与 {@link Play} 指向同一枚举值。
+   */
+  static readonly TestPlay = GameplayMode.Play
   /**
    * Room Play
    *

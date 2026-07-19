@@ -2,6 +2,7 @@ import path from 'node:path'
 
 import { ServerEventMetadata } from '../src/definitions/events.js'
 import { NODE_TYPE_BY_METHOD } from '../src/definitions/node_modes.js'
+import { SERVER_LITERAL_ARGUMENT_INDEXES_BY_METHOD } from '../src/definitions/server_node_metadata.js'
 import { assignTypeParamsFromCase, emitArgFromNodesTypeText } from './testgen/args_from_nodes.js'
 import { cleanDir, emitFile, writeText, type GeneratedCall } from './testgen/emit.js'
 import {
@@ -23,7 +24,10 @@ type Bucket = { literal: GeneratedCall[]; wire: GeneratedCall[] }
 const CLASSIC_ADDITIONAL_METHODS = new Set([
   // Same TypeScript API, but ir_to_gia_transform/node_id.ts resolves a different vendor id in
   // classic mode.
-  'teleportPlayer'
+  'teleportPlayer',
+  'modifyModelColorAndMaterial',
+  'getModelColorAndMaterial',
+  'queryWhetherPlayerIsSubscribed'
 ])
 
 function main() {
@@ -54,6 +58,9 @@ function main() {
   for (const g of summary) groupCalls[g.id] = { literal: [], wire: [] }
   const other: Bucket = { literal: [], wire: [] }
   const classic: Bucket = { literal: [], wire: [] }
+  const classicLiteralCtx: Ctx = { n: 0 }
+  const generatedLiteralCtx: Ctx = { n: 0 }
+  const generatedWireCtx: Ctx = { n: 0 }
 
   const functionToGroup = new Map<string, number>()
   for (const g of summary) for (const fn of g.functions) functionToGroup.set(fn, g.id)
@@ -81,11 +88,16 @@ function main() {
     const groupId = functionToGroup.get(m.name)
     const bucket = groupId ? groupCalls[groupId]! : other
     const nodeMode = NODE_TYPE_BY_METHOD[m.name as keyof typeof NODE_TYPE_BY_METHOD]
+    const literalOnlyIndexes = (
+      SERVER_LITERAL_ARGUMENT_INDEXES_BY_METHOD as Record<string, readonly number[]>
+    )[m.name]
 
-    const ctxLit: Ctx = { n: 0 }
-    const ctxWire: Ctx = { n: 0 }
-
-    const buildOne = (mode: 'literal' | 'wire', typeCase: string | undefined): GeneratedCall => {
+    const buildOne = (
+      mode: 'literal' | 'wire',
+      typeCase: string | undefined,
+      sharedCtx?: Ctx
+    ): GeneratedCall => {
+      const ctx = sharedCtx ?? (mode === 'literal' ? generatedLiteralCtx : generatedWireCtx)
       const assign = typeCase ? assignTypeParamsFromCase(m, typeCase) : new Map()
       const args: string[] = []
       for (let i = 0; i < m.params.length; i++) {
@@ -94,67 +106,28 @@ function main() {
         if (p.rest) {
           // rest: 展开 3 个值（同类型）
           const baseTypeText = p.typeText.trim().replace(/\[\]$/, '').trim()
-          const e1 = emitArgFromNodesTypeText(
-            mode,
-            m,
-            i,
-            baseTypeText,
-            mode === 'literal' ? ctxLit : ctxWire,
-            enumPick,
-            assign
-          )
-          const e2 = emitArgFromNodesTypeText(
-            mode,
-            m,
-            i,
-            baseTypeText,
-            mode === 'literal' ? ctxLit : ctxWire,
-            enumPick,
-            assign
-          )
-          const e3 = emitArgFromNodesTypeText(
-            mode,
-            m,
-            i,
-            baseTypeText,
-            mode === 'literal' ? ctxLit : ctxWire,
-            enumPick,
-            assign
-          )
+          const e1 = emitArgFromNodesTypeText(mode, m, i, baseTypeText, ctx, enumPick, assign)
+          const e2 = emitArgFromNodesTypeText(mode, m, i, baseTypeText, ctx, enumPick, assign)
+          const e3 = emitArgFromNodesTypeText(mode, m, i, baseTypeText, ctx, enumPick, assign)
           args.push(e1, e2, e3)
           continue
         }
 
         const typeText = p.typeText
-        args.push(
-          emitArgFromNodesTypeText(
-            mode,
-            m,
-            i,
-            typeText,
-            mode === 'literal' ? ctxLit : ctxWire,
-            enumPick,
-            assign
-          )
-        )
+        const argMode = mode === 'wire' && literalOnlyIndexes?.includes(i) ? 'literal' : mode
+        args.push(emitArgFromNodesTypeText(argMode, m, i, typeText, ctx, enumPick, assign))
       }
       const callExpr = `f.${m.name}(${args.join(', ')})`
-      const code = emitCallWithOutputConsumers(
-        m,
-        callExpr,
-        assign,
-        enumPick,
-        mode === 'literal' ? ctxLit : ctxWire
-      )
+      const code = emitCallWithOutputConsumers(m, callExpr, assign, enumPick, ctx)
       return { fn: m.name, typeCase, code }
     }
 
     if (CLASSIC_ADDITIONAL_METHODS.has(m.name)) {
-      classic.literal.push(buildOne('literal', undefined))
+      classic.literal.push(buildOne('literal', undefined, classicLiteralCtx))
     }
 
     if (nodeMode === 'classic') {
-      classic.literal.push(buildOne('literal', undefined))
+      classic.literal.push(buildOne('literal', undefined, classicLiteralCtx))
       included[m.name] = { cases: (included[m.name]?.cases ?? 0) + 1 }
       continue
     }

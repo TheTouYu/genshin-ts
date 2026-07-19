@@ -113,6 +113,8 @@ export type ServerEventPayloads = {
     eventSourceGuid: guid
     /**
      *
+     * Preset Status Index
+     *
      * 预设状态索引
      */
     presetStatusId: bigint
@@ -420,6 +422,8 @@ export type ServerEventPayloads = {
     playerGuid: guid
     /**
      *
+     * Replaced Character Entity
+     *
      * 换下的角色实体
      */
     previousActiveCharacterEntity: entity
@@ -581,6 +585,8 @@ export type ServerEventPayloads = {
      */
     eventSourceGuid: guid
     /**
+     *
+     * Target Entity
      *
      * 受击者实体
      */
@@ -1199,6 +1205,8 @@ export type ServerEventPayloads = {
     preModificationClassConfigId: configId
     /**
      *
+     * Post-Modification Class Config ID
+     *
      * 更改后职业配置ID
      */
     postModificationConfigId: configId
@@ -1225,6 +1233,8 @@ export type ServerEventPayloads = {
      */
     preModificationClassConfigId: configId
     /**
+     *
+     * Post-Modification Class Config ID
      *
      * 更改后职业配置ID
      */
@@ -1522,10 +1532,14 @@ export type ServerEventPayloads = {
   whenEquipmentIsEquipped: {
     /**
      *
+     * Equipment Owner Entity
+     *
      * 装备持有者实体
      */
     equipmentHolderEntity: entity
     /**
+     *
+     * Equipment Owner GUID
      *
      * 装备持有者GUID
      */
@@ -1649,10 +1663,14 @@ export type ServerEventPayloads = {
   whenEquipmentIsSold: {
     /**
      *
+     * Selling Inventory Owner Entity
+     *
      * 卖出背包持有者实体
      */
     purchasingInventoryOwnerEntity: entity
     /**
+     *
+     * Selling Inventory Owner GUID
      *
      * 卖出背包持有者GUID
      */
@@ -1805,6 +1823,8 @@ export type ServerEventPayloads = {
     itemConfigId: configId
     /**
      *
+     * Amount Used
+     *
      * 使用数量
      */
     amountToUse: bigint
@@ -1851,6 +1871,94 @@ export type ServerEventPayloads = {
      * 即将前往路点序号: 造物即将前往的路点序号
      */
     nextWaypointId: bigint
+  }
+  /**
+   * Triggered when a player's active control motor list changes.
+   *
+   * When Player's Activated Control Motion Device List Changes
+   *
+   * 玩家激活操控运动器列表变化时
+   */
+  whenPlayerSActiveControlMotorListChanges: {
+    /**
+     * Event Source Entity
+     *
+     * 事件源实体
+     */
+    eventSourceEntity: entity
+    /**
+     * Event Source GUID
+     *
+     * 事件源GUID
+     */
+    eventSourceGuid: guid
+    /**
+     * Old Control Motion Device Entity List
+     *
+     * 原操控运动器实体列表
+     */
+    previousControlMotorEntities: entity[]
+    /**
+     * Current Activated Control Motion Device Entity List
+     *
+     * 当前激活操控运动器实体列表
+     */
+    currentActiveControlMotorEntities: entity[]
+  }
+  /**
+   * Triggered when a player follows a control motor.
+   *
+   * When Player Follows Control Motion Device
+   *
+   * 玩家跟随操控运动器时
+   */
+  whenPlayerFollowsControlMotor: {
+    /**
+     * Event Source Entity
+     *
+     * 事件源实体
+     */
+    eventSourceEntity: entity
+    /**
+     * Event Source GUID
+     *
+     * 事件源GUID
+     */
+    eventSourceGuid: guid
+    /**
+     * Follow Control Motion Device Entity
+     *
+     * 跟随操控运动器实体
+     */
+    followingControlMotorEntity: entity
+  }
+  /**
+   * Triggered when a player leaves a control motor. A player automatically leaves while being
+   * controlled or teleported.
+   *
+   * When Player Leaves Control Motion Device
+   *
+   * 玩家离开操控运动器时
+   */
+  whenPlayerLeavesControlMotor: {
+    /**
+     * Event Source Entity
+     *
+     * 事件源实体
+     */
+    eventSourceEntity: entity
+    /**
+     * Event Source GUID
+     *
+     * 事件源GUID
+     */
+    eventSourceGuid: guid
+    /**
+     * Leave Control Motion Device Entity
+     *
+     * 离开操控运动器实体
+     */
+    leftControlMotorEntity: entity
   }
   // === AUTO-GENERATED END ===
 }

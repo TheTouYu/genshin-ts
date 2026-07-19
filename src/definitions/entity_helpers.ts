@@ -28,10 +28,12 @@ import {
 import { CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE, CLIENT_GRAPH_SUB_TYPES } from './client_graph_modes.js'
 import type {
   CharacterSkillSlot,
+  ColorBlendType,
   DamagePopUpType,
   DecisionRefreshMode,
   EntityType,
   ExistingSkillHandling,
+  FillMaterial,
   FixedMotionParameterType,
   FollowCoordinateSystem,
   FollowLocationType,
@@ -61,6 +63,7 @@ export type EntityAny = entity
 // Generated from src/definitions/nodes.ts (methods whose first param is entity-like).
 const ENTITY_HELPER_METHODS = [
   'activateBasicMotionDevice',
+  'activateDisableCursorCollisionBox',
   'activateDisableCollisionTrigger',
   'activateDisableCollisionTriggerSource',
   'activateDisableExtraCollision',
@@ -140,6 +143,7 @@ const ENTITY_HELPER_METHODS = [
   'getListOfOwnersWhoHaveTheTargetInTheirAggroList',
   'getLootComponentCurrencyQuantity',
   'getLootComponentItemQuantity',
+  'getModelColorAndMaterial',
   'getObjectAttribute',
   'getOwnerEntity',
   'getPlayerClientInputDeviceType',
@@ -179,6 +183,7 @@ const ENTITY_HELPER_METHODS = [
   'modifyLootItemComponentQuantity',
   'modifyMiniMapMarkerActivationStatus',
   'modifyMiniMapZoom',
+  'modifyModelColorAndMaterial',
   'modifyPlayerBackgroundMusic',
   'modifyPlayerListForTrackingMiniMapMarkers',
   'modifyPlayerListForVisibleMiniMapMarkers',
@@ -216,6 +221,8 @@ const ENTITY_HELPER_METHODS = [
   'queryInventoryShopItemSalesList',
   'queryPlayerClass',
   'queryPlayerClassLevel',
+  'queryPlayerSCurrentActiveControlMotorList',
+  'queryPlayerSCurrentFollowingControlMotor',
   'queryShopItemPurchaseInfo',
   'queryShopPurchaseItemList',
   'querySpecifiedMiniMapMarkerInformation',
@@ -223,6 +230,9 @@ const ENTITY_HELPER_METHODS = [
   'queryTheAggroValueOfTheSpecifiedEntity',
   'queryUnitStatusApplierBySlotId',
   'queryUnitStatusStacksBySlotId',
+  'queryControlMotorSCurrentMovementParameters',
+  'queryWhetherPlayerIsSubscribed',
+  'queryWhetherPlayerSCursorIsActive',
   'recoverBasicMotionDevice',
   'recoverGlobalTimer',
   'recoverHp',
@@ -252,6 +262,10 @@ const ENTITY_HELPER_METHODS = [
   'setLootDropContent',
   'setPlayerEscapeValidity',
   'setPlayerCameraToFollowEntity',
+  'setPlayerActiveControlMotors',
+  'setPlayerSCursorClickSelectableTargets',
+  'setPlayerToFollowControlMotor',
+  'setPlayerToLeaveControlMotor',
   'setPlayerRankScoreChange',
   'setPlayerRemainingRevives',
   'setPlayerReviveTime',
@@ -267,6 +281,8 @@ const ENTITY_HELPER_METHODS = [
   'setThePresetStatusValueOfTheComplexCreation',
   'setVoiceChatPermissions',
   'setVoiceChatScope',
+  'setWhetherPlayerSCursorClickPenetratesUiControls',
+  'setWhetherPlayerSCursorIsPersistent',
   'startGlobalTimer',
   'startPausePlayerBackgroundMusic',
   'startPauseSpecifiedSoundEffectPlayer',
@@ -411,6 +427,7 @@ const ENTITY_HELPER_METHOD_ALIAS_SOURCES = {
 
 const ENTITY_HELPER_KIND_BY_KEY = {
   activateBasicMotionDevice: ['player', 'character', 'stage', 'object', 'creation'],
+  activateDisableCursorCollisionBox: ['object'],
   activateDisableCollisionTrigger: ['player', 'character', 'stage', 'object', 'creation'],
   activateDisableCollisionTriggerSource: ['player', 'character', 'stage', 'object', 'creation'],
   activateDisableExtraCollision: ['player', 'character', 'stage', 'object', 'creation'],
@@ -542,6 +559,7 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   ],
   getLootComponentCurrencyQuantity: ['player', 'character', 'stage', 'object', 'creation'],
   getLootComponentItemQuantity: ['player', 'character', 'stage', 'object', 'creation'],
+  getModelColorAndMaterial: ['player', 'character', 'stage', 'object', 'creation'],
   getObjectAttribute: ['object'],
   getOwnerEntity: ['player', 'character', 'stage', 'object', 'creation'],
   getPlayerClientInputDeviceType: ['player'],
@@ -596,6 +614,7 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   modifyLootItemComponentQuantity: ['player', 'character', 'stage', 'object', 'creation'],
   modifyMiniMapMarkerActivationStatus: ['player', 'character', 'stage', 'object', 'creation'],
   modifyMiniMapZoom: ['player'],
+  modifyModelColorAndMaterial: ['player', 'character', 'stage', 'object', 'creation'],
   modifyPlayerBackgroundMusic: ['player'],
   modifyPlayerListForTrackingMiniMapMarkers: ['player', 'character', 'stage', 'object', 'creation'],
   modifyPlayerListForVisibleMiniMapMarkers: ['player', 'character', 'stage', 'object', 'creation'],
@@ -644,6 +663,8 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   queryInventoryShopItemSalesList: ['player', 'character', 'stage', 'object', 'creation'],
   queryPlayerClass: ['player'],
   queryPlayerClassLevel: ['player'],
+  queryPlayerSCurrentActiveControlMotorList: ['player'],
+  queryPlayerSCurrentFollowingControlMotor: ['player'],
   queryShopItemPurchaseInfo: ['player', 'character', 'stage', 'object', 'creation'],
   queryShopPurchaseItemList: ['player', 'character', 'stage', 'object', 'creation'],
   querySpecifiedMiniMapMarkerInformation: ['player', 'character', 'stage', 'object', 'creation'],
@@ -657,6 +678,15 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   queryTheAggroValueOfTheSpecifiedEntity: ['player', 'character', 'stage', 'object', 'creation'],
   queryUnitStatusApplierBySlotId: ['player', 'character', 'stage', 'object', 'creation'],
   queryUnitStatusStacksBySlotId: ['player', 'character', 'stage', 'object', 'creation'],
+  queryControlMotorSCurrentMovementParameters: [
+    'player',
+    'character',
+    'stage',
+    'object',
+    'creation'
+  ],
+  queryWhetherPlayerIsSubscribed: ['player'],
+  queryWhetherPlayerSCursorIsActive: ['player'],
   rankScoreChange: ['player'],
   rankingInfo: ['player'],
   recoverBasicMotionDevice: ['player', 'character', 'stage', 'object', 'creation'],
@@ -698,6 +728,10 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   setInventoryItemDropContents: ['player', 'character', 'stage', 'object', 'creation'],
   setLootDropContent: ['player', 'character', 'stage', 'object', 'creation'],
   setPlayerCameraToFollowEntity: ['player'],
+  setPlayerActiveControlMotors: ['player'],
+  setPlayerSCursorClickSelectableTargets: ['player'],
+  setPlayerToFollowControlMotor: ['player'],
+  setPlayerToLeaveControlMotor: ['player'],
   setPlayerEscapeValidity: ['player'],
   setPlayerRankScoreChange: ['player'],
   setPlayerRemainingRevives: ['player'],
@@ -717,6 +751,8 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   setThePresetStatusValueOfTheComplexCreation: ['creation'],
   setVoiceChatPermissions: ['player'],
   setVoiceChatScope: ['player'],
+  setWhetherPlayerSCursorClickPenetratesUiControls: ['player'],
+  setWhetherPlayerSCursorIsPersistent: ['player'],
   settlementRanking: ['player'],
   settlementStatus: ['player'],
   showFloatingInteractionPage: ['player'],
@@ -3291,10 +3327,7 @@ interface EntityHelperFromFirstParam {
    *
    * 镜头模板名称: 镜头模板的标识
    */
-  setPlayerCameraToFollowEntity: (
-    followEntity: EntityValue,
-    cameraTemplateName: StrValue
-  ) => void
+  setPlayerCameraToFollowEntity: (followEntity: EntityValue, cameraTemplateName: StrValue) => void
 
   /**
    * Reset the player camera to follow the Player Entity
@@ -3546,10 +3579,7 @@ interface EntityHelperFromFirstParam {
    *
    * 是否校验按键可用: 是：当前按键可用时该技能才会被施放。否：无论当前按键是否可用该技能都会被施放
    */
-  castSpecifiedSkillInstance: (
-    skillInstanceId: IntValue,
-    checkKeyAvailability: BoolValue
-  ) => void
+  castSpecifiedSkillInstance: (skillInstanceId: IntValue, checkKeyAvailability: BoolValue) => void
 
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
@@ -3866,7 +3896,7 @@ interface EntityHelperFromFirstParam {
      *
      * 生效状态: 查询的小地图标识的生效状态
      */
-    activationStaet: boolean
+    activationStatus: boolean
     /**
      * Returns the list of Players who can see this Marker
      *
@@ -6303,6 +6333,300 @@ interface EntityHelperMethodAliases {
    * 计分组序号: 外围系统管理中指定计分组对应的序号
    */
   switchRankGroup: (scoreGroupId: IntValue) => void
+
+  /**
+   * Activate or deactivate a cursor collision box on this object.
+   *
+   * 激活/关闭光标碰撞盒
+   *
+   * @param collisionBoxIndex Collision Box ID
+   *
+   * 碰撞盒序号
+   * @param activate Activate
+   *
+   * 是否激活
+   */
+  activateDisableCursorCollisionBox: (collisionBoxIndex: IntValue, activate: BoolValue) => void
+
+  /**
+   * Edit this entity's model color and material configuration.
+   *
+   * Edit Model Color & Material
+   *
+   * 修改模型颜色和材质
+   *
+   * @param overwriteColorConfig Overwrite Color Configurations
+   *
+   * 是否覆写颜色配置
+   * @param enableCustomColor Enable Custom Color?
+   *
+   * 是否启用自定义颜色
+   * @param fillColor Fill Color
+   *
+   * 填充颜色
+   * @param colorOpacity Color Opacity
+   *
+   * 颜色透明度
+   * @param colorBlendType Color Blend Type
+   *
+   * 颜色叠加类型
+   * @param overwriteMaterialConfig Overwrite Material Configurations
+   *
+   * 是否覆写材质配置
+   * @param enableCustomMaterial Enable Custom Material?
+   *
+   * 是否启用自定义材质
+   * @param fillMaterial Fill Material Type
+   *
+   * 填充材质类型
+   */
+  modifyModelColorAndMaterial: (
+    overwriteColorConfig: BoolValue,
+    enableCustomColor: BoolValue,
+    fillColor: IntValue,
+    colorOpacity: FloatValue,
+    colorBlendType: ColorBlendType,
+    overwriteMaterialConfig: BoolValue,
+    enableCustomMaterial: BoolValue,
+    fillMaterial: FillMaterial
+  ) => void
+
+  /**
+   * Get this entity's current model color and material configuration.
+   *
+   * 获取模型颜色和材质
+   *
+   * @returns The current model color and material configuration.
+   *
+   * 返回当前的模型颜色和材质配置
+   */
+  getModelColorAndMaterial: () => {
+    /**
+     * Enable Custom Color?
+     *
+     * 是否开启自定义颜色
+     */
+    customColorEnabled: boolean
+    /**
+     * Color Blend Mode
+     *
+     * 颜色叠加模式
+     */
+    colorBlendMode: ColorBlendType
+    /**
+     * Color
+     *
+     * 颜色
+     */
+    color: bigint
+    /**
+     * Color Opacity
+     *
+     * 颜色透明度
+     */
+    colorOpacity: number
+    /**
+     * Enable Custom Material?
+     *
+     * 是否开启自定义材质
+     */
+    customMaterialEnabled: boolean
+    /**
+     * Material
+     *
+     * 材质
+     */
+    material: FillMaterial
+  }
+
+  /**
+   * Set this player to follow a control motor.
+   *
+   * Set Player to Follow Control Motion Device
+   *
+   * 设置玩家跟随操控运动器
+   *
+   * @param controlMotorEntity Control Motion Device Entity
+   *
+   * 操控运动器实体
+   */
+  setPlayerToFollowControlMotor: (controlMotorEntity: EntityValue) => void
+
+  /**
+   * Set this player to leave the current control motor.
+   *
+   * Set Player to Leave Control Motion Device
+   *
+   * 设置玩家离开操控运动器
+   */
+  setPlayerToLeaveControlMotor: () => void
+
+  /**
+   * Set this player's active control motors.
+   *
+   * Set Player to Activate Control Motion Device
+   *
+   * 设置玩家激活操控运动器
+   *
+   * @param controlMotorEntities Control Motion Device Entity List
+   *
+   * 操控运动器实体列表
+   */
+  setPlayerActiveControlMotors: (controlMotorEntities: EntityValue[]) => void
+
+  /**
+   * Query this player's current active control motors.
+   *
+   * Query Player's Currently Activated Control Motion Device List
+   *
+   * 查询玩家当前激活操控运动器列表
+   *
+   * @returns Control Motion Device Entity List
+   *
+   * 操控运动器实体列表
+   */
+  queryPlayerSCurrentActiveControlMotorList: () => entity[]
+
+  /**
+   * Query the control motor this player is currently following.
+   *
+   * Query Player's Followed Control Motion Device
+   *
+   * 查询玩家当前跟随操控运动器
+   *
+   * @returns Control Motion Device Entity
+   *
+   * 操控运动器实体
+   */
+  queryPlayerSCurrentFollowingControlMotor: () => entity
+
+  /**
+   * Query this control motor's current movement parameters.
+   *
+   * Query Control Motion Device's Current Movement Parameters
+   *
+   * 查询操控运动器当前运动参数
+   *
+   * @returns The Control Motion Device's current movement parameters.
+   *
+   * 返回操控运动器当前的运动参数
+   */
+  queryControlMotorSCurrentMovementParameters: () => {
+    /**
+     * Forward Acceleration
+     *
+     * 前进加速度
+     */
+    forwardAcceleration: number
+    /**
+     * Reverse Acceleration
+     *
+     * 后退加速度
+     */
+    backwardAcceleration: number
+    /**
+     * Turn Speed
+     *
+     * 转向速率
+     */
+    turningRate: number
+    /**
+     * Base Resistance
+     *
+     * 基础阻力
+     */
+    baseResistance: number
+    /**
+     * Resistance Coefficient
+     *
+     * 阻力系数
+     */
+    resistanceCoefficient: number
+    /**
+     * Max Forward Speed
+     *
+     * 最大前进速度
+     */
+    maximumForwardSpeed: number
+    /**
+     * Max Reverse Speed
+     *
+     * 最大后退速度
+     */
+    maximumBackwardSpeed: number
+  }
+
+  /**
+   * Set whether this player's cursor remains visible.
+   *
+   * Set Player's Cursor to Always Visible
+   *
+   * 设置玩家光标是否常驻
+   *
+   * @param cursorPersistent Always Show Cursor?
+   *
+   * 是否光标常驻
+   */
+  setWhetherPlayerSCursorIsPersistent: (cursorPersistent: BoolValue) => void
+
+  /**
+   * Set this player's cursor-click selectable targets.
+   *
+   * Enable Player's Cursor to Click Selectable Targets
+   *
+   * 设置玩家光标点击可选取目标
+   *
+   * @param cursorClickableLayerFilterId Cursor Clickable Layer Filter ID. Literal only; wired
+   * connections are not allowed.
+   *
+   * 光标可点击层级筛选id: 仅支持字面量，不能连接其他节点的输出
+   * @param maximumSelectableTargets Max Selectable Targets
+   *
+   * 光标最多可选取目标
+   */
+  setPlayerSCursorClickSelectableTargets: (
+    cursorClickableLayerFilterId: IntValue,
+    maximumSelectableTargets: IntValue
+  ) => void
+
+  /**
+   * Set whether this player's cursor click penetrates UI controls.
+   *
+   * Set Player's Cursor to Click Through UI Controls
+   *
+   * 设置玩家光标是否穿透UI控件
+   *
+   * @param penetrateUiControls Click Through UI Controls?
+   *
+   * 是否穿透UI控件
+   */
+  setWhetherPlayerSCursorClickPenetratesUiControls: (penetrateUiControls: BoolValue) => void
+
+  /**
+   * Query whether this player's cursor is active.
+   *
+   * Check Whether Player Cursor Is Active
+   *
+   * 查询玩家光标是否激活
+   *
+   * @returns Activate
+   *
+   * 是否激活
+   */
+  queryWhetherPlayerSCursorIsActive: () => boolean
+
+  /**
+   * Query whether this player is subscribed to the current creator.
+   *
+   * Check Whether Player Has Subscribed
+   *
+   * 查询玩家是否订阅
+   *
+   * @returns Subscribed
+   *
+   * 是否订阅
+   */
+  queryWhetherPlayerIsSubscribed: () => boolean
 }
 
 export type EntityHelperAll = EntityHelperFromFirstParam &
@@ -6395,10 +6719,10 @@ export type ReplaceEntityByMode<T, M extends ServerGraphMode> =
         ? T
         : T extends (...args: unknown[]) => unknown
           ? T
-          : T extends ReadonlyArray<infer U>
-            ? ReadonlyArray<ReplaceEntityByMode<U, M>>
-            : T extends Array<infer U>
-              ? Array<ReplaceEntityByMode<U, M>>
+          : T extends Array<infer U>
+            ? Array<ReplaceEntityByMode<U, M>>
+            : T extends ReadonlyArray<infer U>
+              ? ReadonlyArray<ReplaceEntityByMode<U, M>>
               : T extends object
                 ? { [K in keyof T]: ReplaceEntityByMode<T[K], M> }
                 : T
