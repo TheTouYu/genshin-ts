@@ -144,10 +144,13 @@ export class MovementMode extends enumeration {
 }
 
 /**
- * Official editor type-name alias for {@link MovementMode}; both names refer to the same enum
- * type.
+ * Movement Mode
  *
- * 官方编辑器类型名称别名，等同于 {@link MovementMode}；两个名称指向同一枚举类型。
+ * 运动模式
+ *
+ * Alias of {@link MovementMode}; both names refer to the same enum type.
+ *
+ * {@link MovementMode} 的别名；两个名称指向同一枚举类型。
  */
 export { MovementMode as FixedPointMotionDeviceMotionType }
 
@@ -180,10 +183,13 @@ export class FixedMotionParameterType extends enumeration {
 }
 
 /**
- * Official editor type-name alias for {@link FixedMotionParameterType}; both names refer to the
- * same enum type.
+ * Fixed Motion Parameter Type
  *
- * 官方编辑器类型名称别名，等同于 {@link FixedMotionParameterType}；两个名称指向同一枚举类型。
+ * 定点运动器参数转化类型
+ *
+ * Alias of {@link FixedMotionParameterType}; both names refer to the same enum type.
+ *
+ * {@link FixedMotionParameterType} 的别名；两个名称指向同一枚举类型。
  */
 export { FixedMotionParameterType as FixedPointMotionDeviceParameterConversionType }
 
@@ -206,9 +212,13 @@ export class ColorOverlayType extends enumeration {
   ) as ColorOverlayType
 
   /**
-   * Official editor label alias that refers to the same enum value as {@link Overwrite}.
+   * Override
    *
-   * 官方编辑器名称别名，与 {@link Overwrite} 指向同一枚举值。
+   * 覆盖
+   *
+   * Alias of {@link Overwrite}; both names refer to the same enum value.
+   *
+   * {@link Overwrite} 的别名；两个名称指向同一枚举值。
    */
   static readonly Override = ColorOverlayType.Overwrite
 
@@ -224,10 +234,13 @@ export class ColorOverlayType extends enumeration {
 }
 
 /**
- * Official editor type-name alias for {@link ColorOverlayType}; both names refer to the same enum
- * type.
+ * Color Overlay Type
  *
- * 官方编辑器类型名称别名，等同于 {@link ColorOverlayType}；两个名称指向同一枚举类型。
+ * 颜色叠加类型
+ *
+ * Alias of {@link ColorOverlayType}; both names refer to the same enum type.
+ *
+ * {@link ColorOverlayType} 的别名；两个名称指向同一枚举类型。
  */
 export { ColorOverlayType as ColorBlendType }
 
@@ -247,9 +260,13 @@ export class FillMaterial extends enumeration {
   static readonly Frozen = new enumeration('FillMaterial', 'fill_material_frozen') as FillMaterial
 
   /**
-   * Official editor label alias that refers to the same enum value as {@link Frozen}.
+   * Freeze
    *
-   * 官方编辑器名称别名，与 {@link Frozen} 指向同一枚举值。
+   * 冰冻
+   *
+   * Alias of {@link Frozen}; both names refer to the same enum value.
+   *
+   * {@link Frozen} 的别名；两个名称指向同一枚举值。
    */
   static readonly Freeze = FillMaterial.Frozen
 
@@ -264,9 +281,13 @@ export class FillMaterial extends enumeration {
   ) as FillMaterial
 
   /**
-   * Official editor label alias that refers to the same enum value as {@link Petrified}.
+   * Petrification
    *
-   * 官方编辑器名称别名，与 {@link Petrified} 指向同一枚举值。
+   * 石化
+   *
+   * Alias of {@link Petrified}; both names refer to the same enum value.
+   *
+   * {@link Petrified} 的别名；两个名称指向同一枚举值。
    */
   static readonly Petrification = FillMaterial.Petrified
 }
@@ -290,10 +311,13 @@ export class FollowCoordinateSystem extends enumeration {
   ) as FollowCoordinateSystem
 
   /**
-   * Current editor label alias that refers to the same enum value as
-   * {@link RelativeCoordinateSystem}.
+   * Local Coordinate System
    *
-   * 当前编辑器名称别名，与 {@link RelativeCoordinateSystem} 指向同一枚举值。
+   * 相对坐标系
+   *
+   * Alias of {@link RelativeCoordinateSystem}; both names refer to the same enum value.
+   *
+   * {@link RelativeCoordinateSystem} 的别名；两个名称指向同一枚举值。
    */
   static readonly LocalCoordinateSystem = FollowCoordinateSystem.RelativeCoordinateSystem
   /**
@@ -308,10 +332,13 @@ export class FollowCoordinateSystem extends enumeration {
 }
 
 /**
- * Official editor type-name alias for {@link FollowCoordinateSystem}; both names refer to the same
- * enum type.
+ * Follow Coordinate System
  *
- * 官方编辑器类型名称别名，等同于 {@link FollowCoordinateSystem}；两个名称指向同一枚举类型。
+ * 跟随坐标系
+ *
+ * Alias of {@link FollowCoordinateSystem}; both names refer to the same enum type.
+ *
+ * {@link FollowCoordinateSystem} 的别名；两个名称指向同一枚举类型。
  */
 export { FollowCoordinateSystem as CoordinateSystemType }
 
@@ -455,10 +482,13 @@ export class DisruptorDeviceType extends enumeration {
 }
 
 /**
- * Official editor type-name alias for {@link DisruptorDeviceType}; both names refer to the same
- * enum type.
+ * Disruptor Device Type
  *
- * 官方编辑器类型名称别名，等同于 {@link DisruptorDeviceType}；两个名称指向同一枚举类型。
+ * 扰动装置类型
+ *
+ * Alias of {@link DisruptorDeviceType}; both names refer to the same enum type.
+ *
+ * {@link DisruptorDeviceType} 的别名；两个名称指向同一枚举类型。
  */
 export { DisruptorDeviceType as DisruptorDeviceTypes }
 
@@ -518,9 +548,13 @@ export class CharacterSkillSlot extends enumeration {
   ) as CharacterSkillSlot
 
   /**
-   * Official editor label alias that refers to the same enum value as {@link DashSkill}.
+   * Sprint Skill
    *
-   * 官方编辑器名称别名，与 {@link DashSkill} 指向同一枚举值。
+   * 冲刺技能
+   *
+   * Alias of {@link DashSkill}; both names refer to the same enum value.
+   *
+   * {@link DashSkill} 的别名；两个名称指向同一枚举值。
    */
   static readonly SprintSkill = CharacterSkillSlot.DashSkill
   /**
@@ -724,9 +758,13 @@ export class OriginalSlotSkillHandling extends enumeration {
   ) as OriginalSlotSkillHandling
 
   /**
-   * Official editor label alias that refers to the same enum value as {@link KeepSlotRelation}.
+   * Preserve Slot Binding: Retain the current slot binding. When the newly bound skill instance is removed, it is automatically displayed in that slot
    *
-   * 官方编辑器名称别名，与 {@link KeepSlotRelation} 指向同一枚举值。
+   * 保留槽位关系：继续保留在当前槽位，在新绑定的技能实例被移除后会自动显示在该槽位上
+   *
+   * Alias of {@link KeepSlotRelation}; both names refer to the same enum value.
+   *
+   * {@link KeepSlotRelation} 的别名；两个名称指向同一枚举值。
    */
   static readonly PreserveSlotBinding = OriginalSlotSkillHandling.KeepSlotRelation
   /**
@@ -740,19 +778,25 @@ export class OriginalSlotSkillHandling extends enumeration {
   ) as OriginalSlotSkillHandling
 
   /**
-   * Official editor label alias that refers to the same enum value as
-   * {@link DetachFromSlotRelation}.
+   * Remove Slot Binding: The skill must be reassigned to the specified slot in order to be displayed in that slot
    *
-   * 官方编辑器名称别名，与 {@link DetachFromSlotRelation} 指向同一枚举值。
+   * 脱离槽位关系：必须被重新绑定到指定槽位才可以显示在槽位上
+   *
+   * Alias of {@link DetachFromSlotRelation}; both names refer to the same enum value.
+   *
+   * {@link DetachFromSlotRelation} 的别名；两个名称指向同一枚举值。
    */
   static readonly RemoveSlotBinding = OriginalSlotSkillHandling.DetachFromSlotRelation
 }
 
 /**
- * Official editor type-name alias for {@link OriginalSlotSkillHandling}; both names refer to the
- * same enum type.
+ * Original Slot Skill Handling
  *
- * 官方编辑器类型名称别名，等同于 {@link OriginalSlotSkillHandling}；两个名称指向同一枚举类型。
+ * 原槽位技能处理方式
+ *
+ * Alias of {@link OriginalSlotSkillHandling}; both names refer to the same enum type.
+ *
+ * {@link OriginalSlotSkillHandling} 的别名；两个名称指向同一枚举类型。
  */
 export { OriginalSlotSkillHandling as TopOfStackSkillDestructionType }
 
@@ -784,19 +828,25 @@ export class ExistingSkillHandling extends enumeration {
   ) as ExistingSkillHandling
 
   /**
-   * Official editor label alias that refers to the same enum value as
-   * {@link KeepIrrelevantSkills}.
+   * Preserve Unrelated Skills: Retain skills that are not defined in the default skill sets of either the previous or the new class
    *
-   * 官方编辑器名称别名，与 {@link KeepIrrelevantSkills} 指向同一枚举值。
+   * 保留无关技能：保留更换前后两个职业默认配置内均没有的技能
+   *
+   * Alias of {@link KeepIrrelevantSkills}; both names refer to the same enum value.
+   *
+   * {@link KeepIrrelevantSkills} 的别名；两个名称指向同一枚举值。
    */
   static readonly PreserveUnrelatedSkills = ExistingSkillHandling.KeepIrrelevantSkills
 }
 
 /**
- * Official editor type-name alias for {@link ExistingSkillHandling}; both names refer to the same
- * enum type.
+ * Existing Skill Handling
  *
- * 官方编辑器类型名称别名，等同于 {@link ExistingSkillHandling}；两个名称指向同一枚举类型。
+ * 已有技能处理方式
+ *
+ * Alias of {@link ExistingSkillHandling}; both names refer to the same enum type.
+ *
+ * {@link ExistingSkillHandling} 的别名；两个名称指向同一枚举类型。
  */
 export { ExistingSkillHandling as ClassSwitchSkillHandling }
 
@@ -2014,174 +2064,398 @@ export class ElementalReactionType extends enumeration {
     'elemental_reaction_type_stellar_conduct'
   ) as ElementalReactionType
 
-  /** Client alias: Explode / 客户端别名：Explode */
+  /**
+   * Explode
+   *
+   * 超载
+   *
+   * Alias of {@link Overloaded}; both names refer to the same enum value.
+   *
+   * {@link Overloaded} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Explode =
     ElementalReactionType.Overloaded as unknown as ClientElementalReactionType
 
-  /** Client alias: Stream / 客户端别名：Stream */
+  /**
+   * Stream
+   *
+   * 蒸发
+   *
+   * Alias of {@link Vaporize}; both names refer to the same enum value.
+   *
+   * {@link Vaporize} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Stream = ElementalReactionType.Vaporize as unknown as ClientElementalReactionType
 
-  /** Client: Burned / 客户端：Burned */
+  /**
+   * Burned
+   *
+   * 燃元素
+   */
   static readonly Burned = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_burned'
   ) as ClientElementalReactionType
 
-  /** Client alias: Overgrow / 客户端别名：Overgrow */
+  /**
+   * Overgrow
+   *
+   * 绽放
+   *
+   * Alias of {@link Bloom}; both names refer to the same enum value.
+   *
+   * {@link Bloom} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Overgrow = ElementalReactionType.Bloom as unknown as ClientElementalReactionType
 
-  /** Client alias: Freeze / 客户端别名：Freeze */
+  /**
+   * Freeze
+   *
+   * 冻结
+   *
+   * Alias of {@link Frozen}; both names refer to the same enum value.
+   *
+   * {@link Frozen} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Freeze = ElementalReactionType.Frozen as unknown as ClientElementalReactionType
 
-  /** Client: AntiFire / 客户端：AntiFire */
+  /**
+   * AntiFire
+   *
+   * 灭火
+   */
   static readonly AntiFire = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_anti_fire'
   ) as ClientElementalReactionType
 
-  /** Client: Rock / 客户端：Rock */
+  /**
+   * Rock
+   *
+   * 岩元素
+   */
   static readonly Rock = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_rock'
   ) as ClientElementalReactionType
 
-  /** Client: SlowDown / 客户端：SlowDown */
+  /**
+   * SlowDown
+   *
+   * 减速
+   */
   static readonly SlowDown = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_slow_down'
   ) as ClientElementalReactionType
 
-  /** Client alias: Shock / 客户端别名：Shock */
+  /**
+   * Shock
+   *
+   * 感电
+   *
+   * Alias of {@link ElectroCharged}; both names refer to the same enum value.
+   *
+   * {@link ElectroCharged} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Shock =
     ElementalReactionType.ElectroCharged as unknown as ClientElementalReactionType
 
-  /** Client: Wind / 客户端：Wind */
+  /**
+   * Wind
+   *
+   * 风元素
+   */
   static readonly Wind = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_wind'
   ) as ClientElementalReactionType
 
-  /** Client: Electric / 客户端：Electric */
+  /**
+   * Electric
+   *
+   * 雷元素
+   */
   static readonly Electric = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_electric'
   ) as ClientElementalReactionType
 
-  /** Client: Fire / 客户端：Fire */
+  /**
+   * Fire
+   *
+   * 火元素
+   */
   static readonly Fire = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_fire'
   ) as ClientElementalReactionType
 
-  /** Client alias: Superconductor / 客户端别名：Superconductor */
+  /**
+   * Superconductor
+   *
+   * 超导
+   *
+   * Alias of {@link Superconduct}; both names refer to the same enum value.
+   *
+   * {@link Superconduct} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Superconductor =
     ElementalReactionType.Superconduct as unknown as ClientElementalReactionType
 
-  /** Client alias: SwirlFire / 客户端别名：SwirlFire */
+  /**
+   * SwirlFire
+   *
+   * 扩散·火
+   *
+   * Alias of {@link SwirlPyro}; both names refer to the same enum value.
+   *
+   * {@link SwirlPyro} 的别名；两个名称指向同一枚举值。
+   */
   static readonly SwirlFire =
     ElementalReactionType.SwirlPyro as unknown as ClientElementalReactionType
 
-  /** Client alias: SwirlWater / 客户端别名：SwirlWater */
+  /**
+   * SwirlWater
+   *
+   * 扩散·水
+   *
+   * Alias of {@link SwirlHydro}; both names refer to the same enum value.
+   *
+   * {@link SwirlHydro} 的别名；两个名称指向同一枚举值。
+   */
   static readonly SwirlWater =
     ElementalReactionType.SwirlHydro as unknown as ClientElementalReactionType
 
-  /** Client alias: SwirlElectric / 客户端别名：SwirlElectric */
+  /**
+   * SwirlElectric
+   *
+   * 扩散·雷
+   *
+   * Alias of {@link SwirlElectro}; both names refer to the same enum value.
+   *
+   * {@link SwirlElectro} 的别名；两个名称指向同一枚举值。
+   */
   static readonly SwirlElectric =
     ElementalReactionType.SwirlElectro as unknown as ClientElementalReactionType
 
-  /** Client alias: SwirlIce / 客户端别名：SwirlIce */
+  /**
+   * SwirlIce
+   *
+   * 扩散·冰
+   *
+   * Alias of {@link SwirlCryo}; both names refer to the same enum value.
+   *
+   * {@link SwirlCryo} 的别名；两个名称指向同一枚举值。
+   */
   static readonly SwirlIce =
     ElementalReactionType.SwirlCryo as unknown as ClientElementalReactionType
 
-  /** Client: SwirlFireAccu / 客户端：SwirlFireAccu */
+  /**
+   * SwirlFireAccu
+   *
+   * 扩散·火（累积）
+   */
   static readonly SwirlFireAccu = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_swirl_fire_accu'
   ) as ClientElementalReactionType
 
-  /** Client: SwirlWaterAccu / 客户端：SwirlWaterAccu */
+  /**
+   * SwirlWaterAccu
+   *
+   * 扩散·水（累积）
+   */
   static readonly SwirlWaterAccu = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_swirl_water_accu'
   ) as ClientElementalReactionType
 
-  /** Client: SwirlElectricAccu / 客户端：SwirlElectricAccu */
+  /**
+   * SwirlElectricAccu
+   *
+   * 扩散·雷（累积）
+   */
   static readonly SwirlElectricAccu = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_swirl_electric_accu'
   ) as ClientElementalReactionType
 
-  /** Client: SwirlIceAccu / 客户端：SwirlIceAccu */
+  /**
+   * SwirlIceAccu
+   *
+   * 扩散·冰（累积）
+   */
   static readonly SwirlIceAccu = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_swirl_ice_accu'
   ) as ClientElementalReactionType
 
-  /** Client: StickRock / 客户端：StickRock */
+  /**
+   * StickRock
+   *
+   * 岩元素附着
+   */
   static readonly StickRock = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_stick_rock'
   ) as ClientElementalReactionType
 
-  /** Client: StickWater / 客户端：StickWater */
+  /**
+   * StickWater
+   *
+   * 水元素附着
+   */
   static readonly StickWater = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_stick_water'
   ) as ClientElementalReactionType
 
-  /** Client alias: CrystallizeFire / 客户端别名：CrystallizeFire */
+  /**
+   * CrystallizeFire
+   *
+   * 结晶·火
+   *
+   * Alias of {@link CrystallizePyro}; both names refer to the same enum value.
+   *
+   * {@link CrystallizePyro} 的别名；两个名称指向同一枚举值。
+   */
   static readonly CrystallizeFire =
     ElementalReactionType.CrystallizePyro as unknown as ClientElementalReactionType
 
-  /** Client alias: CrystallizeWater / 客户端别名：CrystallizeWater */
+  /**
+   * CrystallizeWater
+   *
+   * 结晶·水
+   *
+   * Alias of {@link CrystallizeHydro}; both names refer to the same enum value.
+   *
+   * {@link CrystallizeHydro} 的别名；两个名称指向同一枚举值。
+   */
   static readonly CrystallizeWater =
     ElementalReactionType.CrystallizeHydro as unknown as ClientElementalReactionType
 
-  /** Client alias: CrystallizeElectric / 客户端别名：CrystallizeElectric */
+  /**
+   * CrystallizeElectric
+   *
+   * 结晶·雷
+   *
+   * Alias of {@link CrystallizeElectro}; both names refer to the same enum value.
+   *
+   * {@link CrystallizeElectro} 的别名；两个名称指向同一枚举值。
+   */
   static readonly CrystallizeElectric =
     ElementalReactionType.CrystallizeElectro as unknown as ClientElementalReactionType
 
-  /** Client alias: CrystallizeIce / 客户端别名：CrystallizeIce */
+  /**
+   * CrystallizeIce
+   *
+   * 结晶·冰
+   *
+   * Alias of {@link CrystallizeCryo}; both names refer to the same enum value.
+   *
+   * {@link CrystallizeCryo} 的别名；两个名称指向同一枚举值。
+   */
   static readonly CrystallizeIce =
     ElementalReactionType.CrystallizeCryo as unknown as ClientElementalReactionType
 
-  /** Client alias: FrozenBroken / 客户端别名：FrozenBroken */
+  /**
+   * FrozenBroken
+   *
+   * 碎冰
+   *
+   * Alias of {@link Shatter}; both names refer to the same enum value.
+   *
+   * {@link Shatter} 的别名；两个名称指向同一枚举值。
+   */
   static readonly FrozenBroken =
     ElementalReactionType.Shatter as unknown as ClientElementalReactionType
 
-  /** Client: StickGrass / 客户端：StickGrass */
+  /**
+   * StickGrass
+   *
+   * 草元素附着
+   */
   static readonly StickGrass = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_stick_grass'
   ) as ClientElementalReactionType
 
-  /** Client alias: Overdose / 客户端别名：Overdose */
+  /**
+   * Overdose
+   *
+   * 激化
+   *
+   * Alias of {@link Catalyze}; both names refer to the same enum value.
+   *
+   * {@link Catalyze} 的别名；两个名称指向同一枚举值。
+   */
   static readonly Overdose =
     ElementalReactionType.Catalyze as unknown as ClientElementalReactionType
 
-  /** Client alias: OverdoseElectric / 客户端别名：OverdoseElectric */
+  /**
+   * OverdoseElectric
+   *
+   * 超激化
+   *
+   * Alias of {@link Aggravate}; both names refer to the same enum value.
+   *
+   * {@link Aggravate} 的别名；两个名称指向同一枚举值。
+   */
   static readonly OverdoseElectric =
     ElementalReactionType.Aggravate as unknown as ClientElementalReactionType
 
-  /** Client alias: OverdoseGrass / 客户端别名：OverdoseGrass */
+  /**
+   * OverdoseGrass
+   *
+   * 蔓激化
+   *
+   * Alias of {@link Spread}; both names refer to the same enum value.
+   *
+   * {@link Spread} 的别名；两个名称指向同一枚举值。
+   */
   static readonly OverdoseGrass =
     ElementalReactionType.Spread as unknown as ClientElementalReactionType
 
-  /** Client alias: OvergrowMushroomFire / 客户端别名：OvergrowMushroomFire */
+  /**
+   * OvergrowMushroomFire
+   *
+   * 烈绽放
+   *
+   * Alias of {@link Burgeon}; both names refer to the same enum value.
+   *
+   * {@link Burgeon} 的别名；两个名称指向同一枚举值。
+   */
   static readonly OvergrowMushroomFire =
     ElementalReactionType.Burgeon as unknown as ClientElementalReactionType
 
-  /** Client alias: OvergrowMushroomElectric / 客户端别名：OvergrowMushroomElectric */
+  /**
+   * OvergrowMushroomElectric
+   *
+   * 超绽放
+   *
+   * Alias of {@link Hyperbloom}; both names refer to the same enum value.
+   *
+   * {@link Hyperbloom} 的别名；两个名称指向同一枚举值。
+   */
   static readonly OvergrowMushroomElectric =
     ElementalReactionType.Hyperbloom as unknown as ClientElementalReactionType
 
-  /** Client: PhlogistonSolidification / 客户端：PhlogistonSolidification */
+  /**
+   * PhlogistonSolidification
+   *
+   * 固态燃素
+   */
   static readonly PhlogistonSolidification = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_phlogiston_solidification'
   ) as ClientElementalReactionType
 
-  /** Client: PhlogistonSolidificationEnd / 客户端：PhlogistonSolidificationEnd */
+  /**
+   * PhlogistonSolidificationEnd
+   *
+   * 固态燃素结束
+   */
   static readonly PhlogistonSolidificationEnd = new enumeration(
     'ElementalReactionType',
     'elemental_reaction_type_phlogiston_solidification_end'
@@ -2814,10 +3088,13 @@ export class InterruptStatus extends enumeration {
   ) as InterruptStatus
 
   /**
-   * Official editor label alias that refers to the same enum value as
-   * {@link InterruptVulnerabilityStatus}.
+   * Interrupt Vulnerable State
    *
-   * 官方编辑器名称别名，与 {@link InterruptVulnerabilityStatus} 指向同一枚举值。
+   * 易被打断状态
+   *
+   * Alias of {@link InterruptVulnerabilityStatus}; both names refer to the same enum value.
+   *
+   * {@link InterruptVulnerabilityStatus} 的别名；两个名称指向同一枚举值。
    */
   static readonly InterruptVulnerableState = InterruptStatus.InterruptVulnerabilityStatus
   /**
@@ -2847,9 +3124,13 @@ export class GameplayMode extends enumeration {
   static readonly Play = new enumeration('GameplayMode', 'gameplay_mode_play') as GameplayMode
 
   /**
-   * Official editor label alias that refers to the same enum value as {@link Play}.
+   * Test Play
    *
-   * 官方编辑器名称别名，与 {@link Play} 指向同一枚举值。
+   * 普通玩法
+   *
+   * Alias of {@link Play}; both names refer to the same enum value.
+   *
+   * {@link Play} 的别名；两个名称指向同一枚举值。
    */
   static readonly TestPlay = GameplayMode.Play
   /**
