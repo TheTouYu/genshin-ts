@@ -1,9 +1,14 @@
 // @ts-nocheck thirdparty
 
-import type { CompositeDefIR, CompositePinEntry, NextConnection, ParamFlowDef } from './IR.js'
+import type {
+  CompositeDefIR,
+  CompositePinEntry,
+  LiteralValueType,
+  NextConnection,
+  ParamFlowDef
+} from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
 import { list, type value } from './value.js'
-import type { LiteralValueType } from './IR.js'
 import { parseVariableDefinitions } from './variables.js'
 
 // ============== Constants ==============
@@ -221,8 +226,7 @@ export class CompositeRegistry {
                 outerPinIndex: inputIdx,
                 innerNodeId: inner.id!,
                 innerPinKind: 3, // InParam
-                innerPinIndex:
-                  compositeInputIndex ?? argIdx - callArgOffset + assemblyListOffset
+                innerPinIndex: compositeInputIndex ?? argIdx - callArgOffset + assemblyListOffset
               })
             }
           }
@@ -303,7 +307,7 @@ export class CompositeRegistry {
           ].map((r) => ({
             id: r.id,
             type: r.nodeType,
-            args: r.args.map((a, argIndex) => {
+            args: (Array.isArray(r.args) ? r.args : []).map((a, argIndex) => {
               const compositeInputIndex = r.compositeInputIndices?.[argIndex]
               const withCompositeInputIndex = <T extends Record<string, unknown>>(arg: T): T => {
                 if (compositeInputIndex === undefined) return arg

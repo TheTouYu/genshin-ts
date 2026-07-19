@@ -18,12 +18,22 @@ import {
   type ServerEventNameZh
 } from '../definitions/zh_aliases.js'
 import {
+  createClientGraph,
+  hasClientGraphRegistries,
+  type ClientGraphOptions,
+  type SupportedClientGraphType
+} from './client.js'
+import {
   compositeRegistry,
   type CompositeCapture,
   type CompositeDefinition,
   type CompositeHandle
 } from './composite_registry.js'
-import type { ExecTailEndpoint, ExecutionFlow } from './execution_flow_types.js'
+import type {
+  ExecOutflowMetadata,
+  ExecTailEndpoint,
+  ExecutionFlow
+} from './execution_flow_types.js'
 import { buildIRDocument } from './ir_builder.js'
 import type {
   CompositeDefIR,
@@ -41,12 +51,6 @@ import type {
 } from './meta_call_types.js'
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
-import {
-  createClientGraph,
-  hasClientGraphRegistries,
-  type ClientGraphOptions,
-  type SupportedClientGraphType
-} from './client.js'
 import {
   bool,
   configId,
@@ -591,6 +595,10 @@ function ensureCompositeCaptured(def: CompositeDefinition): void {
       .getFlows()
       .filter((flow) => flow !== captureRegistry.getBootstrapFlow())
     const flow = captureFlow
+    const timerEventNodes = flows
+      .filter((candidate) => candidate !== flow)
+      .map((candidate) => candidate.eventNode)
+      .filter((node) => node.nodeType !== '__bootstrap__')
     const execNodes = flows.flatMap((candidate) => [
       ...(candidate === flow ? [] : [candidate.eventNode]),
       ...candidate.execNodes
@@ -634,6 +642,7 @@ export class MetaCallRegistry {
   private readonly prefixName: boolean
   private readonly variables: Variable[]
   private readonly variableMetaByName: Map<string, NodeGraphVariableMeta>
+  private readonly warnedMultiOutflowContinuations = new Set<string>()
   private bootstrapFlow?: ExecutionFlow
   /**
    * return调用计数, 通过回调前后比对确认是否调用过return
@@ -830,6 +839,28 @@ export class MetaCallRegistry {
   ) {
     const list = (flow.edges[fromNodeId] ??= [])
     if (sourceIndex === undefined && targetIndex === undefined) {
+      const outflow = flow.execOutflows?.[fromNodeId]
+      if (outflow && outflow.count > 1) {
+        const warningKey = `${fromNodeId}:${outflow.owner ?? ''}`
+        const unused = outflow.names?.slice(1).map((name) => `"${name}"`) ?? [
+          ...Array.from({ length: outflow.count - 1 }, (_, i) => `OutFlow[${i + 1}]`)
+        ]
+        const owner = outflow.owner ? `${outflow.owner} ` : ''
+        if (!this.warnedMultiOutflowContinuations.has(warningKey)) {
+          this.warnedMultiOutflowContinuations.add(warningKey)
+          const suggestion = outflow.owner?.startsWith('composite ')
+            ? 'Use connectOutFlow(result, index, callback) or declareDetached() + f.link() to wire each intended branch explicitly.'
+            : 'Move code intended for each branch into the corresponding branch callback, or use f.node()/f.link() for explicit flow wiring.'
+          console.warn(
+            `[warning] GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION: ${owner}has multiple execution ` +
+              `outflows; simple sequential continuation uses OutFlow[0] only. Unused outflow: ` +
+              `${unused.join(', ')}. ${suggestion}`
+          )
+        }
+        sourceIndex = 0
+      }
+    }
+    if (sourceIndex === undefined && targetIndex === undefined) {
       list.push(toNodeId)
     } else {
       list.push({
@@ -922,6 +953,7 @@ export class MetaCallRegistry {
       execNodes: [],
       dataNodes: [],
       edges: {},
+      execOutflows: {},
       execContextStack: [
         {
           // 默认根执行链从事件节点出发
@@ -939,6 +971,12 @@ export class MetaCallRegistry {
    */
   withExecBranch(fromNodeId: number, sourceIndex: number, fn: () => void) {
     const current = this.currentFlow
+    const parentCtx = this.getCurrentExecContext(current)
+    parentCtx.multiOutflowSourceId = fromNodeId
+    const outflows = (current.execOutflows ??= {})
+    const metadata: ExecOutflowMetadata = outflows[fromNodeId] ?? { count: 0 }
+    metadata.count = Math.max(metadata.count, sourceIndex + 1)
+    outflows[fromNodeId] = metadata
     current.execContextStack.push({ tailEndpoints: [] })
 
     fn()
@@ -973,7 +1011,53 @@ export class MetaCallRegistry {
   setCurrentExecTailEndpoints(tailEndpoints: ExecTailEndpoint[]) {
     const current = this.currentFlow
     const ctx = this.getCurrentExecContext(current)
+    if (tailEndpoints.length > 1 && ctx.multiOutflowSourceId !== undefined) {
+      const sourceId = ctx.multiOutflowSourceId
+      const outflow = current.execOutflows?.[sourceId]
+      if (outflow && outflow.count > 1) {
+        const sourceNode = current.execNodes.find((node) => node.id === sourceId)
+        this.setDefaultMultiOutflowContinuation(
+          sourceId,
+          sourceNode?.nodeType ?? 'unknown',
+          tailEndpoints,
+          sourceNode?.nodeType === 'double_branch' ? ['是', '否'] : undefined
+        )
+        return
+      }
+    }
     ctx.tailEndpoints = tailEndpoints
+    ctx.pendingSourceIndex = undefined
+  }
+
+  setDefaultMultiOutflowContinuation(
+    nodeId: number,
+    nodeType: string,
+    tailEndpoints: ExecTailEndpoint[],
+    names?: string[]
+  ) {
+    const current = this.currentFlow
+    const metadata = (current.execOutflows ??= {})[nodeId] ?? { count: 0 }
+    metadata.count = Math.max(metadata.count, tailEndpoints.length)
+    metadata.names = names
+    metadata.owner = `node "${nodeType}"`
+    current.execOutflows[nodeId] = metadata
+
+    const unused = names?.slice(1).map((name) => `"${name}"`) ?? [
+      ...Array.from({ length: Math.max(0, metadata.count - 1) }, (_, i) => `OutFlow[${i + 1}]`)
+    ]
+    const warningKey = `${nodeId}:${metadata.owner}`
+    if (!this.warnedMultiOutflowContinuations.has(warningKey)) {
+      this.warnedMultiOutflowContinuations.add(warningKey)
+      console.warn(
+        `[warning] GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION: node "${nodeType}" has multiple ` +
+          `execution outflows; simple sequential continuation uses OutFlow[0] only. ` +
+          `Unused outflows: ${unused.join(', ')}. Move code intended for each branch into the ` +
+          `corresponding branch callback, or use f.node()/f.link() for explicit flow wiring.`
+      )
+    }
+
+    const ctx = this.getCurrentExecContext(current)
+    ctx.tailEndpoints = tailEndpoints.slice(0, 1)
     ctx.pendingSourceIndex = undefined
   }
 
@@ -1087,6 +1171,13 @@ export class MetaCallRegistry {
       )
     }
     marks.push({ name, innerNodeId, outflowPinIndex })
+    const metadata = (current.execOutflows ??= {})[innerNodeId] ?? { count: 0 }
+    metadata.count = Math.max(metadata.count, outflowPinIndex + 1)
+    metadata.names = marks
+      .filter((mark) => mark.innerNodeId === innerNodeId)
+      .map((mark) => mark.name)
+    metadata.owner = 'composite'
+    current.execOutflows[innerNodeId] = metadata
   }
 
   /**
@@ -1333,6 +1424,7 @@ export class MetaCallRegistry {
       execNodes: [],
       dataNodes: [],
       edges: {},
+      execOutflows: {},
       execContextStack: [{ tailEndpoints: [{ nodeId: eventId }] }]
     }
     this.flows.push(flow)
@@ -1361,6 +1453,10 @@ export class MetaCallRegistry {
 
   getCompositeCallMetas(): ReadonlyArray<{ compositeId: number; markerNodeId: number }> {
     return this.compositeCallMetas
+  }
+
+  private isCompositeCaptureFlow(): boolean {
+    return this.currentFlow.eventNode.nodeType === '__composite_capture__'
   }
 
   /**
@@ -1392,6 +1488,14 @@ export class MetaCallRegistry {
       compositeInputIndices: callArgs.compositeInputIndices
     })
     this.trackCompositeCall(compositeId, markerRecord.id!)
+    if (!isPureData && (def?.captured?.outflowMarks?.length ?? 0) > 1) {
+      const outflows = (this.currentFlow.execOutflows ??= {})
+      outflows[markerRecord.id!] = {
+        count: def!.captured!.outflowMarks!.length,
+        names: def!.captured!.outflowMarks!.map((mark) => mark.name),
+        owner: `composite "${def!.name}"`
+      }
+    }
 
     // 2. 检测输入值中的 pin metadata，记录数据连线到主图。
     // impl capture always sees the complete definition contract; call-site omission controls only
@@ -1437,6 +1541,18 @@ export class MetaCallRegistry {
 
     try {
       build(captureFns, captureInputs)
+
+      // Composite build 内的普通单出口嵌套调用自然继续到其唯一 OutFlow。
+      // 主图保持原有 marker tail 语义；纯数据、多出口和未绑定出口不猜测拓扑。
+      if (
+        this.isCompositeCaptureFlow() &&
+        !isPureData &&
+        def?.captured?.outflowMarks?.length === 1
+      ) {
+        const ctx = this.getCurrentExecContext(this.currentFlow)
+        ctx.tailEndpoints = [{ nodeId: markerRecord.id!, sourceIndex: 0 }]
+        ctx.pendingSourceIndex = undefined
+      }
 
       // 4. 构建代理输出值（引用主图 marker 的 OutParam pins）
       const outputs: Record<string, any> = {}
@@ -1561,6 +1677,14 @@ export class MetaCallRegistry {
       current.execNodes.push(markerRecord)
     }
     this.trackCompositeCall(compositeId, markerRecord.id!)
+    if (!isPureData && (def?.captured?.outflowMarks?.length ?? 0) > 1) {
+      const outflows = (current.execOutflows ??= {})
+      outflows[markerRecord.id!] = {
+        count: def!.captured!.outflowMarks!.length,
+        names: def!.captured!.outflowMarks!.map((mark) => mark.name),
+        owner: `composite "${def!.name}"`
+      }
+    }
 
     // 设置 head/tail（不调 connectFromEndpoints）
     const ctx = this.getCurrentExecContext(current)

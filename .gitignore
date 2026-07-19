@@ -8,6 +8,7 @@
 graph.svg
 node_modules/
 dist/
+dist-timer-*/
 tests/composite/output/
 worktrees/
 

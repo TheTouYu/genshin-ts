@@ -2,6 +2,12 @@ import type { NextConnection, ServerGraphMode, ServerGraphSubType, Variable } fr
 import type { MetaCallRecord } from './meta_call_types.js'
 import type { value } from './value.js'
 
+export type ExecOutflowMetadata = {
+  count: number
+  names?: string[]
+  owner?: string
+}
+
 export type ExecTailEndpoint = {
   nodeId: number
   /**
@@ -32,6 +38,8 @@ export type ExecContext = {
    * 当前上下文是否调用了 return（用于触发 join 语义）
    */
   terminatedByReturn?: boolean
+  /** Source node whose multiple outflows produced this branch join. */
+  multiOutflowSourceId?: number
 }
 
 export interface ExecutionFlow {
@@ -43,6 +51,8 @@ export interface ExecutionFlow {
    * 显式记录执行连线（支持分支/多输出）
    */
   edges: Record<number, NextConnection[]>
+  /** Execution outflows observed while registering the node. */
+  execOutflows?: Record<number, ExecOutflowMetadata>
   /**
    * 执行上下文栈，用于分支（循环体/条件分支等）, 从而确定当前代码属于哪个分支/子链
    */
