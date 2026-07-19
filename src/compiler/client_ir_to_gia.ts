@@ -125,17 +125,51 @@ function valueFromIR(type: string, arg: ClientValueIR): any {
   return valueForParam(type, arg.value).value
 }
 
+function clientOutputValue(type: ClientVarType): any {
+  switch (type) {
+    case ClientVarType.Boolean_: return clientBoolValue(false)
+    case ClientVarType.Vector_: return clientVectorValue([0, 0, 0])
+    case ClientVarType.Entity_: return clientDefaultIdValue(type)
+    default: return clientDefaultIdValue(type)
+  }
+}
+
+const fixedQuery = (nodeIndex: number, shellId: number, kernelId: number, inputs: ClientVarType[], outputType: ClientVarType) => clientLegacyNode({
+  nodeIndex,
+  shellId,
+  kernelId,
+  pins: [
+    ...inputs.map((type, inputIndex) => clientDataPin({ shellIndex: inputIndex, kernelIndex: inputIndex, type, value: type === ClientVarType.String_ ? clientStringValue('Head') : clientDefaultIdValue(type) })),
+    { ...clientDataPin({ shellIndex: 0, kernelIndex: 0, type: outputType, value: clientOutputValue(outputType) }), i1: { kind: NodePin_Index_Kind.OutParam, index: 0 }, i2: { kind: NodePin_Index_Kind.OutParam, index: 0 } }
+  ]
+})
+
 function dataNode(node: ClientNode, index: number): any {
+  const entityInput = (outputType: ClientVarType, shellId: number, kernelId: number) => fixedQuery(index, shellId, kernelId, [ClientVarType.Entity_], outputType)
+  const entityOutput = (shellId: number, kernelId: number) => clientLegacyNode({
+    nodeIndex: index,
+    shellId,
+    kernelId,
+    pins: [{ ...clientDataPin({ shellIndex: 0, kernelIndex: 0, type: ClientVarType.Entity_, value: clientDefaultIdValue(ClientVarType.Entity_) }), i1: { kind: NodePin_Index_Kind.OutParam, index: 0 }, i2: { kind: NodePin_Index_Kind.OutParam, index: 0 } }]
+  })
+  const fixed = (shellId: number, kernelId: number, inputs: ClientVarType[], outputType: ClientVarType) => fixedQuery(index, shellId, kernelId, inputs, outputType)
   switch (node.type) {
-    case 'get_self_entity':
-      return clientLegacyNode({ nodeIndex: index, shellId: 200033, kernelId: 1013, pins: [{ ...clientDataPin({ shellIndex: 0, kernelIndex: 0, type: ClientVarType.Entity_, value: clientDefaultIdValue(ClientVarType.Entity_) }), i1: { kind: NodePin_Index_Kind.OutParam, index: 0 }, i2: { kind: NodePin_Index_Kind.OutParam, index: 0 } }] })
-    case 'query_guid_by_entity':
-      return clientLegacyNode({ nodeIndex: index, shellId: 200027, kernelId: 1005, pins: [
-        clientDataPin({ shellIndex: 0, kernelIndex: 0, type: ClientVarType.Entity_, value: clientDefaultIdValue(ClientVarType.Entity_) }),
-        { ...clientDataPin({ shellIndex: 0, kernelIndex: 0, type: ClientVarType.GUID_, value: clientDefaultIdValue(ClientVarType.GUID_) }), i1: { kind: NodePin_Index_Kind.OutParam, index: 0 }, i2: { kind: NodePin_Index_Kind.OutParam, index: 0 } }
-      ] })
-    default:
-      throw new Error(`[error] unsupported client data node: ${node.type}`)
+    case 'get_self_entity': return entityOutput(200033, 1013)
+    case 'query_guid_by_entity': return fixed(200027, 1005, [ClientVarType.Entity_], ClientVarType.GUID_)
+    case 'find_entity_by_guid': return fixed(200023, 1001, [ClientVarType.GUID_], ClientVarType.Entity_)
+    case 'get_entity_position': return entityInput(ClientVarType.Vector_, 200030, 1008)
+    case 'get_entity_rotation': return entityInput(ClientVarType.Vector_, 200031, 1009)
+    case 'get_owner_player': return entityInput(ClientVarType.Entity_, 200025, 1003)
+    case 'get_character_entity': return entityInput(ClientVarType.Entity_, 200024, 1002)
+    case 'get_target_entity': return entityOutput(200034, 1014)
+    case 'get_attack_target': return entityInput(ClientVarType.Entity_, 200035, 1015)
+    case 'get_current_character': return entityOutput(200076, 1032)
+    case 'query_self_in_combat': return fixed(200037, 1017, [], ClientVarType.Boolean_)
+    case 'query_entity_in_combat': return entityInput(ClientVarType.Boolean_, 200092, 3003)
+    case 'query_entity_on_field': return entityInput(ClientVarType.Boolean_, 200103, 1038)
+    case 'get_attachment_location': return fixed(200047, 1022, [ClientVarType.Entity_, ClientVarType.String_], ClientVarType.Vector_)
+    case 'get_attachment_rotation': return fixed(200048, 1023, [ClientVarType.Entity_, ClientVarType.String_], ClientVarType.Vector_)
+    default: throw new Error(`[error] unsupported client data node: ${node.type}`)
   }
 }
 
@@ -374,7 +408,9 @@ export function clientIrToGia(ir: ClientIRDocument, signalRegistry: SignalRegist
       if (arg.kind !== 'conn') continue
       const source = dataNodes.get(arg.node_id)
       if (!source) throw new Error(`[error] missing client connection source node: ${arg.node_id}`)
-      const targetPin = node.type === 'query_guid_by_entity' ? 0 : node.type === 'assembly_list' ? argIndex + 1 : argIndex
+      const targetPin = ['query_guid_by_entity', 'find_entity_by_guid', 'get_entity_position', 'get_entity_rotation', 'get_owner_player', 'get_character_entity', 'get_attack_target', 'query_entity_in_combat', 'query_entity_on_field'].includes(node.type)
+        ? argIndex
+        : node.type === 'assembly_list' ? argIndex + 1 : argIndex
       const pin = target.pins.find((candidate: any) => candidate.i1?.kind === NodePin_Index_Kind.InParam && (candidate.i1.index ?? 0) === targetPin)
       if (!pin) throw new Error(`[error] missing client target InParam[${targetPin}] for ${node.type}`)
       pin.connects = [{ id: source.nodeIndex, connect: { kind: NodePin_Index_Kind.OutParam, index: arg.index }, connect2: { kind: NodePin_Index_Kind.OutParam, index: arg.index } }]

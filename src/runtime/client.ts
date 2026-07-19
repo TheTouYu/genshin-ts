@@ -40,6 +40,19 @@ export type ClientExecutionFlowFunctions = {
   sendSignalToServerNodeGraph(signalName: string, ...params: ClientLiteral[]): void
   getSelfEntity(): ClientValueHandle
   queryGuidByEntity(entity: ClientValueHandle): ClientValueHandle
+  getEntityPosition(entity: ClientValueHandle): ClientValueHandle
+  getEntityRotation(entity: ClientValueHandle): ClientValueHandle
+  findEntityByGuid(guid: ClientValueHandle): ClientValueHandle
+  getCharacterEntity(player: ClientValueHandle): ClientValueHandle
+  getTargetEntity(): ClientValueHandle
+  getAttackTarget(entity: ClientValueHandle): ClientValueHandle
+  getTargetAttachmentPointLocation(entity: ClientValueHandle, name: string): ClientValueHandle
+  getTargetAttachmentPointRotation(entity: ClientValueHandle, name: string): ClientValueHandle
+  getCurrentCharacter(): ClientValueHandle
+  queryIfSelfIsInCombat(): ClientValueHandle
+  queryIfEntityIsInCombat(entity: ClientValueHandle): ClientValueHandle
+  queryIfEntityIsOnField(entity: ClientValueHandle): ClientValueHandle
+  getOwnerPlayer(character: ClientValueHandle): ClientValueHandle
   assemblyList(elementType: ValueType, elements: readonly (ClientLiteral | ClientValueHandle)[]): ClientListValue
   sendSignalToServerNodeGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue)[]): void
 }
@@ -116,6 +129,89 @@ class ClientGraphRegistry {
       node_id: entityValue.nodeId,
       index: entityValue.pinIndex
     }])
+  }
+
+  getEntityPosition(entityValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_entity_position', 'vec3', entityValue, 'getEntityPosition')
+  }
+
+  getEntityRotation(entityValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_entity_rotation', 'vec3', entityValue, 'getEntityRotation')
+  }
+
+  findEntityByGuid(guidValue: ClientValueHandle): ClientValueHandle {
+    if (guidValue.type !== 'guid') throw new Error('[error] findEntityByGuid requires a guid value')
+    return this.registerDataNode('find_entity_by_guid', 'entity', [{ kind: 'conn', type: 'guid', node_id: guidValue.nodeId, index: guidValue.pinIndex }])
+  }
+
+  getCharacterEntity(playerValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_character_entity', 'entity', playerValue, 'getCharacterEntity')
+  }
+
+  getTargetEntity(): ClientValueHandle {
+    return this.registerDataNode('get_target_entity', 'entity')
+  }
+
+  getAttackTarget(entityValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_attack_target', 'entity', entityValue, 'getAttackTarget')
+  }
+
+  getTargetAttachmentPointLocation(entityValue: ClientValueHandle, name: string): ClientValueHandle {
+    return this.registerEntityStringQuery('get_attachment_location', 'vec3', entityValue, name, 'getTargetAttachmentPointLocation')
+  }
+
+  getTargetAttachmentPointRotation(entityValue: ClientValueHandle, name: string): ClientValueHandle {
+    return this.registerEntityStringQuery('get_attachment_rotation', 'vec3', entityValue, name, 'getTargetAttachmentPointRotation')
+  }
+
+  getCurrentCharacter(): ClientValueHandle {
+    return this.registerDataNode('get_current_character', 'entity')
+  }
+
+  queryIfSelfIsInCombat(): ClientValueHandle {
+    return this.registerDataNode('query_self_in_combat', 'bool')
+  }
+
+  queryIfEntityIsInCombat(entityValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('query_entity_in_combat', 'bool', entityValue, 'queryIfEntityIsInCombat')
+  }
+
+  queryIfEntityIsOnField(entityValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('query_entity_on_field', 'bool', entityValue, 'queryIfEntityIsOnField')
+  }
+
+  getOwnerPlayer(characterValue: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_owner_player', 'entity', characterValue, 'getOwnerPlayer')
+  }
+
+  private registerEntityQuery(
+    nodeType: string,
+    outputType: ValueType,
+    entityValue: ClientValueHandle,
+    methodName: string
+  ): ClientValueHandle {
+    if (entityValue.type !== 'entity') throw new Error(`[error] ${methodName} requires an entity value`)
+    return this.registerDataNode(nodeType, outputType, [{
+      kind: 'conn',
+      type: 'entity',
+      node_id: entityValue.nodeId,
+      index: entityValue.pinIndex
+    }])
+  }
+
+  private registerEntityStringQuery(
+    nodeType: string,
+    outputType: ValueType,
+    entityValue: ClientValueHandle,
+    name: string,
+    methodName: string
+  ): ClientValueHandle {
+    if (entityValue.type !== 'entity') throw new Error(`[error] ${methodName} requires an entity value`)
+    if (!name) throw new Error(`[error] ${methodName} requires a non-empty attachment point name`)
+    return this.registerDataNode(nodeType, outputType, [
+      { kind: 'conn', type: 'entity', node_id: entityValue.nodeId, index: entityValue.pinIndex },
+      { kind: 'literal', type: 'str', value: name }
+    ])
   }
 
   assemblyList(elementType: ValueType, elements: readonly (ClientLiteral | ClientValueHandle)[]): ClientListValue {
@@ -219,6 +315,19 @@ export function createClientGraph(options: ClientGraphOptions) {
         },
         getSelfEntity: () => registry.getSelfEntity(),
         queryGuidByEntity: (entity) => registry.queryGuidByEntity(entity),
+        getEntityPosition: (entity) => registry.getEntityPosition(entity),
+        getEntityRotation: (entity) => registry.getEntityRotation(entity),
+        findEntityByGuid: (guid) => registry.findEntityByGuid(guid),
+        getCharacterEntity: (player) => registry.getCharacterEntity(player),
+        getTargetEntity: () => registry.getTargetEntity(),
+        getAttackTarget: (entity) => registry.getAttackTarget(entity),
+        getTargetAttachmentPointLocation: (entity, name) => registry.getTargetAttachmentPointLocation(entity, name),
+        getTargetAttachmentPointRotation: (entity, name) => registry.getTargetAttachmentPointRotation(entity, name),
+        getCurrentCharacter: () => registry.getCurrentCharacter(),
+        queryIfSelfIsInCombat: () => registry.queryIfSelfIsInCombat(),
+        queryIfEntityIsInCombat: (entity) => registry.queryIfEntityIsInCombat(entity),
+        queryIfEntityIsOnField: (entity) => registry.queryIfEntityIsOnField(entity),
+        getOwnerPlayer: (character) => registry.getOwnerPlayer(character),
         assemblyList: (elementType, elements) => registry.assemblyList(elementType, elements),
         sendSignalToServerNodeGraphValues: (signalName, params) =>
           registry.sendSignalToServerGraphValues(signalName, params)
