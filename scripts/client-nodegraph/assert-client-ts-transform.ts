@@ -1366,7 +1366,7 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
         .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
         .sort((a, b) => a - b),
       [0, 1],
-      `${example.mode} control-flow status graph must expose attack=start1 and pursuit=start2`
+      `${example.mode} control-flow status graph must expose ordered output pins start1/start2`
     )
     const terminalNodeIds = new Set(
       statusDocument.nodes
@@ -1410,7 +1410,7 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
     assert.deepStrictEqual(
       switchIndexes,
       [1, 2],
-      `${example.mode} control-flow decision graph must switch to status start1/start2`
+      `${example.mode} control-flow decision graph must encode autonomous-logic parameters 1/2`
     )
 
     assert.ok(
@@ -1498,7 +1498,7 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
         .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
         .sort((a, b) => a - b),
       [0, 1],
-      `${example.mode} status graph must expose attack=start1 and pursuit=start2`
+      `${example.mode} status graph must expose ordered output pins start1/start2`
     )
     const statusNodeTypes = statusDocument.nodes?.map((node) => node.type) ?? []
     for (const nodeType of [
@@ -1519,7 +1519,7 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
     assert.strictEqual(
       terminalNodeIds.size,
       2,
-      `${example.mode} attack and pursuit branches must each end in a terminal fallback`
+      `${example.mode} ordered status branches must each end in a terminal fallback`
     )
     for (const actionType of ['execute_skill', 'tactic_move_to_the_target_entity']) {
       const action = statusDocument.nodes?.find((node) => node.type === actionType)
@@ -1555,15 +1555,15 @@ g.intFilter({ id: ${repeatedConstGraphIds.intFilter} }).on('start', (_evt, f) =>
       switches
         .map((node) => {
           const statusId = node.args?.[1]
-          const startIndex = node.args?.[2]
+          const autonomousLogicIndex = node.args?.[2]
           assert.strictEqual(statusId?.type, 'config_id')
           assert.strictEqual(statusId?.value, example.statusId)
-          assert.strictEqual(startIndex?.type, 'int')
-          return Number(startIndex?.value)
+          assert.strictEqual(autonomousLogicIndex?.type, 'int')
+          return Number(autonomousLogicIndex?.value)
         })
         .sort((a, b) => a - b),
       [1, 2],
-      `${example.mode} decision graph must switch to status start1/start2`
+      `${example.mode} decision graph must encode autonomous-logic parameters 1/2`
     )
   }
 

@@ -30,6 +30,9 @@ const CLIENT_STATUS_ID = 1082130433
 const CLIENT_STATUS_DECISION_ID = 1082130434
 const CLIENT_CONTROL_FLOW_ID = 1082130435
 const CLIENT_DATA_TERNARY_ID = 1082130436
+// 与造物属性面板中配置的自主逻辑序号保持一致。
+const NEAR_TARGET_AUTONOMOUS_LOGIC_ID = 1n
+const FAR_TARGET_AUTONOMOUS_LOGIC_ID = 2n
 
 const ClientFlowLogSignal = defineSignal('gsts_client_flow_log', [
   ['mode', 'str'],
@@ -260,11 +263,18 @@ g.creationSkill({
 /**
  * 与上面的造物技能组成经典模式可动怪物：
  *
- * - start1 是攻击状态，释放造物技能序号 1。
- * - start2 是索敌/追击状态，移动到当前目标实体。
+ * start1/start2 分别对应【按顺序唯一执行】的 1/2 号引脚，并按引脚顺序执行。
+ * 这里拆成两个入口只是为了组织代码，不表示两个可切换状态；将两段语句全部放进
+ * 单一 start1 中按顺序串联也能得到相同效果。
+ *
+ * 实际控制行为时，可以把不同条件连接到 executeSkill、tacticMoveToTheTargetEntity
+ * 等节点的【是否执行】参数；也可以把攻击、索敌等行为拆成不同状态图，再由状态决策图
+ * 传入不同的状态节点图配置 ID。
  *
  * 注意：下面每个入口中的两条语句虽然按顺序书写，后一条实际连接到前一行为节点的
- * 【失败执行】引脚；只有前一行为失败时，才会执行终止兜底节点。
+ * 【失败执行】引脚；只有前一行为失败时，才会执行终止兜底节点。本专项用例特意使用
+ * continueExecutingPreviousFrameBehavior 覆盖“使用时必须位于分支末尾”的约束，
+ * 它不是每个执行分支都必须添加的节点。
  */
 const clientFlowStatus = g.creationStatus({
   id: CLIENT_STATUS_ID,
@@ -291,8 +301,10 @@ clientFlowStatus.on('start2', (_evt, f) => {
 })
 
 /**
- * 交战中且距离目标小于 1.5 时切换到 start1（攻击），否则切换到 start2（追击）。
- * 【自主逻辑参数序号】1/2 分别对应状态图的 start1/start2。
+ * 交战中根据目标距离切换造物属性面板中配置的自主逻辑 1/2。这里的
+ * 【自主逻辑参数序号】仅对应面板中的自主逻辑配置（如入战感知、脱战或领地设置），
+ * 请按实际地图面板配置调整这两个常量。
+ * 如果要切换攻击、索敌等状态图，应让两个分支传入不同的状态节点图配置 ID。
  *
  * 在编辑器的造物配置中，把技能序号 1 绑定到 CLIENT_CONTROL_FLOW_ID，并让自主逻辑
  * 使用本决策图和 CLIENT_STATUS_ID。
@@ -304,9 +316,17 @@ g.creationStatusDecision({
 }).on('start1', (_evt, f) => {
   if (f.checkWhetherSelfIsInBattle()) {
     if (f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5) {
-      f.switchToSelfExecutionStatus(true, configId(CLIENT_STATUS_ID), 1n)
+      f.switchToSelfExecutionStatus(
+        true,
+        configId(CLIENT_STATUS_ID),
+        NEAR_TARGET_AUTONOMOUS_LOGIC_ID
+      )
     } else {
-      f.switchToSelfExecutionStatus(true, configId(CLIENT_STATUS_ID), 2n)
+      f.switchToSelfExecutionStatus(
+        true,
+        configId(CLIENT_STATUS_ID),
+        FAR_TARGET_AUTONOMOUS_LOGIC_ID
+      )
     }
   }
 })

@@ -42,6 +42,9 @@ const MODE = 'classic'
 const CREATION_SKILL_GRAPH_ID = 1082130444
 const CREATION_STATUS_GRAPH_ID = 1082130445
 const CREATION_STATUS_DECISION_GRAPH_ID = 1082130446
+// 与造物属性面板中配置的自主逻辑序号保持一致。
+const NEAR_TARGET_AUTONOMOUS_LOGIC_ID = 1n
+const FAR_TARGET_AUTONOMOUS_LOGIC_ID = 2n
 
 function gstsClientCreationSkillIncrement(value: bigint) {
   return gsts.fCreationSkill.addition(value, 1n)
@@ -142,11 +145,17 @@ g.creationSkill({
 /**
  * 经典模式可动怪物状态图：
  *
- * - start1：攻击状态，释放造物技能序号 1。
- * - start2：索敌/追击状态，移动到当前目标实体。
+ * start1/start2 分别对应【按顺序唯一执行】的 1/2 号引脚，并按引脚顺序执行。
+ * 这里拆成两个入口只是为了组织代码，不表示两个可切换状态；将两段语句全部放进
+ * 单一 start1 中按顺序串联也能得到相同效果。
+ *
+ * 实际控制行为时，可以把不同条件连接到 executeSkill、tacticMoveToTheTargetEntity
+ * 等节点的【是否执行】参数；也可以把攻击、索敌等行为拆成不同状态图，再由状态决策图
+ * 传入不同的状态节点图配置 ID。
  *
  * 行为节点后的下一条顺序语句实际连接到【失败执行】；这里的
  * continueExecutingPreviousFrameBehavior 只在前一行为失败时作为最后兜底执行。
+ * 本测试特意使用它覆盖“使用时必须位于分支末尾”的约束；它不是每个分支都必须添加的节点。
  */
 const creationStatusClassic = g.creationStatus({
   id: CREATION_STATUS_GRAPH_ID,
@@ -173,8 +182,10 @@ creationStatusClassic.on('start2', (_evt, f) => {
 })
 
 /**
- * 经典模式状态决策图：交战中且目标距离小于 1.5 时切换到 start1（攻击），
- * 否则切换到 start2（追击）。自主逻辑参数 1/2 对应状态图 start1/start2。
+ * 经典模式状态决策图根据目标距离切换造物属性面板中配置的自主逻辑 1/2。
+ * 【自主逻辑参数序号】仅对应面板中的自主逻辑配置（如入战感知、脱战或领地设置），
+ * 请按实际地图面板配置调整这两个常量。
+ * 如果要切换攻击、索敌等状态图，应让两个分支传入不同的状态节点图配置 ID。
  *
  * 在编辑器的造物配置中，将技能序号 1 绑定到 CREATION_SKILL_GRAPH_ID，
  * 并让自主逻辑引用本决策图与 CREATION_STATUS_GRAPH_ID。
@@ -186,9 +197,17 @@ g.creationStatusDecision({
 }).on('start1', (_evt, f) => {
   if (f.checkWhetherSelfIsInBattle()) {
     if (f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5) {
-      f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), 1n)
+      f.switchToSelfExecutionStatus(
+        true,
+        configId(CREATION_STATUS_GRAPH_ID),
+        NEAR_TARGET_AUTONOMOUS_LOGIC_ID
+      )
     } else {
-      f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), 2n)
+      f.switchToSelfExecutionStatus(
+        true,
+        configId(CREATION_STATUS_GRAPH_ID),
+        FAR_TARGET_AUTONOMOUS_LOGIC_ID
+      )
     }
   }
 })

@@ -118,20 +118,22 @@ export type ClientStartEventName = 'start'
 /**
  * [ZH] 造物状态/状态决策的【按顺序唯一执行】入口。
  *
- * `start1`…`start10` 分别对应编辑器中的 1…10 号执行引脚；较小编号具有更高优先级。
+ * `start1`…`start10` 分别对应编辑器中的 1…10 号执行引脚，并按引脚顺序执行。
  *
- * GSTS 注: 例如，可以把造物状态图的 `start1` 作为调用技能的攻击状态，把 `start2`
- * 作为移动到目标的索敌或追击状态；造物状态
- * 决策图可通过【切换自身执行状态】的【自主逻辑参数序号】1 或 2 切换到对应入口。
+ * GSTS 注: 这些入口仅用于拆分和组织代码，不表示可切换的行为状态。
+ * 将相同语句全部写在单一 `start1` 中按顺序串联，也能得到相同效果。
+ * 要控制不同逻辑，可以在一个造物状态图中把不同条件连接到各行为节点的【是否执行】
+ * 参数；也可以把不同行为拆分到不同的造物状态图，再由状态决策图选择不同的状态图。
  *
  * [EN] Ordered-exclusive entry branches for Creation Status and Status Decision graphs.
  *
- * `start1`…`start10` map to editor output pins 1…10; lower numbers have higher priority.
+ * `start1`…`start10` map to editor output pins 1…10 and execute in pin order.
  *
- * GSTS Note: For example, use Creation Status `start1` as an attack state that executes skills
- * and `start2` as a target-acquisition or pursuit
- * state that moves toward the target. A Creation Status Decision graph can select them through
- * Switch Self Execution Status with Autonomous Logic Parameter ID 1 or 2.
+ * GSTS Note: These entries only split and organize code; they do not represent switchable
+ * behavior states. Writing the same statements sequentially in one `start1` handler produces
+ * the same behavior. To control different logic, either connect conditions to the [Execute]
+ * inputs of actions in one Creation Status graph, or split behaviors into separate status graphs
+ * and let a decision graph select different status graphs.
  */
 export type ClientOrderedStartEventName =
   | 'start1'
@@ -246,10 +248,14 @@ export type ClientStartGraphApi<
   /**
    * Register an entry handler for this client graph.
    *
-   * GSTS Note: In Creation Status and Creation Status Decision graphs, `start1`…`start10` are
-   * distinct ordered-exclusive entries. Treat Creation Status entries as behavior states—for
-   * example, `start1` for attacking and `start2` for target pursuit—and select them from the
-   * decision graph with Autonomous Logic Parameter ID 1 or 2.
+   * GSTS Note: In Creation Status and Creation Status Decision graphs, `start1`…`start10` map
+   * to the editor's ordered-exclusive output pins 1…10 and execute in pin order. They only split
+   * and organize code; they do not represent switchable behavior states. Writing the same
+   * statements sequentially in one `start1` handler produces the same behavior.
+   *
+   * GSTS Note: To control different logic, either connect conditions to the [Execute] inputs of
+   * actions in one Creation Status graph, or split behaviors into separate status graphs and let
+   * a Creation Status Decision graph select different status graph configuration IDs.
    *
    * GSTS Note: Inside those handlers, sequential action calls are connected through [Failure]
    * outputs. Although the code is written in order, the following statement is not executed
@@ -257,9 +263,14 @@ export type ClientStartGraphApi<
    *
    * 注册客户端节点图入口处理函数。
    *
-   * GSTS 注: 在造物状态与造物状态决策节点图中，`start1`…`start10` 是不同的
-   * 【按顺序唯一执行】入口。例如将造物状态的 `start1` 配置为攻击状态、`start2`
-   * 配置为索敌或追击状态，再由状态决策图通过【自主逻辑参数序号】1 或 2 切换。
+   * GSTS 注: 在造物状态与造物状态决策节点图中，`start1`…`start10` 分别对应
+   * 编辑器【按顺序唯一执行】的 1…10 号执行引脚，并按引脚顺序执行。这些入口仅用于
+   * 拆分和组织代码，不表示可切换的行为状态。将相同语句全部写在单一 `start1` 中
+   * 按顺序串联，也能得到相同效果。
+   *
+   * GSTS 注: 要控制不同逻辑，可以在一个造物状态图中把不同条件连接到各行为节点的
+   * 【是否执行】参数；也可以把不同行为拆分到不同的造物状态图，再由造物状态决策图
+   * 选择不同的状态节点图配置 ID。
    *
    * GSTS 注: 在这些入口函数中，顺序行为调用通过【失败执行】引脚连接。虽然代码按顺序
    * 书写，但下一条语句并不是无条件执行；只有前面的行为执行失败，才会执行后面的语句。

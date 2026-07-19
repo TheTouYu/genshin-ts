@@ -27584,11 +27584,11 @@ export class ClientCreationStatusExecutionFlowFunctions<
   /**
    * If the Tactic executed in the previous frame has not finished, execution will continue until it completes; If the skill was executed in the previous frame, no process will happen
    *
-   * GSTS Note: This node has no successor execution output and must be the final statement of its execution branch.
+   * GSTS Note: This node has no successor execution output. If used, it must be the final statement of its execution branch.
    *
    * 继续执行前一帧行为: 若前一帧执行战术未执行完毕，会继续执行，直到完毕; 若前一帧执行技能，则不做处理
    *
-   * GSTS 注: 本节点没有后继执行引脚，必须作为当前执行分支的最后一条语句。
+   * GSTS 注: 本节点没有后继执行引脚。若使用本节点，它必须作为当前执行分支的最后一条语句。
    */
   continueExecutingPreviousFrameBehavior(): void {
     this.registry.registerNode({
@@ -34625,13 +34625,12 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
-   * GSTS Note: Autonomous Logic Parameter ID selects the matching start1…start10 branch
-   * of the referenced Creation Status graph. Model each branch as a distinct behavior state.
-   * For example, define start1 as the attack state that executes skills and start2 as the
-   * target-acquisition or pursuit state that moves toward the target; the decision graph
-   * switches between them with parameter 1 or 2.
-   * Example: f.switchToSelfExecutionStatus(true, configId(statusGraphId), 1n) selects start1;
-   * passing 2n selects start2.
+   * GSTS Note: Autonomous Logic Parameter ID is used only to switch an autonomous-logic
+   * configuration defined in the Creation Properties panel, such as combat-entry perception,
+   * leaving combat, or territory settings.
+   * To control different behaviors, either connect conditions to the [Execute] inputs of
+   * actions in one Creation Status graph, or split the behaviors into different Creation
+   * Status graphs and let the decision graph select different Status Node Graph Configuration IDs.
    *
    * 切换自身执行状态: 满足执行条件时，执行该配置ID对应的状态节点图
    *
@@ -34641,12 +34640,11 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
    *
-   * GSTS 注: 【自主逻辑参数序号】1…10 分别切换到目标造物状态节点图的
-   * start1…start10 行为入口。例如可以将 start1 作为调用技能的攻击状态，
-   * 将 start2 作为移动到目标的索敌或追击状态；
-   * 状态决策图分别传入 1 或 2 即可在两种状态之间切换。
-   * 例如 f.switchToSelfExecutionStatus(true, configId(statusGraphId), 1n) 会选择 start1；
-   * 传入 2n 则会选择 start2。
+   * GSTS 注: 【自主逻辑参数序号】仅用于切换造物属性面板中配置的自主逻辑，
+   * 例如入战感知、脱战、领地设置。
+   * 要控制不同逻辑，可以在同一个造物状态图中将不同条件连接到各行为节点的
+   * 【是否执行】参数；也可以把不同行为拆分到不同的造物状态图，再由状态决策图
+   * 选择不同的【状态节点图配置ID】。
    *
    * @param execute
    *
@@ -34654,9 +34652,11 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * @param statusNodeGraphConfigurationID Config ID for the Creation Status Node Graph
    *
    * 状态节点图配置ID: 造物状态节点图的配置ID
-   * @param autonomousLogicParameterID Use 1…10 to select start1…start10 of the referenced Creation Status graph.
+   * @param autonomousLogicParameterID Used only to switch an autonomous-logic configuration defined in the Creation
+   * Properties panel, such as combat-entry perception, leaving combat, or territory settings.
    *
-   * 自主逻辑参数序号: 取值 1…10，分别选择目标造物状态节点图的 start1…start10。
+   * 自主逻辑参数序号: 仅用于切换造物属性面板中配置的自主逻辑，
+   * 例如入战感知、脱战、领地设置。
    */
   switchToSelfExecutionStatus(
     execute: BoolValue,

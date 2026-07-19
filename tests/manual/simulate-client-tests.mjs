@@ -319,11 +319,16 @@ export function simulateControlFlow(mode) {
   console.log('注意：这验证的是数据图双分支构造，不具备 JavaScript 短路语义。')
 
   console.log('\n===== 造物状态与决策行为表 =====')
-  console.log('未处于战斗：决策图不切换状态。')
-  console.log('战斗中且水平距离 < 1.5：切到 start1，执行技能序号 1。')
-  console.log('战斗中且水平距离 >= 1.5：切到 start2，向目标移动。')
+  console.log('未处于战斗：决策图不切换造物属性面板中的自主逻辑。')
+  console.log('状态图 start1/start2 对应【按顺序唯一执行】的 1/2 号引脚，仅用于组织代码。')
+  console.log('把执行技能和移动语句全部放在 start1 中按失败执行顺序串联，效果相同。')
+  console.log('单一状态图可用不同条件连接各行为节点的【是否执行】参数。')
+  console.log('也可拆成多个状态图，由决策图传入不同状态节点图配置 ID。')
+  console.log('战斗中且水平距离 < 1.5：切换造物属性面板中的自主逻辑配置 1。')
+  console.log('战斗中且水平距离 >= 1.5：切换造物属性面板中的自主逻辑配置 2。')
   console.log('行为节点成功或持续执行：不会执行下一条。')
   console.log('行为节点失败：才沿【失败执行】进入“继续执行前一帧行为”。')
+  console.log('“继续执行前一帧行为”是专项测试节点，并非每个分支必需；使用时必须放在末尾。')
 
   inspectControlFlowGraphs(mode, config)
 }
@@ -383,7 +388,7 @@ function inspectControlFlowGraphs(mode, config) {
     .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
     .sort((left, right) => left - right)
   const statusTypes = new Set(status.nodes.map((node) => node.type))
-  const decisionSwitchIndexes = decision.nodes
+  const autonomousLogicIndexes = decision.nodes
     .filter((node) => node.type === 'switch_to_self_execution_status')
     .map((node) => Number(node.args?.[2]?.value))
     .sort((left, right) => left - right)
@@ -395,7 +400,7 @@ function inspectControlFlowGraphs(mode, config) {
   assert.ok(statusTypes.has('execute_skill'))
   assert.ok(statusTypes.has('tactic_move_to_the_target_entity'))
   assert.ok(statusTypes.has('continue_executing_previous_frame_behavior'))
-  assert.deepEqual(decisionSwitchIndexes, [1, 2])
+  assert.deepEqual(autonomousLogicIndexes, [1, 2])
 
   console.log('\n===== 生成 IR 结构检查 =====')
   console.log(`finite_loop 数量：${finiteLoopCount}`)
@@ -405,7 +410,9 @@ function inspectControlFlowGraphs(mode, config) {
   console.log('每个 finite_loop 恰好对应一次 return-gate 重置：PASS')
   console.log('三元表达式 true/false 两侧节点同时存在：PASS')
   console.log(`状态入口 source_index：${statusEntryIndexes.join(', ')}（对应 start1/start2）`)
-  console.log(`决策切换参数：${decisionSwitchIndexes.join(', ')}（对应 start1/start2）`)
+  console.log(
+    `决策切换参数：${autonomousLogicIndexes.join(', ')}（对应造物属性面板的自主逻辑配置）`
+  )
 }
 
 export function simulateFeatures(mode) {
@@ -620,11 +627,16 @@ function printFilterTable(config) {
 
 function printFeatureStateTable() {
   console.log('\n===== 造物状态与决策行为表 =====')
-  console.log('未处于战斗：决策图不切换状态。')
-  console.log('战斗中且水平距离 < 1.5：自主逻辑参数 1 → start1 → 执行技能序号 1。')
-  console.log('战斗中且水平距离 >= 1.5：自主逻辑参数 2 → start2 → 移动到目标。')
+  console.log('未处于战斗：决策图不切换造物属性面板中的自主逻辑。')
+  console.log('状态图 start1/start2 对应【按顺序唯一执行】的 1/2 号引脚，仅用于组织代码。')
+  console.log('把执行技能和移动语句全部放在 start1 中按失败执行顺序串联，效果相同。')
+  console.log('单一状态图可用不同条件连接各行为节点的【是否执行】参数。')
+  console.log('也可拆成多个状态图，由决策图传入不同状态节点图配置 ID。')
+  console.log('战斗中且水平距离 < 1.5：切换造物属性面板中的自主逻辑配置 1。')
+  console.log('战斗中且水平距离 >= 1.5：切换造物属性面板中的自主逻辑配置 2。')
   console.log('前一行为成功或持续执行：不会执行下一条顺序语句。')
   console.log('前一行为失败：才沿【失败执行】执行最后的“继续执行前一帧行为”。')
+  console.log('“继续执行前一帧行为”是专项测试节点，并非每个分支必需；使用时必须放在末尾。')
 }
 
 function inspectFeatureGraphs(mode, config) {
@@ -654,7 +666,7 @@ function inspectFeatureGraphs(mode, config) {
     .map((next) => (typeof next === 'number' ? 0 : (next.source_index ?? 0)))
     .sort((left, right) => left - right)
   const statusTypes = new Set(status.nodes.map((node) => node.type))
-  const decisionSwitchIndexes = decision.nodes
+  const autonomousLogicIndexes = decision.nodes
     .filter((node) => node.type === 'switch_to_self_execution_status')
     .map((node) => Number(node.args?.[2]?.value))
     .sort((left, right) => left - right)
@@ -663,7 +675,7 @@ function inspectFeatureGraphs(mode, config) {
   assert.ok(statusTypes.has('execute_skill'))
   assert.ok(statusTypes.has('tactic_move_to_the_target_entity'))
   assert.ok(statusTypes.has('continue_executing_previous_frame_behavior'))
-  assert.deepEqual(decisionSwitchIndexes, [1, 2])
+  assert.deepEqual(autonomousLogicIndexes, [1, 2])
   assert.ok(boolFilter.nodes.some((node) => node.type === 'node_graph_end_boolean'))
   assert.ok(intFilter.nodes.some((node) => node.type === 'node_graph_end_integer'))
   assert.equal(boolFilter.graph.evaluation_interval ?? 0.3, config.boolInterval)
@@ -673,8 +685,8 @@ function inspectFeatureGraphs(mode, config) {
   console.log(`图数量：${config.graphs.length}`)
   console.log(`客户端信号发送图数量：${config.signalGraphIds.length}`)
   console.log(`状态入口 source_index：${statusEntryIndexes.join(', ')}`)
-  console.log(`决策切换参数：${decisionSwitchIndexes.join(', ')}`)
-  console.log('攻击、追击、失败兜底节点：PASS')
+  console.log(`决策切换参数：${autonomousLogicIndexes.join(', ')}`)
+  console.log('执行技能、移动和失败兜底节点：PASS')
   console.log('bool/int filter 结束节点：PASS')
   console.log('图 ID、模式、子类型、信号节点：PASS')
 }

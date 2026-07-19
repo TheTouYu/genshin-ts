@@ -145,18 +145,22 @@ for (const [subType, className] of Object.entries(statusClassNames)) {
     if (
       requiresTerminalNote &&
       (!source.includes('GSTS Note: This node has no successor execution output') ||
-        !source.includes('GSTS 注: 本节点没有后继执行引脚'))
+        !source.includes('If used, it must be the final statement') ||
+        !source.includes('若使用本节点，它必须作为当前执行分支的最后一条语句'))
     ) {
       errors.push(`status terminal-flow JSDoc incomplete: ${subType}.${methodName}`)
     }
     if (
       item.nodeType === 'switch_to_self_execution_status' &&
-      (!source.includes('define start1 as the attack state') ||
-        !source.includes('例如可以将 start1 作为调用技能的攻击状态') ||
-        !source.includes('将 start2 作为移动到目标的索敌或追击状态') ||
-        !source.includes('configId(statusGraphId)'))
+      (!source.includes('Autonomous Logic Parameter ID is used only') ||
+        !source.includes('Creation Properties panel') ||
+        !source.includes('connect conditions to the [Execute] inputs') ||
+        !source.includes('select different Status Node Graph Configuration IDs') ||
+        !source.includes('仅用于切换造物属性面板中配置的自主逻辑') ||
+        !source.includes('将不同条件连接到各行为节点的') ||
+        !source.includes('选择不同的【状态节点图配置ID】'))
     ) {
-      errors.push(`status-switch behavior example JSDoc incomplete: ${subType}.${methodName}`)
+      errors.push(`status-switch autonomous-logic JSDoc incomplete: ${subType}.${methodName}`)
     }
   }
 }

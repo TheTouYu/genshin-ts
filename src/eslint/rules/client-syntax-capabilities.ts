@@ -285,8 +285,8 @@ const rule: Rule.RuleModule = {
             node,
             message: formatMessage(
               options.lang,
-              '继续执行前一帧行为没有后继执行引脚，必须作为当前执行分支的最后一条语句',
-              'continueExecutingPreviousFrameBehavior has no successor execution output and must be the final statement in its branch'
+              '继续执行前一帧行为没有后继执行引脚；若使用该节点，它必须作为当前执行分支的最后一条语句',
+              'continueExecutingPreviousFrameBehavior has no successor execution output; when used, it must be the final statement in its branch'
             )
           })
           return

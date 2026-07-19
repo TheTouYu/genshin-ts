@@ -1751,9 +1751,15 @@ function creationSkill(
 /**
  * Register a creation-status client graph with the default options.
  *
- * GSTS Note: Treat `start1`…`start10` as distinct behavior states. For example, use `start1` as
- * the attack state that calls `executeSkill`, and `start2` as the target-acquisition or pursuit
- * state that calls `tacticMoveToTheTargetEntity`.
+ * GSTS Note: `start1`…`start10` map to the editor's ordered-exclusive output pins 1…10 and
+ * execute in pin order. They only split and organize code; they do not represent switchable
+ * behavior states. Writing the same statements sequentially in one `start1` handler produces
+ * the same behavior.
+ *
+ * GSTS Note: In one status graph, connect different conditions to each action's [Execute] input
+ * to control attack, target acquisition, and other logic. Alternatively, split different
+ * behaviors into separate status graphs and let a Creation Status Decision graph select the
+ * required status graph.
  *
  * GSTS Note: Although action calls are written as sequential TypeScript statements, the next
  * statement is not executed unconditionally. It is connected to the preceding action's [Failure]
@@ -1763,9 +1769,13 @@ function creationSkill(
  *
  * 使用默认配置注册造物状态客户端节点图。
  *
- * GSTS 注: 例如，可以用 `start1` 表示调用 `executeSkill` 的攻击状态，用 `start2`
- * 表示调用 `tacticMoveToTheTargetEntity` 的索敌
- * 或追击状态。
+ * GSTS 注: `start1`…`start10` 分别对应编辑器【按顺序唯一执行】的 1…10 号执行引脚，
+ * 并按引脚顺序执行。这些入口仅用于拆分和组织代码，不表示可切换的行为状态。
+ * 将相同语句全部写在单一 `start1` 中按顺序串联，也能得到相同效果。
+ *
+ * GSTS 注: 可以在一个造物状态图中，把不同条件连接到各行为节点的【是否执行】参数，
+ * 控制造物的攻击、索敌等不同逻辑；也可以把不同行为拆分到不同的造物状态图，
+ * 再由造物状态决策图选择需要执行的状态图。
  *
  * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，但下一条
  * 语句并不是无条件执行，而是连接到前一个行为节点的【失败执行】引脚；只有前面的行为
@@ -1773,23 +1783,32 @@ function creationSkill(
  * 技能成功或仍在执行时不会继续。
  *
  * @example
- * const status = g.creationStatus()
- * status.on('start1', (_evt, f) => {
- *   f.executeSkill(true, 1n)
- *   f.continueExecutingPreviousFrameBehavior() // 仅 executeSkill 失败时执行
- * })
- * status.on('start2', (_evt, f) => {
- *   f.tacticMoveToTheTargetEntity(true, f.getTargetEntity(), 1, TacticSpeed.Run, 360, 'pursuit', false)
+ * g.creationStatus().on('start1', (_evt, f) => {
+ *   f.executeSkill(f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5, 1n)
+ *   f.tacticMoveToTheTargetEntity(
+ *     f.checkTheHorizontalDistanceFromSelfToTarget() >= 1.5,
+ *     f.getTargetEntity(),
+ *     1,
+ *     TacticSpeed.Run,
+ *     360,
+ *     'pursuit',
+ *     false
+ *   )
  * })
  */
 function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
 /**
  * Register a creation-status client graph. / 注册造物状态客户端节点图。
  *
- * GSTS Note: Use `start1`…`start10` for the editor's ordered-exclusive output pins 1…10, and
- * treat each entry as a distinct behavior state. For example, use `start1` as the attack state
- * that calls `executeSkill`, and `start2` as the target-acquisition or pursuit state that calls
- * `tacticMoveToTheTargetEntity`.
+ * GSTS Note: `start1`…`start10` map to the editor's ordered-exclusive output pins 1…10 and
+ * execute in pin order. They only split and organize code; they do not represent switchable
+ * behavior states. Writing the same statements sequentially in one `start1` handler produces
+ * the same behavior.
+ *
+ * GSTS Note: In one status graph, connect different conditions to each action's [Execute] input
+ * to control attack, target acquisition, and other logic. Alternatively, split different
+ * behaviors into separate status graphs and let a Creation Status Decision graph select the
+ * required status graph.
  *
  * GSTS Note: Although action calls are written as sequential TypeScript statements, the next
  * statement is not executed unconditionally. It is connected to the preceding action's [Failure]
@@ -1797,9 +1816,13 @@ function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
  * when the skill cannot execute because it is on cooldown, but not when the skill succeeds or
  * remains active.
  *
- * GSTS 注: 使用 `start1`…`start10` 对应编辑器【按顺序唯一执行】的 1…10 号引脚。例如
- * 可以用 `start1` 表示调用 `executeSkill` 的攻击状态，用 `start2` 表示调用
- * `tacticMoveToTheTargetEntity` 的索敌或追击状态。
+ * GSTS 注: `start1`…`start10` 分别对应编辑器【按顺序唯一执行】的 1…10 号执行引脚，
+ * 并按引脚顺序执行。这些入口仅用于拆分和组织代码，不表示可切换的行为状态。
+ * 将相同语句全部写在单一 `start1` 中按顺序串联，也能得到相同效果。
+ *
+ * GSTS 注: 可以在一个造物状态图中，把不同条件连接到各行为节点的【是否执行】参数，
+ * 控制造物的攻击、索敌等不同逻辑；也可以把不同行为拆分到不同的造物状态图，
+ * 再由造物状态决策图选择需要执行的状态图。
  *
  * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，但下一条
  * 语句并不是无条件执行，而是连接到前一个行为节点的【失败执行】引脚；只有前面的行为
@@ -1807,13 +1830,17 @@ function creationStatus(): ClientStartApi<'creation_status', 'en', 'beyond'>
  * 技能成功或仍在执行时不会继续。
  *
  * @example
- * const status = g.creationStatus({ id: CREATION_STATUS_GRAPH_ID })
- * status.on('start1', (_evt, f) => {
- *   f.executeSkill(true, 1n)
- *   f.continueExecutingPreviousFrameBehavior() // 仅 executeSkill 失败时执行
- * })
- * status.on('start2', (_evt, f) => {
- *   f.tacticMoveToTheTargetEntity(true, f.getTargetEntity(), 1, TacticSpeed.Run, 360, 'pursuit', false)
+ * g.creationStatus({ id: CREATION_STATUS_GRAPH_ID }).on('start1', (_evt, f) => {
+ *   f.executeSkill(f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5, 1n)
+ *   f.tacticMoveToTheTargetEntity(
+ *     f.checkTheHorizontalDistanceFromSelfToTarget() >= 1.5,
+ *     f.getTargetEntity(),
+ *     1,
+ *     TacticSpeed.Run,
+ *     360,
+ *     'pursuit',
+ *     false
+ *   )
  * })
  *
  * @param options Client graph options. / 客户端节点图配置。
@@ -1837,9 +1864,19 @@ function creationStatus(
 /**
  * Register a creation-status-decision client graph with the default options.
  *
- * GSTS Note: A decision graph can switch a Creation Status graph between behavior entries through
- * `switchToSelfExecutionStatus`. For example, pass Autonomous Logic Parameter ID 1 to select the
- * attack state at `start1`, or 2 to select the target-pursuit state at `start2`.
+ * GSTS Note: `start1`…`start10` map to the editor's ordered-exclusive output pins 1…10 and
+ * execute in pin order. They only split and organize code; they do not represent switchable
+ * behavior states. Writing the same statements sequentially in one `start1` handler produces
+ * the same behavior.
+ *
+ * GSTS Note: The Autonomous Logic Parameter ID of `switchToSelfExecutionStatus` is used only to
+ * switch an autonomous-logic configuration defined in the Creation Properties panel, such as
+ * combat-entry perception, leaving combat, or territory settings.
+ *
+ * GSTS Note: To switch between attack, target acquisition, or other behaviors with a decision
+ * graph, place those behaviors in separate Creation Status graphs and pass different Status
+ * Node Graph Configuration IDs. Within one status graph, conditions can instead be connected
+ * directly to each action's [Execute] input.
  *
  * GSTS Note: Sequential action statements also use [Failure] outputs. Although they are written
  * in order, the following statement is not executed unconditionally and runs only if the
@@ -1847,44 +1884,88 @@ function creationStatus(
  *
  * 使用默认配置注册造物状态决策客户端节点图。
  *
- * GSTS 注: 状态决策图可通过 `switchToSelfExecutionStatus` 切换造物状态图的行为入口。
- * 例如传入【自主逻辑参数序号】1 切换到 `start1` 的攻击状态，传入 2 切换到 `start2`
- * 的索敌或追击状态。
+ * GSTS 注: `start1`…`start10` 分别对应编辑器【按顺序唯一执行】的 1…10 号执行引脚，
+ * 并按引脚顺序执行。这些入口仅用于拆分和组织代码，不表示可切换的行为状态。
+ * 将相同语句全部写在单一 `start1` 中按顺序串联，也能得到相同效果。
+ *
+ * GSTS 注: `switchToSelfExecutionStatus` 的【自主逻辑参数序号】仅用于切换
+ * 造物属性面板中配置的自主逻辑，例如入战感知、脱战、领地设置。
+ *
+ * GSTS 注: 若要用状态决策图在攻击、索敌等逻辑之间切换，应将这些行为拆分到不同的
+ * 造物状态图，并传入不同的【状态节点图配置 ID】。若只使用一个状态图，也可以直接
+ * 把不同条件连接到各行为节点的【是否执行】参数。
  *
  * GSTS 注: 顺序行为语句同样连接【失败执行】引脚。虽然 TypeScript 代码按顺序书写，
  * 但下一条语句并不是无条件执行；只有前面的行为执行失败，才会执行后面的语句。
  *
  * @example
  * g.creationStatusDecision().on('start1', (_evt, f) => {
- *   f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), shouldAttack ? 1n : 2n)
+ *   if (f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5) {
+ *     f.switchToSelfExecutionStatus(
+ *       true,
+ *       ATTACK_STATUS_GRAPH_ID,
+ *       1
+ *     )
+ *   } else {
+ *     f.switchToSelfExecutionStatus(
+ *       true,
+ *       TARGET_ACQUISITION_STATUS_GRAPH_ID,
+ *       1
+ *     )
+ *   }
  * })
  */
 function creationStatusDecision(): ClientStartApi<'creation_status_decision', 'en', 'beyond'>
 /**
  * Register a creation-status-decision client graph. / 注册造物状态决策客户端节点图。
  *
- * GSTS Note: Use `start1`…`start10` for the editor's ordered-exclusive output pins 1…10; lower
- * numbers have higher priority. A decision graph can switch a Creation Status graph between
- * behavior entries through `switchToSelfExecutionStatus`. For example, pass Autonomous Logic
- * Parameter ID 1 to select the attack state at `start1`, or 2 to select the target-pursuit state
- * at `start2`.
+ * GSTS Note: `start1`…`start10` map to the editor's ordered-exclusive output pins 1…10 and
+ * execute in pin order. They only split and organize code; they do not represent switchable
+ * behavior states. Writing the same statements sequentially in one `start1` handler produces
+ * the same behavior.
+ *
+ * GSTS Note: The Autonomous Logic Parameter ID of `switchToSelfExecutionStatus` is used only to
+ * switch an autonomous-logic configuration defined in the Creation Properties panel, such as
+ * combat-entry perception, leaving combat, or territory settings.
+ *
+ * GSTS Note: To switch between attack, target acquisition, or other behaviors with a decision
+ * graph, place those behaviors in separate Creation Status graphs and pass different Status
+ * Node Graph Configuration IDs. Within one status graph, conditions can instead be connected
+ * directly to each action's [Execute] input.
  *
  * GSTS Note: Sequential action statements also use [Failure] outputs. Although they are written
  * in order, the following statement is not executed unconditionally and runs only if the
  * preceding action fails.
  *
- * GSTS 注: 使用 `start1`…`start10` 对应编辑器【按顺序唯一执行】的 1…10 号引脚，编号越小
- * 优先级越高。状态决策图可通过 `switchToSelfExecutionStatus` 切换造物状态图的行为入口。
- * 例如传入【自主逻辑参数序号】1 切换到 `start1` 的攻击状态，传入 2 切换到 `start2`
- * 的索敌或追击状态。
+ * GSTS 注: `start1`…`start10` 分别对应编辑器【按顺序唯一执行】的 1…10 号执行引脚，
+ * 并按引脚顺序执行。这些入口仅用于拆分和组织代码，不表示可切换的行为状态。
+ * 将相同语句全部写在单一 `start1` 中按顺序串联，也能得到相同效果。
+ *
+ * GSTS 注: `switchToSelfExecutionStatus` 的【自主逻辑参数序号】仅用于切换
+ * 造物属性面板中配置的自主逻辑，例如入战感知、脱战、领地设置。
+ *
+ * GSTS 注: 若要用状态决策图在攻击、索敌等逻辑之间切换，应将这些行为拆分到不同的
+ * 造物状态图，并传入不同的【状态节点图配置 ID】。若只使用一个状态图，也可以直接
+ * 把不同条件连接到各行为节点的【是否执行】参数。
  *
  * GSTS 注: 顺序行为语句同样连接【失败执行】引脚。虽然 TypeScript 代码按顺序书写，
  * 但下一条语句并不是无条件执行；只有前面的行为执行失败，才会执行后面的语句。
  *
  * @example
  * g.creationStatusDecision({ id: CREATION_STATUS_DECISION_GRAPH_ID }).on('start1', (_evt, f) => {
- *   const nextState = f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5 ? 1n : 2n
- *   f.switchToSelfExecutionStatus(true, configId(CREATION_STATUS_GRAPH_ID), nextState)
+ *   if (f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5) {
+ *     f.switchToSelfExecutionStatus(
+ *       true,
+ *       ATTACK_STATUS_GRAPH_ID,
+ *       1
+ *     )
+ *   } else {
+ *     f.switchToSelfExecutionStatus(
+ *       true,
+ *       TARGET_ACQUISITION_STATUS_GRAPH_ID,
+ *       1
+ *     )
+ *   }
  * })
  *
  * @param options Client graph options. / 客户端节点图配置。
