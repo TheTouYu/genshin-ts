@@ -1,6 +1,6 @@
 # 客户端节点支持计划
 
-> 状态：当前实现 / 已验证（WP0、WP1、WP1-Sync、TS→IR→GIA 信号最小闭环已完成；客户端已有地图信号的标量/entity-GUID/列表组合图已完成自动回归和用户游戏核验）
+> 状态：当前推荐 / 已验证（WP0、WP1、WP1-Sync、WP-B、WP-C、TS→IR→GIA 信号闭环已完成；客户端已有地图信号的标量/entity-GUID/列表组合图和共享布局已完成自动回归与用户游戏核验）
 > 来源：当前代码实现 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 目标地图信号资源 + 用户游戏验证
 > 最近校验：2026-07-19
 > 适用范围：gsts 客户端节点支持实施计划；生产 TS→Client IR→GIA 当前仅覆盖本文记录的客户端 signal/list/data-source 组合，不代表全量客户端节点支持
@@ -12,7 +12,7 @@
 
 当前必须明确区分：
 
-- **当前代码事实**：当前 IR 已预留客户端文档类型，但生产运行时和 Stage 3 尚未形成可工作的客户端路径。
+- **当前代码事实**：`g.client()`、Client IR、客户端 Stage 3 lowering 和共享布局路径已经存在，并覆盖本文明确列出的 skill signal/list/data-source 组合；未覆盖节点族仍不得从该闭环外推。
 - **上游候选事实**：第三方原仓库包含客户端节点、类型和图编码候选，但其数据版本和准确性不能替代真实编辑器样本。
 - **已冻结设计决策**：本文“已冻结方案”各节记录本轮共同确认的产品和架构方向。
 - **真实 GIA 观察**：两个客户端 `skill` 图样本已提供图级 metadata、节点 identity、物理 pin 和 wire round-trip 基线；结论不得外推到未取样节点族。
@@ -78,31 +78,36 @@ export interface ClientGraphInfo {
 }
 ```
 
-这只证明跨阶段类型契约预留了客户端分支，不证明运行时能产生它，也不证明 Stage 3 能正确消费它。
+这只说明 Client IR 是跨阶段契约的一部分；当前支持范围还需要结合运行时、Stage 3、真实 GIA、自动回归和游戏验证共同判断。
 
-### 2.2 当前运行时缺口
+### 2.2 当前运行时实现
 
-当前 `src/runtime/core.ts` 只有 `g.server()`、服务器 registry、服务器事件和
-`buildServerGraphRegistriesIRDocuments()`。尚无：
+当前 `src/runtime/client.ts` 已提供：
 
-- `g.client()`；
+- `g.client({ type: 'skill', id })`；
 - `ClientGraphRegistry`；
 - `ClientExecutionFlowFunctions`；
 - `onStart()`；
-- 客户端 IR builder；
-- 客户端节点 allowlist 和类型化定义。
+- 客户端语义节点和值的 Client IR builder；
+- 当前 signal/list/data-source 支持范围内的值校验和列表上限校验。
 
-### 2.3 当前 Stage 3 缺口
+该运行时只覆盖本文冻结的客户端 skill 生产范围，不等于全量客户端节点 allowlist。
 
-`src/compiler/ir_to_gia_transform/index.ts` 当前虽然接收 `IRDocument`，但图构造路径仍以服务器图为中心：
+### 2.3 当前 Stage 3 实现
 
-- 根据 server subtype 选择 `server/status/class/item`；
-- 创建服务器 `Graph`；
-- 使用服务器节点 ID 解析；
-- 使用服务器 `VarType` 和服务器 graph metadata；
-- Composite、signal 和 graph variables 也都是服务器语义。
+`src/compiler/ir_to_gia_transform/index.ts` 已按 `ir.graph.type` 分发客户端路径；客户端由
+`src/compiler/client_ir_to_gia.ts` 消费 Client IR，并通过 `gia_vendor.ts` 使用客户端 legacy
+materializer。客户端路径独立处理：
 
-因此当前 `ClientIRDocument` 进入该路径时不能得到可信的客户端 GIA。
+- client skill graph metadata；
+- 客户端节点 identity；
+- `ClientVarType`、`VarBase` 和 `ConcreteBase`；
+- signal/list/data-source 的物理 pin；
+- `OutParam → InParam` 数据边和 `OutFlow → InFlow` 控制边；
+- 共享布局算法及客户端 raw 坐标写入。
+
+服务端 Composite、server graph variables 和服务器 `VarType` 不进入客户端普通 lowering。尚未
+开放的客户端节点族仍必须通过独立 adapter、真实 GIA 和分层回归后才能加入公共 API。
 
 ### 2.4 当前 vendored 能力边界
 
@@ -858,7 +863,70 @@ round-trip。复制到游戏导出目录后，用户手动导入客户端 skill 
 
 已验证的 focused regression：`tests/composite/test-client-double-branch-materializer.ts`。
 
-## 11. 验证和完成标准
+## 11. WP-B/WP-C 客户端骨架审计与实现（2026-07-19）
+
+> 状态：已验证 / 当前实现
+> 来源：当前代码实现 + 自动回归 + 真实客户端 GIA + 用户游戏验证；客户端 GIA 事实沿用本文第 10 节
+> 最近校验：2026-07-19
+> 适用范围：当前 `g.client()` → Client IR → client GIA 路径
+
+### 11.1 当前职责边界
+
+当前调用链为：
+
+```text
+g.client()
+→ runtime/client.ts 的 ClientGraphRegistry
+→ ClientNode / ClientValueIR
+→ gs_to_ir_json_transform/runner.ts
+→ ir_to_gia_transform/index.ts 的 client dispatch
+→ client_ir_to_gia.ts
+→ gia_vendor.ts → vendor client_legacy.ts → GIA
+```
+
+当前代码事实：
+
+- `runtime/client.ts` 同时承担公共 API、registry、语义节点记录和值转换；本轮保留该入口以避免重写服务器 runtime，但 Stage 3 不再依赖其 GIA 细节。
+- `IR.d.ts` 已用 `literal`、`conn`、`list` discriminant 区分三类客户端值；`list.encoding` 区分 direct-list 与 assembly-list。更严格的按 `ValueType` 泛型收紧留作新增节点族工作包。
+- `client_ir_to_gia.ts` 负责图级 metadata、客户端节点 adapter、ClientVarType/VarBase、signal/list 特殊布局和边物化；目标地图 signal identity/CPI 仍只来自 `SignalRegistry`，不由 GIA 编码器猜测。
+- `__clientNodeType` 是调试用的 materializer 内部字段，不进入 protobuf；它不参与节点 identity，后续可在 adapter registry 完成后移除。
+- `signal_registry.ts` 是 signal name/schema/serverId/CPI 的生产边界；地图读取和注入不属于 `clientIrToGia()`。
+
+### 11.2 布局模块复用（本轮完成）
+
+新增 `src/compiler/client_layout.ts` 作为客户端布局适配层。它只把 Client IR 的执行拓扑和数据
+连接转换为共享布局引擎可消费的 `IRNode`，然后复用：
+
+```text
+client_layout.ts
+→ buildExecutionGraph()
+→ layoutPositions()
+→ client node x/y
+```
+
+因此客户端与服务器图共享同一套布局模块、数据消费者布局和执行链布局，不再使用 signal 节点的
+硬编码坐标。布局适配层不读取 protobuf pin，也不改变 nodeIndex、ClientVarType、CPI 或连接方向；
+这是“复用布局算法、隔离客户端编码”的边界。
+
+### 11.3 本轮 WP-C 范围与不变量
+
+- 保留 `client_ir_to_gia.ts` 作为 Stage 3 client façade，并将布局从编码逻辑中抽离。
+- 所有客户端数据边继续编码为 `OutParam → InParam`，控制边继续编码为 `OutFlow → InFlow`。
+- signal、direct-list、assembly-list 的现有物理布局和目标地图 signal registry 契约不变。
+- 不新增 Fixed、Variant、普通执行节点或查询节点；现有 `get_self_entity`、`query_guid_by_entity`、`assembly_list`、signal 是唯一生产支持范围。
+- 不注入、不修改 `user_edit/`、不修改 `src/thirdparty/`，不把真实样本 nodeIndex、地图 ID 或样本值写成隐式特判。
+
+### 11.4 证据分层
+
+- **当前源码事实**：`client_layout.ts` 复用 `buildExecutionGraph()`/`layoutPositions()`；`client_ir_to_gia.ts` 通过 client dispatch 生成 GIA。
+- **自动回归事实**：`tests/runtime/test-client-layout.ts`、交接包四个 runtime 回归和
+  `tests/composite/test-client-signal-materializer.ts` 已通过；完整三信号回归还会检查 GIA raw
+  坐标没有被错误缩放到个位数。
+- **真实 GIA 事实**：本文第 10 节记录的两个 signal 参考样本和目标 `.gil` registry；本轮未新增真实 GIA 结论。
+- **游戏证据**：用户已确认最新共享布局修复版 `Beyond_Local_Export/gsts-client-full-signal-ts-complete-3signals.gia` 游戏测试通过，证明当前三信号组合的布局、连线和行为可用。
+- **待验证**：空列表/动态列表/超过 10 项列表，以及未开放节点族；这些不确定性不影响当前已验证闭环。
+
+## 12. 验证和完成标准
 
 ### 11.1 首批证据链
 
@@ -1193,10 +1261,11 @@ pin 的路径。vendor 节点 ID 表提供的 concrete 分别为 `568`、`569`�
 `测试` 字符串，`bool_list` 为两个元素 `false/true`，`vec3_list` 为一个 `(3,0,2)` 向量；
 未使用槽位保留对应类型的默认值。该候选已通过自动结构验证，并已由用户确认游戏测试通过。
 
-### TS → IR → GIA 直接生成的前置契约（下一工作包基线）
+### TS → IR → GIA 生产契约（当前扩展基线）
 
-本节把本轮 materializer 已确认的客户端信号规律转换为生产管线可消费的契约。它描述的是
-`g.client()`/Client IR/Stage 3 下一步的输入和输出边界，**不是**声称这些生产入口已经存在。
+本节把真实 materializer 和当前生产路径已确认的客户端信号规律固化为后续节点/API 可复用的契约。
+它描述当前 `g.client()`/Client IR/Stage 3 的输入和输出边界；新增节点族必须沿此边界扩展，不得绕过
+语义 IR 直接拼接 GIA。
 
 #### 1. 生产 IR 应表达的语义节点
 
@@ -1349,11 +1418,11 @@ Beyond_Local_Export/gsts-client-full-signal-ts-complete-3signals.gia
 - **游戏验证**：用户确认最新 TS 生成版本大体测试通过，并在补充 entity 连接和多元素 bool/vec3 列表后完成最新测试通过；
 - **未覆盖**：除本文列出的 signal/list/data-source 路径外的客户端节点、跨地图 signal registry、客户端 Composite、Graph variables、注入和多版本兼容。
 
-该闭环证明生产入口已经存在，但当前实现仍是**最小工作包代码**，不视为最终客户端架构。下一步必须先完成当前实现审计和保行为骨架化，再继续扩大 API。
+该闭环证明当前支持范围内的生产入口和客户端架构骨架已经存在。后续新增客户端知识必须沿本文的 runtime/IR、Stage 3 adapter、共享布局、真实 GIA、自动回归和游戏验证分层记录，不得把当前闭环推广为全量客户端节点支持。
 
-## 16. 客户端架构骨架工作包（下一阶段）
+## 16. 客户端架构骨架（当前已完成，后续扩展基线）
 
-下一阶段固定为两个工作包，不在骨架完成前继续无序增加客户端节点：
+以下两个工作包已完成，后续新增客户端节点必须在此骨架上扩展，不复制布局算法或绕过 adapter 边界：
 
 ### WP-B：当前实现审计
 
@@ -1399,19 +1468,19 @@ ClientGraphMaterializer
 - 真实 GIA 样本用于确认规律，不把 nodeIndex、样本值、目标地图 ID 写成生产隐式特判；
 - 骨架重构期间不执行注入，不修改 `user_edit`，不手改 `src/thirdparty/`。
 
-WP-B/WP-C 的详细执行入口见下一轮 handover：
-`/tmp/genshin-ts-handoff-2026-07-19-client-architecture-skeleton.md`。
+WP-B/WP-C 的历史执行记录保留在：
+`/tmp/genshin-ts-handoff-2026-07-19-client-architecture-skeleton.md`；当前权威行为以本文、`client-gia-encoding.md`、源码和 focused tests 为准。
 
 ## 17. Phase 0 冻结状态
 
-截至 2026-07-17：
+截至 2026-07-19：
 
 - 两份真实 client skill GIA 已完成文件内 ID 配对、语义解码、上游候选对账和逐字节 wire round-trip；
 - 两份样本均为 `gameVersion="6.7.0"`，原 `6.6.0` 计划假设已撤销；
 - “变量版本”明确为节点链且 `graphValues=[]`，不扩大 Client Graph variables 范围；
-- 当前生产 TS→Client IR→GIA 最小路径已存在并经用户游戏验证；
+- 当前生产 TS→Client IR→GIA signal/list/data-source 路径、共享布局和最新三信号产物已存在并经用户游戏验证；
 - `g.client()` 当前只覆盖本计划记录的 skill signal/list/data-source 最小闭环，不宣称全量客户端节点支持；
-- 客户端路径仍未完成最终架构骨架化，下一阶段执行 WP-B/WP-C；
+- 客户端路径已完成 WP-B/WP-C 保行为骨架化；后续按本文框架扩展节点族；
 - 只使用已审查并获用户授权的 `4033eaf` 最小 vendor 客户端快照；
 - 不执行注入或游戏文件操作。
 
@@ -1437,7 +1506,7 @@ focused 回归均通过，项目级真实样本 round-trip 也使用两份原始
 `tests/composite/test-client-double-branch-materializer.ts`，覆盖 shell `200056`/kernel
 `2000`、True/False OutFlow 物理 index、condition pin 和 protobuf wire round-trip。该回归对应的
 两份候选 GIA 已由用户在游戏中验证 True 和 False 分支行为。运行时、Stage 1 和生产 Stage 3 仍未
-修改，`g.client()` 仍未公开。
+修改；当前 `g.client()` 已在本文冻结的 skill signal/list/data-source 范围内作为生产入口使用，尚未开放的节点族仍不公开。
 
 2026-07-19，客户端已有地图信号专项新增 `tests/composite/test-client-signal-materializer.ts`。
 该回归读取目标地图 `1073741848.gil` 的三个已注册信号，验证 `accessories=[]`、目标地图
@@ -1446,4 +1515,4 @@ assembly、顺序执行链和 protobuf/container round-trip。默认不写出 GI
 组合候选，避免在游戏导出目录生成 standalone 参数样本。最终组合候选
 `Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数_实体GUID.gia`（最终自动回归产物
 SHA-256：`30e1fca4f97047559c990ecb8a452aea4b126957bbac5aa965cd65f3417e94a4`）已由用户确认
-编辑器/游戏测试通过。该证据只覆盖目标地图已有信号和本节列出的参数族；当前 TS→Client IR→GIA 最小 signal lowering 已实现并由用户游戏验证，但不等于全量客户端节点已开放。下一步按 WP-B/WP-C 完成实现审计和客户端架构骨架化。
+编辑器/游戏测试通过。该证据只覆盖目标地图已有信号和本节列出的参数族；当前 TS→Client IR→GIA signal lowering、共享布局和对应游戏行为已由用户验证，但不等于全量客户端节点已开放。后续按本文已完成的 WP-B/WP-C 骨架继续扩展，并为每个新节点族补齐真实 GIA、自动回归和游戏证据。

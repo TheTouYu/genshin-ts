@@ -1,4 +1,5 @@
 import { loadGiaProto } from '../injector/proto.js'
+import { clientLayoutPositions } from './client_layout.js'
 import type { ClientIRDocument, ClientNode, ClientValueIR } from '../runtime/IR.js'
 import type { ValueType } from '../runtime/IR.js'
 import type { SignalRegistry, RegisteredSignalDefinition } from './signal_registry.js'
@@ -279,8 +280,6 @@ function signalNode(node: ClientNode, signal: RegisteredSignalDefinition, index:
     shellId: signal.serverId,
     kernelId: 2000,
     pins,
-    x: 36.8 + index * 520,
-    y: -319.4
   }) as any
   result.genericId.kind = 22001
   result.signalVersion = 1
@@ -328,6 +327,19 @@ export function clientIrToGia(ir: ClientIRDocument, signalRegistry: SignalRegist
     signalIndex++
   }
   if (signalIndex === 0) throw new Error('[error] client graph must contain a signal node')
+  const positions = clientLayoutPositions(nodes)
+  for (const node of nodes) {
+    const materializedNodeIndex = materializedIndex.get(node.id)
+    if (materializedNodeIndex === undefined) continue
+    const materialized = outputNodes.find((candidate) => candidate.nodeIndex === materializedNodeIndex)
+    const position = positions.get(node.id)
+    if (!materialized || !position) continue
+    // clientLegacyNode() returns the protobuf GraphNode directly. Unlike the
+    // server Graph encoder, it does not apply the 300/200 wire conversion.
+    materialized.x = position[0]
+    materialized.y = position[1]
+  }
+
   outputNodes.sort((a, b) => a.nodeIndex - b.nodeIndex)
   const root = clientLegacySkillGraph({
     graphId: ir.graph.id,

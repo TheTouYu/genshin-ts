@@ -1,9 +1,9 @@
 # 客户端 GIA 编码契约
 
-> 状态：已验证 / 下一工作包当前编码基线
-> 来源：真实客户端 GIA 观察 + 当前 materializer 实现 + 自动回归 + 用户编辑器/游戏验证
+> 状态：当前推荐 / 已验证
+> 来源：真实客户端 GIA 观察 + 当前生产实现 + 自动回归 + 用户编辑器/游戏验证
 > 最近校验：2026-07-19
-> 适用范围：目标地图已有客户端信号的 `sendSignalToServerNodeGraph` 候选编码；尚不等同于生产 `g.client()` 或全量客户端节点支持
+> 适用范围：当前客户端 skill 的 signal/list/data-source/共享布局生产路径；不推广到全量客户端节点、任意地图 signal 或客户端注入
 
 本文是客户端 GIA **编码细节**的权威文档。客户端整体路线、`g.client()`、Client IR 和 Stage 1/3 工作包见
 [`client-node-support-plan.md`](./client-node-support-plan.md)。
@@ -289,14 +289,25 @@ assemblyList([vec3([3, 0, 2])], 'vec3')
 
 空列表、多于 10 个元素、literal/conn 混合列表以及动态列表的游戏行为尚未作为独立证据冻结；生产 API 设计前应分别建立边界回归。
 
-## 6. 生产 TS → Client IR → GIA 前置模型
+## 6. 生产 TS → Client IR → GIA 扩展模型
 
 ### 6.1 当前生产 lowering 的列表策略
 
 > 状态：当前实现
 > 来源：当前代码实现 + 真实 GIA 结构回归
 > 最近校验：2026-07-19
-> 适用范围：当前 `ClientIRDocument` → 客户端 GIA lowering；未完成编辑器/游戏核验
+> 适用范围：当前 `ClientIRDocument` → 客户端 GIA lowering；本文列出的共享布局和三信号组合已完成编辑器/游戏核验
+
+客户端布局现在复用服务器布局引擎：`src/compiler/client_layout.ts` 将 Client IR 拓扑适配为
+`IRNode`，调用 `buildExecutionGraph()` 和 `layoutPositions()`，再由 client Stage 3 写入节点坐标。
+布局复用不改变客户端 node identity、pin、CPI 或连接方向；当前自动回归为
+`tests/runtime/test-client-layout.ts` 和 `tests/runtime/test-client-full-signal-ir-to-gia.ts`。
+
+坐标单位边界（2026-07-19 修复）：`layoutPositions()` 返回的坐标已经是 GIA raw 坐标单位。
+服务器路径调用 `GiaNode.setPos()` 时需要先除以 `300/200`，因为后续 server `node_body()` 会乘回
+这两个比例；客户端 `clientLegacyNode()` 直接生成 protobuf `GraphNode`，不会再次乘回，因此客户端
+必须原样写入 `x/y`。客户端错误地除以 `300/200` 会把 `800/350` 级别的布局压成个位数，导致游戏内
+节点重叠。回归现在检查生成 GIA 中 signal/data 节点存在大于 `100` 的 raw 坐标，避免只检查坐标非零。
 
 `src/runtime/IR.d.ts` 的 `ClientValueIR` 现在显式区分列表编码：
 
@@ -311,11 +322,11 @@ assemblyList([vec3([3, 0, 2])], 'vec3')
 
 回归：`tests/runtime/test-client-list-encoding.ts` 同时读取真实
 `Beyond_Local_Export/user_edit/客户端/信号-参数-完整-列表.gia`（11308 bytes、6 个 assembly、9 个
-signal 列表 pin）并检查生成的 direct/assembly 双路径。该回归证明编码结构和 protobuf 解码结果，不证明
-当前产物已通过编辑器导入或游戏行为验证。
+signal 列表 pin）并检查生成的 direct/assembly 双路径。该回归证明编码结构和 protobuf 解码结果；完整
+三信号生产 fixture `tests/runtime/test-client-full-signal-ir-to-gia.ts` 另已由用户完成最新产物的编辑器/游戏验证。
 
 
-当前 materializer 是 focused fixture，不是生产入口。下一步 Client IR 应显式表达：
+当前生产 Client IR 已显式表达以下语义；底层 materializer focused fixture 仍作为编码回归保留：
 
 ```text
 get_self_entity() -> entity
@@ -368,7 +379,7 @@ git diff --check
 
 证据：自动结构回归、message/container round-trip、GIA header 检查，以及用户编辑器/游戏确认。
 
-### 接入生产 TS 前必须增加
+### 后续节点族扩展前必须增加
 
 - Client IR 正向构造回归；
 - signal schema/参数顺序负向回归；
@@ -384,7 +395,7 @@ git diff --check
 
 ## 9. 当前未冻结项
 
-- `g.client()` 的正式运行时 API 和 Client IR 类型名；
+- 新增节点族的正式 API 与对应 Client IR 类型；当前 `g.client()` 和已有 Client IR 类型已在本文范围内冻结；
 - signal registry 是否需要缓存 CPI、ClientVarType、concrete kernel 等字段；
 - 空列表、10 元素上限和超过上限的诊断；
 - monitor/client signal 的对称生产契约；

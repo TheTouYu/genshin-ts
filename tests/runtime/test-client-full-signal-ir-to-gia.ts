@@ -43,7 +43,7 @@ g.client({ type: 'skill', id: 1082130433, name: 'full-client-signal' }).onStart(
   f.sendSignalToServerNodeGraphValues('信号_全部参数测试', [1, 2.2, [1, 2, 3.4], guid, true, self, 2345, 3453544, '字符串'])
 })
 const [ir] = buildClientGraphRegistriesIRDocuments()
-const out = '/tmp/gsts-client-full-signal-from-ts.gia'
+const out = 'Beyond_Local_Export/gsts-client-full-signal-ts-complete-3signals.gia'
 writeFileSync(out, clientIrToGia(ir, registry, protoPath))
 const data = decode_gia_file(out, undefined, false) as any
 const nodes = data.graph.graph.inner.graph.nodes as any[]
@@ -51,6 +51,10 @@ assert.deepEqual(data.graph.relatedIds, [1610612740, 1610612746, 1610612743].map
 const signalNodes = [1610612740, 1610612746, 1610612743].map((id) => nodes.find((node) => node.genericId?.nodeId === id))
 assert.deepEqual(signalNodes.map((node) => node?.pins.filter((pin: any) => pin.i1?.kind === 3).length), [5, 9, 9])
 assert.equal(nodes.filter((node) => node.genericId?.nodeId === 200049).length, 10)
+// Client GraphNode is already the protobuf-level representation. Shared layout
+// coordinates must not be divided by the server encoder's 300/200 conversion.
+assert.ok(signalNodes.some((node) => Math.abs(node?.x ?? 0) > 100))
+assert.ok(nodes.filter((node) => node.genericId?.nodeId === 200049).some((node) => Math.abs(node.x ?? 0) > 100))
 assert.deepEqual(signalNodes.slice(0, 2).map((node, index) => node?.pins.find((pin: any) => pin.i1?.kind === 2)?.connects?.[0]?.id), signalNodes.slice(1).map((node) => node?.nodeIndex))
 assert.equal(nodes.find((n) => n.genericId.nodeId === 200033)?.concreteId.nodeId, 1013)
 assert.equal(nodes.find((n) => n.genericId.nodeId === 200027)?.concreteId.nodeId, 1005)
