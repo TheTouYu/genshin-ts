@@ -3939,7 +3939,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'bool_filter',
     nodeType: 'get_current_client_time_high_precision',
-    displayName: '获取当前客户端时间(高精度)',
+    displayName: '获取当前客户端时间（高精度）',
     graphType: 20001,
     genericId: 200270,
     concreteId: 1075,
@@ -3993,7 +3993,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'bool_filter',
     nodeType: 'get_current_key_behavior_high_precision',
-    displayName: '获取当前关键行为(高精度)',
+    displayName: '获取当前关键行为（高精度）',
     graphType: 20001,
     genericId: 200268,
     concreteId: 1073,
@@ -6411,7 +6411,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'bool_filter',
     nodeType: 'node_graph_end_boolean',
-    displayName: 'node_graph_end_boolean',
+    displayName: '节点图结束(布尔型)',
     graphType: 20001,
     genericId: 200000,
     concreteId: 0,
@@ -12656,7 +12656,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_control_skill',
     nodeType: 'get_current_client_time_high_precision',
-    displayName: '获取当前客户端时间(高精度)',
+    displayName: '获取当前客户端时间（高精度）',
     graphType: 20002,
     genericId: 200270,
     concreteId: 1075,
@@ -12730,7 +12730,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_control_skill',
     nodeType: 'get_current_key_behavior_high_precision',
-    displayName: '获取当前关键行为(高精度)',
+    displayName: '获取当前关键行为（高精度）',
     graphType: 20002,
     genericId: 200268,
     concreteId: 1073,
@@ -15814,7 +15814,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_control_skill',
     nodeType: 'node_graph_begins',
-    displayName: 'node_graph_begins',
+    displayName: '节点图开始',
     graphType: 20002,
     genericId: 200042,
     concreteId: 2001,
@@ -26355,7 +26355,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_skill',
     nodeType: 'get_current_client_time_high_precision',
-    displayName: '获取当前客户端时间(高精度)',
+    displayName: '获取当前客户端时间（高精度）',
     graphType: 20002,
     genericId: 200270,
     concreteId: 1075,
@@ -26409,7 +26409,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_skill',
     nodeType: 'get_current_key_behavior_high_precision',
-    displayName: '获取当前关键行为(高精度)',
+    displayName: '获取当前关键行为（高精度）',
     graphType: 20002,
     genericId: 200268,
     concreteId: 1073,
@@ -29464,7 +29464,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_skill',
     nodeType: 'node_graph_begins',
-    displayName: 'node_graph_begins',
+    displayName: '节点图开始',
     graphType: 20002,
     genericId: 200042,
     concreteId: 2001,
@@ -30391,7 +30391,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'character_skill',
     nodeType: 'recover_character_s_hp',
-    displayName: '恢复生命值',
+    displayName: '角色恢复生命值',
     graphType: 20002,
     genericId: 200075,
     concreteId: 2000,
@@ -41091,7 +41091,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_skill',
     nodeType: 'get_the_complex_creation_s_current_using_skill',
-    displayName: '获取复杂造物当前释放的技能',
+    displayName: '获取复杂造物当前施放的技能',
     graphType: 20002,
     genericId: 200213,
     concreteId: 3005,
@@ -42187,7 +42187,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_skill',
     nodeType: 'node_graph_begins',
-    displayName: 'node_graph_begins',
+    displayName: '节点图开始',
     graphType: 20002,
     genericId: 200042,
     concreteId: 2001,
@@ -52174,7 +52174,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_status',
     nodeType: 'get_list_of_keys_from_dictionary',
-    displayName: '查询字典中键组成的列表',
+    displayName: '获取字典中键组成的列表',
     graphType: 20007,
     genericId: 200235,
     concreteId: 1054,
@@ -52228,7 +52228,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_status',
     nodeType: 'get_list_of_values_from_dictionary',
-    displayName: '查询字典中值组成的列表',
+    displayName: '获取字典中值组成的列表',
     graphType: 20007,
     genericId: 200234,
     concreteId: 1055,
@@ -53904,7 +53904,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_status',
     nodeType: 'node_graph_begins',
-    displayName: 'node_graph_begins',
+    displayName: '按顺序唯一执行',
     graphType: 20007,
     genericId: 200126,
     concreteId: 4000,
@@ -60071,7 +60071,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_status_decision',
     nodeType: 'get_list_of_keys_from_dictionary',
-    displayName: '查询字典中键组成的列表',
+    displayName: '获取字典中键组成的列表',
     graphType: 20007,
     genericId: 200235,
     concreteId: 1054,
@@ -60125,7 +60125,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_status_decision',
     nodeType: 'get_list_of_values_from_dictionary',
-    displayName: '查询字典中值组成的列表',
+    displayName: '获取字典中值组成的列表',
     graphType: 20007,
     genericId: 200234,
     concreteId: 1055,
@@ -61801,7 +61801,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'creation_status_decision',
     nodeType: 'node_graph_begins',
-    displayName: 'node_graph_begins',
+    displayName: '按顺序唯一执行',
     graphType: 20007,
     genericId: 200126,
     concreteId: 4000,
@@ -66433,7 +66433,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'int_filter',
     nodeType: 'get_current_client_time_high_precision',
-    displayName: '获取当前客户端时间(高精度)',
+    displayName: '获取当前客户端时间（高精度）',
     graphType: 20001,
     genericId: 200270,
     concreteId: 1075,
@@ -66487,7 +66487,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'int_filter',
     nodeType: 'get_current_key_behavior_high_precision',
-    displayName: '获取当前关键行为(高精度)',
+    displayName: '获取当前关键行为（高精度）',
     graphType: 20001,
     genericId: 200268,
     concreteId: 1073,
@@ -68903,7 +68903,7 @@ export const CLIENT_NODE_METADATA: readonly ClientNodeMetadata[] = [
   {
     subType: 'int_filter',
     nodeType: 'node_graph_end_integer',
-    displayName: 'node_graph_end_integer',
+    displayName: '节点图结束(整数)',
     graphType: 20001,
     genericId: 200122,
     concreteId: 0,

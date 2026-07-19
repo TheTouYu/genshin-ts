@@ -8,6 +8,7 @@ import {
   CLIENT_NODE_TYPES_BY_SUB_TYPE_AND_MODE
 } from '../../src/definitions/client_method_modes.js'
 import type { ClientGraphMode, ClientGraphSubType } from '../../src/runtime/IR.js'
+import { snakeToCamel } from './client_nodes_codegen.js'
 
 type GraphSpec = {
   mode: ClientGraphMode
@@ -193,10 +194,6 @@ function normalizeType(text: string): string {
     .replace(/\s+/g, ' ')
     .replace(/^\|\s*/, '')
     .trim()
-}
-
-function camelToSnake(name: string): string {
-  return name.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`)
 }
 
 function hash(text: string): number {
@@ -654,6 +651,9 @@ function emitWirePool(state: EmitState): string[] {
     state.graph.subType === 'creation_status' || state.graph.subType === 'creation_status_decision'
   const customTarget = statusTarget ? `${enumExpression(state, 'TargetEntity')}` : 'wireEntity'
   const factionTarget = customTarget
+  if (!state.methodNames.has('queryEntityFaction')) {
+    throw new Error(`${state.graph.subType}.${state.graph.mode}: missing entity faction query`)
+  }
   const lines = [
     `const wireEntity = f.getSelfEntity()`,
     `const wireBool = f.equal(101n, 101n)`,
@@ -780,7 +780,7 @@ function emitMethod(state: EmitState, method: MethodInfo, metadata: MetadataReco
 function emitGraph(
   graph: GraphSpec,
   methodsBySubType: Map<ClientGraphSubType, Map<string, MethodInfo>>,
-  metadataByKey: ReadonlyMap<string, MetadataRecord>,
+  metadataByMethodKey: ReadonlyMap<string, MetadataRecord>,
   enumPicks: ReadonlyMap<string, EnumPick>
 ): { source: string; report: Record<string, unknown> } {
   const methodNames = CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE[graph.subType][
@@ -805,10 +805,9 @@ function emitGraph(
   for (const methodName of methodNames) {
     const method = methods.get(methodName)
     if (!method) throw new Error(`missing method implementation ${graph.subType}.${methodName}`)
-    const nodeType = camelToSnake(methodName)
-    const metadata = metadataByKey.get(`${graph.subType}.${nodeType}`)
-    if (!metadata) throw new Error(`missing metadata ${graph.subType}.${nodeType}`)
-    coveredNodeTypes.add(nodeType)
+    const metadata = metadataByMethodKey.get(`${graph.subType}.${methodName}`)
+    if (!metadata) throw new Error(`missing metadata ${graph.subType}.${methodName}`)
+    coveredNodeTypes.add(metadata.nodeType)
     const emitted = emitMethod(state, method, metadata)
     const hasInputFlow = metadata.flows?.some((flow) => flow.kind === 'in_flow') ?? false
     ;(hasInputFlow ? execCalls : dataCalls).push(emitted)
@@ -932,8 +931,10 @@ function main(): void {
   const metadata = JSON.parse(
     fs.readFileSync('resources/client_node_metadata.json', 'utf8')
   ) as MetadataRecord[]
-  const metadataByKey = new Map(
-    metadata.map((record) => [`${record.subType}.${record.nodeType}`, record])
+  const metadataByMethodKey = new Map(
+    metadata.map(
+      (record) => [`${record.subType}.${snakeToCamel(record.nodeType)}`, record] as const
+    )
   )
   const gaps = JSON.parse(
     fs.readFileSync('tests/client_generated/_generation_gaps.json', 'utf8')
@@ -944,7 +945,7 @@ function main(): void {
   const reports: Record<string, unknown>[] = []
   for (const mode of ['beyond', 'classic'] as const) {
     const graphs = GRAPH_SPECS.filter((graph) => graph.mode === mode).map((graph) => {
-      const result = emitGraph(graph, methodsBySubType, metadataByKey, enumPicks)
+      const result = emitGraph(graph, methodsBySubType, metadataByMethodKey, enumPicks)
       reports.push(result.report)
       return result.source
     })

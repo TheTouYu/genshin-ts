@@ -36,15 +36,28 @@ export type MetaPin = {
   connectionType?: number
 }
 
+export type EditorPinName = {
+  kind: MetaPin['kind']
+  index: number
+  nameZh?: string
+  nameEn?: string
+}
+
 export type MetaRecord = {
   subType: string
   nodeType: string
+  /** stable public TypeScript method name derived from nodeType */
+  methodName: string
+  /** current official English editor title, used only when it differs from methodName */
+  editorNameEn: string
   displayName: string
   genericId: number
   concreteId: number | string | null
   inputs: MetaPin[]
   outputs: MetaPin[]
   flows?: MetaPin[]
+  /** generation-only pin labels extracted directly from MihoyoBin */
+  editorPins: EditorPinName[]
   reflectMap?: Array<{ concreteId: number | string; variantKey: string; pins?: MetaPin[] }>
   specialKind?: string
   isStart?: boolean
@@ -397,6 +410,24 @@ export function snakeToCamel(nodeType: string): string {
   )
 }
 
+/** `Get Pre-Aim Duration` -> `getPreAimDuration`, `3D Vector Addition` -> `_3dVectorAddition` */
+export function editorNameToMethodName(name: string): string {
+  const nodeType = name
+    .trim()
+    .replace(/[^\p{L}\p{N}]+/gu, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase()
+  if (!nodeType) throw new Error('official client node name cannot be empty')
+  return snakeToCamel(/^\d/.test(nodeType) ? `_${nodeType}` : nodeType)
+}
+
+function normalizedEditorLabel(value: string): string {
+  return value
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+}
+
 function sanitizeDocText(text: string): string {
   return String(text ?? '')
     .replace(/\s+/g, ' ')
@@ -439,6 +470,14 @@ function uniqueIdent(base: string, used: Set<string>, reserved?: Set<string>): s
   while (taken(`${base}${n}`)) n += 1
   used.add(`${base}${n}`)
   return `${base}${n}`
+}
+
+function editorPinName(
+  record: MetaRecord,
+  kind: 'input' | 'output',
+  index: number
+): EditorPinName | undefined {
+  return record.editorPins.find((pin) => pin.kind === kind && pin.index === index)
 }
 
 // ---------------------------------------------------------------------------
@@ -546,6 +585,8 @@ type ParamSpec = {
   connectable: boolean
   /** concrete TS enum class bound from the enum seeds (four.1) */
   enumClass?: string
+  /** current official English pin label; never used as the public identifier */
+  editorNameEn: string
   docEnName: string
   docEnDesc: string
   docZhName: string
@@ -562,6 +603,8 @@ type ReturnSpec = {
   reflective: boolean
   /** concrete TS enum class bound from the enum seeds (four.1) */
   enumClass?: string
+  /** current official English pin label; never used as the public identifier */
+  editorNameEn: string
   docEnName: string
   docEnDesc: string
   docZhName: string
@@ -579,6 +622,7 @@ type ReflectSpec = {
 
 type MethodSpec = {
   methodName: string
+  editorNameEn: string
   nodeType: string
   subType: string
   displayName: string
@@ -752,15 +796,18 @@ function buildMethodSpec(
         : irType === 'enum_list'
           ? enumBinding.resolveListReturn(record.nodeType)
           : undefined
+    const officialPin = editorPinName(record, 'output', pinIndex)
+    const officialNameEn = officialPin?.nameEn?.trim()
     returns.push({
       pinIndex,
-      ident: uniqueIdent(identFromDocName(doc?.en.name ?? '', fallbackName), returnIdents),
+      ident: uniqueIdent(identFromDocName(doc?.en.name || '', fallbackName), returnIdents),
       ...(irType !== undefined ? { irType } : {}),
       reflective,
       ...(enumClass ? { enumClass } : {}),
-      docEnName: doc?.en.name ?? fallbackName,
+      editorNameEn: officialNameEn || '',
+      docEnName: doc?.en.name || fallbackName,
       docEnDesc: sanitizeDocText(doc?.en.description ?? ''),
-      docZhName: doc?.zh?.name ?? '',
+      docZhName: officialPin?.nameZh?.trim() || doc?.zh?.name || '',
       docZhDesc: sanitizeDocText(doc?.zh?.description ?? '')
     })
     return true
@@ -872,8 +919,13 @@ function buildMethodSpec(
   const usedIdents = new Set<string>(returnIdents)
   const params: ParamSpec[] = []
   for (const [i, b] of aligned.bound.entries()) {
+    const officialPin = editorPinName(record, 'input', b.pin.index)
+    const officialNameEn = officialPin?.nameEn?.trim()
+    // The English documentation stores these labels in the wrong `io` field.
+    // Keep the existing input1..input11 API and expose the recovered labels in JSDoc.
+    const stableDocName = record.nodeType === 'tactic_ground_pursuit' ? '' : b.doc.en.name
     const ident = uniqueIdent(
-      identFromDocName(b.doc.en.name, `input${i + 1}`),
+      identFromDocName(stableDocName, `input${i + 1}`),
       usedIdents,
       constructorReserved
     )
@@ -884,9 +936,10 @@ function buildMethodSpec(
         reflective: true,
         connectable: b.pin.connectable !== false,
         candidates: reflect!.candidatesByPin.get(b.pin.index),
+        editorNameEn: officialNameEn || '',
         docEnName: b.doc.en.name,
         docEnDesc: sanitizeDocText(b.doc.en.description),
-        docZhName: b.doc.zh?.name ?? '',
+        docZhName: officialPin?.nameZh?.trim() || b.doc.zh?.name || '',
         docZhDesc: sanitizeDocText(b.doc.zh?.description ?? '')
       })
       continue
@@ -907,14 +960,15 @@ function buildMethodSpec(
       reflective: false,
       connectable: b.pin.connectable !== false,
       ...(enumClass ? { enumClass } : {}),
+      editorNameEn: officialNameEn || '',
       docEnName: b.doc.en.name,
       docEnDesc: sanitizeDocText(b.doc.en.description),
-      docZhName: b.doc.zh?.name ?? '',
+      docZhName: officialPin?.nameZh?.trim() || b.doc.zh?.name || '',
       docZhDesc: sanitizeDocText(b.doc.zh?.description ?? '')
     })
   }
 
-  let docsEn = sanitizeDocText(doc.en.functions.join('; ')) || sanitizeDocText(doc.enName)
+  let docsEn = sanitizeDocText(doc.en.functions.join('; '))
   let docsZh = sanitizeDocText(doc.zh.functions.join('; '))
   const recordType = record.flows?.length ? 'exec' : 'data'
   const hasFailureSuccessor =
@@ -994,7 +1048,9 @@ function buildMethodSpec(
     )
   }
 
-  const tacticalContext = params.find((parameter) => parameter.ident === 'tacticalContext')
+  const tacticalContext = params.find(
+    (parameter) => normalizedEditorLabel(parameter.editorNameEn) === 'tacticalcontext'
+  )
   if (tacticalContext) {
     docsEn = appendDocParagraph(
       docsEn,
@@ -1021,7 +1077,8 @@ function buildMethodSpec(
   }
 
   return {
-    methodName: snakeToCamel(record.nodeType),
+    methodName: record.methodName,
+    editorNameEn: record.editorNameEn,
     nodeType: record.nodeType,
     subType: record.subType,
     displayName: record.displayName,
@@ -1046,8 +1103,14 @@ function jsdocBlock(lines: string[]): string {
 
 function buildJsdoc(spec: MethodSpec): string {
   const lines: string[] = []
-  lines.push(...spec.docsEn.split('\n'))
-  lines.push('')
+  if (spec.docsEn) {
+    lines.push(...spec.docsEn.split('\n'))
+    lines.push('')
+  }
+  if (editorNameToMethodName(spec.editorNameEn) !== spec.methodName) {
+    lines.push(spec.editorNameEn)
+    lines.push('')
+  }
   const zhDocs = spec.docsZh.split('\n')
   lines.push(zhDocs[0] ? `${spec.displayName}: ${zhDocs[0]}` : spec.displayName)
   lines.push(...zhDocs.slice(1))
@@ -1062,6 +1125,13 @@ function buildJsdoc(spec: MethodSpec): string {
         lines.push('')
         lines.push(...p.noteEn.split('\n'))
       }
+      if (
+        p.editorNameEn &&
+        normalizedEditorLabel(p.editorNameEn) !== normalizedEditorLabel(p.ident)
+      ) {
+        lines.push('')
+        lines.push(p.editorNameEn)
+      }
       lines.push('')
       const zhName = p.docZhName || p.docEnName || p.ident
       const zhDescription = p.docZhDesc.split('\n')
@@ -1074,24 +1144,23 @@ function buildJsdoc(spec: MethodSpec): string {
       }
     }
   }
-  if (spec.returns.length) {
+  if (spec.returns.length === 1) {
     lines.push('')
-    if (spec.returns.length === 1) {
-      const r = spec.returns[0]
-      lines.push(`@returns${r.docEnDesc ? ` ${r.docEnDesc}` : ''}`)
+    const r = spec.returns[0]
+    lines.push(`@returns${r.docEnDesc ? ` ${r.docEnDesc}` : ''}`)
+    if (
+      r.editorNameEn &&
+      normalizedEditorLabel(r.editorNameEn) !== normalizedEditorLabel(r.ident)
+    ) {
       lines.push('')
-      const zhName = r.docZhName || r.docEnName || r.ident
-      lines.push(r.docZhDesc ? `${zhName}: ${r.docZhDesc}` : zhName)
-    } else {
-      lines.push('@returns')
-      for (const r of spec.returns) {
-        lines.push('')
-        lines.push(`${r.ident}${r.docEnDesc ? ` — ${r.docEnDesc}` : ''}`)
-        const zhName = r.docZhName || r.docEnName || r.ident
-        lines.push(r.docZhDesc ? `${zhName}: ${r.docZhDesc}` : zhName)
-      }
+      lines.push(r.editorNameEn)
     }
+    lines.push('')
+    const zhName = r.docZhName || r.docEnName || r.ident
+    lines.push(r.docZhDesc ? `${zhName}: ${r.docZhDesc}` : zhName)
   }
+  // Multi-return field details live on the return type properties. Do not synthesize
+  // a second field list here; a real node-wide return description must stay as @returns.
   return jsdocBlock(lines)
 }
 
@@ -1148,6 +1217,24 @@ function returnTsOf(r: ReturnSpec, subType: string): string {
   return returnTsForIr(r.irType!, subType)
 }
 
+function returnFieldJsdoc(r: ReturnSpec): string {
+  const lines: string[] = []
+  const enName = r.editorNameEn || r.docEnName || r.ident
+  lines.push(r.docEnDesc ? `${enName}: ${r.docEnDesc}` : enName)
+  lines.push('')
+  const zhName = r.docZhName || r.docEnName || r.ident
+  lines.push(r.docZhDesc ? `${zhName}: ${r.docZhDesc}` : zhName)
+  return lines.map((line) => (line ? `     * ${line}` : '     *')).join('\n')
+}
+
+function multiReturnType(returns: ReturnSpec[], subType: string): string {
+  const fields = returns.map(
+    (r) =>
+      `    /**\n${returnFieldJsdoc(r)}\n     */\n` + `    ${r.ident}: ${returnTsOf(r, subType)}`
+  )
+  return `{\n${fields.join('\n')}\n  }`
+}
+
 /** enum returns with a bound class carry the class name (conn typing + hints) */
 function retConstructionOf(r: ReturnSpec): string {
   if (r.irType === 'enum' && r.enumClass) return `new enumeration('${r.enumClass}')`
@@ -1161,7 +1248,7 @@ function emitNonReflectMethod(spec: MethodSpec): string {
       ? 'void'
       : spec.returns.length === 1
         ? returnTsOf(spec.returns[0], spec.subType)
-        : `{ ${spec.returns.map((r) => `${r.ident}: ${returnTsOf(r, spec.subType)}`).join('; ')} }`
+        : multiReturnType(spec.returns, spec.subType)
 
   const body: string[] = []
   for (const p of spec.params) {
@@ -1417,12 +1504,21 @@ function emitMethod(spec: MethodSpec, enumBinding: ClientEnumBinding): string {
 function controlFlowJsdoc(
   doc: AlignedDocNode | undefined,
   zhName: string,
-  extraParams: Array<{ ident: string; en: string; zh: string; literalOnly?: boolean }>,
+  extraParams: Array<{
+    ident: string
+    en: string
+    zh: string
+    editorNameEn?: string
+    literalOnly?: boolean
+  }>,
   returns?: { en: string; zh: string }
 ): string {
   const lines: string[] = []
-  lines.push(sanitizeDocText(doc?.en.functions.join('; ') ?? '') || zhName)
-  lines.push('')
+  const enDocs = sanitizeDocText(doc?.en.functions.join('; ') ?? '')
+  if (enDocs) {
+    lines.push(enDocs)
+    lines.push('')
+  }
   const zhDocs = sanitizeDocText(doc?.zh.functions.join('; ') ?? '')
   lines.push(zhDocs ? `${zhName}: ${zhDocs}` : zhName)
   if (extraParams.length) {
@@ -1430,6 +1526,13 @@ function controlFlowJsdoc(
     for (const p of extraParams) {
       lines.push(`@param ${p.ident}${p.en ? ` ${p.en}` : ''}`)
       if (p.literalOnly) lines.push('Literal only; wired connections are not allowed.')
+      if (
+        p.editorNameEn &&
+        normalizedEditorLabel(p.editorNameEn) !== normalizedEditorLabel(p.ident)
+      ) {
+        lines.push('')
+        lines.push(p.editorNameEn)
+      }
       lines.push('')
       lines.push(p.zh)
       if (p.literalOnly) lines.push('仅支持字面量，不能连接其他节点的输出。')
@@ -1528,7 +1631,12 @@ function emitFiniteLoop(subType: string, doc: AlignedDocNode | undefined): strin
     '有限循环',
     [
       { ident: 'loopStartValue', en: p0.en, zh: p0.zh },
-      { ident: 'loopEndValue', en: p1.en, zh: p1.zh }
+      {
+        ident: 'loopEndValue',
+        en: p1.en,
+        zh: p1.zh,
+        editorNameEn: 'Loop Termination Value'
+      }
     ],
     r
   )}
@@ -2583,6 +2691,12 @@ export function generateClientNodes(
     const doc = lookupDocNode(alignment, record.subType, record.displayName)
 
     if (HAND_NODE_TYPES.has(record.nodeType)) {
+      const handMethodName = snakeToCamel(record.nodeType)
+      if (record.methodName !== handMethodName) {
+        throw new Error(
+          `${record.subType}:${record.genericId} hand template ${handMethodName} must be renamed to ${record.methodName}`
+        )
+      }
       const texts = methodTextsBySubType.get(record.subType)!
       const names = methodNamesBySubType.get(record.subType)!
       switch (record.nodeType) {
@@ -2809,7 +2923,12 @@ export function generateClientNodes(
       'finite_loop',
       [
         { name: 'loopStartValue', irType: 'int', docZh: '循环起始值', docEn: 'Loop Start Value' },
-        { name: 'loopEndValue', irType: 'int', docZh: '循环终止值', docEn: 'Loop End Value' }
+        {
+          name: 'loopEndValue',
+          irType: 'int',
+          docZh: '循环终止值',
+          docEn: 'Loop End Value'
+        }
       ],
       [
         {
@@ -3003,19 +3122,19 @@ class ClientExecutionFlowFunctionsBase<
         list: RuntimeParameterValueTypeMap[\`\${T}_list\`]
       ): ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]
       finiteLoop(
-        start: bigint,
-        end: bigint,
-        body: (index: bigint, breakLoop: () => void) => void
+        loopStartValue: bigint,
+        loopTerminationValue: bigint,
+        loopBody: (currentLoopValue: bigint, breakLoop: () => void) => void
       ): void
     }
-    const end = methods.subtraction.call(
+    const loopTerminationValue = methods.subtraction.call(
       this,
       methods.getListLength.call(this, iterationList),
       1n
     )
-    methods.finiteLoop.call(this, 0n, end, (index, breakLoop) => {
+    methods.finiteLoop.call(this, 0n, loopTerminationValue, (currentLoopValue, breakLoop) => {
       loopBody(
-        methods.getCorrespondingValueFromList.call(this, index, iterationList),
+        methods.getCorrespondingValueFromList.call(this, currentLoopValue, iterationList),
         breakLoop
       )
     })

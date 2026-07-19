@@ -8,16 +8,9 @@ import {
   CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE,
   CLIENT_NODE_TYPES_BY_SUB_TYPE_AND_MODE
 } from '../src/definitions/client_method_modes.js'
+import { CLIENT_F_ZH_TO_EN_BY_SUB_TYPE } from '../src/definitions/client_zh_aliases.js'
 import { CLIENT_NODE_METADATA } from '../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
-
-// keep leading underscores: `_3dVectorDotProduct` -> `_3d_vector_dot_product`
-function camelToSnake(name: string): string {
-  return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
-}
-
-function snakeToCamel(name: string): string {
-  return name.replace(/_([a-z0-9])/g, (_, character: string) => character.toUpperCase())
-}
+import { snakeToCamel } from './client-nodegraph/client_nodes_codegen.js'
 
 /** graph entry/exit nodes handled by the runtime, never exposed as methods */
 const RUNTIME_INTERNAL_NODE_TYPES = new Set([
@@ -35,11 +28,25 @@ type ModeData = {
     }
   >
 }
+type FlowMetadata = {
+  subTypes: string[]
+  returns: Array<{ name: string }> | null
+}
 const gaps: GapEntry[] = JSON.parse(
   fs.readFileSync('tests/client_generated/_generation_gaps.json', 'utf8')
 )
 const modeData = JSON.parse(fs.readFileSync('resources/client_node_modes.json', 'utf8')) as ModeData
+const flowMetadata = JSON.parse(
+  fs.readFileSync('resources/client_execution_flow_metadata.json', 'utf8')
+) as FlowMetadata[]
 const gapKeys = new Set(gaps.map((g) => `${g.subType}.${g.nodeType}`))
+const methodNodeTypeBySubType = new Map<string, string>()
+const methodNameBySubTypeAndNodeType = new Map<string, string>()
+for (const item of CLIENT_NODE_METADATA) {
+  const methodName = snakeToCamel(item.nodeType)
+  methodNodeTypeBySubType.set(`${item.subType}.${methodName}`, item.nodeType)
+  methodNameBySubTypeAndNodeType.set(`${item.subType}.${item.nodeType}`, methodName)
+}
 
 const metadataTypesBySubType = new Map<string, Set<string>>()
 for (const item of CLIENT_NODE_METADATA) {
@@ -50,6 +57,39 @@ for (const item of CLIENT_NODE_METADATA) {
 
 const errors: string[] = []
 const expectedEntityHelperNames = new Set<string>()
+
+const expectedZhAliases = {
+  character_skill: {
+    恢复生命值: 'recoverCharacterSHp',
+    角色恢复生命值: 'recoverCharacterSHp'
+  },
+  creation_skill: {
+    获取复杂造物当前释放的技能: 'getTheComplexCreationSCurrentUsingSkill',
+    获取复杂造物当前施放的技能: 'getTheComplexCreationSCurrentUsingSkill'
+  },
+  creation_status: {
+    查询字典中值组成的列表: 'getListOfValuesFromDictionary',
+    获取字典中值组成的列表: 'getListOfValuesFromDictionary',
+    查询字典中键组成的列表: 'getListOfKeysFromDictionary',
+    获取字典中键组成的列表: 'getListOfKeysFromDictionary'
+  },
+  creation_status_decision: {
+    查询字典中值组成的列表: 'getListOfValuesFromDictionary',
+    获取字典中值组成的列表: 'getListOfValuesFromDictionary',
+    查询字典中键组成的列表: 'getListOfKeysFromDictionary',
+    获取字典中键组成的列表: 'getListOfKeysFromDictionary'
+  }
+} as const
+for (const [subType, aliases] of Object.entries(expectedZhAliases)) {
+  const generated = CLIENT_F_ZH_TO_EN_BY_SUB_TYPE[
+    subType as keyof typeof CLIENT_F_ZH_TO_EN_BY_SUB_TYPE
+  ] as Readonly<Record<string, string>>
+  for (const [alias, method] of Object.entries(aliases)) {
+    if (generated[alias] !== method) {
+      errors.push(`missing client zh compatibility alias: ${subType}.${alias} -> ${method}`)
+    }
+  }
+}
 
 for (const [subType, bindingsByMode] of Object.entries(
   CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE
@@ -102,12 +142,41 @@ const clientNodesSource = ts.createSourceFile(
 )
 
 let tacticalContextMethodCount = 0
+let tacticGroundPursuitMethodCount = 0
 function checkTacticalContextDocs(node: ts.Node): void {
   if (
+    ts.isMethodDeclaration(node) &&
+    ts.isIdentifier(node.name) &&
+    node.name.text === 'tacticGroundPursuit'
+  ) {
+    tacticGroundPursuitMethodCount += 1
+    const actual = node.parameters.map((parameter) => parameter.name.getText(clientNodesSource))
+    const expected = [
+      'input1',
+      'input2',
+      'input3',
+      'input4',
+      'input5',
+      'input6',
+      'input7',
+      'input8',
+      'input9',
+      'input10',
+      'input11'
+    ]
+    if (actual.join(',') !== expected.join(',')) {
+      errors.push(
+        `tacticGroundPursuit parameter names mismatch: actual=${actual.join(',')} expected=${expected.join(',')}`
+      )
+    }
+  }
+
+  if (
     (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) &&
-    node.parameters.some(
-      (parameter) => ts.isIdentifier(parameter.name) && parameter.name.text === 'tacticalContext'
-    )
+    ((ts.isIdentifier(node.name) && node.name.text === 'tacticGroundPursuit') ||
+      node.parameters.some(
+        (parameter) => ts.isIdentifier(parameter.name) && parameter.name.text === 'tacticalContext'
+      ))
   ) {
     tacticalContextMethodCount += 1
     const source = node.getFullText(clientNodesSource)
@@ -126,6 +195,80 @@ function checkTacticalContextDocs(node: ts.Node): void {
 checkTacticalContextDocs(clientNodesSource)
 if (tacticalContextMethodCount === 0) {
   errors.push('no generated tacticalContext parameters found')
+}
+if (tacticGroundPursuitMethodCount !== 1) {
+  errors.push(`expected one tacticGroundPursuit method, got ${tacticGroundPursuitMethodCount}`)
+}
+
+function checkMultiReturnFieldDocs(
+  member: ts.MethodDeclaration | ts.MethodSignature,
+  source: ts.SourceFile,
+  label: string
+): number {
+  if (!member.type || !ts.isTypeLiteralNode(member.type)) return 0
+  const fields = member.type.members.filter(ts.isPropertySignature)
+  if (fields.length < 2) return 0
+  for (const field of fields) {
+    const name = field.name?.getText(source) ?? '<unknown>'
+    const jsDoc = ts
+      .getJSDocCommentsAndTags(field)
+      .find((node): node is ts.JSDoc => node.kind === ts.SyntaxKind.JSDocComment)
+    if (!jsDoc) {
+      errors.push(`client multi-return field missing JSDoc: ${label}.${name}`)
+      continue
+    }
+    if (!/[\u3400-\u9fff]/u.test(jsDoc.getFullText(source))) {
+      errors.push(`client multi-return field missing Chinese JSDoc: ${label}.${name}`)
+    }
+  }
+  const methodJsDoc = ts
+    .getJSDocCommentsAndTags(member)
+    .find((node): node is ts.JSDoc => node.kind === ts.SyntaxKind.JSDocComment)
+  const returnTag = methodJsDoc?.tags?.find(
+    (tag): tag is ts.JSDocReturnTag => tag.kind === ts.SyntaxKind.JSDocReturnTag
+  )
+  const returnComment =
+    typeof returnTag?.comment === 'string' ? returnTag.comment.trim() : undefined
+  const firstFieldName = fields[0]?.name?.getText(source)
+  if (returnComment && firstFieldName && returnComment.startsWith(firstFieldName)) {
+    errors.push(`client multi-return method has a redundant field-list @returns: ${label}`)
+  }
+  return fields.length
+}
+
+const publicClientMethodNames = new Set(
+  Object.values(CLIENT_NODE_METHODS_BY_SUB_TYPE).flatMap((methods) => methods as readonly string[])
+)
+let generatedMultiReturnMethodCount = 0
+let generatedMultiReturnFieldCount = 0
+for (const statement of clientNodesSource.statements) {
+  if (!ts.isClassDeclaration(statement) || !statement.name) continue
+  for (const member of statement.members) {
+    if (
+      ts.isMethodDeclaration(member) &&
+      ts.isIdentifier(member.name) &&
+      publicClientMethodNames.has(member.name.text)
+    ) {
+      const fieldCount = checkMultiReturnFieldDocs(
+        member,
+        clientNodesSource,
+        `${statement.name.text}.${member.name.text}`
+      )
+      if (member.body && fieldCount) {
+        generatedMultiReturnMethodCount += 1
+        generatedMultiReturnFieldCount += fieldCount
+      }
+    }
+  }
+}
+const expectedMultiReturnMethodCount = flowMetadata
+  .filter((entry) => (entry.returns?.length ?? 0) > 1)
+  .reduce((count, entry) => count + entry.subTypes.length, 0)
+if (generatedMultiReturnMethodCount !== expectedMultiReturnMethodCount) {
+  errors.push(
+    `client multi-return method coverage mismatch: actual=${generatedMultiReturnMethodCount} ` +
+      `expected=${expectedMultiReturnMethodCount}`
+  )
 }
 
 const statusClassNames = {
@@ -149,7 +292,11 @@ for (const [subType, className] of Object.entries(statusClassNames)) {
     const requiresTerminalNote = item.nodeType === 'continue_executing_previous_frame_behavior'
     if (!requiresFailureNote && !requiresTerminalNote) continue
 
-    const methodName = snakeToCamel(item.nodeType)
+    const methodName = methodNameBySubTypeAndNodeType.get(`${subType}.${item.nodeType}`)
+    if (!methodName) {
+      errors.push(`missing generated status method mapping: ${subType}.${item.nodeType}`)
+      continue
+    }
     const member = classDeclaration.members.find(
       (candidate) =>
         ts.isMethodDeclaration(candidate) &&
@@ -215,6 +362,11 @@ if (!entityHelperInterface) {
       continue
     }
     if (ts.isMethodSignature(member)) {
+      checkMultiReturnFieldDocs(
+        member,
+        clientNodesSource,
+        `ClientEntityHelperMethods.${helperName}`
+      )
       const actualParams = member.parameters.map((parameter) =>
         parameter.name.getText(clientNodesSource)
       )
@@ -235,7 +387,12 @@ if (!entityHelperInterface) {
       ts.isPropertySignature(member) ||
       (ts.isMethodSignature(member) && member.type?.kind !== ts.SyntaxKind.VoidKeyword)
     const hasReturnDoc = (jsDoc.tags ?? []).some((tag) => tag.kind === ts.SyntaxKind.JSDocReturnTag)
-    if (returnsValue && !hasReturnDoc) {
+    const hasDocumentedReturnFields =
+      ts.isMethodSignature(member) &&
+      member.type !== undefined &&
+      ts.isTypeLiteralNode(member.type) &&
+      member.type.members.filter(ts.isPropertySignature).length > 1
+    if (returnsValue && !hasReturnDoc && !hasDocumentedReturnFields) {
       errors.push(`client entity helper missing @returns JSDoc: ${helperName}`)
     }
   }
@@ -279,12 +436,22 @@ for (const [subType, methods] of Object.entries(CLIENT_NODE_METHODS_BY_SUB_TYPE)
   methodNodeTypesBySubType.set(subType, exposed)
   for (const method of methods as readonly string[]) {
     methodCount += 1
-    const nodeType = camelToSnake(method)
+    const nodeType = methodNodeTypeBySubType.get(`${subType}.${method}`)
+    if (!nodeType) {
+      errors.push(`missing stable method mapping: ${subType}.${method}`)
+      continue
+    }
     exposed.add(nodeType)
     if (!nodeTypes?.has(nodeType))
       errors.push(`missing metadata: ${subType}.${method} -> ${nodeType}`)
     if (/[\u3400-\u9fff]/.test(nodeType))
       errors.push(`chinese nodeType exposed: ${subType}.${method}`)
+    const expectedMethod = snakeToCamel(nodeType)
+    if (method !== expectedMethod) {
+      errors.push(
+        `client method does not retain stable nodeType name: ${subType}.${method} != ${expectedMethod}`
+      )
+    }
     for (const mode of ['beyond', 'classic'] as const) {
       const methodAvailable = (
         CLIENT_NODE_METHODS_BY_SUB_TYPE_AND_MODE[
@@ -318,5 +485,6 @@ if (errors.length) {
 
 console.log(
   `[ok] client definitions consistency (${methodCount} method entries across ` +
-    `${metadataTypesBySubType.size} sub types, ${gapKeys.size} reported gaps)`
+    `${metadataTypesBySubType.size} sub types, ${generatedMultiReturnMethodCount} multi-return ` +
+    `methods / ${generatedMultiReturnFieldCount} documented fields, ${gapKeys.size} reported gaps)`
 )

@@ -299,7 +299,7 @@ const ZH_ONLY_SEED: Record<string, { en: string; params?: Record<string, string>
   },
   // control motor
   使操控运动器转换至非接地状态: {
-    en: 'Set Control Motor to Ungrounded State',
+    en: 'Set Control Motion Device to Not Grounded',
     params: { 目标操控运动器: 'Target Control Motor', 持续时间: 'Duration' }
   },
   添加临时加速度: {
@@ -312,7 +312,7 @@ const ZH_ONLY_SEED: Record<string, { en: string; params?: Record<string, string>
     }
   },
   添加速度: {
-    en: 'Add Velocity',
+    en: 'Add Acceleration',
     params: {
       目标操控运动器: 'Target Control Motor',
       速度值: 'Velocity',
@@ -321,7 +321,7 @@ const ZH_ONLY_SEED: Record<string, { en: string; params?: Record<string, string>
     }
   },
   添加临时运动参数值: {
-    en: 'Add Temporary Movement Parameter Values',
+    en: 'Add Temporary Movement Parameters',
     params: {
       操控运动器: 'Control Motor',
       前进加速度: 'Forward Acceleration',
@@ -334,7 +334,7 @@ const ZH_ONLY_SEED: Record<string, { en: string; params?: Record<string, string>
     }
   },
   获取操控运动器运动参数: {
-    en: 'Get Control Motor Movement Parameters',
+    en: "Get Control Motion Device's Movement Parameters",
     params: {
       操控运动器: 'Control Motor',
       前进加速度: 'Forward Acceleration',
@@ -347,27 +347,27 @@ const ZH_ONLY_SEED: Record<string, { en: string; params?: Record<string, string>
     }
   },
   获取操控运动器前向: {
-    en: 'Get Control Motor Forward Direction',
+    en: "Get Control Motion Device's Forward Direction",
     params: { 操控运动器: 'Control Motor', 前向: 'Forward Direction' }
   },
   获取操控运动器当前速度: {
-    en: 'Get Control Motor Current Velocity',
+    en: "Get Control Motion Device's Current Speed",
     params: { 操控运动器: 'Control Motor', 速度大小: 'Speed', 速度方向: 'Velocity Direction' }
   },
   获取操控运动器是否接地: {
-    en: 'Get Whether Control Motor Is Grounded',
+    en: 'Get Control Motion Device Grounded Status',
     params: { 目标操控运动器: 'Target Control Motor', 是否接地: 'Is Grounded' }
   },
   获取操控运动器目标转向方向: {
-    en: 'Get Control Motor Target Turning Direction',
+    en: "Get Control Motion Device's Target Turn Direction",
     params: { 操控运动器: 'Control Motor', 目标转向方向: 'Target Turning Direction' }
   },
   获取当前激活操控运动器列表: {
-    en: 'Get Current Active Control Motor List',
+    en: 'Get Currently Activated Control Motion Device List',
     params: { 操控运动器列表: 'Control Motor List' }
   },
   获取当前跟随操控运动器: {
-    en: 'Get Current Following Control Motor',
+    en: 'Get Currently Followed Control Motion Device',
     params: { 跟随操控运动器: 'Following Control Motor' }
   }
 }
@@ -501,12 +501,19 @@ function parseEntries(page: unknown, slug: string): DocNodeEntry[] {
         section: sectionIndex,
         name,
         functions: (node.functions ?? []).map((f) => String(f).trim()).filter(Boolean),
-        params: (node.parameters ?? []).map((p) => ({
-          io: ioTag(p.io ?? ''),
-          name: (p.name ?? '').trim(),
-          dataType: (p.data_type ?? '').trim(),
-          description: (p.description ?? '').trim()
-        }))
+        params: (node.parameters ?? []).map((p) => {
+          const rawIo = (p.io ?? '').trim()
+          const io = ioTag(rawIo)
+          return {
+            io,
+            // The official EN page for Tactic: Ground Pursuit stores all 11
+            // parameter labels in `io` instead of `name`. Only use that field
+            // as a label when it is not an actual input/output marker.
+            name: (p.name ?? '').trim() || (io === 'other' ? rawIo : ''),
+            dataType: (p.data_type ?? '').trim(),
+            description: (p.description ?? '').trim()
+          }
+        })
       })
     }
   })

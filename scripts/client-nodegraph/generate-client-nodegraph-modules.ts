@@ -6,6 +6,7 @@ import ts from 'typescript'
 import { buildClientEnumBinding, type ClientEnumBinding } from './client_enum_binding.js'
 import {
   generateClientNodes,
+  snakeToCamel,
   type FlowMetadataEntry,
   type MetaRecord
 } from './client_nodes_codegen.js'
@@ -59,6 +60,19 @@ type ClientNodeModeData = {
   >
 }
 
+type MihoyoEditorNames = {
+  nodes: Array<{
+    genericId: number
+    nameEn?: string
+    pins: Array<{
+      kind: MetaRecord['editorPins'][number]['kind']
+      index: number
+      nameZh?: string
+      nameEn?: string
+    }>
+  }>
+}
+
 const SUB_TYPES: readonly ClientGraphSubType[] = [
   'character_skill',
   'character_control_skill',
@@ -68,6 +82,25 @@ const SUB_TYPES: readonly ClientGraphSubType[] = [
   'bool_filter',
   'int_filter'
 ]
+
+const CLIENT_ZH_COMPAT_ALIASES_BY_SUB_TYPE: Partial<
+  Record<ClientGraphSubType, Readonly<Record<string, string>>>
+> = {
+  character_skill: {
+    恢复生命值: 'recoverCharacterSHp'
+  },
+  creation_skill: {
+    获取复杂造物当前释放的技能: 'getTheComplexCreationSCurrentUsingSkill'
+  },
+  creation_status: {
+    查询字典中值组成的列表: 'getListOfValuesFromDictionary',
+    查询字典中键组成的列表: 'getListOfKeysFromDictionary'
+  },
+  creation_status_decision: {
+    查询字典中值组成的列表: 'getListOfValuesFromDictionary',
+    查询字典中键组成的列表: 'getListOfKeysFromDictionary'
+  }
+}
 
 const CLIENT_CLASS_NAME_BY_SUB_TYPE: Record<ClientGraphSubType, string> = {
   character_skill: 'ClientCharacterSkillExecutionFlowFunctions',
@@ -380,6 +413,7 @@ export const CLIENT_GRAPH_ENTRY_SPEC_BY_SUB_TYPE = {
 type MetadataRecord = {
   subType: ClientGraphSubType
   nodeType: string
+  methodName: string
   genericId: number
   sampleFile: string
 }
@@ -387,7 +421,7 @@ type MetadataRecord = {
 type HelperMemberSpec = {
   helper: string
   member?: string
-  /** server f method names whose snake_case nodeType must exist as evidence */
+  /** public client method names that must exist as evidence */
   requiredMethods?: string[]
   /** if set, member is needs_developer_confirmation and never implemented */
   confirm?: string
@@ -543,9 +577,28 @@ const HELPER_MEMBER_SPECS: HelperMemberSpec[] = [
   }))
 ]
 
-// keep leading underscores: `_3dVectorDotProduct` -> `_3d_vector_dot_product`
-function camelToSnake(name: string): string {
-  return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
+function applyOfficialClientNames(
+  metadata: Array<Omit<MetaRecord, 'methodName' | 'editorNameEn' | 'editorPins'>>,
+  names: MihoyoEditorNames
+): MetaRecord[] {
+  const officialByGenericId = new Map(names.nodes.map((node) => [node.genericId, node]))
+  return metadata.map((record) => {
+    const official = officialByGenericId.get(record.genericId)
+    if (!official?.nameEn) {
+      throw new Error(`${record.subType}:${record.genericId} has no official English editor name`)
+    }
+    return {
+      ...record,
+      methodName: snakeToCamel(record.nodeType),
+      editorNameEn: official.nameEn,
+      editorPins: official.pins.map(({ kind, index, nameZh, nameEn }) => ({
+        kind,
+        index,
+        ...(nameZh ? { nameZh } : {}),
+        ...(nameEn ? { nameEn } : {})
+      }))
+    }
+  })
 }
 
 function clientZhAlias(displayName: string): string {
@@ -556,20 +609,37 @@ function clientZhAlias(displayName: string): string {
 }
 
 function emitClientZhAliases(methodsBySubType: Record<string, string[]>, metadata: MetaRecord[]) {
-  const recordBySubTypeAndNodeType = new Map(
-    metadata.map((record) => [`${record.subType}:${record.nodeType}`, record])
+  const recordBySubTypeAndMethodName = new Map(
+    metadata.map((record) => [`${record.subType}:${record.methodName}`, record])
   )
   const aliasesBySubType = Object.fromEntries(
     SUB_TYPES.map((subType) => {
       const aliases = new Map<string, string>()
       for (const method of methodsBySubType[subType] ?? []) {
-        const record = recordBySubTypeAndNodeType.get(`${subType}:${camelToSnake(method)}`)
+        const record = recordBySubTypeAndMethodName.get(`${subType}:${method}`)
         if (!record) throw new Error(`${subType}.${method}: missing node metadata for zh alias`)
         const alias = clientZhAlias(record.displayName)
         const existing = aliases.get(alias)
         if (existing && existing !== method) {
           throw new Error(
             `${subType}: client zh alias ${alias} maps to both ${existing} and ${method}`
+          )
+        }
+        aliases.set(alias, method)
+      }
+      for (const [legacyAlias, method] of Object.entries(
+        CLIENT_ZH_COMPAT_ALIASES_BY_SUB_TYPE[subType] ?? {}
+      )) {
+        if (!(methodsBySubType[subType] ?? []).includes(method)) {
+          throw new Error(
+            `${subType}: legacy client zh alias ${legacyAlias} targets ${method}, which is unavailable`
+          )
+        }
+        const alias = clientZhAlias(legacyAlias)
+        const existing = aliases.get(alias)
+        if (existing && existing !== method) {
+          throw new Error(
+            `${subType}: legacy client zh alias ${alias} maps to both ${existing} and ${method}`
           )
         }
         aliases.set(alias, method)
@@ -697,8 +767,8 @@ function deriveClientEntityHelpers(
     SUB_TYPES.map((subType) => [subType, { beyond: {}, classic: {} }])
   ) as ClientEntityHelperBindings
   const directMethodNames = new Set<string>()
-  const recordBySubTypeAndNodeType = new Map(
-    metadata.map((record) => [`${record.subType}:${record.nodeType}`, record])
+  const recordBySubTypeAndMethodName = new Map(
+    metadata.map((record) => [`${record.subType}:${record.methodName}`, record])
   )
   const methodSetBySubType = Object.fromEntries(
     SUB_TYPES.map((subType) => [subType, new Set(methodsBySubType[subType] ?? [])])
@@ -719,7 +789,7 @@ function deriveClientEntityHelpers(
 
   const modesForMethod = (subType: ClientGraphSubType, methodName: string) => {
     if (!methodSetBySubType[subType].has(methodName)) return []
-    const record = recordBySubTypeAndNodeType.get(`${subType}:${camelToSnake(methodName)}`)
+    const record = recordBySubTypeAndMethodName.get(`${subType}:${methodName}`)
     if (!record) throw new Error(`${subType}.${methodName}: missing entity helper node metadata`)
     return getClientNodeModes(modeData, subType, record.genericId)
   }
@@ -876,7 +946,6 @@ function appendClientEntityHelperTypes(
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed })
   const normalizeTypeText = (text: string) =>
     text
-      .replace(/\/\*\*[\s\S]*?\*\/\s*/g, '')
       .replace(/(?:ClientEntityFor|clientEntity)<['"][^'"]+['"], Mode>/g, 'clientEntity<T, Mode>')
       .trim()
 
@@ -1107,7 +1176,7 @@ function deriveScopedGlobalsCapability(
   for (const record of metadata) {
     const map = bySubType.get(record.subType) ?? new Map<string, MetadataRecord>()
     bySubType.set(record.subType, map)
-    if (!map.has(record.nodeType)) map.set(record.nodeType, record)
+    if (!map.has(record.methodName)) map.set(record.methodName, record)
   }
 
   return HELPER_MEMBER_SPECS.map((spec) => {
@@ -1128,9 +1197,9 @@ function deriveScopedGlobalsCapability(
     const availability: ClientScopedGlobalCapability['availability'] = []
     const backedBy: ClientScopedGlobalCapability['backedBy'] = []
     for (const subType of SUB_TYPES) {
-      const nodeTypes = bySubType.get(subType)
-      if (!nodeTypes) continue
-      const records = required.map((method) => nodeTypes.get(camelToSnake(method)))
+      const methods = bySubType.get(subType)
+      if (!methods) continue
+      const records = required.map((method) => methods.get(method))
       if (records.some((r) => !r)) continue
       const modes = (['beyond', 'classic'] as const).filter((mode) =>
         records.every((record) =>
@@ -1308,6 +1377,9 @@ function emitClientMethodModes(
   const recordBySubTypeAndNodeType = new Map(
     metadata.map((record) => [`${record.subType}:${record.nodeType}`, record])
   )
+  const recordBySubTypeAndMethodName = new Map(
+    metadata.map((record) => [`${record.subType}:${record.methodName}`, record])
+  )
 
   const nodeTypesBySubTypeAndMode: Record<
     ClientGraphSubType,
@@ -1334,7 +1406,7 @@ function emitClientMethodModes(
   ) as unknown as Record<ClientGraphSubType, Record<ClientGraphMode, string[]>>
   for (const subType of SUB_TYPES) {
     for (const method of methodsBySubType[subType] ?? []) {
-      const record = recordBySubTypeAndNodeType.get(`${subType}:${camelToSnake(method)}`)
+      const record = recordBySubTypeAndMethodName.get(`${subType}:${method}`)
       if (!record) throw new Error(`${subType}.${method}: missing node metadata`)
       for (const mode of getClientNodeModes(modeData, subType, record.genericId)) {
         methodsBySubTypeAndMode[subType][mode].push(method)
@@ -1523,6 +1595,8 @@ function emitClientNodeMetadata(
   type MetadataRecord = Record<string, unknown> & {
     subType: string
     nodeType: string
+    methodName?: string
+    editorPins?: unknown
     inputs: MetadataPin[]
     outputs: MetadataPin[]
     flows?: MetadataPin[]
@@ -1534,9 +1608,15 @@ function emitClientNodeMetadata(
   // enrich extractor records with the codegen-derived arg->pin mapping so the
   // IR->GIA transform can fill hidden pins while IR args stay signature-ordered
   const enriched = (metadata as MetadataRecord[]).map((record) => {
+    const {
+      methodName: _methodName,
+      editorNameEn: _editorNameEn,
+      editorPins: _editorPins,
+      ...metadataRecord
+    } = record
     const argPins = argPinsBySubType[record.subType]?.[record.nodeType]
     const runtimeRecord = {
-      ...record,
+      ...metadataRecord,
       inputs: stripPinNames(record.inputs),
       outputs: stripPinNames(record.outputs),
       ...(record.flows ? { flows: stripPinNames(record.flows) } : {}),
@@ -1570,7 +1650,12 @@ function main() {
   const capability = readJson<Partial<ClientGraphCapability>>(
     'resources/client_graph_capability.json'
   )
-  const metadata = readJson<readonly unknown[]>('resources/client_node_metadata.json')
+  const metadata = applyOfficialClientNames(
+    readJson<Array<Omit<MetaRecord, 'methodName' | 'editorNameEn' | 'editorPins'>>>(
+      'resources/client_node_metadata.json'
+    ),
+    readJson<MihoyoEditorNames>('resources/mihoyo_editor_names.json')
+  )
   const modeData = readJson<ClientNodeModeData>('resources/client_node_modes.json')
   const variableSpecialization = readJson<ClientVariableSpecializationSeed>(
     'resources/client_variable_specialization_seed.json'
@@ -1585,22 +1670,22 @@ function main() {
   const alignment = buildDocNameAlignment()
   const enumBinding = buildClientEnumBinding()
   emitClientEnums(enumBinding)
-  const generated = generateClientNodes(metadata as MetaRecord[], alignment, enumBinding)
+  const generated = generateClientNodes(metadata, alignment, enumBinding)
   emitClientNodeMetadata(metadata, generated.argPinsBySubType)
   const classFileBody = emitClientEntityHelpers(
     generated.classFileBody,
     generated.flowMetadata,
     generated.methodsBySubType,
-    metadata as MetaRecord[],
+    metadata,
     modeData
   )
   write('src/definitions/client_nodes.ts', classFileBody)
-  emitClientZhAliases(generated.methodsBySubType, metadata as MetaRecord[])
+  emitClientZhAliases(generated.methodsBySubType, metadata)
   emitClientMethodModes(
     generated.flowMetadata,
     generated.methodsBySubType,
     generated.literalArgumentIndexesBySubType,
-    metadata as MetaRecord[],
+    metadata,
     modeData
   )
   write('tests/client_generated/_generation_gaps.json', JSON.stringify(generated.gaps, null, 2))

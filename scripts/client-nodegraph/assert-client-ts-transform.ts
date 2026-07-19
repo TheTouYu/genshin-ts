@@ -614,6 +614,7 @@ g.creationSkill({ id: 1082130663, mode: 'classic' }).on('start', (_evt, f) => {
     `${importG}
 g.characterSkill({ id: ${zhClientGraphIds.characterSkill}, lang: 'zh' }).on('start', (_evt, f) => {
   const sum = f.加法运算(1n, 2n)
+  f.恢复生命值(f.获取自身实体(), 1, false, 1, 0n)
   f.多分支(sum, {
     3: () => { f.向服务器节点图发送信号('zh_alias_debug', String(f.绝对值运算(-1n))) },
     default: () => {
@@ -626,12 +627,14 @@ g.creationSkill({ id: ${zhClientGraphIds.classicCreationSkill}, mode: 'classic',
   const selfEntity = f.获取自身实体()
   const characters = f.获取玩家的角色列表(selfEntity)
   const characterId = f.查询经典模式角色编号(selfEntity)
+  const currentSkill = f.获取复杂造物当前释放的技能()
   f.造物恢复生命值(
     selfEntity,
     float(f.获取列表长度(characters)),
     false
   )
   f.向服务器节点图发送信号('zh_alias_debug', characterId)
+  f.向服务器节点图发送信号('zh_alias_debug', String(currentSkill))
 })`,
     'utf8'
   )
@@ -652,9 +655,11 @@ g.creationSkill({ id: ${zhClientGraphIds.classicCreationSkill}, mode: 'classic',
     'multiple_branches',
     'absolute_value_operation',
     'get_current_client_time_high_precision',
+    'recover_character_s_hp',
     'get_self_entity',
     'get_player_s_character_list',
-    'check_classic_mode_character_id'
+    'check_classic_mode_character_id',
+    'get_the_complex_creation_s_current_using_skill'
   ]) {
     assert.ok(zhClientIr.includes(`"type":"${nodeType}"`), `missing zh alias node ${nodeType}`)
   }
@@ -883,6 +888,7 @@ g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }
     () => {},
     () => {}
   )
+  f.doubleBranch(f.equal(dict({ status: 1n }).size, 1n), () => {}, () => {})
   f.doubleBranch(f.equal(f.getListLength(list('bool', [true])), 1n), () => {}, () => {})
   f.doubleBranch(
     f.greaterThanOrEqualTo(Vector3.Distance(Vector3.zero, Vector3.one), 0),
@@ -952,6 +958,7 @@ g.creationStatus({ id: ${globalHelperGraphIds.creationStatus}, mode: 'classic' }
   assert.ok(statusHelperTypes)
   assert.ok(statusHelperTypes.has('assembly_dictionary'))
   assert.ok(statusHelperTypes.has('assembly_list'))
+  assert.ok(statusHelperTypes.has('query_dictionary_s_length'))
   assert.doesNotMatch(
     JSON.stringify(
       globalHelperDocuments.find(

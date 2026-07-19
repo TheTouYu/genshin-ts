@@ -275,14 +275,21 @@ class ClientExecutionFlowFunctionsBase<
         list: RuntimeParameterValueTypeMap[`${T}_list`]
       ): ClientRuntimeReturnValueTypeMap<SubType, Mode>[T]
       finiteLoop(
-        start: bigint,
-        end: bigint,
-        body: (index: bigint, breakLoop: () => void) => void
+        loopStartValue: bigint,
+        loopTerminationValue: bigint,
+        loopBody: (currentLoopValue: bigint, breakLoop: () => void) => void
       ): void
     }
-    const end = methods.subtraction.call(this, methods.getListLength.call(this, iterationList), 1n)
-    methods.finiteLoop.call(this, 0n, end, (index, breakLoop) => {
-      loopBody(methods.getCorrespondingValueFromList.call(this, index, iterationList), breakLoop)
+    const loopTerminationValue = methods.subtraction.call(
+      this,
+      methods.getListLength.call(this, iterationList),
+      1n
+    )
+    methods.finiteLoop.call(this, 0n, loopTerminationValue, (currentLoopValue, breakLoop) => {
+      loopBody(
+        methods.getCorrespondingValueFromList.call(this, currentLoopValue, iterationList),
+        breakLoop
+      )
     })
   }
 
@@ -1276,21 +1283,26 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    *
    * 最远距离
    * 仅支持字面量，不能连接其他节点的输出。
-   *
-   * @returns
-   *
-   * targetRotation
-   * 目标旋转
-   *
-   * targetLocation
-   * 目标位置
    */
   cameraOrientationDetectionData(
     targetType: TargetType,
     launchLocation: Vec3Value,
     nearestDistance: FloatValue,
     furthestDistance: FloatValue
-  ): { targetRotation: vec3; targetLocation: vec3 } {
+  ): {
+    /**
+     * Target Rotation
+     *
+     * 目标旋转
+     */
+    targetRotation: vec3
+    /**
+     * Target Location
+     *
+     * 目标位置
+     */
+    targetLocation: vec3
+  } {
     const targetTypeObj = parseValue(targetType, 'enum')
     assertClientLiteralValue(targetTypeObj, 'cameraOrientationDetectionData.targetType')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
@@ -2214,7 +2226,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Finish Current Pre-Aiming
+   * Complete Current Pre-Aim
    *
    * 完成当前预瞄准: 可以让玩家提前完成当前预瞄准
    */
@@ -2236,6 +2248,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    *
    * 循环起始值
    * @param loopEndValue
+   *
+   * Loop Termination Value
    *
    * 循环终止值
    *
@@ -2461,11 +2475,13 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Base Object of Specified Pre-Aiming
+   * Get Base Object for Specified Pre-Aim Target
    *
    * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -2641,11 +2657,13 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Current Active Pre-Aiming Index
+   * Get Current Active Pre-Aim ID
    *
    * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
    *
    * @returns
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    */
@@ -2706,17 +2724,22 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   /**
    * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
    *
-   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
-   *
-   * @returns
-   *
-   * clientTimeS
-   * 客户端时间（s）
-   *
-   * clientTimeMs
-   * 客户端时间（ms）
+   * 获取当前客户端时间（高精度）: 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
    */
-  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+  getCurrentClientTimeHighPrecision(): {
+    /**
+     * Client Time (s)
+     *
+     * 客户端时间（s）
+     */
+    clientTimeS: bigint
+    /**
+     * Client Time (ms)
+     *
+     * 客户端时间（ms）
+     */
+    clientTimeMs: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2741,16 +2764,21 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
    *
    * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeList
-   * 录入时间列表
    */
-  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+  getCurrentKeyBehavior(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
+    behaviorIDList: bigint[]
+    /**
+     * Entry Time List
+     *
+     * 录入时间列表
+     */
+    entryTimeList: number[]
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2774,22 +2802,26 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   /**
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
    *
-   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeListS
-   * 录入时间列表（s）
-   *
-   * entryTimeListMs
-   * 录入时间列表（ms）
+   * 获取当前关键行为（高精度）: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
    */
   getCurrentKeyBehaviorHighPrecision(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
     behaviorIDList: bigint[]
+    /**
+     * Entry Time List (s)
+     *
+     * 录入时间列表（s）
+     */
     entryTimeListS: bigint[]
+    /**
+     * Entry Time List (ms)
+     *
+     * 录入时间列表（ms）
+     */
     entryTimeListMs: bigint[]
   } {
     const ref = this.registry.registerNode({
@@ -2818,24 +2850,26 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Hit Result
-   *
    * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
-   *
-   * @returns
-   *
-   * hitEntityList
-   * 命中实体列表
-   *
-   * hitPositionList
-   * 命中位置列表
-   *
-   * hitCount
-   * 命中数量
    */
   getCursorHitResult(): {
+    /**
+     * On-Hit Entity List
+     *
+     * 命中实体列表
+     */
     hitEntityList: clientEntity<'character_skill', Mode>[]
+    /**
+     * On-Hit Position List
+     *
+     * 命中位置列表
+     */
     hitPositionList: vec3[]
+    /**
+     * Hits
+     *
+     * 命中数量
+     */
     hitCount: bigint
   } {
     const ref = this.registry.registerNode({
@@ -2864,19 +2898,22 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Screen Coordinates
-   *
    * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
-  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+  getCursorScreenCoordinates(): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2898,19 +2935,22 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Viewport Coordinates
-   *
    * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
-  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+  getCursorViewportCoordinates(): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -2965,17 +3005,19 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * Returns Entities currently detected by the Scan Component; these are Entities in the Active State
    *
    * 获取扫描组件当前扫描到的实体: 获取扫描组件当前扫描到的实体，指扫描状态为“激活状态”的实体
-   *
-   * @returns
-   *
-   * correspondingEntity
-   * 对应实体
-   *
-   * scanTagConfigID
-   * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
+    /**
+     * Corresponding Entity
+     *
+     * 对应实体
+     */
     correspondingEntity: clientEntity<'character_skill', Mode>
+    /**
+     * Scan Tag Config ID
+     *
+     * 扫描标签配置ID
+     */
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -3390,6 +3432,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -3427,6 +3471,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -3512,16 +3558,21 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * Returns the Input Direction and Input Strength of the current client player's movement.
    *
    * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
-   *
-   * @returns
-   *
-   * inputDirection
-   * 输入方向
-   *
-   * inputStrength
-   * 输入力度
    */
-  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+  getPlayerMovementInput(): {
+    /**
+     * Input Direction
+     *
+     * 输入方向
+     */
+    inputDirection: number
+    /**
+     * Input Strength
+     *
+     * 输入力度
+     */
+    inputStrength: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -3543,11 +3594,13 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Collision Detection Result Count
+   * Get Pre-Aim Collision Detection Count
    *
    * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -3569,15 +3622,19 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Duration
+   * Get Pre-Aim Duration
    *
    * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Duration (s)
    *
    * 持续时长（s）
    */
@@ -3595,24 +3652,28 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Ray Hit Info
+   * Get Pre-Aim Ray Hit Info
    *
    * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * hitEntity
-   * 命中实体
    */
   getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
     hitEntity: clientEntity<'character_skill', Mode>
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -3637,32 +3698,40 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Result
+   * Get Pre-Aim Result
    *
    * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * inRangePosition
-   * 范围内位置
-   *
-   * bestValidTarget
-   * 最优合法目标
-   *
-   * validTargetList
-   * 合法目标列表
    */
   getPreAimingResult(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * Position Within Range
+     *
+     * 范围内位置
+     */
     inRangePosition: vec3
+    /**
+     * Optimal Valid Target
+     *
+     * 最优合法目标
+     */
     bestValidTarget: clientEntity<'character_skill', Mode>
+    /**
+     * Valid Target List
+     *
+     * 合法目标列表
+     */
     validTargetList: clientEntity<'character_skill', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -3776,6 +3845,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    *
    * @param detectionInitiatorEntity
    *
+   * Detect Initiator Entity
+   *
    * 检测发起者实体
    * @param launchLocation
    *
@@ -3795,14 +3866,6 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
    *
    * 命中层筛选: 分为受击盒、场景、物件自身碰撞
-   *
-   * @returns
-   *
-   * onHitLocation
-   * 命中位置
-   *
-   * onHitEntity
-   * 命中实体
    */
   getRayDetectionResult(
     detectionInitiatorEntity: EntityValue,
@@ -3812,7 +3875,20 @@ export class ClientCharacterSkillExecutionFlowFunctions<
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: clientEntity<'character_skill', Mode> } {
+  ): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
+    onHitLocation: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
+    onHitEntity: clientEntity<'character_skill', Mode>
+  } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -4097,11 +4173,13 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Cursor Is Active
+   * Get Cursor Active Status
    *
    * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
    *
    * @returns
+   *
+   * Activate
    *
    * 是否激活
    */
@@ -4118,15 +4196,19 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   * Get Pre-Aim Stick Deadzone Status
    *
    * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Whether in Deadzone
    *
    * 是否处于死区
    */
@@ -4220,6 +4302,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 技能变量配置ID
    * 仅支持字面量，不能连接其他节点的输出。
    * @param setValue Modified Value = Original Value + Increase Value
+   *
+   * Increase Value
    *
    * 增加值: 修改后的值=修改前的值+增加值
    */
@@ -4843,6 +4927,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 缩放倍率
    * @param playDefaultSoundEffects
    *
+   * Play Default Sound Effect
+   *
    * 是否播放默认音效
    */
   playTimedEffects(
@@ -4930,6 +5016,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    *
    * @returns
    *
+   * Skill Instance ID
+   *
    * 技能实例ID
    */
   queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
@@ -4947,6 +5035,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Check Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -5260,15 +5350,19 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Query Pre-Aiming End Reason
+   * Query Pre-Aim Termination Cause
    *
    * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Termination Cause
    *
    * 结束原因
    */
@@ -5298,6 +5392,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 技能配置ID
    *
    * @returns
+   *
+   * Skill Instance ID
    *
    * 技能实例ID
    */
@@ -5431,7 +5527,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   /**
    * Initiates a one-time HP restoration for the Target Entity
    *
-   * 恢复生命值: 为目标实体发起一次恢复生命值
+   * 角色恢复生命值: 为目标实体发起一次恢复生命值
    *
    * @param targetEntity
    *
@@ -5570,7 +5666,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to Viewport Coordinates
+   * Convert Screen Coordinates to Viewport Coordinates
    *
    * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
    *
@@ -5580,19 +5676,24 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * @param screenY
    *
    * 屏幕Y
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
   screenCoordinatesToViewportCoordinates(
     screenX: FloatValue,
     screenY: FloatValue
-  ): { viewportX: number; viewportY: number } {
+  ): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const screenXObj = parseValue(screenX, 'float')
     const screenYObj = parseValue(screenY, 'float')
     const ref = this.registry.registerNode({
@@ -5616,7 +5717,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to World Coordinates
+   * Convert Screen Coordinates to World Coordinates
    *
    * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
    *
@@ -5631,6 +5732,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 深度值
    *
    * @returns
+   *
+   * World Coordinates
    *
    * 世界坐标
    */
@@ -5821,6 +5924,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 目标实体
    * @param whetherToTurnImmediately
    *
+   * Turn Immediately
+   *
    * 是否立即转向
    */
   setOwnAttackTarget(targetEntity: EntityValue, whetherToTurnImmediately: BoolValue): void {
@@ -5862,6 +5967,8 @@ export class ClientCharacterSkillExecutionFlowFunctions<
 
   /**
    * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
+   *
+   * Set the Aggro Value of the Specified Entity
    *
    * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
    *
@@ -5956,21 +6063,25 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -6317,15 +6428,21 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * @param onHitSceneSpecialEffectsOffset
    * Literal only; wired connections are not allowed.
    *
+   * On-Hit Special Effects Offset
+   *
    * 命中特效偏移
    * 仅支持字面量，不能连接其他节点的输出。
    * @param onHitSceneSpecialEffectsRotation
    * Literal only; wired connections are not allowed.
    *
+   * On-Hit Special Effects Rotation
+   *
    * 命中特效旋转
    * 仅支持字面量，不能连接其他节点的输出。
    * @param onHitSceneSpecialEffectsZoom
    * Literal only; wired connections are not allowed.
+   *
+   * On-Hit Special Effects Zoom
    *
    * 命中特效缩放
    * 仅支持字面量，不能连接其他节点的输出。
@@ -9122,7 +9239,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * Viewport Coordinates to Screen Coordinates
+   * Convert Viewport Coordinates to Screen Coordinates
    *
    * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
    *
@@ -9132,19 +9249,24 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * @param viewportY
    *
    * 视口Y
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   viewportCoordinatesToScreenCoordinates(
     viewportX: FloatValue,
     viewportY: FloatValue
-  ): { screenX: number; screenY: number } {
+  ): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const viewportXObj = parseValue(viewportX, 'float')
     const viewportYObj = parseValue(viewportY, 'float')
     const ref = this.registry.registerNode({
@@ -9201,24 +9323,28 @@ export class ClientCharacterSkillExecutionFlowFunctions<
   }
 
   /**
-   * World Coordinates to Screen Coordinates
+   * Convert World Coordinates to Screen Coordinates
    *
    * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
    *
    * @param worldPosition
    *
+   * World Coordinates
+   *
    * 世界坐标
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
     screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
     screenY: number
   } {
     const worldPositionObj = parseValue(worldPosition, 'vec3')
@@ -9557,17 +9683,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Add Temporary Acceleration
-   *
    * 添加临时加速度: 添加临时加速度，若载具处于接地状态，则只会受到地面所在平面的加速度（在平面上的分量）。
    *
    * @param targetControlMotor
+   *
+   * Target Control Motion Device
    *
    * 目标操控运动器
    * @param acceleration
    *
    * 加速度值
    * @param direction
+   *
+   * Orientation
    *
    * 朝向
    * @param duration
@@ -9593,11 +9721,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Add Temporary Movement Parameter Values
+   * Add Temporary Movement Parameters
    *
    * 添加临时运动参数值: 添加临时运动参数值。该值将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
    *
    * @param controlMotor
+   *
+   * Control Motion Device
    *
    * 操控运动器
    * @param forwardAcceleration
@@ -9605,20 +9735,30 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 前进加速度
    * @param backwardAcceleration
    *
+   * Reverse Acceleration
+   *
    * 后退加速度
    * @param turningRate
+   *
+   * Turn Speed
    *
    * 转向速率
    * @param baseDragDeceleration
    *
+   * Base Resistance Deceleration
+   *
    * 基础阻力减速度
    * @param dragCoefficient
+   *
+   * Resistance Coefficient
    *
    * 阻力系数
    * @param maxForwardSpeed
    *
    * 最大前进速度
    * @param maxBackwardSpeed
+   *
+   * Max Reverse Speed
    *
    * 最大后退速度
    */
@@ -9692,17 +9832,23 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Add Velocity
+   * Add Acceleration
    *
    * 添加速度: 添加临时加速度，若载具处于接地状态，则只会添加地面所在平面的速度（在平面上的分量）; 添加的速度会在持续时间结束后仍然继承
    *
    * @param targetControlMotor
    *
+   * Target Control Motion Device
+   *
    * 目标操控运动器
    * @param velocity
    *
+   * Speed
+   *
    * 速度值
    * @param direction
+   *
+   * Orientation
    *
    * 朝向
    * @param duration
@@ -10309,21 +10455,26 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    *
    * 最远距离
    * 仅支持字面量，不能连接其他节点的输出。
-   *
-   * @returns
-   *
-   * targetRotation
-   * 目标旋转
-   *
-   * targetLocation
-   * 目标位置
    */
   cameraOrientationDetectionData(
     targetType: TargetType,
     launchLocation: Vec3Value,
     nearestDistance: FloatValue,
     furthestDistance: FloatValue
-  ): { targetRotation: vec3; targetLocation: vec3 } {
+  ): {
+    /**
+     * Target Rotation
+     *
+     * 目标旋转
+     */
+    targetRotation: vec3
+    /**
+     * Target Location
+     *
+     * 目标位置
+     */
+    targetLocation: vec3
+  } {
     const targetTypeObj = parseValue(targetType, 'enum')
     assertClientLiteralValue(targetTypeObj, 'cameraOrientationDetectionData.targetType')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
@@ -11247,7 +11398,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Finish Current Pre-Aiming
+   * Complete Current Pre-Aim
    *
    * 完成当前预瞄准: 可以让玩家提前完成当前预瞄准
    */
@@ -11269,6 +11420,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    *
    * 循环起始值
    * @param loopEndValue
+   *
+   * Loop Termination Value
    *
    * 循环终止值
    *
@@ -11497,11 +11650,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Base Object of Specified Pre-Aiming
+   * Get Base Object for Specified Pre-Aim Target
    *
    * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -11553,24 +11708,28 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Control Motor Current Velocity
+   * Get Control Motion Device's Current Speed
    *
    * 获取操控运动器当前速度: 获取指定操控运动器的当前速度（速度大小及单位方向向量）
    *
    * @param controlMotor
    *
+   * Control Motion Device
+   *
    * 操控运动器
-   *
-   * @returns
-   *
-   * speed
-   * 速度大小
-   *
-   * velocityDirection
-   * 速度方向
    */
   getControlMotorCurrentVelocity(controlMotor: EntityValue): {
+    /**
+     * Speed Magnitude
+     *
+     * 速度大小
+     */
     speed: number
+    /**
+     * Speed Direction
+     *
+     * 速度方向
+     */
     velocityDirection: vec3
   } {
     const controlMotorObj = parseValue(controlMotor, 'entity')
@@ -11595,11 +11754,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Control Motor Forward Direction
+   * Get Control Motion Device's Forward Direction
    *
    * 获取操控运动器前向: 获取指定操控运动器的前向方向向量
    *
    * @param controlMotor
+   *
+   * Control Motion Device
    *
    * 操控运动器
    *
@@ -11621,44 +11782,58 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Control Motor Movement Parameters
+   * Get Control Motion Device's Movement Parameters
    *
    * 获取操控运动器运动参数: 获取指定操控运动器的运动参数，包含临时运动参数。临时值的添加将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
    *
    * @param controlMotor
    *
+   * Control Motion Device
+   *
    * 操控运动器
-   *
-   * @returns
-   *
-   * forwardAcceleration
-   * 前进加速度
-   *
-   * backwardAcceleration
-   * 后退加速度
-   *
-   * turningRate
-   * 转向速率
-   *
-   * baseDragDeceleration
-   * 基础阻力减速度
-   *
-   * dragCoefficient
-   * 阻力系数
-   *
-   * maxForwardSpeed
-   * 最大前进速度
-   *
-   * maxBackwardSpeed
-   * 最大后退速度
    */
   getControlMotorMovementParameters(controlMotor: EntityValue): {
+    /**
+     * Forward Acceleration
+     *
+     * 前进加速度
+     */
     forwardAcceleration: number
+    /**
+     * Reverse Acceleration
+     *
+     * 后退加速度
+     */
     backwardAcceleration: number
+    /**
+     * Turn Speed
+     *
+     * 转向速率
+     */
     turningRate: number
+    /**
+     * Base Resistance Deceleration
+     *
+     * 基础阻力减速度
+     */
     baseDragDeceleration: number
+    /**
+     * Resistance Coefficient
+     *
+     * 阻力系数
+     */
     dragCoefficient: number
+    /**
+     * Max Forward Speed
+     *
+     * 最大前进速度
+     */
     maxForwardSpeed: number
+    /**
+     * Max Reverse Speed
+     *
+     * 最大后退速度
+     */
     maxBackwardSpeed: number
   } {
     const controlMotorObj = parseValue(controlMotor, 'entity')
@@ -11708,15 +11883,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Control Motor Target Turning Direction
+   * Get Control Motion Device's Target Turn Direction
    *
    * 获取操控运动器目标转向方向: 获取操控运动器目标转向方向（移动轮盘输入后，转换成操控运动器的目标转向）
    *
    * @param controlMotor
    *
+   * Control Motion Device
+   *
    * 操控运动器
    *
    * @returns
+   *
+   * Target Steering Direction
    *
    * 目标转向方向
    */
@@ -11858,11 +12037,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Current Active Control Motor List
+   * Get Currently Activated Control Motion Device List
    *
    * 获取当前激活操控运动器列表: 获取当前激活操控运动器列表
    *
    * @returns
+   *
+   * Control Motion Device List
    *
    * 操控运动器列表
    */
@@ -11879,11 +12060,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Current Active Pre-Aiming Index
+   * Get Current Active Pre-Aim ID
    *
    * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
    *
    * @returns
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    */
@@ -11944,17 +12127,22 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   /**
    * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
    *
-   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
-   *
-   * @returns
-   *
-   * clientTimeS
-   * 客户端时间（s）
-   *
-   * clientTimeMs
-   * 客户端时间（ms）
+   * 获取当前客户端时间（高精度）: 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
    */
-  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+  getCurrentClientTimeHighPrecision(): {
+    /**
+     * Client Time (s)
+     *
+     * 客户端时间（s）
+     */
+    clientTimeS: bigint
+    /**
+     * Client Time (ms)
+     *
+     * 客户端时间（ms）
+     */
+    clientTimeMs: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -11976,11 +12164,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Current Following Control Motor
+   * Get Currently Followed Control Motion Device
    *
    * 获取当前跟随操控运动器: 获取当前跟随操控运动器
    *
    * @returns
+   *
+   * Follow Control Motion Device
    *
    * 跟随操控运动器
    */
@@ -12000,16 +12190,21 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
    *
    * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeList
-   * 录入时间列表
    */
-  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+  getCurrentKeyBehavior(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
+    behaviorIDList: bigint[]
+    /**
+     * Entry Time List
+     *
+     * 录入时间列表
+     */
+    entryTimeList: number[]
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -12033,22 +12228,26 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   /**
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
    *
-   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeListS
-   * 录入时间列表（s）
-   *
-   * entryTimeListMs
-   * 录入时间列表（ms）
+   * 获取当前关键行为（高精度）: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
    */
   getCurrentKeyBehaviorHighPrecision(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
     behaviorIDList: bigint[]
+    /**
+     * Entry Time List (s)
+     *
+     * 录入时间列表（s）
+     */
     entryTimeListS: bigint[]
+    /**
+     * Entry Time List (ms)
+     *
+     * 录入时间列表（ms）
+     */
     entryTimeListMs: bigint[]
   } {
     const ref = this.registry.registerNode({
@@ -12077,24 +12276,26 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Hit Result
-   *
    * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
-   *
-   * @returns
-   *
-   * hitEntityList
-   * 命中实体列表
-   *
-   * hitPositionList
-   * 命中位置列表
-   *
-   * hitCount
-   * 命中数量
    */
   getCursorHitResult(): {
+    /**
+     * On-Hit Entity List
+     *
+     * 命中实体列表
+     */
     hitEntityList: clientEntity<'character_control_skill', Mode>[]
+    /**
+     * On-Hit Position List
+     *
+     * 命中位置列表
+     */
     hitPositionList: vec3[]
+    /**
+     * Hits
+     *
+     * 命中数量
+     */
     hitCount: bigint
   } {
     const ref = this.registry.registerNode({
@@ -12123,19 +12324,22 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Screen Coordinates
-   *
    * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
-  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+  getCursorScreenCoordinates(): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -12157,19 +12361,22 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Viewport Coordinates
-   *
    * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
-  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+  getCursorViewportCoordinates(): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -12224,17 +12431,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * Returns Entities currently detected by the Scan Component; these are Entities in the Active State
    *
    * 获取扫描组件当前扫描到的实体: 获取扫描组件当前扫描到的实体，指扫描状态为“激活状态”的实体
-   *
-   * @returns
-   *
-   * correspondingEntity
-   * 对应实体
-   *
-   * scanTagConfigID
-   * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
+    /**
+     * Corresponding Entity
+     *
+     * 对应实体
+     */
     correspondingEntity: clientEntity<'character_control_skill', Mode>
+    /**
+     * Scan Tag Config ID
+     *
+     * 扫描标签配置ID
+     */
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -12655,6 +12864,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -12692,6 +12903,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -12777,16 +12990,21 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * Returns the Input Direction and Input Strength of the current client player's movement.
    *
    * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
-   *
-   * @returns
-   *
-   * inputDirection
-   * 输入方向
-   *
-   * inputStrength
-   * 输入力度
    */
-  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+  getPlayerMovementInput(): {
+    /**
+     * Input Direction
+     *
+     * 输入方向
+     */
+    inputDirection: number
+    /**
+     * Input Strength
+     *
+     * 输入力度
+     */
+    inputStrength: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -12808,11 +13026,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Collision Detection Result Count
+   * Get Pre-Aim Collision Detection Count
    *
    * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -12834,15 +13054,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Duration
+   * Get Pre-Aim Duration
    *
    * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Duration (s)
    *
    * 持续时长（s）
    */
@@ -12860,24 +13084,28 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Ray Hit Info
+   * Get Pre-Aim Ray Hit Info
    *
    * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * hitEntity
-   * 命中实体
    */
   getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
     hitEntity: clientEntity<'character_control_skill', Mode>
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -12902,32 +13130,40 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Result
+   * Get Pre-Aim Result
    *
    * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * inRangePosition
-   * 范围内位置
-   *
-   * bestValidTarget
-   * 最优合法目标
-   *
-   * validTargetList
-   * 合法目标列表
    */
   getPreAimingResult(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * Position Within Range
+     *
+     * 范围内位置
+     */
     inRangePosition: vec3
+    /**
+     * Optimal Valid Target
+     *
+     * 最优合法目标
+     */
     bestValidTarget: clientEntity<'character_control_skill', Mode>
+    /**
+     * Valid Target List
+     *
+     * 合法目标列表
+     */
     validTargetList: clientEntity<'character_control_skill', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -13041,6 +13277,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    *
    * @param detectionInitiatorEntity
    *
+   * Detect Initiator Entity
+   *
    * 检测发起者实体
    * @param launchLocation
    *
@@ -13060,14 +13298,6 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
    *
    * 命中层筛选: 分为受击盒、场景、物件自身碰撞
-   *
-   * @returns
-   *
-   * onHitLocation
-   * 命中位置
-   *
-   * onHitEntity
-   * 命中实体
    */
   getRayDetectionResult(
     detectionInitiatorEntity: EntityValue,
@@ -13077,7 +13307,20 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: clientEntity<'character_control_skill', Mode> } {
+  ): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
+    onHitLocation: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
+    onHitEntity: clientEntity<'character_control_skill', Mode>
+  } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -13362,15 +13605,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Control Motor Is Grounded
+   * Get Control Motion Device Grounded Status
    *
    * 获取操控运动器是否接地: 获取指定操控运动器当前是否接地
    *
    * @param targetControlMotor
    *
+   * Target Control Motion Device
+   *
    * 目标操控运动器
    *
    * @returns
+   *
+   * Grounded
    *
    * 是否接地
    */
@@ -13388,11 +13635,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Cursor Is Active
+   * Get Cursor Active Status
    *
    * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
    *
    * @returns
+   *
+   * Activate
    *
    * 是否激活
    */
@@ -13409,15 +13658,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   * Get Pre-Aim Stick Deadzone Status
    *
    * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Whether in Deadzone
    *
    * 是否处于死区
    */
@@ -13511,6 +13764,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 技能变量配置ID
    * 仅支持字面量，不能连接其他节点的输出。
    * @param setValue Modified Value = Original Value + Increase Value
+   *
+   * Increase Value
    *
    * 增加值: 修改后的值=修改前的值+增加值
    */
@@ -14137,6 +14392,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 缩放倍率
    * @param playDefaultSoundEffects
    *
+   * Play Default Sound Effect
+   *
    * 是否播放默认音效
    */
   playTimedEffects(
@@ -14224,6 +14481,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    *
    * @returns
    *
+   * Skill Instance ID
+   *
    * 技能实例ID
    */
   queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
@@ -14241,6 +14500,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Check Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -14554,15 +14815,19 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Query Pre-Aiming End Reason
+   * Query Pre-Aim Termination Cause
    *
    * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Termination Cause
    *
    * 结束原因
    */
@@ -14592,6 +14857,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 技能配置ID
    *
    * @returns
+   *
+   * Skill Instance ID
    *
    * 技能实例ID
    */
@@ -14864,7 +15131,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to Viewport Coordinates
+   * Convert Screen Coordinates to Viewport Coordinates
    *
    * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
    *
@@ -14874,19 +15141,24 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * @param screenY
    *
    * 屏幕Y
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
   screenCoordinatesToViewportCoordinates(
     screenX: FloatValue,
     screenY: FloatValue
-  ): { viewportX: number; viewportY: number } {
+  ): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const screenXObj = parseValue(screenX, 'float')
     const screenYObj = parseValue(screenY, 'float')
     const ref = this.registry.registerNode({
@@ -14910,7 +15182,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to World Coordinates
+   * Convert Screen Coordinates to World Coordinates
    *
    * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
    *
@@ -14925,6 +15197,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 深度值
    *
    * @returns
+   *
+   * World Coordinates
    *
    * 世界坐标
    */
@@ -15027,11 +15301,13 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Set Control Motor to Ungrounded State
+   * Set Control Motion Device to Not Grounded
    *
    * 使操控运动器转换至非接地状态: 接地状态下的操控运动器将持续找到地面并贴合。若希望通过添加速度实现离地运动（跳跃等效果），可以使用该节点短暂脱离接地状态。
    *
    * @param targetControlMotor
+   *
+   * Target Control Motion Device
    *
    * 目标操控运动器
    * @param duration
@@ -15138,6 +15414,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 目标实体
    * @param whetherToTurnImmediately
    *
+   * Turn Immediately
+   *
    * 是否立即转向
    */
   setOwnAttackTarget(targetEntity: EntityValue, whetherToTurnImmediately: BoolValue): void {
@@ -15179,6 +15457,8 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
 
   /**
    * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
+   *
+   * Set the Aggro Value of the Specified Entity
    *
    * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
    *
@@ -15273,21 +15553,25 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -15637,15 +15921,21 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * @param onHitSceneSpecialEffectsOffset
    * Literal only; wired connections are not allowed.
    *
+   * On-Hit Special Effects Offset
+   *
    * 命中特效偏移
    * 仅支持字面量，不能连接其他节点的输出。
    * @param onHitSceneSpecialEffectsRotation
    * Literal only; wired connections are not allowed.
    *
+   * On-Hit Special Effects Rotation
+   *
    * 命中特效旋转
    * 仅支持字面量，不能连接其他节点的输出。
    * @param onHitSceneSpecialEffectsZoom
    * Literal only; wired connections are not allowed.
+   *
+   * On-Hit Special Effects Zoom
    *
    * 命中特效缩放
    * 仅支持字面量，不能连接其他节点的输出。
@@ -18442,7 +18732,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * Viewport Coordinates to Screen Coordinates
+   * Convert Viewport Coordinates to Screen Coordinates
    *
    * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
    *
@@ -18452,19 +18742,24 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * @param viewportY
    *
    * 视口Y
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   viewportCoordinatesToScreenCoordinates(
     viewportX: FloatValue,
     viewportY: FloatValue
-  ): { screenX: number; screenY: number } {
+  ): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const viewportXObj = parseValue(viewportX, 'float')
     const viewportYObj = parseValue(viewportY, 'float')
     const ref = this.registry.registerNode({
@@ -18521,24 +18816,28 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
   }
 
   /**
-   * World Coordinates to Screen Coordinates
+   * Convert World Coordinates to Screen Coordinates
    *
    * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
    *
    * @param worldPosition
    *
+   * World Coordinates
+   *
    * 世界坐标
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
     screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
     screenY: number
   } {
     const worldPositionObj = parseValue(worldPosition, 'vec3')
@@ -20370,6 +20669,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * 循环起始值
    * @param loopEndValue
    *
+   * Loop Termination Value
+   *
    * 循环终止值
    *
    * @returns
@@ -20690,24 +20991,26 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Hit Result
-   *
    * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
-   *
-   * @returns
-   *
-   * hitEntityList
-   * 命中实体列表
-   *
-   * hitPositionList
-   * 命中位置列表
-   *
-   * hitCount
-   * 命中数量
    */
   getCursorHitResult(): {
+    /**
+     * On-Hit Entity List
+     *
+     * 命中实体列表
+     */
     hitEntityList: clientEntity<'creation_skill', Mode>[]
+    /**
+     * On-Hit Position List
+     *
+     * 命中位置列表
+     */
     hitPositionList: vec3[]
+    /**
+     * Hits
+     *
+     * 命中数量
+     */
     hitCount: bigint
   } {
     const ref = this.registry.registerNode({
@@ -20736,19 +21039,22 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Screen Coordinates
-   *
    * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
-  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+  getCursorScreenCoordinates(): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -20770,19 +21076,22 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Viewport Coordinates
-   *
    * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
-  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+  getCursorViewportCoordinates(): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -21173,6 +21482,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -21210,6 +21521,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -21376,6 +21689,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    *
    * @param detectionInitiatorEntity
    *
+   * Detect Initiator Entity
+   *
    * 检测发起者实体
    * @param launchLocation
    *
@@ -21395,14 +21710,6 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
    *
    * 命中层筛选: 分为受击盒、场景、物件自身碰撞
-   *
-   * @returns
-   *
-   * onHitLocation
-   * 命中位置
-   *
-   * onHitEntity
-   * 命中实体
    */
   getRayDetectionResult(
     detectionInitiatorEntity: EntityValue,
@@ -21412,7 +21719,20 @@ export class ClientCreationSkillExecutionFlowFunctions<
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: clientEntity<'creation_skill', Mode> } {
+  ): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
+    onHitLocation: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
+    onHitEntity: clientEntity<'creation_skill', Mode>
+  } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -21652,7 +21972,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
   /**
    * Return to the ID of the Skill currently being cast by the current Complex Creation
    *
-   * 获取复杂造物当前释放的技能: 返回复杂造物当前正在施放的技能的序号
+   * 获取复杂造物当前施放的技能: 返回复杂造物当前正在施放的技能的序号
    *
    * @returns
    *
@@ -21697,11 +22017,13 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Cursor Is Active
+   * Get Cursor Active Status
    *
    * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
    *
    * @returns
+   *
+   * Activate
    *
    * 是否激活
    */
@@ -21794,6 +22116,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * 技能变量配置ID
    * 仅支持字面量，不能连接其他节点的输出。
    * @param setValue Modified Value = Original Value + Increase Value
+   *
+   * Increase Value
    *
    * 增加值: 修改后的值=修改前的值+增加值
    */
@@ -22241,6 +22565,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * 缩放倍率
    * @param playDefaultSoundEffects
    *
+   * Play Default Sound Effect
+   *
    * 是否播放默认音效
    */
   playTimedEffects(
@@ -22278,6 +22604,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Check Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -22758,7 +23086,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to Viewport Coordinates
+   * Convert Screen Coordinates to Viewport Coordinates
    *
    * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
    *
@@ -22768,19 +23096,24 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * @param screenY
    *
    * 屏幕Y
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
   screenCoordinatesToViewportCoordinates(
     screenX: FloatValue,
     screenY: FloatValue
-  ): { viewportX: number; viewportY: number } {
+  ): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const screenXObj = parseValue(screenX, 'float')
     const screenYObj = parseValue(screenY, 'float')
     const ref = this.registry.registerNode({
@@ -22804,7 +23137,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to World Coordinates
+   * Convert Screen Coordinates to World Coordinates
    *
    * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
    *
@@ -22819,6 +23152,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * 深度值
    *
    * @returns
+   *
+   * World Coordinates
    *
    * 世界坐标
    */
@@ -23002,6 +23337,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
   /**
    * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
    *
+   * Set the Aggro Value of the Specified Entity
+   *
    * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
    *
    * @param targetEntity
@@ -23070,6 +23407,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    *
    * 技能序号
    * @param cooldownCD
+   *
+   * Cooldown
    *
    * 冷却时间
    * @param cDVariationRange
@@ -23170,6 +23509,8 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * 冷却时间组序号
    * @param cooldownCD
    *
+   * Cooldown
+   *
    * 冷却时间
    * @param cDVariationRange
    *
@@ -23225,21 +23566,25 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -23586,15 +23931,21 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * @param onHitSceneSpecialEffectsOffset
    * Literal only; wired connections are not allowed.
    *
+   * On-Hit Special Effects Offset
+   *
    * 命中特效偏移
    * 仅支持字面量，不能连接其他节点的输出。
    * @param onHitSceneSpecialEffectsRotation
    * Literal only; wired connections are not allowed.
    *
+   * On-Hit Special Effects Rotation
+   *
    * 命中特效旋转
    * 仅支持字面量，不能连接其他节点的输出。
    * @param onHitSceneSpecialEffectsZoom
    * Literal only; wired connections are not allowed.
+   *
+   * On-Hit Special Effects Zoom
    *
    * 命中特效缩放
    * 仅支持字面量，不能连接其他节点的输出。
@@ -26391,7 +26742,7 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * Viewport Coordinates to Screen Coordinates
+   * Convert Viewport Coordinates to Screen Coordinates
    *
    * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
    *
@@ -26401,19 +26752,24 @@ export class ClientCreationSkillExecutionFlowFunctions<
    * @param viewportY
    *
    * 视口Y
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   viewportCoordinatesToScreenCoordinates(
     viewportX: FloatValue,
     viewportY: FloatValue
-  ): { screenX: number; screenY: number } {
+  ): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const viewportXObj = parseValue(viewportX, 'float')
     const viewportYObj = parseValue(viewportY, 'float')
     const ref = this.registry.registerNode({
@@ -26470,24 +26826,28 @@ export class ClientCreationSkillExecutionFlowFunctions<
   }
 
   /**
-   * World Coordinates to Screen Coordinates
+   * Convert World Coordinates to Screen Coordinates
    *
    * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
    *
    * @param worldPosition
    *
+   * World Coordinates
+   *
    * 世界坐标
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
     screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
     screenY: number
   } {
     const worldPositionObj = parseValue(worldPosition, 'vec3')
@@ -27388,17 +27748,19 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * Query the Coordinate Points when a Creation enters battle
    *
    * 查询入战时的坐标点: 查询造物入战时的坐标点
-   *
-   * @returns
-   *
-   * enteringBattlePosition
-   * 入战位置
-   *
-   * enteringBattleRotation
-   * 入战旋转
    */
   checkTheCoordinatesWhenEnteringBattle(): {
+    /**
+     * Entering Battle Position
+     *
+     * 入战位置
+     */
     enteringBattlePosition: vec3
+    /**
+     * Entering Battle Rotation
+     *
+     * 入战旋转
+     */
     enteringBattleRotation: vec3
   } {
     const ref = this.registry.registerNode({
@@ -27551,16 +27913,21 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * Check whether a Creation is currently casting a Skill. If so, returns the index of the Skill being cast
    *
    * 查询自身是否正在释放技能: 查询造物当前是否正在释放技能，如果正在释放技能，可以返回当前释放技能的序号
-   *
-   * @returns
-   *
-   * isTheUnitUsingASkill
-   * 是否正在释放技能
-   *
-   * skillID
-   * 技能序号
    */
-  checkWhetherSelfIsUsingASkill(): { isTheUnitUsingASkill: boolean; skillID: bigint } {
+  checkWhetherSelfIsUsingASkill(): {
+    /**
+     * Is The Unit Using a Skill?
+     *
+     * 是否正在释放技能
+     */
+    isTheUnitUsingASkill: boolean
+    /**
+     * Skill ID
+     *
+     * 技能序号
+     */
+    skillID: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -28684,6 +29051,8 @@ export class ClientCreationStatusExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -28721,6 +29090,8 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -28811,16 +29182,21 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * Obtain the Tactic executed by Creations in the previous frame
    *
    * 获取前一帧执行战术: 获取造物前一帧执行的战术
-   *
-   * @returns
-   *
-   * tacticType
-   * 战术类型
-   *
-   * tacticalContext
-   * 战术上下文
    */
-  getPreviousFrameExecutionTactic(): { tacticType: TacticType; tacticalContext: string } {
+  getPreviousFrameExecutionTactic(): {
+    /**
+     * Tactic Type
+     *
+     * 战术类型
+     */
+    tacticType: TacticType
+    /**
+     * Tactical Context
+     *
+     * 战术上下文
+     */
+    tacticalContext: string
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -28935,16 +29311,21 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * Obtain the Creation's own Spawn Point information
    *
    * 获取出生点位置信息: 获取造物自身的出生点信息
-   *
-   * @returns
-   *
-   * spawnPointCoordinates
-   * 出生点坐标
-   *
-   * spawnPointRotation
-   * 出生点旋转
    */
-  getSpawnPointLocationInformation(): { spawnPointCoordinates: vec3; spawnPointRotation: vec3 } {
+  getSpawnPointLocationInformation(): {
+    /**
+     * Spawn Point Coordinates
+     *
+     * 出生点坐标
+     */
+    spawnPointCoordinates: vec3
+    /**
+     * Spawn Point Rotation
+     *
+     * 出生点旋转
+     */
+    spawnPointRotation: vec3
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -28996,16 +29377,21 @@ export class ClientCreationStatusExecutionFlowFunctions<
    *
    * 目标实体
    * 仅支持字面量，不能连接其他节点的输出。
-   *
-   * @returns
-   *
-   * baseATK
-   * 基础攻击力
-   *
-   * currentATK
-   * 当前攻击力
    */
-  getTargetAtk(targetEntity: TargetEntity): { baseATK: number; currentATK: number } {
+  getTargetAtk(targetEntity: TargetEntity): {
+    /**
+     * Base ATK
+     *
+     * 基础攻击力
+     */
+    baseATK: number
+    /**
+     * Current ATK
+     *
+     * 当前攻击力
+     */
+    currentATK: number
+  } {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     assertClientLiteralValue(targetEntityObj, 'getTargetAtk.targetEntity')
     const ref = this.registry.registerNode({
@@ -29059,21 +29445,25 @@ export class ClientCreationStatusExecutionFlowFunctions<
    *
    * 目标实体
    * 仅支持字面量，不能连接其他节点的输出。
-   *
-   * @returns
-   *
-   * baseHP
-   * 基础生命值
-   *
-   * maxHP
-   * 最大生命值
-   *
-   * currentHPPercentage
-   * 当前生命值百分比
    */
   getTargetHp(targetEntity: TargetEntity): {
+    /**
+     * Base HP
+     *
+     * 基础生命值
+     */
     baseHP: number
+    /**
+     * Max HP
+     *
+     * 最大生命值
+     */
     maxHP: number
+    /**
+     * Current HP Percentage
+     *
+     * 当前生命值百分比
+     */
     currentHPPercentage: number
   } {
     const targetEntityObj = parseValue(targetEntity, 'enum')
@@ -29686,6 +30076,8 @@ export class ClientCreationStatusExecutionFlowFunctions<
    *
    * @returns
    *
+   * Rotation
+   *
    * 旋转
    */
   orientationToRotation(orientation: Vec3Value): vec3 {
@@ -29703,6 +30095,8 @@ export class ClientCreationStatusExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Query Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -29770,6 +30164,8 @@ export class ClientCreationStatusExecutionFlowFunctions<
 
   /**
    * Search for Target Entity's Faction
+   *
+   * Check Entity Faction
    *
    * 查询实体阵营: 查询目标实体的阵营
    *
@@ -29865,6 +30261,8 @@ export class ClientCreationStatusExecutionFlowFunctions<
 
   /**
    * Check whether the Target Entity is present. Note: even if a Character Entity is in a Down state, it is still considered present
+   *
+   * Check If Entity Is on the Field
    *
    * 查询实体是否在场: 查询目标实体是否在场，注意角色实体即使处于倒下状态，仍然认为在场
    *
@@ -29982,21 +30380,25 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -30459,8 +30861,12 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 闲逛最大间隔时长
    * @param singleMinimumIdleRoamingDistance Roam Distance from Current Point
    *
+   * Minimum Idle Roaming Distance
+   *
    * 单次最小闲逛距离: 闲逛距当前点距离
    * @param singleMaximumIdleRoamingDistance Roam Distance from Current Point
+   *
+   * Maximum Idle Roaming Distance
    *
    * 单次最大闲逛距离: 闲逛距当前点距离
    * @param tacticalContext
@@ -30532,6 +30938,9 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * For example, if Execute Skill fails because the skill is on cooldown, the following action is attempted;
    * if the skill succeeds or is still running, the following statement does not run.
    *
+   * GSTS Note: When Execute is false, this tactic is treated as failed, so execution continues
+   * through its [Failure] output to the following statement.
+   *
    * 战术：地面追击: 造物执行地面追击行为; 追击目标战术，会自主选择目标周围合适的位置做目标点; 执行条件：; 【必须满足】; 【任一满足】
    *
    * GSTS 注: 这是一个容易误解的特殊行为：虽然 TypeScript 代码按顺序书写，
@@ -30540,39 +30949,70 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * 例如【执行技能】因技能处于 CD 而失败时，才会尝试下一条行为；
    * 若技能成功或仍在执行，后面的语句不会执行。
    *
+   * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
+   * 会从【失败执行】引脚继续执行后续语句。
+   *
    * @param input1
+   *
+   * Execute
    *
    * 是否执行
    * @param input2
    *
+   * Minimum Pursuit Trigger Distance
+   *
    * 触发追击的最小距离
    * @param input3
+   *
+   * Maximum Pursuit Trigger Distance
    *
    * 触发追击的最大距离
    * @param input4
    *
+   * Stop Pursuit Distance
+   *
    * 停止追击距离
    * @param input5 Walk and Run
+   *
+   * Outer Ring Pursuit Speed
    *
    * 外圈追击速度: 走、跑
    * @param input6 Inner Ring Boundary Radius
    *
+   * Inner Ring Radius
+   *
    * 内圈半径: 内圈分界半径
    * @param input7 Walk and Run
+   *
+   * Inner Ring Pursuit Speed
    *
    * 内圈追击速度: 走、跑
    * @param input8 If value less than 0, do not execute the Tactic
    *
+   * Single Pursuit Duration
+   *
    * 单次追击持续时间: 若数值小于0，则不执行战术
    * @param input9
+   *
+   * Tactical Instance CD
    *
    * 战术实例冷却时间
    * @param input10
    * Literal only; wired connections are not allowed.
    *
+   * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
+   * It can be used for conditional special-case handling when needed and may be empty.
+   *
+   * Tactical Context
+   *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
+   *
+   * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
+   * 方便在需要时进行条件特判；可以留空。
    * @param input11 Default: No
+   *
+   * Can skill be interrupted
    *
    * 是否可以打断技能: 默认为否
    */
@@ -32116,17 +32556,19 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * Query the Coordinate Points when a Creation enters battle
    *
    * 查询入战时的坐标点: 查询造物入战时的坐标点
-   *
-   * @returns
-   *
-   * enteringBattlePosition
-   * 入战位置
-   *
-   * enteringBattleRotation
-   * 入战旋转
    */
   checkTheCoordinatesWhenEnteringBattle(): {
+    /**
+     * Entering Battle Position
+     *
+     * 入战位置
+     */
     enteringBattlePosition: vec3
+    /**
+     * Entering Battle Rotation
+     *
+     * 入战旋转
+     */
     enteringBattleRotation: vec3
   } {
     const ref = this.registry.registerNode({
@@ -32279,16 +32721,21 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * Check whether a Creation is currently casting a Skill. If so, returns the index of the Skill being cast
    *
    * 查询自身是否正在释放技能: 查询造物当前是否正在释放技能，如果正在释放技能，可以返回当前释放技能的序号
-   *
-   * @returns
-   *
-   * isTheUnitUsingASkill
-   * 是否正在释放技能
-   *
-   * skillID
-   * 技能序号
    */
-  checkWhetherSelfIsUsingASkill(): { isTheUnitUsingASkill: boolean; skillID: bigint } {
+  checkWhetherSelfIsUsingASkill(): {
+    /**
+     * Is The Unit Using a Skill?
+     *
+     * 是否正在释放技能
+     */
+    isTheUnitUsingASkill: boolean
+    /**
+     * Skill ID
+     *
+     * 技能序号
+     */
+    skillID: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -33364,6 +33811,8 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -33401,6 +33850,8 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -33491,16 +33942,21 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * Obtain the Tactic executed by Creations in the previous frame
    *
    * 获取前一帧执行战术: 获取造物前一帧执行的战术
-   *
-   * @returns
-   *
-   * tacticType
-   * 战术类型
-   *
-   * tacticalContext
-   * 战术上下文
    */
-  getPreviousFrameExecutionTactic(): { tacticType: TacticType; tacticalContext: string } {
+  getPreviousFrameExecutionTactic(): {
+    /**
+     * Tactic Type
+     *
+     * 战术类型
+     */
+    tacticType: TacticType
+    /**
+     * Tactical Context
+     *
+     * 战术上下文
+     */
+    tacticalContext: string
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -33615,16 +34071,21 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * Obtain the Creation's own Spawn Point information
    *
    * 获取出生点位置信息: 获取造物自身的出生点信息
-   *
-   * @returns
-   *
-   * spawnPointCoordinates
-   * 出生点坐标
-   *
-   * spawnPointRotation
-   * 出生点旋转
    */
-  getSpawnPointLocationInformation(): { spawnPointCoordinates: vec3; spawnPointRotation: vec3 } {
+  getSpawnPointLocationInformation(): {
+    /**
+     * Spawn Point Coordinates
+     *
+     * 出生点坐标
+     */
+    spawnPointCoordinates: vec3
+    /**
+     * Spawn Point Rotation
+     *
+     * 出生点旋转
+     */
+    spawnPointRotation: vec3
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -33676,16 +34137,21 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    *
    * 目标实体
    * 仅支持字面量，不能连接其他节点的输出。
-   *
-   * @returns
-   *
-   * baseATK
-   * 基础攻击力
-   *
-   * currentATK
-   * 当前攻击力
    */
-  getTargetAtk(targetEntity: TargetEntity): { baseATK: number; currentATK: number } {
+  getTargetAtk(targetEntity: TargetEntity): {
+    /**
+     * Base ATK
+     *
+     * 基础攻击力
+     */
+    baseATK: number
+    /**
+     * Current ATK
+     *
+     * 当前攻击力
+     */
+    currentATK: number
+  } {
     const targetEntityObj = parseValue(targetEntity, 'enum')
     assertClientLiteralValue(targetEntityObj, 'getTargetAtk.targetEntity')
     const ref = this.registry.registerNode({
@@ -33739,21 +34205,25 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    *
    * 目标实体
    * 仅支持字面量，不能连接其他节点的输出。
-   *
-   * @returns
-   *
-   * baseHP
-   * 基础生命值
-   *
-   * maxHP
-   * 最大生命值
-   *
-   * currentHPPercentage
-   * 当前生命值百分比
    */
   getTargetHp(targetEntity: TargetEntity): {
+    /**
+     * Base HP
+     *
+     * 基础生命值
+     */
     baseHP: number
+    /**
+     * Max HP
+     *
+     * 最大生命值
+     */
     maxHP: number
+    /**
+     * Current HP Percentage
+     *
+     * 当前生命值百分比
+     */
     currentHPPercentage: number
   } {
     const targetEntityObj = parseValue(targetEntity, 'enum')
@@ -34369,6 +34839,8 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    *
    * @returns
    *
+   * Rotation
+   *
    * 旋转
    */
   orientationToRotation(orientation: Vec3Value): vec3 {
@@ -34386,6 +34858,8 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Query Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -34453,6 +34927,8 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
 
   /**
    * Search for Target Entity's Faction
+   *
+   * Check Entity Faction
    *
    * 查询实体阵营: 查询目标实体的阵营
    *
@@ -34548,6 +35024,8 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
 
   /**
    * Check whether the Target Entity is present. Note: even if a Character Entity is in a Down state, it is still considered present
+   *
+   * Check If Entity Is on the Field
    *
    * 查询实体是否在场: 查询目标实体是否在场，注意角色实体即使处于倒下状态，仍然认为在场
    *
@@ -34665,21 +35143,25 @@ export class ClientCreationStatusDecisionExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -36527,11 +37009,13 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Base Object of Specified Pre-Aiming
+   * Get Base Object for Specified Pre-Aim Target
    *
    * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -36705,11 +37189,13 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Current Active Pre-Aiming Index
+   * Get Current Active Pre-Aim ID
    *
    * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
    *
    * @returns
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    */
@@ -36770,17 +37256,22 @@ export class ClientBoolFilterExecutionFlowFunctions<
   /**
    * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
    *
-   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
-   *
-   * @returns
-   *
-   * clientTimeS
-   * 客户端时间（s）
-   *
-   * clientTimeMs
-   * 客户端时间（ms）
+   * 获取当前客户端时间（高精度）: 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
    */
-  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+  getCurrentClientTimeHighPrecision(): {
+    /**
+     * Client Time (s)
+     *
+     * 客户端时间（s）
+     */
+    clientTimeS: bigint
+    /**
+     * Client Time (ms)
+     *
+     * 客户端时间（ms）
+     */
+    clientTimeMs: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -36805,16 +37296,21 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
    *
    * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeList
-   * 录入时间列表
    */
-  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+  getCurrentKeyBehavior(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
+    behaviorIDList: bigint[]
+    /**
+     * Entry Time List
+     *
+     * 录入时间列表
+     */
+    entryTimeList: number[]
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -36838,22 +37334,26 @@ export class ClientBoolFilterExecutionFlowFunctions<
   /**
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
    *
-   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeListS
-   * 录入时间列表（s）
-   *
-   * entryTimeListMs
-   * 录入时间列表（ms）
+   * 获取当前关键行为（高精度）: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
    */
   getCurrentKeyBehaviorHighPrecision(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
     behaviorIDList: bigint[]
+    /**
+     * Entry Time List (s)
+     *
+     * 录入时间列表（s）
+     */
     entryTimeListS: bigint[]
+    /**
+     * Entry Time List (ms)
+     *
+     * 录入时间列表（ms）
+     */
     entryTimeListMs: bigint[]
   } {
     const ref = this.registry.registerNode({
@@ -36882,24 +37382,26 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Hit Result
-   *
    * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
-   *
-   * @returns
-   *
-   * hitEntityList
-   * 命中实体列表
-   *
-   * hitPositionList
-   * 命中位置列表
-   *
-   * hitCount
-   * 命中数量
    */
   getCursorHitResult(): {
+    /**
+     * On-Hit Entity List
+     *
+     * 命中实体列表
+     */
     hitEntityList: clientEntity<'bool_filter', Mode>[]
+    /**
+     * On-Hit Position List
+     *
+     * 命中位置列表
+     */
     hitPositionList: vec3[]
+    /**
+     * Hits
+     *
+     * 命中数量
+     */
     hitCount: bigint
   } {
     const ref = this.registry.registerNode({
@@ -36928,19 +37430,22 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Screen Coordinates
-   *
    * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
-  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+  getCursorScreenCoordinates(): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -36962,19 +37467,22 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Viewport Coordinates
-   *
    * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
-  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+  getCursorViewportCoordinates(): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -37029,17 +37537,19 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * Returns Entities currently detected by the Scan Component; these are Entities in the Active State
    *
    * 获取扫描组件当前扫描到的实体: 获取扫描组件当前扫描到的实体，指扫描状态为“激活状态”的实体
-   *
-   * @returns
-   *
-   * correspondingEntity
-   * 对应实体
-   *
-   * scanTagConfigID
-   * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
+    /**
+     * Corresponding Entity
+     *
+     * 对应实体
+     */
     correspondingEntity: clientEntity<'bool_filter', Mode>
+    /**
+     * Scan Tag Config ID
+     *
+     * 扫描标签配置ID
+     */
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -37373,6 +37883,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -37410,6 +37922,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -37495,16 +38009,21 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * Returns the Input Direction and Input Strength of the current client player's movement.
    *
    * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
-   *
-   * @returns
-   *
-   * inputDirection
-   * 输入方向
-   *
-   * inputStrength
-   * 输入力度
    */
-  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+  getPlayerMovementInput(): {
+    /**
+     * Input Direction
+     *
+     * 输入方向
+     */
+    inputDirection: number
+    /**
+     * Input Strength
+     *
+     * 输入力度
+     */
+    inputStrength: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -37552,11 +38071,13 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Collision Detection Result Count
+   * Get Pre-Aim Collision Detection Count
    *
    * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -37578,15 +38099,19 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Duration
+   * Get Pre-Aim Duration
    *
    * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Duration (s)
    *
    * 持续时长（s）
    */
@@ -37604,24 +38129,28 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Ray Hit Info
+   * Get Pre-Aim Ray Hit Info
    *
    * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * hitEntity
-   * 命中实体
    */
   getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
     hitEntity: clientEntity<'bool_filter', Mode>
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -37646,32 +38175,40 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Result
+   * Get Pre-Aim Result
    *
    * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * inRangePosition
-   * 范围内位置
-   *
-   * bestValidTarget
-   * 最优合法目标
-   *
-   * validTargetList
-   * 合法目标列表
    */
   getPreAimingResult(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * Position Within Range
+     *
+     * 范围内位置
+     */
     inRangePosition: vec3
+    /**
+     * Optimal Valid Target
+     *
+     * 最优合法目标
+     */
     bestValidTarget: clientEntity<'bool_filter', Mode>
+    /**
+     * Valid Target List
+     *
+     * 合法目标列表
+     */
     validTargetList: clientEntity<'bool_filter', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -37785,6 +38322,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
    *
    * @param detectionInitiatorEntity
    *
+   * Detect Initiator Entity
+   *
    * 检测发起者实体
    * @param launchLocation
    *
@@ -37804,14 +38343,6 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
    *
    * 命中层筛选: 分为受击盒、场景、物件自身碰撞
-   *
-   * @returns
-   *
-   * onHitLocation
-   * 命中位置
-   *
-   * onHitEntity
-   * 命中实体
    */
   getRayDetectionResult(
     detectionInitiatorEntity: EntityValue,
@@ -37821,7 +38352,20 @@ export class ClientBoolFilterExecutionFlowFunctions<
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: clientEntity<'bool_filter', Mode> } {
+  ): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
+    onHitLocation: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
+    onHitEntity: clientEntity<'bool_filter', Mode>
+  } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -38050,11 +38594,13 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Cursor Is Active
+   * Get Cursor Active Status
    *
    * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
    *
    * @returns
+   *
+   * Activate
    *
    * 是否激活
    */
@@ -38071,15 +38617,19 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   * Get Pre-Aim Stick Deadzone Status
    *
    * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Whether in Deadzone
    *
    * 是否处于死区
    */
@@ -38514,6 +39064,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
    *
    * @returns
    *
+   * Skill Instance ID
+   *
    * 技能实例ID
    */
   queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
@@ -38531,6 +39083,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Check Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -38818,15 +39372,19 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Query Pre-Aiming End Reason
+   * Query Pre-Aim Termination Cause
    *
    * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Termination Cause
    *
    * 结束原因
    */
@@ -38856,6 +39414,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * 技能配置ID
    *
    * @returns
+   *
+   * Skill Instance ID
    *
    * 技能实例ID
    */
@@ -38987,7 +39547,7 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to Viewport Coordinates
+   * Convert Screen Coordinates to Viewport Coordinates
    *
    * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
    *
@@ -38997,19 +39557,24 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * @param screenY
    *
    * 屏幕Y
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
   screenCoordinatesToViewportCoordinates(
     screenX: FloatValue,
     screenY: FloatValue
-  ): { viewportX: number; viewportY: number } {
+  ): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const screenXObj = parseValue(screenX, 'float')
     const screenYObj = parseValue(screenY, 'float')
     const ref = this.registry.registerNode({
@@ -39033,7 +39598,7 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to World Coordinates
+   * Convert Screen Coordinates to World Coordinates
    *
    * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
    *
@@ -39048,6 +39613,8 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * 深度值
    *
    * @returns
+   *
+   * World Coordinates
    *
    * 世界坐标
    */
@@ -39104,21 +39671,25 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -39214,7 +39785,7 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * Viewport Coordinates to Screen Coordinates
+   * Convert Viewport Coordinates to Screen Coordinates
    *
    * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
    *
@@ -39224,19 +39795,24 @@ export class ClientBoolFilterExecutionFlowFunctions<
    * @param viewportY
    *
    * 视口Y
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   viewportCoordinatesToScreenCoordinates(
     viewportX: FloatValue,
     viewportY: FloatValue
-  ): { screenX: number; screenY: number } {
+  ): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const viewportXObj = parseValue(viewportX, 'float')
     const viewportYObj = parseValue(viewportY, 'float')
     const ref = this.registry.registerNode({
@@ -39293,24 +39869,28 @@ export class ClientBoolFilterExecutionFlowFunctions<
   }
 
   /**
-   * World Coordinates to Screen Coordinates
+   * Convert World Coordinates to Screen Coordinates
    *
    * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
    *
    * @param worldPosition
    *
+   * World Coordinates
+   *
    * 世界坐标
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
     screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
     screenY: number
   } {
     const worldPositionObj = parseValue(worldPosition, 'vec3')
@@ -41024,11 +41604,13 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Base Object of Specified Pre-Aiming
+   * Get Base Object for Specified Pre-Aim Target
    *
    * 获取指定预瞄准的基准对象: 获取指定预瞄准序号的基准对象，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -41200,11 +41782,13 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Current Active Pre-Aiming Index
+   * Get Current Active Pre-Aim ID
    *
    * 获取当前生效的预瞄准序号: 获取当前技能上下文中正在生效的预瞄准序号，仅在超限模式可用
    *
    * @returns
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    */
@@ -41265,17 +41849,22 @@ export class ClientIntFilterExecutionFlowFunctions<
   /**
    * Returns the current client time. Due to floating-point precision issues, use this node if you requite greater granularity for the client time.
    *
-   * 获取当前客户端时间(高精度): 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
-   *
-   * @returns
-   *
-   * clientTimeS
-   * 客户端时间（s）
-   *
-   * clientTimeMs
-   * 客户端时间（ms）
+   * 获取当前客户端时间（高精度）: 获取当前客户端的时间，由于浮点数的精度问题，想要获取更高精度的客户端时间应该选用此节点; 如需对玩家展示节点内容，奇匠应在简介等处提前告知玩家获取客户端时间后的相关效果
    */
-  getCurrentClientTimeHighPrecision(): { clientTimeS: bigint; clientTimeMs: bigint } {
+  getCurrentClientTimeHighPrecision(): {
+    /**
+     * Client Time (s)
+     *
+     * 客户端时间（s）
+     */
+    clientTimeS: bigint
+    /**
+     * Client Time (ms)
+     *
+     * 客户端时间（ms）
+     */
+    clientTimeMs: bigint
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -41300,16 +41889,21 @@ export class ClientIntFilterExecutionFlowFunctions<
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel.
    *
    * 获取当前关键行为: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeList
-   * 录入时间列表
    */
-  getCurrentKeyBehavior(): { behaviorIDList: bigint[]; entryTimeList: number[] } {
+  getCurrentKeyBehavior(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
+    behaviorIDList: bigint[]
+    /**
+     * Entry Time List
+     *
+     * 录入时间列表
+     */
+    entryTimeList: number[]
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -41333,22 +41927,26 @@ export class ClientIntFilterExecutionFlowFunctions<
   /**
    * Returns all Key Behavior IDs and their corresponding entry times from the current Key Behavior Log Panel. Due to floating-point precision issues, use this node if you require greater granularity for the entry times.
    *
-   * 获取当前关键行为(高精度): 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
-   *
-   * @returns
-   *
-   * behaviorIDList
-   * 行为ID列表
-   *
-   * entryTimeListS
-   * 录入时间列表（s）
-   *
-   * entryTimeListMs
-   * 录入时间列表（ms）
+   * 获取当前关键行为（高精度）: 获取当前关键行为记录板上所有的关键行为ID以及对应的录入时间，由于浮点数的精度问题，想要获取更高精度的录入时间应该选用此节点
    */
   getCurrentKeyBehaviorHighPrecision(): {
+    /**
+     * Behavior ID List
+     *
+     * 行为ID列表
+     */
     behaviorIDList: bigint[]
+    /**
+     * Entry Time List (s)
+     *
+     * 录入时间列表（s）
+     */
     entryTimeListS: bigint[]
+    /**
+     * Entry Time List (ms)
+     *
+     * 录入时间列表（ms）
+     */
     entryTimeListMs: bigint[]
   } {
     const ref = this.registry.registerNode({
@@ -41377,24 +41975,26 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Hit Result
-   *
    * 获取光标命中结果: 获取本机持久光标的命中结果，包含命中实体列表、命中位置列表与命中数量，仅在超限模式可用
-   *
-   * @returns
-   *
-   * hitEntityList
-   * 命中实体列表
-   *
-   * hitPositionList
-   * 命中位置列表
-   *
-   * hitCount
-   * 命中数量
    */
   getCursorHitResult(): {
+    /**
+     * On-Hit Entity List
+     *
+     * 命中实体列表
+     */
     hitEntityList: clientEntity<'int_filter', Mode>[]
+    /**
+     * On-Hit Position List
+     *
+     * 命中位置列表
+     */
     hitPositionList: vec3[]
+    /**
+     * Hits
+     *
+     * 命中数量
+     */
     hitCount: bigint
   } {
     const ref = this.registry.registerNode({
@@ -41423,19 +42023,22 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Screen Coordinates
-   *
    * 获取光标屏幕坐标: 获取本机持久光标的屏幕坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
-  getCursorScreenCoordinates(): { screenX: number; screenY: number } {
+  getCursorScreenCoordinates(): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -41457,19 +42060,22 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Cursor Viewport Coordinates
-   *
    * 获取光标视口坐标: 获取本机持久光标的视口坐标X与Y，仅在超限模式可用
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
-  getCursorViewportCoordinates(): { viewportX: number; viewportY: number } {
+  getCursorViewportCoordinates(): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -41524,17 +42130,19 @@ export class ClientIntFilterExecutionFlowFunctions<
    * Returns Entities currently detected by the Scan Component; these are Entities in the Active State
    *
    * 获取扫描组件当前扫描到的实体: 获取扫描组件当前扫描到的实体，指扫描状态为“激活状态”的实体
-   *
-   * @returns
-   *
-   * correspondingEntity
-   * 对应实体
-   *
-   * scanTagConfigID
-   * 扫描标签配置ID
    */
   getEntityCurrentlyScannedByScanComponent(): {
+    /**
+     * Corresponding Entity
+     *
+     * 对应实体
+     */
     correspondingEntity: clientEntity<'int_filter', Mode>
+    /**
+     * Scan Tag Config ID
+     *
+     * 扫描标签配置ID
+     */
     scanTagConfigID: configId
   } {
     const ref = this.registry.registerNode({
@@ -41868,6 +42476,8 @@ export class ClientIntFilterExecutionFlowFunctions<
    *
    * @param listValue
    *
+   * List
+   *
    * 列表
    *
    * @returns
@@ -41905,6 +42515,8 @@ export class ClientIntFilterExecutionFlowFunctions<
    * 获取列表最小值: 仅对浮点数列表和整数列表有意义，返回列表中的最小值
    *
    * @param listValue
+   *
+   * List
    *
    * 列表
    *
@@ -41990,16 +42602,21 @@ export class ClientIntFilterExecutionFlowFunctions<
    * Returns the Input Direction and Input Strength of the current client player's movement.
    *
    * 获取玩家移动输入: 获取当前客户端玩家移动的输入方向和输入力度
-   *
-   * @returns
-   *
-   * inputDirection
-   * 输入方向
-   *
-   * inputStrength
-   * 输入力度
    */
-  getPlayerMovementInput(): { inputDirection: number; inputStrength: number } {
+  getPlayerMovementInput(): {
+    /**
+     * Input Direction
+     *
+     * 输入方向
+     */
+    inputDirection: number
+    /**
+     * Input Strength
+     *
+     * 输入力度
+     */
+    inputStrength: number
+  } {
     const ref = this.registry.registerNode({
       id: 0,
       type: 'data',
@@ -42047,11 +42664,13 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Collision Detection Result Count
+   * Get Pre-Aim Collision Detection Count
    *
    * 获取预瞄碰撞检测结果数量: 获取指定预瞄准的碰撞检测结果数量，仅在超限模式可用
    *
    * @param preAimingIndex
+   *
+   * Pre-Aim ID
    *
    * 预瞄准序号
    *
@@ -42073,15 +42692,19 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Duration
+   * Get Pre-Aim Duration
    *
    * 获取预瞄持续时长: 获取指定预瞄准已经持续的时长（秒），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Duration (s)
    *
    * 持续时长（s）
    */
@@ -42099,24 +42722,28 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Ray Hit Info
+   * Get Pre-Aim Ray Hit Info
    *
    * 获取预瞄射线命中信息: 获取指定预瞄准的射线命中信息，包含命中位置与命中实体，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * hitEntity
-   * 命中实体
    */
   getPreAimingRayHitInfo(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
     hitEntity: clientEntity<'int_filter', Mode>
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -42141,32 +42768,40 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Pre-Aiming Result
+   * Get Pre-Aim Result
    *
    * 获取预瞄结果: 获取指定预瞄准的命中位置、范围内位置、最优合法目标与合法目标列表，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
-   *
-   * @returns
-   *
-   * hitPosition
-   * 命中位置
-   *
-   * inRangePosition
-   * 范围内位置
-   *
-   * bestValidTarget
-   * 最优合法目标
-   *
-   * validTargetList
-   * 合法目标列表
    */
   getPreAimingResult(preAimingIndex: IntValue): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     hitPosition: vec3
+    /**
+     * Position Within Range
+     *
+     * 范围内位置
+     */
     inRangePosition: vec3
+    /**
+     * Optimal Valid Target
+     *
+     * 最优合法目标
+     */
     bestValidTarget: clientEntity<'int_filter', Mode>
+    /**
+     * Valid Target List
+     *
+     * 合法目标列表
+     */
     validTargetList: clientEntity<'int_filter', Mode>[]
   } {
     const preAimingIndexObj = parseValue(preAimingIndex, 'int')
@@ -42280,6 +42915,8 @@ export class ClientIntFilterExecutionFlowFunctions<
    *
    * @param detectionInitiatorEntity
    *
+   * Detect Initiator Entity
+   *
    * 检测发起者实体
    * @param launchLocation
    *
@@ -42299,14 +42936,6 @@ export class ClientIntFilterExecutionFlowFunctions<
    * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
    *
    * 命中层筛选: 分为受击盒、场景、物件自身碰撞
-   *
-   * @returns
-   *
-   * onHitLocation
-   * 命中位置
-   *
-   * onHitEntity
-   * 命中实体
    */
   getRayDetectionResult(
     detectionInitiatorEntity: EntityValue,
@@ -42316,7 +42945,20 @@ export class ClientIntFilterExecutionFlowFunctions<
     factionFilter: TargetType,
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
-  ): { onHitLocation: vec3; onHitEntity: clientEntity<'int_filter', Mode> } {
+  ): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
+    onHitLocation: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
+    onHitEntity: clientEntity<'int_filter', Mode>
+  } {
     const detectionInitiatorEntityObj = parseValue(detectionInitiatorEntity, 'entity')
     const launchLocationObj = parseValue(launchLocation, 'vec3')
     const launchDirectionObj = parseValue(launchDirection, 'vec3')
@@ -42545,11 +43187,13 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Cursor Is Active
+   * Get Cursor Active Status
    *
    * 获取光标是否激活: 获取本机持久光标是否处于激活状态，仅在超限模式可用
    *
    * @returns
+   *
+   * Activate
    *
    * 是否激活
    */
@@ -42566,15 +43210,19 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Get Whether Pre-Aiming Stick Is in Dead Zone
+   * Get Pre-Aim Stick Deadzone Status
    *
    * 获取预瞄准摇杆是否处于死区: 获取指定预瞄准的输入摇杆是否处于死区，仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Whether in Deadzone
    *
    * 是否处于死区
    */
@@ -43009,6 +43657,8 @@ export class ClientIntFilterExecutionFlowFunctions<
    *
    * @returns
    *
+   * Skill Instance ID
+   *
    * 技能实例ID
    */
   queryActiveSkillInstanceListOfSpecifiedSlot(skillSlot: CharacterSkillSlot): bigint {
@@ -43026,6 +43676,8 @@ export class ClientIntFilterExecutionFlowFunctions<
 
   /**
    * Query the number of key-value pairs in a dictionary
+   *
+   * Check Dictionary Length
    *
    * 查询字典长度: 查询字典中键值对的数量
    *
@@ -43313,15 +43965,19 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Query Pre-Aiming End Reason
+   * Query Pre-Aim Termination Cause
    *
    * 查询预瞄准结束原因: 查询指定预瞄准的结束原因（无/完成/取消），仅在超限模式可用
    *
    * @param preAimingIndex
    *
+   * Pre-Aim ID
+   *
    * 预瞄准序号
    *
    * @returns
+   *
+   * Termination Cause
    *
    * 结束原因
    */
@@ -43351,6 +44007,8 @@ export class ClientIntFilterExecutionFlowFunctions<
    * 技能配置ID
    *
    * @returns
+   *
+   * Skill Instance ID
    *
    * 技能实例ID
    */
@@ -43482,7 +44140,7 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to Viewport Coordinates
+   * Convert Screen Coordinates to Viewport Coordinates
    *
    * 屏幕坐标转视口坐标: 将屏幕坐标转换为视口坐标（归一化0-1），仅在超限模式可用
    *
@@ -43492,19 +44150,24 @@ export class ClientIntFilterExecutionFlowFunctions<
    * @param screenY
    *
    * 屏幕Y
-   *
-   * @returns
-   *
-   * viewportX
-   * 视口X
-   *
-   * viewportY
-   * 视口Y
    */
   screenCoordinatesToViewportCoordinates(
     screenX: FloatValue,
     screenY: FloatValue
-  ): { viewportX: number; viewportY: number } {
+  ): {
+    /**
+     * Viewport X
+     *
+     * 视口X
+     */
+    viewportX: number
+    /**
+     * Viewport Y
+     *
+     * 视口Y
+     */
+    viewportY: number
+  } {
     const screenXObj = parseValue(screenX, 'float')
     const screenYObj = parseValue(screenY, 'float')
     const ref = this.registry.registerNode({
@@ -43528,7 +44191,7 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Screen Coordinates to World Coordinates
+   * Convert Screen Coordinates to World Coordinates
    *
    * 屏幕坐标转世界坐标: 将屏幕坐标加上深度值，转换为世界坐标，仅在超限模式可用
    *
@@ -43543,6 +44206,8 @@ export class ClientIntFilterExecutionFlowFunctions<
    * 深度值
    *
    * @returns
+   *
+   * World Coordinates
    *
    * 世界坐标
    */
@@ -43599,21 +44264,25 @@ export class ClientIntFilterExecutionFlowFunctions<
    * @param _3DVector
    *
    * 三维向量
-   *
-   * @returns
-   *
-   * xComponent
-   * X分量
-   *
-   * yComponent
-   * Y分量
-   *
-   * zComponent
-   * Z分量
    */
   split3dVector(_3DVector: Vec3Value): {
+    /**
+     * X-Component
+     *
+     * X分量
+     */
     xComponent: number
+    /**
+     * Y-Component
+     *
+     * Y分量
+     */
     yComponent: number
+    /**
+     * Z-Component
+     *
+     * Z分量
+     */
     zComponent: number
   } {
     const _3DVectorObj = parseValue(_3DVector, 'vec3')
@@ -43709,7 +44378,7 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * Viewport Coordinates to Screen Coordinates
+   * Convert Viewport Coordinates to Screen Coordinates
    *
    * 视口坐标转屏幕坐标: 将视口坐标（归一化0-1）转换为屏幕坐标，仅在超限模式可用
    *
@@ -43719,19 +44388,24 @@ export class ClientIntFilterExecutionFlowFunctions<
    * @param viewportY
    *
    * 视口Y
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   viewportCoordinatesToScreenCoordinates(
     viewportX: FloatValue,
     viewportY: FloatValue
-  ): { screenX: number; screenY: number } {
+  ): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
+    screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
+    screenY: number
+  } {
     const viewportXObj = parseValue(viewportX, 'float')
     const viewportYObj = parseValue(viewportY, 'float')
     const ref = this.registry.registerNode({
@@ -43788,24 +44462,28 @@ export class ClientIntFilterExecutionFlowFunctions<
   }
 
   /**
-   * World Coordinates to Screen Coordinates
+   * Convert World Coordinates to Screen Coordinates
    *
    * 世界坐标转屏幕坐标: 将世界坐标转换为屏幕坐标，仅在超限模式可用
    *
    * @param worldPosition
    *
+   * World Coordinates
+   *
    * 世界坐标
-   *
-   * @returns
-   *
-   * screenX
-   * 屏幕X
-   *
-   * screenY
-   * 屏幕Y
    */
   worldCoordinatesToScreenCoordinates(worldPosition: Vec3Value): {
+    /**
+     * Screen X
+     *
+     * 屏幕X
+     */
     screenX: number
+    /**
+     * Screen Y
+     *
+     * 屏幕Y
+     */
     screenY: number
   } {
     const worldPositionObj = parseValue(worldPosition, 'vec3')
@@ -43856,14 +44534,14 @@ export interface ClientEntityHelperMethods<
   readonly activeCharacter: clientEntity<T, Mode>
 
   /**
-   * Add Temporary Acceleration
-   *
    * 添加临时加速度: 添加临时加速度，若载具处于接地状态，则只会受到地面所在平面的加速度（在平面上的分量）。
    *
    * @param acceleration
    *
    * 加速度值
    * @param direction
+   *
+   * Orientation
    *
    * 朝向
    * @param duration
@@ -43877,7 +44555,7 @@ export interface ClientEntityHelperMethods<
   ): void
 
   /**
-   * Add Temporary Movement Parameter Values
+   * Add Temporary Movement Parameters
    *
    * 添加临时运动参数值: 添加临时运动参数值。该值将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
    *
@@ -43886,20 +44564,30 @@ export interface ClientEntityHelperMethods<
    * 前进加速度
    * @param backwardAcceleration
    *
+   * Reverse Acceleration
+   *
    * 后退加速度
    * @param turningRate
+   *
+   * Turn Speed
    *
    * 转向速率
    * @param baseDragDeceleration
    *
+   * Base Resistance Deceleration
+   *
    * 基础阻力减速度
    * @param dragCoefficient
+   *
+   * Resistance Coefficient
    *
    * 阻力系数
    * @param maxForwardSpeed
    *
    * 最大前进速度
    * @param maxBackwardSpeed
+   *
+   * Max Reverse Speed
    *
    * 最大后退速度
    */
@@ -43930,14 +44618,18 @@ export interface ClientEntityHelperMethods<
   addUnitStatus(stacks: IntValue, unitStatusConfigID: ConfigIdValue): void
 
   /**
-   * Add Velocity
+   * Add Acceleration
    *
    * 添加速度: 添加临时加速度，若载具处于接地状态，则只会添加地面所在平面的速度（在平面上的分量）; 添加的速度会在持续时间结束后仍然继承
    *
    * @param velocity
    *
+   * Speed
+   *
    * 速度值
    * @param direction
+   *
+   * Orientation
    *
    * 朝向
    * @param duration
@@ -44074,7 +44766,7 @@ export interface ClientEntityHelperMethods<
   ): void
 
   /**
-   * Get Control Motor Forward Direction
+   * Get Control Motion Device's Forward Direction
    *
    * 获取操控运动器前向: 获取指定操控运动器的前向方向向量
    *
@@ -44137,25 +44829,28 @@ export interface ClientEntityHelperMethods<
   getCharacterEntityOfSpecifiedPlayer(): clientEntity<T, Mode>
 
   /**
-   * Get Control Motor Current Velocity
+   * Get Control Motion Device's Current Speed
    *
    * 获取操控运动器当前速度: 获取指定操控运动器的当前速度（速度大小及单位方向向量）
    *
-   * @returns
-   *
-   * speed
-   * 速度大小
-   *
-   * velocityDirection
-   * 速度方向
    */
   getControlMotorCurrentVelocity(): {
+    /**
+     * Speed Magnitude
+     *
+     * 速度大小
+     */
     speed: number
+    /**
+     * Speed Direction
+     *
+     * 速度方向
+     */
     velocityDirection: vec3
   }
 
   /**
-   * Get Control Motor Forward Direction
+   * Get Control Motion Device's Forward Direction
    *
    * 获取操控运动器前向: 获取指定操控运动器的前向方向向量
    *
@@ -44166,49 +44861,64 @@ export interface ClientEntityHelperMethods<
   getControlMotorForwardDirection(): vec3
 
   /**
-   * Get Control Motor Movement Parameters
+   * Get Control Motion Device's Movement Parameters
    *
    * 获取操控运动器运动参数: 获取指定操控运动器的运动参数，包含临时运动参数。临时值的添加将在下一帧生效，因此无法在当前执行流中通过获取节点查到值的变化。
    *
-   * @returns
-   *
-   * forwardAcceleration
-   * 前进加速度
-   *
-   * backwardAcceleration
-   * 后退加速度
-   *
-   * turningRate
-   * 转向速率
-   *
-   * baseDragDeceleration
-   * 基础阻力减速度
-   *
-   * dragCoefficient
-   * 阻力系数
-   *
-   * maxForwardSpeed
-   * 最大前进速度
-   *
-   * maxBackwardSpeed
-   * 最大后退速度
    */
   getControlMotorMovementParameters(): {
+    /**
+     * Forward Acceleration
+     *
+     * 前进加速度
+     */
     forwardAcceleration: number
+    /**
+     * Reverse Acceleration
+     *
+     * 后退加速度
+     */
     backwardAcceleration: number
+    /**
+     * Turn Speed
+     *
+     * 转向速率
+     */
     turningRate: number
+    /**
+     * Base Resistance Deceleration
+     *
+     * 基础阻力减速度
+     */
     baseDragDeceleration: number
+    /**
+     * Resistance Coefficient
+     *
+     * 阻力系数
+     */
     dragCoefficient: number
+    /**
+     * Max Forward Speed
+     *
+     * 最大前进速度
+     */
     maxForwardSpeed: number
+    /**
+     * Max Reverse Speed
+     *
+     * 最大后退速度
+     */
     maxBackwardSpeed: number
   }
 
   /**
-   * Get Control Motor Target Turning Direction
+   * Get Control Motion Device's Target Turn Direction
    *
    * 获取操控运动器目标转向方向: 获取操控运动器目标转向方向（移动轮盘输入后，转换成操控运动器的目标转向）
    *
    * @returns
+   *
+   * Target Steering Direction
    *
    * 目标转向方向
    */
@@ -44381,14 +45091,6 @@ export interface ClientEntityHelperMethods<
    * @param hitLayerFilter Options: Hurtbox, Scene, and Object Self-Collision
    *
    * 命中层筛选: 分为受击盒、场景、物件自身碰撞
-   *
-   * @returns
-   *
-   * onHitLocation
-   * 命中位置
-   *
-   * onHitEntity
-   * 命中实体
    */
   getRayDetectionResult(
     launchLocation: Vec3Value,
@@ -44398,7 +45100,17 @@ export interface ClientEntityHelperMethods<
     entityTypeFilter: EntityType[],
     hitLayerFilter: RayFilterType[]
   ): {
+    /**
+     * On-Hit Location
+     *
+     * 命中位置
+     */
     onHitLocation: vec3
+    /**
+     * On-Hit Entity
+     *
+     * 命中实体
+     */
     onHitEntity: clientEntity<T, Mode>
   }
 
@@ -44477,11 +45189,13 @@ export interface ClientEntityHelperMethods<
   getUnitAttackTarget(): clientEntity<T, Mode>
 
   /**
-   * Get Whether Control Motor Is Grounded
+   * Get Control Motion Device Grounded Status
    *
    * 获取操控运动器是否接地: 获取指定操控运动器当前是否接地
    *
    * @returns
+   *
+   * Grounded
    *
    * 是否接地
    */
@@ -44706,6 +45420,8 @@ export interface ClientEntityHelperMethods<
   /**
    * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
    *
+   * Set the Aggro Value of the Specified Entity
+   *
    * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
    *
    * @param aggroOwnerEntity
@@ -44718,7 +45434,7 @@ export interface ClientEntityHelperMethods<
   setAggroValue(aggroOwnerEntity: EntityValue, aggroValue: IntValue): void
 
   /**
-   * Set Control Motor to Ungrounded State
+   * Set Control Motion Device to Not Grounded
    *
    * 使操控运动器转换至非接地状态: 接地状态下的操控运动器将持续找到地面并贴合。若希望通过添加速度实现离地运动（跳跃等效果），可以使用该节点短暂脱离接地状态。
    *
@@ -44735,12 +45451,16 @@ export interface ClientEntityHelperMethods<
    *
    * @param whetherToTurnImmediately
    *
+   * Turn Immediately
+   *
    * 是否立即转向
    */
   setOwnAttackTarget(whetherToTurnImmediately: BoolValue): void
 
   /**
    * Available only in Custom Aggro Mode; Sets the Aggro Value of the specified Entity on the Aggro Owner Entity
+   *
+   * Set the Aggro Value of the Specified Entity
    *
    * 设置指定实体的仇恨值: 仅自定义仇恨模式可用; 设置指定实体在仇恨拥有者实体上的仇恨值
    *

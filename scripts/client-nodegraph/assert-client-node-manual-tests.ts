@@ -409,13 +409,14 @@ function assertGiaCoverage(
   if (graph.subType === 'character_skill') {
     const recover = document.nodes.find((node) => node.type === 'recover_character_s_hp')
     assert.ok(recover, `${graph.name}: missing recover_character_s_hp probe`)
-    assert.equal(recover.args?.[2]?.value, false)
+    const ignoreAdjustment = recover.args?.[2]?.value
+    assert.equal(typeof ignoreAdjustment, 'boolean')
     const recoverGia = giaNodeByIndex.get(recover.id)
     const ignoreAdjustmentPin = (recoverGia?.pins as GiaPin[] | undefined)?.find(
       (pin) => pin.i1.kind === NodePin_Index_Kind.InParam && pin.i1.index === 7
     )
     assert.equal(ignoreAdjustmentPin?.value?.alreadySetVal, true)
-    assert.equal(ignoreAdjustmentPin?.value?.bEnum?.val, 0)
+    assert.equal(ignoreAdjustmentPin?.value?.bEnum?.val, ignoreAdjustment ? 1 : 0)
   }
 
   const knownGaps = gapSet(report, graph.subType)

@@ -27,6 +27,7 @@ type DecodedNode = NonNullable<
 const DEFAULT_SAMPLE_ROOT = 'D:\\_S2\\mypy_test\\client_nodes'
 const GIA_PROTO_PATH =
   'src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto'
+const CLIENT_NODE_METADATA_PATH = 'resources/client_node_metadata.json'
 const CLIENT_NODE_MODES_PATH = 'resources/client_node_modes.json'
 const CLIENT_NODE_STATIC_METADATA_PATH = 'resources/client_node_static_metadata.json'
 const CLIENT_NODE_CONCRETE_VARIANTS_PATH = 'resources/client_node_concrete_variants.json'
@@ -1425,6 +1426,22 @@ function main() {
   if (!fs.existsSync(sampleRoot)) {
     throw new Error(`[error] client sample root not found: ${sampleRoot}`)
   }
+  const historicalNodeTypeByKey = new Map<string, string>()
+  if (fs.existsSync(CLIENT_NODE_METADATA_PATH)) {
+    const historicalRecords = JSON.parse(
+      fs.readFileSync(CLIENT_NODE_METADATA_PATH, 'utf8')
+    ) as NodeRecord[]
+    for (const record of historicalRecords) {
+      const key = `${record.subType}:${record.genericId}`
+      const existing = historicalNodeTypeByKey.get(key)
+      if (existing && existing !== record.nodeType) {
+        throw new Error(
+          `[error] conflicting historical nodeType for ${key}: ${existing}, ${record.nodeType}`
+        )
+      }
+      historicalNodeTypeByKey.set(key, record.nodeType)
+    }
+  }
   const modeData = JSON.parse(fs.readFileSync(CLIENT_NODE_MODES_PATH, 'utf8')) as ClientNodeModeData
 
   const giaRootType = loadGiaRootType()
@@ -1594,7 +1611,14 @@ function main() {
     const english = fixedNodeType
       ? undefined
       : englishNodeType(docAlignment, agg.subType, displayName)
-    const nodeType = fixedNodeType ?? english?.nodeType ?? normalizeNodeType(displayName)
+    // nodeType is an internal compiler/GIA key. Public client method names are
+    // generated separately from current editor names, so keep existing keys
+    // stable when an already-known generic node is re-extracted.
+    const nodeType =
+      fixedNodeType ??
+      historicalNodeTypeByKey.get(`${agg.subType}:${agg.genericId}`) ??
+      english?.nodeType ??
+      normalizeNodeType(displayName)
     if (!english && !fixedNodeType) {
       missingEnglishNames.push({
         subType: agg.subType,
@@ -2017,7 +2041,7 @@ function main() {
     (a, b) => a.clientVarType - b.clientVarType || b.count - a.count
   )
 
-  writeJson('resources/client_node_metadata.json', records)
+  writeJson(CLIENT_NODE_METADATA_PATH, records)
   writeJson('resources/client_graph_capability.json', capability)
   writeJson('tests/client_generated/_doc_name_alignment.json', {
     description:
