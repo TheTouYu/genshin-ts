@@ -65,6 +65,17 @@ type CompositeHandle<Outputs> = {
 
 ## 2. 调用 API：`f.callComposite`
 
+### 场景 → API 决策表
+
+| 场景 | 推荐写法 | 自动执行流语义 |
+|---|---|---|
+| 主图调用执行 Composite，后续还有普通节点 | `f.callComposite(child, {})` | 调用 marker 按主图当前 tail 自动串联 |
+| Composite `build()` 内调用**单出口执行 Composite**，后续还有节点 | `f.callComposite(child, {})` | 自动从 child 的 `OutFlow[0]` 继续；无需 `declareDetached()` + `f.link()` |
+| Composite `build()` 内调用多出口执行 Composite | `f.declareDetached(child, {})` + `f.link(...)` | 必须显式选择出口，禁止猜测 |
+| 需要 fan-in、fan-out 或精确拓扑 | `f.declareDetached(...)` + `f.link(...)` | 完全由调用方控制 |
+| 纯数据 Composite | `f.callComposite(...)` | 保持数据节点语义，不参与执行流 continuation |
+| 执行 Composite 是终点 | `f.callComposite(...)` | 不需要虚构后续边 |
+
 在主图 handler 中使用 `f.callComposite(handle, params)` 调用已定义的复合：
 
 ```typescript
@@ -95,6 +106,35 @@ const { sum } = f.callComposite(B, { y: val })
 返回值是捕获阶段构造的代理值对象。每个属性通过 `markPin(markerRecord, 'output', outIdx)` 绑定到主图 `__composite_call__` 节点的 OutParam pin，因此调用方可以直接将其传递给下游节点。类型上，返回对象按 `outputs` 声明映射到对应的运行时值类型；在 timer callback 中也适用。
 
 内部实现创建一个带 `__markerNodeId` 隐藏属性的代理对象，供 `connectOutFlowBranch` 处理多 OutFlow 时使用。
+
+### 控制流回调中的 Timer metadata
+
+Timer API 属于当前 server 图的编译过程，不受 JavaScript 闭包层级限制。以下位置都支持 Timer：
+
+- `doubleBranch` 的 true / false 回调；
+- `fork` 分支回调；
+- 有限循环和列表迭代的 body；
+- 嵌套控制流回调；
+- `setInterval` callback 内继续调用控制流 API。
+
+```ts
+g.server({ id: 1073742404 }).on('whenEntityIsCreated', (_evt, f) => {
+  f.doubleBranch(new bool(true), () => {
+    setTimeout((_timerEvt, timerF) => {
+      timerF.printString(new str('timer body'))
+    }, 1000)
+    f.printString(new str('branch tail'))
+  }, () => {})
+})
+```
+
+Stage 1 会为每个 Timer 生成内部 metadata（Timer 名称池、capture 描述和去重 key），并在 Stage 2/3 生成对应的 Timer 注册节点、`when_timer_is_triggered` 事件节点及 callback 下游执行流。用户代码只需要调用标准 Timer API，不应自行传入或修改 metadata 对象。
+
+Timer callback 参数仍按以下约定推断：`_timerEvt` 是 Timer 事件负载，`timerF` 是当前图的执行流函数。控制流 callback 会继承外层 handler 的 `f` / `evt` 标识；但 Timer callback 内应优先使用该 callback 自己的 `timerF`，以确保节点连接到 Timer 事件起点。
+
+对于条件分支内的 Timer，当前实现表达的是“Timer 注册节点位于该分支的生成执行流中”；这不是 JavaScript 闭包的延迟执行模型。是否运行时实际到达注册节点，由生成的 OutFlow 连接决定。业务侧仍需自行保证初始化幂等性、Timer 句柄清理和 capture 状态管理。
+
+针对性回归：`tests/timer_metadata_control_flow_callbacks_test.ts` 覆盖直接 Timer、分支内 `setTimeout`、Timer 内嵌控制流和分支尾部 continuation；生成与 trace 命令见 [`composite/testing.md`](./testing.md#timer-元数据在控制流回调中的回归)。Composite build / nested-call 边界另由 `tests/timer_composite_control_flow_callbacks_test.ts` 覆盖，验证 Timer 保留在 impl graph 而不是重复提升到主图。该回归证明编译产物结构和执行流可追踪性，不替代用户编辑器/游戏验证。
 
 ### 多 OutFlow
 
@@ -202,7 +242,30 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 
 ## 5. 复合中调用复合
 
-build 回调中可以直接调用其他复合节点。当前捕获流程会递归确保被调复合已捕获，并在外层 impl 图中生成 `kind=22001` 的嵌套复合调用节点：
+build 回调中可以直接调用其他复合节点。当前捕获流程会递归确保被调复合已捕获，并在外层 impl 图中生成 `kind=22001` 的嵌套复合调用节点。
+
+对于普通的单出口顺序执行，推荐直接写：
+
+```ts
+const outer = g.defineComposite('Outer', {
+  outflows: ['完成'],
+  build(_args, f) {
+    f.callComposite(inner, {})
+    const tail = f.registerExecNode('print_string', [new str('after')])
+    f.outflow('完成', tail, 0)
+    return {}
+  }
+})
+```
+
+当前实现会把多出口执行节点后的普通顺序 continuation 默认限制到 `OutFlow[0]`，包括普通
+`doubleBranch` / `multipleBranches` / loop 和执行 Composite；编译继续生成并输出
+`GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION` warning，提示未使用的出口。warning 建议将每条分支
+自己的逻辑移入对应 callback；Composite 还可以使用 `connectOutFlow(result, index, callback)`，
+或使用 `declareDetached()` + `f.link()` 显式连线。显式 wiring 不触发该 warning。单出口 Composite
+仍可在 build 中自然继续到 `OutFlow[0]`，纯数据 Composite 不参与执行 continuation。自动生成与 IR
+回归不等同于游戏内行为验证。
+
 
 ```typescript
 const inner = g.defineComposite('Inner', {

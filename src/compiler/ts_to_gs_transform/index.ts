@@ -69,6 +69,11 @@ function isGstsServerCall(call: ts.CallExpression, checker: ts.TypeChecker): boo
   return isGstsServerSymbol(sym, checker)
 }
 
+function isDefineCompositeCall(call: ts.CallExpression): boolean {
+  const callee = call.expression
+  return ts.isPropertyAccessExpression(callee) && callee.name.text === 'defineComposite'
+}
+
 function isTopLevelVarDeclaration(decl: ts.VariableDeclaration): boolean {
   const list = decl.parent
   if (!ts.isVariableDeclarationList(list)) return false
@@ -413,6 +418,70 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
 
   const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
     const visit = (node: ts.Node): ts.Node => {
+      if (ts.isCallExpression(node) && isDefineCompositeCall(node) && node.arguments.length >= 2) {
+        const defArg = node.arguments[1]
+        if (ts.isObjectLiteralExpression(defArg)) {
+          const properties = defArg.properties.map((property) => {
+            if (ts.isMethodDeclaration(property)) {
+              if (!ts.isIdentifier(property.name) || property.name.text !== 'build') {
+                return ts.visitNode(property, visit) as ts.ObjectLiteralElementLike
+              }
+              const build = ts.factory.createFunctionExpression(
+                ts.canHaveModifiers(property) ? ts.getModifiers(property) : undefined,
+                property.asteriskToken,
+                property.name,
+                property.typeParameters,
+                property.parameters,
+                property.type,
+                property.body ?? ts.factory.createBlock([], true)
+              )
+              const gstsIdent = ts.isBlock(build.body) && hasTopLevelDeclName(build.body, 'gsts')
+                ? '__gsts'
+                : 'gsts'
+              const env = makeEnv(gstsIdent)
+              const transformed = transformGstsServerFunction(env, context, build)
+              return ts.factory.updateMethodDeclaration(
+                property,
+                ts.canHaveModifiers(property) ? ts.getModifiers(property) : undefined,
+                property.asteriskToken,
+                property.name,
+                property.questionToken,
+                property.typeParameters,
+                property.parameters,
+                property.type,
+                transformed.body as ts.Block
+              )
+            }
+            if (
+              !ts.isPropertyAssignment(property) ||
+              !(ts.isIdentifier(property.name) && property.name.text === 'build')
+            ) {
+              return ts.visitNode(property, visit) as ts.ObjectLiteralElementLike
+            }
+            const build = property.initializer
+            if (!ts.isArrowFunction(build) && !ts.isFunctionExpression(build)) return property
+            const gstsIdent = ts.isBlock(build.body) && hasTopLevelDeclName(build.body, 'gsts')
+              ? '__gsts'
+              : 'gsts'
+            const env = makeEnv(gstsIdent)
+            return ts.factory.updatePropertyAssignment(
+              property,
+              property.name,
+              transformHandler(env, context, build)
+            )
+          })
+          const nextDefArg = ts.factory.updateObjectLiteralExpression(defArg, properties)
+          const nextArgs = [...node.arguments]
+          nextArgs[1] = nextDefArg
+          return ts.factory.updateCallExpression(
+            node,
+            ts.visitNode(node.expression, visit) as ts.Expression,
+            node.typeArguments,
+            nextArgs
+          )
+        }
+      }
+
       if (
         ts.isCallExpression(node) &&
         isServerOnCall(node, ctx.checker) &&

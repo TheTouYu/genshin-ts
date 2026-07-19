@@ -124,6 +124,13 @@ tests/runtime/test-client-full-signal-ir-to-gia.ts
 
 客户端测试代码应使用 TS API 表达用户意图；手工 materializer 只用于固定真实 GIA 规律和底层编码回归，不能作为 TS→GIA 生产路径的替代证据。列表测试至少覆盖 literal/connection 语义、entity/GUID 数据边和多元素 bool/vec3；未覆盖的空列表、动态列表和超过上限场景必须标记为待验证。
 
+客户端布局验证还必须检查最终解码 GIA 的 raw `x/y`，不能只检查布局函数返回值或“坐标不相等”。
+客户端通过 `src/compiler/client_layout.ts` 复用服务器 `buildExecutionGraph()` 与 `layoutPositions()`；服务器
+路径的 `GiaNode.setPos()` 使用归一化坐标并由 `node_body()` 乘回 `300/200`，客户端
+`clientLegacyNode()` 直接生成 protobuf `GraphNode`，因此必须原样写入共享布局坐标。完整回归
+`tests/runtime/test-client-full-signal-ir-to-gia.ts` 应断言生成 signal/data 节点坐标处于 raw 布局量级，
+并在用户游戏中确认节点没有重叠。坐标修复前后必须分别记录自动回归和游戏验证，不能用旧产物的游戏结果替代新产物。
+
 ## 2. 测试文件位置
 
 所有复合测试文件位于 `tests/composite/`：
@@ -276,6 +283,32 @@ npx tsx tests/composite/test-composite-part3.ts
 
 ### 回归测试
 
+嵌套执行 Composite 的普通单链回归：
+
+```bash
+npm run build
+NODE_OPTIONS='--no-deprecation' npx tsx tests/composite/test-nested-composite-call-continuation.ts
+node ./bin/gsts.mjs -c gsts.timer-nested-exec-composite-repro.config.ts --noinject
+```
+
+该回归锁定：Composite `build()` 内单出口 child 经 `f.callComposite()` 后，后续节点使用显式
+`source_index=0` 连接；同时保留 `declareDetached()` + `f.link()` 的显式路径和主图调用路径。
+自动 GIA 生成不等同于编辑器或游戏内验证。
+
+多出口普通顺序 continuation 的 focused 回归：
+
+```bash
+npm run build
+NODE_OPTIONS='--no-deprecation' npx tsx tests/composite/test-multi-outflow-default-continuation-warning.ts
+```
+
+该回归锁定普通 `doubleBranch` 和多出口 Composite 的自然顺序 continuation 都只连接
+`OutFlow[0]`，输出稳定诊断 `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION`，并断言 warning 给出
+“将逻辑移入对应 branch callback”及 `f.node()/f.link()` / `connectOutFlow()` 的修复建议。
+普通节点的通用分支元数据由运行时捕获，不按 `double_branch` 节点名特判。当前完成自动 IR 和 Timer GIA 生成验证，覆盖 `doubleBranch`、4 路 `multipleBranches`、
+`finiteLoop`、`listIterationLoop`、多出口 Composite、nested Composite 和显式 wiring；尚未进行
+编辑器导入或游戏内验证。
+
 ```bash
 npm run quicktest
 ```
@@ -403,6 +436,77 @@ npx tsx tests/stage1_expression_semantics_test.ts
 已复制到 `Beyond_Local_Export`，并由用户于 2026-07-16 确认编辑器导入和游戏内核验通过。
 
 ---
+
+### Timer 元数据在控制流回调中的回归
+
+> 状态：当前实现
+> 来源：当前代码实现 + 自动 GIA 生成 + 用户测试确认
+> 最近校验：2026-07-19
+> 适用范围：gsts 当前 Stage 1/2/3 输出；用户已确认本需求测试通过
+
+回归入口：
+
+```text
+tests/timer_metadata_control_flow_callbacks_test.ts
+gsts.timer-metadata-control-flow-callbacks.config.ts
+tests/timer_metadata_control_flow_callbacks_assert.ts
+```
+
+覆盖四个最小场景：事件处理器直接注册 Timer、`doubleBranch` 回调内注册
+`setTimeout`、`setInterval` 回调内继续编排控制流，以及分支内注册 Timer 后继续分支尾部逻辑。
+Stage 1 必须为控制流回调中的 Timer 保留与直接事件层级相同的 metadata；生成的每张 GIA
+必须同时包含唯一的 `start_timer`、`when_timer_is_triggered` 和 Timer 回调下游执行流。
+
+独立验证：
+
+```bash
+node ./bin/gsts.mjs -c gsts.timer-metadata-control-flow-callbacks.config.ts --noinject
+npx tsx tests/timer_metadata_control_flow_callbacks_assert.ts
+for f in dist-timer-metadata-control-flow-callbacks/tests/*.gia; do
+  NODE_OPTIONS='--no-deprecation' npx tsx tests/composite/trace-exec-flow.ts "$f" --io
+done
+```
+
+自动生成和 trace 只证明编译产物的结构与可追踪性；候选文件导入、注入和游戏行为仍须分开验证。
+
+### Composite build / nested-call Timer 边界回归
+
+> 状态：已验证
+> 来源：当前代码实现 + 自动 GIA 生成 + 用户编辑器/游戏验证
+> 最近校验：2026-07-19
+> 适用范围：gsts 当前 Stage 1/2/3 输出；本轮 E–H 候选 GIA 已由用户确认测试通过
+
+回归入口：
+
+```text
+tests/timer_composite_control_flow_callbacks_test.ts
+gsts.timer-composite-control-flow-callbacks.config.ts
+tests/timer_composite_control_flow_callbacks_assert.ts
+```
+
+该回归专门覆盖上一节主图回调之外的 Composite 边界：
+
+- Composite `build()` 内部的 `doubleBranch` 回调注册 `setTimeout`；
+- 外层 Composite 分支中调用内层 Composite，Timer 位于内层 Composite impl；
+- Composite 分支注册 Timer 后继续普通 OutFlow 尾逻辑；
+- 主图 `setInterval` callback → 控制流分支 → Composite → 内部 Timer 的嵌套路径。
+
+断言同时检查主图和 `compositeDefs.implNodes`：Timer 注册节点、Timer 事件节点、复合调用节点、
+分支节点和 impl 执行边必须存在；并对每张候选 GIA 运行 `trace-exec-flow --io`。Composite
+capture 的 Timer 事件属于 impl 图内部结构，不应被提升为主图重复 Timer，也不能丢失为孤立节点。
+
+```bash
+node ./bin/gsts.mjs -c gsts.timer-composite-control-flow-callbacks.config.ts --noinject
+npx tsx tests/timer_composite_control_flow_callbacks_assert.ts
+for f in dist-timer-composite-control-flow-callbacks/tests/*.gia; do
+  NODE_OPTIONS='--no-deprecation' npx tsx tests/composite/trace-exec-flow.ts "$f" --io
+done
+```
+
+当前实现要点：Stage 1 会转换 `g.defineComposite(...).build` 方法；capture registry 会保留
+Composite capture flow，并合并 Timer 事件 flow 的 impl 节点与边；嵌套 Composite 继续通过
+`__composite_call__` 和 accessories 递归展开。自动回归证明生成结构；用户已确认 E–H 候选 GIA
+在编辑器/游戏中测试通过。候选文件曾复制到游戏导出根目录，未执行地图注入。
 
 ## 5. 测试注意事项
 

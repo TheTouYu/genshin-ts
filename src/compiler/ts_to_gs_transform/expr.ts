@@ -1451,6 +1451,30 @@ export function transformExpression(
     return transformTimerCall(env, context, expr, timerKind)
   }
 
+  if (ts.isCallExpression(expr) && isFMethodCall(env, expr, ['doubleBranch', 'fork'])) {
+    const method = ts.isPropertyAccessExpression(expr.expression) ? expr.expression.name.text : ''
+    const args = [...expr.arguments]
+    const callbackStart = method === 'doubleBranch' ? 1 : 0
+    for (let i = callbackStart; i < args.length; i += 1) {
+      const callback = args[i]
+      if (ts.isArrowFunction(callback) || ts.isFunctionExpression(callback)) {
+        args[i] = transformHandler(env, context, callback, {
+          fIdent: env.fIdent,
+          evtIdent: env.evtIdent
+        })
+      } else {
+        args[i] = transformExpression(env, context, callback)
+      }
+    }
+    for (let i = 0; i < callbackStart; i += 1) {
+      args[i] = transformExpression(env, context, args[i])
+    }
+    return withSameRange(
+      ts.factory.updateCallExpression(expr, expr.expression, expr.typeArguments, args),
+      expr
+    )
+  }
+
   if (
     ts.isCallExpression(expr) &&
     isFMethodCall(env, expr, ['multipleBranches']) &&

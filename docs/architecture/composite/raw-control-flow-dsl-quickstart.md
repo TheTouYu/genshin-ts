@@ -12,6 +12,46 @@
 
 如果只是写普通玩法逻辑，优先使用已有的高层 API。这里的 API 更像“手动搭节点图”的工具。
 
+## 控制流回调中的 Timer
+
+`setTimeout` / `setInterval` 可以出现在 DSL 控制流回调中，包括 `doubleBranch`、`fork`、有限循环和列表迭代的 body，以及 Timer callback 内继续编排控制流。编译器会让这些回调继承当前 handler 的执行流标识和事件标识，因此 Timer callback 仍可使用完整的 `(timerEvt, timerF)` 参数形式。
+
+```ts
+g.server({ id: 1073742402 }).on('whenEntityIsCreated', (_evt, f) => {
+  f.doubleBranch(new bool(true), () => {
+    setTimeout((_timerEvt, timerF) => {
+      timerF.printString(new str('branch timer'))
+    }, 1000)
+  }, () => {})
+})
+```
+
+在 `setInterval` callback 中继续使用控制流时，使用 callback 参数 `timerF` 编排节点，不要混用外层 handler 的 `f`：
+
+```ts
+setInterval((_timerEvt, timerF) => {
+  timerF.doubleBranch(new bool(true), () => {
+    timerF.printString(new str('interval branch'))
+  }, () => {})
+}, 180)
+```
+
+Timer 注册的语义仍是“编译期把 Timer 注册节点放入当前图，并按当前控制流位置连接”；是否每次运行时由条件分支选择注册，取决于生成的控制流连接，不能把 JavaScript 闭包层级当作运行时语义。Timer 名称池、capture 和去重 metadata 由 Stage 1 自动生成，业务侧不应手写第三个 metadata 参数。
+
+最小回归入口：`tests/timer_metadata_control_flow_callbacks_test.ts`，配置为
+`gsts.timer-metadata-control-flow-callbacks.config.ts`。Composite `build()` 和嵌套 Composite
+边界使用 `tests/timer_composite_control_flow_callbacks_test.ts`，配置为
+`gsts.timer-composite-control-flow-callbacks.config.ts`。完整验证见
+[`composite/testing.md`](./testing.md#timer-元数据在控制流回调中的回归) 和
+[`composite/testing.md`](./testing.md#composite-build--nested-call-timer-边界回归)。
+
+在 Composite `build()` 中，单出口执行子 Composite 后的普通顺序调用可直接使用
+`f.callComposite(child, {})`，再写后续执行节点；当前 capture 实现会自动从 child 的
+`OutFlow[0]` continuation。所有多出口执行节点（普通节点和 Composite）遇到普通顺序后续时，
+同样只从 `OutFlow[0]` 继续，并输出 `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION` warning。
+warning 会建议把各分支逻辑移入对应 callback；需要精确处理其它出口时，使用
+`declareDetached()` + `f.link()` 或 `connectOutFlow()` 显式连线。
+
 ## 核心概念
 
 节点图里有两种控制流 pin：

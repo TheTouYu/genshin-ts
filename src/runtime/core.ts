@@ -559,7 +559,8 @@ function ensureCompositeCaptured(def: CompositeDefinition): void {
   if (def.captured) return
 
   const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
-  captureRegistry.startCaptureFlow()
+  captureRegistry.ensureBootstrapFlow()
+  const captureFlow = captureRegistry.startCaptureFlow()
   const fns = new ServerExecutionFlowFunctions(captureRegistry)
 
   const inputs: Record<string, value> = {}
@@ -586,7 +587,16 @@ function ensureCompositeCaptured(def: CompositeDefinition): void {
       return def.build(inputs, fns)
     })
 
-    const flow = captureRegistry.getFlows()[0]
+    const flows = captureRegistry
+      .getFlows()
+      .filter((flow) => flow !== captureRegistry.getBootstrapFlow())
+    const flow = captureFlow
+    const execNodes = flows.flatMap((candidate) => [
+      ...(candidate === flow ? [] : [candidate.eventNode]),
+      ...candidate.execNodes
+    ])
+    const dataNodes = flows.flatMap((candidate) => candidate.dataNodes)
+    const edges = Object.assign({}, ...flows.map((candidate) => candidate.edges))
     const outflowMarks = ((flow as any).__outflowMarks ?? []) as Array<{
       name: string
       innerNodeId: number
@@ -600,9 +610,9 @@ function ensureCompositeCaptured(def: CompositeDefinition): void {
 
     def.captured = {
       captureNodeId: flow.eventNode.id,
-      execNodes: flow.execNodes,
-      dataNodes: flow.dataNodes,
-      edges: flow.edges,
+      execNodes,
+      dataNodes,
+      edges,
       outputValues: (outputs ?? {}) as Record<string, value>,
       isPureData: flow.execNodes.length === 0,
       outflowMarks,
@@ -678,6 +688,10 @@ export class MetaCallRegistry {
     return flow
   }
 
+  getBootstrapFlow(): ExecutionFlow | undefined {
+    return this.bootstrapFlow
+  }
+
   withFlow<T>(flow: ExecutionFlow, fn: () => T): T {
     const idx = this.flows.indexOf(flow)
     if (idx < 0) {
@@ -731,6 +745,7 @@ export class MetaCallRegistry {
     ) => void,
     inputArgs: value[] = []
   ) {
+    const previousFlow = this.flows.length > 0 ? this.currentFlow : undefined
     this.ensureBootstrapFlow()
     const evt = this.registerEvent(eventName, ServerEventMetadata, inputArgs)
     const fns = new ServerExecutionFlowFunctions(this)
@@ -752,6 +767,13 @@ export class MetaCallRegistry {
       restoreScopedGlobals()
       gsts[kServerF] = prevF
       this.flowStack = prevFlowStack
+      if (
+        prevFlowStack.length === 0 &&
+        previousFlow?.eventNode.nodeType === '__composite_capture__'
+      ) {
+        const previousIndex = this.flows.indexOf(previousFlow)
+        if (previousIndex >= 0) this.flowStack = [previousIndex]
+      }
       this.loopNodeStack = prevLoopStack
       this.returnCallCounter = prevReturnCounter
     }
@@ -1396,6 +1418,7 @@ export class MetaCallRegistry {
 
     // 3. 创建独立 capture registry 运行 build
     const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+    captureRegistry.ensureBootstrapFlow()
     captureRegistry.startCaptureFlow()
     const captureFns = new ServerExecutionFlowFunctions(captureRegistry)
 
@@ -1568,6 +1591,7 @@ export class MetaCallRegistry {
 
     // 3. capture build
     const captureRegistry = new MetaCallRegistry('entity', 'beyond', undefined, undefined, false)
+    captureRegistry.ensureBootstrapFlow()
     captureRegistry.startCaptureFlow()
     const captureFns = new ServerExecutionFlowFunctions(captureRegistry)
     if (def?.variables) {
@@ -1999,7 +2023,8 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
           undefined,
           false
         )
-        captureRegistry.startCaptureFlow()
+        captureRegistry.ensureBootstrapFlow()
+        const captureFlow = captureRegistry.startCaptureFlow()
         const fns = new ServerExecutionFlowFunctions(captureRegistry)
 
         const inputs: Record<string, value> = {}
@@ -2028,7 +2053,16 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
             return def.build(inputs, fns)
           })
 
-          const flow = captureRegistry.getFlows()[0]
+          const flows = captureRegistry
+            .getFlows()
+            .filter((flow) => flow !== captureRegistry.getBootstrapFlow())
+          const flow = captureFlow
+          const execNodes = flows.flatMap((candidate) => [
+            ...(candidate === flow ? [] : [candidate.eventNode]),
+            ...candidate.execNodes
+          ])
+          const dataNodes = flows.flatMap((candidate) => candidate.dataNodes)
+          const edges = Object.assign({}, ...flows.map((candidate) => candidate.edges))
           const outflowMarks = ((flow as any).__outflowMarks ?? []) as Array<{
             name: string
             innerNodeId: number
@@ -2042,9 +2076,9 @@ export function buildServerGraphRegistriesIRDocuments(opts: IRBuildOptions = {})
 
           def.captured = {
             captureNodeId: flow.eventNode.id,
-            execNodes: flow.execNodes,
-            dataNodes: flow.dataNodes,
-            edges: flow.edges,
+            execNodes,
+            dataNodes,
+            edges,
             outputValues: (outputs ?? {}) as Record<string, value>,
             isPureData: flow.execNodes.length === 0,
             outflowMarks,
