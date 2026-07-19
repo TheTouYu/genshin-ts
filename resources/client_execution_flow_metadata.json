@@ -12395,67 +12395,67 @@
     "kind": "exec",
     "params": [
       {
-        "name": "input1",
+        "name": "execute",
         "irType": "bool",
         "docZh": "是否执行",
         "docEn": "Execute"
       },
       {
-        "name": "input2",
+        "name": "minimumPursuitTriggerDistance",
         "irType": "float",
         "docZh": "触发追击的最小距离",
         "docEn": "Minimum Pursuit Trigger Distance"
       },
       {
-        "name": "input3",
+        "name": "maximumPursuitTriggerDistance",
         "irType": "float",
         "docZh": "触发追击的最大距离",
         "docEn": "Maximum Pursuit Trigger Distance"
       },
       {
-        "name": "input4",
+        "name": "stopPursuitDistance",
         "irType": "float",
         "docZh": "停止追击距离",
         "docEn": "Stop Pursuit Distance"
       },
       {
-        "name": "input5",
+        "name": "outerRingPursuitSpeed",
         "irType": "enum",
         "docZh": "外圈追击速度",
         "docEn": "Outer Ring Pursuit Speed"
       },
       {
-        "name": "input6",
+        "name": "innerRingRadius",
         "irType": "float",
         "docZh": "内圈半径",
         "docEn": "Inner Ring Radius"
       },
       {
-        "name": "input7",
+        "name": "innerRingPursuitSpeed",
         "irType": "enum",
         "docZh": "内圈追击速度",
         "docEn": "Inner Ring Pursuit Speed"
       },
       {
-        "name": "input8",
+        "name": "singlePursuitDuration",
         "irType": "float",
         "docZh": "单次追击持续时间",
         "docEn": "Single Pursuit Duration"
       },
       {
-        "name": "input9",
+        "name": "tacticalInstanceCD",
         "irType": "float",
         "docZh": "战术实例冷却时间",
         "docEn": "Tactical Instance CD"
       },
       {
-        "name": "input10",
+        "name": "tacticalContext",
         "irType": "str",
         "docZh": "战术上下文",
         "docEn": "Tactical Context"
       },
       {
-        "name": "input11",
+        "name": "canSkillBeInterrupted",
         "irType": "bool",
         "docZh": "是否可以打断技能",
         "docEn": "Can Skill be Interrupted"

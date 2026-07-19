@@ -30952,111 +30952,89 @@ export class ClientCreationStatusExecutionFlowFunctions<
    * GSTS 注: 当【是否执行】为 false 时，该战术等同于执行失败，
    * 会从【失败执行】引脚继续执行后续语句。
    *
-   * @param input1
-   *
-   * Execute
+   * @param execute
    *
    * 是否执行
-   * @param input2
-   *
-   * Minimum Pursuit Trigger Distance
+   * @param minimumPursuitTriggerDistance
    *
    * 触发追击的最小距离
-   * @param input3
-   *
-   * Maximum Pursuit Trigger Distance
+   * @param maximumPursuitTriggerDistance
    *
    * 触发追击的最大距离
-   * @param input4
-   *
-   * Stop Pursuit Distance
+   * @param stopPursuitDistance
    *
    * 停止追击距离
-   * @param input5 Walk and Run
-   *
-   * Outer Ring Pursuit Speed
+   * @param outerRingPursuitSpeed Walk and Run
    *
    * 外圈追击速度: 走、跑
-   * @param input6 Inner Ring Boundary Radius
-   *
-   * Inner Ring Radius
+   * @param innerRingRadius Inner Ring Boundary Radius
    *
    * 内圈半径: 内圈分界半径
-   * @param input7 Walk and Run
-   *
-   * Inner Ring Pursuit Speed
+   * @param innerRingPursuitSpeed Walk and Run
    *
    * 内圈追击速度: 走、跑
-   * @param input8 If value less than 0, do not execute the Tactic
-   *
-   * Single Pursuit Duration
+   * @param singlePursuitDuration If value less than 0, do not execute the Tactic
    *
    * 单次追击持续时间: 若数值小于0，则不执行战术
-   * @param input9
-   *
-   * Tactical Instance CD
+   * @param tacticalInstanceCD
    *
    * 战术实例冷却时间
-   * @param input10
+   * @param tacticalContext
    * Literal only; wired connections are not allowed.
    *
    * GSTS Note: Tactical Context is only text used as an identifier and carried with the tactic.
    * It can be used for conditional special-case handling when needed and may be empty.
-   *
-   * Tactical Context
    *
    * 战术上下文
    * 仅支持字面量，不能连接其他节点的输出。
    *
    * GSTS 注: 【战术上下文】只是一段用于标识并随战术传递的数据文本，
    * 方便在需要时进行条件特判；可以留空。
-   * @param input11 Default: No
-   *
-   * Can skill be interrupted
+   * @param canSkillBeInterrupted Default: No
    *
    * 是否可以打断技能: 默认为否
    */
   tacticGroundPursuit(
-    input1: BoolValue,
-    input2: FloatValue,
-    input3: FloatValue,
-    input4: FloatValue,
-    input5: TacticSpeed,
-    input6: FloatValue,
-    input7: TacticSpeed,
-    input8: FloatValue,
-    input9: FloatValue,
-    input10: StrValue,
-    input11: BoolValue
+    execute: BoolValue,
+    minimumPursuitTriggerDistance: FloatValue,
+    maximumPursuitTriggerDistance: FloatValue,
+    stopPursuitDistance: FloatValue,
+    outerRingPursuitSpeed: TacticSpeed,
+    innerRingRadius: FloatValue,
+    innerRingPursuitSpeed: TacticSpeed,
+    singlePursuitDuration: FloatValue,
+    tacticalInstanceCD: FloatValue,
+    tacticalContext: StrValue,
+    canSkillBeInterrupted: BoolValue
   ): void {
-    const input1Obj = parseValue(input1, 'bool')
-    const input2Obj = parseValue(input2, 'float')
-    const input3Obj = parseValue(input3, 'float')
-    const input4Obj = parseValue(input4, 'float')
-    const input5Obj = parseValue(input5, 'enum')
-    const input6Obj = parseValue(input6, 'float')
-    const input7Obj = parseValue(input7, 'enum')
-    const input8Obj = parseValue(input8, 'float')
-    const input9Obj = parseValue(input9, 'float')
-    const input10Obj = parseValue(input10, 'str')
-    assertClientLiteralValue(input10Obj, 'tacticGroundPursuit.input10')
-    const input11Obj = parseValue(input11, 'bool')
+    const executeObj = parseValue(execute, 'bool')
+    const minimumPursuitTriggerDistanceObj = parseValue(minimumPursuitTriggerDistance, 'float')
+    const maximumPursuitTriggerDistanceObj = parseValue(maximumPursuitTriggerDistance, 'float')
+    const stopPursuitDistanceObj = parseValue(stopPursuitDistance, 'float')
+    const outerRingPursuitSpeedObj = parseValue(outerRingPursuitSpeed, 'enum')
+    const innerRingRadiusObj = parseValue(innerRingRadius, 'float')
+    const innerRingPursuitSpeedObj = parseValue(innerRingPursuitSpeed, 'enum')
+    const singlePursuitDurationObj = parseValue(singlePursuitDuration, 'float')
+    const tacticalInstanceCDObj = parseValue(tacticalInstanceCD, 'float')
+    const tacticalContextObj = parseValue(tacticalContext, 'str')
+    assertClientLiteralValue(tacticalContextObj, 'tacticGroundPursuit.tacticalContext')
+    const canSkillBeInterruptedObj = parseValue(canSkillBeInterrupted, 'bool')
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'tactic_ground_pursuit',
       args: [
-        input1Obj,
-        input2Obj,
-        input3Obj,
-        input4Obj,
-        input5Obj,
-        input6Obj,
-        input7Obj,
-        input8Obj,
-        input9Obj,
-        input10Obj,
-        input11Obj
+        executeObj,
+        minimumPursuitTriggerDistanceObj,
+        maximumPursuitTriggerDistanceObj,
+        stopPursuitDistanceObj,
+        outerRingPursuitSpeedObj,
+        innerRingRadiusObj,
+        innerRingPursuitSpeedObj,
+        singlePursuitDurationObj,
+        tacticalInstanceCDObj,
+        tacticalContextObj,
+        canSkillBeInterruptedObj
       ]
     })
   }

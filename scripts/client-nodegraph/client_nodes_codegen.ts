@@ -160,6 +160,20 @@ const HAND_NODE_TYPES = new Set([
   'get_ray_filter_type_list'
 ])
 
+const PARAMETER_IDENTIFIER_OVERRIDES: Readonly<Record<string, string>> = {
+  'tactic_ground_pursuit.0': 'execute',
+  'tactic_ground_pursuit.1': 'minimumPursuitTriggerDistance',
+  'tactic_ground_pursuit.2': 'maximumPursuitTriggerDistance',
+  'tactic_ground_pursuit.3': 'stopPursuitDistance',
+  'tactic_ground_pursuit.4': 'outerRingPursuitSpeed',
+  'tactic_ground_pursuit.5': 'innerRingRadius',
+  'tactic_ground_pursuit.6': 'innerRingPursuitSpeed',
+  'tactic_ground_pursuit.7': 'singlePursuitDuration',
+  'tactic_ground_pursuit.8': 'tacticalInstanceCD',
+  'tactic_ground_pursuit.9': 'tacticalContext',
+  'tactic_ground_pursuit.10': 'canSkillBeInterrupted'
+}
+
 // ---------------------------------------------------------------------------
 // Type tables
 // ---------------------------------------------------------------------------
@@ -921,11 +935,10 @@ function buildMethodSpec(
   for (const [i, b] of aligned.bound.entries()) {
     const officialPin = editorPinName(record, 'input', b.pin.index)
     const officialNameEn = officialPin?.nameEn?.trim()
-    // The English documentation stores these labels in the wrong `io` field.
-    // Keep the existing input1..input11 API and expose the recovered labels in JSDoc.
-    const stableDocName = record.nodeType === 'tactic_ground_pursuit' ? '' : b.doc.en.name
+    const identifierOverride =
+      PARAMETER_IDENTIFIER_OVERRIDES[`${record.nodeType}.${b.pin.index}`]
     const ident = uniqueIdent(
-      identFromDocName(stableDocName, `input${i + 1}`),
+      identifierOverride ?? identFromDocName(b.doc.en.name, `input${i + 1}`),
       usedIdents,
       constructorReserved
     )
