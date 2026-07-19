@@ -23,7 +23,7 @@ type NodeGraphIdInfo = {
 
 type SignalEntry = {
   name: string
-  params: { name: string; type: SignalParamType }[]
+  params: { name: string; type: SignalParamType; parameterDefinitionPinIndex?: number }[]
 }
 
 export type ExtractSignalsOutcome =
@@ -132,7 +132,7 @@ function mapSignalParamType(typeCode: number | undefined): SignalParamType {
   }
 }
 
-function parseSignalParam(buf: Uint8Array): { name: string; type: SignalParamType } | undefined {
+function parseSignalParam(buf: Uint8Array): { name: string; type: SignalParamType; parameterDefinitionPinIndex?: number } | undefined {
   const nameBytes = readFieldBytes(buf, 1)
   const name = nameBytes ? decodeUtf8(nameBytes) : undefined
   if (!name) return undefined
@@ -141,7 +141,11 @@ function parseSignalParam(buf: Uint8Array): { name: string; type: SignalParamTyp
   const typeCode = typeBytes
     ? (readFieldVarint(typeBytes, 4) ?? readFieldVarint(typeBytes, 3))
     : undefined
-  return { name, type: mapSignalParamType(typeCode) }
+  const pinBytes = readFieldBytes(buf, 4)
+  const parameterDefinitionPinIndex = pinBytes
+    ? readFieldVarint(pinBytes, 4) ?? readFieldVarint(pinBytes, 3)
+    : undefined
+  return { name, type: mapSignalParamType(typeCode), parameterDefinitionPinIndex }
 }
 
 function parseSignalEntries(payload: Uint8Array, fields: LenField[]): SignalEntry[] {

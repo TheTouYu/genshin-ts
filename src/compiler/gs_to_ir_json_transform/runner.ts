@@ -2,7 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { buildServerGraphRegistriesIRDocuments } from '../../runtime/core.js'
+import {
+  buildClientGraphRegistriesIRDocuments,
+  buildServerGraphRegistriesIRDocuments
+} from '../../runtime/core.js'
 import { setRuntimeOptions } from '../../runtime/runtime_config.js'
 
 function defaultGraphNameFromEntryFile(entryFile: string): string {
@@ -32,15 +35,13 @@ async function main() {
   await import(entryUrl)
 
   const space = compactFlag === '1' ? 0 : 2
-  const json =
-    JSON.stringify(
-      // defaultName：当脚本内未传 g.server({ name }) 时，用入口文件名自动命名
-      buildServerGraphRegistriesIRDocuments({
-        defaultName: defaultGraphNameFromEntryFile(entryFile)
-      }),
-      null,
-      space
-    ) + '\n'
+  const documents = [
+    ...buildServerGraphRegistriesIRDocuments({
+      defaultName: defaultGraphNameFromEntryFile(entryFile)
+    }),
+    ...buildClientGraphRegistriesIRDocuments()
+  ]
+  const json = JSON.stringify(documents, null, space) + '\n'
 
   fs.mkdirSync(path.dirname(outFile), { recursive: true })
   fs.writeFileSync(outFile, json, 'utf8')

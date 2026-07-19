@@ -42,6 +42,12 @@ import type {
 import { getRuntimeOptions } from './runtime_config.js'
 import { installScopedServerGlobals, installServerGlobals } from './server_globals.js'
 import {
+  createClientGraph,
+  hasClientGraphRegistries,
+  type ClientGraphOptions,
+  type SupportedClientGraphType
+} from './client.js'
+import {
   bool,
   configId,
   dict,
@@ -1658,6 +1664,9 @@ function server<Vars extends VariablesDefinition = VariablesDefinition>(
 function server<Vars extends VariablesDefinition = VariablesDefinition>(
   options?: ServerGraphOptions<Vars>
 ): any {
+  if (hasClientGraphRegistries()) {
+    throw new Error('[error] cannot mix g.server() and g.client() in the same entry file')
+  }
   type ResolvedLang = ServerLang
   type ResolvedMode = ServerGraphMode
   const graphType = resolveServerGraphType(options?.type)
@@ -1803,10 +1812,22 @@ function createTypedValue(type: string): value {
   }
 }
 
+function client(options: ClientGraphOptions) {
+  if (serverRegistries.length > 0) {
+    throw new Error('[error] cannot mix g.server() and g.client() in the same entry file')
+  }
+  return createClientGraph(options)
+}
+
 export const g = {
   server,
+  client,
   defineComposite
 }
+
+export type { ClientGraphOptions, SupportedClientGraphType }
+
+export { buildClientGraphRegistriesIRDocuments } from './client.js'
 
 /**
  * 定义一个复合节点

@@ -106,7 +106,25 @@ npx tsx tests/composite/demo_addsub2.ts
 
 该脚本完整展示了 TS 定义 → 运行时捕获 → IR JSON → GIA 编码的全流程，对应 `ts_g_define_加减运算2.gia` 参考文件的结构。参见：[dsl-api.md](./dsl-api.md) | [捕获机制](./capture-mechanism.md)
 
-## 1. 测试文件位置
+## 1. 客户端 TS→GIA 验证分层
+
+客户端生产路径现在有独立的最小回归入口：
+
+```text
+tests/runtime/test-client-full-signal-ir-to-gia.ts
+```
+
+验证必须分开报告：
+
+1. **TS→IR→GIA 自动回归**：确认 TS 语义、Client IR、节点 identity、参数数量、列表 count/元素值和数据/控制流物化；
+2. **真实 GIA 对照**：使用 `Beyond_Local_Export/user_edit/客户端/信号-参数-完整.gia` 和
+   `信号-参数-完整-列表.gia`，确认 ClientVarType、typed assembly、entity/GUID 拓扑和 wire round-trip；
+3. **编辑器导入/回导**：确认编辑器能读取并保留预期结构；
+4. **游戏行为**：由用户在实际游戏目录导入后确认，不能由自动生成或注入成功替代。
+
+客户端测试代码应使用 TS API 表达用户意图；手工 materializer 只用于固定真实 GIA 规律和底层编码回归，不能作为 TS→GIA 生产路径的替代证据。列表测试至少覆盖 literal/connection 语义、entity/GUID 数据边和多元素 bool/vec3；未覆盖的空列表、动态列表和超过上限场景必须标记为待验证。
+
+## 2. 测试文件位置
 
 所有复合测试文件位于 `tests/composite/`：
 

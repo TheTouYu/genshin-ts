@@ -56,6 +56,7 @@ import {
   type SpecialArgTypeTag
 } from './special_arg_adapter.js'
 import { finalizeSignalEncoding } from './build_signal_definition.js'
+import { clientIrToGia } from '../client_ir_to_gia.js'
 import type { SignalRegistry } from '../signal_registry.js'
 import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
@@ -271,6 +272,13 @@ function assertServerGraphRuntimeModeCompatible(
 }
 
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
+  if (ir.graph.type === 'client') {
+    if (!opts.signalRegistry) {
+      throw new Error('[error] client GIA lowering requires a signal registry')
+    }
+    return clientIrToGia(ir as Extract<IRDocument, { graph: { type: 'client' } }>, opts.signalRegistry, opts.protoPath)
+  }
+
   const graphId = opts.graphId ?? ir.graph?.id ?? 1073741825
   const name = opts.name ?? ir.graph?.name ?? '_GSTS_Generated_Graph'
   const uid = opts.uid ?? 100000001

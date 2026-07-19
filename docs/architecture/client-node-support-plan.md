@@ -1,9 +1,9 @@
 # 客户端节点支持计划
 
-> 状态：已验证（WP0、WP1、WP1-Sync 已收口；客户端已有地图信号 materializer v2、标量/entity-GUID/全列表参数组合图均已完成自动回归和用户游戏核验）
-> 来源：当前代码实现审计 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 目标地图信号资源 + 用户游戏验证
+> 状态：当前实现 / 已验证（WP0、WP1、WP1-Sync、TS→IR→GIA 信号最小闭环已完成；客户端已有地图信号的标量/entity-GUID/列表组合图已完成自动回归和用户游戏核验）
+> 来源：当前代码实现 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 目标地图信号资源 + 用户游戏验证
 > 最近校验：2026-07-19
-> 适用范围：gsts 客户端节点支持实施计划；客户端信号结论仅适用于目标地图已有信号和本文记录的样本，不代表生产 `g.client()` 或完整客户端参数支持
+> 适用范围：gsts 客户端节点支持实施计划；生产 TS→Client IR→GIA 当前仅覆盖本文记录的客户端 signal/list/data-source 组合，不代表全量客户端节点支持
 
 本文档记录 gsts 增加客户端节点支持的当前权威计划，防止跨会话丢失设计决策、证据边界和验证门禁。
 
@@ -1300,16 +1300,118 @@ get_self_entity generic=200033 concrete=1013 OutParam[0]
 - 异常节点；
 - 持续覆盖报告与代表性游戏验证。
 
-## 15. Phase 0 冻结状态
+## 15. 当前最小生产闭环（TS → Client IR → GIA）
+
+> 状态：已验证 / 当前实现
+> 来源：当前代码实现 + 自动回归 + 真实 GIA 对照 + 用户游戏内验证
+> 最近校验：2026-07-19
+> 适用范围：当前客户端 skill 图生产路径；不推广到未取样客户端节点族、任意地图 signal 或客户端注入
+
+当前已完成的最小生产闭环是：
+
+```text
+TS 测试代码
+→ g.client({ type: 'skill', id }).onStart((f) => ...)
+→ ClientGraphRegistry
+→ ClientIRDocument
+→ clientIrToGia()
+→ 客户端 skill GIA
+→ 用户导入游戏目录并完成游戏测试
+```
+
+当前 TS 回归入口：
+
+```text
+tests/runtime/test-client-full-signal-ir-to-gia.ts
+```
+
+当前 TS 生成并经用户测试的产物：
+
+```text
+Beyond_Local_Export/gsts-client-full-signal-ts-complete-3signals.gia
+```
+
+该回归由 TS 语法表达完整输入，覆盖：
+
+- 3 个目标地图已有 signal，按顺序执行；
+- signal 参数数量 `5 / 9 / 9`；
+- 标量 `int/float/vec3/guid/bool/entity/prefab_id/config_id/str`；
+- `get_self_entity` → signal entity 参数；
+- `get_self_entity` → `query_guid_by_entity` → signal GUID 参数；
+- 9 类列表参数的 typed `assembly_list`；
+- `bool_list` 多元素和 `vec3_list` 多元素；
+- signal 目标 `InParam` 数据边与 signal 间控制流。
+
+当前验证结果必须分层记录：
+
+- **TS→IR→GIA 自动回归**：`npm run build`、`npx tsx tests/runtime/test-client-full-signal-ir-to-gia.ts` 等 focused tests 通过；
+- **真实 GIA 对照**：与 `Beyond_Local_Export/user_edit/客户端/信号-参数-完整-列表.gia` 的列表类型、assembly concrete、参数拓扑和 entity/GUID 规律对照；
+- **游戏验证**：用户确认最新 TS 生成版本大体测试通过，并在补充 entity 连接和多元素 bool/vec3 列表后完成最新测试通过；
+- **未覆盖**：除本文列出的 signal/list/data-source 路径外的客户端节点、跨地图 signal registry、客户端 Composite、Graph variables、注入和多版本兼容。
+
+该闭环证明生产入口已经存在，但当前实现仍是**最小工作包代码**，不视为最终客户端架构。下一步必须先完成当前实现审计和保行为骨架化，再继续扩大 API。
+
+## 16. 客户端架构骨架工作包（下一阶段）
+
+下一阶段固定为两个工作包，不在骨架完成前继续无序增加客户端节点：
+
+### WP-B：当前实现审计
+
+目标是绘制并确认真实职责边界：
+
+```text
+g.client()
+→ ClientGraphRegistry / runtime client API
+→ ClientNodeRecord / ClientValueIR
+→ ClientIRDocument
+→ irToGia() client dispatch
+→ clientIrToGia()
+→ vendor client graph materializer
+```
+
+审计至少覆盖：公共 API、runtime registry、IR builder、signal registry、列表语义、值编码、节点 identity、物理 pin、数据边、控制流、GIA graph metadata，以及测试 fixture 与生产路径的边界。输出应标出当前代码事实、待抽取 seam、重复逻辑、临时字段和不应推广的样本特判。
+
+### WP-C：客户端骨架设计与保行为重构
+
+目标是形成后续客户端节点/API 的稳定扩展点：
+
+```text
+ClientGraphContext / Registry
+ClientNodeRecord / ClientValue
+ClientIRBuilder
+ClientNodeAdapterRegistry
+ClientSignalAdapter
+ClientListAdapter
+ClientValueEncoder
+ClientDataFlowMaterializer
+ClientControlFlowMaterializer
+ClientGraphMaterializer
+```
+
+重构约束：
+
+- 先保留当前 TS 生成 GIA 的结构和游戏已验证行为，再拆分职责；
+- 用户语义层不得直接暴露 shell/concrete/CPI/protobuf VarBase；
+- Client IR 表达语义值、literal/connection、列表 encoding 和边，不直接复制最终 GIA pin；
+- GIA identity、ClientVarType、VarBase、ConcreteBase、物理 pin 和 hidden/default 只在 Stage 3 adapter 层处理；
+- 数据流固定为 `OutParam → InParam`，控制流固定为 `OutFlow → InFlow`；
+- signal、list、普通客户端节点共享连接物化能力，不各自重复写 wire；
+- 真实 GIA 样本用于确认规律，不把 nodeIndex、样本值、目标地图 ID 写成生产隐式特判；
+- 骨架重构期间不执行注入，不修改 `user_edit`，不手改 `src/thirdparty/`。
+
+WP-B/WP-C 的详细执行入口见下一轮 handover：
+`/tmp/genshin-ts-handoff-2026-07-19-client-architecture-skeleton.md`。
+
+## 17. Phase 0 冻结状态
 
 截至 2026-07-17：
 
 - 两份真实 client skill GIA 已完成文件内 ID 配对、语义解码、上游候选对账和逐字节 wire round-trip；
 - 两份样本均为 `gameVersion="6.7.0"`，原 `6.6.0` 计划假设已撤销；
 - “变量版本”明确为节点链且 `graphValues=[]`，不扩大 Client Graph variables 范围；
-- 生产客户端编译路径尚未开始；
-- 不公开半成品 `g.client()`；
-- 不修改生产 Stage 3 客户端行为；
+- 当前生产 TS→Client IR→GIA 最小路径已存在并经用户游戏验证；
+- `g.client()` 当前只覆盖本计划记录的 skill signal/list/data-source 最小闭环，不宣称全量客户端节点支持；
+- 客户端路径仍未完成最终架构骨架化，下一阶段执行 WP-B/WP-C；
 - 只使用已审查并获用户授权的 `4033eaf` 最小 vendor 客户端快照；
 - 不执行注入或游戏文件操作。
 
@@ -1344,5 +1446,4 @@ assembly、顺序执行链和 protobuf/container round-trip。默认不写出 GI
 组合候选，避免在游戏导出目录生成 standalone 参数样本。最终组合候选
 `Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数_实体GUID.gia`（最终自动回归产物
 SHA-256：`30e1fca4f97047559c990ecb8a452aea4b126957bbac5aa965cd65f3417e94a4`）已由用户确认
-编辑器/游戏测试通过。该证据只覆盖目标地图已有信号和本节列出的参数族；下一步可据此设计
-生产 TS → Client IR → GIA 的信号 lowering，但不等于生产 `g.client()` 或全量客户端节点已开放。
+编辑器/游戏测试通过。该证据只覆盖目标地图已有信号和本节列出的参数族；当前 TS→Client IR→GIA 最小 signal lowering 已实现并由用户游戏验证，但不等于全量客户端节点已开放。下一步按 WP-B/WP-C 完成实现审计和客户端架构骨架化。

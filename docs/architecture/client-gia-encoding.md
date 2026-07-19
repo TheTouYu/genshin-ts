@@ -53,6 +53,25 @@ Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数_实�
 
 用户已确认该候选编辑器导入和游戏测试通过。自动生成、编辑器导入和游戏行为是不同证据层级；本节结论不推广到任意地图、任意 signal identity 或未取样客户端节点族。
 
+### 1.3 TS 生产闭环验证结果
+
+当前生产 TS 回归入口为：
+
+```text
+tests/runtime/test-client-full-signal-ir-to-gia.ts
+```
+
+它使用 `g.client({ type: 'skill', id }).onStart(...)` 表达完整输入，不直接构造 GIA 节点。当前已验证：
+
+- `信号_1` 的 entity 参数由 `getSelfEntity()` 连接；
+- `信号_全部列表参数测试` 的 9 类列表由 TS `assemblyList` 生成；
+- `bool_list` 支持多个 bool 元素；
+- `vec3_list` 支持多个 vec3 元素；
+- signal 目标 `InParam` 保留 source `OutParam` 数据边；
+- 三个 signal 节点按 TS 调用顺序形成控制流。
+
+最新 TS 产物已由用户导入游戏目录并确认游戏测试通过。该结论是当前 fixture 和目标地图 signal registry 的游戏证据，不推广到所有客户端节点、所有地图或任意 signal schema。
+
 ## 2. 目标地图 signal identity
 
 当前 materializer 不复制参考 GIA 的 SignalDef accessories，而是引用目标 `.gil` 中已经注册的 signal：
@@ -253,8 +272,11 @@ signal 的列表 InParam 使用 `ArrayBase`，其 `itemType` 是列表类型；�
 
 ```text
 str_list  = ['测试']
-bool_list = [false, true]
-vec3_list = [(3, 0, 2)]
+bool_list = [false, true, false]
+vec3_list = [(1, 2, 3.4), (4, 5, 6.7)]
+```
+
+当前 TS 回归已对 bool/vec3 多元素 count 和实际元素值断言；这证明当前 `assembly_list` lowering 的多元素路径可复现，不代表列表长度上限、空列表、动态列表或超过 10 个元素已获得游戏证据。
 ```
 
 生产 TS 应允许字面量和连接值产生元素：
@@ -268,6 +290,30 @@ assemblyList([vec3([3, 0, 2])], 'vec3')
 空列表、多于 10 个元素、literal/conn 混合列表以及动态列表的游戏行为尚未作为独立证据冻结；生产 API 设计前应分别建立边界回归。
 
 ## 6. 生产 TS → Client IR → GIA 前置模型
+
+### 6.1 当前生产 lowering 的列表策略
+
+> 状态：当前实现
+> 来源：当前代码实现 + 真实 GIA 结构回归
+> 最近校验：2026-07-19
+> 适用范围：当前 `ClientIRDocument` → 客户端 GIA lowering；未完成编辑器/游戏核验
+
+`src/runtime/IR.d.ts` 的 `ClientValueIR` 现在显式区分列表编码：
+
+```text
+{ kind: 'list', encoding: 'direct-list' | 'assembly-list', elementType, elements }
+```
+
+- `direct-list` 直接在 signal `InParam` 写入 `ArrayBase + bArray.entries`，不创建 assembly 节点；当前 focused fixture 只允许字面量元素。
+- `assembly-list` 保留 `assembly_list` 数据节点、typed concrete、`InParam[0]` count 和 `OutParam[0]`；signal 目标 `InParam` 保留规范 source → target 数据边。
+- assembly `OutParam[0].connects` 不再反向写入 signal；真实样本的规范字段只要求目标 signal `InParam.connects`。
+- 现有 runtime `f.assemblyList(...)` 仍明确生成 `assembly-list`，不会按元素类型猜测 direct 路径。
+
+回归：`tests/runtime/test-client-list-encoding.ts` 同时读取真实
+`Beyond_Local_Export/user_edit/客户端/信号-参数-完整-列表.gia`（11308 bytes、6 个 assembly、9 个
+signal 列表 pin）并检查生成的 direct/assembly 双路径。该回归证明编码结构和 protobuf 解码结果，不证明
+当前产物已通过编辑器导入或游戏行为验证。
+
 
 当前 materializer 是 focused fixture，不是生产入口。下一步 Client IR 应显式表达：
 
