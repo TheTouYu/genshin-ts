@@ -1,10 +1,9 @@
 # 客户端节点支持计划
 
-> 状态：已验证（WP0、WP1 和 WP1-Sync 已收口；vendor 最小客户端快照已通过稳定
-> adapter 暴露并完成项目构建、field-101 与 materializer 自动回归；生产 `g.client()` 尚未开始）
-> 来源：当前代码实现审计 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 设计决策 + WP1 自动回归
-> 最近校验：2026-07-17
-> 适用范围：gsts 客户端节点支持的实施计划；真实 GIA 结论仅适用于本文记录的两个样本，不代表当前编译器已经支持客户端节点
+> 状态：已验证（WP0、WP1、WP1-Sync 已收口；客户端已有地图信号 materializer v2 已完成自动回归和组合图游戏核验；特殊参数仍待补充参考）
+> 来源：当前代码实现审计 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 目标地图信号资源 + 用户游戏验证
+> 最近校验：2026-07-19
+> 适用范围：gsts 客户端节点支持实施计划；客户端信号结论仅适用于目标地图已有信号和本文记录的样本，不代表生产 `g.client()` 或完整客户端参数支持
 
 本文档记录 gsts 增加客户端节点支持的当前权威计划，防止跨会话丢失设计决策、证据边界和验证门禁。
 
@@ -1082,6 +1081,54 @@ message/container round-trip 契约；本轮使用原始只读样本运行通过
 - 客户端与服务器参数契约；
 - 回导与游戏通信验证。
 
+#### 已完成：目标地图已有信号 materializer v2（2026-07-19）
+
+当前实现和回归入口：
+
+```text
+tests/composite/test-client-signal-materializer.ts
+```
+
+目标地图信号资源通过项目现有的 `readRegisteredSignalsFromGil()` 从目标 `.gil` 读取；参考客户端
+`.gia` 只用于校验 `ClientSignal(kind=6)` 的信号名 pin，不再复制参考文件的 SignalDef
+accessories。生成图的当前契约是：
+
+```text
+accessories = []
+root.graph.relatedIds = 目标地图已有的 sendServer ID
+sendSignalToServerNodeGraph.genericId.nodeId = 同一 sendServer ID
+signal name = ClientExec pin(kind=6) 的 bString
+```
+
+已从 2026-07-18 目标地图的注册资源读取并测试三个信号：
+
+```text
+信号_1                  → sendServerId 1610612740，5 个参数
+信号_全部列表参数测试    → sendServerId 1610612746，9 个列表参数
+信号_全部参数测试        → sendServerId 1610612743，9 个标量参数
+```
+
+materializer 保留三个信号的独立样本，并额外生成组合图：
+
+```text
+Node Graph Begins → 信号_1 → 信号_全部列表参数测试 → 信号_全部参数测试
+```
+
+组合候选文件：
+
+```text
+Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数.gia
+```
+
+该文件通过 protobuf message/container round-trip、GIA header 检查、`accessories=[]`、
+节点顺序、`relatedIds`、信号名 pin 和参数数量回归；用户已确认游戏测试通过。自动回归和游戏
+核验只证明目标地图已有信号的当前样本，不证明任意地图、任意客户端信号或全部特殊参数的编码。
+
+当前已知限制：部分信号参数需要特殊的客户端 GIA 编码，尤其是列表/容器及下一轮将提供的特殊
+参数参考。当前测试中的列表值是 materializer 的最小占位值，不应在获得真实参考前推广为完整
+参数实现。下一轮应先读取用户提供的特殊参数参考，逐类型对照真实 pin、VarBase/container
+字段和游戏行为，再扩展 `valueForParam()` 与 focused regression。
+
 ### WP8：按节点族扩大覆盖
 
 - Fixed；
@@ -1126,5 +1173,12 @@ focused 回归均通过，项目级真实样本 round-trip 也使用两份原始
 `tests/composite/test-client-double-branch-materializer.ts`，覆盖 shell `200056`/kernel
 `2000`、True/False OutFlow 物理 index、condition pin 和 protobuf wire round-trip。该回归对应的
 两份候选 GIA 已由用户在游戏中验证 True 和 False 分支行为。运行时、Stage 1 和生产 Stage 3 仍未
-修改，`g.client()` 仍未公开。下一步可进入未取样节点的 vendor materializer 扩展或启动 WP2 的
-精确设计与授权。
+修改，`g.client()` 仍未公开。
+
+2026-07-19，客户端已有地图信号专项新增 `tests/composite/test-client-signal-materializer.ts`。
+该回归读取目标地图 `1073741848.gil` 的三个已注册信号，验证 `accessories=[]`、目标地图
+`sendServerId`、ClientSignal 名称 pin、标量/列表参数 pin、顺序执行链和 protobuf/container
+round-trip。用户已确认组合候选
+`Beyond_Local_Export/gsts测试信号_v2_三个信号顺序发送_带参数.gia` 的游戏测试通过。
+这不覆盖下一轮将提供的特殊参数参考；下一步应在本专项基础上扩展真实参数编码，不应先扩大
+生产 `g.client()` 或 Stage 3。

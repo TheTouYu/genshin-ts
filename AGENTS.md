@@ -17,7 +17,9 @@
 - `create-genshin-ts/` 是独立 npm 包；其模板中的规则面向最终用户，不能与仓库维护规则混用。
 - `docs/composite-ir/handover/` 仅作历史背景；当前行为以源码、测试和真实 GIA 证据为准。
 - `user_edit/` 是参考样本目录，只能读取用于解码分析，不可写入、修改或删除任何文件。
-  .gia 输出始终写入 `Beyond_Local_Export/` 根目录（游戏加载目录），而不是 `user_edit/` 下。
+  .gia 输出始终写入 `~/genshin-ts/Beyond_Local_Export/` 根目录（游戏加载目录），而不是 `user_edit/` 下；该目录允许写入，但不得覆盖无法解释的现有文件。
+- `/mnt/` 是 Win11 数据盘，禁止无目的扫描或递归遍历（例如 `find /mnt`）；除非用户明确指定具体路径，否则不要访问其中的数据。
+  当前本机游戏目录：`/home/h/genshin-ts/Beyond_Local_Export/`。
 
 ## 安全与 Git
 
