@@ -1420,6 +1420,60 @@ Beyond_Local_Export/gsts-client-full-signal-ts-complete-3signals.gia
 
 该闭环证明当前支持范围内的生产入口和客户端架构骨架已经存在。后续新增客户端知识必须沿本文的 runtime/IR、Stage 3 adapter、共享布局、真实 GIA、自动回归和游戏验证分层记录，不得把当前闭环推广为全量客户端节点支持。
 
+## 15.1 Vector/Arithmetic Fixed 系列（2026-07-19）
+
+> 状态：已验证
+> 来源：第三方节点候选 + 当前代码实现 + 自动回归 + 用户游戏验证
+> 最近校验：2026-07-19
+> 适用范围：当前客户端 `skill` 图的本轮 10 个 Vector/Arithmetic 节点；不推广到未测试的客户端节点
+
+本轮排除了前两轮已经真实测试通过的客户端查询节点，新增一个独立的 Fixed 数据流系列。测试入口为：
+
+```text
+tests/runtime/test-client-vector-series.ts
+```
+
+用户 API 和当前 adapter 支持以下节点：
+
+| 用户 API | 第三方候选 generic/concrete identity |
+|---|---:|
+| `dotVector3` | `200063 / 131` |
+| `crossVector3` | `200064 / 132` |
+| `splitVector3` | `200065 / 133` |
+| `scaleVector3` | `200066 / 134` |
+| `angleBetweenVector3` | `200067 / 135` |
+| `rotateVector3` | `200068 / 136` |
+| `vector3Length` | `200069 / 137` |
+| `createVector3` | `200070 / 1024` |
+| `normalizeVector3` | `200100 / 138` |
+| `directionVectorToRotation` | `200073 / 139` |
+
+当前实现位于 `src/runtime/client.ts` 和 `src/compiler/client_ir_to_gia.ts`。运行时记录 literal/connection
+输入，`splitVector3` 暴露三个独立 float 输出；Stage 3 写入客户端 `ClientVarType`、Fixed identity、物理
+输入/输出 pin 和数据边。测试图使用明确的向量/标量值，并把每个新增节点的实际输出承载到已有 signal
+参数中；`getSelfEntity()` 仅作为 signal 的必要 Entity 输入来源，不作为本轮新增查询节点测试对象。
+
+本轮自动验证：
+
+```bash
+npm run build
+npx tsx tests/runtime/test-client-vector-series.ts
+NODE_OPTIONS='--no-deprecation' npx tsx tools/decode-gia.ts --check-header --compact \
+  Beyond_Local_Export/gsts-client-vector-series.gia
+git diff --check
+```
+
+产物为：
+
+```text
+Beyond_Local_Export/gsts-client-vector-series.gia
+SHA-256: f2f682a87ddc4fcf081e90744b5b8be1347f8f7467b57e9f6e4b616a2994ba1f
+```
+
+自动证据证明 TS→Client IR→GIA、节点 identity、物理 pin、数据连接、布局坐标和 GIA header 可复现。
+用户随后确认该产物测试通过，构成本轮 Vector/Arithmetic 系列的编辑器/游戏行为证据。该游戏结论只适用于
+上述产物和这 10 个节点，不替代未测试节点的真实 GIA 或游戏验证，也不表示客户端 Arithmetic 全量开放。
+
 ## 16. 客户端架构骨架（当前已完成，后续扩展基线）
 
 以下两个工作包已完成，后续新增客户端节点必须在此骨架上扩展，不复制布局算法或绕过 adapter 边界：

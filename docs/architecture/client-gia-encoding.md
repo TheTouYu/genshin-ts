@@ -366,7 +366,37 @@ send_signal_to_server(signalRef, params: ClientValueIR[])
 
 因此“vendor 有 assembly_list”不能等价为“vendor 已完整支持客户端 signal 列表”。本轮完整候选是 vendor 底层积木、真实 GIA 规律、目标 GIL identity 和 focused materializer 的组合结果。
 
-## 8. 验证门禁
+## 8. Vector/Arithmetic Fixed 节点编码（2026-07-19）
+
+> 状态：已验证
+> 来源：第三方节点候选 + 当前代码实现 + 自动回归 + 用户游戏验证
+> 最近校验：2026-07-19
+> 适用范围：当前客户端 `skill` 图中本轮 10 个 Vector/Arithmetic 节点
+
+本轮新增节点使用客户端 `GraphNode` 的 Fixed generic/concrete identity，输入和输出均使用客户端
+`ClientVarType`。`src/compiler/client_ir_to_gia.ts` 的 math adapter 按用户 API 的参数顺序物化输入 pin，
+将 literal 写入对应 `VarBase`，并将连接值写为来源 `OutParam` 到目标 `InParam` 的数据边。多输出的
+`split_vector3` 使用 `OutParam[0..2]`，对应运行时返回值 `x/y/z`。
+
+| generic | concrete | 输入 | 输出 |
+|---:|---:|---|---|
+| 200063 | 131 | vec3, vec3 | float |
+| 200064 | 132 | vec3, vec3 | vec3 |
+| 200065 | 133 | vec3 | float × 3 |
+| 200066 | 134 | float, vec3 | vec3 |
+| 200067 | 135 | vec3, vec3 | float |
+| 200068 | 136 | vec3, vec3 | vec3 |
+| 200069 | 137 | vec3 | float |
+| 200070 | 1024 | float × 3 | vec3 |
+| 200100 | 138 | vec3 | vec3 |
+| 200073 | 139 | vec3, vec3 | vec3 |
+
+这些 identity 和 pin 类型来自固定第三方客户端节点数据；本轮没有声称它们已经与独立真实 GIA
+逐字段对拍。`Beyond_Local_Export/gsts-client-vector-series.gia` 已通过自动结构检查，并由用户确认
+游戏测试通过，因此本表获得当前样本级游戏证据。未测试的其他 Fixed、Variant、hidden pin 或共享 kernel
+节点仍需单独验证。
+
+## 9. 验证门禁
 
 ### 当前已通过
 

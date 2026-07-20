@@ -124,6 +124,17 @@ tests/runtime/test-client-full-signal-ir-to-gia.ts
 
 客户端测试代码应使用 TS API 表达用户意图；手工 materializer 只用于固定真实 GIA 规律和底层编码回归，不能作为 TS→GIA 生产路径的替代证据。列表测试至少覆盖 literal/connection 语义、entity/GUID 数据边和多元素 bool/vec3；未覆盖的空列表、动态列表和超过上限场景必须标记为待验证。
 
+2026-07-19 新增 Vector/Arithmetic Fixed 系列回归：
+
+```bash
+npx tsx tests/runtime/test-client-vector-series.ts
+```
+
+该测试使用 TS 客户端 API 覆盖 10 个新的 Vector/Arithmetic 节点，检查 generic/concrete identity、
+`ClientVarType`、literal/connection 输入、`split_vector3` 的三个输出 pin、数据边和最终 raw 坐标，
+并生成 `Beyond_Local_Export/gsts-client-vector-series.gia`。自动回归不替代编辑器/游戏验证；本产物已经
+由用户确认游戏测试通过，结论仅适用于本轮 10 个节点。
+
 客户端布局验证还必须检查最终解码 GIA 的 raw `x/y`，不能只检查布局函数返回值或“坐标不相等”。
 客户端通过 `src/compiler/client_layout.ts` 复用服务器 `buildExecutionGraph()` 与 `layoutPositions()`；服务器
 路径的 `GiaNode.setPos()` 使用归一化坐标并由 `node_body()` 乘回 `300/200`，客户端

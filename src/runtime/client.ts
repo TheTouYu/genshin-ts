@@ -53,6 +53,20 @@ export type ClientExecutionFlowFunctions = {
   queryIfEntityIsInCombat(entity: ClientValueHandle): ClientValueHandle
   queryIfEntityIsOnField(entity: ClientValueHandle): ClientValueHandle
   getOwnerPlayer(character: ClientValueHandle): ClientValueHandle
+  dotVector3(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  crossVector3(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  splitVector3(vector: ClientValueHandle | ClientLiteral): {
+    x: ClientValueHandle
+    y: ClientValueHandle
+    z: ClientValueHandle
+  }
+  scaleVector3(scale: ClientValueHandle | ClientLiteral, vector: ClientValueHandle | ClientLiteral): ClientValueHandle
+  angleBetweenVector3(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  rotateVector3(vector: ClientValueHandle | ClientLiteral, rotation: ClientValueHandle | ClientLiteral): ClientValueHandle
+  vector3Length(vector: ClientValueHandle | ClientLiteral): ClientValueHandle
+  createVector3(x: ClientValueHandle | ClientLiteral, y: ClientValueHandle | ClientLiteral, z: ClientValueHandle | ClientLiteral): ClientValueHandle
+  normalizeVector3(vector: ClientValueHandle | ClientLiteral): ClientValueHandle
+  directionVectorToRotation(forward: ClientValueHandle | ClientLiteral, up: ClientValueHandle | ClientLiteral): ClientValueHandle
   assemblyList(elementType: ValueType, elements: readonly (ClientLiteral | ClientValueHandle)[]): ClientListValue
   sendSignalToServerNodeGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue)[]): void
 }
@@ -63,7 +77,7 @@ class ClientGraphRegistry {
   private started = false
   private currentNodeId?: number
 
-  private registerDataNode(type: string, valueType: ValueType, args: ClientValueIR[] = []): ClientValueHandle {
+  private registerDataNode(type: string, valueType: ValueType, args: ClientValueIR[] = [], outputCount = 1): any {
     const node: ClientNode = {
       id: this.nextNodeId++,
       type,
@@ -71,6 +85,13 @@ class ClientGraphRegistry {
       next: []
     }
     this.nodes.push(node)
+    if (outputCount === 3) {
+      return Object.freeze({
+        x: { __clientValue: true as const, type: 'float' as const, nodeId: node.id, pinIndex: 0 },
+        y: { __clientValue: true as const, type: 'float' as const, nodeId: node.id, pinIndex: 1 },
+        z: { __clientValue: true as const, type: 'float' as const, nodeId: node.id, pinIndex: 2 }
+      })
+    }
     return Object.freeze({ __clientValue: true, type: valueType, nodeId: node.id, pinIndex: 0 })
   }
 
@@ -182,6 +203,56 @@ class ClientGraphRegistry {
 
   getOwnerPlayer(characterValue: ClientValueHandle): ClientValueHandle {
     return this.registerEntityQuery('get_owner_player', 'entity', characterValue, 'getOwnerPlayer')
+  }
+
+  private clientMathValue(value: ClientValueHandle | ClientLiteral, type: ValueType): ClientValueIR {
+    return typeof value === 'object' && value && '__clientValue' in value
+      ? { kind: 'conn', type: value.type, node_id: value.nodeId, index: value.pinIndex }
+      : { kind: 'literal', type, value }
+  }
+
+  private registerMathNode(type: string, outputType: ValueType, args: readonly [ClientValueHandle | ClientLiteral, ValueType][], outputCount = 1): any {
+    return this.registerDataNode(type, outputType, args.map(([value, valueType]) => this.clientMathValue(value, valueType)), outputCount)
+  }
+
+  dotVector3(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('dot_vector3', 'float', [[a, 'vec3'], [b, 'vec3']])
+  }
+
+  crossVector3(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('cross_vector3', 'vec3', [[a, 'vec3'], [b, 'vec3']])
+  }
+
+  splitVector3(vector: ClientValueHandle | ClientLiteral) {
+    return this.registerMathNode('split_vector3', 'float', [[vector, 'vec3']], 3)
+  }
+
+  scaleVector3(scale: ClientValueHandle | ClientLiteral, vector: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('scale_vector3', 'vec3', [[scale, 'float'], [vector, 'vec3']])
+  }
+
+  angleBetweenVector3(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('angle_vector3', 'float', [[a, 'vec3'], [b, 'vec3']])
+  }
+
+  rotateVector3(vector: ClientValueHandle | ClientLiteral, rotation: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('rotate_vector3', 'vec3', [[vector, 'vec3'], [rotation, 'vec3']])
+  }
+
+  vector3Length(vector: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('length_vector3', 'float', [[vector, 'vec3']])
+  }
+
+  createVector3(x: ClientValueHandle | ClientLiteral, y: ClientValueHandle | ClientLiteral, z: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('create_vector3', 'vec3', [[x, 'float'], [y, 'float'], [z, 'float']])
+  }
+
+  normalizeVector3(vector: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('normalize_vector3', 'vec3', [[vector, 'vec3']])
+  }
+
+  directionVectorToRotation(forward: ClientValueHandle | ClientLiteral, up: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('direction_to_rotation', 'vec3', [[forward, 'vec3'], [up, 'vec3']])
   }
 
   private registerEntityQuery(
@@ -328,6 +399,16 @@ export function createClientGraph(options: ClientGraphOptions) {
         queryIfEntityIsInCombat: (entity) => registry.queryIfEntityIsInCombat(entity),
         queryIfEntityIsOnField: (entity) => registry.queryIfEntityIsOnField(entity),
         getOwnerPlayer: (character) => registry.getOwnerPlayer(character),
+        dotVector3: (a, b) => registry.dotVector3(a, b),
+        crossVector3: (a, b) => registry.crossVector3(a, b),
+        splitVector3: (vector) => registry.splitVector3(vector),
+        scaleVector3: (scale, vector) => registry.scaleVector3(scale, vector),
+        angleBetweenVector3: (a, b) => registry.angleBetweenVector3(a, b),
+        rotateVector3: (vector, rotation) => registry.rotateVector3(vector, rotation),
+        vector3Length: (vector) => registry.vector3Length(vector),
+        createVector3: (x, y, z) => registry.createVector3(x, y, z),
+        normalizeVector3: (vector) => registry.normalizeVector3(vector),
+        directionVectorToRotation: (forward, up) => registry.directionVectorToRotation(forward, up),
         assemblyList: (elementType, elements) => registry.assemblyList(elementType, elements),
         sendSignalToServerNodeGraphValues: (signalName, params) =>
           registry.sendSignalToServerGraphValues(signalName, params)

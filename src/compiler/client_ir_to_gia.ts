@@ -145,6 +145,26 @@ const fixedQuery = (nodeIndex: number, shellId: number, kernelId: number, inputs
 })
 
 function dataNode(node: ClientNode, index: number): any {
+  const math = (shellId: number, kernelId: number, inputs: ClientVarType[], outputs: ClientVarType[]) => clientLegacyNode({
+    nodeIndex: index,
+    shellId,
+    kernelId,
+    pins: [
+      ...inputs.map((type, inputIndex) => {
+        const arg = node.clientValues?.[inputIndex]
+        const valueType = type === ClientVarType.Float_ ? 'float' : 'vec3'
+        const value = arg?.kind === 'literal'
+          ? valueFromIR(valueType, arg)
+          : type === ClientVarType.Float_ ? clientFloatValue(0) : clientVectorValue([0, 0, 0])
+        return clientDataPin({ shellIndex: inputIndex, kernelIndex: inputIndex, type, value })
+      }),
+      ...outputs.map((type, outputIndex) => ({
+        ...clientDataPin({ shellIndex: outputIndex, kernelIndex: outputIndex, type, value: type === ClientVarType.Float_ ? clientFloatValue(0) : clientVectorValue([0, 0, 0]) }),
+        i1: { kind: NodePin_Index_Kind.OutParam, index: outputIndex },
+        i2: { kind: NodePin_Index_Kind.OutParam, index: outputIndex }
+      }))
+    ]
+  })
   const entityInput = (outputType: ClientVarType, shellId: number, kernelId: number) => fixedQuery(index, shellId, kernelId, [ClientVarType.Entity_], outputType)
   const entityOutput = (shellId: number, kernelId: number) => clientLegacyNode({
     nodeIndex: index,
@@ -167,6 +187,16 @@ function dataNode(node: ClientNode, index: number): any {
     case 'query_self_in_combat': return fixed(200037, 1017, [], ClientVarType.Boolean_)
     case 'query_entity_in_combat': return entityInput(ClientVarType.Boolean_, 200092, 3003)
     case 'query_entity_on_field': return entityInput(ClientVarType.Boolean_, 200103, 1038)
+    case 'dot_vector3': return math(200063, 131, [ClientVarType.Vector_, ClientVarType.Vector_], [ClientVarType.Float_])
+    case 'cross_vector3': return math(200064, 132, [ClientVarType.Vector_, ClientVarType.Vector_], [ClientVarType.Vector_])
+    case 'split_vector3': return math(200065, 133, [ClientVarType.Vector_], [ClientVarType.Float_, ClientVarType.Float_, ClientVarType.Float_])
+    case 'scale_vector3': return math(200066, 134, [ClientVarType.Float_, ClientVarType.Vector_], [ClientVarType.Vector_])
+    case 'angle_vector3': return math(200067, 135, [ClientVarType.Vector_, ClientVarType.Vector_], [ClientVarType.Float_])
+    case 'rotate_vector3': return math(200068, 136, [ClientVarType.Vector_, ClientVarType.Vector_], [ClientVarType.Vector_])
+    case 'length_vector3': return math(200069, 137, [ClientVarType.Vector_], [ClientVarType.Float_])
+    case 'create_vector3': return math(200070, 1024, [ClientVarType.Float_, ClientVarType.Float_, ClientVarType.Float_], [ClientVarType.Vector_])
+    case 'normalize_vector3': return math(200100, 138, [ClientVarType.Vector_], [ClientVarType.Vector_])
+    case 'direction_to_rotation': return math(200073, 139, [ClientVarType.Vector_, ClientVarType.Vector_], [ClientVarType.Vector_])
     case 'get_attachment_location': return fixed(200047, 1022, [ClientVarType.Entity_, ClientVarType.String_], ClientVarType.Vector_)
     case 'get_attachment_rotation': return fixed(200048, 1023, [ClientVarType.Entity_, ClientVarType.String_], ClientVarType.Vector_)
     default: throw new Error(`[error] unsupported client data node: ${node.type}`)
@@ -408,7 +438,7 @@ export function clientIrToGia(ir: ClientIRDocument, signalRegistry: SignalRegist
       if (arg.kind !== 'conn') continue
       const source = dataNodes.get(arg.node_id)
       if (!source) throw new Error(`[error] missing client connection source node: ${arg.node_id}`)
-      const targetPin = ['query_guid_by_entity', 'find_entity_by_guid', 'get_entity_position', 'get_entity_rotation', 'get_owner_player', 'get_character_entity', 'get_attack_target', 'query_entity_in_combat', 'query_entity_on_field'].includes(node.type)
+      const targetPin = ['query_guid_by_entity', 'find_entity_by_guid', 'get_entity_position', 'get_entity_rotation', 'get_owner_player', 'get_character_entity', 'get_attack_target', 'query_entity_in_combat', 'query_entity_on_field', 'dot_vector3', 'cross_vector3', 'split_vector3', 'scale_vector3', 'angle_vector3', 'rotate_vector3', 'length_vector3', 'create_vector3', 'normalize_vector3', 'direction_to_rotation'].includes(node.type)
         ? argIndex
         : node.type === 'assembly_list' ? argIndex + 1 : argIndex
       const pin = target.pins.find((candidate: any) => candidate.i1?.kind === NodePin_Index_Kind.InParam && (candidate.i1.index ?? 0) === targetPin)
