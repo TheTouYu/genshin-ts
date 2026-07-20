@@ -1489,7 +1489,7 @@ export const NODE_PIN_RECORDS = [
     inputs: ['Ety'],
     outputs: ['Ety']
   },
-  { name: 'Get Entity Type', id: 260, inputs: ['Ety'], outputs: [] },
+  { name: 'Get Entity Type', id: 260, inputs: ['Ety'], outputs: ['E<14>'] },
   {
     name: 'Switch Main Camera Template',
     id: 261,
@@ -1615,7 +1615,7 @@ export const NODE_PIN_RECORDS = [
     name: "When All Player's Characters Are Down",
     id: 284,
     inputs: [],
-    outputs: ['Ety']
+    outputs: ['Ety', 'E<20>']
   },
   {
     name: 'When Player Is Abnormally Downed and Revives',
@@ -1710,8 +1710,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Remove Unit Status',
     id: 301,
-    // vendor .gia: inputs index 为 0/1/2/4（中间 index=3 为隐藏/空 pin）
-    inputs: ['Ety', 'Cfg', 'E<18>', 'Unk', 'Ety'],
+    inputs: ['Ety', 'Cfg', 'E<18>', 'E<17>', 'Ety'],
     outputs: []
   },
   {
@@ -1819,7 +1818,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Get Specified Type of Entity on the Field',
     id: 319,
-    inputs: ['R<T>'],
+    inputs: ['E<14>'],
     outputs: ['L<Ety>']
   },
   {
@@ -2390,7 +2389,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Get Entity List by Specified Type',
     id: 377,
-    inputs: ['L<Ety>', 'R<T>'],
+    inputs: ['L<Ety>', 'E<14>'],
     outputs: ['L<Ety>']
   },
   {
@@ -2415,7 +2414,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Get Creation Attribute',
     id: 381,
     inputs: ['Ety'],
-    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt']
+    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'E<39>']
   },
   {
     name: 'Switch Current Interface Layout',
@@ -2463,7 +2462,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Change Player Class',
     id: 389,
-    inputs: ['Ety', 'Cfg', 'E<0>'],
+    inputs: ['Ety', 'Cfg', 'E<53>'],
     outputs: []
   },
   {
@@ -2499,7 +2498,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Add Character Skill',
     id: 395,
-    inputs: ['Ety', 'Cfg', 'R<T>', 'E<0>'],
+    inputs: ['Ety', 'Cfg', 'E<30>', 'E<52>'],
     outputs: ['Int']
   },
   {
@@ -2511,19 +2510,19 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Initialize Character Skill',
     id: 397,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: []
   },
   {
     name: 'Query Character Skill',
     id: 398,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: ['Cfg']
   },
   {
     name: 'Delete Character Skill by Slot',
     id: 399,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: []
   },
   {
@@ -3543,14 +3542,14 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Player Settlement Success Status',
     id: 652,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<33>'],
     outputs: []
   },
   {
     name: 'Get Player Settlement Success Status',
     id: 653,
     inputs: ['Ety'],
-    outputs: []
+    outputs: ['E<33>']
   },
   {
     name: 'Set Faction Settlement Ranking Value',
@@ -3567,14 +3566,14 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Faction Settlement Success Status',
     id: 656,
-    inputs: ['Fct', 'R<T>'],
+    inputs: ['Fct', 'E<33>'],
     outputs: []
   },
   {
     name: 'Get Faction Settlement Success Status',
     id: 657,
     inputs: ['Fct'],
-    outputs: []
+    outputs: ['E<33>']
   },
   {
     name: 'Get Player Rank Info',
@@ -3585,13 +3584,13 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Player Rank Score Change',
     id: 659,
-    inputs: ['Ety', 'E<33>', 'Int'],
+    inputs: ['Ety', 'E<34>', 'Int'],
     outputs: []
   },
   {
     name: 'Get Player Rank Score Change',
     id: 660,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<34>'],
     outputs: ['Int']
   },
   {
@@ -3749,7 +3748,7 @@ export const NODE_PIN_RECORDS = [
     name: 'When the Quantity of Inventory Item Changes',
     id: 683,
     inputs: [],
-    outputs: ['Ety', 'Gid', 'Cfg', 'Int', 'Int']
+    outputs: ['Ety', 'Gid', 'Cfg', 'Int', 'Int', 'E<35>']
   },
   {
     name: 'When the Quantity of Inventory Currency Changes',
@@ -3772,7 +3771,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Inventory Loot Item/Currency Quantity',
     id: 687,
-    inputs: ['Ety', 'Cfg', 'Int', 'R<T>'],
+    inputs: ['Ety', 'Cfg', 'Int', 'E<36>'],
     outputs: []
   },
   {
@@ -4058,7 +4057,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Get Character Attribute',
     id: 738,
     inputs: ['Ety'],
-    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt']
+    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'E<39>']
   },
   {
     name: 'Set Character Skill CD',
@@ -4087,7 +4086,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Random Deck Selector Selection List',
     id: 743,
-    inputs: ['L<Int>'],
+    inputs: ['L<Int>', 'E<54>'],
     outputs: []
   },
   {
@@ -4214,7 +4213,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Query Game Mode and Player Number',
     id: 766,
     inputs: [],
-    outputs: ['Int']
+    outputs: ['Int', 'E<40>']
   },
   {
     name: 'Get Player Nickname',
@@ -4226,7 +4225,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Get Player Client Input Device Type',
     id: 768,
     inputs: ['Ety'],
-    outputs: []
+    outputs: ['E<41>']
   },
   {
     name: 'Set Chat Channel Switch',
@@ -4435,7 +4434,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Bind Custom Skill Instance to Specified Slot',
     id: 806,
-    inputs: ['Ety', 'Int', 'E<0>', 'E<0>'],
+    inputs: ['Ety', 'Int', 'E<30>', 'E<52>'],
     outputs: ['Int']
   },
   {
@@ -4447,7 +4446,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Unbind all Skill Instances on the Slot',
     id: 808,
-    inputs: ['Ety', 'E<0>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: ['L<Int>']
   },
   {
@@ -4477,13 +4476,13 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Query All Skill Instance IDs by Skill Slot',
     id: 813,
-    inputs: ['Ety', 'E<0>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: ['L<Int>']
   },
   {
     name: 'Query Skill Instance ID by Skill Slot and Skill Config ID',
     id: 814,
-    inputs: ['Ety', 'E<0>', 'Cfg'],
+    inputs: ['Ety', 'E<30>', 'Cfg'],
     outputs: ['Int']
   },
   {
@@ -4495,7 +4494,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Cast Skill From Specified Panel Slot',
     id: 816,
-    inputs: ['Ety', 'E<0>', 'Bol'],
+    inputs: ['Ety', 'E<30>', 'Bol'],
     outputs: []
   },
   {

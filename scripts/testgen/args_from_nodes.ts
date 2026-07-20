@@ -183,6 +183,15 @@ export function emitArgFromNodesTypeText(
     }
     return JSON.stringify('int')
   }
+  if (m.name === 'removeUnitStatus' && m.params[paramIndex]?.name === 'removalReason') {
+    return 'E.UnitStatusRemovalReason.ShieldDepletedToZero'
+  }
+  if (
+    (m.name === 'setPlayerRankScoreChange' || m.name === 'getPlayerRankScoreChange') &&
+    m.params[paramIndex]?.name === 'settlementStatus'
+  ) {
+    return 'E.RankSettlementStatus.Escape'
+  }
 
   const t = trim(typeText)
 

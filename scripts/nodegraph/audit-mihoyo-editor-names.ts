@@ -16,6 +16,9 @@ import {
   GameplayMode,
   MovementMode,
   OriginalSlotSkillHandling,
+  ScanRuleType,
+  ScanScoringRules,
+  SettlementStatus,
   TopOfStackSkillDestructionType
 } from '../../src/definitions/enum.js'
 import { CLIENT_ENUM_VALUES } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_enum_values.js'
@@ -89,6 +92,7 @@ const NON_EDITOR_ENUM_ID_KEYS = new Set([
   'LocalVariable',
   'VariableSnapshot',
   'Scan_Rule_Type',
+  'Rank_Settlement_Status',
   'Damage_Pop_Up_Type',
   'Original_Slot_Skill_Handling',
   'Existing_Skill_Handling'
@@ -455,7 +459,9 @@ function main() {
     Color_Blend_Type: 42,
     Fill_Material: 43,
     Top_of_Stack_Skill_Destruction_Type: 52,
-    Class_Switch_Skill_Handling: 53
+    Class_Switch_Skill_Handling: 53,
+    Scan_Scoring_Rules: 50,
+    Random_Order: 54
   } as const
   for (const [key, value] of Object.entries(officialNameEnumIdAliases)) {
     if (ENUM_ID[key as keyof typeof ENUM_ID] !== value) {
@@ -471,7 +477,9 @@ function main() {
     ColorBlendType_Override: 6700,
     ColorBlendType_Multiply: 6701,
     FillMaterial_Freeze: 6710,
-    FillMaterial_Petrification: 6711
+    FillMaterial_Petrification: 6711,
+    RandomOrder_Random: 602,
+    RankSettlementStatus_Escape: 4103
   } as const
   for (const [key, value] of Object.entries(officialNameEnumValueAliases)) {
     if (ENUM_VALUE[key as keyof typeof ENUM_VALUE] !== value) {
@@ -487,7 +495,8 @@ function main() {
     FixedPointMotionDeviceMotionType !== MovementMode ||
     FixedPointMotionDeviceParameterConversionType !== FixedMotionParameterType ||
     TopOfStackSkillDestructionType !== OriginalSlotSkillHandling ||
-    ClassSwitchSkillHandling !== ExistingSkillHandling
+    ClassSwitchSkillHandling !== ExistingSkillHandling ||
+    ScanScoringRules !== ScanRuleType
   ) {
     errors.push('public authoritative enum aliases are not preserving legacy enum instances')
   }
@@ -499,6 +508,8 @@ function main() {
       OriginalSlotSkillHandling.DetachFromSlotRelation ||
     ClassSwitchSkillHandling.PreserveUnrelatedSkills !==
       ExistingSkillHandling.KeepIrrelevantSkills ||
+    SettlementStatus.TBC !== SettlementStatus.Undefined ||
+    SettlementStatus.Failed !== SettlementStatus.Defeat ||
     GameplayMode.TestPlay !== GameplayMode.Play
   ) {
     errors.push('public authoritative enum value aliases are not preserving legacy values')

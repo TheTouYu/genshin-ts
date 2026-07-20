@@ -94911,6 +94911,18 @@
               },
               {
                 "io": "Input Parameter",
+                "name": "Removal Reason",
+                "data_type": "Enumeration",
+                "description": "Reason for removing this Unit Status",
+                "raw": {
+                  "Parameter Type": "Input Parameter",
+                  "Parameter Name": "Removal Reason",
+                  "Type": "Enumeration",
+                  "Description": "Reason for removing this Unit Status"
+                }
+              },
+              {
+                "io": "Input Parameter",
                 "name": "Remover Entity",
                 "data_type": "Entity",
                 "description": "Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph",
@@ -97361,6 +97373,18 @@
                   "Parameter Name": "Select List",
                   "Type": "Integer List",
                   "Description": ""
+                }
+              },
+              {
+                "io": "Input Parameter",
+                "name": "Sort By",
+                "data_type": "Enumeration",
+                "description": "Sorting Rules_Random",
+                "raw": {
+                  "Parameter Type": "Input Parameter",
+                  "Parameter Name": "Sort By",
+                  "Type": "Enumeration",
+                  "Description": "Sorting Rules_Random"
                 }
               }
             ]
@@ -100176,12 +100200,12 @@
                 "io": "Input Parameter",
                 "name": "Settlement Status",
                 "data_type": "Enumeration",
-                "description": "Includes: Undefined, Victory, Defeat, Escape",
+                "description": "Includes: TBC, Victory, Failed, Escape",
                 "raw": {
                   "Parameter Type": "Input Parameter",
                   "Parameter Name": "Settlement Status",
                   "Type": "Enumeration",
-                  "Description": "Includes: Undefined, Victory, Defeat, Escape"
+                  "Description": "Includes: TBC, Victory, Failed, Escape"
                 }
               },
               {
@@ -105272,6 +105296,18 @@
               },
               {
                 "io": "入参",
+                "name": "移除原因",
+                "data_type": "枚举",
+                "description": "移除该单位状态的原因",
+                "raw": {
+                  "参数类型": "入参",
+                  "参数名": "移除原因",
+                  "类型": "枚举",
+                  "说明": "移除该单位状态的原因"
+                }
+              },
+              {
+                "io": "入参",
                 "name": "移除者实体",
                 "data_type": "实体",
                 "description": "决定了该次行为的移除者实体，默认为该节点图所关联的实体",
@@ -107720,6 +107756,18 @@
                   "参数名": "选择列表",
                   "类型": "整数列表",
                   "说明": ""
+                }
+              },
+              {
+                "io": "入参",
+                "name": "排序方式",
+                "data_type": "枚举",
+                "description": "排序规则_随机",
+                "raw": {
+                  "参数类型": "入参",
+                  "参数名": "排序方式",
+                  "类型": "枚举",
+                  "说明": "排序规则_随机"
                 }
               }
             ]

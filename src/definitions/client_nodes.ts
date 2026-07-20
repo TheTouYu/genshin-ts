@@ -1291,7 +1291,7 @@ export class ClientCharacterSkillExecutionFlowFunctions<
    * 仅支持字面量，不能连接其他节点的输出。
    */
   cameraOrientationDetectionData(
-    targetType: TargetType,
+    targetType: TargetTypeForCameraOrientationNode,
     launchLocation: Vec3Value,
     nearestDistance: FloatValue,
     furthestDistance: FloatValue
@@ -10478,7 +10478,7 @@ export class ClientCharacterControlSkillExecutionFlowFunctions<
    * 仅支持字面量，不能连接其他节点的输出。
    */
   cameraOrientationDetectionData(
-    targetType: TargetType,
+    targetType: TargetTypeForCameraOrientationNode,
     launchLocation: Vec3Value,
     nearestDistance: FloatValue,
     furthestDistance: FloatValue

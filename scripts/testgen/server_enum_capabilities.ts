@@ -3,6 +3,12 @@
  * Enumerations Equal concrete variants.
  */
 export const SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE = new Set([
+  'DamagePopUpType',
   'MovementMode',
-  'FixedMotionParameterType'
+  'FixedMotionParameterType',
+  'OriginalSlotSkillHandling',
+  'ExistingSkillHandling',
+  'RankSettlementStatus',
+  'ScanRuleType',
+  'RandomOrder'
 ])

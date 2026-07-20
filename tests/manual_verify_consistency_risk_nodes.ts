@@ -1,5 +1,5 @@
 import type { PlayerEntity } from 'genshin-ts/definitions/entity_helpers'
-import { RemovalMethod } from 'genshin-ts/definitions/enum'
+import { UnitStatusRemovalReason, UnitStatusRemovalStrategy } from 'genshin-ts/definitions/enum'
 import { g } from 'genshin-ts/runtime/core'
 
 // Manual import/export verification for consistency-risk pin records.
@@ -39,8 +39,13 @@ g.server({
     const player = self as unknown as PlayerEntity
     const statusConfig = f.queryPlayerClass(player)
 
-    f.removeUnitStatus(self, statusConfig, RemovalMethod.AllCoexistingStatusesWithTheSameName, self)
-    f.removeUnitStatus(self, configId(7002n), RemovalMethod.StatusWithFastestStackLoss, self)
+    f.removeUnitStatus(
+      self,
+      statusConfig,
+      UnitStatusRemovalStrategy.StatusWithFastestStackLoss,
+      UnitStatusRemovalReason.ShieldDepletedToZero,
+      self
+    )
   })
   .on('whenSkillNodeIsCalled', (_evt, f) => {
     const dynIntBase = f.addition(2n, 3n)

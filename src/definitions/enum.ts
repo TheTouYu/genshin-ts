@@ -7,6 +7,7 @@ export type EnumerationType = SimplifyDeep<keyof EnumerationTypeMap>
 export type EnumerationTypeMap = ClientEnumerationTypeMap & {
   ComparisonOperator: ComparisonOperator
   SortBy: SortBy
+  RandomOrder: RandomOrder
   DamagePopUpType: DamagePopUpType
   MovementMode: MovementMode
   FixedMotionParameterType: FixedMotionParameterType
@@ -14,7 +15,7 @@ export type EnumerationTypeMap = ClientEnumerationTypeMap & {
   FillMaterial: FillMaterial
   FollowCoordinateSystem: FollowCoordinateSystem
   FollowLocationType: FollowLocationType
-  RemovalMethod: RemovalMethod
+  RemovalMethod: UnitStatusRemovalStrategy
   UIControlGroupStatus: UIControlGroupStatus
   DisruptorDeviceType: DisruptorDeviceType
   DisruptorDeviceOrientation: DisruptorDeviceOrientation
@@ -32,6 +33,7 @@ export type EnumerationTypeMap = ClientEnumerationTypeMap & {
   MotionType: MotionType
   DecisionRefreshMode: DecisionRefreshMode
   SettlementStatus: SettlementStatus
+  RankSettlementStatus: RankSettlementStatus
   ItemLootType: ItemLootType
   ScanRuleType: ScanRuleType
   RoundingMode: RoundingMode
@@ -76,6 +78,26 @@ export class SortBy extends enumeration {
    * 逆序（从大到小）
    */
   static readonly Descending = new enumeration('SortBy', 'sort_by_descending') as SortBy
+}
+
+/**
+ * Random Order
+ *
+ * 随机排序
+ */
+export class RandomOrder extends enumeration {
+  declare private readonly __brandRandomOrder: 'RandomOrder'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Sorting Rules_Random
+   *
+   * 排序规则_随机
+   */
+  static readonly Random = new enumeration('RandomOrder', 'random_order_random') as RandomOrder
 }
 
 /** 伤害跳字类型 */
@@ -144,9 +166,9 @@ export class MovementMode extends enumeration {
 }
 
 /**
- * Movement Mode
+ * Fixed-Point Motion Device Motion Type
  *
- * 运动模式
+ * 定点运动器运动类型
  *
  * Alias of {@link MovementMode}; both names refer to the same enum type.
  *
@@ -183,7 +205,7 @@ export class FixedMotionParameterType extends enumeration {
 }
 
 /**
- * Fixed Motion Parameter Type
+ * Fixed-Point Motion Device Parameter Conversion Type
  *
  * 定点运动器参数转化类型
  *
@@ -234,7 +256,7 @@ export class ColorOverlayType extends enumeration {
 }
 
 /**
- * Color Overlay Type
+ * Color Blend Type
  *
  * 颜色叠加类型
  *
@@ -332,9 +354,9 @@ export class FollowCoordinateSystem extends enumeration {
 }
 
 /**
- * Follow Coordinate System
+ * Coordinate System Type
  *
- * 跟随坐标系
+ * 坐标系类型
  *
  * Alias of {@link FollowCoordinateSystem}; both names refer to the same enum type.
  *
@@ -377,34 +399,6 @@ export class FollowLocationType extends enumeration {
     'FollowLocationType',
     'follow_location_type_follow_rotation'
   ) as FollowLocationType
-}
-
-/** 移除方式 */
-export class RemovalMethod extends enumeration {
-  declare private readonly __brandRemovalMethod: 'RemovalMethod'
-  private constructor() {
-    super('')
-    throw new Error('you should not create an enum instance')
-  }
-
-  /**
-   * All Coexisting Statuses with the Same Name
-   *
-   * 所有同名并存状态
-   */
-  static readonly AllCoexistingStatusesWithTheSameName = new enumeration(
-    'RemovalMethod',
-    'removal_method_all_coexisting_statuses_with_the_same_name'
-  ) as RemovalMethod
-  /**
-   * Status With Fastest Stack Loss
-   *
-   * 最快丢失叠加层数的状态
-   */
-  static readonly StatusWithFastestStackLoss = new enumeration(
-    'RemovalMethod',
-    'removal_method_status_with_fastest_stack_loss'
-  ) as RemovalMethod
 }
 
 /** 界面控件组状态 */
@@ -482,7 +476,7 @@ export class DisruptorDeviceType extends enumeration {
 }
 
 /**
- * Disruptor Device Type
+ * Disruptor Device Types
  *
  * 扰动装置类型
  *
@@ -790,9 +784,9 @@ export class OriginalSlotSkillHandling extends enumeration {
 }
 
 /**
- * Original Slot Skill Handling
+ * Top-of-Stack Skill Destruction Type
  *
- * 原槽位技能处理方式
+ * 栈顶技能销毁类型
  *
  * Alias of {@link OriginalSlotSkillHandling}; both names refer to the same enum type.
  *
@@ -840,9 +834,9 @@ export class ExistingSkillHandling extends enumeration {
 }
 
 /**
- * Existing Skill Handling
+ * Class Switch Skill Handling
  *
- * 已有技能处理方式
+ * 职业切换技能处理
  *
  * Alias of {@link ExistingSkillHandling}; both names refer to the same enum type.
  *
@@ -1398,7 +1392,7 @@ export class SettlementStatus extends enumeration {
   }
 
   /**
-   * Undefined
+   * TBC
    *
    * 未定
    */
@@ -1406,6 +1400,18 @@ export class SettlementStatus extends enumeration {
     'SettlementStatus',
     'settlement_status_undefined'
   ) as SettlementStatus
+
+  /**
+   * TBC
+   *
+   * 未定
+   *
+   * Alias of {@link Undefined}; both names refer to the same enum value.
+   *
+   * {@link Undefined} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly TBC = SettlementStatus.Undefined
+
   /**
    * Victory
    *
@@ -1416,7 +1422,7 @@ export class SettlementStatus extends enumeration {
     'settlement_status_victory'
   ) as SettlementStatus
   /**
-   * Defeat
+   * Failed
    *
    * 失败
    */
@@ -1424,6 +1430,70 @@ export class SettlementStatus extends enumeration {
     'SettlementStatus',
     'settlement_status_defeat'
   ) as SettlementStatus
+
+  /**
+   * Failed
+   *
+   * 失败
+   *
+   * Alias of {@link Defeat}; both names refer to the same enum value.
+   *
+   * {@link Defeat} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Failed = SettlementStatus.Defeat
+}
+
+/**
+ * Settlement Status
+ *
+ * 结算状态（段位）
+ */
+export class RankSettlementStatus extends enumeration {
+  declare private readonly __brandRankSettlementStatus: 'RankSettlementStatus'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * TBC
+   *
+   * 未定
+   */
+  static readonly TBC = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_tbc'
+  ) as RankSettlementStatus
+
+  /**
+   * Victory
+   *
+   * 胜利
+   */
+  static readonly Victory = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_victory'
+  ) as RankSettlementStatus
+
+  /**
+   * Failed
+   *
+   * 失败
+   */
+  static readonly Failed = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_failed'
+  ) as RankSettlementStatus
+
+  /**
+   * Escape
+   *
+   * 逃跑
+   */
+  static readonly Escape = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_escape'
+  ) as RankSettlementStatus
 }
 
 /** 道具掉落类型 */
@@ -1481,6 +1551,17 @@ export class ScanRuleType extends enumeration {
     'scan_rule_type_prioritize_distance'
   ) as ScanRuleType
 }
+
+/**
+ * Scan Scoring Rules
+ *
+ * 扫描积分规则
+ *
+ * Alias of {@link ScanRuleType}; both names refer to the same enum type.
+ *
+ * {@link ScanRuleType} 的别名；两个名称指向同一枚举类型。
+ */
+export { ScanRuleType as ScanScoringRules }
 
 /** 客户端“取整逻辑”下拉中可选的值。 */
 export interface ClientRoundingMode extends RoundingMode {
@@ -3018,6 +3099,17 @@ export class UnitStatusRemovalStrategy extends enumeration {
     'unit_status_removal_strategy_status_with_fastest_stack_loss'
   ) as UnitStatusRemovalStrategy
 }
+
+/**
+ * Unit Status Removal Strategy
+ *
+ * 单位状态移除策略
+ *
+ * Alias of {@link UnitStatusRemovalStrategy}; both names refer to the same enum type.
+ *
+ * {@link UnitStatusRemovalStrategy} 的别名；两个名称指向同一枚举类型。
+ */
+export { UnitStatusRemovalStrategy as RemovalMethod }
 
 /** 复苏点选取策略 */
 export class RevivePointSelectionStrategy extends enumeration {

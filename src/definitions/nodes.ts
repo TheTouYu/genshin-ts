@@ -75,8 +75,10 @@ import {
   AttackType,
   CauseOfBeingDown,
   CharacterSkillSlot,
+  ClassSwitchSkillHandling,
   ColorBlendType,
   ComparisonOperator,
+  CoordinateSystemType,
   DamagePopUpType,
   DecisionRefreshMode,
   DisruptorDeviceOrientation,
@@ -86,9 +88,9 @@ import {
   EntityType,
   EnumerationType,
   EnumerationTypeMap,
-  ExistingSkillHandling,
   FillMaterial,
-  FixedMotionParameterType,
+  FixedPointMotionDeviceMotionType,
+  FixedPointMotionDeviceParameterConversionType,
   FollowCoordinateSystem,
   FollowLocationType,
   GameplayMode,
@@ -101,19 +103,19 @@ import {
   MathematicalOperator,
   MotionPathPointType,
   MotionType,
-  MovementMode,
-  OriginalSlotSkillHandling,
+  RandomOrder,
+  RankSettlementStatus,
   ReasonForItemChange,
-  RemovalMethod,
   RevivePointSelectionStrategy,
   RoundingMode,
-  ScanRuleType,
+  ScanScoringRules,
   SelectCompletionReason,
   SettlementStatus,
   SortBy,
   SoundAttenuationMode,
   SurvivalStatus,
   TargetType,
+  TopOfStackSkillDestructionType,
   TriggerRestriction,
   TrigonometricFunction,
   TypeConversion,
@@ -4800,12 +4802,12 @@ export class ServerExecutionFlowFunctions {
   activateFixedPointMotionDevice(
     targetEntity: EntityValue,
     motionDeviceName: StrValue,
-    movementMode: MovementMode,
+    movementMode: FixedPointMotionDeviceMotionType,
     movementSpd: FloatValue,
     targetLocation: Vec3Value,
     targetRotation: Vec3Value,
     lockRotation: BoolValue,
-    parameterType: FixedMotionParameterType,
+    parameterType: FixedPointMotionDeviceParameterConversionType,
     movementTime: FloatValue
   ): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
@@ -5087,7 +5089,7 @@ export class ServerExecutionFlowFunctions {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
@@ -5146,7 +5148,7 @@ export class ServerExecutionFlowFunctions {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
@@ -5800,6 +5802,9 @@ export class ServerExecutionFlowFunctions {
    * @param removalMethod All Coexisting Statuses with the Same Name: Removes all statuses applied with this Config ID that share the same nameStatus With Fastest Stack Loss: Removes one stack from the status that loses stacks the fastest
    *
    * 移除方式: 所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态
+   * @param removalReason Reason for removing this Unit Status
+   *
+   * 移除原因: 移除该单位状态的原因
    * @param removerEntity Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph
    *
    * 移除者实体: 决定了该次行为的移除者实体，默认为该节点图所关联的实体
@@ -5807,18 +5812,26 @@ export class ServerExecutionFlowFunctions {
   removeUnitStatus(
     removeTargetEntity: EntityValue,
     unitStatusConfigId: ConfigIdValue,
-    removalMethod: RemovalMethod,
+    removalMethod: UnitStatusRemovalStrategy,
+    removalReason: UnitStatusRemovalReason,
     removerEntity: EntityValue
   ): void {
     const removeTargetEntityObj = parseValue(removeTargetEntity, 'entity')
     const unitStatusConfigIdObj = parseValue(unitStatusConfigId, 'config_id')
     const removalMethodObj = parseValue(removalMethod, 'enumeration')
+    const removalReasonObj = parseValue(removalReason, 'enumeration')
     const removerEntityObj = parseValue(removerEntity, 'entity')
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'remove_unit_status',
-      args: [removeTargetEntityObj, unitStatusConfigIdObj, removalMethodObj, removerEntityObj]
+      args: [
+        removeTargetEntityObj,
+        unitStatusConfigIdObj,
+        removalMethodObj,
+        removalReasonObj,
+        removerEntityObj
+      ]
     })
   }
 
@@ -5913,7 +5926,7 @@ export class ServerExecutionFlowFunctions {
   changePlayerClass(
     targetPlayer: PlayerEntity,
     classConfigId: ConfigIdValue,
-    existingSkillHandling: ExistingSkillHandling
+    existingSkillHandling: ClassSwitchSkillHandling
   ): void {
     const targetPlayerObj = parseValue(targetPlayer, 'entity')
     const classConfigIdObj = parseValue(classConfigId, 'config_id')
@@ -6523,7 +6536,7 @@ export class ServerExecutionFlowFunctions {
     targetEntity: CharacterEntity,
     skillConfigId: ConfigIdValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ): bigint {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const skillConfigIdObj = parseValue(skillConfigId, 'config_id')
@@ -6741,7 +6754,7 @@ export class ServerExecutionFlowFunctions {
     targetEntity: CharacterEntity,
     skillInstanceId: IntValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ): bigint {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const skillInstanceIdObj = parseValue(skillInstanceId, 'int')
@@ -7659,14 +7672,25 @@ export class ServerExecutionFlowFunctions {
    * Select List
    *
    * 列表
+   * @param sortBy Sorting Rules_Random
+   *
+   * Sort By
+   *
+   * 排序方式: 排序规则_随机
    */
-  randomDeckSelectorSelectionList(list: IntValue[]): void {
+  randomDeckSelectorSelectionList(list: IntValue[], sortBy: RandomOrder): void
+  randomDeckSelectorSelectionList(list: IntValue[]): void
+  randomDeckSelectorSelectionList(
+    list: IntValue[],
+    sortBy: RandomOrder = RandomOrder.Random
+  ): void {
     const listObj = parseValue(list, 'int_list')
+    const sortByObj = parseValue(sortBy, 'enumeration')
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'random_deck_selector_selection_list',
-      args: [listObj]
+      args: [listObj, sortByObj]
     })
   }
 
@@ -9271,7 +9295,7 @@ export class ServerExecutionFlowFunctions {
    *
    * 规则类型: 分为视野优先、距离优先
    */
-  setScanTagRules(targetEntity: EntityValue, ruleType: ScanRuleType): void {
+  setScanTagRules(targetEntity: EntityValue, ruleType: ScanScoringRules): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ruleTypeObj = parseValue(ruleType, 'enumeration')
     this.registry.registerNode({
@@ -9339,7 +9363,7 @@ export class ServerExecutionFlowFunctions {
    * @param playerEntity
    *
    * 玩家实体
-   * @param settlementStatus Includes: Undefined, Victory, Defeat, Escape
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
    * 结算状态: 分为未定、胜利、失败、逃跑
    * @param scoreChange
@@ -9348,7 +9372,17 @@ export class ServerExecutionFlowFunctions {
    */
   setPlayerRankScoreChange(
     playerEntity: PlayerEntity,
+    settlementStatus: RankSettlementStatus,
+    scoreChange: IntValue
+  ): void
+  setPlayerRankScoreChange(
+    playerEntity: PlayerEntity,
     settlementStatus: SettlementStatus,
+    scoreChange: IntValue
+  ): void
+  setPlayerRankScoreChange(
+    playerEntity: PlayerEntity,
+    settlementStatus: RankSettlementStatus | SettlementStatus,
     scoreChange: IntValue
   ): void {
     const playerEntityObj = parseValue(playerEntity, 'entity')
@@ -11622,6 +11656,8 @@ export class ServerExecutionFlowFunctions {
     playerCount: bigint
     /**
      * Trial, Room, or Matchmaking
+     *
+     * Gameplay Mode
      *
      * 游玩方式: 分为试玩、房间游玩、匹配游玩
      */
@@ -16298,14 +16334,23 @@ export class ServerExecutionFlowFunctions {
    *
    * 玩家实体
    * @param settlementStatus
+   * Includes: TBC, Victory, Failed, Escape
    *
-   * 结算状态
+   * 结算状态: 分为未定、胜利、失败、逃跑
    *
    * @returns
    *
    * 分数
    */
-  getPlayerRankScoreChange(playerEntity: PlayerEntity, settlementStatus: SettlementStatus): bigint {
+  getPlayerRankScoreChange(
+    playerEntity: PlayerEntity,
+    settlementStatus: RankSettlementStatus
+  ): bigint
+  getPlayerRankScoreChange(playerEntity: PlayerEntity, settlementStatus: SettlementStatus): bigint
+  getPlayerRankScoreChange(
+    playerEntity: PlayerEntity,
+    settlementStatus: RankSettlementStatus | SettlementStatus
+  ): bigint {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const settlementStatusObj = parseValue(settlementStatus, 'enumeration')
     const ref = this.registry.registerNode({

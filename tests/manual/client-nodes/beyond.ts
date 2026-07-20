@@ -968,7 +968,12 @@ g.characterSkill({
   // breakLoop is emitted by finiteLoop/traverseEntityList callbacks below.
 
   // cameraOrientationDetectionData / camera_orientation_detection_data / genericId=200062 / literal=3, wire=1
-  const result54 = f.cameraOrientationDetectionData(E.TargetType.None, wireVec3, 52.25, 53.25)
+  const result54 = f.cameraOrientationDetectionData(
+    CE.TargetTypeForCameraOrientationNode.None,
+    wireVec3,
+    52.25,
+    53.25
+  )
   const pinCheck55 = f.equal(result54.targetRotation, [0, 0, 0])
   f.sendSignalToServerNodeGraph('gsts_all_client_pin_anchor', pinCheck55)
   const pinCheck56 = f.equal(result54.targetLocation, [0, 0, 0])
@@ -2493,7 +2498,12 @@ g.characterControlSkill({
   // breakLoop is emitted by finiteLoop/traverseEntityList callbacks below.
 
   // cameraOrientationDetectionData / camera_orientation_detection_data / genericId=200062 / literal=3, wire=1
-  const result62 = f.cameraOrientationDetectionData(E.TargetType.None, wireVec3, 60.25, 61.25)
+  const result62 = f.cameraOrientationDetectionData(
+    CE.TargetTypeForCameraOrientationNode.None,
+    wireVec3,
+    60.25,
+    61.25
+  )
   const pinCheck63 = f.equal(result62.targetRotation, [0, 0, 0])
   f.sendSignalToServerNodeGraph('gsts_all_client_pin_anchor', pinCheck63)
   const pinCheck64 = f.equal(result62.targetLocation, [0, 0, 0])

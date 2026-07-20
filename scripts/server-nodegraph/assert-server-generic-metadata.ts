@@ -25,6 +25,7 @@ type GenericSummary = {
 type StaticPin = {
   kind: string
   index: number
+  valueClass?: number
   connectionType?: number
   variants?: Array<{ connectionType?: number }>
 }
@@ -100,6 +101,50 @@ const TYPE_BY_VENDOR_TAG: Record<string, string> = {
   Str: 'str',
   Vec: 'vec3'
 }
+
+const SERVER_ENUM_RECORD_ID_BY_CONNECTION_TYPE = new Map<number, number>([
+  [10002, ENUM_ID.Comparison_Operators],
+  [10003, ENUM_ID.Logical_Operators],
+  [10004, ENUM_ID.Mathematical_Operators],
+  [10007, ENUM_ID.Sorting_Rules],
+  [10008, ENUM_ID.Rounding_Logic],
+  [10012, ENUM_ID.Follow_Location_Type],
+  [10013, ENUM_ID.Coordinate_System_Type],
+  [10014, ENUM_ID.Elemental_Type],
+  [10015, ENUM_ID.Entity_Type],
+  [10017, ENUM_ID.Unit_Status_Addition_Result],
+  [10018, ENUM_ID.Unit_Status_Removal_Reason],
+  [10019, ENUM_ID.Unit_Status_Removal_Strategy],
+  [10021, ENUM_ID.Cause_Of_Being_Down],
+  [10022, ENUM_ID.Trigonometric_Functions],
+  [10025, ENUM_ID.UI_Control_Group_Status],
+  [10031, ENUM_ID.Skill_Slot],
+  [10032, ENUM_ID.Sound_Attenuation_Mode],
+  [10033, ENUM_ID.Select_Completion_Reason],
+  [10034, ENUM_ID.Settlement_Status],
+  [10035, ENUM_ID.Rank_Settlement_Status],
+  [10036, ENUM_ID.Reason_For_Item_Change],
+  [10037, ENUM_ID.Item_Loot_Type],
+  [10038, ENUM_ID.Decision_Refresh_Mode],
+  [10039, ENUM_ID.Elemental_Reaction_Type],
+  [10040, ENUM_ID.Scan_Scoring_Rules],
+  [10041, ENUM_ID.Random_Order],
+  [10042, ENUM_ID.Gameplay_Mode],
+  [10043, ENUM_ID.Input_Device_Type],
+  [10044, ENUM_ID.Fixed_Point_Motion_Device_Motion_Type],
+  [10045, ENUM_ID.Fixed_Point_Motion_Device_Parameter_Conversion_Type],
+  [10046, ENUM_ID.Top_of_Stack_Skill_Destruction_Type],
+  [10047, ENUM_ID.Class_Switch_Skill_Handling],
+  [10048, ENUM_ID.Color_Blend_Type],
+  [10049, ENUM_ID.Fill_Material],
+  [210043, ENUM_ID.Interrupt_Status],
+  [210045, ENUM_ID.Damage_Pop_Up_Type]
+])
+
+const IMPLICIT_ENUM_SELECTOR_NODE_IDS = new Set([
+  200, 202, 204, 206, 208, 211, 213, 215, 216, 218, 221, 222, 226, 227, 228, 229, 230, 231, 232,
+  233, 291, 292, 293, 294, 295, 296, 321, 322
+])
 
 const FUNCTION_NAME_BY_GENERIC_ID: Record<number, string> = {
   160: 'modifyValueInList',
@@ -344,14 +389,77 @@ for (const [index, [concreteId]] of enumEqualReflectMap.entries()) {
   )
 }
 
-function staticInputConnectionType(genericId: number, pinIndex: number) {
+function staticPinConnectionType(genericId: number, kind: 'input' | 'output', pinIndex: number) {
   const node = staticMetadata.nodes.find((candidate) => candidate.genericId === genericId)
   assert.ok(node, `missing static server node ${genericId}`)
-  const pin = node.pins.find(
-    (candidate) => candidate.kind === 'input' && candidate.index === pinIndex
-  )
-  assert.ok(pin?.connectionType, `missing static server node ${genericId} input ${pinIndex}`)
+  const pin = node.pins.find((candidate) => candidate.kind === kind && candidate.index === pinIndex)
+  assert.ok(pin?.connectionType, `missing static server node ${genericId} ${kind} ${pinIndex}`)
   return pin.connectionType
+}
+
+const staticInputConnectionType = (genericId: number, pinIndex: number) =>
+  staticPinConnectionType(genericId, 'input', pinIndex)
+
+const serverPinRecordById = new Map<number, (typeof NODE_PIN_RECORDS)[number]>(
+  NODE_PIN_RECORDS.map((record) => [record.id, record])
+)
+for (const node of staticMetadata.nodes) {
+  for (const pin of node.pins) {
+    if (
+      (pin.kind !== 'input' && pin.kind !== 'output') ||
+      pin.connectionType === undefined ||
+      IMPLICIT_ENUM_SELECTOR_NODE_IDS.has(node.genericId)
+    ) {
+      continue
+    }
+    const enumId = SERVER_ENUM_RECORD_ID_BY_CONNECTION_TYPE.get(pin.connectionType)
+    if (enumId === undefined) continue
+
+    const record = serverPinRecordById.get(node.genericId)
+    assert.ok(record, `missing node pin record for enum consumer ${node.genericId}`)
+    const actual = (pin.kind === 'input' ? record.inputs : record.outputs)[pin.index]
+    assert.equal(
+      actual,
+      `E<${enumId}>`,
+      `enum consumer ${node.genericId} ${pin.kind} ${pin.index} is not explicitly typed`
+    )
+  }
+}
+
+for (const [genericId, kind, pinIndex, connectionType] of [
+  [224, 'input', 1, 10008],
+  [260, 'output', 0, 10015],
+  [284, 'output', 1, 10021],
+  [297, 'output', 0, 10017],
+  [299, 'output', 8, 10018],
+  [301, 'input', 2, 10019],
+  [301, 'input', 3, 10018],
+  [381, 'output', 7, 210043],
+  [389, 'input', 2, 10047],
+  [395, 'input', 2, 10031],
+  [395, 'input', 3, 10046],
+  [642, 'output', 2, 10039],
+  [653, 'output', 0, 10034],
+  [657, 'output', 0, 10034],
+  [659, 'input', 1, 10035],
+  [660, 'input', 1, 10035],
+  [683, 'output', 5, 10036],
+  [735, 'input', 1, 10040],
+  [738, 'output', 9, 210043],
+  [743, 'input', 1, 10041],
+  [766, 'output', 1, 10042],
+  [768, 'output', 0, 10043],
+  [806, 'input', 3, 10046],
+  [835, 'input', 5, 10048],
+  [835, 'input', 8, 10049],
+  [836, 'output', 1, 10048],
+  [836, 'output', 5, 10049]
+] as const) {
+  assert.equal(
+    staticPinConnectionType(genericId, kind, pinIndex),
+    connectionType,
+    `server enum consumer ${genericId} ${kind} ${pinIndex}`
+  )
 }
 
 const colorBlendConnectionType = staticInputConnectionType(835, 5)
@@ -371,6 +479,11 @@ assert.equal(ENUM_ID.Movement_Mode, 1042)
 assert.equal(ENUM_ID.Fixed_Point_Motion_Device_Motion_Type, 1042)
 assert.equal(ENUM_ID.Fixed_Motion_Parameter_Type, 1043)
 assert.equal(ENUM_ID.Fixed_Point_Motion_Device_Parameter_Conversion_Type, 1043)
+assert.equal(ENUM_ID.Rank_Settlement_Status, 34)
+assert.equal(ENUM_ID.Scan_Scoring_Rules, 50)
+assert.equal(ENUM_ID.Top_of_Stack_Skill_Destruction_Type, 52)
+assert.equal(ENUM_ID.Class_Switch_Skill_Handling, 53)
+assert.equal(ENUM_ID.Random_Order, 54)
 assert.equal(NODE_ID.Enumerations_Equal__Color_Overlay_Type, 851)
 assert.equal(NODE_ID.Enumerations_Equal__Color_Blend_Type, 851)
 assert.equal(NODE_ID.Enumerations_Equal__Fill_Material, 852)
@@ -378,6 +491,13 @@ assert.equal('Enumerations_Equal__Movement_Mode' in NODE_ID, false)
 assert.equal('Enumerations_Equal__Fixed_Motion_Parameter_Type' in NODE_ID, false)
 
 const fixedMotionRecord = NODE_PIN_RECORDS.find((node) => node.id === 775)
+const removeUnitStatusRecord = NODE_PIN_RECORDS.find((node) => node.id === 301)
+const changePlayerClassRecord = NODE_PIN_RECORDS.find((node) => node.id === 389)
+const addCharacterSkillRecord = NODE_PIN_RECORDS.find((node) => node.id === 395)
+const setPlayerRankScoreRecord = NODE_PIN_RECORDS.find((node) => node.id === 659)
+const getPlayerRankScoreRecord = NODE_PIN_RECORDS.find((node) => node.id === 660)
+const randomDeckSelectorRecord = NODE_PIN_RECORDS.find((node) => node.id === 743)
+const bindCustomSkillRecord = NODE_PIN_RECORDS.find((node) => node.id === 806)
 const editModelRecord = NODE_PIN_RECORDS.find((node) => node.id === 835)
 const getModelRecord = NODE_PIN_RECORDS.find((node) => node.id === 836)
 assert.deepEqual(fixedMotionRecord?.inputs, [
@@ -391,6 +511,13 @@ assert.deepEqual(fixedMotionRecord?.inputs, [
   'E<1043>',
   'Flt'
 ])
+assert.deepEqual(removeUnitStatusRecord?.inputs, ['Ety', 'Cfg', 'E<18>', 'E<17>', 'Ety'])
+assert.deepEqual(changePlayerClassRecord?.inputs, ['Ety', 'Cfg', 'E<53>'])
+assert.deepEqual(addCharacterSkillRecord?.inputs, ['Ety', 'Cfg', 'E<30>', 'E<52>'])
+assert.deepEqual(setPlayerRankScoreRecord?.inputs, ['Ety', 'E<34>', 'Int'])
+assert.deepEqual(getPlayerRankScoreRecord?.inputs, ['Ety', 'E<34>'])
+assert.deepEqual(randomDeckSelectorRecord?.inputs, ['L<Int>', 'E<54>'])
+assert.deepEqual(bindCustomSkillRecord?.inputs, ['Ety', 'Int', 'E<30>', 'E<52>'])
 assert.deepEqual(editModelRecord?.inputs, [
   'Ety',
   'Bol',
@@ -431,9 +558,122 @@ assert.deepEqual(
   SERVER_EQUALITY_TYPES_BY_ENUM_ID.map(([, typeName]) => typeName),
   'server enumerationsEqual overloads differ from the official concrete variants'
 )
+
+for (const [methodName, parameterIndex, expectedType] of [
+  ['activateFixedPointMotionDevice', 2, 'FixedPointMotionDeviceMotionType'],
+  ['activateFixedPointMotionDevice', 7, 'FixedPointMotionDeviceParameterConversionType'],
+  ['switchFollowMotionDeviceTargetByGuid', 5, 'CoordinateSystemType'],
+  ['switchFollowMotionDeviceTargetByEntity', 5, 'CoordinateSystemType'],
+  ['changePlayerClass', 2, 'ClassSwitchSkillHandling'],
+  ['addCharacterSkill', 3, 'TopOfStackSkillDestructionType'],
+  ['bindCustomSkillInstanceToSpecifiedSlot', 3, 'TopOfStackSkillDestructionType'],
+  ['setScanTagRules', 1, 'ScanScoringRules'],
+  ['randomDeckSelectorSelectionList', 1, 'RandomOrder']
+] as const) {
+  const method: ts.MethodDeclaration | undefined = serverFunctionsClass.members.find(
+    (member): member is ts.MethodDeclaration =>
+      ts.isMethodDeclaration(member) &&
+      ts.isIdentifier(member.name) &&
+      member.name.text === methodName &&
+      !!member.body
+  )
+  assert.ok(method, `missing server method implementation ${methodName}`)
+  assert.equal(
+    method.parameters[parameterIndex]?.type?.getText(nodesSourceFile),
+    expectedType,
+    `${methodName} parameter ${parameterIndex} does not use its official enum type`
+  )
+}
+
+const randomDeckSelectorOverloads = serverFunctionsClass.members.filter(
+  (member): member is ts.MethodDeclaration =>
+    ts.isMethodDeclaration(member) &&
+    ts.isIdentifier(member.name) &&
+    member.name.text === 'randomDeckSelectorSelectionList' &&
+    !member.body
+)
+assert.deepEqual(
+  randomDeckSelectorOverloads.map((member) =>
+    member.parameters.map((parameter) => parameter.type?.getText(nodesSourceFile))
+  ),
+  [['IntValue[]', 'RandomOrder'], ['IntValue[]']],
+  'randomDeckSelectorSelectionList must expose Sort By and preserve its legacy call'
+)
+
+for (const [methodName, expectedOverloads] of [
+  [
+    'setPlayerRankScoreChange',
+    [
+      ['PlayerEntity', 'RankSettlementStatus', 'IntValue'],
+      ['PlayerEntity', 'SettlementStatus', 'IntValue']
+    ]
+  ],
+  [
+    'getPlayerRankScoreChange',
+    [
+      ['PlayerEntity', 'RankSettlementStatus'],
+      ['PlayerEntity', 'SettlementStatus']
+    ]
+  ]
+] as const) {
+  const overloads: ts.MethodDeclaration[] = serverFunctionsClass.members.filter(
+    (member): member is ts.MethodDeclaration =>
+      ts.isMethodDeclaration(member) &&
+      ts.isIdentifier(member.name) &&
+      member.name.text === methodName &&
+      !member.body
+  )
+  assert.deepEqual(
+    overloads.map((member) =>
+      member.parameters.map((parameter) => parameter.type?.getText(nodesSourceFile))
+    ),
+    expectedOverloads,
+    `${methodName} must distinguish rank settlement status and preserve its legacy overload`
+  )
+}
+
+const removeUnitStatusOverloads = serverFunctionsClass.members.filter(
+  (member): member is ts.MethodDeclaration =>
+    ts.isMethodDeclaration(member) &&
+    ts.isIdentifier(member.name) &&
+    member.name.text === 'removeUnitStatus' &&
+    !member.body
+)
+assert.deepEqual(
+  removeUnitStatusOverloads,
+  [],
+  'removeUnitStatus must not preserve its obsolete four-input overload'
+)
+const removeUnitStatusMethod = serverFunctionsClass.members.find(
+  (member): member is ts.MethodDeclaration =>
+    ts.isMethodDeclaration(member) &&
+    ts.isIdentifier(member.name) &&
+    member.name.text === 'removeUnitStatus' &&
+    !!member.body
+)
+assert.deepEqual(
+  removeUnitStatusMethod?.parameters.map((parameter) => parameter.type?.getText(nodesSourceFile)),
+  [
+    'EntityValue',
+    'ConfigIdValue',
+    'UnitStatusRemovalStrategy',
+    'UnitStatusRemovalReason',
+    'EntityValue'
+  ],
+  'removeUnitStatus must require the official five inputs'
+)
 assert.deepEqual(
   [...SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE].sort(),
-  ['FixedMotionParameterType', 'MovementMode'],
+  [
+    'DamagePopUpType',
+    'ExistingSkillHandling',
+    'FixedMotionParameterType',
+    'MovementMode',
+    'OriginalSlotSkillHandling',
+    'RandomOrder',
+    'RankSettlementStatus',
+    'ScanRuleType'
+  ],
   'server non-comparable enum capability list is stale'
 )
 

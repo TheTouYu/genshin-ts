@@ -458,6 +458,10 @@ function irSnakeClassName(name: string): string {
   return name.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`).replace(/^_/, '')
 }
 
+function enumValueSetKey(values: Iterable<number>): string {
+  return [...new Set(values)].sort((a, b) => a - b).join(',')
+}
+
 function memberZhName(className: string, zhClassName: string, optionName: string): string {
   for (const prefix of [`${zhClassName}_`, `${zhClassName}-`]) {
     if (optionName.startsWith(prefix)) return optionName.slice(prefix.length)
@@ -469,6 +473,7 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   const seeds = SEED_PATHS.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')) as EnumSeed)
 
   const classByValue = new Map<number, string>()
+  const classesByValueSet = new Map<string, Set<string>>()
   const bindValue = (value: number, className: string, allowDuplicate = false) => {
     const existing = classByValue.get(value)
     if (existing && existing !== className) {
@@ -572,6 +577,10 @@ export function buildClientEnumBinding(): ClientEnumBinding {
           ] = value
         }
       }
+      const valueSetKey = enumValueSetKey(row.values)
+      const classes = classesByValueSet.get(valueSetKey) ?? new Set<string>()
+      classesByValueSet.set(valueSetKey, classes)
+      classes.add(className)
       recordMatchRow(enumMatchGenericId, className, row)
       familyMatchClasses.add(
         ENUM_MATCH_TS_TYPE_BY_FAMILY_IOC[`${seed.family}:${row.ioc}`] ??
@@ -604,12 +613,21 @@ export function buildClientEnumBinding(): ClientEnumBinding {
   const explicitByDisplayName = new Map<string, string>()
   for (const seed of seeds) {
     for (const entry of Object.values(seed.nodeParamEnums ?? {})) {
-      const className = classByValue.get(entry.options[0].value)
-      if (!className) {
+      const classes = classesByValueSet.get(
+        enumValueSetKey(entry.options.map((option) => option.value))
+      )
+      if (!classes?.size) {
         throw new Error(
-          `[error] nodeParamEnums ${entry.zh}: value ${entry.options[0].value} unmapped`
+          `[error] nodeParamEnums ${entry.zh}: option set does not match an enum census row`
         )
       }
+      if (classes.size !== 1) {
+        throw new Error(
+          `[error] nodeParamEnums ${entry.zh}: option set matches multiple classes ` +
+            `${[...classes].join(', ')}`
+        )
+      }
+      const [className] = classes
       explicitByGenericId.set(entry.genericId, className)
     }
     for (const sampled of seed.targetEntityParam?.sampledNodes ?? []) {

@@ -37,7 +37,7 @@ export const ENUM_ID = {
   Sound_Attenuation_Mode: 31,
   Select_Completion_Reason: 32,
   Settlement_Status: 33,
-  // 34,
+  Rank_Settlement_Status: 34,
   Reason_For_Item_Change: 35,
   Item_Loot_Type: 36,
   Decision_Refresh_Mode: 37,
@@ -66,11 +66,13 @@ export const ENUM_ID = {
    * and are primarily used for matching / wiring in the editor.
    */
   Scan_Rule_Type: 50,
+  Scan_Scoring_Rules: 50,
   Damage_Pop_Up_Type: 51,
   Original_Slot_Skill_Handling: 52,
   Top_of_Stack_Skill_Destruction_Type: 52,
   Existing_Skill_Handling: 53,
-  Class_Switch_Skill_Handling: 53
+  Class_Switch_Skill_Handling: 53,
+  Random_Order: 54
 } as const satisfies { [key: string]: number }
 export type EnumId = (typeof ENUM_ID)[keyof typeof ENUM_ID]
 
@@ -157,6 +159,7 @@ export const ENUM_VALUE = {
   SurvivalStatus_Down: 501,
   SortingRules_Ascending: 600,
   SortingRules_Descending: 601,
+  RandomOrder_Random: 602,
   RoundingLogic_RoundUp: 700,
   RoundingLogic_RoundDown: 701,
   RoundingLogic_RoundToNearest: 702,
@@ -313,6 +316,10 @@ export const ENUM_VALUE = {
   SettlementStatus_TBC: 4100,
   SettlementStatus_Victory: 4101,
   SettlementStatus_Failed: 4102,
+  RankSettlementStatus_TBC: 4100,
+  RankSettlementStatus_Victory: 4101,
+  RankSettlementStatus_Failed: 4102,
+  RankSettlementStatus_Escape: 4103,
   ReasonForItemChange_Default: 0, // Same as Default
   ReasonForItemChange_Destroy: 4900,
   ReasonForItemChange_Discard: 4901,
@@ -372,6 +379,10 @@ export const ENUM_VALUE = {
   InputDeviceType_KeyboardAndMouse: 5800,
   InputDeviceType_Controller: 5801,
   InputDeviceType_Touchscreen: 5802,
+  ScanRuleType_PrioritizeView: 5100,
+  ScanRuleType_PrioritizeDistance: 5101,
+  ScanScoringRules_PrioritizeView: 5100,
+  ScanScoringRules_PrioritizeDistance: 5101,
   ColorOverlayType_Overwrite: 6700,
   ColorOverlayType_Multiply: 6701,
   ColorBlendType_Override: 6700,

@@ -627,11 +627,14 @@ function getEnumTypeForParam(paramName: string): string | null {
     currentinterruptstatus: 'InterruptStatus',
     sortby: 'SortBy',
     damagepopuptype: 'DamagePopUpType',
-    movementmode: 'MovementMode',
-    parametertype: 'FixedMotionParameterType',
-    followcoordinatesystem: 'FollowCoordinateSystem',
+    movementmode: 'FixedPointMotionDeviceMotionType',
+    parametertype: 'FixedPointMotionDeviceParameterConversionType',
+    followcoordinatesystem: 'CoordinateSystemType',
     followtype: 'FollowLocationType',
-    removalmethod: 'RemovalMethod',
+    originalslotskillhandling: 'TopOfStackSkillDestructionType',
+    existingskillhandling: 'ClassSwitchSkillHandling',
+    removalmethod: 'UnitStatusRemovalStrategy',
+    removalreason: 'UnitStatusRemovalReason',
     displaystatus: 'UIControlGroupStatus',
     characterskillslot: 'CharacterSkillSlot',
     skillslot: 'CharacterSkillSlot',
@@ -639,10 +642,14 @@ function getEnumTypeForParam(paramName: string): string | null {
     refreshmode: 'DecisionRefreshMode',
     settlementstatus: 'SettlementStatus',
     loottype: 'ItemLootType',
-    ruletype: 'ScanRuleType',
+    ruletype: 'ScanScoringRules',
     roundingmode: 'RoundingMode',
     entitytype: 'EntityType',
-    inputdevicetype: 'InputDeviceType'
+    inputdevicetype: 'InputDeviceType',
+    colorblendtype: 'ColorBlendType',
+    colorblendmode: 'ColorBlendType',
+    fillmaterialtype: 'FillMaterial',
+    material: 'FillMaterial'
   }
 
   return nameMap[name] || null
@@ -806,6 +813,88 @@ function buildNodes() {
     }
 
     lines.push(` */`)
+
+    if (n.name === 'randomDeckSelectorSelectionList') {
+      lines.push(
+        `randomDeckSelectorSelectionList(list: IntValue[], sortBy: RandomOrder): void`,
+        `randomDeckSelectorSelectionList(list: IntValue[]): void`,
+        `randomDeckSelectorSelectionList(`,
+        `  list: IntValue[],`,
+        `  sortBy: RandomOrder = RandomOrder.Random`,
+        `): void {`,
+        `  const listObj = parseValue(list, 'int_list')`,
+        `  const sortByObj = parseValue(sortBy, 'enumeration')`,
+        `  this.registry.registerNode({`,
+        `    id: 0,`,
+        `    type: '${n.nodeKind}',`,
+        `    nodeType: '${camelToSnake(n.name)}',`,
+        `    args: [listObj, sortByObj]`,
+        `  })`,
+        `}`
+      )
+      continue
+    }
+
+    if (n.name === 'setPlayerRankScoreChange') {
+      lines.push(
+        `setPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: RankSettlementStatus,`,
+        `  scoreChange: IntValue`,
+        `): void`,
+        `setPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: SettlementStatus,`,
+        `  scoreChange: IntValue`,
+        `): void`,
+        `setPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: RankSettlementStatus | SettlementStatus,`,
+        `  scoreChange: IntValue`,
+        `): void {`,
+        `  const playerEntityObj = parseValue(playerEntity, 'entity')`,
+        `  const settlementStatusObj = parseValue(settlementStatus, 'enumeration')`,
+        `  const scoreChangeObj = parseValue(scoreChange, 'int')`,
+        `  this.registry.registerNode({`,
+        `    id: 0,`,
+        `    type: '${n.nodeKind}',`,
+        `    nodeType: '${camelToSnake(n.name)}',`,
+        `    args: [playerEntityObj, settlementStatusObj, scoreChangeObj]`,
+        `  })`,
+        `}`
+      )
+      continue
+    }
+
+    if (n.name === 'getPlayerRankScoreChange') {
+      lines.push(
+        `getPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: RankSettlementStatus`,
+        `): bigint`,
+        `getPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: SettlementStatus`,
+        `): bigint`,
+        `getPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: RankSettlementStatus | SettlementStatus`,
+        `): bigint {`,
+        `  const playerEntityObj = parseValue(playerEntity, 'entity')`,
+        `  const settlementStatusObj = parseValue(settlementStatus, 'enumeration')`,
+        `  const ref = this.registry.registerNode({`,
+        `    id: 0,`,
+        `    type: '${n.nodeKind}',`,
+        `    nodeType: '${camelToSnake(n.name)}',`,
+        `    args: [playerEntityObj, settlementStatusObj]`,
+        `  })`,
+        `  const ret = new int()`,
+        `  ret.markPin(ref, 'score', 0)`,
+        `  return ret as unknown as bigint`,
+        `}`
+      )
+      continue
+    }
 
     // Build function definition
     const summaryTypeInfo = getSummaryTypeInfo(n.name)

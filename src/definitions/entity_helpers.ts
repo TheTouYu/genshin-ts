@@ -28,26 +28,28 @@ import {
 import { CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE, CLIENT_GRAPH_SUB_TYPES } from './client_graph_modes.js'
 import type {
   CharacterSkillSlot,
+  ClassSwitchSkillHandling,
   ColorBlendType,
+  CoordinateSystemType,
   DamagePopUpType,
   DecisionRefreshMode,
   EntityType,
-  ExistingSkillHandling,
   FillMaterial,
-  FixedMotionParameterType,
-  FollowCoordinateSystem,
+  FixedPointMotionDeviceMotionType,
+  FixedPointMotionDeviceParameterConversionType,
   FollowLocationType,
   InputDeviceType,
   InterruptStatus,
   ItemLootType,
-  MovementMode,
-  OriginalSlotSkillHandling,
-  RemovalMethod,
-  ScanRuleType,
+  RankSettlementStatus,
+  ScanScoringRules,
   SettlementStatus,
   SoundAttenuationMode,
+  TopOfStackSkillDestructionType,
   UIControlGroupStatus,
-  UnitStatusAdditionResult
+  UnitStatusAdditionResult,
+  UnitStatusRemovalReason,
+  UnitStatusRemovalStrategy
 } from './enum.js'
 import type { ServerExecutionFlowFunctions, ServerExecutionFlowFunctionsByMode } from './nodes.js'
 
@@ -1037,12 +1039,12 @@ interface EntityHelperFromFirstParam {
    */
   activateFixedPointMotionDevice: (
     motionDeviceName: StrValue,
-    movementMode: MovementMode,
+    movementMode: FixedPointMotionDeviceMotionType,
     movementSpd: FloatValue,
     targetLocation: Vec3Value,
     targetRotation: Vec3Value,
     lockRotation: BoolValue,
-    parameterType: FixedMotionParameterType,
+    parameterType: FixedPointMotionDeviceParameterConversionType,
     movementTime: FloatValue
   ) => void
 
@@ -1090,7 +1092,7 @@ interface EntityHelperFromFirstParam {
   addCharacterSkill: (
     skillConfigId: ConfigIdValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ) => bigint
 
   /**
@@ -1439,7 +1441,7 @@ interface EntityHelperFromFirstParam {
    */
   changePlayerClass: (
     classConfigId: ConfigIdValue,
-    existingSkillHandling: ExistingSkillHandling
+    existingSkillHandling: ClassSwitchSkillHandling
   ) => void
 
   /**
@@ -2416,15 +2418,15 @@ interface EntityHelperFromFirstParam {
    *
    * 获取玩家段位变化分数: 获取玩家实体在不同结算状态下段位的变化分数
    *
-   * @param settlementStatus
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
-   * 结算状态
+   * 结算状态: 分为未定、胜利、失败、逃跑
    *
    * @returns
    *
    * 分数
    */
-  getPlayerRankScoreChange: (settlementStatus: SettlementStatus) => bigint
+  getPlayerRankScoreChange: (settlementStatus: RankSettlementStatus | SettlementStatus) => bigint
 
   /**
    * Returns the Player's Rank-related information
@@ -3487,7 +3489,7 @@ interface EntityHelperFromFirstParam {
   bindCustomSkillInstanceToSpecifiedSlot: (
     skillInstanceId: IntValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ) => bigint
 
   /**
@@ -4136,13 +4138,17 @@ interface EntityHelperFromFirstParam {
    * @param removalMethod All Coexisting Statuses with the Same Name: Removes all statuses applied with this Config ID that share the same nameStatus With Fastest Stack Loss: Removes one stack from the status that loses stacks the fastest
    *
    * 移除方式: 所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态
+   * @param removalReason Reason for removing this Unit Status
+   *
+   * 移除原因: 移除该单位状态的原因
    * @param removerEntity Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph
    *
    * 移除者实体: 决定了该次行为的移除者实体，默认为该节点图所关联的实体
    */
   removeUnitStatus: (
     unitStatusConfigId: ConfigIdValue,
-    removalMethod: RemovalMethod,
+    removalMethod: UnitStatusRemovalStrategy,
+    removalReason: UnitStatusRemovalReason,
     removerEntity: EntityValue
   ) => void
 
@@ -4415,14 +4421,17 @@ interface EntityHelperFromFirstParam {
    *
    * 设置玩家段位变化分数: 根据结算状态设置玩家的段位变化分数
    *
-   * @param settlementStatus Includes: Undefined, Victory, Defeat, Escape
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
    * 结算状态: 分为未定、胜利、失败、逃跑
    * @param scoreChange
    *
    * 变化分数
    */
-  setPlayerRankScoreChange: (settlementStatus: SettlementStatus, scoreChange: IntValue) => void
+  setPlayerRankScoreChange: (
+    settlementStatus: RankSettlementStatus | SettlementStatus,
+    scoreChange: IntValue
+  ) => void
 
   /**
    * Set the remaining number of revives for the specified Player. When set to 0, the Player cannot revive
@@ -4508,7 +4517,7 @@ interface EntityHelperFromFirstParam {
    *
    * 规则类型: 分为视野优先、距离优先
    */
-  setScanTagRules: (ruleType: ScanRuleType) => void
+  setScanTagRules: (ruleType: ScanScoringRules) => void
 
   /**
    * Edit the Character's skill resource amount
@@ -4709,7 +4718,7 @@ interface EntityHelperFromFirstParam {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ) => void
 
@@ -4742,7 +4751,7 @@ interface EntityHelperFromFirstParam {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ) => void
 
@@ -5722,29 +5731,32 @@ interface EntityHelperMethodAliases {
    *
    * 获取玩家段位变化分数: 获取玩家实体在不同结算状态下段位的变化分数
    *
-   * @param settlementStatus
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
-   * 结算状态
+   * 结算状态: 分为未定、胜利、失败、逃跑
    *
    * @returns
    *
    * 分数
    */
-  rankScoreChange: (settlementStatus: SettlementStatus) => bigint
+  rankScoreChange: (settlementStatus: RankSettlementStatus | SettlementStatus) => bigint
 
   /**
    * Set the Player's rank score change based on the settlement status
    *
    * 设置玩家段位变化分数: 根据结算状态设置玩家的段位变化分数
    *
-   * @param settlementStatus Includes: Undefined, Victory, Defeat, Escape
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
    * 结算状态: 分为未定、胜利、失败、逃跑
    * @param scoreChange
    *
    * 变化分数
    */
-  setRankScoreChange: (settlementStatus: SettlementStatus, scoreChange: IntValue) => void
+  setRankScoreChange: (
+    settlementStatus: RankSettlementStatus | SettlementStatus,
+    scoreChange: IntValue
+  ) => void
 
   /**
    * Get Player Escape Permission
@@ -5834,7 +5846,7 @@ interface EntityHelperMethodAliases {
   addSkill: (
     skillConfigId: ConfigIdValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ) => bigint
 
   /**
@@ -5953,7 +5965,7 @@ interface EntityHelperMethodAliases {
    *
    * 已有技能处理方式: 全部清理：将已有技能全部清理。保留无关技能：保留更换前后两个职业默认配置内均没有的技能
    */
-  setClass: (classConfigId: ConfigIdValue, existingSkillHandling: ExistingSkillHandling) => void
+  setClass: (classConfigId: ConfigIdValue, existingSkillHandling: ClassSwitchSkillHandling) => void
 
   /**
    * Set the Player's current Class Level. If it exceeds the defined range, the change will not take effect

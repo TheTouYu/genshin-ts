@@ -90,6 +90,14 @@ g.characterControlSkill().on('start', (_evt, f) => {
 
   // Entity parameters remain generic; callers do not need clientEntity casts.
   f.getEntityLocation(self)
+  f.cameraOrientationDetectionData(
+    TargetTypeForCameraOrientationNode.AllExceptSelf,
+    [0, 1, 0],
+    1,
+    20
+  )
+  // @ts-expect-error this node uses the five-value camera-orientation target enum
+  f.cameraOrientationDetectionData(TargetType.All, [0, 1, 0], 1, 20)
 
   const convertedSelf = clientEntity(self)
   const convertedFound = clientEntity(GameObject.Find(10001n))

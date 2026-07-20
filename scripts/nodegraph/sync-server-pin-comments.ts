@@ -206,6 +206,15 @@ function transformServerNodes(code: string) {
     if (genericId === undefined || !pinRecord || !official) continue
 
     let methodDoc = jsdoc(member, source, code)
+    if (!methodDoc) {
+      const overload = serverClass.members.find(
+        (candidate) =>
+          ts.isMethodDeclaration(candidate) &&
+          !candidate.body &&
+          propertyName(candidate.name) === methodName
+      )
+      if (overload) methodDoc = jsdoc(overload, source, code)
+    }
     let methodDocText = methodDoc?.text
     const inputIndexes = visiblePinIndexes(pinRecord.inputs, argumentCount)
     if (inputIndexes && member.parameters.length >= argumentCount) {
