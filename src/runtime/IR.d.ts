@@ -117,7 +117,7 @@ export type ClientNode = SimplifyDeep<
     /** Signal identity is semantic IR, not a string literal to be guessed by Stage 3. */
     signalRef?: { name: string }
     /** Client values retain literal/connection semantics for Stage 3. */
-    clientValues?: ClientValueIR[]
+    clientValues?: (ClientValueIR | undefined)[]
     elementType?: ValueType
     elementCount?: number
     elementValues?: ClientValueIR[]

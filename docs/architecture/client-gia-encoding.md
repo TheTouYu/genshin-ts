@@ -396,6 +396,67 @@ send_signal_to_server(signalRef, params: ClientValueIR[])
 游戏测试通过，因此本表获得当前样本级游戏证据。未测试的其他 Fixed、Variant、hidden pin 或共享 kernel
 节点仍需单独验证。
 
+## 8.1 Scalar Arithmetic Fixed 节点编码（2026-07-20）
+
+> 状态：已验证
+> 来源：当前代码实现 + 固定第三方客户端节点候选 + 自动回归 + 用户游戏验证；无本轮独立真实 GIA 对拍
+> 最近校验：2026-07-20
+> 适用范围：当前客户端 `skill` 图；仅覆盖本轮 12 个节点和该测试产物
+
+本轮新增布尔 Fixed 节点 `200001..200004`，分别使用 kernel `1..4`，输入/输出均为
+`ClientVarType.Boolean_`。新增三角和角度转换节点使用以下 identity：
+
+| generic | concrete/kernel | 输入 | 输出 |
+|---:|---:|---|---|
+| 200094..200099 | 35 | hidden EnumItem + float | float |
+| 200101..200102 | 35 | hidden EnumItem + float | float |
+
+hidden pin 位于物理 `InParam[0]`，用户输入位于物理 `InParam[1]`，输出为 `OutParam[0]`。当前
+`EnumItem_` 默认值按候选数据写入 1700..1707 的对应值，`ClientVarType` 为 13。该规则仅来自固定
+第三方数据和当前 materializer，尚未取得这些节点的独立真实 `.gia`；但用户已确认本轮产物的编辑器/游戏
+测试通过，因此本节结论仅适用于该产物，不升级为独立真实 GIA 规范。
+
+focused 回归：
+
+```bash
+npx tsx tests/runtime/test-client-scalar-arithmetic-series.ts
+```
+
+## 8.2 Query Fixed 系列 v3 编码（2026-07-20）
+
+> 状态：已验证
+> 来源：当前代码实现 + 固定第三方客户端节点候选 + 自动回归 + 用户游戏验证；无本轮独立真实 GIA 对拍
+> 最近校验：2026-07-20
+> 适用范围：当前客户端 `skill` 图；仅覆盖本轮 10 个节点和该测试产物
+
+本轮 Query 节点使用固定 generic/concrete identity 和 ClientVarType：
+
+| 节点 | generic/concrete | 输出类型 |
+|---|---:|---|
+| Get All Players | 200026/1004 | entity_list |
+| Get Preset Status | 200028/1006 | int |
+| Get Entity Faction | 200029/1007 | faction |
+| Get Entity Tags | 200077/1035 | int_list |
+| Get Entities By Tag | 200078/1034 | entity_list |
+| Get Aggro Target/List | 200090/3000、200091/3001 | entity/entity_list |
+| Is Faction Hostile | 200093/1037 | bool |
+| Is Entity Active | 200103/1038 | bool |
+| Get Overlapping Entities | 200107/1046 | entity_list |
+
+列表输出使用 `ArrayBase` 和对应 `ClientVarType`；本轮没有引入复杂枚举、相机或扫描状态节点。
+
+focused 回归：
+
+```bash
+npx tsx tests/runtime/test-client-query-series-v3.ts
+```
+
+最终候选产物为 `Beyond_Local_Export/gsts-client-query-series-v3-minimal.gia`，大小 9318 bytes，
+SHA-256 为 `2cedd56e2809dbfaf43f2acad6af4687c9705c68f8aca0a0a772b4d55c679e69`。测试统一发送到
+`信号_全部列表参数测试`，只让本轮相关的 entity/bool/int 列表承载实际输出；其他 signal 参数使用
+类型正确的空值。当前 Client IR 尚无 list-concatenate 节点，因此多个 Query 列表输出通过多次发送
+分别观察，并未伪造列表对列表拼接。用户已确认该产物游戏测试通过。
+
 ## 9. 验证门禁
 
 ### 当前已通过

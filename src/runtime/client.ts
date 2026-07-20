@@ -39,6 +39,16 @@ export type ClientListValue = ClientValueHandle & {
 export type ClientExecutionFlowFunctions = {
   sendSignalToServerNodeGraph(signalName: string, ...params: ClientLiteral[]): void
   getSelfEntity(): ClientValueHandle
+  getAllPlayers(): ClientValueHandle
+  getPresetStatus(entity: ClientValueHandle, status: ClientValueHandle | ClientLiteral): ClientValueHandle
+  getEntityFaction(entity: ClientValueHandle): ClientValueHandle
+  getEntityTags(entity: ClientValueHandle): ClientValueHandle
+  getEntitiesByTag(tag: ClientValueHandle | ClientLiteral): ClientValueHandle
+  getAggroTarget(entity: ClientValueHandle): ClientValueHandle
+  getAggroList(entity: ClientValueHandle): ClientValueHandle
+  isFactionHostile(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  isEntityActive(entity: ClientValueHandle): ClientValueHandle
+  getOverlappingEntities(entity: ClientValueHandle, relation: ClientValueHandle | ClientLiteral): ClientValueHandle
   queryGuidByEntity(entity: ClientValueHandle): ClientValueHandle
   getEntityPosition(entity: ClientValueHandle): ClientValueHandle
   getEntityRotation(entity: ClientValueHandle): ClientValueHandle
@@ -67,8 +77,20 @@ export type ClientExecutionFlowFunctions = {
   createVector3(x: ClientValueHandle | ClientLiteral, y: ClientValueHandle | ClientLiteral, z: ClientValueHandle | ClientLiteral): ClientValueHandle
   normalizeVector3(vector: ClientValueHandle | ClientLiteral): ClientValueHandle
   directionVectorToRotation(forward: ClientValueHandle | ClientLiteral, up: ClientValueHandle | ClientLiteral): ClientValueHandle
+  booleanAnd(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  booleanOr(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  booleanNot(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  booleanXor(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  sine(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  cosine(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  tangent(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  arcsine(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  arccosine(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  arctangent(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  radiansToDegrees(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  degreesToRadians(value: ClientValueHandle | ClientLiteral): ClientValueHandle
   assemblyList(elementType: ValueType, elements: readonly (ClientLiteral | ClientValueHandle)[]): ClientListValue
-  sendSignalToServerNodeGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue)[]): void
+  sendSignalToServerNodeGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue | undefined)[]): void
 }
 
 class ClientGraphRegistry {
@@ -140,6 +162,46 @@ class ClientGraphRegistry {
 
   getSelfEntity(): ClientValueHandle {
     return this.registerDataNode('get_self_entity', 'entity')
+  }
+
+  getAllPlayers(): ClientValueHandle {
+    return this.registerDataNode('get_all_players', 'entity_list')
+  }
+
+  getPresetStatus(entity: ClientValueHandle, status: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerQueryWithArgs('get_preset_status', 'int', [entity, status], ['entity', 'int'])
+  }
+
+  getEntityFaction(entity: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_entity_faction', 'faction', entity, 'getEntityFaction')
+  }
+
+  getEntityTags(entity: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_entity_tags', 'int_list', entity, 'getEntityTags')
+  }
+
+  getEntitiesByTag(tag: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerQueryWithArgs('get_entities_by_tag', 'entity_list', [tag], ['int'])
+  }
+
+  getAggroTarget(entity: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_aggro_target', 'entity', entity, 'getAggroTarget')
+  }
+
+  getAggroList(entity: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('get_aggro_list', 'entity_list', entity, 'getAggroList')
+  }
+
+  isFactionHostile(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('is_faction_hostile', 'bool', [[a, 'faction'], [b, 'faction']])
+  }
+
+  isEntityActive(entity: ClientValueHandle): ClientValueHandle {
+    return this.registerEntityQuery('is_entity_active', 'bool', entity, 'isEntityActive')
+  }
+
+  getOverlappingEntities(entity: ClientValueHandle, relation: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerQueryWithArgs('get_overlapping_entities', 'entity_list', [entity, relation], ['entity', 'int'])
   }
 
   queryGuidByEntity(entityValue: ClientValueHandle): ClientValueHandle {
@@ -255,6 +317,63 @@ class ClientGraphRegistry {
     return this.registerMathNode('direction_to_rotation', 'vec3', [[forward, 'vec3'], [up, 'vec3']])
   }
 
+  booleanAnd(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('boolean_and', 'bool', [[a, 'bool'], [b, 'bool']])
+  }
+
+  booleanOr(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('boolean_or', 'bool', [[a, 'bool'], [b, 'bool']])
+  }
+
+  booleanNot(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('boolean_not', 'bool', [[value, 'bool']])
+  }
+
+  booleanXor(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('boolean_xor', 'bool', [[a, 'bool'], [b, 'bool']])
+  }
+
+  sine(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('sine', 'float', [[value, 'float']])
+  }
+
+  cosine(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('cosine', 'float', [[value, 'float']])
+  }
+
+  tangent(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('tangent', 'float', [[value, 'float']])
+  }
+
+  arcsine(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('arcsine', 'float', [[value, 'float']])
+  }
+
+  arccosine(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('arccosine', 'float', [[value, 'float']])
+  }
+
+  arctangent(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('arctangent', 'float', [[value, 'float']])
+  }
+
+  radiansToDegrees(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('radians_to_degrees', 'float', [[value, 'float']])
+  }
+
+  degreesToRadians(value: ClientValueHandle | ClientLiteral): ClientValueHandle {
+    return this.registerMathNode('degrees_to_radians', 'float', [[value, 'float']])
+  }
+
+  private registerQueryWithArgs(
+    nodeType: string,
+    outputType: ValueType,
+    values: readonly (ClientValueHandle | ClientLiteral)[],
+    types: readonly ValueType[]
+  ): ClientValueHandle {
+    return this.registerDataNode(nodeType, outputType, values.map((value, index) => this.clientMathValue(value, types[index])))
+  }
+
   private registerEntityQuery(
     nodeType: string,
     outputType: ValueType,
@@ -304,8 +423,8 @@ class ClientGraphRegistry {
     return Object.freeze({ ...handle, elementType, elements, encoding: 'assembly-list' as const })
   }
 
-  sendSignalToServerGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue)[]): void {
-    const values: ClientValueIR[] = params.map((value): ClientValueIR => typeof value === 'object' && value && '__clientValue' in value
+  sendSignalToServerGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue | undefined)[]): void {
+    const values: (ClientValueIR | undefined)[] = params.map((value): ClientValueIR | undefined => value === undefined ? undefined : typeof value === 'object' && value && '__clientValue' in value
       ? 'elements' in value
         ? {
             kind: 'list',
@@ -317,7 +436,9 @@ class ClientGraphRegistry {
               ? { kind: 'conn', type: element.type, node_id: element.nodeId, index: element.pinIndex }
               : { kind: 'literal', type: typeof element === 'number' ? 'float' : Array.isArray(element) ? 'vec3' : typeof element as ValueType, value: element })
           }
-        : { kind: 'conn', type: value.type, node_id: value.nodeId, index: value.pinIndex }
+        : value.type.endsWith('_list')
+          ? { kind: 'list', encoding: 'assembly-list', elementType: value.type.slice(0, -5) as ValueType, node_id: value.nodeId, index: value.pinIndex, elements: [] }
+          : { kind: 'conn', type: value.type, node_id: value.nodeId, index: value.pinIndex }
       : { kind: 'literal', type: typeof value === 'number' ? 'float' : Array.isArray(value) ? 'vec3' : typeof value as ValueType, value })
     const node: ClientNode = {
       id: this.nextNodeId++,
@@ -385,6 +506,16 @@ export function createClientGraph(options: ClientGraphOptions) {
           registry.sendSignalToServerNodeGraph(signalName, params)
         },
         getSelfEntity: () => registry.getSelfEntity(),
+        getAllPlayers: () => registry.getAllPlayers(),
+        getPresetStatus: (entity, status) => registry.getPresetStatus(entity, status),
+        getEntityFaction: (entity) => registry.getEntityFaction(entity),
+        getEntityTags: (entity) => registry.getEntityTags(entity),
+        getEntitiesByTag: (tag) => registry.getEntitiesByTag(tag),
+        getAggroTarget: (entity) => registry.getAggroTarget(entity),
+        getAggroList: (entity) => registry.getAggroList(entity),
+        isFactionHostile: (a, b) => registry.isFactionHostile(a, b),
+        isEntityActive: (entity) => registry.isEntityActive(entity),
+        getOverlappingEntities: (entity, relation) => registry.getOverlappingEntities(entity, relation),
         queryGuidByEntity: (entity) => registry.queryGuidByEntity(entity),
         getEntityPosition: (entity) => registry.getEntityPosition(entity),
         getEntityRotation: (entity) => registry.getEntityRotation(entity),
@@ -409,6 +540,18 @@ export function createClientGraph(options: ClientGraphOptions) {
         createVector3: (x, y, z) => registry.createVector3(x, y, z),
         normalizeVector3: (vector) => registry.normalizeVector3(vector),
         directionVectorToRotation: (forward, up) => registry.directionVectorToRotation(forward, up),
+        booleanAnd: (a, b) => registry.booleanAnd(a, b),
+        booleanOr: (a, b) => registry.booleanOr(a, b),
+        booleanNot: (value) => registry.booleanNot(value),
+        booleanXor: (a, b) => registry.booleanXor(a, b),
+        sine: (value) => registry.sine(value),
+        cosine: (value) => registry.cosine(value),
+        tangent: (value) => registry.tangent(value),
+        arcsine: (value) => registry.arcsine(value),
+        arccosine: (value) => registry.arccosine(value),
+        arctangent: (value) => registry.arctangent(value),
+        radiansToDegrees: (value) => registry.radiansToDegrees(value),
+        degreesToRadians: (value) => registry.degreesToRadians(value),
         assemblyList: (elementType, elements) => registry.assemblyList(elementType, elements),
         sendSignalToServerNodeGraphValues: (signalName, params) =>
           registry.sendSignalToServerGraphValues(signalName, params)

@@ -983,6 +983,52 @@ client_layout.ts
 - `doubleBranch` 是否只执行预期一侧；
 - `playTimedEffects` 的配置、缩放和默认音效参数是否生效。
 
+## 11.5 Scalar Arithmetic Fixed 系列（2026-07-20）
+
+> 状态：已验证
+> 来源：当前代码实现 + 固定第三方客户端节点候选 + 自动回归 + 用户游戏验证；无本轮独立真实 GIA 对拍
+> 最近校验：2026-07-20
+> 适用范围：当前客户端 `skill` 图生产路径；仅覆盖本轮 12 个节点和该测试产物
+
+本轮新增 12 个客户端 Arithmetic Fixed 节点，排除前两轮 Query 和上一轮 Vector/Arithmetic Fixed
+节点：
+
+- 布尔：`And`、`Or`、`Not`、`Xor`；
+- 标量函数：`Sin`、`Cos`、`Tan`、`Asin`、`Acos`、`Atan`、`Rad_To_Deg`、`Deg_To_Rad`。
+
+第三方候选数据记录布尔节点 generic `200001..200004`、kernel `1..4`，标量函数 generic
+`200094..200099`、`200101..200102`、共享 kernel `35`。标量函数的 pin 0 是 hidden
+`EnumItem_`，默认值来自固定候选的 `node_pins_default_vals.json`（1700、1701、1702、1703、1704、
+1705、1706、1707）；这些 identity、默认值和 hidden-pin 语义尚未由独立真实 GIA 校正。
+
+当前 API 位于 `src/runtime/client.ts`，focused TS→IR→GIA 回归为
+`tests/runtime/test-client-scalar-arithmetic-series.ts`，产物为
+`Beyond_Local_Export/gsts-client-scalar-arithmetic-series.gia`。自动回归证明 IR、节点 identity、ClientVarType、hidden pin、数据连接和布局可重现；用户已确认
+`Beyond_Local_Export/gsts-client-scalar-arithmetic-series.gia` 游戏测试通过。该游戏证据仅覆盖本轮
+12 个节点和该产物。
+
+## 11.6 Query Fixed 系列 v3（2026-07-20）
+
+> 状态：已验证
+> 来源：当前代码实现 + 固定第三方客户端节点候选 + 自动回归 + 用户游戏验证；无本轮独立真实 GIA 对拍
+> 最近校验：2026-07-20
+> 适用范围：当前客户端 `skill` 图生产路径；仅覆盖本轮 10 个节点和该测试产物
+
+本轮新增 10 个 Query Fixed 节点，focused 回归为 `tests/runtime/test-client-query-series-v3.ts`，
+覆盖 entity、int、faction、bool 和 entity/int list 输出。新增节点 identity 为：
+
+```text
+200026/1004  200028/1006  200029/1007  200077/1035  200078/1034
+200090/3000  200091/3001  200093/1037  200103/1038  200107/1046
+```
+
+最终产物为 `Beyond_Local_Export/gsts-client-query-series-v3-minimal.gia`，graph ID 为 `1082130464`，
+大小 9318 bytes，SHA-256 为 `2cedd56e2809dbfaf43f2acad6af4687c9705c68f8aca0a0a772b4d55c679e69`。
+本版统一使用 `信号_全部列表参数测试`，只保留本轮节点相关的 entity/bool/int 列表输出；其余
+列表参数使用缺省空值，不创建无关 assembly 节点。`undefined` signal 参数会由客户端 lowering 物化为
+对应类型的空 pin，保持 signal 物理 pin/CPI 对齐。自动回归证明 Client IR、节点 identity、列表
+输出 pin、连接和布局可生成；用户已确认该产物游戏测试通过。该游戏证据仅覆盖本轮 10 个节点和本产物。
+
 ## 12. 注入安全边界
 
 首批仅生成 standalone `.gia`，使用 `--noinject`；不修改 injector。

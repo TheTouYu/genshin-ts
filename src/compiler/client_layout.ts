@@ -7,7 +7,8 @@ import type { IRNode } from './ir_to_gia_transform/types.js'
  * adapter intentionally translates only topology; it does not expose GIA pin
  * details to the layout engine.
  */
-function clientValueToArgument(value: ClientValueIR) {
+function clientValueToArgument(value: ClientValueIR | undefined) {
+  if (value === undefined) return null
   if (value.kind === 'conn') {
     return {
       type: 'conn' as const,

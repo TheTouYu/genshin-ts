@@ -74,6 +74,7 @@ function valueForParam(type: string, value: unknown) {
     case 'entity': return { type: ClientVarType.Entity_, value: clientEntityValue() }
     case 'prefab_id': return { type: ClientVarType.Prefab_, value: clientIdValue(ClientVarType.Prefab_, Number(value)) }
     case 'config_id': return { type: ClientVarType.Configuration_, value: clientIdValue(ClientVarType.Configuration_, Number(value)) }
+    case 'faction': return { type: ClientVarType.Faction_, value: clientIdValue(ClientVarType.Faction_, Number(value)) }
     default:
       throw new Error(`[error] client lowering does not yet support signal parameter type: ${type}`)
   }
@@ -130,7 +131,26 @@ function clientOutputValue(type: ClientVarType): any {
     case ClientVarType.Boolean_: return clientBoolValue(false)
     case ClientVarType.Vector_: return clientVectorValue([0, 0, 0])
     case ClientVarType.Entity_: return clientDefaultIdValue(type)
+    case ClientVarType.Faction_: return clientDefaultIdValue(type)
+    case ClientVarType.EntityList_:
+    case ClientVarType.IntegerList_:
+      return { class: VarBase_Class.ArrayBase, alreadySetVal: false, itemType: clientItemType(type), bArray: { entries: [] } }
     default: return clientDefaultIdValue(type)
+  }
+}
+
+function clientEnumItemPin(value: number): any {
+  return {
+    i1: { kind: NodePin_Index_Kind.InParam, index: 0 },
+    i2: { kind: NodePin_Index_Kind.InParam, index: 0 },
+    value: {
+      class: VarBase_Class.EnumBase,
+      alreadySetVal: true,
+      itemType: clientItemType(ClientVarType.EnumItem_),
+      bEnum: { val: value }
+    },
+    type: ClientVarType.EnumItem_,
+    connects: []
   }
 }
 
@@ -152,18 +172,34 @@ function dataNode(node: ClientNode, index: number): any {
     pins: [
       ...inputs.map((type, inputIndex) => {
         const arg = node.clientValues?.[inputIndex]
-        const valueType = type === ClientVarType.Float_ ? 'float' : 'vec3'
+        const valueType = type === ClientVarType.Float_ ? 'float' : type === ClientVarType.Boolean_ ? 'bool' : type === ClientVarType.Faction_ ? 'faction' : 'vec3'
         const value = arg?.kind === 'literal'
           ? valueFromIR(valueType, arg)
-          : type === ClientVarType.Float_ ? clientFloatValue(0) : clientVectorValue([0, 0, 0])
+          : type === ClientVarType.Float_ ? clientFloatValue(0)
+            : type === ClientVarType.Boolean_ ? clientBoolValue(false)
+              : type === ClientVarType.Faction_ ? clientDefaultIdValue(type)
+                : clientVectorValue([0, 0, 0])
         return clientDataPin({ shellIndex: inputIndex, kernelIndex: inputIndex, type, value })
       }),
       ...outputs.map((type, outputIndex) => ({
-        ...clientDataPin({ shellIndex: outputIndex, kernelIndex: outputIndex, type, value: type === ClientVarType.Float_ ? clientFloatValue(0) : clientVectorValue([0, 0, 0]) }),
+        ...clientDataPin({ shellIndex: outputIndex, kernelIndex: outputIndex, type, value: type === ClientVarType.Float_ ? clientFloatValue(0) : type === ClientVarType.Boolean_ ? clientBoolValue(false) : clientVectorValue([0, 0, 0]) }),
         i1: { kind: NodePin_Index_Kind.OutParam, index: outputIndex },
         i2: { kind: NodePin_Index_Kind.OutParam, index: outputIndex }
       }))
     ]
+  })
+  const mathInputPins = (inputs: ClientVarType[]) => inputs.map((type, inputIndex) => {
+    const arg = node.clientValues?.[inputIndex]
+    const valueType = type === ClientVarType.Boolean_ ? 'bool' : 'float'
+    const value = arg?.kind === 'literal'
+      ? valueFromIR(valueType, arg)
+      : type === ClientVarType.Boolean_ ? clientBoolValue(false) : clientFloatValue(0)
+    return clientDataPin({ shellIndex: inputIndex + 1, kernelIndex: inputIndex + 1, type, value })
+  })
+  const mathOutputPin = (type: ClientVarType) => ({
+    ...clientDataPin({ shellIndex: 0, kernelIndex: 0, type, value: clientOutputValue(type) }),
+    i1: { kind: NodePin_Index_Kind.OutParam, index: 0 },
+    i2: { kind: NodePin_Index_Kind.OutParam, index: 0 }
   })
   const entityInput = (outputType: ClientVarType, shellId: number, kernelId: number) => fixedQuery(index, shellId, kernelId, [ClientVarType.Entity_], outputType)
   const entityOutput = (shellId: number, kernelId: number) => clientLegacyNode({
@@ -173,8 +209,36 @@ function dataNode(node: ClientNode, index: number): any {
     pins: [{ ...clientDataPin({ shellIndex: 0, kernelIndex: 0, type: ClientVarType.Entity_, value: clientDefaultIdValue(ClientVarType.Entity_) }), i1: { kind: NodePin_Index_Kind.OutParam, index: 0 }, i2: { kind: NodePin_Index_Kind.OutParam, index: 0 } }]
   })
   const fixed = (shellId: number, kernelId: number, inputs: ClientVarType[], outputType: ClientVarType) => fixedQuery(index, shellId, kernelId, inputs, outputType)
+  const query = (shellId: number, kernelId: number, inputs: ClientVarType[], outputs: ClientVarType[]) => clientLegacyNode({
+    nodeIndex: index,
+    shellId,
+    kernelId,
+    pins: [
+      ...inputs.map((type, inputIndex) => {
+        const arg = node.clientValues?.[inputIndex]
+        const valueType = type === ClientVarType.Entity_ ? 'entity' : type === ClientVarType.Integer_ ? 'int' : 'faction'
+        const value = arg?.kind === 'literal' ? valueFromIR(valueType, arg) : clientOutputValue(type)
+        return clientDataPin({ shellIndex: inputIndex, kernelIndex: inputIndex, type, value })
+      }),
+      ...outputs.map((type, outputIndex) => ({
+        ...clientDataPin({ shellIndex: outputIndex, kernelIndex: outputIndex, type, value: clientOutputValue(type) }),
+        i1: { kind: NodePin_Index_Kind.OutParam, index: outputIndex },
+        i2: { kind: NodePin_Index_Kind.OutParam, index: outputIndex }
+      }))
+    ]
+  })
   switch (node.type) {
     case 'get_self_entity': return entityOutput(200033, 1013)
+    case 'get_all_players': return query(200026, 1004, [], [ClientVarType.EntityList_])
+    case 'get_preset_status': return query(200028, 1006, [ClientVarType.Entity_, ClientVarType.Integer_], [ClientVarType.Integer_])
+    case 'get_entity_faction': return entityInput(ClientVarType.Faction_, 200029, 1007)
+    case 'get_entity_tags': return entityInput(ClientVarType.IntegerList_, 200077, 1035)
+    case 'get_entities_by_tag': return query(200078, 1034, [ClientVarType.Integer_], [ClientVarType.EntityList_])
+    case 'get_aggro_target': return entityInput(ClientVarType.Entity_, 200090, 3000)
+    case 'get_aggro_list': return entityInput(ClientVarType.EntityList_, 200091, 3001)
+    case 'is_faction_hostile': return math(200093, 1037, [ClientVarType.Faction_, ClientVarType.Faction_], [ClientVarType.Boolean_])
+    case 'is_entity_active': return entityInput(ClientVarType.Boolean_, 200103, 1038)
+    case 'get_overlapping_entities': return query(200107, 1046, [ClientVarType.Entity_, ClientVarType.Integer_], [ClientVarType.EntityList_])
     case 'query_guid_by_entity': return fixed(200027, 1005, [ClientVarType.Entity_], ClientVarType.GUID_)
     case 'find_entity_by_guid': return fixed(200023, 1001, [ClientVarType.GUID_], ClientVarType.Entity_)
     case 'get_entity_position': return entityInput(ClientVarType.Vector_, 200030, 1008)
@@ -197,6 +261,18 @@ function dataNode(node: ClientNode, index: number): any {
     case 'create_vector3': return math(200070, 1024, [ClientVarType.Float_, ClientVarType.Float_, ClientVarType.Float_], [ClientVarType.Vector_])
     case 'normalize_vector3': return math(200100, 138, [ClientVarType.Vector_], [ClientVarType.Vector_])
     case 'direction_to_rotation': return math(200073, 139, [ClientVarType.Vector_, ClientVarType.Vector_], [ClientVarType.Vector_])
+    case 'boolean_and': return math(200001, 1, [ClientVarType.Boolean_, ClientVarType.Boolean_], [ClientVarType.Boolean_])
+    case 'boolean_or': return math(200002, 2, [ClientVarType.Boolean_, ClientVarType.Boolean_], [ClientVarType.Boolean_])
+    case 'boolean_not': return math(200003, 3, [ClientVarType.Boolean_], [ClientVarType.Boolean_])
+    case 'boolean_xor': return math(200004, 4, [ClientVarType.Boolean_, ClientVarType.Boolean_], [ClientVarType.Boolean_])
+    case 'sine': return clientLegacyNode({ nodeIndex: index, shellId: 200094, kernelId: 35, pins: [clientEnumItemPin(1701), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'cosine': return clientLegacyNode({ nodeIndex: index, shellId: 200095, kernelId: 35, pins: [clientEnumItemPin(1700), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'tangent': return clientLegacyNode({ nodeIndex: index, shellId: 200096, kernelId: 35, pins: [clientEnumItemPin(1702), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'arcsine': return clientLegacyNode({ nodeIndex: index, shellId: 200097, kernelId: 35, pins: [clientEnumItemPin(1704), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'arccosine': return clientLegacyNode({ nodeIndex: index, shellId: 200098, kernelId: 35, pins: [clientEnumItemPin(1703), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'arctangent': return clientLegacyNode({ nodeIndex: index, shellId: 200099, kernelId: 35, pins: [clientEnumItemPin(1705), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'radians_to_degrees': return clientLegacyNode({ nodeIndex: index, shellId: 200101, kernelId: 35, pins: [clientEnumItemPin(1706), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
+    case 'degrees_to_radians': return clientLegacyNode({ nodeIndex: index, shellId: 200102, kernelId: 35, pins: [clientEnumItemPin(1707), ...mathInputPins([ClientVarType.Float_]), mathOutputPin(ClientVarType.Float_)] })
     case 'get_attachment_location': return fixed(200047, 1022, [ClientVarType.Entity_, ClientVarType.String_], ClientVarType.Vector_)
     case 'get_attachment_rotation': return fixed(200048, 1023, [ClientVarType.Entity_, ClientVarType.String_], ClientVarType.Vector_)
     default: throw new Error(`[error] unsupported client data node: ${node.type}`)
@@ -292,11 +368,25 @@ function signalNode(node: ClientNode, signal: RegisteredSignalDefinition, index:
     throw new Error(`[error] client signal registry CPI count mismatch: ${signal.name}`)
   }
   const values = node.clientValues ?? []
-  if (values.length !== signal.params.length) {
+  if (values.length > signal.params.length) {
     throw new Error(`[error] client signal parameter count mismatch: ${signal.name}`)
   }
   const pins: any[] = signal.params.map((param, i) => {
     const arg = values[i]
+    if (arg === undefined) {
+      return {
+        i1: { kind: NodePin_Index_Kind.InParam, index: i },
+        i2: { kind: NodePin_Index_Kind.InParam, index: i },
+        value: param.type.endsWith('_list')
+          ? listPlaceholder(param.type)
+          : valueForParam(param.type, 0).value,
+        type: param.type.endsWith('_list')
+          ? LIST_CLIENT_TYPE[param.type.slice(0, -5)]
+          : valueForParam(param.type, 0).type,
+        connects: [],
+        compositePinIndex: parameterCpis[i]
+      }
+    }
     const isList = param.type.endsWith('_list')
     const listSource = arg.kind === 'list' && arg.encoding === 'assembly-list'
       ? dataNodes.get(arg.node_id ?? -1)
@@ -424,6 +514,7 @@ export function clientIrToGia(ir: ClientIRDocument, signalRegistry: SignalRegist
     if (!target) continue
     const args = node.type === 'assembly_list' ? node.elementValues ?? [] : node.clientValues ?? []
     for (const [argIndex, arg] of args.entries()) {
+      if (arg === undefined) continue
       if (arg.kind === 'list') {
         if (arg.encoding !== 'assembly-list') continue
         const source = dataNodes.get(arg.node_id ?? -1)
@@ -438,9 +529,11 @@ export function clientIrToGia(ir: ClientIRDocument, signalRegistry: SignalRegist
       if (arg.kind !== 'conn') continue
       const source = dataNodes.get(arg.node_id)
       if (!source) throw new Error(`[error] missing client connection source node: ${arg.node_id}`)
-      const targetPin = ['query_guid_by_entity', 'find_entity_by_guid', 'get_entity_position', 'get_entity_rotation', 'get_owner_player', 'get_character_entity', 'get_attack_target', 'query_entity_in_combat', 'query_entity_on_field', 'dot_vector3', 'cross_vector3', 'split_vector3', 'scale_vector3', 'angle_vector3', 'rotate_vector3', 'length_vector3', 'create_vector3', 'normalize_vector3', 'direction_to_rotation'].includes(node.type)
+      const targetPin = ['query_guid_by_entity', 'find_entity_by_guid', 'get_entity_position', 'get_entity_rotation', 'get_owner_player', 'get_character_entity', 'get_attack_target', 'query_entity_in_combat', 'query_entity_on_field', 'dot_vector3', 'cross_vector3', 'split_vector3', 'scale_vector3', 'angle_vector3', 'rotate_vector3', 'length_vector3', 'create_vector3', 'normalize_vector3', 'direction_to_rotation', 'boolean_and', 'boolean_or', 'boolean_not', 'boolean_xor', 'get_preset_status', 'get_entities_by_tag', 'get_overlapping_entities', 'is_faction_hostile'].includes(node.type)
         ? argIndex
-        : node.type === 'assembly_list' ? argIndex + 1 : argIndex
+        : ['sine', 'cosine', 'tangent', 'arcsine', 'arccosine', 'arctangent', 'radians_to_degrees', 'degrees_to_radians'].includes(node.type)
+          ? argIndex + 1
+          : node.type === 'assembly_list' ? argIndex + 1 : argIndex
       const pin = target.pins.find((candidate: any) => candidate.i1?.kind === NodePin_Index_Kind.InParam && (candidate.i1.index ?? 0) === targetPin)
       if (!pin) throw new Error(`[error] missing client target InParam[${targetPin}] for ${node.type}`)
       pin.connects = [{ id: source.nodeIndex, connect: { kind: NodePin_Index_Kind.OutParam, index: arg.index }, connect2: { kind: NodePin_Index_Kind.OutParam, index: arg.index } }]
