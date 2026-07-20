@@ -104,6 +104,22 @@ function needsCollectionRebindSnapshot(env: Env, expr: ts.Expression): boolean {
 }
 
 function declarationSemantics(env: Env, decl: ts.VariableDeclaration): ExpressionSemantics {
+  // An empty array literal is inferred as never[] by TypeScript. When the declaration carries
+  // an explicit element type, use that type for LocalVariable planning instead of attempting to
+  // classify the initializer's untyped empty value.
+  if (
+    decl.type &&
+    decl.initializer &&
+    ts.isArrayLiteralExpression(decl.initializer) &&
+    decl.initializer.elements.length === 0
+  ) {
+    const listType = inferListConcreteType(
+      env,
+      env.checker.getTypeAtLocation(decl.name),
+      decl.type
+    )
+    if (listType) return { kind: 'runtime-value', valueType: `${listType}_list` }
+  }
   if (decl.initializer) return classifyExpressionSemantics(env, decl.initializer)
   if (ts.isIdentifier(decl.name)) {
     return classifyExpressionSemantics(env, decl.name)
@@ -1420,16 +1436,30 @@ export function transformBlockStatements(
             out.push(
               withSameRange(
                 ts.factory.createExpressionStatement(
-                  makeCheckedLocalVariableSet(
-                    env,
-                    d.initializer,
-                    ts.factory.createPropertyAccessExpression(
-                      ts.factory.createIdentifier(name),
-                      'localVariable'
-                    ),
-                    rhs,
-                    typeStr
-                  )
+                  ts.isArrayLiteralExpression(d.initializer) &&
+                  d.initializer.elements.length === 0 &&
+                  d.type
+                    ? makeKnownLocalVariableSet(
+                        env,
+                        d,
+                        ts.factory.createPropertyAccessExpression(
+                          ts.factory.createIdentifier(name),
+                          'localVariable'
+                        ),
+                        rhs,
+                        typeStr,
+                        typeStr
+                      )
+                    : makeCheckedLocalVariableSet(
+                        env,
+                        d.initializer,
+                        ts.factory.createPropertyAccessExpression(
+                          ts.factory.createIdentifier(name),
+                          'localVariable'
+                        ),
+                        rhs,
+                        typeStr
+                      )
                 ),
                 d
               )

@@ -98,13 +98,7 @@ OutParam 和数据连线仍然存在；
 
 ## 入门示例
 
-对于想理解复合节点管线的开发者，推荐从 `tests/composite/demo_addsub2.ts` 开始：
-
-```
-npx tsx tests/composite/demo_addsub2.ts
-```
-
-该脚本完整展示了 TS 定义 → 运行时捕获 → IR JSON → GIA 编码的全流程，对应 `ts_g_define_加减运算2.gia` 参考文件的结构。参见：[dsl-api.md](./dsl-api.md) | [捕获机制](./capture-mechanism.md)
+旧版 `tests/composite/demo_addsub2.ts` 已删除，不再作为当前测试入口。当前复合节点测试应从本文件列出的 focused harness、`tests/composite/test-simple-basic-call.ts` 或对应的根目录 GIA 生成 fixture 开始。参见：[DSL API](./dsl-api.md) | [捕获机制](./capture-mechanism.md)
 
 ## 1. 客户端 TS→GIA 验证分层
 
@@ -408,6 +402,12 @@ P0 实施前的窄修复产物 SHA-256 为
 P0 的 Composite 输出分类和 LocalVariable 安全验收。若 fixture 后续要表达“仅条件满足时写入”，应将
 写入语句移入“是”回调，不能依赖分支后的 continuation。
 
+### 地图信号参数测试入口边界
+
+`tests/signal_parameters_test.ts` 依赖目标玩家地图/GIL 中实际注册的信号定义。信号名称、参数和节点 ID
+不是跨玩家、跨地图稳定的公共 fixture，因此从普通 `gsts.test.config.ts` 批量入口排除；使用与目标地图
+匹配的 focused 配置验证。该排除不代表信号编解码通过，真实地图信号回归仍需单独记录。
+
 ### `dataTypeConversion` 合法变体边界
 
 > 状态：当前实现
@@ -525,7 +525,38 @@ Composite capture flow，并合并 Timer 事件 flow 的 impl 节点与边；嵌
 `__composite_call__` 和 accessories 递归展开。自动回归证明生成结构；用户已确认 E–H 候选 GIA
 在编辑器/游戏中测试通过。候选文件曾复制到游戏导出根目录，未执行地图注入。
 
-## 5. 测试注意事项
+## 5. 结构化编译诊断
+
+> 状态：当前实现
+> 来源：当前代码实现 + 自动回归
+> 最近校验：2026-07-19
+> 适用范围：gsts 当前编译器诊断；未进行注入或游戏内验证
+
+编译器 warning 通过 `src/diagnostics.ts` 统一收集，再由文本输出和 JSON 输出消费。当前结构化字段包括：
+
+- `code`、`severity`、`source`（`user` / `generated` / `system`）；
+- `graphId` / `graphName`、`entryFile`、`nodeId` / `nodeType`；
+- `composite`、`relatedNodes`、源码 `location`（能够取得时）；
+- 面向修复的 `suggestion`。
+
+当前已接入：
+
+- `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION`：默认续接只使用 `OutFlow[0]` 时报告具体节点和显式 wiring 修复方式；
+- `GSTS-RAW-ARG-NOT-RUNTIME-VALUE`：`asRuntimeValue()` 收到普通 JS 值时说明 runtime value 与原生 `number`/`boolean` 等类型的区别，并禁止使用 `any` 或 `as unknown as value` 绕过；
+- Timer 事件节点的来源标记为 `generated`，普通分支节点保持 `user`，不会按节点类型全局屏蔽 warning。
+
+CLI 支持：
+
+```bash
+npm run build
+node ./bin/gsts.mjs -c gsts.config.ts --noinject --warnings-json dist/warnings.json
+node ./bin/gsts.mjs -c gsts.config.ts --noinject --strict-warnings
+```
+
+`--warnings-json` 输出与控制台相同的诊断对象数组；`--strict-warnings` 在存在编译 warning 时以非零状态结束。网络公告/更新检查失败仍属于 CLI 外部检查，不会伪装成编译器 warning。当前回归为 `tests/diagnostics_test.ts`、`tests/composite/test-runtime-value-adapter.ts` 和
+`tests/composite/test-multi-outflow-default-continuation-warning.ts`。这些自动回归证明诊断结构和编译期行为，不等同于 GIA 导入或游戏行为验证。
+
+## 6. 测试注意事项
 
 ### `// @ts-nocheck`
 

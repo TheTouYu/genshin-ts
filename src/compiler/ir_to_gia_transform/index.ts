@@ -348,6 +348,31 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     }
   }
 
+  const ensureTypedPin = (giaNode: GiaNode, kind: 3 | 4, index: number, type: string) => {
+    if (giaNode.pins.some((pin) => pin.kind === kind && pin.index === index)) return
+    const pin = new Pin(giaNode.ConcreteId!, kind, index)
+    const baseTypes: Record<
+      string,
+      'Bol' | 'Int' | 'Flt' | 'Str' | 'Vec' | 'Gid' | 'Ety' | 'Fct' | 'Cfg' | 'Pfb'
+    > = {
+      bool: 'Bol', int: 'Int', float: 'Flt', str: 'Str', vec3: 'Vec', guid: 'Gid',
+      entity: 'Ety', faction: 'Fct', config_id: 'Cfg', prefab_id: 'Pfb'
+    }
+    const listType = type.endsWith('_list')
+    const base = listType ? baseTypes[type.slice(0, -5)] : baseTypes[type]
+    if (base) pin.setType(listType ? { t: 'l', i: { t: 'b', b: base } } : { t: 'b', b: base })
+    giaNode.pins.push(pin)
+  }
+
+  const ensureIRConnectionPins = (giaNode: GiaNode, irNode: IRNode) => {
+    for (const [index, arg] of (irNode.args ?? []).entries()) {
+      if (arg && arg.type !== 'conn') ensureTypedPin(giaNode, 3, index, arg.type)
+      else if (arg?.type === 'conn') ensureTypedPin(giaNode, 3, index, arg.value.type)
+    }
+    const outputs = connIndex.get(irNode.id)
+    outputs?.forEach((info, index) => ensureTypedPin(giaNode, 4, index, info.type))
+  }
+
   const filterUnkPins = (giaNode: GiaNode) => {
     normalizeOrdinaryVendorPins(giaNode as any)
   }
@@ -550,6 +575,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     if (!applySpecialArgs(nodeType, giaNode, irNode)) {
       applyGenericArgs(nodeType, giaNode, irNode)
     }
+    ensureIRConnectionPins(giaNode, irNode)
 
     filterUnkPins(giaNode)
 

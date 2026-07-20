@@ -5,7 +5,7 @@ import { guid } from 'genshin-ts/runtime/value'
 // gsts.f._3dVectorAddition([1, 2, 3], [4, 5, 6])
 
 g.server({
-  id: 1073741825
+  id: 1073741912
 }).on('whenEntityIsCreated', (evt, f) => {
   gsts.f._3dVectorAddition([1, 2, 3], [4, 5, 6])
   if (evt.eventSourceGuid === new guid(455)) {

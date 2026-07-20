@@ -171,7 +171,12 @@ export function asRuntimeValue<T extends value>(input: T): T
 export function asRuntimeValue(input: unknown): value
 export function asRuntimeValue(input: unknown): value {
   if (!(input instanceof value)) {
-    throw new Error('[error] asRuntimeValue() expects a DSL value returned by f.* or asType()')
+    const received = input === null ? 'null' : typeof input
+    throw new Error(
+      `[error] GSTS-RAW-ARG-NOT-RUNTIME-VALUE: asRuntimeValue() expected a DSL runtime value ` +
+        `(value returned by f.* or asType()), received ${received}. Do not use any or an ` +
+        '`as unknown as value` cast; wrap the value-producing expression with asRuntimeValue().'
+    )
   }
   return input
 }

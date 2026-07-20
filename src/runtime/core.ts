@@ -1,4 +1,5 @@
 import { EnumerationType } from '../definitions/enum.js'
+import { diagnosticSourceForNode, reportDiagnostic } from '../diagnostics.js'
 import type { ServerEventPayloadsByMode } from '../definitions/events-payload-mode.js'
 import type { ServerEventPayloads } from '../definitions/events-payload.js'
 import {
@@ -851,11 +852,18 @@ export class MetaCallRegistry {
           const suggestion = outflow.owner?.startsWith('composite ')
             ? 'Use connectOutFlow(result, index, callback) or declareDetached() + f.link() to wire each intended branch explicitly.'
             : 'Move code intended for each branch into the corresponding branch callback, or use f.node()/f.link() for explicit flow wiring.'
-          console.warn(
-            `[warning] GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION: ${owner}has multiple execution ` +
-              `outflows; simple sequential continuation uses OutFlow[0] only. Unused outflow: ` +
-              `${unused.join(', ')}. ${suggestion}`
-          )
+          reportDiagnostic({
+            code: 'GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION',
+            severity: 'warning',
+            source: diagnosticSourceForNode(outflow.owner),
+            message: `${owner}has multiple execution outflows; simple sequential continuation uses ` +
+              `OutFlow[0] only. Unused outflow: ${unused.join(', ')}.`,
+            suggestion,
+            graphId: this.graphId,
+            graphName: this.graphName,
+            nodeId: fromNodeId,
+            nodeType: outflow.owner
+          })
         }
         sourceIndex = 0
       }
@@ -1048,12 +1056,20 @@ export class MetaCallRegistry {
     const warningKey = `${nodeId}:${metadata.owner}`
     if (!this.warnedMultiOutflowContinuations.has(warningKey)) {
       this.warnedMultiOutflowContinuations.add(warningKey)
-      console.warn(
-        `[warning] GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION: node "${nodeType}" has multiple ` +
-          `execution outflows; simple sequential continuation uses OutFlow[0] only. ` +
-          `Unused outflows: ${unused.join(', ')}. Move code intended for each branch into the ` +
-          `corresponding branch callback, or use f.node()/f.link() for explicit flow wiring.`
-      )
+      reportDiagnostic({
+        code: 'GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION',
+        severity: 'warning',
+        source: diagnosticSourceForNode(nodeType),
+        message: `node "${nodeType}" has multiple execution outflows; simple sequential continuation ` +
+          `uses OutFlow[0] only. Unused outflows: ${unused.join(', ')}.`,
+        suggestion:
+          'Move code intended for each branch into the corresponding branch callback, or use ' +
+          'f.node()/f.link() for explicit flow wiring.',
+        graphId: this.graphId,
+        graphName: this.graphName,
+        nodeId,
+        nodeType
+      })
     }
 
     const ctx = this.getCurrentExecContext(current)

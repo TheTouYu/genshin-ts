@@ -26,12 +26,7 @@ npx tsx bin/gsts.mjs -c gsts.test.config.ts
 #   dist/tests/<name>.gia     ← Stage 3
 ```
 
-或直接运行示例脚本一步到位：
-
-```bash
-npx tsx tests/composite/demo_addsub2.ts
-# 输出 dist/tests/demo_addsub2.json + .gia
-```
+旧版曾有一个一步到位的 `demo_addsub2.ts` 示例脚本，现已删除；下文的 JSON/GIA 结构仅保留作历史说明。当前请使用对应的 focused harness 生成产物。
 
 ### 1.2 JSON 文件整体结构
 
@@ -52,7 +47,7 @@ IR JSON (数组，每个元素是一个 IRDocument)
 
 ## 2. 主图节点（nodes）— 调用方视角
 
-以 `demo_addsub2` 的 JSON 为例：
+以下仍以已删除的历史 `demo_addsub2` JSON 为例：
 
 ```json
 "nodes": [
@@ -295,8 +290,7 @@ compositePins 映射  完全一致                       参考基准
 对比示例：
 
 ```bash
-# gsts 生成 → GIA
-npx tsx tests/composite/demo_addsub2.ts
+# 历史命令：demo_addsub2.ts 已删除；请改用对应的 focused harness 生成 GIA。
 
 # 解码查看
 npx tsx -e "

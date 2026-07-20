@@ -11,7 +11,7 @@ assert.ok(asRuntimeValue(typedFloat) instanceof float)
 
 assert.throws(
   () => asRuntimeValue(1.5),
-  /asRuntimeValue\(\) expects a DSL value returned by f\.\* or asType\(\)/
+  /GSTS-RAW-ARG-NOT-RUNTIME-VALUE/
 )
 
 console.log('PASS runtime value adapter')

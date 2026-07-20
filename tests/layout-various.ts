@@ -1,13 +1,16 @@
 // 各种flow — 对应编辑器"各种flow.gia"
 // 多复合节点 + 不同内部拓扑的 impl 图
 import { g } from 'genshin-ts/runtime/core'
+import { str } from 'genshin-ts/runtime/value'
 
 // 复合A：线性链（类似各种flow.gia acc[7] 的线性拓扑）
 const compLinear = g.defineComposite('线性复合', {
   inputs: {}, outputs: {},
+  outflows: ['完成'],
   build(_inputs, f) {
     f.printString('第一')
-    f.printString('第二')
+    const second = f.registerExecNode('print_string', [new str('第二')])
+    f.outflow('完成', second, 0)
     return {}
   }
 })
@@ -39,8 +42,10 @@ const compMultiOut = g.defineComposite('多出口复合', {
 // 复合D：单节点复合
 const compSingle = g.defineComposite('单节点复合', {
   inputs: {}, outputs: {},
+  outflows: ['完成'],
   build(_inputs, f) {
-    f.printString('单一')
+    const single = f.registerExecNode('print_string', [new str('单一')])
+    f.outflow('完成', single, 0)
     return {}
   }
 })

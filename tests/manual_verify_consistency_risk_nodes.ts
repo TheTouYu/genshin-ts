@@ -6,7 +6,7 @@ import { g } from 'genshin-ts/runtime/core'
 // Inject this graph, export it back from the editor, and compare the listed node inputs.
 
 g.server({
-  id: 1073741825,
+  id: 1073741911,
   lang: 'en',
   mode: 'beyond'
 })

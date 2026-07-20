@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { clearTimeout, setTimeout } from 'node:timers'
+
+import { readDiagnosticsDir } from '../diagnostics.js'
 
 import chokidar from 'chokidar'
 import { program } from 'commander'
@@ -42,6 +45,8 @@ type GlobalOptions = {
   lang?: string
   /** Opt-in Stage 3 shared vendor-impl Graph beta (does not flip production default). */
   stage3SharedImplBeta?: boolean
+  strictWarnings?: boolean
+  warningsJson?: string
 }
 
 const ui = createUi()
@@ -228,6 +233,21 @@ async function loadGstsConfigCached(cfgPath: string): Promise<GstsConfig> {
   const cfg = await loadGstsConfig(cfgPath)
   if (mtimeMs != null) configCache.set(cfgPath, { mtimeMs, cfg })
   return cfg
+}
+
+function finalizeDiagnostics(opts: GlobalOptions, diagnosticsDir: string) {
+  const diagnostics = readDiagnosticsDir(diagnosticsDir)
+  if (opts.warningsJson) {
+    const output = path.resolve(opts.warningsJson)
+    fs.mkdirSync(path.dirname(output), { recursive: true })
+    fs.writeFileSync(output, JSON.stringify(diagnostics, null, 2) + '\n', 'utf8')
+    ui.ok(output)
+  }
+  if (opts.strictWarnings && diagnostics.some((diagnostic) => diagnostic.severity === 'warning')) {
+    throw new Error(
+      `[error] strict-warnings: ${diagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length} warning(s) found`
+    )
+  }
 }
 
 function resolveConfigPath(opts: GlobalOptions): string {
@@ -528,6 +548,8 @@ function buildDevWatchGlobs(
 }
 
 async function runBatch(opts: GlobalOptions, hooks?: RunBatchHooks) {
+  const diagnosticsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsts-warnings-'))
+  process.env.GSTS_WARNINGS_DIR = diagnosticsDir
   const loaded = await loadConfigOrNull(opts)
   if (!loaded) {
     throw new Error(
@@ -628,6 +650,7 @@ async function runBatch(opts: GlobalOptions, hooks?: RunBatchHooks) {
     ui.warn(t('warnNoInject'))
   }
 
+  finalizeDiagnostics(opts, diagnosticsDir)
   hooks?.onGiaPaths?.(giaAll)
 
   return {
@@ -1424,6 +1447,8 @@ function maybeInjectGia(
 }
 
 async function runSingle(file: string, opts: GlobalOptions) {
+  const diagnosticsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsts-warnings-'))
+  process.env.GSTS_WARNINGS_DIR = diagnosticsDir
   const abs = path.resolve(process.cwd(), file)
   if (!existsFile(abs)) throw new Error(`[error] file not found: ${abs}`)
 
@@ -1510,6 +1535,7 @@ async function runSingle(file: string, opts: GlobalOptions) {
     }
   })
   const irPath = resolveIrOutputPath(gsFile)
+  finalizeDiagnostics(opts, diagnosticsDir)
   const signalRegistry = injectCfg
     ? createSignalRegistry(readRegisteredSignalsFromGil(resolveGilTarget(injectCfg).gilPath))
     : undefined
@@ -1532,6 +1558,8 @@ async function main() {
     .option('-c, --config <file>', t('optConfig'))
     .option('--noinject', t('optNoInject'))
     .option('--stage3-shared-impl-beta', t('optStage3SharedImplBeta'))
+    .option('--strict-warnings', 'fail the build when compiler warnings are emitted')
+    .option('--warnings-json <file>', 'write compiler diagnostics as JSON')
     .option('--lang <lang>', t('optLang'))
     .argument('[file]', t('argFile'))
     .showHelpAfterError(t('helpAfterError'))

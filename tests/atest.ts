@@ -14,10 +14,6 @@ g.server({
   const a = list('float')
   const b = list('float', [1, 2, 3])
   // b.toString()
-  const g = dict({
-    1: 2,
-    2: 3
-  })
   const rr = configId(123)
   gsts.f._3dVectorAddition([1, 2, 3], [4, 5, 6])
   // f.createPrefab(123, [1, 2, 3], [4, 5, 6], f.getSelfEntity(), true, 100, [1, 2, 3])

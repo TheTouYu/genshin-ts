@@ -89,6 +89,26 @@ export type ClientExecutionFlowFunctions = {
   arctangent(value: ClientValueHandle | ClientLiteral): ClientValueHandle
   radiansToDegrees(value: ClientValueHandle | ClientLiteral): ClientValueHandle
   degreesToRadians(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  equalInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  greaterThanInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  lessThanInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  lessThanOrEqualInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  greaterThanOrEqualInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  addInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  subtractInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  multiplyInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  divideInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
+  absoluteInt(value: ClientValueHandle | ClientLiteral): ClientValueHandle
+  listLength(list: ClientListValue): ClientValueHandle
+  listIncludes(value: ClientValueHandle | ClientLiteral, list: ClientListValue): ClientValueHandle
+  listMaximum(list: ClientListValue): ClientValueHandle
+  listMinimum(list: ClientListValue): ClientValueHandle
+  filterEntitiesInSphere(radius: ClientValueHandle | ClientLiteral, center: ClientValueHandle | ClientLiteral, relation: ClientValueHandle | ClientLiteral): ClientValueHandle
+  filterEntitiesInSquare(x: ClientValueHandle | ClientLiteral, y: ClientValueHandle | ClientLiteral, z: ClientValueHandle | ClientLiteral, center: ClientValueHandle | ClientLiteral, relation: ClientValueHandle | ClientLiteral): ClientValueHandle
+  getScannedEntity(): ClientValueHandle
+  getScannableEntities(): ClientValueHandle
+  getActiveScanTags(entity: ClientValueHandle): ClientValueHandle
+  randomInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral): ClientValueHandle
   assemblyList(elementType: ValueType, elements: readonly (ClientLiteral | ClientValueHandle)[]): ClientListValue
   sendSignalToServerNodeGraphValues(signalName: string, params: readonly (ClientValueHandle | ClientLiteral | ClientListValue | undefined)[]): void
 }
@@ -365,6 +385,34 @@ class ClientGraphRegistry {
     return this.registerMathNode('degrees_to_radians', 'float', [[value, 'float']])
   }
 
+  private registerVariantNode(type: string, outputType: ValueType, concrete: number, values: readonly (ClientValueHandle | ClientLiteral)[], inputType: ValueType): ClientValueHandle {
+    const result = this.registerDataNode(type, outputType, values.map((value) => this.clientMathValue(value, inputType)))
+    const node = this.nodes.find((candidate) => candidate.id === result.nodeId)
+    if (node) node.clientValues = [{ kind: 'literal', type: 'int', value: concrete }, ...(node.clientValues ?? [])]
+    return result
+  }
+
+  equalInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('equal_int', 'bool', 12, [a, b], 'int') }
+  greaterThanInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('greater_than_int', 'bool', 12, [a, b], 'int') }
+  lessThanInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('less_than_int', 'bool', 12, [a, b], 'int') }
+  lessThanOrEqualInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('less_equal_int', 'bool', 12, [a, b], 'int') }
+  greaterThanOrEqualInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('greater_equal_int', 'bool', 12, [a, b], 'int') }
+  addInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('add_int', 'int', 30, [a, b], 'int') }
+  subtractInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('subtract_int', 'int', 30, [a, b], 'int') }
+  multiplyInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('multiply_int', 'int', 30, [a, b], 'int') }
+  divideInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('divide_int', 'int', 30, [a, b], 'int') }
+  absoluteInt(value: ClientValueHandle | ClientLiteral) { return this.registerVariantNode('absolute_int', 'int', 32, [value], 'int') }
+  listLength(list: ClientListValue) { return this.registerDataNode('list_length', 'int', [{ kind: 'conn', type: list.type, node_id: list.nodeId, index: list.pinIndex }]) }
+  listIncludes(value: ClientValueHandle | ClientLiteral, list: ClientListValue) { return this.registerQueryWithArgs('list_includes', 'bool', [value, list], ['int', list.type]) }
+  listMaximum(list: ClientListValue) { return this.registerDataNode('list_maximum_int', 'int', [{ kind: 'conn', type: list.type, node_id: list.nodeId, index: list.pinIndex }]) }
+  listMinimum(list: ClientListValue) { return this.registerDataNode('list_minimum_int', 'int', [{ kind: 'conn', type: list.type, node_id: list.nodeId, index: list.pinIndex }]) }
+  filterEntitiesInSphere(radius: ClientValueHandle | ClientLiteral, center: ClientValueHandle | ClientLiteral, relation: ClientValueHandle | ClientLiteral) { return this.registerMathNode('filter_entities_sphere', 'entity_list', [[radius, 'float'], [center, 'vec3'], [relation, 'int']]) }
+  filterEntitiesInSquare(x: ClientValueHandle | ClientLiteral, y: ClientValueHandle | ClientLiteral, z: ClientValueHandle | ClientLiteral, center: ClientValueHandle | ClientLiteral, relation: ClientValueHandle | ClientLiteral) { return this.registerMathNode('filter_entities_square', 'entity_list', [[x, 'float'], [y, 'float'], [z, 'float'], [center, 'vec3'], [relation, 'int']]) }
+  getScannedEntity() { return this.registerDataNode('get_scanned_entity', 'entity', undefined, 1) }
+  getScannableEntities() { return this.registerDataNode('get_scannable_entities', 'entity_list') }
+  getActiveScanTags(entity: ClientValueHandle) { return this.registerEntityQuery('get_active_scan_tags', 'config_id', entity, 'getActiveScanTags') }
+  randomInt(a: ClientValueHandle | ClientLiteral, b: ClientValueHandle | ClientLiteral) { return this.registerMathNode('random_int', 'int', [[a, 'int'], [b, 'int']]) }
+
   private registerQueryWithArgs(
     nodeType: string,
     outputType: ValueType,
@@ -530,6 +578,26 @@ export function createClientGraph(options: ClientGraphOptions) {
         queryIfEntityIsInCombat: (entity) => registry.queryIfEntityIsInCombat(entity),
         queryIfEntityIsOnField: (entity) => registry.queryIfEntityIsOnField(entity),
         getOwnerPlayer: (character) => registry.getOwnerPlayer(character),
+        equalInt: (a, b) => registry.equalInt(a, b),
+        greaterThanInt: (a, b) => registry.greaterThanInt(a, b),
+        lessThanInt: (a, b) => registry.lessThanInt(a, b),
+        lessThanOrEqualInt: (a, b) => registry.lessThanOrEqualInt(a, b),
+        greaterThanOrEqualInt: (a, b) => registry.greaterThanOrEqualInt(a, b),
+        addInt: (a, b) => registry.addInt(a, b),
+        subtractInt: (a, b) => registry.subtractInt(a, b),
+        multiplyInt: (a, b) => registry.multiplyInt(a, b),
+        divideInt: (a, b) => registry.divideInt(a, b),
+        absoluteInt: (value) => registry.absoluteInt(value),
+        listLength: (list) => registry.listLength(list),
+        listIncludes: (value, list) => registry.listIncludes(value, list),
+        listMaximum: (list) => registry.listMaximum(list),
+        listMinimum: (list) => registry.listMinimum(list),
+        filterEntitiesInSphere: (radius, center, relation) => registry.filterEntitiesInSphere(radius, center, relation),
+        filterEntitiesInSquare: (x, y, z, center, relation) => registry.filterEntitiesInSquare(x, y, z, center, relation),
+        getScannedEntity: () => registry.getScannedEntity(),
+        getScannableEntities: () => registry.getScannableEntities(),
+        getActiveScanTags: (entity) => registry.getActiveScanTags(entity),
+        randomInt: (a, b) => registry.randomInt(a, b),
         dotVector3: (a, b) => registry.dotVector3(a, b),
         crossVector3: (a, b) => registry.crossVector3(a, b),
         splitVector3: (vector) => registry.splitVector3(vector),

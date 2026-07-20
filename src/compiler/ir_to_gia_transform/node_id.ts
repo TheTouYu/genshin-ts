@@ -121,6 +121,15 @@ function lookupTypedNodeId(
   const direct = nodeIdLower.get(`${lower}__${suffix}`)
   if (direct) return direct
 
+  // Vendor node IDs abbreviate config_id/prefab_id as config/prefab, including list variants.
+  // IR value types retain the public API names, so try the vendor spelling before falling back
+  // to the element suffix lookup.
+  const vendorSuffix = suffix.replace('_config_id', '_config').replace('_prefab_id', '_prefab')
+  if (vendorSuffix !== suffix) {
+    const vendorTyped = nodeIdLower.get(`${lower}__${vendorSuffix}`)
+    if (vendorTyped) return vendorTyped
+  }
+
   // 2) Fallback for list types: try element suffix (e.g. clear_list__int)
   if (isListValueSuffix(suffix)) {
     const elem = suffix.slice(5)
@@ -211,9 +220,13 @@ function lookupTypedNodeIdByKV(
   kv: KVSuffix,
   nodeIdLower: Map<string, number>
 ): number | undefined {
+  const key = `${kv.k}_${kv.v}`
+  const normalizedKey = key.replaceAll('config_id', 'config').replaceAll('prefab_id', 'prefab')
   return (
-    nodeIdLower.get(`${lower}__${kv.k}_${kv.v}`) ??
-    nodeIdLower.get(`${lower}__dict_${kv.k}_${kv.v}`)
+    nodeIdLower.get(`${lower}__${key}`) ??
+    nodeIdLower.get(`${lower}__${normalizedKey}`) ??
+    nodeIdLower.get(`${lower}__dict_${key}`) ??
+    nodeIdLower.get(`${lower}__dict_${normalizedKey}`)
   )
 }
 

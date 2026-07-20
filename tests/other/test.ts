@@ -1,7 +1,7 @@
 import { SortBy } from 'genshin-ts/definitions/enum'
 import { g } from 'genshin-ts/runtime/core'
 
-g.server()
+g.server({ id: 1073741913 })
   .on('whenEntityIsCreated', (evt, f) => {
     f.printString('WhenNodeGraphVariableChanges fired')
 
@@ -18,7 +18,7 @@ g.server()
     f.listSorting(l, SortBy.Descending)
     const d = f.assemblyDictionary([{ k: 1, v: 'test' }])
     void f.getListOfKeysFromDictionary(d)
-    void f.createDictionary(f.assemblyList([1, 2, 3]), f.assemblyList([4, 5, 6]))
+    void f.createDictionary(f.assemblyList([1, 2, 3], 'int'), f.assemblyList([4, 5, 6], 'float'))
     f.mountLoopingSpecialEffect(
       124,
       f.queryEntityByGuid(evt.eventSourceGuid),

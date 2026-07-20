@@ -2,6 +2,7 @@
 // 分支.gia: event(分支条件)→2个复合调用
 // 分支2.gia: seq→[comp→seq, comp→seq] 双链并行
 import { g } from 'genshin-ts/runtime/core'
+import { str } from 'genshin-ts/runtime/value'
 
 // ---- 场景A：简单分支扇出（类似分支.gia）----
 const compA = g.defineComposite('分支A', {
@@ -31,16 +32,20 @@ g.server({ name: 'R3分支A', id: 1073741828 })
 // ---- 场景B：双链并行（类似分支2.gia）----
 const compC1 = g.defineComposite('链1复合', {
   inputs: {}, outputs: {},
+  outflows: ['完成'],
   build(_inputs, f) {
-    f.printString('链1')
+    const tail = f.registerExecNode('print_string', [new str('链1')])
+    f.outflow('完成', tail, 0)
     return {}
   }
 })
 
 const compC2 = g.defineComposite('链2复合', {
   inputs: {}, outputs: {},
+  outflows: ['完成'],
   build(_inputs, f) {
-    f.printString('链2')
+    const tail = f.registerExecNode('print_string', [new str('链2')])
+    f.outflow('完成', tail, 0)
     return {}
   }
 })

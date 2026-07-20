@@ -227,7 +227,7 @@ export function resolveNodeIdentity(
       left?.kind === 'scalar' &&
       right?.kind === 'scalar' &&
       left.name === right.name &&
-      (left.name === 'int' || left.name === 'float')
+      nodeIds.has(`${lower}__${left.name}`)
     ) {
       const concreteNodeId = nodeIds.get(`${lower}__${left.name}`)
       if (concreteNodeId === undefined) {
@@ -357,7 +357,9 @@ export function resolveNodeIdentity(
     return { logicalType: node.type, genericNodeId }
   }
 
-  const concreteNodeId = nodeIds.get(`${lower}__${suffix}`)
+  const concreteNodeId =
+    nodeIds.get(`${lower}__${suffix}`) ??
+    nodeIds.get(`${lower}__${suffix.replace('_config_id', '_config').replace('_prefab_id', '_prefab')}`)
   if (concreteNodeId === undefined && (isSetter || isGetter)) {
     recordFallback(context, {
       reason: 'missing-concrete-variant',

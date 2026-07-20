@@ -2,6 +2,7 @@
 // uses a longer data chain: Get Node Graph Variable -> 3D Vector Addition -> Initiate Attack.
 
 import { g } from 'genshin-ts/runtime/core'
+import { str } from 'genshin-ts/runtime/value'
 
 const attackParams = g.defineComposite('R6-C攻击参数数据流', {
   inputs: {
@@ -21,6 +22,7 @@ const attackParams = g.defineComposite('R6-C攻击参数数据流', {
     computedRotationOffset: { type: 'vec3' },
     overwriteAbilityUnitConfig: { type: 'bool' }
   },
+  outflows: ['完成'],
   build(args, f) {
     const abilityUnit = f.dataTypeConversion(args.eventSourceGuid, 'str')
     const locationOffsetA = f._3dVectorAddition(args.locationOffset, args.locationOffsetDelta)
@@ -34,6 +36,8 @@ const attackParams = g.defineComposite('R6-C攻击参数数据流', {
       args.overwriteAbilityUnitConfig,
       args.overwriteAbilityUnitConfigFallback
     )
+    const done = f.registerExecNode('print_string', [new str('R6-C完成')])
+    f.outflow('完成', done, 0)
 
     return {
       abilityUnit,
