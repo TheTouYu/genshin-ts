@@ -348,27 +348,20 @@ g.server({
     f.randomDeckSelectorSelectionList([wiredInt, 13n, 21n], RandomOrder.Random)
     f.randomDeckSelectorSelectionList([34n, 55n])
     f.setPlayerRankScoreChange(player, RankSettlementStatus.Escape, 17n)
-    f.setPlayerRankScoreChange(player, SettlementStatus.Failed, -3n)
+    f.setPlayerRankScoreChange(player, RankSettlementStatus.Failed, -3n)
     const escapeScore = f.getPlayerRankScoreChange(player, RankSettlementStatus.Escape)
-    const legacyVictoryScore = f.getPlayerRankScoreChange(player, SettlementStatus.Victory)
+    const victoryScore = f.getPlayerRankScoreChange(player, RankSettlementStatus.Victory)
     f.printString(f.dataTypeConversion(switchedSkill1, 'str'))
     f.printString(f.dataTypeConversion(switchedSkill2, 'str'))
     f.printString(f.dataTypeConversion(originalBoundSkill, 'str'))
     f.printString(f.dataTypeConversion(escapeScore, 'str'))
-    f.printString(f.dataTypeConversion(legacyVictoryScore, 'str'))
+    f.printString(f.dataTypeConversion(victoryScore, 'str'))
 
-    // Official five-input Remove Unit Status calls, including the entity helper.
-    f.removeUnitStatus(
-      self,
-      configId(700005n),
-      UnitStatusRemovalStrategy.StatusWithFastestStackLoss,
-      UnitStatusRemovalReason.ShieldDepletedToZero,
-      self
-    )
+    // Four-input Remove Unit Status calls, including the entity helper.
+    f.removeUnitStatus(self, configId(700005n), RemovalMethod.StatusWithFastestStackLoss, self)
     self.removeUnitStatus(
       configId(700006n),
-      UnitStatusRemovalStrategy.StatusWithFastestStackLoss,
-      UnitStatusRemovalReason.AffixExpired,
+      RemovalMethod.AllCoexistingStatusesWithTheSameName,
       self
     )
 
@@ -392,11 +385,6 @@ g.server({
     const inputDeviceType = f.getPlayerClientInputDeviceType(player)
     const playerSettlementStatus = f.getPlayerSettlementSuccessStatus(player)
     const factionSettlementStatus = f.getFactionSettlementSuccessStatus(f.queryEntityFaction(self))
-    // Legacy shared status output wired into rank IOC 34 inputs; verifies compatibility wiring.
-    f.setPlayerRankScoreChange(player, playerSettlementStatus, 5n)
-    const wiredLegacyRankScore = f.getPlayerRankScoreChange(player, playerSettlementStatus)
-    f.printString(f.dataTypeConversion(wiredLegacyRankScore, 'str'))
-
     const checks = [
       // Server enum operators remain valid across client-only row subdivisions.
       colorBlendOperator,
@@ -500,12 +488,11 @@ g.server({
     f.printString(f.dataTypeConversion(isLunarBloom, 'str'))
   })
   .on('whenUnitStatusEnds', (evt, f) => {
-    // Real output-to-input wiring for the newly exposed Removal Reason pin.
+    // Removal Reason is an event output, not an input of Remove Unit Status.
     f.removeUnitStatus(
       evt.eventSourceEntity,
       evt.unitStatusConfigId,
-      UnitStatusRemovalStrategy.StatusWithFastestStackLoss,
-      evt.removalReason,
+      RemovalMethod.StatusWithFastestStackLoss,
       evt.removerEntity
     )
     const isAffixExpired = f.enumerationsEqual(

@@ -403,12 +403,14 @@ const staticInputConnectionType = (genericId: number, pinIndex: number) =>
 const serverPinRecordById = new Map<number, (typeof NODE_PIN_RECORDS)[number]>(
   NODE_PIN_RECORDS.map((record) => [record.id, record])
 )
+const HIDDEN_SERVER_PIN_KEYS = new Set(['301:input:3'])
 for (const node of staticMetadata.nodes) {
   for (const pin of node.pins) {
     if (
       (pin.kind !== 'input' && pin.kind !== 'output') ||
       pin.connectionType === undefined ||
-      IMPLICIT_ENUM_SELECTOR_NODE_IDS.has(node.genericId)
+      IMPLICIT_ENUM_SELECTOR_NODE_IDS.has(node.genericId) ||
+      HIDDEN_SERVER_PIN_KEYS.has(`${node.genericId}:${pin.kind}:${pin.index}`)
     ) {
       continue
     }
@@ -511,7 +513,7 @@ assert.deepEqual(fixedMotionRecord?.inputs, [
   'E<1043>',
   'Flt'
 ])
-assert.deepEqual(removeUnitStatusRecord?.inputs, ['Ety', 'Cfg', 'E<18>', 'E<17>', 'Ety'])
+assert.deepEqual(removeUnitStatusRecord?.inputs, ['Ety', 'Cfg', 'E<18>', 'Unk', 'Ety'])
 assert.deepEqual(changePlayerClassRecord?.inputs, ['Ety', 'Cfg', 'E<53>'])
 assert.deepEqual(addCharacterSkillRecord?.inputs, ['Ety', 'Cfg', 'E<30>', 'E<52>'])
 assert.deepEqual(setPlayerRankScoreRecord?.inputs, ['Ety', 'E<34>', 'Int'])
@@ -600,21 +602,9 @@ assert.deepEqual(
   'randomDeckSelectorSelectionList must expose Sort By and preserve its legacy call'
 )
 
-for (const [methodName, expectedOverloads] of [
-  [
-    'setPlayerRankScoreChange',
-    [
-      ['PlayerEntity', 'RankSettlementStatus', 'IntValue'],
-      ['PlayerEntity', 'SettlementStatus', 'IntValue']
-    ]
-  ],
-  [
-    'getPlayerRankScoreChange',
-    [
-      ['PlayerEntity', 'RankSettlementStatus'],
-      ['PlayerEntity', 'SettlementStatus']
-    ]
-  ]
+for (const [methodName, expectedParameters] of [
+  ['setPlayerRankScoreChange', ['PlayerEntity', 'RankSettlementStatus', 'IntValue']],
+  ['getPlayerRankScoreChange', ['PlayerEntity', 'RankSettlementStatus']]
 ] as const) {
   const overloads: ts.MethodDeclaration[] = serverFunctionsClass.members.filter(
     (member): member is ts.MethodDeclaration =>
@@ -623,12 +613,22 @@ for (const [methodName, expectedOverloads] of [
       member.name.text === methodName &&
       !member.body
   )
+  assert.equal(
+    overloads.length,
+    0,
+    `${methodName} must not accept the incompatible SettlementStatus type`
+  )
+  const implementation: ts.MethodDeclaration | undefined = serverFunctionsClass.members.find(
+    (member): member is ts.MethodDeclaration =>
+      ts.isMethodDeclaration(member) &&
+      ts.isIdentifier(member.name) &&
+      member.name.text === methodName &&
+      !!member.body
+  )
   assert.deepEqual(
-    overloads.map((member) =>
-      member.parameters.map((parameter) => parameter.type?.getText(nodesSourceFile))
-    ),
-    expectedOverloads,
-    `${methodName} must distinguish rank settlement status and preserve its legacy overload`
+    implementation?.parameters.map((parameter) => parameter.type?.getText(nodesSourceFile)),
+    expectedParameters,
+    `${methodName} must use RankSettlementStatus exclusively`
   )
 }
 
@@ -642,7 +642,7 @@ const removeUnitStatusOverloads = serverFunctionsClass.members.filter(
 assert.deepEqual(
   removeUnitStatusOverloads,
   [],
-  'removeUnitStatus must not preserve its obsolete four-input overload'
+  'removeUnitStatus must remain a direct four-input API'
 )
 const removeUnitStatusMethod = serverFunctionsClass.members.find(
   (member): member is ts.MethodDeclaration =>
@@ -653,14 +653,8 @@ const removeUnitStatusMethod = serverFunctionsClass.members.find(
 )
 assert.deepEqual(
   removeUnitStatusMethod?.parameters.map((parameter) => parameter.type?.getText(nodesSourceFile)),
-  [
-    'EntityValue',
-    'ConfigIdValue',
-    'UnitStatusRemovalStrategy',
-    'UnitStatusRemovalReason',
-    'EntityValue'
-  ],
-  'removeUnitStatus must require the official five inputs'
+  ['EntityValue', 'ConfigIdValue', 'RemovalMethod', 'EntityValue'],
+  'removeUnitStatus must expose four public inputs and keep the hidden physical pin internal'
 )
 assert.deepEqual(
   [...SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE].sort(),

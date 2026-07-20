@@ -470,16 +470,7 @@ export function parseEnumValue(
   nodeType: string
 ): { enumId: number; enumValue: number } {
   const mapping = ENUM_VALUE_MAPPINGS[value] ?? ENUM_VALUE_LOWER.get(value)
-  if (mapping) {
-    if (
-      index === 1 &&
-      mapping.enumId === ENUM_ID.Settlement_Status &&
-      (nodeType === 'set_player_rank_score_change' || nodeType === 'get_player_rank_score_change')
-    ) {
-      return { enumId: ENUM_ID.Rank_Settlement_Status, enumValue: mapping.enumValue }
-    }
-    return mapping
-  }
+  if (mapping) return mapping
 
   throw new Error(`[error] unknown enum value "${value}" at arg #${index} of ${nodeType}`)
 }

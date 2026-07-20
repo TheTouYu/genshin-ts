@@ -106,6 +106,7 @@ import {
   RandomOrder,
   RankSettlementStatus,
   ReasonForItemChange,
+  RemovalMethod,
   RevivePointSelectionStrategy,
   RoundingMode,
   ScanScoringRules,
@@ -5802,9 +5803,6 @@ export class ServerExecutionFlowFunctions {
    * @param removalMethod All Coexisting Statuses with the Same Name: Removes all statuses applied with this Config ID that share the same nameStatus With Fastest Stack Loss: Removes one stack from the status that loses stacks the fastest
    *
    * 移除方式: 所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态
-   * @param removalReason Reason for removing this Unit Status
-   *
-   * 移除原因: 移除该单位状态的原因
    * @param removerEntity Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph
    *
    * 移除者实体: 决定了该次行为的移除者实体，默认为该节点图所关联的实体
@@ -5812,26 +5810,18 @@ export class ServerExecutionFlowFunctions {
   removeUnitStatus(
     removeTargetEntity: EntityValue,
     unitStatusConfigId: ConfigIdValue,
-    removalMethod: UnitStatusRemovalStrategy,
-    removalReason: UnitStatusRemovalReason,
+    removalMethod: RemovalMethod,
     removerEntity: EntityValue
   ): void {
     const removeTargetEntityObj = parseValue(removeTargetEntity, 'entity')
     const unitStatusConfigIdObj = parseValue(unitStatusConfigId, 'config_id')
     const removalMethodObj = parseValue(removalMethod, 'enumeration')
-    const removalReasonObj = parseValue(removalReason, 'enumeration')
     const removerEntityObj = parseValue(removerEntity, 'entity')
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'remove_unit_status',
-      args: [
-        removeTargetEntityObj,
-        unitStatusConfigIdObj,
-        removalMethodObj,
-        removalReasonObj,
-        removerEntityObj
-      ]
+      args: [removeTargetEntityObj, unitStatusConfigIdObj, removalMethodObj, removerEntityObj]
     })
   }
 
@@ -9373,16 +9363,6 @@ export class ServerExecutionFlowFunctions {
   setPlayerRankScoreChange(
     playerEntity: PlayerEntity,
     settlementStatus: RankSettlementStatus,
-    scoreChange: IntValue
-  ): void
-  setPlayerRankScoreChange(
-    playerEntity: PlayerEntity,
-    settlementStatus: SettlementStatus,
-    scoreChange: IntValue
-  ): void
-  setPlayerRankScoreChange(
-    playerEntity: PlayerEntity,
-    settlementStatus: RankSettlementStatus | SettlementStatus,
     scoreChange: IntValue
   ): void {
     const playerEntityObj = parseValue(playerEntity, 'entity')
@@ -16345,11 +16325,6 @@ export class ServerExecutionFlowFunctions {
   getPlayerRankScoreChange(
     playerEntity: PlayerEntity,
     settlementStatus: RankSettlementStatus
-  ): bigint
-  getPlayerRankScoreChange(playerEntity: PlayerEntity, settlementStatus: SettlementStatus): bigint
-  getPlayerRankScoreChange(
-    playerEntity: PlayerEntity,
-    settlementStatus: RankSettlementStatus | SettlementStatus
   ): bigint {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const settlementStatusObj = parseValue(settlementStatus, 'enumeration')

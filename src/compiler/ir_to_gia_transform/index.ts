@@ -320,6 +320,12 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       if (applyArgsWithNullHole(nodeType, giaNode, irNode, 3, 0)) return true
     }
 
+    // vendor 实测：Remove Unit Status 的 removerEntity 写在 pinIndex=4（pinIndex=3 为隐藏/空 pin）
+    // nodes.ts 侧暴露 4 个参数，这里补一个 null 占位，避免 removerEntity 写入错误的 pin。
+    if (nodeType === 'remove_unit_status') {
+      if (applyArgsWithNullHole(nodeType, giaNode, irNode, 4, 3)) return true
+    }
+
     // 实测：Set Custom Variable 的 triggerEvent 实际写在 pinIndex=4（中间 pinIndex=3 为隐藏/空 pin）
     // nodes.ts 侧只有 4 个参数，这里补一个 null 占位，避免 triggerEvent 写入错误的 pin。
     if (nodeType === 'set_custom_variable') {
@@ -433,6 +439,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       case 'activate_disable_cursor_collision_box':
         return idx + 1 // hole at 0
       case 'set_custom_variable':
+      case 'remove_unit_status':
         return idx >= 3 ? idx + 1 : idx // hole at 3
       case 'create_prefab':
       case 'create_prefab_group':

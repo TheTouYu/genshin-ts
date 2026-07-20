@@ -42,14 +42,13 @@ import type {
   InterruptStatus,
   ItemLootType,
   RankSettlementStatus,
+  RemovalMethod,
   ScanScoringRules,
   SettlementStatus,
   SoundAttenuationMode,
   TopOfStackSkillDestructionType,
   UIControlGroupStatus,
-  UnitStatusAdditionResult,
-  UnitStatusRemovalReason,
-  UnitStatusRemovalStrategy
+  UnitStatusAdditionResult
 } from './enum.js'
 import type { ServerExecutionFlowFunctions, ServerExecutionFlowFunctionsByMode } from './nodes.js'
 
@@ -2426,7 +2425,7 @@ interface EntityHelperFromFirstParam {
    *
    * 分数
    */
-  getPlayerRankScoreChange: (settlementStatus: RankSettlementStatus | SettlementStatus) => bigint
+  getPlayerRankScoreChange: (settlementStatus: RankSettlementStatus) => bigint
 
   /**
    * Returns the Player's Rank-related information
@@ -4138,17 +4137,13 @@ interface EntityHelperFromFirstParam {
    * @param removalMethod All Coexisting Statuses with the Same Name: Removes all statuses applied with this Config ID that share the same nameStatus With Fastest Stack Loss: Removes one stack from the status that loses stacks the fastest
    *
    * 移除方式: 所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态
-   * @param removalReason Reason for removing this Unit Status
-   *
-   * 移除原因: 移除该单位状态的原因
    * @param removerEntity Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph
    *
    * 移除者实体: 决定了该次行为的移除者实体，默认为该节点图所关联的实体
    */
   removeUnitStatus: (
     unitStatusConfigId: ConfigIdValue,
-    removalMethod: UnitStatusRemovalStrategy,
-    removalReason: UnitStatusRemovalReason,
+    removalMethod: RemovalMethod,
     removerEntity: EntityValue
   ) => void
 
@@ -4428,10 +4423,7 @@ interface EntityHelperFromFirstParam {
    *
    * 变化分数
    */
-  setPlayerRankScoreChange: (
-    settlementStatus: RankSettlementStatus | SettlementStatus,
-    scoreChange: IntValue
-  ) => void
+  setPlayerRankScoreChange: (settlementStatus: RankSettlementStatus, scoreChange: IntValue) => void
 
   /**
    * Set the remaining number of revives for the specified Player. When set to 0, the Player cannot revive
@@ -5739,7 +5731,7 @@ interface EntityHelperMethodAliases {
    *
    * 分数
    */
-  rankScoreChange: (settlementStatus: RankSettlementStatus | SettlementStatus) => bigint
+  rankScoreChange: (settlementStatus: RankSettlementStatus) => bigint
 
   /**
    * Set the Player's rank score change based on the settlement status
@@ -5753,10 +5745,7 @@ interface EntityHelperMethodAliases {
    *
    * 变化分数
    */
-  setRankScoreChange: (
-    settlementStatus: RankSettlementStatus | SettlementStatus,
-    scoreChange: IntValue
-  ) => void
+  setRankScoreChange: (settlementStatus: RankSettlementStatus, scoreChange: IntValue) => void
 
   /**
    * Get Player Escape Permission

@@ -1710,7 +1710,8 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Remove Unit Status',
     id: 301,
-    inputs: ['Ety', 'Cfg', 'E<18>', 'E<17>', 'Ety'],
+    // vendor .gia: inputs index 为 0/1/2/4（中间 index=3 为隐藏/空 pin）
+    inputs: ['Ety', 'Cfg', 'E<18>', 'Unk', 'Ety'],
     outputs: []
   },
   {

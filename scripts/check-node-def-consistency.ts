@@ -44,6 +44,7 @@ const ARG_MISMATCH_ALLOWLIST = new Set<string>([
   'activate_disable_pathfinding_obstacle',
   'activate_disable_pathfinding_obstacle_feature',
   'activate_disable_cursor_collision_box',
+  'remove_unit_status',
   'exponentiation'
 ])
 

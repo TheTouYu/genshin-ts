@@ -94911,18 +94911,6 @@
               },
               {
                 "io": "Input Parameter",
-                "name": "Removal Reason",
-                "data_type": "Enumeration",
-                "description": "Reason for removing this Unit Status",
-                "raw": {
-                  "Parameter Type": "Input Parameter",
-                  "Parameter Name": "Removal Reason",
-                  "Type": "Enumeration",
-                  "Description": "Reason for removing this Unit Status"
-                }
-              },
-              {
-                "io": "Input Parameter",
                 "name": "Remover Entity",
                 "data_type": "Entity",
                 "description": "Determines the Remover Entity for this action. Defaults to the Entity associated with this Node Graph",
@@ -105292,18 +105280,6 @@
                   "参数名": "移除方式",
                   "类型": "枚举",
                   "说明": "所有同名并存状态：移除以该配置ID施加的所有同名状态最快丢失叠加层数的状态：移除最快丢失叠加层数的一层状态"
-                }
-              },
-              {
-                "io": "入参",
-                "name": "移除原因",
-                "data_type": "枚举",
-                "description": "移除该单位状态的原因",
-                "raw": {
-                  "参数类型": "入参",
-                  "参数名": "移除原因",
-                  "类型": "枚举",
-                  "说明": "移除该单位状态的原因"
                 }
               },
               {
