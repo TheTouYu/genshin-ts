@@ -16,8 +16,17 @@ import {
   shouldCaptureIdentifier,
   transformExpression
 } from './expr.js'
-import { classifyExpressionSemantics, localValueTypeOf } from './expression_semantics.js'
+import {
+  classifyExpressionSemantics,
+  localValueTypeOf,
+  type StorableLocalValueType
+} from './expression_semantics.js'
 import { isArrayLikeExpression, SUPPORTED_LIST_METHODS } from './list_utils.js'
+import {
+  makeCheckedLocalVariableInit,
+  makeCheckedLocalVariableSet,
+  makeKnownLocalVariableSet
+} from './local_variable_lowering.js'
 import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
 import {
   transformDoStatement,
@@ -128,7 +137,7 @@ function makeLocalVarTypeString(
   env: Env,
   decl: ts.VariableDeclaration,
   plan: VarPlanEntry
-): string {
+): StorableLocalValueType {
   if (decl.initializer && ts.isPropertyAccessExpression(decl.initializer)) {
     if (decl.initializer.name.text === 'length') {
       if (isArrayLikeExpression(env, decl.initializer.expression)) {
@@ -144,6 +153,18 @@ function makeLocalVarTypeString(
       fail(env, decl, `cannot infer list type, please add type annotation`)
     }
     return `${ct}_list`
+  }
+
+  if (plan.localValueType) return plan.localValueType
+  if (plan.semantics.kind === 'composite-result') {
+    fail(
+      env,
+      decl,
+      'cannot store a complete composite result in LocalVariable; select a named output such as result.x'
+    )
+  }
+  if (plan.semantics.kind === 'unsupported') {
+    fail(env, decl, `cannot store value of type ${plan.semantics.typeText} in LocalVariable`)
   }
 
   const base = inferBasicType(env, t)
@@ -601,6 +622,13 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
   const out = new Map<ts.Symbol, VarPlanEntry>()
   for (const [symbol, decl] of decls) {
     const u = ensureUsage(symbol)
+    const semantics = decl.decl.initializer
+      ? classifyExpressionSemantics(env, decl.decl.initializer)
+      : {
+          kind: 'unsupported' as const,
+          typeText: 'undefined',
+          reason: 'declaration has no initializer'
+        }
     let needsLocalVar = false
     if (u.isCollection) {
       if (u.collectionSourceKind === 'copy') {
@@ -618,7 +646,7 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
       } else {
         needsLocalVar = u.modified
       }
-    } else if (u.isBasic) {
+    } else if (localValueTypeOf(semantics)) {
       if (decl.isLet || u.wroteInExec) {
         needsLocalVar = true
       } else {
@@ -632,22 +660,32 @@ function buildVarPlan(env: Env, body: ts.Block): VarPlan {
         // 不支持局部变量的客户端图无法保存一次求值快照。这里保留直接节点连线，
         // 让 transform 成功，并由 gsts/client-repeated-evaluation 提醒重复求值的语义差异。
         needsLocalVar =
-          isClientFMethodAvailable(env, 'initLocalVariable') && (promoteConstReads || promoteRandom)
+          env.graphDocumentType === 'client'
+            ? isClientFMethodAvailable(env, 'initLocalVariable') &&
+              (promoteConstReads || promoteRandom)
+            : promoteConstReads || promoteRandom
       }
     }
-    const semantics = decl.decl.initializer
-      ? classifyExpressionSemantics(env, decl.decl.initializer)
-      : {
-          kind: 'unsupported' as const,
-          typeText: 'undefined',
-          reason: 'declaration has no initializer'
-        }
+    const localValueType = localValueTypeOf(semantics) ?? undefined
+    const storageRequired = u.hasBindingWrite || needsLocalVar
+    if (storageRequired && !localValueType) {
+      if (semantics.kind === 'composite-result') {
+        fail(
+          env,
+          decl.decl,
+          'cannot store a complete composite result in LocalVariable; select a named output such as result.x'
+        )
+      }
+      if (semantics.kind === 'unsupported' && semantics.typeText !== 'any') {
+        fail(env, decl.decl, `cannot store value of type ${semantics.typeText} in LocalVariable`)
+      }
+    }
     out.set(symbol, {
       needsLocalVar,
       isCollection: u.isCollection,
       collectionSourceKind: u.collectionSourceKind,
       semantics,
-      localValueType: localValueTypeOf(semantics) ?? undefined
+      localValueType
     })
   }
 
@@ -1540,9 +1578,10 @@ export function transformBlockStatements(
           flush(buf.splice(0, buf.length))
 
           const typeStr = makeLocalVarTypeString(env, d, p)
-          const initCall = makeFCall(env, 'initLocalVariable', [
-            ts.factory.createStringLiteral(typeStr)
-          ])
+          const initCall =
+            env.graphDocumentType === 'client'
+              ? makeFCall(env, 'initLocalVariable', [ts.factory.createStringLiteral(typeStr)])
+              : makeCheckedLocalVariableInit(env, d, typeStr)
           out.push(
             withSameRange(
               ts.factory.createVariableStatement(
@@ -1571,20 +1610,17 @@ export function transformBlockStatements(
             } else if (ts.isIdentifier(d.initializer) && ts.isIdentifier(d.name)) {
               propagateTimerHandleMeta(env, d.name, d.initializer)
             }
-            out.push(
-              withSameRange(
-                ts.factory.createExpressionStatement(
-                  makeFCall(env, 'setLocalVariable', [
-                    ts.factory.createPropertyAccessExpression(
-                      ts.factory.createIdentifier(name),
-                      'localVariable'
-                    ),
-                    rhs
-                  ])
-                ),
-                d
-              )
+            const localVariable = ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier(name),
+              'localVariable'
             )
+            const setCall =
+              env.graphDocumentType === 'client'
+                ? makeFCall(env, 'setLocalVariable', [localVariable, rhs])
+                : p.isCollection
+                  ? makeKnownLocalVariableSet(env, d, localVariable, rhs, typeStr, typeStr)
+                  : makeCheckedLocalVariableSet(env, d.initializer, localVariable, rhs, typeStr)
+            out.push(withSameRange(ts.factory.createExpressionStatement(setCall), d))
           }
           continue
         }

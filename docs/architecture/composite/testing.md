@@ -75,7 +75,7 @@ OutParam 和数据连线仍然存在；
 1. 最小红灯回归转绿；
 2. 受影响节点族调查；
 3. 主图对照；
-4. DTC、nested capture、sparse input、root/impl parity 等相邻回归；
+4. DTC、nested capture、sparse input、root/impl parity 等相邻回归；其中 `tests/composite/test-composite-sparse-named-input.ts` 还要求父 Composite 输出经类型转换后接入 `print_string` 执行节点，避免仅以纯数据流误判为游戏运行时消费。对应候选 `Beyond_Local_Export/真-测试通过/v2.0/v2.0-composite-sparse-06-4ab1116.gia` 已于 2026-07-21 经用户游戏内测试通过；该游戏结论仅适用于此候选。
 5. legacy 和显式启用 shared vendor 路径；
 6. 生产 TypeScript 改动后运行 `npm run build`，最后运行 `git diff --check`。
 
@@ -494,6 +494,36 @@ done
 ```
 
 自动生成和 trace 只证明编译产物的结构与可追踪性；候选文件导入、注入和游戏行为仍须分开验证。
+
+### Merge 回归：Timer 多输出 Composite 局部变量物化
+
+> 状态：已修复并自动回归
+> 来源：当前代码实现 + 目标玩法工程复现
+> 最近校验：2026-07-21
+> 适用范围：server Stage 1 → GIA 生成；未包含游戏内验证
+
+合并提交 `4ab1116` 曾将 `stmt.ts` 中 server 局部变量初始化/赋值从
+`makeCheckedLocalVariableInit` / `makeCheckedLocalVariableSet` 改为裸的
+`initLocalVariable` / `setLocalVariable`，导致 Timer callback 中完整多输出 Composite 结果被错误规划为
+`initLocalVariable("entity")`，并在 GIA 阶段才以 `Generic parameter not matched` 失败。修复后 server 路径恢复语义检查，完整多输出结果保留为可按命名输出访问的结果容器；只有 `result.x` 等单一输出可以物化为 LocalVariable。
+
+最小回归入口：`tests/stage1_expression_semantics_test.ts` 的
+`assertTimerCompositeOutputContainerPreserved()`，同时覆盖 Timer callback、多输出 Composite、命名输出消费，
+并断言不生成 `initLocalVariable('entity')` 或对完整结果的 `setLocalVariable`。
+
+目标玩法复现：`/home/h/虹猫蓝图七侠传` 的 `src/player_lifecycle.ts`，使用当前工具链构建后，五张 GIA
+均生成成功；命令为：
+
+```bash
+cd /home/h/genshin-ts
+npm run build
+cd /home/h/虹猫蓝图七侠传
+GSTS_LOCALLOW_DIR=/mnt/c/Users/touyu/AppData/LocalLow \
+  node /home/h/genshin-ts/bin/gsts.mjs -c gsts.config.ts --noinject
+```
+
+该命令只证明当前工具链已恢复 GIA 生成，不证明注入或游戏行为；本轮未执行注入。client 图路径保留
+merge 后专用 LocalVariable 逻辑，回归重点是 server Stage 1。
 
 ### Composite build / nested-call Timer 边界回归
 

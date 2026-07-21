@@ -176,7 +176,29 @@ function assertNegativeDiagnostics() {
   )
 }
 
+function assertTimerCompositeOutputContainerPreserved() {
+  const timerSource = `${source}
+
+g.server({ name: 'stage1-timer-composite-capture', id: 1073742194 }).on(
+  'whenEntityIsCreated',
+  (_evt, f) => {
+    setInterval((_timerEvt, timerF) => {
+      const result = timerF.callComposite(multi, { value: scalar })
+      timerF.log(result.x)
+      timerF.log(result.position)
+      timerF.log(result.x)
+    }, 1000)
+  }
+)
+`
+  const output = transformFixture(timerSource)
+  assert.match(output, /const result = timerF\.callComposite\(multi/)
+  assert.doesNotMatch(output, /initLocalVariable\(['"]entity['"]\)/)
+  assert.doesNotMatch(output, /setLocalVariable\(result\.localVariable/)
+}
+
 classifyFixture()
 assertStage1Output()
 assertNegativeDiagnostics()
+assertTimerCompositeOutputContainerPreserved()
 console.log('stage1 expression semantics tests passed')
