@@ -1,10 +1,11 @@
 import ts from 'typescript'
 
+import type { TypeParamAssignment } from './args_from_nodes.js'
 import type { MethodInfo } from './methods.js'
 import type { EnumPickMap } from './picks.js'
+import { SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE } from './server_enum_capabilities.js'
 import { parseTypeSpec, type TypeSpec } from './typespec.js'
 import { nextN, type Ctx } from './values.js'
-import type { TypeParamAssignment } from './args_from_nodes.js'
 
 type ReturnValueSpec =
   | { kind: 'type'; spec: TypeSpec }
@@ -219,6 +220,10 @@ function emitConsume(lines: string[], ctx: Ctx, expr: string, spec: ReturnValueS
     return
   }
   if (spec.kind === 'enum') {
+    if (SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE.has(spec.name)) {
+      lines.push(`// ${expr}: ${spec.name} has no Enumerations Equal concrete node`)
+      return
+    }
     const eq = nextName(ctx, 'enumEq')
     lines.push(`const ${eq} = f.enumerationsEqual(${expr}, ${expr})`)
     emitConsumeType(lines, ctx, eq, { kind: 'primitive', name: 'bool' })

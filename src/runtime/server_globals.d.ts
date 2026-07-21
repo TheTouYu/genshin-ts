@@ -1,7 +1,9 @@
+import type { clientEntity as ClientEntityValue } from '../definitions/client_entity_helpers.js'
 import type { PlayerEntity, StageEntity } from '../definitions/entity_helpers.js'
 import type { ServerEventPayloads } from '../definitions/events-payload.js'
 import type { ServerExecutionFlowFunctions } from '../definitions/nodes.js'
 import type { SignalDefinition, SignalParamValues } from './core.js'
+import type { ClientGraphMode, ClientGraphSubType } from './IR.js'
 import type {
   BoolValue,
   configId,
@@ -27,6 +29,12 @@ import type {
 } from './value.js'
 
 declare global {
+  /** An entity value exposing only client node-graph entity shortcuts. */
+  type clientEntity<
+    T extends ClientGraphSubType = ClientGraphSubType,
+    Mode extends ClientGraphMode = ClientGraphMode
+  > = ClientEntityValue<T, Mode>
+
   /**
    * Returns the original value as a JavaScript expression; the compiler does not perform any processing.
    * Use this to keep JS semantics or bypass node-graph translation.
@@ -45,9 +53,11 @@ declare global {
   /**
    * Convert to int (bigint) for integer-only nodes.
    * Also usable as an explicit integer literal helper instead of bigint syntax (e.g. `int(123)`), though bigint is still recommended.
+   * Float-to-int conversion rounds in server graphs, but truncates toward zero in client graphs.
    *
    * 转换为 int（bigint），用于需要整数的节点。
    * 也可作为整数字面量的显式声明方式替代 bigint 写法（如 `int(123)`），但通常仍推荐使用 bigint。
+   * float 转 int 时，服务器节点图会四舍五入，客户端节点图会向零截尾取整。
    */
   function int(value: IntValue | BoolValue | FloatValue): bigint
   /**
@@ -56,11 +66,11 @@ declare global {
    * `arr[idx(i)]`.
    *
    * `idx(...)` has no runtime effect; it is only used to pass type-checking.
-   * You can apply this automatically via ESLint fix (`gsts/bigint-index-in-server`).
+   * You can apply this automatically via ESLint fix (`gsts/require-bigint-index-wrapper`).
    *
    * If this appears as a warning (not an error), the TypeScript plugin is usually active and
    * bigint is already treated as a valid index type in this scope. In that case, you may disable
-   * `gsts/bigint-index-in-server`.
+   * `gsts/require-bigint-index-wrapper`.
    *
    * If VSCode/Cursor still shows TS2538 (bigint cannot be used as an index type), switch to
    * workspace TypeScript:
@@ -74,10 +84,10 @@ declare global {
    * `arr[idx(i)]`。
    *
    * `idx(...)` 不产生运行时作用，仅用于通过类型检查。
-   * 你可以通过 ESLint 规则（`gsts/bigint-index-in-server`）自动修复直接应用。
+   * 你可以通过 ESLint 规则（`gsts/require-bigint-index-wrapper`）自动修复直接应用。
    *
    * 如果这里显示的是“警告”而不是“错误”，通常说明 TypeScript 插件已生效，
-   * 当前作用域已将 bigint 视作可索引类型；此时可按需禁用 `gsts/bigint-index-in-server`。
+   * 当前作用域已将 bigint 视作可索引类型；此时可按需禁用 `gsts/require-bigint-index-wrapper`。
    *
    * 如果 VSCode/Cursor 仍显示 TS2538（bigint 不能作为索引类型），请切换到工作区 TypeScript：
    * - `typescript.tsdk = "node_modules/typescript/lib"`
@@ -164,6 +174,22 @@ declare global {
   function entity(guidOrEntity: GuidValue | EntityValue | null | 0): entity
 
   /**
+   * Resolve or explicitly narrow an entity for client node graphs:
+   * - `clientEntity(0)` / `clientEntity(null)`: unconnected entity placeholder.
+   * - `clientEntity(guidNumber)`: look up through the current client graph's GUID node.
+   * - `clientEntity(otherEntity)`: retain the same runtime entity while exposing only client shortcuts.
+   *
+   * 获取或显式收窄客户端节点图实体：
+   * - `clientEntity(0)` / `clientEntity(null)`：实体占位，不连接参数引脚。
+   * - `clientEntity(guidNumber)`：通过当前客户端节点图的 GUID 查询节点获取实体。
+   * - `clientEntity(otherEntity)`：保持原实体值，仅开放客户端实体快捷方法。
+   */
+  function clientEntity<T extends ClientGraphSubType, Mode extends ClientGraphMode>(
+    guidOrEntity: ClientEntityValue<T, Mode>
+  ): ClientEntityValue<T, Mode>
+  function clientEntity(guidOrEntity: GuidValue | EntityValue | null | 0): clientEntity
+
+  /**
    * Outputs a string to the log, generally used for logic checks and debugging; In the log, this string prints
    * whenever the logic runs successfully, regardless of whether this Node Graph is toggled
    *
@@ -238,9 +264,11 @@ declare global {
   const self: entity
 
   /**
-   * Unity-style Math helpers (server-only)
+   * Unity-style Math helpers.
+   * Availability varies by graph type and mode; unsupported members report a capability error.
    *
-   * Unity 风格数学工具（仅 server）
+   * Unity 风格数学工具。
+   * 具体成员随节点图类型和模式而变化；不支持的成员会报告能力错误。
    */
   const Mathf: {
     /**
@@ -306,9 +334,11 @@ declare global {
   }
 
   /**
-   * Unity-style random helpers (server-only)
+   * Unity-style random helpers.
+   * Availability varies by graph type and mode; unsupported members report a capability error.
    *
-   * Unity 风格随机工具（仅 server）
+   * Unity 风格随机工具。
+   * 具体成员随节点图类型和模式而变化；不支持的成员会报告能力错误。
    */
   const Random: {
     /**
@@ -327,9 +357,11 @@ declare global {
   }
 
   /**
-   * Unity-style Vector3 helpers (server-only)
+   * Unity-style Vector3 helpers.
+   * Availability varies by graph type and mode; unsupported members report a capability error.
    *
-   * Unity 风格 Vector3 工具（仅 server）
+   * Unity 风格 Vector3 工具。
+   * 具体成员随节点图类型和模式而变化；不支持的成员会报告能力错误。
    */
   const Vector3: {
     /** Zero vector / 零向量 */
@@ -375,9 +407,11 @@ declare global {
   }
 
   /**
-   * Unity-style GameObject helpers (server-only)
+   * Unity-style GameObject helpers.
+   * Availability varies by graph type and mode; unsupported members report a capability error.
    *
-   * Unity 风格 GameObject 工具（仅 server）
+   * Unity 风格 GameObject 工具。
+   * 具体成员随节点图类型和模式而变化；不支持的成员会报告能力错误。
    */
   const GameObject: {
     /**
@@ -733,9 +767,11 @@ declare global {
   function clearInterval(timerName: StrValue): void
 
   /**
-   * Math functions are compiled to node graph equivalents in server scope.
+   * Math functions are compiled to node graph equivalents in node-graph scope.
+   * Client graphs expose the subset backed by their available nodes.
    *
-   * server 作用域内的 Math 会编译为节点图等价实现。
+   * 节点图作用域内的 Math 会编译为节点图等价实现。
+   * 客户端节点图会根据实际可用节点开放其中的子集。
    */
   interface Math {
     /** Absolute value / 绝对值 */

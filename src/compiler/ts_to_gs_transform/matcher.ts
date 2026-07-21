@@ -1,5 +1,12 @@
 import ts from 'typescript'
 
+import {
+  CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE,
+  CLIENT_GRAPH_SUB_TYPE_BY_METHOD
+} from '../../definitions/client_graph_modes.js'
+import { getClientFMethodNameFromAlias } from '../../definitions/client_zh_aliases.js'
+import { SERVER_F_ZH_TO_EN } from '../../definitions/zh_aliases.js'
+import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import type { Env } from './types.js'
 import { isIdentifierText } from './utils.js'
 
@@ -76,6 +83,58 @@ export function isServerOnCall(call: ts.CallExpression, checker: ts.TypeChecker)
   return isServerInstanceExpression(callee.expression, checker, new Set())
 }
 
+export type ClientOnCallInfo = {
+  subType: ClientGraphSubType
+  handler: ts.ArrowFunction | ts.FunctionExpression
+}
+
+type ClientInstanceInfo = Omit<ClientOnCallInfo, 'handler'>
+
+function getClientInstanceInfo(
+  expr: ts.Expression,
+  checker: ts.TypeChecker,
+  seen: Set<ts.Symbol>
+): ClientInstanceInfo | undefined {
+  const target = unwrapExpression(expr)
+  if (ts.isCallExpression(target)) {
+    const callee = target.expression
+    if (
+      ts.isPropertyAccessExpression(callee) &&
+      ts.isIdentifier(callee.expression) &&
+      callee.expression.text === 'g'
+    ) {
+      const subType = CLIENT_GRAPH_SUB_TYPE_BY_METHOD[callee.name.text]
+      if (subType) return { subType }
+    }
+  }
+  if (!ts.isIdentifier(target)) return undefined
+
+  const symbol = checker.getSymbolAtLocation(target)
+  if (!symbol || seen.has(symbol)) return undefined
+  seen.add(symbol)
+  for (const decl of symbol.getDeclarations() ?? []) {
+    if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
+    const info = getClientInstanceInfo(decl.initializer, checker, seen)
+    if (info) return info
+  }
+  return undefined
+}
+
+export function getClientOnCallInfo(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientOnCallInfo | undefined {
+  const callee = call.expression
+  if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== 'on') return undefined
+  const info = getClientInstanceInfo(callee.expression, checker, new Set())
+  if (!info) return undefined
+  const handler = call.arguments[1]
+  if (!handler || (!ts.isArrowFunction(handler) && !ts.isFunctionExpression(handler))) {
+    return undefined
+  }
+  return { ...info, handler }
+}
+
 export function isGstsRootExpression(env: Env, expr: ts.Expression): boolean {
   if (ts.isIdentifier(expr)) return expr.text === env.gstsIdent || expr.text === 'gsts'
   return (
@@ -88,8 +147,11 @@ export function isGstsRootExpression(env: Env, expr: ts.Expression): boolean {
 
 export function isFObjectExpression(env: Env, expr: ts.Expression): boolean {
   if (ts.isIdentifier(expr) && env.fIdent && expr.text === env.fIdent) return true
-  if (ts.isPropertyAccessExpression(expr) && expr.name.text === 'f') {
-    return isGstsRootExpression(env, expr.expression)
+  if (ts.isPropertyAccessExpression(expr) && isGstsRootExpression(env, expr.expression)) {
+    if (expr.name.text === 'f') return true
+    if (env.clientSubType) {
+      return expr.name.text === CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE[env.clientSubType]
+    }
   }
   return false
 }
@@ -101,7 +163,11 @@ export function getFMethodCall(
   const callee = call.expression
   if (!ts.isPropertyAccessExpression(callee)) return null
   if (!isFObjectExpression(env, callee.expression)) return null
-  return { method: callee.name.text, callee }
+  const method = env.clientSubType
+    ? getClientFMethodNameFromAlias(env.clientSubType, callee.name.text)
+    : ((SERVER_F_ZH_TO_EN as Readonly<Record<string, string>>)[callee.name.text] ??
+      callee.name.text)
+  return { method, callee }
 }
 
 export function isFMethodCall(

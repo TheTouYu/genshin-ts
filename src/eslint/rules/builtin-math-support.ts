@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint'
 
+import { CLIENT_MATH_METHODS_BY_SUB_TYPE } from '../../definitions/client_math.js'
 import { isIdentifier } from '../utils/ast.js'
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
@@ -11,7 +12,7 @@ type Options = {
   allowMethods?: string[]
   enforceArgType?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
@@ -19,7 +20,7 @@ const DEFAULTS: Required<Options> = {
   allowMethods: [],
   enforceArgType: true,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -59,7 +60,7 @@ const rule: Rule.RuleModule = {
           allowMethods: { type: 'array', items: { type: 'string' } },
           enforceArgType: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false
@@ -89,6 +90,24 @@ const rule: Rule.RuleModule = {
           node.callee.property?.type === 'Identifier' ? node.callee.property.name : null
         if (!method) return
         if (allowMethods.has(method)) return
+        const clientInfo = scopeIndex.getEnclosingClientScope(node, {
+          includeNestedFunctions: options.includeNestedFunctions
+        })
+        if (clientInfo) {
+          const available = CLIENT_MATH_METHODS_BY_SUB_TYPE[clientInfo.subType]
+          if (!(available as readonly string[]).includes(method)) {
+            const availableText = available.map((name) => `Math.${name}`).join(', ')
+            report(
+              node.callee.property,
+              formatMessage(
+                options.lang,
+                `客户端图 ${clientInfo.subType} 不支持 Math.${method}；可用方法：${availableText}`,
+                `Math.${method} is not supported in client graph ${clientInfo.subType}; available methods: ${availableText}`
+              )
+            )
+            return
+          }
+        }
         const rule = METHOD_RULES[method]
         if (!rule) {
           report(

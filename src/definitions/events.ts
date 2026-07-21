@@ -480,6 +480,42 @@ export const ServerEventMetadata = {
     { name: 'currentPathIndex', typeBase: int, typeName: 'int', isArray: false },
     { name: 'currentReachedWaypointId', typeBase: int, typeName: 'int', isArray: false },
     { name: 'nextWaypointId', typeBase: int, typeName: 'int', isArray: false }
+  ],
+  whenPlayerSActiveControlMotorListChanges: [
+    { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },
+    { name: 'eventSourceGuid', typeBase: guid, typeName: 'guid', isArray: false },
+    {
+      name: 'previousControlMotorEntities',
+      typeBase: entity,
+      typeName: 'entity',
+      isArray: true
+    },
+    {
+      name: 'currentActiveControlMotorEntities',
+      typeBase: entity,
+      typeName: 'entity',
+      isArray: true
+    }
+  ],
+  whenPlayerFollowsControlMotor: [
+    { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },
+    { name: 'eventSourceGuid', typeBase: guid, typeName: 'guid', isArray: false },
+    {
+      name: 'followingControlMotorEntity',
+      typeBase: entity,
+      typeName: 'entity',
+      isArray: false
+    }
+  ],
+  whenPlayerLeavesControlMotor: [
+    { name: 'eventSourceEntity', typeBase: entity, typeName: 'entity', isArray: false },
+    { name: 'eventSourceGuid', typeBase: guid, typeName: 'guid', isArray: false },
+    {
+      name: 'leftControlMotorEntity',
+      typeBase: entity,
+      typeName: 'entity',
+      isArray: false
+    }
   ]
   // === AUTO-GENERATED END ===
 } as const

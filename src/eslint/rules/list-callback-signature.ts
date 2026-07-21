@@ -12,7 +12,7 @@ type Options = {
   enforceInline?: boolean
   enforceParamCount?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
@@ -20,7 +20,7 @@ const DEFAULTS: Required<Options> = {
   enforceInline: true,
   enforceParamCount: true,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -45,7 +45,7 @@ const rule: Rule.RuleModule = {
           enforceInline: { type: 'boolean' },
           enforceParamCount: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

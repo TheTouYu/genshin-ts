@@ -2,12 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { t } from '../i18n/index.js'
+import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import type {
   Argument,
   ClientIRDocument,
   ClientNode,
-  CompositeCallMeta,
-  CompositeDefIR,
   ConnectionArgument,
   IRDocument,
   NextConnection,
@@ -24,6 +23,7 @@ type IrSource = {
 
 type AnyIRDocument = ServerIRDocument | ClientIRDocument
 type AnyIRNode = ServerNode | ClientNode
+type AnyGraphInfo = IRDocument['graph']
 
 type GstsMergeMeta = {
   merged: true
@@ -42,10 +42,6 @@ function isMergedMarker(v: unknown): boolean {
   const meta = v.__gsts
   if (!isRecord(meta)) return false
   return meta.merged === true
-}
-
-function isFiniteNumber(v: unknown): v is number {
-  return typeof v === 'number' && Number.isFinite(v)
 }
 
 function sanitizeFileName(name: string): string {
@@ -202,53 +198,20 @@ function remapNodeIdsInNode(node: AnyIRNode, map: Map<number, number>) {
   if (node.next?.length) node.next = node.next.map((n) => remapNextConn(n, map))
 }
 
-function compositeDefinitionSignature(def: CompositeDefIR): string {
-  const { id: _id, ...withoutId } = def
-  return JSON.stringify(withoutId)
-}
-
-function rewriteCompositeIdInNode(node: ServerNode, ids: Map<number, number>) {
-  if (node.type === '__composite_call__') {
-    const arg = node.args?.[0]
-    if (arg && arg.type !== 'conn' && typeof arg.value === 'number') {
-      arg.value = ids.get(arg.value) ?? arg.value
-    }
+function normalizeGraphModeCompatibility(a: AnyGraphInfo, b: AnyGraphInfo) {
+  const ma = a.mode
+  const mb = b.mode
+  if (ma && mb && ma !== mb) {
+    throw new Error(
+      t(a.type === 'server' ? 'err_mergeServerModeMismatch' : 'err_mergeClientModeMismatch', {
+        id: String(a.id),
+        a: String(ma),
+        b: String(mb)
+      })
+    )
   }
-}
-
-function remapCompositeIds(doc: IRDocument, ids: Map<number, number>) {
-  if (doc.graph.type !== 'server') return
-  const serverDoc = doc as ServerIRDocument
-  for (const node of serverDoc.nodes ?? []) rewriteCompositeIdInNode(node, ids)
-  for (const def of serverDoc.compositeDefs ?? []) {
-    def.id = ids.get(def.id) ?? def.id
-    for (const node of def.implNodes) rewriteCompositeIdInNode(node, ids)
-  }
-  for (const call of (serverDoc.compositeCalls ?? []) as CompositeCallMeta[]) {
-    call.compositeId = ids.get(call.compositeId) ?? call.compositeId
-  }
-}
-
-function allocateCompositeIds(docs: { doc: IRDocument; source: string }[]) {
-  const used = new Map<number, { signature: string; source: string }>()
-  let nextId = 2000000000
-  for (const { doc, source } of docs) {
-    if (doc.graph.type !== 'server') continue
-    const ids = new Map<number, number>()
-    for (const def of (doc as ServerIRDocument).compositeDefs ?? []) {
-      const signature = compositeDefinitionSignature(def)
-      const previous = used.get(def.id)
-      if (!previous) {
-        used.set(def.id, { signature, source })
-        continue
-      }
-      if (previous.signature === signature) continue
-      while (used.has(nextId)) nextId++
-      ids.set(def.id, nextId)
-      used.set(nextId, { signature, source })
-      nextId++
-    }
-    if (ids.size) remapCompositeIds(doc, ids)
+  if (!ma && mb) {
+    a.mode = mb
   }
 }
 
@@ -256,8 +219,19 @@ function normalizeGraphCompatibility(base: IRDocument, next: IRDocument, _source
   const a = base.graph
   const b = next.graph
   if (a.type !== b.type) {
-    throw new Error(t('err_mergeGraphTypeMismatch', { a: String(a.type), b: String(b.type) }))
+    throw new Error(
+      t('err_mergeGraphIdTypeCollision', {
+        id: String(resolveGraphIdForGraph(a)),
+        a: String(a.type),
+        b: String(b.type)
+      })
+    )
   }
+  // server/client 都遵守同一条 mode 规则：
+  // - 双方都有 mode 时必须一致
+  // - 只有一方有 mode 时，用显式填写的一方补齐合并结果
+  normalizeGraphModeCompatibility(a, b)
+
   if (a.type === 'server' && b.type === 'server') {
     // 规则：
     // - 若只有一个显式填写 sub_type：用填写的那个
@@ -276,23 +250,19 @@ function normalizeGraphCompatibility(base: IRDocument, next: IRDocument, _source
     if (!sa && sb) {
       a.sub_type = sb
     }
-
-    // 规则：
-    // - 若只有一个显式填写 mode：用填写的那个
-    // - 若多个显式填写且不一致：报错
-    const ma = a.mode
-    const mb = b.mode
-    if (ma && mb && ma !== mb) {
+    return
+  }
+  if (a.type === 'client' && b.type === 'client') {
+    const sa = a.sub_type
+    const sb = b.sub_type
+    if (sa !== sb) {
       throw new Error(
-        t('err_mergeServerModeMismatch', {
+        t('err_mergeClientSubTypeMismatch', {
           id: String(a.id),
-          a: String(ma),
-          b: String(mb)
+          a: String(sa),
+          b: String(sb)
         })
       )
-    }
-    if (!ma && mb) {
-      a.mode = mb
     }
   }
 }
@@ -320,12 +290,10 @@ export function mergeIrJsonFilesByGraphId(params: {
     })
   }
 
-  allocateCompositeIds(items.map((it) => ({ doc: it.doc, source: it.sourceJsonPath })))
-
   const groups = new Map<number, IrSource[]>()
   for (const it of items) {
-    // 用户未指定 id 时，运行时默认会落到 1073741825；合并也按同样规则分组。
-    const gid = isFiniteNumber(it.doc.graph.id) ? it.doc.graph.id : 1073741825
+    // 用户未指定 id 时，按节点图类型使用默认 id；合并也按同样规则分组。
+    const gid = resolveGraphIdForGraph(it.doc.graph)
     const arr = groups.get(gid) ?? []
     arr.push(it)
     groups.set(gid, arr)
@@ -353,6 +321,13 @@ export function mergeIrJsonFilesByGraphId(params: {
     const base = deepClone(ordered[0].doc) as AnyIRDocument
     for (const it of ordered.slice(1)) {
       normalizeGraphCompatibility(base, it.doc, it.sourceJsonPath)
+    }
+    if (base.graph.type === 'client') {
+      throw new Error(
+        t('err_mergeDuplicateClientGraphId', {
+          id: String(graphId)
+        })
+      )
     }
 
     const topDir = pickTopmostDir(
@@ -416,15 +391,6 @@ export function mergeIrJsonFilesByGraphId(params: {
     const mergedVars = mergeVariablesOrThrowByName(varsAfterRename)
     if (mergedVars?.length) base.variables = mergedVars
     base.nodes = mergedNodes
-
-    const mergedCompositeDefs = new Map<number, CompositeDefIR>()
-    for (const it of ordered) {
-      for (const def of (it.doc as ServerIRDocument).compositeDefs ?? []) {
-        mergedCompositeDefs.set(def.id, deepClone(def))
-      }
-    }
-    if (mergedCompositeDefs.size)
-      (base as ServerIRDocument).compositeDefs = [...mergedCompositeDefs.values()]
 
     const outJsonPath = path.join(topDir, `${fileBaseName}.json`)
     const sourceJsonPaths = [...new Set(ordered.map((x) => x.sourceJsonPath))]

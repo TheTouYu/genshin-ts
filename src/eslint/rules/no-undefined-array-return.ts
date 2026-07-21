@@ -13,7 +13,7 @@ type Options = {
   allowNonNullAssertion?: boolean
   allowGuardedUse?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
@@ -22,7 +22,7 @@ const DEFAULTS: Required<Options> = {
   allowNonNullAssertion: true,
   allowGuardedUse: false,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -52,7 +52,7 @@ const rule: Rule.RuleModule = {
           allowNonNullAssertion: { type: 'boolean' },
           allowGuardedUse: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

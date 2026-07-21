@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.2.0
+
+** This release contains potentially breaking changes. Please read the changelog before updating. **
+
+- All seven client node graph types are now supported, with APIs similar to server node graphs. For example, `g.characterSkill().on('start', (_, f) => {})` defines a Character Skill graph. Hover over the relevant methods and events for more details.
+- Added a range of server nodes and events introduced in recent game updates.
+- Added and revised several ESLint rules to improve the development experience for both server and client node graphs. Some rules have been renamed; if you have a custom ESLint configuration, these renames are breaking changes and the configuration must be updated.
+- Updated the documentation comments for a number of functions and added more GSTS notes.
+- Added the global `clientEntity` helper for client node graphs. It narrows an entity to the appropriate client entity type and exposes entity shortcuts available only in the current client graph.
+- Improved the node graph injector to prevent several cases where injection could fail.
+- Improved automatic initialization of the global `stage` / `level` helpers. A recent Miliastra Wonderland update appears to have made the execution order of multiple nodes for the same event nondeterministic—even the event node with ID 1 is no longer guaranteed to run first. This could leave `stage` / `level` with an invalid entity when accessed during entity creation. Initialization now runs reliably at the start of every `whenEntityIsCreated` event flow.
+- Fixed list-valued signal arguments not being wired correctly. Thanks to @AncherEven.
+- Corrected an official documentation typo in the return value of `querySpecifiedMiniMapMarkerInformation` (`Query Specified Mini-Map Marker Information`): `activationStaet` is now `activationStatus`. Existing code that uses this field must be updated to compile.
+- The `settlementStatus` parameter of `getPlayerRankScoreChange` and `setPlayerRankScoreChange` now uses the `RankSettlementStatus` enum instead of `SettlementStatus`, with a new `Escape` value. Existing calls must update their enum arguments after upgrading.
+- Added client node graph guidance to the `npm create genshin-ts@latest` project template.
+- Fixed various other minor issues.
+
 ## v0.1.10
 
 ** This release contains potentially breaking changes. Please read the changelog before updating. ** - Thanks to @wangxiangyao and @longyuan1996 for contributing code to this release.

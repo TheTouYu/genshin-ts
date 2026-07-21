@@ -14,6 +14,7 @@
  *   npm run build
  *   npx tsx tests/composite/test-stage3-p5w10-special-arg-shared-adapter.ts [output.gia]
  */
+
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
@@ -21,26 +22,28 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
-  COMPOSITE_ORCHESTRATION_CONTRACT,
-  ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
-  ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
-  SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
-  SPECIAL_ARG_ADAPTER_CONTRACT,
+  assertCoverageMatrixInvariants,
   classifyStaticCoverageStatuses,
+  COMPOSITE_ORCHESTRATION_CONTRACT,
   isAssemblySpecialArgNodeType,
   isSharedSpecialArgAdapterNodeType,
   listStaticOrdinaryCoverageRows,
   remapSpecialArgInputIndex,
-  summarizeOrdinaryCoverage,
-  assertCoverageMatrixInvariants
+  ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,
+  ROOT_NAMED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
+  SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
+  SPECIAL_ARG_ADAPTER_CONTRACT,
+  summarizeOrdinaryCoverage
 } from '../../dist/src/compiler/ir_to_gia_transform/composite.js'
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { STAGE3_BACKEND_CONTRACT } from '../../dist/src/compiler/ir_to_gia_transform/stage3_backend.js'
+import { createSignalRegistry } from '../../dist/src/compiler/signal_registry.js'
 import {
   buildServerGraphRegistriesIRDocuments,
   defineSignal,
   g
 } from '../../dist/src/runtime/core.js'
+import { setRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
 import {
   bool,
   configId,
@@ -52,7 +55,6 @@ import {
   str,
   vec3
 } from '../../dist/src/runtime/value.js'
-import { setRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { findImplGraphByCompositeName } from './helpers/ordinary-node-contract.js'
 
@@ -147,25 +149,67 @@ for (const nodeType of SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES) {
 // Extracted from the latest map 1073741848.gil on 2026-07-16.
 // The editor-defined schemas are used verbatim; do not infer fields from a reference GIA.
 const OrdinarySignal = defineSignal('信号_全部参数测试', [
-  ['参数_1', 'int'], ['参数_2', 'float'], ['参数_3', 'vec3'], ['参数_4', 'guid'],
-  ['参数_5', 'bool'], ['参数_6', 'entity'], ['参数_7', 'prefab_id'],
-  ['参数_8', 'config_id'], ['参数_9', 'str']
+  ['参数_1', 'int'],
+  ['参数_2', 'float'],
+  ['参数_3', 'vec3'],
+  ['参数_4', 'guid'],
+  ['参数_5', 'bool'],
+  ['参数_6', 'entity'],
+  ['参数_7', 'prefab_id'],
+  ['参数_8', 'config_id'],
+  ['参数_9', 'str']
 ] as const)
 const ListSignal = defineSignal('信号_全部列表参数测试', [
-  ['参数_1', 'config_id_list'], ['参数_2', 'prefab_id_list'], ['参数_3', 'entity_list'],
-  ['参数_4', 'guid_list'], ['参数_5', 'bool_list'], ['参数_6', 'vec3_list'],
-  ['参数_7', 'str_list'], ['参数_8', 'float_list'], ['参数_9', 'int_list']
+  ['参数_1', 'config_id_list'],
+  ['参数_2', 'prefab_id_list'],
+  ['参数_3', 'entity_list'],
+  ['参数_4', 'guid_list'],
+  ['参数_5', 'bool_list'],
+  ['参数_6', 'vec3_list'],
+  ['参数_7', 'str_list'],
+  ['参数_8', 'float_list'],
+  ['参数_9', 'int_list']
 ] as const)
-const SIGNAL_PARAM_TYPES = ['int', 'float', 'vec3', 'guid', 'bool', 'entity', 'prefab_id', 'config_id', 'str'] as const
-const LIST_PARAM_TYPES = ['config_id_list', 'prefab_id_list', 'entity_list', 'guid_list', 'bool_list', 'vec3_list', 'str_list', 'float_list', 'int_list'] as const
+const SIGNAL_PARAM_TYPES = [
+  'int',
+  'float',
+  'vec3',
+  'guid',
+  'bool',
+  'entity',
+  'prefab_id',
+  'config_id',
+  'str'
+] as const
+const LIST_PARAM_TYPES = [
+  'config_id_list',
+  'prefab_id_list',
+  'entity_list',
+  'guid_list',
+  'bool_list',
+  'vec3_list',
+  'str_list',
+  'float_list',
+  'int_list'
+] as const
 const SIGNAL_PARAM_COUNT = SIGNAL_PARAM_TYPES.length
 const LIST_PARAM_COUNT = LIST_PARAM_TYPES.length
 
 setRuntimeOptions({ optimize: { precompileExpression: false, removeUnusedNodes: false } })
 
 function sendOrdinarySignal(f: any, self: any, seed: bigint, label: string) {
-  f.sendSignal(OrdinarySignal, new int(seed), new float(1.5), new vec3([1, 2, 3]),
-    new guid(9000n + seed), new bool(true), self, new prefabId(1001n), new configId(2002n), new str(label))
+  f.sendSignal(
+    OrdinarySignal,
+    new int(seed),
+    new float(1.5),
+    new vec3([1, 2, 3]),
+    new guid(9000n + seed),
+    new bool(true),
+    self,
+    new prefabId(1001n),
+    new configId(2002n),
+    new str(label)
+  )
 }
 
 function sendListSignal(f: any, self: any, seed: bigint, label: string) {
@@ -178,7 +222,18 @@ function sendListSignal(f: any, self: any, seed: bigint, label: string) {
   const strList = f.assemblyList([new str(`${label}-a`), new str(`${label}-b`)], 'str')
   const floatList = f.assemblyList([new float(1.25), new float(2.5)], 'float')
   const intList = f.assemblyList([new int(seed), new int(seed + 1n)], 'int')
-  f.sendSignal(ListSignal, configList, prefabList, entityList, guidList, boolList, vecList, strList, floatList, intList)
+  f.sendSignal(
+    ListSignal,
+    configList,
+    prefabList,
+    entityList,
+    guidList,
+    boolList,
+    vecList,
+    strList,
+    floatList,
+    intList
+  )
 }
 
 const specialArgComposite = g.defineComposite(COMPOSITE_NAME, {
@@ -189,15 +244,7 @@ const specialArgComposite = g.defineComposite(COMPOSITE_NAME, {
   build(inputs: any, f: any) {
     // assembly_list (int tags) consumed as createPrefab unit-tag list.
     const tags = f.assemblyList([1n, 2n], 'int')
-    f.createPrefab(
-      1n,
-      new vec3([0, 0, 0]),
-      new vec3([0, 0, 0]),
-      inputs.target,
-      true,
-      0n,
-      tags
-    )
+    f.createPrefab(1n, new vec3([0, 0, 0]), new vec3([0, 0, 0]), inputs.target, true, 0n, tags)
 
     // assembly_dictionary consumed via length query (downstream arg).
     const dict = f.assemblyDictionary([
@@ -231,15 +278,7 @@ g.server({ name: 'P5W10-SpecialArg-Shared', id: GRAPH_ID })
 
     // Root assembly_list consumed as createPrefab tags.
     const rootTags = f.assemblyList([3n, 4n], 'int')
-    f.createPrefab(
-      2n,
-      new vec3([1, 0, 0]),
-      new vec3([0, 0, 0]),
-      self,
-      false,
-      0n,
-      rootTags
-    )
+    f.createPrefab(2n, new vec3([1, 0, 0]), new vec3([0, 0, 0]), self, false, 0n, rootTags)
 
     // Root assembly_dictionary consumed by length query.
     const rootDict = f.assemblyDictionary([
@@ -269,8 +308,24 @@ g.server({ name: 'P5W10-SpecialArg-Shared', id: GRAPH_ID })
     f.createPrefab(9n, p.参数_3, p.参数_3, p.参数_6, false, 0n, f.assemblyList([1n], 'int'))
     f.printString(f.dataTypeConversion(p.参数_4, 'str'))
     f.printString(f.dataTypeConversion(p.参数_5, 'str'))
-    f.createPrefab(10n, new vec3([0, 0, 0]), new vec3([0, 0, 0]), p.参数_6, true, 0n, f.assemblyList([2n], 'int'))
-    f.createPrefab(p.参数_7, new vec3([0, 0, 0]), new vec3([0, 0, 0]), p.参数_6, false, 0n, f.assemblyList([3n], 'int'))
+    f.createPrefab(
+      10n,
+      new vec3([0, 0, 0]),
+      new vec3([0, 0, 0]),
+      p.参数_6,
+      true,
+      0n,
+      f.assemblyList([2n], 'int')
+    )
+    f.createPrefab(
+      p.参数_7,
+      new vec3([0, 0, 0]),
+      new vec3([0, 0, 0]),
+      p.参数_6,
+      false,
+      0n,
+      f.assemblyList([3n], 'int')
+    )
     // Keep config_id live through a typed list producer; str is printed.
     const configList = f.assemblyList([p.参数_8], 'config_id')
     f.printString(f.dataTypeConversion(f.getListLength(configList), 'str'))
@@ -280,7 +335,17 @@ g.server({ name: 'P5W10-SpecialArg-Shared', id: GRAPH_ID })
     const p = evt.params
     f.printString(f.dataTypeConversion(f.getListLength(p.参数_1), 'str')) // config_id_list
     f.printString(f.dataTypeConversion(f.getListLength(p.参数_2), 'str')) // prefab_id_list
-    f.listIterationLoop(p.参数_3, (item: any) => f.createPrefab(11n, new vec3([0, 0, 0]), new vec3([0, 0, 0]), item, false, 0n, f.assemblyList([4n], 'int')))
+    f.listIterationLoop(p.参数_3, (item: any) =>
+      f.createPrefab(
+        11n,
+        new vec3([0, 0, 0]),
+        new vec3([0, 0, 0]),
+        item,
+        false,
+        0n,
+        f.assemblyList([4n], 'int')
+      )
+    )
     f.printString(f.dataTypeConversion(f.getListLength(p.参数_4), 'str'))
     f.printString(f.dataTypeConversion(f.getListLength(p.参数_5), 'str'))
     f.printString(f.dataTypeConversion(f.getListLength(p.参数_6), 'str'))
@@ -294,8 +359,25 @@ process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH = '1'
 let bytes: Uint8Array
 try {
   const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'P5W10-SpecialArg-Shared' })
+  const signalRegistry = createSignalRegistry([
+    {
+      name: OrdinarySignal.name,
+      params: OrdinarySignal.params.map(([name, type]) => ({ name, type })),
+      sendId: 1610612738,
+      monitorId: 1610612739,
+      serverId: 1610612743
+    },
+    {
+      name: ListSignal.name,
+      params: ListSignal.params.map(([name, type]) => ({ name, type })),
+      sendId: 1610612744,
+      monitorId: 1610612745,
+      serverId: 1610612746
+    }
+  ])
   bytes = irToGia(docs.at(-1), {
     graphId: GRAPH_ID,
+    signalRegistry,
     name: 'P5W10-SpecialArg-Shared',
     protoPath: PROTO_PATH,
     stage3: { vendorImplGraphBeta: true }
@@ -338,7 +420,10 @@ for (const assembly of [...rootAssemblies, ...implAssemblies]) {
   const countPin = (assembly.pins ?? []).find((p: any) => p.i1?.kind === 3 && p.i1?.index === 0)
   assert.ok(countPin, 'assembly missing count pin0')
   const countVal = countPin?.value?.bInt?.val
-  assert.ok(typeof countVal === 'number' && countVal >= 1, `assembly count pin0 invalid: ${countVal}`)
+  assert.ok(
+    typeof countVal === 'number' && countVal >= 1,
+    `assembly count pin0 invalid: ${countVal}`
+  )
   // Element pin1 is present for non-captured assemblies. Composite entity_list may
   // capture-route the only entity element off physical pin1 onto compositePins.
   const elemPin = (assembly.pins ?? []).find((p: any) => p.i1?.kind === 3 && p.i1?.index === 1)
@@ -373,9 +458,7 @@ for (const dict of [...rootDicts, ...implDicts]) {
 function hasConsumerOf(graph: any, sourceNodeIndex: number): boolean {
   return (graph.nodes ?? []).some((n: any) =>
     (n.pins ?? []).some(
-      (p: any) =>
-        p.i1?.kind === 3 &&
-        (p.connects ?? []).some((c: any) => c.id === sourceNodeIndex)
+      (p: any) => p.i1?.kind === 3 && (p.connects ?? []).some((c: any) => c.id === sourceNodeIndex)
     )
   )
 }
@@ -431,23 +514,35 @@ function isSignalNode(n: any, id: number, name: string): boolean {
   const nodeId = n.genericId?.nodeId ?? n.concreteId?.nodeId
   const identity = SIGNAL_IDENTITIES.get(name)
   const expectedId = id === BUILTIN_SEND ? identity?.send : identity?.monitor
-  return (nodeId === expectedId || nodeId === (id === BUILTIN_SEND ? 300000 : 300001)) && signalNameOf(n) === name
+  return (
+    (nodeId === expectedId || nodeId === (id === BUILTIN_SEND ? 300000 : 300001)) &&
+    signalNameOf(n) === name
+  )
 }
 function assertSendSignal(name: string, types: readonly string[], signal: any, isImpl: boolean) {
-  assert.equal(signal.genericId?.nodeId, SIGNAL_IDENTITIES.get(name)?.send, `${name} send must use signal-specific id`)
+  assert.equal(
+    signal.genericId?.nodeId,
+    SIGNAL_IDENTITIES.get(name)?.send,
+    `${name} send must use signal-specific id`
+  )
   assert.equal(signal.genericId?.kind, 22001, `${name} send must be SysGraph`)
   assert.equal(signal.signalVersion, 1, `${name} signalVersion=1`)
   const namePin = (signal.pins ?? []).find((p: any) => p.i1?.kind === 5 && p.i1?.index === 0)
   assert.ok(namePin, `${name} send missing ClientExec name pin`)
   assert.equal(signalNameOf(signal), name)
   assert.equal(namePin.compositePinIndex, 7)
-  const dataPins = (signal.pins ?? []).filter((p: any) => p.i1?.kind === 3).sort((a: any, b: any) => a.i1.index - b.i1.index)
+  const dataPins = (signal.pins ?? [])
+    .filter((p: any) => p.i1?.kind === 3)
+    .sort((a: any, b: any) => a.i1.index - b.i1.index)
   const entityIndex = types.indexOf('entity')
   const expectedCount = isImpl ? types.length - (entityIndex >= 0 ? 1 : 0) : types.length
   assert.equal(dataPins.length, expectedCount, `${name} send pin count`)
   for (const pin of dataPins) {
     assert.equal(pin.compositePinIndex, 12 + pin.i1.index, `${name} send cpi ${pin.i1.index}`)
-    assert.ok((pin.connects ?? []).length > 0 || pin.value?.alreadySetVal === true, `${name} send param ${pin.i1.index} unused`)
+    assert.ok(
+      (pin.connects ?? []).length > 0 || pin.value?.alreadySetVal === true,
+      `${name} send param ${pin.i1.index} unused`
+    )
   }
   if (entityIndex >= 0 && !isImpl) {
     assert.equal(dataPins[entityIndex].type, 1, `${name} entity physical type`)
@@ -462,8 +557,12 @@ function isMonitorSignalNode(n: any, name: string): boolean {
   return isSignalNode(n, BUILTIN_MONITOR, name)
 }
 for (const testCase of SIGNAL_CASES) {
-  const rootSignals = (rootGraph.nodes ?? []).filter((n: any) => isSignalNode(n, BUILTIN_SEND, testCase.name))
-  const implSignals = (implGraph.nodes ?? []).filter((n: any) => isSignalNode(n, BUILTIN_SEND, testCase.name))
+  const rootSignals = (rootGraph.nodes ?? []).filter((n: any) =>
+    isSignalNode(n, BUILTIN_SEND, testCase.name)
+  )
+  const implSignals = (implGraph.nodes ?? []).filter((n: any) =>
+    isSignalNode(n, BUILTIN_SEND, testCase.name)
+  )
   assert.ok(rootSignals.length >= 1, `${testCase.name} root send missing`)
   assert.ok(implSignals.length >= 1, `${testCase.name} impl send missing`)
   assertSendSignal(testCase.name, testCase.types, rootSignals[0], false)
@@ -546,8 +645,12 @@ for (const signal of [...rootSignals, ...implSignals]) {
 
 */
 // monitor_signal on root (onSignal handler) → signal-specific monitor definition
-const rootMonitors = (rootGraph.nodes ?? []).filter((n: any) => isMonitorSignalNode(n, '信号_全部参数测试'))
-const listMonitors = (rootGraph.nodes ?? []).filter((n: any) => isMonitorSignalNode(n, '信号_全部列表参数测试'))
+const rootMonitors = (rootGraph.nodes ?? []).filter((n: any) =>
+  isMonitorSignalNode(n, '信号_全部参数测试')
+)
+const listMonitors = (rootGraph.nodes ?? []).filter((n: any) =>
+  isMonitorSignalNode(n, '信号_全部列表参数测试')
+)
 assert.ok(rootMonitors.length >= 1, 'ordinary signal monitor missing')
 assert.ok(listMonitors.length >= 1, 'list signal monitor missing')
 for (const mon of [...rootMonitors, ...listMonitors]) {
@@ -585,13 +688,20 @@ for (const testCase of SIGNAL_CASES) {
   )
   assert.ok(sendDef, `${testCase.name} missing SignalDef which=14 发送信号`)
   const sendInputs = sendDef.compositeDef?.inner?.def?.inputs ?? []
-  assert.equal(sendInputs.length, testCase.types.length, `${testCase.name} send definition input count`)
+  assert.equal(
+    sendInputs.length,
+    testCase.types.length,
+    `${testCase.name} send definition input count`
+  )
   for (let i = 0; i < testCase.types.length; i++) {
     assertSignalParamType(testCase.name, testCase.types[i], sendInputs[i]?.type)
   }
 
   const monitorDef = accessories.find(
-    (a: any) => a.which === 12 && a.name === '监听信号' && a.id?.id === SIGNAL_IDENTITIES.get(testCase.name)?.monitor
+    (a: any) =>
+      a.which === 12 &&
+      a.name === '监听信号' &&
+      a.id?.id === SIGNAL_IDENTITIES.get(testCase.name)?.monitor
   )
   assert.ok(monitorDef, `${testCase.name} missing 监听信号 CompositeDef`)
   const outputs = monitorDef.compositeDef?.inner?.def?.outputs ?? []
@@ -625,7 +735,9 @@ const implAccessory = accessories.find(
   (a: any) =>
     a.which === 9 &&
     (a.graph?.inner?.graph?.nodes ?? []).some(
-      (n: any) => (n.genericId?.nodeId ?? n.concreteId?.nodeId) === SIGNAL_IDENTITIES.get('信号_全部参数测试')?.send
+      (n: any) =>
+        (n.genericId?.nodeId ?? n.concreteId?.nodeId) ===
+        SIGNAL_IDENTITIES.get('信号_全部参数测试')?.send
     )
 )
 assert.ok(implAccessory, 'impl graph accessory with send_signal missing')
@@ -633,9 +745,7 @@ const compositePins = implAccessory.graph?.inner?.graph?.compositePins ?? []
 const entitySendPinIndex = SIGNAL_PARAM_TYPES.indexOf('entity') // IR arg 1+index → physical pin
 const captureEntityRoute = compositePins.find(
   (cp: any) =>
-    cp.outerPin?.kind === 3 &&
-    cp.innerPin?.kind === 3 &&
-    cp.innerPin?.index === entitySendPinIndex
+    cp.outerPin?.kind === 3 && cp.innerPin?.kind === 3 && cp.innerPin?.index === entitySendPinIndex
 )
 assert.ok(
   captureEntityRoute,
@@ -645,15 +755,13 @@ assert.ok(
 // Root print remains on exec chain after composite call.
 const rootPrint = (rootGraph.nodes ?? []).find(
   (n: any) =>
-    n.genericId?.nodeId === 1 &&
-    n.pins?.some((p: any) => p.value?.bString?.val === 'p5w10-root-ok')
+    n.genericId?.nodeId === 1 && n.pins?.some((p: any) => p.value?.bString?.val === 'p5w10-root-ok')
 )
 assert.ok(rootPrint, 'root print p5w10-root-ok missing')
 const hasPredToRootPrint = (rootGraph.nodes ?? []).some((n: any) =>
   (n.pins ?? []).some(
     (p: any) =>
-      p.i1?.kind === 2 &&
-      (p.connects ?? []).some((c: any) => c.id === rootPrint.nodeIndex)
+      p.i1?.kind === 2 && (p.connects ?? []).some((c: any) => c.id === rootPrint.nodeIndex)
   )
 )
 assert.ok(hasPredToRootPrint, 'root print must have inbound exec flow')

@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint'
 import ts from 'typescript'
 
+import { CLIENT_NODE_METHODS_BY_SUB_TYPE } from '../../definitions/client_method_modes.js'
 import { formatMessage } from '../utils/messages.js'
 import { readBaseOptions } from '../utils/options.js'
 import { getParserServices } from '../utils/parser.js'
@@ -10,14 +11,14 @@ import { getNumericKind, isStringType } from '../utils/types.js'
 type Options = {
   allowFallthrough?: boolean
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
 const DEFAULTS: Required<Options> = {
   allowFallthrough: false,
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
@@ -102,7 +103,8 @@ function constInitializerFromSymbol(sym: ts.Symbol): ts.Expression | null {
 }
 
 function propertyNameText(name: ts.PropertyName): string | null {
-  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) return name.text
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name))
+    return name.text
   return null
 }
 
@@ -251,7 +253,7 @@ const rule: Rule.RuleModule = {
         properties: {
           allowFallthrough: { type: 'boolean' },
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false
@@ -269,6 +271,26 @@ const rule: Rule.RuleModule = {
     return {
       SwitchStatement(node) {
         if (!scopeIndex.isInServerScope(node, options)) return
+        const clientInfo = scopeIndex.getEnclosingClientScope(node, {
+          includeNestedFunctions: options.includeNestedFunctions
+        })
+        const clientMethods = clientInfo
+          ? (CLIENT_NODE_METHODS_BY_SUB_TYPE[clientInfo.subType] as readonly string[])
+          : []
+        const supportsNativeSwitch = clientMethods.includes('multipleBranches')
+        const supportsDoubleBranchSwitch =
+          clientMethods.includes('doubleBranch') && clientMethods.includes('equal')
+        if (clientInfo && !supportsNativeSwitch && !supportsDoubleBranchSwitch) {
+          context.report({
+            node,
+            message: formatMessage(
+              options.lang,
+              `客户端 ${clientInfo.subType} 节点图不支持 switch（缺少可用的分支节点组合）`,
+              `Client ${clientInfo.subType} graphs do not support switch (no supported branch-node lowering is available)`
+            )
+          })
+          return
+        }
         const tsNode = services.esTreeNodeToTSNodeMap.get(node.discriminant)
         if (!tsNode) return
         const type = checker.getTypeAtLocation(tsNode)

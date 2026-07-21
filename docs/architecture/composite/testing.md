@@ -102,21 +102,30 @@ OutParam 和数据连线仍然存在；
 
 ## 1. 客户端 TS→GIA 验证分层
 
-客户端生产路径现在有独立的最小回归入口：
+当前客户端生产路径是七类 client graph，聚焦回归入口为：
 
-```text
-tests/runtime/test-client-full-signal-ir-to-gia.ts
+```bash
+npm run test:client-transform
+npm run test:client:definitions
+npm run test:client-static
+npm run test:client:fixed-pins
+npm run test:injector
 ```
+
+`test:client-transform` 覆盖 TS→IR→GIA、七类最小图、typed generic、dict、LocalVariable、inline ID、
+ordered start、exec binding 和 enum match。`test:client:fixed-pins` 还会经过 CLI GIA 生成；若配置指向的
+地图/GIL 不存在，必须把环境阻断与编译回归分开报告，不能猜测或创建目标地图。
 
 验证必须分开报告：
 
 1. **TS→IR→GIA 自动回归**：确认 TS 语义、Client IR、节点 identity、参数数量、列表 count/元素值和数据/控制流物化；
-2. **真实 GIA 对照**：使用 `Beyond_Local_Export/user_edit/客户端/信号-参数-完整.gia` 和
-   `信号-参数-完整-列表.gia`，确认 ClientVarType、typed assembly、entity/GUID 拓扑和 wire round-trip；
+2. **真实 GIA 对照**：历史旧 `g.client()` 样本仅证明旧 signal/list 编码观察，不自动证明当前七类图；
 3. **编辑器导入/回导**：确认编辑器能读取并保留预期结构；
 4. **游戏行为**：由用户在实际游戏目录导入后确认，不能由自动生成或注入成功替代。
 
-客户端测试代码应使用 TS API 表达用户意图；手工 materializer 只用于固定真实 GIA 规律和底层编码回归，不能作为 TS→GIA 生产路径的替代证据。列表测试至少覆盖 literal/connection 语义、entity/GUID 数据边和多元素 bool/vec3；未覆盖的空列表、动态列表和超过上限场景必须标记为待验证。
+客户端测试代码应使用当前七类 TS API 表达用户意图；手工 materializer 只用于固定真实 GIA 规律和底层编码回归，不能作为 TS→GIA 生产路径的替代证据。列表测试至少覆盖 literal/connection 语义、entity/GUID 数据边和多元素 bool/vec3；未覆盖的空列表、动态列表和超过上限场景必须标记为待验证。
+
+以下 2026-07-19 的 `g.client()` Vector/Arithmetic 与 legacy layout 记录仅作历史证据；对应测试和生产文件已于 2026-07-21 删除，不能再作为当前回归命令。
 
 2026-07-19 新增 Vector/Arithmetic Fixed 系列回归：
 

@@ -84,7 +84,8 @@ export const GraphUnit_Which = {
   IntegerFilter: 47,
   CreationStatusDecision: 51,
   CreationSkill: 52,
-  CreationStatus: 53
+  CreationStatus: 53,
+  CharacterControlSkill: 64
 } as const
 export type GraphUnit_Which = (typeof GraphUnit_Which)[keyof typeof GraphUnit_Which]
 export interface NodeGraphWrapper {
@@ -268,7 +269,8 @@ export const NodeGraph_Id_Type = {
   IntegerFilter: 20006,
   CreationStatusDecision: 20007,
   CreationSkill: 20008,
-  CreationStatus: 20009
+  CreationStatus: 20009,
+  CharacterControlSkill: 20010
 } as const
 export type NodeGraph_Id_Type = (typeof NodeGraph_Id_Type)[keyof typeof NodeGraph_Id_Type]
 export const NodeGraph_Id_Kind = {
@@ -442,8 +444,10 @@ export const ClientVarType = {
   Prefab_: 19,
   ConfigurationList_: 20,
   PrefabList_: 21,
-  LocalVariable_: 22,
-  Dictionary_: 24
+  Structure_: 22,
+  StructureList_: 23,
+  Dictionary_: 24,
+  FactionList_: 25
 } as const
 export type ClientVarType = (typeof ClientVarType)[keyof typeof ClientVarType]
 export interface GraphVariable {
@@ -462,11 +466,19 @@ export interface GraphVariable {
   /** Index = 8 */
   valueType: VarType
 }
+export interface VarBase_ClientInlineVarBinding {
+  typeTag?: number
+  bindingInt?: IntBaseValue
+  bindingEnum?: EnumBaseValue
+}
+
 export interface VarBase {
   /** Index = 1 */
   class: VarBase_Class
   /** Index = 2 */
   alreadySetVal: boolean
+  /** Index = 3 — t18/t19 inline dropdown payload (round-3 evidence) */
+  clientInlineBinding?: VarBase_ClientInlineVarBinding
   /** Index = 4 */
   itemType?: VarBase_ItemType
   /** Index = 5 */
@@ -562,10 +574,16 @@ export interface VarBase_ItemType_StructItem {
   structId: number
 }
 export interface VarBase_ItemType_PairItems {
-  /** Index = 1 */
-  key: VarType
-  /** Index = 2 */
-  value: VarType
+  /** Index = 1
+   *
+   * VarType for server dictionaries; ClientVarType for client dictionaries.
+   */
+  key: number
+  /** Index = 2
+   *
+   * VarType for server dictionaries; ClientVarType for client dictionaries.
+   */
+  value: number
   /** Index = 3 */
   structId?: number
   /** Index = 4 */

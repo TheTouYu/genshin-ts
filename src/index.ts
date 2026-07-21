@@ -1,5 +1,11 @@
 export type { GstsConfig, GstsStage3Options } from './compiler/gsts_config.js'
 
+export type {
+  ClientEntity,
+  ClientEntityFor,
+  clientEntity
+} from './definitions/client_entity_helpers.js'
+
 export { compileTsToGs, compileTsToGsFromConfig } from './compiler/ts_to_gs_pipeline.js'
 
 export {

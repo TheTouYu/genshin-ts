@@ -1,0 +1,346 @@
+/**
+ * 超限模式客户端/服务器控制流人工验收图。
+ *
+ * 生成：
+ *   node ./bin/gsts.mjs tests/manual/client-control-flow/beyond.ts --noinject
+ * 本地等价模拟与逐项期望：
+ *   node tests/manual/client-control-flow/beyond.simulate.mjs
+ *
+ * 注入前请在地图中创建信号 `gsts_client_flow_log`，参数依次为：
+ *   mode: str, check: str, actual: str, expected: str
+ *
+ * 导入本文件生成的五个图：
+ *   1073741825  GstsClientFlowReportBeyond       服务器图（超限）
+ *   1082130437  GstsClientControlFlowBeyond      造物技能（超限）
+ *   1082130438  GstsClientFlowStatusBeyond       造物状态（超限）
+ *   1082130439  GstsClientFlowDecisionBeyond     造物状态决策（超限）
+ *   1082130441  GstsClientDataTernaryBeyond      int filter（超限）
+ *
+ * 服务器每收到一项检查会依次打印五行：
+ *   PASS / FAIL / OBSERVE、检查名、实际值、期望值、累计序号。
+ * 射线结果依赖场景，因此标记为 OBSERVE。其余项目不应出现 FAIL。
+ *
+ * int filter 恒应返回 101，但未选分支故意包含 1 / 0。两个分支都会进入数据图；
+ * 它用于确认游戏实际求值行为，不具备 JavaScript 短路保证。
+ */
+
+import { RayFilterType, TacticSpeed } from 'genshin-ts/definitions/client_enums'
+import { EntityType, TargetType } from 'genshin-ts/definitions/enum'
+import { defineSignal, g } from 'genshin-ts/runtime/core'
+
+const MODE = 'beyond'
+const SERVER_REPORT_ID = 1073741825
+const CLIENT_CONTROL_FLOW_ID = 1082130437
+const CLIENT_STATUS_ID = 1082130438
+const CLIENT_STATUS_DECISION_ID = 1082130439
+const CLIENT_DATA_TERNARY_ID = 1082130441
+// 与造物属性面板中配置的自主逻辑序号保持一致。
+const NEAR_TARGET_AUTONOMOUS_LOGIC_ID = 1n
+const FAR_TARGET_AUTONOMOUS_LOGIC_ID = 2n
+
+const ClientFlowLogSignal = defineSignal('gsts_client_flow_log', [
+  ['mode', 'str'],
+  ['check', 'str'],
+  ['actual', 'str'],
+  ['expected', 'str']
+])
+
+function gstsCreationSkillReport(check: string, actual: string, expected: string) {
+  gsts.fCreationSkill.sendSignalToServerNodeGraph(
+    ClientFlowLogSignal,
+    MODE,
+    check,
+    actual,
+    expected
+  )
+}
+
+function gstsCreationSkillSequentialLoopGate(values: bigint[]) {
+  let sum = 0n
+  for (const value of values) {
+    if (value === 2n) continue
+    sum += value
+  }
+  for (const value of values) {
+    if (value === 4n) break
+    sum += value
+  }
+  return sum
+}
+
+g.server({
+  id: SERVER_REPORT_ID,
+  name: 'GstsClientFlowReportBeyond',
+  mode: MODE,
+  variables: {
+    reportCount: 0n
+  }
+}).onSignal(ClientFlowLogSignal, (evt, f) => {
+  if (evt.params.mode === MODE) {
+    const reportCount = f.get('reportCount') + 1n
+    f.set('reportCount', reportCount)
+
+    if (evt.params.expected === '<observe>') {
+      f.printString('OBSERVE')
+    } else if (evt.params.actual === evt.params.expected) {
+      f.printString('PASS')
+    } else {
+      f.printString('FAIL')
+    }
+    f.printString(evt.params.check)
+    f.printString(evt.params.actual)
+    f.printString(evt.params.expected)
+    f.printString(str(reportCount))
+  }
+})
+
+g.creationSkill({
+  id: CLIENT_CONTROL_FLOW_ID,
+  name: 'GstsClientControlFlowBeyond',
+  mode: MODE
+}).on('start', (_evt, f) => {
+  const values = list('int', [1n, 2n, 3n, 4n, 5n])
+  const copiedValues = f.copyList(values)
+  const emptyValues: bigint[] = []
+  const indexedFirst = values[0]
+  const indexedFourth = values[idx(3n)]
+  const selfEntity = f.getSelfEntity()
+  const selfIsCreation = f.getEntitySType(selfEntity) === EntityType.Creation
+
+  const rayResult = f.getRayDetectionResult(
+    selfEntity,
+    [0, 0, 0],
+    [0, 0, 1],
+    20,
+    TargetType.None,
+    [EntityType.Stage, EntityType.Creation],
+    [RayFilterType.Hurtbox, RayFilterType.Scene]
+  )
+  if (f.equal(rayResult.onHitLocation, [0, 0, 0])) {
+    gstsCreationSkillReport('ray-enum-arrays', 'no-hit', '<observe>')
+  } else {
+    gstsCreationSkillReport('ray-enum-arrays', 'hit', '<observe>')
+  }
+
+  let oddSum = 0n
+  for (const value of copiedValues) {
+    if (value % 2n === 0n) continue
+    oddSum += value
+    if (oddSum > 7n) break
+  }
+
+  let forEachSum = 0n
+  values.forEach((value) => {
+    forEachSum += value
+  })
+
+  const reduced = values.reduce((sum, value) => sum + value, 0n)
+  const hasThree = values.includes(3n)
+  const hasFourViaSimpleSome = values.some((value) => value === 4n)
+  const firstThreeIndex = values.indexOf(3n)
+  const hasEven = values.some((value) => value % 2n === 0n)
+  const allPositive = values.every((value) => value > 0n)
+  const foundFour = values.find((value) => value === 4n)
+  const foundFourIndex = values.findIndex((value) => value === 4n)
+
+  let integerRemainder = 17n
+  integerRemainder %= 5n
+  let mutableFloatRemainder = 14.5
+  mutableFloatRemainder %= 4
+  const floatRemainder = 5.5 % 2
+  const negativeIntegerRemainder = -17n % 5n
+  const negativeFloatRemainder = -5.5 % 2
+
+  let compoundValue = indexedFirst + indexedFourth
+  compoundValue += 1n
+  compoundValue *= 2n
+  const arithmeticResult = (compoundValue - 3n) / 3n
+  const comparisonResult =
+    arithmeticResult !== 4n &&
+    arithmeticResult >= 3n &&
+    arithmeticResult <= 3n &&
+    !(arithmeticResult < 3n) &&
+    arithmeticResult === 3n
+
+  switch (integerRemainder) {
+    case 0n:
+      gstsCreationSkillReport('switch-multi-case', '0', '2')
+      break
+    case 1n:
+      gstsCreationSkillReport('switch-multi-case', '1', '2')
+      break
+    case 2n:
+      gstsCreationSkillReport('switch-multi-case', '2', '2')
+      break
+    default:
+      gstsCreationSkillReport('switch-multi-case', 'default', '2')
+  }
+
+  gstsCreationSkillReport('indexed-first', str(indexedFirst), '1')
+  gstsCreationSkillReport('indexed-fourth', str(indexedFourth), '4')
+  gstsCreationSkillReport('odd-sum-continue-break', str(oddSum), '9')
+  gstsCreationSkillReport('for-each-sum', str(forEachSum), '15')
+  gstsCreationSkillReport('reduce-sum', str(reduced), '15')
+  gstsCreationSkillReport('includes', str(int(hasThree)), '1')
+  gstsCreationSkillReport('simple-some', str(int(hasFourViaSimpleSome)), '1')
+  gstsCreationSkillReport('index-of', str(firstThreeIndex), '2')
+  gstsCreationSkillReport('complex-some-modulo', str(int(hasEven)), '1')
+  gstsCreationSkillReport('every', str(int(allPositive)), '1')
+  gstsCreationSkillReport('find', str(foundFour!), '4')
+  gstsCreationSkillReport('find-index', str(foundFourIndex), '3')
+  gstsCreationSkillReport('integer-modulo', str(integerRemainder), '2')
+  gstsCreationSkillReport(
+    'float-modulo-range',
+    str(int(mutableFloatRemainder > 2.49 && mutableFloatRemainder < 2.51)),
+    '1'
+  )
+  gstsCreationSkillReport(
+    'float-expression-modulo-range',
+    str(int(floatRemainder > 1.49 && floatRemainder < 1.51)),
+    '1'
+  )
+  gstsCreationSkillReport('negative-integer-modulo', str(negativeIntegerRemainder), '-2')
+  gstsCreationSkillReport(
+    'negative-float-modulo-range',
+    str(int(negativeFloatRemainder > -1.51 && negativeFloatRemainder < -1.49)),
+    '1'
+  )
+  gstsCreationSkillReport('compound-arithmetic', str(arithmeticResult), '3')
+  gstsCreationSkillReport('comparison-and-not', str(int(comparisonResult)), '1')
+
+  let emptyIterations = 0n
+  for (const _value of emptyValues) {
+    emptyIterations += 1n
+    gstsCreationSkillReport('empty-list-body', 'executed', 'must-not-execute')
+  }
+  gstsCreationSkillReport('empty-list-iterations', str(emptyIterations), '0')
+
+  let loopWithoutReturnSum = 0n
+  for (const value of values) {
+    loopWithoutReturnSum += value
+  }
+  gstsCreationSkillReport('loop-without-return', str(loopWithoutReturnSum), '15')
+
+  let classicForSum = 0n
+  for (let index = 0n; index < 6n; index += 1n) {
+    if (index === 1n) continue
+    if (index === 5n) break
+    classicForSum += index
+  }
+
+  let whileIndex = 0n
+  let whileSum = 0n
+  while (whileIndex < 4n) {
+    whileIndex += 1n
+    if (whileIndex === 2n) continue
+    whileSum += whileIndex
+  }
+
+  let doWhileIndex = 0n
+  let doWhileSum = 0n
+  do {
+    doWhileIndex += 1n
+    if (doWhileIndex === 2n) continue
+    doWhileSum += doWhileIndex
+  } while (doWhileIndex < 3n)
+
+  gstsCreationSkillReport('classic-for-sum', str(classicForSum), '9')
+  gstsCreationSkillReport('while-sum', str(whileSum), '8')
+  gstsCreationSkillReport('do-while-sum', str(doWhileSum), '4')
+  gstsCreationSkillReport('enum-equality', str(int(selfIsCreation)), '1')
+
+  const sequentialLoopGate = gstsCreationSkillSequentialLoopGate(values)
+  gstsCreationSkillReport('sequential-loop-return-gate', str(sequentialLoopGate), '19')
+
+  for (const outer of values) {
+    for (const inner of values) {
+      if (outer === 2n && inner === 3n) {
+        gstsCreationSkillReport('nested-loop-handler-return', 'entered', 'entered')
+        return
+      }
+    }
+  }
+
+  gstsCreationSkillReport('nested-loop-handler-return', 'fell-through', 'entered')
+})
+
+/**
+ * 与上面的造物技能组成可动怪物：
+ *
+ * start1/start2 分别对应【按顺序唯一执行】的 1/2 号引脚，并按引脚顺序执行。
+ * 这里拆成两个入口只是为了组织代码，不表示两个可切换状态；将两段语句全部放进
+ * 单一 start1 中按顺序串联也能得到相同效果。
+ *
+ * 实际控制行为时，可以把不同条件连接到 executeSkill、tacticMoveToTheTargetEntity
+ * 等节点的【是否执行】参数；也可以把攻击、索敌等行为拆成不同状态图，再由状态决策图
+ * 传入不同的状态节点图配置 ID。
+ *
+ * 注意：下面每个入口中的两条语句虽然按顺序书写，后一条实际连接到前一行为节点的
+ * 【失败执行】引脚；只有前一行为失败时，才会执行终止兜底节点。本专项用例特意使用
+ * continueExecutingPreviousFrameBehavior 覆盖“使用时必须位于分支末尾”的约束，
+ * 它不是每个执行分支都必须添加的节点。
+ */
+const clientFlowStatus = g.creationStatus({
+  id: CLIENT_STATUS_ID,
+  name: 'GstsClientFlowStatusBeyond',
+  mode: MODE
+})
+
+clientFlowStatus.on('start1', (_evt, f) => {
+  f.executeSkill(true, 1n)
+  f.continueExecutingPreviousFrameBehavior()
+})
+
+clientFlowStatus.on('start2', (_evt, f) => {
+  f.tacticMoveToTheTargetEntity(
+    true,
+    f.getTargetEntity(),
+    1,
+    TacticSpeed.Run,
+    360,
+    'control-flow-pursuit',
+    false
+  )
+  f.continueExecutingPreviousFrameBehavior()
+})
+
+/**
+ * 交战中根据目标距离切换造物属性面板中配置的自主逻辑 1/2。这里的
+ * 【自主逻辑参数序号】仅对应面板中的自主逻辑配置（如入战感知、脱战或领地设置），
+ * 请按实际地图面板配置调整这两个常量。
+ * 如果要切换攻击、索敌等状态图，应让两个分支传入不同的状态节点图配置 ID。
+ *
+ * 在编辑器的造物配置中，把技能序号 1 绑定到 CLIENT_CONTROL_FLOW_ID，并让自主逻辑
+ * 使用本决策图和 CLIENT_STATUS_ID。
+ */
+g.creationStatusDecision({
+  id: CLIENT_STATUS_DECISION_ID,
+  name: 'GstsClientFlowDecisionBeyond',
+  mode: MODE
+}).on('start1', (_evt, f) => {
+  if (f.checkWhetherSelfIsInBattle()) {
+    if (f.checkTheHorizontalDistanceFromSelfToTarget() < 1.5) {
+      f.switchToSelfExecutionStatus(
+        true,
+        configId(CLIENT_STATUS_ID),
+        NEAR_TARGET_AUTONOMOUS_LOGIC_ID
+      )
+    } else {
+      f.switchToSelfExecutionStatus(
+        true,
+        configId(CLIENT_STATUS_ID),
+        FAR_TARGET_AUTONOMOUS_LOGIC_ID
+      )
+    }
+  }
+})
+
+g.intFilter({
+  id: CLIENT_DATA_TERNARY_ID,
+  name: 'GstsClientDataTernaryBeyond',
+  mode: MODE,
+  evaluationInterval: 0.3
+}).on('start', (_evt, f) => {
+  const condition = f.equal(1n, 1n)
+  return condition ? 101n : f.division(1n, 0n)
+})

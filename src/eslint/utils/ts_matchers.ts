@@ -1,12 +1,30 @@
 import ts from 'typescript'
 
+import {
+  CLIENT_GRAPH_SUB_TYPE_BY_METHOD,
+  CLIENT_GSTS_FUNCTION_PREFIXES,
+  getClientGraphSubTypeForGstsFunctionName
+} from '../../definitions/client_graph_modes.js'
+import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
+
 export const DEFAULT_GSTS_SERVER_PREFIX = 'gstsServer'
+export const DEFAULT_GRAPH_FUNCTION_PREFIXES = [
+  DEFAULT_GSTS_SERVER_PREFIX,
+  ...CLIENT_GSTS_FUNCTION_PREFIXES
+]
+
+export function isGraphFunctionName(
+  name: string | undefined,
+  prefixes = DEFAULT_GRAPH_FUNCTION_PREFIXES
+) {
+  return !!name && prefixes.some((prefix) => name.startsWith(prefix))
+}
 
 export function isGstsServerName(
   name: string | undefined,
   prefixes = [DEFAULT_GSTS_SERVER_PREFIX]
 ) {
-  return !!name && prefixes.some((prefix) => name.startsWith(prefix))
+  return isGraphFunctionName(name, prefixes)
 }
 
 export function isFunctionInitializer(
@@ -58,6 +76,26 @@ export function isGstsServerCall(
   const sym = getCallSymbol(call, checker)
   if (!sym) return false
   return isGstsServerSymbol(sym, checker, prefixes)
+}
+
+export function getGstsClientSymbolSubType(
+  sym: ts.Symbol,
+  checker: ts.TypeChecker
+): ClientGraphSubType | undefined {
+  const target = resolveAliasedSymbol(sym, checker)
+  const subType = getClientGraphSubTypeForGstsFunctionName(target.getName())
+  if (!subType) return undefined
+  const decls = target.getDeclarations() ?? []
+  if (!decls.length || decls.some((decl) => isGstsServerFunctionDecl(decl))) return subType
+  return undefined
+}
+
+export function getGstsClientCallSubType(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientGraphSubType | undefined {
+  const symbol = getCallSymbol(call, checker)
+  return symbol ? getGstsClientSymbolSubType(symbol, checker) : undefined
 }
 
 export function isTopLevelVarDeclaration(decl: ts.VariableDeclaration): boolean {
@@ -138,4 +176,56 @@ export function isServerOnCall(call: ts.CallExpression, checker: ts.TypeChecker)
   if (!ts.isPropertyAccessExpression(callee)) return false
   if (callee.name.text !== 'on' && callee.name.text !== 'onSignal') return false
   return isServerInstanceExpression(callee.expression, checker, new Set())
+}
+
+export type ClientOnCallInfo = {
+  subType: ClientGraphSubType
+  handler: ts.ArrowFunction | ts.FunctionExpression
+}
+
+type ClientInstanceInfo = Omit<ClientOnCallInfo, 'handler'>
+
+function getClientInstanceInfo(
+  expr: ts.Expression,
+  checker: ts.TypeChecker,
+  seen: Set<ts.Symbol>
+): ClientInstanceInfo | undefined {
+  const target = unwrapExpression(expr)
+  if (ts.isCallExpression(target)) {
+    const callee = target.expression
+    if (
+      ts.isPropertyAccessExpression(callee) &&
+      ts.isIdentifier(callee.expression) &&
+      callee.expression.text === 'g'
+    ) {
+      const subType = CLIENT_GRAPH_SUB_TYPE_BY_METHOD[callee.name.text]
+      if (subType) return { subType }
+    }
+  }
+  if (!ts.isIdentifier(target)) return undefined
+
+  const symbol = checker.getSymbolAtLocation(target)
+  if (!symbol || seen.has(symbol)) return undefined
+  seen.add(symbol)
+  for (const decl of symbol.getDeclarations() ?? []) {
+    if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
+    const info = getClientInstanceInfo(decl.initializer, checker, seen)
+    if (info) return info
+  }
+  return undefined
+}
+
+export function getClientOnCallInfo(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientOnCallInfo | undefined {
+  const callee = call.expression
+  if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== 'on') return undefined
+  const info = getClientInstanceInfo(callee.expression, checker, new Set())
+  if (!info) return undefined
+  const handler = call.arguments[1]
+  if (!handler || (!ts.isArrowFunction(handler) && !ts.isFunctionExpression(handler))) {
+    return undefined
+  }
+  return { ...info, handler }
 }

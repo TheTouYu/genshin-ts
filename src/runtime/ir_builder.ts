@@ -1,4 +1,5 @@
 import type { ExecutionFlow, IRBuildInput } from './execution_flow_types.js'
+import { CLIENT_DEFAULT_GRAPH_ID, SERVER_DEFAULT_GRAPH_ID } from './graph_defaults.js'
 import type {
   Argument,
   ConnectionArgument,
@@ -117,17 +118,20 @@ function buildArgument(record: MetaCallRecord, arg: value, argIndex: number): Ar
   }
 
   const meta = arg.getMetadata()
-  if (!meta)
-    throw new Error(
-      `Error in ${record.nodeType} - Value has no metadata: ${JSON.stringify(arg.toIRLiteral())}`
-    )
+  // An uninitialized runtime value represents an omitted optional input. Keep its
+  // null IR placeholder so Composite call pins preserve their declared index.
+  if (!meta) return withCompositeInputIndex(arg.toIRLiteral())
   const conn = buildConnectionArgument(meta, arg)
   if (conn) return withCompositeInputIndex(conn)
 
   return withCompositeInputIndex(arg.toIRLiteral())
 }
 
-type NodeBuilder = (record: MetaCallRecord, next?: NextConnection[]) => ServerNode
+type NodeBuilder = (
+  record: MetaCallRecord,
+  next?: NextConnection[],
+  isClient?: boolean
+) => ServerNode
 
 const buildDefaultNode: NodeBuilder = (record, next) => {
   const node: ServerNode = {
@@ -140,7 +144,7 @@ const buildDefaultNode: NodeBuilder = (record, next) => {
   return node
 }
 
-const buildBreakLoopNode: NodeBuilder = (record, next) => {
+const buildBreakLoopNode: NodeBuilder = (record) => {
   const node: ServerNode = {
     id: record.id,
     type: record.nodeType
@@ -150,13 +154,17 @@ const buildBreakLoopNode: NodeBuilder = (record, next) => {
   // break_loop has no exec output; only connect to loop break input pins.
   // if (next?.length) out.push(...next)
 
+  // Both server and client finite-loop nodes take the break signal on their
+  // second InFlow pin (index 1), distinct from the normal entry pin (index 0).
+  const breakTargetIndex = 1
+
   for (const arg of record.args) {
     const lit = arg.toIRLiteral()
     if (!lit) continue
     if (lit.type !== 'int' || typeof lit.value !== 'number') {
       throw new Error(`Error in break_loop - Invalid loop node id literal: ${JSON.stringify(lit)}`)
     }
-    out.push({ node_id: lit.value, target_index: 1 })
+    out.push({ node_id: lit.value, target_index: breakTargetIndex })
   }
 
   if (out.length) node.next = out
@@ -167,36 +175,67 @@ const NODE_BUILDERS: Record<string, NodeBuilder> = {
   break_loop: buildBreakLoopNode
 }
 
-function buildNodeFromRecord(record: MetaCallRecord, next?: NextConnection[]): ServerNode {
+function buildNodeFromRecord(
+  record: MetaCallRecord,
+  next: NextConnection[] | undefined,
+  isClient: boolean
+): ServerNode {
   const builder = NODE_BUILDERS[record.nodeType] ?? buildDefaultNode
-  return builder(record, next)
+  return builder(record, next, isClient)
 }
 
-function buildNodesFromFlow(flow: ExecutionFlow): ServerNode[] {
-  // __bootstrap__ 流：仅用于搭建执行上下文（如 stage 初始化），
-  // 不产生实际 IR 节点。当 removeUnusedNodes=false 时仍需此处跳过，
-  // 防止引导节点污染 GIA 输出。
+function buildNodesFromFlow(
+  flow: ExecutionFlow,
+  isClient: boolean,
+  skipEventNode: boolean
+): ServerNode[] {
+  // Bootstrap flows only establish runtime context and are never serializable graph nodes.
   if (flow.eventNode.nodeType === '__bootstrap__') return []
 
   const nodes: ServerNode[] = []
 
   const getNext = (id: number) => flow.edges[id]
 
-  nodes.push(buildNodeFromRecord(flow.eventNode, getNext(flow.eventNode.id)))
+  // client filter graphs have no begins node in real GIA samples; the start
+  // event is a runtime-only anchor and must not be emitted (nor its edges)
+  if (!skipEventNode) {
+    nodes.push(buildNodeFromRecord(flow.eventNode, getNext(flow.eventNode.id), isClient))
+  }
 
   flow.execNodes.forEach((execNode) => {
-    nodes.push(buildNodeFromRecord(execNode, getNext(execNode.id)))
+    nodes.push(buildNodeFromRecord(execNode, getNext(execNode.id), isClient))
   })
 
   flow.dataNodes.forEach((dataNode) => {
-    nodes.push(buildNodeFromRecord(dataNode))
+    nodes.push(buildNodeFromRecord(dataNode, undefined, isClient))
   })
 
   return nodes
 }
 
 export function buildIRDocument(input: IRBuildInput): IRDocument {
-  const nodes = input.flows.flatMap(buildNodesFromFlow)
+  const isClient = !!input.clientSubType
+  const skipEventNode =
+    input.clientSubType === 'bool_filter' || input.clientSubType === 'int_filter'
+  const nodes = input.flows.flatMap((flow) => buildNodesFromFlow(flow, isClient, skipEventNode))
+
+  if (input.clientSubType) {
+    return {
+      ir_version: 1,
+      ir_type: 'node_graph',
+      graph: {
+        type: 'client',
+        mode: input.clientMode ?? 'beyond',
+        sub_type: input.clientSubType,
+        evaluation_interval: input.clientEvaluationInterval,
+        id: input.graphId ?? CLIENT_DEFAULT_GRAPH_ID,
+        name: input.graphName
+      },
+      // 客户端节点图当前不支持节点图变量；保留这一行作为未来支持时的落点，但不要写入 client IR。
+      // variables: input.variables,
+      nodes
+    }
+  }
 
   return {
     ir_version: 1,
@@ -205,7 +244,7 @@ export function buildIRDocument(input: IRBuildInput): IRDocument {
       type: 'server',
       mode: input.serverMode ?? 'beyond',
       sub_type: input.serverSubType ?? 'entity',
-      id: input.graphId,
+      id: input.graphId ?? SERVER_DEFAULT_GRAPH_ID,
       name: input.graphName
     },
     variables: input.variables,

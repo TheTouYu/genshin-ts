@@ -181,11 +181,13 @@ try {
   assertContains(generatedText, 'evt.params.参数_1')
   assertContains(generatedText, 'evt.params.参数_2')
   assertContains(generatedText, 'evt.params.参数_3')
-  assertNotContains(generatedText, '}, 3)')
+  assertContains(generatedText, 'evt.params.参数_4')
+  assertNotContains(generatedText, '}, 4)')
   assertNotContains(generatedText, 'signalParam0.asType')
   assertNotContains(generatedText, 'signalParam1.asType')
   assertNotContains(generatedText, 'signalParam2.asType')
-  assertNotContains(generatedText, 'signalParam3')
+  assertNotContains(generatedText, 'signalParam3.asType')
+  assertNotContains(generatedText, 'signalParam4')
 
   assert.ok(fs.existsSync(signalsResourcePath), 'Expected extracted signals.ts to exist')
   const signalsText = normalizeGeneratedText(fs.readFileSync(signalsResourcePath, 'utf8'))
@@ -232,10 +234,11 @@ try {
   assertValueArg(literalSend.args?.[3], 'bool', true)
 
   const wiredSend = findSignalNode(sendDoc, 'send_signal', 'signal_param_wired')
-  assert.equal(wiredSend.args?.length, 4)
+  assert.equal(wiredSend.args?.length, 5)
   assertConnArg(wiredSend.args?.[1], 'int')
   assertConnArg(wiredSend.args?.[2], 'str')
   assertConnArg(wiredSend.args?.[3], 'entity')
+  assertConnArg(wiredSend.args?.[4], 'entity_list')
 
   const noParamSend = findSignalNode(sendDoc, 'send_signal', 'signal_param_none')
   assert.equal(noParamSend.args?.length, 1)
@@ -246,12 +249,12 @@ try {
   const wiredParamConnections = signalParamConnections(sendDoc, wiredMonitor.id)
   assert.deepEqual(
     wiredParamConnections.map((conn) => conn.index),
-    [3, 4, 5],
-    'Expected wired monitor signal parameters to be consumed from IR output pins 3..5'
+    [3, 4, 5, 6],
+    'Expected wired monitor signal parameters to be consumed from IR output pins 3..6'
   )
   assert.deepEqual(
     wiredParamConnections.map((conn) => conn.node_id),
-    [wiredMonitor.id, wiredMonitor.id, wiredMonitor.id],
+    [wiredMonitor.id, wiredMonitor.id, wiredMonitor.id, wiredMonitor.id],
     'Expected wired signal parameter connections to target the monitor_signal event node id'
   )
 
@@ -284,7 +287,7 @@ try {
     const message = err instanceof Error ? err.message : String(err)
     throw new Error(
       `[signal-params] IR->GIA failed while converting signal parameter pins. ` +
-        `The IR consumes monitor_signal output pins 3..5, so the GIA converter must expose matching monitor_signal output pins. ${message}`
+        `The IR consumes monitor_signal output pins 3..6, so the GIA converter must expose matching monitor_signal output pins. ${message}`
     )
   }
   assert.equal(giaResults.length, 1, 'Expected one GIA file for the server graph')
@@ -314,8 +317,8 @@ try {
   const wiredSendGiaNode = findGiaSignalNode(sendGiaNodes, SEND_SIGNAL_NODE_ID, 'signal_param_wired')
   assert.deepEqual(
     inParamPins(wiredSendGiaNode).map((pin) => pin.i1.index).sort((a, b) => a - b),
-    [0, 1, 2],
-    'Expected wired sendSignal parameters to map to data input pins 0..2'
+    [0, 1, 2, 3],
+    'Expected wired sendSignal parameters, including entity_list, to map to data input pins 0..3'
   )
   assert.equal(
     findGiaSignalNode(sendGiaNodes, SEND_SIGNAL_NODE_ID, 'signal_param_none').pins.filter(
@@ -331,8 +334,8 @@ try {
       .map((pin) => pin.i1.index)
       .filter((index) => index >= 3)
       .sort((a, b) => a - b),
-    [3, 4, 5],
-    'Expected typed onSignal parameters to map to monitor output pins 3..5'
+    [3, 4, 5, 6],
+    'Expected typed onSignal parameters, including entity_list, to map to monitor output pins 3..6'
   )
 
   const literalMonitorGiaNode = findGiaSignalNode(

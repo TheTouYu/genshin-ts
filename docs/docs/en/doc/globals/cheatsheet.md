@@ -17,6 +17,7 @@
 ## Scene and entities
 - `player(1)` / `stage` / `level` / `self`
 - `GameObject.Find(...)`
+- `clientEntity(...)` (client graphs only): supports `0` / `null` placeholders, GUID lookup, and narrowing a generic entity to the shortcuts available in the current client graph
 
 ## Other
 - `Math` / `Mathf` / `Vector3` / `Random`

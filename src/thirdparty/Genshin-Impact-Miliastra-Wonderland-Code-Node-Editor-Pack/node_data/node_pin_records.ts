@@ -974,7 +974,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'Modify Value in List',
+    name: 'Set List Value',
     id: 160,
     inputs: ['L<R<T>>', 'Int', 'R<T>'],
     outputs: [],
@@ -1135,7 +1135,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Get Currently Active Entity Deployment Groups',
+    name: 'Get Currently Active Entity Deployment Group List',
     id: 179,
     inputs: [],
     outputs: ['L<Int>']
@@ -1160,7 +1160,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   { name: 'Forwarding Event', id: 190, inputs: ['Ety'], outputs: [] },
-  { name: 'Pi (π)', id: 191, inputs: [], outputs: ['Flt'] },
+  { name: 'Pi', id: 191, inputs: [], outputs: ['Flt'] },
   {
     name: '3D Vector: Zero Vector',
     id: 192,
@@ -1442,7 +1442,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Fct']
   },
   {
-    name: 'Modify Entity Faction',
+    name: 'Set Entity Faction',
     id: 250,
     inputs: ['Ety', 'Fct'],
     outputs: []
@@ -1489,7 +1489,7 @@ export const NODE_PIN_RECORDS = [
     inputs: ['Ety'],
     outputs: ['Ety']
   },
-  { name: 'Get Entity Type', id: 260, inputs: ['Ety'], outputs: [] },
+  { name: 'Get Entity Type', id: 260, inputs: ['Ety'], outputs: ['E<14>'] },
   {
     name: 'Switch Main Camera Template',
     id: 261,
@@ -1615,7 +1615,7 @@ export const NODE_PIN_RECORDS = [
     name: "When All Player's Characters Are Down",
     id: 284,
     inputs: [],
-    outputs: ['Ety']
+    outputs: ['Ety', 'E<20>']
   },
   {
     name: 'When Player Is Abnormally Downed and Revives',
@@ -1636,7 +1636,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Bol']
   },
   {
-    name: 'Teleport Player',
+    name: 'Teleport Player (Beyond Mode)',
     id: 288,
     inputs: ['Ety', 'Vec', 'Vec'],
     outputs: []
@@ -1715,7 +1715,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modifying Character Disruptor Device',
+    name: 'Set Character Disruptor Device',
     id: 302,
     inputs: ['Ety', 'Int'],
     outputs: []
@@ -1787,7 +1787,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Global Timer',
+    name: 'Increase Global Timer Value',
     id: 314,
     inputs: ['Ety', 'Str', 'Flt'],
     outputs: []
@@ -1817,13 +1817,13 @@ export const NODE_PIN_RECORDS = [
     outputs: ['L<Ety>']
   },
   {
-    name: 'Get Specified Type of Entities on the Field',
+    name: 'Get Specified Type of Entity on the Field',
     id: 319,
-    inputs: ['R<T>'],
+    inputs: ['E<14>'],
     outputs: ['L<Ety>']
   },
   {
-    name: 'Get Entities With Specified Prefab on the Field',
+    name: 'Get Entity With Specified Prefab ID on the Field',
     id: 320,
     inputs: ['Pfb'],
     outputs: ['L<Ety>']
@@ -2390,11 +2390,11 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Get Entity List by Specified Type',
     id: 377,
-    inputs: ['L<Ety>', 'R<T>'],
+    inputs: ['L<Ety>', 'E<14>'],
     outputs: ['L<Ety>']
   },
   {
-    name: 'Get Entity List by Specified Prefab',
+    name: 'Get Entity List by Specified Prefab ID',
     id: 378,
     inputs: ['L<Ety>', 'Pfb'],
     outputs: ['L<Ety>']
@@ -2415,7 +2415,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Get Creation Attribute',
     id: 381,
     inputs: ['Ety'],
-    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt']
+    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'E<39>']
   },
   {
     name: 'Switch Current Interface Layout',
@@ -2430,7 +2430,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify UI Control Status Within the Interface Layout',
+    name: 'Set UI Control (Group) Status',
     id: 384,
     // displayStatus: UIControlGroupStatus -> ENUM_ID.UI_Control_Group_Status = 24
     inputs: ['Ety', 'Int', 'E<24>'],
@@ -2463,7 +2463,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Change Player Class',
     id: 389,
-    inputs: ['Ety', 'Cfg', 'E<0>'],
+    inputs: ['Ety', 'Cfg', 'E<53>'],
     outputs: []
   },
   {
@@ -2485,7 +2485,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Ety', 'Gid', 'Str', 'Str', 'Str']
   },
   {
-    name: 'Modify Skill Resource Amount',
+    name: 'Increase Skill Resource Amount',
     id: 393,
     inputs: ['Ety', 'Cfg', 'Flt'],
     outputs: []
@@ -2499,7 +2499,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Add Character Skill',
     id: 395,
-    inputs: ['Ety', 'Cfg', 'R<T>', 'E<0>'],
+    inputs: ['Ety', 'Cfg', 'E<30>', 'E<52>'],
     outputs: ['Int']
   },
   {
@@ -2511,19 +2511,19 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Initialize Character Skill',
     id: 397,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: []
   },
   {
     name: 'Query Character Skill',
     id: 398,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: ['Cfg']
   },
   {
     name: 'Delete Character Skill by Slot',
     id: 399,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: []
   },
   {
@@ -2695,7 +2695,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'Native Setting Custom Value',
+    name: 'Native Settings Custom Value',
     id: 445,
     inputs: ['Ety', 'Str', 'R<T>', 'Bol', 'Bol'],
     outputs: [],
@@ -3086,7 +3086,9 @@ export const NODE_PIN_RECORDS = [
       [3359, 'S<T:E<38>>'],
       [759, 'S<T:E<39>>'],
       [776, 'S<T:E<40>>'],
-      [777, 'S<T:E<41>>']
+      [777, 'S<T:E<41>>'],
+      [851, 'S<T:E<42>>'],
+      [852, 'S<T:E<43>>']
     ]
   },
   {
@@ -3156,13 +3158,13 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Vec']
   },
   {
-    name: 'Add Target-Oriented Rotation-Based Motion Device',
+    name: 'Add Basic Target-Oriented Rotation-Based Motion Device',
     id: 520,
     inputs: ['Ety', 'Str', 'Flt', 'Vec'],
     outputs: []
   },
   {
-    name: 'Remove Interface Control Group From Control Group Library',
+    name: 'Remove UI Control Group From Control Group Library',
     id: 521,
     inputs: ['Ety', 'Int'],
     outputs: []
@@ -3198,13 +3200,13 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Remove Unit Tag from Entity',
+    name: 'Remove Unit Tag From Entity',
     id: 587,
     inputs: ['Ety', 'Int'],
     outputs: []
   },
   {
-    name: 'Clear Unit Tags from Entity',
+    name: 'Clear Unit Tags From Entity',
     id: 588,
     inputs: ['Ety'],
     outputs: []
@@ -3258,7 +3260,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Player Background Music',
+    name: 'Set Player Background Music',
     id: 597,
     inputs: ['Ety', 'Int', 'Flt', 'Flt', 'Int', 'Bol', 'Flt', 'Flt', 'Bol'],
     outputs: []
@@ -3270,7 +3272,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Set the Aggro Value of Specified Entity',
+    name: 'Set the Aggro Value of the Specified Entity',
     id: 599,
     inputs: ['Ety', 'Ety', 'Int'],
     outputs: []
@@ -3336,7 +3338,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['L<Ety>']
   },
   {
-    name: 'Query if Specified Entity Is in Combat',
+    name: 'Query If Specified Entity Is in Combat',
     id: 610,
     inputs: ['Ety'],
     outputs: ['Bol']
@@ -3438,25 +3440,25 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Ety', 'L<Int>', 'E<32>', 'Int']
   },
   {
-    name: 'Modify Mini-Map Zoom',
+    name: 'Set Mini-Map Zoom',
     id: 634,
     inputs: ['Ety', 'Flt'],
     outputs: []
   },
   {
-    name: 'Modify Mini-Map Marker Activation Status',
+    name: 'Set Mini-Map Marker Activation Status',
     id: 635,
     inputs: ['Ety', 'L<Int>', 'Bol'],
     outputs: []
   },
   {
-    name: 'Modify Player List for Visible Mini-Map Markers',
+    name: 'Set Player List for Visible Mini-Map Markers',
     id: 636,
     inputs: ['Ety', 'Int', 'L<Ety>'],
     outputs: []
   },
   {
-    name: 'Modify Player List for Tracking Mini-Map Markers',
+    name: 'Set Player List for Tracking Mini-Map Markers',
     id: 637,
     inputs: ['Ety', 'Int', 'L<Ety>'],
     outputs: []
@@ -3474,7 +3476,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['L<Int>', 'L<Int>', 'L<Int>']
   },
   {
-    name: 'Modify Player Markers on the Mini-Map',
+    name: 'Set Player Markers on the Mini-Map',
     id: 640,
     inputs: ['Ety', 'Int', 'Ety'],
     outputs: []
@@ -3510,7 +3512,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Change Achievement Progress Tally',
+    name: 'Increase Achievement Progress Tally',
     id: 646,
     inputs: ['Ety', 'Int', 'Int'],
     outputs: []
@@ -3541,14 +3543,14 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Player Settlement Success Status',
     id: 652,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<33>'],
     outputs: []
   },
   {
     name: 'Get Player Settlement Success Status',
     id: 653,
     inputs: ['Ety'],
-    outputs: []
+    outputs: ['E<33>']
   },
   {
     name: 'Set Faction Settlement Ranking Value',
@@ -3565,17 +3567,17 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Faction Settlement Success Status',
     id: 656,
-    inputs: ['Fct', 'R<T>'],
+    inputs: ['Fct', 'E<33>'],
     outputs: []
   },
   {
     name: 'Get Faction Settlement Success Status',
     id: 657,
     inputs: ['Fct'],
-    outputs: []
+    outputs: ['E<33>']
   },
   {
-    name: 'Get Player Ranking Info',
+    name: 'Get Player Rank Info',
     id: 658,
     inputs: ['Ety'],
     outputs: ['Int', 'Int', 'Int', 'Int']
@@ -3583,13 +3585,13 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Set Player Rank Score Change',
     id: 659,
-    inputs: ['Ety', 'E<33>', 'Int'],
+    inputs: ['Ety', 'E<34>', 'Int'],
     outputs: []
   },
   {
     name: 'Get Player Rank Score Change',
     id: 660,
-    inputs: ['Ety', 'R<T>'],
+    inputs: ['Ety', 'E<34>'],
     outputs: ['Int']
   },
   {
@@ -3690,7 +3692,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Equipment Affix Value',
+    name: 'Set Equipment Affix Value',
     id: 674,
     inputs: ['Int', 'Int', 'Flt'],
     outputs: []
@@ -3747,7 +3749,7 @@ export const NODE_PIN_RECORDS = [
     name: 'When the Quantity of Inventory Item Changes',
     id: 683,
     inputs: [],
-    outputs: ['Ety', 'Gid', 'Cfg', 'Int', 'Int']
+    outputs: ['Ety', 'Gid', 'Cfg', 'Int', 'Int', 'E<35>']
   },
   {
     name: 'When the Quantity of Inventory Currency Changes',
@@ -3762,19 +3764,19 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Inventory Item Quantity',
+    name: 'Increase Inventory Item Quantity',
     id: 686,
     inputs: ['Ety', 'Cfg', 'Int'],
     outputs: []
   },
   {
-    name: 'Set Inventory Drop Items/Currency Amount',
+    name: 'Set Inventory Loot Item/Currency Quantity',
     id: 687,
-    inputs: ['Ety', 'Cfg', 'Int', 'R<T>'],
+    inputs: ['Ety', 'Cfg', 'Int', 'E<36>'],
     outputs: []
   },
   {
-    name: 'Modify Inventory Currency Quantity',
+    name: 'Increase Inventory Currency Quantity',
     id: 688,
     inputs: ['Ety', 'Cfg', 'Int'],
     outputs: []
@@ -3816,7 +3818,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Ety', 'Gid', 'Int']
   },
   {
-    name: 'HP Loss',
+    name: 'Lose HP',
     id: 697,
     // damagePopUpType: DamagePopUpType -> virtual enum bucket: ENUM_ID.Damage_Pop_Up_Type = 51
     inputs: ['Ety', 'Flt', 'Bol', 'Bol', 'Bol', 'E<51>'],
@@ -3829,13 +3831,13 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'When Custom Shop Item Is Sold',
+    name: 'When Custom Shop Item Is Sold in the Shop',
     id: 700,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Ety', 'Int', 'Int', 'Int']
   },
   {
-    name: 'When Selling Inventory Items in the Shop',
+    name: 'When Inventory Item Is Sold in the Shop',
     id: 701,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Ety', 'Int', 'Cfg', 'Int']
@@ -3848,25 +3850,25 @@ export const NODE_PIN_RECORDS = [
   },
   { name: 'Close Shop', id: 703, inputs: ['Ety'], outputs: [] },
   {
-    name: 'Modify Custom Shop Item Sales Info',
+    name: 'Set Custom Shop Item Sales Info',
     id: 704,
     inputs: ['Ety', 'Int', 'Int', 'Cfg', 'D<Cfg,Int>', 'Int', 'Bol', 'Int', 'Int', 'Bol'],
     outputs: []
   },
   {
-    name: 'When selling items to the shop',
+    name: 'When the Shop Buys an Item',
     id: 705,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Ety', 'Int', 'D<Cfg,Int>']
   },
   {
-    name: 'Modify Inventory Shop Item Sales Info',
+    name: 'Set Inventory Shop Item Sales Info',
     id: 706,
     inputs: ['Ety', 'Int', 'Cfg', 'D<Cfg,Int>', 'Int', 'Int', 'Bol'],
     outputs: []
   },
   {
-    name: 'Modify Item Purchase Info in the Purchase List',
+    name: 'Set Item Purchase Info in the Purchase List',
     id: 707,
     inputs: ['Ety', 'Int', 'Cfg', 'D<Cfg,Int>', 'Bol'],
     outputs: []
@@ -3884,7 +3886,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Add Items to the Purchase List',
+    name: 'Add Item to the Purchase List',
     id: 710,
     inputs: ['Ety', 'Int', 'Cfg', 'D<Cfg,Int>', 'Bol'],
     outputs: []
@@ -3902,7 +3904,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Remove item from purchase list',
+    name: 'Remove Item From the Purchase List',
     id: 713,
     inputs: ['Ety', 'Int', 'Cfg'],
     outputs: []
@@ -3944,25 +3946,25 @@ export const NODE_PIN_RECORDS = [
     outputs: ['D<Cfg,Int>', 'Bol']
   },
   {
-    name: 'Set Inventory Item Drop Contents',
+    name: 'Set Inventory Item Drop Content',
     id: 720,
     inputs: ['Ety', 'D<Cfg,Int>', 'E<36>'],
     outputs: []
   },
   {
-    name: 'Get all basic items from Inventory',
+    name: 'Get All Inventory Basic Items',
     id: 721,
     inputs: ['Ety'],
     outputs: ['D<Cfg,Int>']
   },
   {
-    name: 'Get All Currency From Inventory',
+    name: 'Get All Inventory Currency',
     id: 722,
     inputs: ['Ety'],
     outputs: ['D<Cfg,Int>']
   },
   {
-    name: 'Get all equipment from Inventory',
+    name: 'Get All Inventory Equipment',
     id: 723,
     inputs: ['Ety'],
     outputs: ['L<Int>']
@@ -3980,13 +3982,13 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Loot Item Component Quantity',
+    name: 'Increase Loot Component Item Quantity',
     id: 726,
     inputs: ['Ety', 'Cfg', 'Int'],
     outputs: []
   },
   {
-    name: 'Modify Loot Component Currency Amount',
+    name: 'Increase Loot Component Currency Quantity',
     id: 727,
     inputs: ['Ety', 'Cfg', 'Int'],
     outputs: []
@@ -4004,13 +4006,13 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Int']
   },
   {
-    name: 'Get All Trophy Items',
+    name: 'Get All Items from Loot Component',
     id: 730,
     inputs: ['Ety'],
     outputs: []
   },
   {
-    name: 'Get All Trophy Currency',
+    name: 'Get All Currency from Loot Component',
     id: 731,
     inputs: ['Ety'],
     outputs: []
@@ -4022,7 +4024,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['L<Int>']
   },
   {
-    name: 'When Items in the Inventory Are Used',
+    name: 'When Inventory Item Is Used',
     id: 733,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Cfg', 'Int']
@@ -4047,7 +4049,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Get the Currently Active Scan Tag Config ID',
+    name: 'Get Current Active Scan Tag Config ID',
     id: 737,
     inputs: ['Ety'],
     outputs: ['Cfg']
@@ -4056,7 +4058,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Get Character Attribute',
     id: 738,
     inputs: ['Ety'],
-    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt']
+    outputs: ['Int', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'E<39>']
   },
   {
     name: 'Set Character Skill CD',
@@ -4065,13 +4067,13 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Character Skill CD',
+    name: 'Increase Character Skill CD',
     id: 740,
     inputs: ['Ety', 'E<30>', 'Flt', 'Bol'],
     outputs: []
   },
   {
-    name: 'Modify Skill CD Percentage Based on Max CD',
+    name: 'Set Skill CD Based on Maximum CD Percentage',
     id: 741,
     inputs: ['Ety', 'E<30>', 'Flt', 'Bol'],
     outputs: []
@@ -4085,7 +4087,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Random Deck Selector Selection List',
     id: 743,
-    inputs: ['L<Int>'],
+    inputs: ['L<Int>', 'E<54>'],
     outputs: []
   },
   {
@@ -4113,13 +4115,13 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Ety']
   },
   {
-    name: 'List of Slot IDs Querying Unit Status',
+    name: 'Query Unit Status Slot ID List',
     id: 748,
     inputs: ['Ety', 'Cfg'],
     outputs: ['L<Int>']
   },
   {
-    name: 'Query Equipment Config ID by Equipment ID',
+    name: 'Query Equipment Config ID by Equipment Index',
     id: 749,
     inputs: ['Int'],
     outputs: ['Cfg']
@@ -4131,13 +4133,13 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Gid']
   },
   {
-    name: 'Get Player ID by Player GUID',
+    name: 'Get player ID by Player GUID',
     id: 751,
     inputs: ['Gid'],
     outputs: ['Int']
   },
   {
-    name: 'Calculate formatted time from timestamp',
+    name: 'Calculate Formatted Time From Timestamp',
     id: 752,
     inputs: ['Int'],
     outputs: ['Int', 'Int', 'Int', 'Int', 'Int', 'Int']
@@ -4149,7 +4151,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Int']
   },
   {
-    name: 'Calculate day of the week from timestamp',
+    name: 'Calculate Day of the Week From Timestamp',
     id: 754,
     inputs: ['Int'],
     outputs: ['Int']
@@ -4179,19 +4181,19 @@ export const NODE_PIN_RECORDS = [
     outputs: ['L<Ety>']
   },
   {
-    name: 'Set Player Leaderboard Score as an Integer',
+    name: 'Set Player Leaderboard Score as Integer',
     id: 761,
     inputs: ['L<Int>', 'Int', 'Int'],
     outputs: []
   },
   {
-    name: 'Set Player Leaderboard Score as a Float',
+    name: 'Set Player Leaderboard Score as Float',
     id: 762,
     inputs: ['L<Int>', 'Flt', 'Int'],
     outputs: []
   },
   {
-    name: 'Modify environment settings',
+    name: 'Set Environment Configuration',
     id: 763,
     inputs: ['Int', 'L<Ety>', 'Bol', 'Int'],
     outputs: []
@@ -4203,7 +4205,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Ety', 'Gid', 'Cfg', 'Cfg']
   },
   {
-    name: 'When Entering an Interruptible State',
+    name: 'When Entering an Interrupt-Vulnerable State',
     id: 765,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Ety']
@@ -4212,7 +4214,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Query Game Mode and Player Number',
     id: 766,
     inputs: [],
-    outputs: ['Int']
+    outputs: ['Int', 'E<40>']
   },
   {
     name: 'Get Player Nickname',
@@ -4224,7 +4226,7 @@ export const NODE_PIN_RECORDS = [
     name: 'Get Player Client Input Device Type',
     id: 768,
     inputs: ['Ety'],
-    outputs: []
+    outputs: ['E<41>']
   },
   {
     name: 'Set Chat Channel Switch',
@@ -4233,7 +4235,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Modify Player Channel Permission',
+    name: 'Set Player Channel Permissions',
     id: 770,
     inputs: ['Gid', 'Int', 'Bol'],
     outputs: []
@@ -4257,7 +4259,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Int']
   },
   {
-    name: 'Query Corresponding Gift Box Consumption',
+    name: 'Query Corresponding Gift Box Consumption Quantity',
     id: 774,
     inputs: ['Ety', 'Int'],
     outputs: ['Int']
@@ -4341,13 +4343,13 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Replace Equipment to the Specified Slot',
+    name: 'Replace equipment to the specified slot',
     id: 791,
     inputs: ['Ety', 'Int', 'Int', 'Int'],
     outputs: []
   },
   {
-    name: 'Get the Equipment Index of the Specified Equipment Slot',
+    name: 'Get the equipment index of the specified equipment slot',
     id: 792,
     inputs: ['Ety', 'Int', 'Int'],
     outputs: ['Int']
@@ -4359,7 +4361,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Int']
   },
   {
-    name: 'When the Active Character Changes',
+    name: 'When the active character changes',
     id: 794,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Ety', 'Ety']
@@ -4377,13 +4379,13 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Get the Preset Status Value of the Complex Creation',
+    name: 'Get the preset status value of the complex creation',
     id: 797,
     inputs: ['Ety', 'Int'],
     outputs: ['Int']
   },
   {
-    name: 'Set the Preset Status Value of the Complex Creation',
+    name: 'Set the preset status value of the complex creation',
     id: 798,
     inputs: ['Ety', 'Int', 'Int'],
     outputs: []
@@ -4413,7 +4415,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Revive Active Character',
+    name: 'Revive the active character',
     id: 803,
     inputs: ['Ety'],
     outputs: []
@@ -4425,7 +4427,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Ety']
   },
   {
-    name: 'Teleport Player',
+    name: 'Teleport Player (Classic Mode)',
     id: 805,
     inputs: ['Ety', 'Vec', 'Vec'],
     outputs: []
@@ -4433,7 +4435,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Bind Custom Skill Instance to Specified Slot',
     id: 806,
-    inputs: ['Ety', 'Int', 'E<0>', 'E<0>'],
+    inputs: ['Ety', 'Int', 'E<30>', 'E<52>'],
     outputs: ['Int']
   },
   {
@@ -4445,7 +4447,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Unbind all Skill Instances on the Slot',
     id: 808,
-    inputs: ['Ety', 'E<0>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: ['L<Int>']
   },
   {
@@ -4475,13 +4477,13 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Query All Skill Instance IDs by Skill Slot',
     id: 813,
-    inputs: ['Ety', 'E<0>'],
+    inputs: ['Ety', 'E<30>'],
     outputs: ['L<Int>']
   },
   {
     name: 'Query Skill Instance ID by Skill Slot and Skill Config ID',
     id: 814,
-    inputs: ['Ety', 'E<0>', 'Cfg'],
+    inputs: ['Ety', 'E<30>', 'Cfg'],
     outputs: ['Int']
   },
   {
@@ -4493,7 +4495,7 @@ export const NODE_PIN_RECORDS = [
   {
     name: 'Cast Skill From Specified Panel Slot',
     id: 816,
-    inputs: ['Ety', 'E<0>', 'Bol'],
+    inputs: ['Ety', 'E<30>', 'Bol'],
     outputs: []
   },
   {
@@ -4563,7 +4565,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'No of Tasks Configured',
+    name: 'No. of Tasks Configured',
     id: 829,
     inputs: ['Ety', 'Int', 'Int'],
     outputs: []
@@ -4575,7 +4577,7 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
-    name: 'Query if Specified Task is Completed',
+    name: 'Query If Specified Task Is Completed',
     id: 831,
     inputs: ['Ety', 'Int'],
     outputs: ['Bol']
@@ -4599,6 +4601,109 @@ export const NODE_PIN_RECORDS = [
     outputs: []
   },
   {
+    name: 'Edit Model Color & Material',
+    id: 835,
+    inputs: ['Ety', 'Bol', 'Bol', 'Int', 'Flt', 'E<42>', 'Bol', 'Bol', 'E<43>'],
+    outputs: []
+  },
+  {
+    name: 'Get Model Color & Material',
+    id: 836,
+    inputs: ['Ety'],
+    outputs: ['Bol', 'E<42>', 'Int', 'Flt', 'Bol', 'E<43>']
+  },
+  {
+    name: 'Set Player to Follow Control Motion Device',
+    id: 837,
+    inputs: ['Ety', 'Ety'],
+    outputs: []
+  },
+  {
+    name: 'Set Player to Leave Control Motion Device',
+    id: 838,
+    inputs: ['Ety'],
+    outputs: []
+  },
+  {
+    name: 'Set Player to Activate Control Motion Device',
+    id: 839,
+    inputs: ['Ety', 'L<Ety>'],
+    outputs: []
+  },
+  {
+    name: "Query Player's Currently Activated Control Motion Device List",
+    id: 840,
+    inputs: ['Ety'],
+    outputs: ['L<Ety>']
+  },
+  {
+    name: "Query Player's Followed Control Motion Device",
+    id: 841,
+    inputs: ['Ety'],
+    outputs: ['Ety']
+  },
+  {
+    name: "When Player's Activated Control Motion Device List Changes",
+    id: 842,
+    inputs: [],
+    outputs: ['Ety', 'Gid', 'L<Ety>', 'L<Ety>']
+  },
+  {
+    name: 'When Player Follows Control Motion Device',
+    id: 843,
+    inputs: [],
+    outputs: ['Ety', 'Gid', 'Ety']
+  },
+  {
+    name: 'When Player Leaves Control Motion Device',
+    id: 844,
+    inputs: [],
+    outputs: ['Ety', 'Gid', 'Ety']
+  },
+  {
+    name: "Query Control Motion Device's Current Movement Parameters",
+    id: 845,
+    inputs: ['Ety'],
+    outputs: ['Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt', 'Flt']
+  },
+  {
+    name: "Set Player's Cursor to Always Visible",
+    id: 846,
+    inputs: ['Ety', 'Bol'],
+    outputs: []
+  },
+  {
+    name: "Enable Player's Cursor to Click Selectable Targets",
+    id: 847,
+    inputs: ['Ety', 'Int', 'Int'],
+    outputs: []
+  },
+  {
+    name: "Set Player's Cursor to Click Through UI Controls",
+    id: 848,
+    inputs: ['Ety', 'Bol'],
+    outputs: []
+  },
+  {
+    name: 'Check Whether Player Cursor Is Active',
+    id: 849,
+    inputs: ['Ety'],
+    outputs: ['Bol']
+  },
+  {
+    name: 'Activate/Disable Cursor Collision Box',
+    id: 854,
+    // Static editor metadata exposes a leading hidden component selector.
+    inputs: ['Unk', 'Ety', 'Int', 'Bol'],
+    outputs: []
+  },
+  {
+    name: 'Check Whether Player Has Subscribed',
+    id: 855,
+    inputs: ['Ety'],
+    outputs: ['Bol']
+  },
+  {
     name: 'When Character Movement SPD Meets Condition',
     id: 946,
     inputs: [],
@@ -4611,7 +4716,7 @@ export const NODE_PIN_RECORDS = [
     outputs: ['Flt', 'Vec']
   },
   {
-    name: 'Set or Add Key Value Pairs to Dictionary',
+    name: 'Set or Add Key Value Pair to Dictionary',
     id: 948,
     inputs: ['D<R<K>,R<V>>', 'R<K>', 'R<V>'],
     outputs: [],
@@ -4985,7 +5090,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'Remove Key Value Pairs from Dictionary by Key',
+    name: 'Remove Key-Value Pairs From Dictionary by Key',
     id: 1298,
     inputs: ['D<R<K>,R<V>>', 'R<K>'],
     outputs: [],
@@ -5359,7 +5464,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'Get List of Keys from Dictionary',
+    name: 'Get List of Keys From Dictionary',
     id: 1508,
     inputs: ['D<R<K>,R<V>>'],
     outputs: ['L<R<K>>'],
@@ -5507,7 +5612,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'Get List of Values from Dictionary',
+    name: 'Get List of Values From Dictionary',
     id: 1578,
     inputs: ['D<R<K>,R<V>>'],
     outputs: ['L<R<V>>'],
@@ -5585,7 +5690,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: "Query Dictionary's Length",
+    name: 'Query Dictionary Length',
     id: 1648,
     inputs: ['D<R<K>,R<V>>'],
     outputs: ['Int'],
@@ -6131,7 +6236,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'Get Maximum Value from List',
+    name: 'Get Maximum Value From List',
     id: 149,
     inputs: ['L<R<T>>'],
     outputs: ['R<T>'],
@@ -6363,7 +6468,7 @@ export const NODE_PIN_RECORDS = [
     ]
   },
   {
-    name: 'When CaIIing GM (This Node is Hidden Externally)',
+    name: 'When Calling GM (This Node Is Hidden Externally)',
     id: 100000,
     inputs: [],
     outputs: ['Ety', 'Gid', 'Int', 'Int', 'Str', 'Str']

@@ -1,7 +1,12 @@
 import ts from 'typescript'
 
+import {
+  CLIENT_GRAPH_SUB_TYPE_BY_F_GLOBAL_NAME,
+  getClientGraphSubTypeForGstsFunctionName
+} from '../../definitions/client_graph_modes.js'
+import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import { fail } from './errors.js'
-import { isServerOnCall } from './matcher.js'
+import { getClientOnCallInfo, isServerOnCall } from './matcher.js'
 import { isAssignmentLikeOperator } from './ops.js'
 import { transformGstsServerFunction, transformHandler } from './stmt.js'
 import { buildFeatureFlags, type EnumImportInfo, type Env, type TransformCtx } from './types.js'
@@ -69,9 +74,40 @@ function isGstsServerCall(call: ts.CallExpression, checker: ts.TypeChecker): boo
   return isGstsServerSymbol(sym, checker)
 }
 
-function isDefineCompositeCall(call: ts.CallExpression): boolean {
-  const callee = call.expression
-  return ts.isPropertyAccessExpression(callee) && callee.name.text === 'defineComposite'
+function getGstsClientSymbolSubType(
+  sym: ts.Symbol,
+  checker: ts.TypeChecker
+): ClientGraphSubType | undefined {
+  const target = resolveAliasedSymbol(sym, checker)
+  const subType = getClientGraphSubTypeForGstsFunctionName(target.getName())
+  if (!subType) return undefined
+  const decls = target.getDeclarations() ?? []
+  if (!decls.length || decls.some((decl) => isGstsServerFunctionDecl(decl))) return subType
+  return undefined
+}
+
+function getGstsClientCallSubType(
+  call: ts.CallExpression,
+  checker: ts.TypeChecker
+): ClientGraphSubType | undefined {
+  const symbol = getCallSymbol(call, checker)
+  return symbol ? getGstsClientSymbolSubType(symbol, checker) : undefined
+}
+
+function getGstsClientNamespaceSubType(
+  env: Env,
+  node: ts.PropertyAccessExpression
+): ClientGraphSubType | 'server' | undefined {
+  const root = node.expression
+  const isGstsRoot =
+    (ts.isIdentifier(root) && (root.text === env.gstsIdent || root.text === 'gsts')) ||
+    (ts.isPropertyAccessExpression(root) &&
+      ts.isIdentifier(root.expression) &&
+      root.expression.text === 'globalThis' &&
+      root.name.text === 'gsts')
+  if (!isGstsRoot) return undefined
+  if (node.name.text === 'f' || node.name.text === 'fServer') return 'server'
+  return CLIENT_GRAPH_SUB_TYPE_BY_F_GLOBAL_NAME[node.name.text]
 }
 
 function isTopLevelVarDeclaration(decl: ts.VariableDeclaration): boolean {
@@ -239,7 +275,11 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
   const features = buildFeatureFlags(ctx.config)
   const enumImport = findEnumImportInfo(sf)
   const needsEnumImportRef = { value: false }
-  const makeEnv = (gstsIdent: string, eventName?: string): Env => ({
+  const makeEnv = (
+    gstsIdent: string,
+    eventName?: string,
+    graph?: Pick<Env, 'graphDocumentType' | 'clientSubType'>
+  ): Env => ({
     gstsIdent,
     config: ctx.config,
     file: sf,
@@ -251,7 +291,8 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
     eventName,
     timerHandleMeta: new Map(),
     enumImport,
-    needsEnumImportRef
+    needsEnumImportRef,
+    ...graph
   })
 
   const baseEnv = makeEnv('gsts')
@@ -299,6 +340,61 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
             fn: decl.initializer
           })
         }
+      }
+    }
+    return out
+  })()
+
+  const topLevelGstsClientDecls = (() => {
+    const out: {
+      name: string
+      subType: ClientGraphSubType
+      symbol: ts.Symbol | null
+      decl: ts.FunctionDeclaration | ts.VariableDeclaration
+      fn: ts.FunctionDeclaration | ts.FunctionExpression | ts.ArrowFunction
+    }[] = []
+    const seen = new Set<string>()
+    for (const stmt of sf.statements) {
+      if (ts.isFunctionDeclaration(stmt) && stmt.name) {
+        const name = stmt.name.text
+        const subType = getClientGraphSubTypeForGstsFunctionName(name)
+        if (!subType) continue
+        if (!stmt.body) {
+          fail(baseEnv, stmt, 'client gsts function must have an implementation body')
+        }
+        if (seen.has(name)) {
+          fail(baseEnv, stmt, `duplicate client gsts function name: ${name}`)
+        }
+        seen.add(name)
+        out.push({
+          name,
+          subType,
+          symbol: ctx.checker.getSymbolAtLocation(stmt.name) ?? null,
+          decl: stmt,
+          fn: stmt
+        })
+        continue
+      }
+      if (!ts.isVariableStatement(stmt)) continue
+      for (const decl of stmt.declarationList.declarations) {
+        if (!ts.isIdentifier(decl.name)) continue
+        const name = decl.name.text
+        const subType = getClientGraphSubTypeForGstsFunctionName(name)
+        if (!subType) continue
+        if (!isFunctionInitializer(decl.initializer)) {
+          fail(baseEnv, decl, 'client gsts function must be declared with a function initializer')
+        }
+        if (seen.has(name)) {
+          fail(baseEnv, decl, `duplicate client gsts function name: ${name}`)
+        }
+        seen.add(name)
+        out.push({
+          name,
+          subType,
+          symbol: ctx.checker.getSymbolAtLocation(decl.name) ?? null,
+          decl,
+          fn: decl.initializer
+        })
       }
     }
     return out
@@ -362,6 +458,93 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
     visit(sf, false)
   }
 
+  const validateGstsClientUsage = () => {
+    const visit = (node: ts.Node, clientSubType: ClientGraphSubType | undefined) => {
+      if (ts.isFunctionDeclaration(node) && node.name) {
+        const subType = getClientGraphSubTypeForGstsFunctionName(node.name.text)
+        if (subType) {
+          if (!ts.isSourceFile(node.parent)) {
+            fail(baseEnv, node, 'client gsts function must be declared at top-level')
+          }
+          ts.forEachChild(node, (child) => visit(child, subType))
+          return
+        }
+      }
+
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
+        const subType = getClientGraphSubTypeForGstsFunctionName(node.name.text)
+        if (subType) {
+          if (!isTopLevelVarDeclaration(node)) {
+            fail(baseEnv, node, 'client gsts function must be declared at top-level')
+          }
+          if (isFunctionInitializer(node.initializer)) {
+            visit(node.initializer, subType)
+            return
+          }
+        }
+      }
+
+      if (ts.isBinaryExpression(node) && isAssignmentLikeOperator(node.operatorToken.kind)) {
+        if (
+          ts.isIdentifier(node.left) &&
+          getClientGraphSubTypeForGstsFunctionName(node.left.text)
+        ) {
+          fail(
+            baseEnv,
+            node,
+            'client gsts function assignment is not supported (declare a top-level function)'
+          )
+        }
+      }
+
+      if (ts.isPropertyAccessExpression(node)) {
+        const namespaceSubType = getGstsClientNamespaceSubType(baseEnv, node)
+        if (namespaceSubType === 'server' && clientSubType) {
+          fail(baseEnv, node, 'gsts.f/gsts.fServer is not available in client graph scope')
+        }
+        if (
+          namespaceSubType &&
+          namespaceSubType !== 'server' &&
+          namespaceSubType !== clientSubType
+        ) {
+          fail(
+            baseEnv,
+            node,
+            `gsts.${node.name.text} is only available in matching ${namespaceSubType} client graph scope`
+          )
+        }
+      }
+
+      if (ts.isCallExpression(node)) {
+        const targetSubType = getGstsClientCallSubType(node, ctx.checker)
+        if (targetSubType && targetSubType !== clientSubType) {
+          fail(
+            baseEnv,
+            node,
+            `client gsts function for ${targetSubType} can only be called from the same client graph family`
+          )
+        }
+
+        const clientInfo = getClientOnCallInfo(node, ctx.checker)
+        if (clientInfo) {
+          visit(node.expression, clientSubType)
+          node.arguments.forEach((arg, index) => {
+            if (index === 1 && arg === clientInfo.handler) {
+              visit(arg, clientInfo.subType)
+            } else {
+              visit(arg, clientSubType)
+            }
+          })
+          return
+        }
+      }
+
+      ts.forEachChild(node, (child) => visit(child, clientSubType))
+    }
+
+    visit(sf, undefined)
+  }
+
   const detectGstsServerRecursion = () => {
     const bySymbol = new Set<ts.Symbol>()
     for (const info of topLevelGstsServerDecls) {
@@ -413,75 +596,56 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
     }
   }
 
+  const detectGstsClientRecursion = () => {
+    const bySymbol = new Set<ts.Symbol>()
+    for (const info of topLevelGstsClientDecls) {
+      if (info.symbol) bySymbol.add(info.symbol)
+    }
+    if (bySymbol.size === 0) return
+
+    const edges = new Map<ts.Symbol, { target: ts.Symbol; call: ts.CallExpression }[]>()
+    for (const info of topLevelGstsClientDecls) {
+      if (!info.symbol) continue
+      const calls: { target: ts.Symbol; call: ts.CallExpression }[] = []
+      const visit = (node: ts.Node) => {
+        if (ts.isCallExpression(node)) {
+          const symbol = getCallSymbol(node, ctx.checker)
+          if (symbol) {
+            const target = resolveAliasedSymbol(symbol, ctx.checker)
+            if (bySymbol.has(target)) calls.push({ target, call: node })
+          }
+        }
+        ts.forEachChild(node, visit)
+      }
+      if (info.fn.body) visit(info.fn.body)
+      edges.set(info.symbol, calls)
+    }
+
+    const state = new Map<ts.Symbol, 0 | 1 | 2>()
+    const dfs = (symbol: ts.Symbol) => {
+      state.set(symbol, 1)
+      for (const edge of edges.get(symbol) ?? []) {
+        const targetState = state.get(edge.target) ?? 0
+        if (targetState === 1) {
+          fail(baseEnv, edge.call, 'client gsts function recursion is not supported')
+        }
+        if (targetState === 0) dfs(edge.target)
+      }
+      state.set(symbol, 2)
+    }
+
+    for (const symbol of bySymbol) {
+      if ((state.get(symbol) ?? 0) === 0) dfs(symbol)
+    }
+  }
+
   validateGstsServerUsage()
+  validateGstsClientUsage()
   detectGstsServerRecursion()
+  detectGstsClientRecursion()
 
   const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
     const visit = (node: ts.Node): ts.Node => {
-      if (ts.isCallExpression(node) && isDefineCompositeCall(node) && node.arguments.length >= 2) {
-        const defArg = node.arguments[1]
-        if (ts.isObjectLiteralExpression(defArg)) {
-          const properties = defArg.properties.map((property) => {
-            if (ts.isMethodDeclaration(property)) {
-              if (!ts.isIdentifier(property.name) || property.name.text !== 'build') {
-                return ts.visitNode(property, visit) as ts.ObjectLiteralElementLike
-              }
-              const build = ts.factory.createFunctionExpression(
-                ts.canHaveModifiers(property) ? ts.getModifiers(property) : undefined,
-                property.asteriskToken,
-                property.name,
-                property.typeParameters,
-                property.parameters,
-                property.type,
-                property.body ?? ts.factory.createBlock([], true)
-              )
-              const gstsIdent = ts.isBlock(build.body) && hasTopLevelDeclName(build.body, 'gsts')
-                ? '__gsts'
-                : 'gsts'
-              const env = makeEnv(gstsIdent)
-              const transformed = transformGstsServerFunction(env, context, build)
-              return ts.factory.updateMethodDeclaration(
-                property,
-                ts.canHaveModifiers(property) ? ts.getModifiers(property) : undefined,
-                property.asteriskToken,
-                property.name,
-                property.questionToken,
-                property.typeParameters,
-                property.parameters,
-                property.type,
-                transformed.body as ts.Block
-              )
-            }
-            if (
-              !ts.isPropertyAssignment(property) ||
-              !(ts.isIdentifier(property.name) && property.name.text === 'build')
-            ) {
-              return ts.visitNode(property, visit) as ts.ObjectLiteralElementLike
-            }
-            const build = property.initializer
-            if (!ts.isArrowFunction(build) && !ts.isFunctionExpression(build)) return property
-            const gstsIdent = ts.isBlock(build.body) && hasTopLevelDeclName(build.body, 'gsts')
-              ? '__gsts'
-              : 'gsts'
-            const env = makeEnv(gstsIdent)
-            return ts.factory.updatePropertyAssignment(
-              property,
-              property.name,
-              transformHandler(env, context, build)
-            )
-          })
-          const nextDefArg = ts.factory.updateObjectLiteralExpression(defArg, properties)
-          const nextArgs = [...node.arguments]
-          nextArgs[1] = nextDefArg
-          return ts.factory.updateCallExpression(
-            node,
-            ts.visitNode(node.expression, visit) as ts.Expression,
-            node.typeArguments,
-            nextArgs
-          )
-        }
-      }
-
       if (
         ts.isCallExpression(node) &&
         isServerOnCall(node, ctx.checker) &&
@@ -498,7 +662,31 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
             ts.isStringLiteral(eventArg) || ts.isNoSubstitutionTemplateLiteral(eventArg)
               ? eventArg.text
               : undefined
-          const env = makeEnv(gstsIdent, eventName)
+          const env = makeEnv(gstsIdent, eventName, { graphDocumentType: 'server' })
+          const newHandler = transformHandler(env, context, handler)
+          const newArgs = [...node.arguments]
+          newArgs[1] = newHandler
+          const newCallee = ts.visitNode(node.expression, visit) as ts.Expression
+          return ts.factory.updateCallExpression(node, newCallee, node.typeArguments, newArgs)
+        }
+      }
+      if (ts.isCallExpression(node)) {
+        const clientInfo = getClientOnCallInfo(node, ctx.checker)
+        if (clientInfo) {
+          const handler = clientInfo.handler
+          const gstsIdent =
+            ts.isBlock(handler.body) && hasTopLevelDeclName(handler.body, 'gsts')
+              ? '__gsts'
+              : 'gsts'
+          const eventArg = node.arguments[0]
+          const eventName =
+            ts.isStringLiteral(eventArg) || ts.isNoSubstitutionTemplateLiteral(eventArg)
+              ? eventArg.text
+              : undefined
+          const env = makeEnv(gstsIdent, eventName, {
+            graphDocumentType: 'client',
+            clientSubType: clientInfo.subType
+          })
           const newHandler = transformHandler(env, context, handler)
           const newArgs = [...node.arguments]
           newArgs[1] = newHandler
@@ -510,19 +698,38 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
         if (!node.body) return node
         const gstsIdent =
           ts.isBlock(node.body) && hasTopLevelDeclName(node.body, 'gsts') ? '__gsts' : 'gsts'
-        const env = makeEnv(gstsIdent)
+        const env = makeEnv(gstsIdent, undefined, { graphDocumentType: 'server' })
         return transformGstsServerFunction(env, context, node)
+      }
+      if (ts.isFunctionDeclaration(node) && node.name) {
+        const clientSubType = getClientGraphSubTypeForGstsFunctionName(node.name.text)
+        if (clientSubType) {
+          if (!node.body) return node
+          const gstsIdent = hasTopLevelDeclName(node.body, 'gsts') ? '__gsts' : 'gsts'
+          const env = makeEnv(gstsIdent, undefined, {
+            graphDocumentType: 'client',
+            clientSubType
+          })
+          return transformGstsServerFunction(env, context, node)
+        }
       }
       if (ts.isVariableStatement(node) && ts.isSourceFile(node.parent)) {
         let changed = false
         const decls = node.declarationList.declarations.map((decl) => {
           if (!ts.isIdentifier(decl.name)) return decl
-          if (!isGstsServerName(decl.name.text)) return decl
+          const isServer = isGstsServerName(decl.name.text)
+          const clientSubType = getClientGraphSubTypeForGstsFunctionName(decl.name.text)
+          if (!isServer && !clientSubType) return decl
           const init = decl.initializer
           if (!isFunctionInitializer(init)) return decl
           const gstsIdent =
             ts.isBlock(init.body) && hasTopLevelDeclName(init.body, 'gsts') ? '__gsts' : 'gsts'
-          const env = makeEnv(gstsIdent)
+          const env = isServer
+            ? makeEnv(gstsIdent, undefined, { graphDocumentType: 'server' })
+            : makeEnv(gstsIdent, undefined, {
+                graphDocumentType: 'client',
+                clientSubType
+              })
           const nextInit = transformGstsServerFunction(env, context, init)
           changed = true
           return ts.factory.updateVariableDeclaration(
@@ -558,6 +765,26 @@ export function hasServerEntryCall(sf: ts.SourceFile, checker: ts.TypeChecker): 
     if (ts.isCallExpression(node) && isServerOnCall(node, checker) && node.arguments.length >= 2) {
       found = true
       return
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
+  return found
+}
+
+export function hasNodeGraphEntryCall(sf: ts.SourceFile, checker: ts.TypeChecker): boolean {
+  let found = false
+  const visit = (node: ts.Node) => {
+    if (found) return
+    if (ts.isCallExpression(node)) {
+      if (isServerOnCall(node, checker) && node.arguments.length >= 2) {
+        found = true
+        return
+      }
+      if (getClientOnCallInfo(node, checker)) {
+        found = true
+        return
+      }
     }
     ts.forEachChild(node, visit)
   }

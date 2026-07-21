@@ -1,0 +1,130 @@
+[
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "client",
+      "mode": "beyond",
+      "sub_type": "character_skill",
+      "id": 1082130433,
+      "name": "_GSTS_ClientSkill"
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "type": "node_graph_begins"
+      }
+    ]
+  },
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "client",
+      "mode": "beyond",
+      "sub_type": "creation_skill",
+      "id": 1082130434,
+      "name": "_GSTS_ClientCreationSkill"
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "type": "node_graph_begins"
+      }
+    ]
+  },
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "client",
+      "mode": "beyond",
+      "sub_type": "creation_status",
+      "id": 1082130435,
+      "name": "_GSTS_ClientCreationStatus"
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "type": "node_graph_begins"
+      }
+    ]
+  },
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "client",
+      "mode": "beyond",
+      "sub_type": "creation_status_decision",
+      "id": 1082130436,
+      "name": "_GSTS_ClientCreationStatusDecision"
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "type": "node_graph_begins"
+      }
+    ]
+  },
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "client",
+      "mode": "beyond",
+      "sub_type": "bool_filter",
+      "id": 1082130437,
+      "name": "_GSTS_ClientBoolFilter"
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "type": "node_graph_begins",
+        "next": [
+          2
+        ]
+      },
+      {
+        "id": 2,
+        "type": "node_graph_end_boolean",
+        "args": [
+          {
+            "type": "bool",
+            "value": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ir_version": 1,
+    "ir_type": "node_graph",
+    "graph": {
+      "type": "client",
+      "mode": "beyond",
+      "sub_type": "int_filter",
+      "id": 1082130438,
+      "name": "_GSTS_ClientIntFilter"
+    },
+    "nodes": [
+      {
+        "id": 1,
+        "type": "node_graph_begins",
+        "next": [
+          2
+        ]
+      },
+      {
+        "id": 2,
+        "type": "node_graph_end_integer",
+        "args": [
+          {
+            "type": "int",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  }
+]

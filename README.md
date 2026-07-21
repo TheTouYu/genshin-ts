@@ -98,12 +98,9 @@ See the template guide for the full list and best practices.
 
 ## TODO (Some items may be dropped based on feasibility; in no particular order)
 
-- Improve CI pipeline
-- Add client-side node graph support
 - Improve documentation site
-- Signal and struct definitions with parameter passing (generic parameter type hints)
+- Struct definitions with parameter passing (generic parameter type hints)
 - Auto-detect node graph limit overflow (3000)
-- Auto re-inject on external map save detection
 - `g.scene()` programmatic scene definition support
 - Auto variable mounting support
 - Node graph JSON visual previewer
@@ -117,7 +114,6 @@ See the template guide for the full list and best practices.
 - JSX component development abstraction
 - Expand examples
 - Simplify `{}` style 3D vector array inference
-- Extract custom prefab IDs from GIL directly into project
 - VFX, sound, and other resource IDs
 
 ## Special Thanks

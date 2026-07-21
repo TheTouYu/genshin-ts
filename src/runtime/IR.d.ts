@@ -35,7 +35,17 @@ export type ClientIRDocument = SimplifyDeep<
 >
 
 export type ServerGraphSubType = 'entity' | 'status' | 'class' | 'item'
-export type ServerGraphMode = 'beyond' | 'classic'
+export type GraphMode = 'beyond' | 'classic'
+export type ServerGraphMode = GraphMode
+export type ClientGraphMode = GraphMode
+export type ClientGraphSubType =
+  | 'character_skill'
+  | 'character_control_skill'
+  | 'creation_skill'
+  | 'creation_status'
+  | 'creation_status_decision'
+  | 'bool_filter'
+  | 'int_filter'
 
 export interface ServerGraphInfo {
   // 默认基于脚本文件名
@@ -51,7 +61,10 @@ export interface ClientGraphInfo {
   name?: string
   id?: number
   type: 'client'
-  client_type: 'skill'
+  mode?: ClientGraphMode
+  sub_type: ClientGraphSubType
+  /** Filter-only evaluation interval in seconds. Defaults to 0.3. */
+  evaluation_interval?: number
 }
 
 export type Variable =
@@ -81,46 +94,9 @@ export type ServerNode = SimplifyDeep<
   }
 >
 
-export type ClientValueIR =
-  | {
-      kind: 'literal'
-      type: ValueType
-      value: boolean | number | string | readonly [number, number, number] | unknown[]
-    }
-  | {
-      kind: 'conn'
-      type: ValueType
-      node_id: number
-      index: number
-    }
-  | ClientListValueIR
-
-export type ClientListValueIR = {
-  kind: 'list'
-  encoding: 'direct-list' | 'assembly-list'
-  elementType: ValueType
-  elements: ClientValueIR[]
-  node_id?: number
-  index?: number
-}
-
-export type ClientValueHandle = {
-  readonly __clientValue: true
-  readonly type: ValueType
-  readonly nodeId: number
-  readonly pinIndex: number
-}
-
 export type ClientNode = SimplifyDeep<
   Node & {
     type: string
-    /** Signal identity is semantic IR, not a string literal to be guessed by Stage 3. */
-    signalRef?: { name: string }
-    /** Client values retain literal/connection semantics for Stage 3. */
-    clientValues?: (ClientValueIR | undefined)[]
-    elementType?: ValueType
-    elementCount?: number
-    elementValues?: ClientValueIR[]
   }
 >
 
@@ -253,6 +229,7 @@ export interface GenericValueTypeMap {
 export interface EnumValueTypeMap {
   enum: string
   enumeration: string
+  enum_list: string[]
 }
 
 export interface LocalVariableValueTypeMap {

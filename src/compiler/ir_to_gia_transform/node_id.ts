@@ -7,11 +7,7 @@ import type {
   Variable
 } from '../../runtime/IR.js'
 import type { DictKeyType, DictValueType } from '../../runtime/value.js'
-import {
-  getNodeIdLowerMap,
-  SPECIAL_NODE_IDS,
-  SPECIAL_NODE_MAPPINGS
-} from './mappings.js'
+import { getNodeIdLowerMap, SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS } from './mappings.js'
 import { resolveNodeIdentity, type ResolutionFallback } from './resolved_node.js'
 import { IRNode } from './types.js'
 
@@ -121,15 +117,6 @@ function lookupTypedNodeId(
   const direct = nodeIdLower.get(`${lower}__${suffix}`)
   if (direct) return direct
 
-  // Vendor node IDs abbreviate config_id/prefab_id as config/prefab, including list variants.
-  // IR value types retain the public API names, so try the vendor spelling before falling back
-  // to the element suffix lookup.
-  const vendorSuffix = suffix.replace('_config_id', '_config').replace('_prefab_id', '_prefab')
-  if (vendorSuffix !== suffix) {
-    const vendorTyped = nodeIdLower.get(`${lower}__${vendorSuffix}`)
-    if (vendorTyped) return vendorTyped
-  }
-
   // 2) Fallback for list types: try element suffix (e.g. clear_list__int)
   if (isListValueSuffix(suffix)) {
     const elem = suffix.slice(5)
@@ -220,13 +207,9 @@ function lookupTypedNodeIdByKV(
   kv: KVSuffix,
   nodeIdLower: Map<string, number>
 ): number | undefined {
-  const key = `${kv.k}_${kv.v}`
-  const normalizedKey = key.replaceAll('config_id', 'config').replaceAll('prefab_id', 'prefab')
   return (
-    nodeIdLower.get(`${lower}__${key}`) ??
-    nodeIdLower.get(`${lower}__${normalizedKey}`) ??
-    nodeIdLower.get(`${lower}__dict_${key}`) ??
-    nodeIdLower.get(`${lower}__dict_${normalizedKey}`)
+    nodeIdLower.get(`${lower}__${kv.k}_${kv.v}`) ??
+    nodeIdLower.get(`${lower}__dict_${kv.k}_${kv.v}`)
   )
 }
 
@@ -358,52 +341,57 @@ export function resolveGiaNodeId(
   connIndex: ConnTypeIndex,
   varsByName: Map<string, Variable>,
   runtimeMode?: ServerGraphMode,
-  resolutionFallbacks?: ResolutionFallback[]
+  fallbacks?: ResolutionFallback[]
 ): number {
   const nodeType = node.type
+  if (nodeType === 'set_node_graph_variable') {
+    const nameArg = node.args?.[0]
+    const variableName = nameArg?.type === 'str' ? String(nameArg.value) : undefined
+    if (!variableName || !varsByName.has(variableName)) {
+      fallbacks?.push({
+        reason: 'missing-variable-declaration',
+        nodeId: node.id,
+        nodeType,
+        variableName
+      })
+      const valueArg = node.args?.[1]
+      if (valueArg?.type === 'dict') {
+        fallbacks?.push({ reason: 'unsupported-resolved-type', nodeId: node.id, nodeType })
+      }
+    }
+  }
   const specialId = SPECIAL_NODE_IDS[nodeType]
   if (specialId) return specialId
 
-  // Migrated DTC / scalar same-type binary / residual scalar / enumerations_equal
-  // families delegate concrete identity to the shared resolver rather than
-  // maintaining root and composite-impl maps.
-  if (
-    nodeType.startsWith('data_type_conversion_') ||
-    [
-      'addition',
-      'subtraction',
-      'multiplication',
-      'division',
-      'equal',
-      'greater_than',
-      'less_than',
-      'greater_than_or_equal_to',
-      'less_than_or_equal_to',
-      // P5-W7 residual scalar ordinary identities
-      'modulo_operation',
-      'exponentiation',
-      'logical_and_operation',
-      'logical_or_operation',
-      'logical_not_operation',
-      'logical_xor_operation',
-      'absolute_value_operation',
-      'sign_operation',
-      'arithmetic_square_root_operation',
-      'round_to_integer_operation',
-      'range_limiting_operation',
-      'take_larger_value',
-      'take_smaller_value',
-      // P5-W8 enumerations_equal enum-kind identity
-      'enumerations_equal'
-    ].includes(nodeType)
-  ) {
+  const sharedIdentityNodeTypes = new Set(['enumerations_equal'])
+  if (sharedIdentityNodeTypes.has(nodeType)) {
     const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
+      scope: { kind: 'root', name: 'root' },
+      mode: runtimeMode,
       variablesByName: varsByName,
-      connectionTypes: connIndex,
-      strictTypeChecks: false
+      connectionTypes: connIndex
     })
     return identity.concreteNodeId ?? identity.genericNodeId
+  }
+
+  // special: data_type_conversion_<out> 的具体节点 ID 需要由 (inType,outType) 决定
+  // IR 只编码 outType，inType 在此阶段根据输入参数/连线类型推断
+  if (nodeType.startsWith('data_type_conversion_')) {
+    const outKey = nodeType.slice('data_type_conversion_'.length).trim()
+    const nodeIdLower = getNodeIdLowerMap()
+
+    const inArg = node.args?.[0]
+    const inInfo = connTypeFromArgument(inArg)
+    const inType = inInfo?.type
+    if (inType && inType !== 'dict') {
+      const inKey = inType === 'vec3' ? 'vec' : inType
+      const direct = nodeIdLower.get(`data_type_conversion__${inKey}_${outKey}`)
+      if (direct) return direct
+    }
+
+    // fallback: generic
+    const generic = nodeIdLower.get(`data_type_conversion__generic`)
+    if (generic) return generic
   }
 
   const key = SPECIAL_NODE_MAPPINGS[nodeType] ?? nodeType
@@ -462,39 +450,13 @@ export function resolveGiaNodeId(
     // fallback 继续走后续通用逻辑
   }
 
-  if (nodeType === 'get_custom_variable') {
-    const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
-      variablesByName: varsByName,
-      connectionTypes: connIndex,
-      fallbacks: resolutionFallbacks,
-      strictTypeChecks: false
-    })
-    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
-
-    const typed = inferTypedNodeIdFromOutputs(node.id, lower, nodeIdLower, connIndex)
-    if (typed) return typed
-    // fallback 继续走后续通用逻辑
-  }
-
-  if (nodeType === 'query_custom_variable_snapshot') {
+  if (nodeType === 'get_custom_variable' || nodeType === 'query_custom_variable_snapshot') {
     const typed = inferTypedNodeIdFromOutputs(node.id, lower, nodeIdLower, connIndex)
     if (typed) return typed
     // fallback 继续走后续通用逻辑
   }
 
   if (nodeType === 'get_node_graph_variable') {
-    // P1-W4: root and impl share scalar/list variable identity resolution. Keep the
-    // legacy resolver below as the fallback for dict and other unported families.
-    const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
-      variablesByName: varsByName,
-      connectionTypes: connIndex,
-      fallbacks: resolutionFallbacks,
-      strictTypeChecks: false
-    })
-    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
-
     const varSuffix = inferVarSuffix(node, varsByName)
     if (varSuffix) {
       const typed = lookupTypedNodeId(lower, varSuffix, nodeIdLower)
@@ -561,15 +523,6 @@ export function resolveGiaNodeId(
 
   // special: set_custom_variable / set_node_graph_variable 的类型由“被设置的值”决定
   if (nodeType === 'set_custom_variable') {
-    const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
-      variablesByName: varsByName,
-      connectionTypes: connIndex,
-      fallbacks: resolutionFallbacks,
-      strictTypeChecks: false
-    })
-    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
-
     const valueArg = node.args?.[2]
     const t = connTypeFromArgument(valueArg)
     if (t?.type === 'dict') {
@@ -588,40 +541,7 @@ export function resolveGiaNodeId(
     // fallback 继续走后续通用逻辑
   }
 
-  if (nodeType === 'set_local_variable') {
-    const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
-      variablesByName: varsByName,
-      connectionTypes: connIndex,
-      fallbacks: resolutionFallbacks,
-      strictTypeChecks: false
-    })
-    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
-  }
-
-  if (nodeType === 'get_local_variable') {
-    const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
-      variablesByName: varsByName,
-      connectionTypes: connIndex,
-      fallbacks: resolutionFallbacks,
-      strictTypeChecks: false
-    })
-    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
-  }
-
   if (nodeType === 'set_node_graph_variable') {
-    // P1-W4: do not let root and impl independently choose scalar/list variants.
-    // The legacy branch remains the compatibility fallback for unresolved types.
-    const identity = resolveNodeIdentity(node, {
-      scope: { kind: 'root', name: 'root-node-identity-adapter' },
-      variablesByName: varsByName,
-      connectionTypes: connIndex,
-      fallbacks: resolutionFallbacks,
-      strictTypeChecks: false
-    })
-    if (identity.concreteNodeId !== undefined) return identity.concreteNodeId
-
     const valueArg = node.args?.[1]
     const t = connTypeFromArgument(valueArg)
     if (t?.type === 'dict') {

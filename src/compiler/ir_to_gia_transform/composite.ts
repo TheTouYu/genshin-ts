@@ -1,4 +1,5 @@
 // @ts-nocheck thirdparty
+
 import type { CompositeDefIR } from '../../runtime/IR.js'
 import {
   GraphUnit_Id_Class,
@@ -11,35 +12,17 @@ import {
   NodeProperty_Type,
   VarBase_Class,
   VarType,
-  type GraphUnit,
   type GraphNode,
-  type NodePin,
-  type NodeGraph
+  type GraphUnit,
+  type NodeGraph,
+  type NodePin
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
 import { Graph, Node } from '../gia_vendor.js'
-import { SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS, getNodeIdLowerMap } from './mappings.js'
-import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
-import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
-import {
-  PIN_HOLE_ADAPTER_CONTRACT,
-  SHARED_PIN_HOLE_ADAPTER_NODE_TYPES,
-  isSharedPinHoleAdapterNodeType,
-  pinHoleInputPinIndex,
-  remapPinHoleInputIndex
-} from './pin_hole_adapter.js'
-import {
-  SPECIAL_ARG_ADAPTER_CONTRACT,
-  SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
-  isAssemblySpecialArgNodeType,
-  isSharedSpecialArgAdapterNodeType,
-  remapSpecialArgInputIndex,
-  specialArgInputPinIndex
-} from './special_arg_adapter.js'
+import { buildCompositeDefinitionInterface } from './build_composite_definition.js'
+import { computeCompositeImplLayout } from './build_composite_layout.js'
+import { assertCompositePinsIntegrity, buildCompositePinsOverlay } from './build_composite_pins.js'
 import { patchEncodedSignalNodes } from './build_signal_definition.js'
-import {
-  COMPOSITE_CAPTURE_NODE_TYPE,
-  normalizeCompositeCaptures
-} from './normalize_capture.js'
+import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
 import {
   buildCompositeCallPins,
   collectCalledCompositeIds,
@@ -47,24 +30,34 @@ import {
   isCompositeCallNode,
   resolveCompositeCallIdentity
 } from './lower_composite_call.js'
-import { buildCompositeDefinitionInterface } from './build_composite_definition.js'
+import { getNodeIdLowerMap, SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS } from './mappings.js'
+import { COMPOSITE_CAPTURE_NODE_TYPE, normalizeCompositeCaptures } from './normalize_capture.js'
+import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
+import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import {
-  assertCompositePinsIntegrity,
-  buildCompositePinsOverlay
-} from './build_composite_pins.js'
-import { computeCompositeImplLayout } from './build_composite_layout.js'
+  isSharedPinHoleAdapterNodeType,
+  PIN_HOLE_ADAPTER_CONTRACT,
+  pinHoleInputPinIndex,
+  remapPinHoleInputIndex,
+  SHARED_PIN_HOLE_ADAPTER_NODE_TYPES
+} from './pin_hole_adapter.js'
 import {
+  resolveArgumentTypes,
   resolveNodeIdentity,
   usesSharedOrdinaryConcreteIdentity,
   usesSharedVariantResolution
 } from './resolved_node.js'
-import { COMPOSITE_LEGACY_INVENTORY_CONTRACT } from './legacy_ordinary_inventory.js'
-import { ROOT_ORDINARY_CAPABILITY_CONTRACT } from './root_ordinary_capability_inventory.js'
 import { ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT } from './root_impl_ordinary_coverage_matrix.js'
+import { ROOT_ORDINARY_CAPABILITY_CONTRACT } from './root_ordinary_capability_inventory.js'
 import {
-  STAGE3_BACKEND_CONTRACT,
-  isSharedVendorImplGraphEnabled
-} from './stage3_backend.js'
+  isAssemblySpecialArgNodeType,
+  isSharedSpecialArgAdapterNodeType,
+  remapSpecialArgInputIndex,
+  SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
+  SPECIAL_ARG_ADAPTER_CONTRACT,
+  specialArgInputPinIndex
+} from './special_arg_adapter.js'
+import { isSharedVendorImplGraphEnabled, STAGE3_BACKEND_CONTRACT } from './stage3_backend.js'
 
 /**
  * Stable orchestration contract for Phase 4 exit audits.
@@ -202,10 +195,7 @@ export {
   applySignalSpecialArgs,
   listSharedSpecialArgAdapterNodeTypes
 } from './special_arg_adapter.js'
-export type {
-  SpecialArgApplyContext,
-  SpecialArgTypeTag
-} from './special_arg_adapter.js'
+export type { SpecialArgApplyContext, SpecialArgTypeTag } from './special_arg_adapter.js'
 
 export {
   STAGE3_BACKEND_CONTRACT,
@@ -404,7 +394,12 @@ function buildImplGraphNodes(
   boundaryPins: CompositeDefIR['compositePins'],
   compositeDefById?: Map<number, CompositeDefIR>
 ): GraphNode[] {
-  const allDataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+  const allDataConns: Array<{
+    nodeId: number
+    pin: NodePin
+    upstreamNodeId: number
+    upstreamPinIndex: number
+  }> = []
   const requiredCompositeCallOutflows = new Map<number, Set<number>>()
   for (const pin of boundaryPins) {
     if (pin.outerPinKind !== NodePin_Index_Kind.OutFlow) continue
@@ -420,25 +415,44 @@ function buildImplGraphNodes(
     indexes.add(pin.innerPinIndex)
     boundaryInputIndexesByNode.set(pin.innerNodeId, indexes)
   }
+  const boundaryInputTypesByNode = new Map<number, Map<number, string>>()
+  for (const pin of boundaryPins) {
+    if (
+      pin.outerPinKind !== NodePin_Index_Kind.InParam ||
+      pin.innerPinKind !== NodePin_Index_Kind.InParam
+    )
+      continue
+    const type = def.inputs[pin.outerPinIndex]?.type
+    if (!type) continue
+    const types = boundaryInputTypesByNode.get(pin.innerNodeId) ?? new Map<number, string>()
+    types.set(pin.innerPinIndex, type)
+    boundaryInputTypesByNode.set(pin.innerNodeId, types)
+  }
   const nodeResults = implNodes.map((node) => {
     let nodeId = resolveImplNodeId(node.type, node.args as any)
     let sharedConcreteNid: number | undefined
     if (usesSharedVariantResolution(node.type)) {
-      const identity = resolveNodeIdentity(node, {
-        scope: { kind: 'composite-impl', name: def.name },
+      const context = {
+        scope: { kind: 'composite-impl' as const, name: def.name },
         strictTypeChecks: false,
-        variablesByName: new Map((implVariables ?? []).map((variable) => [variable.name, variable])),
+        variablesByName: new Map(
+          (implVariables ?? []).map((variable) => [variable.name, variable])
+        ),
         connectionTypes: implConnTypeIndex as any
-      })
+      }
+      const inputs = resolveArgumentTypes(node, context)
+      for (const [inputIndex, type] of boundaryInputTypesByNode.get(node.id) ?? []) {
+        if (inputs[inputIndex]) inputs[inputIndex].type = { kind: 'scalar', name: type as any }
+      }
+      const identity = resolveNodeIdentity(node, context, inputs)
       nodeId = identity.genericNodeId
       sharedConcreteNid = identity.concreteNodeId
     }
     const producedValuePinIndex = node.type === 'get_local_variable' ? 1 : 0
     const producedType =
       implConnTypeIndex.get(node.id)?.get(producedValuePinIndex)?.type ??
-      implOutParamMap
-        .get(node.id)
-        ?.find((output) => output.pinIndex === producedValuePinIndex)?.type
+      implOutParamMap.get(node.id)?.find((output) => output.pinIndex === producedValuePinIndex)
+        ?.type
     // assembly_list: resolveImplNodeId may return typed concrete (e.g. 170=str).
     // Vendor Node must keep generic record id (169) + typed concrete; both-typed yields 0 pins.
     const assemblyGenericId =
@@ -449,12 +463,11 @@ function buildImplGraphNodes(
     // shared resolveNodeIdentity. Handwritten resolveImplOrdinaryConcreteNodeId remains
     // only as a non-shared fallback for any still-unmigrated concrete-wrapped family.
     // assembly typed concrete: nodeId already resolved to variant; keep it as concrete only.
-    const ordinaryConcreteNid =
-      usesSharedOrdinaryConcreteIdentity(node.type)
-        ? sharedConcreteNid
-        : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
-          ? nodeId
-          : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
+    const ordinaryConcreteNid = usesSharedOrdinaryConcreteIdentity(node.type)
+      ? sharedConcreteNid
+      : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
+        ? nodeId
+        : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // Synthetic call lowerer owns SysGraph identity; ordinary nodes stay SysCall.
     const callIdentity = resolveCompositeCallIdentity(node, compositeDefById)
     const calledDef = callIdentity?.calledDef
@@ -463,7 +476,9 @@ function buildImplGraphNodes(
     const isDTC = node.type.startsWith('data_type_conversion_')
     // data_type_conversion 节点：genericId 固定为 180（通用类型），
     // concreteId 为具体变种 ID（如 182=int→str, 186=bool→str 等）
-    const dtcGenericId = isDTC ? getNodeIdLowerMap().get('data_type_conversion__generic') ?? 180 : undefined
+    const dtcGenericId = isDTC
+      ? (getNodeIdLowerMap().get('data_type_conversion__generic') ?? 180)
+      : undefined
     const genericId = callIdentity?.genericId ?? {
       class: NodeGraph_Id_Class.SystemDefined,
       type: NodeProperty_Type.Server,
@@ -489,19 +504,22 @@ function buildImplGraphNodes(
     // Boundary call pins are owned by lower_composite_call.ts. Ordinary pin builder
     // never receives `__composite_call__` / `__composite_capture__` after P4-W7.
     const { pins, dataConns } = isCompositeCallNode(node)
-      ? (calledDef
-          ? buildCompositeCallPins({
-              node,
-              calledDef,
-              implEdges,
-              requiredOutflowIndexes: requiredCompositeCallOutflows.get(node.id)
-            })
-          : { pins: [] as NodePin[], dataConns: [] as Array<{
+      ? calledDef
+        ? buildCompositeCallPins({
+            node,
+            calledDef,
+            implEdges,
+            requiredOutflowIndexes: requiredCompositeCallOutflows.get(node.id)
+          })
+        : {
+            pins: [] as NodePin[],
+            dataConns: [] as Array<{
               nodeId: number
               pin: NodePin
               upstreamNodeId: number
               upstreamPinIndex: number
-            }> })
+            }>
+          }
       : buildImplNodePins(
           node,
           implEdges,
@@ -510,7 +528,8 @@ function buildImplGraphNodes(
           gvConcreteNid,
           customVariableConcreteNid,
           localVariableConcreteNid,
-          boundaryInputIndexesByNode.get(node.id)
+          boundaryInputIndexesByNode.get(node.id),
+          boundaryInputTypesByNode.get(node.id)
         )
     allDataConns.push(...dataConns)
     return {
@@ -520,7 +539,7 @@ function buildImplGraphNodes(
       pins,
       isCompositeCall,
       isDTC: isDTC || false,
-      dtcConcreteNid: isDTC ? sharedConcreteNid ?? nodeId : undefined,
+      dtcConcreteNid: isDTC ? (sharedConcreteNid ?? nodeId) : undefined,
       gvConcreteNid,
       customVariableConcreteNid,
       localVariableConcreteNid,
@@ -531,11 +550,13 @@ function buildImplGraphNodes(
 
   for (const dc of allDataConns) {
     const mappedUpstreamId = nodeIndexMap.get(dc.upstreamNodeId) ?? dc.upstreamNodeId
-    ;(dc.pin as any).connects = [{
-      id: mappedUpstreamId,
-      connect: { kind: NodePin_Index_Kind.OutParam, index: dc.upstreamPinIndex },
-      connect2: { kind: NodePin_Index_Kind.OutParam, index: dc.upstreamPinIndex }
-    }]
+    ;(dc.pin as any).connects = [
+      {
+        id: mappedUpstreamId,
+        connect: { kind: NodePin_Index_Kind.OutParam, index: dc.upstreamPinIndex },
+        connect2: { kind: NodePin_Index_Kind.OutParam, index: dc.upstreamPinIndex }
+      }
+    ]
   }
 
   // Layout isolation owns virtual anchors + impl spacing from capture-normalized
@@ -586,8 +607,8 @@ function materializeLegacyImplGraphNode(
   const outEdges = implEdges[node.id]
   if (outEdges && outEdges.length > 0) {
     for (const [srcIdx, edges] of groupEdgesBySourceIndex(outEdges)) {
-      const outFlowPin = pins.find((p: any) =>
-        p.i1?.kind === NodePin_Index_Kind.OutFlow && p.i1?.index === srcIdx
+      const outFlowPin = pins.find(
+        (p: any) => p.i1?.kind === NodePin_Index_Kind.OutFlow && p.i1?.index === srcIdx
       )
       if (outFlowPin) {
         ;(outFlowPin as any).connects = edges.map((edge) => {
@@ -607,17 +628,18 @@ function materializeLegacyImplGraphNode(
   return {
     nodeIndex,
     genericId,
-    concreteId: isDTC && dtcConcreteNid
-      ? { ...genericId, nodeId: dtcConcreteNid }
-      : gvConcreteNid
-        ? { ...genericId, nodeId: gvConcreteNid }
-        : customVariableConcreteNid
-          ? { ...genericId, nodeId: customVariableConcreteNid }
-          : localVariableConcreteNid
-            ? { ...genericId, nodeId: localVariableConcreteNid }
-            : ordinaryConcreteNid
-              ? { ...genericId, nodeId: ordinaryConcreteNid }
-              : { ...genericId },
+    concreteId:
+      isDTC && dtcConcreteNid
+        ? { ...genericId, nodeId: dtcConcreteNid }
+        : gvConcreteNid
+          ? { ...genericId, nodeId: gvConcreteNid }
+          : customVariableConcreteNid
+            ? { ...genericId, nodeId: customVariableConcreteNid }
+            : localVariableConcreteNid
+              ? { ...genericId, nodeId: localVariableConcreteNid }
+              : ordinaryConcreteNid
+                ? { ...genericId, nodeId: ordinaryConcreteNid }
+                : { ...genericId },
     pins,
     x: pos.x,
     y: pos.y,
@@ -653,9 +675,13 @@ function materializeImplOrdinaryGraphWithVendor(
       )
     }
 
-    const concreteNodeId = result.dtcConcreteNid ?? result.gvConcreteNid ??
-      result.customVariableConcreteNid ?? result.localVariableConcreteNid ??
-      result.ordinaryConcreteNid ?? result.nodeId
+    const concreteNodeId =
+      result.dtcConcreteNid ??
+      result.gvConcreteNid ??
+      result.customVariableConcreteNid ??
+      result.localVariableConcreteNid ??
+      result.ordinaryConcreteNid ??
+      result.nodeId
     if (!concreteNodeId) {
       throw new Error(`[error] vendor impl graph gate cannot resolve ${node.type} (${node.id})`)
     }
@@ -688,14 +714,25 @@ function materializeImplOrdinaryGraphWithVendor(
             return remapSpecialArgInputIndex(node.type, index)
           }
           const physicalIndex = remapPinHoleInputIndex(node.type, index)
-          return boundaryInputIndexes.has(physicalIndex) ? undefined : physicalIndex
+          // DTC boundary captures require a real typed pin. Pin-hole captures remain
+          // sparse and are routed only through compositePins at the remapped index.
+          if (
+            node.type.startsWith('data_type_conversion_') &&
+            boundaryInputIndexes.has(physicalIndex)
+          ) {
+            return undefined
+          }
+          return physicalIndex
         })
         .filter((index: number | undefined): index is number => index !== undefined)
     )
     vendorNode.pins = vendorNode.pins.filter(
       (pin: any) =>
-        !(node.type !== 'get_local_variable' &&
-          pin.kind === NodePin_Index_Kind.InParam && capturedInputIndexes.has(pin.index))
+        !(
+          node.type !== 'get_local_variable' &&
+          pin.kind === NodePin_Index_Kind.InParam &&
+          capturedInputIndexes.has(pin.index)
+        )
     )
     normalizeOrdinaryVendorPins(vendorNode)
     vendorNodes.set(node.id, graph.add_node(vendorNode))
@@ -709,24 +746,28 @@ function materializeImplOrdinaryGraphWithVendor(
       const physicalToIndex = isSharedSpecialArgAdapterNodeType(result.node.type)
         ? remapSpecialArgInputIndex(result.node.type, toIndex)
         : remapPinHoleInputIndex(result.node.type, toIndex)
-      return [{
-        fromId: arg.value.node_id,
-        toId: result.node.id,
-        fromIndex: arg.value.index,
-        toIndex: physicalToIndex
-      }]
+      return [
+        {
+          fromId: arg.value.node_id,
+          toId: result.node.id,
+          fromIndex: arg.value.index,
+          toIndex: physicalToIndex
+        }
+      ]
     })
   )
   const ordinaryFlowEdges = Object.entries(implEdges).flatMap(([fromId, edges]) =>
     (edges as ImplEdge[]).flatMap((edge) => {
       const targetId = getEdgeTarget(edge)
       return vendorNodes.has(Number(fromId)) && vendorNodes.has(targetId)
-        ? [{
-            fromId: Number(fromId),
-            toId: targetId,
-            fromIndex: getEdgeSourceIndex(edge),
-            toIndex: getEdgeTargetIndex(edge)
-          }]
+        ? [
+            {
+              fromId: Number(fromId),
+              toId: targetId,
+              fromIndex: getEdgeSourceIndex(edge),
+              toIndex: getEdgeTargetIndex(edge)
+            }
+          ]
         : []
     })
   )
@@ -743,7 +784,9 @@ function materializeImplOrdinaryGraphWithVendor(
       return position
     },
     onMissingDataEndpoint: (edge) => {
-      throw new Error(`[error] vendor impl graph data source crosses synthetic boundary: ${edge.fromId}`)
+      throw new Error(
+        `[error] vendor impl graph data source crosses synthetic boundary: ${edge.fromId}`
+      )
     },
     integrity: {
       expectedNodeIndexes: new Map(nodeResults.map((result) => [result.node.id, result.nodeIndex])),
@@ -751,9 +794,12 @@ function materializeImplOrdinaryGraphWithVendor(
     }
   })
 
-  const encodedNodes = ((graph.encode() as any).graph?.graph?.inner?.graph?.nodes ?? []) as GraphNode[]
+  const encodedNodes = ((graph.encode() as any).graph?.graph?.inner?.graph?.nodes ??
+    []) as GraphNode[]
   if (encodedNodes.length !== ordinaryResults.length) {
-    throw new Error(`[error] vendor impl graph lost nodes: ${encodedNodes.length}/${ordinaryResults.length}`)
+    throw new Error(
+      `[error] vendor impl graph lost nodes: ${encodedNodes.length}/${ordinaryResults.length}`
+    )
   }
   // Patch send/monitor placeholders to builtin SysGraph ids + compositePinIndex
   // (root path also runs finalizeSignalEncoding for SignalDef accessories).
@@ -796,7 +842,8 @@ function materializeImplOrdinaryGraphWithVendor(
       if (!targetResult || targetResult.isCompositeCall) continue
       const source = allNodesByIndex.get(sourceResult.nodeIndex)
       const target = allNodesByIndex.get(targetResult.nodeIndex)
-      if (!source || !target) throw new Error('[error] vendor impl graph lost synthetic flow endpoint')
+      if (!source || !target)
+        throw new Error('[error] vendor impl graph lost synthetic flow endpoint')
       const sourceIndex = getEdgeSourceIndex(edge)
       const sourcePin = source.pins?.find(
         (pin: any) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && pin.i1?.index === sourceIndex
@@ -808,11 +855,14 @@ function materializeImplOrdinaryGraphWithVendor(
       }
       const targetIndex = getEdgeTargetIndex(edge)
       const connects = (sourcePin as any).connects ?? []
-      if (!connects.some((connect: any) =>
-        connect.id === target.nodeIndex &&
-        connect.connect?.kind === NodePin_Index_Kind.InFlow &&
-        connect.connect?.index === targetIndex
-      )) {
+      if (
+        !connects.some(
+          (connect: any) =>
+            connect.id === target.nodeIndex &&
+            connect.connect?.kind === NodePin_Index_Kind.InFlow &&
+            connect.connect?.index === targetIndex
+        )
+      ) {
         connects.push({
           id: target.nodeIndex,
           connect: { kind: NodePin_Index_Kind.InFlow, index: targetIndex },
@@ -870,7 +920,10 @@ function resolveImplOrdinaryConcreteNodeId(
   return getNodeIdLowerMap().get(`${nodeType.toLowerCase()}__${suffix}`)
 }
 
-function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value: unknown } | null>): number {
+function resolveImplNodeId(
+  nodeType: string,
+  args?: Array<{ type: string; value: unknown } | null>
+): number {
   const special = SPECIAL_NODE_IDS[nodeType]
   if (special) return special
 
@@ -883,9 +936,10 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
     const firstArg = args?.[0]
     let inType: string | undefined
     if (firstArg) {
-      inType = firstArg.type === 'conn'
-        ? (firstArg.value as any)?.type as string | undefined
-        : firstArg.type as string
+      inType =
+        firstArg.type === 'conn'
+          ? ((firstArg.value as any)?.type as string | undefined)
+          : (firstArg.type as string)
     }
     if (inType && inType !== 'dict') {
       const inKey = inType === 'vec3' ? 'vec' : inType
@@ -912,13 +966,14 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
           : (firstArg.type as string)
     }
     if (elementType && elementType !== 'dict' && elementType !== 'enum') {
-      const suffix = elementType === 'vec3'
-        ? 'vec'
-        : elementType === 'config_id'
-          ? 'config'
-          : elementType === 'prefab_id'
-            ? 'prefab'
-            : elementType
+      const suffix =
+        elementType === 'vec3'
+          ? 'vec'
+          : elementType === 'config_id'
+            ? 'config'
+            : elementType === 'prefab_id'
+              ? 'prefab'
+              : elementType
       const typed = nodeIdLower.get(`assembly_list__${suffix}`)
       if (typed) return typed
     }
@@ -939,11 +994,16 @@ function resolveImplNodeId(nodeType: string, args?: Array<{ type: string; value:
  */
 function argVarBaseClass(argType: string): number {
   switch (argType) {
-    case 'int': return VarBase_Class.IntBase
-    case 'float': return VarBase_Class.FloatBase
-    case 'bool': return VarBase_Class.EnumBase
-    case 'str': return VarBase_Class.StringBase
-    case 'vec3': return VarBase_Class.VectorBase
+    case 'int':
+      return VarBase_Class.IntBase
+    case 'float':
+      return VarBase_Class.FloatBase
+    case 'bool':
+      return VarBase_Class.EnumBase
+    case 'str':
+      return VarBase_Class.StringBase
+    case 'vec3':
+      return VarBase_Class.VectorBase
     case 'entity':
     case 'guid':
     case 'faction':
@@ -961,28 +1021,46 @@ function argVarBaseClass(argType: string): number {
 
 function argVarType(argType: string): number {
   switch (argType) {
-    case 'bool': return VarType.Boolean
-    case 'int': return VarType.Integer
-    case 'float': return VarType.Float
-    case 'str': return VarType.String
-    case 'vec3': return VarType.Vector
-    case 'local_variable': return VarType.LocalVariable
-    case 'guid': return VarType.GUID
-    case 'entity': return VarType.Entity
-    case 'faction': return VarType.Faction
-    case 'prefab_id': return VarType.Prefab
-    case 'config_id': return VarType.Configuration
+    case 'bool':
+      return VarType.Boolean
+    case 'int':
+      return VarType.Integer
+    case 'float':
+      return VarType.Float
+    case 'str':
+      return VarType.String
+    case 'vec3':
+      return VarType.Vector
+    case 'local_variable':
+      return VarType.LocalVariable
+    case 'guid':
+      return VarType.GUID
+    case 'entity':
+      return VarType.Entity
+    case 'faction':
+      return VarType.Faction
+    case 'prefab_id':
+      return VarType.Prefab
+    case 'config_id':
+      return VarType.Configuration
     default:
       if (argType.endsWith('_list')) {
         const elementType = argType.slice(0, -5)
         switch (elementType) {
-          case 'int': return VarType.IntegerList
-          case 'bool': return VarType.BooleanList
-          case 'float': return VarType.FloatList
-          case 'str': return VarType.StringList
-          case 'guid': return VarType.GUIDList
-          case 'entity': return VarType.EntityList
-          default: return 0
+          case 'int':
+            return VarType.IntegerList
+          case 'bool':
+            return VarType.BooleanList
+          case 'float':
+            return VarType.FloatList
+          case 'str':
+            return VarType.StringList
+          case 'guid':
+            return VarType.GUIDList
+          case 'entity':
+            return VarType.EntityList
+          default:
+            return 0
         }
       }
       return 0
@@ -1008,10 +1086,24 @@ function buildImplNodePins(
   gvConcreteNid?: number,
   customVariableConcreteNid?: number,
   localVariableConcreteNid?: number,
-  boundaryInputIndexes: ReadonlySet<number> = new Set<number>()
-): { pins: NodePin[]; dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> } {
+  boundaryInputIndexes: ReadonlySet<number> = new Set<number>(),
+  boundaryInputTypes: ReadonlyMap<number, string> = new Map<number, string>()
+): {
+  pins: NodePin[]
+  dataConns: Array<{
+    nodeId: number
+    pin: NodePin
+    upstreamNodeId: number
+    upstreamPinIndex: number
+  }>
+} {
   const pins: NodePin[] = []
-  const dataConns: Array<{ nodeId: number; pin: NodePin; upstreamNodeId: number; upstreamPinIndex: number }> = []
+  const dataConns: Array<{
+    nodeId: number
+    pin: NodePin
+    upstreamNodeId: number
+    upstreamPinIndex: number
+  }> = []
 
   if (isCompositeCallNode(node) || node.type === COMPOSITE_CAPTURE_NODE_TYPE) {
     throw new Error(
@@ -1044,7 +1136,8 @@ function buildImplNodePins(
         })
       } else {
         const pin = tmpNode.pins.find(
-          (candidate) => candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
+          (candidate) =>
+            candidate.kind === NodePin_Index_Kind.InParam && candidate.index === argIndex
         )
         pin?.setVal(arg.value)
       }
@@ -1053,8 +1146,7 @@ function buildImplNodePins(
     tmpNode.pins = (tmpNode.pins ?? []).filter(
       (pin: any) =>
         !(
-          (pin?.kind === NodePin_Index_Kind.InParam ||
-            pin?.kind === NodePin_Index_Kind.OutParam) &&
+          (pin?.kind === NodePin_Index_Kind.InParam || pin?.kind === NodePin_Index_Kind.OutParam) &&
           pin?.type?.t === 'b' &&
           pin?.type?.b === 'Unk'
         )
@@ -1073,8 +1165,7 @@ function buildImplNodePins(
     for (const conn of pendingConns) {
       const pin = vendorPins.find(
         (candidate: any) =>
-          candidate.i1?.kind === NodePin_Index_Kind.InParam &&
-          candidate.i1?.index === conn.pinIndex
+          candidate.i1?.kind === NodePin_Index_Kind.InParam && candidate.i1?.index === conn.pinIndex
       )
       if (!pin) continue
       dataConns.push({
@@ -1107,7 +1198,11 @@ function buildImplNodePins(
     const tmpGraph = new Graph('server', 0, '', 0)
     const tmpNode = new Node(0, 'server', customVariableConcreteNid, undefined as any)
     const captureInputIndices = new Set<number>()
-    const pendingConns: Array<{ pinIndex: number; upstreamNodeId: number; upstreamPinIndex: number }> = []
+    const pendingConns: Array<{
+      pinIndex: number
+      upstreamNodeId: number
+      upstreamPinIndex: number
+    }> = []
 
     for (let argIndex = 0; argIndex < (node.args ?? []).length; argIndex++) {
       const arg = node.args?.[argIndex]
@@ -1125,8 +1220,7 @@ function buildImplNodePins(
       } else {
         const pin = tmpNode.pins.find(
           (candidate) =>
-            candidate.kind === NodePin_Index_Kind.InParam &&
-            candidate.index === physicalPinIndex
+            candidate.kind === NodePin_Index_Kind.InParam && candidate.index === physicalPinIndex
         )
         pin?.setVal(arg.value)
       }
@@ -1215,8 +1309,7 @@ function buildImplNodePins(
     for (const conn of pendingConns) {
       const pin = vendorPins.find(
         (candidate: any) =>
-          candidate.i1?.kind === NodePin_Index_Kind.InParam &&
-          candidate.i1?.index === conn.pinIndex
+          candidate.i1?.kind === NodePin_Index_Kind.InParam && candidate.i1?.index === conn.pinIndex
       )
       if (!pin) continue
       dataConns.push({
@@ -1336,10 +1429,7 @@ function buildImplNodePins(
   for (let argIndex = 0; argIndex < args.length; argIndex++) {
     const arg = args[argIndex]
     // Signal name is ClientExec (not InParam); shared special-arg layout owns it on vendor path.
-    if (
-      (node.type === 'send_signal' || node.type === 'monitor_signal') &&
-      argIndex === 0
-    ) {
+    if ((node.type === 'send_signal' || node.type === 'monitor_signal') && argIndex === 0) {
       continue
     }
     const pinIndex = usesPinHoleRemap
@@ -1352,7 +1442,7 @@ function buildImplNodePins(
     if (arg && (arg as any).capture === true) {
       const isBoundaryInput = boundaryInputIndexes.has(pinIndex)
       if (isBoundaryInput && node.type.startsWith('data_type_conversion_')) {
-        const dtcInfo = getDtcInParamInfo(arg.type)
+        const dtcInfo = getDtcInParamInfo(getImplArgType(arg) ?? boundaryInputTypes.get(pinIndex))
         if (dtcInfo) {
           pins.push({
             i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
@@ -1368,11 +1458,16 @@ function buildImplNodePins(
             type: dtcInfo.varType
           })
         }
-      } else if (isBoundaryInput) {
+      } else if (isBoundaryInput && !usesPinHoleRemap) {
         const inputType = getImplArgType(arg) ?? inferInputTypeFromNode(node.type, pinIndex)
         const pin = buildConnPin(pinIndex, inputType)
         if (needsConcreteWrapping(node.type) && pin.value) {
-          pin.value = wrapConcreteValueForNodeInput(node.type, pin.value, inputType, pinIndex) as any
+          pin.value = wrapConcreteValueForNodeInput(
+            node.type,
+            pin.value,
+            inputType,
+            pinIndex
+          ) as any
         }
         pins.push(pin)
       }
@@ -1467,7 +1562,11 @@ function buildImplNodePins(
 
   const hasExplicitOutParam = outParams && outParams.length > 0
   const requiresDtcOutput = node.type.startsWith('data_type_conversion_')
-  if (!hasExplicitOutParam && (pins.length > 0 || requiresDtcOutput) && isDataProducerNode(node.type)) {
+  if (
+    !hasExplicitOutParam &&
+    (pins.length > 0 || requiresDtcOutput) &&
+    isDataProducerNode(node.type)
+  ) {
     let outType = pins[0]?.type ?? 0
     let outClass = pins[0]?.value?.bConcreteValue?.value?.class ?? pins[0]?.value?.class ?? 0
     // data_type_conversion 节点：InParam 用了正确类型，但 OutParam 需要独立设置
@@ -1494,7 +1593,7 @@ function buildImplNodePins(
       const nameArg = (node.args ?? [])[0]
       if (nameArg && nameArg.type === 'str' && typeof nameArg.value === 'string') {
         const varName = nameArg.value
-        const implVar = implVariables?.find(v => v.name === varName)
+        const implVar = implVariables?.find((v) => v.name === varName)
         if (implVar) {
           outType = argVarType(implVar.type)
           outClass = argVarBaseClass(implVar.type)
@@ -1542,7 +1641,12 @@ function buildImplNodePins(
 function isDataProducerNode(nodeType: string): boolean {
   if (needsConcreteWrapping(nodeType)) return true
   if (vec3NodeTypes.has(nodeType)) return true
-  if (nodeType === 'assembly_list' || nodeType === 'list_iteration_loop' || nodeType === 'get_node_graph_variable') return true
+  if (
+    nodeType === 'assembly_list' ||
+    nodeType === 'list_iteration_loop' ||
+    nodeType === 'get_node_graph_variable'
+  )
+    return true
   if (nodeType.startsWith('get_') && !nodeType.startsWith('get_node_graph_variable')) return true
   return false
 }
@@ -1552,20 +1656,23 @@ function isDataProducerNode(nodeType: string): boolean {
  * 每个条目对应一个 DTC 变种的 InParam VarType，indexOfConcrete = 在序列中的位置
  */
 const DTC_IN_PARAM_VARTYPE_SEQUENCE = [
-  VarType.Integer,  // 0: int→str
-  VarType.Entity,   // 1: entity→str
-  VarType.GUID,     // 2: guid→str
-  VarType.Boolean,  // 3: bool→str
-  VarType.Float,    // 4: float→str
-  VarType.Vector,   // 5: vec→str
-  VarType.Faction,  // 6: faction→str
+  VarType.Integer, // 0: int→str
+  VarType.Entity, // 1: entity→str
+  VarType.GUID, // 2: guid→str
+  VarType.Boolean, // 3: bool→str
+  VarType.Float, // 4: float→str
+  VarType.Vector, // 5: vec→str
+  VarType.Faction // 6: faction→str
 ]
 
 /**
  * 查 data_type_conversion 节点 InParam 的 concrete 信息
  * @returns { indexOfConcrete, varType, varClass } 或 null（非 DTC 节点）
  */
-function getDtcInParamInfo(inType: string): { indexOfConcrete: number; varType: number; varClass: number } | null {
+function getDtcInParamInfo(
+  inType: string | undefined
+): { indexOfConcrete: number; varType: number; varClass: number } | null {
+  if (!inType) return null
   const varType = argVarType(inType)
   if (varType === 0) return null
   const idx = DTC_IN_PARAM_VARTYPE_SEQUENCE.indexOf(varType)
@@ -1578,7 +1685,11 @@ function getDtcInParamInfo(inType: string): { indexOfConcrete: number; varType: 
 }
 
 /** 构建 VarBase 值结构（bInt/bFloat/bString 等） */
-function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): Record<string, unknown> {
+function makeVarBaseValue(
+  varClass: number,
+  varType: number,
+  setVal: boolean
+): Record<string, unknown> {
   const itemType = { classBase: 1, type_server: { type: varType, kind: 0 } }
   if (varClass === VarBase_Class.IntBase) {
     return { class: varClass, alreadySetVal: setVal, itemType, bInt: { val: 0 } }
@@ -1590,7 +1701,12 @@ function makeVarBaseValue(varClass: number, varType: number, setVal: boolean): R
     return { class: varClass, alreadySetVal: setVal, itemType, bString: { val: '' } }
   }
   if (varClass === VarBase_Class.VectorBase) {
-    return { class: varClass, alreadySetVal: setVal, itemType, bVector: { val: { x: 0, y: 0, z: 0 } } }
+    return {
+      class: varClass,
+      alreadySetVal: setVal,
+      itemType,
+      bVector: { val: { x: 0, y: 0, z: 0 } }
+    }
   }
   if (varClass === VarBase_Class.EnumBase) {
     return { class: varClass, alreadySetVal: setVal, itemType, bEnum: { val: 0 } }
@@ -1613,7 +1729,12 @@ function wrapConcreteValue(
   if (varClass === VarBase_Class.StringBase) {
     innerValue = { class: varClass, alreadySetVal: false, itemType, bString: { val: strVal } }
   } else if (varClass === VarBase_Class.VectorBase) {
-    innerValue = { class: varClass, alreadySetVal: false, itemType, bVector: { val: { x: 0, y: 0, z: 0 } } }
+    innerValue = {
+      class: varClass,
+      alreadySetVal: false,
+      itemType,
+      bVector: { val: { x: 0, y: 0, z: 0 } }
+    }
   } else if (varClass === VarBase_Class.IdBase) {
     innerValue = { class: varClass, alreadySetVal: false, itemType }
   } else {
@@ -1631,27 +1752,51 @@ function wrapConcreteValue(
 
 // impl graph 中需要 bConcreteValue 包裹的数据节点类型集合
 const concreteWrappedNodeTypes = new Set([
-  'addition', 'subtraction', 'multiplication', 'division', 'modulo_operation', 'exponentiation',
-  'equal', 'greater_than', 'less_than', 'greater_than_or_equal_to', 'less_than_or_equal_to',
-  'logical_and_operation', 'logical_or_operation', 'logical_not_operation', 'logical_xor_operation',
-  'absolute_value_operation', 'sign_operation', 'arithmetic_square_root_operation',
-  'round_to_integer_operation', 'range_limiting_operation',
-  'take_larger_value', 'take_smaller_value',
-  'enumerations_equal',
+  'addition',
+  'subtraction',
+  'multiplication',
+  'division',
+  'modulo_operation',
+  'exponentiation',
+  'equal',
+  'greater_than',
+  'less_than',
+  'greater_than_or_equal_to',
+  'less_than_or_equal_to',
+  'logical_and_operation',
+  'logical_or_operation',
+  'logical_not_operation',
+  'logical_xor_operation',
+  'absolute_value_operation',
+  'sign_operation',
+  'arithmetic_square_root_operation',
+  'round_to_integer_operation',
+  'range_limiting_operation',
+  'take_larger_value',
+  'take_smaller_value',
+  'enumerations_equal'
 ])
 
 // vec3 输入节点：InParam placeholder 需要 VectorBase 类型
 const vec3NodeTypes = new Set([
-  '_3d_vector_addition', '_3d_vector_subtraction', '_3d_vector_cross_product',
-  '_3d_vector_zoom', '_3d_vector_rotation',
-  '_3d_vector_modulo_operation', '_3d_vector_dot_product',
-  '_3d_vector_angle', '_3d_vector_normalization',
-  'split_3d_vector', 'create_3d_vector',
+  '_3d_vector_addition',
+  '_3d_vector_subtraction',
+  '_3d_vector_cross_product',
+  '_3d_vector_zoom',
+  '_3d_vector_rotation',
+  '_3d_vector_modulo_operation',
+  '_3d_vector_dot_product',
+  '_3d_vector_angle',
+  '_3d_vector_normalization',
+  'split_3d_vector',
+  'create_3d_vector'
 ])
 
 // vec3→float 输出节点：输入 vec3 但输出 float，自动 OutParam 需特殊处理
 const vec3ToFloatNodeTypes = new Set([
-  '_3d_vector_modulo_operation', '_3d_vector_dot_product', '_3d_vector_angle',
+  '_3d_vector_modulo_operation',
+  '_3d_vector_dot_product',
+  '_3d_vector_angle'
 ])
 
 /** 判断节点类型是否需要 bConcreteValue 包裹 */
@@ -1664,11 +1809,14 @@ function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
   let varType = 0
   let varClass = 0
   if (nodeType === 'print_string') {
-    varType = VarType.String; varClass = VarBase_Class.StringBase
+    varType = VarType.String
+    varClass = VarBase_Class.StringBase
   } else if (concreteWrappedNodeTypes.has(nodeType)) {
-    varType = VarType.Integer; varClass = VarBase_Class.IntBase
+    varType = VarType.Integer
+    varClass = VarBase_Class.IntBase
   } else if (vec3NodeTypes.has(nodeType)) {
-    varType = VarType.Vector; varClass = VarBase_Class.VectorBase
+    varType = VarType.Vector
+    varClass = VarBase_Class.VectorBase
   }
   let pinValue = makeVarBaseValue(varClass, varType, false)
 
@@ -1774,7 +1922,12 @@ function inferInputTypeFromNode(nodeType: string, _pinIndex: number): string {
   return 'int'
 }
 
-function buildLiteralPin(pinIndex: number, argType: string, value: unknown, nodeType: string): NodePin {
+function buildLiteralPin(
+  pinIndex: number,
+  argType: string,
+  value: unknown,
+  nodeType: string
+): NodePin {
   const kind = NodePin_Index_Kind.InParam
   const varType = argVarType(argType)
   const varClass = argVarBaseClass(argType)
@@ -1787,7 +1940,12 @@ function buildLiteralPin(pinIndex: number, argType: string, value: unknown, node
   } else if (varClass === VarBase_Class.FloatBase) {
     pinValue = { class: varClass, alreadySetVal: true, itemType, bFloat: { val: Number(value) } }
   } else if (varClass === VarBase_Class.EnumBase) {
-    pinValue = { class: varClass, alreadySetVal: true, itemType, bEnum: { val: Number(Boolean(value)) } }
+    pinValue = {
+      class: varClass,
+      alreadySetVal: true,
+      itemType,
+      bEnum: { val: Number(Boolean(value)) }
+    }
   } else if (varClass === VarBase_Class.StringBase) {
     pinValue = { class: varClass, alreadySetVal: true, itemType, bString: { val: String(value) } }
   } else if (varClass === VarBase_Class.VectorBase) {

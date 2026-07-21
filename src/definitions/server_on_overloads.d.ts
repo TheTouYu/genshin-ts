@@ -69,6 +69,22 @@ export interface ServerOnOverloads<
    * This event is triggered when the Custom Variable of the Entity associated with the current Node Graph changes; The previous and current values are Generic. Determine the Generic type before you can correctly receive events for Custom Variables of the corresponding type; Vessel-type Custom Variables do not provide before-value and after-value Output Parameters
    *
    * 自定义变量变化时: 当前节点图所关联实体的自定义变量发生变化时，触发该事件; 注意变化前值和变化后值为泛型，需确定其泛型类型后，才能正确接收到对应类型自定义变量的事件; 容器类型的自定义变量没有变化前值和变化后值出参
+   *
+   * GSTS Note: The concrete type selected for `preChangeValue` or `postChangeValue` also determines which Custom Variable changes this event can detect; only variables of that type trigger it. If the handler only needs the event and does not consume either value, the generated event node has no concrete type information and cannot listen for changes correctly. Explicitly narrow one value with `asType()` and consume it with a Print String node:
+   *
+   * ```ts
+   * print(str(evt.postChangeValue.asType('int')))
+   * ```
+   *
+   * Replace `'int'` with the Custom Variable's actual type.
+   *
+   * GSTS 注: `preChangeValue` 或 `postChangeValue` 确定的具体类型同时决定本事件能检测哪一类自定义变量变化；只有该类型的变量变化才会触发。若处理函数只需要事件本身而未消费这两个值，编译生成的事件节点将不具备具体类型信息，无法正常监听变化。请对其中一个值显式调用 `asType()`，并通过【打印字符串】节点消费:
+   *
+   * ```ts
+   * print(str(evt.postChangeValue.asType('int')))
+   * ```
+   *
+   * 请将 `'int'` 替换为自定义变量的实际类型。
    */
   on(
     eventName: EventNameByLang<Mode, 'whenCustomVariableChanges', AllowZh>,
@@ -644,7 +660,7 @@ export interface ServerOnOverloads<
   /**
    * This event is triggered when an Item is removed from the Inventory (its quantity becomes 0). The Owner of the Inventory Component will receive it
    *
-   * 背包道具失去时: 背包内该道具失去，即背包内该道具数量为0时触发该事件，背包组件的持有者可以收到
+   * 背包道具失去时: 背包内该道具失去，即背包内该道具数量为0时触发该事件，该道具关联的道具节点图会接收到
    */
   on(
     eventName: EventNameByLang<Mode, 'whenItemIsLostFromInventory', AllowZh>,
@@ -654,7 +670,7 @@ export interface ServerOnOverloads<
   /**
    * This event is triggered when the quantity of Items in the Inventory changes. The Owner of the Inventory Component will receive it
    *
-   * 背包道具数量变化时: 背包道具数量发生变化时触发该事件，背包组件的持有者可以收到
+   * 背包道具数量变化时: 背包道具数量发生变化时触发该事件，该道具关联的道具节点图会接收到
    */
   on(
     eventName: EventNameByLang<Mode, 'whenTheQuantityOfInventoryItemChanges', AllowZh>,
@@ -667,7 +683,7 @@ export interface ServerOnOverloads<
   /**
    * This event is triggered when a new Item is added to the Inventory. The Owner of the Inventory Component will receive it. This event is not triggered by quantity-only changes
    *
-   * 背包道具新增时: 背包内新增该道具时触发事件，背包组件的持有者可以收到。如果没有新增道具仅有数量变化则不会触发该事件
+   * 背包道具新增时: 背包内新增该道具时触发事件，该道具关联的道具节点图会接收到。如果没有新增道具仅有数量变化则不会触发该事件
    */
   on(
     eventName: EventNameByLang<Mode, 'whenItemIsAddedToInventory', AllowZh>,
@@ -690,7 +706,7 @@ export interface ServerOnOverloads<
   /**
    * This event is triggered when an Item in the Inventory is used. The Owner of the Inventory Component will receive it
    *
-   * 背包内道具被使用时: 背包内道具被使用时触发该事件，背包组件的持有者可以收到
+   * 背包内道具被使用时: 背包内道具被使用时触发该事件，该道具关联的道具节点图会接收到
    */
   on(
     eventName: EventNameByLang<Mode, 'whenItemsInTheInventoryAreUsed', AllowZh>,
@@ -708,6 +724,45 @@ export interface ServerOnOverloads<
       evt: ServerEventPayloadsByMode<Mode>['whenCreationReachesPatrolWaypoint'],
       f: F
     ) => void
+  ): this
+
+  /**
+   * Triggered when a player's active control motor list changes.
+   *
+   * When Player's Activated Control Motion Device List Changes
+   *
+   * 玩家激活操控运动器列表变化时: 玩家激活的操控运动器列表发生变化时触发
+   */
+  on(
+    eventName: EventNameByLang<Mode, 'whenPlayerSActiveControlMotorListChanges', AllowZh>,
+    handler: (
+      evt: ServerEventPayloadsByMode<Mode>['whenPlayerSActiveControlMotorListChanges'],
+      f: F
+    ) => void
+  ): this
+
+  /**
+   * Triggered when a player follows a control motor.
+   *
+   * When Player Follows Control Motion Device
+   *
+   * 玩家跟随操控运动器时: 玩家开始跟随操控运动器时触发
+   */
+  on(
+    eventName: EventNameByLang<Mode, 'whenPlayerFollowsControlMotor', AllowZh>,
+    handler: (evt: ServerEventPayloadsByMode<Mode>['whenPlayerFollowsControlMotor'], f: F) => void
+  ): this
+
+  /**
+   * Triggered when a player leaves a control motor.
+   *
+   * When Player Leaves Control Motion Device
+   *
+   * 玩家离开操控运动器时: 玩家离开操控运动器时触发
+   */
+  on(
+    eventName: EventNameByLang<Mode, 'whenPlayerLeavesControlMotor', AllowZh>,
+    handler: (evt: ServerEventPayloadsByMode<Mode>['whenPlayerLeavesControlMotor'], f: F) => void
   ): this
 
   on<E extends EventNameByLang<Mode, keyof ServerEventPayloads, AllowZh>>(

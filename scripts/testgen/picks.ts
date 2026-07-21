@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+
 import ts from 'typescript'
 
 export type EnumPickMap = Map<string, string>
@@ -32,7 +33,23 @@ export function loadEnumPicks(enumTsPath: string): EnumPickMap {
     ts.forEachChild(node, visit)
   }
   ts.forEachChild(sf, visit)
+
+  for (const statement of sf.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      statement.moduleSpecifier ||
+      !statement.exportClause ||
+      !ts.isNamedExports(statement.exportClause)
+    ) {
+      continue
+    }
+    for (const element of statement.exportClause.elements) {
+      const target = element.propertyName?.text
+      if (!target) continue
+      const pick = map.get(target)
+      if (pick) map.set(element.name.text, pick)
+    }
+  }
+
   return map
 }
-
-

@@ -1,11 +1,19 @@
 # 客户端节点支持计划
 
-> 状态：当前推荐 / 已验证（WP0、WP1、WP1-Sync、WP-B、WP-C、TS→IR→GIA 信号闭环已完成；客户端已有地图信号的标量/entity-GUID/列表组合图和共享布局已完成自动回归与用户游戏核验）
-> 来源：当前代码实现 + 固定 vendor 候选数据 + 官方节点资料 + 真实客户端 GIA 观察 + 目标地图信号资源 + 用户游戏验证
-> 最近校验：2026-07-19
-> 适用范围：gsts 客户端节点支持实施计划；生产 TS→Client IR→GIA 当前仅覆盖本文记录的客户端 signal/list/data-source 组合，不代表全量客户端节点支持
+> 状态：已废弃（旧 `g.client()` 实施记录）
+> 来源：历史代码实现 + 固定 vendor 候选数据 + 真实客户端 GIA 观察 + 历史用户验证
+> 最近校验：2026-07-21
+> 适用范围：仅用于追溯旧 skill signal/list/data-source 实现及其证据；不是当前 API 或实现指南
 
-本文档记录 gsts 增加客户端节点支持的当前权威计划，防止跨会话丢失设计决策、证据边界和验证门禁。
+当前客户端实现已替换为七类节点图入口：`g.characterSkill()`、`g.characterControlSkill()`、
+`g.creationSkill()`、`g.creationStatus()`、`g.creationStatusDecision()`、`g.boolFilter()` 和
+`g.intFilter()`。当前用户文档见 [`../docs/zh/doc/events/client-graphs.md`](../docs/zh/doc/events/client-graphs.md)，
+当前源码以 `src/runtime/client_graph_support.ts`、`src/runtime/core.ts` 和
+`src/compiler/ir_to_gia_transform/client_graph.ts` 为准。旧 `g.client()`、`src/runtime/client.ts`、
+`client_layout.ts` 和 `client_ir_to_gia.ts` 已删除。
+
+本文档保留旧实现的决策、真实 GIA 观察和历史验证边界，防止证据丢失；下文出现的“当前”均指
+2026-07-19 及更早的旧实现状态，不得作为现行 API 教程。
 
 客户端 GIA 字段、signal、VarBase、列表 assembly 和 wire 编码细节以
 [`client-gia-encoding.md`](./client-gia-encoding.md) 为专门权威入口；本文保留路线、API、阶段工作包和支持边界。

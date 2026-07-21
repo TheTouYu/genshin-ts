@@ -1,10 +1,11 @@
-import type { ServerGraphMode } from '../runtime/IR.js'
+import type { ClientGraphMode, ClientGraphSubType, ServerGraphMode } from '../runtime/IR.js'
 import {
   entity,
   type BoolValue,
   type configId,
   type ConfigIdValue,
   type dict,
+  type EntityRuntimeBase,
   type EntityValue,
   type faction,
   type FactionValue,
@@ -19,24 +20,33 @@ import {
   type vec3,
   type Vec3Value
 } from '../runtime/value.js'
+import {
+  CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE,
+  CLIENT_ENTITY_HELPER_METHOD_NAMES,
+  type ClientEntityHelperBinding
+} from './client_entity_helpers.js'
+import { CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE, CLIENT_GRAPH_SUB_TYPES } from './client_graph_modes.js'
 import type {
   CharacterSkillSlot,
+  ClassSwitchSkillHandling,
+  ColorBlendType,
+  CoordinateSystemType,
   DamagePopUpType,
   DecisionRefreshMode,
   EntityType,
-  ExistingSkillHandling,
-  FixedMotionParameterType,
-  FollowCoordinateSystem,
+  FillMaterial,
+  FixedPointMotionDeviceMotionType,
+  FixedPointMotionDeviceParameterConversionType,
   FollowLocationType,
   InputDeviceType,
   InterruptStatus,
   ItemLootType,
-  MovementMode,
-  OriginalSlotSkillHandling,
+  RankSettlementStatus,
   RemovalMethod,
-  ScanRuleType,
+  ScanScoringRules,
   SettlementStatus,
   SoundAttenuationMode,
+  TopOfStackSkillDestructionType,
   UIControlGroupStatus,
   UnitStatusAdditionResult
 } from './enum.js'
@@ -47,12 +57,14 @@ declare const __entityKind: unique symbol
 export type EntityKind = 'player' | 'character' | 'stage' | 'object' | 'creation'
 type EntityKindMarker<K extends EntityKind> = { readonly [__entityKind]?: K }
 
-export type EntityOf<K extends EntityKind> = entity & EntityKindMarker<K>
+// Node parameters need the entity identity and kind, not a graph mode's full helper surface.
+export type EntityOf<K extends EntityKind> = EntityRuntimeBase & EntityKindMarker<K>
 export type EntityAny = entity
 
 // Generated from src/definitions/nodes.ts (methods whose first param is entity-like).
 const ENTITY_HELPER_METHODS = [
   'activateBasicMotionDevice',
+  'activateDisableCursorCollisionBox',
   'activateDisableCollisionTrigger',
   'activateDisableCollisionTriggerSource',
   'activateDisableExtraCollision',
@@ -132,6 +144,7 @@ const ENTITY_HELPER_METHODS = [
   'getListOfOwnersWhoHaveTheTargetInTheirAggroList',
   'getLootComponentCurrencyQuantity',
   'getLootComponentItemQuantity',
+  'getModelColorAndMaterial',
   'getObjectAttribute',
   'getOwnerEntity',
   'getPlayerClientInputDeviceType',
@@ -171,6 +184,7 @@ const ENTITY_HELPER_METHODS = [
   'modifyLootItemComponentQuantity',
   'modifyMiniMapMarkerActivationStatus',
   'modifyMiniMapZoom',
+  'modifyModelColorAndMaterial',
   'modifyPlayerBackgroundMusic',
   'modifyPlayerListForTrackingMiniMapMarkers',
   'modifyPlayerListForVisibleMiniMapMarkers',
@@ -208,6 +222,8 @@ const ENTITY_HELPER_METHODS = [
   'queryInventoryShopItemSalesList',
   'queryPlayerClass',
   'queryPlayerClassLevel',
+  'queryPlayerSCurrentActiveControlMotorList',
+  'queryPlayerSCurrentFollowingControlMotor',
   'queryShopItemPurchaseInfo',
   'queryShopPurchaseItemList',
   'querySpecifiedMiniMapMarkerInformation',
@@ -215,6 +231,9 @@ const ENTITY_HELPER_METHODS = [
   'queryTheAggroValueOfTheSpecifiedEntity',
   'queryUnitStatusApplierBySlotId',
   'queryUnitStatusStacksBySlotId',
+  'queryControlMotorSCurrentMovementParameters',
+  'queryWhetherPlayerIsSubscribed',
+  'queryWhetherPlayerSCursorIsActive',
   'recoverBasicMotionDevice',
   'recoverGlobalTimer',
   'recoverHp',
@@ -244,6 +263,10 @@ const ENTITY_HELPER_METHODS = [
   'setLootDropContent',
   'setPlayerEscapeValidity',
   'setPlayerCameraToFollowEntity',
+  'setPlayerActiveControlMotors',
+  'setPlayerSCursorClickSelectableTargets',
+  'setPlayerToFollowControlMotor',
+  'setPlayerToLeaveControlMotor',
   'setPlayerRankScoreChange',
   'setPlayerRemainingRevives',
   'setPlayerReviveTime',
@@ -259,6 +282,8 @@ const ENTITY_HELPER_METHODS = [
   'setThePresetStatusValueOfTheComplexCreation',
   'setVoiceChatPermissions',
   'setVoiceChatScope',
+  'setWhetherPlayerSCursorClickPenetratesUiControls',
+  'setWhetherPlayerSCursorIsPersistent',
   'startGlobalTimer',
   'startPausePlayerBackgroundMusic',
   'startPauseSpecifiedSoundEffectPlayer',
@@ -403,6 +428,7 @@ const ENTITY_HELPER_METHOD_ALIAS_SOURCES = {
 
 const ENTITY_HELPER_KIND_BY_KEY = {
   activateBasicMotionDevice: ['player', 'character', 'stage', 'object', 'creation'],
+  activateDisableCursorCollisionBox: ['object'],
   activateDisableCollisionTrigger: ['player', 'character', 'stage', 'object', 'creation'],
   activateDisableCollisionTriggerSource: ['player', 'character', 'stage', 'object', 'creation'],
   activateDisableExtraCollision: ['player', 'character', 'stage', 'object', 'creation'],
@@ -534,6 +560,7 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   ],
   getLootComponentCurrencyQuantity: ['player', 'character', 'stage', 'object', 'creation'],
   getLootComponentItemQuantity: ['player', 'character', 'stage', 'object', 'creation'],
+  getModelColorAndMaterial: ['player', 'character', 'stage', 'object', 'creation'],
   getObjectAttribute: ['object'],
   getOwnerEntity: ['player', 'character', 'stage', 'object', 'creation'],
   getPlayerClientInputDeviceType: ['player'],
@@ -588,6 +615,7 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   modifyLootItemComponentQuantity: ['player', 'character', 'stage', 'object', 'creation'],
   modifyMiniMapMarkerActivationStatus: ['player', 'character', 'stage', 'object', 'creation'],
   modifyMiniMapZoom: ['player'],
+  modifyModelColorAndMaterial: ['player', 'character', 'stage', 'object', 'creation'],
   modifyPlayerBackgroundMusic: ['player'],
   modifyPlayerListForTrackingMiniMapMarkers: ['player', 'character', 'stage', 'object', 'creation'],
   modifyPlayerListForVisibleMiniMapMarkers: ['player', 'character', 'stage', 'object', 'creation'],
@@ -636,6 +664,8 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   queryInventoryShopItemSalesList: ['player', 'character', 'stage', 'object', 'creation'],
   queryPlayerClass: ['player'],
   queryPlayerClassLevel: ['player'],
+  queryPlayerSCurrentActiveControlMotorList: ['player'],
+  queryPlayerSCurrentFollowingControlMotor: ['player'],
   queryShopItemPurchaseInfo: ['player', 'character', 'stage', 'object', 'creation'],
   queryShopPurchaseItemList: ['player', 'character', 'stage', 'object', 'creation'],
   querySpecifiedMiniMapMarkerInformation: ['player', 'character', 'stage', 'object', 'creation'],
@@ -649,6 +679,15 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   queryTheAggroValueOfTheSpecifiedEntity: ['player', 'character', 'stage', 'object', 'creation'],
   queryUnitStatusApplierBySlotId: ['player', 'character', 'stage', 'object', 'creation'],
   queryUnitStatusStacksBySlotId: ['player', 'character', 'stage', 'object', 'creation'],
+  queryControlMotorSCurrentMovementParameters: [
+    'player',
+    'character',
+    'stage',
+    'object',
+    'creation'
+  ],
+  queryWhetherPlayerIsSubscribed: ['player'],
+  queryWhetherPlayerSCursorIsActive: ['player'],
   rankScoreChange: ['player'],
   rankingInfo: ['player'],
   recoverBasicMotionDevice: ['player', 'character', 'stage', 'object', 'creation'],
@@ -690,6 +729,10 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   setInventoryItemDropContents: ['player', 'character', 'stage', 'object', 'creation'],
   setLootDropContent: ['player', 'character', 'stage', 'object', 'creation'],
   setPlayerCameraToFollowEntity: ['player'],
+  setPlayerActiveControlMotors: ['player'],
+  setPlayerSCursorClickSelectableTargets: ['player'],
+  setPlayerToFollowControlMotor: ['player'],
+  setPlayerToLeaveControlMotor: ['player'],
   setPlayerEscapeValidity: ['player'],
   setPlayerRankScoreChange: ['player'],
   setPlayerRemainingRevives: ['player'],
@@ -709,6 +752,8 @@ const ENTITY_HELPER_KIND_BY_KEY = {
   setThePresetStatusValueOfTheComplexCreation: ['creation'],
   setVoiceChatPermissions: ['player'],
   setVoiceChatScope: ['player'],
+  setWhetherPlayerSCursorClickPenetratesUiControls: ['player'],
+  setWhetherPlayerSCursorIsPersistent: ['player'],
   settlementRanking: ['player'],
   settlementStatus: ['player'],
   showFloatingInteractionPage: ['player'],
@@ -993,12 +1038,12 @@ interface EntityHelperFromFirstParam {
    */
   activateFixedPointMotionDevice: (
     motionDeviceName: StrValue,
-    movementMode: MovementMode,
+    movementMode: FixedPointMotionDeviceMotionType,
     movementSpd: FloatValue,
     targetLocation: Vec3Value,
     targetRotation: Vec3Value,
     lockRotation: BoolValue,
-    parameterType: FixedMotionParameterType,
+    parameterType: FixedPointMotionDeviceParameterConversionType,
     movementTime: FloatValue
   ) => void
 
@@ -1046,7 +1091,7 @@ interface EntityHelperFromFirstParam {
   addCharacterSkill: (
     skillConfigId: ConfigIdValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ) => bigint
 
   /**
@@ -1395,7 +1440,7 @@ interface EntityHelperFromFirstParam {
    */
   changePlayerClass: (
     classConfigId: ConfigIdValue,
-    existingSkillHandling: ExistingSkillHandling
+    existingSkillHandling: ClassSwitchSkillHandling
   ) => void
 
   /**
@@ -2372,15 +2417,15 @@ interface EntityHelperFromFirstParam {
    *
    * 获取玩家段位变化分数: 获取玩家实体在不同结算状态下段位的变化分数
    *
-   * @param settlementStatus
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
-   * 结算状态
+   * 结算状态: 分为未定、胜利、失败、逃跑
    *
    * @returns
    *
    * 分数
    */
-  getPlayerRankScoreChange: (settlementStatus: SettlementStatus) => bigint
+  getPlayerRankScoreChange: (settlementStatus: RankSettlementStatus) => bigint
 
   /**
    * Returns the Player's Rank-related information
@@ -3283,10 +3328,7 @@ interface EntityHelperFromFirstParam {
    *
    * 镜头模板名称: 镜头模板的标识
    */
-  setPlayerCameraToFollowEntity: (
-    followEntity: EntityValue,
-    cameraTemplateName: StrValue
-  ) => void
+  setPlayerCameraToFollowEntity: (followEntity: EntityValue, cameraTemplateName: StrValue) => void
 
   /**
    * Reset the player camera to follow the Player Entity
@@ -3446,7 +3488,7 @@ interface EntityHelperFromFirstParam {
   bindCustomSkillInstanceToSpecifiedSlot: (
     skillInstanceId: IntValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ) => bigint
 
   /**
@@ -3538,15 +3580,12 @@ interface EntityHelperFromFirstParam {
    *
    * 是否校验按键可用: 是：当前按键可用时该技能才会被施放。否：无论当前按键是否可用该技能都会被施放
    */
-  castSpecifiedSkillInstance: (
-    skillInstanceId: IntValue,
-    checkKeyAvailability: BoolValue
-  ) => void
+  castSpecifiedSkillInstance: (skillInstanceId: IntValue, checkKeyAvailability: BoolValue) => void
 
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
    *
-   * 查询对应礼盒消耗数量: 查询玩家实体上指定礼盒的消耗数量
+   * 查询对应华丽演绎礼盒消耗数量: 查询玩家实体上华丽演绎礼盒的消耗数量(无法对其他类型的礼盒使用)
    *
    * @param giftBoxIndex
    *
@@ -3858,7 +3897,7 @@ interface EntityHelperFromFirstParam {
      *
      * 生效状态: 查询的小地图标识的生效状态
      */
-    activationStaet: boolean
+    activationStatus: boolean
     /**
      * Returns the list of Players who can see this Marker
      *
@@ -4377,14 +4416,14 @@ interface EntityHelperFromFirstParam {
    *
    * 设置玩家段位变化分数: 根据结算状态设置玩家的段位变化分数
    *
-   * @param settlementStatus Includes: Undefined, Victory, Defeat, Escape
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
    * 结算状态: 分为未定、胜利、失败、逃跑
    * @param scoreChange
    *
    * 变化分数
    */
-  setPlayerRankScoreChange: (settlementStatus: SettlementStatus, scoreChange: IntValue) => void
+  setPlayerRankScoreChange: (settlementStatus: RankSettlementStatus, scoreChange: IntValue) => void
 
   /**
    * Set the remaining number of revives for the specified Player. When set to 0, the Player cannot revive
@@ -4470,7 +4509,7 @@ interface EntityHelperFromFirstParam {
    *
    * 规则类型: 分为视野优先、距离优先
    */
-  setScanTagRules: (ruleType: ScanRuleType) => void
+  setScanTagRules: (ruleType: ScanScoringRules) => void
 
   /**
    * Edit the Character's skill resource amount
@@ -4671,7 +4710,7 @@ interface EntityHelperFromFirstParam {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ) => void
 
@@ -4704,7 +4743,7 @@ interface EntityHelperFromFirstParam {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ) => void
 
@@ -5684,29 +5723,29 @@ interface EntityHelperMethodAliases {
    *
    * 获取玩家段位变化分数: 获取玩家实体在不同结算状态下段位的变化分数
    *
-   * @param settlementStatus
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
-   * 结算状态
+   * 结算状态: 分为未定、胜利、失败、逃跑
    *
    * @returns
    *
    * 分数
    */
-  rankScoreChange: (settlementStatus: SettlementStatus) => bigint
+  rankScoreChange: (settlementStatus: RankSettlementStatus) => bigint
 
   /**
    * Set the Player's rank score change based on the settlement status
    *
    * 设置玩家段位变化分数: 根据结算状态设置玩家的段位变化分数
    *
-   * @param settlementStatus Includes: Undefined, Victory, Defeat, Escape
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
    * 结算状态: 分为未定、胜利、失败、逃跑
    * @param scoreChange
    *
    * 变化分数
    */
-  setRankScoreChange: (settlementStatus: SettlementStatus, scoreChange: IntValue) => void
+  setRankScoreChange: (settlementStatus: RankSettlementStatus, scoreChange: IntValue) => void
 
   /**
    * Get Player Escape Permission
@@ -5796,7 +5835,7 @@ interface EntityHelperMethodAliases {
   addSkill: (
     skillConfigId: ConfigIdValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ) => bigint
 
   /**
@@ -5915,7 +5954,7 @@ interface EntityHelperMethodAliases {
    *
    * 已有技能处理方式: 全部清理：将已有技能全部清理。保留无关技能：保留更换前后两个职业默认配置内均没有的技能
    */
-  setClass: (classConfigId: ConfigIdValue, existingSkillHandling: ExistingSkillHandling) => void
+  setClass: (classConfigId: ConfigIdValue, existingSkillHandling: ClassSwitchSkillHandling) => void
 
   /**
    * Set the Player's current Class Level. If it exceeds the defined range, the change will not take effect
@@ -6175,7 +6214,7 @@ interface EntityHelperMethodAliases {
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
    *
-   * 查询对应礼盒消耗数量: 查询玩家实体上指定礼盒的消耗数量
+   * 查询对应华丽演绎礼盒消耗数量: 查询玩家实体上华丽演绎礼盒的消耗数量(无法对其他类型的礼盒使用)
    *
    * @param giftBoxIndex
    *
@@ -6295,6 +6334,311 @@ interface EntityHelperMethodAliases {
    * 计分组序号: 外围系统管理中指定计分组对应的序号
    */
   switchRankGroup: (scoreGroupId: IntValue) => void
+
+  /**
+   * Activate or deactivate a cursor collision box on this object.
+   *
+   * 激活/关闭光标碰撞盒
+   *
+   * @param collisionBoxIndex Collision Box ID
+   *
+   * 碰撞盒序号
+   * @param activate Activate
+   *
+   * 是否激活
+   */
+  activateDisableCursorCollisionBox: (collisionBoxIndex: IntValue, activate: BoolValue) => void
+
+  /**
+   * Edit this entity's model color and material configuration.
+   *
+   * Edit Model Color & Material
+   *
+   * 修改模型颜色和材质
+   *
+   * @param overwriteColorConfig Overwrite Color Configurations
+   *
+   * 是否覆写颜色配置
+   * @param enableCustomColor Enable Custom Color?
+   *
+   * 是否启用自定义颜色
+   * @param fillColor Fill Color
+   *
+   * 填充颜色
+   * @param colorOpacity Color Opacity
+   *
+   * 颜色透明度
+   * @param colorBlendType Color Blend Type
+   *
+   * 颜色叠加类型
+   * @param overwriteMaterialConfig Overwrite Material Configurations
+   *
+   * 是否覆写材质配置
+   * @param enableCustomMaterial Enable Custom Material?
+   *
+   * 是否启用自定义材质
+   * @param fillMaterial Fill Material Type
+   *
+   * 填充材质类型
+   */
+  modifyModelColorAndMaterial: (
+    overwriteColorConfig: BoolValue,
+    enableCustomColor: BoolValue,
+    fillColor: IntValue,
+    colorOpacity: FloatValue,
+    colorBlendType: ColorBlendType,
+    overwriteMaterialConfig: BoolValue,
+    enableCustomMaterial: BoolValue,
+    fillMaterial: FillMaterial
+  ) => void
+
+  /**
+   * Get this entity's current model color and material configuration.
+   *
+   * 获取模型颜色和材质
+   *
+   * @returns The current model color and material configuration.
+   *
+   * 返回当前的模型颜色和材质配置
+   */
+  getModelColorAndMaterial: () => {
+    /**
+     * Enable Custom Color?
+     *
+     * 是否开启自定义颜色
+     */
+    customColorEnabled: boolean
+    /**
+     * Color Blend Mode
+     *
+     * 颜色叠加模式
+     */
+    colorBlendMode: ColorBlendType
+    /**
+     * Color
+     *
+     * 颜色
+     */
+    color: bigint
+    /**
+     * Color Opacity
+     *
+     * 颜色透明度
+     */
+    colorOpacity: number
+    /**
+     * Enable Custom Material?
+     *
+     * 是否开启自定义材质
+     */
+    customMaterialEnabled: boolean
+    /**
+     * Material
+     *
+     * 材质
+     */
+    material: FillMaterial
+  }
+
+  /**
+   * Set this player to follow a control motor.
+   *
+   * Set Player to Follow Control Motion Device
+   *
+   * 设置玩家跟随操控运动器
+   *
+   * @param controlMotorEntity Control Motion Device Entity
+   *
+   * 操控运动器实体
+   */
+  setPlayerToFollowControlMotor: (controlMotorEntity: EntityValue) => void
+
+  /**
+   * Set this player to leave the current control motor.
+   *
+   * Set Player to Leave Control Motion Device
+   *
+   * 设置玩家离开操控运动器
+   */
+  setPlayerToLeaveControlMotor: () => void
+
+  /**
+   * Set this player's active control motors.
+   *
+   * Set Player to Activate Control Motion Device
+   *
+   * 设置玩家激活操控运动器
+   *
+   * @param controlMotorEntities Control Motion Device Entity List
+   *
+   * 操控运动器实体列表
+   */
+  setPlayerActiveControlMotors: (controlMotorEntities: EntityValue[]) => void
+
+  /**
+   * Query this player's current active control motors.
+   *
+   * Query Player's Currently Activated Control Motion Device List
+   *
+   * 查询玩家当前激活操控运动器列表
+   *
+   * @returns Control Motion Device Entity List
+   *
+   * 操控运动器实体列表
+   */
+  queryPlayerSCurrentActiveControlMotorList: () => entity[]
+
+  /**
+   * Query the control motor this player is currently following.
+   *
+   * Query Player's Followed Control Motion Device
+   *
+   * 查询玩家当前跟随操控运动器
+   *
+   * @returns Control Motion Device Entity
+   *
+   * 操控运动器实体
+   */
+  queryPlayerSCurrentFollowingControlMotor: () => entity
+
+  /**
+   * Query this control motor's current movement parameters.
+   *
+   * Query Control Motion Device's Current Movement Parameters
+   *
+   * 查询操控运动器当前运动参数
+   *
+   * @returns The Control Motion Device's current movement parameters.
+   *
+   * 返回操控运动器当前的运动参数
+   */
+  queryControlMotorSCurrentMovementParameters: () => {
+    /**
+     * Forward Acceleration
+     *
+     * 前进加速度
+     */
+    forwardAcceleration: number
+    /**
+     * Reverse Acceleration
+     *
+     * 后退加速度
+     */
+    backwardAcceleration: number
+    /**
+     * Turn Speed
+     *
+     * 转向速率
+     */
+    turningRate: number
+    /**
+     * Base Resistance
+     *
+     * 基础阻力
+     */
+    baseResistance: number
+    /**
+     * Resistance Coefficient
+     *
+     * 阻力系数
+     */
+    resistanceCoefficient: number
+    /**
+     * Max Forward Speed
+     *
+     * 最大前进速度
+     */
+    maximumForwardSpeed: number
+    /**
+     * Max Reverse Speed
+     *
+     * 最大后退速度
+     */
+    maximumBackwardSpeed: number
+  }
+
+  /**
+   * Set whether this player's cursor remains visible.
+   *
+   * Set Player's Cursor to Always Visible
+   *
+   * 设置玩家光标是否常驻
+   *
+   * @param cursorPersistent Always Show Cursor?
+   *
+   * 是否光标常驻
+   */
+  setWhetherPlayerSCursorIsPersistent: (cursorPersistent: BoolValue) => void
+
+  /**
+   * Set this player's cursor-click selectable targets.
+   *
+   * Enable Player's Cursor to Click Selectable Targets
+   *
+   * 设置玩家光标点击可选取目标
+   *
+   * @param cursorClickableLayerFilterId Cursor Clickable Layer Filter ID. Literal only; wired
+   * connections are not allowed.
+   *
+   * GSTS Note: This value is a four-bit mask, not a single layer ID. Add the selected layer
+   * values and pass the result as an integer literal: Scene = 1 (bit 0), Hurtbox = 2 (bit 1),
+   * Object Collision = 4 (bit 2), Cursor Collision = 8 (bit 3). The valid combinations are
+   * 0-15; 0 selects none and 15 selects all. For example, 10 selects Hurtbox and Cursor
+   * Collision, while 11 additionally selects Scene. Do not use bits above bit 3.
+   *
+   * 光标可点击层级筛选id: 仅支持字面量，不能连接其他节点的输出
+   *
+   * GSTS 注: 该值是四位位掩码，并非单个层级ID。请将所需层级的数值相加，并把结果作为整数字面量传入:
+   * 场景 = 1（第0位）、受击盒 = 2（第1位）、物件碰撞 = 4（第2位）、光标碰撞 = 8（第3位）。
+   * 有效组合为0-15；0表示全部不选，15表示全部选中。例如10表示“受击盒 + 光标碰撞”，
+   * 11则在此基础上增加“场景”。不要使用第3位以上的未知位。
+   * @param maximumSelectableTargets Max Selectable Targets
+   *
+   * 光标最多可选取目标
+   */
+  setPlayerSCursorClickSelectableTargets: (
+    cursorClickableLayerFilterId: IntValue,
+    maximumSelectableTargets: IntValue
+  ) => void
+
+  /**
+   * Set whether this player's cursor click penetrates UI controls.
+   *
+   * Set Player's Cursor to Click Through UI Controls
+   *
+   * 设置玩家光标是否穿透UI控件
+   *
+   * @param penetrateUiControls Click Through UI Controls?
+   *
+   * 是否穿透UI控件
+   */
+  setWhetherPlayerSCursorClickPenetratesUiControls: (penetrateUiControls: BoolValue) => void
+
+  /**
+   * Query whether this player's cursor is active.
+   *
+   * Check Whether Player Cursor Is Active
+   *
+   * 查询玩家光标是否激活
+   *
+   * @returns Activate
+   *
+   * 是否激活
+   */
+  queryWhetherPlayerSCursorIsActive: () => boolean
+
+  /**
+   * Query whether this player is subscribed to the current creator.
+   *
+   * Check Whether Player Has Subscribed
+   *
+   * 查询玩家是否订阅
+   *
+   * @returns Subscribed
+   *
+   * 是否订阅
+   */
+  queryWhetherPlayerIsSubscribed: () => boolean
 }
 
 export type EntityHelperAll = EntityHelperFromFirstParam &
@@ -6363,7 +6707,7 @@ export type EntityHelperForByMode<K extends EntityKind, M extends ServerGraphMod
   Extract<keyof EntityHelperFor<K>, EntityHelperKeysByMode<M>>
 >
 
-export type EntityBase = Omit<entity, keyof EntityHelperAll>
+export type EntityBase = EntityRuntimeBase
 
 export type EntityValueByMode<M extends ServerGraphMode> = EntityBase & EntityHelperAllByMode<M>
 export type EntityOfByMode<K extends EntityKind, M extends ServerGraphMode> = EntityBase &
@@ -6387,10 +6731,10 @@ export type ReplaceEntityByMode<T, M extends ServerGraphMode> =
         ? T
         : T extends (...args: unknown[]) => unknown
           ? T
-          : T extends ReadonlyArray<infer U>
-            ? ReadonlyArray<ReplaceEntityByMode<U, M>>
-            : T extends Array<infer U>
-              ? Array<ReplaceEntityByMode<U, M>>
+          : T extends Array<infer U>
+            ? Array<ReplaceEntityByMode<U, M>>
+            : T extends ReadonlyArray<infer U>
+              ? ReadonlyArray<ReplaceEntityByMode<U, M>>
               : T extends object
                 ? { [K in keyof T]: ReplaceEntityByMode<T[K], M> }
                 : T
@@ -6402,6 +6746,71 @@ declare module '../runtime/value.js' {
 
 const kEntityHelpersInstalled = Symbol('gsts.entity_helpers_installed')
 
+const clientEntityHelperContexts = new WeakMap<
+  object,
+  { subType: ClientGraphSubType; mode: ClientGraphMode }
+>()
+
+export function registerClientEntityHelperContext(
+  fns: object,
+  subType: ClientGraphSubType,
+  mode: ClientGraphMode
+): void {
+  clientEntityHelperContexts.set(fns, { subType, mode })
+}
+
+function getActiveClientEntityHelperContext() {
+  if (!gsts.ctx.isClientCtx()) return undefined
+
+  for (const subType of CLIENT_GRAPH_SUB_TYPES) {
+    if (!gsts.ctx.isClientGraphCtx(subType)) continue
+
+    const fns = (gsts as unknown as Record<string, unknown>)[
+      CLIENT_F_GLOBAL_NAME_BY_SUB_TYPE[subType]
+    ]
+    if (!fns || (typeof fns !== 'object' && typeof fns !== 'function')) {
+      throw new Error(`[error] client entity helper context is not bound for ${subType}`)
+    }
+    const context = clientEntityHelperContexts.get(fns)
+    if (!context) {
+      throw new Error(`[error] client entity helper context is not registered for ${subType}`)
+    }
+    return { ...context, fns: fns as Record<string, unknown> }
+  }
+
+  throw new Error(`[error] client entity helper has no matching graph context: ${gsts.ctx.ctxType}`)
+}
+
+function callClientEntityHelper(
+  name: string,
+  kind: ClientEntityHelperBinding['kind'],
+  self: entity,
+  args: unknown[]
+) {
+  const context = getActiveClientEntityHelperContext()
+  if (!context) return { handled: false as const }
+
+  const bindings = CLIENT_ENTITY_HELPER_BINDINGS_BY_SUB_TYPE_AND_MODE[context.subType][
+    context.mode
+  ] as Record<string, ClientEntityHelperBinding>
+  const binding = bindings[name]
+  if (!binding || binding.kind !== kind) {
+    throw new Error(
+      `[error] client entity helper ${name} is not available in ${context.subType} ${context.mode} mode`
+    )
+  }
+
+  const fn = context.fns[binding.methodName]
+  if (typeof fn !== 'function') {
+    throw new Error(
+      `[error] client entity helper ${name} resolved to missing function ${binding.methodName}`
+    )
+  }
+  const callArgs = args.slice()
+  if (binding.insertIndex !== null) callArgs.splice(binding.insertIndex, 0, self)
+  return { handled: true as const, value: fn.call(context.fns, ...callArgs) }
+}
+
 function defineEntityHelperMethod(name: string, insertIndex = 0) {
   const proto = entity.prototype as unknown as Record<PropertyKey, unknown>
   if (Object.prototype.hasOwnProperty.call(proto, name)) return
@@ -6409,6 +6818,9 @@ function defineEntityHelperMethod(name: string, insertIndex = 0) {
     configurable: true,
     enumerable: false,
     value: function (...args: unknown[]) {
+      const clientResult = callClientEntityHelper(name, 'method', this as entity, args)
+      if (clientResult.handled) return clientResult.value
+
       const fn = (gsts.f as unknown as Record<string, (...args: unknown[]) => unknown>)[name]
       if (typeof fn !== 'function') {
         throw new Error(`[error] entity helper not found: ${name}`)
@@ -6427,6 +6839,9 @@ function defineEntityHelperMethodAlias(name: string, sourceName: string) {
     configurable: true,
     enumerable: false,
     value: function (...args: unknown[]) {
+      const clientResult = callClientEntityHelper(name, 'method', this as entity, args)
+      if (clientResult.handled) return clientResult.value
+
       const fn = (gsts.f as unknown as Record<string, (...args: unknown[]) => unknown>)[sourceName]
       if (typeof fn !== 'function') {
         throw new Error(`[error] entity helper not found: ${sourceName}`)
@@ -6443,6 +6858,9 @@ function defineEntityHelperGetter(name: string, getter: (self: entity) => unknow
     configurable: true,
     enumerable: false,
     get: function () {
+      const clientResult = callClientEntityHelper(name, 'getter', this as entity, [])
+      if (clientResult.handled) return clientResult.value
+
       return getter(this as entity)
     }
   })
@@ -6458,6 +6876,10 @@ export function installEntityHelpers(): void {
   })
 
   for (const name of ENTITY_HELPER_METHODS) {
+    defineEntityHelperMethod(name, 0)
+  }
+
+  for (const name of CLIENT_ENTITY_HELPER_METHOD_NAMES) {
     defineEntityHelperMethod(name, 0)
   }
 

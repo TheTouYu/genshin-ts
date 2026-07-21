@@ -42,6 +42,24 @@ function extractEnumMembers(enumTsPath: string): EnumMembersMap {
     ts.forEachChild(node, visit)
   }
   ts.forEachChild(sf, visit)
+
+  for (const statement of sf.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      statement.moduleSpecifier ||
+      !statement.exportClause ||
+      !ts.isNamedExports(statement.exportClause)
+    ) {
+      continue
+    }
+    for (const element of statement.exportClause.elements) {
+      const target = element.propertyName?.text
+      if (!target) continue
+      const members = map.get(target)
+      if (members) map.set(element.name.text, members)
+    }
+  }
+
   return map
 }
 
@@ -171,11 +189,18 @@ function isFnType(t: string): boolean {
   return /^\([^)]*\)\s*=>/.test(t.replace(/\s+/g, ' ').trim())
 }
 
+function typeIncludesEnum(typeText: string, enumType: string): boolean {
+  return typeText
+    .split('|')
+    .map((part) => part.trim())
+    .includes(enumType)
+}
+
 function scoreMethodForEnum(m: MethodSig, enumType: string): number {
   let s = m.params.length * 2
   for (const p of m.params) {
     const t = p.typeText
-    if (t === enumType) continue
+    if (typeIncludesEnum(t, enumType)) continue
     if (p.rest) s += 20
     if (isFnType(t)) s += 50
     if (/\bDictValue\b|\bdict\b/.test(t)) s += 40
@@ -191,7 +216,9 @@ function scoreMethodForEnum(m: MethodSig, enumType: string): number {
 }
 
 function pickMethodForEnum(methods: MethodSig[], enumType: string): MethodSig | null {
-  const candidates = methods.filter((m) => m.params.some((p) => p.typeText === enumType))
+  const candidates = methods.filter((m) =>
+    m.params.some((p) => typeIncludesEnum(p.typeText, enumType))
+  )
   if (!candidates.length) return null
   return [...candidates].sort(
     (a, b) => scoreMethodForEnum(a, enumType) - scoreMethodForEnum(b, enumType)
@@ -200,7 +227,13 @@ function pickMethodForEnum(methods: MethodSig[], enumType: string): MethodSig | 
 
 function litOfParam(t: string): string {
   const type = t.trim()
-  if (type === 'EntityValue' || /^[A-Z]\w*Entity$/.test(type)) return 'e'
+  if (
+    type === 'EntityValue' ||
+    /^(?:Player|Character|Stage|Object|Creation)Entity$/.test(type) ||
+    /^EntityOf\s*</.test(type)
+  ) {
+    return 'e'
+  }
   if (type === 'IntValue') return '1n'
   if (type === 'FloatValue') return '1.25'
   if (type === 'BoolValue' || type === 'boolean') return 'true'
@@ -249,7 +282,7 @@ function renderEnumFile(
   enums: EnumMembersMap,
   graphId: number
 ): string {
-  const enumParamIndex = method.params.findIndex((p) => p.typeText === enumType)
+  const enumParamIndex = method.params.findIndex((p) => typeIncludesEnum(p.typeText, enumType))
   const buildCall = (member: string) => {
     const args: string[] = []
     method.params.forEach((p, idx) => {
@@ -333,7 +366,7 @@ function main() {
   }
   fs.mkdirSync(outDir, { recursive: true })
 
-  const BASE_GRAPH_ID = 1073741841
+  const BASE_GRAPH_ID = 1073741850
   let outFileIndex = 0
   const allocGraphId = () => BASE_GRAPH_ID + Math.floor(outFileIndex++ / 2)
 

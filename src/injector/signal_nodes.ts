@@ -27,7 +27,8 @@ const SIGNAL_NODE_TYPE_SKILLS = 20002
 
 const SIGNAL_NODE_ID_PLACEHOLDERS = new Map<number, SignalNodeKind>([
   [300000, 'send'],
-  [300001, 'monitor']
+  [300001, 'monitor'],
+  [300002, 'sendServer']
 ])
 
 function parseNodeGraphId(buf: Uint8Array): NodeGraphIdInfo {
@@ -162,21 +163,34 @@ function buildSignalParseContext(
   return { payload, fields }
 }
 
-function applyNodeGraphId(
-  node: { genericId?: NodeGraphIdInfo; concreteId?: NodeGraphIdInfo },
-  info: NodeGraphIdInfo
-) {
-  const setFields = (target: NodeGraphIdInfo | undefined) => {
-    if (!target) return
-    if (typeof info.class === 'number') target.class = info.class
-    if (typeof info.type === 'number') target.type = info.type
-    if (typeof info.kind === 'number') target.kind = info.kind
-    if (typeof info.nodeId === 'number') target.nodeId = info.nodeId
+function setNodeGraphIdFields(target: NodeGraphIdInfo, info: NodeGraphIdInfo) {
+  if (typeof info.class === 'number') target.class = info.class
+  if (typeof info.type === 'number') target.type = info.type
+  if (typeof info.kind === 'number') target.kind = info.kind
+  if (typeof info.nodeId === 'number') target.nodeId = info.nodeId
+}
+
+/**
+ * Placeholder kind carried by a node's ids. Server signal nodes hold the
+ * placeholder in both genericId and concreteId; the client send-to-server node
+ * holds it only in genericId (concreteId stays 2000, matching vendor samples).
+ * 300002 doubles as the server assemble_structure id, so the sendServer kind
+ * additionally requires the client skill graph type (20002) on the id.
+ */
+function placeholderKindOfNode(node: {
+  genericId?: NodeGraphIdInfo
+  concreteId?: NodeGraphIdInfo
+}): { kind: SignalNodeKind; targets: NodeGraphIdInfo[] } | undefined {
+  const targets: NodeGraphIdInfo[] = []
+  let kind: SignalNodeKind | undefined
+  for (const id of [node.genericId, node.concreteId]) {
+    const k = typeof id?.nodeId === 'number' ? SIGNAL_NODE_ID_PLACEHOLDERS.get(id.nodeId) : undefined
+    if (!k) continue
+    if (k === 'sendServer' && id?.type !== SIGNAL_NODE_TYPE_SKILLS) continue
+    kind = k
+    targets.push(id!)
   }
-  if (!node.genericId) node.genericId = {}
-  if (!node.concreteId) node.concreteId = {}
-  setFields(node.genericId)
-  setFields(node.concreteId)
+  return kind ? { kind, targets } : undefined
 }
 
 export function extractSignalNodeIds(
@@ -200,20 +214,15 @@ export function patchSignalNodeIds(
   t?: TFunc
 ) {
   const nodes = graph.nodes ?? []
-  const needsPatch = nodes.some((n) => {
-    const nodeId = n.concreteId?.nodeId ?? n.genericId?.nodeId
-    return typeof nodeId === 'number' && SIGNAL_NODE_ID_PLACEHOLDERS.has(nodeId)
-  })
+  const needsPatch = nodes.some((n) => placeholderKindOfNode(n) !== undefined)
   if (!needsPatch) return
 
   const ctx = buildSignalParseContext(gilBytes, parsed)
   const signalMap = buildSignalNodeIdMapFromFields(ctx.payload, ctx.fields, t)
 
   for (const node of nodes) {
-    const nodeId = node.concreteId?.nodeId ?? node.genericId?.nodeId
-    if (typeof nodeId !== 'number') continue
-    const kind = SIGNAL_NODE_ID_PLACEHOLDERS.get(nodeId)
-    if (!kind) continue
+    const placeholder = placeholderKindOfNode(node)
+    if (!placeholder) continue
     const signalName = extractSignalNameFromNode(node)
     const missingMsg = t
       ? t('injector_signalMissing', { signal: signalName ?? 'unknown' })
@@ -222,10 +231,12 @@ export function patchSignalNodeIds(
       throw new Error(missingMsg)
     }
     const entry = signalMap.get(signalName)
-    const target = entry?.[kind]
+    const target = entry?.[placeholder.kind]
     if (!target?.nodeId) {
       throw new Error(missingMsg)
     }
-    applyNodeGraphId(node, target)
+    for (const idTarget of placeholder.targets) {
+      setNodeGraphIdFields(idTarget, target)
+    }
   }
 }

@@ -1,5 +1,6 @@
 import ts from 'typescript'
 
+import { CLIENT_MATH_METHODS_BY_SUB_TYPE } from '../../definitions/client_math.js'
 import { fail } from './errors.js'
 import {
   inferListElementTypeFromExpression,
@@ -23,6 +24,8 @@ type MathCallTransform = {
   expr: ts.CallExpression
   transformExpression: ExpressionTransformer
 }
+
+type TypeConversionTarget = 'bool' | 'float' | 'int' | 'str'
 
 const floatZero = () => ts.factory.createNumericLiteral(0)
 const floatOne = () => ts.factory.createNumericLiteral(1)
@@ -107,14 +110,16 @@ function inferNumericKind(env: Env, expr: ts.Expression): NumericKind {
   return getNumericKind(env, t)
 }
 
+function makeTypeConversion(value: ts.Expression, type: TypeConversionTarget): ts.Expression {
+  return ts.factory.createCallExpression(ts.factory.createIdentifier(type), undefined, [value])
+}
+
 function coerceFloatArg(env: Env, spec: MathCallTransform, arg: ts.Expression): ts.Expression {
   const kind = inferNumericKind(env, arg)
   if (kind === 'float') return spec.transformExpression(env, spec.context, arg)
   if (kind === 'int' || kind === 'mixed') {
     const valueExpr = spec.transformExpression(env, spec.context, arg)
-    return ts.factory.createCallExpression(ts.factory.createIdentifier('float'), undefined, [
-      valueExpr
-    ])
+    return makeTypeConversion(valueExpr, 'float')
   }
   const raw = env.checker.typeToString(env.checker.getTypeAtLocation(arg))
   fail(env, arg, `Math argument must be a number (${raw})`)
@@ -136,6 +141,18 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
   const args = [...spec.expr.arguments]
   const tempId = env.tempCounter++
 
+  if (env.graphDocumentType === 'client' && env.clientSubType) {
+    const available = CLIENT_MATH_METHODS_BY_SUB_TYPE[env.clientSubType]
+    if (!(available as readonly string[]).includes(method)) {
+      const availableText = available.map((name) => `Math.${name}`).join(', ')
+      fail(
+        env,
+        callee.name,
+        `Math.${method} is not supported in client graph ${env.clientSubType}; available methods: ${availableText}`
+      )
+    }
+  }
+
   const expectArgs = (count: number, label: string) => {
     if (args.length !== count) {
       fail(env, spec.expr, `${label} requires exactly ${count} argument(s)`)
@@ -151,6 +168,17 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'floor': {
       expectArgs(1, 'Math.floor')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        const rounded = ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier('Mathf'),
+            'FloorToInt'
+          ),
+          undefined,
+          [valueExpr]
+        )
+        return makeTypeConversion(rounded, 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'RoundDown')
@@ -159,6 +187,17 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'ceil': {
       expectArgs(1, 'Math.ceil')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        const rounded = ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier('Mathf'),
+            'CeilToInt'
+          ),
+          undefined,
+          [valueExpr]
+        )
+        return makeTypeConversion(rounded, 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'RoundUp')
@@ -167,6 +206,21 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'round': {
       expectArgs(1, 'Math.round')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        const shifted = makeFCall(env, 'addition', [
+          valueExpr,
+          ts.factory.createNumericLiteral(0.5)
+        ])
+        const rounded = ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier('Mathf'),
+            'FloorToInt'
+          ),
+          undefined,
+          [shifted]
+        )
+        return makeTypeConversion(rounded, 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'RoundToNearest')
@@ -175,6 +229,9 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
     case 'trunc': {
       expectArgs(1, 'Math.trunc')
       const valueExpr = coerceFloatArg(env, spec, args[0])
+      if (env.graphDocumentType === 'client') {
+        return makeTypeConversion(makeTypeConversion(valueExpr, 'int'), 'float')
+      }
       return makeFCall(env, 'roundToIntegerOperation', [
         valueExpr,
         makeRoundingMode(env, 'Truncate')
@@ -240,7 +297,11 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
       if (args.length !== 0) {
         fail(env, spec.expr, 'Math.random does not accept arguments')
       }
-      return makeFCall(env, 'getRandomFloatingPointNumber', [floatZero(), floatOne()])
+      return makeFCall(
+        env,
+        env.graphDocumentType === 'client' ? 'getRandomNumber' : 'getRandomFloatingPointNumber',
+        [floatZero(), floatOne()]
+      )
     }
     case 'min':
     case 'max': {
@@ -265,6 +326,9 @@ function transformMathCall(env: Env, spec: MathCallTransform): ts.Expression {
       const yExpr = coerceFloatArg(env, spec, args[1])
       const zExpr = args[2] ? coerceFloatArg(env, spec, args[2]) : floatZero()
       const vecExpr = makeFCall(env, 'create3dVector', [xExpr, yExpr, zExpr])
+      if (env.graphDocumentType === 'client') {
+        return makeFCall(env, '_3dVectorModuloOperation', [vecExpr])
+      }
       const zeroVec = makeFCall(env, '_3dVectorZeroVector', [])
       return makeFCall(env, 'distanceBetweenTwoCoordinatePoints', [vecExpr, zeroVec])
     }
@@ -522,6 +586,9 @@ export function tryTransformBuiltinCall(
   if (ts.isPropertyAccessExpression(callee)) {
     if (ts.isIdentifier(callee.expression) && callee.expression.text === 'console') {
       if (callee.name.text === 'log') {
+        if (env.graphDocumentType === 'client') {
+          fail(env, expr, `console.log is not available in client graph ${env.clientSubType}`)
+        }
         // Compiler-only rewrite: keep runtime console/Number/String/Boolean intact for JS usage.
         if (expr.arguments.length !== 1) {
           fail(env, expr, 'console.log only supports a single argument')
@@ -566,30 +633,21 @@ export function tryTransformBuiltinCall(
         fail(env, expr, 'Number() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        ts.factory.createCallExpression(ts.factory.createIdentifier('float'), undefined, [argExpr]),
-        expr
-      )
+      return withSameRange(makeTypeConversion(argExpr, 'float'), expr)
     }
     if (callee.text === 'String') {
       if (expr.arguments.length !== 1) {
         fail(env, expr, 'String() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        ts.factory.createCallExpression(ts.factory.createIdentifier('str'), undefined, [argExpr]),
-        expr
-      )
+      return withSameRange(makeTypeConversion(argExpr, 'str'), expr)
     }
     if (callee.text === 'Boolean') {
       if (expr.arguments.length !== 1) {
         fail(env, expr, 'Boolean() requires exactly one argument')
       }
       const argExpr = transformExpression(env, context, expr.arguments[0])
-      return withSameRange(
-        ts.factory.createCallExpression(ts.factory.createIdentifier('bool'), undefined, [argExpr]),
-        expr
-      )
+      return withSameRange(makeTypeConversion(argExpr, 'bool'), expr)
     }
   }
 

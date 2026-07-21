@@ -2,9 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { DEFAULT_GIA_PROTO } from '../../injector/proto.js'
+import { resolveGraphIdForGraph } from '../../runtime/graph_defaults.js'
 import type { IRDocument } from '../../runtime/IR.js'
-import { irToGia } from './index.js'
 import type { SignalRegistry } from '../signal_registry.js'
+import { irToGia } from './index.js'
 
 function ensurePrefixedDefaultName(raw: string): string {
   if (raw.startsWith('_GSTS')) return raw
@@ -12,8 +13,7 @@ function ensurePrefixedDefaultName(raw: string): string {
 }
 
 function resolveGraphId(ir: IRDocument): number {
-  const id = ir.graph?.id
-  return typeof id === 'number' && Number.isFinite(id) ? id : 1073741825
+  return resolveGraphIdForGraph(ir.graph)
 }
 
 export type WriteGiaFromIrJsonFileOptions = {

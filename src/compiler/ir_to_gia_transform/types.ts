@@ -1,4 +1,4 @@
-import { IRDocument } from '../../runtime/IR'
+import type { IRDocument } from '../../runtime/IR.js'
 
 export type Position = [number, number]
 export type NodeId = number

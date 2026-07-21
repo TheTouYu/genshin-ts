@@ -15,7 +15,7 @@
 | 查游戏引擎 API 用法 | [`architecture/docs-search.md`](architecture/docs-search.md) + `engine-api-usage`；官方节点规则不足时补用项目级 `miliastra-knowledge` skill | 先按任务路由和本地 docs-search 查事件、实体、向量、变量、集合、定时器、信号和控制流；需要确认编辑器公开节点规则/合法类型组合时，可用 skill 查询外部官方资料。检索不替代真实 GIA、源码或游戏验证。 |
 | 查精确 API/事件签名 | [`architecture/docs-search.md`](architecture/docs-search.md) + `engine-api-signatures` | 查询方法、事件、参数、返回类型和生成定义来源；签名不是教程或游戏验证。 |
 | 理解编译管线 | [`architecture/composite/pipeline-flow.md`](architecture/composite/pipeline-flow.md) | TS 到 IR 到 GIA 的正向实现视角。 |
-| 开发客户端节点支持 | [`architecture/client-node-support-plan.md`](architecture/client-node-support-plan.md)；编码细节见 [`architecture/client-gia-encoding.md`](architecture/client-gia-encoding.md) | 路线文档记录 `g.client()`/Client IR/Stage 1/3 工作包；编码文档记录 signal、ClientVarType、VarBase、assembly_list 和真实 GIA 证据。生产实现仍需逐包授权和验证。 |
+| 使用或开发客户端节点图 | 用户入口：[`docs/zh/doc/events/client-graphs.md`](docs/zh/doc/events/client-graphs.md)；历史旧实现见 [`architecture/client-node-support-plan.md`](architecture/client-node-support-plan.md) 和 [`architecture/client-gia-encoding.md`](architecture/client-gia-encoding.md) | 当前实现是 `g.characterSkill()`、`g.characterControlSkill()`、`g.creationSkill()`、`g.creationStatus()`、`g.creationStatusDecision()`、`g.boolFilter()`、`g.intFilter()` 七类客户端图；旧 `g.client()`/signal-list materializer 文档仅保留历史证据。 |
 | 执行复合 Stage 3 架构重构 | [`composite-ir/architecture-redesign/`](composite-ir/architecture-redesign/) | root/impl 双 backend 审计、目标架构、阶段计划、迁移不变量和验证矩阵；规划内容不要当成当前实现。 |
 | 使用复合节点 API | [`architecture/composite/dsl-api.md`](architecture/composite/dsl-api.md) | `g.defineComposite`、`f.callComposite`、类型和调用语义。 |
 | 手动复刻控制流拓扑 | [`architecture/composite/raw-control-flow-dsl-quickstart.md`](architecture/composite/raw-control-flow-dsl-quickstart.md) | 当前低层控制流权威入口。 |

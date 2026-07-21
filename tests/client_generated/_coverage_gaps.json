@@ -1,0 +1,698 @@
+{
+  "unsupportedSpecialKinds": [
+    "inline_var_type_hint"
+  ],
+  "conditionalSpecialKinds": [
+    "structure_list_unknown_binding"
+  ],
+  "inlineVarTypeHintFiles": [
+    {
+      "file": "角色操控技能节点图\\遍历实体列表_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\定点发射投射物_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\定点发射投射物_填值.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\定点发射投射物.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\定点位移_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\角色闪现_连线.gia",
+      "count": 2
+    },
+    {
+      "file": "角色操控技能节点图\\镜头朝向检测数据_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\设置技能变量_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\施放指定技能实例_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\特定位置打球形攻击盒_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\添加单位状态_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\添加速度_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\玩家转向_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色操控技能节点图\\玩家转向指定朝向_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色技能节点图\\播放限时特效_连线.gia",
+      "count": 2
+    },
+    {
+      "file": "角色技能节点图\\嘲讽目标_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色技能节点图\\定点发射投射物_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "角色技能节点图\\定点发射投射物.gia",
+      "count": 1
+    },
+    {
+      "file": "角色技能节点图\\玩家转向_连线.gia",
+      "count": 2
+    },
+    {
+      "file": "角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\遍历实体列表_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\定点发射投射物_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\定点发射投射物.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\恢复生命值_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\设置造物的公共冷却时间_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\设置造物技能的当前冷却时间_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物技能节点图\\设置造物冷却组的当前时间_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物状态决策节点图\\切换自身执行状态_连线.gia",
+      "count": 1
+    },
+    {
+      "file": "造物状态决策节点图\\切换自身执行状态.gia",
+      "count": 1
+    },
+    {
+      "file": "造物状态决策节点图\\最小图_单节点.gia",
+      "count": 1
+    }
+  ],
+  "missingEnglishName": [],
+  "reflectNeedsConfirmation": [
+    {
+      "subType": "bool_filter",
+      "nodeType": "get_custom_variable",
+      "genericId": 200016,
+      "variantKeys": {
+        "": 41
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 41 and 47",
+        "variant key \"\" maps to concreteIds 41 and 50",
+        "variant key \"\" maps to concreteIds 41 and 42",
+        "variant key \"\" maps to concreteIds 41 and 43",
+        "variant key \"\" maps to concreteIds 41 and 45",
+        "variant key \"\" maps to concreteIds 41 and 46",
+        "variant key \"\" maps to concreteIds 41 and 54",
+        "variant key \"\" maps to concreteIds 41 and 58",
+        "variant key \"\" maps to concreteIds 40 and 41",
+        "variant key \"\" maps to concreteIds 40 and 42",
+        "variant key \"\" maps to concreteIds 40 and 43",
+        "variant key \"\" maps to concreteIds 40 and 44",
+        "variant key \"\" maps to concreteIds 40 and 45",
+        "variant key \"\" maps to concreteIds 40 and 46",
+        "variant key \"\" maps to concreteIds 40 and 47",
+        "variant key \"\" maps to concreteIds 40 and 48",
+        "variant key \"\" maps to concreteIds 40 and 49",
+        "variant key \"\" maps to concreteIds 40 and 50",
+        "variant key \"\" maps to concreteIds 40 and 51",
+        "variant key \"\" maps to concreteIds 40 and 52",
+        "variant key \"\" maps to concreteIds 40 and 53",
+        "variant key \"\" maps to concreteIds 40 and 54",
+        "variant key \"\" maps to concreteIds 40 and 55",
+        "variant key \"\" maps to concreteIds 40 and 56",
+        "variant key \"\" maps to concreteIds 40 and 57",
+        "variant key \"\" maps to concreteIds 40 and 58",
+        "variant key \"\" maps to concreteIds 40 and 59",
+        "variant key \"\" maps to concreteIds 40 and 1056",
+        "genericId 200016 key \"\" maps to concreteIds 41 and 40"
+      ],
+      "underivedConcreteIds": [
+        40,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        1056
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "get_custom_variable",
+      "genericId": 200016,
+      "variantKeys": {
+        "": 41
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 41 and 47",
+        "variant key \"\" maps to concreteIds 41 and 50",
+        "variant key \"\" maps to concreteIds 41 and 42",
+        "variant key \"\" maps to concreteIds 41 and 43",
+        "variant key \"\" maps to concreteIds 41 and 45",
+        "variant key \"\" maps to concreteIds 41 and 46",
+        "variant key \"\" maps to concreteIds 41 and 54",
+        "variant key \"\" maps to concreteIds 41 and 58",
+        "variant key \"\" maps to concreteIds 40 and 41",
+        "variant key \"\" maps to concreteIds 40 and 42",
+        "variant key \"\" maps to concreteIds 40 and 43",
+        "variant key \"\" maps to concreteIds 40 and 44",
+        "variant key \"\" maps to concreteIds 40 and 45",
+        "variant key \"\" maps to concreteIds 40 and 46",
+        "variant key \"\" maps to concreteIds 40 and 47",
+        "variant key \"\" maps to concreteIds 40 and 48",
+        "variant key \"\" maps to concreteIds 40 and 49",
+        "variant key \"\" maps to concreteIds 40 and 50",
+        "variant key \"\" maps to concreteIds 40 and 51",
+        "variant key \"\" maps to concreteIds 40 and 52",
+        "variant key \"\" maps to concreteIds 40 and 53",
+        "variant key \"\" maps to concreteIds 40 and 54",
+        "variant key \"\" maps to concreteIds 40 and 55",
+        "variant key \"\" maps to concreteIds 40 and 56",
+        "variant key \"\" maps to concreteIds 40 and 57",
+        "variant key \"\" maps to concreteIds 40 and 58",
+        "variant key \"\" maps to concreteIds 40 and 59",
+        "variant key \"\" maps to concreteIds 40 and 1056",
+        "genericId 200016 key \"\" maps to concreteIds 41 and 40"
+      ],
+      "underivedConcreteIds": [
+        40,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        1056
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "get_custom_variable",
+      "genericId": 200016,
+      "variantKeys": {
+        "": 41
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 41 and 47",
+        "variant key \"\" maps to concreteIds 41 and 50",
+        "variant key \"\" maps to concreteIds 41 and 42",
+        "variant key \"\" maps to concreteIds 41 and 43",
+        "variant key \"\" maps to concreteIds 41 and 45",
+        "variant key \"\" maps to concreteIds 41 and 46",
+        "variant key \"\" maps to concreteIds 41 and 54",
+        "variant key \"\" maps to concreteIds 41 and 58",
+        "variant key \"\" maps to concreteIds 40 and 41",
+        "variant key \"\" maps to concreteIds 40 and 42",
+        "variant key \"\" maps to concreteIds 40 and 43",
+        "variant key \"\" maps to concreteIds 40 and 44",
+        "variant key \"\" maps to concreteIds 40 and 45",
+        "variant key \"\" maps to concreteIds 40 and 46",
+        "variant key \"\" maps to concreteIds 40 and 47",
+        "variant key \"\" maps to concreteIds 40 and 48",
+        "variant key \"\" maps to concreteIds 40 and 49",
+        "variant key \"\" maps to concreteIds 40 and 50",
+        "variant key \"\" maps to concreteIds 40 and 51",
+        "variant key \"\" maps to concreteIds 40 and 52",
+        "variant key \"\" maps to concreteIds 40 and 53",
+        "variant key \"\" maps to concreteIds 40 and 54",
+        "variant key \"\" maps to concreteIds 40 and 55",
+        "variant key \"\" maps to concreteIds 40 and 56",
+        "variant key \"\" maps to concreteIds 40 and 57",
+        "variant key \"\" maps to concreteIds 40 and 58",
+        "variant key \"\" maps to concreteIds 40 and 59",
+        "variant key \"\" maps to concreteIds 40 and 1056",
+        "genericId 200016 key \"\" maps to concreteIds 41 and 40"
+      ],
+      "underivedConcreteIds": [
+        40,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        1056
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "bool_filter",
+      "nodeType": "data_type_conversion",
+      "genericId": 200022,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,16 | 13,3",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,11",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5",
+        "concreteId 130 maps to multiple keys: 13,16 | 13,11 | 13,3"
+      ],
+      "underivedConcreteIds": [
+        130
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "data_type_conversion",
+      "genericId": 200022,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,16 | 13,3",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,11",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5",
+        "concreteId 130 maps to multiple keys: 13,16 | 13,11 | 13,3"
+      ],
+      "underivedConcreteIds": [
+        130
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "data_type_conversion",
+      "genericId": 200022,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,16 | 13,3",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,11",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5",
+        "concreteId 130 maps to multiple keys: 13,16 | 13,11 | 13,3"
+      ],
+      "underivedConcreteIds": [
+        130
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "data_type_conversion",
+      "genericId": 200022,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,16 | 13,3",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,11",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5",
+        "concreteId 130 maps to multiple keys: 13,16 | 13,11 | 13,3"
+      ],
+      "underivedConcreteIds": [
+        130
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "int_filter",
+      "nodeType": "data_type_conversion",
+      "genericId": 200022,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,16 | 13,3",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,11",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16",
+        "concreteId 130 maps to multiple keys: 13,3 | 13,5",
+        "concreteId 130 maps to multiple keys: 13,16 | 13,11 | 13,3"
+      ],
+      "underivedConcreteIds": [
+        130
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "set_local_variable",
+      "genericId": 200081,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 2000 maps to multiple keys: 24 | 3",
+        "concreteId 2000 maps to multiple keys: 3 | 21 | 24 | 14 | 7 | 5 | 10 | 15 | 8 | 12 | 6 | 18 | 19 | 20 | 25",
+        "concreteId 2000 maps to multiple keys: 4 | 2 | 24 | 3"
+      ],
+      "underivedConcreteIds": [
+        2000
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "set_local_variable",
+      "genericId": 200081,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 2000 maps to multiple keys: 24 | 3",
+        "concreteId 2000 maps to multiple keys: 3 | 21 | 24 | 14 | 7 | 5 | 10 | 15 | 8 | 12 | 6 | 18 | 19 | 20 | 25",
+        "concreteId 2000 maps to multiple keys: 4 | 2 | 24 | 3"
+      ],
+      "underivedConcreteIds": [
+        2000
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "set_local_variable",
+      "genericId": 200081,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 2000 maps to multiple keys: 24 | 3",
+        "concreteId 2000 maps to multiple keys: 3 | 21 | 24 | 14 | 7 | 5 | 10 | 15 | 8 | 12 | 6 | 18 | 19 | 20 | 25",
+        "concreteId 2000 maps to multiple keys: 4 | 2 | 24 | 3"
+      ],
+      "underivedConcreteIds": [
+        2000
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "assembly_dictionary",
+      "genericId": 200152,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1": 1048
+      },
+      "conflicts": [
+        "concreteId 1048 maps to multiple keys: 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3",
+        "concreteId 1048 maps to multiple keys: 1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14 | 3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5 | 18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16 | 3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11 | 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3 | 14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5 | 9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "assembly_dictionary",
+      "genericId": 200152,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1": 1048
+      },
+      "conflicts": [
+        "concreteId 1048 maps to multiple keys: 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3",
+        "concreteId 1048 maps to multiple keys: 1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14 | 3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5 | 18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16 | 3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11 | 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3 | 14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5 | 9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "assembly_dictionary",
+      "genericId": 200152,
+      "variantKeys": {
+        "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1": 1048
+      },
+      "conflicts": [
+        "concreteId 1048 maps to multiple keys: 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3",
+        "concreteId 1048 maps to multiple keys: 1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14,1,14 | 3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5 | 18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16,18,16 | 3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11,3,11 | 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3 | 14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5,14,5 | 9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "create_dictionary",
+      "genericId": 200153,
+      "variantKeys": {
+        "2,2": 1049
+      },
+      "conflicts": [
+        "concreteId 1049 maps to multiple keys: 2,2 | 15,4 | 4,4"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "create_dictionary",
+      "genericId": 200153,
+      "variantKeys": {
+        "2,2": 1049
+      },
+      "conflicts": [
+        "concreteId 1049 maps to multiple keys: 2,2 | 15,4 | 4,4"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "create_dictionary",
+      "genericId": 200153,
+      "variantKeys": {
+        "2,2": 1049
+      },
+      "conflicts": [
+        "concreteId 1049 maps to multiple keys: 2,2 | 15,4 | 4,4"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_control_skill",
+      "nodeType": "query_dictionary_value_by_key",
+      "genericId": 200154,
+      "variantKeys": {
+        "24,3": 1050
+      },
+      "conflicts": [
+        "concreteId 1050 maps to multiple keys: 24,1 | 24,14 | 24,3 | 24,9",
+        "genericId 200154 concreteId 1050 maps to keys \"24,3\" and \"24,1\""
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "character_skill",
+      "nodeType": "query_dictionary_value_by_key",
+      "genericId": 200154,
+      "variantKeys": {
+        "24,3": 1050
+      },
+      "conflicts": [
+        "concreteId 1050 maps to multiple keys: 24,1 | 24,14 | 24,3 | 24,9",
+        "genericId 200154 concreteId 1050 maps to keys \"24,3\" and \"24,1\""
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_skill",
+      "nodeType": "query_dictionary_value_by_key",
+      "genericId": 200154,
+      "variantKeys": {
+        "24,3": 1050
+      },
+      "conflicts": [
+        "concreteId 1050 maps to multiple keys: 24,1 | 24,14 | 24,3 | 24,9",
+        "genericId 200154 concreteId 1050 maps to keys \"24,3\" and \"24,1\""
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "get_custom_variable",
+      "genericId": 200173,
+      "variantKeys": {
+        "": 4200
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 4200 and 4201",
+        "variant key \"\" maps to concreteIds 4200 and 4204",
+        "variant key \"\" maps to concreteIds 4200 and 4206",
+        "variant key \"\" maps to concreteIds 4200 and 4211",
+        "variant key \"\" maps to concreteIds 4200 and 4217",
+        "variant key \"\" maps to concreteIds 4200 and 4219",
+        "variant key \"\" maps to concreteIds 4200 and 4220",
+        "variant key \"\" maps to concreteIds 4201 and 4220",
+        "genericId 200173 key \"\" maps to concreteIds 4200 and 4201"
+      ],
+      "underivedConcreteIds": [
+        4201,
+        4204,
+        4206,
+        4211,
+        4217,
+        4219,
+        4220
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "get_custom_variable",
+      "genericId": 200173,
+      "variantKeys": {
+        "": 4200
+      },
+      "conflicts": [
+        "variant key \"\" maps to concreteIds 4200 and 4201",
+        "variant key \"\" maps to concreteIds 4200 and 4204",
+        "variant key \"\" maps to concreteIds 4200 and 4206",
+        "variant key \"\" maps to concreteIds 4200 and 4211",
+        "variant key \"\" maps to concreteIds 4200 and 4217",
+        "variant key \"\" maps to concreteIds 4200 and 4219",
+        "variant key \"\" maps to concreteIds 4200 and 4220",
+        "variant key \"\" maps to concreteIds 4201 and 4220",
+        "genericId 200173 key \"\" maps to concreteIds 4200 and 4201"
+      ],
+      "underivedConcreteIds": [
+        4201,
+        4204,
+        4206,
+        4211,
+        4217,
+        4219,
+        4220
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "data_type_conversion",
+      "genericId": 200189,
+      "variantKeys": {
+        "13,5": 130
+      },
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,5 | 13,3 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "data_type_conversion",
+      "genericId": 200189,
+      "variantKeys": {
+        "13,5": 130
+      },
+      "conflicts": [
+        "concreteId 130 maps to multiple keys: 13,5 | 13,3 | 13,7 | 13,14 | 13,1 | 13,11 | 13,16"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "assembly_dictionary",
+      "genericId": 200228,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 1048 maps to multiple keys: 3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8 | 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7",
+        "concreteId 1048 maps to multiple keys: 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5"
+      ],
+      "underivedConcreteIds": [
+        1048
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "assembly_dictionary",
+      "genericId": 200228,
+      "variantKeys": {},
+      "conflicts": [
+        "concreteId 1048 maps to multiple keys: 3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8,3,8 | 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7,3,7",
+        "concreteId 1048 maps to multiple keys: 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 | 3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5,3,5"
+      ],
+      "underivedConcreteIds": [
+        1048
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status",
+      "nodeType": "query_if_dictionary_contains_specific_key",
+      "genericId": 200231,
+      "variantKeys": {
+        "24,1": 1051
+      },
+      "conflicts": [
+        "concreteId 1051 maps to multiple keys: 24,16 | 24,1 | 24,3"
+      ],
+      "status": "needs_developer_confirmation"
+    },
+    {
+      "subType": "creation_status_decision",
+      "nodeType": "query_if_dictionary_contains_specific_key",
+      "genericId": 200231,
+      "variantKeys": {
+        "24,1": 1051
+      },
+      "conflicts": [
+        "concreteId 1051 maps to multiple keys: 24,16 | 24,1 | 24,3"
+      ],
+      "status": "needs_developer_confirmation"
+    }
+  ],
+  "missingMetadata": []
+}

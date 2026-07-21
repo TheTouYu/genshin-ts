@@ -6,7 +6,7 @@ import ts from 'typescript'
 
 import { existsDir, existsFile, loadGstsConfig } from './config_loader.js'
 import type { GstsConfig } from './gsts_config.js'
-import { hasServerEntryCall, transformToGs } from './ts_to_gs_transform/index.js'
+import { hasNodeGraphEntryCall, transformToGs } from './ts_to_gs_transform/index.js'
 import { isServerOnCall } from './ts_to_gs_transform/matcher.js'
 
 function toPosixPath(p: string): string {
@@ -342,7 +342,7 @@ export async function compileTsToGs(params: TsToGsCompileParams): Promise<TsToGs
     const outFile = path.resolve(outDir, outRel)
     fs.mkdirSync(path.dirname(outFile), { recursive: true })
 
-    const hasEntry = hasServerEntryCall(sf, checker)
+    const hasEntry = hasNodeGraphEntryCall(sf, checker)
     const out = transformToGs(sf, { checker, config: params.cfg, timerCounterRef })
     const rewritten = rewriteRelativeModuleSpecifiers(out, {
       inFile,

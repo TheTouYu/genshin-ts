@@ -1,6 +1,6 @@
 import ts from 'typescript'
 
-import type { Env } from './types.js'
+type ConstEvalContext = { checker: ts.TypeChecker }
 
 /**
  * Conservative compile-time evaluator for literal-like const expressions.
@@ -66,6 +66,59 @@ function unwrapConstExpression(expr: ts.Expression): ts.Expression {
   }
 }
 
+const PURE_LITERAL_BINARY_OPERATORS = new Set<ts.SyntaxKind>([
+  ts.SyntaxKind.PlusToken,
+  ts.SyntaxKind.MinusToken,
+  ts.SyntaxKind.AsteriskToken,
+  ts.SyntaxKind.SlashToken,
+  ts.SyntaxKind.PercentToken,
+  ts.SyntaxKind.LessThanToken,
+  ts.SyntaxKind.LessThanEqualsToken,
+  ts.SyntaxKind.GreaterThanToken,
+  ts.SyntaxKind.GreaterThanEqualsToken,
+  ts.SyntaxKind.AmpersandAmpersandToken,
+  ts.SyntaxKind.BarBarToken,
+  ts.SyntaxKind.EqualsEqualsToken,
+  ts.SyntaxKind.EqualsEqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsEqualsToken
+])
+
+export function isPureLiteralExpression(expression: ts.Expression): boolean {
+  if (ts.isParenthesizedExpression(expression)) {
+    return isPureLiteralExpression(expression.expression)
+  }
+  if (ts.isAsExpression(expression) || ts.isTypeAssertionExpression(expression)) {
+    return isPureLiteralExpression(expression.expression)
+  }
+  if (
+    ts.isNumericLiteral(expression) ||
+    ts.isBigIntLiteral(expression) ||
+    ts.isStringLiteral(expression) ||
+    ts.isNoSubstitutionTemplateLiteral(expression) ||
+    expression.kind === ts.SyntaxKind.TrueKeyword ||
+    expression.kind === ts.SyntaxKind.FalseKeyword ||
+    expression.kind === ts.SyntaxKind.NullKeyword
+  ) {
+    return true
+  }
+  if (ts.isPrefixUnaryExpression(expression)) {
+    return (
+      (expression.operator === ts.SyntaxKind.PlusToken ||
+        expression.operator === ts.SyntaxKind.MinusToken ||
+        expression.operator === ts.SyntaxKind.ExclamationToken ||
+        expression.operator === ts.SyntaxKind.TildeToken) &&
+      isPureLiteralExpression(expression.operand)
+    )
+  }
+  if (!ts.isBinaryExpression(expression)) return false
+  return (
+    PURE_LITERAL_BINARY_OPERATORS.has(expression.operatorToken.kind) &&
+    isPureLiteralExpression(expression.left) &&
+    isPureLiteralExpression(expression.right)
+  )
+}
+
 function isConstVariableDeclaration(decl: ts.VariableDeclaration): boolean {
   const list = decl.parent
   return ts.isVariableDeclarationList(list) && (list.flags & ts.NodeFlags.Const) !== 0
@@ -102,7 +155,10 @@ function literalFromSignedText(
   return makePositiveLiteral(text.startsWith('+') ? text.slice(1) : text)
 }
 
-function literalExpressionFromType(env: Env, expr: ts.Expression): ts.Expression | null {
+function literalExpressionFromType(
+  env: ConstEvalContext,
+  expr: ts.Expression
+): ts.Expression | null {
   const t = env.checker.getTypeAtLocation(expr)
   if (t.isUnion()) return null
 
@@ -169,7 +225,7 @@ function propertyInitializerFromObject(
 }
 
 function resolveConstObjectExpression(
-  env: Env,
+  env: ConstEvalContext,
   expr: ts.Expression,
   seen: Set<ts.Symbol>
 ): ts.ObjectLiteralExpression | null {
@@ -196,7 +252,7 @@ function resolveConstObjectExpression(
 }
 
 function propertyInitializerFromAccess(
-  env: Env,
+  env: ConstEvalContext,
   expr: ts.PropertyAccessExpression,
   seen: Set<ts.Symbol>
 ): ts.Expression | null {
@@ -204,7 +260,11 @@ function propertyInitializerFromAccess(
   return object ? propertyInitializerFromObject(object, expr.name.text) : null
 }
 
-function hasSafeConstOrigin(env: Env, expr: ts.Expression, seen: Set<ts.Symbol>): boolean {
+function hasSafeConstOrigin(
+  env: ConstEvalContext,
+  expr: ts.Expression,
+  seen: Set<ts.Symbol>
+): boolean {
   const unwrapped = unwrapConstExpression(expr)
 
   if (isLiteralLikeExpression(unwrapped)) return true
@@ -228,7 +288,7 @@ function hasSafeConstOrigin(env: Env, expr: ts.Expression, seen: Set<ts.Symbol>)
 }
 
 function literalExpressionFromConstOrigin(
-  env: Env,
+  env: ConstEvalContext,
   expr: ts.Expression,
   seen: Set<ts.Symbol>
 ): ts.Expression | null {
@@ -255,7 +315,7 @@ function literalExpressionFromConstOrigin(
 }
 
 export function tryEvaluateConstExpression(
-  env: Env,
+  env: ConstEvalContext,
   expr: ts.Expression,
   seen = new Set<ts.Symbol>()
 ): ts.Expression | null {
@@ -263,6 +323,6 @@ export function tryEvaluateConstExpression(
   return literalExpressionFromConstOrigin(env, expr, new Set())
 }
 
-export function isConstEvaluableExpression(env: Env, expr: ts.Expression): boolean {
+export function isConstEvaluableExpression(env: ConstEvalContext, expr: ts.Expression): boolean {
   return tryEvaluateConstExpression(env, expr) !== null
 }

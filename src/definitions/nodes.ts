@@ -4,6 +4,7 @@ import { t } from '../i18n/index.js'
 import type { CompositeHandle } from '../runtime/composite_registry.js'
 import {
   isSignalDefinition,
+  type ExecutionFlowRegistry,
   type MetaCallRegistry,
   type SignalDefinition,
   type SignalParamValues
@@ -27,6 +28,7 @@ import type {
 } from '../runtime/meta_call_types.js'
 import { getRuntimeOptions } from '../runtime/runtime_config.js'
 import {
+  assertServerLiteralValue,
   bool,
   BoolValue,
   configId,
@@ -80,7 +82,10 @@ import {
   AttackType,
   CauseOfBeingDown,
   CharacterSkillSlot,
+  ClassSwitchSkillHandling,
+  ColorBlendType,
   ComparisonOperator,
+  CoordinateSystemType,
   DamagePopUpType,
   DecisionRefreshMode,
   DisruptorDeviceOrientation,
@@ -90,8 +95,9 @@ import {
   EntityType,
   EnumerationType,
   EnumerationTypeMap,
-  ExistingSkillHandling,
-  FixedMotionParameterType,
+  FillMaterial,
+  FixedPointMotionDeviceMotionType,
+  FixedPointMotionDeviceParameterConversionType,
   FollowCoordinateSystem,
   FollowLocationType,
   GameplayMode,
@@ -104,19 +110,20 @@ import {
   MathematicalOperator,
   MotionPathPointType,
   MotionType,
-  MovementMode,
-  OriginalSlotSkillHandling,
+  RandomOrder,
+  RankSettlementStatus,
   ReasonForItemChange,
   RemovalMethod,
   RevivePointSelectionStrategy,
   RoundingMode,
-  ScanRuleType,
+  ScanScoringRules,
   SelectCompletionReason,
   SettlementStatus,
   SortBy,
   SoundAttenuationMode,
   SurvivalStatus,
   TargetType,
+  TopOfStackSkillDestructionType,
   TriggerRestriction,
   TrigonometricFunction,
   TypeConversion,
@@ -165,6 +172,7 @@ export function parseValue(v: any, type: 'entity_list'): list<'entity'>
 export function parseValue(v: any, type: 'prefab_id_list'): list<'prefab_id'>
 export function parseValue(v: any, type: 'config_id_list'): list<'config_id'>
 export function parseValue(v: any, type: 'faction_list'): list<'faction'>
+export function parseValue(v: any, type: 'enum_list'): list<'enum'>
 export function parseValue(v: any, type: 'struct_list'): list<'struct'>
 export function parseValue(v: any, type: DictValueType): value
 export function parseValue(v: any, type: keyof (ListableValueTypeMap & SpecialValueTypeMap)): value
@@ -396,6 +404,18 @@ export function parseValue(v: any, type: ValueType) {
       }
       break
     }
+    case 'enum_list': {
+      if (z.instanceof(list).safeParse(v).success && (v as list).getConcreteType() === 'enum') {
+        return v as list<'enum'>
+      }
+      if (Array.isArray(v)) {
+        return new listLiteral(
+          'enum',
+          v.map((item) => parseValue(item, 'enumeration') as enumeration)
+        )
+      }
+      break
+    }
     case 'struct_list': {
       if (z.instanceof(list).safeParse(v).success && (v as list).getConcreteType() === 'struct') {
         return v as list<'struct'>
@@ -455,7 +475,7 @@ function matchType(
   }
 }
 
-function matchTypes<T extends keyof (ListableValueTypeMap & SpecialValueTypeMap)>(
+export function matchTypes<T extends keyof (ListableValueTypeMap & SpecialValueTypeMap)>(
   types: T[],
   ...values: readonly unknown[]
 ): T {
@@ -703,7 +723,7 @@ export type DataTypeConversionMap = {
 }
 
 export class ServerExecutionFlowFunctions {
-  constructor(private registry: MetaCallRegistry) {}
+  constructor(private registry: ExecutionFlowRegistry) {}
 
   /**
    * @internal 供复合节点 build() 使用：从当前 tail 分叉注册一个执行节点作为 OutFlow 分支。
@@ -1097,6 +1117,8 @@ export class ServerExecutionFlowFunctions {
   enumerationsEqual(enumeration1: InterruptStatus, enumeration2: InterruptStatus): boolean
   enumerationsEqual(enumeration1: GameplayMode, enumeration2: GameplayMode): boolean
   enumerationsEqual(enumeration1: InputDeviceType, enumeration2: InputDeviceType): boolean
+  enumerationsEqual(enumeration1: ColorBlendType, enumeration2: ColorBlendType): boolean
+  enumerationsEqual(enumeration1: FillMaterial, enumeration2: FillMaterial): boolean
   enumerationsEqual<T extends EnumerationType>(
     enumeration1: EnumerationTypeMap[T],
     enumeration2: EnumerationTypeMap[T]
@@ -2990,6 +3012,8 @@ export class ServerExecutionFlowFunctions {
    * 循环起始值: 遍历开始的整数值，循环包含该值
    * @param loopEndValue Integer value at which the iteration ends. The loop includes this value
    *
+   * Loop Termination Value
+   *
    * 循环终止值: 遍历结束的整数值，循环包含该值
    *
    * @returns Integer value of the current execution logic
@@ -4735,11 +4759,15 @@ export class ServerExecutionFlowFunctions {
    * 目标实体: 损失生命的目标
    * @param hpLoss The amount of HP lost in this instance
    *
+   * HP Loss Amount
+   *
    * 生命损失量: 该次损失生命值的损失量
    * @param lethal If set to False, this HP loss will leave the Target with at least 1 HP remaining
    *
    * 是否致命: 为“否”时，该次损失生命最多使目标生命扣为1点
    * @param canBeBlockedByInvincibility If set to True, and the Target is set to Invincible via Unit Status, HP loss has no effect
+   *
+   * Can Be Blocked by Invincible
    *
    * 是否可被无敌抵挡: 为“是”时，如果目标已经通过单位状态设置为了无敌，则损失生命不生效
    * @param canBeBlockedByLockedHp If set to True, and the Target's HP is locked via Unit Status, HP loss has no effect
@@ -4896,12 +4924,12 @@ export class ServerExecutionFlowFunctions {
   activateFixedPointMotionDevice(
     targetEntity: EntityValue,
     motionDeviceName: StrValue,
-    movementMode: MovementMode,
+    movementMode: FixedPointMotionDeviceMotionType,
     movementSpd: FloatValue,
     targetLocation: Vec3Value,
     targetRotation: Vec3Value,
     lockRotation: BoolValue,
-    parameterType: FixedMotionParameterType,
+    parameterType: FixedPointMotionDeviceParameterConversionType,
     movementTime: FloatValue
   ): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
@@ -5183,7 +5211,7 @@ export class ServerExecutionFlowFunctions {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
@@ -5242,7 +5270,7 @@ export class ServerExecutionFlowFunctions {
     followTargetAttachmentPointName: StrValue,
     locationOffset: Vec3Value,
     rotationOffset: Vec3Value,
-    followCoordinateSystem: FollowCoordinateSystem,
+    followCoordinateSystem: CoordinateSystemType,
     followType: FollowLocationType
   ): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
@@ -5702,6 +5730,8 @@ export class ServerExecutionFlowFunctions {
    * 计时器名称: 该计时器的标识，只能引用在计时器管理中已经配置好的计时器名称
    * @param changeValue For a Countdown Timer, a positive value increases the remaining time; a negative value decreases the remaining timeIf the timer is set to Stopwatch, a positive value increases the accumulated time, while a negative value decreases it
    *
+   * Increase Value
+   *
    * 变化值: 若计时器为倒计时，则正数为增加倒计时剩余时间，负数为减少剩余时间若计时器为正计时，则正数为增加正计时累计时间，负数为减少累计时间
    */
   modifyGlobalTimer(targetEntity: EntityValue, timerName: StrValue, changeValue: FloatValue): void {
@@ -6007,7 +6037,7 @@ export class ServerExecutionFlowFunctions {
   changePlayerClass(
     targetPlayer: PlayerEntity,
     classConfigId: ConfigIdValue,
-    existingSkillHandling: ExistingSkillHandling
+    existingSkillHandling: ClassSwitchSkillHandling
   ): void {
     const targetPlayerObj = parseValue(targetPlayer, 'entity')
     const classConfigIdObj = parseValue(classConfigId, 'config_id')
@@ -6102,6 +6132,8 @@ export class ServerExecutionFlowFunctions {
    * 目标玩家: 生效的玩家实体
    * @param uiControlIndex Identifier for the UI Control
    *
+   * UI Control (Group) Index
+   *
    * 界面控件索引: 界面控件的标识
    * @param displayStatus Off: Invisible and logic not runningOn: Visible and logic running normallyHidden: Invisible and logic running normally
    *
@@ -6132,6 +6164,8 @@ export class ServerExecutionFlowFunctions {
    *
    * 玩家实体: 生效的玩家实体
    * @param specialEffectControlIndex Identifier for the UI Control/Fullscreen UI Control to Play the Animation on
+   *
+   * Animation Control Index
    *
    * 动效控件索引: 界面动效控件/全屏界面动效控件的标识
    */
@@ -6462,6 +6496,8 @@ export class ServerExecutionFlowFunctions {
    * 角色技能槽位: 要修改的技能所在的槽位，分为普通攻击、技能1-E、技能2-Q、技能3-R、技能4-T和自定义技能
    * @param cooldownRatioModifier Actual Cooldown after Editing = Original Cooldown × Cooldown Ratio Edit Value
    *
+   * Ratio Value
+   *
    * 冷却比例修改值: 修改后的实际冷却时间为：原冷却时间*冷却比例修改值
    * @param limitMaximumCdTime If set to True, the edited Cooldown cannot be less than the specified minimum value
    *
@@ -6560,6 +6596,8 @@ export class ServerExecutionFlowFunctions {
    * 角色技能槽位: 要修改的技能所在的槽位，分为普通攻击、技能1-E、技能2-Q、技能3-R、技能4-T和自定义技能
    * @param remainingCdTime Edited Cooldown will be set to this input value
    *
+   * CD Increase Value
+   *
    * 冷却剩余时间: 修改后的冷却时间为该输入值
    * @param limitMaximumCdTime If set to True, the edited Cooldown cannot be less than the specified minimum value
    *
@@ -6609,7 +6647,7 @@ export class ServerExecutionFlowFunctions {
     targetEntity: CharacterEntity,
     skillConfigId: ConfigIdValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ): bigint {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const skillConfigIdObj = parseValue(skillConfigId, 'config_id')
@@ -6639,6 +6677,8 @@ export class ServerExecutionFlowFunctions {
    * 技能资源配置ID: 技能资源的标识
    * @param changeValue New Value = Original Value + Change Value
    *
+   * Increase Value
+   *
    * 变更值: 修改后的值为：原值+变更值
    */
   modifySkillResourceAmount(
@@ -6664,6 +6704,8 @@ export class ServerExecutionFlowFunctions {
    *
    * @param targetEntity Active Character Entity
    *
+   * Character Entity
+   *
    * 目标实体: 生效的角色实体
    * @param elementalEnergy
    *
@@ -6687,8 +6729,12 @@ export class ServerExecutionFlowFunctions {
    *
    * @param targetEntity Active Character Entity
    *
+   * Character Entity
+   *
    * 目标实体: 生效的角色实体
    * @param increaseValue
+   *
+   * Elemental Energy Increase Value
    *
    * 增加值
    */
@@ -6718,6 +6764,8 @@ export class ServerExecutionFlowFunctions {
    *
    * 角色技能槽位: 要修改的技能所在的槽位，分为普通攻击、技能1-E、技能2-Q、技能3-R、技能4-T和自定义技能
    * @param cdModifier New Value = Original Value + Edit Value
+   *
+   * CD Increase Value
    *
    * 冷却时间修改值: 修改后的值为：原值+修改值
    * @param limitMaximumCdTime If set to True, the edited Cooldown cannot be less than the specified minimum value
@@ -6817,7 +6865,7 @@ export class ServerExecutionFlowFunctions {
     targetEntity: CharacterEntity,
     skillInstanceId: IntValue,
     skillSlot: CharacterSkillSlot,
-    originalSlotSkillHandling: OriginalSlotSkillHandling
+    originalSlotSkillHandling: TopOfStackSkillDestructionType
   ): bigint {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const skillInstanceIdObj = parseValue(skillInstanceId, 'int')
@@ -7303,6 +7351,8 @@ export class ServerExecutionFlowFunctions {
    * 是否循环播放
    * @param loopInterval
    *
+   * Loop Playback Interval
+   *
    * 循环播放间隔
    * @param playbackSpeed
    *
@@ -7648,6 +7698,8 @@ export class ServerExecutionFlowFunctions {
    * 目标玩家: 指定运行时玩家，唤起卡牌选择器
    * @param deckSelectorId Referenced UI Control Group ID
    *
+   * Deck Selector Index
+   *
    * 卡牌选择器索引: 引用的界面控件组索引
    * @param selectDuration If empty, uses the Deck Selector's default configuration; otherwise, this time value is used as the effective duration. Unit in seconds, up to 2000000
    *
@@ -7728,15 +7780,28 @@ export class ServerExecutionFlowFunctions {
    *
    * @param list
    *
+   * Select List
+   *
    * 列表
+   * @param sortBy Sorting Rules_Random
+   *
+   * Sort By
+   *
+   * 排序方式: 排序规则_随机
    */
-  randomDeckSelectorSelectionList(list: IntValue[]): void {
+  randomDeckSelectorSelectionList(list: IntValue[], sortBy: RandomOrder): void
+  randomDeckSelectorSelectionList(list: IntValue[]): void
+  randomDeckSelectorSelectionList(
+    list: IntValue[],
+    sortBy: RandomOrder = RandomOrder.Random
+  ): void {
     const listObj = parseValue(list, 'int_list')
+    const sortByObj = parseValue(sortBy, 'enumeration')
     this.registry.registerNode({
       id: 0,
       type: 'exec',
       nodeType: 'random_deck_selector_selection_list',
-      args: [listObj]
+      args: [listObj, sortByObj]
     })
   }
 
@@ -8294,6 +8359,8 @@ export class ServerExecutionFlowFunctions {
    *
    * @returns
    *
+   * Shop Item Index
+   *
    * 商品索引
    */
   addNewItemToCustomShopSalesList(
@@ -8558,6 +8625,8 @@ export class ServerExecutionFlowFunctions {
    *
    * @param equipmentId Integer ID generated during Equipment Initialization to identify the equipment instance
    *
+   * Equipment Index
+   *
    * 装备索引: 【装备初始化】时生成的整数型索引来标识该装备实例
    * @param affixId
    *
@@ -8580,6 +8649,8 @@ export class ServerExecutionFlowFunctions {
    * 装备添加词条: 对指定装备实例添加一条预先配置好的词条，可以覆写词条的数值
    *
    * @param equipmentId Integer ID generated during Equipment Initialization to identify the equipment instance
+   *
+   * Equipment Index
    *
    * 装备索引: 【装备初始化】时生成的整数型索引来标识该装备实例
    * @param affixConfigId The Config ID of the preconfigured Affix defined in Equipment Data Management
@@ -8616,6 +8687,8 @@ export class ServerExecutionFlowFunctions {
    * 装备指定序号添加词条: 对指定装备实例的指定词条序号位置添加预先配置好的词条，可以覆写词条的数值
    *
    * @param equipmentId Integer ID generated during Equipment Initialization to identify the equipment instance
+   *
+   * Equipment Index
    *
    * 装备索引: 【装备初始化】时生成的整数型索引来标识该装备实例
    * @param affixConfigId The Config ID of the preconfigured Affix defined in Equipment Data Management
@@ -8849,6 +8922,8 @@ export class ServerExecutionFlowFunctions {
    * 道具配置ID
    * @param changeValue New Value = Original Value + Change Value
    *
+   * Increase Value
+   *
    * 变更值: 变更后的值=变更前的值+变更值
    */
   modifyInventoryItemQuantity(
@@ -8879,6 +8954,8 @@ export class ServerExecutionFlowFunctions {
    *
    * 货币配置ID
    * @param changeValue New Value = Original Value + Change Value
+   *
+   * Increase Value
    *
    * 变更值: 变更后的值=变更前的值+变更值
    */
@@ -8911,6 +8988,8 @@ export class ServerExecutionFlowFunctions {
    * 道具配置ID
    * @param changeValue New Value = Original Value + Change Value
    *
+   * Increase Value
+   *
    * 变更值: 变更后的值=变更前的值+变更值
    */
   modifyLootItemComponentQuantity(
@@ -8941,6 +9020,8 @@ export class ServerExecutionFlowFunctions {
    *
    * 货币配置ID
    * @param changeValue New Value = Original Value + Change Value
+   *
+   * Increase Value
    *
    * 变更值: 变更后的值=变更前的值+变更值
    */
@@ -9262,6 +9343,8 @@ export class ServerExecutionFlowFunctions {
    * 成就序号
    * @param progressTallyChangeValue New Value = Previous Value + Change Value
    *
+   * Progress Tally Increase Value
+   *
    * 进度计数变更值: 变更后值=变更前值+变更值
    */
   changeAchievementProgressTally(
@@ -9323,7 +9406,7 @@ export class ServerExecutionFlowFunctions {
    *
    * 规则类型: 分为视野优先、距离优先
    */
-  setScanTagRules(targetEntity: EntityValue, ruleType: ScanRuleType): void {
+  setScanTagRules(targetEntity: EntityValue, ruleType: ScanScoringRules): void {
     const targetEntityObj = parseValue(targetEntity, 'entity')
     const ruleTypeObj = parseValue(ruleType, 'enumeration')
     this.registry.registerNode({
@@ -9391,7 +9474,7 @@ export class ServerExecutionFlowFunctions {
    * @param playerEntity
    *
    * 玩家实体
-   * @param settlementStatus Includes: Undefined, Victory, Defeat, Escape
+   * @param settlementStatus Includes: TBC, Victory, Failed, Escape
    *
    * 结算状态: 分为未定、胜利、失败、逃跑
    * @param scoreChange
@@ -9400,7 +9483,7 @@ export class ServerExecutionFlowFunctions {
    */
   setPlayerRankScoreChange(
     playerEntity: PlayerEntity,
-    settlementStatus: SettlementStatus,
+    settlementStatus: RankSettlementStatus,
     scoreChange: IntValue
   ): void {
     const playerEntityObj = parseValue(playerEntity, 'entity')
@@ -10048,11 +10131,17 @@ export class ServerExecutionFlowFunctions {
    * 日
    * @param hour
    *
+   * h
+   *
    * 时
    * @param minute
    *
+   * m
+   *
    * 分
    * @param second
+   *
+   * s
    *
    * 秒
    *
@@ -10112,15 +10201,21 @@ export class ServerExecutionFlowFunctions {
     day: bigint
     /**
      *
+     * h
+     *
      * 时
      */
     hour: bigint
     /**
      *
+     * m
+     *
      * 分
      */
     minute: bigint
     /**
+     *
+     * s
      *
      * 秒
      */
@@ -10177,6 +10272,8 @@ export class ServerExecutionFlowFunctions {
    * 时间戳
    *
    * @returns
+   *
+   * Day
    *
    * 星期
    */
@@ -11660,6 +11757,8 @@ export class ServerExecutionFlowFunctions {
     playerCount: bigint
     /**
      * Trial, Room, or Matchmaking
+     *
+     * Gameplay Mode
      *
      * 游玩方式: 分为试玩、房间游玩、匹配游玩
      */
@@ -14531,12 +14630,16 @@ export class ServerExecutionFlowFunctions {
    *
    * @param targetEntity
    *
+   * Query Target Entity
+   *
    * 查询目标实体
    * @param unitStatusConfigId
    *
    * 单位状态配置ID
    *
    * @returns
+   *
+   * Slot ID List
    *
    * 槽位序号列表
    */
@@ -15009,6 +15112,8 @@ export class ServerExecutionFlowFunctions {
    * 以单位标签获取预设点位列表: 根据单位标签索引查询所有携带该单位标签的预设点位列表，输出值为该预设点位的索引
    *
    * @param unitTagId
+   *
+   * Unit Tag Index
    *
    * 单位标签索引
    *
@@ -16114,7 +16219,7 @@ export class ServerExecutionFlowFunctions {
      *
      * 生效状态: 查询的小地图标识的生效状态
      */
-    activationStaet: boolean
+    activationStatus: boolean
     /**
      * Returns the list of Players who can see this Marker
      *
@@ -16137,9 +16242,9 @@ export class ServerExecutionFlowFunctions {
       args: [targetEntityObj, miniMapMarkerIdObj]
     })
     return {
-      activationStaet: (() => {
+      activationStatus: (() => {
         const ret = new bool()
-        ret.markPin(ref, 'activationStaet', 0)
+        ret.markPin(ref, 'activationStatus', 0)
         return ret as unknown as boolean
       })(),
       listOfPlayersWithVisibleMarkers: (() => {
@@ -16330,14 +16435,18 @@ export class ServerExecutionFlowFunctions {
    *
    * 玩家实体
    * @param settlementStatus
+   * Includes: TBC, Victory, Failed, Escape
    *
-   * 结算状态
+   * 结算状态: 分为未定、胜利、失败、逃跑
    *
    * @returns
    *
    * 分数
    */
-  getPlayerRankScoreChange(playerEntity: PlayerEntity, settlementStatus: SettlementStatus): bigint {
+  getPlayerRankScoreChange(
+    playerEntity: PlayerEntity,
+    settlementStatus: RankSettlementStatus
+  ): bigint {
     const playerEntityObj = parseValue(playerEntity, 'entity')
     const settlementStatusObj = parseValue(settlementStatus, 'enumeration')
     const ref = this.registry.registerNode({
@@ -16493,7 +16602,7 @@ export class ServerExecutionFlowFunctions {
   /**
    * Searches the consumed quantity of the specified Gift Box on the Player Entity
    *
-   * 查询对应礼盒消耗数量: 查询玩家实体上指定礼盒的消耗数量
+   * 查询对应华丽演绎礼盒消耗数量: 查询玩家实体上华丽演绎礼盒的消耗数量(无法对其他类型的礼盒使用)
    *
    * @param playerEntity
    *
@@ -16577,6 +16686,615 @@ export class ServerExecutionFlowFunctions {
     })
     const ret = new bool()
     ret.markPin(ref, 'completed', 0)
+    return ret as unknown as boolean
+  }
+  /**
+   * Edit the target entity's model color and material configuration.
+   *
+   * Edit Model Color & Material
+   *
+   * 修改模型颜色和材质: 设置实体模型的颜色与材质配置
+   *
+   * @param targetEntity Target Entity
+   *
+   * 目标实体
+   * @param overwriteColorConfig
+   *
+   * Overwrite Color Configurations
+   *
+   * 是否覆写颜色配置
+   * @param enableCustomColor Enable Custom Color?
+   *
+   * 是否启用自定义颜色
+   * @param fillColor Fill Color
+   *
+   * 填充颜色
+   * @param colorOpacity Color Opacity
+   *
+   * 颜色透明度
+   * @param colorBlendType Color Blend Type
+   *
+   * 颜色叠加类型
+   * @param overwriteMaterialConfig
+   *
+   * Overwrite Material Configurations
+   *
+   * 是否覆写材质配置
+   * @param enableCustomMaterial Enable Custom Material?
+   *
+   * 是否启用自定义材质
+   * @param fillMaterial
+   *
+   * Fill Material Type
+   *
+   * 填充材质类型
+   */
+  modifyModelColorAndMaterial(
+    targetEntity: EntityValue,
+    overwriteColorConfig: BoolValue,
+    enableCustomColor: BoolValue,
+    fillColor: IntValue,
+    colorOpacity: FloatValue,
+    colorBlendType: ColorBlendType,
+    overwriteMaterialConfig: BoolValue,
+    enableCustomMaterial: BoolValue,
+    fillMaterial: FillMaterial
+  ): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const overwriteColorConfigObj = parseValue(overwriteColorConfig, 'bool')
+    const enableCustomColorObj = parseValue(enableCustomColor, 'bool')
+    const fillColorObj = parseValue(fillColor, 'int')
+    const colorOpacityObj = parseValue(colorOpacity, 'float')
+    const colorBlendTypeObj = parseValue(colorBlendType, 'enum')
+    const overwriteMaterialConfigObj = parseValue(overwriteMaterialConfig, 'bool')
+    const enableCustomMaterialObj = parseValue(enableCustomMaterial, 'bool')
+    const fillMaterialObj = parseValue(fillMaterial, 'enum')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'modify_model_color_and_material',
+      args: [
+        targetEntityObj,
+        overwriteColorConfigObj,
+        enableCustomColorObj,
+        fillColorObj,
+        colorOpacityObj,
+        colorBlendTypeObj,
+        overwriteMaterialConfigObj,
+        enableCustomMaterialObj,
+        fillMaterialObj
+      ]
+    })
+  }
+
+  /**
+   * Get the target entity's current model color and material configuration.
+   *
+   * 获取模型颜色和材质: 获取实体模型当前的颜色与材质配置
+   *
+   * @param targetEntity Target Entity
+   *
+   * 目标实体
+   *
+   * @returns The current model color and material configuration.
+   *
+   * 返回当前的模型颜色和材质配置
+   */
+  getModelColorAndMaterial(targetEntity: EntityValue): {
+    /**
+     * Enable Custom Color?
+     *
+     * 是否开启自定义颜色
+     */
+    customColorEnabled: boolean
+    /**
+     * Color Blend Mode
+     *
+     * 颜色叠加模式
+     */
+    colorBlendMode: ColorBlendType
+    /**
+     * Color
+     *
+     * 颜色
+     */
+    color: bigint
+    /**
+     * Color Opacity
+     *
+     * 颜色透明度
+     */
+    colorOpacity: number
+    /**
+     * Enable Custom Material?
+     *
+     * 是否开启自定义材质
+     */
+    customMaterialEnabled: boolean
+    /**
+     * Material
+     *
+     * 材质
+     */
+    material: FillMaterial
+  } {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'get_model_color_and_material',
+      args: [targetEntityObj]
+    })
+    return {
+      customColorEnabled: (() => {
+        const ret = new bool()
+        ret.markPin(ref, 'customColorEnabled', 0)
+        return ret as unknown as boolean
+      })(),
+      colorBlendMode: (() => {
+        const ret = new enumeration('ColorOverlayType')
+        ret.markPin(ref, 'colorBlendMode', 1)
+        return ret as ColorBlendType
+      })(),
+      color: (() => {
+        const ret = new int()
+        ret.markPin(ref, 'color', 2)
+        return ret as unknown as bigint
+      })(),
+      colorOpacity: (() => {
+        const ret = new float()
+        ret.markPin(ref, 'colorOpacity', 3)
+        return ret as unknown as number
+      })(),
+      customMaterialEnabled: (() => {
+        const ret = new bool()
+        ret.markPin(ref, 'customMaterialEnabled', 4)
+        return ret as unknown as boolean
+      })(),
+      material: (() => {
+        const ret = new enumeration('FillMaterial')
+        ret.markPin(ref, 'material', 5)
+        return ret as FillMaterial
+      })()
+    }
+  }
+
+  /**
+   * Make a player follow a control motor. This cannot take effect while the player is controlled
+   * or teleporting.
+   *
+   * Set Player to Follow Control Motion Device
+   *
+   * 设置玩家跟随操控运动器: 受控、传送过程中无法跟随
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   * @param controlMotorEntity
+   *
+   * Control Motion Device Entity
+   *
+   * 操控运动器实体
+   */
+  setPlayerToFollowControlMotor(playerEntity: PlayerEntity, controlMotorEntity: EntityValue): void {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const controlMotorEntityObj = parseValue(controlMotorEntity, 'entity')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_player_to_follow_control_motor',
+      args: [playerEntityObj, controlMotorEntityObj]
+    })
+  }
+
+  /**
+   * Make a player leave the control motor currently being followed.
+   *
+   * Set Player to Leave Control Motion Device
+   *
+   * 设置玩家离开操控运动器: 设置玩家离开当前跟随的操控运动器
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   */
+  setPlayerToLeaveControlMotor(playerEntity: PlayerEntity): void {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_player_to_leave_control_motor',
+      args: [playerEntityObj]
+    })
+  }
+
+  /**
+   * Set a player's active control motors. An empty list clears all active control motors.
+   *
+   * Set Player to Activate Control Motion Device
+   *
+   * 设置玩家激活操控运动器: 实体列表为空时清空玩家所有激活的运动器
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   * @param controlMotorEntities
+   *
+   * Control Motion Device Entity List
+   *
+   * 操控运动器实体列表
+   */
+  setPlayerActiveControlMotors(
+    playerEntity: PlayerEntity,
+    controlMotorEntities: EntityValue[]
+  ): void {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const controlMotorEntitiesObj = parseValue(controlMotorEntities, 'entity_list')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_player_active_control_motors',
+      args: [playerEntityObj, controlMotorEntitiesObj]
+    })
+  }
+
+  /**
+   * Query a player's current active control motor list.
+   *
+   * Query Player's Currently Activated Control Motion Device List
+   *
+   * 查询玩家当前激活操控运动器列表: 查询玩家当前激活的操控运动器实体列表
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * Control Motion Device Entity List
+   *
+   * 操控运动器实体列表
+   */
+  queryPlayerSCurrentActiveControlMotorList(playerEntity: PlayerEntity): entity[] {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_player_s_current_active_control_motor_list',
+      args: [playerEntityObj]
+    })
+    const ret = new list('entity')
+    ret.markPin(ref, 'controlMotorEntities', 0)
+    return ret as unknown as entity[]
+  }
+
+  /**
+   * Query the control motor a player is currently following.
+   *
+   * Query Player's Followed Control Motion Device
+   *
+   * 查询玩家当前跟随操控运动器: 查询玩家当前跟随的操控运动器实体
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * Control Motion Device Entity
+   *
+   * 操控运动器实体
+   */
+  queryPlayerSCurrentFollowingControlMotor(playerEntity: PlayerEntity): entity {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_player_s_current_following_control_motor',
+      args: [playerEntityObj]
+    })
+    const ret = new entity()
+    ret.markPin(ref, 'controlMotorEntity', 0)
+    return ret
+  }
+
+  /**
+   * Query a control motor's current movement parameters. Temporary parameters added by control
+   * skill nodes are not included.
+   *
+   * Query Control Motion Device's Current Movement Parameters
+   *
+   * 查询操控运动器当前运动参数: 不包含操控技能节点添加的临时运动参数
+   *
+   * @param controlMotor
+   *
+   * Control Motion Device
+   *
+   * 操控运动器
+   *
+   * @returns The Control Motion Device's current movement parameters.
+   *
+   * 返回操控运动器当前的运动参数
+   */
+  queryControlMotorSCurrentMovementParameters(controlMotor: EntityValue): {
+    /**
+     * Forward Acceleration
+     *
+     * 前进加速度
+     */
+    forwardAcceleration: number
+    /**
+     * Reverse Acceleration
+     *
+     * 后退加速度
+     */
+    backwardAcceleration: number
+    /**
+     * Turn Speed
+     *
+     * 转向速率
+     */
+    turningRate: number
+    /**
+     * Base Resistance
+     *
+     * 基础阻力
+     */
+    baseResistance: number
+    /**
+     * Resistance Coefficient
+     *
+     * 阻力系数
+     */
+    resistanceCoefficient: number
+    /**
+     * Max Forward Speed
+     *
+     * 最大前进速度
+     */
+    maximumForwardSpeed: number
+    /**
+     * Max Reverse Speed
+     *
+     * 最大后退速度
+     */
+    maximumBackwardSpeed: number
+  } {
+    const controlMotorObj = parseValue(controlMotor, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_control_motor_s_current_movement_parameters',
+      args: [controlMotorObj]
+    })
+    const output = (name: string, index: number) => {
+      const ret = new float()
+      ret.markPin(ref, name, index)
+      return ret as unknown as number
+    }
+    return {
+      forwardAcceleration: output('forwardAcceleration', 0),
+      backwardAcceleration: output('backwardAcceleration', 1),
+      turningRate: output('turningRate', 2),
+      baseResistance: output('baseResistance', 3),
+      resistanceCoefficient: output('resistanceCoefficient', 4),
+      maximumForwardSpeed: output('maximumForwardSpeed', 5),
+      maximumBackwardSpeed: output('maximumBackwardSpeed', 6)
+    }
+  }
+
+  /**
+   * Set whether a player's cursor remains visible.
+   *
+   * Set Player's Cursor to Always Visible
+   *
+   * 设置玩家光标是否常驻: 设置指定玩家的光标是否常驻显示
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   * @param cursorPersistent
+   *
+   * Always Show Cursor?
+   *
+   * 是否光标常驻
+   */
+  setWhetherPlayerSCursorIsPersistent(
+    playerEntity: PlayerEntity,
+    cursorPersistent: BoolValue
+  ): void {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const cursorPersistentObj = parseValue(cursorPersistent, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_whether_player_s_cursor_is_persistent',
+      args: [playerEntityObj, cursorPersistentObj]
+    })
+  }
+
+  /**
+   * Set the target layers and maximum target count selectable by a player's cursor click.
+   *
+   * Enable Player's Cursor to Click Selectable Targets
+   *
+   * 设置玩家光标点击可选取目标: 设置光标点击时可选取的目标层级与最多选取数量
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   *
+   * @param cursorClickableLayerFilterId Cursor Clickable Layer Filter ID. Literal only; wired
+   * connections are not allowed.
+   *
+   * GSTS Note: This value is a four-bit mask, not a single layer ID. Add the selected layer
+   * values and pass the result as an integer literal: Scene = 1 (bit 0), Hurtbox = 2 (bit 1),
+   * Object Collision = 4 (bit 2), Cursor Collision = 8 (bit 3). The valid combinations are
+   * 0-15; 0 selects none and 15 selects all. For example, 10 selects Hurtbox and Cursor
+   * Collision, while 11 additionally selects Scene. Do not use bits above bit 3.
+   *
+   * 光标可点击层级筛选id: 仅支持字面量，不能连接其他节点的输出
+   *
+   * GSTS 注: 该值是四位位掩码，并非单个层级ID。请将所需层级的数值相加，并把结果作为整数字面量传入:
+   * 场景 = 1（第0位）、受击盒 = 2（第1位）、物件碰撞 = 4（第2位）、光标碰撞 = 8（第3位）。
+   * 有效组合为0-15；0表示全部不选，15表示全部选中。例如10表示“受击盒 + 光标碰撞”，
+   * 11则在此基础上增加“场景”。不要使用第3位以上的未知位。
+   * @param maximumSelectableTargets
+   *
+   * Max Selectable Targets
+   *
+   * 光标最多可选取目标
+   */
+  setPlayerSCursorClickSelectableTargets(
+    playerEntity: PlayerEntity,
+    cursorClickableLayerFilterId: IntValue,
+    maximumSelectableTargets: IntValue
+  ): void {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const cursorClickableLayerFilterIdObj = parseValue(cursorClickableLayerFilterId, 'int')
+    assertServerLiteralValue(
+      cursorClickableLayerFilterIdObj,
+      'setPlayerSCursorClickSelectableTargets.cursorClickableLayerFilterId'
+    )
+    const cursorClickableLayerFilterIdValue = cursorClickableLayerFilterIdObj.value
+    if (
+      cursorClickableLayerFilterIdValue === undefined ||
+      cursorClickableLayerFilterIdValue < 0n ||
+      cursorClickableLayerFilterIdValue > 15n
+    ) {
+      throw new Error(
+        '[error] setPlayerSCursorClickSelectableTargets.cursorClickableLayerFilterId ' +
+          'must be an integer literal between 0 and 15 (inclusive); received ' +
+          (cursorClickableLayerFilterIdValue?.toString() ?? 'undefined')
+      )
+    }
+    const maximumSelectableTargetsObj = parseValue(maximumSelectableTargets, 'int')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_player_s_cursor_click_selectable_targets',
+      args: [playerEntityObj, cursorClickableLayerFilterIdObj, maximumSelectableTargetsObj]
+    })
+  }
+
+  /**
+   * Set whether a player's cursor click penetrates UI controls.
+   *
+   * Set Player's Cursor to Click Through UI Controls
+   *
+   * 设置玩家光标是否穿透UI控件: 设置光标点击是否穿透UI控件
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   * @param penetrateUiControls
+   *
+   * Click Through UI Controls?
+   *
+   * 是否穿透UI控件
+   */
+  setWhetherPlayerSCursorClickPenetratesUiControls(
+    playerEntity: PlayerEntity,
+    penetrateUiControls: BoolValue
+  ): void {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const penetrateUiControlsObj = parseValue(penetrateUiControls, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'set_whether_player_s_cursor_click_penetrates_ui_controls',
+      args: [playerEntityObj, penetrateUiControlsObj]
+    })
+  }
+
+  /**
+   * Query whether a player's cursor is currently active.
+   *
+   * Check Whether Player Cursor Is Active
+   *
+   * 查询玩家光标是否激活: 查询指定玩家的光标是否处于激活状态
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   *
+   * @returns
+   *
+   * Activate
+   *
+   * 是否激活
+   */
+  queryWhetherPlayerSCursorIsActive(playerEntity: PlayerEntity): boolean {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_whether_player_s_cursor_is_active',
+      args: [playerEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'active', 0)
+    return ret as unknown as boolean
+  }
+
+  /**
+   * Activate or deactivate a cursor collision box on an object's click-collision component.
+   *
+   * 激活/关闭光标碰撞盒: 仅对物件生效
+   *
+   * @param targetEntity Target Entity
+   *
+   * 目标实体
+   * @param collisionBoxIndex
+   *
+   * Collision Box ID
+   *
+   * 碰撞盒序号
+   * @param activate Activate
+   *
+   * 是否激活
+   */
+  activateDisableCursorCollisionBox(
+    targetEntity: ObjectEntity,
+    collisionBoxIndex: IntValue,
+    activate: BoolValue
+  ): void {
+    const targetEntityObj = parseValue(targetEntity, 'entity')
+    const collisionBoxIndexObj = parseValue(collisionBoxIndex, 'int')
+    const activateObj = parseValue(activate, 'bool')
+    this.registry.registerNode({
+      id: 0,
+      type: 'exec',
+      nodeType: 'activate_disable_cursor_collision_box',
+      args: [targetEntityObj, collisionBoxIndexObj, activateObj]
+    })
+  }
+
+  /**
+   * Query whether a player is subscribed to the current creator.
+   *
+   * Check Whether Player Has Subscribed
+   *
+   * 查询玩家是否订阅: 奇匠自身触发时结果为是
+   *
+   * @param playerEntity Player Entity
+   *
+   * 玩家实体
+   *
+   * @returns Subscribed
+   *
+   * 是否订阅
+   */
+  queryWhetherPlayerIsSubscribed(playerEntity: PlayerEntity): boolean {
+    const playerEntityObj = parseValue(playerEntity, 'entity')
+    const ref = this.registry.registerNode({
+      id: 0,
+      type: 'data',
+      nodeType: 'query_whether_player_is_subscribed',
+      args: [playerEntityObj]
+    })
+    const ret = new bool()
+    ret.markPin(ref, 'subscribed', 0)
     return ret as unknown as boolean
   }
   // === AUTO-GENERATED END ===
@@ -16690,3 +17408,21 @@ export type ServerExecutionFlowFunctionsByMode<M extends ServerGraphMode> = {
     K
   >]: ServerExecutionFlowFunctions[K]
 }
+
+// Client execution flow classes live in ./client_nodes.js (generated with
+// full method definitions from official docs + sample metadata); re-exported
+// here to keep the definitions entrypoint stable.
+export {
+  ClientBoolFilterExecutionFlowFunctions,
+  ClientCharacterControlSkillExecutionFlowFunctions,
+  ClientCharacterSkillExecutionFlowFunctions,
+  ClientCreationSkillExecutionFlowFunctions,
+  ClientCreationStatusDecisionExecutionFlowFunctions,
+  ClientCreationStatusExecutionFlowFunctions,
+  ClientIntFilterExecutionFlowFunctions,
+  type ClientExecutionFlowFunctionsBySubType
+} from './client_nodes.js'
+
+export type ClientExecutionFlowFunctionsBySubTypeMode<
+  T extends keyof import('./client_nodes.js').ClientExecutionFlowFunctionsBySubType
+> = import('./client_nodes.js').ClientExecutionFlowFunctionsBySubType[T]

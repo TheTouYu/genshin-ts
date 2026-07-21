@@ -17,6 +17,7 @@
 ## 场景/实体
 - `player(1)` / `stage` / `level` / `self`
 - `GameObject.Find(...)`
+- `clientEntity(...)`（仅客户端图）：支持 `0` / `null` 占位、GUID 查询，以及把通用实体收窄为当前客户端图可用的实体快捷方法
 
 ## 其他
 - `Math` / `Mathf` / `Vector3` / `Random`

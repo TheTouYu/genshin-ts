@@ -113,6 +113,78 @@ Injection safety rules:
 - After creating a new graph, you must save the map for the injector to detect the `id`.
 - Recommended: create and save a batch of graphs first, then compile/inject once.
 
+## Client Node Graphs
+
+Client graphs use the same `g.<type>({ id }).on(...)` registration style. Before injection, create and save a client graph of the matching type in the editor, then use its real NodeGraph ID.
+
+| Graph type               | Entry                           | Event / result          | Modes           | Typical use                                                          |
+| ------------------------ | ------------------------------- | ----------------------- | --------------- | -------------------------------------------------------------------- |
+| Character Skill          | `g.characterSkill(...)`         | `start`                 | Beyond only     | Character-skill movement, projectiles, hitboxes, and pre-aiming      |
+| Character Control Skill  | `g.characterControlSkill(...)`  | `start`                 | Beyond only     | Control motors, movement, turning, and pre-aiming                    |
+| Creation Skill           | `g.creationSkill(...)`          | `start`                 | Beyond, Classic | Client execution and presentation for Creation skills                |
+| Creation Status          | `g.creationStatus(...)`         | `start1`–`start10`      | Beyond, Classic | Continuous Creation actions such as attacking, targeting, and moving |
+| Creation Status Decision | `g.creationStatusDecision(...)` | `start1`–`start10`      | Beyond, Classic | Select the Creation Status graph to execute                          |
+| Boolean Filter           | `g.boolFilter(...)`             | `start`; return Boolean | Beyond, Classic | Return a final Boolean result to the referencing feature             |
+| Integer Filter           | `g.intFilter(...)`              | `start`; return integer | Beyond, Classic | Return a final integer result to the referencing feature             |
+
+```ts
+g.characterSkill({ id: CHARACTER_SKILL_ID }).on('start', (_evt, f) => {})
+g.characterControlSkill({ id: CHARACTER_CONTROL_SKILL_ID }).on('start', (_evt, f) => {})
+g.creationSkill({ id: CREATION_SKILL_ID, mode: 'classic' }).on('start', (_evt, f) => {})
+
+g.creationStatus({ id: CREATION_STATUS_ID }).on('start1', (_evt, f) => {
+  f.executeSkill(true, 1)
+})
+
+g.creationStatusDecision({ id: CREATION_STATUS_DECISION_ID }).on('start1', (_evt, f) => {
+  f.switchToSelfExecutionStatus(true, CREATION_STATUS_ID, 1)
+})
+
+g.boolFilter({
+  id: BOOL_FILTER_ID,
+  evaluationInterval: 0.5
+}).on('start', (_evt, f) => {
+  return f.getRandomNumber(1, 10) > 5
+})
+
+g.intFilter({ id: INT_FILTER_ID }).on('start', (_evt, f) => {
+  return f.getRandomNumber(1, 10)
+})
+```
+
+Key points:
+
+- Every client entry accepts `id`, `name`, `prefix`, `mode`, and `lang`; `lang: 'zh'` enables Chinese aliases on the current graph's `f`.
+- Filters also accept `evaluationInterval` in seconds, defaulting to `0.3`.
+- `start1`–`start10` on Creation Status and Creation Status Decision graphs map to ordered-exclusive pins. They organize code, not ten independent states.
+- Sequential actions in those two status graph types connect through the preceding action's **Failure** output. The next statement runs only if the previous action fails.
+- The available `f` methods depend on client graph type and mode. Server graph functions are not automatically available; follow TypeScript hints and ESLint diagnostics.
+- Common arithmetic and comparison operators can be written directly. For example, `value > 5` compiles to the current client graph's `greaterThan` node.
+
+### `clientEntity(...)`
+
+This global helper is available only inside client graph handlers:
+
+- `clientEntity(0)` / `clientEntity(null)`: entity placeholder that leaves the input pin unconnected.
+- `clientEntity(10001)`: resolve through the current client graph's GUID query node; it fails if that node is unavailable.
+- `clientEntity(otherEntity)`: preserve the same entity value while narrowing its type to the shortcuts available in the current client graph. This is useful for `self` or `GameObject.Find(...)` results.
+
+```ts
+g.characterSkill({ id: CHARACTER_SKILL_ID }).on('start', (_evt, f) => {
+  const byGuid = clientEntity(10001)
+  const found = clientEntity(GameObject.Find(10002))
+  const placeholder = clientEntity(0)
+
+  // Entities returned by client f methods already have the correct clientEntity type.
+  const typedTarget = f.queryEntityByGuid(10003)
+  const targetPosition = found.pos
+})
+```
+
+In reusable top-level client functions, use the graph-specific namespace `gsts.fCharacterSkill`, `gsts.fCharacterControlSkill`, `gsts.fCreationSkill`, `gsts.fCreationStatus`, `gsts.fCreationStatusDecision`, `gsts.fBoolFilter`, or `gsts.fIntFilter`. `gsts.f` / `gsts.fServer` remain server-only.
+
+For complete notes and examples, see `https://gsts.moe/doc/events/client-graphs`.
+
 ## gsts.config Optimize Options (Enabled by Default)
 
 `gsts.config.ts` uses `options.optimize` with all defaults on:
@@ -143,7 +215,7 @@ Disable an option temporarily if you need to debug or compare graphs.
 - `number` is **float**; `bigint` is **int**.
 - Use `bigint` for modulo/bitwise operations.
 - When list indexing uses `bigint` / `IntValue`, wrap with `idx(...)`, e.g. `arr[idx(i)]` (you can apply this via ESLint auto-fix).
-- If this is shown as a warning (not an error), the TypeScript plugin is usually active and already treats `bigint` as a valid index value; you may disable `gsts/bigint-index-in-server`.
+- If this is shown as a warning (not an error), the TypeScript plugin is usually active and already treats `bigint` as a valid index value; you may disable `gsts/require-bigint-index-wrapper`.
 - If `TS2538` still appears as an error in VSCode/Cursor, configure `"typescript.tsdk": "node_modules/typescript/lib"` and `"typescript.enablePromptUseWorkspaceTsdk": true` (the genshin-ts project template already includes these settings), then switch to the workspace TypeScript version.
 - Lists/dicts must be homogeneous; mixed types will fail.
 - Empty arrays may not infer a type; add a typed placeholder or use `list(...)`.
@@ -162,6 +234,7 @@ Type helpers:
 - `bool(...)` / `int(...)` / `float(...)` / `str(...)`
 - `idx(...)`: helps `bigint` / `IntValue` index expressions pass TypeScript type-checking (type-check only; node-graph int semantics stay unchanged).
 - `vec3(...)` / `guid(...)` / `prefabId(...)` / `configId(...)` / `faction(...)` / `entity(...)`
+- `clientEntity(...)`: client graphs only; resolve or narrow an entity and expose shortcuts supported by the current client graph.
 - `list('int', items)`: explicit list typing (critical for empty arrays).
 - `dict(...)`: read-only dict.
 - `raw(...)`: compiler ignores it; JS native semantics apply.

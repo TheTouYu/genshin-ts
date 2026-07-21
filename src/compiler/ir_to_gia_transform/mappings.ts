@@ -193,24 +193,24 @@ export const ENUM_VALUE_MAPPINGS: Record<string, { enumId: number; enumValue: nu
   },
 
   original_slot_skill_handling_destroy: {
-    enumId: ENUM_ID.Generic,
+    enumId: ENUM_ID.Top_of_Stack_Skill_Destruction_Type,
     enumValue: ENUM_VALUE.OriginalSlotSkillHandling_Destroy
   },
   original_slot_skill_handling_keep_slot_relation: {
-    enumId: ENUM_ID.Generic,
+    enumId: ENUM_ID.Top_of_Stack_Skill_Destruction_Type,
     enumValue: ENUM_VALUE.OriginalSlotSkillHandling_KeepSlotRelation
   },
   original_slot_skill_handling_detach_from_slot_relation: {
-    enumId: ENUM_ID.Generic,
+    enumId: ENUM_ID.Top_of_Stack_Skill_Destruction_Type,
     enumValue: ENUM_VALUE.OriginalSlotSkillHandling_DetachFromSlotRelation
   },
 
   existing_skill_handling_clear_all: {
-    enumId: ENUM_ID.Generic,
+    enumId: ENUM_ID.Class_Switch_Skill_Handling,
     enumValue: ENUM_VALUE.ExistingSkillHandling_ClearAll
   },
   existing_skill_handling_keep_irrelevant_skills: {
-    enumId: ENUM_ID.Generic,
+    enumId: ENUM_ID.Class_Switch_Skill_Handling,
     enumValue: ENUM_VALUE.ExistingSkillHandling_KeepIrrelevantSkills
   },
 
@@ -384,12 +384,12 @@ export const ENUM_VALUE_MAPPINGS: Record<string, { enumId: number; enumValue: nu
     enumValue: ENUM_VALUE.RoundingLogic_Truncate
   },
   scan_rule_type_prioritize_view: {
-    enumId: ENUM_ID.Scan_Rule_Type,
-    enumValue: 5100
+    enumId: ENUM_ID.Scan_Scoring_Rules,
+    enumValue: ENUM_VALUE.ScanScoringRules_PrioritizeView
   },
   scan_rule_type_prioritize_distance: {
-    enumId: ENUM_ID.Scan_Rule_Type,
-    enumValue: 5101
+    enumId: ENUM_ID.Scan_Scoring_Rules,
+    enumValue: ENUM_VALUE.ScanScoringRules_PrioritizeDistance
   },
   settlement_status_undefined: {
     enumId: ENUM_ID.Settlement_Status,
@@ -470,11 +470,8 @@ export function parseEnumValue(
   index: number,
   nodeType: string
 ): { enumId: number; enumValue: number } {
-  const mapping = ENUM_VALUE_MAPPINGS[value]
+  const mapping = ENUM_VALUE_MAPPINGS[value] ?? ENUM_VALUE_LOWER.get(value)
   if (mapping) return mapping
-
-  const result = ENUM_VALUE_LOWER.get(value)
-  if (result) return result
 
   throw new Error(`[error] unknown enum value "${value}" at arg #${index} of ${nodeType}`)
 }

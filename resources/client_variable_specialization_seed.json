@@ -1,0 +1,229 @@
+{
+  "extractedAt": "2026-07-06T15:15:32.180Z",
+  "sources": [
+    "角色技能节点图/变量字典覆盖采样.gia（2026-07-06 用户导出，20/20 类型全覆盖 + 2 字典）",
+    "造物状态节点图/变量字典覆盖采样.gia（2026-07-06 用户导出，5 个观测点）",
+    "造物状态节点图/变量字典覆盖采样核验.gia（2026-07-06 用户导出，抽查 4204=guid/4206=vec3/4219=faction_list 全中）",
+    "既有语料交叉验证（bool_filter cid 41/47/50、int_filter/creation_skill cid 45、decision 4201/4220、creation_skill 200082 cid 1036）"
+  ],
+  "clientVarTypeNote": "ClientVarType 编号与 gia.proto 枚举一致（t18=Configuration_ 配置ID, t19=Prefab_ 元件ID, t20/t21 对应列表, t24=Dictionary_, t25=阵营列表[proto 未声明, round-1 已实证]）。此前 round-3 把 t18/t19 描述为「执行状态/投射物预设」是语义用途，类型本体即配置ID/元件ID",
+  "typeOffsets": [
+    {
+      "offset": 0,
+      "type": "bool",
+      "clientVarType": 5
+    },
+    {
+      "offset": 1,
+      "type": "int",
+      "clientVarType": 3
+    },
+    {
+      "offset": 2,
+      "type": "float",
+      "clientVarType": 7
+    },
+    {
+      "offset": 3,
+      "type": "str",
+      "clientVarType": 9
+    },
+    {
+      "offset": 4,
+      "type": "guid",
+      "clientVarType": 14
+    },
+    {
+      "offset": 5,
+      "type": "entity",
+      "clientVarType": 1
+    },
+    {
+      "offset": 6,
+      "type": "vec3",
+      "clientVarType": 11
+    },
+    {
+      "offset": 7,
+      "type": "int_list",
+      "clientVarType": 4
+    },
+    {
+      "offset": 8,
+      "type": "str_list",
+      "clientVarType": 10
+    },
+    {
+      "offset": 9,
+      "type": "entity_list",
+      "clientVarType": 2
+    },
+    {
+      "offset": 10,
+      "type": "guid_list",
+      "clientVarType": 15
+    },
+    {
+      "offset": 11,
+      "type": "float_list",
+      "clientVarType": 8
+    },
+    {
+      "offset": 12,
+      "type": "vec3_list",
+      "clientVarType": 12
+    },
+    {
+      "offset": 13,
+      "type": "bool_list",
+      "clientVarType": 6
+    },
+    {
+      "offset": 14,
+      "type": "configId",
+      "clientVarType": 18
+    },
+    {
+      "offset": 15,
+      "type": "prefabId",
+      "clientVarType": 19
+    },
+    {
+      "offset": 16,
+      "type": "configId_list",
+      "clientVarType": 20
+    },
+    {
+      "offset": 17,
+      "type": "prefabId_list",
+      "clientVarType": 21
+    },
+    {
+      "offset": 18,
+      "type": "faction",
+      "clientVarType": 16
+    },
+    {
+      "offset": 19,
+      "type": "faction_list",
+      "clientVarType": 25
+    }
+  ],
+  "getCustomVariable": {
+    "finding": "获取自定义变量是唯一需要 cid 变体表的变量节点：cid = 族基数 + 类型偏移，字典单列。技能/过滤器 4 族共用 40 系表（bool_filter 观测 41/47/50 与 character_skill 表完全一致），造物状态 2 族共用 4200 系表",
+    "characterSkillFamilies": {
+      "genericId": 200016,
+      "appliesTo": [
+        "character_skill",
+        "character_control_skill",
+        "creation_skill",
+        "bool_filter",
+        "int_filter"
+      ],
+      "cidBase": 40,
+      "dictCid": 1056,
+      "provenance": "character_skill 20/20 全观测 + 字典双样本；他族交叉点全部吻合；character_control_skill 样本观测 cid 41（int）落在同表",
+      "cidToType": {
+        "40": "bool",
+        "41": "int",
+        "42": "float",
+        "43": "str",
+        "44": "guid",
+        "45": "entity",
+        "46": "vec3",
+        "47": "int_list",
+        "48": "str_list",
+        "49": "entity_list",
+        "50": "guid_list",
+        "51": "float_list",
+        "52": "vec3_list",
+        "53": "bool_list",
+        "54": "configId",
+        "55": "prefabId",
+        "56": "configId_list",
+        "57": "prefabId_list",
+        "58": "faction",
+        "59": "faction_list",
+        "1056": "dict"
+      }
+    },
+    "creationStatusFamilies": {
+      "genericId": 200173,
+      "appliesTo": [
+        "creation_status",
+        "creation_status_decision"
+      ],
+      "cidBase": 4200,
+      "dictCid": 4220,
+      "provenance": "观测 8 点：4200=bool、4201=int（旧语料）、4204=guid、4206=vec3、4211=float_list、4217=prefabId_list、4219=faction_list、4220=dict，全部与 4200+同偏移表吻合（含用户抽查核验 3 点），推断表判定可用",
+      "cidToType": {
+        "4200": "bool",
+        "4201": "int",
+        "4202": "float",
+        "4203": "str",
+        "4204": "guid",
+        "4205": "entity",
+        "4206": "vec3",
+        "4207": "int_list",
+        "4208": "str_list",
+        "4209": "entity_list",
+        "4210": "guid_list",
+        "4211": "float_list",
+        "4212": "vec3_list",
+        "4213": "bool_list",
+        "4214": "configId",
+        "4215": "prefabId",
+        "4216": "configId_list",
+        "4217": "prefabId_list",
+        "4218": "faction",
+        "4219": "faction_list",
+        "4220": "dict"
+      },
+      "observedCids": [
+        4200,
+        4201,
+        4204,
+        4206,
+        4211,
+        4217,
+        4219,
+        4220
+      ]
+    }
+  },
+  "localVariable": {
+    "finding": "局部变量不走 cid 变体：设置局部变量(200081) cid 恒 2000（int/元件ID列表/字典值皆同），获取局部变量(200082) cid 恒 1036（阵营/实体/三维向量/字符串四种输出实测同 cid）。特化只体现在值引脚的 type 编号上，编码器按变量类型写引脚 type 即可",
+    "set": {
+      "genericId": 200081,
+      "concreteId": 2000
+    },
+    "get": {
+      "genericId": 200082,
+      "concreteId": 1036
+    }
+  },
+  "dictionaryNodes": {
+    "finding": "字典节点全部 cid 恒定，键/值类型只体现在引脚 type：拼装字典(200152/200228)=1048（50 对键值引脚交替排列+i0 计数）、以键查询字典值(200154)=1050、查询字典是否包含特定键(200231)=1051、查询字典长度(200157)=1053。获取自定义变量的字典变体也不区分键值类型（1056/4220 共用）",
+    "constantCids": {
+      "assembly_dictionary": 1048,
+      "query_dictionary_value_by_key": 1050,
+      "query_if_dictionary_contains_specific_key": 1051,
+      "query_dictionary_s_length": 1053
+    }
+  },
+  "listReflectNodes": {
+    "finding": "列表反射节点已由采样机械推导进 reflectMap（无需种子）：列表是否包含该值(200019) 10 键、获取列表对应值(200017) 9 键、拼装列表(200049) 8 键、获取列表最小值(200021) 2 键。200019 的 cid 100..109 依序对应 bool/int/float/str/guid/entity/vec3/configId/prefabId/faction 元素类型"
+  },
+  "userVerification": {
+    "status": "confirmed 2026-07-06",
+    "items": [
+      "「33」自定义变量 = 浮点数列表（cid=4211）✅",
+      "未命名获取局部变量 = 阵营（t16）✅",
+      "4200 系抽查（造物状态自定义变量核验.gia）：4204=guid、4206=三维向量、4219=阵营列表 全部与推断表一致 ✅"
+    ]
+  },
+  "wireStructure": {
+    "finding": "连线引脚数据构成已核清：NodeConnection = {id: 对端 nodeIndex, connect: 对端引脚 i1 索引, connect2: 对端引脚 i2 索引}；仅记录在输入侧（InParam）与流程输出侧（OutFlow），对端引脚不写回程记录（单向存储）。对被 i1/i2 错位节点的 85 条连线普查：connect2 与对端引脚 i2 100% 镜像——编码器写连线时 connect2 必须查同一张 i2 映射表",
+    "wiredPinValue": "被连线的输入引脚 value 域仍保留 ConcreteBase 包裹的类型默认值占位（class=10000, ioc=类型序, inner.set=false）；连线与字面量共存时以连线为准（编辑器不清除占位）。变量名(t9 str)引脚被连线时同样保留已填的字符串字面量"
+  }
+}

@@ -236,7 +236,7 @@ export class CompositeRegistry {
           for (let i = 0; i < outputList.length; i++) {
             const outputValue = impl.outputValues[outputList[i].name]
             if (!outputValue) continue
-            const meta = outputValue.getMetadata()
+            const meta = outputValue?.getMetadata?.()
             if (meta && meta.kind === 'pin') {
               pins.push({
                 outerPinKind: 4, // OutParam

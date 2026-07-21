@@ -280,6 +280,12 @@ function toIdentifier(name: string) {
   }
 }
 
+// Upstream documentation typo corrections. Keep the raw snapshot unchanged,
+// but never expose its misspellings in the generated TypeScript API.
+const PARAMETER_IDENTIFIER_OVERRIDES: Record<string, string> = {
+  'querySpecifiedMiniMapMarkerInformation.activationStaet': 'activationStatus'
+}
+
 function replaceBetweenMarkers(
   content: string,
   startMarker: string,
@@ -381,6 +387,26 @@ function buildGenericContext(
 function buildEvents() {
   const eventDef = rawDef['server_event_en-us']
   const eventDefZh = rawDef['server_event_zh-cn']
+  const eventDocAppendices: Record<string, string[]> = {
+    whenCustomVariableChanges: [
+      '',
+      'GSTS Note: The concrete type selected for `preChangeValue` or `postChangeValue` also determines which Custom Variable changes this event can detect; only variables of that type trigger it. If the handler only needs the event and does not consume either value, the generated event node has no concrete type information and cannot listen for changes correctly. Explicitly narrow one value with `asType()` and consume it with a Print String node:',
+      '',
+      '```ts',
+      "print(str(evt.postChangeValue.asType('int')))",
+      '```',
+      '',
+      "Replace `'int'` with the Custom Variable's actual type.",
+      '',
+      'GSTS 注: `preChangeValue` 或 `postChangeValue` 确定的具体类型同时决定本事件能检测哪一类自定义变量变化；只有该类型的变量变化才会触发。若处理函数只需要事件本身而未消费这两个值，编译生成的事件节点将不具备具体类型信息，无法正常监听变化。请对其中一个值显式调用 `asType()`，并通过【打印字符串】节点消费:',
+      '',
+      '```ts',
+      "print(str(evt.postChangeValue.asType('int')))",
+      '```',
+      '',
+      "请将 `'int'` 替换为自定义变量的实际类型。"
+    ]
+  }
   const events: {
     name: string
     nameZh: string
@@ -483,6 +509,9 @@ function buildEvents() {
     payloadLines.push(` * ${e.desc}`)
     payloadLines.push(` *`)
     payloadLines.push(` * ${e.nameZh}: ${e.descZh}`)
+    for (const line of eventDocAppendices[e.name] ?? []) {
+      payloadLines.push(line ? ` * ${line}` : ` *`)
+    }
     payloadLines.push(` */`)
     payloadLines.push(`${e.name}: {`)
     payloadLines.push(...paramLines)
@@ -598,10 +627,12 @@ function getEnumTypeForParam(paramName: string): string | null {
     currentinterruptstatus: 'InterruptStatus',
     sortby: 'SortBy',
     damagepopuptype: 'DamagePopUpType',
-    movementmode: 'MovementMode',
-    parametertype: 'FixedMotionParameterType',
-    followcoordinatesystem: 'FollowCoordinateSystem',
+    movementmode: 'FixedPointMotionDeviceMotionType',
+    parametertype: 'FixedPointMotionDeviceParameterConversionType',
+    followcoordinatesystem: 'CoordinateSystemType',
     followtype: 'FollowLocationType',
+    originalslotskillhandling: 'TopOfStackSkillDestructionType',
+    existingskillhandling: 'ClassSwitchSkillHandling',
     removalmethod: 'RemovalMethod',
     displaystatus: 'UIControlGroupStatus',
     characterskillslot: 'CharacterSkillSlot',
@@ -610,10 +641,14 @@ function getEnumTypeForParam(paramName: string): string | null {
     refreshmode: 'DecisionRefreshMode',
     settlementstatus: 'SettlementStatus',
     loottype: 'ItemLootType',
-    ruletype: 'ScanRuleType',
+    ruletype: 'ScanScoringRules',
     roundingmode: 'RoundingMode',
     entitytype: 'EntityType',
-    inputdevicetype: 'InputDeviceType'
+    inputdevicetype: 'InputDeviceType',
+    colorblendtype: 'ColorBlendType',
+    colorblendmode: 'ColorBlendType',
+    fillmaterialtype: 'FillMaterial',
+    material: 'FillMaterial'
   }
 
   return nameMap[name] || null
@@ -704,7 +739,9 @@ function buildNodes() {
                   return isValid
                 })
                 .map((p) => {
-                  const rawName = toIdentifier(p.paramName)
+                  const generatedName = toIdentifier(p.paramName)
+                  const rawName =
+                    PARAMETER_IDENTIFIER_OVERRIDES[`${nodeName}.${generatedName}`] ?? generatedName
                   const adjustedName =
                     nodeName === 'equal' && /^enumeration\d+$/.test(rawName)
                       ? rawName.replace('enumeration', 'input')
@@ -775,6 +812,70 @@ function buildNodes() {
     }
 
     lines.push(` */`)
+
+    if (n.name === 'randomDeckSelectorSelectionList') {
+      lines.push(
+        `randomDeckSelectorSelectionList(list: IntValue[], sortBy: RandomOrder): void`,
+        `randomDeckSelectorSelectionList(list: IntValue[]): void`,
+        `randomDeckSelectorSelectionList(`,
+        `  list: IntValue[],`,
+        `  sortBy: RandomOrder = RandomOrder.Random`,
+        `): void {`,
+        `  const listObj = parseValue(list, 'int_list')`,
+        `  const sortByObj = parseValue(sortBy, 'enumeration')`,
+        `  this.registry.registerNode({`,
+        `    id: 0,`,
+        `    type: '${n.nodeKind}',`,
+        `    nodeType: '${camelToSnake(n.name)}',`,
+        `    args: [listObj, sortByObj]`,
+        `  })`,
+        `}`
+      )
+      continue
+    }
+
+    if (n.name === 'setPlayerRankScoreChange') {
+      lines.push(
+        `setPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: RankSettlementStatus,`,
+        `  scoreChange: IntValue`,
+        `): void {`,
+        `  const playerEntityObj = parseValue(playerEntity, 'entity')`,
+        `  const settlementStatusObj = parseValue(settlementStatus, 'enumeration')`,
+        `  const scoreChangeObj = parseValue(scoreChange, 'int')`,
+        `  this.registry.registerNode({`,
+        `    id: 0,`,
+        `    type: '${n.nodeKind}',`,
+        `    nodeType: '${camelToSnake(n.name)}',`,
+        `    args: [playerEntityObj, settlementStatusObj, scoreChangeObj]`,
+        `  })`,
+        `}`
+      )
+      continue
+    }
+
+    if (n.name === 'getPlayerRankScoreChange') {
+      lines.push(
+        `getPlayerRankScoreChange(`,
+        `  playerEntity: PlayerEntity,`,
+        `  settlementStatus: RankSettlementStatus`,
+        `): bigint {`,
+        `  const playerEntityObj = parseValue(playerEntity, 'entity')`,
+        `  const settlementStatusObj = parseValue(settlementStatus, 'enumeration')`,
+        `  const ref = this.registry.registerNode({`,
+        `    id: 0,`,
+        `    type: '${n.nodeKind}',`,
+        `    nodeType: '${camelToSnake(n.name)}',`,
+        `    args: [playerEntityObj, settlementStatusObj]`,
+        `  })`,
+        `  const ret = new int()`,
+        `  ret.markPin(ref, 'score', 0)`,
+        `  return ret as unknown as bigint`,
+        `}`
+      )
+      continue
+    }
 
     // Build function definition
     const summaryTypeInfo = getSummaryTypeInfo(n.name)

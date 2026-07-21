@@ -1,0 +1,280 @@
+import { g } from 'genshin-ts/runtime/core'
+
+import type { clientEntity as ClientEntityType } from '../../../src/definitions/client_entity_helpers.js'
+import {
+  PreAimingEndReason,
+  TacticType,
+  TargetTypeForCameraOrientationNode,
+  TypeConversionSame
+} from '../../../src/definitions/client_enums.js'
+// scoped client helper globals capability tables are generated and typed
+import {
+  CLIENT_BLOCKED_SERVER_HELPERS,
+  CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE,
+  CLIENT_SCOPED_GLOBALS_CAPABILITY
+} from '../../../src/definitions/client_scoped_globals.js'
+import {
+  ElementalReactionType,
+  MathematicalOperator,
+  RoundingMode,
+  TargetType,
+  TypeConversion,
+  UnitStatusAdditionResult,
+  UnitStatusRemovalReason
+} from '../../../src/definitions/enum.js'
+import type {
+  ClientBoolFilterExecutionFlowFunctions,
+  ClientCharacterSkillExecutionFlowFunctions,
+  ClientCreationSkillExecutionFlowFunctions,
+  ClientCreationStatusDecisionExecutionFlowFunctions,
+  ClientCreationStatusExecutionFlowFunctions,
+  ClientIntFilterExecutionFlowFunctions,
+  ServerExecutionFlowFunctions
+} from '../../../src/definitions/nodes.js'
+import type {
+  ClientFilterGraphApi,
+  ClientFlowFunctionClass,
+  ClientFlowFunctionClassForLang,
+  ClientStartGraphApi
+} from '../../../src/runtime/client_graph_support.js'
+import type { bool, generic, int, vec3 } from '../../../src/runtime/value.js'
+
+declare function expectType<T>(value: T): void
+
+const classicZhCreationSkill = g.creationSkill({ mode: 'classic', lang: 'zh' })
+expectType<
+  ClientStartGraphApi<
+    ClientFlowFunctionClassForLang<'creation_skill', 'zh', 'classic'>,
+    'zh',
+    'classic'
+  >
+>(classicZhCreationSkill)
+classicZhCreationSkill.on('start', (_evt, f) => {
+  const selfEntity = f.获取自身实体()
+  f.加法运算(1n, 2n)
+  f.addition(3n, 4n)
+  f.查询经典模式角色编号(selfEntity)
+  selfEntity.recoverCreationSHp(10, false)
+  expectType<generic>(selfEntity.get('score'))
+  selfEntity.characters
+  expectType<generic>(selfEntity.characters[0].get('score'))
+  // @ts-expect-error returned client entities keep the same capability filter
+  selfEntity.characters[0].set('score', 1n)
+  // @ts-expect-error custom-variable assignment has no client node equivalent
+  selfEntity.set('score', 1n)
+  // @ts-expect-error aggro helpers are Beyond-only in creation skill graphs
+  selfEntity.tauntTarget
+  // @ts-expect-error server notification is Beyond-only in classic creation skill graphs
+  f.通知服务器节点图('test', '', '')
+})
+
+g.characterControlSkill().on('start', (_evt, f) => {
+  const controlMotor = f.getSelfEntity()
+  expectType<ClientEntityType<'character_control_skill', 'beyond'>>(controlMotor)
+  controlMotor.addVelocity(1.5, [0, 1, 0], 0.5)
+  controlMotor.fixedPointProjectileLaunch(10001, [0, 0, 0], [0, 0, 0], 1n)
+  expectType<vec3>(controlMotor.pos)
+  expectType<generic>(controlMotor.get('speed'))
+  // Client addUnitStatus uses (stacks, configId), after the entity receiver.
+  controlMotor.addUnitStatus(2n, 10001)
+
+  const exactAgain = clientEntity(controlMotor)
+  expectType<ClientEntityType<'character_control_skill', 'beyond'>>(exactAgain)
+
+  const assembled = f.assemblyList([self, controlMotor], 'entity')
+  expectType<ClientEntityType<'character_control_skill', 'beyond'>[]>(assembled)
+  const entityDictionary = f.assemblyDictionary([{ k: 'self', v: self }])
+  expectType<ClientEntityType<'character_control_skill', 'beyond'>>(
+    f.queryDictionaryValueByKey(entityDictionary, 'self')
+  )
+
+  // Entity parameters remain generic; callers do not need clientEntity casts.
+  f.getEntityLocation(self)
+  f.cameraOrientationDetectionData(
+    TargetTypeForCameraOrientationNode.AllExceptSelf,
+    [0, 1, 0],
+    1,
+    20
+  )
+  // @ts-expect-error this node uses the five-value camera-orientation target enum
+  f.cameraOrientationDetectionData(TargetType.All, [0, 1, 0], 1, 20)
+
+  const convertedSelf = clientEntity(self)
+  const convertedFound = clientEntity(GameObject.Find(10001n))
+  expectType<ClientEntityType>(convertedSelf)
+  expectType<clientEntity>(convertedSelf)
+  expectType<ClientEntityType>(convertedFound)
+  convertedSelf.get('speed')
+  convertedFound.get('speed')
+  // @ts-expect-error explicit client entities do not expose server-only helpers
+  convertedSelf.set('speed', 1)
+  // @ts-expect-error custom-variable assignment has no client node equivalent
+  controlMotor.set('speed', 1)
+})
+
+g.creationSkill().on('start', (_evt, f) => {
+  const selfEntity = f.getSelfEntity()
+  selfEntity.tauntTarget
+  f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
+  f.enumerationMatch(MathematicalOperator.Addition, MathematicalOperator.Division)
+  f.enumerationMatch(MathematicalOperator.ModuloOperation, MathematicalOperator.Logarithm)
+  // @ts-expect-error basic and quick mathematical operators are different editor rows
+  f.enumerationMatch(MathematicalOperator.Addition, MathematicalOperator.Logarithm)
+  f.enumerationMatch(RoundingMode.RoundUp, RoundingMode.RoundToNearest)
+  // @ts-expect-error Truncate is not present in the client enum-match dropdown
+  f.enumerationMatch(RoundingMode.Truncate, RoundingMode.RoundUp)
+  f.enumerationMatch(
+    UnitStatusAdditionResult.FailedUnexpectedError,
+    UnitStatusAdditionResult.FailedUnableToAddAdditionalStack
+  )
+  f.enumerationMatch(
+    UnitStatusAdditionResult.SuccessNewStatusApplied,
+    UnitStatusAdditionResult.SuccessSlotStacking
+  )
+  f.enumerationMatch(
+    // @ts-expect-error failure and success results are different editor rows
+    UnitStatusAdditionResult.FailedUnexpectedError,
+    UnitStatusAdditionResult.SuccessNewStatusApplied
+  )
+  f.enumerationMatch(TypeConversion.FactionToString, TypeConversion.IntegerToBoolean)
+  f.enumerationMatch(TypeConversionSame.IntegerToBoolean, TypeConversionSame.Vector3ToString)
+  // @ts-expect-error the two type-conversion dropdown rows must be selected explicitly
+  f.enumerationMatch(TypeConversion.IntegerToBoolean, TypeConversionSame.IntegerToBoolean)
+  f.enumerationMatch(TargetType.Self, TargetType.All)
+  f.enumerationMatch(
+    TargetTypeForCameraOrientationNode.None,
+    TargetTypeForCameraOrientationNode.AllExceptSelf
+  )
+  // @ts-expect-error the camera-orientation target row is distinct from the full target row
+  f.enumerationMatch(TargetType.None, TargetTypeForCameraOrientationNode.None)
+  f.enumerationMatch(ElementalReactionType.LunarCharged, ElementalReactionType.Burned)
+  f.enumerationMatch(ElementalReactionType.StellarConduct, ElementalReactionType.Fire)
+  f.enumerationMatch(
+    UnitStatusRemovalReason.AffixExpired,
+    UnitStatusRemovalReason.ShieldDepletedToZero
+  )
+  // @ts-expect-error TacticType is the status-family row 42 enum
+  f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
+  // @ts-expect-error classic-only player character list shortcut
+  selfEntity.characters
+})
+
+// @ts-expect-error BeyondEditor has no classic character skill graph
+g.characterSkill({ mode: 'classic' })
+// @ts-expect-error BeyondEditor has no classic character control skill graph
+g.characterControlSkill({ mode: 'classic' })
+
+const beyondZhIntFilter = g.intFilter({ lang: 'zh' })
+expectType<
+  ClientFilterGraphApi<
+    ClientFlowFunctionClassForLang<'int_filter', 'zh', 'beyond'>,
+    bigint | number | int,
+    'zh',
+    'beyond'
+  >
+>(beyondZhIntFilter)
+beyondZhIntFilter.on('start', (_evt, f) => {
+  f.获取当前客户端时间高精度()
+  return f.加法运算(1n, 2n)
+})
+
+const classicEnBoolFilter = g.boolFilter({ mode: 'classic' })
+expectType<
+  ClientFilterGraphApi<
+    ClientFlowFunctionClass<'bool_filter', 'classic'>,
+    boolean | bool,
+    'en',
+    'classic'
+  >
+>(classicEnBoolFilter)
+classicEnBoolFilter.on('start', (_evt, f) => {
+  // @ts-expect-error Chinese aliases require lang: 'zh'
+  f.加法运算(1n, 2n)
+  return true
+})
+
+declare const classicFilterFns: ClientFlowFunctionClass<'bool_filter', 'classic'>
+classicFilterFns.getPlayerSCharacterList
+// @ts-expect-error current client time is Beyond-only
+classicFilterFns.getCurrentClientTime()
+
+declare const classicCreationFns: ClientFlowFunctionClass<'creation_skill', 'classic'>
+classicCreationFns.checkClassicModeCharacterId
+// @ts-expect-error server notification is Beyond-only in creation skill graphs
+classicCreationFns.notifyServerNodeGraph
+
+g.creationSkill().on('start', (_evt, f) => {
+  const empty = f.emptyList('int')
+  const copied = f.copyList(empty)
+  f.listIterationLoop(copied, () => {})
+  f.initLocalVariable('int', 0n)
+  f.emptyLocalVariableList('int')
+  f.continue
+  f.return()
+})
+
+const orderedCreationStatus = g.creationStatus()
+orderedCreationStatus.on('start1', (_evt, f) => {
+  f.emptyList('int')
+  f.copyList(list('int', [1n]))
+  f.enumerationMatch(TacticType.StayMotionless, TacticType.GroundPursuit)
+  f.enumerationMatch(TypeConversionSame.IntegerToBoolean, TypeConversionSame.Vector3ToString)
+  f.enumerationMatch(
+    // @ts-expect-error FloatingPointToInteger is absent from creation-status row 34
+    TypeConversionSame.FloatingPointToInteger,
+    TypeConversionSame.IntegerToBoolean
+  )
+  // @ts-expect-error PreAimingEndReason is the skill-family row 42 enum
+  f.enumerationMatch(PreAimingEndReason.Completed, PreAimingEndReason.Cancelled)
+  f.return()
+  // @ts-expect-error creation status graphs do not have finite loops
+  f.listIterationLoop(list('int', [1n]), () => {})
+  // @ts-expect-error creation status graphs do not have local-variable nodes
+  f.initLocalVariable('int', 0n)
+})
+orderedCreationStatus.on('start10', (_evt, f) => {
+  f.continueExecutingPreviousFrameBehavior()
+})
+// @ts-expect-error creation status graphs use numbered start1...start10 events
+orderedCreationStatus.on('start', () => {})
+// @ts-expect-error ordered client entries stop at start10
+orderedCreationStatus.on('start11', () => {})
+
+g.creationStatusDecision().on('start10', (_evt, f) => {
+  f.switchToSelfExecutionStatus(true, configId(1082130604n), 10n)
+})
+
+g.boolFilter().on('start', (_evt, f) => {
+  // @ts-expect-error filter handlers return a value instead of calling f.return()
+  f.return()
+  return true
+})
+
+expectType<ServerExecutionFlowFunctions>(gsts.f)
+expectType<ServerExecutionFlowFunctions>(gsts.fServer)
+gsts.f.enumerationsEqual(ElementalReactionType.Shatter, ElementalReactionType.LunarCrystallize)
+gsts.f.enumerationsEqual(
+  UnitStatusRemovalReason.AffixExpired,
+  UnitStatusRemovalReason.ShieldDepletedToZero
+)
+// @ts-expect-error client-only elemental reaction values are unavailable in server graphs
+gsts.f.enumerationsEqual(ElementalReactionType.Burned, ElementalReactionType.Fire)
+expectType<ClientCharacterSkillExecutionFlowFunctions>(gsts.fCharacterSkill)
+expectType<ClientCreationSkillExecutionFlowFunctions>(gsts.fCreationSkill)
+expectType<ClientCreationStatusExecutionFlowFunctions>(gsts.fCreationStatus)
+expectType<ClientCreationStatusDecisionExecutionFlowFunctions>(gsts.fCreationStatusDecision)
+expectType<ClientBoolFilterExecutionFlowFunctions>(gsts.fBoolFilter)
+expectType<ClientIntFilterExecutionFlowFunctions>(gsts.fIntFilter)
+expectType<boolean>(gsts.ctx.isClientCtx())
+expectType<boolean>(gsts.ctx.isClientGraphCtx('bool_filter'))
+gsts.ctx.assertClientCtx()
+gsts.ctx.assertClientGraphCtx('bool_filter')
+gsts.ctx.withCtx('client_bool_filter_if', () => {})
+gsts.ctx.withCtx('client_bool_filter_loop', () => {})
+gsts.ctx.withCtx('client_bool_filter_switch', () => {})
+
+expectType<readonly string[]>(CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE.character_skill.Vector3)
+expectType<readonly string[]>(CLIENT_SCOPED_GLOBAL_MEMBERS_BY_SUB_TYPE.bool_filter.Mathf)
+expectType<'print'>(CLIENT_BLOCKED_SERVER_HELPERS[0])
+expectType<'setTimeout'>(CLIENT_BLOCKED_SERVER_HELPERS[1])
+expectType<number>(CLIENT_SCOPED_GLOBALS_CAPABILITY.length)

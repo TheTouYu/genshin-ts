@@ -7,17 +7,17 @@ import { buildServerScopeIndex } from '../utils/scope.js'
 
 type Options = {
   lang?: 'zh' | 'en' | 'both'
-  scope?: 'server' | 'all'
+  scope?: 'server' | 'client' | 'nodegraph' | 'all'
   includeNestedFunctions?: boolean
 }
 
 const DEFAULTS: Required<Options> = {
   lang: 'both',
-  scope: 'server',
+  scope: 'nodegraph',
   includeNestedFunctions: true
 }
 
-const WRAPPERS = new Set(['Number', 'String', 'Boolean'])
+const WRAPPERS = new Set(['Number', 'String', 'Boolean', 'bool', 'float', 'int', 'str'])
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -27,7 +27,7 @@ const rule: Rule.RuleModule = {
         type: 'object',
         properties: {
           lang: { enum: ['zh', 'en', 'both'] },
-          scope: { enum: ['server', 'all'] },
+          scope: { enum: ['server', 'client', 'nodegraph', 'all'] },
           includeNestedFunctions: { type: 'boolean' }
         },
         additionalProperties: false

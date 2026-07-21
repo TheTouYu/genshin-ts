@@ -47,7 +47,7 @@ const nodeIdSource = readFileSync(join(transformDir, 'node_id.ts'), 'utf8')
 
 // Matrix contract phase advances with later packs; P5-W8 only freezes enumerations_equal path.
 assert.ok(
-  ['P5-W8', 'P5-W9'].includes(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage),
+  ['P5-W8', 'P5-W9', 'P5-W10'].includes(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage),
   `unexpected workPackage ${ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage}`
 )
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)

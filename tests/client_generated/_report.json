@@ -1,0 +1,3985 @@
+{
+  "sampleRoot": "D:\\_S2\\mypy_test\\client_nodes",
+  "sampleCount": 1765,
+  "familyCounts": {
+    "bool_filter": 202,
+    "character_control_skill": 469,
+    "character_skill": 270,
+    "creation_skill": 246,
+    "creation_status": 202,
+    "creation_status_decision": 173,
+    "int_filter": 203
+  },
+  "graphIdentities": [
+    {
+      "subType": "bool_filter",
+      "unitType": 3,
+      "which": 10,
+      "nodeGraphType": 20001,
+      "count": 202
+    },
+    {
+      "subType": "character_control_skill",
+      "unitType": 3,
+      "which": 64,
+      "nodeGraphType": 20010,
+      "count": 469
+    },
+    {
+      "subType": "character_skill",
+      "unitType": 3,
+      "which": 11,
+      "nodeGraphType": 20002,
+      "count": 270
+    },
+    {
+      "subType": "creation_skill",
+      "unitType": 3,
+      "which": 52,
+      "nodeGraphType": 20008,
+      "count": 246
+    },
+    {
+      "subType": "creation_status",
+      "unitType": 3,
+      "which": 53,
+      "nodeGraphType": 20009,
+      "count": 202
+    },
+    {
+      "subType": "creation_status_decision",
+      "unitType": 3,
+      "which": 51,
+      "nodeGraphType": 20007,
+      "count": 173
+    },
+    {
+      "subType": "int_filter",
+      "unitType": 3,
+      "which": 47,
+      "nodeGraphType": 20006,
+      "count": 203
+    }
+  ],
+  "metadataCounts": {
+    "total": 907,
+    "bySubType": {
+      "bool_filter": 118,
+      "character_control_skill": 178,
+      "character_skill": 167,
+      "creation_skill": 139,
+      "creation_status": 100,
+      "creation_status_decision": 87,
+      "int_filter": 118
+    },
+    "withReflectMap": 201,
+    "missingEnglishName": 0,
+    "nodeTypeSources": {
+      "server_alias": 424,
+      "official_doc": 340
+    },
+    "serverAliasDivergenceCount": 23
+  },
+  "editorStaticReuse": {
+    "source": "resources/client_node_modes.json",
+    "recoveredCount": 136,
+    "recovered": [
+      {
+        "subType": "bool_filter",
+        "genericId": 200152,
+        "nodeType": "assembly_dictionary",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200153,
+        "nodeType": "create_dictionary",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200154,
+        "nodeType": "query_dictionary_value_by_key",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200155,
+        "nodeType": "query_if_dictionary_contains_specific_key",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200156,
+        "nodeType": "query_if_dictionary_contains_specific_value",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200157,
+        "nodeType": "query_dictionary_s_length",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200158,
+        "nodeType": "get_list_of_values_from_dictionary",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200159,
+        "nodeType": "get_list_of_keys_from_dictionary",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200160,
+        "nodeType": "assemble_structure",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200161,
+        "nodeType": "split_structure",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200242,
+        "nodeType": "get_player_s_character_list",
+        "sourceSubType": "static"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200243,
+        "nodeType": "whether_the_entity_has_the_specified_unit_status",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200244,
+        "nodeType": "check_the_preset_status_value_of_the_complex_creation",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200251,
+        "nodeType": "get_active_character_of_specified_player",
+        "sourceSubType": "static"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200254,
+        "nodeType": "check_classic_mode_character_id",
+        "sourceSubType": "static"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200255,
+        "nodeType": "get_player_movement_input",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200259,
+        "nodeType": "query_skill_variable_value",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200267,
+        "nodeType": "get_current_key_behavior",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200268,
+        "nodeType": "get_current_key_behavior_high_precision",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200269,
+        "nodeType": "get_current_client_time",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200270,
+        "nodeType": "get_current_client_time_high_precision",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200271,
+        "nodeType": "query_whether_player_is_currently_in_voice_chat",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200272,
+        "nodeType": "get_skill_config_id_by_skill_instance_id",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200273,
+        "nodeType": "query_skill_instance_list_by_specified_slot",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200274,
+        "nodeType": "query_active_skill_instance_list_of_specified_slot",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200275,
+        "nodeType": "query_skill_instance_id_by_skill_slot_and_skill_config_id",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200276,
+        "nodeType": "get_base_object_of_specified_pre_aiming",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200277,
+        "nodeType": "get_pre_aiming_result",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200278,
+        "nodeType": "get_pre_aiming_duration",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200279,
+        "nodeType": "get_current_active_pre_aiming_index",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200280,
+        "nodeType": "get_pre_aiming_collision_detection_result_count",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200281,
+        "nodeType": "get_pre_aiming_ray_hit_info",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200282,
+        "nodeType": "get_whether_pre_aiming_stick_is_in_dead_zone",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200283,
+        "nodeType": "query_pre_aiming_end_reason",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200284,
+        "nodeType": "get_whether_cursor_is_active",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200285,
+        "nodeType": "get_cursor_hit_result",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200286,
+        "nodeType": "get_cursor_screen_coordinates",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200287,
+        "nodeType": "get_cursor_viewport_coordinates",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200290,
+        "nodeType": "screen_coordinates_to_viewport_coordinates",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200291,
+        "nodeType": "viewport_coordinates_to_screen_coordinates",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200292,
+        "nodeType": "screen_coordinates_to_world_coordinates",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "bool_filter",
+        "genericId": 200293,
+        "nodeType": "world_coordinates_to_screen_coordinates",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200152,
+        "nodeType": "assembly_dictionary",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200153,
+        "nodeType": "create_dictionary",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200154,
+        "nodeType": "query_dictionary_value_by_key",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200155,
+        "nodeType": "query_if_dictionary_contains_specific_key",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200156,
+        "nodeType": "query_if_dictionary_contains_specific_value",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200157,
+        "nodeType": "query_dictionary_s_length",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200158,
+        "nodeType": "get_list_of_values_from_dictionary",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200159,
+        "nodeType": "get_list_of_keys_from_dictionary",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200160,
+        "nodeType": "assemble_structure",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200161,
+        "nodeType": "split_structure",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200242,
+        "nodeType": "get_player_s_character_list",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200243,
+        "nodeType": "whether_the_entity_has_the_specified_unit_status",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200244,
+        "nodeType": "check_the_preset_status_value_of_the_complex_creation",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200251,
+        "nodeType": "get_active_character_of_specified_player",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200254,
+        "nodeType": "check_classic_mode_character_id",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200255,
+        "nodeType": "get_player_movement_input",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200259,
+        "nodeType": "query_skill_variable_value",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200267,
+        "nodeType": "get_current_key_behavior",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200268,
+        "nodeType": "get_current_key_behavior_high_precision",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200269,
+        "nodeType": "get_current_client_time",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200270,
+        "nodeType": "get_current_client_time_high_precision",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200271,
+        "nodeType": "query_whether_player_is_currently_in_voice_chat",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200272,
+        "nodeType": "get_skill_config_id_by_skill_instance_id",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200273,
+        "nodeType": "query_skill_instance_list_by_specified_slot",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200274,
+        "nodeType": "query_active_skill_instance_list_of_specified_slot",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200275,
+        "nodeType": "query_skill_instance_id_by_skill_slot_and_skill_config_id",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200276,
+        "nodeType": "get_base_object_of_specified_pre_aiming",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200277,
+        "nodeType": "get_pre_aiming_result",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200278,
+        "nodeType": "get_pre_aiming_duration",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200279,
+        "nodeType": "get_current_active_pre_aiming_index",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200280,
+        "nodeType": "get_pre_aiming_collision_detection_result_count",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200281,
+        "nodeType": "get_pre_aiming_ray_hit_info",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200282,
+        "nodeType": "get_whether_pre_aiming_stick_is_in_dead_zone",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200283,
+        "nodeType": "query_pre_aiming_end_reason",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200284,
+        "nodeType": "get_whether_cursor_is_active",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200285,
+        "nodeType": "get_cursor_hit_result",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200286,
+        "nodeType": "get_cursor_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200287,
+        "nodeType": "get_cursor_viewport_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200290,
+        "nodeType": "screen_coordinates_to_viewport_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200291,
+        "nodeType": "viewport_coordinates_to_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200292,
+        "nodeType": "screen_coordinates_to_world_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "int_filter",
+        "genericId": 200293,
+        "nodeType": "world_coordinates_to_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200255,
+        "nodeType": "get_player_movement_input",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200256,
+        "nodeType": "interrupt_current_skill",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200257,
+        "nodeType": "set_skill_variable",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200258,
+        "nodeType": "increase_skill_variable_value",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200259,
+        "nodeType": "query_skill_variable_value",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200261,
+        "nodeType": "character_blink",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200262,
+        "nodeType": "add_key_behavior",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200263,
+        "nodeType": "clear_key_behavior_log_panel",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200264,
+        "nodeType": "multiple_branches",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200265,
+        "nodeType": "cast_specified_skill_instance",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200266,
+        "nodeType": "cast_skill_from_specified_slot",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200267,
+        "nodeType": "get_current_key_behavior",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200268,
+        "nodeType": "get_current_key_behavior_high_precision",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200269,
+        "nodeType": "get_current_client_time",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200270,
+        "nodeType": "get_current_client_time_high_precision",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200271,
+        "nodeType": "query_whether_player_is_currently_in_voice_chat",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200272,
+        "nodeType": "get_skill_config_id_by_skill_instance_id",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200273,
+        "nodeType": "query_skill_instance_list_by_specified_slot",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200274,
+        "nodeType": "query_active_skill_instance_list_of_specified_slot",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200275,
+        "nodeType": "query_skill_instance_id_by_skill_slot_and_skill_config_id",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200276,
+        "nodeType": "get_base_object_of_specified_pre_aiming",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200277,
+        "nodeType": "get_pre_aiming_result",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200278,
+        "nodeType": "get_pre_aiming_duration",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200279,
+        "nodeType": "get_current_active_pre_aiming_index",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200280,
+        "nodeType": "get_pre_aiming_collision_detection_result_count",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200281,
+        "nodeType": "get_pre_aiming_ray_hit_info",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200282,
+        "nodeType": "get_whether_pre_aiming_stick_is_in_dead_zone",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200283,
+        "nodeType": "query_pre_aiming_end_reason",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200284,
+        "nodeType": "get_whether_cursor_is_active",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200285,
+        "nodeType": "get_cursor_hit_result",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200286,
+        "nodeType": "get_cursor_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200287,
+        "nodeType": "get_cursor_viewport_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200288,
+        "nodeType": "finish_current_pre_aiming",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200290,
+        "nodeType": "screen_coordinates_to_viewport_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200291,
+        "nodeType": "viewport_coordinates_to_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200292,
+        "nodeType": "screen_coordinates_to_world_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "character_skill",
+        "genericId": 200293,
+        "nodeType": "world_coordinates_to_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200114,
+        "nodeType": "trigger_spherical_hitbox_at_specified_attachment_point",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200242,
+        "nodeType": "get_player_s_character_list",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200251,
+        "nodeType": "get_active_character_of_specified_player",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200254,
+        "nodeType": "check_classic_mode_character_id",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200257,
+        "nodeType": "set_skill_variable",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200258,
+        "nodeType": "increase_skill_variable_value",
+        "sourceSubType": "character_control_skill"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200259,
+        "nodeType": "query_skill_variable_value",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200284,
+        "nodeType": "get_whether_cursor_is_active",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200285,
+        "nodeType": "get_cursor_hit_result",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200286,
+        "nodeType": "get_cursor_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200287,
+        "nodeType": "get_cursor_viewport_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200290,
+        "nodeType": "screen_coordinates_to_viewport_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200291,
+        "nodeType": "viewport_coordinates_to_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200292,
+        "nodeType": "screen_coordinates_to_world_coordinates",
+        "sourceSubType": "bool_filter"
+      },
+      {
+        "subType": "creation_skill",
+        "genericId": 200293,
+        "nodeType": "world_coordinates_to_screen_coordinates",
+        "sourceSubType": "bool_filter"
+      }
+    ],
+    "correctedGenericIds": [
+      {
+        "subType": "creation_skill",
+        "nodeType": "recover_creation_s_hp",
+        "from": 200075,
+        "to": 200249,
+        "source": "BeyondEditorStatic/Node/9073923717836444300.mihoyobin"
+      }
+    ]
+  },
+  "staticPinMetadata": {
+    "source": "resources/client_node_static_metadata.json",
+    "encoding": "xor-0xe5 protobuf wire format",
+    "scannedNodeFiles": 799,
+    "selectedClientNodes": 297,
+    "aggregateSha256": "9cf2a0d142d301c9faec297d5bcec01ac433ad55efa2d06dd611ca6151bc76be",
+    "chsTextMapSha256": "355815f5143c6749b9341ff62b0a6d6dbd751664c4e3c6f00bc9bcd6c37b3e48",
+    "inputPins": 1173,
+    "connectableInputs": 828,
+    "literalOnlyInputs": 345,
+    "reflectiveInputs": 309,
+    "pinsWithExplicitDefaults": 109,
+    "namedPins": 1446,
+    "concreteVariantGroups": 88,
+    "concreteVariants": 4259,
+    "concreteVariantBindings": 53934,
+    "i2CorrectionCount": 227,
+    "i2Corrections": [
+      {
+        "genericId": 200038,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 4
+      },
+      {
+        "genericId": 200038,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 0
+      },
+      {
+        "genericId": 200041,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200041,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200052,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200052,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200052,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 1
+      },
+      {
+        "genericId": 200053,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200053,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200053,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200053,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200053,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 5
+      },
+      {
+        "genericId": 200055,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200055,
+        "kind": "output",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200056,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200056,
+        "kind": "out_flow",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200056,
+        "kind": "out_flow",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200057,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200057,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200057,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200058,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200058,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 6
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 7
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 3
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 4
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 5
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 29
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 8,
+        "from": 8,
+        "to": 2
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 9,
+        "from": 9,
+        "to": 8
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 10,
+        "from": 10,
+        "to": 9
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 11,
+        "from": 11,
+        "to": 10
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 12,
+        "from": 12,
+        "to": 11
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 13,
+        "from": 13,
+        "to": 12
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 14,
+        "from": 14,
+        "to": 13
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 15,
+        "from": 15,
+        "to": 14
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 16,
+        "from": 16,
+        "to": 15
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 17,
+        "from": 17,
+        "to": 16
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 18,
+        "from": 18,
+        "to": 17
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 19,
+        "from": 19,
+        "to": 18
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 20,
+        "from": 20,
+        "to": 19
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 21,
+        "from": 21,
+        "to": 20
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 22,
+        "from": 22,
+        "to": 21
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 23,
+        "from": 23,
+        "to": 22
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 24,
+        "from": 24,
+        "to": 23
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 25,
+        "from": 25,
+        "to": 24
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 26,
+        "from": 26,
+        "to": 25
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 27,
+        "from": 27,
+        "to": 26
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 28,
+        "from": 28,
+        "to": 27
+      },
+      {
+        "genericId": 200059,
+        "kind": "input",
+        "index": 29,
+        "from": 29,
+        "to": 28
+      },
+      {
+        "genericId": 200062,
+        "kind": "output",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200062,
+        "kind": "output",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 5
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 6
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 7
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 8
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 8,
+        "from": 8,
+        "to": 9
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 9,
+        "from": 9,
+        "to": 10
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 10,
+        "from": 10,
+        "to": 11
+      },
+      {
+        "genericId": 200075,
+        "kind": "input",
+        "index": 11,
+        "from": 11,
+        "to": 12
+      },
+      {
+        "genericId": 200079,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200079,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200079,
+        "kind": "out_flow",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200079,
+        "kind": "out_flow",
+        "index": 1,
+        "from": 1,
+        "to": 0
+      },
+      {
+        "genericId": 200079,
+        "kind": "output",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200083,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200083,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200083,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200084,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200084,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200084,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200085,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200085,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200085,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200086,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200086,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200086,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200086,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200087,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200088,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200088,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200089,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 2
+      },
+      {
+        "genericId": 200105,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 6
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 7
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 3
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 4
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 5
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 29
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 8,
+        "from": 8,
+        "to": 2
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 9,
+        "from": 9,
+        "to": 8
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 10,
+        "from": 10,
+        "to": 9
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 11,
+        "from": 11,
+        "to": 10
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 12,
+        "from": 12,
+        "to": 11
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 13,
+        "from": 13,
+        "to": 12
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 14,
+        "from": 14,
+        "to": 13
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 15,
+        "from": 15,
+        "to": 14
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 16,
+        "from": 16,
+        "to": 15
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 17,
+        "from": 17,
+        "to": 16
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 18,
+        "from": 18,
+        "to": 17
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 19,
+        "from": 19,
+        "to": 18
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 20,
+        "from": 20,
+        "to": 19
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 21,
+        "from": 21,
+        "to": 20
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 22,
+        "from": 22,
+        "to": 21
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 23,
+        "from": 23,
+        "to": 22
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 24,
+        "from": 24,
+        "to": 23
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 25,
+        "from": 25,
+        "to": 24
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 26,
+        "from": 26,
+        "to": 25
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 27,
+        "from": 27,
+        "to": 26
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 28,
+        "from": 28,
+        "to": 27
+      },
+      {
+        "genericId": 200114,
+        "kind": "input",
+        "index": 29,
+        "from": 29,
+        "to": 28
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 6
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 7
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 3
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 4
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 5
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 29
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 8,
+        "from": 8,
+        "to": 2
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 9,
+        "from": 9,
+        "to": 8
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 10,
+        "from": 10,
+        "to": 9
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 11,
+        "from": 11,
+        "to": 10
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 12,
+        "from": 12,
+        "to": 11
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 13,
+        "from": 13,
+        "to": 12
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 14,
+        "from": 14,
+        "to": 13
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 15,
+        "from": 15,
+        "to": 14
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 16,
+        "from": 16,
+        "to": 15
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 17,
+        "from": 17,
+        "to": 16
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 18,
+        "from": 18,
+        "to": 17
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 19,
+        "from": 19,
+        "to": 18
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 20,
+        "from": 20,
+        "to": 19
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 21,
+        "from": 21,
+        "to": 20
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 22,
+        "from": 22,
+        "to": 21
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 23,
+        "from": 23,
+        "to": 22
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 24,
+        "from": 24,
+        "to": 23
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 25,
+        "from": 25,
+        "to": 24
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 26,
+        "from": 26,
+        "to": 25
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 27,
+        "from": 27,
+        "to": 26
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 28,
+        "from": 28,
+        "to": 27
+      },
+      {
+        "genericId": 200115,
+        "kind": "input",
+        "index": 29,
+        "from": 29,
+        "to": 28
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 6
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 7
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 3
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 4
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 5
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 29
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 8,
+        "from": 8,
+        "to": 2
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 9,
+        "from": 9,
+        "to": 8
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 10,
+        "from": 10,
+        "to": 9
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 11,
+        "from": 11,
+        "to": 10
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 12,
+        "from": 12,
+        "to": 11
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 13,
+        "from": 13,
+        "to": 12
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 14,
+        "from": 14,
+        "to": 13
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 15,
+        "from": 15,
+        "to": 14
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 16,
+        "from": 16,
+        "to": 15
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 17,
+        "from": 17,
+        "to": 16
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 18,
+        "from": 18,
+        "to": 17
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 19,
+        "from": 19,
+        "to": 18
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 20,
+        "from": 20,
+        "to": 19
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 21,
+        "from": 21,
+        "to": 20
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 22,
+        "from": 22,
+        "to": 21
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 23,
+        "from": 23,
+        "to": 22
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 24,
+        "from": 24,
+        "to": 23
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 25,
+        "from": 25,
+        "to": 24
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 26,
+        "from": 26,
+        "to": 25
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 27,
+        "from": 27,
+        "to": 26
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 28,
+        "from": 28,
+        "to": 27
+      },
+      {
+        "genericId": 200116,
+        "kind": "input",
+        "index": 29,
+        "from": 29,
+        "to": 28
+      },
+      {
+        "genericId": 200215,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200216,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200216,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200217,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200217,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200217,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200218,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200218,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200219,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200219,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200219,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200220,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200245,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200247,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200247,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200248,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200248,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200248,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200248,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 5
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 6
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 7
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 8
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 8,
+        "from": 8,
+        "to": 9
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 9,
+        "from": 9,
+        "to": 10
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 10,
+        "from": 10,
+        "to": 11
+      },
+      {
+        "genericId": 200249,
+        "kind": "input",
+        "index": 11,
+        "from": 11,
+        "to": 12
+      },
+      {
+        "genericId": 200261,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200261,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200262,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200265,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200265,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200266,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200266,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 4,
+        "from": 4,
+        "to": 5
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 5,
+        "from": 5,
+        "to": 6
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 6,
+        "from": 6,
+        "to": 7
+      },
+      {
+        "genericId": 200289,
+        "kind": "input",
+        "index": 7,
+        "from": 7,
+        "to": 8
+      },
+      {
+        "genericId": 200304,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200304,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200304,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200304,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200305,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200305,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "genericId": 200305,
+        "kind": "input",
+        "index": 2,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "genericId": 200305,
+        "kind": "input",
+        "index": 3,
+        "from": 3,
+        "to": 4
+      },
+      {
+        "genericId": 200306,
+        "kind": "input",
+        "index": 0,
+        "from": 0,
+        "to": 1
+      },
+      {
+        "genericId": 200306,
+        "kind": "input",
+        "index": 1,
+        "from": 1,
+        "to": 2
+      }
+    ],
+    "defaultValueCorrectionCount": 1,
+    "defaultValueCorrections": [
+      {
+        "genericId": 200249,
+        "index": 9,
+        "clientVarType": 7,
+        "from": 0,
+        "to": 1
+      }
+    ],
+    "pinsAbsentFromBaseMetadata": 13,
+    "pinsAbsentFromAnySampleEvidence": 13,
+    "sampleConnectedInputs": 1993,
+    "distinctSampleConnectedInputs": 494,
+    "absentFromBaseMetadata": [
+      {
+        "genericId": 200042,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200049,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200050,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200110,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200124,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200126,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200152,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200160,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200161,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200191,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200228,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200236,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200237,
+        "kind": "client_signal",
+        "index": 0
+      }
+    ],
+    "absentFromAnySampleEvidence": [
+      {
+        "genericId": 200042,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200049,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200050,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200110,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200124,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200126,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200152,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200160,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200161,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200191,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200228,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200236,
+        "kind": "client_signal",
+        "index": 0
+      },
+      {
+        "genericId": 200237,
+        "kind": "client_signal",
+        "index": 0
+      }
+    ]
+  },
+  "staticConcreteVariants": {
+    "source": "resources/client_node_concrete_variants.json",
+    "recordsWithStaticVariants": 206,
+    "replacedRecords": 130,
+    "customSpecializationRecords": 76,
+    "validatedSampleVariants": 413,
+    "concreteIdCorrectionCount": 65,
+    "concreteIdCorrections": [
+      {
+        "subType": "bool_filter",
+        "nodeType": "greater_than",
+        "genericId": 200007,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "less_than",
+        "genericId": 200008,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200010,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "addition",
+        "genericId": 200011,
+        "from": 30,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "subtraction",
+        "genericId": 200012,
+        "from": 30,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "absolute_value_operation",
+        "genericId": 200015,
+        "from": 32,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "get_maximum_value_from_list",
+        "genericId": 200020,
+        "from": 120,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "get_minimum_value_from_list",
+        "genericId": 200021,
+        "from": 122,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "get_random_number",
+        "genericId": 200032,
+        "from": 1011,
+        "to": null
+      },
+      {
+        "subType": "bool_filter",
+        "nodeType": "assembly_list",
+        "genericId": 200049,
+        "from": 1026,
+        "to": null
+      },
+      {
+        "subType": "character_control_skill",
+        "nodeType": "greater_than",
+        "genericId": 200007,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "character_control_skill",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200010,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "character_control_skill",
+        "nodeType": "addition",
+        "genericId": 200011,
+        "from": 30,
+        "to": null
+      },
+      {
+        "subType": "character_control_skill",
+        "nodeType": "subtraction",
+        "genericId": 200012,
+        "from": 30,
+        "to": null
+      },
+      {
+        "subType": "character_control_skill",
+        "nodeType": "absolute_value_operation",
+        "genericId": 200015,
+        "from": 32,
+        "to": null
+      },
+      {
+        "subType": "character_control_skill",
+        "nodeType": "get_random_number",
+        "genericId": 200032,
+        "from": 1011,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "greater_than",
+        "genericId": 200007,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "less_than",
+        "genericId": 200008,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "less_than_or_equal_to",
+        "genericId": 200009,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200010,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "subtraction",
+        "genericId": 200012,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "absolute_value_operation",
+        "genericId": 200015,
+        "from": 33,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "get_list_length",
+        "genericId": 200018,
+        "from": 85,
+        "to": null
+      },
+      {
+        "subType": "character_skill",
+        "nodeType": "get_random_number",
+        "genericId": 200032,
+        "from": 1012,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "less_than",
+        "genericId": 200008,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "less_than_or_equal_to",
+        "genericId": 200009,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200010,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "addition",
+        "genericId": 200011,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "multiplication",
+        "genericId": 200013,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "division",
+        "genericId": 200014,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_custom_variable",
+        "genericId": 200016,
+        "from": 45,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_list_length",
+        "genericId": 200018,
+        "from": 85,
+        "to": null
+      },
+      {
+        "subType": "creation_skill",
+        "nodeType": "get_random_number",
+        "genericId": 200032,
+        "from": 1011,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "greater_than",
+        "genericId": 200180,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "less_than",
+        "genericId": 200181,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "less_than_or_equal_to",
+        "genericId": 200182,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200183,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "absolute_value_operation",
+        "genericId": 200188,
+        "from": 32,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "get_random_number",
+        "genericId": 200190,
+        "from": 1012,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "get_list_length",
+        "genericId": 200223,
+        "from": 80,
+        "to": null
+      },
+      {
+        "subType": "creation_status",
+        "nodeType": "list_includes_this_value",
+        "genericId": 200224,
+        "from": 101,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "greater_than",
+        "genericId": 200180,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "less_than",
+        "genericId": 200181,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "less_than_or_equal_to",
+        "genericId": 200182,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200183,
+        "from": 13,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "addition",
+        "genericId": 200184,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "subtraction",
+        "genericId": 200185,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "division",
+        "genericId": 200187,
+        "from": 31,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "absolute_value_operation",
+        "genericId": 200188,
+        "from": 33,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "get_random_number",
+        "genericId": 200190,
+        "from": 1011,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "get_list_length",
+        "genericId": 200223,
+        "from": 80,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "get_maximum_value_from_list",
+        "genericId": 200225,
+        "from": 120,
+        "to": null
+      },
+      {
+        "subType": "creation_status_decision",
+        "nodeType": "get_minimum_value_from_list",
+        "genericId": 200226,
+        "from": 122,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "greater_than",
+        "genericId": 200007,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "less_than",
+        "genericId": 200008,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "less_than_or_equal_to",
+        "genericId": 200009,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "greater_than_or_equal_to",
+        "genericId": 200010,
+        "from": 12,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "addition",
+        "genericId": 200011,
+        "from": 30,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "subtraction",
+        "genericId": 200012,
+        "from": 30,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "absolute_value_operation",
+        "genericId": 200015,
+        "from": 32,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "get_custom_variable",
+        "genericId": 200016,
+        "from": 45,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "get_list_length",
+        "genericId": 200018,
+        "from": 81,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "get_maximum_value_from_list",
+        "genericId": 200020,
+        "from": 120,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "get_minimum_value_from_list",
+        "genericId": 200021,
+        "from": 122,
+        "to": null
+      },
+      {
+        "subType": "int_filter",
+        "nodeType": "get_random_number",
+        "genericId": 200032,
+        "from": 1011,
+        "to": null
+      }
+    ],
+    "addedVariantCount": 62,
+    "additions": [
+      {
+        "genericId": 200006,
+        "nodeTypes": [
+          "equal"
+        ],
+        "before": 5,
+        "after": 10,
+        "added": [
+          "1,1:16",
+          "16,16:18",
+          "19,19:20",
+          "7,7:13",
+          "9,9:14"
+        ]
+      },
+      {
+        "genericId": 200017,
+        "nodeTypes": [
+          "get_corresponding_value_from_list"
+        ],
+        "before": 9,
+        "after": 11,
+        "added": [
+          "21:68",
+          "23:69"
+        ]
+      },
+      {
+        "genericId": 200018,
+        "nodeTypes": [
+          "get_list_length"
+        ],
+        "before": 2,
+        "after": 11,
+        "added": [
+          "10:83",
+          "12:86",
+          "15:84",
+          "20:89",
+          "21:90",
+          "23:87",
+          "25:88",
+          "6:80",
+          "8:82"
+        ]
+      },
+      {
+        "genericId": 200049,
+        "nodeTypes": [
+          "assembly_list"
+        ],
+        "before": 9,
+        "after": 11,
+        "added": [
+          "16,16,16,16,16,16,16,16,16,16:1065",
+          "22,22,22,22,22,22,22,22,22,22:1062"
+        ]
+      },
+      {
+        "genericId": 200127,
+        "nodeTypes": [
+          "multiple_branches"
+        ],
+        "before": 1,
+        "after": 2,
+        "added": [
+          "9,10:4002"
+        ]
+      },
+      {
+        "genericId": 200179,
+        "nodeTypes": [
+          "equal"
+        ],
+        "before": 5,
+        "after": 10,
+        "added": [
+          "14,14:15",
+          "18,18:19",
+          "19,19:20",
+          "7,7:13",
+          "9,9:14"
+        ]
+      },
+      {
+        "genericId": 200180,
+        "nodeTypes": [
+          "greater_than"
+        ],
+        "before": 1,
+        "after": 2,
+        "added": [
+          "3,3:12"
+        ]
+      },
+      {
+        "genericId": 200182,
+        "nodeTypes": [
+          "less_than_or_equal_to"
+        ],
+        "before": 1,
+        "after": 2,
+        "added": [
+          "3,3:12"
+        ]
+      },
+      {
+        "genericId": 200183,
+        "nodeTypes": [
+          "greater_than_or_equal_to"
+        ],
+        "before": 1,
+        "after": 2,
+        "added": [
+          "3,3:12"
+        ]
+      },
+      {
+        "genericId": 200191,
+        "nodeTypes": [
+          "assembly_list"
+        ],
+        "before": 3,
+        "after": 11,
+        "added": [
+          "11,11,11,11,11,11,11,11,11,11:1030",
+          "14,14,14,14,14,14,14,14,14,14:1043",
+          "16,16,16,16,16,16,16,16,16,16:1065",
+          "18,18,18,18,18,18,18,18,18,18:1044",
+          "19,19,19,19,19,19,19,19,19,19:1045",
+          "22,22,22,22,22,22,22,22,22,22:1062",
+          "5,5,5,5,5,5,5,5,5,5:1027",
+          "9,9,9,9,9,9,9,9,9,9:1029"
+        ]
+      },
+      {
+        "genericId": 200222,
+        "nodeTypes": [
+          "get_corresponding_value_from_list"
+        ],
+        "before": 3,
+        "after": 11,
+        "added": [
+          "10:63",
+          "12:66",
+          "15:64",
+          "20:67",
+          "21:68",
+          "23:69",
+          "25:70",
+          "8:62"
+        ]
+      },
+      {
+        "genericId": 200223,
+        "nodeTypes": [
+          "get_list_length"
+        ],
+        "before": 1,
+        "after": 11,
+        "added": [
+          "10:83",
+          "12:86",
+          "15:84",
+          "20:89",
+          "21:90",
+          "23:87",
+          "25:88",
+          "2:85",
+          "4:81",
+          "8:82"
+        ]
+      },
+      {
+        "genericId": 200224,
+        "nodeTypes": [
+          "list_includes_this_value"
+        ],
+        "before": 2,
+        "after": 10,
+        "added": [
+          "11,12:106",
+          "14,15:104",
+          "16,25:109",
+          "18,20:107",
+          "19,21:108",
+          "5,6:100",
+          "7,8:102",
+          "9,10:103"
+        ]
+      },
+      {
+        "genericId": 200264,
+        "nodeTypes": [
+          "multiple_branches"
+        ],
+        "before": 1,
+        "after": 2,
+        "added": [
+          "9,10:2000"
+        ]
+      }
+    ]
+  },
+  "unknownFamily": [],
+  "decodeFailures": [],
+  "clientVarType25": {
+    "conclusion": "observed faction list type",
+    "hitCount": 6,
+    "hits": [
+      {
+        "file": "角色技能节点图\\变量字典覆盖采样.gia",
+        "subType": "character_skill",
+        "nodeIndex": 21,
+        "genericId": 200016,
+        "concreteId": 59,
+        "pinKind": 4,
+        "pinIndex": 0,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\变量字典覆盖采样.gia",
+        "subType": "character_skill",
+        "nodeIndex": 43,
+        "genericId": 200019,
+        "concreteId": 109,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\变量字典覆盖采样.gia",
+        "subType": "character_skill",
+        "nodeIndex": 44,
+        "genericId": 200019,
+        "concreteId": 109,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\定点发射投射物_连线.gia",
+        "subType": "character_skill",
+        "nodeIndex": 168,
+        "genericId": 200017,
+        "concreteId": 70,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
+      {
+        "file": "角色技能节点图\\客户端信号_局部变量类型补充.gia",
+        "subType": "character_skill",
+        "nodeIndex": 36,
+        "genericId": 200081,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 25
+      },
+      {
+        "file": "造物状态节点图\\变量字典覆盖采样核验_填值.gia",
+        "subType": "creation_status",
+        "nodeIndex": 4,
+        "genericId": 200173,
+        "concreteId": 4219,
+        "pinKind": 4,
+        "pinIndex": 0,
+        "pinType": 25
+      }
+    ]
+  },
+  "statusNodeExtension": {
+    "requiredForSubTypes": [
+      "creation_status",
+      "creation_status_decision"
+    ],
+    "hitCount": 375,
+    "uniqueValues": [
+      {
+        "type": 1,
+        "inner": {
+          "value": 1
+        }
+      }
+    ],
+    "bySubType": {
+      "creation_status": 202,
+      "creation_status_decision": 173
+    }
+  },
+  "inlineVarTypeHint": {
+    "status": "observed unsupported detail; not a main-chain blocker",
+    "hitCount": 33,
+    "files": [
+      {
+        "file": "角色操控技能节点图\\遍历实体列表_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_填值.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\定点位移_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\角色闪现_连线.gia",
+        "count": 2
+      },
+      {
+        "file": "角色操控技能节点图\\镜头朝向检测数据_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\设置技能变量_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\施放指定技能实例_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\特定位置打球形攻击盒_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\添加单位状态_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\添加速度_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向指定朝向_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色技能节点图\\播放限时特效_连线.gia",
+        "count": 2
+      },
+      {
+        "file": "角色技能节点图\\嘲讽目标_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色技能节点图\\定点发射投射物_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "角色技能节点图\\定点发射投射物.gia",
+        "count": 1
+      },
+      {
+        "file": "角色技能节点图\\玩家转向_连线.gia",
+        "count": 2
+      },
+      {
+        "file": "角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\遍历实体列表_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\定点发射投射物_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\定点发射投射物.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\恢复生命值_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\设置造物的公共冷却时间_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\设置造物技能的当前冷却时间_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物技能节点图\\设置造物冷却组的当前时间_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物状态决策节点图\\切换自身执行状态_连线.gia",
+        "count": 1
+      },
+      {
+        "file": "造物状态决策节点图\\切换自身执行状态.gia",
+        "count": 1
+      },
+      {
+        "file": "造物状态决策节点图\\最小图_单节点.gia",
+        "count": 1
+      }
+    ],
+    "hits": [
+      {
+        "file": "角色操控技能节点图\\遍历实体列表_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[6].pins[0].value.#3",
+        "byteOffset": 1622,
+        "payloadLength": 9,
+        "nodeIndex": 90,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[1].value.#3",
+        "byteOffset": 232,
+        "payloadLength": 9,
+        "nodeIndex": 101,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物_填值.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[0].value.#3",
+        "byteOffset": 210,
+        "payloadLength": 9,
+        "nodeIndex": 101,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点发射投射物.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[0].value.#3",
+        "byteOffset": 208,
+        "payloadLength": 9,
+        "nodeIndex": 101,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\定点位移_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 603,
+        "payloadLength": 9,
+        "nodeIndex": 109,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\角色闪现_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 469,
+        "payloadLength": 9,
+        "nodeIndex": 124,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\角色闪现_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[5].pins[0].value.#3",
+        "byteOffset": 1259,
+        "payloadLength": 9,
+        "nodeIndex": 127,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\镜头朝向检测数据_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 579,
+        "payloadLength": 9,
+        "nodeIndex": 129,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\设置技能变量_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 429,
+        "payloadLength": 9,
+        "nodeIndex": 146,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\施放指定技能实例_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 441,
+        "payloadLength": 9,
+        "nodeIndex": 159,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\特定位置打球形攻击盒_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[3].pins[0].value.#3",
+        "byteOffset": 2472,
+        "payloadLength": 9,
+        "nodeIndex": 187,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\添加单位状态_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[5].pins[0].value.#3",
+        "byteOffset": 1080,
+        "payloadLength": 9,
+        "nodeIndex": 209,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\添加速度_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[7].pins[0].value.#3",
+        "byteOffset": 1311,
+        "payloadLength": 9,
+        "nodeIndex": 374,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[3].pins[0].value.#3",
+        "byteOffset": 467,
+        "payloadLength": 9,
+        "nodeIndex": 219,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色操控技能节点图\\玩家转向指定朝向_连线.gia",
+        "subType": "character_control_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 409,
+        "payloadLength": 9,
+        "nodeIndex": 221,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\播放限时特效_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 583,
+        "payloadLength": 9,
+        "nodeIndex": 157,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\播放限时特效_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[7].pins[0].value.#3",
+        "byteOffset": 1722,
+        "payloadLength": 9,
+        "nodeIndex": 162,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\嘲讽目标_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[5].pins[0].value.#3",
+        "byteOffset": 873,
+        "payloadLength": 9,
+        "nodeIndex": 348,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\定点发射投射物_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[1].value.#3",
+        "byteOffset": 220,
+        "payloadLength": 9,
+        "nodeIndex": 163,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\定点发射投射物.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[0].value.#3",
+        "byteOffset": 197,
+        "payloadLength": 9,
+        "nodeIndex": 163,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\玩家转向_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 361,
+        "payloadLength": 9,
+        "nodeIndex": 257,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\玩家转向_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[3].pins[0].value.#3",
+        "byteOffset": 608,
+        "payloadLength": 9,
+        "nodeIndex": 258,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "角色技能节点图\\指定挂接点打扇形攻击盒_连线.gia",
+        "subType": "character_skill",
+        "path": "$.graph.graph.inner.graph.nodes[10].pins[0].value.#3",
+        "byteOffset": 3704,
+        "payloadLength": 9,
+        "nodeIndex": 311,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\遍历实体列表_连线.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[6].pins[0].value.#3",
+        "byteOffset": 1505,
+        "payloadLength": 9,
+        "nodeIndex": 378,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\定点发射投射物_连线.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[1].value.#3",
+        "byteOffset": 220,
+        "payloadLength": 9,
+        "nodeIndex": 386,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\定点发射投射物.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[0].value.#3",
+        "byteOffset": 197,
+        "payloadLength": 9,
+        "nodeIndex": 386,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\恢复生命值_连线.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 759,
+        "payloadLength": 9,
+        "nodeIndex": 406,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\设置造物的公共冷却时间_连线.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[4].pins[0].value.#3",
+        "byteOffset": 692,
+        "payloadLength": 9,
+        "nodeIndex": 416,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\设置造物技能的当前冷却时间_连线.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 423,
+        "payloadLength": 9,
+        "nodeIndex": 418,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物技能节点图\\设置造物冷却组的当前时间_连线.gia",
+        "subType": "creation_skill",
+        "path": "$.graph.graph.inner.graph.nodes[2].pins[1].value.#3",
+        "byteOffset": 423,
+        "payloadLength": 9,
+        "nodeIndex": 430,
+        "genericId": 200052,
+        "concreteId": 2000,
+        "pinKind": 3,
+        "pinIndex": 0,
+        "pinType": 19
+      },
+      {
+        "file": "造物状态决策节点图\\切换自身执行状态_连线.gia",
+        "subType": "creation_status_decision",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[2].value.#3",
+        "byteOffset": 294,
+        "payloadLength": 7,
+        "nodeIndex": 267,
+        "genericId": 200128,
+        "concreteId": 4011,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 18
+      },
+      {
+        "file": "造物状态决策节点图\\切换自身执行状态.gia",
+        "subType": "creation_status_decision",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[1].value.#3",
+        "byteOffset": 258,
+        "payloadLength": 7,
+        "nodeIndex": 267,
+        "genericId": 200128,
+        "concreteId": 4011,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 18
+      },
+      {
+        "file": "造物状态决策节点图\\最小图_单节点.gia",
+        "subType": "creation_status_decision",
+        "path": "$.graph.graph.inner.graph.nodes[1].pins[1].value.#3",
+        "byteOffset": 269,
+        "payloadLength": 7,
+        "nodeIndex": 2,
+        "genericId": 200128,
+        "concreteId": 4011,
+        "pinKind": 3,
+        "pinIndex": 1,
+        "pinType": 18
+      }
+    ]
+  }
+}

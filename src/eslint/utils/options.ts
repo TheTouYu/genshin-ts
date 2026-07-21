@@ -1,5 +1,5 @@
 export type LangOption = 'zh' | 'en' | 'both'
-export type ScopeOption = 'server' | 'all'
+export type ScopeOption = 'server' | 'client' | 'nodegraph' | 'all'
 
 export type BaseOptions = {
   lang?: LangOption

@@ -56,6 +56,7 @@ export function initCliI18n(lang: Lang) {
       lng: lang,
       fallbackLng: 'en-US',
       initImmediate: false,
+      showSupportNotice: false,
       interpolation: { escapeValue: false },
       resources: {
         'zh-CN': { translation: zhCN },

@@ -1,6 +1,7 @@
 import { loadGiaProto } from '../../injector/proto.js'
 import type {
   Argument,
+  ClientIRDocument,
   CompositeDefIR,
   ConnectionArgument,
   IRDocument,
@@ -28,6 +29,9 @@ import {
   wrap_gia,
   type Root as GiaRoot
 } from '../gia_vendor.js'
+import type { SignalRegistry } from '../signal_registry.js'
+import { finalizeSignalEncoding } from './build_signal_definition.js'
+import { clientIrToGia } from './client_graph.js'
 import { buildCompositeAccessories } from './composite.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import {
@@ -37,28 +41,25 @@ import {
 } from './lower_composite_call.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
+import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
 import {
   applyOrdinaryLiteralArgs,
   createOrdinaryVendorNode,
   normalizeOrdinaryVendorPins
 } from './ordinary_node_factory.js'
-import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
-import { setEnumArgValue, setLiteralArgValue } from './pins.js'
 import {
   applyPinHoleLiteralArgs,
   isSharedPinHoleAdapterNodeType,
   remapPinHoleInputIndex
 } from './pin_hole_adapter.js'
+import { setEnumArgValue, setLiteralArgValue } from './pins.js'
+import { expandListLiterals } from './preprocess.js'
 import {
   applySpecialArgLiteralArgs,
   isSharedSpecialArgAdapterNodeType,
   remapSpecialArgInputIndex,
   type SpecialArgTypeTag
 } from './special_arg_adapter.js'
-import { finalizeSignalEncoding } from './build_signal_definition.js'
-import { clientIrToGia } from '../client_ir_to_gia.js'
-import type { SignalRegistry } from '../signal_registry.js'
-import { expandListLiterals } from './preprocess.js'
 import type { IRNode, NodeId } from './types.js'
 
 type IrToGiaOptimizeOptions = {
@@ -273,10 +274,8 @@ function assertServerGraphRuntimeModeCompatible(
 
 export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   if (ir.graph.type === 'client') {
-    if (!opts.signalRegistry) {
-      throw new Error('[error] client GIA lowering requires a signal registry')
-    }
-    return clientIrToGia(ir as Extract<IRDocument, { graph: { type: 'client' } }>, opts.signalRegistry, opts.protoPath)
+    // TS cannot narrow the IRDocument union through the nested graph.type discriminant.
+    return clientIrToGia(ir as ClientIRDocument, opts)
   }
 
   const graphId = opts.graphId ?? ir.graph?.id ?? 1073741825
@@ -355,8 +354,16 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
       string,
       'Bol' | 'Int' | 'Flt' | 'Str' | 'Vec' | 'Gid' | 'Ety' | 'Fct' | 'Cfg' | 'Pfb'
     > = {
-      bool: 'Bol', int: 'Int', float: 'Flt', str: 'Str', vec3: 'Vec', guid: 'Gid',
-      entity: 'Ety', faction: 'Fct', config_id: 'Cfg', prefab_id: 'Pfb'
+      bool: 'Bol',
+      int: 'Int',
+      float: 'Flt',
+      str: 'Str',
+      vec3: 'Vec',
+      guid: 'Gid',
+      entity: 'Ety',
+      faction: 'Fct',
+      config_id: 'Cfg',
+      prefab_id: 'Pfb'
     }
     const listType = type.endsWith('_list')
     const base = listType ? baseTypes[type.slice(0, -5)] : baseTypes[type]
@@ -366,6 +373,9 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const ensureIRConnectionPins = (giaNode: GiaNode, irNode: IRNode) => {
     for (const [index, arg] of (irNode.args ?? []).entries()) {
+      // Special-arg adapters already created pins in physical index space. Re-applying
+      // logical indexes would recreate signal name as InParam[0] and append a phantom pin.
+      if (isSharedSpecialArgAdapterNodeType(irNode.type)) continue
       if (arg && arg.type !== 'conn') ensureTypedPin(giaNode, 3, index, arg.type)
       else if (arg?.type === 'conn') ensureTypedPin(giaNode, 3, index, arg.value.type)
     }

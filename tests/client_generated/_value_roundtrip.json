@@ -1,0 +1,406 @@
+{
+  "description": "Round-trip verification of client_literal_value against observed sample shapes",
+  "supportedClientVarTypes": [
+    3,
+    5,
+    7,
+    9,
+    11,
+    13,
+    14,
+    16
+  ],
+  "literalResults": [
+    {
+      "clientVarType": 3,
+      "typeName": "int",
+      "literal": 42,
+      "observedShape": {
+        "class": 2,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 3
+          }
+        },
+        "valueFields": [
+          "bInt"
+        ]
+      },
+      "decodedShape": {
+        "class": 2,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 3
+          }
+        },
+        "valueFields": [
+          "bInt"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 5,
+      "typeName": "bool",
+      "literal": true,
+      "observedShape": {
+        "class": 6,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 5
+          }
+        },
+        "valueFields": [
+          "bEnum"
+        ]
+      },
+      "decodedShape": {
+        "class": 6,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 5
+          }
+        },
+        "valueFields": [
+          "bEnum"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 7,
+      "typeName": "float",
+      "literal": 1.5,
+      "observedShape": {
+        "class": 4,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 7
+          }
+        },
+        "valueFields": [
+          "bFloat"
+        ]
+      },
+      "decodedShape": {
+        "class": 4,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 7
+          }
+        },
+        "valueFields": [
+          "bFloat"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 9,
+      "typeName": "str",
+      "literal": "gsts",
+      "observedShape": {
+        "class": 5,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 9
+          }
+        },
+        "valueFields": [
+          "bString"
+        ]
+      },
+      "decodedShape": {
+        "class": 5,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 9
+          }
+        },
+        "valueFields": [
+          "bString"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 11,
+      "typeName": "vec3",
+      "literal": [
+        1,
+        2,
+        3
+      ],
+      "observedShape": {
+        "class": 7,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 11
+          }
+        },
+        "valueFields": [
+          "bVector"
+        ]
+      },
+      "decodedShape": {
+        "class": 7,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 11
+          }
+        },
+        "valueFields": [
+          "bVector"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "literal": 201,
+      "observedShape": {
+        "class": 6,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 13
+          }
+        },
+        "valueFields": [
+          "bEnum"
+        ]
+      },
+      "decodedShape": {
+        "class": 6,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 13
+          }
+        },
+        "valueFields": [
+          "bEnum"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 14,
+      "typeName": "guid",
+      "literal": 123,
+      "observedShape": {
+        "class": 1,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 14
+          }
+        },
+        "valueFields": [
+          "bId"
+        ]
+      },
+      "decodedShape": {
+        "class": 1,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 14
+          }
+        },
+        "valueFields": [
+          "bId"
+        ]
+      },
+      "match": true
+    },
+    {
+      "clientVarType": 16,
+      "typeName": "faction",
+      "literal": 7,
+      "observedShape": {
+        "class": 1,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 16
+          }
+        },
+        "valueFields": [
+          "bId"
+        ]
+      },
+      "decodedShape": {
+        "class": 1,
+        "alreadySetVal": true,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 16
+          }
+        },
+        "valueFields": [
+          "bId"
+        ]
+      },
+      "match": true
+    }
+  ],
+  "unsetBaseResults": [
+    {
+      "clientVarType": 3,
+      "typeName": "int",
+      "decodedShape": {
+        "class": 2,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 3
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 5,
+      "typeName": "bool",
+      "decodedShape": {
+        "class": 6,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 5
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 7,
+      "typeName": "float",
+      "decodedShape": {
+        "class": 4,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 7
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 9,
+      "typeName": "str",
+      "decodedShape": {
+        "class": 5,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 9
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 11,
+      "typeName": "vec3",
+      "decodedShape": {
+        "class": 7,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 11
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 13,
+      "typeName": "enum",
+      "decodedShape": {
+        "class": 6,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 13
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 14,
+      "typeName": "guid",
+      "decodedShape": {
+        "class": 1,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 14
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    },
+    {
+      "clientVarType": 16,
+      "typeName": "faction",
+      "decodedShape": {
+        "class": 1,
+        "alreadySetVal": false,
+        "itemType": {
+          "classBase": 2,
+          "type_client": {
+            "type": 16
+          }
+        },
+        "valueFields": []
+      },
+      "ok": true
+    }
+  ],
+  "failures": []
+}

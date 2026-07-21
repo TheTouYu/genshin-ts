@@ -25,7 +25,7 @@ import {
   makeKnownLocalVariableInit,
   makeKnownLocalVariableSet
 } from './local_variable_lowering.js'
-import { isFMethodCall } from './matcher.js'
+import { getFMethodCall, isFMethodCall } from './matcher.js'
 import {
   getBinaryOpInfo,
   getCompoundAssignmentMethod,
@@ -35,7 +35,12 @@ import {
 } from './ops.js'
 import { transformHandler } from './stmt.js'
 import type { Env, TimerCaptureInfo, TimerHandleMeta, VarPlanEntry } from './types.js'
-import { makeFCall, withSameRange } from './utils.js'
+import {
+  assertClientFMethodAvailable,
+  isClientFMethodAvailable,
+  makeFCall,
+  withSameRange
+} from './utils.js'
 
 type NumericKind = 'float' | 'int' | 'mixed' | 'unknown'
 type LocalVarType = StorableLocalValueType
@@ -153,7 +158,7 @@ function getEnumTypeInfo(env: Env, t: ts.Type): EnumTypeInfo {
         else if (name !== info.name) name = null
       }
     }
-    return { isEnum: u.types.length > 0, name }
+    return { isEnum: u.types.length > 0, name: t.aliasSymbol?.getName() ?? name }
   }
 
   if (t.flags & ts.TypeFlags.Intersection) {
@@ -167,13 +172,66 @@ function getEnumTypeInfo(env: Env, t: ts.Type): EnumTypeInfo {
         else if (name !== info.name) name = null
       }
     }
-    return { isEnum: it.types.length > 0, name }
+    return { isEnum: it.types.length > 0, name: t.aliasSymbol?.getName() ?? name }
   }
 
   if (!isEnumClassType(env, t)) return { isEnum: false, name: null }
   const sym = t.getSymbol() ?? t.aliasSymbol
   const name = sym?.getName() ?? null
   return { isEnum: true, name: name === 'enumeration' ? null : name }
+}
+
+/**
+ * Returns the shared/server enum class behind a branded client-only interface.
+ * For example, both BasicMathematicalOperator and QuickMathematicalOperator
+ * resolve to MathematicalOperator. Client graph comparisons still use their
+ * immediate type names so different editor rows remain incompatible. Classes
+ * declared only in client_enums.ts intentionally do not resolve here.
+ */
+function getEnumRuntimeClassName(env: Env, t: ts.Type): string | null {
+  const seen = new Set<ts.Type>()
+  const visit = (current: ts.Type): string | null => {
+    if (seen.has(current)) return null
+    seen.add(current)
+
+    if (current.flags & ts.TypeFlags.TypeParameter) {
+      const constraint = env.checker.getBaseConstraintOfType(current)
+      return constraint ? visit(constraint) : null
+    }
+    if (current.flags & (ts.TypeFlags.Union | ts.TypeFlags.Intersection)) {
+      const names = new Set(
+        (current as ts.UnionOrIntersectionType).types
+          .map(visit)
+          .filter((name): name is string => name !== null)
+      )
+      return names.size === 1 ? [...names][0] : null
+    }
+    if ((current.flags & ts.TypeFlags.Object) === 0) return null
+
+    const symbol = current.getSymbol() ?? current.aliasSymbol
+    const name = symbol?.getName()
+    const classDeclaration = symbol?.declarations?.find((declaration) =>
+      ts.isClassDeclaration(declaration)
+    )
+    if (
+      name &&
+      name !== 'enumeration' &&
+      classDeclaration &&
+      /[\\/]definitions[\\/]enum(?:\.d)?\.ts$/i.test(classDeclaration.getSourceFile().fileName) &&
+      isEnumClassType(env, current)
+    ) {
+      return name
+    }
+
+    const object = current as ts.ObjectType
+    if ((object.objectFlags & ts.ObjectFlags.ClassOrInterface) === 0) return null
+    for (const base of env.checker.getBaseTypes(object as ts.InterfaceType) ?? []) {
+      const baseName = visit(base)
+      if (baseName) return baseName
+    }
+    return null
+  }
+  return visit(t)
 }
 
 function isLoopIndexIdentifier(env: Env, expr: ts.Expression): expr is ts.Identifier {
@@ -183,12 +241,45 @@ function isLoopIndexIdentifier(env: Env, expr: ts.Expression): expr is ts.Identi
   return env.loopIndexSymbols?.has(sym) ?? false
 }
 
-function wrapWithFloat(expr: ts.Expression): ts.Expression {
+function wrapWithFloat(env: Env, expr: ts.Expression): ts.Expression {
+  if (env.graphDocumentType === 'client') {
+    return makeFCall(env, 'dataTypeConversion', [expr, ts.factory.createStringLiteral('float')])
+  }
   return ts.factory.createCallExpression(ts.factory.createIdentifier('float'), undefined, [expr])
 }
 
-function wrapWithInt(expr: ts.Expression): ts.Expression {
+function wrapWithInt(env: Env, expr: ts.Expression): ts.Expression {
+  if (env.graphDocumentType === 'client') {
+    return expr
+  }
   return ts.factory.createCallExpression(ts.factory.createIdentifier('int'), undefined, [expr])
+}
+
+function makeModuloExpression(
+  env: Env,
+  left: ts.Expression,
+  right: ts.Expression,
+  kind: NumericKind
+): ts.Expression {
+  if (env.graphDocumentType !== 'client') {
+    return makeFCall(env, 'moduloOperation', [left, right])
+  }
+  if (kind !== 'int' && kind !== 'float') {
+    fail(env, left, 'client % requires both operands to have the same int or float type')
+  }
+
+  let quotient = makeFCall(env, 'division', [left, right])
+  if (kind === 'float') {
+    quotient = makeFCall(env, 'dataTypeConversion', [
+      quotient,
+      ts.factory.createStringLiteral('int')
+    ])
+    quotient = makeFCall(env, 'dataTypeConversion', [
+      quotient,
+      ts.factory.createStringLiteral('float')
+    ])
+  }
+  return makeFCall(env, 'subtraction', [left, makeFCall(env, 'multiplication', [quotient, right])])
 }
 
 function shouldWrapLoopIndexByContext(env: Env, id: ts.Identifier): boolean {
@@ -269,6 +360,17 @@ function tryTransformWrappedArrayLiteral(
     const hasSpread = elements.some((e) => ts.isSpreadElement(e))
     if (!hasSpread) {
       const mapped = elements.map((e) => transformExpression(env, context, e))
+      // Client enum-list pins are not ordinary generic lists. Keep source enum arrays as
+      // JavaScript literals so parseValue(..., 'enum_list') can preserve them for the
+      // IR -> GIA type-list builder expansion.
+      if (
+        env.graphDocumentType === 'client' &&
+        elements.every(
+          (element) => getEnumTypeInfo(env, env.checker.getTypeAtLocation(element)).isEnum
+        )
+      ) {
+        return ts.factory.createArrayLiteralExpression(mapped, false)
+      }
       // vec3 literal: keep as `[x,y,z]` to preserve Vec3Value semantics
       if (shouldKeepArrayLiteralAsVec3(env, arr)) {
         return ts.factory.createArrayLiteralExpression(mapped, false)
@@ -585,7 +687,6 @@ function resolveTimerPoolSize(env: Env, node: ts.Node, kind: TimerKind): number 
   return size
 }
 
-
 export function isDeclarationName(id: ts.Identifier): boolean {
   const parent = id.parent
   if (!parent) return false
@@ -606,7 +707,7 @@ export function isDeclarationName(id: ts.Identifier): boolean {
   return false
 }
 
-function shouldCaptureIdentifier(id: ts.Identifier): boolean {
+export function shouldCaptureIdentifier(id: ts.Identifier): boolean {
   if (isDeclarationName(id)) return false
   const parent = id.parent
   if (!parent) return true
@@ -1446,6 +1547,11 @@ export function transformExpression(
     return expr
   }
 
+  if (ts.isCallExpression(expr) && env.graphDocumentType === 'client') {
+    const fCall = getFMethodCall(env, expr)
+    if (fCall) assertClientFMethodAvailable(env, fCall.method, fCall.callee.name)
+  }
+
   const timerKind = ts.isCallExpression(expr) ? getTimerKind(expr) : null
   if (timerKind && ts.isCallExpression(expr)) {
     return transformTimerCall(env, context, expr, timerKind)
@@ -1646,7 +1752,7 @@ export function transformExpression(
     const shadowedNames = env.shadowedNames
     if (shadowedNames && shadowedNames.has(name)) {
       if (shouldWrapLoopIndexByContext(env, expr)) {
-        return withSameRange(wrapWithFloat(expr), expr)
+        return withSameRange(wrapWithFloat(env, expr), expr)
       }
       return expr
     }
@@ -1657,7 +1763,7 @@ export function transformExpression(
         return withSameRange(ts.factory.createPropertyAccessExpression(expr, 'value'), expr)
       }
       if (shouldWrapLoopIndexByContext(env, expr)) {
-        return withSameRange(wrapWithFloat(expr), expr)
+        return withSameRange(wrapWithFloat(env, expr), expr)
       }
       return expr
     }
@@ -1669,7 +1775,7 @@ export function transformExpression(
           return withSameRange(ts.factory.createPropertyAccessExpression(expr, 'value'), expr)
         }
         if (shouldWrapLoopIndexByContext(env, expr)) {
-          return withSameRange(wrapWithFloat(expr), expr)
+          return withSameRange(wrapWithFloat(env, expr), expr)
         }
         return expr
       }
@@ -1687,7 +1793,7 @@ export function transformExpression(
       return withSameRange(ts.factory.createPropertyAccessExpression(expr, 'value'), expr)
     }
     if (shouldWrapLoopIndexByContext(env, expr)) {
-      return withSameRange(wrapWithFloat(expr), expr)
+      return withSameRange(wrapWithFloat(env, expr), expr)
     }
     return expr
   }
@@ -1742,8 +1848,71 @@ export function transformExpression(
   if (ts.isConditionalExpression(expr)) {
     const resultType = inferConditionalResultType(env, expr)
     const cond = transformExpression(env, context, expr.condition)
-    const whenTrue = transformExpression(env, context, expr.whenTrue)
-    const whenFalse = transformExpression(env, context, expr.whenFalse)
+    let whenTrue = transformExpression(env, context, expr.whenTrue)
+    let whenFalse = transformExpression(env, context, expr.whenFalse)
+
+    const clientUsesDataConditional =
+      env.graphDocumentType === 'client' &&
+      (env.clientSubType === 'bool_filter' ||
+        env.clientSubType === 'int_filter' ||
+        !isClientFMethodAvailable(env, 'initLocalVariable'))
+
+    if (clientUsesDataConditional) {
+      const notCond = makeFCall(env, 'logicalNotOperation', [cond])
+      if (env.clientSubType === 'bool_filter' && resultType !== 'bool') {
+        fail(env, expr, 'client bool filter conditional branches must return boolean values')
+      }
+      if (env.clientSubType === 'int_filter' && resultType !== 'int' && resultType !== 'float') {
+        fail(env, expr, 'client int filter conditional branches must return numeric values')
+      }
+      if (resultType === 'bool') {
+        return makeFCall(env, 'logicalOrOperation', [
+          makeFCall(env, 'logicalAndOperation', [cond, whenTrue]),
+          makeFCall(env, 'logicalAndOperation', [notCond, whenFalse])
+        ])
+      }
+      if (resultType !== 'int' && resultType !== 'float') {
+        fail(
+          env,
+          expr,
+          'client conditional expressions without local variables only support bool, int, or float results'
+        )
+      }
+      const normalizeIntReturn =
+        resultType === 'float' && env.clientHandler && env.clientSubType === 'int_filter'
+      if (normalizeIntReturn) {
+        whenTrue = makeFCall(env, 'dataTypeConversion', [
+          whenTrue,
+          ts.factory.createStringLiteral('int')
+        ])
+        whenFalse = makeFCall(env, 'dataTypeConversion', [
+          whenFalse,
+          ts.factory.createStringLiteral('int')
+        ])
+      }
+      let trueWeight = makeFCall(env, 'dataTypeConversion', [
+        cond,
+        ts.factory.createStringLiteral('int')
+      ])
+      let falseWeight = makeFCall(env, 'dataTypeConversion', [
+        notCond,
+        ts.factory.createStringLiteral('int')
+      ])
+      if (resultType === 'float' && !normalizeIntReturn) {
+        trueWeight = makeFCall(env, 'dataTypeConversion', [
+          trueWeight,
+          ts.factory.createStringLiteral('float')
+        ])
+        falseWeight = makeFCall(env, 'dataTypeConversion', [
+          falseWeight,
+          ts.factory.createStringLiteral('float')
+        ])
+      }
+      return makeFCall(env, 'addition', [
+        makeFCall(env, 'multiplication', [trueWeight, whenTrue]),
+        makeFCall(env, 'multiplication', [falseWeight, whenFalse])
+      ])
+    }
 
     const tmpName = `__gsts_ternary_${env.tempCounter++}`
     const tmpId = ts.factory.createIdentifier(tmpName)
@@ -1926,7 +2095,7 @@ export function transformExpression(
       let rhs = transformExpression(env, context, expr.right)
       const leftType = env.checker.getTypeAtLocation(leftId)
       if (getNumericKind(env, leftType) === 'float' && isLoopIndexIdentifier(env, expr.right)) {
-        rhs = wrapWithFloat(rhs)
+        rhs = wrapWithFloat(env, rhs)
       }
       const timerMeta = extractTimerHandleMeta(rhs)
       if (timerMeta) {
@@ -1951,10 +2120,11 @@ export function transformExpression(
         }
         const opMethod = getCompoundAssignmentMethod(op)
         if (!opMethod) fail(env, expr, 'Unsupported compound assignment operator')
-        const computed = makeFCall(env, opMethod, [
-          ts.factory.createPropertyAccessExpression(leftId, 'value'),
-          rhs
-        ])
+        const leftValue = ts.factory.createPropertyAccessExpression(leftId, 'value')
+        const computed =
+          op === ts.SyntaxKind.PercentEqualsToken
+            ? makeModuloExpression(env, leftValue, rhs, getNumericKind(env, leftType))
+            : makeFCall(env, opMethod, [leftValue, rhs])
         const localAssign = buildTimerCaptureLocalAssignExpr(env, leftId, computed, captureInfo)
         return withSameRange(localAssign, expr)
       }
@@ -1983,10 +2153,11 @@ export function transformExpression(
         }
         const opMethod = getCompoundAssignmentMethod(op)
         if (!opMethod) fail(env, expr, 'Unsupported compound assignment operator')
-        const computed = makeFCall(env, opMethod, [
-          ts.factory.createPropertyAccessExpression(leftId, 'value'),
-          rhs
-        ])
+        const leftValue = ts.factory.createPropertyAccessExpression(leftId, 'value')
+        const computed =
+          op === ts.SyntaxKind.PercentEqualsToken
+            ? makeModuloExpression(env, leftValue, rhs, getNumericKind(env, leftType))
+            : makeFCall(env, opMethod, [leftValue, rhs])
         return withSameRange(
           makeFCall(env, 'setLocalVariable', [
             ts.factory.createPropertyAccessExpression(leftId, 'localVariable'),
@@ -2007,7 +2178,10 @@ export function transformExpression(
       }
       const opMethod = getCompoundAssignmentMethod(op)
       if (!opMethod) fail(env, expr, 'Unsupported compound assignment operator')
-      const computed = makeFCall(env, opMethod, [leftId, rhs])
+      const computed =
+        op === ts.SyntaxKind.PercentEqualsToken
+          ? makeModuloExpression(env, leftId, rhs, getNumericKind(env, leftType))
+          : makeFCall(env, opMethod, [leftId, rhs])
       return withSameRange(
         ts.factory.updateBinaryExpression(
           expr,
@@ -2028,14 +2202,24 @@ export function transformExpression(
       op === ts.SyntaxKind.ExclamationEqualsToken ||
       op === ts.SyntaxKind.ExclamationEqualsEqualsToken
     ) {
-      const leftEnum = getEnumTypeInfo(env, env.checker.getTypeAtLocation(expr.left))
-      const rightEnum = getEnumTypeInfo(env, env.checker.getTypeAtLocation(expr.right))
+      const leftType = env.checker.getTypeAtLocation(expr.left)
+      const rightType = env.checker.getTypeAtLocation(expr.right)
+      const leftEnum = getEnumTypeInfo(env, leftType)
+      const rightEnum = getEnumTypeInfo(env, rightType)
       if (leftEnum.isEnum || rightEnum.isEnum) {
         if (!leftEnum.isEnum || !rightEnum.isEnum) {
           fail(env, expr, 'enum comparison requires both sides to be enum values')
         }
         if (leftEnum.name && rightEnum.name && leftEnum.name !== rightEnum.name) {
-          fail(env, expr, `enum comparison type mismatch (${leftEnum.name} vs ${rightEnum.name})`)
+          const leftRuntimeClass =
+            env.graphDocumentType === 'server' ? getEnumRuntimeClassName(env, leftType) : null
+          const sameServerEnumClass =
+            env.graphDocumentType === 'server' &&
+            leftRuntimeClass !== null &&
+            leftRuntimeClass === getEnumRuntimeClassName(env, rightType)
+          if (!sameServerEnumClass) {
+            fail(env, expr, `enum comparison type mismatch (${leftEnum.name} vs ${rightEnum.name})`)
+          }
         }
         const eq = makeFCall(env, 'enumerationsEqual', [left, right])
         return op === ts.SyntaxKind.EqualsEqualsToken ||
@@ -2067,25 +2251,33 @@ export function transformExpression(
         const rightIsLoop = isLoopIndexIdentifier(env, expr.right)
         if (op === ts.SyntaxKind.PercentToken) {
           if (leftIsLoop) {
-            left = wrapWithInt(left)
+            left = wrapWithInt(env, left)
           }
           if (rightIsLoop) {
-            right = wrapWithInt(right)
+            right = wrapWithInt(env, right)
           }
         } else {
           if (leftIsLoop) {
             const otherKind = getNumericKind(env, env.checker.getTypeAtLocation(expr.right))
             if (otherKind === 'float') {
-              left = wrapWithFloat(left)
+              left = wrapWithFloat(env, left)
             }
           }
           if (rightIsLoop) {
             const otherKind = getNumericKind(env, env.checker.getTypeAtLocation(expr.left))
             if (otherKind === 'float') {
-              right = wrapWithFloat(right)
+              right = wrapWithFloat(env, right)
             }
           }
         }
+      }
+      if (op === ts.SyntaxKind.PercentToken) {
+        return makeModuloExpression(
+          env,
+          left,
+          right,
+          getNumericKind(env, env.checker.getTypeAtLocation(expr.left))
+        )
       }
       if (info.swap) return makeFCall(env, info.method, [right, left])
       return makeFCall(env, info.method, [left, right])

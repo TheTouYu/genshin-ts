@@ -1,6 +1,6 @@
 // @ts-nocheck thirdparty
 
-/** Also used as EnumEqual IndexOfConcrete */
+/** Enum type ids; EnumEqual-supported types also use these as IndexOfConcrete. */
 export const ENUM_ID = {
   Generic: 0,
   Comparison_Operators: 1,
@@ -25,6 +25,7 @@ export const ENUM_ID = {
   Cause_Of_Being_Down: 20,
   Trigonometric_Functions: 21,
   Disruptor_Device_Type: 22,
+  Disruptor_Device_Types: 22,
   Disruptor_Device_Orientation: 23,
   UI_Control_Group_Status: 24,
   Target_Type: 25,
@@ -36,7 +37,7 @@ export const ENUM_ID = {
   Sound_Attenuation_Mode: 31,
   Select_Completion_Reason: 32,
   Settlement_Status: 33,
-  // 34,
+  Rank_Settlement_Status: 34,
   Reason_For_Item_Change: 35,
   Item_Loot_Type: 36,
   Decision_Refresh_Mode: 37,
@@ -45,9 +46,17 @@ export const ENUM_ID = {
   Gameplay_Mode: 40,
   Input_Device_Type: 41,
 
-  /** Be careful. the following ids are not verified */
+  // Enumerations Equal selectors; BeyondGlobal records these families as 48/49.
+  Color_Overlay_Type: 42,
+  Color_Blend_Type: 42,
+  Fill_Material: 43,
+
+  // Fixed-motion pins use these vendor type ids and have no Enumerations Equal variants.
   Movement_Mode: 1042,
+  Fixed_Point_Motion_Device_Motion_Type: 1042,
   Fixed_Motion_Parameter_Type: 1043,
+  Fixed_Point_Motion_Device_Parameter_Conversion_Type: 1043,
+  /** Be careful. the following ids are not verified */
   LocalVariable: 1016, // E<1016> --> Local Variable
   VariableSnapshot: 1028, // E<1028> --> VariableSnapshot
 
@@ -57,9 +66,13 @@ export const ENUM_ID = {
    * and are primarily used for matching / wiring in the editor.
    */
   Scan_Rule_Type: 50,
+  Scan_Scoring_Rules: 50,
   Damage_Pop_Up_Type: 51,
   Original_Slot_Skill_Handling: 52,
-  Existing_Skill_Handling: 53
+  Top_of_Stack_Skill_Destruction_Type: 52,
+  Existing_Skill_Handling: 53,
+  Class_Switch_Skill_Handling: 53,
+  Random_Order: 54
 } as const satisfies { [key: string]: number }
 export type EnumId = (typeof ENUM_ID)[keyof typeof ENUM_ID]
 
@@ -72,6 +85,7 @@ export const ENUM_ID_CLIENT = {
   Logical_Operators: 1,
   Basic_Mathematical_Operators: 2,
   Attack_Shapes: 3,
+  Attack_Shape: 3,
   Survival_Status: 4,
   Sorting_Rules: 5,
   Rounding_Logic: 6,
@@ -90,6 +104,7 @@ export const ENUM_ID_CLIENT = {
   Cause_Of_Being_Down: 19,
   Trigonometric_Functions: 20,
   Disruptor_Device_Type: 21,
+  Disruptor_Device_Types: 21,
   Disruptor_Device_Orientation: 22,
   UI_Control_Group_Status: 23,
   Target_Type: 24,
@@ -144,6 +159,7 @@ export const ENUM_VALUE = {
   SurvivalStatus_Down: 501,
   SortingRules_Ascending: 600,
   SortingRules_Descending: 601,
+  RandomOrder_Random: 602,
   RoundingLogic_RoundUp: 700,
   RoundingLogic_RoundDown: 701,
   RoundingLogic_RoundToNearest: 702,
@@ -168,6 +184,7 @@ export const ENUM_VALUE = {
   FollowLocationType_FollowLocation: 1101,
   FollowLocationType_FollowRotation: 1102,
   CoordinateSystemType_RelativeCoordinateSystem: 1200,
+  CoordinateSystemType_LocalCoordinateSystem: 1200,
   CoordinateSystemType_WorldCoordinateSystem: 1201,
   ElementalType_None: 1300,
   ElementalType_Pyro: 1301,
@@ -193,6 +210,8 @@ export const ENUM_VALUE = {
   UnitStatusRemovalReason_Dispelled: 1508,
   UnitStatusRemovalReason_StatusExpired: 1509,
   UnitStatusRemovalReason_ClassChanged: 1510,
+  UnitStatusRemovalReason_AffixExpired: 1511,
+  UnitStatusRemovalReason_ShieldDepletedToZero: 1512,
   UnitStatusRemovalStrategy_AllCoexistingStatusesWithTheSameName: 1540,
   UnitStatusRemovalStrategy_StatusWithFastestStackLoss: 1541,
   RevivePointSelectionStrategy_Nearest: 1601,
@@ -251,10 +270,15 @@ export const ENUM_VALUE = {
   HitPerformanceLevel_LongRangeThrow: 2410,
   SkillSlot_NormalAttack: 3100,
   SkillSlot_DashSkill: 3102,
+  SkillSlot_SprintSkill: 3102,
   SkillSlot_1E: 3111,
+  SkillSlot_Skill1E: 3111,
   SkillSlot_2Q: 3112,
+  SkillSlot_Skill2Q: 3112,
   SkillSlot_3R: 3113,
+  SkillSlot_Skill3R: 3113,
   SkillSlot_4T: 3114,
+  SkillSlot_Skill4T: 3114,
   SkillSlot_CustomSkillSlot1: 3121,
   SkillSlot_CustomSkillSlot2: 3122,
   SkillSlot_CustomSkillSlot3: 3123,
@@ -273,8 +297,13 @@ export const ENUM_VALUE = {
   OriginalSlotSkillHandling_Destroy: 2810,
   OriginalSlotSkillHandling_KeepSlotRelation: 2811,
   OriginalSlotSkillHandling_DetachFromSlotRelation: 2812,
+  TopOfStackSkillDestructionType_Destroy: 2810,
+  TopOfStackSkillDestructionType_PreserveSlotBinding: 2811,
+  TopOfStackSkillDestructionType_RemoveSlotBinding: 2812,
   ExistingSkillHandling_ClearAll: 2820,
   ExistingSkillHandling_KeepIrrelevantSkills: 2821,
+  ClassSwitchSkillHandling_ClearAll: 2820,
+  ClassSwitchSkillHandling_PreserveUnrelatedSkills: 2821,
   SoundAttenuationMode_LinearAttenuation: 3400,
   SoundAttenuationMode_FastThenSlow: 3401,
   SoundAttenuationMode_SlowThenFast: 3402,
@@ -287,6 +316,10 @@ export const ENUM_VALUE = {
   SettlementStatus_TBC: 4100,
   SettlementStatus_Victory: 4101,
   SettlementStatus_Failed: 4102,
+  RankSettlementStatus_TBC: 4100,
+  RankSettlementStatus_Victory: 4101,
+  RankSettlementStatus_Failed: 4102,
+  RankSettlementStatus_Escape: 4103,
   ReasonForItemChange_Default: 0, // Same as Default
   ReasonForItemChange_Destroy: 4900,
   ReasonForItemChange_Discard: 4901,
@@ -317,24 +350,47 @@ export const ENUM_VALUE = {
   ElementalReactionType_CrystallizeHydro: 4728,
   ElementalReactionType_CrystallizeElectro: 4729,
   ElementalReactionType_CrystallizeCryo: 4730,
+  ElementalReactionType_Shatter: 4731,
   ElementalReactionType_Catalyze: 4733,
   ElementalReactionType_Aggravate: 4734,
   ElementalReactionType_Spread: 4735,
   ElementalReactionType_Burgeon: 4736,
   ElementalReactionType_Hyperbloom: 4737,
+  ElementalReactionType_LunarCharged: 4740,
+  ElementalReactionType_LunarBloom: 4741,
+  ElementalReactionType_LunarCrystallize: 4742,
+  ElementalReactionType_StellarConduct: 4743,
   InterruptStatus_InterruptResistanceStatus: 5200,
   InterruptStatus_InterruptVulnerabilityStatus: 5201,
+  InterruptStatus_InterruptVulnerableState: 5201,
   InterruptStatus_ProtectedStatus: 5202,
   MovementMode_InstantMovement: 5500,
   MovementMode_UniformLinearMotion: 5501,
+  FixedPointMotionDeviceMotionType_InstantMovement: 5500,
+  FixedPointMotionDeviceMotionType_UniformLinearMotion: 5501,
   FixedMotionParameterType_FixedSpeed: 5600,
   FixedMotionParameterType_FixedTime: 5601,
+  FixedPointMotionDeviceParameterConversionType_FixedSpeed: 5600,
+  FixedPointMotionDeviceParameterConversionType_FixedTime: 5601,
   GameplayMode_Play: 5700,
+  GameplayMode_TestPlay: 5700,
   GameplayMode_RoomPlay: 5701,
   GameplayMode_MatchPlay: 5702,
   InputDeviceType_KeyboardAndMouse: 5800,
   InputDeviceType_Controller: 5801,
-  InputDeviceType_Touchscreen: 5802
+  InputDeviceType_Touchscreen: 5802,
+  ScanRuleType_PrioritizeView: 5100,
+  ScanRuleType_PrioritizeDistance: 5101,
+  ScanScoringRules_PrioritizeView: 5100,
+  ScanScoringRules_PrioritizeDistance: 5101,
+  ColorOverlayType_Overwrite: 6700,
+  ColorOverlayType_Multiply: 6701,
+  ColorBlendType_Override: 6700,
+  ColorBlendType_Multiply: 6701,
+  FillMaterial_Frozen: 6710,
+  FillMaterial_Freeze: 6710,
+  FillMaterial_Petrified: 6711,
+  FillMaterial_Petrification: 6711
 
   // 🟨 Below is some values that is not shown in server
   // BasicMathematicalOperators_Addition: 300, // Same to what 'MathematicalOperators' is in server

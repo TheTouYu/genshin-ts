@@ -1,0 +1,72 @@
+{
+  "bool_filter": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "int_filter": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "character_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "unavailable",
+      "reason": "BeyondEditor exposes an explicitly empty classic character skill group"
+    }
+  },
+  "character_control_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "unavailable",
+      "reason": "BeyondEditor exposes no classic character control skill group"
+    }
+  },
+  "creation_skill": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "creation_status_decision": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "creation_status": {
+    "beyond": {
+      "status": "available",
+      "reason": ""
+    },
+    "classic": {
+      "status": "available",
+      "reason": ""
+    }
+  }
+}

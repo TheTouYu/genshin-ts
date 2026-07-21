@@ -9,7 +9,8 @@ const Signal = {
   signal_param_wired: defineSignal('signal_param_wired', [
     ['参数_1', 'int'],
     ['参数_2', 'str'],
-    ['参数_3', 'entity']
+    ['参数_3', 'entity'],
+    ['参数_4', 'entity_list']
   ]),
   signal_param_none: defineSignal('signal_param_none', [])
 } as const
@@ -22,7 +23,8 @@ const graph = g
       Signal.signal_param_wired,
       f.addition(40n, 2n),
       f.getPlayerNickname(f.getSelfEntity() as any),
-      f.getSelfEntity()
+      f.getSelfEntity(),
+      f.assemblyList([f.getSelfEntity()], 'entity')
     )
     f.sendSignal('signal_param_none')
   })
@@ -30,10 +32,12 @@ const graph = g
     const amount = evt.params.参数_1
     const label = evt.params.参数_2
     const sender = evt.params.参数_3
+    const targets = evt.params.参数_4
 
     f.printString(f.dataTypeConversion(f.addition(amount, 1n), 'str'))
     f.printString(label)
     f.printString(f.dataTypeConversion(f.queryGuidByEntity(sender), 'str'))
+    f.printString(f.dataTypeConversion(f.getListLength(targets), 'str'))
   })
   .onSignal(Signal.signal_param_literal, (evt, f) => {
     print(str(evt.eventSourceGuid))

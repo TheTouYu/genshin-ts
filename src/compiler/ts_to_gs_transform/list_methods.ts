@@ -31,7 +31,13 @@ export type ExpressionTransformer = (
 export type HandlerTransformer = (
   env: Env,
   context: ts.TransformationContext,
-  fn: ts.ArrowFunction | ts.FunctionExpression
+  fn: ts.ArrowFunction | ts.FunctionExpression,
+  override?: {
+    fIdent?: string
+    evtIdent?: string
+    allowClientMutableOuterCaptures?: boolean
+    inheritOuterScope?: boolean
+  }
 ) => ts.ArrowFunction | ts.FunctionExpression
 
 export function tryTransformListMethodCall(
@@ -145,7 +151,14 @@ export function tryTransformListMethodCall(
     if (hasReturnStatement(cb.body)) {
       fail(env, cb.body, 'forEach() callback must not use return')
     }
-    const transformedCb = transformHandler(env, context, cb.fn)
+    const transformedCb = transformHandler(env, context, cb.fn, {
+      fIdent: env.fIdent,
+      evtIdent: env.evtIdent,
+      // The parent handler has already planned scalar `let` bindings as local variables.
+      // Reuse that plan inside the inline callback instead of treating them as module captures.
+      allowClientMutableOuterCaptures: env.graphDocumentType === 'client',
+      inheritOuterScope: true
+    })
     return withSameRange(makeFCall(env, 'listIterationLoop', [listExpr, transformedCb]), expr)
   }
 
@@ -154,18 +167,7 @@ export function tryTransformListMethodCall(
       fail(env, expr, 'includes() does not support fromIndex or extra arguments')
     }
     const valueExpr = transformExpression(env, context, args[0])
-    const outName = `__gsts_includes_out_${tempId}`
-    const outId = ts.factory.createIdentifier(outName)
-    const outDecl = makeLocalVarInit(env, outName, 'bool')
-    const setOut = makeFCall(env, 'setLocalVariable', [
-      ts.factory.createPropertyAccessExpression(outId, 'localVariable'),
-      makeFCall(env, 'listIncludesThisValue', [listValue, valueExpr])
-    ])
-    const stmts = [listInit, outDecl, ts.factory.createExpressionStatement(setOut)]
-    return withSameRange(
-      makeIife(stmts, ts.factory.createPropertyAccessExpression(outId, 'value')),
-      expr
-    )
+    return withSameRange(makeFCall(env, 'listIncludesThisValue', [listExpr, valueExpr]), expr)
   }
 
   if (method === 'indexOf') {
@@ -173,6 +175,95 @@ export function tryTransformListMethodCall(
       fail(env, expr, 'indexOf() does not support fromIndex or extra arguments')
     }
     const valueExpr = transformExpression(env, context, args[0])
+    if (env.graphDocumentType === 'client') {
+      const outName = `__gsts_indexof_out_${tempId}`
+      const outId = ts.factory.createIdentifier(outName)
+      const outDecl = makeLocalVarInit(
+        env,
+        outName,
+        'int',
+        ts.factory.createPrefixUnaryExpression(
+          ts.SyntaxKind.MinusToken,
+          ts.factory.createBigIntLiteral('1n')
+        )
+      )
+      const currentName = `__gsts_indexof_current_${tempId}`
+      const currentId = ts.factory.createIdentifier(currentName)
+      const currentDecl = makeLocalVarInit(
+        env,
+        currentName,
+        'int',
+        ts.factory.createBigIntLiteral('0n')
+      )
+      const itemId = ts.factory.createIdentifier(`__gsts_indexof_value_${tempId}`)
+      const setOut = makeFCall(env, 'setLocalVariable', [
+        ts.factory.createPropertyAccessExpression(outId, 'localVariable'),
+        ts.factory.createPropertyAccessExpression(currentId, 'value')
+      ])
+      const branch = makeFCall(env, 'doubleBranch', [
+        makeFCall(env, 'equal', [itemId, valueExpr]),
+        ts.factory.createArrowFunction(
+          undefined,
+          undefined,
+          [],
+          undefined,
+          undefined,
+          ts.factory.createBlock(
+            [
+              ts.factory.createExpressionStatement(setOut),
+              ts.factory.createExpressionStatement(
+                ts.factory.createCallExpression(
+                  ts.factory.createIdentifier('breakLoop'),
+                  undefined,
+                  []
+                )
+              )
+            ],
+            true
+          )
+        ),
+        ts.factory.createArrowFunction(
+          undefined,
+          undefined,
+          [],
+          undefined,
+          undefined,
+          ts.factory.createBlock([], true)
+        )
+      ])
+      const increment = makeFCall(env, 'setLocalVariable', [
+        ts.factory.createPropertyAccessExpression(currentId, 'localVariable'),
+        makeFCall(env, 'addition', [
+          ts.factory.createPropertyAccessExpression(currentId, 'value'),
+          ts.factory.createBigIntLiteral('1n')
+        ])
+      ])
+      const loopFn = ts.factory.createArrowFunction(
+        undefined,
+        undefined,
+        [
+          ts.factory.createParameterDeclaration(undefined, undefined, itemId),
+          ts.factory.createParameterDeclaration(undefined, undefined, 'breakLoop')
+        ],
+        undefined,
+        undefined,
+        ts.factory.createBlock(
+          [
+            ts.factory.createExpressionStatement(branch),
+            ts.factory.createExpressionStatement(increment)
+          ],
+          true
+        )
+      )
+      const loopCall = makeFCall(env, 'listIterationLoop', [listValue, loopFn])
+      return withSameRange(
+        makeIife(
+          [listInit, outDecl, currentDecl, ts.factory.createExpressionStatement(loopCall)],
+          ts.factory.createPropertyAccessExpression(outId, 'value')
+        ),
+        expr
+      )
+    }
     const matchesName = `__gsts_indexof_matches_${tempId}`
     const matchesId = ts.factory.createIdentifier(matchesName)
     const matchesDecl = makeConst(
@@ -417,18 +508,7 @@ export function tryTransformListMethodCall(
         const matchType = inferListElementTypeFromExpression(env, matchExpr)
         if (matchType === listType) {
           const valueExpr = transformExpression(env, context, matchExpr)
-          const outName = `__gsts_some_out_${tempId}`
-          const outId = ts.factory.createIdentifier(outName)
-          const outDecl = makeLocalVarInit(env, outName, 'bool')
-          const setOut = makeFCall(env, 'setLocalVariable', [
-            ts.factory.createPropertyAccessExpression(outId, 'localVariable'),
-            makeFCall(env, 'listIncludesThisValue', [listValue, valueExpr])
-          ])
-          const stmts = [listInit, outDecl, ts.factory.createExpressionStatement(setOut)]
-          return withSameRange(
-            makeIife(stmts, ts.factory.createPropertyAccessExpression(outId, 'value')),
-            expr
-          )
+          return withSameRange(makeFCall(env, 'listIncludesThisValue', [listExpr, valueExpr]), expr)
         }
       }
     }
@@ -516,7 +596,7 @@ export function tryTransformListMethodCall(
     }
     const cb = readInlineCallbackExpression(env, method, args[0], 1)
     const matchExpr = extractSimpleEqualityMatch(cb.expr, cb.params[0])
-    if (matchExpr) {
+    if (matchExpr && !(env.graphDocumentType === 'client' && method === 'findIndex')) {
       const matchType = inferListElementTypeFromExpression(env, matchExpr)
       if (matchType === listType) {
         const valueExpr = transformExpression(env, context, matchExpr)

@@ -266,6 +266,67 @@
 
 因此分析脚本应从实现里的 `ret.markPin(ref, '<pinName>', 0)` 读取单返回值 pin 名。否则报告会误显示 `?:bool` / `?:int_list` 这类“匿名返回”，造成误判。
 
+## 静态 MihoyoBin 名称核验
+
+本地存在对应版本的 `BeyondAssistEditor/Resource/Json` 时，应在人工建图前先提取静态名称：
+
+```bash
+npm run gen:editor:names
+npm run test:editor:names
+```
+
+提取器会把 `Beyond/Node` 的节点名、pin 名，以及 `BeyondGlobal` 的枚举族和枚举值名称，
+通过 CHS/EN TextMap 解出并写入 `resources/mihoyo_editor_names.json`。
+
+注意把两类名称分开：
+
+- `NODE_PIN_RECORDS.name`、客户端 `displayName` 是显示名，可以按当前 TextMap 同步。
+- 服务端 `NODE_ID` 和已发布的 TypeScript 方法、参数、返回值名称需要兼容；编辑器英文名不同时，
+  保留旧标识符，并在对应中文注释上方补一行当前官方英文名。
+- 客户端 `nodeType` 是稳定的内部编译键；重新提取已有 generic ID 时必须沿用历史值，公开
+  方法名也继续由该稳定键生成。
+- 客户端方法的当前官方英文标题不同时，在中文节点名上方补一行官方英文标题，不改函数名。
+- 客户端参数名和返回属性名一般保留既有标识符；若业务节点仍使用 `input1` 这类纯占位名，
+  且官方英文 pin 名含义明确，可以手动更正并同步生成源。加减乘除、比较等通用运算数仍可
+  保留 `input1` / `input2`。其余名称差异只在对应中文说明上方补一行官方英文名。
+- 客户端多返回值的每个返回类型字段都要有独立的中英文 JSDoc，实体快捷方法生成时也
+  必须保留这些字段注释。只重复罗列字段的函数级 `@returns` 不再生成；文档中已有的
+  整体返回语义及其中英文说明仍须保留。
+
+静态资源能确认名称、pin 是否可连线、默认值和枚举表，但不能替代所有 `.gia` 真值验证。
+涉及 concrete ID、hole 或特殊发射编码时，仍按后续步骤人工建图并回导。
+
+客户端稳定 pin 标识符、官方名称注释和服务端兼容注释可重复检查：
+
+```bash
+npm run test:editor:names
+npm run gen:server:pin-comments
+```
+
+官方英文 TextMap 没有 pin 文本时，客户端继续保留既有名称，例如部分数学节点的
+`input1` / `input2`；这类无文本 pin 不属于名称不一致。
+
+### 服务端静态 pin 元数据的生成边界
+
+服务端不可连线参数与客户端采用相同原则：静态 JSON 是生成证据，运行时代码只消费生成后的
+TypeScript 常量。
+
+```bash
+npm run gen:server:static
+npm run test:server:metadata
+```
+
+生成链路为：
+
+1. `extract-client-node-static-metadata.ts --server` 从编辑器 Node 资源生成
+   `resources/server_node_static_metadata.json`。
+2. `generate-server-node-metadata.ts` 将静态 pin 的 `connectable`、`nodes.ts` 中公开方法到 IR
+   参数的顺序，以及 vendor pin 记录合并，生成 `src/definitions/server_node_metadata.ts`。
+3. ESLint 和 IR→GIA 编译器只导入生成的 `.ts` 表，不读取 `resources/*.json`。
+
+`resources/*.json` 不在 npm 包的 `files` 发布范围内。不要在 `src` 运行时代码中直接导入这些
+生成证据；新增不可连线 pin 时应重新运行生成命令，并用 `--check` 测试防止生成文件过期。
+
 ## 第四步：对“需要真值”的项目生成建图清单
 
 定义层补完以后，不要立即假设 `.gia` 侧编码一定正确。
@@ -622,7 +683,7 @@ const text = f.dataTypeConversion(value, 'str')
 f.printString(text)
 ```
 
-对象、列表、字典返回值也要接到合适的消费节点，例如字段转换、`getListLength`、`queryDictionarySLength`。
+对象、列表、字典返回值也要接到合适的消费节点，例如字段转换、`getListLength`、`dict.size`。
 
 ### 8. 直接跑 `npm test` 会产生清理和生成副作用
 

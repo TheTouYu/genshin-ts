@@ -1,0 +1,2818 @@
+{
+  "source": "C:\\Users\\josSt\\AppData\\LocalLow\\miHoYo\\原神\\BeyondLocal\\Beyond_Local_Export\\造物状态_枚举采样.gia",
+  "extractedAt": "2026-07-06T09:15:19.061Z",
+  "family": "creation_status",
+  "nodeCount": 159,
+  "targetEntityParam": {
+    "options": [
+      {
+        "order": 1,
+        "name": "仇恨目标",
+        "value": 6000
+      },
+      {
+        "order": 2,
+        "name": "自己",
+        "value": 6003
+      },
+      {
+        "order": 3,
+        "name": "关卡实体",
+        "value": 6007
+      }
+    ],
+    "sampledNodes": [
+      {
+        "genericId": 200167,
+        "zh": "查询实体是否在场",
+        "values": [
+          6000,
+          6003,
+          6007
+        ]
+      },
+      {
+        "genericId": 200168,
+        "zh": "获取实体的类型",
+        "values": [
+          6000,
+          6003,
+          6007
+        ]
+      },
+      {
+        "genericId": 200171,
+        "zh": "查询实体阵营",
+        "values": [
+          6000,
+          6003,
+          6007
+        ]
+      },
+      {
+        "genericId": 200240,
+        "zh": "获取目标攻击力",
+        "values": [
+          6000,
+          6003,
+          6007
+        ]
+      }
+    ],
+    "reuseNote": "4 个采样节点值集完全一致(6000/6003/6007)，名字取自上一轮 UI 普查(获取实体位置/旋转下拉)；同参数其余节点(获取实体位置/获取实体旋转/获取物件预设状态/获取目标生命值/获取目标等级)按 2026-07-06 开发者决策复用"
+  },
+  "tacticEnums": [
+    {
+      "className": "战术速度",
+      "values": [
+        3601,
+        3602
+      ],
+      "options": [
+        {
+          "value": 3601,
+          "name": "走"
+        },
+        {
+          "value": 3602,
+          "name": "跑"
+        }
+      ],
+      "docHint": "node_definitions: 速度=走、跑；移动速度 同值集",
+      "usedBy": [
+        {
+          "genericId": 200130,
+          "zh": "战术：地面闲逛",
+          "param": "速度 in[1]"
+        },
+        {
+          "genericId": 200131,
+          "zh": "战术：地面追击",
+          "param": "外圈速度 in[4] / 内圈速度 in[6]"
+        },
+        {
+          "genericId": 200134,
+          "zh": "战术：移动到目标点",
+          "param": "移动速度 in[3]"
+        },
+        {
+          "genericId": 200135,
+          "zh": "战术：移动到目标实体",
+          "param": "移动速度 in[3]"
+        },
+        {
+          "genericId": 200138,
+          "zh": "战术：地面逃跑",
+          "param": "移动速度 in[2]"
+        },
+        {
+          "genericId": 200139,
+          "zh": "战术：脱战后返回出生点",
+          "param": "移动速度 in[1]"
+        }
+      ]
+    },
+    {
+      "className": "旋转方向",
+      "values": [
+        6100,
+        6101,
+        6102
+      ],
+      "options": [
+        {
+          "value": 6100,
+          "name": "默认"
+        },
+        {
+          "value": 6101,
+          "name": "顺时针"
+        },
+        {
+          "value": 6102,
+          "name": "逆时针"
+        }
+      ],
+      "docHint": "node_definitions: 默认：按最小角度方向顺时针逆时针",
+      "usedBy": [
+        {
+          "genericId": 200136,
+          "zh": "战术：旋转到指定朝向",
+          "param": "旋转方向 in[4]"
+        }
+      ]
+    }
+  ],
+  "enumMatchCensus": {
+    "enumClasses": 43,
+    "totalDistinctValues": 238,
+    "rows": [
+      {
+        "ioc": 0,
+        "rowY": -390,
+        "nodeCount": 3,
+        "valueCount": 5,
+        "values": [
+          100,
+          101,
+          102,
+          103,
+          104
+        ],
+        "nodes": [
+          {
+            "x": -350,
+            "y": -383,
+            "pin0": 100,
+            "pin1": 101
+          },
+          {
+            "x": 6,
+            "y": -391,
+            "pin0": 102,
+            "pin1": 103
+          },
+          {
+            "x": 411,
+            "y": -395,
+            "pin0": 104,
+            "pin1": 103
+          }
+        ],
+        "enumClassName": "比较运算",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 0,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 100,
+            "name": "比较运算_相等"
+          },
+          {
+            "value": 101,
+            "name": "比较运算_小于"
+          },
+          {
+            "value": 102,
+            "name": "比较运算_小于等于"
+          },
+          {
+            "value": 103,
+            "name": "比较运算_大于"
+          },
+          {
+            "value": 104,
+            "name": "比较运算_大于等于"
+          }
+        ]
+      },
+      {
+        "ioc": 1,
+        "rowY": -76,
+        "nodeCount": 2,
+        "valueCount": 4,
+        "values": [
+          200,
+          201,
+          202,
+          203
+        ],
+        "nodes": [
+          {
+            "x": -329,
+            "y": -71,
+            "pin0": 200,
+            "pin1": 201
+          },
+          {
+            "x": 26,
+            "y": -81,
+            "pin0": 202,
+            "pin1": 203
+          }
+        ],
+        "enumClassName": "逻辑运算",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 1,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 200,
+            "name": "逻辑运算_与"
+          },
+          {
+            "value": 201,
+            "name": "逻辑运算_或"
+          },
+          {
+            "value": 202,
+            "name": "逻辑运算_异或"
+          },
+          {
+            "value": 203,
+            "name": "逻辑运算_非"
+          }
+        ]
+      },
+      {
+        "ioc": 2,
+        "rowY": 205,
+        "nodeCount": 2,
+        "valueCount": 4,
+        "values": [
+          300,
+          301,
+          302,
+          303
+        ],
+        "nodes": [
+          {
+            "x": -313,
+            "y": 197,
+            "pin0": 300,
+            "pin1": 301
+          },
+          {
+            "x": 35,
+            "y": 213,
+            "pin0": 302,
+            "pin1": 303
+          }
+        ],
+        "enumClassName": "数字运算",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 2,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 300,
+            "name": "数字运算_加法"
+          },
+          {
+            "value": 301,
+            "name": "数字运算_减法"
+          },
+          {
+            "value": 302,
+            "name": "数字运算_乘法"
+          },
+          {
+            "value": 303,
+            "name": "数字运算_除法"
+          }
+        ]
+      },
+      {
+        "ioc": 3,
+        "rowY": 512,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          400,
+          401,
+          402
+        ],
+        "nodes": [
+          {
+            "x": -329,
+            "y": 515,
+            "pin0": 400,
+            "pin1": 401
+          },
+          {
+            "x": 24,
+            "y": 509,
+            "pin0": 402,
+            "pin1": 401
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 3,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 400,
+            "name": "长方体"
+          },
+          {
+            "value": 401,
+            "name": "球体"
+          },
+          {
+            "value": 402,
+            "name": "扇形"
+          }
+        ]
+      },
+      {
+        "ioc": 4,
+        "rowY": 829,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          500,
+          501
+        ],
+        "nodes": [
+          {
+            "x": -330,
+            "y": 829,
+            "pin0": 500,
+            "pin1": 501
+          }
+        ],
+        "enumClassName": "生存状态",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 4,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 500,
+            "name": "生存状态_存活"
+          },
+          {
+            "value": 501,
+            "name": "生存状态_倒下"
+          }
+        ]
+      },
+      {
+        "ioc": 5,
+        "rowY": 1142,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          600,
+          601
+        ],
+        "nodes": [
+          {
+            "x": -330,
+            "y": 1142,
+            "pin0": 600,
+            "pin1": 601
+          }
+        ],
+        "enumClassName": "排序规则",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 5,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 600,
+            "name": "排序规则_顺序"
+          },
+          {
+            "value": 601,
+            "name": "排序规则_逆序"
+          }
+        ]
+      },
+      {
+        "ioc": 6,
+        "rowY": 1445,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          700,
+          701,
+          702
+        ],
+        "nodes": [
+          {
+            "x": -340,
+            "y": 1452,
+            "pin0": 700,
+            "pin1": 701
+          },
+          {
+            "x": 17,
+            "y": 1438,
+            "pin0": 702,
+            "pin1": 701
+          }
+        ],
+        "enumClassName": "取整逻辑",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 6,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 700,
+            "name": "取整逻辑_向上取整"
+          },
+          {
+            "value": 701,
+            "name": "取整逻辑_向下取整"
+          },
+          {
+            "value": 702,
+            "name": "取整逻辑_四舍五入"
+          }
+        ]
+      },
+      {
+        "ioc": 7,
+        "rowY": 1787,
+        "nodeCount": 6,
+        "valueCount": 11,
+        "values": [
+          800,
+          801,
+          802,
+          803,
+          804,
+          805,
+          806,
+          807,
+          808,
+          809,
+          810
+        ],
+        "nodes": [
+          {
+            "x": -342,
+            "y": 1777,
+            "pin0": 800,
+            "pin1": 801
+          },
+          {
+            "x": 50,
+            "y": 1774,
+            "pin0": 802,
+            "pin1": 803
+          },
+          {
+            "x": 458,
+            "y": 1801,
+            "pin0": 804,
+            "pin1": 805
+          },
+          {
+            "x": 847,
+            "y": 1788,
+            "pin0": 806,
+            "pin1": 807
+          },
+          {
+            "x": 1251,
+            "y": 1795,
+            "pin0": 808,
+            "pin1": 809
+          },
+          {
+            "x": 1689,
+            "y": 1789,
+            "pin0": 810,
+            "pin1": 809
+          }
+        ],
+        "enumClassName": "类型转换",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 7,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 800,
+            "name": "类型转换_整数转布尔型"
+          },
+          {
+            "value": 801,
+            "name": "类型转换_整数转浮点数"
+          },
+          {
+            "value": 802,
+            "name": "类型转换_整数转字符串型"
+          },
+          {
+            "value": 803,
+            "name": "类型转换_实体转字符串型"
+          },
+          {
+            "value": 804,
+            "name": "类型转换_GUID转字符串型"
+          },
+          {
+            "value": 805,
+            "name": "类型转换_布尔型转整数"
+          },
+          {
+            "value": 806,
+            "name": "类型转换_布尔型转字符串型"
+          },
+          {
+            "value": 807,
+            "name": "类型转换_浮点数转整数"
+          },
+          {
+            "value": 808,
+            "name": "类型转换_浮点数转字符串型"
+          },
+          {
+            "value": 809,
+            "name": "类型转换_三维向量转字符串型"
+          },
+          {
+            "value": 810,
+            "name": "类型转换_阵营转字符串型"
+          }
+        ]
+      },
+      {
+        "ioc": 8,
+        "rowY": 2132,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          900,
+          901
+        ],
+        "nodes": [
+          {
+            "x": -289,
+            "y": 2132,
+            "pin0": 900,
+            "pin1": 901
+          }
+        ],
+        "enumClassName": "运动路径点位",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 8,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 900,
+            "name": "运动路径点位_直线"
+          },
+          {
+            "value": 901,
+            "name": "运动路径点位_曲线"
+          }
+        ]
+      },
+      {
+        "ioc": 9,
+        "rowY": 2432,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          1000,
+          1001,
+          1002
+        ],
+        "nodes": [
+          {
+            "x": -321,
+            "y": 2431,
+            "pin0": 1000,
+            "pin1": 1001
+          },
+          {
+            "x": 63,
+            "y": 2433,
+            "pin0": 1002,
+            "pin1": 1001
+          }
+        ],
+        "enumClassName": "运动类型",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 9,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1000,
+            "name": "运动类型_单向运动"
+          },
+          {
+            "value": 1001,
+            "name": "运动类型_往返运动"
+          },
+          {
+            "value": 1002,
+            "name": "运动类型_循环运动"
+          }
+        ]
+      },
+      {
+        "ioc": 10,
+        "rowY": 2759,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          1100,
+          1101,
+          1102
+        ],
+        "nodes": [
+          {
+            "x": -307,
+            "y": 2762,
+            "pin0": 1100,
+            "pin1": 1101
+          },
+          {
+            "x": 129,
+            "y": 2756,
+            "pin0": 1102,
+            "pin1": 1101
+          }
+        ],
+        "enumClassName": "跟随位置类型",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 10,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1100,
+            "name": "跟随位置类型_全量（位置+朝向）"
+          },
+          {
+            "value": 1101,
+            "name": "跟随位置类型_位置"
+          },
+          {
+            "value": 1102,
+            "name": "跟随位置类型_朝向"
+          }
+        ]
+      },
+      {
+        "ioc": 11,
+        "rowY": 3076,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          1200,
+          1201
+        ],
+        "nodes": [
+          {
+            "x": -280,
+            "y": 3076,
+            "pin0": 1200,
+            "pin1": 1201
+          }
+        ],
+        "enumClassName": "跟随位置",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 11,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1200,
+            "name": "跟随位置_相对位置"
+          },
+          {
+            "value": 1201,
+            "name": "跟随位置_绝对位置"
+          }
+        ]
+      },
+      {
+        "ioc": 12,
+        "rowY": 3363,
+        "nodeCount": 4,
+        "valueCount": 8,
+        "values": [
+          1300,
+          1301,
+          1302,
+          1303,
+          1304,
+          1305,
+          1306,
+          1307
+        ],
+        "nodes": [
+          {
+            "x": -288,
+            "y": 3370,
+            "pin0": 1301,
+            "pin1": 1302
+          },
+          {
+            "x": 76,
+            "y": 3366,
+            "pin0": 1303,
+            "pin1": 1304
+          },
+          {
+            "x": 432,
+            "y": 3366,
+            "pin0": 1305,
+            "pin1": 1306
+          },
+          {
+            "x": 792,
+            "y": 3350,
+            "pin0": 1307,
+            "pin1": 1300
+          }
+        ],
+        "enumClassName": "元素类型",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 12,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1300,
+            "name": "元素类型_无"
+          },
+          {
+            "value": 1301,
+            "name": "元素类型_火元素"
+          },
+          {
+            "value": 1302,
+            "name": "元素类型_水元素"
+          },
+          {
+            "value": 1303,
+            "name": "元素类型_风元素"
+          },
+          {
+            "value": 1304,
+            "name": "元素类型_雷元素"
+          },
+          {
+            "value": 1305,
+            "name": "元素类型_草元素"
+          },
+          {
+            "value": 1306,
+            "name": "元素类型_冰元素"
+          },
+          {
+            "value": 1307,
+            "name": "元素类型_岩元素"
+          }
+        ]
+      },
+      {
+        "ioc": 13,
+        "rowY": 3663,
+        "nodeCount": 3,
+        "valueCount": 5,
+        "values": [
+          1401,
+          1402,
+          1403,
+          1404,
+          1405
+        ],
+        "nodes": [
+          {
+            "x": -276,
+            "y": 3652,
+            "pin0": 1401,
+            "pin1": 1402
+          },
+          {
+            "x": 72,
+            "y": 3668,
+            "pin0": 1403,
+            "pin1": 1404
+          },
+          {
+            "x": 443,
+            "y": 3670,
+            "pin0": 1405,
+            "pin1": 1404
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 13,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1401,
+            "name": "关卡"
+          },
+          {
+            "value": 1402,
+            "name": "物件"
+          },
+          {
+            "value": 1403,
+            "name": "玩家"
+          },
+          {
+            "value": 1404,
+            "name": "角色"
+          },
+          {
+            "value": 1405,
+            "name": "造物"
+          }
+        ]
+      },
+      {
+        "ioc": 14,
+        "rowY": 4017,
+        "nodeCount": 2,
+        "valueCount": 4,
+        "values": [
+          1500,
+          1501,
+          1502,
+          1503
+        ],
+        "nodes": [
+          {
+            "x": -269,
+            "y": 4017,
+            "pin0": 1500,
+            "pin1": 1501
+          },
+          {
+            "x": 92,
+            "y": 4017,
+            "pin0": 1502,
+            "pin1": 1503
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 14,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1500,
+            "name": "失败，其它异常"
+          },
+          {
+            "value": 1501,
+            "name": "失败，让位于其它状态"
+          },
+          {
+            "value": 1502,
+            "name": "失败，超出并存上限"
+          },
+          {
+            "value": 1503,
+            "name": "失败，附加叠层未成功"
+          }
+        ]
+      },
+      {
+        "ioc": 15,
+        "rowY": 4296,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          1504,
+          1505
+        ],
+        "nodes": [
+          {
+            "x": -276,
+            "y": 4296,
+            "pin0": 1504,
+            "pin1": 1505
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 15,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1504,
+            "name": "成功，施加新状态"
+          },
+          {
+            "value": 1505,
+            "name": "成功，槽位叠层"
+          }
+        ]
+      },
+      {
+        "ioc": 16,
+        "rowY": 4608,
+        "nodeCount": 4,
+        "valueCount": 7,
+        "values": [
+          1506,
+          1507,
+          1508,
+          1509,
+          1510,
+          1511,
+          1512
+        ],
+        "nodes": [
+          {
+            "x": -257,
+            "y": 4600,
+            "pin0": 1506,
+            "pin1": 1507
+          },
+          {
+            "x": 94,
+            "y": 4614,
+            "pin0": 1508,
+            "pin1": 1509
+          },
+          {
+            "x": 433,
+            "y": 4601,
+            "pin0": 1510,
+            "pin1": 1511
+          },
+          {
+            "x": 773,
+            "y": 4618,
+            "pin0": 1512,
+            "pin1": 1511
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 16,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1506,
+            "name": "其它单位状态顶替"
+          },
+          {
+            "value": 1507,
+            "name": "超出持续时间"
+          },
+          {
+            "value": 1508,
+            "name": "被驱散"
+          },
+          {
+            "value": 1509,
+            "name": "状态失效"
+          },
+          {
+            "value": 1510,
+            "name": "职业变更"
+          },
+          {
+            "value": 1511,
+            "name": "词条失效"
+          },
+          {
+            "value": 1512,
+            "name": "护盾含量归零"
+          }
+        ]
+      },
+      {
+        "ioc": 17,
+        "rowY": 4920,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          1540,
+          1541
+        ],
+        "nodes": [
+          {
+            "x": -244,
+            "y": 4920,
+            "pin0": 1540,
+            "pin1": 1541
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 17,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1540,
+            "name": "所有同名并存状态"
+          },
+          {
+            "value": 1541,
+            "name": "最快丢失叠加层数的状态"
+          }
+        ]
+      },
+      {
+        "ioc": 18,
+        "rowY": 5230,
+        "nodeCount": 2,
+        "valueCount": 4,
+        "values": [
+          1601,
+          1602,
+          1603,
+          1604
+        ],
+        "nodes": [
+          {
+            "x": -244,
+            "y": 5222,
+            "pin0": 1601,
+            "pin1": 1602
+          },
+          {
+            "x": 142,
+            "y": 5237,
+            "pin0": 1603,
+            "pin1": 1604
+          }
+        ],
+        "enumClassName": "复苏点选取",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 18,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1601,
+            "name": "复苏点选取_最近"
+          },
+          {
+            "value": 1602,
+            "name": "复苏点选取_最新激活"
+          },
+          {
+            "value": 1603,
+            "name": "复苏点选取_优先级最高"
+          },
+          {
+            "value": 1604,
+            "name": "复苏点选取_随机"
+          }
+        ]
+      },
+      {
+        "ioc": 19,
+        "rowY": 5551,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          1605,
+          1606,
+          1607
+        ],
+        "nodes": [
+          {
+            "x": -220,
+            "y": 5552,
+            "pin0": 1605,
+            "pin1": 1606
+          },
+          {
+            "x": 161,
+            "y": 5549,
+            "pin0": 1607,
+            "pin1": 1606
+          }
+        ],
+        "enumClassName": "倒下原因",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 19,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1605,
+            "name": "倒下原因_节点图导致"
+          },
+          {
+            "value": 1606,
+            "name": "倒下原因_正常被击倒"
+          },
+          {
+            "value": 1607,
+            "name": "倒下原因_非正常被击倒"
+          }
+        ]
+      },
+      {
+        "ioc": 20,
+        "rowY": 5890,
+        "nodeCount": 4,
+        "valueCount": 8,
+        "values": [
+          1700,
+          1701,
+          1702,
+          1703,
+          1704,
+          1705,
+          1706,
+          1707
+        ],
+        "nodes": [
+          {
+            "x": -223,
+            "y": 5889,
+            "pin0": 1700,
+            "pin1": 1701
+          },
+          {
+            "x": 147,
+            "y": 5889,
+            "pin0": 1702,
+            "pin1": 1703
+          },
+          {
+            "x": 497,
+            "y": 5896,
+            "pin0": 1704,
+            "pin1": 1705
+          },
+          {
+            "x": 840,
+            "y": 5887,
+            "pin0": 1706,
+            "pin1": 1707
+          }
+        ],
+        "enumClassName": "三角函数",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 20,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1700,
+            "name": "三角函数_余弦"
+          },
+          {
+            "value": 1701,
+            "name": "三角函数_正弦"
+          },
+          {
+            "value": 1702,
+            "name": "三角函数_正切"
+          },
+          {
+            "value": 1703,
+            "name": "三角函数_反余弦"
+          },
+          {
+            "value": 1704,
+            "name": "三角函数_反正弦"
+          },
+          {
+            "value": 1705,
+            "name": "三角函数_反正切"
+          },
+          {
+            "value": 1706,
+            "name": "三角函数_弧度转角度"
+          },
+          {
+            "value": 1707,
+            "name": "三角函数_角度转弧度"
+          }
+        ]
+      },
+      {
+        "ioc": 21,
+        "rowY": 6209,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          1801,
+          1802,
+          1803
+        ],
+        "nodes": [
+          {
+            "x": -216,
+            "y": 6210,
+            "pin0": 1801,
+            "pin1": 1802
+          },
+          {
+            "x": 196,
+            "y": 6208,
+            "pin0": 1803,
+            "pin1": 1802
+          }
+        ],
+        "enumClassName": "扰动装置类型",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 21,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1801,
+            "name": "扰动装置类型_力场器"
+          },
+          {
+            "value": 1802,
+            "name": "扰动装置类型_弹射器"
+          },
+          {
+            "value": 1803,
+            "name": "扰动装置类型_牵引器"
+          }
+        ]
+      },
+      {
+        "ioc": 22,
+        "rowY": 6543,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          1810,
+          1811
+        ],
+        "nodes": [
+          {
+            "x": -210,
+            "y": 6543,
+            "pin0": 1810,
+            "pin1": 1811
+          }
+        ],
+        "enumClassName": "扰动装置朝向",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 22,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1810,
+            "name": "扰动装置朝向_关联角色朝向"
+          },
+          {
+            "value": 1811,
+            "name": "扰动装置朝向_固定单向"
+          }
+        ]
+      },
+      {
+        "ioc": 23,
+        "rowY": 6878,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          1900,
+          1901,
+          1902
+        ],
+        "nodes": [
+          {
+            "x": -180,
+            "y": 6877,
+            "pin0": 1900,
+            "pin1": 1901
+          },
+          {
+            "x": 183,
+            "y": 6879,
+            "pin0": 1902,
+            "pin1": 1901
+          }
+        ],
+        "enumClassName": "界面控件组状态",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 23,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1900,
+            "name": "界面控件组状态_关闭"
+          },
+          {
+            "value": 1901,
+            "name": "界面控件组状态_开启"
+          },
+          {
+            "value": 1902,
+            "name": "界面控件组状态_隐藏"
+          }
+        ]
+      },
+      {
+        "ioc": 24,
+        "rowY": 7218,
+        "nodeCount": 4,
+        "valueCount": 8,
+        "values": [
+          2000,
+          2001,
+          2002,
+          2003,
+          2004,
+          2005,
+          2006,
+          2007
+        ],
+        "nodes": [
+          {
+            "x": -177,
+            "y": 7207,
+            "pin0": 2000,
+            "pin1": 2001
+          },
+          {
+            "x": 174,
+            "y": 7222,
+            "pin0": 2002,
+            "pin1": 2003
+          },
+          {
+            "x": 549,
+            "y": 7220,
+            "pin0": 2004,
+            "pin1": 2005
+          },
+          {
+            "x": 889,
+            "y": 7224,
+            "pin0": 2006,
+            "pin1": 2007
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 24,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2000,
+            "name": "不找目标"
+          },
+          {
+            "value": 2001,
+            "name": "友善阵营"
+          },
+          {
+            "value": 2002,
+            "name": "敌对阵营"
+          },
+          {
+            "value": 2003,
+            "name": "自身"
+          },
+          {
+            "value": 2004,
+            "name": "自身所在阵营"
+          },
+          {
+            "value": 2005,
+            "name": "全部"
+          },
+          {
+            "value": 2006,
+            "name": "除自身外全部"
+          },
+          {
+            "value": 2007,
+            "name": "友善阵营包括自身"
+          }
+        ]
+      },
+      {
+        "ioc": 25,
+        "rowY": 7549,
+        "nodeCount": 3,
+        "valueCount": 5,
+        "values": [
+          304,
+          305,
+          306,
+          307,
+          308
+        ],
+        "nodes": [
+          {
+            "x": -177,
+            "y": 7545,
+            "pin0": 304,
+            "pin1": 305
+          },
+          {
+            "x": 165,
+            "y": 7554,
+            "pin0": 306,
+            "pin1": 307
+          },
+          {
+            "x": 547,
+            "y": 7549,
+            "pin0": 308,
+            "pin1": 307
+          }
+        ],
+        "enumClassName": "数字运算",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 25,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 304,
+            "name": "数字运算_模运算"
+          },
+          {
+            "value": 305,
+            "name": "数字运算_幂运算"
+          },
+          {
+            "value": 306,
+            "name": "数字运算_取最大值"
+          },
+          {
+            "value": 307,
+            "name": "数字运算_取最小值"
+          },
+          {
+            "value": 308,
+            "name": "数字运算_对数"
+          }
+        ]
+      },
+      {
+        "ioc": 26,
+        "rowY": 7894,
+        "nodeCount": 3,
+        "valueCount": 6,
+        "values": [
+          2200,
+          2201,
+          2202,
+          2203,
+          2204,
+          2205
+        ],
+        "nodes": [
+          {
+            "x": -178,
+            "y": 7884,
+            "pin0": 2200,
+            "pin1": 2201
+          },
+          {
+            "x": 172,
+            "y": 7904,
+            "pin0": 2202,
+            "pin1": 2203
+          },
+          {
+            "x": 542,
+            "y": 7893,
+            "pin0": 2204,
+            "pin1": 2205
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 26,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2200,
+            "name": "无"
+          },
+          {
+            "value": 2201,
+            "name": "默认"
+          },
+          {
+            "value": 2202,
+            "name": "斩击"
+          },
+          {
+            "value": 2203,
+            "name": "钝击"
+          },
+          {
+            "value": 2204,
+            "name": "投射物"
+          },
+          {
+            "value": 2205,
+            "name": "刺击攻击"
+          }
+        ]
+      },
+      {
+        "ioc": 27,
+        "rowY": 8261,
+        "nodeCount": 2,
+        "valueCount": 4,
+        "values": [
+          2300,
+          2301,
+          2302,
+          2303
+        ],
+        "nodes": [
+          {
+            "x": -144,
+            "y": 8253,
+            "pin0": 2300,
+            "pin1": 2301
+          },
+          {
+            "x": 214,
+            "y": 8268,
+            "pin0": 2302,
+            "pin1": 2303
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 27,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2300,
+            "name": "无"
+          },
+          {
+            "value": 2301,
+            "name": "近战攻击"
+          },
+          {
+            "value": 2302,
+            "name": "远程攻击"
+          },
+          {
+            "value": 2303,
+            "name": "默认"
+          }
+        ]
+      },
+      {
+        "ioc": 28,
+        "rowY": 8595,
+        "nodeCount": 6,
+        "valueCount": 11,
+        "values": [
+          2400,
+          2401,
+          2402,
+          2403,
+          2404,
+          2405,
+          2406,
+          2407,
+          2408,
+          2409,
+          2410
+        ],
+        "nodes": [
+          {
+            "x": -137,
+            "y": 8583,
+            "pin0": 2400,
+            "pin1": 2401
+          },
+          {
+            "x": 205,
+            "y": 8582,
+            "pin0": 2402,
+            "pin1": 2403
+          },
+          {
+            "x": 595,
+            "y": 8585,
+            "pin0": 2404,
+            "pin1": 2405
+          },
+          {
+            "x": 948,
+            "y": 8598,
+            "pin0": 2406,
+            "pin1": 2407
+          },
+          {
+            "x": 1292,
+            "y": 8605,
+            "pin0": 2408,
+            "pin1": 2409
+          },
+          {
+            "x": 1630,
+            "y": 8616,
+            "pin0": 2410,
+            "pin1": 2409
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 28,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2400,
+            "name": "默认"
+          },
+          {
+            "value": 2401,
+            "name": "无受击表现"
+          },
+          {
+            "value": 2402,
+            "name": "未蓄力普通箭受击"
+          },
+          {
+            "value": 2403,
+            "name": "连击受击"
+          },
+          {
+            "value": 2404,
+            "name": "普通受击"
+          },
+          {
+            "value": 2405,
+            "name": "重受击"
+          },
+          {
+            "value": 2406,
+            "name": "强力冲击"
+          },
+          {
+            "value": 2407,
+            "name": "终结技冲击"
+          },
+          {
+            "value": 2408,
+            "name": "垂直击飞"
+          },
+          {
+            "value": 2409,
+            "name": "超强力击飞"
+          },
+          {
+            "value": 2410,
+            "name": "长距抛射"
+          }
+        ]
+      },
+      {
+        "ioc": 29,
+        "rowY": 8923,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          1000001,
+          1000002,
+          1000003
+        ],
+        "nodes": [
+          {
+            "x": -162,
+            "y": 8927,
+            "pin0": 1000001,
+            "pin1": 1000002
+          },
+          {
+            "x": 176,
+            "y": 8919,
+            "pin0": 1000003,
+            "pin1": 1000002
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 29,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1000001,
+            "name": "默认排序"
+          },
+          {
+            "value": 1000002,
+            "name": "随机排序"
+          },
+          {
+            "value": 1000003,
+            "name": "从近到远排序"
+          }
+        ]
+      },
+      {
+        "ioc": 30,
+        "rowY": 9242,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          2601,
+          2602,
+          2604
+        ],
+        "nodes": [
+          {
+            "x": -122,
+            "y": 9253,
+            "pin0": 2601,
+            "pin1": 2602
+          },
+          {
+            "x": 199,
+            "y": 9231,
+            "pin0": 2604,
+            "pin1": 2602
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 30,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2601,
+            "name": "只命中受击盒"
+          },
+          {
+            "value": 2602,
+            "name": "只命中场景"
+          },
+          {
+            "value": 2604,
+            "name": "全部命中"
+          }
+        ]
+      },
+      {
+        "ioc": 31,
+        "rowY": 9575,
+        "nodeCount": 4,
+        "valueCount": 7,
+        "values": [
+          2501,
+          2502,
+          2503,
+          2504,
+          2505,
+          2506,
+          2507
+        ],
+        "nodes": [
+          {
+            "x": -143,
+            "y": 9590,
+            "pin0": 2501,
+            "pin1": 2502
+          },
+          {
+            "x": 244,
+            "y": 9575,
+            "pin0": 2503,
+            "pin1": 2504
+          },
+          {
+            "x": 652,
+            "y": 9574,
+            "pin0": 2505,
+            "pin1": 2506
+          },
+          {
+            "x": 1022,
+            "y": 9559,
+            "pin0": 2507,
+            "pin1": 2506
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 31,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2501,
+            "name": "攻击者与受击点的连线"
+          },
+          {
+            "value": 2502,
+            "name": "攻击盒命中方向"
+          },
+          {
+            "value": 2503,
+            "name": "攻击者主人与受击点连线"
+          },
+          {
+            "value": 2504,
+            "name": "攻击者与受击点连线切线"
+          },
+          {
+            "value": 2505,
+            "name": "受击反方向"
+          },
+          {
+            "value": 2506,
+            "name": "攻击者面朝朝向"
+          },
+          {
+            "value": 2507,
+            "name": "攻击者与受击点连线反方向"
+          }
+        ]
+      },
+      {
+        "ioc": 32,
+        "rowY": 9894,
+        "nodeCount": 3,
+        "valueCount": 6,
+        "values": [
+          2900,
+          2901,
+          2902,
+          2903,
+          2904,
+          2905
+        ],
+        "nodes": [
+          {
+            "x": -124,
+            "y": 9893,
+            "pin0": 2900,
+            "pin1": 2901
+          },
+          {
+            "x": 270,
+            "y": 9901,
+            "pin0": 2902,
+            "pin1": 2903
+          },
+          {
+            "x": 645,
+            "y": 9887,
+            "pin0": 2904,
+            "pin1": 2905
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 32,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2900,
+            "name": "先目标后输入"
+          },
+          {
+            "value": 2901,
+            "name": "输入朝向"
+          },
+          {
+            "value": 2902,
+            "name": "目标朝向"
+          },
+          {
+            "value": 2903,
+            "name": "先目标后镜头"
+          },
+          {
+            "value": 2904,
+            "name": "镜头朝向"
+          },
+          {
+            "value": 2905,
+            "name": "先输入后目标"
+          }
+        ]
+      },
+      {
+        "ioc": 33,
+        "rowY": 10219,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          450,
+          451,
+          452
+        ],
+        "nodes": [
+          {
+            "x": -128,
+            "y": 10212,
+            "pin0": 450,
+            "pin1": 451
+          },
+          {
+            "x": 244,
+            "y": 10226,
+            "pin0": 452,
+            "pin1": 451
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 33,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 450,
+            "name": "由内向外"
+          },
+          {
+            "value": 451,
+            "name": "顺时针"
+          },
+          {
+            "value": 452,
+            "name": "逆时针"
+          }
+        ]
+      },
+      {
+        "ioc": 34,
+        "rowY": 10539,
+        "nodeCount": 5,
+        "valueCount": 9,
+        "values": [
+          800,
+          801,
+          802,
+          803,
+          804,
+          805,
+          806,
+          808,
+          809
+        ],
+        "nodes": [
+          {
+            "x": -122,
+            "y": 10535,
+            "pin0": 800,
+            "pin1": 801
+          },
+          {
+            "x": 268,
+            "y": 10537,
+            "pin0": 802,
+            "pin1": 803
+          },
+          {
+            "x": 680,
+            "y": 10534,
+            "pin0": 804,
+            "pin1": 805
+          },
+          {
+            "x": 1108,
+            "y": 10542,
+            "pin0": 806,
+            "pin1": 806
+          },
+          {
+            "x": 1547,
+            "y": 10549,
+            "pin0": 808,
+            "pin1": 809
+          }
+        ],
+        "options": [
+          {
+            "value": 800,
+            "name": "类型转换_整数转布尔型"
+          },
+          {
+            "value": 801,
+            "name": "类型转换_整数转浮点数"
+          },
+          {
+            "value": 802,
+            "name": "类型转换_整数转字符串型"
+          },
+          {
+            "value": 803,
+            "name": "类型转换_实体转字符串型"
+          },
+          {
+            "value": 804,
+            "name": "类型转换_GUID转字符串型"
+          },
+          {
+            "value": 805,
+            "name": "类型转换_布尔型转整数"
+          },
+          {
+            "value": 806,
+            "name": "类型转换_布尔型转字符串型"
+          },
+          {
+            "value": 808,
+            "name": "类型转换_浮点数转字符串型"
+          },
+          {
+            "value": 809,
+            "name": "类型转换_三维向量转字符串型"
+          }
+        ],
+        "namesSource": {
+          "kind": "ui_read_round2",
+          "note": "与技能族 ioc=34 类型转换 数值重叠但缺 807(浮点数转整数)，独立记录"
+        },
+        "enumClassName": "类型转换"
+      },
+      {
+        "ioc": 35,
+        "rowY": 10872,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          3200,
+          3201,
+          3202
+        ],
+        "nodes": [
+          {
+            "x": -77,
+            "y": 10878,
+            "pin0": 3200,
+            "pin1": 3201
+          },
+          {
+            "x": 316,
+            "y": 10866,
+            "pin0": 3202,
+            "pin1": 3201
+          }
+        ],
+        "enumClassName": "溯源类型",
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 35,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 3200,
+            "name": "溯源类型-自身"
+          },
+          {
+            "value": 3201,
+            "name": "溯源类型-自身所有者"
+          },
+          {
+            "value": 3202,
+            "name": "溯源类型-自身最上层所有者"
+          }
+        ]
+      },
+      {
+        "ioc": 36,
+        "rowY": 11196,
+        "nodeCount": 3,
+        "valueCount": 5,
+        "values": [
+          3900,
+          3901,
+          3902,
+          3903,
+          3904
+        ],
+        "nodes": [
+          {
+            "x": -47,
+            "y": 11197,
+            "pin0": 3900,
+            "pin1": 3901
+          },
+          {
+            "x": 332,
+            "y": 11194,
+            "pin0": 3902,
+            "pin1": 3903
+          },
+          {
+            "x": 717,
+            "y": 11196,
+            "pin0": 3904,
+            "pin1": 3903
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 36,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 3900,
+            "name": "无效果"
+          },
+          {
+            "value": 3901,
+            "name": "轻颤"
+          },
+          {
+            "value": 3902,
+            "name": "轻受击"
+          },
+          {
+            "value": 3903,
+            "name": "击退受击"
+          },
+          {
+            "value": 3904,
+            "name": "挑飞"
+          }
+        ]
+      },
+      {
+        "ioc": 37,
+        "rowY": null,
+        "nodeCount": 0,
+        "valueCount": 43,
+        "values": [
+          4701,
+          4702,
+          4703,
+          4704,
+          4705,
+          4706,
+          4707,
+          4708,
+          4709,
+          4710,
+          4711,
+          4712,
+          4713,
+          4714,
+          4715,
+          4716,
+          4717,
+          4718,
+          4719,
+          4720,
+          4721,
+          4722,
+          4723,
+          4724,
+          4725,
+          4726,
+          4727,
+          4728,
+          4729,
+          4730,
+          4731,
+          4732,
+          4733,
+          4734,
+          4735,
+          4736,
+          4737,
+          4738,
+          4739,
+          4740,
+          4741,
+          4742,
+          4743
+        ],
+        "nodes": [],
+        "enumClassName": null,
+        "options": [
+          {
+            "value": 4701,
+            "name": "Explode"
+          },
+          {
+            "value": 4702,
+            "name": "Stream"
+          },
+          {
+            "value": 4703,
+            "name": "Burning"
+          },
+          {
+            "value": 4704,
+            "name": "Burned"
+          },
+          {
+            "value": 4705,
+            "name": "Wet"
+          },
+          {
+            "value": 4706,
+            "name": "Overgrow"
+          },
+          {
+            "value": 4707,
+            "name": "Melt"
+          },
+          {
+            "value": 4708,
+            "name": "Freeze"
+          },
+          {
+            "value": 4709,
+            "name": "AntiFire"
+          },
+          {
+            "value": 4710,
+            "name": "Rock"
+          },
+          {
+            "value": 4711,
+            "name": "SlowDown"
+          },
+          {
+            "value": 4712,
+            "name": "Shock"
+          },
+          {
+            "value": 4713,
+            "name": "Wind"
+          },
+          {
+            "value": 4714,
+            "name": "Electric"
+          },
+          {
+            "value": 4715,
+            "name": "Fire"
+          },
+          {
+            "value": 4716,
+            "name": "Superconductor"
+          },
+          {
+            "value": 4717,
+            "name": "SwirlFire"
+          },
+          {
+            "value": 4718,
+            "name": "SwirlWater"
+          },
+          {
+            "value": 4719,
+            "name": "SwirlElectric"
+          },
+          {
+            "value": 4720,
+            "name": "SwirlIce"
+          },
+          {
+            "value": 4721,
+            "name": "SwirlFireAccu"
+          },
+          {
+            "value": 4722,
+            "name": "SwirlWaterAccu"
+          },
+          {
+            "value": 4723,
+            "name": "SwirlElectricAccu"
+          },
+          {
+            "value": 4724,
+            "name": "SwirlIceAccu"
+          },
+          {
+            "value": 4725,
+            "name": "StickRock"
+          },
+          {
+            "value": 4726,
+            "name": "StickWater"
+          },
+          {
+            "value": 4727,
+            "name": "CrystallizeFire"
+          },
+          {
+            "value": 4728,
+            "name": "CrystallizeWater"
+          },
+          {
+            "value": 4729,
+            "name": "CrystallizeElectric"
+          },
+          {
+            "value": 4730,
+            "name": "CrystallizeIce"
+          },
+          {
+            "value": 4731,
+            "name": "FrozenBroken"
+          },
+          {
+            "value": 4732,
+            "name": "StickGrass"
+          },
+          {
+            "value": 4733,
+            "name": "Overdose"
+          },
+          {
+            "value": 4734,
+            "name": "OverdoseElectric"
+          },
+          {
+            "value": 4735,
+            "name": "OverdoseGrass"
+          },
+          {
+            "value": 4736,
+            "name": "OvergrowMushroomFire"
+          },
+          {
+            "value": 4737,
+            "name": "OvergrowMushroomElectric"
+          },
+          {
+            "value": 4738,
+            "name": "PhlogistonSolidification"
+          },
+          {
+            "value": 4739,
+            "name": "PhlogistonSolidificationEnd"
+          },
+          {
+            "value": 4740,
+            "name": "月感电"
+          },
+          {
+            "value": 4741,
+            "name": "月绽放"
+          },
+          {
+            "value": 4742,
+            "name": "月结晶"
+          },
+          {
+            "value": 4743,
+            "name": "星超导"
+          }
+        ],
+        "namesSource": {
+          "kind": "reused_inferred",
+          "family": "character_skill",
+          "ioc": 37,
+          "note": "用户未排布该类（元素反应类型），无本族 gia 实证；2026-07-06 开发者决策按技能族复用，ioc=37 位置由两族 0..36/38..41 全对齐推断"
+        }
+      },
+      {
+        "ioc": 38,
+        "rowY": 11504,
+        "nodeCount": 1,
+        "valueCount": 2,
+        "values": [
+          1000010,
+          10000011
+        ],
+        "nodes": [
+          {
+            "x": -43,
+            "y": 11504,
+            "pin0": 1000010,
+            "pin1": 10000011
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 38,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 1000010,
+            "name": "返回布尔型"
+          },
+          {
+            "value": 10000011,
+            "name": "返回整型"
+          }
+        ]
+      },
+      {
+        "ioc": 39,
+        "rowY": 11812,
+        "nodeCount": 3,
+        "valueCount": 5,
+        "values": [
+          2000,
+          2001,
+          2002,
+          2004,
+          2006
+        ],
+        "nodes": [
+          {
+            "x": -28,
+            "y": 11814,
+            "pin0": 2000,
+            "pin1": 2001
+          },
+          {
+            "x": 319,
+            "y": 11820,
+            "pin0": 2002,
+            "pin1": 2004
+          },
+          {
+            "x": 709,
+            "y": 11802,
+            "pin0": 2006,
+            "pin1": 2004
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 39,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 2000,
+            "name": "不找目标"
+          },
+          {
+            "value": 2001,
+            "name": "友善阵营"
+          },
+          {
+            "value": 2002,
+            "name": "敌对阵营"
+          },
+          {
+            "value": 2004,
+            "name": "自身所在阵营"
+          },
+          {
+            "value": 2006,
+            "name": "除自身外全部"
+          }
+        ]
+      },
+      {
+        "ioc": 40,
+        "rowY": 12148,
+        "nodeCount": 2,
+        "valueCount": 4,
+        "values": [
+          5000,
+          5001,
+          5002,
+          5003
+        ],
+        "nodes": [
+          {
+            "x": 9,
+            "y": 12142,
+            "pin0": 5000,
+            "pin1": 5001
+          },
+          {
+            "x": 341,
+            "y": 12153,
+            "pin0": 5002,
+            "pin1": 5003
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 40,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 5000,
+            "name": "目标不可用"
+          },
+          {
+            "value": 5001,
+            "name": "当前扫描目标"
+          },
+          {
+            "value": 5002,
+            "name": "候选目标"
+          },
+          {
+            "value": 5003,
+            "name": "不满足条件"
+          }
+        ]
+      },
+      {
+        "ioc": 41,
+        "rowY": 12448,
+        "nodeCount": 2,
+        "valueCount": 3,
+        "values": [
+          5800,
+          5801,
+          5802
+        ],
+        "nodes": [
+          {
+            "x": 15,
+            "y": 12447,
+            "pin0": 5800,
+            "pin1": 5801
+          },
+          {
+            "x": 374,
+            "y": 12448,
+            "pin0": 5802,
+            "pin1": 5801
+          }
+        ],
+        "enumClassName": null,
+        "namesSource": {
+          "kind": "reused",
+          "family": "character_skill",
+          "ioc": 41,
+          "match": "exact value set"
+        },
+        "options": [
+          {
+            "value": 5800,
+            "name": "键盘鼠标"
+          },
+          {
+            "value": 5801,
+            "name": "手柄"
+          },
+          {
+            "value": 5802,
+            "name": "触屏"
+          }
+        ]
+      },
+      {
+        "ioc": 42,
+        "rowY": 12725,
+        "nodeCount": 7,
+        "valueCount": 13,
+        "values": [
+          0,
+          6200,
+          6201,
+          6202,
+          6203,
+          6204,
+          6205,
+          6206,
+          6207,
+          6208,
+          6209,
+          6210,
+          6211
+        ],
+        "nodes": [
+          {
+            "x": 35,
+            "y": 12732,
+            "pin0": 6200,
+            "pin1": 6201
+          },
+          {
+            "x": 404,
+            "y": 12738,
+            "pin0": 6202,
+            "pin1": 6203
+          },
+          {
+            "x": 803,
+            "y": 12725,
+            "pin0": 6204,
+            "pin1": 6205
+          },
+          {
+            "x": 1173,
+            "y": 12713,
+            "pin0": 6206,
+            "pin1": 6207
+          },
+          {
+            "x": 1581,
+            "y": 12716,
+            "pin0": 6208,
+            "pin1": 6209
+          },
+          {
+            "x": 1977,
+            "y": 12722,
+            "pin0": 6210,
+            "pin1": 6211
+          },
+          {
+            "x": 2397,
+            "y": 12730,
+            "pin0": 0,
+            "pin1": 6211
+          }
+        ],
+        "options": [
+          {
+            "value": 0,
+            "name": "无"
+          },
+          {
+            "value": 6200,
+            "name": "战术：静止不动"
+          },
+          {
+            "value": 6201,
+            "name": "战术：移动到目标点"
+          },
+          {
+            "value": 6202,
+            "name": "战术：移动到目标实体"
+          },
+          {
+            "value": 6203,
+            "name": "战术：旋转到指定朝向"
+          },
+          {
+            "value": 6204,
+            "name": "战术：旋转指定角度"
+          },
+          {
+            "value": 6205,
+            "name": "战术：地面追击"
+          },
+          {
+            "value": 6206,
+            "name": "战术：地面逃跑"
+          },
+          {
+            "value": 6207,
+            "name": "战术：地面闲逛"
+          },
+          {
+            "value": 6208,
+            "name": "战术：脱战后返回出生点"
+          },
+          {
+            "value": 6209,
+            "name": "战术：地面对峙"
+          },
+          {
+            "value": 6210,
+            "name": "战术：执行巡逻"
+          },
+          {
+            "value": 6211,
+            "name": "战术：旋转朝向目标实体"
+          }
+        ],
+        "namesSource": {
+          "kind": "ui_read_round2",
+          "note": "造物状态族独有类，技能族无对应"
+        },
+        "enumClassName": "战术类型"
+      }
+    ],
+    "namesSource": "40/42 类与 character_skill 种子值集精确匹配直接复用；ioc=34/42 由 2026-07-06 UI 补读；ioc=37 推断复用"
+  },
+  "notes": [
+    "枚举匹配 gid=200178（造物状态族），下拉类顺序 = ioc 0..42，与技能族 0..36/38..41 完全对齐",
+    "ioc=34 值 804 UI 原文仍显示「GUID换字符串型」（与技能族同一官方文案笔误），按 2026-07-06 开发者决策记录为「转」",
+    "ioc=42(战术类型) 选项名与本族 战术： 系列节点名一一对应，另含「无」(0) 与两个无独立节点的选项(旋转指定角度 6204 / 地面对峙 6209 / 执行巡逻 6210)",
+    "ioc=34 只有 9 值(800..806,808,809)：比技能族同位类少 807(浮点数转整数)；用户排布第4节点两引脚同为806，佐证下拉确实无807",
+    "ioc=42 为造物状态族独有类：值 0 + 6200..6211 共 13 项；技能族 ioc=42(预瞄准结束原因 6800..6802) 在本族下拉中不存在",
+    "ioc=37(元素反应类型) 用户未排布，值集与名字按技能族推断复用，无本族 gia 实证",
+    "战术系列枚举引脚常见 alreadySetVal=false 但携带默认值(如 是否执行=1、速度=3601)，选中默认项时编辑器不置 set 位"
+  ]
+}

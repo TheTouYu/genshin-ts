@@ -1,17 +1,21 @@
 import { SimplifyDeep } from 'type-fest'
 
 import { enumeration } from '../runtime/value.js'
+import type { ClientEnumerationTypeMap } from './client_enums.js'
 
 export type EnumerationType = SimplifyDeep<keyof EnumerationTypeMap>
-export type EnumerationTypeMap = {
+export type EnumerationTypeMap = ClientEnumerationTypeMap & {
   ComparisonOperator: ComparisonOperator
   SortBy: SortBy
+  RandomOrder: RandomOrder
   DamagePopUpType: DamagePopUpType
   MovementMode: MovementMode
   FixedMotionParameterType: FixedMotionParameterType
+  ColorOverlayType: ColorOverlayType
+  FillMaterial: FillMaterial
   FollowCoordinateSystem: FollowCoordinateSystem
   FollowLocationType: FollowLocationType
-  RemovalMethod: RemovalMethod
+  RemovalMethod: UnitStatusRemovalStrategy
   UIControlGroupStatus: UIControlGroupStatus
   DisruptorDeviceType: DisruptorDeviceType
   DisruptorDeviceOrientation: DisruptorDeviceOrientation
@@ -29,6 +33,7 @@ export type EnumerationTypeMap = {
   MotionType: MotionType
   DecisionRefreshMode: DecisionRefreshMode
   SettlementStatus: SettlementStatus
+  RankSettlementStatus: RankSettlementStatus
   ItemLootType: ItemLootType
   ScanRuleType: ScanRuleType
   RoundingMode: RoundingMode
@@ -73,6 +78,26 @@ export class SortBy extends enumeration {
    * 逆序（从大到小）
    */
   static readonly Descending = new enumeration('SortBy', 'sort_by_descending') as SortBy
+}
+
+/**
+ * Random Order
+ *
+ * 随机排序
+ */
+export class RandomOrder extends enumeration {
+  declare private readonly __brandRandomOrder: 'RandomOrder'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Sorting Rules_Random
+   *
+   * 排序规则_随机
+   */
+  static readonly Random = new enumeration('RandomOrder', 'random_order_random') as RandomOrder
 }
 
 /** 伤害跳字类型 */
@@ -140,7 +165,18 @@ export class MovementMode extends enumeration {
   ) as MovementMode
 }
 
-/** 定点运动器参数类型 */
+/**
+ * Fixed-Point Motion Device Motion Type
+ *
+ * 定点运动器运动类型
+ *
+ * Alias of {@link MovementMode}; both names refer to the same enum type.
+ *
+ * {@link MovementMode} 的别名；两个名称指向同一枚举类型。
+ */
+export { MovementMode as FixedPointMotionDeviceMotionType }
+
+/** 定点运动器参数转化类型 */
 export class FixedMotionParameterType extends enumeration {
   declare private readonly __brandFixedMotionParameterType: 'FixedMotionParameterType'
   private constructor() {
@@ -168,6 +204,116 @@ export class FixedMotionParameterType extends enumeration {
   ) as FixedMotionParameterType
 }
 
+/**
+ * Fixed-Point Motion Device Parameter Conversion Type
+ *
+ * 定点运动器参数转化类型
+ *
+ * Alias of {@link FixedMotionParameterType}; both names refer to the same enum type.
+ *
+ * {@link FixedMotionParameterType} 的别名；两个名称指向同一枚举类型。
+ */
+export { FixedMotionParameterType as FixedPointMotionDeviceParameterConversionType }
+
+/** 颜色叠加类型 */
+export class ColorOverlayType extends enumeration {
+  declare private readonly __brandColorOverlayType: 'ColorOverlayType'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Overwrite
+   *
+   * 覆盖
+   */
+  static readonly Overwrite = new enumeration(
+    'ColorOverlayType',
+    'color_overlay_type_overwrite'
+  ) as ColorOverlayType
+
+  /**
+   * Override
+   *
+   * 覆盖
+   *
+   * Alias of {@link Overwrite}; both names refer to the same enum value.
+   *
+   * {@link Overwrite} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Override = ColorOverlayType.Overwrite
+
+  /**
+   * Multiply
+   *
+   * 正片叠底
+   */
+  static readonly Multiply = new enumeration(
+    'ColorOverlayType',
+    'color_overlay_type_multiply'
+  ) as ColorOverlayType
+}
+
+/**
+ * Color Blend Type
+ *
+ * 颜色叠加类型
+ *
+ * Alias of {@link ColorOverlayType}; both names refer to the same enum type.
+ *
+ * {@link ColorOverlayType} 的别名；两个名称指向同一枚举类型。
+ */
+export { ColorOverlayType as ColorBlendType }
+
+/** 填充材质 */
+export class FillMaterial extends enumeration {
+  declare private readonly __brandFillMaterial: 'FillMaterial'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * Frozen
+   *
+   * 冰冻
+   */
+  static readonly Frozen = new enumeration('FillMaterial', 'fill_material_frozen') as FillMaterial
+
+  /**
+   * Freeze
+   *
+   * 冰冻
+   *
+   * Alias of {@link Frozen}; both names refer to the same enum value.
+   *
+   * {@link Frozen} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Freeze = FillMaterial.Frozen
+
+  /**
+   * Petrified
+   *
+   * 石化
+   */
+  static readonly Petrified = new enumeration(
+    'FillMaterial',
+    'fill_material_petrified'
+  ) as FillMaterial
+
+  /**
+   * Petrification
+   *
+   * 石化
+   *
+   * Alias of {@link Petrified}; both names refer to the same enum value.
+   *
+   * {@link Petrified} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Petrification = FillMaterial.Petrified
+}
+
 /** 跟随坐标系 */
 export class FollowCoordinateSystem extends enumeration {
   declare private readonly __brandFollowCoordinateSystem: 'FollowCoordinateSystem'
@@ -185,6 +331,17 @@ export class FollowCoordinateSystem extends enumeration {
     'FollowCoordinateSystem',
     'follow_coordinate_system_relative_coordinate_system'
   ) as FollowCoordinateSystem
+
+  /**
+   * Local Coordinate System
+   *
+   * 相对坐标系
+   *
+   * Alias of {@link RelativeCoordinateSystem}; both names refer to the same enum value.
+   *
+   * {@link RelativeCoordinateSystem} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly LocalCoordinateSystem = FollowCoordinateSystem.RelativeCoordinateSystem
   /**
    * World Coordinate System
    *
@@ -195,6 +352,17 @@ export class FollowCoordinateSystem extends enumeration {
     'follow_coordinate_system_world_coordinate_system'
   ) as FollowCoordinateSystem
 }
+
+/**
+ * Coordinate System Type
+ *
+ * 坐标系类型
+ *
+ * Alias of {@link FollowCoordinateSystem}; both names refer to the same enum type.
+ *
+ * {@link FollowCoordinateSystem} 的别名；两个名称指向同一枚举类型。
+ */
+export { FollowCoordinateSystem as CoordinateSystemType }
 
 /** 跟随类型 */
 export class FollowLocationType extends enumeration {
@@ -231,34 +399,6 @@ export class FollowLocationType extends enumeration {
     'FollowLocationType',
     'follow_location_type_follow_rotation'
   ) as FollowLocationType
-}
-
-/** 移除方式 */
-export class RemovalMethod extends enumeration {
-  declare private readonly __brandRemovalMethod: 'RemovalMethod'
-  private constructor() {
-    super('')
-    throw new Error('you should not create an enum instance')
-  }
-
-  /**
-   * All Coexisting Statuses with the Same Name
-   *
-   * 所有同名并存状态
-   */
-  static readonly AllCoexistingStatusesWithTheSameName = new enumeration(
-    'RemovalMethod',
-    'removal_method_all_coexisting_statuses_with_the_same_name'
-  ) as RemovalMethod
-  /**
-   * Status With Fastest Stack Loss
-   *
-   * 最快丢失叠加层数的状态
-   */
-  static readonly StatusWithFastestStackLoss = new enumeration(
-    'RemovalMethod',
-    'removal_method_status_with_fastest_stack_loss'
-  ) as RemovalMethod
 }
 
 /** 界面控件组状态 */
@@ -298,7 +438,7 @@ export class UIControlGroupStatus extends enumeration {
   ) as UIControlGroupStatus
 }
 
-/** 抗动装置类型 */
+/** 扰动装置类型 */
 export class DisruptorDeviceType extends enumeration {
   declare private readonly __brandDisruptorDeviceType: 'DisruptorDeviceType'
   private constructor() {
@@ -335,7 +475,18 @@ export class DisruptorDeviceType extends enumeration {
   ) as DisruptorDeviceType
 }
 
-/** 抗动装置朝向 */
+/**
+ * Disruptor Device Types
+ *
+ * 扰动装置类型
+ *
+ * Alias of {@link DisruptorDeviceType}; both names refer to the same enum type.
+ *
+ * {@link DisruptorDeviceType} 的别名；两个名称指向同一枚举类型。
+ */
+export { DisruptorDeviceType as DisruptorDeviceTypes }
+
+/** 扰动装置朝向 */
 export class DisruptorDeviceOrientation extends enumeration {
   declare private readonly __brandDisruptorDeviceOrientation: 'DisruptorDeviceOrientation'
   private constructor() {
@@ -389,6 +540,17 @@ export class CharacterSkillSlot extends enumeration {
     'CharacterSkillSlot',
     'character_skill_slot_dash_skill'
   ) as CharacterSkillSlot
+
+  /**
+   * Sprint Skill
+   *
+   * 冲刺技能
+   *
+   * Alias of {@link DashSkill}; both names refer to the same enum value.
+   *
+   * {@link DashSkill} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly SprintSkill = CharacterSkillSlot.DashSkill
   /**
    * Skill 1-E
    *
@@ -588,6 +750,17 @@ export class OriginalSlotSkillHandling extends enumeration {
     'OriginalSlotSkillHandling',
     'original_slot_skill_handling_keep_slot_relation'
   ) as OriginalSlotSkillHandling
+
+  /**
+   * Preserve Slot Binding: Retain the current slot binding. When the newly bound skill instance is removed, it is automatically displayed in that slot
+   *
+   * 保留槽位关系：继续保留在当前槽位，在新绑定的技能实例被移除后会自动显示在该槽位上
+   *
+   * Alias of {@link KeepSlotRelation}; both names refer to the same enum value.
+   *
+   * {@link KeepSlotRelation} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly PreserveSlotBinding = OriginalSlotSkillHandling.KeepSlotRelation
   /**
    * Remove Slot Binding: The skill must be reassigned to the specified slot in order to be displayed in that slot
    *
@@ -597,7 +770,29 @@ export class OriginalSlotSkillHandling extends enumeration {
     'OriginalSlotSkillHandling',
     'original_slot_skill_handling_detach_from_slot_relation'
   ) as OriginalSlotSkillHandling
+
+  /**
+   * Remove Slot Binding: The skill must be reassigned to the specified slot in order to be displayed in that slot
+   *
+   * 脱离槽位关系：必须被重新绑定到指定槽位才可以显示在槽位上
+   *
+   * Alias of {@link DetachFromSlotRelation}; both names refer to the same enum value.
+   *
+   * {@link DetachFromSlotRelation} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly RemoveSlotBinding = OriginalSlotSkillHandling.DetachFromSlotRelation
 }
+
+/**
+ * Top-of-Stack Skill Destruction Type
+ *
+ * 栈顶技能销毁类型
+ *
+ * Alias of {@link OriginalSlotSkillHandling}; both names refer to the same enum type.
+ *
+ * {@link OriginalSlotSkillHandling} 的别名；两个名称指向同一枚举类型。
+ */
+export { OriginalSlotSkillHandling as TopOfStackSkillDestructionType }
 
 /** 已有技能处理方式 */
 export class ExistingSkillHandling extends enumeration {
@@ -625,7 +820,29 @@ export class ExistingSkillHandling extends enumeration {
     'ExistingSkillHandling',
     'existing_skill_handling_keep_irrelevant_skills'
   ) as ExistingSkillHandling
+
+  /**
+   * Preserve Unrelated Skills: Retain skills that are not defined in the default skill sets of either the previous or the new class
+   *
+   * 保留无关技能：保留更换前后两个职业默认配置内均没有的技能
+   *
+   * Alias of {@link KeepIrrelevantSkills}; both names refer to the same enum value.
+   *
+   * {@link KeepIrrelevantSkills} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly PreserveUnrelatedSkills = ExistingSkillHandling.KeepIrrelevantSkills
 }
+
+/**
+ * Class Switch Skill Handling
+ *
+ * 职业切换技能处理
+ *
+ * Alias of {@link ExistingSkillHandling}; both names refer to the same enum type.
+ *
+ * {@link ExistingSkillHandling} 的别名；两个名称指向同一枚举类型。
+ */
+export { ExistingSkillHandling as ClassSwitchSkillHandling }
 
 /** 声音衰减方式 */
 export class SoundAttenuationMode extends enumeration {
@@ -707,6 +924,28 @@ export class LogicalOperator extends enumeration {
   ) as LogicalOperator
 }
 
+interface BasicMathematicalOperatorValue extends MathematicalOperator {
+  readonly __brandBasicMathematicalOperator: 'BasicMathematicalOperator'
+}
+
+interface QuickMathematicalOperatorValue extends MathematicalOperator {
+  readonly __brandQuickMathematicalOperator: 'QuickMathematicalOperator'
+}
+
+interface MathematicalOperatorComparisonOverlap extends MathematicalOperator {
+  readonly __brandMathematicalOperatorComparisonOverlap: 'MathematicalOperatorComparisonOverlap'
+}
+
+/** 客户端“基础数学运算”下拉中的值。 */
+export type BasicMathematicalOperator =
+  | BasicMathematicalOperatorValue
+  | MathematicalOperatorComparisonOverlap
+
+/** 客户端“便捷数学运算”下拉中的值。 */
+export type QuickMathematicalOperator =
+  | QuickMathematicalOperatorValue
+  | MathematicalOperatorComparisonOverlap
+
 /** 数学运算 */
 export class MathematicalOperator extends enumeration {
   declare private readonly __brandMathematicalOperator: 'MathematicalOperator'
@@ -723,7 +962,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Addition = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_addition'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Subtraction
    *
@@ -732,7 +971,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Subtraction = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_subtraction'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Multiplication
    *
@@ -741,7 +980,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Multiplication = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_multiplication'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Division
    *
@@ -750,7 +989,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Division = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_division'
-  ) as MathematicalOperator
+  ) as BasicMathematicalOperator
   /**
    * Modulo Operation
    *
@@ -759,7 +998,7 @@ export class MathematicalOperator extends enumeration {
   static readonly ModuloOperation = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_modulo_operation'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Exponentiation
    *
@@ -768,7 +1007,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Exponentiation = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_exponentiation'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Get Maximum Value
    *
@@ -777,7 +1016,7 @@ export class MathematicalOperator extends enumeration {
   static readonly GetMaximumValue = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_get_maximum_value'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Get Minimum Value
    *
@@ -786,7 +1025,7 @@ export class MathematicalOperator extends enumeration {
   static readonly GetMinimumValue = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_get_minimum_value'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
   /**
    * Logarithm
    *
@@ -795,7 +1034,7 @@ export class MathematicalOperator extends enumeration {
   static readonly Logarithm = new enumeration(
     'MathematicalOperator',
     'mathematical_operator_logarithm'
-  ) as MathematicalOperator
+  ) as QuickMathematicalOperator
 }
 
 /** 三角函数 */
@@ -1153,7 +1392,7 @@ export class SettlementStatus extends enumeration {
   }
 
   /**
-   * Undefined
+   * TBC
    *
    * 未定
    */
@@ -1161,6 +1400,18 @@ export class SettlementStatus extends enumeration {
     'SettlementStatus',
     'settlement_status_undefined'
   ) as SettlementStatus
+
+  /**
+   * TBC
+   *
+   * 未定
+   *
+   * Alias of {@link Undefined}; both names refer to the same enum value.
+   *
+   * {@link Undefined} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly TBC = SettlementStatus.Undefined
+
   /**
    * Victory
    *
@@ -1171,7 +1422,7 @@ export class SettlementStatus extends enumeration {
     'settlement_status_victory'
   ) as SettlementStatus
   /**
-   * Defeat
+   * Failed
    *
    * 失败
    */
@@ -1179,6 +1430,70 @@ export class SettlementStatus extends enumeration {
     'SettlementStatus',
     'settlement_status_defeat'
   ) as SettlementStatus
+
+  /**
+   * Failed
+   *
+   * 失败
+   *
+   * Alias of {@link Defeat}; both names refer to the same enum value.
+   *
+   * {@link Defeat} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Failed = SettlementStatus.Defeat
+}
+
+/**
+ * Settlement Status
+ *
+ * 结算状态（段位）
+ */
+export class RankSettlementStatus extends enumeration {
+  declare private readonly __brandRankSettlementStatus: 'RankSettlementStatus'
+  private constructor() {
+    super('')
+    throw new Error('you should not create an enum instance')
+  }
+
+  /**
+   * TBC
+   *
+   * 未定
+   */
+  static readonly TBC = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_tbc'
+  ) as RankSettlementStatus
+
+  /**
+   * Victory
+   *
+   * 胜利
+   */
+  static readonly Victory = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_victory'
+  ) as RankSettlementStatus
+
+  /**
+   * Failed
+   *
+   * 失败
+   */
+  static readonly Failed = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_failed'
+  ) as RankSettlementStatus
+
+  /**
+   * Escape
+   *
+   * 逃跑
+   */
+  static readonly Escape = new enumeration(
+    'RankSettlementStatus',
+    'rank_settlement_status_escape'
+  ) as RankSettlementStatus
 }
 
 /** 道具掉落类型 */
@@ -1237,6 +1552,22 @@ export class ScanRuleType extends enumeration {
   ) as ScanRuleType
 }
 
+/**
+ * Scan Scoring Rules
+ *
+ * 扫描积分规则
+ *
+ * Alias of {@link ScanRuleType}; both names refer to the same enum type.
+ *
+ * {@link ScanRuleType} 的别名；两个名称指向同一枚举类型。
+ */
+export { ScanRuleType as ScanScoringRules }
+
+/** 客户端“取整逻辑”下拉中可选的值。 */
+export interface ClientRoundingMode extends RoundingMode {
+  readonly __clientRoundingMode: 'client'
+}
+
 /** 取整逻辑 */
 export class RoundingMode extends enumeration {
   declare private readonly __brandRoundingMode: 'RoundingMode'
@@ -1253,7 +1584,7 @@ export class RoundingMode extends enumeration {
   static readonly RoundToNearest = new enumeration(
     'RoundingMode',
     'rounding_mode_round_to_nearest'
-  ) as RoundingMode
+  ) as ClientRoundingMode
   /**
    * Round Up: Returns the smallest integer greater than the input value. For example: input 1.2 → 2; input −2.3 → −2
    *
@@ -1262,7 +1593,7 @@ export class RoundingMode extends enumeration {
   static readonly RoundUp = new enumeration(
     'RoundingMode',
     'rounding_mode_round_up'
-  ) as RoundingMode
+  ) as ClientRoundingMode
   /**
    * Round Down: Returns the largest integer smaller than the input value. For example: input 1.2 → 1; input −2.3 → −3
    *
@@ -1271,7 +1602,7 @@ export class RoundingMode extends enumeration {
   static readonly RoundDown = new enumeration(
     'RoundingMode',
     'rounding_mode_round_down'
-  ) as RoundingMode
+  ) as ClientRoundingMode
   /**
    * Truncate: Removes the decimal part of the floating point number (rounds toward zero). For example: input 1.2 → 1; input −2.3 → −2
    *
@@ -1532,6 +1863,29 @@ export class UnitStatusRemovalReason extends enumeration {
     'UnitStatusRemovalReason',
     'unit_status_removal_reason_class_changed'
   ) as UnitStatusRemovalReason
+  /**
+   * Affix Expired
+   *
+   * 词条失效
+   */
+  static readonly AffixExpired = new enumeration(
+    'UnitStatusRemovalReason',
+    'unit_status_removal_reason_affix_expired'
+  ) as UnitStatusRemovalReason
+  /**
+   * Shield Depleted to Zero
+   *
+   * 护盾含量归零
+   */
+  static readonly ShieldDepletedToZero = new enumeration(
+    'UnitStatusRemovalReason',
+    'unit_status_removal_reason_shield_depleted_to_zero'
+  ) as UnitStatusRemovalReason
+}
+
+/** 仅客户端元素反应选项使用的值。 */
+export interface ClientElementalReactionType extends enumeration {
+  readonly __brandClientElementalReactionType: 'ClientElementalReactionType'
 }
 
 /** 元素反应类型 */
@@ -1740,6 +2094,453 @@ export class ElementalReactionType extends enumeration {
     'ElementalReactionType',
     'elemental_reaction_type_hyperbloom'
   ) as ElementalReactionType
+
+  /**
+   * Shatter
+   *
+   * 碎冰
+   */
+  static readonly Shatter = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_shatter'
+  ) as ElementalReactionType
+
+  /**
+   * Lunar-Charged
+   *
+   * 月感电
+   */
+  static readonly LunarCharged = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_lunar_charged'
+  ) as ElementalReactionType
+
+  /**
+   * Lunar-Bloom
+   *
+   * 月绽放
+   */
+  static readonly LunarBloom = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_lunar_bloom'
+  ) as ElementalReactionType
+
+  /**
+   * Lunar-Crystallize
+   *
+   * 月结晶
+   */
+  static readonly LunarCrystallize = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_lunar_crystallize'
+  ) as ElementalReactionType
+
+  /**
+   * Stellar-Conduct
+   *
+   * 星超导
+   */
+  static readonly StellarConduct = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stellar_conduct'
+  ) as ElementalReactionType
+
+  /**
+   * Explode
+   *
+   * 超载
+   *
+   * Alias of {@link Overloaded}; both names refer to the same enum value.
+   *
+   * {@link Overloaded} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Explode =
+    ElementalReactionType.Overloaded as unknown as ClientElementalReactionType
+
+  /**
+   * Stream
+   *
+   * 蒸发
+   *
+   * Alias of {@link Vaporize}; both names refer to the same enum value.
+   *
+   * {@link Vaporize} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Stream = ElementalReactionType.Vaporize as unknown as ClientElementalReactionType
+
+  /**
+   * Burned
+   *
+   * 燃元素
+   */
+  static readonly Burned = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_burned'
+  ) as ClientElementalReactionType
+
+  /**
+   * Overgrow
+   *
+   * 绽放
+   *
+   * Alias of {@link Bloom}; both names refer to the same enum value.
+   *
+   * {@link Bloom} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Overgrow = ElementalReactionType.Bloom as unknown as ClientElementalReactionType
+
+  /**
+   * Freeze
+   *
+   * 冻结
+   *
+   * Alias of {@link Frozen}; both names refer to the same enum value.
+   *
+   * {@link Frozen} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Freeze = ElementalReactionType.Frozen as unknown as ClientElementalReactionType
+
+  /**
+   * AntiFire
+   *
+   * 灭火
+   */
+  static readonly AntiFire = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_anti_fire'
+  ) as ClientElementalReactionType
+
+  /**
+   * Rock
+   *
+   * 岩元素
+   */
+  static readonly Rock = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_rock'
+  ) as ClientElementalReactionType
+
+  /**
+   * SlowDown
+   *
+   * 减速
+   */
+  static readonly SlowDown = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_slow_down'
+  ) as ClientElementalReactionType
+
+  /**
+   * Shock
+   *
+   * 感电
+   *
+   * Alias of {@link ElectroCharged}; both names refer to the same enum value.
+   *
+   * {@link ElectroCharged} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Shock =
+    ElementalReactionType.ElectroCharged as unknown as ClientElementalReactionType
+
+  /**
+   * Wind
+   *
+   * 风元素
+   */
+  static readonly Wind = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_wind'
+  ) as ClientElementalReactionType
+
+  /**
+   * Electric
+   *
+   * 雷元素
+   */
+  static readonly Electric = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_electric'
+  ) as ClientElementalReactionType
+
+  /**
+   * Fire
+   *
+   * 火元素
+   */
+  static readonly Fire = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_fire'
+  ) as ClientElementalReactionType
+
+  /**
+   * Superconductor
+   *
+   * 超导
+   *
+   * Alias of {@link Superconduct}; both names refer to the same enum value.
+   *
+   * {@link Superconduct} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Superconductor =
+    ElementalReactionType.Superconduct as unknown as ClientElementalReactionType
+
+  /**
+   * SwirlFire
+   *
+   * 扩散·火
+   *
+   * Alias of {@link SwirlPyro}; both names refer to the same enum value.
+   *
+   * {@link SwirlPyro} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly SwirlFire =
+    ElementalReactionType.SwirlPyro as unknown as ClientElementalReactionType
+
+  /**
+   * SwirlWater
+   *
+   * 扩散·水
+   *
+   * Alias of {@link SwirlHydro}; both names refer to the same enum value.
+   *
+   * {@link SwirlHydro} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly SwirlWater =
+    ElementalReactionType.SwirlHydro as unknown as ClientElementalReactionType
+
+  /**
+   * SwirlElectric
+   *
+   * 扩散·雷
+   *
+   * Alias of {@link SwirlElectro}; both names refer to the same enum value.
+   *
+   * {@link SwirlElectro} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly SwirlElectric =
+    ElementalReactionType.SwirlElectro as unknown as ClientElementalReactionType
+
+  /**
+   * SwirlIce
+   *
+   * 扩散·冰
+   *
+   * Alias of {@link SwirlCryo}; both names refer to the same enum value.
+   *
+   * {@link SwirlCryo} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly SwirlIce =
+    ElementalReactionType.SwirlCryo as unknown as ClientElementalReactionType
+
+  /**
+   * SwirlFireAccu
+   *
+   * 扩散·火（累积）
+   */
+  static readonly SwirlFireAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_fire_accu'
+  ) as ClientElementalReactionType
+
+  /**
+   * SwirlWaterAccu
+   *
+   * 扩散·水（累积）
+   */
+  static readonly SwirlWaterAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_water_accu'
+  ) as ClientElementalReactionType
+
+  /**
+   * SwirlElectricAccu
+   *
+   * 扩散·雷（累积）
+   */
+  static readonly SwirlElectricAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_electric_accu'
+  ) as ClientElementalReactionType
+
+  /**
+   * SwirlIceAccu
+   *
+   * 扩散·冰（累积）
+   */
+  static readonly SwirlIceAccu = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_swirl_ice_accu'
+  ) as ClientElementalReactionType
+
+  /**
+   * StickRock
+   *
+   * 岩元素附着
+   */
+  static readonly StickRock = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stick_rock'
+  ) as ClientElementalReactionType
+
+  /**
+   * StickWater
+   *
+   * 水元素附着
+   */
+  static readonly StickWater = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stick_water'
+  ) as ClientElementalReactionType
+
+  /**
+   * CrystallizeFire
+   *
+   * 结晶·火
+   *
+   * Alias of {@link CrystallizePyro}; both names refer to the same enum value.
+   *
+   * {@link CrystallizePyro} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly CrystallizeFire =
+    ElementalReactionType.CrystallizePyro as unknown as ClientElementalReactionType
+
+  /**
+   * CrystallizeWater
+   *
+   * 结晶·水
+   *
+   * Alias of {@link CrystallizeHydro}; both names refer to the same enum value.
+   *
+   * {@link CrystallizeHydro} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly CrystallizeWater =
+    ElementalReactionType.CrystallizeHydro as unknown as ClientElementalReactionType
+
+  /**
+   * CrystallizeElectric
+   *
+   * 结晶·雷
+   *
+   * Alias of {@link CrystallizeElectro}; both names refer to the same enum value.
+   *
+   * {@link CrystallizeElectro} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly CrystallizeElectric =
+    ElementalReactionType.CrystallizeElectro as unknown as ClientElementalReactionType
+
+  /**
+   * CrystallizeIce
+   *
+   * 结晶·冰
+   *
+   * Alias of {@link CrystallizeCryo}; both names refer to the same enum value.
+   *
+   * {@link CrystallizeCryo} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly CrystallizeIce =
+    ElementalReactionType.CrystallizeCryo as unknown as ClientElementalReactionType
+
+  /**
+   * FrozenBroken
+   *
+   * 碎冰
+   *
+   * Alias of {@link Shatter}; both names refer to the same enum value.
+   *
+   * {@link Shatter} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly FrozenBroken =
+    ElementalReactionType.Shatter as unknown as ClientElementalReactionType
+
+  /**
+   * StickGrass
+   *
+   * 草元素附着
+   */
+  static readonly StickGrass = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_stick_grass'
+  ) as ClientElementalReactionType
+
+  /**
+   * Overdose
+   *
+   * 激化
+   *
+   * Alias of {@link Catalyze}; both names refer to the same enum value.
+   *
+   * {@link Catalyze} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly Overdose =
+    ElementalReactionType.Catalyze as unknown as ClientElementalReactionType
+
+  /**
+   * OverdoseElectric
+   *
+   * 超激化
+   *
+   * Alias of {@link Aggravate}; both names refer to the same enum value.
+   *
+   * {@link Aggravate} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly OverdoseElectric =
+    ElementalReactionType.Aggravate as unknown as ClientElementalReactionType
+
+  /**
+   * OverdoseGrass
+   *
+   * 蔓激化
+   *
+   * Alias of {@link Spread}; both names refer to the same enum value.
+   *
+   * {@link Spread} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly OverdoseGrass =
+    ElementalReactionType.Spread as unknown as ClientElementalReactionType
+
+  /**
+   * OvergrowMushroomFire
+   *
+   * 烈绽放
+   *
+   * Alias of {@link Burgeon}; both names refer to the same enum value.
+   *
+   * {@link Burgeon} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly OvergrowMushroomFire =
+    ElementalReactionType.Burgeon as unknown as ClientElementalReactionType
+
+  /**
+   * OvergrowMushroomElectric
+   *
+   * 超绽放
+   *
+   * Alias of {@link Hyperbloom}; both names refer to the same enum value.
+   *
+   * {@link Hyperbloom} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly OvergrowMushroomElectric =
+    ElementalReactionType.Hyperbloom as unknown as ClientElementalReactionType
+
+  /**
+   * PhlogistonSolidification
+   *
+   * 固态燃素
+   */
+  static readonly PhlogistonSolidification = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_phlogiston_solidification'
+  ) as ClientElementalReactionType
+
+  /**
+   * PhlogistonSolidificationEnd
+   *
+   * 固态燃素结束
+   */
+  static readonly PhlogistonSolidificationEnd = new enumeration(
+    'ElementalReactionType',
+    'elemental_reaction_type_phlogiston_solidification_end'
+  ) as ClientElementalReactionType
 }
 
 /** 选择完成原因 */
@@ -1813,6 +2614,16 @@ export class ReasonForItemChange extends enumeration {
     super('')
     throw new Error('you should not create an enum instance')
   }
+
+  /**
+   * Default
+   *
+   * 默认
+   */
+  static readonly Default = new enumeration(
+    'ReasonForItemChange',
+    'reason_for_item_change_default'
+  ) as ReasonForItemChange
 
   /**
    * Destroy
@@ -2175,6 +2986,28 @@ export class HitPerformanceLevel extends enumeration {
   ) as HitPerformanceLevel
 }
 
+interface UnitStatusAdditionFailureReasonValue extends UnitStatusAdditionResult {
+  readonly __brandUnitStatusAdditionFailureReason: 'UnitStatusAdditionFailureReason'
+}
+
+interface UnitStatusAdditionSuccessTypeValue extends UnitStatusAdditionResult {
+  readonly __brandUnitStatusAdditionSuccessType: 'UnitStatusAdditionSuccessType'
+}
+
+interface UnitStatusAdditionResultComparisonOverlap extends UnitStatusAdditionResult {
+  readonly __brandUnitStatusAdditionResultComparisonOverlap: 'UnitStatusAdditionResultComparisonOverlap'
+}
+
+/** 客户端“单位状态添加失败原因”下拉中的值。 */
+export type UnitStatusAdditionFailureReason =
+  | UnitStatusAdditionFailureReasonValue
+  | UnitStatusAdditionResultComparisonOverlap
+
+/** 客户端“单位状态添加成功类型”下拉中的值。 */
+export type UnitStatusAdditionSuccessType =
+  | UnitStatusAdditionSuccessTypeValue
+  | UnitStatusAdditionResultComparisonOverlap
+
 /** 单位状态添加结果 */
 export class UnitStatusAdditionResult extends enumeration {
   declare private readonly __brandUnitStatusAdditionResult: 'UnitStatusAdditionResult'
@@ -2191,7 +3024,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedUnexpectedError = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_unexpected_error'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Failed - Operation Paused For Another Process
    *
@@ -2200,7 +3033,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedOperationPausedForAnotherProcess = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_operation_paused_for_another_process'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Failed - Maximum Coexistence Limit Reached
    *
@@ -2209,7 +3042,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedMaximumCoexistenceLimitReached = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_maximum_coexistence_limit_reached'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Failed - Unable To Add Additional Stack
    *
@@ -2218,7 +3051,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly FailedUnableToAddAdditionalStack = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_failed_unable_to_add_additional_stack'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionFailureReason
   /**
    * Success - New Status Applied
    *
@@ -2227,7 +3060,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly SuccessNewStatusApplied = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_success_new_status_applied'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionSuccessType
   /**
    * Success - Slot Stacking
    *
@@ -2236,7 +3069,7 @@ export class UnitStatusAdditionResult extends enumeration {
   static readonly SuccessSlotStacking = new enumeration(
     'UnitStatusAdditionResult',
     'unit_status_addition_result_success_slot_stacking'
-  ) as UnitStatusAdditionResult
+  ) as UnitStatusAdditionSuccessType
 }
 
 /** 单位状态移除策略 */
@@ -2266,6 +3099,17 @@ export class UnitStatusRemovalStrategy extends enumeration {
     'unit_status_removal_strategy_status_with_fastest_stack_loss'
   ) as UnitStatusRemovalStrategy
 }
+
+/**
+ * Unit Status Removal Strategy
+ *
+ * 单位状态移除策略
+ *
+ * Alias of {@link UnitStatusRemovalStrategy}; both names refer to the same enum type.
+ *
+ * {@link UnitStatusRemovalStrategy} 的别名；两个名称指向同一枚举类型。
+ */
+export { UnitStatusRemovalStrategy as RemovalMethod }
 
 /** 复苏点选取策略 */
 export class RevivePointSelectionStrategy extends enumeration {
@@ -2334,6 +3178,17 @@ export class InterruptStatus extends enumeration {
     'InterruptStatus',
     'interrupt_status_interrupt_vulnerability_status'
   ) as InterruptStatus
+
+  /**
+   * Interrupt Vulnerable State
+   *
+   * 易被打断状态
+   *
+   * Alias of {@link InterruptVulnerabilityStatus}; both names refer to the same enum value.
+   *
+   * {@link InterruptVulnerabilityStatus} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly InterruptVulnerableState = InterruptStatus.InterruptVulnerabilityStatus
   /**
    * Protected Status
    *
@@ -2359,6 +3214,17 @@ export class GameplayMode extends enumeration {
    * 普通玩法
    */
   static readonly Play = new enumeration('GameplayMode', 'gameplay_mode_play') as GameplayMode
+
+  /**
+   * Test Play
+   *
+   * 普通玩法
+   *
+   * Alias of {@link Play}; both names refer to the same enum value.
+   *
+   * {@link Play} 的别名；两个名称指向同一枚举值。
+   */
+  static readonly TestPlay = GameplayMode.Play
   /**
    * Room Play
    *

@@ -8,6 +8,7 @@ import { assignTypeParamsFromCase, emitArgFromNodesTypeText } from './testgen/ar
 import { buildGenericsMap, loadNodeGenerics } from './testgen/generics_data.js'
 import { extractServerFMethods } from './testgen/methods.js'
 import { loadEnumPicks } from './testgen/picks.js'
+import { SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE } from './testgen/server_enum_capabilities.js'
 import { parseTypeSpec, type TypeSpec } from './testgen/typespec.js'
 import { canResolveNodeType, readVendorNodeIdKeysLower } from './testgen/vendor_ids.js'
 
@@ -253,6 +254,10 @@ function emitConsume(lines: string[], ctx: NameCtx, expr: string, spec: ReturnVa
     return
   }
   if (spec.kind === 'enum') {
+    if (SERVER_ENUM_TYPES_WITHOUT_EQUALITY_NODE.has(spec.name)) {
+      lines.push(`  // ${expr}: ${spec.name} has no Enumerations Equal concrete node`)
+      return
+    }
     const eq = nextName(ctx, 'enumEq')
     lines.push(`  const ${eq} = f.enumerationsEqual(${expr}, ${expr})`)
     emitConsumeType(lines, ctx, eq, { kind: 'primitive', name: 'bool' })

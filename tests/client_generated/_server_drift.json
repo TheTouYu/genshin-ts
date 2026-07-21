@@ -1,0 +1,191 @@
+{
+  "shared": 71,
+  "drift": [
+    {
+      "methodName": "addUnitStatus",
+      "nodeType": "add_unit_status",
+      "server": {
+        "params": [
+          "applierEntity: EntityValue",
+          "applicationTargetEntity: EntityValue",
+          "unitStatusConfigId: ConfigIdValue",
+          "appliedStacks: IntValue",
+          "unitStatusParameterDictionary: dict<'str', 'float'>"
+        ],
+        "returnType": "{ /** * Failed, other exceptionsFailed: Yielded to another status. A yielding relationship exists between the Target's current Unit Status and the one being appliedFailed: Maximum coexistence limit reached. The specified Unit Status on the Target Entity has reached its Coexistence LimitFailed: Unable to add additional stack. Stack addition failedSuccess: New status applied. Successfully applied new Unit StatusSuccess: Slot stacking. Target already has this Unit Status, stacking applied * * 施加结果: 失败，其他异常失败，让位于其他状态：目标上已有的单位状态与尝试施加的状态之间有让位关系失败，超出并存上限：超出目标实体上的指定单位状态的并存上限失败，附加叠层未成功：叠层失败成功，施加新状态：成功附加新状态成功，槽位叠层：目标上已有该单位状态，叠层 */ applicationResult: UnitStatusAdditionResult /** * If application succeeds, returns the Unit Status Slot ID containing the instance * * 槽位序号: 如果施加成功，则返回一个该单位状态实例所在的单位状态槽位序号 */ slotId: bigint }"
+      },
+      "client": {
+        "params": [
+          "applicationTarget: entity",
+          "stacks: int",
+          "unitStatusConfigID: config_id"
+        ],
+        "returns": null
+      },
+      "notes": [
+        "param_count_mismatch",
+        "return_shape_mismatch"
+      ]
+    },
+    {
+      "methodName": "breakLoop",
+      "nodeType": "break_loop",
+      "server": {
+        "params": [
+          "...loopNodeIds: IntValue[]"
+        ],
+        "returnType": "void"
+      },
+      "client": {
+        "params": [],
+        "returns": null
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "castSpecifiedSkillInstance",
+      "nodeType": "cast_specified_skill_instance",
+      "server": {
+        "params": [
+          "characterEntity: CharacterEntity",
+          "skillInstanceId: IntValue",
+          "checkKeyAvailability: BoolValue"
+        ],
+        "returnType": "void"
+      },
+      "client": {
+        "params": [
+          "skillInstanceID: int",
+          "checkKeyAvailability: bool"
+        ],
+        "returns": null
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "finiteLoop",
+      "nodeType": "finite_loop",
+      "server": {
+        "params": [
+          "loopStartValue: IntValue",
+          "loopEndValue: IntValue",
+          "loopBody: (loopValue: bigint, breakLoop: () => void) => void"
+        ],
+        "returnType": "void"
+      },
+      "client": {
+        "params": [
+          "loopStartValue: int",
+          "loopEndValue: int"
+        ],
+        "returns": [
+          "currentLoopValue: int"
+        ]
+      },
+      "notes": [
+        "return_shape_mismatch"
+      ]
+    },
+    {
+      "methodName": "getPlayerClientInputDeviceType",
+      "nodeType": "get_player_client_input_device_type",
+      "server": {
+        "params": [
+          "playerEntity: PlayerEntity"
+        ],
+        "returnType": "InputDeviceType"
+      },
+      "client": {
+        "params": [],
+        "returns": [
+          "inputDeviceType: enum"
+        ]
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "playTimedEffects",
+      "nodeType": "play_timed_effects",
+      "server": {
+        "params": [
+          "specialEffectsAsset: ConfigIdValue",
+          "targetEntity: EntityValue",
+          "attachmentPointName: StrValue",
+          "moveWithTheTarget: BoolValue",
+          "rotateWithTheTarget: BoolValue",
+          "locationOffset: Vec3Value",
+          "rotationOffset: Vec3Value",
+          "zoomMultiplier: FloatValue",
+          "playBuiltInSoundEffect: BoolValue"
+        ],
+        "returnType": "void"
+      },
+      "client": {
+        "params": [
+          "specialEffectsAssetConfigurationID: config_id",
+          "location: vec3",
+          "rotate: vec3",
+          "zoomMultiplier: float",
+          "playDefaultSoundEffects: bool"
+        ],
+        "returns": null
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "querySkillInstanceIdBySkillSlotAndSkillConfigId",
+      "nodeType": "query_skill_instance_id_by_skill_slot_and_skill_config_id",
+      "server": {
+        "params": [
+          "characterEntity: CharacterEntity",
+          "skillSlot: CharacterSkillSlot",
+          "skillConfigId: ConfigIdValue"
+        ],
+        "returnType": "bigint"
+      },
+      "client": {
+        "params": [
+          "skillSlot: enum",
+          "skillConfigID: config_id"
+        ],
+        "returns": [
+          "skillInstanceIDList: int"
+        ]
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    },
+    {
+      "methodName": "removeUnitStatus",
+      "nodeType": "remove_unit_status",
+      "server": {
+        "params": [
+          "removeTargetEntity: EntityValue",
+          "unitStatusConfigId: ConfigIdValue",
+          "removalMethod: RemovalMethod",
+          "removerEntity: EntityValue"
+        ],
+        "returnType": "void"
+      },
+      "client": {
+        "params": [
+          "removalTarget: entity",
+          "unitStatusConfigID: config_id"
+        ],
+        "returns": null
+      },
+      "notes": [
+        "param_count_mismatch"
+      ]
+    }
+  ]
+}

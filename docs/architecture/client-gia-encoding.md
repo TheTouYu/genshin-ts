@@ -1,12 +1,16 @@
 # 客户端 GIA 编码契约
 
-> 状态：当前推荐 / 已验证
-> 来源：真实客户端 GIA 观察 + 当前生产实现 + 自动回归 + 用户编辑器/游戏验证
-> 最近校验：2026-07-19
-> 适用范围：当前客户端 skill 的 signal/list/data-source/共享布局生产路径；不推广到全量客户端节点、任意地图 signal 或客户端注入
+> 状态：已废弃（旧 `g.client()` 编码记录）
+> 来源：真实客户端 GIA 观察 + 历史生产实现 + 自动回归 + 历史用户编辑器/游戏验证
+> 最近校验：2026-07-21
+> 适用范围：仅用于追溯旧 skill signal/list/data-source/共享布局编码证据；不描述当前七类客户端图实现
 
-本文是客户端 GIA **编码细节**的权威文档。客户端整体路线、`g.client()`、Client IR 和 Stage 1/3 工作包见
-[`client-node-support-plan.md`](./client-node-support-plan.md)。
+当前用户 API 与支持边界见 [`../docs/zh/doc/events/client-graphs.md`](../docs/zh/doc/events/client-graphs.md)；
+当前编码实现位于 `src/compiler/ir_to_gia_transform/client_graph.ts` 和 `client_nodes.ts`。旧
+`g.client()`、`client_ir_to_gia.ts`、`client_layout.ts` 与 legacy client materializer 已删除。
+
+本文保留旧客户端 GIA 字段、signal、VarBase、列表 assembly 和 wire 观察，作为历史证据。下文出现的
+“当前”均指 2026-07-19 及更早的旧实现状态，不得外推为当前七类客户端节点图的生产契约。
 
 ## 1. 证据基线
 

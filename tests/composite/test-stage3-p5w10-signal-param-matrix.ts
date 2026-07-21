@@ -22,17 +22,20 @@
  *   npm run build
  *   npx tsx tests/composite/test-stage3-p5w10-signal-param-matrix.ts [output.gia]
  */
+
 import assert from 'node:assert/strict'
 import { writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { createSignalRegistry } from '../../dist/src/compiler/signal_registry.js'
 import {
   buildServerGraphRegistriesIRDocuments,
   defineSignal,
   g
 } from '../../dist/src/runtime/core.js'
+import { setRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
 import {
   bool,
   configId,
@@ -44,7 +47,6 @@ import {
   str,
   vec3
 } from '../../dist/src/runtime/value.js'
-import { setRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 import { findImplGraphByCompositeName } from './helpers/ordinary-node-contract.js'
 
@@ -208,8 +210,25 @@ process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH = '1'
 let bytes: Uint8Array
 try {
   const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'P5W10-SignalParam-Matrix' })
+  const signalRegistry = createSignalRegistry([
+    {
+      name: SignalFull.name,
+      params: SignalFull.params.map(([name, type]) => ({ name, type })),
+      sendId: 1610612738,
+      monitorId: 1610612739,
+      serverId: 1610612740
+    },
+    {
+      name: SignalScalarSink.name,
+      params: SignalScalarSink.params.map(([name, type]) => ({ name, type })),
+      sendId: 1610612741,
+      monitorId: 1610612742,
+      serverId: 1610612743
+    }
+  ])
   bytes = irToGia(docs.at(-1), {
     graphId: GRAPH_ID,
+    signalRegistry,
     name: 'P5W10-SignalParam-Matrix',
     protoPath: PROTO_PATH,
     stage3: { vendorImplGraphBeta: true }
@@ -426,11 +445,7 @@ for (let i = 0; i < SIGNAL_PARAM_COUNT; i++) {
 }
 
 // Root/impl parity: same signal name, same param count in SignalDef, both send once
-assert.equal(
-  rootData.length,
-  SIGNAL_PARAM_COUNT,
-  'root physical pins = full schema'
-)
+assert.equal(rootData.length, SIGNAL_PARAM_COUNT, 'root physical pins = full schema')
 assert.equal(
   implData.length + 1,
   SIGNAL_PARAM_COUNT,

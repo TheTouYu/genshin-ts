@@ -8,6 +8,8 @@ import type {
   StageEntity
 } from '../definitions/entity_helpers.js'
 import { EnumerationType } from '../definitions/enum.js'
+import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
+import { callActiveGraphFunction } from './active_graph_functions.js'
 import {
   Argument,
   CommonLiteralValueListTypeMap,
@@ -78,6 +80,7 @@ export type RuntimeParameterValueTypeMap = {
   prefab_id_list: PrefabIdValue[]
   config_id_list: ConfigIdValue[]
   faction_list: FactionValue[]
+  enum_list: EnumerationValue[]
   struct_list: StructValue[]
 }
 
@@ -109,6 +112,7 @@ export type RuntimeReturnValueTypeMap = {
   prefab_id_list: prefabId[]
   config_id_list: configId[]
   faction_list: faction[]
+  enum_list: enumeration[]
   struct_list: struct[]
 }
 
@@ -181,6 +185,10 @@ export function asRuntimeValue(input: unknown): value {
   return input
 }
 
+export interface EntityRuntimeBase extends value {
+  readonly __entityRuntimeBrand: 'entity'
+}
+
 export type BoolValue = bool | boolean
 export class bool extends value {
   declare private readonly __brandBool: 'bool'
@@ -192,7 +200,7 @@ export class bool extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return { type: 'bool', value: null as any }
+    if (this.value === undefined) return null
     return { type: 'bool', value: this.value }
   }
 }
@@ -210,7 +218,7 @@ export class int extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return { type: 'int', value: null as any }
+    if (this.value === undefined) return null
     return { type: 'int', value: Number(this.value) }
   }
 }
@@ -226,7 +234,7 @@ export class float extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return { type: 'float', value: null as any }
+    if (this.value === undefined) return null
     return { type: 'float', value: this.value }
   }
 }
@@ -242,7 +250,7 @@ export class str extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return { type: 'str', value: null as any }
+    if (this.value === undefined) return null
     return { type: 'str', value: this.value }
   }
 }
@@ -258,6 +266,36 @@ export function ensureLiteralStr(input: StrValue, label = 'value'): str {
   throw new Error(`[error] ${label} must be a literal string (no wired connection)`)
 }
 
+export function assertClientLiteralValue(input: value, label = 'value'): void {
+  const metadata = input.getMetadata()
+  if (metadata?.kind !== 'pin') return
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.LITERAL_REQUIRED,
+    `${label} only accepts a literal value; received ${metadata.record.nodeType}.${metadata.pinName} ` +
+      'but the editor exposes no connection socket'
+  )
+}
+
+export function assertServerLiteralValue(input: value, label = 'value'): void {
+  const metadata = input.getMetadata()
+  if (metadata?.kind !== 'pin') return
+  throw new Error(
+    `[error] ${label} only accepts a literal value; received ` +
+      `${metadata.record.nodeType}.${metadata.pinName}, but the editor exposes no connection socket`
+  )
+}
+
+export function assertClientFixedSlotArray(
+  input: unknown,
+  label = 'value'
+): asserts input is unknown[] | undefined {
+  if (input === undefined || Array.isArray(input)) return
+  throw clientNodegraphError(
+    CLIENT_ERROR_CODES.LITERAL_REQUIRED,
+    `${label} must be a source-level array; a wired list cannot determine the fixed input slots`
+  )
+}
+
 export type Vec3Value = vec3 | [number, number, number]
 export class vec3 extends value {
   declare private readonly __brandVec3: 'vec3'
@@ -269,20 +307,23 @@ export class vec3 extends value {
   }
 
   override toIRLiteral(): Argument {
-    if (this.value === undefined) return { type: 'vec3', value: null as any }
+    if (this.value === undefined) return null
     return { type: 'vec3', value: this.value }
   }
 
   get x(): number {
-    return gsts.f.split3dVector(this).xComponent
+    return callActiveGraphFunction<{ xComponent: number }>('vec3.x', 'split3dVector', [this])
+      .xComponent
   }
 
   get y(): number {
-    return gsts.f.split3dVector(this).yComponent
+    return callActiveGraphFunction<{ yComponent: number }>('vec3.y', 'split3dVector', [this])
+      .yComponent
   }
 
   get z(): number {
-    return gsts.f.split3dVector(this).zComponent
+    return callActiveGraphFunction<{ zComponent: number }>('vec3.z', 'split3dVector', [this])
+      .zComponent
   }
 }
 
@@ -300,20 +341,22 @@ export class guid extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return { type: 'guid', value: null as any }
+    if (raw === undefined) return null
     return { type: 'guid', value: Number(raw) }
   }
 }
 
 export type EntityValue =
   | entity
+  | EntityRuntimeBase
   | PlayerEntity
   | CharacterEntity
   | StageEntity
   | ObjectEntity
   | CreationEntity
-export class entity extends value {
+export class entity extends value implements EntityRuntimeBase {
   declare private readonly __brandEntity: 'entity'
+  declare readonly __entityRuntimeBrand: 'entity'
   constructor() {
     super()
   }
@@ -351,7 +394,7 @@ export class prefabId extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return { type: 'prefab_id', value: null as any }
+    if (raw === undefined) return null
     return { type: 'prefab_id', value: Number(raw) }
   }
 }
@@ -370,7 +413,7 @@ export class configId extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return { type: 'config_id', value: null as any }
+    if (raw === undefined) return null
     return { type: 'config_id', value: Number(raw) }
   }
 }
@@ -389,7 +432,7 @@ export class faction extends value {
 
   override toIRLiteral(): Argument {
     const raw = this.value?.value
-    if (raw === undefined) return { type: 'faction', value: null as any }
+    if (raw === undefined) return null
     return { type: 'faction', value: Number(raw) }
   }
 }
@@ -489,7 +532,8 @@ export class generic extends value {
   asType(type: 'config_id_list'): configId[]
   asType(type: 'faction_list'): faction[]
   asType(type: 'struct_list'): struct[]
-  asType<T extends LiteralValueType>(type: T): RuntimeReturnValueTypeMap[T] {
+  asType<T extends LiteralValueType>(type: T): RuntimeReturnValueTypeMap[T]
+  asType(type: LiteralValueType): RuntimeReturnValueTypeMap[LiteralValueType] {
     if (this.typeSet) {
       throw new Error('Generic type has already been set and cannot be changed')
     }
@@ -568,7 +612,7 @@ export class generic extends value {
     }
     if (this.metadata && this.metadata.kind === 'pin')
       ret.markPin(this.metadata.record, this.metadata.pinName, this.metadata.pinIndex)
-    return ret as RuntimeReturnValueTypeMap[T]
+    return ret as RuntimeReturnValueTypeMap[LiteralValueType]
   }
 
   asDict<K extends DictKeyType, V extends DictValueType>(keyType: K, valueType: V): dict<K, V> {
@@ -625,7 +669,9 @@ export class generic extends value {
 // 目前不使用extends Array方案, 虽然很多语义和方法这样做会更好
 // 但是许多细节的复杂度会上升, 并且这个方案依然无法摆脱编译器处理, 比如下标相关, 编译成快速路径, 等等
 // 因此目前用数组伪装方案, 方便维护和简化开发
-export class list<K extends keyof ListableValueTypeMap = keyof ListableValueTypeMap> extends value {
+export type ListConcreteType = keyof ListableValueTypeMap | 'enum' | 'enumeration'
+
+export class list<K extends ListConcreteType = ListConcreteType> extends value {
   declare private readonly __brandList: 'list'
   private concreteType: K
   /**
@@ -651,8 +697,7 @@ export class list<K extends keyof ListableValueTypeMap = keyof ListableValueType
   }
 
   override toIRLiteral(): Argument {
-    const t = `${this.getConcreteType()}_list` as keyof CommonLiteralValueListTypeMap
-    return { type: t, value: null } as unknown as Argument
+    return null
   }
 }
 
@@ -661,9 +706,7 @@ export class list<K extends keyof ListableValueTypeMap = keyof ListableValueType
  *
  * 用于在 IR JSON 中直接表达 `*_list` 字面量（包括空列表），后续可在 IR->GIA 阶段展开为 assembly_list 并连线。
  */
-export class listLiteral<
-  K extends keyof ListableValueTypeMap = keyof ListableValueTypeMap
-> extends list<K> {
+export class listLiteral<K extends ListConcreteType = ListConcreteType> extends list<K> {
   private items: RuntimeReturnValueTypeMap[K][] | null
 
   constructor(type: K, items: RuntimeReturnValueTypeMap[K][] | null = []) {
@@ -678,7 +721,14 @@ export class listLiteral<
 
   override toIRLiteral(): Argument {
     const t = `${this.getConcreteType()}_list` as keyof CommonLiteralValueListTypeMap
-    return { type: t, value: this.items as CommonLiteralValueListTypeMap[typeof t] } as Argument
+    // IR 的 enum_list 是 string[]：枚举项序列化为值名
+    const items =
+      this.items && this.getConcreteType() === 'enum'
+        ? this.items.map(
+            (item) => ((item as unknown as enumeration).toIRLiteral() as { value: string }).value
+          )
+        : this.items
+    return { type: t, value: items as CommonLiteralValueListTypeMap[typeof t] } as Argument
   }
 }
 
@@ -731,7 +781,7 @@ export class dict<
    * 清空字典: 清空指定字典的键值对
    */
   clear(): void {
-    gsts.f.clearDictionary(this)
+    callActiveGraphFunction<void>('dict.clear()', 'clearDictionary', [this])
   }
 
   /**
@@ -744,7 +794,10 @@ export class dict<
    * 键
    */
   delete(key: RuntimeParameterValueTypeMap[K]): void {
-    gsts.f.removeKeyValuePairsFromDictionaryByKey(this, key)
+    callActiveGraphFunction<void>('dict.delete()', 'removeKeyValuePairsFromDictionaryByKey', [
+      this,
+      key
+    ])
   }
 
   /**
@@ -759,11 +812,22 @@ export class dict<
       dict: dict<K, V>
     ) => void
   ): void {
-    const keys = gsts.f.getListOfKeysFromDictionary(this)
-    gsts.f.listIterationLoop(keys as never, (key) => {
-      const value = gsts.f.queryDictionaryValueByKey(this, key as RuntimeParameterValueTypeMap[K])
-      callback(value, key as never, this)
-    })
+    const keys = callActiveGraphFunction<RuntimeReturnValueTypeMap[`${K}_list`]>(
+      'dict.forEach()',
+      'getListOfKeysFromDictionary',
+      [this]
+    )
+    callActiveGraphFunction<void>('dict.forEach()', 'listIterationLoop', [
+      keys,
+      (key: unknown) => {
+        const value = callActiveGraphFunction<RuntimeReturnValueTypeMap[V]>(
+          'dict.forEach()',
+          'queryDictionaryValueByKey',
+          [this, key]
+        )
+        callback(value, key as never, this)
+      }
+    ])
   }
 
   /**
@@ -780,7 +844,11 @@ export class dict<
    * 值
    */
   get(key: RuntimeParameterValueTypeMap[K]): RuntimeReturnValueTypeMap[V] {
-    return gsts.f.queryDictionaryValueByKey(this, key)
+    return callActiveGraphFunction<RuntimeReturnValueTypeMap[V]>(
+      'dict.get()',
+      'queryDictionaryValueByKey',
+      [this, key]
+    )
   }
 
   /**
@@ -797,7 +865,10 @@ export class dict<
    * 是否包含
    */
   has(key: RuntimeParameterValueTypeMap[K]): boolean {
-    return gsts.f.queryIfDictionaryContainsSpecificKey(this, key)
+    return callActiveGraphFunction<boolean>('dict.has()', 'queryIfDictionaryContainsSpecificKey', [
+      this,
+      key
+    ])
   }
 
   /**
@@ -810,7 +881,11 @@ export class dict<
    * 键列表
    */
   keys(): RuntimeReturnValueTypeMap[`${K}_list`] {
-    return gsts.f.getListOfKeysFromDictionary(this)
+    return callActiveGraphFunction<RuntimeReturnValueTypeMap[`${K}_list`]>(
+      'dict.keys()',
+      'getListOfKeysFromDictionary',
+      [this]
+    )
   }
 
   /**
@@ -826,7 +901,11 @@ export class dict<
    * 值
    */
   set(key: RuntimeParameterValueTypeMap[K], value: RuntimeParameterValueTypeMap[V]): void {
-    gsts.f.setOrAddKeyValuePairsToDictionary(this, key, value)
+    callActiveGraphFunction<void>('dict.set()', 'setOrAddKeyValuePairsToDictionary', [
+      this,
+      key,
+      value
+    ])
   }
 
   /**
@@ -839,9 +918,11 @@ export class dict<
    * 值列表
    */
   values(): RuntimeReturnValueTypeMap[`${Extract<V, keyof CommonLiteralValueTypeMap>}_list`] {
-    return gsts.f.getListOfValuesFromDictionary(
+    return callActiveGraphFunction<
+      RuntimeReturnValueTypeMap[`${Extract<V, keyof CommonLiteralValueTypeMap>}_list`]
+    >('dict.values()', 'getListOfValuesFromDictionary', [
       this as unknown as dict<K, Extract<V, keyof CommonLiteralValueTypeMap>>
-    )
+    ])
   }
 
   /**
@@ -854,7 +935,7 @@ export class dict<
    * 长度
    */
   get size(): bigint {
-    return gsts.f.queryDictionarySLength(this)
+    return callActiveGraphFunction<bigint>('dict.size', 'queryDictionarySLength', [this])
   }
 
   override toIRLiteral(): Argument {

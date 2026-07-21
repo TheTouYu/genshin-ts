@@ -22,12 +22,10 @@ function testListDictPlaceholders(f: ServerExecutionFlowFunctions) {
   f.sortDictionaryByKey(dict('int', 'float', 0), SortBy.Ascending)
   // sortDictionaryByValue
   f.sortDictionaryByValue(dict('int', 'float', 0), SortBy.Descending)
-  // breakLoop
-  f.breakLoop(nextNum())
-  // listIterationLoop
+  // listIterationLoop / breakLoop
   f.listIterationLoop(list('int', 0), (value, breakLoop) => {
     void value
-    void breakLoop
+    breakLoop()
   })
   // insertValueIntoList
   f.insertValueIntoList(list('int', 0), nextNum(), nextNum())

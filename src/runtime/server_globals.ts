@@ -1,5 +1,6 @@
 import z from 'zod'
 
+import type { clientEntity as ClientEntityValue } from '../definitions/client_entity_helpers.js'
 import {
   installEntityHelpers,
   type PlayerEntity,
@@ -7,6 +8,7 @@ import {
 } from '../definitions/entity_helpers.js'
 import { EntityType, RoundingMode } from '../definitions/enum.js'
 import { DataTypeConversionMap, parseValue } from '../definitions/nodes.js'
+import { callActiveGraphFunction, getActiveGraphFunctions } from './active_graph_functions.js'
 import type { MetaCallRegistry, SignalDefinition, SignalParamValues } from './core.js'
 import {
   bool,
@@ -98,13 +100,24 @@ function inServerCtx(): boolean {
   return !!root.gsts?.ctx?.isServerCtx?.()
 }
 
+function inClientCtx(): boolean {
+  const root = globalThis as unknown as { gsts?: { ctx?: { isClientCtx?: () => boolean } } }
+  return !!root.gsts?.ctx?.isClientCtx?.()
+}
+
+type DataTypeConversionFunctions = {
+  dataTypeConversion<T extends keyof DataTypeConversionMap, U extends DataTypeConversionMap[T]>(
+    input: RuntimeParameterValueTypeMap[T],
+    type: U
+  ): RuntimeReturnValueTypeMap[U]
+}
+
 function ensureServerCtx(fnName: string): void {
   if (!inServerCtx()) {
     throw new Error(`[error] ${fnName}: only available in g.server().on handler`)
   }
 }
 
-const BOOTSTRAP_STAGE_INIT: unique symbol = Symbol('gstsStageBootstrapInit')
 const TIMER_HANDLER_REGISTRY = new WeakMap<MetaCallRegistry, Set<string>>()
 
 function getRegistry(fnName: string): MetaCallRegistry {
@@ -136,16 +149,18 @@ function registerTimerHandlerOnce(f: unknown, opts: TimerOptions, handler: unkno
 
 function ensureStageBootstrap(): void {
   const registry = getRegistry('stage')
-  const holder = registry as unknown as { [BOOTSTRAP_STAGE_INIT]?: boolean }
-  if (holder[BOOTSTRAP_STAGE_INIT]) return
-  registry.withFlow(registry.ensureBootstrapFlow(), () => {
-    const varName = '__gsts_stage'
-    gsts.f.__gstsEnsureVariable(varName, 'entity')
-    const listValue = gsts.f.getSpecifiedTypeOfEntitiesOnTheField(EntityType.Stage)
-    const stageValue = gsts.f.getCorrespondingValueFromList(listValue, 0n)
-    gsts.f.setNodeGraphVariable(varName, stageValue, false)
-  })
-  holder[BOOTSTRAP_STAGE_INIT] = true
+  const varName = '__gsts_stage'
+  gsts.f.__gstsEnsureVariable(varName, 'entity')
+  registry.ensureServerEventPrelude(
+    'whenEntityIsCreated',
+    'initialize-stage-entity',
+    (f) => {
+      const listValue = f.getSpecifiedTypeOfEntitiesOnTheField(EntityType.Stage)
+      const stageValue = f.getCorrespondingValueFromList(listValue, 0n)
+      f.setNodeGraphVariable(varName, stageValue, false)
+    },
+    { createFallback: true }
+  )
 }
 
 function detectFromType(v: unknown): ConvertibleFrom | null {
@@ -169,7 +184,7 @@ function convertIfNeeded<T extends keyof DataTypeConversionMap, U extends DataTy
   const from = detectFromType(input)
   if (!from) return null
   if (!CONVERT[from].has(type)) return null
-  return gsts.f.dataTypeConversion(input, type)
+  return (getActiveGraphFunctions() as DataTypeConversionFunctions).dataTypeConversion(input, type)
 }
 
 function asFloatValue(value: FloatValue | IntValue, name: string): FloatValue {
@@ -198,7 +213,7 @@ function makeConvertibleFactory<T extends ConvertibleTo>(
   type: T
 ): (v: unknown) => ConvertToReturnTypeMap[T] {
   return (v: unknown) => {
-    if (!inServerCtx()) {
+    if (!inServerCtx() && !inClientCtx()) {
       try {
         const parsed = parseValue(v, type)
         if (parsed instanceof bool && parsed.value !== undefined) {
@@ -370,6 +385,7 @@ export type ServerGlobalFactories = {
   configId: (v: ConfigIdValue) => configId
   faction: (v: FactionValue) => faction
   entity: (guidOrEntity: GuidValue | EntityValue | null) => entity
+  clientEntity: (guidOrEntity: GuidValue | EntityValue | null) => ClientEntityValue
   dict: (<K extends DictKeyType, V extends DictValueType>(
     keyType: K,
     valueType: V,
@@ -412,6 +428,30 @@ export type ServerGlobalFactories = {
 }
 
 function makeFactories(): ServerGlobalFactories {
+  const resolveEntity = (
+    helperName: 'entity' | 'clientEntity',
+    guidOrEntity: GuidValue | EntityValue | null
+  ): entity => {
+    if (helperName === 'clientEntity' && !inClientCtx()) {
+      throw new Error('[error] clientEntity(): only available in a client node graph handler')
+    }
+    if (guidOrEntity === undefined) {
+      throw new Error(
+        `[error] ${helperName}(): use ${helperName}(0) or ${helperName}(null) for type-only declaration`
+      )
+    }
+    if (guidOrEntity === null) return new entityLiteral(0)
+    if (guidOrEntity instanceof entity) return guidOrEntity
+
+    const isGuidLiteral = typeof guidOrEntity === 'bigint' || typeof guidOrEntity === 'number'
+    if (isGuidLiteral && Number(guidOrEntity) === 0) return new entityLiteral(guidOrEntity)
+    if (inServerCtx() || inClientCtx()) {
+      return callActiveGraphFunction<entity>(`${helperName}()`, 'queryEntityByGuid', [guidOrEntity])
+    }
+    if (isGuidLiteral) return new entityLiteral(guidOrEntity)
+    throw new Error(`[error] ${helperName}(): unsupported input type`)
+  }
+
   return {
     raw: (v) => v,
     bool: makeConvertibleFactory('bool'),
@@ -424,26 +464,9 @@ function makeFactories(): ServerGlobalFactories {
     prefabId: makeBasicFactory('prefab_id'),
     configId: makeBasicFactory('config_id'),
     faction: makeBasicFactory('faction'),
-    entity: (guidOrEntity: GuidValue | EntityValue | null) => {
-      if (guidOrEntity === undefined) {
-        throw new Error('[error] entity(): use entity(0) or entity(null) for type-only declaration')
-      }
-      if (guidOrEntity === null) {
-        return new entityLiteral(0)
-      }
-      if (guidOrEntity instanceof entity) return guidOrEntity
-      const isGuidLiteral = typeof guidOrEntity === 'bigint' || typeof guidOrEntity === 'number'
-      if (inServerCtx()) {
-        if (isGuidLiteral && Number(guidOrEntity) === 0) {
-          return new entityLiteral(guidOrEntity)
-        }
-        return gsts.f.queryEntityByGuid(guidOrEntity as guid)
-      }
-      if (isGuidLiteral) {
-        return new entityLiteral(guidOrEntity)
-      }
-      throw new Error('[error] entity(): unsupported input type')
-    },
+    entity: (guidOrEntity) => resolveEntity('entity', guidOrEntity),
+    clientEntity: (guidOrEntity) =>
+      resolveEntity('clientEntity', guidOrEntity) as unknown as ClientEntityValue,
     // @ts-ignore allow
     dict: (arg1: unknown, arg2?: unknown, arg3?: unknown) => {
       if (isNullishPlaceholder(arg1) && arg2 === undefined) {
@@ -463,16 +486,20 @@ function makeFactories(): ServerGlobalFactories {
       if (arg1 instanceof dict) return arg1
       if (arg1 instanceof dictLiteral) return arg1 as unknown as ReadonlyDict
       if (Array.isArray(arg1)) {
-        if (!inServerCtx()) return new dictLiteral(arg1 as never) as unknown as ReadonlyDict
-        return gsts.f.assemblyDictionary(arg1 as never)
+        if (!inServerCtx() && !inClientCtx()) {
+          return new dictLiteral(arg1 as never) as unknown as ReadonlyDict
+        }
+        return callActiveGraphFunction<ReadonlyDict>('dict()', 'assemblyDictionary', [arg1])
       }
       if (arg1 && typeof arg1 === 'object') {
         const obj = arg1 as Record<string, unknown>
         const keys = Object.keys(obj)
         if (keys.length === 0) throw new Error('[error] dict(): object cannot be empty')
         const pairs = keys.map((k) => ({ k, v: obj[k] }))
-        if (!inServerCtx()) return new dictLiteral(pairs as never) as unknown as ReadonlyDict
-        return gsts.f.assemblyDictionary(pairs as never)
+        if (!inServerCtx() && !inClientCtx()) {
+          return new dictLiteral(pairs as never) as unknown as ReadonlyDict
+        }
+        return callActiveGraphFunction<ReadonlyDict>('dict()', 'assemblyDictionary', [pairs])
       }
       throw new Error('[error] dict(): unsupported input type')
     },
@@ -502,7 +529,7 @@ function makeFactories(): ServerGlobalFactories {
       if (isNullishPlaceholder(items)) {
         return new listLiteral(listType, null) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
       }
-      if (!inServerCtx()) {
+      if (!inServerCtx() && !inClientCtx()) {
         if (items === undefined) {
           return new listLiteral(listType, []) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
         }
@@ -517,6 +544,31 @@ function makeFactories(): ServerGlobalFactories {
             listType,
             items as unknown as RuntimeReturnValueTypeMap[T][]
           ) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+        }
+        throw new Error('[error] list(): unsupported input type')
+      }
+      if (inClientCtx()) {
+        if (items === undefined) {
+          return new listLiteral(listType, []) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+        }
+        if (z.instanceof(listClass).safeParse(items).success) {
+          if ((items as unknown as listClass).getConcreteType() === listType) {
+            return items as RuntimeReturnValueTypeMap[`${T}_list`]
+          }
+          throw new Error(`[error] list(): cannot convert list type`)
+        }
+        if (Array.isArray(items)) {
+          if (items.length === 0) {
+            return new listLiteral(
+              listType,
+              []
+            ) as unknown as RuntimeReturnValueTypeMap[`${T}_list`]
+          }
+          return callActiveGraphFunction<RuntimeReturnValueTypeMap[`${T}_list`]>(
+            'list()',
+            'assemblyList',
+            [items, listType]
+          )
         }
         throw new Error('[error] list(): unsupported input type')
       }
@@ -606,6 +658,7 @@ const BASE_NAMES: (keyof ServerGlobalFactories)[] = [
   'configId',
   'faction',
   'entity',
+  'clientEntity',
   'dict',
   'list'
 ]
