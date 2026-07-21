@@ -41,19 +41,21 @@ g.server({
         const gsts = globalThis.gsts;
         gsts.f.doubleBranch(timerF.equal(_timerEvt.timerName, "__gsts_interval_0_0"), () => {
             const __gsts_interval_0_timerName = _timerEvt.timerName;
-            const nested = timerF.callComposite(nestedMultiple, {
+            const nested = gsts.f.initLocalVariable("entity");
+            gsts.f.setLocalVariable(nested.localVariable, timerF.callComposite(nestedMultiple, {
                 x: timerF.get('x'),
                 y: timerF.get('y')
-            });
-            timerF.set('x', nested.x);
-            timerF.set('y', nested.y);
-            timerF.doubleBranch(timerF.greaterThan(nested.x, new float(0)), () => { }, () => { });
-            const split = timerF.callComposite(splitMultiple, {
-                x: nested.x,
-                y: nested.y
-            });
-            timerF.set('x', split.x);
-            timerF.set('y', split.y);
+            }));
+            timerF.set('x', nested.value.x);
+            timerF.set('y', nested.value.y);
+            timerF.doubleBranch(timerF.greaterThan(nested.value.x, new float(0)), () => { const gsts = globalThis.gsts; }, () => { const gsts = globalThis.gsts; });
+            const split = gsts.f.initLocalVariable("entity");
+            gsts.f.setLocalVariable(split.localVariable, timerF.callComposite(splitMultiple, {
+                x: nested.value.x,
+                y: nested.value.y
+            }));
+            timerF.set('x', split.value.x);
+            timerF.set('y', split.value.y);
         }, () => {
         });
     }, 100, {

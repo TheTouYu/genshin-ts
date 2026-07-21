@@ -42,7 +42,8 @@ const parent = g.defineComposite('稀疏命名输入-父复合', {
 g.server({ name: 'sparse-named-composite-input-test', id: 1073741991 }).on(
   'whenEntityIsCreated',
   (_event, f) => {
-    f.callComposite(parent, {})
+    const result = f.callComposite(parent, {})
+    f.printString(f.dataTypeConversion(result.result, 'str'))
   }
 )
 
@@ -83,4 +84,19 @@ assert.ok(secondPin, 'supplied second input must emit InParam[1]')
 assert.equal(secondPin.compositePinIndex, 315)
 assert.equal(secondPin.connects?.length, 1)
 
-console.log('PASS sparse named composite input keeps declared input index')
+const printNode = doc?.nodes?.find((node) => node.type === 'print_string')
+assert.ok(printNode, 'main graph must consume the sparse Composite output through an exec node')
+const printSourceId = printNode.args?.[0]?.value?.node_id
+const conversionNode = doc?.nodes?.find((node) => node.id === printSourceId)
+assert.ok(conversionNode, 'print_string source conversion node must exist')
+assert.ok(
+  conversionNode.type?.startsWith('data_type_conversion_'),
+  'print_string must consume the sparse Composite output through type conversion'
+)
+assert.equal(
+  conversionNode.args?.[0]?.value?.node_id,
+  2,
+  'type conversion must consume the parent Composite output node'
+)
+
+console.log('PASS sparse named composite input keeps declared input index and reaches exec consumption')

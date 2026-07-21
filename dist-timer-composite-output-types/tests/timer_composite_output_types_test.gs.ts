@@ -38,11 +38,11 @@ g.server({
         const gsts = globalThis.gsts;
         gsts.f.doubleBranch(timerF.equal(_timerEvt.timerName, "__gsts_interval_0_0"), () => {
             const __gsts_interval_0_timerName = _timerEvt.timerName;
-            const scalar = gsts.f.initLocalVariable("float");
+            const scalar = gsts.f.initLocalVariable("entity");
             gsts.f.setLocalVariable(scalar.localVariable, timerF.callComposite(getFloat, {
                 value: timerF.get('timerValue')
             }).value);
-            timerF.doubleBranch(timerF.greaterThan(scalar.value, new float(0)), () => { }, () => { });
+            timerF.doubleBranch(timerF.greaterThan(scalar.value, new float(0)), () => { const gsts = globalThis.gsts; }, () => { const gsts = globalThis.gsts; });
             const direction = timerF.callComposite(getDirection, {
                 x: scalar.value,
                 y: timerF.get('timerValue')
