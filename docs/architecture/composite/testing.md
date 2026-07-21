@@ -495,6 +495,34 @@ done
 
 自动生成和 trace 只证明编译产物的结构与可追踪性；候选文件导入、注入和游戏行为仍须分开验证。
 
+### 多类型标量比较：主图 / Composite 游戏回归
+
+> 状态：已验证
+> 来源：当前代码实现 + 自动 GIA 回归 + merge 前后源码对比 + 用户游戏内验证
+> 最近校验：2026-07-21
+> 适用范围：gsts 当前 Stage 3 输出；游戏结论仅适用于本节列出的两份候选
+
+用户报告 Composite impl 中 `lessThanOrEqualTo(float, float)` 在游戏内显示为整数。当前源码探查未在
+HEAD 自动复现：`tests/composite/test-scalar-comparison-types-game.ts` 同时覆盖主图和 Composite impl，
+并覆盖 `equal`、`lessThan`、`lessThanOrEqualTo`、`greaterThan`、`greaterThanOrEqualTo` 五类比较，
+每类包含 int/float 字面量和连接输入。测试断言 generic/concrete ID、物理输入 pin 类型，以及比较结果经
+`bool → str → print_string` 的可执行消费路径。
+
+```bash
+npm run build
+npx tsx tests/composite/test-scalar-comparison-types-game.ts /tmp/scalar-comparison-types-game.gia
+GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-scalar-comparison-types-game.ts /tmp/scalar-comparison-types-game-shared.gia
+```
+
+当前自动结果：legacy 和显式 shared vendor 两条路径均通过，主图与 impl 的 float 节点均保持 float
+concrete/pin 类型。merge `4ab1116` 前的 `composite.ts` 尚未把 `compositePins` 声明的边界类型覆盖到
+`resolveNodeIdentity()` 输入；merge 中新增的 `boundaryInputTypesByNode` 正是相关修复逻辑。因此目前只能确认
+这是一个合并相关的高风险路径。两个候选已复制到
+`Beyond_Local_Export/scalar-comparison-types-game.gia` 和
+`Beyond_Local_Export/scalar-comparison-types-game-shared.gia`，尚未注入。用户已确认两份候选均能在游戏内
+正常导入并通过测试，主图和 Composite impl 中比较节点的 float 输入类型及非整数值均符合预期；该结论不
+推广到未覆盖的比较节点变体、其他 GIA 或未来生成版本。
+
 ### Merge 回归：Timer 多输出 Composite 局部变量物化
 
 > 状态：已修复并自动回归
