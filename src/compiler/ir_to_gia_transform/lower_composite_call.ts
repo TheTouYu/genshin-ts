@@ -60,6 +60,11 @@ export type CompositeCallPinBuildInput = {
   /** Impl flow edges keyed by IR node id; used only for this call's OutFlow indexes. */
   implEdges: Readonly<Record<number, readonly NextConnection[]>>
   /**
+   * InFlow indexes required by outer compositePins routes that target this call.
+   * A synthetic call is an impl entry target only through this explicit boundary route.
+   */
+  requiredInflowIndexes?: ReadonlySet<number>
+  /**
    * OutFlow indexes required by outer compositePins routes that target this call
    * (e.g. nested multi-outflow). Merged with edges that leave the call node.
    */
@@ -439,6 +444,32 @@ export function buildCompositeCallPins(
         upstreamPinIndex: classified.upstream.index
       })
     }
+  }
+
+  for (const inflowIndex of [...(input.requiredInflowIndexes ?? [])].sort((a, b) => a - b)) {
+    const pin = {
+      i1: { kind: NodePin_Index_Kind.InFlow, index: inflowIndex },
+      i2: { kind: NodePin_Index_Kind.InFlow, index: inflowIndex },
+      type: 0,
+      value: undefined as any
+    } as unknown as NodePin & { compositePinIndex?: number }
+    const compositePinIndex = calledDef.inflows[inflowIndex]?.pinIndex
+    if (compositePinIndex !== undefined) pin.compositePinIndex = compositePinIndex
+    pins.push(pin)
+  }
+
+  for (let outputIndex = 0; outputIndex < calledDef.outputs.length; outputIndex++) {
+    const output = calledDef.outputs[outputIndex]
+    pins.push({
+      i1: { kind: NodePin_Index_Kind.OutParam, index: outputIndex },
+      i2: { kind: NodePin_Index_Kind.OutParam, index: outputIndex },
+      value: makeVarBaseValue(
+        argVarBaseClass(output.type as string),
+        argVarType(output.type as string),
+        false
+      ) as any,
+      type: argVarType(output.type as string)
+    } as NodePin)
   }
 
   const outflowIndexes = new Set<number>(input.requiredOutflowIndexes)

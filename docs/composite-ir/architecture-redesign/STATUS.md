@@ -31,7 +31,7 @@ STATUS 不记录 git commit SHA；提交身份以 git log 为准（见 EXECUTION
 ## 当前可依赖事实
 
 - ADR-006：ordinary impl graph 的目标主路径是完整 vendor `Graph` materialization；当前默认 gate 已开启，legacy backend 未删除。
-- ADR-009：`__composite_call__` 是 synthetic boundary node，不进入 vendor ordinary Graph；ordinary↔synthetic edge 由 composite overlay 处理。
+- ADR-009：`__composite_call__` 是 synthetic boundary node，不进入 vendor ordinary Graph；ordinary↔synthetic edge 由 composite overlay 处理。synthetic **source** 数据边先由 `ordinary_graph_materializer.ts` 的共享 split seam 从 ordinary materializer 分离；root 用 `Graph.connect()`、impl 在 vendor 编码后写目标 pin `connects`。这两种末端表示不同，但筛选与 IR→physical input remap 同源。
 - ADR-010：definition capture 使用完整 typed placeholders；call-site 可独立省略任意绑定输入，并保持 sparse declaration index。
 - ADR-011：root 与 composite impl 的 ordinary system node/API 能力目标同源；composite 只增加 call/capture/`compositePins`/inflow/outflow/layout 等 boundary 职责。
 - ADR-012：ordinary API 按共享框架默认覆盖、实际问题驱动补洞；此工程策略不等于所有 ordinary family 已验证。
@@ -48,8 +48,9 @@ STATUS 不记录 git commit SHA；提交身份以 git log 为准（见 EXECUTION
 - 不证明注入或游戏内行为；本轮没有注入。
 - 默认开启 vendor gate；不删除 handwritten backend，不改变 `graphValues`、`affiliations`、capture、nested、sparse 或布局语义。
 - signal/dynamic pin family 的能力目标由 ADR-011 确认与 root 同源，但专属 payload/schema/wire 仍需真实可执行案例验证。
-- P3-W20 已将 root 的 ordinary data/flow edges 与 vendor-gated impl closed ordinary subgraph 的 data/flow edges 接入同一 shared materializer；synthetic call/capture overlay 仍独立。自动回归通过，用户已确认四份 P3-W20 vendor-gated 候选在游戏内实际运行通过；未注入。
+- P3-W20 已将 root 的 ordinary data/flow edges 与 vendor-gated impl closed ordinary subgraph 的 data/flow edges 接入同一 shared materializer；synthetic call/capture overlay 仍独立。2026-07-22，synthetic-source data edge 的分离和 logical→physical target remap 也已提升为 root/impl 共用 seam，末端连接表示仍由各 scope 的 overlay 负责。自动回归通过，用户已确认四份 P3-W20 vendor-gated 候选在游戏内实际运行通过；未注入。
 - P3-W21 已在 shared materializer 中加入 ordinary endpoint pin、pin type、data target 唯一性和 nodeIndex 唯一性检查；vendor impl 以 `nodeIndexMap` 额外断言编码 index 对齐，synthetic call 明确排除。direct contract 与 P3/P2 focused 自动回归通过；未生成新候选、未注入，且不构成真实 GIA/wire 或游戏行为结论。
+- 2026-07-22 当前实现：移除了“impl 含 nested call 则回退 legacy”的临时分支；`tests/composite/test-stage3-shared-nested-output-ordinary-consumers.ts` 在显式 shared backend 下锁定 child float/bool OutParam → `create3d_vector` / `subtraction` / `logical_or_operation` 的 typed target pin 和 overlay `connects`。P2-W9～W12、P3-W20 及 timer 专用 CLI `--noinject` 生成均自动通过。此为当前代码/自动生成证据，尚无本轮新候选导入或游戏验证。
 
 ## 当前验证与归档
 

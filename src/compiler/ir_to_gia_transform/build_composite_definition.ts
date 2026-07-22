@@ -224,7 +224,10 @@ function typeClassFromValueType(type: string): VarBase_Class {
     case 'bool': return VarBase_Class.EnumBase
     case 'str': return VarBase_Class.StringBase
     case 'vec3': return VarBase_Class.VectorBase
+    // Ordinary CompositeDef entity parameters use the reference GIA's unknown/base
+    // class with an explicit Entity type id. This differs from physical IdBase pins.
     case 'entity':
+      return 0 as VarBase_Class
     case 'guid':
     case 'faction':
     case 'prefab_id':

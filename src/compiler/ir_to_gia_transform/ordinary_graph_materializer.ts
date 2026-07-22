@@ -9,6 +9,45 @@ export type OrdinaryDataEdge = {
 
 export type OrdinaryFlowEdge = OrdinaryDataEdge
 
+/**
+ * Synthetic sources (currently Composite-call OutParam overlays) do not belong to a vendor
+ * ordinary graph. Both root and impl paths split these edges before ordinary materialization,
+ * then materialize the same logical edge through their scope-specific overlay.
+ */
+export function splitSyntheticSourceDataEdges<T extends OrdinaryDataEdge>(
+  dataEdges: Iterable<T>,
+  syntheticSourceIds: ReadonlySet<number>
+): { ordinary: T[]; syntheticSource: T[] } {
+  const ordinary: T[] = []
+  const syntheticSource: T[] = []
+  for (const edge of dataEdges) {
+    ;(syntheticSourceIds.has(edge.fromId) ? syntheticSource : ordinary).push(edge)
+  }
+  return { ordinary, syntheticSource }
+}
+
+/**
+ * Apply synthetic-source data edges after ordinary nodes have been materialized. The caller
+ * owns its representation-specific connect operation: root uses Graph.connect(), whereas an
+ * impl overlay writes connects onto already-encoded GraphNode pins.
+ */
+export function materializeSyntheticSourceDataEdges(input: {
+  dataEdges: Iterable<OrdinaryDataEdge>
+  syntheticSourceIds: ReadonlySet<number>
+  mapOutputIndex?: (nodeId: number, pinIndex: number) => number
+  mapInputIndex?: (nodeId: number, pinIndex: number) => number
+  connect: (edge: OrdinaryDataEdge, fromIndex: number, toIndex: number) => void
+}): void {
+  for (const edge of input.dataEdges) {
+    if (!input.syntheticSourceIds.has(edge.fromId)) continue
+    input.connect(
+      edge,
+      physicalIndex(input.mapOutputIndex, edge.fromId, edge.fromIndex),
+      physicalIndex(input.mapInputIndex, edge.toId, edge.toIndex)
+    )
+  }
+}
+
 export type OrdinaryGraphIntegrityContract = {
   /** Encoded node indexes, when IR ids are not themselves the final node indexes. */
   expectedNodeIndexes?: ReadonlyMap<number, number>

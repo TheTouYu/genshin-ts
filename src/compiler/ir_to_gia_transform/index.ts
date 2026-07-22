@@ -41,7 +41,11 @@ import {
 } from './lower_composite_call.js'
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
-import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
+import {
+  materializeOrdinaryGraphEdges,
+  materializeSyntheticSourceDataEdges,
+  splitSyntheticSourceDataEdges
+} from './ordinary_graph_materializer.js'
 import {
   applyOrdinaryLiteralArgs,
   createOrdinaryVendorNode,
@@ -657,16 +661,22 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     // 游戏编辑器中 composite call 节点可以没有 OutFlow pin
   }
 
+  const syntheticCallNodeIds = new Set(compositeCallNodeIndices.keys())
+  const rootDataEdges = splitSyntheticSourceDataEdges(
+    graphInfo.dataConnections,
+    syntheticCallNodeIds
+  )
+  const mapRootOutputIndex = (nodeId: number, pinIndex: number) =>
+    remapOutputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex)
+  const mapRootInputIndex = (nodeId: number, pinIndex: number) =>
+    remapInputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex)
+
   materializeOrdinaryGraphEdges({
     graph,
     nodesById,
-    dataEdges: graphInfo.dataConnections.filter(
-      ({ fromId }) => irNodeTypeById.get(fromId) !== '__composite_call__'
-    ),
-    mapOutputIndex: (nodeId, pinIndex) =>
-      remapOutputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex),
-    mapInputIndex: (nodeId, pinIndex) =>
-      remapInputIndexForHiddenPin(irNodeTypeById.get(nodeId) ?? '', pinIndex),
+    dataEdges: rootDataEdges.ordinary,
+    mapOutputIndex: mapRootOutputIndex,
+    mapInputIndex: mapRootInputIndex,
     onMissingDataEndpoint: ({ fromId, toId, fromIndex, toIndex }) => {
       throw new Error(
         `[error] bad data connection ${fromId}->${toId}, index=${fromIndex}->${toIndex}`
@@ -674,22 +684,21 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     }
   })
 
-  // 复合调用输出是 OutParam overlay pin，不属于普通 Graph pin。
-  // 普通 materializer 必须跳过这些边，否则会按普通节点 pin 校验并报 pin missing。
-  for (const edge of graphInfo.dataConnections) {
-    if (irNodeTypeById.get(edge.fromId) !== '__composite_call__') continue
-    const from = nodesById.get(edge.fromId)
-    const to = nodesById.get(edge.toId)
-    if (!from || !to) {
-      throw new Error(`[error] bad composite output connection ${edge.fromId}->${edge.toId}`)
+  // Composite-call outputs are OutParam overlays, not ordinary vendor endpoints.
+  materializeSyntheticSourceDataEdges({
+    dataEdges: rootDataEdges.syntheticSource,
+    syntheticSourceIds: syntheticCallNodeIds,
+    mapOutputIndex: mapRootOutputIndex,
+    mapInputIndex: mapRootInputIndex,
+    connect: (edge, fromIndex, toIndex) => {
+      const from = nodesById.get(edge.fromId)
+      const to = nodesById.get(edge.toId)
+      if (!from || !to) {
+        throw new Error(`[error] bad composite output connection ${edge.fromId}->${edge.toId}`)
+      }
+      graph.connect(from, to, fromIndex, toIndex)
     }
-    graph.connect(
-      from,
-      to,
-      edge.fromIndex,
-      remapInputIndexForHiddenPin(irNodeTypeById.get(edge.toId) ?? '', edge.toIndex)
-    )
-  }
+  })
 
   // 应用复合节点之间的数据连线
   const compositeDataEdges = (ir as any).compositeDataEdges as

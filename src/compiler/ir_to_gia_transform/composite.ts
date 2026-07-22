@@ -32,7 +32,11 @@ import {
 } from './lower_composite_call.js'
 import { getNodeIdLowerMap, SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS } from './mappings.js'
 import { COMPOSITE_CAPTURE_NODE_TYPE, normalizeCompositeCaptures } from './normalize_capture.js'
-import { materializeOrdinaryGraphEdges } from './ordinary_graph_materializer.js'
+import {
+  materializeOrdinaryGraphEdges,
+  materializeSyntheticSourceDataEdges,
+  splitSyntheticSourceDataEdges
+} from './ordinary_graph_materializer.js'
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
 import {
   isSharedPinHoleAdapterNodeType,
@@ -400,12 +404,19 @@ function buildImplGraphNodes(
     upstreamNodeId: number
     upstreamPinIndex: number
   }> = []
+  const requiredCompositeCallInflows = new Map<number, Set<number>>()
   const requiredCompositeCallOutflows = new Map<number, Set<number>>()
   for (const pin of boundaryPins) {
-    if (pin.outerPinKind !== NodePin_Index_Kind.OutFlow) continue
-    const indexes = requiredCompositeCallOutflows.get(pin.innerNodeId) ?? new Set<number>()
+    const requiredIndexes =
+      pin.outerPinKind === NodePin_Index_Kind.InFlow
+        ? requiredCompositeCallInflows
+        : pin.outerPinKind === NodePin_Index_Kind.OutFlow
+          ? requiredCompositeCallOutflows
+          : undefined
+    if (!requiredIndexes) continue
+    const indexes = requiredIndexes.get(pin.innerNodeId) ?? new Set<number>()
     indexes.add(pin.innerPinIndex)
-    requiredCompositeCallOutflows.set(pin.innerNodeId, indexes)
+    requiredIndexes.set(pin.innerNodeId, indexes)
   }
   const implConnTypeIndex = buildImplConnTypeIndex(implNodes)
   const boundaryInputIndexesByNode = new Map<number, Set<number>>()
@@ -509,6 +520,7 @@ function buildImplGraphNodes(
             node,
             calledDef,
             implEdges,
+            requiredInflowIndexes: requiredCompositeCallInflows.get(node.id),
             requiredOutflowIndexes: requiredCompositeCallOutflows.get(node.id)
           })
         : {
@@ -574,7 +586,8 @@ function buildImplGraphNodes(
       implEdges,
       layout,
       nodeIndexMap,
-      boundaryInputIndexesByNode
+      boundaryInputIndexesByNode,
+      boundaryInputTypesByNode
     )
   }
 
@@ -659,12 +672,20 @@ function materializeImplOrdinaryGraphWithVendor(
   implEdges: Record<number, ImplEdge[]>,
   layout: Map<number, { x: number; y: number }>,
   nodeIndexMap: Map<number, number>,
-  boundaryInputIndexesByNode: Map<number, Set<number>>
+  boundaryInputIndexesByNode: Map<number, Set<number>>,
+  boundaryInputTypesByNode: Map<number, Map<number, string>>
 ): GraphNode[] {
   const graph = new Graph('server', 0, '', 0)
   const vendorNodes = new Map<number, Node<any>>()
-  const syntheticResults = nodeResults.filter((result) => result.isCompositeCall)
-  const ordinaryResults = nodeResults.filter((result) => !result.isCompositeCall)
+  const syntheticResults = nodeResults.filter(
+    (result) => result.isCompositeCall || result.node.type === COMPOSITE_CALL_NODE_TYPE
+  )
+  const ordinaryResults = nodeResults.filter(
+    (result) => !result.isCompositeCall && result.node.type !== COMPOSITE_CALL_NODE_TYPE
+  )
+  if (ordinaryResults.some((result) => result.node.type === COMPOSITE_CALL_NODE_TYPE)) {
+    throw new Error('[error] Composite call was not classified as synthetic')
+  }
 
   for (const result of ordinaryResults) {
     const { node, nodeIndex, genericId } = result
@@ -714,11 +735,13 @@ function materializeImplOrdinaryGraphWithVendor(
             return remapSpecialArgInputIndex(node.type, index)
           }
           const physicalIndex = remapPinHoleInputIndex(node.type, index)
-          // DTC boundary captures require a real typed pin. Pin-hole captures remain
-          // sparse and are routed only through compositePins at the remapped index.
+          // Any ordinary boundary capture targeted by compositePins requires a real typed
+          // physical InParam. Pin-hole/special-arg families remain sparse because their
+          // physical indexes are owned by their adapters.
           if (
-            node.type.startsWith('data_type_conversion_') &&
-            boundaryInputIndexes.has(physicalIndex)
+            boundaryInputIndexes.has(physicalIndex) &&
+            !isSharedPinHoleAdapterNodeType(node.type) &&
+            !isSharedSpecialArgAdapterNodeType(node.type)
           ) {
             return undefined
           }
@@ -735,27 +758,58 @@ function materializeImplOrdinaryGraphWithVendor(
         )
     )
     normalizeOrdinaryVendorPins(vendorNode)
+
+    // Synthetic Composite-call outputs are connected after vendor encoding. Give the
+    // target input a typed placeholder now so the vendor protobuf encoder can serialize it.
+    for (const [argIndex, arg] of (node.args ?? []).entries()) {
+      if (arg?.type !== 'conn' || !syntheticResults.some((result) => result.node.id === arg.value.node_id)) {
+        continue
+      }
+      const physicalIndex = isSharedSpecialArgAdapterNodeType(node.type)
+        ? remapSpecialArgInputIndex(node.type, argIndex)
+        : remapPinHoleInputIndex(node.type, argIndex)
+      const pin = vendorNode.pins.find(
+        (candidate: any) =>
+          candidate.kind === NodePin_Index_Kind.InParam && candidate.index === physicalIndex
+      )
+      if (!pin) continue
+      const placeholder =
+        arg.value.type === 'bool'
+          ? false
+          : arg.value.type === 'float'
+            ? 0
+            : arg.value.type === 'vec3'
+              ? [0, 0, 0]
+              : arg.value.type === 'str'
+                ? ''
+                : 0
+      pin.setVal(placeholder as any)
+    }
+
     vendorNodes.set(node.id, graph.add_node(vendorNode))
   }
 
-  const ordinaryDataEdges = ordinaryResults.flatMap((result) =>
+  const syntheticNodeIds = new Set(syntheticResults.map((result) => result.node.id))
+  const implDataEdges = ordinaryResults.flatMap((result) =>
     (result.node.args ?? []).flatMap((arg: any, toIndex: number) => {
       if (arg?.type !== 'conn' || arg.capture === true) return []
-      // Special-arg (P5-W10): assembly count@0 / send_signal name shift.
-      // Pin-hole (P5-W9): shared hole remap. Other ordinary: identity.
-      const physicalToIndex = isSharedSpecialArgAdapterNodeType(result.node.type)
-        ? remapSpecialArgInputIndex(result.node.type, toIndex)
-        : remapPinHoleInputIndex(result.node.type, toIndex)
       return [
         {
           fromId: arg.value.node_id,
           toId: result.node.id,
           fromIndex: arg.value.index,
-          toIndex: physicalToIndex
+          toIndex
         }
       ]
     })
   )
+  const splitImplDataEdges = splitSyntheticSourceDataEdges(implDataEdges, syntheticNodeIds)
+  const mapImplInputIndex = (nodeId: number, pinIndex: number) => {
+    const nodeType = nodeResults.find((result) => result.node.id === nodeId)?.node.type ?? ''
+    return isSharedSpecialArgAdapterNodeType(nodeType)
+      ? remapSpecialArgInputIndex(nodeType, pinIndex)
+      : remapPinHoleInputIndex(nodeType, pinIndex)
+  }
   const ordinaryFlowEdges = Object.entries(implEdges).flatMap(([fromId, edges]) =>
     (edges as ImplEdge[]).flatMap((edge) => {
       const targetId = getEdgeTarget(edge)
@@ -775,7 +829,7 @@ function materializeImplOrdinaryGraphWithVendor(
   materializeOrdinaryGraphEdges({
     graph,
     nodesById: vendorNodes,
-    dataEdges: ordinaryDataEdges,
+    dataEdges: splitImplDataEdges.ordinary,
     flowEdges: ordinaryFlowEdges,
     flowInsertPosition: (edge) => {
       const flowKey = `${edge.fromId}:${edge.fromIndex}`
@@ -794,8 +848,8 @@ function materializeImplOrdinaryGraphWithVendor(
     }
   })
 
-  const encodedNodes = ((graph.encode() as any).graph?.graph?.inner?.graph?.nodes ??
-    []) as GraphNode[]
+  const encodedRoot = graph.encode() as any
+  const encodedNodes = (encodedRoot.graph?.graph?.inner?.graph?.nodes ?? []) as GraphNode[]
   if (encodedNodes.length !== ordinaryResults.length) {
     throw new Error(
       `[error] vendor impl graph lost nodes: ${encodedNodes.length}/${ordinaryResults.length}`
@@ -811,6 +865,39 @@ function materializeImplOrdinaryGraphWithVendor(
     encodedNode.x = pos.x
     encodedNode.y = pos.y
     encodedNode.usingStruct = []
+
+    // Vendor typed templates may omit capture-boundary InParams even though the
+    // handwritten builder materialized their concrete schema. Merge the already encoded
+    // protobuf pins after vendor Graph encoding; compositePins cannot create physical pins.
+    const boundaryIndexes = boundaryInputIndexesByNode.get(source.node.id) ?? new Set<number>()
+    const boundaryTypes = boundaryInputTypesByNode.get(source.node.id) ?? new Map<number, string>()
+    const boundaryPins = [...(source.pins ?? [])].filter(
+      (pin: any) =>
+        pin.i1?.kind === NodePin_Index_Kind.InParam &&
+        boundaryIndexes.has(pin.i1.index) &&
+        !(encodedNode.pins ?? []).some(
+          (existing: any) =>
+            existing.i1?.kind === NodePin_Index_Kind.InParam &&
+            existing.i1.index === pin.i1.index
+        )
+    )
+    for (const pinIndex of boundaryIndexes) {
+      const existingIndex = (encodedNode.pins ?? []).findIndex(
+        (existing: any) =>
+          existing.i1?.kind === NodePin_Index_Kind.InParam && existing.i1.index === pinIndex
+      )
+      const inputType = boundaryTypes.get(pinIndex) ?? inferInputTypeFromNode(source.node.type, pinIndex)
+      const pin = buildConnPin(pinIndex, inputType)
+      if (needsConcreteWrapping(source.node.type) && pin.value) {
+        pin.value = wrapConcreteValueForNodeInput(source.node.type, pin.value, inputType, pinIndex) as any
+      }
+      if (existingIndex >= 0) {
+        encodedNode.pins.splice(existingIndex, 1)
+      }
+      boundaryPins.push(pin)
+    }
+    encodedNode.pins = [...(encodedNode.pins ?? []), ...boundaryPins]
+
     // multiple_branches keeps default OutFlow 0 even when the default branch is empty.
     if (source.node.type === 'multiple_branches') {
       const hasDefault = (encodedNode.pins ?? []).some(
@@ -832,6 +919,39 @@ function materializeImplOrdinaryGraphWithVendor(
   )
   const allNodes = [...encodedNodes, ...syntheticNodes]
   const allNodesByIndex = new Map(allNodes.map((node) => [node.nodeIndex, node]))
+
+  // Composite-call OutParams are overlay pins. Their logical edges share the same split and
+  // physical-index seam as root; impl only differs in writing connects after vendor encoding.
+  materializeSyntheticSourceDataEdges({
+    dataEdges: splitImplDataEdges.syntheticSource,
+    syntheticSourceIds: syntheticNodeIds,
+    mapInputIndex: mapImplInputIndex,
+    connect: (edge, fromIndex, toIndex) => {
+      const sourceResult = nodeResults.find((result) => result.node.id === edge.fromId)
+      const targetResult = nodeResults.find((result) => result.node.id === edge.toId)
+      const targetNode = targetResult && allNodesByIndex.get(targetResult.nodeIndex)
+      if (!sourceResult || !targetResult || !targetNode) {
+        throw new Error(
+          `[error] vendor impl graph missing Composite data endpoint ${edge.fromId}->${edge.toId}`
+        )
+      }
+      const targetPin = targetNode.pins?.find(
+        (pin: any) => pin.i1?.kind === NodePin_Index_Kind.InParam && pin.i1.index === toIndex
+      )
+      if (!targetPin) {
+        throw new Error(
+          `[error] vendor impl graph missing Composite target pin ${edge.toId}.${toIndex}`
+        )
+      }
+      ;(targetPin as any).connects = [
+        {
+          id: sourceResult.nodeIndex,
+          connect: { kind: NodePin_Index_Kind.OutParam, index: fromIndex },
+          connect2: { kind: NodePin_Index_Kind.OutParam, index: fromIndex }
+        }
+      ]
+    }
+  })
 
   for (const [fromId, edges] of Object.entries(implEdges)) {
     const sourceResult = nodeResults.find((result) => result.node.id === Number(fromId))
@@ -1459,7 +1579,10 @@ function buildImplNodePins(
           })
         }
       } else if (isBoundaryInput && !usesPinHoleRemap) {
-        const inputType = getImplArgType(arg) ?? inferInputTypeFromNode(node.type, pinIndex)
+        const inputType =
+          boundaryInputTypes.get(pinIndex) ??
+          getImplArgType(arg) ??
+          inferInputTypeFromNode(node.type, pinIndex)
         const pin = buildConnPin(pinIndex, inputType)
         if (needsConcreteWrapping(node.type) && pin.value) {
           pin.value = wrapConcreteValueForNodeInput(

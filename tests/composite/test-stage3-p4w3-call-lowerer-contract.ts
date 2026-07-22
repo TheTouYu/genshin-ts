@@ -136,8 +136,21 @@ const sparsePins = buildCompositeCallPins({
   implEdges: {
     [secondOnlyNode.id]: [{ node_id: 99, source_index: 0, target_index: 0 }]
   },
-  requiredOutflowIndexes: new Set([1])
+  requiredOutflowIndexes: new Set([1]),
+  requiredInflowIndexes: new Set([0])
 })
+
+const inFlows = sparsePins.pins.filter((pin) => pin.i1?.kind === NodePin_Index_Kind.InFlow)
+assert.deepEqual(
+  inFlows.map((pin) => pin.i1.index),
+  [0],
+  'a parent compositePins InFlow route must materialize the nested call InFlow'
+)
+assert.equal(
+  inFlows[0].compositePinIndex,
+  1,
+  'nested call InFlow must carry the child definition InFlow pinIndex'
+)
 
 const inParams = sparsePins.pins.filter((pin) => pin.i1?.kind === NodePin_Index_Kind.InParam)
 assert.equal(inParams.length, 1, 'second-only binding must emit exactly one physical InParam')
