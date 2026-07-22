@@ -67,5 +67,10 @@ const lifecycleResult = results.find((result) => result.graphId === 1073741850)!
 assert.equal((lifecycleResult.merged as any).nodes[0].args[0].value, lifecycle.id)
 assert.equal(lifecycle.implNodes[0].args[0].value, lifecycle.id)
 
+const persistedLifecycle = JSON.parse(fs.readFileSync(second, 'utf8'))
+assert.equal(persistedLifecycle.compositeDefs[0].id, lifecycle.id)
+assert.equal(persistedLifecycle.nodes[0].args[0].value, lifecycle.id)
+assert.equal(persistedLifecycle.compositeDefs[0].implNodes[0].args[0].value, lifecycle.id)
+
 console.log('cross-NodeGraph Composite ID collision regression passed')
 fs.rmSync(outDir, { recursive: true, force: true })

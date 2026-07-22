@@ -7,6 +7,8 @@ import type {
   Argument,
   ClientIRDocument,
   ClientNode,
+  CompositeCallMeta,
+  CompositeDefIR,
   ConnectionArgument,
   IRDocument,
   NextConnection,
@@ -198,6 +200,60 @@ function remapNodeIdsInNode(node: AnyIRNode, map: Map<number, number>) {
   if (node.next?.length) node.next = node.next.map((n) => remapNextConn(n, map))
 }
 
+function compositeDefinitionSignature(def: CompositeDefIR): string {
+  const { id: _id, ...withoutId } = def
+  return JSON.stringify(withoutId)
+}
+
+function rewriteCompositeIdInNode(node: ServerNode, ids: Map<number, number>) {
+  if (node.type !== '__composite_call__') return
+  const arg = node.args?.[0]
+  if (arg && arg.type !== 'conn' && typeof arg.value === 'number') {
+    arg.value = ids.get(arg.value) ?? arg.value
+  }
+}
+
+function remapCompositeIds(doc: IRDocument, ids: Map<number, number>) {
+  if (doc.graph.type !== 'server') return
+  const serverDoc = doc as ServerIRDocument
+  for (const node of serverDoc.nodes ?? []) rewriteCompositeIdInNode(node, ids)
+  for (const def of serverDoc.compositeDefs ?? []) {
+    def.id = ids.get(def.id) ?? def.id
+    for (const node of def.implNodes) rewriteCompositeIdInNode(node, ids)
+  }
+  for (const call of (serverDoc.compositeCalls ?? []) as CompositeCallMeta[]) {
+    call.compositeId = ids.get(call.compositeId) ?? call.compositeId
+  }
+}
+
+function allocateCompositeIds(docs: { doc: IRDocument; source: string }[]): Set<string> {
+  const changedSources = new Set<string>()
+  const used = new Map<number, { signature: string; source: string }>()
+  let nextId = 2000000000
+  for (const { doc, source } of docs) {
+    if (doc.graph.type !== 'server') continue
+    const ids = new Map<number, number>()
+    for (const def of (doc as ServerIRDocument).compositeDefs ?? []) {
+      const signature = compositeDefinitionSignature(def)
+      const previous = used.get(def.id)
+      if (!previous) {
+        used.set(def.id, { signature, source })
+        continue
+      }
+      if (previous.signature === signature) continue
+      while (used.has(nextId)) nextId++
+      ids.set(def.id, nextId)
+      used.set(nextId, { signature, source })
+      nextId++
+    }
+    if (ids.size) {
+      remapCompositeIds(doc, ids)
+      changedSources.add(source)
+    }
+  }
+  return changedSources
+}
+
 function normalizeGraphModeCompatibility(a: AnyGraphInfo, b: AnyGraphInfo) {
   const ma = a.mode
   const mb = b.mode
@@ -279,8 +335,10 @@ export function mergeIrJsonFilesByGraphId(params: {
   irJsonPaths: string[]
 }): MergeGroupResult[] {
   const items: IrSource[] = []
+  const sourcePayloads = new Map<string, unknown>()
   for (const p of params.irJsonPaths) {
     const raw: unknown = JSON.parse(fs.readFileSync(p, 'utf8'))
+    sourcePayloads.set(p, raw)
     if (isMergedMarker(raw)) continue
     const list = Array.isArray(raw) ? raw : [raw]
     list.forEach((doc, idx) => {
@@ -288,6 +346,15 @@ export function mergeIrJsonFilesByGraphId(params: {
       if (!isIrDocumentLike(doc)) return
       items.push({ doc, sourceJsonPath: p, sourceIndex: idx })
     })
+  }
+
+  const remappedSources = allocateCompositeIds(
+    items.map((it) => ({ doc: it.doc, source: it.sourceJsonPath }))
+  )
+  for (const sourcePath of remappedSources) {
+    const payload = sourcePayloads.get(sourcePath)
+    if (payload === undefined) continue
+    fs.writeFileSync(sourcePath, JSON.stringify(payload, null, 2) + '\n', 'utf8')
   }
 
   const groups = new Map<number, IrSource[]>()
@@ -391,6 +458,16 @@ export function mergeIrJsonFilesByGraphId(params: {
     const mergedVars = mergeVariablesOrThrowByName(varsAfterRename)
     if (mergedVars?.length) base.variables = mergedVars
     base.nodes = mergedNodes
+
+    const mergedCompositeDefs = new Map<number, CompositeDefIR>()
+    for (const it of ordered) {
+      for (const def of (it.doc as ServerIRDocument).compositeDefs ?? []) {
+        mergedCompositeDefs.set(def.id, deepClone(def))
+      }
+    }
+    if (mergedCompositeDefs.size) {
+      ;(base as ServerIRDocument).compositeDefs = [...mergedCompositeDefs.values()]
+    }
 
     const outJsonPath = path.join(topDir, `${fileBaseName}.json`)
     const sourceJsonPaths = [...new Set(ordered.map((x) => x.sourceJsonPath))]

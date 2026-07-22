@@ -249,14 +249,16 @@ npx tsx tests/composite/test-composite-part3.ts
 ## 4. 跨 NodeGraph Composite ID 冲突回归
 
 > 状态：当前实现
-> 来源：当前代码实现 + 自动回归
-> 最近校验：2026-07-19
-> 适用范围：gsts IR 合并路径；未进行注入或游戏内验证
+> 来源：当前代码实现 + 自动回归 + 目标玩法工程注入与用户编辑器/游戏验证
+> 最近校验：2026-07-22
+> 适用范围：gsts 批量 IR 合并与 GIA 生成前的跨 NodeGraph ID 分配；用户验证覆盖下述目标玩法工程的五图注入候选
 
-多个 entry 独立编译时可能各自从相同的 Composite ID 起点分配 ID。CLI 处理所有待输出的
-IR 文档前，`src/compiler/ir_merge.ts` 会跨文档比较 `compositeDefs` 的定义内容：
-相同定义复用原 ID，不同定义分配新的 ID，并同步重写主图调用、impl 图中的嵌套调用和
-`compositeCalls` 元数据。合并结果保留全部 Composite 定义。
+多个 entry 独立编译时可能各自从相同的 Composite ID 起点分配 ID。CLI 收集全部待输出的
+IR 文档后、按 NodeGraph ID 分组前，`src/compiler/ir_merge.ts` 会跨文档比较 `compositeDefs`
+的定义内容：相同定义复用原 ID，不同定义分配新的 ID，并同步重写主图调用、impl 图中的
+嵌套调用和 `compositeCalls` 元数据。重映射后的源 IR 会在 GIA 编码前写回磁盘，避免未参与
+同图合并的独立 NodeGraph 继续从旧 JSON 生成冲突 GIA。该时机覆盖不同 NodeGraph 不会被合并为
+同一 IR 文件的情形；同一 NodeGraph 的合并结果保留全部 Composite 定义。
 
 最小回归：
 
@@ -266,8 +268,14 @@ npx tsx tests/ir_merge_composite_id_collision_test.ts
 ```
 
 该测试先在旧实现上确认 `compositeDefs` 被覆盖而失败，再验证修复后的两个定义拥有
-不同 ID，主图调用和嵌套调用都指向重映射后的定义。它证明的是 IR 合并结构，不等同于
-GIA 注入成功或游戏行为正确。
+不同 ID，主图调用和嵌套调用都指向重映射后的定义，并断言重映射后的源 JSON 已写回磁盘。
+它证明的是 IR 合并结构，不单独等同于 GIA 注入成功或游戏行为正确。
+
+2026-07-22，`/home/h/虹猫蓝图七侠传` 的五个 entry 使用修复后的工具链完成无注入产物审计：
+12 个 CompositeDef 使用 12 个不同 ID，18 个 Composite 调用均能解析到所属 IR 定义；其中
+`二维移动输入写入器` 保持 `1610700002`，`执行单个移动 tick` 被安全重映射为 `2000000000`。
+随后用户确认目标地图 `1073741848` 的五图注入成功，并在编辑器/游戏中测试通过。该游戏证据
+只覆盖该玩法工程、该次生成与注入的候选，不能替代其他项目、未来构建或未覆盖 Composite 形态的验证。
 
 ## 5. 运行方式
 
