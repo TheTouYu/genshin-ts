@@ -9,7 +9,7 @@
  * - boundary
  * - root-unsupported
  *
- * Does not delete legacy backend, does not flip the production default, and is
+ * Does not delete the legacy backend; the shared backend is now the production default, and this inventory is
  * not a full game-validation claim.
  *
  * Run:
@@ -56,7 +56,7 @@ const resolvedSource = readFileSync(join(transformDir, 'resolved_node.ts'), 'utf
 
 // --- Contract freezes ---
 assert.equal(ROOT_ORDINARY_CAPABILITY_CONTRACT.phase, 'P5-W3')
-assert.equal(ROOT_ORDINARY_CAPABILITY_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(ROOT_ORDINARY_CAPABILITY_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(ROOT_ORDINARY_CAPABILITY_CONTRACT.deletesLegacyBackend, false)
 assert.deepEqual(ROOT_ORDINARY_CAPABILITY_CONTRACT.categories, [
   'shared-path',
@@ -66,8 +66,8 @@ assert.deepEqual(ROOT_ORDINARY_CAPABILITY_CONTRACT.categories, [
 ])
 assert.equal(
   COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate,
-  false,
-  'P5-W3 must not flip default vendor gate'
+  true,
+  'production default must use shared vendor backend'
 )
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
 assert.equal(
@@ -235,16 +235,16 @@ assert.match(inventorySource, /adapter-graph-values/)
 assert.match(inventorySource, /adapter-affiliations/)
 assert.match(inventorySource, /adapter-special-arg-layouts/)
 
-// --- No silent claim of full game validation / default switch ---
+// --- No silent claim of full game validation ---
 assert.match(inventorySource, /not a full API coverage claim/i)
-assert.match(inventorySource, /does not flip the default gate/i)
+assert.match(inventorySource, /shared vendor Graph is now the default/i)
 assert.equal(ROOT_ORDINARY_CAPABILITY_CONTRACT.rules.notAFullGameValidationClaim, true)
 
 // --- Composite still re-exports inventory and keeps legacy present ---
 assert.match(compositeSource, /ROOT_ORDINARY_CAPABILITY_CONTRACT/)
 assert.match(compositeSource, /rootOrdinaryCapabilities/)
 assert.match(compositeSource, /legacyOrdinaryBackendPresent:\s*true/)
-assert.match(compositeSource, /defaultVendorImplGraphGate:\s*false/)
+assert.match(compositeSource, /defaultVendorImplGraphGate:\s*true/)
 
 // --- Composite legacy risk rows must not invent Composite-only ordinary path ---
 const risky = ROOT_ORDINARY_CAPABILITIES.filter((entry) => entry.compositeLegacyRisk)

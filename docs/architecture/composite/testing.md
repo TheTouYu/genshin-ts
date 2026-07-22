@@ -76,7 +76,7 @@ OutParam 和数据连线仍然存在；
 2. 受影响节点族调查；
 3. 主图对照；
 4. DTC、nested capture、sparse input、root/impl parity 等相邻回归；其中 `tests/composite/test-composite-sparse-named-input.ts` 还要求父 Composite 输出经类型转换后接入 `print_string` 执行节点，避免仅以纯数据流误判为游戏运行时消费。对应候选 `Beyond_Local_Export/真-测试通过/v2.0/v2.0-composite-sparse-06-4ab1116.gia` 已于 2026-07-21 经用户游戏内测试通过；该游戏结论仅适用于此候选。
-5. legacy 和显式启用 shared vendor 路径；
+5. 默认 shared vendor 路径和显式 legacy 回退路径；
 6. 生产 TypeScript 改动后运行 `npm run build`，最后运行 `git diff --check`。
 
 报告必须分开写：
@@ -497,10 +497,12 @@ done
 
 ### 多类型标量比较：主图 / Composite 游戏回归
 
-> 状态：已验证
+> 默认后端切换：2026-07-21 起，Composite impl 默认使用 `shared-vendor-impl-graph`；legacy 仅作为显式回退。
+
+> 状态：部分验证 / 默认 legacy 回归失败
 > 来源：当前代码实现 + 自动 GIA 回归 + merge 前后源码对比 + 用户游戏内验证
 > 最近校验：2026-07-21
-> 适用范围：gsts 当前 Stage 3 输出；游戏结论仅适用于本节列出的两份候选
+> 适用范围：默认 shared 候选已验证；显式 legacy 候选已确认游戏失败
 
 用户报告 Composite impl 中 `lessThanOrEqualTo(float, float)` 在游戏内显示为整数。当前源码探查未在
 HEAD 自动复现：`tests/composite/test-scalar-comparison-types-game.ts` 同时覆盖主图和 Composite impl，
@@ -514,14 +516,20 @@ npx tsx tests/composite/test-scalar-comparison-types-game.ts /tmp/scalar-compari
 GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-scalar-comparison-types-game.ts /tmp/scalar-comparison-types-game-shared.gia
 ```
 
-当前自动结果：legacy 和显式 shared vendor 两条路径均通过，主图与 impl 的 float 节点均保持 float
-concrete/pin 类型。merge `4ab1116` 前的 `composite.ts` 尚未把 `compositePins` 声明的边界类型覆盖到
-`resolveNodeIdentity()` 输入；merge 中新增的 `boundaryInputTypesByNode` 正是相关修复逻辑。因此目前只能确认
-这是一个合并相关的高风险路径。两个候选已复制到
-`Beyond_Local_Export/scalar-comparison-types-game.gia` 和
-`Beyond_Local_Export/scalar-comparison-types-game-shared.gia`，尚未注入。用户已确认两份候选均能在游戏内
-正常导入并通过测试，主图和 Composite impl 中比较节点的 float 输入类型及非整数值均符合预期；该结论不
-推广到未覆盖的比较节点变体、其他 GIA 或未来生成版本。
+当前自动结果：默认 shared 和显式 legacy 两条路径均通过结构回归，主图与 impl 的 float 节点均保持
+float concrete/pin 类型。merge `4ab1116` 前的 `composite.ts` 尚未把 `compositePins` 声明的边界类型覆盖到
+`resolveNodeIdentity()` 输入；merge 中新增的 `boundaryInputTypesByNode` 正是相关修复逻辑。
+
+用户游戏内复核后的分层结论：主图逻辑通过；shared vendor backend 的 Composite 候选通过；legacy-handwritten
+backend 的 Composite 候选未通过。当前默认后端已切换为 shared，源码依据为
+`src/compiler/ir_to_gia_transform/stage3_backend.ts` 的 `defaultBackend` 和 `defaultEnabled`；legacy 仍可通过
+显式 `options.stage3.vendorImplGraphBeta=false` 或对应显式回退面启用。
+
+两个候选位于：
+`Beyond_Local_Export/scalar-comparison-types-game.gia`（legacy，游戏失败）和
+`Beyond_Local_Export/scalar-comparison-types-game-shared.gia`（shared，游戏通过），均尚未注入。
+shared 通过结论仅适用于该候选和当前生成版本；legacy 失败结论保留为回退路径风险，不能推广到其他比较
+节点变体或未来生成版本。
 
 ### Merge 回归：Timer 多输出 Composite 局部变量物化
 

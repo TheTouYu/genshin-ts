@@ -8,7 +8,7 @@
  *   legacyImplValueTypeSuffix
  * - inventory no longer lists the typed-identity adapter family
  * - node-graph variable concrete ids still come from shared resolveNodeIdentity
- * - default gate remains handwritten; remaining legacy backend is present
+ * - shared backend is default; remaining legacy backend is present as fallback
  *
  * Run:
  *   npm run build
@@ -139,10 +139,10 @@ assert.equal(
   false
 )
 
-// Non-goals: do not flip default or claim full legacy deletion.
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
+// Non-goals: do not delete the legacy backend.
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
-assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.deletesLegacyBackend, false)
 assert.ok(
   listLegacyOrdinaryCallSiteIds().includes('legacy-pin-builder-entry'),

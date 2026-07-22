@@ -26,7 +26,7 @@ export const SPECIAL_ARG_ADAPTER_CONTRACT = {
   family: 'special-arg',
   nodeTypes: SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
   sharedModule: 'special_arg_adapter.ts',
-  defaultVendorImplGraphGate: false,
+  defaultVendorImplGraphGate: true,
   deletesLegacyBackend: false,
   changesProductionEncoding: true,
   notes:

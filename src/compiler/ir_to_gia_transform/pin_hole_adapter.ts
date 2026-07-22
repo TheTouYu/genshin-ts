@@ -45,7 +45,7 @@ export const PIN_HOLE_ADAPTER_CONTRACT = {
   family: 'pin-hole',
   nodeTypes: SHARED_PIN_HOLE_ADAPTER_NODE_TYPES,
   sharedModule: 'pin_hole_adapter.ts',
-  defaultVendorImplGraphGate: false,
+  defaultVendorImplGraphGate: true,
   deletesLegacyBackend: false,
   changesProductionEncoding: true,
   notes:

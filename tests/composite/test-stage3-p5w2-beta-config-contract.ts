@@ -1,15 +1,15 @@
 // @ts-nocheck
 /**
- * P5-W2: opt-in beta configuration surface for shared vendor-impl Graph backend.
+ * Stage 3 backend configuration contract.
  *
  * Freezes:
- * - default remains handwritten
+ * - default uses shared vendor-impl Graph
  * - config / CLI / env / explicit precedence
  * - diagnostics name backend + source + high-risk pending families
  * - env compat GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 still works
  * - production encode path uses isSharedVendorImplGraphEnabled()
  *
- * Does not delete legacy backend and does not flip the production default.
+ * Legacy backend remains available as an explicit fallback.
  *
  * Run:
  *   npm run build
@@ -44,9 +44,9 @@ const enI18n = readFileSync(join(root, 'src/i18n/locales/en-US/main.json'), 'utf
 
 // --- Contract freezes ---
 assert.equal(STAGE3_BACKEND_CONTRACT.phase, 'P5-W2')
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(STAGE3_BACKEND_CONTRACT.deletesLegacyBackend, false)
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultBackend, 'legacy-handwritten')
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultBackend, 'shared-vendor-impl-graph')
 assert.equal(STAGE3_BACKEND_CONTRACT.envVar, 'GSTS_STAGE3_VENDOR_IMPL_GRAPH')
 assert.equal(STAGE3_BACKEND_CONTRACT.configPath, 'options.stage3.vendorImplGraphBeta')
 assert.equal(STAGE3_BACKEND_CONTRACT.cliFlag, '--stage3-shared-impl-beta')
@@ -63,18 +63,18 @@ assert.ok(
 )
 assert.equal(
   COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate,
-  false,
-  'P5-W2 must not flip default vendor gate'
+  true,
+  'production default must use shared vendor backend'
 )
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.stage3Backend, STAGE3_BACKEND_CONTRACT)
 
 // --- Default / env resolution ---
 const defaultDecision = resolveStage3ImplBackend({ env: undefined })
-assert.equal(defaultDecision.backend, 'legacy-handwritten')
-assert.equal(defaultDecision.enabled, false)
+assert.equal(defaultDecision.backend, 'shared-vendor-impl-graph')
+assert.equal(defaultDecision.enabled, true)
 assert.equal(defaultDecision.source, 'default')
-assert.equal(defaultDecision.defaultEnabled, false)
+assert.equal(defaultDecision.defaultEnabled, true)
 
 const envOn = resolveStage3ImplBackend({ env: '1' })
 assert.equal(envOn.backend, 'shared-vendor-impl-graph')
@@ -83,7 +83,7 @@ assert.equal(envOn.source, 'env')
 
 const envOff = resolveStage3ImplBackend({ env: '0' })
 assert.equal(envOff.enabled, false)
-assert.equal(envOff.source, 'default')
+assert.equal(envOff.source, 'env')
 
 // --- Config / CLI / explicit precedence ---
 const configOn = resolveStage3ImplBackend({ config: true, env: undefined })
@@ -130,7 +130,7 @@ applyStage3ImplBackendEnv(configOn, scratch)
 assert.equal(scratch[STAGE3_VENDOR_IMPL_GRAPH_ENV], '1')
 const forceOff = resolveStage3ImplBackend({ config: false })
 applyStage3ImplBackendEnv(forceOff, scratch)
-assert.equal(scratch[STAGE3_VENDOR_IMPL_GRAPH_ENV], undefined)
+assert.equal(scratch[STAGE3_VENDOR_IMPL_GRAPH_ENV], '0')
 
 // --- Production encode path uses resolver helper, not a raw hard-coded default true ---
 assert.match(
@@ -168,7 +168,7 @@ assert.match(enI18n, /warnStage3SharedImplBeta/)
 const prev = process.env[STAGE3_VENDOR_IMPL_GRAPH_ENV]
 try {
   delete process.env[STAGE3_VENDOR_IMPL_GRAPH_ENV]
-  assert.equal(isSharedVendorImplGraphEnabled(), false)
+  assert.equal(isSharedVendorImplGraphEnabled(), true)
   process.env[STAGE3_VENDOR_IMPL_GRAPH_ENV] = '1'
   assert.equal(isSharedVendorImplGraphEnabled(), true)
 } finally {
@@ -176,4 +176,4 @@ try {
   else process.env[STAGE3_VENDOR_IMPL_GRAPH_ENV] = prev
 }
 
-console.log('PASS P5-W2 beta config contract: default handwritten; config/CLI/env/explicit opt-in')
+console.log('PASS Stage 3 backend contract: default shared; explicit config/CLI/env fallback and opt-in')

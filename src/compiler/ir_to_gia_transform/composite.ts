@@ -97,14 +97,14 @@ export const COMPOSITE_ORCHESTRATION_CONTRACT = {
    */
   ordinaryArgCaptureSkip: true,
   boundaryDtcPhysicalPin: true,
-  /** Default production backend remains handwritten until Phase 5. */
-  defaultVendorImplGraphGate: false,
+  /** Default production backend uses shared vendor Graph; legacy remains an explicit fallback. */
+  defaultVendorImplGraphGate: true,
   legacyOrdinaryBackendPresent: true,
   /** P5-W1: inventory/assert surface; does not delete legacy backend. */
   legacyInventory: COMPOSITE_LEGACY_INVENTORY_CONTRACT,
-  /** P5-W2: formal opt-in beta surface; default remains handwritten. */
+  /** P5-W2: shared vendor Graph is now the default; legacy remains an explicit fallback. */
   stage3Backend: STAGE3_BACKEND_CONTRACT,
-  /** P5-W3: root ordinary capability inventory; does not flip default or delete legacy. */
+  /** P5-W3: root ordinary capability inventory; does not delete legacy. */
   rootOrdinaryCapabilities: ROOT_ORDINARY_CAPABILITY_CONTRACT,
   /** P5-W6..W10: root→shared-beta ordinary coverage matrix (pin-hole W9, special-arg W10). */
   ordinaryCoverageMatrix: ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT,

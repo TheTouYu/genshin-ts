@@ -58,14 +58,14 @@ const COMPOSITE_NAME = 'P5W9_PinHole_SharedAdapter'
 
 // --- Contract ---
 assert.equal(PIN_HOLE_ADAPTER_CONTRACT.workPackage, 'P5-W9')
-assert.equal(PIN_HOLE_ADAPTER_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(PIN_HOLE_ADAPTER_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(PIN_HOLE_ADAPTER_CONTRACT.changesProductionEncoding, true)
 // Matrix phase advances with later packs; pin-hole contract stays P5-W9.
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W10')
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W10')
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.pinHoleAdapter, PIN_HOLE_ADAPTER_CONTRACT)
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
 
 assert.deepEqual(
   [...SHARED_PIN_HOLE_ADAPTER_NODE_TYPES],
@@ -364,6 +364,6 @@ console.log(
     `static green=${summary.green} unknown=${summary.unknown}`,
     `output=${OUTPUT_PATH}`,
     `bytes=${bytes.length}`,
-    'defaultVendorImplGraphGate=false'
+    'defaultVendorImplGraphGate=true'
   ].join('\n')
 )

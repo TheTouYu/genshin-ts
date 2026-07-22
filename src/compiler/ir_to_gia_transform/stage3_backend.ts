@@ -1,14 +1,16 @@
 /**
- * Stage 3 ordinary impl Graph backend selection (P5-W2).
+ * Stage 3 ordinary impl Graph backend selection.
  *
- * Default remains the handwritten legacy backend. Shared vendor-impl Graph
- * materialization is an opt-in beta surface:
+ * Shared vendor-impl Graph materialization is the production default. The
+ * handwritten legacy backend remains available as an explicit fallback:
  *   1. explicit option to irToGia / writeGia helpers
  *   2. CLI flag `--stage3-shared-impl-beta`
  *   3. config `options.stage3.vendorImplGraphBeta`
  *   4. env `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` (internal / test compat)
  *
- * This module does not flip the production default and does not delete legacy.
+ * This module keeps the legacy backend for explicit fallback and comparison.
+ * The internal env marker uses `0` to preserve an explicit legacy decision when
+ * the production default is shared.
  */
 
 export const STAGE3_VENDOR_IMPL_GRAPH_ENV = 'GSTS_STAGE3_VENDOR_IMPL_GRAPH' as const
@@ -29,7 +31,7 @@ export type Stage3BackendDecision = {
   backend: Stage3ImplBackend
   enabled: boolean
   source: Stage3BackendSource
-  defaultEnabled: false
+  defaultEnabled: true
   envVar: typeof STAGE3_VENDOR_IMPL_GRAPH_ENV
   configPath: typeof STAGE3_SHARED_IMPL_BETA_CONFIG_PATH
   cliFlag: typeof STAGE3_SHARED_IMPL_BETA_CLI_FLAG
@@ -57,8 +59,8 @@ export type ResolveStage3ImplBackendInput = {
 
 export const STAGE3_BACKEND_CONTRACT = {
   phase: 'P5-W2',
-  defaultBackend: 'legacy-handwritten' as const satisfies Stage3ImplBackend,
-  defaultVendorImplGraphGate: false,
+  defaultBackend: 'shared-vendor-impl-graph' as const satisfies Stage3ImplBackend,
+  defaultVendorImplGraphGate: true,
   deletesLegacyBackend: false,
   envVar: STAGE3_VENDOR_IMPL_GRAPH_ENV,
   configPath: STAGE3_SHARED_IMPL_BETA_CONFIG_PATH,
@@ -89,7 +91,7 @@ export function readStage3VendorImplGraphEnv(
 /**
  * Resolve the ordinary impl Graph backend for Stage 3 composite encoding.
  *
- * Default is always handwritten. Any enablement is opt-in beta only.
+ * Default is shared vendor Graph. Explicit false surfaces select legacy fallback.
  */
 export function resolveStage3ImplBackend(
   input: ResolveStage3ImplBackendInput = {}
@@ -97,7 +99,7 @@ export function resolveStage3ImplBackend(
   const envRaw =
     input.env !== undefined ? input.env : readStage3VendorImplGraphEnv(process.env)
 
-  let enabled = false
+  let enabled = true
   let source: Stage3BackendSource = 'default'
 
   if (input.explicit === true) {
@@ -118,8 +120,8 @@ export function resolveStage3ImplBackend(
   } else if (input.config === false) {
     enabled = false
     source = 'config'
-  } else if (envEnablesVendorImplGraph(envRaw)) {
-    enabled = true
+  } else if (envRaw !== undefined) {
+    enabled = envEnablesVendorImplGraph(envRaw)
     source = 'env'
   }
 
@@ -128,9 +130,9 @@ export function resolveStage3ImplBackend(
     : 'legacy-handwritten'
 
   const notes: string[] = [
-    'Default production backend remains handwritten until a user-approved default switch.',
-    'Shared vendor-impl Graph is opt-in beta; env GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 remains internal compat.',
-    'To fall back to legacy: omit beta config/CLI and unset GSTS_STAGE3_VENDOR_IMPL_GRAPH (or set it to anything other than 1).'
+    'Default production backend is shared vendor-impl Graph.',
+    'The handwritten legacy backend remains available as an explicit fallback.',
+    'To fall back to legacy: set options.stage3.vendorImplGraphBeta=false, use the explicit legacy API surface, or use a CLI/config override.'
   ]
 
   if (enabled) {
@@ -144,7 +146,7 @@ export function resolveStage3ImplBackend(
     backend,
     enabled,
     source,
-    defaultEnabled: false,
+    defaultEnabled: true,
     envVar: STAGE3_VENDOR_IMPL_GRAPH_ENV,
     configPath: STAGE3_SHARED_IMPL_BETA_CONFIG_PATH,
     cliFlag: STAGE3_SHARED_IMPL_BETA_CLI_FLAG,
@@ -155,8 +157,8 @@ export function resolveStage3ImplBackend(
 
 /**
  * Apply the resolved decision to process.env so child runners / focused tests that
- * still read the env gate observe the same backend. Never sets the env when disabled
- * via default (leaves pre-existing unset state alone unless an explicit source forces off).
+ * still read the env gate observe the same backend. Explicit legacy decisions use
+ * `0`; an unset env therefore remains the shared default.
  */
 export function applyStage3ImplBackendEnv(
   decision: Stage3BackendDecision,
@@ -166,10 +168,9 @@ export function applyStage3ImplBackendEnv(
     env[STAGE3_VENDOR_IMPL_GRAPH_ENV] = '1'
     return
   }
-  // Force-off only when an explicit surface chose legacy; otherwise leave env untouched
-  // so nested tools can still set the internal gate independently.
+  // Preserve an explicit legacy decision even though an unset env now means shared default.
   if (decision.source === 'explicit' || decision.source === 'cli' || decision.source === 'config') {
-    delete env[STAGE3_VENDOR_IMPL_GRAPH_ENV]
+    env[STAGE3_VENDOR_IMPL_GRAPH_ENV] = '0'
   }
 }
 

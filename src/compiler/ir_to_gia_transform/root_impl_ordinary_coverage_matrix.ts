@@ -2,7 +2,7 @@
  * P5-W6/W7: machine-readable root→shared-beta impl ordinary coverage matrix.
  *
  * Grilling decisions (shared understanding, 2026-07-15):
- * - A: capability complete on shared surface (not default cutover / legacy delete)
+ * - A: capability complete on shared surface (default cutover does not delete legacy)
  * - A4: layered evidence (auto contract default; sentinels escalate)
  * - S4: complete surface = shared beta; default handwritten only preserves history
  * - P3: every ordinary root can emit today (incl. named adapters); root-unsupported excluded
@@ -14,7 +14,7 @@
  *   P5-W9 pin-hole shared adapter on shared path
  *
  * Evidence class: current source observation + automatic probe under shared beta.
- * Not a full game-validation claim. Does not flip default gate or delete legacy.
+ * Not a full game-validation claim. Default uses shared vendor Graph; legacy remains available.
  */
 
 import { SPECIAL_NODE_IDS } from './mappings.js'
@@ -139,7 +139,7 @@ export const ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT = {
   phase: 'P5-W10',
   workPackage: 'P5-W10',
   alias: 'W1-coverage-matrix+special-arg-shared-adapter',
-  defaultVendorImplGraphGate: false,
+  defaultVendorImplGraphGate: true,
   deletesLegacyBackend: false,
   /** P5-W7/W8/W9/W10 change ordinary identity / pin-hole / special-arg shared adapter wiring. */
   changesProductionEncoding: true,
@@ -644,13 +644,11 @@ export function findOrdinaryCoverageRow(
 export function assertCoverageMatrixInvariants(
   rows: readonly OrdinaryCoverageRow[] = listStaticOrdinaryCoverageRows()
 ): void {
-  if (ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate !== false) {
-    throw new Error('[coverage-matrix] must not flip default vendor gate')
+  if (ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate !== true) {
+    throw new Error('[coverage-matrix] shared vendor backend must remain the production default')
   }
-  // P5-W6 skeleton froze changesProductionEncoding=false; P5-W7 residual scalar
-  // identity migration intentionally sets it true while keeping default gate false.
-  if (STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate !== false) {
-    throw new Error('[coverage-matrix] stage3 default gate must remain false')
+  if (STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate !== true) {
+    throw new Error('[coverage-matrix] stage3 default gate must remain enabled')
   }
 
   const seen = new Set<string>()

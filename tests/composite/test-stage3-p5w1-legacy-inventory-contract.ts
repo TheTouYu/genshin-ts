@@ -37,7 +37,7 @@ const compositeSource = readFileSync(compositeSourcePath, 'utf8')
 
 assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.phase, 'P5-W1')
 assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.deletesLegacyBackend, false)
-assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(COMPOSITE_LEGACY_INVENTORY_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(
   COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent,
   true,

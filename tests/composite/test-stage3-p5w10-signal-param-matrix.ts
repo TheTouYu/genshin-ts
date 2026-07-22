@@ -462,6 +462,6 @@ console.log(
     `monitorOuts=${monParamOuts.length}`,
     `output=${OUTPUT_PATH}`,
     `bytes=${bytes.length}`,
-    'defaultVendorImplGraphGate=false'
+    'defaultVendorImplGraphGate=true'
   ].join('\n')
 )

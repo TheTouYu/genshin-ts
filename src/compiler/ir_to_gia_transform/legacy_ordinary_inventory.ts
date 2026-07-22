@@ -303,9 +303,9 @@ export const COMPOSITE_LEGACY_INVENTORY_CONTRACT = {
   helperSymbols: LEGACY_ORDINARY_HELPER_SYMBOLS,
   callSites: LEGACY_ORDINARY_CALL_SITES,
   /**
-   * Default production backend remains handwritten. This inventory does not flip the gate.
+   * Shared vendor Graph is the default. This inventory keeps the legacy fallback.
    */
-  defaultVendorImplGraphGate: false,
+  defaultVendorImplGraphGate: true,
   deletesLegacyBackend: false,
   noLegacyAssertions: {
     boundaryModulesMustNotRebuildOrdinaryPins: true,

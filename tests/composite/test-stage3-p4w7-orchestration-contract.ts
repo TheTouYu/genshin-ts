@@ -67,7 +67,7 @@ assert.deepEqual(
   [COMPOSITE_CAPTURE_NODE_TYPE, COMPOSITE_CALL_NODE_TYPE]
 )
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.ordinaryArgCaptureSkip, true)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
 
 const sourcePath = join(
@@ -259,7 +259,7 @@ assert.ok((parentImpl.compositePins ?? []).length >= 2)
 assert.equal(
   process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1',
   false,
-  'focused orchestration contract runs on default legacy backend'
+  'focused orchestration contract runs on default shared backend'
 )
 
 console.log('P4-W7 orchestration contract: PASS')

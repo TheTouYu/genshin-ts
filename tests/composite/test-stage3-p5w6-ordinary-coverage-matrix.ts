@@ -45,15 +45,15 @@ const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 // P5-W10 owns special-arg shared adapter; matrix contract phase advances with it.
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.phase, 'P5-W10')
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage, 'P5-W10')
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.deletesLegacyBackend, false)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
 assert.equal(
   COMPOSITE_ORCHESTRATION_CONTRACT.ordinaryCoverageMatrix,
   ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT
 )
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
 
 assert.deepEqual(ORDINARY_COVERAGE_GRILLING_DECISIONS, {
@@ -264,8 +264,8 @@ assert.equal(
 )
 
 // Default gate unchanged after probes
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
 
 // Human-readable summary for the pack report
 const byFamily = Object.entries(probeSummary.byFamily)
@@ -279,7 +279,7 @@ console.log(
     'P5-W6/W7 ordinary coverage matrix OK',
     `total=${probeSummary.total} green=${probeSummary.green} red=${probeSummary.red} unknown=${probeSummary.unknown}`,
     byFamily,
-    'defaultVendorImplGraphGate=false',
+    'defaultVendorImplGraphGate=true',
     'changesProductionEncoding=true'
   ].join('\n')
 )

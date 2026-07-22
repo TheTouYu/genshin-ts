@@ -2,7 +2,7 @@
 
 > 状态：当前推荐 / 实时状态
 > 来源：当前 Git 工作树 + 当前 Phase 计划 + ADR-012/013 + 已归档工作包记录
-> 最近校验：2026-07-16
+> 最近校验：2026-07-21
 > 适用范围：`refactor/composite-stage3-architecture`；新会话的最小实时恢复入口
 
 > 历史工作包的目标、命令、候选路径、SHA-256 和失败过程不在本文件重复；见
@@ -19,18 +19,18 @@
 更早完成：P5-W8 — enumerations_equal residual 身份迁 shared resolver
 更早完成：P5-W7 — residual scalar ordinary 身份迁 shared resolver
 更早完成：P5-W6 — root→shared-beta ordinary 覆盖矩阵骨架（W1）
-更早完成：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — opt-in beta
+更早完成：P5-W4 — 删除空的 legacy typed-identity adapter；P5-W3 — root ordinary 能力清单；P5-W2 — shared backend 配置入口
 更早完成：P5-W1 — no-legacy assertions / legacy ordinary call-site inventory
 更早完成：P4-W7 — composite.ts orchestration 收口 / Phase 4 退出核对（用户核验通过）
-默认 backend：handwritten impl backend
-opt-in beta：options.stage3.vendorImplGraphBeta / --stage3-shared-impl-beta / GSTS_STAGE3_VENDOR_IMPL_GRAPH=1
-覆盖完成表面：shared beta（grilling S4）；默认旧路只保历史哨兵
+默认 backend：shared-vendor-impl-graph
+legacy 回退：options.stage3.vendorImplGraphBeta=false 或显式 legacy surface
+覆盖完成表面：shared backend 默认路径；legacy backend 保留用于显式回退与对照
 STATUS 不记录 git commit SHA；提交身份以 git log 为准（见 EXECUTION 提交协议）
 ```
 
 ## 当前可依赖事实
 
-- ADR-006：ordinary impl graph 的目标主路径是完整 vendor `Graph` materialization；默认 gate 不开启，legacy backend 未删除。
+- ADR-006：ordinary impl graph 的目标主路径是完整 vendor `Graph` materialization；当前默认 gate 已开启，legacy backend 未删除。
 - ADR-009：`__composite_call__` 是 synthetic boundary node，不进入 vendor ordinary Graph；ordinary↔synthetic edge 由 composite overlay 处理。
 - ADR-010：definition capture 使用完整 typed placeholders；call-site 可独立省略任意绑定输入，并保持 sparse declaration index。
 - ADR-011：root 与 composite impl 的 ordinary system node/API 能力目标同源；composite 只增加 call/capture/`compositePins`/inflow/outflow/layout 等 boundary 职责。
@@ -46,7 +46,7 @@ STATUS 不记录 git commit SHA；提交身份以 git log 为准（见 EXECUTION
 - 不证明异型 arithmetic、异型 comparison、非 int/float equal 全族、logical ops、vec3、list/dict、未采样 API、全部 signal/dynamic pin/payload 或全部 impl embedding。
 - 不证明真实 GIA/wire 全等；decoded defaults 不证明 protobuf field presence。
 - 不证明注入或游戏内行为；本轮没有注入。
-- 不默认开启 vendor gate，不删除 handwritten backend，不改变 `graphValues`、`affiliations`、capture、nested、sparse 或布局语义。
+- 默认开启 vendor gate；不删除 handwritten backend，不改变 `graphValues`、`affiliations`、capture、nested、sparse 或布局语义。
 - signal/dynamic pin family 的能力目标由 ADR-011 确认与 root 同源，但专属 payload/schema/wire 仍需真实可执行案例验证。
 - P3-W20 已将 root 的 ordinary data/flow edges 与 vendor-gated impl closed ordinary subgraph 的 data/flow edges 接入同一 shared materializer；synthetic call/capture overlay 仍独立。自动回归通过，用户已确认四份 P3-W20 vendor-gated 候选在游戏内实际运行通过；未注入。
 - P3-W21 已在 shared materializer 中加入 ordinary endpoint pin、pin type、data target 唯一性和 nodeIndex 唯一性检查；vendor impl 以 `nodeIndexMap` 额外断言编码 index 对齐，synthetic call 明确排除。direct contract 与 P3/P2 focused 自动回归通过；未生成新候选、未注入，且不构成真实 GIA/wire 或游戏行为结论。

@@ -5,7 +5,7 @@
  * Completes one matrix family envelope:
  * - 13 residual scalar ops use usesSharedVariantResolution / shared concrete id
  * - residual-concrete table empty after P5-W8 (enumerations_equal moved)
- * - default gate stays false; handwritten pin path not deleted
+ * - shared backend is default; handwritten pin path is not deleted
  *
  * Run:
  *   npm run build
@@ -43,10 +43,10 @@ const compositeSource = readFileSync(join(transformDir, 'composite.ts'), 'utf8')
 const resolvedSource = readFileSync(join(transformDir, 'resolved_node.ts'), 'utf8')
 
 // Contract phase advances with later residual packs; residual scalar identity still holds.
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
 
 assert.equal(SHARED_RESIDUAL_SCALAR_NODE_TYPES.length, 13)
@@ -187,8 +187,8 @@ for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
 const printRow = probeSummary.rows.find((r) => r.id === 'generic-print_string')
 assert.equal(printRow?.status, 'green')
 
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
 
 console.log(
   [
@@ -197,6 +197,6 @@ console.log(
     `residualConcrete=${RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.join(',')}`,
     `static green=${summary.green} unknown=${summary.unknown}`,
     `probe green=${probeSummary.green} red=${probeSummary.red} unknown=${probeSummary.unknown}`,
-    'defaultVendorImplGraphGate=false'
+    'defaultVendorImplGraphGate=true'
   ].join('\n')
 )

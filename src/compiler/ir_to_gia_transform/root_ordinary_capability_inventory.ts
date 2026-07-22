@@ -14,7 +14,7 @@
  *
  * Evidence class: current source observation + automatic static contract.
  * This is not a full API coverage claim, real-GIA claim, or game-behavior claim.
- * It does not flip the default gate or delete the handwritten backend.
+ * Shared vendor Graph is now the default; the handwritten backend remains as an explicit fallback.
  */
 
 import { SPECIAL_NODE_IDS } from './mappings.js'
@@ -505,9 +505,9 @@ export const ROOT_ORDINARY_CAPABILITIES: readonly RootOrdinaryCapability[] = [
 export const ROOT_ORDINARY_CAPABILITY_CONTRACT = {
   phase: 'P5-W3',
   /**
-   * Inventory only. Does not flip default gate or delete handwritten backend.
+   * Inventory only. Does not delete handwritten backend.
    */
-  defaultVendorImplGraphGate: false,
+  defaultVendorImplGraphGate: true,
   deletesLegacyBackend: false,
   categories: [
     'shared-path',

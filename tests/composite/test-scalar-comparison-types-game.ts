@@ -18,6 +18,7 @@ import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
 import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
 import { asRuntimeValue, float, int } from '../../dist/src/runtime/value.js'
 import { setRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
+import { isSharedVendorImplGraphEnabled } from '../../dist/src/compiler/ir_to_gia_transform/stage3_backend.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL(
@@ -27,7 +28,7 @@ const PROTO_PATH = new URL(
 const OUTPUT_PATH = process.argv[2] ?? '/tmp/scalar-comparison-types-game.gia'
 const GRAPH_ID = 1073742451
 const COMPOSITE_NAME = 'ScalarComparisonTypesGameRegression_GSTS'
-const USE_VENDOR_IMPL_GRAPH = process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1'
+const USE_VENDOR_IMPL_GRAPH = isSharedVendorImplGraphEnabled()
 
 setRuntimeOptions({ optimize: { precompileExpression: false, removeUnusedNodes: false } })
 

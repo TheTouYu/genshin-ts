@@ -5,7 +5,7 @@
  * Completes the residual-concrete envelope:
  * - enumerations_equal uses usesSharedVariantResolution / shared enum-kind concrete id
  * - residual-concrete table empty
- * - default gate stays false; handwritten pin path not deleted
+ * - shared backend is default; handwritten pin path is not deleted
  *
  * Run:
  *   npm run build
@@ -50,10 +50,10 @@ assert.ok(
   ['P5-W8', 'P5-W9', 'P5-W10'].includes(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage),
   `unexpected workPackage ${ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.workPackage}`
 )
-assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT.changesProductionEncoding, true)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
 assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.legacyOrdinaryBackendPresent, true)
 
 assert.deepEqual([...SHARED_ENUMERATIONS_EQUAL_NODE_TYPES], ['enumerations_equal'])
@@ -188,8 +188,8 @@ for (const nodeType of SHARED_RESIDUAL_SCALAR_NODE_TYPES) {
   assert.equal(row?.status, 'green', `probe residual-scalar ${nodeType}: ${row?.status}`)
 }
 
-assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, false)
-assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, false)
+assert.equal(STAGE3_BACKEND_CONTRACT.defaultVendorImplGraphGate, true)
+assert.equal(COMPOSITE_ORCHESTRATION_CONTRACT.defaultVendorImplGraphGate, true)
 
 console.log(
   [
@@ -198,6 +198,6 @@ console.log(
     `residualConcrete=${RESIDUAL_CONCRETE_WRAPPED_NODE_TYPES.length}`,
     `static green=${summary.green} unknown=${summary.unknown}`,
     `probe green=${probeSummary.green} red=${probeSummary.red} unknown=${probeSummary.unknown}`,
-    'defaultVendorImplGraphGate=false'
+    'defaultVendorImplGraphGate=true'
   ].join('\n')
 )

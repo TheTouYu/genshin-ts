@@ -56,28 +56,28 @@ export type GstsOptimizeOptions = {
 
 // loopMax应用场景通常会有另外的控制条件, 一般只有需要更长的情况, 因此不列入优化项
 /**
- * [ZH] Stage 3（IR → GIA）实验 / beta 选项。默认全部关闭。
+ * [ZH] Stage 3（IR → GIA）后端选项。共享 vendor Graph 默认启用。
  *
- * [EN] Stage 3 (IR → GIA) experimental / beta options. All off by default.
+ * [EN] Stage 3 (IR → GIA) backend options. Shared vendor Graph is enabled by default.
  */
 export type GstsStage3Options = {
   /**
-   * [ZH] 启用 composite ordinary impl Graph 的 shared vendor materializer（opt-in beta）。
+   * [ZH] 启用 composite ordinary impl Graph 的 shared vendor materializer。
    *
-   * - 默认：`false`（handwritten legacy backend）
+   * - 默认：`true`（shared vendor Graph backend）
    * - 开启后：impl 中的 ordinary system node 走 shared vendor Graph materializer
    * - 环境变量兼容：`GSTS_STAGE3_VENDOR_IMPL_GRAPH=1`（内部/测试）
    * - CLI：`--stage3-shared-impl-beta`
-   * - 不删除 legacy，不改变生产 default
+   * - 不删除 legacy；设置为 `false` 可显式回退到 legacy
    * - signal / dynamic pin / graphValues / affiliations 等可生成但未完全游戏验证；失败请附 backend 诊断
    *
-   * [EN] Opt into the shared vendor materializer for composite ordinary impl Graphs (beta).
+   * [EN] Select the shared vendor materializer for composite ordinary impl Graphs.
    *
-   * - Default: `false` (handwritten legacy backend)
+   * - Default: `true` (shared vendor Graph backend)
    * - When enabled: ordinary system nodes in impl Graphs use the shared vendor Graph materializer
    * - Env compat: `GSTS_STAGE3_VENDOR_IMPL_GRAPH=1` (internal/tests)
    * - CLI: `--stage3-shared-impl-beta`
-   * - Does not delete legacy or flip the production default
+   * - Does not delete legacy; set to `false` for an explicit legacy fallback
    * - signal / dynamic pin / graphValues / affiliations may generate but are not fully game-proven;
    *   include backend diagnostics when reporting issues
    */
@@ -111,9 +111,9 @@ export type GstsTransformOptions = {
    */
   optimize?: Partial<GstsOptimizeOptions>
   /**
-   * [ZH] Stage 3（IR → GIA）beta / 实验选项。默认关闭。
+   * [ZH] Stage 3（IR → GIA）后端选项。共享 vendor Graph 默认启用。
    *
-   * [EN] Stage 3 (IR → GIA) beta / experimental options. Off by default.
+   * [EN] Stage 3 (IR → GIA) backend options. Shared vendor Graph is enabled by default.
    */
   stage3?: GstsStage3Options
 }
