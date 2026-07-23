@@ -38,7 +38,7 @@ g.server({
         const gsts = globalThis.gsts;
         gsts.f.doubleBranch(timerF.equal(_timerEvt.timerName, "__gsts_interval_0_0"), () => {
             const __gsts_interval_0_timerName = _timerEvt.timerName;
-            const scalar = gsts.f.initLocalVariable("entity");
+            const scalar = gsts.f.initLocalVariable("float");
             gsts.f.setLocalVariable(scalar.localVariable, timerF.callComposite(getFloat, {
                 value: timerF.get('timerValue')
             }).value);

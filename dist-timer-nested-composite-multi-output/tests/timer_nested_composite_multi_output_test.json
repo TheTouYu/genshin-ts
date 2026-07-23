@@ -185,10 +185,6 @@
           {
             "node_id": 17,
             "source_index": 0
-          },
-          {
-            "node_id": 17,
-            "source_index": 1
           }
         ]
       },
@@ -395,13 +391,9 @@
             "type": "addition",
             "args": [
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               }
             ]
@@ -485,14 +477,10 @@
                 "value": 1610700000
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true,
                 "compositeInputIndex": 0
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true,
                 "compositeInputIndex": 1
               }
@@ -507,14 +495,10 @@
                 "value": 1610700000
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true,
                 "compositeInputIndex": 0
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true,
                 "compositeInputIndex": 1
               }
@@ -616,13 +600,9 @@
             "type": "create3d_vector",
             "args": [
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               },
               {

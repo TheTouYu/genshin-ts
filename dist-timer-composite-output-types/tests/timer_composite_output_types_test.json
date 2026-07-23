@@ -155,10 +155,6 @@
           {
             "node_id": 19,
             "source_index": 0
-          },
-          {
-            "node_id": 19,
-            "source_index": 1
           }
         ]
       },
@@ -459,13 +455,9 @@
             "type": "create3d_vector",
             "args": [
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               },
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               },
               {
@@ -542,8 +534,6 @@
             "type": "create3d_vector",
             "args": [
               {
-                "type": "float",
-                "value": null,
                 "capture": true
               },
               {
