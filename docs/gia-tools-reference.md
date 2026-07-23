@@ -158,6 +158,8 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 | `topology.ts`              | **复合调用拓扑** — 主图中复合节点的调用关系图       | `npx tsx tools/topology.ts <文件.gia>`                         |
 | `coverage.ts`              | **文档覆盖率** — 按已知模式分类复合定义             | `npx tsx tools/coverage.ts <文件.gia>`                         |
 | `gap-scan.ts`              | **文档缺口扫描** — 用启发式找未知模式               | `npx tsx tools/gap-scan.ts <文件.gia>`                         |
+| `inspect-gil-custom-variables.ts` | **GIL 自定义变量候选检查** — 只读显示变量名所在 protobuf 容器、字段路径及原始 wire 摘要 | `npx tsx tools/inspect-gil-custom-variables.ts <地图.gil> <变量名> [出现序号]` |
+| `scan-gil-custom-variable-candidates.ts` | **GIL 自定义变量批量候选扫描** — 按定义容器枚举名称、类型码、初值 wire 摘要及可识别的 CustomPrefab 所有者 | `npx tsx tools/scan-gil-custom-variable-candidates.ts <地图.gil>` |
 | `preview_markdown.ts`      | **终端渲染 Markdown**                               | `npx tsx tools/preview_markdown.ts <文件.md>`                  |
 
 **`decode-gia.ts` 选项与常用查询：**
@@ -185,6 +187,35 @@ NODE_OPTIONS='--no-deprecation' npx tsx tools/decode-gia.ts --compact <文件.gi
 ```
 
 直接使用 `npx tsx` 可能显示 Node 的 deprecation warning；上例用 `NODE_OPTIONS` 抑制它。
+
+### 4.1 只读探查 GIL 自定义变量候选
+
+变量资产写回的当前实现、术语边界、真实地图证据与支持范围以
+[`architecture/gil-custom-variables.md`](architecture/gil-custom-variables.md) 为准；本节只维护工具用法。
+
+```bash
+npx tsx tools/inspect-gil-custom-variables.ts <地图.gil> <变量名> [出现序号]
+```
+
+该工具基于 `readGilPayloadFields()` 的通用 length-field 扫描，显示匹配变量名的直接容器和祖先
+protobuf 字段摘要；它**不写入**地图，也不推断或修改资产。它适用于为自定义变量抽取器建立真实
+GIL 字段证据：先用编辑器创建最小样本，再比较同一变量在类型/初值变动前后的输出。
+
+批量扫描可使用：
+
+```bash
+npx tsx tools/scan-gil-custom-variable-candidates.ts <地图.gil>
+```
+
+它仅将明确位于顶层 CustomPrefab 资源表的候选项关联到 prefab ID；嵌入 NodeGraph、实体实例或
+其它复制/引用位置的同形条目会一并展示但不会被冒充为独立资产定义。字段 `3` 与内层类型标记的
+对应关系、字段 `4`/`6` 的初始值语义、以及不在资源表中容器的玩家归属，都必须通过受控真实样本
+差分确认；不能仅凭单个现有地图推断为稳定协议。
+
+自定义变量资产的写回属于“变量注入”：直接修改目标 `.gil` 的资产字段，使地图加载时可读取更新后的
+初始值。它不同于 `.gia` 节点图注入：不生成 GIA、不替换 NodeGraph、不需要 `nodeGraphId` 或图挂载。
+写回前仍必须明确地图、玩家、资产 ID、变量变更和备份；写后重新解析只能证明文件结构，编辑器/游戏
+是否接受并加载该值仍须由用户核验。
 
 **`decode-gia.ts` 常用 jq 查询：**
 

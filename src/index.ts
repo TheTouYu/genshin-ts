@@ -22,6 +22,24 @@ export {
 
 export { createInjector, injectGilBytes, injectGilFile } from './injector/index.js'
 
+export {
+  applyCustomPrefabInitialCustomVariableDeclarations,
+  applyCustomPrefabInitialCustomVariableUpdates,
+  readCustomPrefabInitialCustomVariables,
+  readPlayerInitialCustomVariables,
+  syncPlayerCustomVariableDeclarations
+} from './cli/gil_custom_variables.js'
+
+export type {
+  ApplyCustomVariableUpdatesResult,
+  CustomPrefabInitialCustomVariables,
+  CustomVariableDeclaration,
+  CustomVariableDefinition,
+  CustomVariableType,
+  CustomVariableUpdate,
+  SyncPlayerCustomVariableDeclarationsResult
+} from './cli/gil_custom_variables.js'
+
 export type {
   InjectGilFileOptions,
   InjectGilFileResult,
@@ -35,4 +53,10 @@ export * from './definitions/prefabs.js'
 // 复合节点支持
 export { defineComposite } from './runtime/core.js'
 export type { CompositeHandle, CompositeDefinition } from './runtime/composite_registry.js'
-export type { CompositeDefIR, CompositeCallMeta, CompositePinEntry, ParamFlowDef, ControlFlowDef } from './runtime/IR.js'
+export type {
+  CompositeDefIR,
+  CompositeCallMeta,
+  CompositePinEntry,
+  ParamFlowDef,
+  ControlFlowDef
+} from './runtime/IR.js'
