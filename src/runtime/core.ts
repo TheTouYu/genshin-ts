@@ -1558,6 +1558,16 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
   setCurrentExecTailEndpoints(tailEndpoints: ExecTailEndpoint[]) {
     const current = this.currentFlow
     const ctx = this.getCurrentExecContext(current)
+    // A branch join carries its source OutFlow on every endpoint. It is already explicit
+    // wiring, not a sequential continuation that needs to be guessed as OutFlow[0].
+    if (
+      tailEndpoints.length > 0 &&
+      tailEndpoints.every((endpoint) => endpoint.sourceIndex !== undefined)
+    ) {
+      ctx.tailEndpoints = tailEndpoints
+      ctx.pendingSourceIndex = undefined
+      return
+    }
     if (tailEndpoints.length > 1 && ctx.multiOutflowSourceId !== undefined) {
       const sourceId = ctx.multiOutflowSourceId
       const outflow = current.execOutflows?.[sourceId]

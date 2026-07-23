@@ -624,7 +624,7 @@ Composite capture flow，并合并 Timer 事件 flow 的 impl 节点与边；嵌
 
 当前已接入：
 
-- `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION`：默认续接只使用 `OutFlow[0]` 时报告具体节点和显式 wiring 修复方式；
+- `GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION`：仅当普通顺序 continuation 确实需要猜测并只使用 `OutFlow[0]` 时报告具体节点和显式 wiring 修复方式。`doubleBranch` / Timer dispatch 等已由所有 join endpoint 携带 `sourceIndex` 的显式分支边不触发该 warning；
 - `GSTS-RAW-ARG-NOT-RUNTIME-VALUE`：`asRuntimeValue()` 收到普通 JS 值时说明 runtime value 与原生 `number`/`boolean` 等类型的区别，并禁止使用 `any` 或 `as unknown as value` 绕过；
 - Timer 事件节点的来源标记为 `generated`，普通分支节点保持 `user`，不会按节点类型全局屏蔽 warning。
 
