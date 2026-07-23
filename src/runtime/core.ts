@@ -102,8 +102,10 @@ import {
   value,
   vec3,
   type DictValueType,
+  type FloatValue,
   type RuntimeParameterValueTypeMap,
-  type RuntimeReturnValueTypeMap
+  type RuntimeReturnValueTypeMap,
+  type StrValue
 } from './value.js'
 import {
   parseVariableDefinitions,
@@ -492,6 +494,29 @@ export type GstsPublic = {
    */
   readonly f: ServerExecutionFlowFunctions
   /**
+   * Node-graph timer APIs that do not conflict with Node.js global timers.
+   *
+   * 不与 Node.js 全局计时器冲突的节点图计时器 API。
+   */
+  readonly timers: {
+    setTimeout: (
+      handler: (
+        evt: ServerEventPayloads['whenTimerIsTriggered'],
+        f: ServerExecutionFlowFunctions
+      ) => void,
+      delayMs?: FloatValue
+    ) => string
+    setInterval: (
+      handler: (
+        evt: ServerEventPayloads['whenTimerIsTriggered'],
+        f: ServerExecutionFlowFunctions
+      ) => void,
+      delayMs?: FloatValue
+    ) => string
+    clearTimeout: (timerName: StrValue) => void
+    clearInterval: (timerName: StrValue) => void
+  }
+  /**
    * Server node graph function namespace.
    *
    * Only available inside `g.server().on(...)` handlers.
@@ -583,11 +608,13 @@ declare global {
 const kCtxStack: unique symbol = Symbol('gsts_ctxStack')
 const kServerF: unique symbol = Symbol('gsts_serverF')
 const kClientF: unique symbol = Symbol('gsts_clientF')
+const kTimers: unique symbol = Symbol('gsts_timers')
 
 type GstsInternal = GstsPublic & {
   [kCtxStack]?: GstsCtxType[]
   [kServerF]?: ServerExecutionFlowFunctions
   [kClientF]?: Partial<Record<ClientGraphSubType, unknown>>
+  [kTimers]?: GstsPublic['timers']
 }
 
 const CLIENT_F_GLOBAL_NAMES = {
@@ -697,6 +724,40 @@ function ensureGsts(): GstsPublic {
       enumerable: true,
       get() {
         return getBoundServerF(g, ctx, 'gsts.f')
+      }
+    })
+  }
+
+  if (!g[kTimers]) {
+    type TimerWithCompilerMetadata = (
+      handler: (
+        evt: ServerEventPayloads['whenTimerIsTriggered'],
+        f: ServerExecutionFlowFunctions
+      ) => void,
+      delayMs?: FloatValue,
+      metadata?: unknown
+    ) => string
+    type PublicTimer = GstsPublic['timers']['setTimeout']
+    const timerSetTimeout: PublicTimer = function (handler, delayMs) {
+      return (globalThis.setTimeout as TimerWithCompilerMetadata)(handler, delayMs, arguments[2])
+    }
+    const timerSetInterval: PublicTimer = function (handler, delayMs) {
+      return (globalThis.setInterval as TimerWithCompilerMetadata)(handler, delayMs, arguments[2])
+    }
+    g[kTimers] = {
+      setTimeout: timerSetTimeout,
+      setInterval: timerSetInterval,
+      clearTimeout: (timerName) => globalThis.clearTimeout(timerName),
+      clearInterval: (timerName) => globalThis.clearInterval(timerName)
+    }
+  }
+
+  if (!Object.getOwnPropertyDescriptor(g, 'timers')) {
+    Object.defineProperty(g, 'timers', {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return g[kTimers]
       }
     })
   }

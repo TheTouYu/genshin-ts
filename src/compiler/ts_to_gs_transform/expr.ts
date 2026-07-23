@@ -556,13 +556,20 @@ function getTimerKind(expr: ts.CallExpression): TimerKind | null {
     if (callee.text === 'setTimeout') return 'timeout'
     if (callee.text === 'setInterval') return 'interval'
   }
-  if (
-    ts.isPropertyAccessExpression(callee) &&
-    ts.isIdentifier(callee.expression) &&
-    callee.expression.text === 'globalThis'
-  ) {
-    if (callee.name.text === 'setTimeout') return 'timeout'
-    if (callee.name.text === 'setInterval') return 'interval'
+  if (ts.isPropertyAccessExpression(callee)) {
+    if (ts.isIdentifier(callee.expression) && callee.expression.text === 'globalThis') {
+      if (callee.name.text === 'setTimeout') return 'timeout'
+      if (callee.name.text === 'setInterval') return 'interval'
+    }
+    if (
+      ts.isPropertyAccessExpression(callee.expression) &&
+      ts.isIdentifier(callee.expression.expression) &&
+      callee.expression.expression.text === 'gsts' &&
+      callee.expression.name.text === 'timers'
+    ) {
+      if (callee.name.text === 'setTimeout') return 'timeout'
+      if (callee.name.text === 'setInterval') return 'interval'
+    }
   }
   return null
 }
@@ -894,7 +901,19 @@ export function extractTimerHandleMeta(expr: ts.Expression): TimerCaptureDictMet
     if (callee.text !== 'setTimeout' && callee.text !== 'setInterval') return null
   } else if (ts.isPropertyAccessExpression(callee)) {
     const name = callee.name.text
-    if (name !== 'setTimeout' && name !== 'setInterval') return null
+    const isGlobalTimer =
+      ts.isIdentifier(callee.expression) && callee.expression.text === 'globalThis'
+    const isNamespacedTimer =
+      ts.isPropertyAccessExpression(callee.expression) &&
+      ts.isIdentifier(callee.expression.expression) &&
+      callee.expression.expression.text === 'gsts' &&
+      callee.expression.name.text === 'timers'
+    if (
+      (name !== 'setTimeout' && name !== 'setInterval') ||
+      (!isGlobalTimer && !isNamespacedTimer)
+    ) {
+      return null
+    }
   } else {
     return null
   }

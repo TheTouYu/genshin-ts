@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import type { clientEntity as ClientEntityValue } from '../definitions/client_entity_helpers.js'
 import type { PlayerEntity, StageEntity } from '../definitions/entity_helpers.js'
 import type { ServerEventPayloads } from '../definitions/events-payload.js'

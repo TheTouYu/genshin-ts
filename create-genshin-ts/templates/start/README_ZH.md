@@ -1,4 +1,4 @@
-# __PROJECT_NAME__
+# **PROJECT_NAME**
 
 这是一个基于 genshin-ts 的千星奇域项目模板。你可以用 TypeScript 写逻辑，编译为节点图并注入到地图。
 
@@ -52,6 +52,7 @@ export default config
 这个模板默认采用“代码优先”的开发方式，但千星奇域 / Genshin UGC 中仍有不少能力必须先由编辑器手动配置。
 
 语言入口：
+
 - 以中文协作时，优先阅读本文件与 `docs/EDITOR_BOUNDARIES_ZH.md`。
 - 若以英文协作，则切换到 `README.md` 与 `docs/EDITOR_BOUNDARIES.md`。
 
@@ -193,6 +194,7 @@ g.characterSkill({ id: CHARACTER_SKILL_ID }).on('start', (_evt, f) => {
 ## gsts.config 优化配置（默认启用）
 
 `gsts.config.ts` 的 `options.optimize` 默认全开，常见项：
+
 - `precompileExpression`：预编译纯字面量表达式，减少运行期节点计算。
 - `removeUnusedNodes`：清理未接入事件或未被使用的节点。
 - `timerPool`：控制 `setTimeout` / `setInterval` 的定时器名称池大小。
@@ -298,6 +300,7 @@ g.server({
 - 可用注释 `// @gsts:timerPool=4` 覆盖池大小（高阶用法）。
 - `setInterval` 间隔过小（<=100ms）会有性能警告。
 - 定时器回调支持闭包捕获（按值），但不支持捕获字典类型。
+- 若项目同时使用 `@types/node`，未标注的回调参数仍会推断为 GSTS 节点图类型；也可使用不与 Node 全局同名的 `gsts.timers.setTimeout/setInterval`。
 
 ### JS 原生对象的限制
 
