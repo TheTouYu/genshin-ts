@@ -4,7 +4,7 @@
 > 来源：当前代码实现 + 真实 GIL 观察 + 自动回读 + 用户编辑器/游戏反馈
 > 最近校验：2026-07-23
 > 适用范围：gsts 当前 `str` / `str_list` 初始变量读取与增量写回；真实编辑器/游戏结论仅覆盖
-> 玩家 `110170759` 的地图 `1073741847.gil`、该地图的玩家模板结构和 `变量专用` CustomPrefab
+> 玩家 `110170759` 的地图 `1073741847.gil`、该地图的玩家与角色模板结构和 `变量专用` CustomPrefab
 
 本文记录 GIL 中玩家模板和 CustomPrefab 的初始自定义变量资产，以及与 NodeGraph 注入不同的“变量注入”流程。
 
@@ -39,7 +39,10 @@ readCustomPrefabInitialCustomVariables({ gilPath, prefabId })
 readPlayerInitialCustomVariables({ gilPath, playerPrefabId })
 applyCustomPrefabInitialCustomVariableUpdates({ gilPath, prefabId, updates })
 applyCustomPrefabInitialCustomVariableDeclarations({ gilPath, prefabId, declarations })
+syncPrefabCustomVariableDeclarations({ gilPath, prefabId, declarations })
 syncPlayerCustomVariableDeclarations({ gilPath, playerPrefabId, declarations })
+readCharacterInitialCustomVariables({ gilPath, characterPrefabId })
+syncCharacterCustomVariableDeclarations({ gilPath, characterPrefabId, declarations })
 ```
 
 ### 2.1 API 语义
@@ -47,7 +50,8 @@ syncPlayerCustomVariableDeclarations({ gilPath, playerPrefabId, declarations })
 - `read*`：只读返回变量名、类型、类型码和原始初始值 wire bytes。
 - `Updates`：只更新同名且同类型的现有变量；缺失变量或类型不匹配即失败。
 - `Declarations`：对顶层 CustomPrefab 资源定义执行 upsert；同名同类型时更新，缺失时追加。
-- `syncPlayerCustomVariableDeclarations`：只将**缺失**声明追加到明确引用 `playerPrefabId` 的玩家实例变量容器；它不推测玩家资产，也不修改其它实例。
+- `syncPrefabCustomVariableDeclarations`：只将**缺失**声明追加到明确引用 `prefabId` 的模板实例变量容器；它不推测资产，也不修改其它实例。
+- `syncPlayerCustomVariableDeclarations` 与 `syncCharacterCustomVariableDeclarations`：分别是前者的玩家、角色语义封装；旧玩家 API 继续兼容。
 
 当前可安全写入并经过回读/幂等自动验证的类型：
 
@@ -116,6 +120,30 @@ basePrefabId: 1000000
 
 这个结论只适用于该地图。未来地图可能有零个、一个或多个玩家实例；实现必须扫描并明确报告命中数，不能硬编码路径数量或将 CustomPrefab 路径外推给玩家。
 
+### 4.3 角色模板
+
+同一地图中，用户创建的角色变量 `这是角色变量` 属于：
+
+```text
+characterPrefabId: 1090519041
+basePrefabId: 1000001
+```
+
+只读扫描在顶层资源定义 `4.1.8.11.1` 和明确关联的角色实例容器
+`5.1.7.11.1` 各观察到一次同形变量定义。两处都有相同的 `str` 类型码 `6` 与变量
+wire 形状。当前实现以通用 `syncPrefabCustomVariableDeclarations` 扫描实例引用，并由
+`syncCharacterCustomVariableDeclarations` 提供角色语义入口；它不依赖或假设角色实例数量。
+
+自动回归在该真实文件的临时副本上追加 `str` 与 `str_list` 后，顶层回读成功、实例同步命中
+1 个，并在第二次运行时保持幂等。随后向真实角色写入以下变量，用户已确认编辑器/游戏测试通过：
+
+```text
+gsts_character_injected_label: str = 角色变量注入-新增
+gsts_character_injected_tags: str_list = [角色, 变量注入, 新增]
+```
+
+该结论仅覆盖此地图、角色模板、两个类型和该写入样例；不代表其它角色、地图或变量类型已验证。
+
 ## 5. 已验证案例
 
 用户确认通过的玩家实例新增：
@@ -131,8 +159,8 @@ gsts_player_injected_tags: str_list = [玩家, 变量注入, 新增]
 
 1. 当前代码实现：`gil_custom_variables.ts`；
 2. 自动回读：写入后从同一 GIL 解析变量名、类型与 wire 值；
-3. 用户编辑器/游戏确认：仅覆盖本节资产、地图、类型和写入样例；
-4. 未验证项：其它地图、玩家结构、类型、运行时节点读写语义和编辑器再次保存后的保留行为。
+3. 用户编辑器/游戏确认：覆盖本节玩家、角色与 CustomPrefab 资产、地图、类型和写入样例；
+4. 未验证项：其它地图、玩家或角色结构、类型、运行时节点读写语义和编辑器再次保存后的保留行为。
 
 ## 6. 调试工具
 

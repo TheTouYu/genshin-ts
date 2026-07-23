@@ -25,8 +25,11 @@ export { createInjector, injectGilBytes, injectGilFile } from './injector/index.
 export {
   applyCustomPrefabInitialCustomVariableDeclarations,
   applyCustomPrefabInitialCustomVariableUpdates,
+  readCharacterInitialCustomVariables,
   readCustomPrefabInitialCustomVariables,
   readPlayerInitialCustomVariables,
+  syncCharacterCustomVariableDeclarations,
+  syncPrefabCustomVariableDeclarations,
   syncPlayerCustomVariableDeclarations
 } from './cli/gil_custom_variables.js'
 
@@ -37,6 +40,7 @@ export type {
   CustomVariableDefinition,
   CustomVariableType,
   CustomVariableUpdate,
+  SyncPrefabCustomVariableDeclarationsResult,
   SyncPlayerCustomVariableDeclarationsResult
 } from './cli/gil_custom_variables.js'
 

@@ -59,9 +59,12 @@ export type ApplyCustomVariableUpdatesResult = {
   unchanged: readonly string[]
 }
 
-export type SyncPlayerCustomVariableDeclarationsResult = ApplyCustomVariableUpdatesResult & {
+export type SyncPrefabCustomVariableDeclarationsResult = ApplyCustomVariableUpdatesResult & {
   synchronizedInstanceCount: number
 }
+
+/** @deprecated Use SyncPrefabCustomVariableDeclarationsResult for player or character templates. */
+export type SyncPlayerCustomVariableDeclarationsResult = SyncPrefabCustomVariableDeclarationsResult
 
 type WireField = {
   field: number
@@ -294,6 +297,17 @@ export function readPlayerInitialCustomVariables(params: {
   })
 }
 
+/** The caller must pass the editor-confirmed character template prefab ID. */
+export function readCharacterInitialCustomVariables(params: {
+  gilPath: string
+  characterPrefabId: number
+}) {
+  return readCustomPrefabInitialCustomVariables({
+    gilPath: params.gilPath,
+    prefabId: params.characterPrefabId
+  })
+}
+
 export function applyCustomPrefabInitialCustomVariableDeclarations(params: {
   gilPath: string
   prefabId: number
@@ -349,17 +363,17 @@ export function applyCustomPrefabInitialCustomVariableDeclarations(params: {
 }
 
 /**
- * Mirrors missing player-variable declarations into every player-template instance that explicitly
- * references playerPrefabId. This is separate from the top-level CustomPrefab resource definition.
+ * Mirrors missing declarations into every template instance that explicitly references prefabId.
+ * This is separate from the top-level CustomPrefab resource definition.
  */
-export function syncPlayerCustomVariableDeclarations(params: {
+export function syncPrefabCustomVariableDeclarations(params: {
   gilPath: string
-  playerPrefabId: number
+  prefabId: number
   declarations: readonly CustomVariableDeclaration[]
-}): SyncPlayerCustomVariableDeclarationsResult {
+}): SyncPrefabCustomVariableDeclarationsResult {
   const names = new Set(params.declarations.map((declaration) => declaration.name))
   if (names.size !== params.declarations.length) {
-    throw new Error('[error] duplicate player custom variable declaration name')
+    throw new Error('[error] duplicate template custom variable declaration name')
   }
   const source = new Uint8Array(fs.readFileSync(params.gilPath))
   let payload: Uint8Array = Uint8Array.from(source.subarray(20, -4))
@@ -375,7 +389,7 @@ export function syncPlayerCustomVariableDeclarations(params: {
         field.p0 === 5 &&
         field.p1 === 1 &&
         varintField(fieldsOf(payload.subarray(field.dataStart, field.dataEnd)), 1) ===
-          params.playerPrefabId
+          params.prefabId
     )
     const instance = instances.find((candidate) => {
       const namesInInstance = new Set(
@@ -444,6 +458,32 @@ export function syncPlayerCustomVariableDeclarations(params: {
     unchanged,
     synchronizedInstanceCount
   }
+}
+
+/** @deprecated Use syncPrefabCustomVariableDeclarations with the confirmed player prefab ID. */
+export function syncPlayerCustomVariableDeclarations(params: {
+  gilPath: string
+  playerPrefabId: number
+  declarations: readonly CustomVariableDeclaration[]
+}): SyncPlayerCustomVariableDeclarationsResult {
+  return syncPrefabCustomVariableDeclarations({
+    gilPath: params.gilPath,
+    prefabId: params.playerPrefabId,
+    declarations: params.declarations
+  })
+}
+
+/** Synchronizes missing declarations into every instance of the confirmed character template. */
+export function syncCharacterCustomVariableDeclarations(params: {
+  gilPath: string
+  characterPrefabId: number
+  declarations: readonly CustomVariableDeclaration[]
+}): SyncPrefabCustomVariableDeclarationsResult {
+  return syncPrefabCustomVariableDeclarations({
+    gilPath: params.gilPath,
+    prefabId: params.characterPrefabId,
+    declarations: params.declarations
+  })
 }
 
 export function applyCustomPrefabInitialCustomVariableUpdates(params: {
