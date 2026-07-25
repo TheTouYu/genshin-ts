@@ -249,11 +249,21 @@ function vector(values: readonly number[], sparse: boolean): Uint8Array {
   )
 }
 
-function setTransform(record: Uint8Array, transform: Transform): Uint8Array {
+function setTransform(
+  record: Uint8Array,
+  transform: Transform,
+  ownerFieldNumber?: number
+): Uint8Array {
   const fields = parse(record)
   if (!fields) throw new Error('[error] invalid transform record')
   const owner = fields.find((field) => {
-    if (field.wire !== 2 || (field.number !== 5 && field.number !== 6)) return false
+    if (
+      field.wire !== 2 ||
+      (ownerFieldNumber !== undefined
+        ? field.number !== ownerFieldNumber
+        : field.number !== 5 && field.number !== 6)
+    )
+      return false
     const child = parse(field.value as Uint8Array)
     return (
       !!child &&
@@ -465,27 +475,44 @@ export function applyStaticAssembly(params: {
   if (!sourceDefinitionIds.length || !sourceInstanceIds.length)
     throw new Error('[error] template has no decoration items')
 
+  const definitionName = replaceText(sourceDefinition, assembly.templateName, assembly.name)
+  if (definitionName.count !== 1)
+    throw new Error(`[error] definition name replacements=${definitionName.count}`)
   let definition = replaceVarint(
-    sourceDefinition,
+    definitionName.bytes,
     assembly.templatePrefabId,
     assembly.prefabId
   ).bytes
   definition = setPackedIds(definition, assembly.definitionAuxiliaryIds)
-  const definitionName = replaceText(definition, assembly.templateName, assembly.name)
-  if (definitionName.count !== 1)
-    throw new Error(`[error] definition name replacements=${definitionName.count}`)
-  top4.push({ number: 1, wire: 2, value: definitionName.bytes })
+  top4.push({ number: 1, wire: 2, value: definition })
 
-  let instance = replaceVarint(sourceInstance, assembly.templatePrefabId, assembly.prefabId).bytes
-  const instanceName = replaceText(instance, assembly.templateName, assembly.name)
+  const instanceName = replaceText(sourceInstance, assembly.templateName, assembly.name)
   if (instanceName.count !== 1)
     throw new Error(`[error] instance name replacements=${instanceName.count}`)
-  instance = setPackedIds(instanceName.bytes, assembly.instanceAuxiliaryIds)
-  instance = setTransform(instance, {
-    position: assembly.position,
-    rotation: assembly.rotation ?? [0, 0, 0],
-    scale: assembly.scale ?? [1, 1, 1]
-  })
+  let instance = replaceVarint(
+    instanceName.bytes,
+    assembly.templatePrefabId,
+    assembly.prefabId
+  ).bytes
+  if (!Buffer.from(instance).includes(Buffer.from(TEXT.encode(assembly.name)))) {
+    throw new Error('[error] instance name lost while replacing owner ID')
+  }
+  instance = setPackedIds(instance, assembly.instanceAuxiliaryIds)
+  if (!Buffer.from(instance).includes(Buffer.from(TEXT.encode(assembly.name)))) {
+    throw new Error('[error] instance name lost while replacing packed IDs')
+  }
+  instance = setTransform(
+    instance,
+    {
+      position: assembly.position,
+      rotation: assembly.rotation ?? [0, 0, 0],
+      scale: assembly.scale ?? [1, 1, 1]
+    },
+    6
+  )
+  if (!Buffer.from(instance).includes(Buffer.from(TEXT.encode(assembly.name)))) {
+    throw new Error('[error] instance name lost while setting Transform')
+  }
   top8.push({ number: 1, wire: 2, value: instance })
 
   const auxiliaryDefinitions = top27

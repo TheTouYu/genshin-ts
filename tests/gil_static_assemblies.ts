@@ -25,10 +25,11 @@ const gilPath = join(tempDir, 'assembly.gil')
 copyFileSync(sourceGilPath, gilPath)
 const source = readFileSync(gilPath)
 
+const assemblyName = `自动测试拼装_${Date.now()}`
 const result = applyStaticAssembly({
   gilPath,
   assembly: {
-    name: `自动测试拼装_${Date.now()}`,
+    name: assemblyName,
     prefabId,
     templatePrefabId,
     templateName: '静态拼装H1',
@@ -64,6 +65,13 @@ assert.deepEqual(result.instanceAuxiliaryIds, [
 ])
 assert.equal(readFileSync(gilPath).equals(source), true)
 assert.notEqual(Buffer.from(result.bytes).compare(source), 0)
+const nameBytes = Buffer.from(assemblyName)
+let nameOccurrences = 0
+for (let offset = Buffer.from(result.bytes).indexOf(nameBytes); offset >= 0; ) {
+  nameOccurrences++
+  offset = Buffer.from(result.bytes).indexOf(nameBytes, offset + nameBytes.length)
+}
+assert.equal(nameOccurrences, 2, 'new assembly name must exist in definition and instance')
 writeFileSync(gilPath, result.bytes)
 
 assert.throws(
