@@ -30,6 +30,7 @@ import { compileTsToGs } from '../compiler/ts_to_gs_pipeline.js'
 import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
+import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
 import { resolveGilFolder, resolveGilTarget } from './gil_paths.js'
@@ -1591,6 +1592,16 @@ async function main() {
     .action(async () => {
       const opts = program.opts<GlobalOptions>()
       await runMaps(opts)
+    })
+
+  program
+    .command('assets:static-assemblies')
+    .description('preview or write configured static GIL assemblies')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runAssetsStaticAssemblies(args)
     })
 
   program
