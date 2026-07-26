@@ -41,6 +41,48 @@
         "evidence scope"
       ],
       "migration_status": "managed"
+    },
+    {
+      "id": "static-gil-assets",
+      "name": "Static GIL Asset Assembly",
+      "path": "knowledge/static-gil-assets",
+      "boundary": "Reusable configuration, transform, template, explicit-ID, and closure-integrity constraints for static GIL asset creation; not current project status, private map paths, or copied implementation bodies.",
+      "keywords": [
+        "static GIL",
+        "static assembly",
+        "Prefab",
+        "Transform",
+        "auxiliary IDs",
+        "closure",
+        "静态 GIL",
+        "静态拼装",
+        "自定义元件",
+        "装饰物",
+        "辅助 ID",
+        "闭包"
+      ],
+      "migration_status": "managed"
+    },
+    {
+      "id": "game-map-writeback",
+      "name": "Safe Game Map Writeback",
+      "path": "knowledge/game-map-writeback",
+      "boundary": "Reusable target selection, immutable-source, candidate, confirmation, backup, writeback, reread, and rollback constraints for game-map files; not authorization for any concrete map operation.",
+      "keywords": [
+        "GIL writeback",
+        "mapId",
+        "candidate",
+        "backup",
+        "rollback",
+        "confirmation",
+        "真实地图",
+        "地图写回",
+        "候选",
+        "备份",
+        "回滚",
+        "明确确认"
+      ],
+      "migration_status": "managed"
     }
   ],
   "topics": [
@@ -115,6 +157,97 @@
         "editor import",
         "game validation",
         "verification scope"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "assembly-configuration",
+      "node_id": "static-gil-assets",
+      "title": "Static assembly configuration and transforms",
+      "path": "knowledge/static-gil-assets/assembly-configuration.md",
+      "summary": "Configuration format, component/local transforms, template/resource scope, and explicit ID inputs.",
+      "keywords": [
+        "assets.staticAssemblies",
+        ".mjs",
+        "position",
+        "rotation",
+        "scale",
+        "templatePrefabId",
+        "resourceId",
+        "静态拼装配置",
+        "组件位置",
+        "局部位置",
+        "模板 ID",
+        "资源 ID"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "closure-and-id-integrity",
+      "node_id": "static-gil-assets",
+      "title": "Static assembly closure and ID integrity",
+      "path": "knowledge/static-gil-assets/closure-and-id-integrity.md",
+      "summary": "Main definition/instance, auxiliary records, packed lists, owner/backlink, field 6 registry, and collision boundaries.",
+      "keywords": [
+        "prefabId",
+        "auxiliary IDs",
+        "field 501",
+        "owner",
+        "backlink",
+        "field 6",
+        "ID collision",
+        "主定义",
+        "主实例",
+        "辅助记录",
+        "引用闭包",
+        "ID 冲突"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "safe-gil-writeback",
+      "node_id": "game-map-writeback",
+      "title": "Safe GIL candidate and map writeback",
+      "path": "knowledge/game-map-writeback/safe-gil-writeback.md",
+      "summary": "Read-only target verification, fixed source, candidate validation, explicit confirmation, backup, writeback, reread, and game verification.",
+      "keywords": [
+        "target hash",
+        "fixed source",
+        "candidate",
+        "--output",
+        "--write",
+        ".gsts/backups",
+        "reread",
+        "game verification",
+        "目标哈希",
+        "固定输入",
+        "候选验证",
+        "明确确认",
+        "自动备份",
+        "写后回读",
+        "游戏核验"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "static-assembly-production-evidence",
+      "node_id": "validation-evidence",
+      "title": "Static assembly production evidence",
+      "path": "knowledge/validation-evidence/static-assembly-production-evidence.md",
+      "summary": "Exact automatic, writeback, reread, and user-confirmed game scope for static assembly production runs.",
+      "keywords": [
+        "static assembly",
+        "raw-wire",
+        "writeback",
+        "reread",
+        "game validation",
+        "verification scope",
+        "静态拼装生产验证",
+        "自动回归",
+        "独立回读",
+        "写回成功",
+        "游戏验证",
+        "证据范围"
       ],
       "permission": "internal"
     }

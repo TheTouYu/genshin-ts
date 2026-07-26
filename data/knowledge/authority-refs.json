@@ -63,6 +63,69 @@
       "claim_ids": [
         "clm_01K13DM5F4F4F4F4F4F4F4F4F4"
       ]
+    },
+    {
+      "id": "auth-static-assembly-core",
+      "path": "src/cli/gil_static_assemblies.ts",
+      "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "65cb5946b65f8d8c2e98f1d53aa50ceb04ed9396df80fbbd3dcd3727a870df45",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
+        "clm_01KYF24E81AEA72Z0W72RVEHX1"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-cli",
+      "path": "src/cli/assets_static_assemblies.ts",
+      "locator": "StaticAssemblyConfig, parseArgs(), loadConfig(), backupPath(), runAssetsStaticAssemblies()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "0ef07ed3a2114ac0dc66020b19d8307850f555ac926a1124cb32d132a15405be",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
+        "clm_01KYF24EAAQCSF0JG23TFYA52B"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-focused-regression",
+      "path": "tests/gil_static_assemblies.ts",
+      "locator": "whole focused regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "fd2bad54f8afe5f0c7cbf16c83913418df31244d7ce82aa9cd2a4ab5ed0784fb",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYF24E81AEA72Z0W72RVEHX1",
+        "clm_01KYF24ECFTCZ3RCR6QCRFKAE8"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-cli-safety",
+      "path": "src/cli/AGENTS.md",
+      "locator": "map/writeback confirmation and validation rules",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "3f637a328d132bbb5cafc3b48c2adc5dae5aa20fee0b86e2ab6d3fa9d942404d",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYF24EAAQCSF0JG23TFYA52B"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-injector-safety",
+      "path": "src/injector/AGENTS.md",
+      "locator": "GIL boundary, backup, confirmation, and game-verification separation",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "e42357f43caa0f9958dea708c54ab3b0c85eb1d36da8937aebdd062b2f9f8e0b",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYF24EAAQCSF0JG23TFYA52B"
+      ]
     }
   ]
 }

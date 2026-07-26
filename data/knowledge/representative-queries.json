@@ -1,18 +1,41 @@
 {
   "schema_version": 1,
-  "primary_task": "Diagnose and fix complex compiler bugs with reproducible IR/GIA and editor/game evidence.",
-  "queries": [
-    "Composite 里的 compositePins 指向不存在的物理 pin 应先查哪里？",
-    "bool 参数进入 data_type_conversion 后为什么需要物理 InParam？",
-    "所有 compositePins 都必须有对应物理 pin 吗？",
-    "哪些 Composite capture 场景允许物理 InParam 空洞？",
-    "DTC 边界物理 pin 的历史红灯基线是什么？",
-    "哪个 fixture 锁定 bool boundary DTC 的 raw protobuf oneof？",
-    "当前 DTC focused regression 能证明游戏行为吗？",
-    "common scalar boundary fixture 是否有真实 GIA 证明？",
-    "如何区分自动 GIA 回归和用户游戏验证范围？",
-    "主图正常而 Composite impl 缺参时优先检查哪个 seam？",
-    "pin-hole 与 nested capture 能否套用 DTC 物理 pin 规则？",
-    "Composite 边界修复后哪些未验证范围必须保留？"
+  "query_sets": [
+    {
+      "context_id": "compiler-diagnostics",
+      "primary_task": "Diagnose and fix complex compiler bugs with reproducible IR/GIA and editor/game evidence.",
+      "queries": [
+        "Composite 里的 compositePins 指向不存在的物理 pin 应先查哪里？",
+        "bool 参数进入 data_type_conversion 后为什么需要物理 InParam？",
+        "所有 compositePins 都必须有对应物理 pin 吗？",
+        "哪些 Composite capture 场景允许物理 InParam 空洞？",
+        "DTC 边界物理 pin 的历史红灯基线是什么？",
+        "哪个 fixture 锁定 bool boundary DTC 的 raw protobuf oneof？",
+        "当前 DTC focused regression 能证明游戏行为吗？",
+        "common scalar boundary fixture 是否有真实 GIA 证明？",
+        "如何区分自动 GIA 回归和用户游戏验证范围？",
+        "主图正常而 Composite impl 缺参时优先检查哪个 seam？",
+        "pin-hole 与 nested capture 能否套用 DTC 物理 pin 规则？",
+        "Composite 边界修复后哪些未验证范围必须保留？"
+      ]
+    },
+    {
+      "context_id": "static-gil-assembly-production",
+      "primary_task": "Recover and safely extend static GIL assembly production with explicit configuration, candidate validation, backup/writeback, reread, and game evidence boundaries.",
+      "queries": [
+        "我们现在的静态拼装目标进行到哪一步？",
+        "静态拼装工具的配置应该怎么写？",
+        "为什么当前生产配置使用 .mjs？",
+        "item position 和组件 position 有什么区别？",
+        "新主 ID 和辅助 ID 应如何处理？",
+        "怎么安全地把静态组件写回真实地图？",
+        "静态 GIL 写回是否需要 nodeGraphId？",
+        "候选验证通过后能否直接说游戏验证通过？",
+        "第一轮生产验证具体证明了什么？",
+        "哪些地图、模板和资源仍未验证？",
+        "如果真实目标哈希变化应该怎么办？",
+        "新会话下一步应该读取哪些 Authority Refs？"
+      ]
+    }
   ]
 }
