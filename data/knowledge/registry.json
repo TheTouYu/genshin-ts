@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "nodes": [
+    {
+      "id": "compiler-diagnostics",
+      "name": "Compiler Diagnostic Path",
+      "path": "knowledge/compiler-diagnostics",
+      "boundary": "Reusable localization, reproduction, and baseline selection for complex compiler failures; not project status or copied implementation facts.",
+      "keywords": [
+        "compiler diagnosis",
+        "pipeline localization",
+        "reproduction",
+        "baseline"
+      ],
+      "migration_status": "managed"
+    },
+    {
+      "id": "composite-boundary",
+      "name": "Composite Boundary Integrity",
+      "path": "knowledge/composite-boundary",
+      "boundary": "Stable Composite boundary routing constraints, affected families, and legal physical-pin exceptions; not source/test body copies.",
+      "keywords": [
+        "Composite",
+        "compositePins",
+        "physical pin",
+        "capture",
+        "boundary"
+      ],
+      "migration_status": "managed"
+    },
+    {
+      "id": "validation-evidence",
+      "name": "Validation and Evidence",
+      "path": "knowledge/validation-evidence",
+      "boundary": "Durable red/green and real-environment evidence with explicit verification scope; not logs, generic test instructions, or unverified working observations.",
+      "keywords": [
+        "regression",
+        "real GIA",
+        "editor",
+        "game verification",
+        "evidence scope"
+      ],
+      "migration_status": "managed"
+    }
+  ],
+  "topics": [
+    {
+      "id": "pipeline-localization",
+      "node_id": "compiler-diagnostics",
+      "title": "Pipeline localization and reproducible baseline",
+      "path": "knowledge/compiler-diagnostics/pipeline-localization.md",
+      "summary": "Navigation to failure-stage localization, focused fixtures, and reproducible baselines.",
+      "keywords": [
+        "Stage 1",
+        "Stage 2",
+        "Stage 3",
+        "fixture",
+        "pre-fix baseline"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "physical-pin-routing",
+      "node_id": "composite-boundary",
+      "title": "Physical pins and compositePins routing",
+      "path": "knowledge/composite-boundary/physical-pin-routing.md",
+      "summary": "Stable constraints at the Composite route-to-physical-pin seam.",
+      "keywords": [
+        "compositePins",
+        "InParam",
+        "OutParam",
+        "physical pin",
+        "boundary route"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "node-family-exceptions",
+      "node_id": "composite-boundary",
+      "title": "Affected node families and legal exceptions",
+      "path": "knowledge/composite-boundary/node-family-exceptions.md",
+      "summary": "Known affected families, intentional pin holes, and unverified generalization boundaries.",
+      "keywords": [
+        "capture",
+        "sparse",
+        "pin-hole",
+        "passthrough",
+        "DTC"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "red-green-regression",
+      "node_id": "validation-evidence",
+      "title": "Red/green regression chain",
+      "path": "knowledge/validation-evidence/red-green-regression.md",
+      "summary": "Historical fixture-to-parent-to-fix chains worth retaining for diagnosis.",
+      "keywords": [
+        "red",
+        "green",
+        "fixture",
+        "commit",
+        "regression"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "editor-game-evidence",
+      "node_id": "validation-evidence",
+      "title": "Real GIA, editor, and game evidence boundaries",
+      "path": "knowledge/validation-evidence/editor-game-evidence.md",
+      "summary": "Scope limits across generated structure, real GIA, editor import, and game behavior.",
+      "keywords": [
+        "real GIA",
+        "editor import",
+        "game validation",
+        "verification scope"
+      ],
+      "permission": "internal"
+    }
+  ],
+  "relationships": []
+}

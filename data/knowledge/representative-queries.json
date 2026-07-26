@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "primary_task": "Diagnose and fix complex compiler bugs with reproducible IR/GIA and editor/game evidence.",
+  "queries": [
+    "Composite 里的 compositePins 指向不存在的物理 pin 应先查哪里？",
+    "bool 参数进入 data_type_conversion 后为什么需要物理 InParam？",
+    "所有 compositePins 都必须有对应物理 pin 吗？",
+    "哪些 Composite capture 场景允许物理 InParam 空洞？",
+    "DTC 边界物理 pin 的历史红灯基线是什么？",
+    "哪个 fixture 锁定 bool boundary DTC 的 raw protobuf oneof？",
+    "当前 DTC focused regression 能证明游戏行为吗？",
+    "common scalar boundary fixture 是否有真实 GIA 证明？",
+    "如何区分自动 GIA 回归和用户游戏验证范围？",
+    "主图正常而 Composite impl 缺参时优先检查哪个 seam？",
+    "pin-hole 与 nested capture 能否套用 DTC 物理 pin 规则？",
+    "Composite 边界修复后哪些未验证范围必须保留？"
+  ]
+}

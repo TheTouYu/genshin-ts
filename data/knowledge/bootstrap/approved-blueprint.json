@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "candidate": {
+    "schema_version": 1,
+    "candidate_id": "alpha-focused",
+    "authority": false,
+    "production_task": "Diagnose and fix complex compiler bugs with reproducible IR/GIA and editor/game evidence.",
+    "nodes": [
+      {
+        "id": "compiler-diagnostics",
+        "title": "Compiler Diagnostic Path",
+        "topics": [
+          {
+            "id": "pipeline-localization",
+            "title": "Pipeline localization and reproducible baseline"
+          }
+        ]
+      },
+      {
+        "id": "composite-boundary",
+        "title": "Composite Boundary Integrity",
+        "topics": [
+          {
+            "id": "physical-pin-routing",
+            "title": "Physical pins and compositePins routing"
+          },
+          {
+            "id": "node-family-exceptions",
+            "title": "Affected node families and legal exceptions"
+          }
+        ]
+      },
+      {
+        "id": "validation-evidence",
+        "title": "Validation and Evidence",
+        "topics": [
+          {
+            "id": "red-green-regression",
+            "title": "Red/green regression chain"
+          },
+          {
+            "id": "editor-game-evidence",
+            "title": "Real GIA, editor, and game evidence boundaries"
+          }
+        ]
+      }
+    ],
+    "include": [
+      "one primary Alpha",
+      "3 nodes / 5 topics",
+      "5-10 stable claims only after deletion tests",
+      "authority refs to source/tests/config",
+      "few durable red-green and editor/game evidence records",
+      "10-15 representative compiler-diagnostic queries"
+    ],
+    "exclude": [
+      "AGENTS or documentation-map body copies",
+      "source-code or test-body copies",
+      "working-tree facts as confirmed claims",
+      "second Alpha",
+      "production compiler edits",
+      "bulk historical migration"
+    ],
+    "memory_roles": [
+      {
+        "role": "operating_entry",
+        "path": "AGENTS.md",
+        "status": "mapped"
+      },
+      {
+        "role": "current_recovery",
+        "path": "docs/composite-ir/architecture-redesign/STATUS.md",
+        "status": "scope_mismatch",
+        "reason": "declares refactor/composite-stage3-architecture but workspace is feat/composite; preserve as historical pointer"
+      },
+      {
+        "role": "decision_entry",
+        "path": "docs/composite-ir/architecture-redesign/decision-log.md",
+        "status": "mapped"
+      },
+      {
+        "role": "governance",
+        "path": "docs/documentation-governance.md",
+        "status": "mapped"
+      },
+      {
+        "role": "documentation_map",
+        "path": "docs/documentation-map.md",
+        "status": "mapped"
+      },
+      {
+        "role": "testing_contract",
+        "path": "docs/architecture/composite/testing.md",
+        "status": "mapped"
+      }
+    ],
+    "files": []
+  },
+  "provenance": {
+    "profile_hash": "3b109d2c80b62028259f82e58165c23fd4d210378b306617f6cba9b5d05266b2",
+    "pack": {
+      "id": "software-existing",
+      "version": "1.0.0"
+    },
+    "model": {
+      "provider": "aijws",
+      "name": "gpt-5.6-luna",
+      "transfer": "local_summary"
+    },
+    "read_paths": [
+      "AGENTS.md",
+      "README_ZH.md",
+      "docs/README.md",
+      "docs/documentation-governance.md",
+      "docs/documentation-map.md",
+      "docs/architecture/composite/testing.md",
+      "docs/composite-ir/index.md",
+      "docs/gia-tools-reference.md",
+      "docs/composite-ir/architecture-redesign/README.md",
+      "docs/composite-ir/architecture-redesign/STATUS.md",
+      "docs/composite-ir/handover/dtc-boundary-physical-pins.md",
+      "tests/AGENTS.md",
+      "src/compiler/AGENTS.md",
+      "src/compiler/ir_to_gia_transform/AGENTS.md",
+      "src/compiler/ir_to_gia_transform/stage3_backend.ts",
+      "src/compiler/ir_to_gia_transform/build_composite_pins.ts",
+      "tests/composite/test-stage3-p4w5-composite-pins-overlay-contract.ts",
+      "tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts",
+      "tests/composite/test-composite-common-scalar-boundary-pins.ts",
+      "tests/composite/test-scalar-comparison-types-game.ts"
+    ],
+    "excluded_paths": [
+      ".env",
+      ".git/**",
+      "node_modules/**",
+      "dist/**",
+      "create-genshin-ts/templates/start/tools/**",
+      "src/thirdparty/**",
+      "src/definitions/**",
+      "user_edit/**",
+      "Beyond_Local_Export/**",
+      "docs/composite-ir/architecture-redesign/work-packages/**",
+      "docs/composite-ir/architecture-redesign/checkpoints/**",
+      "unrelated working-tree file bodies"
+    ],
+    "working_tree": {
+      "discovery_snapshot": {
+        "branch": "feat/composite",
+        "head": "4db6c96e0b7905134eeb23088c3351b431841a06",
+        "status": "dirty-protected",
+        "changed_paths_recorded": 15,
+        "untracked_groups_recorded": 5,
+        "bodies_read": [
+          "package.json scripts only"
+        ],
+        "unrelated_bodies_excluded": true
+      },
+      "approval_observation": {
+        "branch": "feat/composite",
+        "head": "4db6c96e0b7905134eeb23088c3351b431841a06",
+        "status": "dirty-protected",
+        "changed_paths_recorded": 20,
+        "unrelated_bodies_excluded": true
+      }
+    },
+    "candidate_ids": [
+      "alpha-focused",
+      "constraint-first",
+      "fixture-centered"
+    ],
+    "user_decisions": [
+      "批准 A",
+      "Approved candidate alpha-focused without semantic changes"
+    ]
+  },
+  "approved_by": "project-owner",
+  "approval_id": "abp_0f15b68c028288a681fedf69ec",
+  "approved_hash": "0f15b68c028288a681fedf69ece26fbe010108e36d425fb3133208e2070ae863"
+}

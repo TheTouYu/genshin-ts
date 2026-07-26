@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "refs": [
+    {
+      "id": "auth-dtc-focused-fixture",
+      "path": "tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts",
+      "locator": "whole focused fixture",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "66104815e09d70e6d6843b99d6d825be9d3f5d2d5da3dde08eb7970ae146102a",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F0F0F0F0F0F0F0F0F0",
+        "clm_01K13DM5F3F3F3F3F3F3F3F3F3"
+      ]
+    },
+    {
+      "id": "auth-composite-pins-overlay",
+      "path": "src/compiler/ir_to_gia_transform/build_composite_pins.ts",
+      "locator": "COMPOSITE_PINS_OVERLAY_CONTRACT and assertCompositePinsIntegrity",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "f010f13c555d8232ca9d6b9c097e74c273a4f00e312cd4524a0ca917c4397de0",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F1F1F1F1F1F1F1F1F1",
+        "clm_01K13DM5F2F2F2F2F2F2F2F2F2"
+      ]
+    },
+    {
+      "id": "auth-stage3-composite-rules",
+      "path": "src/compiler/ir_to_gia_transform/AGENTS.md",
+      "locator": "DTC boundary and pin-hole rules",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ff472d58346744e1033ab1c40858b9e4995ee5376e67f19dcc7e7c091f476c8b",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F2F2F2F2F2F2F2F2F2"
+      ]
+    },
+    {
+      "id": "auth-composite-testing-contract",
+      "path": "docs/architecture/composite/testing.md",
+      "locator": "section 0 and DTC/scalar evidence sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "6a8a3d6d8318e7a262b6b0c618a4b16d39ff7c6345c5810921c3763bc8040887",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
+        "clm_01K13DM5F4F4F4F4F4F4F4F4F4"
+      ]
+    },
+    {
+      "id": "auth-common-scalar-fixture",
+      "path": "tests/composite/test-composite-common-scalar-boundary-pins.ts",
+      "locator": "whole focused fixture",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "8f6922b77d38fc0c3b1855a1e80441b66f5c4a2e612a41b219cb41a5ed3be2e0",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F4F4F4F4F4F4F4F4F4"
+      ]
+    }
+  ]
+}

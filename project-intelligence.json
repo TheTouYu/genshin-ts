@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "instance": {
+    "id": "genshin-ts",
+    "name": "Genshin-TS"
+  },
+  "pkc": {
+    "version": "0.1.0",
+    "projection_path": ".local/knowledge"
+  },
+  "adapter": {
+    "skill": ".agents/skills/genshin-ts-project-adapter/SKILL.md",
+    "task_start": {
+      "memory_then_knowledge_signals": [
+        "complex_diagnosis",
+        "architecture_or_domain_change",
+        "historical_constraint",
+        "cross_file_judgment",
+        "real_environment_evidence"
+      ],
+      "knowledge_levels": [
+        1,
+        2
+      ],
+      "mechanical_default": "no_query"
+    },
+    "task_end": {
+      "value_signals": [
+        "stable_diagnostic_constraint",
+        "red_green_regression",
+        "external_environment_evidence",
+        "architecture_decision",
+        "knowledge_invalidated"
+      ],
+      "max_bundles": 3,
+      "default_write": false
+    }
+  },
+  "authority": {
+    "registry": "data/knowledge/registry.json",
+    "actors": "data/knowledge/actors.json",
+    "store": "data/knowledge",
+    "knowledge": "knowledge"
+  },
+  "identities": {
+    "principal": {
+      "id": "project-owner"
+    },
+    "executor": {
+      "id": "pi"
+    },
+    "workspace": {
+      "id": "genshin-ts-feat-composite",
+      "path": "."
+    },
+    "writer": {
+      "id": "project-owner"
+    }
+  },
+  "compatibility": {
+    "v1_actor_map": {
+      "project-owner": "project-owner"
+    },
+    "confirmed_mapping": {
+      "review_status": "human_confirmed",
+      "verification_scope": "explicit_required"
+    }
+  },
+  "memory": {
+    "roles": [
+      {
+        "role": "operating_entry",
+        "path": "AGENTS.md",
+        "mutation_policy": "reference"
+      },
+      {
+        "role": "current_recovery",
+        "path": "docs/project-intelligence/CURRENT.md",
+        "mutation_policy": "replace"
+      },
+      {
+        "role": "decision_entry",
+        "path": "docs/composite-ir/architecture-redesign/decision-log.md",
+        "mutation_policy": "curated_history"
+      }
+    ],
+    "contexts": [
+      {
+        "id": "compiler-diagnostics",
+        "default": true,
+        "lifecycle": "active",
+        "goal": "Diagnose and fix complex compiler bugs with reproducible IR/GIA and editor/game evidence.",
+        "recovery_role": "current_recovery",
+        "validation_gate": "npm run build && focused compiler regression && git diff --check",
+        "priority": 1,
+        "applies_to": {
+          "paths": [
+            "src/compiler/**",
+            "tests/**",
+            "docs/architecture/**",
+            "docs/composite-ir/**"
+          ],
+          "workspaces": [
+            "genshin-ts-feat-composite"
+          ],
+          "branches": [
+            "feat/composite"
+          ]
+        }
+      }
+    ],
+    "startup_budget": {
+      "max_files": 3,
+      "max_characters": 14000
+    },
+    "applies_to": {
+      "workspace": ".",
+      "branches": [
+        "feat/composite"
+      ]
+    }
+  }
+}

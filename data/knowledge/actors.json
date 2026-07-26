@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "actors": [
+    {
+      "id": "project-owner",
+      "name": "Genshin-TS project owner",
+      "status": "active",
+      "roles": [
+        "owner",
+        "business_reviewer"
+      ]
+    }
+  ]
+}

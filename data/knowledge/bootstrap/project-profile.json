@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "project": {
+    "id": "genshin-ts",
+    "name": "Genshin-TS",
+    "goal": "Compile TypeScript DSL into reliable GIA node graphs for Miliastra Wonderland projects.",
+    "users": [
+      "TypeScript DSL project authors",
+      "Genshin-TS maintainers"
+    ]
+  },
+  "primary_production_task": "Diagnose and fix complex compiler bugs with reproducible IR/GIA and editor/game evidence.",
+  "machine_truth_sources": [
+    {
+      "path": "src/runtime/IR.d.ts",
+      "state": "committed_baseline",
+      "role": "typed cross-stage contract"
+    },
+    {
+      "path": "src/compiler/ir_to_gia_transform",
+      "state": "committed_baseline",
+      "role": "Stage 3 current implementation"
+    },
+    {
+      "path": "tests/composite",
+      "state": "committed_baseline",
+      "role": "focused Composite regressions and fixtures"
+    },
+    {
+      "path": "package.json",
+      "state": "working_tree_observation",
+      "role": "build and validation commands"
+    },
+    {
+      "path": "Beyond_Local_Export",
+      "state": "external_environment",
+      "role": "editor/game candidate and validation artifacts"
+    }
+  ],
+  "memory_role_candidates": [
+    {
+      "role": "operating_entry",
+      "path": "AGENTS.md",
+      "status": "mapped"
+    },
+    {
+      "role": "current_recovery",
+      "path": "docs/composite-ir/architecture-redesign/STATUS.md",
+      "status": "scope_mismatch",
+      "reason": "declares refactor/composite-stage3-architecture but workspace is feat/composite; preserve as historical pointer"
+    },
+    {
+      "role": "decision_entry",
+      "path": "docs/composite-ir/architecture-redesign/decision-log.md",
+      "status": "mapped"
+    },
+    {
+      "role": "governance",
+      "path": "docs/documentation-governance.md",
+      "status": "mapped"
+    },
+    {
+      "role": "documentation_map",
+      "path": "docs/documentation-map.md",
+      "status": "mapped"
+    },
+    {
+      "role": "testing_contract",
+      "path": "docs/architecture/composite/testing.md",
+      "status": "mapped"
+    }
+  ],
+  "input_types": [
+    "compiler bug report",
+    "minimal TypeScript fixture",
+    "IR JSON",
+    "real GIA reference",
+    "editor/game validation feedback"
+  ],
+  "evidence_types": [
+    "committed source and config authority",
+    "focused red-to-green regression",
+    "real GIA structural/wire observation",
+    "reproducible commit baseline",
+    "editor import observation",
+    "user-confirmed game behavior"
+  ],
+  "state_sources": {
+    "committed": [
+      "Git HEAD 4db6c96e0b7905134eeb23088c3351b431841a06",
+      "tracked source/tests/docs"
+    ],
+    "working": [
+      "git status --short --branch",
+      "working-tree observations remain pending/proposal"
+    ],
+    "released": [
+      "Changelog.md",
+      "Changelog_ZH.md",
+      "release tags when explicitly needed"
+    ],
+    "external": [
+      "real GIA files",
+      "Beyond_Local_Export candidates",
+      "user editor/game confirmation"
+    ]
+  },
+  "policy": {
+    "permissions": "Repository content may be read in a bounded local workflow; game-file copy, injection, overwrite, deletion, mapId/nodeGraphId operations require explicit user confirmation.",
+    "remote_models": "Only bounded, explicitly listed non-secret project content may be transferred; .env, credentials, user_edit bulk content, unrelated working-tree bodies, generated/vendor trees and game data are local-only by default.",
+    "local_only_paths": [
+      ".env",
+      "user_edit",
+      "Beyond_Local_Export",
+      ".git",
+      "node_modules",
+      "src/thirdparty"
+    ]
+  },
+  "completion_gates": [
+    "Lock a concrete historical fixture and pre-fix red baseline",
+    "Identify affected node family and legal exceptions",
+    "Focused regression passes on current implementation",
+    "Run npm run build and relevant adjacent Composite regressions",
+    "Separate automatic, real-GIA, editor, and game evidence",
+    "Record unverified scope and preserve existing working-tree changes"
+  ],
+  "exclusions": [
+    "full-repository scan",
+    "bulk history/document migration",
+    "automatic Context/Node creation from directories",
+    "unrelated working-tree body reads",
+    "production compiler code modification during PPI Alpha",
+    "game injection or overwrite",
+    "automatic commit or push"
+  ]
+}
