@@ -41,6 +41,7 @@ def main() -> int:
             and error.get("failure_type") == case.get("expect_failure_type", error.get("failure_type"))
             and payload.get("used_characters", 0) <= payload.get("budget", 6000)
             and payload.get("operation_authorized") is False
+            and (not case.get("expect_recheck_required") or payload.get("staleness", {}).get("recheck_required") is True)
         )
         records.append({"id": case["id"], "class": case["class"], "passed": passed, "latency_ms": round(latency, 3), "topics": topic_ids, "error": error.get("code"), "failure_type": error.get("failure_type")})
     successes = [record for record in records if record["passed"]]

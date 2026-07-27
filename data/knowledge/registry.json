@@ -16,15 +16,22 @@
     },
     {
       "id": "composite-boundary",
-      "name": "Composite Boundary Integrity",
+      "name": "Composite Core and Boundary Integrity",
       "path": "knowledge/composite-boundary",
-      "boundary": "Stable Composite boundary routing constraints, affected families, and legal physical-pin exceptions; not source/test body copies.",
+      "boundary": "Reusable Composite lifecycle, capture/IR contracts, Stage 3 root/impl encoding responsibilities, boundary-routing constraints, affected families, and validation workflow; not copied source bodies, project status, or unscoped real-GIA conclusions.",
       "keywords": [
         "Composite",
+        "defineComposite",
+        "callComposite",
+        "CompositeCapture",
+        "CompositeDefIR",
         "compositePins",
-        "physical pin",
-        "capture",
-        "boundary"
+        "root graph",
+        "impl graph",
+        "Stage 3",
+        "复合节点",
+        "捕获",
+        "边界引脚"
       ],
       "migration_status": "managed"
     },
@@ -250,7 +257,120 @@
         "证据范围"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "composite-lifecycle",
+      "node_id": "composite-boundary",
+      "title": "Composite definition, call, and lifecycle",
+      "path": "knowledge/composite-boundary/composite-lifecycle.md",
+      "summary": "Definition handles, call markers, pure-data versus exec behavior, and the TS-to-IR lifecycle.",
+      "keywords": [
+        "defineComposite",
+        "callComposite",
+        "CompositeHandle",
+        "__composite_call__",
+        "pure data",
+        "exec composite",
+        "复合定义",
+        "复合调用"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "capture-ir-contract",
+      "node_id": "composite-boundary",
+      "title": "Composite capture and IR boundary contract",
+      "path": "knowledge/composite-boundary/capture-ir-contract.md",
+      "summary": "Isolated capture, declared inputs versus call-site binding, CompositeDefIR, flow marks, and compositePins routing.",
+      "keywords": [
+        "CompositeCapture",
+        "CompositeDefIR",
+        "inflowMarks",
+        "outflowMarks",
+        "compositePins",
+        "sparse input",
+        "捕获",
+        "复合 IR"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "stage3-root-impl-encoding",
+      "node_id": "composite-boundary",
+      "title": "Composite Stage 3 root and impl encoding",
+      "path": "knowledge/composite-boundary/stage3-root-impl-encoding.md",
+      "summary": "CompositeDef and impl GraphUnit pairing, synthetic call lowering, node/pin materialization, and root/impl parity boundaries.",
+      "keywords": [
+        "Stage 3",
+        "buildCompositeAccessories",
+        "CompositeDef",
+        "GraphUnit",
+        "impl GraphNode",
+        "root impl parity",
+        "relatedIds",
+        "复合编码"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "composite-validation-workflow",
+      "node_id": "composite-boundary",
+      "title": "Composite bug analysis and validation workflow",
+      "path": "knowledge/composite-boundary/composite-validation-workflow.md",
+      "summary": "Isomorphic reproduction, node-family survey, root comparison, red/green regression, backend coverage, and evidence separation.",
+      "keywords": [
+        "isomorphic reproduction",
+        "node family survey",
+        "root comparison",
+        "red green regression",
+        "legacy shared backend",
+        "real GIA",
+        "同构复现",
+        "证据分层"
+      ],
+      "permission": "internal"
     }
   ],
-  "relationships": []
+  "relationships": [],
+  "claim_metadata": {
+    "clm_01KYF24E5RX2APB1GZ2KZGYBFX": {
+      "fact_classes": [
+        "runtime_behavior",
+        "transform_defaults",
+        "external_game_evidence"
+      ]
+    },
+    "clm_01KYGSK9PHX67KFENCBF7MAY2E": {
+      "fact_classes": [
+        "cli_behavior",
+        "public_type_surface"
+      ]
+    },
+    "clm_01KYGRKG2DEAER66EX9B1607M0": {
+      "fact_classes": []
+    },
+    "clm_01KYH07BJHQ6B1RNR5DY3QEJC0": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_01KYH07BP1SH10F593HCMZDD12": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_01KYH07BSYPM9083KHHEHEP22H": {
+      "fact_classes": [
+        "documented_contract",
+        "runtime_behavior"
+      ]
+    },
+    "clm_01KYH07BXVXF15V0QZKK1E37KB": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    }
+  }
 }

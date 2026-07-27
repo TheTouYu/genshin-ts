@@ -15,7 +15,9 @@
       "context": "static-gil-assembly-production",
       "query": "只看图，不写回，核对三个模型的位置关系和缩放",
       "expect_strategy": "explicit_route",
-      "expect_topics": ["assembly-configuration"]
+      "expect_topics": [
+        "assembly-configuration"
+      ]
     },
     {
       "id": "dynamic-transform",
@@ -39,8 +41,12 @@
       "context": "static-gil-assembly-production",
       "query": "只核对截图，不写回地图",
       "expect_strategy": "explicit_route",
-      "expect_topics": ["assembly-configuration"],
-      "forbid_topics": ["safe-gil-writeback"]
+      "expect_topics": [
+        "assembly-configuration"
+      ],
+      "forbid_topics": [
+        "safe-gil-writeback"
+      ]
     },
     {
       "id": "ambiguous-mixed",
@@ -65,6 +71,109 @@
       "query": "Composite physical pin pipeline diagnosis",
       "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
       "expect_failure_type": "out_of_context"
+    },
+    {
+      "id": "screenshot-evidence-limit",
+      "class": "screenshot_evidence_boundary",
+      "context": "static-gil-assembly-production",
+      "query": "这个透视截图能证明坐标精确为 2:1 吗？",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "assembly-configuration"
+      ],
+      "forbid_topics": [
+        "safe-gil-writeback"
+      ]
+    },
+    {
+      "id": "current-vs-history",
+      "class": "current_state_requires_observation",
+      "context": "static-gil-assembly-production",
+      "query": "当前地图还是上次验证后的状态吗？",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "static-assembly-production-evidence"
+      ],
+      "expect_recheck_required": true
+    },
+    {
+      "id": "public-api-change",
+      "class": "api_change",
+      "context": "static-gil-assembly-production",
+      "query": "把 staticAssemblies 加入公开 GstsConfig 类型",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "assembly-configuration"
+      ],
+      "forbid_topics": [
+        "safe-gil-writeback"
+      ]
+    },
+    {
+      "id": "negative-map-variant",
+      "class": "dangerous_negated_topic",
+      "context": "static-gil-assembly-production",
+      "query": "仅分析图片，别动地图",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "assembly-configuration"
+      ],
+      "forbid_topics": [
+        "safe-gil-writeback"
+      ]
+    },
+    {
+      "id": "visual-first-then-write",
+      "class": "dangerous_negated_topic",
+      "context": "static-gil-assembly-production",
+      "query": "先只看截图，确认后再考虑写回",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "assembly-configuration"
+      ],
+      "forbid_topics": [
+        "safe-gil-writeback"
+      ]
+    },
+    {
+      "id": "explicit-composite-lifecycle",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "defineComposite 和 callComposite 在复合节点生命周期里分别做什么，纯数据复合如何处理",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-lifecycle"
+      ]
+    },
+    {
+      "id": "explicit-composite-capture-ir",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "CompositeCapture、CompositeDefIR、稀疏调用参数和 compositePins 的职责边界是什么",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "capture-ir-contract"
+      ]
+    },
+    {
+      "id": "explicit-composite-stage3",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "复合节点 Stage 3 如何编码 root CompositeDef 与 impl GraphNode，默认后端是什么",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage3-root-impl-encoding"
+      ]
+    },
+    {
+      "id": "explicit-composite-validation",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "修复复合节点 GIA bug 时如何同构复现、节点族调查、主图对照和红绿回归",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-validation-workflow"
+      ]
     }
   ]
 }

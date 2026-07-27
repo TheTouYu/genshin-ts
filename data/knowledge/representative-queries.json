@@ -16,7 +16,11 @@
         "如何区分自动 GIA 回归和用户游戏验证范围？",
         "主图正常而 Composite impl 缺参时优先检查哪个 seam？",
         "pin-hole 与 nested capture 能否套用 DTC 物理 pin 规则？",
-        "Composite 边界修复后哪些未验证范围必须保留？"
+        "Composite 边界修复后哪些未验证范围必须保留？",
+        "defineComposite 和 callComposite 在复合节点生命周期里分别做什么，纯数据复合如何处理",
+        "CompositeCapture、CompositeDefIR、稀疏调用参数和 compositePins 的职责边界是什么",
+        "复合节点 Stage 3 如何编码 root CompositeDef 与 impl GraphNode，默认后端是什么",
+        "修复复合节点 GIA bug 时如何同构复现、节点族调查、主图对照和红绿回归"
       ]
     },
     {

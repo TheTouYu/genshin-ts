@@ -49,7 +49,11 @@
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
-        "clm_01K13DM5F4F4F4F4F4F4F4F4F4"
+        "clm_01K13DM5F4F4F4F4F4F4F4F4F4",
+        "clm_01KYH07BXVXF15V0QZKK1E37KB"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -75,6 +79,10 @@
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
         "clm_01KYF24E81AEA72Z0W72RVEHX1"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "transform_defaults"
       ]
     },
     {
@@ -87,7 +95,11 @@
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
-        "clm_01KYF24EAAQCSF0JG23TFYA52B"
+        "clm_01KYF24EAAQCSF0JG23TFYA52B",
+        "clm_01KYGSK9PHX67KFENCBF7MAY2E"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -101,6 +113,9 @@
       "claim_ids": [
         "clm_01KYF24E81AEA72Z0W72RVEHX1",
         "clm_01KYF24ECFTCZ3RCR6QCRFKAE8"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -113,6 +128,10 @@
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24EAAQCSF0JG23TFYA52B"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "writeback_behavior"
       ]
     },
     {
@@ -125,6 +144,147 @@
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24EAAQCSF0JG23TFYA52B"
+      ],
+      "supports_fact_classes": [
+        "documented_contract",
+        "writeback_behavior"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-public-config",
+      "path": "src/compiler/gsts_config.ts",
+      "locator": "GstsAssetsConfig and GstsConfig.assets",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "bbb46cc634852f713758641270e9e87ca427de6fdd628ef35c95856d0c9d153b",
+      "change_policy": "review_on_change",
+      "supports_fact_classes": [
+        "public_type_surface"
+      ],
+      "claim_ids": [
+        "clm_01KYGSK9PHX67KFENCBF7MAY2E"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-public-export",
+      "path": "src/index.ts",
+      "locator": "GstsConfig and GstsAssetsConfig exports",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "502ce61bc883fbcf974c88ea5a5d0bff91e9abf5d044ee60ad9b832361d782c6",
+      "change_policy": "review_on_change",
+      "supports_fact_classes": [
+        "public_type_surface"
+      ],
+      "claim_ids": [
+        "clm_01KYGSK9PHX67KFENCBF7MAY2E"
+      ]
+    },
+    {
+      "id": "auth-composite-runtime-lifecycle",
+      "path": "src/runtime/core.ts",
+      "locator": "defineComposite(), ensureCompositeCaptured(), and Composite call/capture flow",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
+        "clm_01KYH07BP1SH10F593HCMZDD12"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-registry-contract",
+      "path": "src/runtime/composite_registry.ts",
+      "locator": "CompositeCapture, CompositeDefinition, and toCompositeDefIR()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "b319a290a98574a02fe989e6199fe561fd29705b6262427e57b505521677eb45",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
+        "clm_01KYH07BP1SH10F593HCMZDD12"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-stage3-materializer",
+      "path": "src/compiler/ir_to_gia_transform/composite.ts",
+      "locator": "buildCompositeAccessories() and impl Graph materialization",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ec8ac2a85bed8da0355f228e78ba8e182223431dad9cae41ae397777549e85bb",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BSYPM9083KHHEHEP22H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-stage3-backend",
+      "path": "src/compiler/ir_to_gia_transform/stage3_backend.ts",
+      "locator": "STAGE3_BACKEND_CONTRACT and resolveStage3ImplBackend()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "03426984be7968db541a67b2b0b9bca6dd971d7445c2f19788f8ffe3f114503d",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH07BSYPM9083KHHEHEP22H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-lifecycle-docs",
+      "path": "docs/architecture/composite/dsl-api.md",
+      "locator": "definitions, calls, typing, pure-data/exec, and nested Composite sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "1c5f0ab165bf1c9a04f293e1539c8c572529332115a37bda2e09c04648d15da3",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-composite-capture-ir-docs",
+      "path": "docs/architecture/composite/capture-mechanism.md",
+      "locator": "CompositeCapture, definition capture, call-site binding, and toCompositeDefIR sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "62fbb8413a7e6144dd07b703fdf7f7fabcec4aafd7f178c1f5cab5f05ac852b4",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BP1SH10F593HCMZDD12"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-composite-gia-encoding-docs",
+      "path": "docs/architecture/composite/gia-encoding.md",
+      "locator": "overall GraphUnit structure, impl NodeGraph, physical pin, and connection sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "f224b1dd6125cd86dacdabe0a2785fdc622f5781b0ae33761587cdf9029121a2",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BSYPM9083KHHEHEP22H"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     }
   ]

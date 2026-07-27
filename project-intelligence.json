@@ -171,50 +171,338 @@
     },
     "intent_routes": [
       {
+        "id": "composite-lifecycle",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "defineComposite",
+          "callComposite",
+          "CompositeHandle",
+          "纯数据复合",
+          "执行型复合",
+          "复合定义和调用",
+          "复合生命周期"
+        ],
+        "topic_ids": [
+          "composite-lifecycle"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "composite-capture-ir",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 35,
+        "keywords": [
+          "CompositeCapture",
+          "CompositeDefIR",
+          "稀疏调用参数",
+          "稀疏绑定",
+          "definition capture",
+          "call-site binding",
+          "inflowMarks",
+          "outflowMarks",
+          "捕获与 IR 边界"
+        ],
+        "topic_ids": [
+          "capture-ir-contract"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "composite-stage3-encoding",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 35,
+        "keywords": [
+          "复合节点 Stage 3",
+          "Composite Stage 3",
+          "buildCompositeAccessories",
+          "root CompositeDef",
+          "impl GraphNode",
+          "root impl encoding",
+          "shared-vendor-impl-graph",
+          "legacy-handwritten"
+        ],
+        "topic_ids": [
+          "stage3-root-impl-encoding"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "composite-validation-workflow",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 40,
+        "keywords": [
+          "复合节点 GIA bug",
+          "复合节点 Bug",
+          "同构复现",
+          "节点族调查",
+          "主图对照",
+          "红绿回归",
+          "red-green regression",
+          "isomorphic reproduction"
+        ],
+        "topic_ids": [
+          "composite-validation-workflow"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
         "id": "production-progress",
-        "contexts": ["static-gil-assembly-production"],
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
         "priority": 10,
-        "keywords": ["当前进度", "现在做到哪一步", "现在什么情况", "解析到哪一步", "规则解析进度", "已验证范围", "生产验证", "模型—装饰物列表规则解析"],
-        "topic_ids": ["static-assembly-production-evidence"],
-        "escalate_to_l3": false
+        "keywords": [
+          "当前进度",
+          "现在做到哪一步",
+          "现在什么情况",
+          "解析到哪一步",
+          "规则解析进度",
+          "已验证范围",
+          "生产验证",
+          "模型—装饰物列表规则解析",
+          "当前地图",
+          "上次验证后的状态",
+          "还是上次"
+        ],
+        "topic_ids": [
+          "static-assembly-production-evidence"
+        ],
+        "escalate_to_l3": false,
+        "result_profile": "production_progress",
+        "capabilities": {
+          "read_knowledge": true,
+          "read_project_memory": true,
+          "read_live_target": false,
+          "write": false
+        }
       },
       {
         "id": "screenshot-validation",
-        "contexts": ["static-gil-assembly-production"],
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
         "priority": 20,
-        "keywords": ["截图", "位置关系", "模型位置", "装饰物位置", "相对位置", "相对方向", "单纯查看", "只看图"],
-        "blocked_by": ["不看图"],
-        "topic_ids": ["assembly-configuration"],
-        "escalate_to_l3": false
+        "keywords": [
+          "截图",
+          "位置关系",
+          "模型位置",
+          "装饰物位置",
+          "相对位置",
+          "相对方向",
+          "单纯查看",
+          "只看图",
+          "仅分析图片",
+          "视觉检查",
+          "只做视觉检查",
+          "image review"
+        ],
+        "blocked_by": [
+          "不看图"
+        ],
+        "topic_ids": [
+          "assembly-configuration"
+        ],
+        "escalate_to_l3": false,
+        "capabilities": {
+          "read_knowledge": true,
+          "read_screenshot": true,
+          "read_config": "optional",
+          "read_game_file": false,
+          "write": false
+        }
       },
       {
         "id": "transform-configuration",
-        "contexts": ["static-gil-assembly-production"],
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
         "priority": 10,
-        "keywords": ["Transform", "缩放", "旋转", "局部位置", "配置"],
-        "blocked_by": ["截图", "只看图"],
-        "topic_ids": ["assembly-configuration"],
-        "escalate_to_l3": false
+        "keywords": [
+          "Transform",
+          "缩放",
+          "旋转",
+          "局部位置",
+          "配置"
+        ],
+        "blocked_by": [
+          "截图",
+          "只看图"
+        ],
+        "topic_ids": [
+          "assembly-configuration"
+        ],
+        "escalate_to_l3": false,
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
       },
       {
         "id": "closure-id-integrity",
-        "contexts": ["static-gil-assembly-production"],
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
         "priority": 10,
-        "keywords": ["ID", "装饰物闭包", "引用关系", "辅助记录", "冲突"],
-        "topic_ids": ["closure-and-id-integrity"],
-        "escalate_to_l3": true
+        "keywords": [
+          "ID",
+          "装饰物闭包",
+          "引用关系",
+          "辅助记录",
+          "冲突"
+        ],
+        "topic_ids": [
+          "closure-and-id-integrity"
+        ],
+        "escalate_to_l3": true,
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
       },
       {
         "id": "map-writeback",
-        "contexts": ["static-gil-assembly-production"],
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
         "priority": 20,
-        "keywords": ["写回地图", "真实地图写回", "候选", "备份", "回滚", "准备下一次真实地图写回"],
-        "blocked_by": ["不写回", "只看图"],
-        "topic_ids": ["closure-and-id-integrity", "safe-gil-writeback"],
+        "keywords": [
+          "写回地图",
+          "真实地图写回",
+          "候选",
+          "备份",
+          "回滚",
+          "准备下一次真实地图写回"
+        ],
+        "blocked_by": [
+          "不写回",
+          "只看图"
+        ],
+        "topic_ids": [
+          "closure-and-id-integrity",
+          "safe-gil-writeback"
+        ],
         "escalate_to_l3": true,
-        "verification_roles": ["current_implementation", "documented_contract"]
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "blocked_by_groups": [
+          "read_only",
+          "visual_only"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_target_metadata": "requires_confirmed_target",
+          "generate_candidate": "requires_task_authorization",
+          "write_game_file": "requires_second_explicit_confirmation"
+        }
+      },
+      {
+        "id": "static-assembly-api-change",
+        "contexts": [
+          "static-gil-assembly-production"
+        ],
+        "priority": 30,
+        "keywords": [
+          "扩展静态拼装配置类型支持",
+          "扩展配置类型",
+          "公开类型",
+          "GstsConfig",
+          "导出类型",
+          "模板配置",
+          "新增字段",
+          "API 支持",
+          "staticAssemblies 加入公开"
+        ],
+        "topic_ids": [
+          "assembly-configuration"
+        ],
+        "escalate_to_l3": true,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": true,
+          "production_code_change": true,
+          "write_game_file": false
+        },
+        "operation_class": "production_code_change",
+        "minimum_authority_files": [
+          "src/compiler/gsts_config.ts",
+          "src/index.ts",
+          "src/cli/assets_static_assemblies.ts"
+        ]
       }
-    ]
+    ],
+    "semantic_groups": {
+      "read_only": [
+        "只读",
+        "不写回",
+        "别动地图",
+        "不要覆盖",
+        "不注入",
+        "不要注入",
+        "先别覆盖",
+        "先别注入",
+        "read-only",
+        "do not write"
+      ],
+      "visual_only": [
+        "只看图",
+        "仅截图",
+        "仅分析图片",
+        "视觉检查",
+        "只做视觉检查",
+        "image review"
+      ]
+    }
   },
   "relations": {
     "context_nodes": [
