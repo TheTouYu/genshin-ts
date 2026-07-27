@@ -35,6 +35,20 @@ const config: GstsConfig = {
     playerId: 1,
     mapId: 1073741849,
     nodeGraphId: 1073741825
+  },
+  assets: {
+    customVariables: [
+      {
+        target: 'character',
+        prefabId: 1090519041,
+        syncInstances: true,
+        declarations: [
+          { name: 'enabled', type: 'bool' },
+          { name: 'position', type: 'vec3' },
+          { name: 'count', type: 'int' }
+        ]
+      }
+    ]
   }
 }
 
@@ -356,6 +370,10 @@ Rules:
 - `npm run dev`: incremental compile (auto inject if configured)
 - `npm run maps`: list recent maps
 - `npm run backup`: open backup directory
+- `npm run assets:custom-variables`: preview configured GIL custom-variable changes
+- `npm run assets:custom-variables -- --write`: back up and write the real map
+- `npm run assets:custom-variables -- --map-id <id>`: temporarily choose a map
+- `npm run assets:custom-variables -- --gil <file.gil>`: process an offline GIL
 - `npm run typecheck`: TypeScript type check
 - `npm run lint`: ESLint
 

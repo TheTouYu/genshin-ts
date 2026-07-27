@@ -46,11 +46,21 @@ export type CustomPrefabInitialCustomVariables = {
   variables: readonly CustomVariableDefinition[]
 }
 
-export type CustomVariableUpdate =
-  | { name: string; type: 'str'; initialValue: string }
-  | { name: string; type: 'str_list'; initialValue: readonly string[] }
+export type CustomVariableScalarValue = bigint | boolean | number | string
+export type CustomVariableVectorValue = readonly [number, number, number]
+export type CustomVariableInitialValue =
+  | CustomVariableScalarValue
+  | CustomVariableVectorValue
+  | readonly CustomVariableScalarValue[]
+  | readonly CustomVariableVectorValue[]
 
-/** A declaration upserts an initial variable: updates an existing same-typed variable or adds a missing one. */
+export type CustomVariableUpdate = {
+  name: string
+  type: Exclude<CustomVariableType, 'unknown'>
+  initialValue?: CustomVariableInitialValue
+}
+
+/** A declaration upserts an initial variable and uses the type default when omitted. */
 export type CustomVariableDeclaration = CustomVariableUpdate
 
 export type ApplyCustomVariableUpdatesResult = {
@@ -159,8 +169,11 @@ function varintField(fields: WireField[], field: number): number | undefined {
   return fields.find((entry) => entry.field === field && entry.wire === 0)?.value
 }
 
-function encodeVarintField(field: number, value: number): Buffer {
-  return Buffer.concat([Buffer.from(encodeVarint(field << 3)), Buffer.from(encodeVarint(value))])
+function encodeVarintField(field: number, value: number | bigint): Buffer {
+  return Buffer.concat([
+    Buffer.from(encodeVarint(field << 3)),
+    Buffer.from(encodeVarintValue(value))
+  ])
 }
 
 function encodeLengthField(field: number, data: Uint8Array): Buffer {
@@ -175,14 +188,107 @@ function encodeStringList(values: readonly string[]): Uint8Array {
   return Buffer.concat(values.map((value) => encodeLengthField(1, Buffer.from(value, 'utf8'))))
 }
 
+const LIST_TYPES = new Set<CustomVariableType>([
+  'guid_list',
+  'int_list',
+  'bool_list',
+  'float_list',
+  'str_list',
+  'entity_list',
+  'vec3_list',
+  'config_id_list',
+  'prefab_id_list',
+  'faction_list'
+])
+
+function defaultInitialValue(type: CustomVariableType): CustomVariableInitialValue {
+  if (type === 'bool') return false
+  if (type === 'vec3') return [0, 0, 0]
+  if (type === 'str') return ''
+  if (type === 'int') return 0n
+  if (type === 'float') return 0
+  if (LIST_TYPES.has(type)) return []
+  return 0
+}
+
+function valueOf(update: CustomVariableUpdate): CustomVariableInitialValue {
+  return update.initialValue === undefined ? defaultInitialValue(update.type) : update.initialValue
+}
+
+function encodeBigIntVarint(value: bigint): Uint8Array {
+  if (value < 0n) throw new Error('[error] integer custom variable values must be non-negative')
+  const bytes: number[] = []
+  let current = value
+  do {
+    const byte = Number(current & 0x7fn)
+    current >>= 7n
+    bytes.push(current ? byte | 0x80 : byte)
+  } while (current)
+  return Uint8Array.from(bytes)
+}
+
+function encodeVarintValue(value: bigint | number): Uint8Array {
+  return typeof value === 'bigint' ? encodeBigIntVarint(value) : encodeVarint(value)
+}
+
+function encodeFixed32Field(field: number, value: number): Buffer {
+  const data = Buffer.alloc(4)
+  data.writeFloatLE(value, 0)
+  return Buffer.concat([Buffer.from(encodeVarint((field << 3) | 5)), data])
+}
+
+function encodeVector(value: CustomVariableVectorValue): Buffer {
+  if (value.length !== 3 || value.some((item) => !Number.isFinite(item))) {
+    throw new Error('[error] vec3 custom variable values must contain three finite numbers')
+  }
+  return Buffer.concat([
+    encodeFixed32Field(1, value[0]),
+    encodeFixed32Field(2, value[1]),
+    encodeFixed32Field(3, value[2])
+  ])
+}
+
+function encodeScalarValue(type: CustomVariableType, value: unknown): Buffer {
+  if (type === 'str') {
+    if (typeof value !== 'string') throw new Error('[error] str custom variable value must be a string')
+    return encodeLengthField(1, Buffer.from(value, 'utf8'))
+  }
+  if (type === 'vec3') {
+    if (!Array.isArray(value)) throw new Error('[error] vec3 custom variable value must be [x, y, z]')
+    return encodeLengthField(1, encodeVector(value as unknown as CustomVariableVectorValue))
+  }
+  if (type === 'bool') {
+    if (typeof value !== 'boolean') throw new Error('[error] bool custom variable value must be boolean')
+    return encodeVarintField(1, value ? 1 : 0)
+  }
+  if (type === 'float') {
+    if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('[error] float custom variable value must be finite')
+    return encodeFixed32Field(1, value)
+  }
+  if (type === 'int') {
+    if (typeof value !== 'bigint') throw new Error('[error] int custom variable value must be bigint')
+    return encodeVarintField(1, value)
+  }
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`[error] ${type} custom variable value must be a non-negative safe integer`)
+  }
+  return encodeVarintField(1, value)
+}
+
 function encodeInitialValue(update: CustomVariableUpdate): Uint8Array {
-  if (update.type === 'str') return encodeLengthField(1, Buffer.from(update.initialValue, 'utf8'))
-  return encodeStringList(update.initialValue)
+  const value = valueOf(update)
+  if (!LIST_TYPES.has(update.type)) return encodeScalarValue(update.type, value)
+  if (!Array.isArray(value)) throw new Error(`[error] ${update.type} custom variable value must be an array`)
+  const elementType = update.type.slice(0, -5) as CustomVariableType
+  return Buffer.concat(
+    (value as readonly unknown[]).map((item) => encodeScalarValue(elementType, item))
+  )
 }
 
 function codeForType(type: CustomVariableUpdate['type']): number {
-  if (type === 'str') return 6
-  return 11
+  return Object.entries(TYPE_BY_CODE).find(([, candidate]) => candidate === type)?.[0]
+    ? Number(Object.entries(TYPE_BY_CODE).find(([, candidate]) => candidate === type)![0])
+    : (() => { throw new Error(`[error] unsupported custom variable type: ${type}`) })()
 }
 
 function encodeTypedValueEnvelope(typeCode: number): Buffer {

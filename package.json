@@ -39,6 +39,14 @@
       "types": "./dist/src/injector/*.d.ts",
       "default": "./dist/src/injector/*.js"
     },
+    "./cli/*": {
+      "types": "./dist/src/cli/*.d.ts",
+      "default": "./dist/src/cli/*.js"
+    },
+    "./thirdparty/*": {
+      "types": "./dist/src/thirdparty/*.d.ts",
+      "default": "./dist/src/thirdparty/*.js"
+    },
     "./runtime/*": {
       "types": "./dist/src/runtime/*.d.ts",
       "default": "./dist/src/runtime/*.js"

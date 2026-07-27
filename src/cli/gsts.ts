@@ -30,6 +30,7 @@ import { compileTsToGs } from '../compiler/ts_to_gs_pipeline.js'
 import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
+import { runAssetsCustomVariables } from './assets_custom_variables.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
@@ -1602,6 +1603,16 @@ async function main() {
     .action(async () => {
       const args = process.argv.slice(3).filter((arg) => arg !== '--')
       await runAssetsStaticAssemblies(args)
+    })
+
+  program
+    .command('assets:custom-variables')
+    .description('preview or write configured GIL custom variables')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const args = process.argv.slice(3).filter((arg) => arg !== '--')
+      await runAssetsCustomVariables(args)
     })
 
   program

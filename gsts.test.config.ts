@@ -11,8 +11,8 @@ const config: GstsConfig = {
   outDir: './dist',
   inject: {
     gameRegion: 'China',
-    playerId: 100431567,
-    mapId: 1073741851
+    playerId: 110170759,
+    mapId: 1073741848
   },
   options: {
     optimize: {

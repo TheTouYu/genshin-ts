@@ -1,4 +1,11 @@
-export type { GstsConfig, GstsStage3Options } from './compiler/gsts_config.js'
+export type {
+  GstsAssetsConfig,
+  GstsConfig,
+  GstsCustomVariableDeclaration,
+  GstsCustomVariableOperation,
+  GstsCustomVariableType,
+  GstsStage3Options
+} from './compiler/gsts_config.js'
 
 export type {
   ClientEntity,
@@ -21,6 +28,7 @@ export {
 } from './compiler/ir_to_gia_pipeline.js'
 
 export { createInjector, injectGilBytes, injectGilFile } from './injector/index.js'
+export { runAssetsCustomVariables } from './cli/assets_custom_variables.js'
 
 export {
   applyCustomPrefabInitialCustomVariableDeclarations,

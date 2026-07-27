@@ -122,6 +122,53 @@ export type GstsLang = 'auto' | 'zh-CN' | 'en-US'
 
 export type GstsGameRegion = 'China' | 'Global'
 
+export type CustomVariableScalarValue = bigint | boolean | number | string
+export type CustomVariableVectorValue = readonly [number, number, number]
+export type CustomVariableInitialValue =
+  | CustomVariableScalarValue
+  | CustomVariableVectorValue
+  | readonly CustomVariableScalarValue[]
+  | readonly CustomVariableVectorValue[]
+
+export type GstsCustomVariableType =
+  | 'entity'
+  | 'guid'
+  | 'int'
+  | 'bool'
+  | 'float'
+  | 'str'
+  | 'guid_list'
+  | 'int_list'
+  | 'bool_list'
+  | 'float_list'
+  | 'str_list'
+  | 'vec3'
+  | 'entity_list'
+  | 'vec3_list'
+  | 'faction'
+  | 'config_id'
+  | 'prefab_id'
+  | 'config_id_list'
+  | 'prefab_id_list'
+  | 'faction_list'
+
+export type GstsCustomVariableDeclaration = {
+  name: string
+  type: GstsCustomVariableType
+  initialValue?: CustomVariableInitialValue
+}
+
+export type GstsCustomVariableOperation = {
+  target: 'prefab' | 'player' | 'character'
+  prefabId: number
+  syncInstances?: boolean
+  declarations: readonly GstsCustomVariableDeclaration[]
+}
+
+export type GstsAssetsConfig = {
+  customVariables?: readonly GstsCustomVariableOperation[]
+}
+
 export type GstsInjectConfig = {
   /**
    * [ZH] 游戏区域：
@@ -279,4 +326,6 @@ export type GstsConfig = {
    * Tip: use `gsts maps` to locate recently edited map files and fill in mapId.
    */
   inject?: GstsInjectConfig
+  /** [ZH] 资源工具配置；编译器不会消费此字段。 / [EN] Asset-tool configuration, ignored by the compiler. */
+  assets?: GstsAssetsConfig
 }

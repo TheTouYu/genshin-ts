@@ -35,6 +35,20 @@ const config: GstsConfig = {
     playerId: 1,
     mapId: 1073741849,
     nodeGraphId: 1073741825
+  },
+  assets: {
+    customVariables: [
+      {
+        target: 'character',
+        prefabId: 1090519041,
+        syncInstances: true,
+        declarations: [
+          { name: 'enabled', type: 'bool' },
+          { name: 'position', type: 'vec3' },
+          { name: 'count', type: 'int' }
+        ]
+      }
+    ]
   }
 }
 
@@ -355,6 +369,14 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run dev`：增量编译（配置 inject 后会自动注入）
 - `npm run maps`：列出最近编辑的地图
 - `npm run backup`：打开注入备份目录
+- `npm run assets:custom-variables`：预览 `assets.customVariables` 配置对 `.gil` 自定义变量的变更
+- `npm run assets:custom-variables -- --write`：备份后写回真实地图
+- `npm run assets:custom-variables -- --map-id <id>`：临时指定地图
+- `npm run assets:custom-variables -- --gil <file.gil>`：处理离线 GIL 文件
+- `npm run assets:custom-variables`：预览 `assets.customVariables` 配置对 `.gil` 自定义变量的变更
+- `npm run assets:custom-variables -- --write`：备份后写回真实地图
+- `npm run assets:custom-variables -- --map-id <id>`：临时指定地图
+- `npm run assets:custom-variables -- --gil <file.gil>`：处理离线 GIL 文件
 - `npm run typecheck`：TypeScript 类型检查
 - `npm run lint`：ESLint
 

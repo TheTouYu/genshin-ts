@@ -3,8 +3,9 @@
 > 状态：部分验证
 > 来源：当前代码实现 + 真实 GIL 观察 + 自动回读 + 用户编辑器/游戏反馈
 > 最近校验：2026-07-23
-> 适用范围：gsts 当前 `str` / `str_list` 初始变量读取与增量写回；真实编辑器/游戏结论仅覆盖
-> 玩家 `110170759` 的地图 `1073741847.gil`、该地图的玩家与角色模板结构和 `变量专用` CustomPrefab
+> 适用范围：gsts 当前已识别类型的初始变量读取与写回编码；真实编辑器/游戏结论仍仅覆盖
+> 玩家 `110170759` 的地图 `1073741847.gil`、该地图的玩家与角色模板结构和 `变量专用` CustomPrefab。除
+> `str` / `str_list` 外，其它类型目前只有自动 wire 编码覆盖，仍待真实编辑器/游戏验证。
 
 本文记录 GIL 中玩家模板和 CustomPrefab 的初始自定义变量资产，以及与 NodeGraph 注入不同的“变量注入”流程。
 
@@ -53,14 +54,15 @@ syncCharacterCustomVariableDeclarations({ gilPath, characterPrefabId, declaratio
 - `syncPrefabCustomVariableDeclarations`：只将**缺失**声明追加到明确引用 `prefabId` 的模板实例变量容器；它不推测资产，也不修改其它实例。
 - `syncPlayerCustomVariableDeclarations` 与 `syncCharacterCustomVariableDeclarations`：分别是前者的玩家、角色语义封装；旧玩家 API 继续兼容。
 
-当前可安全写入并经过回读/幂等自动验证的类型：
+当前写回 API 接受全部已识别类型（`unknown` 除外），省略 `initialValue` 时使用类型默认值：`bool=false`、`vec3=[0,0,0]`、`str=''`、`int=0n`、`float=0`、其它标量为 `0`、列表为 `[]`。
 
 ```text
-str
-str_list
+entity / guid / int / bool / float / str / vec3 / faction / config_id / prefab_id
+以及对应的 guid_list / int_list / bool_list / float_list / str_list / entity_list /
+vec3_list / config_id_list / prefab_id_list / faction_list
 ```
 
-读取层已识别更多类型码，但它们没有本轮写回与编辑器验证，不能据此开放写入。
+其中 `str` / `str_list` 有真实编辑器/游戏反馈；其它类型目前只有自动 wire 编码覆盖，不能将命令成功或回读成功等同于编辑器/游戏验证。
 
 ## 3. 真实 GIL 容器观察
 

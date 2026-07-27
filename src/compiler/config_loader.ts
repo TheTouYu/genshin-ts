@@ -63,7 +63,7 @@ export async function loadGstsConfig(configPath: string): Promise<GstsConfig> {
       `const cfgPath = process.argv[2]`,
       `const mod = await import(pathToFileURL(cfgPath).href)`,
       `const out = (mod && typeof mod === 'object' && 'default' in mod) ? (mod.default ?? mod) : mod`,
-      `process.stdout.write(JSON.stringify(out))`
+      `process.stdout.write(JSON.stringify(out, (key, value) => key === 'assets' ? undefined : value))`
     ].join('\n')
 
     fs.writeFileSync(tmp, code, 'utf8')
