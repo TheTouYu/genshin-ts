@@ -8,6 +8,7 @@
 ## 治理入口
 - [`documentation-governance.md`](documentation-governance.md) — 文档状态、来源、验证和归档规则
 - [`documentation-map.md`](documentation-map.md) — 按任务查找当前可信文档
+- [`project-intelligence/knowledge-tree-expansion-plan.md`](project-intelligence/knowledge-tree-expansion-plan.md) — Project Memory 与 Domain Knowledge 范围扩大计划
 
 ## 导航入口
 - [`docs/composite-ir/index.md`](composite-ir/index.md) — 复合 IR 知识体系总入口（最活跃、最权威）
