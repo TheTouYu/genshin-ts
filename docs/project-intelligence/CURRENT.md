@@ -23,7 +23,7 @@
 ## 路由与安全
 
 1. Context 选择顺序是：用户明确指定 → 可判别任务路径 → 仅共享 workspace/branch 时询问 → 完全没有 Context/path/workspace/branch 提示时才使用唯一 priority 1 Context。
-2. 静态 `.gil`、地图写回、注入/覆盖和真实环境验证任务必须先走项目 Adapter，再按 L1→L2 查询关联 Nodes。
-3. L3 先用 `show-claim` 恢复 Claim/Evidence 边界；该命令不内嵌 Authority Refs，必须再按 Claim ID 连接 `data/knowledge/authority-refs.json` 的 `claim_ids`，报告 Ref ID/path 和 current/stale 状态。
+2. 静态 `.gil`、地图写回、注入/覆盖和真实环境验证任务必须先走项目 Adapter，再从项目根运行 canonical `python tools/pkc.py progressive-query ...`，按返回的 `minimum_files` 做 L1→L2 读取；入口自动使用项目 `.local/` 内锁定的非 editable runtime，Agent 不安装或选择版本，也不得直接查询 SQLite。
+3. L3 先用 `show-claim` 恢复 Claim/Evidence 边界；progressive query 已返回与命中 Claim 关联的 Authority Ref 子集和 current/stale 状态，不得无差别读取完整引用表。
 4. 工作树改动保持受保护；working-tree observation 不能升级为稳定 Claim。
 5. 未经任务级明确确认，不注入、覆盖、删除游戏文件，不修改 mapId/nodeGraphId，不提交或推送。

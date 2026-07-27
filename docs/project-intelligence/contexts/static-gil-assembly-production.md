@@ -24,10 +24,10 @@
 
 1. 读取根和最近的 `AGENTS.md`，检查并保护工作树。
 2. 通过项目 Adapter 选择本 Context。
-3. Knowledge L1 查询 `static-gil-assets`、`game-map-writeback`、`validation-evidence`。
-4. L2 只读取命中 Topics；需要精确实现、验证或证据范围时再读 L3。
-5. L3 用 `show-claim` 读取 Claim/Evidence，再按 Claim ID 连接 `data/knowledge/authority-refs.json` 的 `claim_ids`；不要假设 `show-claim` 已经返回 Authority Refs。
-6. 当前事实以已登记的提交、源码、测试和权威文档为准；不依赖 `/tmp` handoff。
+3. 从项目根使用唯一入口 `python tools/pkc.py progressive-query --context static-gil-assembly-production --intent <intent> --max-level 2 --limit 3 --check-authority`；入口自动使用项目 `.local/` 内锁定的非 editable runtime，Agent 不安装或选择版本，也不要直接访问 SQLite。`screenshot-validation` 最多返回 `assembly-configuration`，`production-progress` 返回生产证据，`map-writeback` 才返回闭包与写回安全。runtime 缺失、损坏或版本不匹配时停止并请求项目维护者恢复，不猜个人源码路径。
+4. 只读取返回的 `minimum_files`；`escalate_to_l3=false` 时不展开 Claim/Evidence 或完整权威文档。
+5. L3 用 `show-claim` 读取精确 Claim/Evidence；Authority Refs 直接采用 progressive query 返回的 Claim 关联子集和 current/stale 状态。
+6. 查询始终只读且不构成地图操作授权。当前事实以已登记的提交、源码、测试和权威文档为准；不依赖 `/tmp` handoff。
 
 
 ## Authority References 恢复导航
@@ -42,7 +42,7 @@
 | `auth-static-assembly-cli-safety` | `src/cli/AGENTS.md` | CLI 地图写回确认与验证规则 |
 | `auth-static-assembly-injector-safety` | `src/injector/AGENTS.md` | GIL 边界、备份及游戏验证分层规则 |
 
-当前 PKC `show-claim` 返回 Claim 和 Evidence，不内嵌本表。新会话回答“下一步读取哪些 Authority Refs”时，应从命中的静态 Claim 出发，通过 `claim_ids` 返回相关子集，而不是无差别读取五个文件；如果 Ref 哈希变化，先报告 stale/invalidated 风险，不把 working-tree 内容当成稳定事实。
+当前 PKC `show-claim` 返回 Claim 和 Evidence，不内嵌本表；`progressive-query --check-authority` 会从命中的 Claim 出发返回 Authority Ref 子集与哈希状态。不要无差别读取五个文件；如果 Ref 哈希变化，先报告 stale/invalidated 风险，不把 working-tree 内容当成稳定事实。
 
 ## 下一恢复点
 

@@ -5,8 +5,16 @@
     "name": "Genshin-TS"
   },
   "pkc": {
-    "version": "0.1.0",
-    "projection_path": ".local/knowledge"
+    "version": "0.2.0rc1",
+    "projection_path": ".local/knowledge",
+    "entry": "tools/pkc.py",
+    "dependency": {
+      "distribution": "portable-knowledge",
+      "source": "project-pinned-non-editable-candidate-runtime",
+      "runtime": ".local/pkc-runtime",
+      "candidate_manifest": ".local/pkc-candidate/manifest.json",
+      "agent_managed": false
+    }
   },
   "adapter": {
     "skill": ".agents/skills/genshin-ts-project-adapter/SKILL.md",
@@ -44,7 +52,8 @@
     "registry": "data/knowledge/registry.json",
     "actors": "data/knowledge/actors.json",
     "store": "data/knowledge",
-    "knowledge": "knowledge"
+    "knowledge": "knowledge",
+    "authority_refs": "data/knowledge/authority-refs.json"
   },
   "identities": {
     "principal": {
@@ -150,6 +159,62 @@
         "feat/composite"
       ]
     }
+  },
+  "retrieval": {
+    "max_topics": 3,
+    "max_claims": 6,
+    "max_characters": 6000,
+    "dynamic": {
+      "candidate_limit": 8,
+      "confidence_threshold": 0.25,
+      "margin_threshold": 0.08
+    },
+    "intent_routes": [
+      {
+        "id": "production-progress",
+        "contexts": ["static-gil-assembly-production"],
+        "priority": 10,
+        "keywords": ["当前进度", "现在做到哪一步", "现在什么情况", "解析到哪一步", "规则解析进度", "已验证范围", "生产验证", "模型—装饰物列表规则解析"],
+        "topic_ids": ["static-assembly-production-evidence"],
+        "escalate_to_l3": false
+      },
+      {
+        "id": "screenshot-validation",
+        "contexts": ["static-gil-assembly-production"],
+        "priority": 20,
+        "keywords": ["截图", "位置关系", "模型位置", "装饰物位置", "相对位置", "相对方向", "单纯查看", "只看图"],
+        "blocked_by": ["不看图"],
+        "topic_ids": ["assembly-configuration"],
+        "escalate_to_l3": false
+      },
+      {
+        "id": "transform-configuration",
+        "contexts": ["static-gil-assembly-production"],
+        "priority": 10,
+        "keywords": ["Transform", "缩放", "旋转", "局部位置", "配置"],
+        "blocked_by": ["截图", "只看图"],
+        "topic_ids": ["assembly-configuration"],
+        "escalate_to_l3": false
+      },
+      {
+        "id": "closure-id-integrity",
+        "contexts": ["static-gil-assembly-production"],
+        "priority": 10,
+        "keywords": ["ID", "装饰物闭包", "引用关系", "辅助记录", "冲突"],
+        "topic_ids": ["closure-and-id-integrity"],
+        "escalate_to_l3": true
+      },
+      {
+        "id": "map-writeback",
+        "contexts": ["static-gil-assembly-production"],
+        "priority": 20,
+        "keywords": ["写回地图", "真实地图写回", "候选", "备份", "回滚", "准备下一次真实地图写回"],
+        "blocked_by": ["不写回", "只看图"],
+        "topic_ids": ["closure-and-id-integrity", "safe-gil-writeback"],
+        "escalate_to_l3": true,
+        "verification_roles": ["current_implementation", "documented_contract"]
+      }
+    ]
   },
   "relations": {
     "context_nodes": [

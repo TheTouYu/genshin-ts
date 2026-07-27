@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "scope": "Real Genshin-TS accepted knowledge; synthetic bugs are prohibited.",
+  "hard_gates": {
+    "dangerous_wrong_routes": 0,
+    "budget_violations": 0,
+    "unauthorized_or_invalidated_defaults": 0,
+    "explicit_route_regressions": 0,
+    "cross_context_silent_combinations": 0
+  },
+  "cases": [
+    {
+      "id": "explicit-screenshot",
+      "class": "explicit_route_regression",
+      "context": "static-gil-assembly-production",
+      "query": "只看图，不写回，核对三个模型的位置关系和缩放",
+      "expect_strategy": "explicit_route",
+      "expect_topics": ["assembly-configuration"]
+    },
+    {
+      "id": "dynamic-transform",
+      "class": "known_topic_unconfigured_language",
+      "context": "static-gil-assembly-production",
+      "query": "How are local item position rotation and scale interpreted?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "assembly-configuration"
+    },
+    {
+      "id": "dynamic-composite-seam",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Composite route-to-pin seam has a missing InParam",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "physical-pin-routing"
+    },
+    {
+      "id": "negative-writeback",
+      "class": "dangerous_negated_topic",
+      "context": "static-gil-assembly-production",
+      "query": "只核对截图，不写回地图",
+      "expect_strategy": "explicit_route",
+      "expect_topics": ["assembly-configuration"],
+      "forbid_topics": ["safe-gil-writeback"]
+    },
+    {
+      "id": "ambiguous-mixed",
+      "class": "ambiguous_mixed_intent",
+      "context": "static-gil-assembly-production",
+      "query": "检查截图并准备真实地图写回",
+      "expect_error": "RETRIEVAL_ROUTE_AMBIGUOUS",
+      "expect_failure_type": "ambiguous"
+    },
+    {
+      "id": "coverage-gap",
+      "class": "outside_current_coverage",
+      "context": "static-gil-assembly-production",
+      "query": "employee payroll vacation policy",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "coverage_gap"
+    },
+    {
+      "id": "cross-context",
+      "class": "cross_context",
+      "context": "static-gil-assembly-production",
+      "query": "Composite physical pin pipeline diagnosis",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "out_of_context"
+    }
+  ]
+}
