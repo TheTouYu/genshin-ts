@@ -5,7 +5,20 @@ import type {
   GstsStaticAssemblyItem,
   GstsStaticColor
 } from '../compiler/gsts_config.js'
-import { buildFile, encodeVarint, readUint32BE, readVarint } from '../injector/binary.js'
+import { buildFile, encodeVarint, readUint32BE } from '../injector/binary.js'
+import {
+  collectWireVarints as allVarints,
+  emitWireMessage as emit,
+  findWireRecord as findRecord,
+  wireMessage as message,
+  nthWireField as nth,
+  packedWireIds as packedIds,
+  parseWireMessage as parse,
+  printableWireText as printable,
+  wireRecordId as recordId,
+  wireRecords as records,
+  type WireField
+} from './static_assembly/wire.js'
 
 export type StaticAssemblyResult = {
   bytes: Uint8Array
@@ -14,102 +27,10 @@ export type StaticAssemblyResult = {
   instanceAuxiliaryIds: readonly number[]
 }
 
-type WireField = {
-  number: number
-  wire: number
-  value: number | Uint8Array
-}
-
 type Transform = Required<Pick<GstsStaticAssemblyItem, 'position' | 'rotation' | 'scale'>>
 
 const TEXT = new TextEncoder()
 const UTF8 = new TextDecoder('utf-8', { fatal: true })
-
-function parse(data: Uint8Array): WireField[] | undefined {
-  const fields: WireField[] = []
-  let offset = 0
-  while (offset < data.length) {
-    const key = readVarint(data, offset)
-    if (!key || key.value >> 3 === 0) return undefined
-    offset = key.next
-    const number = key.value >> 3
-    const wire = key.value & 7
-    if (wire === 0) {
-      const value = readVarint(data, offset)
-      if (!value) return undefined
-      fields.push({ number, wire, value: value.value })
-      offset = value.next
-    } else if (wire === 1 || wire === 5) {
-      const width = wire === 1 ? 8 : 4
-      if (offset + width > data.length) return undefined
-      fields.push({ number, wire, value: data.slice(offset, offset + width) })
-      offset += width
-    } else if (wire === 2) {
-      const length = readVarint(data, offset)
-      if (!length || length.next + length.value > data.length) return undefined
-      fields.push({ number, wire, value: data.slice(length.next, length.next + length.value) })
-      offset = length.next + length.value
-    } else {
-      return undefined
-    }
-  }
-  return fields
-}
-
-function emit(fields: readonly WireField[]): Uint8Array {
-  const parts: Uint8Array[] = []
-  for (const field of fields) {
-    parts.push(encodeVarint((field.number << 3) | field.wire))
-    if (field.wire === 0) parts.push(encodeVarint(field.value as number))
-    else if (field.wire === 2) {
-      const value = field.value as Uint8Array
-      parts.push(encodeVarint(value.length), value)
-    } else {
-      parts.push(field.value as Uint8Array)
-    }
-  }
-  return Buffer.concat(parts.map((part) => Buffer.from(part)))
-}
-
-function message(field: WireField): WireField[] {
-  if (field.wire !== 2) throw new Error(`[error] field ${field.number} is not length-delimited`)
-  const result = parse(field.value as Uint8Array)
-  if (!result) throw new Error(`[error] field ${field.number} is not a protobuf-like message`)
-  return result
-}
-
-function nth(fields: readonly WireField[], number: number, occurrence = 1): WireField {
-  const result = fields.filter((field) => field.number === number)[occurrence - 1]
-  if (!result) throw new Error(`[error] missing field ${number}[${occurrence}]`)
-  return result
-}
-
-function recordId(record: Uint8Array): number | undefined {
-  const first = parse(record)?.[0]
-  return first?.number === 1 && first.wire === 0 ? (first.value as number) : undefined
-}
-
-function records(top: readonly WireField[], topNumber: number, recordNumber: number): Uint8Array[] {
-  return message(nth(top, topNumber))
-    .filter((field) => field.number === recordNumber && field.wire === 2)
-    .map((field) => field.value as Uint8Array)
-}
-
-function findRecord(records_: readonly Uint8Array[], id: number): Uint8Array {
-  const matches = records_.filter((record) => recordId(record) === id)
-  if (matches.length !== 1)
-    throw new Error(`[error] expected one record for ID ${id}, found ${matches.length}`)
-  return matches[0]
-}
-
-function printable(data: Uint8Array): string | undefined {
-  try {
-    const text = UTF8.decode(data)
-    return text && [...text].every((char) => /\P{C}/u.test(char)) ? text : undefined
-  } catch {
-    return undefined
-  }
-}
 
 function mapMessage(data: Uint8Array, fn: (field: WireField) => WireField): Uint8Array {
   const fields = parse(data)
@@ -166,37 +87,6 @@ function replaceVarint(
     return nested.count ? { ...field, value: nested.bytes } : field
   })
   return { bytes: emit(next), count }
-}
-
-function packedIds(record: Uint8Array): number[] {
-  const fields = parse(record)
-  if (!fields) throw new Error('[error] invalid record')
-  for (const field of fields) {
-    if (field.number === 501 && field.wire === 2) {
-      const ids: number[] = []
-      let offset = 0
-      const value = field.value as Uint8Array
-      while (offset < value.length) {
-        const decoded = readVarint(value, offset)
-        if (!decoded) throw new Error('[error] malformed packed field 501')
-        ids.push(decoded.value)
-        offset = decoded.next
-      }
-      return ids
-    }
-    if (
-      field.wire === 2 &&
-      field.number !== 501 &&
-      printable(field.value as Uint8Array) === undefined
-    ) {
-      try {
-        return packedIds(field.value as Uint8Array)
-      } catch {
-        // Continue searching sibling fields.
-      }
-    }
-  }
-  throw new Error('[error] packed field 501 not found')
 }
 
 function setPackedIds(record: Uint8Array, ids: readonly number[]): Uint8Array {
@@ -398,15 +288,6 @@ function setAuxiliary(
     throw new Error(`[error] expected one decoration name, changed ${named.count}`)
   const transformed = setTransform(named.bytes, assemblyTransform(params.item))
   return params.item.color ? setColor(transformed, params.item.color) : transformed
-}
-
-function allVarints(data: Uint8Array): number[] {
-  const fields = parse(data)
-  if (!fields) return []
-  return fields.flatMap((field) => {
-    if (field.wire === 0) return [field.value as number]
-    return field.wire === 2 && field.number !== 501 ? allVarints(field.value as Uint8Array) : []
-  })
 }
 
 function copyRegistry(top6: WireField[], sourceOwnerId: number, ownerId: number): void {

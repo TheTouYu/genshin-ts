@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsts.moe/schemas/static-assembly-plan.schema.json",
+  "title": "Genshin-TS static assembly plan V1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "status",
+    "source",
+    "assetConfig",
+    "assemblies",
+    "touchedTopLevelFields",
+    "field9",
+    "warnings",
+    "errors",
+    "evidenceBoundary",
+    "planHashAlgorithm",
+    "planHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "gsts.static-assembly.plan" },
+    "status": { "enum": ["ready", "blocked"] },
+    "source": { "type": "object" },
+    "assetConfig": { "type": "object" },
+    "assemblies": { "type": "array" },
+    "touchedTopLevelFields": { "const": [4, 6, 8, 27] },
+    "field9": { "const": "unchanged-by-current-implementation" },
+    "warnings": { "type": "array" },
+    "errors": { "type": "array" },
+    "evidenceBoundary": { "type": "object" },
+    "planHashAlgorithm": { "const": "sha256-canonical-json-v1" },
+    "planHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

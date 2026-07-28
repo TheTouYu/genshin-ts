@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsts.moe/schemas/static-assembly-inspection.schema.json",
+  "title": "Genshin-TS static assembly inspection V1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "source",
+    "definitions",
+    "instances",
+    "occupiedIds",
+    "templateCandidates",
+    "warnings",
+    "evidenceBoundary"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "gsts.static-assembly.inspection" },
+    "source": { "$ref": "#/$defs/source" },
+    "definitions": { "type": "array", "items": { "$ref": "#/$defs/record" } },
+    "instances": { "type": "array", "items": { "$ref": "#/$defs/record" } },
+    "occupiedIds": { "type": "object" },
+    "templateCandidates": { "type": "array" },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "evidenceBoundary": { "type": "object" }
+  },
+  "$defs": {
+    "id": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "source": {
+      "type": "object",
+      "required": ["locator", "size", "sha256"],
+      "properties": {
+        "locator": { "type": "object" },
+        "size": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "record": {
+      "type": "object",
+      "required": ["id", "names", "packedIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "names": { "type": "array", "items": { "type": "string" } },
+        "packedIds": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    }
+  }
+}

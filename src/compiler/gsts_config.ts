@@ -120,6 +120,99 @@ export type GstsTransformOptions = {
 
 export type GstsLang = 'auto' | 'zh-CN' | 'en-US'
 
+export type StaticAssemblyClosureStatus =
+  | 'complete'
+  | 'missing-definition'
+  | 'missing-instance'
+  | 'missing-definition-auxiliary'
+  | 'missing-instance-auxiliary'
+  | 'missing-owner-registry'
+  | 'ambiguous-name'
+  | 'unsupported-layout'
+
+export type StaticAssemblyPlanStatus = 'ready' | 'blocked'
+
+export type StaticAssemblySourceLocator =
+  | { kind: 'gilFile'; displayName: string }
+  | { kind: 'mapId'; mapId: number }
+
+export type StaticAssemblyTransformV1 = {
+  position: readonly [number, number, number]
+  rotation: readonly [number, number, number]
+  scale: readonly [number, number, number]
+}
+
+export type StaticAssemblyMapInspectionV1 = {
+  schemaVersion: 1
+  kind: 'gsts.static-assembly.inspection'
+  source: { locator: StaticAssemblySourceLocator; size: number; sha256: string }
+  definitions: readonly {
+    id: number
+    name?: string
+    names: readonly string[]
+    packedIds: readonly number[]
+    definitionId?: number
+    transform?: StaticAssemblyTransformV1
+  }[]
+  instances: readonly {
+    id: number
+    name?: string
+    names: readonly string[]
+    packedIds: readonly number[]
+    definitionId?: number
+    transform?: StaticAssemblyTransformV1
+  }[]
+  occupiedIds: {
+    prefabs: readonly number[]
+    instances: readonly number[]
+    definitionAuxiliaries: readonly number[]
+    instanceAuxiliaries: readonly number[]
+    ranges: {
+      all: readonly (readonly [number, number])[]
+      freeRuns: readonly (readonly [number, number])[]
+      sourceSha256: string
+      proposalOnly: true
+    }
+  }
+  templateCandidates: readonly {
+    definitionId: number
+    instanceId: number
+    name?: string
+    itemCount: number
+    definitionAuxiliaryIds: readonly number[]
+    instanceAuxiliaryIds: readonly number[]
+    transform?: StaticAssemblyTransformV1
+    closureStatus: StaticAssemblyClosureStatus
+    diagnostics: readonly string[]
+    compatibility: 'unknown'
+  }[]
+  warnings: readonly string[]
+  evidenceBoundary: {
+    structuralInspection: true
+    templateCompatibility: 'not-proven'
+    editorOrGameValidation: 'not-performed'
+  }
+}
+
+export type StaticAssemblyPlanV1 = {
+  schemaVersion: 1
+  kind: 'gsts.static-assembly.plan'
+  status: StaticAssemblyPlanStatus
+  source: StaticAssemblyMapInspectionV1['source']
+  assetConfig: { locator: { kind: 'assetConfig'; displayName: string }; sha256: string }
+  assemblies: readonly Record<string, unknown>[]
+  touchedTopLevelFields: readonly [4, 6, 8, 27]
+  field9: 'unchanged-by-current-implementation'
+  warnings: readonly { code: string; field?: string; message: string }[]
+  errors: readonly { code: string; field?: string; message: string }[]
+  evidenceBoundary: StaticAssemblyMapInspectionV1['evidenceBoundary'] & {
+    candidateGenerated: false
+    sourceModified: false
+  }
+  planHashAlgorithm: 'sha256-canonical-json-v1'
+  planHash: string
+}
+
 export type GstsGameRegion = 'China' | 'Global'
 
 export type CustomVariableScalarValue = bigint | boolean | number | string

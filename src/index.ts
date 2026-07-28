@@ -8,7 +8,10 @@ export type {
   GstsStaticAssembly,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
-  GstsStaticColor
+  GstsStaticColor,
+  StaticAssemblyMapInspectionV1,
+  StaticAssemblyPlanStatus,
+  StaticAssemblyPlanV1
 } from './compiler/gsts_config.js'
 
 export type {
@@ -33,6 +36,8 @@ export {
 
 export { createInjector, injectGilBytes, injectGilFile } from './injector/index.js'
 export { runAssetsCustomVariables } from './cli/assets_custom_variables.js'
+export { inspectStaticAssemblyMap } from './cli/static_assembly/inspection.js'
+export { createStaticAssemblyPlan } from './cli/static_assembly/plan.js'
 
 export {
   applyCustomPrefabInitialCustomVariableDeclarations,

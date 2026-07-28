@@ -374,7 +374,10 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run assets:custom-variables -- --write`：备份后写回真实地图
 - `npm run assets:custom-variables -- --map-id <id>`：临时指定地图
 - `npm run assets:custom-variables -- --gil <file.gil>`：处理离线 GIL 文件
-- `npm run assets:static-assemblies -- --map-id <id>`：默认只预览静态拼装计划，不修改地图
+- `npx gsts maps --format json --include-hash`：稳定、默认脱敏的地图发现 JSON
+- `npm run assets:static-assemblies -- inspect --gil <source.gil> --format json`：只读检查模板闭包和占用 ID
+- `npm run assets:static-assemblies -- plan --asset-config <file> --gil <source.gil> --output <plan.json>`：生成绑定源哈希的确定性计划
+- `npm run assets:static-assemblies -- --asset-config <file> --map-id <id>`：兼容的默认 preview，不修改地图
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`：保存离线候选，不覆盖已有文件
 - `npm run assets:static-assemblies -- --map-id <id> --write`：显式备份并写回真实地图
 

@@ -41,6 +41,7 @@ import {
   extractSignalsFromGil,
   readRegisteredSignalsFromGil
 } from './gil_signals.js'
+import { listMaps } from './maps.js'
 import { getMapKey, loadState, saveState } from './state.js'
 import { createUi } from './ui.js'
 import { openAndSelect, openDir } from './windows_open.js'
@@ -231,12 +232,16 @@ function tryGetMtimeMs(p: string): number | null {
   }
 }
 
-async function loadGstsConfigCached(cfgPath: string): Promise<GstsConfig> {
+async function loadGstsConfigCached(
+  cfgPath: string,
+  profile: 'compile' | 'project' = 'compile'
+): Promise<GstsConfig> {
+  const key = `${profile}:${cfgPath}`
   const mtimeMs = tryGetMtimeMs(cfgPath)
-  const cached = configCache.get(cfgPath)
+  const cached = configCache.get(key)
   if (cached && mtimeMs != null && cached.mtimeMs === mtimeMs) return cached.cfg
-  const cfg = await loadGstsConfig(cfgPath)
-  if (mtimeMs != null) configCache.set(cfgPath, { mtimeMs, cfg })
+  const cfg = await loadGstsConfig(cfgPath, { profile })
+  if (mtimeMs != null) configCache.set(key, { mtimeMs, cfg })
   return cfg
 }
 
@@ -259,25 +264,38 @@ function resolveConfigPath(opts: GlobalOptions): string {
   return path.resolve(process.cwd(), opts.config ?? 'gsts.config.ts')
 }
 
+const ROOT_SUBCOMMANDS = new Set([
+  'dev',
+  'maps',
+  'assets:static-assemblies',
+  'assets:custom-variables',
+  'open',
+  'help'
+])
+
 function preparseArgv(argv: string[]): { config?: string; lang?: string } {
   const out: { config?: string; lang?: string } = {}
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
-    if (a === '-c' || a === '--config') out.config = argv[i + 1]
-    if (a.startsWith('--config=')) out.config = a.slice('--config='.length)
-    if (a === '--lang') out.lang = argv[i + 1]
-    if (a.startsWith('--lang=')) out.lang = a.slice('--lang='.length)
+    if (ROOT_SUBCOMMANDS.has(a)) break
+    if (a === '-c' || a === '--config') out.config = argv[++i]
+    else if (a.startsWith('--config=')) out.config = a.slice('--config='.length)
+    else if (a === '--lang') out.lang = argv[++i]
+    else if (a.startsWith('--lang=')) out.lang = a.slice('--lang='.length)
   }
   return out
 }
 
 type LoadedConfig = { cfgPath: string; cfgDir: string; cfg: GstsConfig }
 
-async function loadConfigOrNull(opts: GlobalOptions): Promise<LoadedConfig | null> {
+async function loadConfigOrNull(
+  opts: GlobalOptions,
+  profile: 'compile' | 'project' = 'compile'
+): Promise<LoadedConfig | null> {
   const cfgPath = resolveConfigPath(opts)
   if (!existsFile(cfgPath)) return null
   const cfgDir = path.dirname(cfgPath)
-  const cfg = await loadGstsConfigCached(cfgPath)
+  const cfg = await loadGstsConfigCached(cfgPath, profile)
   return { cfgPath, cfgDir, cfg }
 }
 
@@ -1259,31 +1277,27 @@ async function runDev(opts: GlobalOptions) {
   await new Promise<void>(() => {})
 }
 
-async function runMaps(opts: GlobalOptions) {
-  const loaded = await loadConfigOrNull(opts)
+async function runMaps(
+  opts: GlobalOptions,
+  commandOptions: { format?: string; includeHash?: boolean }
+) {
+  const loaded = await loadConfigOrNull(opts, 'project')
   const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
-  const resolve = resolveGilFolder as unknown as (cfg: GstsInjectConfig) => { saveLevelDir: string }
-  const resolved = resolve(gil)
-
-  const files = fs
-    .readdirSync(resolved.saveLevelDir, { withFileTypes: true })
-    .filter((d) => d.isFile() && d.name.toLowerCase().endsWith('.gil'))
-    .map((d) => {
-      const full = path.join(resolved.saveLevelDir, d.name)
-      const st = fs.statSync(full)
-      return { name: d.name, full, mtimeMs: st.mtimeMs }
-    })
-    .sort((a, b) => b.mtimeMs - a.mtimeMs)
-
+  const resolved = resolveGilFolder(gil)
+  const result = listMaps(
+    resolved.saveLevelDir,
+    { includeHash: commandOptions.includeHash },
+    { warn: (message) => console.error(`[warning] ${message}`) }
+  )
+  if (commandOptions.format === 'json') {
+    process.stdout.write(JSON.stringify(result, null, 2) + '\n')
+    return
+  }
   ui.ok(`maps: ${resolved.saveLevelDir}`)
-  const now = Date.now()
-  files.forEach((f) => {
-    const recent = now - f.mtimeMs <= 30 * 60 * 1000
-    const prefix = recent ? ui.highlight('[recent]') : '        '
-    const time = new Date(f.mtimeMs).toLocaleString()
-    const id = f.name.replace(/\.gil$/i, '')
-    console.log(`${prefix} ${id}  ${time}`)
-  })
+  for (const map of result.maps) {
+    const prefix = map.recent ? ui.highlight('[recent]') : '        '
+    console.log(`${prefix} ${map.mapId}  ${new Date(map.modifiedAtMs).toLocaleString()}`)
+  }
 }
 
 async function runOpen(target: string | undefined, opts: GlobalOptions) {
@@ -1566,7 +1580,7 @@ async function runSingle(file: string, opts: GlobalOptions) {
 
 async function main() {
   const pre = preparseArgv(process.argv.slice(2))
-  const preLoaded = await loadConfigOrNull({ config: pre.config, lang: pre.lang })
+  const preLoaded = await loadConfigOrNull({ config: pre.config, lang: pre.lang }, 'project')
   const lang = detectLang(pre.lang ?? (preLoaded && !pre.lang ? preLoaded.cfg.lang : undefined))
   const { t } = initCliI18n(lang)
 
@@ -1606,18 +1620,25 @@ async function main() {
   program
     .command('maps')
     .description(t('cmdMaps'))
-    .action(async () => {
+    .option('--format <format>', 'output format: text or json', 'text')
+    .option('--include-hash', 'include SHA-256 for each map')
+    .action(async (commandOptions: { format?: string; includeHash?: boolean }) => {
+      if (commandOptions.format !== 'text' && commandOptions.format !== 'json') {
+        throw new Error('[error] --format must be text or json')
+      }
       const opts = program.opts<GlobalOptions>()
-      await runMaps(opts)
+      await runMaps(opts, commandOptions)
     })
 
   program
     .command('assets:static-assemblies')
     .description(t('cmdAssetsStaticAssemblies'))
-    .option('--config <file>', t('staticAssembliesOptConfig'))
+    .option('--asset-config <file>', t('staticAssembliesOptConfig'))
+    .option('--config <file>', `${t('staticAssembliesOptConfig')} (deprecated alias)`)
     .option('--map-id <id>', t('staticAssembliesOptMapId'))
     .option('--gil <file>', t('staticAssembliesOptGil'))
     .option('--assembly <index>', t('staticAssembliesOptAssembly'))
+    .option('--format <format>', 'output format: text or json')
     .option('--output <file>', t('staticAssembliesOptOutput'))
     .option('--write', t('staticAssembliesOptWrite'))
     .addHelpText(
@@ -1627,8 +1648,11 @@ async function main() {
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .action(async () => {
-      const args = process.argv.slice(3).filter((arg) => arg !== '--')
-      await runAssetsStaticAssemblies(args)
+      const commandIndex = process.argv.indexOf('assets:static-assemblies')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      await runAssetsStaticAssemblies(args, { projectConfigPath })
     })
 
   program

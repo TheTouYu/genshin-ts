@@ -13,6 +13,8 @@ All optimize options are enabled by default.
 
 ## Static prefab assembly
 
+Root `-c/--config` is the project config and provides language, region, player, and map-location context. Static assembly commands load a separate asset config through `--asset-config`. An asset config needs only a default object export and a non-empty `assets.staticAssemblies`; it does not need non-empty compiler `entries`, while normal compilation keeps strict validation. Subcommand `--config` remains a deprecated alias and cannot disagree with `--asset-config`.
+
 `assets.staticAssemblies` builds new static custom prefabs from an existing template closure in the target map and confirmed official base-model resources:
 
 ```ts

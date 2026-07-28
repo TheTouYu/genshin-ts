@@ -1,0 +1,184 @@
+import type {
+  GstsResolvedStaticAssembly,
+  StaticAssemblyPlanV1,
+  StaticAssemblySourceLocator
+} from '../../compiler/gsts_config.js'
+import { analyzeStaticAssemblyClosure } from './closure.js'
+import { hashCanonicalJson, sha256Bytes } from './json.js'
+import { createStaticAssemblyMapIndex } from './map_index.js'
+
+export type StaticAssemblyPlanInput = {
+  bytes: Uint8Array
+  sourceLocator: StaticAssemblySourceLocator
+  assetConfig: { displayName: string; bytes: Uint8Array }
+  assemblies: readonly {
+    resolved: GstsResolvedStaticAssembly
+    structure?: { displayName: string; bytes: Uint8Array }
+  }[]
+}
+
+type Diagnostic = { code: string; field?: string; message: string }
+
+function color(value: GstsResolvedStaticAssembly['color']) {
+  if (!value) return undefined
+  return value.enabled
+    ? { ...value, reviewRgb: `0x${value.rgb.toString(16).padStart(6, '0').toUpperCase()}` }
+    : value
+}
+
+function normalizeAssembly(
+  input: StaticAssemblyPlanInput['assemblies'][number],
+  index: ReturnType<typeof createStaticAssemblyMapIndex>,
+  errors: Diagnostic[]
+): Record<string, unknown> {
+  const assembly = input.resolved
+  const closure = analyzeStaticAssemblyClosure(index, {
+    definitionId: assembly.templatePrefabId,
+    instanceId: assembly.templateInstanceId,
+    name: assembly.templateName
+  })
+  if (closure.status !== 'complete') {
+    errors.push({
+      code: 'template-closure-incomplete',
+      field: `assets.staticAssemblies.${assembly.name}`,
+      message: `template closure is ${closure.status}`
+    })
+  }
+  const requested = [
+    { kind: 'prefab', id: assembly.prefabId },
+    ...assembly.definitionAuxiliaryIds.map((id) => ({ kind: 'definitionAuxiliary', id })),
+    ...assembly.instanceAuxiliaryIds.map((id) => ({ kind: 'instanceAuxiliary', id }))
+  ]
+  const occupied = new Set([
+    ...index.occupiedIds.prefabs,
+    ...index.occupiedIds.instances,
+    ...index.occupiedIds.definitionAuxiliaries,
+    ...index.occupiedIds.instanceAuxiliaries
+  ])
+  const conflicts = requested.filter(
+    (entry, entryIndex) =>
+      occupied.has(entry.id) ||
+      requested.findIndex((candidate) => candidate.id === entry.id) !== entryIndex
+  )
+  for (const conflict of conflicts) {
+    errors.push({
+      code: 'id-conflict',
+      field: `${assembly.name}.${conflict.kind}`,
+      message: `ID ${conflict.id} is occupied or duplicated`
+    })
+  }
+  const item = (value: GstsResolvedStaticAssembly['items'][number]) => ({
+    resourceId: value.resourceId,
+    transform: {
+      position: value.position,
+      rotation: value.rotation ?? [0, 0, 0],
+      scale: value.scale ?? [1, 1, 1]
+    },
+    ...(value.color ? { color: color(value.color) } : {})
+  })
+  return {
+    name: assembly.name,
+    prefabId: assembly.prefabId,
+    template: {
+      definitionId: assembly.templatePrefabId,
+      instanceId: assembly.templateInstanceId,
+      name: assembly.templateName,
+      closureStatus: closure.status,
+      compatibility: 'unknown',
+      diagnostics: closure.diagnostics
+    },
+    definitionAuxiliaryIds: assembly.definitionAuxiliaryIds,
+    instanceAuxiliaryIds: assembly.instanceAuxiliaryIds,
+    transform: {
+      position: assembly.position,
+      rotation: assembly.rotation ?? [0, 0, 0],
+      scale: assembly.scale ?? [1, 1, 1]
+    },
+    ...(assembly.color ? { color: color(assembly.color) } : {}),
+    items: assembly.items.map(item),
+    resources: assembly.items.map((value) => value.resourceId),
+    ...(input.structure
+      ? {
+          structure: {
+            locator: { kind: 'structureFile', displayName: input.structure.displayName },
+            sha256: sha256Bytes(input.structure.bytes),
+            itemCount: assembly.items.length,
+            resources: assembly.items.map((value) => value.resourceId)
+          }
+        }
+      : { structure: { locator: { kind: 'inline' }, itemCount: assembly.items.length } }),
+    conflicts
+  }
+}
+
+export function createStaticAssemblyPlan(input: StaticAssemblyPlanInput): StaticAssemblyPlanV1 {
+  const index = createStaticAssemblyMapIndex(input.bytes)
+  const errors: Diagnostic[] = []
+  const warnings: Diagnostic[] = []
+  const assemblies = input.assemblies.map((assembly) => normalizeAssembly(assembly, index, errors))
+  const requestedIds = input.assemblies.flatMap(({ resolved }) => [
+    { id: resolved.prefabId, assembly: resolved.name, field: 'prefabId' },
+    ...resolved.definitionAuxiliaryIds.map((id, index) => ({
+      id,
+      assembly: resolved.name,
+      field: `definitionAuxiliaryIds[${index}]`
+    })),
+    ...resolved.instanceAuxiliaryIds.map((id, index) => ({
+      id,
+      assembly: resolved.name,
+      field: `instanceAuxiliaryIds[${index}]`
+    }))
+  ])
+  for (const entry of requestedIds) {
+    const owners = requestedIds.filter((candidate) => candidate.id === entry.id)
+    if (owners.length > 1 && owners[0] === entry) {
+      errors.push({
+        code: 'cross-assembly-id-conflict',
+        field: owners.map((owner) => `${owner.assembly}.${owner.field}`).join(','),
+        message: `ID ${entry.id} is requested ${owners.length} times across the plan`
+      })
+    }
+  }
+  const status = errors.length ? 'blocked' : 'ready'
+  const stableDiagnostics = (values: Diagnostic[]) =>
+    values.map(({ code, field }) => ({ code, ...(field ? { field } : {}) }))
+  const hashPayload = {
+    schemaVersion: 1,
+    source: { sha256: sha256Bytes(input.bytes), size: input.bytes.length },
+    assetConfigSha256: sha256Bytes(input.assetConfig.bytes),
+    assemblies,
+    touchedTopLevelFields: [4, 6, 8, 27],
+    field9: 'unchanged-by-current-implementation',
+    status,
+    warnings: stableDiagnostics(warnings),
+    errors: stableDiagnostics(errors)
+  }
+  return {
+    schemaVersion: 1,
+    kind: 'gsts.static-assembly.plan',
+    status,
+    source: {
+      locator: input.sourceLocator,
+      size: input.bytes.length,
+      sha256: sha256Bytes(input.bytes)
+    },
+    assetConfig: {
+      locator: { kind: 'assetConfig', displayName: input.assetConfig.displayName },
+      sha256: sha256Bytes(input.assetConfig.bytes)
+    },
+    assemblies,
+    touchedTopLevelFields: [4, 6, 8, 27],
+    field9: 'unchanged-by-current-implementation',
+    warnings,
+    errors,
+    evidenceBoundary: {
+      structuralInspection: true,
+      templateCompatibility: 'not-proven',
+      editorOrGameValidation: 'not-performed',
+      candidateGenerated: false,
+      sourceModified: false
+    },
+    planHashAlgorithm: 'sha256-canonical-json-v1',
+    planHash: hashCanonicalJson(hashPayload)
+  }
+}

@@ -29,7 +29,9 @@ for (const required of [
   'dist/src/index.d.ts',
   'dist/src/cli/assets_static_assemblies.js',
   'types/gsts/index.d.ts',
-  'schemas/static-assembly.schema.json'
+  'schemas/static-assembly.schema.json',
+  'schemas/static-assembly-inspection.schema.json',
+  'schemas/static-assembly-plan.schema.json'
 ]) {
   assert.ok(packedFiles.has(required), `packed genshin-ts is missing ${required}`)
 }
@@ -125,6 +127,43 @@ execFileSync(
   ['-p', 'tsconfig.package-consumer.json'],
   { cwd: starter, stdio: 'inherit' }
 )
+writeFileSync(
+  path.join(starter, 'subpath-consumer.mjs'),
+  `import { readGilPayloadFields } from 'genshin-ts/cli/gil_extract_utils.js'
+import { readVarint } from 'genshin-ts/injector/binary.js'
+import { loadGiaProto } from 'genshin-ts/injector/proto.js'
+const urls = await Promise.all([
+  import.meta.resolve('genshin-ts/cli/gil_extract_utils.js'),
+  import.meta.resolve('genshin-ts/injector/binary.js'),
+  import.meta.resolve('genshin-ts/injector/types.js'),
+  import.meta.resolve('genshin-ts/injector/proto.js')
+])
+if (urls.some((url) => url.includes('.js.js') || !url.includes('/node_modules/genshin-ts/'))) {
+  throw new Error('invalid installed subpath resolution: ' + urls.join(','))
+}
+if (typeof readGilPayloadFields !== 'function' || typeof readVarint !== 'function' || typeof loadGiaProto !== 'function') {
+  throw new Error('installed public subpath exports are unavailable')
+}
+`
+)
+const subpath = execFileSync(process.execPath, ['subpath-consumer.mjs'], {
+  cwd: starter,
+  encoding: 'utf8'
+})
+assert.doesNotMatch(subpath, /\.js\.js/)
+const minimalGil = path.join(starter, 'minimal.gil')
+const header = Buffer.alloc(20)
+header.writeUInt32BE(0x0326, 8)
+const tail = Buffer.alloc(4)
+tail.writeUInt32BE(0x0679)
+writeFileSync(minimalGil, Buffer.concat([header, tail]))
+const toolOutput = execFileSync(
+  path.join(starter, 'node_modules/.bin/tsx'),
+  ['tools/list-gil-node-graphs.ts', minimalGil],
+  { cwd: starter, encoding: 'utf8' }
+)
+assert.deepEqual(JSON.parse(toolOutput).graphs, [])
+assert.doesNotMatch(toolOutput, /\.js\.js/)
 const help = execFileSync('npm', ['run', 'assets:static-assemblies', '--', '--help'], {
   cwd: starter,
   encoding: 'utf8'

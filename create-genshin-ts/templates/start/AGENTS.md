@@ -8,7 +8,7 @@
 
 - 使用前先读 `README.md`；中文场景同时读 `README_ZH.md` 和 `docs/EDITOR_BOUNDARIES_ZH.md`。
 - 先区分“代码可以完成的部分”和“必须在编辑器中完成的资源或配置”。缺少编辑器资源时，明确说明阻塞点，不要猜测资源已存在。
-- 用户要求从官方基础模型拼装、缩放或旋转并生成新元件时，先查 `assets:static-assemblies` 及其模板/ID/验证边界；复杂结构可使用版本化 JSON `structureFile`，但不要把它当作从 `.gil` 自动提取；运行时生成实体查 `createPrefab`，节点图替换查 GIA injection，不要混为一谈。
+- 用户要求从官方基础模型拼装、缩放或旋转并生成新元件时，先走只读 `maps JSON → inspect → --asset-config → plan`，再查模板/ID/验证边界；复杂结构可使用版本化 JSON `structureFile`，但不要把它当作从 `.gil` 自动提取。`inspect`/`plan` 不授权写回，`closureStatus=complete` 不代表游戏兼容；运行时生成实体查 `createPrefab`，节点图替换查 GIA injection，不要混为一谈。
 
 ## 编写规则
 

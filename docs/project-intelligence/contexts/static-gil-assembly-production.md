@@ -2,7 +2,7 @@
 
 > 生命周期：active
 > 恢复角色：current recovery
-> 最近更新：2026-07-28
+> 最近更新：2026-07-29
 
 ## 目标
 
@@ -10,7 +10,9 @@
 
 ## 当前检查点
 
-- 当前实现入口：`gsts assets:static-assemblies`。
+- 当前实现入口：`gsts maps --format json`、`gsts assets:static-assemblies inspect|plan`，以及兼容保留的 preview/output/write。
+- 只读检查点：共享 wire/index/closure 已建立；inspection/plan V1 schema 和公开类型已发布，plan 绑定源、资产配置、结构文件与规范化语义。
+- 自动验证检查点：七项 focused 回归、构建和 tarball 消费通过；`npm test` 在既有 `tests/builtins_math_success_test.ts:42:17` 的 LocalVariable int/float 诊断处停止，本轮未降低断言。
 - 实现提交：`99b75f7 feat: add static GIL assembly tool`。
 - 生产复跑必要修复：`48b8152 fix: preserve static assembly instance metadata`。
 - 权威生产验证记录：`docs/architecture/gil-static-model-assets.md` §19.2.1。
@@ -20,7 +22,7 @@
 - 颜色验证状态：主体和六件装饰物 raw-wire 回归通过、CLI 自动备份与写回成功、写后闭包回读通过、用户反馈编辑器/游戏测试“完美通过”。
 - 当前颜色范围：球体、圆锥、圆柱、线框长方体、线框圆柱；33/50/66/100% 透明度；覆盖、正片叠底和关闭自定义颜色。
 - 声明式结构文件：严格 JSON `schemaVersion: 1` 已支持主颜色和 items；地图模板、ID 与场景 Transform 仍由配置提供。
-- 发布消费回归：`npm pack` 后全新脚手架可从包名导入静态拼装公开类型并运行已安装 CLI help。
+- 发布消费回归：`npm pack` 后全新脚手架可从包名导入静态拼装公开类型、schema 和带 `.js` 的 CLI/injector 子路径，并运行已安装 CLI help/模板工具解析。
 - 未决边界：`field 9=6710` 仍仅为保留的未知字段，不视为材质语义已验证；从 `.gil` 提取结构尚未实现。
 
 上述状态证明两轮受限生产配置形成了生产闭环；不推广到其它地图、模板、未测资源、材质、update/delete 或自动 ID 分配。
@@ -50,7 +52,7 @@
 
 ## 下一恢复点
 
-颜色公开配置、显式模板实例 ID、多资源颜色生产验证、声明式 JSON 结构文件和发布包/脚手架消费回归已完成。下一次推进先让用户选择新的生产目标，例如从 `.gil` 独立提取结构、材质最小 A/B、增加资源覆盖、改进 ID 分配或新增 update 模式；不得从历史临时工件猜测下一目标。任何新的真实地图写回都必须重新确认目标、当前哈希、ID、候选、回滚和验证方案。
+稳定 maps JSON、只读 inspect、确定性 plan、配置 profile、带 `.js` 包子路径和 tarball 消费回归已完成。当前自动回归使用确定性合成 fixture，证明 parser/index/closure/JSON/只读契约，不是新的真实地图或游戏证据；本轮没有执行真实写回或游戏验证。下一次推进可在 plan seam 上单独设计 plan-gated output、独立 verify、source-hash-gated write、receipt/rollback，或选择新的真实生产目标；任何写回都必须重新确认目标、当前哈希、ID、候选、回滚和验证方案。
 
 ## 验证门
 

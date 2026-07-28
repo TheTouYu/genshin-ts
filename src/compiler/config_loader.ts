@@ -7,6 +7,8 @@ import { pathToFileURL } from 'node:url'
 
 import type { GstsConfig } from './gsts_config.js'
 
+export type GstsConfigProfile = 'compile' | 'project' | 'static-assemblies'
+
 export function existsFile(p: string) {
   try {
     return fs.statSync(p).isFile()
@@ -27,24 +29,55 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === 'object' && !Array.isArray(v)
 }
 
-function isStringArray(v: unknown): v is string[] {
-  return Array.isArray(v) && v.every((x) => typeof x === 'string')
+function fail(
+  configPath: string,
+  profile: GstsConfigProfile,
+  field: string,
+  detail: string
+): never {
+  throw new Error(
+    `[error] config ${path.resolve(configPath)} (profile=${profile}): ${field} ${detail}`
+  )
 }
 
-function isGstsConfig(v: unknown): v is GstsConfig {
-  if (!isRecord(v)) return false
-  if (typeof v.compileRoot !== 'string') return false
-  if (!isStringArray(v.entries) || v.entries.length === 0) return false
-  if (typeof v.outDir !== 'string') return false
-  return true
+function validateConfig(
+  exported: unknown,
+  configPath: string,
+  profile: GstsConfigProfile
+): GstsConfig {
+  if (!isRecord(exported)) fail(configPath, profile, 'default', 'must export an object')
+  if (profile === 'compile') {
+    if (typeof exported.compileRoot !== 'string')
+      fail(configPath, profile, 'compileRoot', 'must be a string')
+    if (!Array.isArray(exported.entries) || exported.entries.length === 0)
+      fail(configPath, profile, 'entries', 'must be a non-empty string array')
+    if (!exported.entries.every((value) => typeof value === 'string'))
+      fail(configPath, profile, 'entries', 'must contain only strings')
+    if (typeof exported.outDir !== 'string') fail(configPath, profile, 'outDir', 'must be a string')
+  }
+  if (profile === 'static-assemblies') {
+    if (!isRecord(exported.assets)) fail(configPath, profile, 'assets', 'must be an object')
+    if (
+      !Array.isArray(exported.assets.staticAssemblies) ||
+      exported.assets.staticAssemblies.length === 0
+    ) {
+      fail(configPath, profile, 'assets.staticAssemblies', 'must be a non-empty array')
+    }
+  }
+  return exported as GstsConfig
 }
 
-export async function loadGstsConfig(configPath: string): Promise<GstsConfig> {
-  const ext = path.extname(configPath).toLowerCase()
+export async function loadGstsConfig(
+  configPath: string,
+  options: { profile?: GstsConfigProfile } = {}
+): Promise<GstsConfig> {
+  const absolutePath = path.resolve(configPath)
+  const profile = options.profile ?? 'compile'
+  const ext = path.extname(absolutePath).toLowerCase()
   const isTs = ext === '.ts' || ext === '.mts' || ext === '.cts'
 
   const loadViaImport = async (): Promise<unknown> => {
-    const mod = (await import(pathToFileURL(configPath).href)) as unknown
+    const mod = (await import(pathToFileURL(absolutePath).href)) as unknown
     return isRecord(mod) && 'default' in mod ? ((mod as { default?: unknown }).default ?? mod) : mod
   }
 
@@ -63,12 +96,12 @@ export async function loadGstsConfig(configPath: string): Promise<GstsConfig> {
       `const cfgPath = process.argv[2]`,
       `const mod = await import(pathToFileURL(cfgPath).href)`,
       `const out = (mod && typeof mod === 'object' && 'default' in mod) ? (mod.default ?? mod) : mod`,
-      `process.stdout.write(JSON.stringify(out, (key, value) => key === 'assets' ? undefined : value))`
+      `process.stdout.write(JSON.stringify(out, (_key, value) => typeof value === 'bigint' ? { __gstsBigInt: String(value) } : value))`
     ].join('\n')
 
     fs.writeFileSync(tmp, code, 'utf8')
     try {
-      const res = spawnSync(process.execPath, [tsxCli, tmp, configPath], {
+      const res = spawnSync(process.execPath, [tsxCli, tmp, absolutePath], {
         encoding: 'utf8',
         windowsHide: true
       })
@@ -77,7 +110,16 @@ export async function loadGstsConfig(configPath: string): Promise<GstsConfig> {
         const msg = (res.stderr || res.stdout || '').trim()
         throw new Error(msg || `exit code ${String(res.status)}`)
       }
-      return JSON.parse(res.stdout)
+      return JSON.parse(res.stdout, (_key, value: unknown) => {
+        if (
+          isRecord(value) &&
+          Object.keys(value).length === 1 &&
+          typeof value.__gstsBigInt === 'string'
+        ) {
+          return BigInt(value.__gstsBigInt)
+        }
+        return value
+      })
     } finally {
       try {
         fs.unlinkSync(tmp)
@@ -88,8 +130,5 @@ export async function loadGstsConfig(configPath: string): Promise<GstsConfig> {
   }
 
   const exported = isTs ? loadViaTsx() : await loadViaImport()
-  if (!isGstsConfig(exported)) {
-    throw new Error('[error] config must provide compileRoot, entries, outDir')
-  }
-  return exported
+  return validateConfig(exported, absolutePath, profile)
 }

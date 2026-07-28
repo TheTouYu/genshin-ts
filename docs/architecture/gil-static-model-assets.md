@@ -927,10 +927,12 @@ Transform 的视觉调参需要从一次性脚本迁移到可重复配置工具�
 
 > 状态：当前实现 / 已验证
 > 来源：当前代码实现 + 自动回归 + 真实地图写回回读 + 用户游戏内验证
-> 最近校验：2026-07-28
-> 适用范围：以本地图 `静态拼装H1` 为模板、使用长方体资源 `10009001` 创建新组件；其它模板、资源和地图待逐项验证
+> 最近校验：2026-07-29
+> 适用范围：当前静态拼装实现及既有受限生产证据；其它模板、资源和地图待逐项验证
 
-当前实现入口为 `gsts assets:static-assemblies`，核心代码位于
+当前公开入口包括只读 `gsts maps --format json`、`gsts assets:static-assemblies inspect`、确定性 `plan`，以及兼容保留的 preview/output/write。共享只读实现位于 `src/cli/static_assembly/`：`wire.ts` 提供受限 protobuf-like 原语，`map_index.ts` 一次建立定义、实例、两侧辅助和占用 ID 索引，`closure.ts` 只在当前已知检查全部通过时返回 `complete`。`inspect`/`plan` 不生成候选、不写源文件；`complete` 不证明模板或资源兼容，JSON 固定保留 `compatibility=unknown` 和“未编辑器/游戏验证”边界。
+
+原有写入实现入口为 `gsts assets:static-assemblies`，核心代码位于
 `src/cli/gil_static_assemblies.ts`，命令包装位于 `src/cli/assets_static_assemblies.ts`。工具以
 配置中的 `assets.staticAssemblies` 声明每件装饰物的本地 Transform。公开 `GstsConfig`、
 `GstsStaticAssembly` 和 `GstsStaticAssemblyItem` 类型已包含该配置。模板主定义 ID 与主实例 ID
@@ -974,7 +976,7 @@ export default config
 默认命令只在临时文件中生成并输出摘要，不会修改地图：
 
 ```bash
-node bin/gsts.mjs assets:static-assemblies --config gsts.static-assemblies.config.mjs --map-id <mapId>
+node bin/gsts.mjs assets:static-assemblies --asset-config gsts.static-assemblies.config.mjs --map-id <mapId>
 ```
 
 `--output <candidate.gil>` 只允许新建候选文件；`--write` 才会覆盖已选地图，并在目标同级

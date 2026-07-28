@@ -31,31 +31,57 @@
       "default": "./dist/src/eslint/index.js"
     },
     "./eslint.globals.mjs": "./eslint.globals.mjs",
+    "./compiler/*.js": {
+      "types": "./dist/src/compiler/*.d.ts",
+      "default": "./dist/src/compiler/*.js"
+    },
     "./compiler/*": {
       "types": "./dist/src/compiler/*.d.ts",
       "default": "./dist/src/compiler/*.js"
+    },
+    "./injector/*.js": {
+      "types": "./dist/src/injector/*.d.ts",
+      "default": "./dist/src/injector/*.js"
     },
     "./injector/*": {
       "types": "./dist/src/injector/*.d.ts",
       "default": "./dist/src/injector/*.js"
     },
+    "./cli/*.js": {
+      "types": "./dist/src/cli/*.d.ts",
+      "default": "./dist/src/cli/*.js"
+    },
     "./cli/*": {
       "types": "./dist/src/cli/*.d.ts",
       "default": "./dist/src/cli/*.js"
+    },
+    "./thirdparty/*.js": {
+      "types": "./dist/src/thirdparty/*.d.ts",
+      "default": "./dist/src/thirdparty/*.js"
     },
     "./thirdparty/*": {
       "types": "./dist/src/thirdparty/*.d.ts",
       "default": "./dist/src/thirdparty/*.js"
     },
+    "./runtime/*.js": {
+      "types": "./dist/src/runtime/*.d.ts",
+      "default": "./dist/src/runtime/*.js"
+    },
     "./runtime/*": {
       "types": "./dist/src/runtime/*.d.ts",
       "default": "./dist/src/runtime/*.js"
+    },
+    "./definitions/*.js": {
+      "types": "./dist/src/definitions/*.d.ts",
+      "default": "./dist/src/definitions/*.js"
     },
     "./definitions/*": {
       "types": "./dist/src/definitions/*.d.ts",
       "default": "./dist/src/definitions/*.js"
     },
     "./schemas/static-assembly.schema.json": "./schemas/static-assembly.schema.json",
+    "./schemas/static-assembly-inspection.schema.json": "./schemas/static-assembly-inspection.schema.json",
+    "./schemas/static-assembly-plan.schema.json": "./schemas/static-assembly-plan.schema.json",
     "./configs/ts-plugin": "./configs/ts-plugin/index.cjs",
     "./configs/ts-plugin/index.cjs": "./configs/ts-plugin/index.cjs",
     "./configs/*": "./configs/*",

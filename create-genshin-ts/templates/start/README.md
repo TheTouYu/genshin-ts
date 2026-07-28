@@ -375,7 +375,10 @@ Rules:
 - `npm run assets:custom-variables -- --write`: back up and write the real map
 - `npm run assets:custom-variables -- --map-id <id>`: temporarily choose a map
 - `npm run assets:custom-variables -- --gil <file.gil>`: process an offline GIL
-- `npm run assets:static-assemblies -- --map-id <id>`: preview the static assembly plan without modifying the map
+- `npx gsts maps --format json --include-hash`: stable, privacy-safe map discovery JSON
+- `npm run assets:static-assemblies -- inspect --gil <source.gil> --format json`: read-only template closure and occupied-ID inspection
+- `npm run assets:static-assemblies -- plan --asset-config <file> --gil <source.gil> --output <plan.json>`: deterministic source-hash-bound plan
+- `npm run assets:static-assemblies -- --asset-config <file> --map-id <id>`: compatible preview without modifying the map
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`: save an offline candidate without overwriting an existing file
 - `npm run assets:static-assemblies -- --map-id <id> --write`: explicitly back up and write the real map
 

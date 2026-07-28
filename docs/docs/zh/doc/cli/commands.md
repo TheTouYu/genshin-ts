@@ -8,19 +8,25 @@
 - `gsts assets:custom-variables`
 - `gsts assets:static-assemblies`
 
-## 静态元件拼装
+## 地图发现与静态元件拼装
 
 ```bash
-# 默认只预览，不修改地图
-npm run assets:static-assemblies -- --map-id <id>
+# 稳定、默认脱敏的地图 JSON；仅显式要求时计算文件哈希
+gsts -c gsts.config.ts maps --format json --include-hash
 
-# 保存离线候选，不覆盖已有文件
-npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>
+# 直接检查一个 GIL，不需要项目配置
+gsts assets:static-assemblies inspect --gil source.gil --format json
 
-# 显式备份并写回
-npm run assets:static-assemblies -- --map-id <id> --write
+# 项目配置只负责地图定位；资产配置独立声明拼装内容
+gsts -c gsts.config.ts assets:static-assemblies plan \
+  --asset-config assemblies.config.ts --map-id <id> --output plan.json
+
+# 旧 preview/output/write 入口继续兼容
+npm run assets:static-assemblies -- --asset-config assemblies.config.ts --gil source.gil
 ```
 
-preview 会先加载相对配置目录的 `structureFile`（如有），再打印来源/候选 SHA-256、主 ID、两侧辅助 ID、资源列表、item 数量和触及的顶层字段。结构文件诊断在读取 `.gil` 前失败，不会修改结构文件或源地图。`--write` 成功只证明文件已备份并写回，不证明编辑器加载或游戏行为正确。
+`maps` JSON 按修改时间降序、再按 mapId 排序，默认不包含玩家目录或绝对路径；`recent` 只表示 30 分钟窗口，不代表选中或授权。`inspect` 输出定义、实例、两侧辅助闭包、Transform、占用 ID、候选模板和源 SHA-256。`plan` 绑定源 GIL、资产配置、结构文件和规范化拼装语义，生成确定性 `planHash`；冲突或闭包不完整时状态为 `blocked` 并以非零退出。
+
+`inspect` 和 `plan` 始终只读，`--output` 只新建、不覆盖。`closureStatus=complete` 只证明当前已知结构完整，`compatibility=unknown`；自动检查不等于编辑器或游戏验证。旧子命令 `--config` 暂作为 `--asset-config` 的 deprecated alias，根 `-c/--config` 只表示项目配置。
 
 静态元件拼装写入 `.gil` 资产结构；GIA injection 替换 NodeGraph；`createPrefab` 在运行时创生已有元件。三者不能互相替代。

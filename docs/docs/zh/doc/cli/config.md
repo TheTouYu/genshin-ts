@@ -13,6 +13,8 @@
 
 ## 静态元件拼装
 
+根 `-c/--config` 是项目配置，只负责语言、区服、玩家和地图定位等上下文；静态拼装命令通过 `--asset-config` 加载含 `assets.staticAssemblies` 的独立资产配置。资产配置只要求默认导出对象和非空 `assets.staticAssemblies`，不要求编译 `entries` 非空；普通编译仍使用严格配置校验。旧子命令 `--config` 暂作 deprecated alias，不能与不同路径的 `--asset-config` 同时使用。
+
 `assets.staticAssemblies` 可基于目标地图中已有的模板闭包和已确认的官方基础模型资源，生成新的静态拼装自定义元件：
 
 ```ts
