@@ -4,8 +4,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { clearTimeout, setTimeout } from 'node:timers'
 
-import { readDiagnosticsDir } from '../diagnostics.js'
-
 import chokidar from 'chokidar'
 import { program } from 'commander'
 import fg from 'fast-glob'
@@ -26,7 +24,9 @@ import {
   resolveStage3ImplBackend,
   type Stage3BackendDecision
 } from '../compiler/ir_to_gia_transform/stage3_backend.js'
+import { createSignalRegistry, type SignalRegistry } from '../compiler/signal_registry.js'
 import { compileTsToGs } from '../compiler/ts_to_gs_pipeline.js'
+import { readDiagnosticsDir } from '../diagnostics.js'
 import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
@@ -36,8 +36,11 @@ import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
 import { resolveGilFolder, resolveGilTarget } from './gil_paths.js'
 import { DEFAULT_RESOURCES_PATH, extractCustomResourcesFromGil } from './gil_resources.js'
-import { DEFAULT_SIGNALS_PATH, extractSignalsFromGil, readRegisteredSignalsFromGil } from './gil_signals.js'
-import { createSignalRegistry, type SignalRegistry } from '../compiler/signal_registry.js'
+import {
+  DEFAULT_SIGNALS_PATH,
+  extractSignalsFromGil,
+  readRegisteredSignalsFromGil
+} from './gil_signals.js'
 import { getMapKey, loadState, saveState } from './state.js'
 import { createUi } from './ui.js'
 import { openAndSelect, openDir } from './windows_open.js'
@@ -1473,7 +1476,12 @@ async function runSingle(file: string, opts: GlobalOptions) {
     const signalRegistry = injectCfg
       ? createSignalRegistry(readRegisteredSignalsFromGil(resolveGilTarget(injectCfg).gilPath))
       : undefined
-    const out = writeGiaFromOutJson(abs, undefined, (x) => ui.ok(`${x.giaPath} (id=${x.graphId})`), signalRegistry)
+    const out = writeGiaFromOutJson(
+      abs,
+      undefined,
+      (x) => ui.ok(`${x.giaPath} (id=${x.graphId})`),
+      signalRegistry
+    )
     // 单文件模式：允许使用 config.inject.nodeGraphId 覆盖目标 id
     out.forEach((x) => maybeInjectGia(x.giaPath, opts, injectCfg, true, lang))
     return
@@ -1486,7 +1494,12 @@ async function runSingle(file: string, opts: GlobalOptions) {
     const signalRegistry = injectCfg
       ? createSignalRegistry(readRegisteredSignalsFromGil(resolveGilTarget(injectCfg).gilPath))
       : undefined
-    const out = writeGiaFromOutJson(abs, undefined, (x) => ui.ok(`${x.giaPath} (id=${x.graphId})`), signalRegistry)
+    const out = writeGiaFromOutJson(
+      abs,
+      undefined,
+      (x) => ui.ok(`${x.giaPath} (id=${x.graphId})`),
+      signalRegistry
+    )
     // 单文件模式：允许使用 config.inject.nodeGraphId 覆盖目标 id
     out.forEach((x) => maybeInjectGia(x.giaPath, opts, injectCfg, true, lang))
     return
@@ -1541,8 +1554,11 @@ async function runSingle(file: string, opts: GlobalOptions) {
   const signalRegistry = injectCfg
     ? createSignalRegistry(readRegisteredSignalsFromGil(resolveGilTarget(injectCfg).gilPath))
     : undefined
-  const giaOut = writeGiaFromOutJson(irPath, undefined, (x) =>
-    ui.ok(`${x.giaPath} (id=${x.graphId})`), signalRegistry
+  const giaOut = writeGiaFromOutJson(
+    irPath,
+    undefined,
+    (x) => ui.ok(`${x.giaPath} (id=${x.graphId})`),
+    signalRegistry
   )
   // 单文件模式：允许使用 config.inject.nodeGraphId 覆盖目标 id
   giaOut.forEach((x) => maybeInjectGia(x.giaPath, opts, injectCfg, true, lang))
