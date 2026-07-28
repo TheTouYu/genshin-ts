@@ -31,13 +31,13 @@ No claims are created by this Blueprint structure Bundle.
 
 <!-- CLAIM:START clm_01KYGSK9PHX67KFENCBF7MAY2E -->
 
-### 静态拼装公开配置、结构文件与发布消费边界
+### 静态拼装公开配置、只读发现、确定性计划与发布消费边界
 
-`assets:static-assemblies` 动态导入默认配置并从 `assets.staticAssemblies` 选择组件。公开 `GstsStaticAssembly` 现在是互斥联合：内联分支提供主体 `color` 与 `items`，文件分支只提供 `structureFile`；地图相关名称、模板定义/实例 ID、新 prefab ID、两侧辅助 ID 和场景 Transform 始终留在目标配置。`structureFile` 相对配置文件目录解析，只接受严格 JSON `schemaVersion: 1`，文件可携带主体颜色和逐 item 的资源、局部 Transform、颜色；未知字段、非法版本、空 items、非法颜色和非有限 Transform 均在编码前拒绝。根入口公开 `GstsConfig`、`GstsStaticAssembly`、`GstsStaticAssemblyItem`、`GstsStaticAssemblyStructure` 与 `GstsStaticColor`，发布包同时提供 `schemas/static-assembly.schema.json`。自动消费回归会构建并打包主包与 `create-genshin-ts`，从安装后的脚手架生成全新 starter、安装主包 tarball、按包名完成上述类型检查，并运行安装后的 `assets:static-assemblies --help`。
+根 `-c/--config` 只提供项目上下文，静态拼装声明由 `--asset-config` 加载；旧子命令 `--config` 仅为 deprecated alias，冲突路径失败关闭。共享 `src/cli/static_assembly/` 以受限 wire reader 一次建立定义、实例、两侧辅助、owner registry 和占用 ID 索引；公开 `inspectStaticAssemblyMap()`/`inspect` 返回 Inspection V1，公开 `createStaticAssemblyPlan()`/`plan` 将源 GIL、资产配置、结构文件、规范化 assembly、模板闭包与 ID 冲突绑定到 canonical JSON SHA-256。`maps --format json` 默认脱敏并只在 `--include-hash` 时读取内容。根入口导出 Inspection/Plan V1 类型和纯函数，发布包提供 inspection/plan schema。tarball 消费回归从安装后的 starter 实际解析带 `.js` 的 cli/injector 子路径，并以最小无私人数据 GIL 运行模板工具。
 
 #### 适用边界
 
-这是 commit b09390c 的当前公开类型、结构加载和发布消费边界。结构文件加载器不读写 `.gil`，也不从已有 `.gil` 提取结构；自动构建、解析测试和 tarball/starter 消费只证明当前代码与离线发布链路，不证明真实地图写回、编辑器加载或游戏行为。颜色 wire、闭包、ID 安全与既有受限游戏验证仍由各自 Claim 管辖；任何真实地图操作都需重新确认。`src/compiler/gsts_config.ts`、`src/index.ts`、`src/cli/assets_static_assemblies.ts`、`src/cli/static_assembly_structure.ts`、`package.json` 或对应消费测试变化时必须复核。
+这是 commit 8fb0e52 的当前只读发现、计划和离线发布消费契约。合成 fixture 与 focused 回归只证明 parser/index/closure、稳定 JSON、冲突/漂移和源文件只读，不证明真实编辑器 GIL 的所有布局、模板/资源兼容、候选编码、真实写回或游戏行为；closureStatus=complete 仍保持 compatibility=unknown。plan 不授权 write，后续 plan-gated output、独立 verify、source-hash-gated write、receipt/rollback 需另行实现和确认。相关 CLI、loader、static_assembly 模块、公开类型/schema、exports 或 focused 测试变化时必须复核。
 
 <!-- CLAIM:END clm_01KYGSK9PHX67KFENCBF7MAY2E -->
 
@@ -64,3 +64,15 @@ No claims are created by this Blueprint structure Bundle.
 这是 commit b09390c 的模块 seam 与自动发布消费证据。它不证明 npm registry 已发布该提交，不证明任何真实 `.gil` 候选、写回、编辑器加载或游戏行为，也不实现从 `.gil` 提取结构。结构加载器、Schema、包导出、脚手架模板或消费回归变化时必须重新验证。
 
 <!-- CLAIM:END clm_7395AFE937DC8FD43786AA5B34 -->
+
+<!-- CLAIM:START clm_CFC2CA7A47D98ED4C1C40B081E -->
+
+### 静态拼装只读发现与确定性计划安全契约
+
+公开只读路径按 `maps JSON → inspect → --asset-config → plan` 分层：maps 只负责稳定脱敏的地图元数据，inspect 从源 bytes 建立定义、实例、两侧辅助、owner registry、Transform 和占用 ID 索引，plan 再将源 GIL、资产配置文件、结构文件和规范化 assembly 语义绑定到 canonical JSON SHA-256。只有模板定义/实例精确匹配、当前已知闭包完整且所有显式 ID 无冲突时状态为 ready；否则生成机器可读 blocked 计划并非零退出。inspect/plan 的 `--output` 只新建，源 hash/mtime 保持不变且不创建地图备份。
+
+#### 适用边界
+
+这是 commit 8fb0e52 的当前实现和确定性合成 fixture 自动回归契约，不是新的真实地图、编辑器或游戏证据。closureStatus=complete 只说明当前已知 field 4/6/8/27 闭包检查通过，兼容性仍为 unknown；freeRuns 仅是绑定源哈希的 proposal，不是编辑器全局 ID 分配协议。plan 不生成候选、不授权 write，也不实现 verify、receipt 或 rollback。
+
+<!-- CLAIM:END clm_CFC2CA7A47D98ED4C1C40B081E -->
