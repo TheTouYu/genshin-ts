@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：当前代码实现 + 文档结构审计
-> 最近校验：2026-07-06
+> 最近校验：2026-07-27
 > 适用范围：gsts 当前文档体系
 
 本文档按任务说明应该阅读哪里。它不是所有文档的完整目录，而是当前可信入口地图。
@@ -14,9 +14,10 @@
 | 写普通 DSL 脚本 | `docs/docs/en/` / `docs/docs/zh/` | Rspress 用户文档，面向普通使用。 |
 | 查游戏引擎 API 用法 | [`architecture/docs-search.md`](architecture/docs-search.md) + `engine-api-usage`；官方节点规则不足时补用项目级 `miliastra-knowledge` skill | 先按任务路由和本地 docs-search 查事件、实体、向量、变量、集合、定时器、信号和控制流；需要确认编辑器公开节点规则/合法类型组合时，可用 skill 查询外部官方资料。检索不替代真实 GIA、源码或游戏验证。 |
 | 查精确 API/事件签名 | [`architecture/docs-search.md`](architecture/docs-search.md) + `engine-api-signatures` | 查询方法、事件、参数、返回类型和生成定义来源；签名不是教程或游戏验证。 |
-| 理解编译管线 | [`architecture/composite/pipeline-flow.md`](architecture/composite/pipeline-flow.md) | TS 到 IR 到 GIA 的正向实现视角。 |
+| 理解编译管线 | [`architecture/compilation-pipeline-overview.md`](architecture/compilation-pipeline-overview.md) + `python tools/pkc.py progressive-query --context compiler-diagnostics --intent "<阶段或 seam>" --max-level 2 --limit 3 --check-authority` | PKC 已覆盖 Stage 1 表达式/LocalVariable、Stage 2 runtime→IR、typed server/client IR、Stage 3 ordinary/synthetic/boundary seam 和结构化诊断定位；Composite 专项流见 [`architecture/composite/pipeline-flow.md`](architecture/composite/pipeline-flow.md)。 |
+| 恢复复杂编译器诊断 | [`project-intelligence/contexts/compiler-diagnostics.md`](project-intelligence/contexts/compiler-diagnostics.md) → `python tools/pkc.py progressive-query ...` | 独立恢复入口登记当前检查点、Formal A/B、L1→L3、shared/legacy 状态、验证门与安全边界。 |
 | 通过知识树查询复合节点核心契约 | `python tools/pkc.py progressive-query --context compiler-diagnostics --intent "<问题>" --max-level 2 --limit 3 --check-authority` | 已覆盖定义/调用生命周期、捕获与 IR 边界、Stage 3 root/impl 编码、完整验证流程，以及既有物理引脚规则；只读查询不会授权源码、GIA 或地图操作。 |
-| 扩大 Project Memory / Domain Knowledge 覆盖 | [`project-intelligence/knowledge-tree-expansion-plan.md`](project-intelligence/knowledge-tree-expansion-plan.md) | 当前规划：扩展原则、分期领域、Context 门槛、标准交付物、检索预算和验收指标；规划不代表目标领域已经覆盖。 |
+| 扩大 Project Memory / Domain Knowledge 覆盖 | [`project-intelligence/knowledge-tree-expansion-plan.md`](project-intelligence/knowledge-tree-expansion-plan.md) + [`project-intelligence/bundle-governance.md`](project-intelligence/bundle-governance.md) | 扩展原则、分期领域、Context 门槛、批准前 staged validation 和 Bundle 生命周期；规划不代表目标领域已经覆盖。 |
 | 读取或写回玩家 / CustomPrefab 初始自定义变量 | [`architecture/gil-custom-variables.md`](architecture/gil-custom-variables.md) | GIL 资产读取、变量注入、真实地图证据与安全边界；不要与 `.gia` 节点图注入混用。 |
 | 使用静态元件拼装工具 | 用户配置：[`docs/zh/doc/cli/config.md`](docs/zh/doc/cli/config.md)；命令：[`docs/zh/doc/cli/commands.md`](docs/zh/doc/cli/commands.md) | `assets.staticAssemblies` 基于目标地图模板与已确认官方资源生成自定义元件；默认 preview，修改 `.gil` 资产而非 NodeGraph。 |
 | 分析静态 `.gil` 模型、Prefab、自定义元件和装饰物 | [`project-intelligence/contexts/static-gil-assembly-production.md`](project-intelligence/contexts/static-gil-assembly-production.md) → `python tools/pkc.py progressive-query ...` | 先用项目内 canonical PKC 入口限量路由，再只读返回的最小专题；不要直接查 SQLite 或先加载完整架构文档。 |
@@ -26,6 +27,7 @@
 | 手动复刻控制流拓扑 | [`architecture/composite/raw-control-flow-dsl-quickstart.md`](architecture/composite/raw-control-flow-dsl-quickstart.md) | 当前低层控制流权威入口。 |
 | 查控制流实战模式 | [`architecture/composite/control-flow-api-cookbook.md`](architecture/composite/control-flow-api-cookbook.md) | 混合了真实样本、源码推断和历史验证，阅读时看状态提示。 |
 | 分析 `.gia` 文件 | [`gia-tools-reference.md`](gia-tools-reference.md) | trace、decode、layout、diff 工具索引。 |
+| 通过知识树选择 GIA/protobuf 分析证据与工具 | `python tools/pkc.py progressive-query --context compiler-diagnostics --intent "<问题>" --max-level 2 --limit 3 --check-authority` | 已覆盖 GraphUnit/GraphNode/NodePin、defaults/unknown/oneof/round-trip、工具选择和真实样本最小同构流程；查询只读，不授权读取或写入真实目标。 |
 | 查真实 GIA 逆向结论 | [`composite-ir/index.md`](composite-ir/index.md) | 真实文件验证和复合 IR 规律。 |
 | 复刻 `物理运动.gia` / 学习复杂 GIA API 写法 | [`composite-ir/physics-motion-recreate-guide.md`](composite-ir/physics-motion-recreate-guide.md) | 面向 AI 复刻真实复杂 GIA 的持续维护知识库；记录每轮确认过的系统 API、复合节点、参数来源和已知差异。 |
 | 查历史上下文 | [`composite-ir/handover/README.md`](composite-ir/handover/README.md) | 历史记录，不作为当前教程。 |

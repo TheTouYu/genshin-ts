@@ -2,16 +2,152 @@
   "schema_version": 1,
   "refs": [
     {
-      "id": "auth-dtc-focused-fixture",
-      "path": "tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts",
+      "id": "auth-common-scalar-fixture",
+      "path": "tests/composite/test-composite-common-scalar-boundary-pins.ts",
       "locator": "whole focused fixture",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "66104815e09d70e6d6843b99d6d825be9d3f5d2d5da3dde08eb7970ae146102a",
+      "approved_hash": "8f6922b77d38fc0c3b1855a1e80441b66f5c4a2e612a41b219cb41a5ed3be2e0",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F4F4F4F4F4F4F4F4F4"
+      ]
+    },
+    {
+      "id": "auth-composite-bool-wire-regression",
+      "path": "tests/composite/test-composite-bool-input-gia.ts",
+      "locator": "decoded and raw bool enumId assertions",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ec9ecb204d4f1a448b60e37ee1a83e3dc24a2d30ef804739fcd726aed02566d0",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
-        "clm_01K13DM5F0F0F0F0F0F0F0F0F0",
-        "clm_01K13DM5F3F3F3F3F3F3F3F3F3"
+        "clm_01KYH4ZHB6J996BYQ5B3PN8WQ4",
+        "clm_01KYH4ZHWD9EZZZ20QXKDAKD90"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-composite-call-lowerer",
+      "path": "src/compiler/ir_to_gia_transform/lower_composite_call.ts",
+      "locator": "call identity, sparse pins and collectCalledCompositeIds()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "d324a6983a588419ab2e20543e67e67bab8f5a5569ebbcd7e224dcbc3a64f9ac",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHG20242R3TTYBWTJTXR"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-capture-ir-docs",
+      "path": "docs/architecture/composite/capture-mechanism.md",
+      "locator": "CompositeCapture, definition capture, call-site binding, and toCompositeDefIR sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "62fbb8413a7e6144dd07b703fdf7f7fabcec4aafd7f178c1f5cab5f05ac852b4",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BP1SH10F593HCMZDD12"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-composite-default-continuation-regression",
+      "path": "tests/composite/test-multi-outflow-default-continuation-warning.ts",
+      "locator": "whole focused warning regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "f94243509796d57cc4de9efedad413a7859e76d0f3b5a0d7c0ba3de58bc2228a",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZH6A6ZYM43SZFPR5K30R"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-definition-builder",
+      "path": "src/compiler/ir_to_gia_transform/build_composite_definition.ts",
+      "locator": "COMPOSITE_DEFINITION_INTERFACE_CONTRACT and buildCompositeParameterType()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "f81160378548236fcb76194dedd1b0b4e7e37ddfec05b57d8de85413765ace66",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHB6J996BYQ5B3PN8WQ4"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-gia-encoding-docs",
+      "path": "docs/architecture/composite/gia-encoding.md",
+      "locator": "overall GraphUnit structure, impl NodeGraph, physical pin, and connection sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "f224b1dd6125cd86dacdabe0a2785fdc622f5781b0ae33761587cdf9029121a2",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BSYPM9083KHHEHEP22H"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-composite-lifecycle-docs",
+      "path": "docs/architecture/composite/dsl-api.md",
+      "locator": "definitions, calls, typing, pure-data/exec, and nested Composite sections",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "1c5f0ab165bf1c9a04f293e1539c8c572529332115a37bda2e09c04648d15da3",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-composite-multi-flow-regression",
+      "path": "tests/composite/test-stage3-p4w1-multi-inflow-outflow-vendor-graph.ts",
+      "locator": "whole focused multi-InFlow/OutFlow fixture",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "d2f22ead7ac0f1791e925d3cb795d0839d6ca3a18b824154c484e4b9d531a3e3",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZH6A6ZYM43SZFPR5K30R"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-nested-outflow-regression",
+      "path": "tests/composite/test-nested-composite-outflow.ts",
+      "locator": "nested call and promoted OutFlow assertions",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "66fac6930fde65e10aa99fc9780ab3f4d1965462812f10a71d8410d060375cf9",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZH6A6ZYM43SZFPR5K30R"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -28,15 +164,66 @@
       ]
     },
     {
-      "id": "auth-stage3-composite-rules",
-      "path": "src/compiler/ir_to_gia_transform/AGENTS.md",
-      "locator": "DTC boundary and pin-hole rules",
-      "role": "documented_contract",
+      "id": "auth-composite-registry-contract",
+      "path": "src/runtime/composite_registry.ts",
+      "locator": "CompositeCapture, CompositeDefinition, and toCompositeDefIR()",
+      "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "ff472d58346744e1033ab1c40858b9e4995ee5376e67f19dcc7e7c091f476c8b",
+      "approved_hash": "b319a290a98574a02fe989e6199fe561fd29705b6262427e57b505521677eb45",
       "change_policy": "review_on_change",
       "claim_ids": [
-        "clm_01K13DM5F2F2F2F2F2F2F2F2F2"
+        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
+        "clm_01KYH07BP1SH10F593HCMZDD12"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-runtime-lifecycle",
+      "path": "src/runtime/core.ts",
+      "locator": "defineComposite(), ensureCompositeCaptured(), and Composite call/capture flow",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
+        "clm_01KYH07BP1SH10F593HCMZDD12"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-stage3-backend",
+      "path": "src/compiler/ir_to_gia_transform/stage3_backend.ts",
+      "locator": "STAGE3_BACKEND_CONTRACT and resolveStage3ImplBackend()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "03426984be7968db541a67b2b0b9bca6dd971d7445c2f19788f8ffe3f114503d",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH07BSYPM9083KHHEHEP22H",
+        "clm_01KYH4ZHNA0ZQSV882V3C2Z46H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-composite-stage3-materializer",
+      "path": "src/compiler/ir_to_gia_transform/composite.ts",
+      "locator": "buildCompositeAccessories() and impl Graph materialization",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ec8ac2a85bed8da0355f228e78ba8e182223431dad9cae41ae397777549e85bb",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH07BSYPM9083KHHEHEP22H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -57,32 +244,179 @@
       ]
     },
     {
-      "id": "auth-common-scalar-fixture",
-      "path": "tests/composite/test-composite-common-scalar-boundary-pins.ts",
+      "id": "auth-dtc-focused-fixture",
+      "path": "tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts",
       "locator": "whole focused fixture",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "8f6922b77d38fc0c3b1855a1e80441b66f5c4a2e612a41b219cb41a5ed3be2e0",
-      "change_policy": "review_on_change",
+      "approved_hash": "66104815e09d70e6d6843b99d6d825be9d3f5d2d5da3dde08eb7970ae146102a",
+      "change_policy": "invalidate_on_change",
       "claim_ids": [
-        "clm_01K13DM5F4F4F4F4F4F4F4F4F4"
+        "clm_01K13DM5F0F0F0F0F0F0F0F0F0",
+        "clm_01K13DM5F3F3F3F3F3F3F3F3F3"
       ]
     },
     {
-      "id": "auth-static-assembly-core",
-      "path": "src/cli/gil_static_assemblies.ts",
-      "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
+      "id": "auth-gia-object-analyzer",
+      "path": "tools/analyze-composite-gia.ts",
+      "locator": "GraphUnit and CompositeDef traversal",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "65cb5946b65f8d8c2e98f1d53aa50ceb04ed9396df80fbbd3dcd3727a870df45",
+      "approved_hash": "80a5bbc127f0f8df40c50eac56eb9ff14b00ac691b697dc1aa2694394716e355",
       "change_policy": "review_on_change",
       "claim_ids": [
-        "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
-        "clm_01KYF24E81AEA72Z0W72RVEHX1"
+        "clm_01KYH4ZHS2RG0RJ01GW6EV1F7B"
       ],
       "supports_fact_classes": [
-        "runtime_behavior",
-        "transform_defaults"
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-gia-protobuf-schema",
+      "path": "src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto",
+      "locator": "GraphUnit, GraphNode and NodePin declarations",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "c4bcb00ce6ed1a2c44cf2475f2bfc9035b3422fae62c0f6ac76708745013c894",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHS2RG0RJ01GW6EV1F7B"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-gia-tools-reference",
+      "path": "docs/gia-tools-reference.md",
+      "locator": "tool selection and evidence limits",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "0df0d8939583761174b1a6483b721b45916ff97071fca4befd2bbe6b7f43c05c",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZJ0Q06EDE5T9ETYCAGK4"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-ir-merge-composite-id-regression",
+      "path": "tests/ir_merge_composite_id_collision_test.ts",
+      "locator": "whole cross-NodeGraph collision regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "3f8fb2c2c3c628bac383b317fc1a034049965d8ae3b8c23d76ef78c45391a948",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHG20242R3TTYBWTJTXR"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-ir-merge-composite-ids",
+      "path": "src/compiler/ir_merge.ts",
+      "locator": "remapCompositeIds() and allocateCompositeIds()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "944dfbfa4e99d546b1bd9a66cd3b3eda3779a9462824ca0c80ccc5d7125e5a1e",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHG20242R3TTYBWTJTXR"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-r20-bool-wire-retrospective",
+      "path": "docs/composite-ir/retrospectives/r20-bool-enum-metadata.md",
+      "locator": "field 101 evidence and scope",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "9d0cb2e83e906681a1d29f02be3fcff868d8cb696d57a55a20197f4ede1d693a",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHB6J996BYQ5B3PN8WQ4",
+        "clm_01KYH4ZHWD9EZZZ20QXKDAKD90"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-real-gia-analysis-workflow",
+      "path": "docs/composite-ir/analyze-workflow.md",
+      "locator": "Phase 0-4 evidence-first workflow",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "f111e9b58284d6dfae9c95f215a610f37e9049e7dada5626f86cfc0cf9309f9b",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZJ4JG09HEW753ZS5CXMM"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-shared-pin-hole-adapter",
+      "path": "src/compiler/ir_to_gia_transform/pin_hole_adapter.ts",
+      "locator": "PIN_HOLE_ADAPTER_CONTRACT and remapPinHoleInputIndex()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "e1c99ac74cd0e17aba9f6bdb9fc50c6bfe2291209cc1edc4072e2dbb80a009b5",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHNA0ZQSV882V3C2Z46H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-shared-special-arg-adapter",
+      "path": "src/compiler/ir_to_gia_transform/special_arg_adapter.ts",
+      "locator": "SPECIAL_ARG_ADAPTER_CONTRACT and remapSpecialArgInputIndex()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "fe08d218c270648d75c7c9b96f8485681dbfec8005f24b7c4876333662418f31",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHNA0ZQSV882V3C2Z46H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "auth-stage3-composite-rules",
+      "path": "src/compiler/ir_to_gia_transform/AGENTS.md",
+      "locator": "DTC boundary and pin-hole rules",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ff472d58346744e1033ab1c40858b9e4995ee5376e67f19dcc7e7c091f476c8b",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01K13DM5F2F2F2F2F2F2F2F2F2"
+      ]
+    },
+    {
+      "id": "auth-stage3-root-impl-parity-regression",
+      "path": "tests/composite/test-stage3-root-impl-parity.ts",
+      "locator": "whole root/impl parity regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "1c426cebe1b824769377e933739e67fcacc7838d1566321a828ae0ae664c4585",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH4ZHNA0ZQSV882V3C2Z46H"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -103,22 +437,6 @@
       ]
     },
     {
-      "id": "auth-static-assembly-focused-regression",
-      "path": "tests/gil_static_assemblies.ts",
-      "locator": "whole focused regression",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "fd2bad54f8afe5f0c7cbf16c83913418df31244d7ce82aa9cd2a4ab5ed0784fb",
-      "change_policy": "invalidate_on_change",
-      "claim_ids": [
-        "clm_01KYF24E81AEA72Z0W72RVEHX1",
-        "clm_01KYF24ECFTCZ3RCR6QCRFKAE8"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior"
-      ]
-    },
-    {
       "id": "auth-static-assembly-cli-safety",
       "path": "src/cli/AGENTS.md",
       "locator": "map/writeback confirmation and validation rules",
@@ -132,6 +450,39 @@
       "supports_fact_classes": [
         "documented_contract",
         "writeback_behavior"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-core",
+      "path": "src/cli/gil_static_assemblies.ts",
+      "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "65cb5946b65f8d8c2e98f1d53aa50ceb04ed9396df80fbbd3dcd3727a870df45",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
+        "clm_01KYF24E81AEA72Z0W72RVEHX1"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "transform_defaults"
+      ]
+    },
+    {
+      "id": "auth-static-assembly-focused-regression",
+      "path": "tests/gil_static_assemblies.ts",
+      "locator": "whole focused regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "fd2bad54f8afe5f0c7cbf16c83913418df31244d7ce82aa9cd2a4ab5ed0784fb",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYF24E81AEA72Z0W72RVEHX1",
+        "clm_01KYF24ECFTCZ3RCR6QCRFKAE8"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -181,109 +532,195 @@
       ]
     },
     {
-      "id": "auth-composite-runtime-lifecycle",
+      "id": "auth-phase3-stage1-expression-semantics",
+      "path": "src/compiler/ts_to_gs_transform/expression_semantics.ts",
+      "locator": "classifyExpressionSemantics() and localValueTypeOf()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "44d9be7134139caa84d2f1d7037cfed204b22341a86de847a77ae1d6df126ab1",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TV56ENY9PTZX9HJDB22"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage1-local-lowering",
+      "path": "src/compiler/ts_to_gs_transform/local_variable_lowering.ts",
+      "locator": "checked LocalVariable initialization and assignment",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "b3a5ff74852f366f93a73e9ec73ec3f677f2dd30ee6bf7cdd1c3302eae064dac",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TV56ENY9PTZX9HJDB22"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage1-semantics-regression",
+      "path": "tests/stage1_expression_semantics_test.ts",
+      "locator": "whole focused expression/LocalVariable regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "a70b0247d4800a7e4644509209ad8804f4df0202aba729c8ea07c15ce3ccce59",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH64TV56ENY9PTZX9HJDB22"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage2-runner",
+      "path": "src/compiler/gs_to_ir_json_transform/runner.ts",
+      "locator": "isolated entry import and buildAllGraphRegistriesIRDocuments() serialization",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "7d2e8266c716f85f22e4896fd03d40bb60053bc076587cdb57ccd3e675742abc",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TYS6MNC3JYD3EX74G04"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-runtime-registry-builder",
       "path": "src/runtime/core.ts",
-      "locator": "defineComposite(), ensureCompositeCaptured(), and Composite call/capture flow",
+      "locator": "buildServerGraphRegistriesIRDocuments() and all-registry collection",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
       "change_policy": "review_on_change",
       "claim_ids": [
-        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
-        "clm_01KYH07BP1SH10F593HCMZDD12"
+        "clm_01KYH64TYS6MNC3JYD3EX74G04"
       ],
       "supports_fact_classes": [
-        "runtime_behavior"
+        "runtime_behavior",
+        "documented_contract"
       ]
     },
     {
-      "id": "auth-composite-registry-contract",
-      "path": "src/runtime/composite_registry.ts",
-      "locator": "CompositeCapture, CompositeDefinition, and toCompositeDefIR()",
+      "id": "auth-phase3-ir-builder",
+      "path": "src/runtime/ir_builder.ts",
+      "locator": "buildArgument(), buildNodesFromFlow(), and buildIRDocument()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "b319a290a98574a02fe989e6199fe561fd29705b6262427e57b505521677eb45",
+      "approved_hash": "a9a495d602541d2c971f1faf7393b813fda39233c10d3011c3498df6f3183cad",
       "change_policy": "review_on_change",
       "claim_ids": [
-        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
-        "clm_01KYH07BP1SH10F593HCMZDD12"
+        "clm_01KYH64TYS6MNC3JYD3EX74G04",
+        "clm_01KYH64V2V7AQ052RMREK81B8F"
       ],
       "supports_fact_classes": [
-        "runtime_behavior"
+        "runtime_behavior",
+        "documented_contract"
       ]
     },
     {
-      "id": "auth-composite-stage3-materializer",
-      "path": "src/compiler/ir_to_gia_transform/composite.ts",
-      "locator": "buildCompositeAccessories() and impl Graph materialization",
+      "id": "auth-phase3-ir-types",
+      "path": "src/runtime/IR.d.ts",
+      "locator": "IRDocument, server/client graph documents, arguments and connections",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "ec8ac2a85bed8da0355f228e78ba8e182223431dad9cae41ae397777549e85bb",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH07BSYPM9083KHHEHEP22H"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior"
-      ]
-    },
-    {
-      "id": "auth-composite-stage3-backend",
-      "path": "src/compiler/ir_to_gia_transform/stage3_backend.ts",
-      "locator": "STAGE3_BACKEND_CONTRACT and resolveStage3ImplBackend()",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "03426984be7968db541a67b2b0b9bca6dd971d7445c2f19788f8ffe3f114503d",
+      "approved_hash": "b0b07c40bc00e49fd872db920c229a35d79756ee0870b4a9e7cd2b0a1647b0a2",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
-        "clm_01KYH07BSYPM9083KHHEHEP22H"
+        "clm_01KYH64V2V7AQ052RMREK81B8F"
       ],
       "supports_fact_classes": [
-        "runtime_behavior"
-      ]
-    },
-    {
-      "id": "auth-composite-lifecycle-docs",
-      "path": "docs/architecture/composite/dsl-api.md",
-      "locator": "definitions, calls, typing, pure-data/exec, and nested Composite sections",
-      "role": "documented_contract",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "1c5f0ab165bf1c9a04f293e1539c8c572529332115a37bda2e09c04648d15da3",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH07BJHQ6B1RNR5DY3QEJC0"
-      ],
-      "supports_fact_classes": [
+        "runtime_behavior",
         "documented_contract"
       ]
     },
     {
-      "id": "auth-composite-capture-ir-docs",
-      "path": "docs/architecture/composite/capture-mechanism.md",
-      "locator": "CompositeCapture, definition capture, call-site binding, and toCompositeDefIR sections",
-      "role": "documented_contract",
+      "id": "auth-phase3-stage3-transform",
+      "path": "src/compiler/ir_to_gia_transform/index.ts",
+      "locator": "irToGia() dispatch, preprocessing and materialization seams",
+      "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "62fbb8413a7e6144dd07b703fdf7f7fabcec4aafd7f178c1f5cab5f05ac852b4",
+      "approved_hash": "58b2b9bde0b9328b707d781b285af8adfa8aadde84e5547e2cff4855decf37b3",
       "change_policy": "review_on_change",
       "claim_ids": [
-        "clm_01KYH07BP1SH10F593HCMZDD12"
+        "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
       ],
       "supports_fact_classes": [
+        "runtime_behavior",
         "documented_contract"
       ]
     },
     {
-      "id": "auth-composite-gia-encoding-docs",
-      "path": "docs/architecture/composite/gia-encoding.md",
-      "locator": "overall GraphUnit structure, impl NodeGraph, physical pin, and connection sections",
+      "id": "auth-phase3-stage3-docs",
+      "path": "docs/architecture/stage3-ir-to-gia.md",
+      "locator": "Stage 3 architecture, responsibilities and encoding boundary",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "f224b1dd6125cd86dacdabe0a2785fdc622f5781b0ae33761587cdf9029121a2",
+      "approved_hash": "aacb639a2bf716a9f34eac1b6512f6448412c95676af3008e6b4c4404b65d191",
       "change_policy": "review_on_change",
       "claim_ids": [
-        "clm_01KYH07BSYPM9083KHHEHEP22H"
+        "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
       ],
       "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-pipeline-overview",
+      "path": "docs/architecture/compilation-pipeline-overview.md",
+      "locator": "three-stage artifacts and debugging entry points",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "5daa090aaa88b681ede26a58bf8af1e95ef0fccc36c03c110a6a943a9d848071",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64VA25BVS99BD4K1P5F5S"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-diagnostics-model",
+      "path": "src/diagnostics.ts",
+      "locator": "Diagnostic schema, persistence, aggregation and source classification",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "2041b41774ea13c74f0507f6c53ce6717f8bd727cd4a5b970a26b6bbcb99f2dd",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64VA25BVS99BD4K1P5F5S"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-diagnostics-regression",
+      "path": "tests/diagnostics_test.ts",
+      "locator": "whole structured diagnostic JSON reporter regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "83636cf53ff177421789c2c20b5795df5182df876bed495c708e28a60a0ac298",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH64VA25BVS99BD4K1P5F5S"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
         "documented_contract"
       ]
     }

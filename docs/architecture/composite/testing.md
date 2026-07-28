@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-19
+> 最近校验：2026-07-27
 > 适用范围：gsts 当前复合节点测试脚本和验证流程；复合 GIA bug 的完整分析、修复和验收流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
@@ -66,7 +66,7 @@ OutParam 和数据连线仍然存在；
 非边界 capture 的 pin-hole 行为不被改变。
 ```
 
-先运行并确认它在旧实现上失败，再只修改负责该边界的最小函数。复合 Stage 3 同时存在 legacy-handwritten 和 shared-vendor-impl-graph 两条后端时，两条路径都要覆盖；注意 shared vendor 当前由 `stage3_backend.ts` 规定为 opt-in，默认未启用，不能把“显式开启共享路径通过”误报成“默认路径已切换”。
+先运行并确认它在旧实现上失败，再只修改负责该边界的最小函数。复合 Stage 3 同时存在 legacy-handwritten 和 shared-vendor-impl-graph 两条后端时，两条路径都要覆盖；当前 `stage3_backend.ts` 规定 shared vendor 为默认生产后端，legacy 仅作显式回退。不得把“默认 shared 路径通过”误报成 legacy 也通过，也不得用旧分支文档覆盖当前源码。
 
 ### 0.5 分层验证和记录
 

@@ -90,6 +90,57 @@
         "明确确认"
       ],
       "migration_status": "managed"
+    },
+    {
+      "id": "gia-wire-analysis",
+      "name": "GIA Wire and Analysis",
+      "path": "knowledge/gia-wire-analysis",
+      "boundary": "Reusable GIA object-model, protobuf presence/round-trip, tool-selection, and minimal real-sample analysis contracts; not vendor schema as editor proof, decoded defaults as wire evidence, or unscoped sample conclusions.",
+      "keywords": [
+        "GraphUnit",
+        "GraphNode",
+        "NodePin",
+        "protobuf presence",
+        "unknown fields",
+        "oneof",
+        "round-trip",
+        "GIA tools",
+        "real GIA sample"
+      ],
+      "migration_status": "managed"
+    },
+    {
+      "id": "compiler-pipeline-runtime-ir",
+      "name": "Compiler Pipeline and Runtime IR",
+      "path": "knowledge/compiler-pipeline-runtime-ir",
+      "boundary": "Reusable Stage 1 expression/LocalVariable, Stage 2 runtime-to-IR, typed server/client IR hand-off, Stage 3 materialization-seam, and structured-diagnostic localization contracts; not copied implementation bodies, Composite-only encoding details, final GIA guesses, or editor/game proof.",
+      "keywords": [
+        "TS to GS",
+        "runtime to IR",
+        "IRDocument",
+        "IR.d.ts",
+        "ordinary nodes",
+        "synthetic nodes",
+        "boundary seam",
+        "structured diagnostics",
+        "server graph",
+        "client graph"
+      ],
+      "migration_status": "managed"
+    },
+    {
+      "id": "cli-injector-asset-workflows",
+      "name": "gsts CLI and Injector Implementation Seams",
+      "path": "knowledge/cli-injector-asset-workflows",
+      "boundary": "Bounded implementation seams identified by exact gsts and injector symbols; no concrete target, operation authorization, static-assembly closure, or editor/game proof.",
+      "keywords": [
+        "runBatch runSingle runDev",
+        "createInjector injectBytes",
+        "patchSignalNodeIds",
+        "collectFolderIndexes",
+        "runAssetsCustomVariables"
+      ],
+      "migration_status": "managed"
     }
   ],
   "topics": [
@@ -329,6 +380,312 @@
         "证据分层"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "composite-flow-and-nesting",
+      "node_id": "composite-boundary",
+      "title": "Composite flow interfaces and nesting",
+      "path": "knowledge/composite-boundary/composite-flow-and-nesting.md",
+      "summary": "Multi-InFlow/OutFlow, default continuation, nested calls, capture routing, and OutFlow promotion.",
+      "keywords": [
+        "multi InFlow",
+        "multi OutFlow",
+        "default continuation",
+        "nested Composite",
+        "OutFlow promotion",
+        "first execution exit",
+        "multi-exit call",
+        "execution continuation",
+        "promoted child exit"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "composite-parameter-wire-contracts",
+      "node_id": "composite-boundary",
+      "title": "Composite parameter and wire contracts",
+      "path": "knowledge/composite-boundary/composite-parameter-wire-contracts.md",
+      "summary": "Declared parameter types, concrete wrappers, bool enum metadata, and raw field-presence boundaries.",
+      "keywords": [
+        "parameter type",
+        "concrete wrapper",
+        "bool enumId",
+        "raw wire presence",
+        "Boolean interface tag",
+        "literal pin value",
+        "binary field tag",
+        "type metadata versus value"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "composite-identity-and-related-ids",
+      "node_id": "composite-boundary",
+      "title": "Composite identity and relatedIds",
+      "path": "knowledge/composite-boundary/composite-identity-and-related-ids.md",
+      "summary": "Definition IDs, cross-document remapping, definition reuse, nested references, and relatedIds integrity.",
+      "keywords": [
+        "Composite ID",
+        "cross-document remap",
+        "definition reuse",
+        "relatedIds",
+        "colliding reusable graph number",
+        "reference closure",
+        "renumbered definition",
+        "call reference rewrite"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "composite-adapter-and-metadata-boundaries",
+      "node_id": "composite-boundary",
+      "title": "Composite adapters and metadata boundaries",
+      "path": "knowledge/composite-boundary/composite-adapter-and-metadata-boundaries.md",
+      "summary": "Sparse binding, pin-hole and special-arg remaps, root/impl parity, backend fallback, layout and graph metadata ownership.",
+      "keywords": [
+        "sparse input",
+        "pin-hole",
+        "special-arg",
+        "root impl parity",
+        "shared legacy",
+        "layout metadata",
+        "hidden argument slots",
+        "unusual signal argument layout",
+        "physical argument normalization",
+        "implementation parity adapter"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "gia-object-model",
+      "node_id": "gia-wire-analysis",
+      "title": "GIA object model and attachments",
+      "path": "knowledge/gia-wire-analysis/gia-object-model.md",
+      "summary": "GraphUnit, GraphNode, NodePin, graph/accessory attachment, identity, and topology navigation.",
+      "keywords": [
+        "GraphUnit",
+        "GraphNode",
+        "NodePin",
+        "accessories",
+        "attachment",
+        "accessory unit",
+        "node container ownership",
+        "node pin attachment",
+        "definition attachment"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "protobuf-presence-and-roundtrip",
+      "node_id": "gia-wire-analysis",
+      "title": "Protobuf presence and round-trip",
+      "path": "knowledge/gia-wire-analysis/protobuf-presence-and-roundtrip.md",
+      "summary": "Defaults, unknown fields, oneof presence, raw wire scans, and loss-detecting round trips.",
+      "keywords": [
+        "protobuf defaults",
+        "unknown fields",
+        "oneof presence",
+        "round-trip",
+        "raw wire",
+        "semantic JSON default",
+        "absent payload field",
+        "decode encode loss",
+        "one-of branch identity"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "gia-tool-selection",
+      "node_id": "gia-wire-analysis",
+      "title": "GIA analysis tool selection",
+      "path": "knowledge/gia-wire-analysis/gia-tool-selection.md",
+      "summary": "Choose trace, decode, semantic diff, topology, layout, coverage, or raw-wire tools by question.",
+      "keywords": [
+        "trace exec",
+        "trace dataflow",
+        "decode GIA",
+        "GIA diff",
+        "topology",
+        "tool selection",
+        "diagnostic utility",
+        "execution tracing",
+        "value provenance tracing",
+        "question-to-tool choice"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "real-sample-isomorphic-analysis",
+      "node_id": "gia-wire-analysis",
+      "title": "Real sample and isomorphic analysis",
+      "path": "knowledge/gia-wire-analysis/real-sample-isomorphic-analysis.md",
+      "summary": "Record sample provenance and run the minimum isomorphic reference-versus-gsts analysis without overgeneralization.",
+      "keywords": [
+        "real GIA sample",
+        "isomorphic analysis",
+        "sample provenance",
+        "reference versus gsts",
+        "exported graph provenance",
+        "matching fixture",
+        "sample conclusion scope"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "stage1-expression-local-variable-semantics",
+      "node_id": "compiler-pipeline-runtime-ir",
+      "title": "Stage 1 expression and LocalVariable semantics",
+      "path": "knowledge/compiler-pipeline-runtime-ir/stage1-expression-local-variable-semantics.md",
+      "summary": "TS AST lowering, expression classification, checked LocalVariable planning, and Stage 1 diagnostic boundaries.",
+      "keywords": [
+        "Stage 1 AST",
+        "expression semantics",
+        "LocalVariable lowering",
+        "VarPlan",
+        "storable runtime value",
+        "TS to .gs.ts",
+        "ExpressionSemanticKind classification"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "stage2-runtime-ir-production",
+      "node_id": "compiler-pipeline-runtime-ir",
+      "title": "Stage 2 runtime execution and IR production",
+      "path": "knowledge/compiler-pipeline-runtime-ir/stage2-runtime-ir-production.md",
+      "summary": "Isolated .gs.ts execution, runtime registries, values/metadata, and IR document construction.",
+      "keywords": [
+        "Stage 2 runtime execution",
+        "isolated child process",
+        "runtime registry",
+        "buildServerGraphRegistriesIRDocuments",
+        "buildIRDocument",
+        "metadata to IR"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "typed-ir-server-client-contract",
+      "node_id": "compiler-pipeline-runtime-ir",
+      "title": "Typed IR server and client cross-stage contract",
+      "path": "knowledge/compiler-pipeline-runtime-ir/typed-ir-server-client-contract.md",
+      "summary": "IR.d.ts producer/consumer contract, shared server/client shape, graph-specific differences, and change impact.",
+      "keywords": [
+        "IR.d.ts contract",
+        "ServerIRDocument",
+        "ClientIRDocument",
+        "IR producer consumer",
+        "server client boundary",
+        "graph subtype"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "stage3-materialization-seams",
+      "node_id": "compiler-pipeline-runtime-ir",
+      "title": "Stage 3 ordinary, synthetic, and boundary materialization seams",
+      "path": "knowledge/compiler-pipeline-runtime-ir/stage3-materialization-seams.md",
+      "summary": "IR-to-GIA preprocessing and responsibility seams among ordinary nodes, synthetic lowering, boundaries, layout, and encoding.",
+      "keywords": [
+        "Stage 3 IR to GIA",
+        "ordinary materialization",
+        "synthetic lowering",
+        "boundary encoding",
+        "preprocess layout pins",
+        "irToGia",
+        "rootDataEdges.syntheticSource"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "structured-diagnostics-stage-localization",
+      "node_id": "compiler-pipeline-runtime-ir",
+      "title": "Structured diagnostics and stage localization",
+      "path": "knowledge/compiler-pipeline-runtime-ir/structured-diagnostics-stage-localization.md",
+      "summary": "Locate failures by .gs.ts, IR, or GIA artifact and preserve structured graph/node/source context without guessing across stages.",
+      "keywords": [
+        "structured diagnostics",
+        "diagnostic code",
+        "entryFile location",
+        "graphId nodeId",
+        "stage localization",
+        "artifact inspection",
+        "warnings process-id JSON reporter"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "cli-config-build-orchestration",
+      "node_id": "cli-injector-asset-workflows",
+      "title": "runBatch, runSingle, runDev, and loadGstsConfig",
+      "path": "knowledge/cli-injector-asset-workflows/cli-config-build-orchestration.md",
+      "summary": "Exact command/config seams: runBatch, runSingle, runDev, loadGstsConfig, useConfiguredTargetId.",
+      "keywords": [
+        "runBatch runSingle runDev",
+        "loadGstsConfig",
+        "useConfiguredTargetId",
+        "maybeInjectGia",
+        "reinjectOnMapChange"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "nodegraph-injection-target-and-safety",
+      "node_id": "cli-injector-asset-workflows",
+      "title": "createInjector and findNodeGraphTargets",
+      "path": "knowledge/cli-injector-asset-workflows/nodegraph-injection-target-and-safety.md",
+      "summary": "Exact replacement seams: createInjector, injectBytes, injectFile, findNodeGraphTargets, isNodeGraphEmptyForInjection.",
+      "keywords": [
+        "createInjector injectBytes injectFile",
+        "findNodeGraphTargets",
+        "isNodeGraphEmptyForInjection",
+        "skipNonEmptyCheck",
+        "injector_clientTypeMismatch"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "injector-signal-identity-patching",
+      "node_id": "cli-injector-asset-workflows",
+      "title": "patchSignalNodeIds placeholder remapping",
+      "path": "knowledge/cli-injector-asset-workflows/injector-signal-identity-patching.md",
+      "summary": "Exact identity seams: patchSignalNodeIds, buildSignalNodeIdMapFromFields, SIGNAL_NODE_ID_PLACEHOLDERS.",
+      "keywords": [
+        "patchSignalNodeIds",
+        "buildSignalNodeIdMapFromFields",
+        "SIGNAL_NODE_ID_PLACEHOLDERS",
+        "injector_signalConflict",
+        "injector_signalMissing"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "injector-folder-type-resolution",
+      "node_id": "cli-injector-asset-workflows",
+      "title": "collectFolderIndexes category resolver",
+      "path": "knowledge/cli-injector-asset-workflows/injector-folder-type-resolution.md",
+      "summary": "Exact category seams: collectFolderIndexes, findFolderEntryField, resolveGraphTypeForTypeValue.",
+      "keywords": [
+        "collectFolderIndexes",
+        "findFolderEntryField",
+        "resolveGraphTypeForTypeValue",
+        "DEFAULT_GRAPH_TYPE_VALUES"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "gil-custom-variable-asset-workflow",
+      "node_id": "cli-injector-asset-workflows",
+      "title": "runAssetsCustomVariables declaration synchronization",
+      "path": "knowledge/cli-injector-asset-workflows/gil-custom-variable-asset-workflow.md",
+      "summary": "Exact declaration seams: runAssetsCustomVariables, applyCustomPrefabInitialCustomVariableDeclarations, syncPrefabCustomVariableDeclarations.",
+      "keywords": [
+        "runAssetsCustomVariables",
+        "applyCustomPrefabInitialCustomVariableDeclarations",
+        "syncPrefabCustomVariableDeclarations",
+        "GstsCustomVariableOperation"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -369,6 +726,77 @@
     },
     "clm_01KYH07BXVXF15V0QZKK1E37KB": {
       "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH4ZH6A6ZYM43SZFPR5K30R": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_01KYH4ZHB6J996BYQ5B3PN8WQ4": {
+      "fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH4ZHG20242R3TTYBWTJTXR": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_01KYH4ZHNA0ZQSV882V3C2Z46H": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_01KYH4ZHS2RG0RJ01GW6EV1F7B": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH4ZHWD9EZZZ20QXKDAKD90": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH4ZJ0Q06EDE5T9ETYCAGK4": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH4ZJ4JG09HEW753ZS5CXMM": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH64TV56ENY9PTZX9HJDB22": {
+      "fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH64TYS6MNC3JYD3EX74G04": {
+      "fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH64V2V7AQ052RMREK81B8F": {
+      "fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH64V6AG9Q1EFEVHBJJC93P": {
+      "fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    "clm_01KYH64VA25BVS99BD4K1P5F5S": {
+      "fact_classes": [
+        "runtime_behavior",
         "documented_contract"
       ]
     }

@@ -120,7 +120,7 @@
             "feat/composite"
           ]
         },
-        "current_recovery": "docs/project-intelligence/CURRENT.md#compiler-diagnostics"
+        "current_recovery": "docs/project-intelligence/contexts/compiler-diagnostics.md"
       },
       {
         "id": "static-gil-assembly-production",
@@ -170,6 +170,31 @@
       "margin_threshold": 0.08
     },
     "intent_routes": [
+      {
+        "id": "compiler-recovery",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 45,
+        "keywords": [
+          "compiler diagnostics recovery",
+          "编译器诊断恢复",
+          "冷启动诊断",
+          "Formal A/B",
+          "当前编译器检查点",
+          "从零恢复编译器任务"
+        ],
+        "topic_ids": [
+          "pipeline-localization"
+        ],
+        "escalate_to_l3": false,
+        "capabilities": {
+          "read_knowledge": true,
+          "read_project_memory": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
       {
         "id": "composite-lifecycle",
         "contexts": [
@@ -479,6 +504,376 @@
           "src/index.ts",
           "src/cli/assets_static_assemblies.ts"
         ]
+      },
+      {
+        "id": "composite-flow-nesting",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "多 InFlow 多 OutFlow",
+          "默认 continuation",
+          "nested Composite OutFlow",
+          "OutFlow 提升",
+          "复合流接口与嵌套"
+        ],
+        "topic_ids": [
+          "composite-flow-and-nesting"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "composite-parameter-wire",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "Composite 参数 wire",
+          "bool enumId raw presence",
+          "concrete wrapper 参数",
+          "复合参数与 wire"
+        ],
+        "topic_ids": [
+          "composite-parameter-wire-contracts"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "composite-identity-related-ids",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "Composite ID 重映射",
+          "跨文档复合 ID",
+          "relatedIds 定义复用",
+          "Composite identity relatedIds"
+        ],
+        "topic_ids": [
+          "composite-identity-and-related-ids"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "composite-adapter-metadata",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "pin-hole special-arg",
+          "sparse shared legacy",
+          "root impl parity metadata",
+          "复合 adapter metadata 边界"
+        ],
+        "topic_ids": [
+          "composite-adapter-and-metadata-boundaries"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "gia-object-model",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "GIA object model",
+          "GraphUnit GraphNode NodePin",
+          "GIA 附件关系",
+          "accessories attachment"
+        ],
+        "topic_ids": [
+          "gia-object-model"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "protobuf-presence-roundtrip",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "protobuf presence round-trip",
+          "unknown fields oneof",
+          "decoded defaults wire presence",
+          "字段存在性 round-trip"
+        ],
+        "topic_ids": [
+          "protobuf-presence-and-roundtrip"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "gia-tool-selection",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "GIA 工具选择",
+          "trace decode diff topology",
+          "执行流数据流工具",
+          "raw wire 工具怎么选"
+        ],
+        "topic_ids": [
+          "gia-tool-selection"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "real-sample-isomorphic-analysis",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 30,
+        "keywords": [
+          "真实 GIA 样本记录",
+          "最小同构分析",
+          "reference versus gsts",
+          "sample provenance isomorphic"
+        ],
+        "topic_ids": [
+          "real-sample-isomorphic-analysis"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "compiler-pipeline-overview",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 46,
+        "keywords": [
+          "继续 Phase 3，定位三阶段编译管线与 Runtime/IR seam",
+          "完整三阶段编译管线概览",
+          "只读定位三阶段编译管线与 Runtime/IR seam"
+        ],
+        "topic_ids": [
+          "stage1-expression-local-variable-semantics",
+          "stage2-runtime-ir-production",
+          "stage3-materialization-seams"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "stage1-expression-local-variable",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 35,
+        "keywords": [
+          "Stage 1 expression semantics LocalVariable",
+          "表达式语义与 LocalVariable lowering",
+          "VarPlan checked lowering",
+          "TS AST storable value classification"
+        ],
+        "topic_ids": [
+          "stage1-expression-local-variable-semantics"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "stage2-runtime-ir-production",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 35,
+        "keywords": [
+          "Stage 2 runtime registry IR",
+          "隔离执行 gs.ts 生成 IR",
+          "buildAllGraphRegistriesIRDocuments",
+          "runtime metadata buildIRDocument"
+        ],
+        "topic_ids": [
+          "stage2-runtime-ir-production"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "typed-ir-server-client",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 35,
+        "keywords": [
+          "IR.d.ts server client contract",
+          "typed IR producer consumer",
+          "ServerIRDocument ClientIRDocument",
+          "server client 跨阶段 IR 合约"
+        ],
+        "topic_ids": [
+          "typed-ir-server-client-contract"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "stage3-materialization-seams",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 35,
+        "keywords": [
+          "Stage 3 ordinary synthetic boundary materialization",
+          "ordinary vendor synthetic source boundary overlay",
+          "IR 到 GIA materialization seam",
+          "root data edge ordinary synthetic partition"
+        ],
+        "topic_ids": [
+          "stage3-materialization-seams"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
+      },
+      {
+        "id": "structured-diagnostics-localization",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 40,
+        "keywords": [
+          "structured diagnostic earliest divergent artifact",
+          "结构化诊断阶段定位",
+          "graphId nodeId entryFile location diagnostic",
+          "最早差异产物定位 Stage"
+        ],
+        "topic_ids": [
+          "structured-diagnostics-stage-localization"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "read_game_file": false,
+          "write": false
+        }
       }
     ],
     "semantic_groups": {
@@ -529,6 +924,18 @@
       {
         "context_id": "static-gil-assembly-production",
         "node_id": "validation-evidence"
+      },
+      {
+        "context_id": "compiler-diagnostics",
+        "node_id": "gia-wire-analysis"
+      },
+      {
+        "context_id": "compiler-diagnostics",
+        "node_id": "compiler-pipeline-runtime-ir"
+      },
+      {
+        "context_id": "compiler-diagnostics",
+        "node_id": "cli-injector-asset-workflows"
       }
     ],
     "decision_claims": [],

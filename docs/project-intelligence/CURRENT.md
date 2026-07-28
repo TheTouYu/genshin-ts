@@ -1,6 +1,6 @@
 # Genshin-TS Project Intelligence 恢复入口
 
-更新时间：2026-07-26
+更新时间：2026-07-27
 
 本文件是有界 Global Router，不复制各 Context 的详细状态。新会话先选择一个 Primary Context，再读取其恢复入口；不要默认读取历史 handoff 或全部知识节点。
 
@@ -17,7 +17,8 @@
 
 - 目标：用可复现 IR/GIA 和编辑器/游戏证据诊断复杂编译器问题。
 - 当前状态：PPI Composite Pin Alpha 已完成，等待初始化后的首个全新复杂 Bug 做 Formal A/B。
-- 恢复入口：本节及已登记的 `compiler-diagnostics`、`composite-boundary`、`validation-evidence` Nodes。
+- 恢复入口：[`contexts/compiler-diagnostics.md`](contexts/compiler-diagnostics.md)。
+- 当前后端：shared vendor impl Graph 默认启用，legacy handwritten 仅作显式回退；以恢复入口登记的当前源码为准。
 - 历史范围提醒：`docs/composite-ir/architecture-redesign/STATUS.md` 适用于旧分支，只作 pointer。
 
 ## 路由与安全

@@ -106,6 +106,8 @@ python tools/pkc.py <command>
 
 退出条件：两个 Active Context 均能从独立恢复入口重建任务状态；冷启动不读取无关历史，不获得写权限。
 
+当前进展（2026-07-27）：独立恢复文档、零聊天 Context 演练、项目级批准前 staged validator 与 Bundle 生命周期文档已形成首批候选；Formal A/B 仍必须等待初始化后的首个真实复杂 Bug，runtime 的跨 Bundle supersedes/abandoned 一等关系仍是外部缺口。该进展不代表 Phase 1–6 已覆盖。
+
 ### Phase 1：补齐复合节点日常诊断知识
 
 优先级：最高。
@@ -124,6 +126,8 @@ python tools/pkc.py <command>
 
 退出条件：常见 Composite 定义、调用、边界、类型、嵌套、ID 和 Stage 3 问题可通过 L2 找到正确入口；未覆盖节点族不会被错误推广。
 
+当前进展（2026-07-27）：Phase 1 的 flow/nesting、parameter/wire、identity/relatedIds、adapter/metadata 四个高密度 Topic 与 scoped Claim/Authority 已建立；检索路由与回归见当前 PKC 数据。未覆盖节点族仍按 Claim 边界保持待验证。
+
 ### Phase 2：真实 GIA、protobuf 与分析工具
 
 优先级：高。
@@ -140,6 +144,8 @@ python tools/pkc.py <command>
 
 退出条件：Agent 能根据问题选择正确工具和证据层，并明确何时必须升级到 raw wire 或真实样本。
 
+当前进展（2026-07-27）：Phase 2 的 object model、presence/round-trip、tool selection、real-sample isomorphic analysis 已建立 bounded Topic、Claim 与 committed Authority；未把 vendor schema、decoded defaults 或单一样本升级为游戏证据。
+
 ### Phase 3：完整编译管线与 Runtime/IR
 
 优先级：高。
@@ -154,6 +160,8 @@ python tools/pkc.py <command>
 - 客户端与服务器图的共享边界及差异。
 
 退出条件：复杂编译错误可先定位阶段和 seam，再读取最小源码与测试；不会从最终 GIA 直接猜 Stage 1 根因。
+
+当前进展（2026-07-27）：已建立 `compiler-pipeline-runtime-ir` Node，覆盖 Stage 1 表达式/LocalVariable、Stage 2 runtime registry→IR、typed server/client IR 合约、Stage 3 ordinary/synthetic/boundary materialization seam，以及结构化诊断和最早差异产物定位。当前 Claim/Authority 已绑定 committed source/docs/focused tests；自动回归、GIA 生成、编辑器和游戏证据仍保持分层。
 
 ### Phase 4：CLI、Injector 与资产工作流
 

@@ -174,6 +174,366 @@
       "expect_topics": [
         "composite-validation-workflow"
       ]
+    },
+    {
+      "id": "explicit-compiler-recovery",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "从零恢复编译器任务，先看当前检查点和 Formal A/B，不修改源码",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "pipeline-localization"
+      ]
+    },
+    {
+      "id": "compiler-readonly-recovery",
+      "class": "dangerous_negated_topic",
+      "context": "compiler-diagnostics",
+      "query": "只读做编译器诊断恢复，不改源码、不生成或写入 GIA",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "pipeline-localization"
+      ]
+    },
+    {
+      "id": "compiler-cross-context-static-write",
+      "class": "cross_context",
+      "context": "compiler-diagnostics",
+      "query": "assets:static-assemblies mapId candidate backup rollback",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "out_of_context"
+    },
+    {
+      "id": "compiler-outside-coverage",
+      "class": "outside_current_coverage",
+      "context": "compiler-diagnostics",
+      "query": "公司报销和年假审批流程",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "coverage_gap"
+    },
+    {
+      "id": "compiler-ambiguous-multi-seam",
+      "class": "ambiguous_mixed_intent",
+      "context": "compiler-diagnostics",
+      "query": "同时诊断 Composite 生命周期、capture IR 和 Stage 3 root impl 编码",
+      "expect_error": "RETRIEVAL_CANDIDATE_AMBIGUOUS",
+      "expect_failure_type": "ambiguous"
+    },
+    {
+      "id": "explicit-composite-flow-nesting",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "多 InFlow 多 OutFlow、默认 continuation、nested Composite OutFlow 提升",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-flow-and-nesting"
+      ]
+    },
+    {
+      "id": "explicit-composite-parameter-wire",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "Composite 参数 wire 中 bool enumId raw presence 和 concrete wrapper",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-parameter-wire-contracts"
+      ]
+    },
+    {
+      "id": "explicit-composite-identity",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "跨文档复合 ID 重映射、relatedIds 和定义复用",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-identity-and-related-ids"
+      ]
+    },
+    {
+      "id": "explicit-composite-adapter",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "pin-hole special-arg、sparse、shared legacy 与 root impl parity metadata",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-adapter-and-metadata-boundaries"
+      ]
+    },
+    {
+      "id": "explicit-gia-object-model",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "GraphUnit GraphNode NodePin 的 GIA object model 和附件关系",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "gia-object-model"
+      ]
+    },
+    {
+      "id": "explicit-protobuf-presence",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "protobuf presence round-trip、unknown fields 和 oneof",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "protobuf-presence-and-roundtrip"
+      ]
+    },
+    {
+      "id": "explicit-gia-tools",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "GIA 工具选择：trace decode diff topology",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "gia-tool-selection"
+      ]
+    },
+    {
+      "id": "explicit-real-sample",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "真实 GIA 样本记录和最小同构分析",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "real-sample-isomorphic-analysis"
+      ]
+    },
+    {
+      "id": "natural-composite-flow",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Why does a multi-exit child call use its first execution exit for ordinary continuation?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "composite-flow-and-nesting"
+    },
+    {
+      "id": "natural-composite-wire",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "How is a Boolean interface tag separated from a literal pin value in binary encoding?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "composite-parameter-wire-contracts"
+    },
+    {
+      "id": "natural-composite-identity",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "A colliding reusable number requires a renumbered definition reference closure.",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "composite-identity-and-related-ids"
+    },
+    {
+      "id": "natural-composite-adapter",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Where are hidden argument slots and unusual signal argument layouts normalized for implementation parity?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "composite-adapter-and-metadata-boundaries"
+    },
+    {
+      "id": "natural-gia-object",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Which accessory unit owns a node container, and how does a node pin attach to its definition?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "gia-object-model"
+    },
+    {
+      "id": "natural-protobuf-presence",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Could an absent payload one-of branch be lost during decode and encode?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "protobuf-presence-and-roundtrip"
+    },
+    {
+      "id": "natural-gia-tools",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Which diagnostic utility distinguishes execution tracing from value provenance tracing?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "gia-tool-selection"
+    },
+    {
+      "id": "natural-real-sample",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "What exported graph provenance and matching fixture are needed before drawing a scoped sample conclusion?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "real-sample-isomorphic-analysis"
+    },
+    {
+      "id": "phase12-readonly-wire",
+      "class": "dangerous_negated_topic",
+      "context": "compiler-diagnostics",
+      "query": "只读分析 protobuf presence round-trip，不写 GIA、不注入地图",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "protobuf-presence-and-roundtrip"
+      ]
+    },
+    {
+      "id": "phase12-ambiguous-tools-wire",
+      "class": "ambiguous_mixed_intent",
+      "context": "compiler-diagnostics",
+      "query": "我要选 GIA 工具并同时判断 unknown field oneof wire presence",
+      "expect_error": "RETRIEVAL_CANDIDATE_AMBIGUOUS",
+      "expect_failure_type": "ambiguous"
+    },
+    {
+      "id": "phase12-cross-context-map",
+      "class": "cross_context",
+      "context": "compiler-diagnostics",
+      "query": "assets:static-assemblies candidate backup rollback",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "out_of_context"
+    },
+    {
+      "id": "phase12-outside-coverage",
+      "class": "outside_current_coverage",
+      "context": "compiler-diagnostics",
+      "query": "数据库索引分片与 SQL 查询优化",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "coverage_gap"
+    },
+    {
+      "id": "phase3-explicit-overview",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "继续 Phase 3，定位三阶段编译管线与 Runtime/IR seam",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage1-expression-local-variable-semantics",
+        "stage2-runtime-ir-production",
+        "stage3-materialization-seams"
+      ]
+    },
+    {
+      "id": "phase3-explicit-stage1",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "Stage 1 expression semantics LocalVariable、VarPlan 和 checked lowering",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage1-expression-local-variable-semantics"
+      ]
+    },
+    {
+      "id": "phase3-explicit-stage2",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "Stage 2 runtime registry IR：隔离执行 gs.ts 并调用 buildAllGraphRegistriesIRDocuments",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage2-runtime-ir-production"
+      ]
+    },
+    {
+      "id": "phase3-explicit-ir-contract",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "IR.d.ts server client contract、ServerIRDocument 与 ClientIRDocument",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "typed-ir-server-client-contract"
+      ]
+    },
+    {
+      "id": "phase3-explicit-stage3",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "Stage 3 ordinary synthetic boundary materialization seam",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage3-materialization-seams"
+      ]
+    },
+    {
+      "id": "phase3-explicit-diagnostics",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "structured diagnostic earliest divergent artifact、graphId nodeId entryFile location",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "structured-diagnostics-stage-localization"
+      ]
+    },
+    {
+      "id": "phase3-natural-stage1",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Which ExpressionSemanticKind classification rejects a complete Composite result before LocalVariable lowering?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "stage1-expression-local-variable-semantics"
+    },
+    {
+      "id": "phase3-natural-stage2",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Stage 2 isolated runtime registry buildIRDocument",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "stage2-runtime-ir-production"
+    },
+    {
+      "id": "phase3-natural-ir-contract",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "IR.d.ts server client producer consumer contract",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "typed-ir-server-client-contract"
+    },
+    {
+      "id": "phase3-natural-stage3",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Which path owns rootDataEdges.syntheticSource before GIA connections are emitted?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "stage3-materialization-seams"
+    },
+    {
+      "id": "phase3-natural-diagnostics",
+      "class": "known_topic_unconfigured_language",
+      "context": "compiler-diagnostics",
+      "query": "Which warnings process-id JSON reporter persists graph context across child processes?",
+      "expect_strategy": "dynamic_metadata",
+      "expect_top1": "structured-diagnostics-stage-localization"
+    },
+    {
+      "id": "phase3-readonly-overview",
+      "class": "dangerous_negated_topic",
+      "context": "compiler-diagnostics",
+      "query": "只读定位三阶段编译管线与 Runtime/IR seam，不改源码、不生成或写入 GIA",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage1-expression-local-variable-semantics",
+        "stage2-runtime-ir-production",
+        "stage3-materialization-seams"
+      ]
+    },
+    {
+      "id": "phase3-ambiguous-stage1-stage3",
+      "class": "ambiguous_mixed_intent",
+      "context": "compiler-diagnostics",
+      "query": "同时修改 Stage 1 LocalVariable lowering 和 Stage 3 synthetic boundary materialization",
+      "expect_error": "RETRIEVAL_CANDIDATE_AMBIGUOUS",
+      "expect_failure_type": "ambiguous"
+    },
+    {
+      "id": "phase3-cross-context-assets",
+      "class": "cross_context",
+      "context": "compiler-diagnostics",
+      "query": "assets:static-assemblies mapId candidate backup rollback",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "out_of_context"
+    },
+    {
+      "id": "phase3-outside-coverage",
+      "class": "outside_current_coverage",
+      "context": "compiler-diagnostics",
+      "query": "employee payroll vacation policy",
+      "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
+      "expect_failure_type": "coverage_gap"
     }
   ]
 }
