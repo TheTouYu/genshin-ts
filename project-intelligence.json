@@ -117,7 +117,7 @@
             "genshin-ts-feat-composite"
           ],
           "branches": [
-            "feat/composite"
+            "feat/composite-and-project-knowledge"
           ]
         },
         "current_recovery": "docs/project-intelligence/contexts/compiler-diagnostics.md"
@@ -143,7 +143,7 @@
             "genshin-ts-feat-composite"
           ],
           "branches": [
-            "feat/composite"
+            "feat/composite-and-project-knowledge"
           ]
         },
         "recovery_role": "current_recovery"
@@ -156,7 +156,7 @@
     "applies_to": {
       "workspace": ".",
       "branches": [
-        "feat/composite"
+        "feat/composite-and-project-knowledge"
       ]
     }
   },
