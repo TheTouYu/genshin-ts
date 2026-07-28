@@ -1,6 +1,10 @@
 import fs from 'node:fs'
 
-import type { GstsStaticAssembly, GstsStaticAssemblyItem } from '../compiler/gsts_config.js'
+import type {
+  GstsStaticAssembly,
+  GstsStaticAssemblyItem,
+  GstsStaticColor
+} from '../compiler/gsts_config.js'
 import { buildFile, encodeVarint, readUint32BE, readVarint } from '../injector/binary.js'
 
 export type StaticAssemblyResult = {
@@ -222,6 +226,63 @@ function float32(value: number): Uint8Array {
   return result
 }
 
+function colorFields(color: GstsStaticColor): WireField[] {
+  if (!color.enabled) {
+    return [
+      { number: 3, wire: 0, value: 0xffffffff },
+      { number: 4, wire: 5, value: float32(100) },
+      { number: 5, wire: 0, value: 0xffffff },
+      { number: 6, wire: 0, value: 6700 }
+    ]
+  }
+  if (!Number.isInteger(color.rgb) || color.rgb < 0 || color.rgb > 0xffffff) {
+    throw new Error('[error] color rgb must be an integer from 0x000000 to 0xFFFFFF')
+  }
+  if (!Number.isFinite(color.opacity) || color.opacity < 0 || color.opacity > 100) {
+    throw new Error('[error] color opacity must be from 0 to 100')
+  }
+  const alpha = Math.round((color.opacity / 100) * 255)
+  const argb = ((alpha << 24) | color.rgb) >>> 0
+  const opacity = Math.fround((alpha / 255) * 100)
+  return [
+    { number: 1, wire: 0, value: 1 },
+    { number: 3, wire: 0, value: argb },
+    { number: 4, wire: 5, value: float32(opacity) },
+    { number: 5, wire: 0, value: color.rgb },
+    { number: 6, wire: 0, value: color.overlay === 'multiply' ? 6701 : 6700 }
+  ]
+}
+
+function setColor(record: Uint8Array, color: GstsStaticColor): Uint8Array {
+  let changed = 0
+  const rewrite = (data: Uint8Array): Uint8Array => {
+    const fields = parse(data)
+    if (!fields) return data
+    return emit(
+      fields.map((field) => {
+        if (field.number === 32 && field.wire === 2) {
+          const existing = parse(field.value as Uint8Array)
+          if (existing?.some((child) => child.number === 3)) {
+            changed++
+            const unknown = existing.filter((child) => ![1, 3, 4, 5, 6].includes(child.number))
+            return { ...field, value: emit([...colorFields(color), ...unknown]) }
+          }
+        }
+        if (
+          field.wire !== 2 ||
+          field.number === 501 ||
+          printable(field.value as Uint8Array) !== undefined
+        )
+          return field
+        return { ...field, value: rewrite(field.value as Uint8Array) }
+      })
+    )
+  }
+  const result = rewrite(record)
+  if (changed !== 1) throw new Error(`[error] expected one color field 32, changed ${changed}`)
+  return result
+}
+
 function vector(values: readonly number[], sparse: boolean): Uint8Array {
   return emit(
     values.flatMap((value, index) =>
@@ -335,7 +396,8 @@ function setAuxiliary(
   const named = replaceText(result, decorationName(result), `装饰物_${params.ordinal}`)
   if (named.count !== 1)
     throw new Error(`[error] expected one decoration name, changed ${named.count}`)
-  return setTransform(named.bytes, assemblyTransform(params.item))
+  const transformed = setTransform(named.bytes, assemblyTransform(params.item))
+  return params.item.color ? setColor(transformed, params.item.color) : transformed
 }
 
 function allVarints(data: Uint8Array): number[] {
@@ -404,6 +466,9 @@ function validateAssembly(assembly: GstsStaticAssembly): void {
   if (!Number.isSafeInteger(assembly.templatePrefabId) || assembly.templatePrefabId < 0) {
     throw new Error('[error] templatePrefabId must be a non-negative integer')
   }
+  if (!Number.isSafeInteger(assembly.templateInstanceId) || assembly.templateInstanceId < 0) {
+    throw new Error('[error] templateInstanceId must be a non-negative integer')
+  }
   if (!assembly.templateName) throw new Error('[error] templateName is required')
   if (!assembly.items.length) throw new Error('[error] assembly requires at least one item')
   if (
@@ -449,7 +514,7 @@ export function applyStaticAssembly(params: {
   )
   const sourceInstance = findRecord(
     top8.filter((field) => field.number === 1).map((field) => field.value as Uint8Array),
-    assembly.templatePrefabId
+    assembly.templateInstanceId
   )
   const sourceDefinitionIds = packedIds(sourceDefinition)
   const sourceInstanceIds = packedIds(sourceInstance)
@@ -465,6 +530,7 @@ export function applyStaticAssembly(params: {
     assembly.prefabId
   ).bytes
   definition = setPackedIds(definition, assembly.definitionAuxiliaryIds)
+  if (assembly.color) definition = setColor(definition, assembly.color)
   top4.push({ number: 1, wire: 2, value: definition })
 
   const instanceName = replaceText(sourceInstance, assembly.templateName, assembly.name)
@@ -472,9 +538,10 @@ export function applyStaticAssembly(params: {
     throw new Error(`[error] instance name replacements=${instanceName.count}`)
   let instance = replaceVarint(
     instanceName.bytes,
-    assembly.templatePrefabId,
+    assembly.templateInstanceId,
     assembly.prefabId
   ).bytes
+  instance = replaceVarint(instance, assembly.templatePrefabId, assembly.prefabId).bytes
   if (!Buffer.from(instance).includes(Buffer.from(TEXT.encode(assembly.name)))) {
     throw new Error('[error] instance name lost while replacing owner ID')
   }
@@ -494,6 +561,7 @@ export function applyStaticAssembly(params: {
   if (!Buffer.from(instance).includes(Buffer.from(TEXT.encode(assembly.name)))) {
     throw new Error('[error] instance name lost while setting Transform')
   }
+  if (assembly.color) instance = setColor(instance, assembly.color)
   top8.push({ number: 1, wire: 2, value: instance })
 
   const auxiliaryDefinitions = top27
@@ -522,7 +590,7 @@ export function applyStaticAssembly(params: {
       value: setAuxiliary(findRecord(auxiliaryInstances, sourceInstanceId), {
         id: assembly.instanceAuxiliaryIds[index],
         ownerId: assembly.prefabId,
-        sourceOwnerId: assembly.templatePrefabId,
+        sourceOwnerId: assembly.templateInstanceId,
         definitionId: assembly.definitionAuxiliaryIds[index],
         item,
         ordinal: index + 1

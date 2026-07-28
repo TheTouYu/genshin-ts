@@ -932,11 +932,12 @@ Transform 的视觉调参需要从一次性脚本迁移到可重复配置工具�
 
 当前实现入口为 `gsts assets:static-assemblies`，核心代码位于
 `src/cli/gil_static_assemblies.ts`，命令包装位于 `src/cli/assets_static_assemblies.ts`。工具以
-配置中的 `assets.staticAssemblies` 声明每件装饰物的本地 Transform。公开 `GstsConfig` 类型当前
-尚未声明该字段，因此生产验证使用 `.mjs` 配置，不添加 `GstsConfig` 类型注解。`position`、
-`rotation`、`scale` 都直接使用游戏单位；对原始长方体模型，`scale: [1,1,1]` 对应游戏中
-`1×1×1` 的原始尺寸。每件 `position` 相对组件原点，组件自身 `position` 是场景位置，两层坐标
-不能混用。
+配置中的 `assets.staticAssemblies` 声明每件装饰物的本地 Transform。公开 `GstsConfig`、
+`GstsStaticAssembly` 和 `GstsStaticAssemblyItem` 类型已包含该配置。模板主定义 ID 与主实例 ID
+在真实地图中不保证相同，当前配置必须分别显式提供 `templatePrefabId` 和 `templateInstanceId`。
+`position`、`rotation`、`scale` 都直接使用游戏单位；对原始长方体模型，`scale: [1,1,1]`
+对应游戏中 `1×1×1` 的原始尺寸。每件 `position` 相对组件原点，组件自身 `position` 是场景位置，
+两层坐标不能混用。
 
 ```js
 const config = {
@@ -947,6 +948,7 @@ const config = {
         name: '字母A',
         prefabId: 1077936140,
         templatePrefabId: 1077936137,
+        templateInstanceId: 1077936137,
         templateName: '静态拼装H1',
         position: [72, 0, 0],
         items: [
@@ -980,15 +982,20 @@ node bin/gsts.mjs assets:static-assemblies --config gsts.static-assemblies.confi
 目标地图的 `field 4/8/27` 记录，遇到冲突 ID、模板缺失、辅助 ID 数量不等于 items 数量或模板缺少
 `field 6` 登记时直接失败。它不会猜测下一可用 ID，也不会自动写回。
 
-自动回归：`npx tsx tests/gil_static_assemblies.ts <map.gil> <templatePrefabId> <prefabId> <definitionStart> <instanceStart>`。
-该回归证明输入文件不变、候选 bytes 发生预期变化以及重复 ID 被拒绝；不能替代编辑器/游戏验证。
+自动回归：`npx tsx tests/gil_static_assemblies.ts <map.gil> <prefabId> <definitionStart> <instanceStart>`。
+该回归使用固定真实地图结构验证输入文件不变、候选 bytes、重复 ID 拒绝、定义/实例主模型颜色、
+定义/实例辅助颜色、启用字段 presence、RGB/ARGB、33/50/66% Alpha 量化以及覆盖/正片叠底；
+不能替代编辑器/游戏验证。
 
 自 2026-07-28 起，`GstsConfig.assets.staticAssemblies`、`GstsStaticAssembly` 和
 `GstsStaticAssemblyItem` 已成为 npm 根入口公开类型，CLI 不再维护私有配置副本。preview 会打印来源与
 候选 SHA-256、assembly/template/resource/辅助 ID 计划、候选大小、触及的顶层字段和
 `writePerformed=false`；`--write` 另打印备份与写后哈希。中英文 CLI help 和项目模板已明确区分
 静态 `.gil` 元件拼装、GIA NodeGraph 注入与运行时 `createPrefab`。这些是当前实现和自动构建证据，
-本轮没有执行新的真实地图写回或游戏验证；颜色仍只继承所复制模板子项的未知字段，未公开任意颜色编码。
+颜色公开配置支持主体和逐 item 的 `enabled`、`rgb`、`opacity`、`overlay`。编码器只替换
+`field 32` 中已由真实 GIL 观察确认的 `field 1/3/4/5/6`，保留材质等其它未知字段；定义/实例及
+两侧辅助记录使用相同颜色快照。该行为已有 raw-wire 自动回归，尚未以本轮多资源候选完成编辑器或
+游戏视觉验证，尤其不能提前声称线框资源颜色一定生效。
 
 #### 19.2.1 第一轮生产验证
 
@@ -1020,6 +1027,36 @@ node bin/gsts.mjs assets:static-assemblies --config gsts.static-assemblies.confi
 
 写回前仍须展示目标哈希、新主/辅助 ID、位置、Transform、候选哈希和回滚方案，并获得新的明确确认。
 
+#### 19.2.2 静态模型颜色生产验证
+
+> 状态：已验证
+> 来源：真实 GIL 观察 + 当前代码实现 + 自动 raw-wire 回归 + 真实地图写回回读 + 用户游戏验证
+> 最近校验：2026-07-28
+> 适用范围：本次地图状态、长方体模板，以及球体、圆锥、圆柱、线框长方体和线框圆柱资源的本次颜色配置
+
+本轮从来源 SHA-256 `0225e4b2...fd2992`、大小 `29293 bytes` 的已确认地图状态生成
+`彩色拼装验证`。模板定义 ID `1077936131` 与模板实例 ID `1077936129` 不同，因此公开配置新增
+显式 `templateInstanceId`，创建后的主实例 ID 和 `field 2` 定义引用均指向新 prefab
+`1077936140`。候选/写后 SHA-256 为 `47ff681b...db9ecd`，大小 `32263 bytes`；CLI 自动备份的
+哈希与来源一致，写后真实目标与离线候选哈希一致，NodeGraph 仍为 0。
+
+主模型设置为红色、100%、覆盖；六个装饰物依次验证洋红球体 100% 覆盖、青色圆锥 66%
+正片叠底、橙色圆柱 33% 覆盖、黄色线框长方体 100% 正片叠底、蓝色线框圆柱 50% 覆盖，
+以及关闭自定义颜色的默认球体。focused regression 和写后独立 raw-wire 回读确认：
+
+- 主定义/实例及每件装饰物的定义/实例辅助记录颜色快照一致；
+- 启用时 `field 1=1`，关闭时省略 `field 1`；
+- `field 3=0xAARRGGBB`、`field 5=0xRRGGBB`；
+- 透明度先量化到 8-bit Alpha，再将百分比以 float32 写入 `field 4`；
+- `field 6` 的 `6700/6701` 分别对应覆盖/正片叠底；
+- packed ID、owner、backlink、资源和 Transform 闭包保持一致；
+- 编码器只替换 `field 1/3/4/5/6`，主体原有待解释 `field 9=6710` 被原样保留。
+
+用户随后明确反馈本轮测试“完美通过”，据此确认元件加载、六件装饰物闭包、主体颜色、五类资源的
+颜色、33/50/66% 透明度、两种叠加模式及关闭自定义颜色均在编辑器/游戏视觉中符合预期。该反馈
+不单独证明 `field 9=6710` 的材质语义；材质配置仍不在当前公开 API 范围内。该次验证也不推广到
+其它资源、模板、地图、update/delete 或自动 ID 分配。
+
 ## 20. 维护记录
 
 | 日期       | 变更                                                                                                                                                                                                                                                                                   | 证据                                                                                                                                                                                                                                          | 状态                                                                                                                                                                                                              |
@@ -1038,4 +1075,5 @@ node bin/gsts.mjs assets:static-assemblies --config gsts.static-assemblies.confi
 | 2026-07-25 | 用户在编辑器中把 H1 主球体换成空模型并保存，以便游戏只显示装饰物                                                                                                                                                                                                                       | 回存 SHA-256 `c474fb32...df02`、大小 48044 bytes；保护备份 `after-H1-empty-main-user-save-20260725-142258.bak`                                                                                                                                | 真实编辑器操作样本已保护；后续 raw diff 确认空模型资源为 `10005018`、定义侧辅助不变、实例侧辅助重分配；范围仅限该地图/回存样本。                                                                                  |
 | 2026-07-25 | 基于空模型回存调整 H 比例并新增独立 W1 的候选                                                                                                                                                                                                                                          | 候选 SHA-256 `0540f6f4...ba2a8`；写回后回读断言 H 空主模型和 ID 保持、W 4+4 辅助闭包、三条登记、Transform、`field 9` 与未触及顶层区不变；用户提供 H/W 截图和明确反馈                                                                          | **自动结构验证通过、写回成功、用户游戏内验证通过。** H/W 均正常显示，但拼接视觉比例仍待调参。                                                                                                                     |
 | 2026-07-25 | 新增配置驱动的 `assets:static-assemblies` 工具                                                                                                                                                                                                                                         | `npm run build`；临时副本上的 preview/output 回归；`tests/gil_static_assemblies.ts` 验证源文件不变和重复 ID 拒绝                                                                                                                              | **当前实现和自动回归通过；未以新工具写回或游戏验证。** 长方体 `10009001` 的闭包来源有 H/W 游戏证据，其它资源仍待验证。                                                                                            |
-| 2026-07-25 | 使用正式 `assets:static-assemblies` CLI 创建四件长方体组件 `静态拼装工具验证1`                                                                                                                                                                                                          | 来源 SHA-256 `0540f6f4...ba2a8`；候选/写后 SHA-256 `067edfb3...8f3315`；正式回归与独立 raw-wire 校验通过；CLI 自动备份；用户确认三档高度、45° 旋转和场景分离均符合预期                                                                       | **候选自动验证通过、写回成功、写后回读通过、用户游戏内验证通过。** 结论仅覆盖当前地图、H1 模板、资源 `10009001` 和本次四件配置。                                                                                  |
+| 2026-07-25 | 使用正式 `assets:static-assemblies` CLI 创建四件长方体组件 `静态拼装工具验证1`                                                                                                                                                                                                         | 来源 SHA-256 `0540f6f4...ba2a8`；候选/写后 SHA-256 `067edfb3...8f3315`；正式回归与独立 raw-wire 校验通过；CLI 自动备份；用户确认三档高度、45° 旋转和场景分离均符合预期                                                                        | **候选自动验证通过、写回成功、写后回读通过、用户游戏内验证通过。** 结论仅覆盖当前地图、H1 模板、资源 `10009001` 和本次四件配置。                                                                                  |
+| 2026-07-28 | 新增主体/逐 item 颜色配置和显式模板实例 ID，以正式 CLI 写回六件多资源颜色组合                                                                                                                                                                                                          | 来源 SHA-256 `0225e4b2...fd2992`；候选/写后 SHA-256 `47ff681b...db9ecd`；raw-wire 回归、独立闭包回读、自动备份和写后回读通过；用户反馈测试“完美通过”                                                                                          | **颜色编码、写回、编辑器/游戏视觉均通过。** 覆盖球体、圆锥、圆柱、两类线框资源、33/50/66/100% 透明度、覆盖/正片叠底和关闭颜色；`field 9` 材质语义仍未验证。                                                       |

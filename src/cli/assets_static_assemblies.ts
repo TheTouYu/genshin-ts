@@ -104,7 +104,8 @@ export async function runAssetsStaticAssemblies(argv: readonly string[] = proces
   if (!selected.length)
     throw new Error(
       '[error] assets.staticAssemblies is empty; configure name, prefabId, templatePrefabId, ' +
-        'templateName, position, items, definitionAuxiliaryIds and instanceAuxiliaryIds'
+        'templateInstanceId, templateName, position, items, definitionAuxiliaryIds and ' +
+        'instanceAuxiliaryIds'
     )
 
   const sourcePath = resolveGilPath(config, args)
@@ -136,6 +137,7 @@ export async function runAssetsStaticAssemblies(argv: readonly string[] = proces
       const assembly = selected[index]
       console.log(`assemblyName=${assembly.name}`)
       console.log(`templatePrefabId=${assembly.templatePrefabId}`)
+      console.log(`templateInstanceId=${assembly.templateInstanceId}`)
       console.log(`newPrefabId=${result.prefabId}`)
       console.log(`itemCount=${assembly.items.length}`)
       console.log(`resources=${assembly.items.map((item) => item.resourceId).join(',')}`)

@@ -165,6 +165,22 @@ export type GstsCustomVariableOperation = {
   declarations: readonly GstsCustomVariableDeclaration[]
 }
 
+export type GstsStaticColor =
+  | {
+      /** [ZH] 关闭自定义颜色；编码时省略启用字段。 / [EN] Disable custom color and omit its enable field. */
+      enabled: false
+    }
+  | {
+      /** [ZH] 启用自定义颜色。 / [EN] Enable custom color. */
+      enabled: true
+      /** [ZH] `0xRRGGBB` 颜色码。 / [EN] `0xRRGGBB` color value. */
+      rgb: number
+      /** [ZH] UI 透明度百分比，编码前量化为 8-bit Alpha。 / [EN] UI opacity percentage, quantized to 8-bit alpha before encoding. */
+      opacity: number
+      /** [ZH] 颜色叠加方式。 / [EN] Color overlay mode. */
+      overlay: 'overwrite' | 'multiply'
+    }
+
 export type GstsStaticAssemblyItem = {
   /**
    * [ZH] 官方基础模型资源 ID。资源必须在目标地图和模板的受限验证范围内确认。
@@ -190,6 +206,13 @@ export type GstsStaticAssemblyItem = {
    * is a bounded example and does not establish dimensions for other resources.
    */
   scale?: readonly [number, number, number]
+  /**
+   * [ZH] 子项颜色。定义侧和实例侧辅助记录会写入相同快照；省略时继承模板子项。
+   *
+   * [EN] Item color. Definition-side and instance-side auxiliary records receive the
+   * same snapshot; omit it to inherit the template item.
+   */
+  color?: GstsStaticColor
 }
 
 export type GstsStaticAssembly = {
@@ -197,8 +220,15 @@ export type GstsStaticAssembly = {
   name: string
   /** [ZH] 新元件主 ID；工具不会自动分配。 / [EN] New prefab ID; never auto-assigned. */
   prefabId: number
-  /** [ZH] 目标地图中模板元件的 ID。 / [EN] Template prefab ID in the target map. */
+  /** [ZH] 目标地图中模板元件的定义 ID。 / [EN] Template prefab definition ID in the target map. */
   templatePrefabId: number
+  /**
+   * [ZH] 目标地图中模板元件的实例 ID。定义 ID 与实例 ID 不保证相同，必须显式提供。
+   *
+   * [EN] Template prefab instance ID in the target map. Definition and instance IDs are
+   * not guaranteed to match and must be provided explicitly.
+   */
+  templateInstanceId: number
   /** [ZH] 模板元件的当前名称。 / [EN] Current template prefab name. */
   templateName: string
   /**
@@ -213,12 +243,17 @@ export type GstsStaticAssembly = {
   /** [ZH] 拼装元件的场景缩放，默认 `[1, 1, 1]`。 / [EN] Assembly scene scale; defaults to `[1, 1, 1]`. */
   scale?: readonly [number, number, number]
   /**
-   * [ZH] 使用局部 Transform 拼装的子项。当前颜色/材质未知字段继承所复制的模板子项，
-   * 尚不提供任意颜色配置；模板子项不足时当前实现会按顺序循环复用。
+   * [ZH] 主模型颜色。定义和实例会写入相同颜色快照；省略时继承模板颜色。材质等未知字段保持不变。
    *
-   * [EN] Items assembled with local Transforms. Unknown color/material fields currently
-   * inherit from the copied template item; arbitrary color configuration is not exposed.
-   * The current implementation reuses template items cyclically when there are fewer templates.
+   * [EN] Main-model color. Definition and instance receive the same color snapshot; omit
+   * it to inherit the template color. Unknown fields such as material settings are preserved.
+   */
+  color?: GstsStaticColor
+  /**
+   * [ZH] 使用局部 Transform 拼装的子项。模板子项不足时当前实现会按顺序循环复用。
+   *
+   * [EN] Items assembled with local Transforms. The current implementation reuses template
+   * items cyclically when there are fewer templates.
    */
   items: readonly GstsStaticAssemblyItem[]
   /** [ZH] 每个 item 对应一个未占用的定义侧辅助 ID。 / [EN] One unused definition-side auxiliary ID per item. */

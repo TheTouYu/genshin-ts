@@ -11,6 +11,7 @@ const assembly: GstsStaticAssembly = {
   name: '公开类型回归',
   prefabId: 1,
   templatePrefabId: 2,
+  templateInstanceId: 5,
   templateName: '模板',
   position: [0, 0, 0],
   items: [item],
