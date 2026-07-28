@@ -379,7 +379,8 @@ Rules:
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`: save an offline candidate without overwriting an existing file
 - `npm run assets:static-assemblies -- --map-id <id> --write`: explicitly back up and write the real map
 
-Each `assets.staticAssemblies` item uses a local Transform relative to the assembly origin; the assembly's own `position`, `rotation`, and `scale` are scene Transforms. Unknown color/material fields currently inherit from template items; arbitrary colors are not exposed. Confirm the template, resource IDs, prefab ID, and both auxiliary ID lists for the target map—never copy documentation IDs into a real write.
+Each `assets.staticAssemblies` item uses a local Transform relative to the assembly origin; the assembly's own `position`, `rotation`, and `scale` are scene Transforms. Main and item colors support enabled/disabled custom color, `0xRRGGBB`, 0–100 opacity, and `overwrite`/`multiply`; unknown material fields remain inherited. Complex models may replace config-level `items` and `color` with `structureFile: './assemblies/model.json'`. The strict JSON file uses `schemaVersion: 1`, owns `color` and `items`, resolves relative to `gsts.config.ts`, and can use `node_modules/genshin-ts/schemas/static-assembly.schema.json` for completion. It does not extract structures from `.gil`. Confirm the template, resource IDs, prefab ID, and both auxiliary ID lists for the target map—never copy documentation IDs into a real write.
+
 - `npm run typecheck`: TypeScript type check
 - `npm run lint`: ESLint
 

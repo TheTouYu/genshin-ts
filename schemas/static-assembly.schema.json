@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsts.moe/schemas/static-assembly.schema.json",
+  "title": "Genshin-TS Static Assembly Structure",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "items"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "color": { "$ref": "#/$defs/color" },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "vector3": {
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "color": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": { "enabled": { "const": false } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "rgb", "opacity", "overlay"],
+          "properties": {
+            "enabled": { "const": true },
+            "rgb": { "type": "integer", "minimum": 0, "maximum": 16777215 },
+            "opacity": { "type": "number", "minimum": 0, "maximum": 100 },
+            "overlay": { "enum": ["overwrite", "multiply"] }
+          }
+        }
+      ]
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceId", "position"],
+      "properties": {
+        "resourceId": { "type": "integer", "minimum": 0 },
+        "position": { "$ref": "#/$defs/vector3" },
+        "rotation": { "$ref": "#/$defs/vector3" },
+        "scale": { "$ref": "#/$defs/vector3" },
+        "color": { "$ref": "#/$defs/color" }
+      }
+    }
+  }
+}

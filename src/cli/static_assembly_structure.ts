@@ -1,0 +1,167 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
+import type {
+  GstsResolvedStaticAssembly,
+  GstsStaticAssembly,
+  GstsStaticAssemblyItem,
+  GstsStaticAssemblyStructure,
+  GstsStaticColor
+} from '../compiler/gsts_config.js'
+
+type JsonObject = Record<string, unknown>
+
+function fail(filePath: string, field: string, message: string): never {
+  throw new Error(`[error] static assembly structure ${filePath}: ${field} ${message}`)
+}
+
+function object(filePath: string, field: string, value: unknown): JsonObject {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    fail(filePath, field, 'must be an object')
+  }
+  return value as JsonObject
+}
+
+function exactFields(
+  filePath: string,
+  field: string,
+  value: JsonObject,
+  allowed: readonly string[]
+): void {
+  const unknown = Object.keys(value).find((key) => !allowed.includes(key))
+  if (unknown !== undefined)
+    fail(filePath, field ? `${field}.${unknown}` : unknown, 'is an unknown field')
+}
+
+function finiteNumber(filePath: string, field: string, value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    fail(filePath, field, 'must be a finite number')
+  }
+  return value
+}
+
+function vector(
+  filePath: string,
+  field: string,
+  value: unknown
+): readonly [number, number, number] {
+  if (!Array.isArray(value) || value.length !== 3) {
+    fail(filePath, field, 'must contain exactly three finite numbers')
+  }
+  return [
+    finiteNumber(filePath, `${field}[0]`, value[0]),
+    finiteNumber(filePath, `${field}[1]`, value[1]),
+    finiteNumber(filePath, `${field}[2]`, value[2])
+  ]
+}
+
+function color(filePath: string, field: string, value: unknown): GstsStaticColor {
+  const source = object(filePath, field, value)
+  if (source.enabled === false) {
+    exactFields(filePath, field, source, ['enabled'])
+    return { enabled: false }
+  }
+  exactFields(filePath, field, source, ['enabled', 'rgb', 'opacity', 'overlay'])
+  if (source.enabled !== true) fail(filePath, `${field}.enabled`, 'must be true or false')
+  if (
+    !Number.isInteger(source.rgb) ||
+    (source.rgb as number) < 0 ||
+    (source.rgb as number) > 0xffffff
+  ) {
+    fail(filePath, `${field}.rgb`, 'must be an integer from 0x000000 to 0xFFFFFF')
+  }
+  const opacity = finiteNumber(filePath, `${field}.opacity`, source.opacity)
+  if (opacity < 0 || opacity > 100) fail(filePath, `${field}.opacity`, 'must be from 0 to 100')
+  if (source.overlay !== 'overwrite' && source.overlay !== 'multiply') {
+    fail(filePath, `${field}.overlay`, 'must be overwrite or multiply')
+  }
+  return {
+    enabled: true,
+    rgb: source.rgb as number,
+    opacity,
+    overlay: source.overlay
+  }
+}
+
+function item(filePath: string, index: number, value: unknown): GstsStaticAssemblyItem {
+  const field = `items[${index}]`
+  const source = object(filePath, field, value)
+  exactFields(filePath, field, source, ['resourceId', 'position', 'rotation', 'scale', 'color'])
+  if (!Number.isSafeInteger(source.resourceId) || (source.resourceId as number) < 0) {
+    fail(filePath, `${field}.resourceId`, 'must be a non-negative safe integer')
+  }
+  return {
+    resourceId: source.resourceId as number,
+    position: vector(filePath, `${field}.position`, source.position),
+    ...(source.rotation === undefined
+      ? {}
+      : { rotation: vector(filePath, `${field}.rotation`, source.rotation) }),
+    ...(source.scale === undefined
+      ? {}
+      : { scale: vector(filePath, `${field}.scale`, source.scale) }),
+    ...(source.color === undefined
+      ? {}
+      : { color: color(filePath, `${field}.color`, source.color) })
+  }
+}
+
+export function resolveStaticAssemblyStructure(
+  assembly: GstsStaticAssembly,
+  configPath: string
+): GstsResolvedStaticAssembly {
+  const structureFile = 'structureFile' in assembly ? assembly.structureFile : undefined
+  const inlineItems = 'items' in assembly ? assembly.items : undefined
+  const inlineColor = 'color' in assembly ? assembly.color : undefined
+  if (structureFile !== undefined && inlineItems !== undefined) {
+    throw new Error('[error] structureFile and items are mutually exclusive')
+  }
+  if (structureFile !== undefined && inlineColor !== undefined) {
+    throw new Error('[error] structureFile and color are mutually exclusive')
+  }
+  if (structureFile === undefined) {
+    if (!inlineItems) throw new Error('[error] assembly requires items or structureFile')
+    return assembly as GstsResolvedStaticAssembly
+  }
+  if (typeof structureFile !== 'string' || !structureFile) {
+    throw new Error('[error] structureFile must be a non-empty string')
+  }
+  const structure = loadStaticAssemblyStructure(
+    structureFile,
+    path.dirname(path.resolve(configPath))
+  )
+  const { structureFile: _, ...target } = assembly
+  return {
+    ...target,
+    ...(structure.color ? { color: structure.color } : {}),
+    items: structure.items
+  }
+}
+
+export function loadStaticAssemblyStructure(
+  structureFile: string,
+  configDirectory: string
+): GstsStaticAssemblyStructure {
+  const filePath = path.resolve(configDirectory, structureFile)
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+  } catch (error) {
+    const detail =
+      error instanceof SyntaxError ? 'invalid JSON' : `cannot be read: ${String(error)}`
+    throw new Error(`[error] static assembly structure ${filePath}: ${detail}`)
+  }
+  const source = object(filePath, '', parsed)
+  exactFields(filePath, '', source, ['$schema', 'schemaVersion', 'color', 'items'])
+  if (source.schemaVersion !== 1) fail(filePath, 'schemaVersion', 'must be 1')
+  if (!Array.isArray(source.items) || source.items.length === 0) {
+    fail(filePath, 'items', 'must contain at least one item')
+  }
+  if (source.$schema !== undefined && typeof source.$schema !== 'string') {
+    fail(filePath, '$schema', 'must be a string')
+  }
+  return {
+    schemaVersion: 1,
+    ...(source.color === undefined ? {} : { color: color(filePath, 'color', source.color) }),
+    items: source.items.map((value, index) => item(filePath, index, value))
+  }
+}

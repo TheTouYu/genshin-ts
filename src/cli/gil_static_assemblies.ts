@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 
 import type {
-  GstsStaticAssembly,
+  GstsResolvedStaticAssembly,
   GstsStaticAssemblyItem,
   GstsStaticColor
 } from '../compiler/gsts_config.js'
@@ -459,7 +459,7 @@ function assertIdsFree(top: readonly WireField[], ids: readonly number[]): void 
   }
 }
 
-function validateAssembly(assembly: GstsStaticAssembly): void {
+function validateAssembly(assembly: GstsResolvedStaticAssembly): void {
   if (!assembly.name || !Number.isSafeInteger(assembly.prefabId) || assembly.prefabId < 0) {
     throw new Error('[error] assembly name and non-negative prefabId are required')
   }
@@ -489,7 +489,7 @@ function validateAssembly(assembly: GstsStaticAssembly): void {
 
 export function applyStaticAssembly(params: {
   gilPath: string
-  assembly: GstsStaticAssembly
+  assembly: GstsResolvedStaticAssembly
 }): StaticAssemblyResult {
   const source = new Uint8Array(fs.readFileSync(params.gilPath))
   if (source.length < 24) throw new Error('[error] invalid gil size')

@@ -21,6 +21,6 @@ npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>
 npm run assets:static-assemblies -- --map-id <id> --write
 ```
 
-Preview prints source/candidate SHA-256 hashes, the prefab ID, both auxiliary ID lists, resources, item count, and touched top-level fields. A successful `--write` proves only that backup and writeback completed—not editor loading or game behavior.
+Preview first loads any `structureFile` relative to the config directory, then prints source/candidate SHA-256 hashes, the prefab ID, both auxiliary ID lists, resources, item count, and touched top-level fields. Structure diagnostics fail before reading the `.gil` or generating a candidate and do not modify either the structure or source map. A successful `--write` proves only that backup and writeback completed—not editor loading or game behavior.
 
 Static prefab assembly writes `.gil` asset structures; GIA injection replaces a NodeGraph; `createPrefab` spawns an existing prefab at runtime. They are separate steps.

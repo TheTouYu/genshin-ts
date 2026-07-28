@@ -215,6 +215,35 @@ export type GstsStaticAssemblyItem = {
   color?: GstsStaticColor
 }
 
+export type GstsStaticAssemblyStructure = {
+  /** [ZH] 结构文件格式版本。 / [EN] Structure-file format version. */
+  schemaVersion: 1
+  /** [ZH] 主模型颜色。 / [EN] Main-model color. */
+  color?: GstsStaticColor
+  /** [ZH] 使用局部 Transform 拼装的子项。 / [EN] Items assembled with local Transforms. */
+  items: readonly GstsStaticAssemblyItem[]
+}
+
+type GstsStaticAssemblyItemsSource =
+  | {
+      /** [ZH] 内联结构不能同时使用结构文件。 / [EN] Inline structure cannot use a structure file. */
+      structureFile?: never
+      color?: GstsStaticColor
+      items: readonly GstsStaticAssemblyItem[]
+    }
+  | {
+      /**
+       * [ZH] 严格 JSON 结构文件，相对 `gsts.config.ts` 所在目录解析。
+       *
+       * [EN] Strict JSON structure file, resolved relative to the `gsts.config.ts` directory.
+       */
+      structureFile: string
+      /** [ZH] 结构文件拥有主颜色，配置不可覆盖。 / [EN] The file owns main color; config cannot override it. */
+      color?: never
+      /** [ZH] 结构文件拥有 items，配置不可内联。 / [EN] The file owns items; config cannot inline them. */
+      items?: never
+    }
+
 export type GstsStaticAssembly = {
   /** [ZH] 新自定义元件名称。 / [EN] Name of the new custom prefab. */
   name: string
@@ -242,24 +271,19 @@ export type GstsStaticAssembly = {
   rotation?: readonly [number, number, number]
   /** [ZH] 拼装元件的场景缩放，默认 `[1, 1, 1]`。 / [EN] Assembly scene scale; defaults to `[1, 1, 1]`. */
   scale?: readonly [number, number, number]
-  /**
-   * [ZH] 主模型颜色。定义和实例会写入相同颜色快照；省略时继承模板颜色。材质等未知字段保持不变。
-   *
-   * [EN] Main-model color. Definition and instance receive the same color snapshot; omit
-   * it to inherit the template color. Unknown fields such as material settings are preserved.
-   */
-  color?: GstsStaticColor
-  /**
-   * [ZH] 使用局部 Transform 拼装的子项。模板子项不足时当前实现会按顺序循环复用。
-   *
-   * [EN] Items assembled with local Transforms. The current implementation reuses template
-   * items cyclically when there are fewer templates.
-   */
-  items: readonly GstsStaticAssemblyItem[]
   /** [ZH] 每个 item 对应一个未占用的定义侧辅助 ID。 / [EN] One unused definition-side auxiliary ID per item. */
   definitionAuxiliaryIds: readonly number[]
   /** [ZH] 每个 item 对应一个未占用的实例侧辅助 ID。 / [EN] One unused instance-side auxiliary ID per item. */
   instanceAuxiliaryIds: readonly number[]
+} & GstsStaticAssemblyItemsSource
+
+export type GstsResolvedStaticAssembly = Omit<
+  GstsStaticAssembly,
+  'structureFile' | 'color' | 'items'
+> & {
+  structureFile?: never
+  color?: GstsStaticColor
+  items: readonly GstsStaticAssemblyItem[]
 }
 
 export type GstsAssetsConfig = {

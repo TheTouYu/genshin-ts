@@ -6,7 +6,9 @@ export type {
   GstsCustomVariableType,
   GstsStage3Options,
   GstsStaticAssembly,
-  GstsStaticAssemblyItem
+  GstsStaticAssemblyItem,
+  GstsStaticAssemblyStructure,
+  GstsStaticColor
 } from './compiler/gsts_config.js'
 
 export type {

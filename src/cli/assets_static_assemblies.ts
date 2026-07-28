@@ -4,10 +4,15 @@ import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import type { GstsConfig, GstsInjectConfig, GstsStaticAssembly } from '../compiler/gsts_config.js'
+import type {
+  GstsConfig,
+  GstsInjectConfig,
+  GstsResolvedStaticAssembly
+} from '../compiler/gsts_config.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
+import { resolveStaticAssemblyStructure } from './static_assembly_structure.js'
 
 function usage(exitCode = 1): never {
   const output = [
@@ -92,9 +97,12 @@ function backupPath(gilPath: string): string {
 
 export async function runAssetsStaticAssemblies(argv: readonly string[] = process.argv.slice(2)) {
   const args = parseArgs(argv)
-  const config = await loadConfig(args.configPath)
-  const assemblies = [...(config.assets?.staticAssemblies ?? [])]
-  let selected: GstsStaticAssembly[]
+  const configPath = path.resolve(args.configPath)
+  const config = await loadConfig(configPath)
+  const assemblies = [...(config.assets?.staticAssemblies ?? [])].map((assembly) =>
+    resolveStaticAssemblyStructure(assembly, configPath)
+  )
+  let selected: GstsResolvedStaticAssembly[]
   if (args.assembly === undefined) selected = assemblies
   else {
     const assembly = assemblies[args.assembly]
@@ -121,7 +129,7 @@ export async function runAssetsStaticAssemblies(argv: readonly string[] = proces
     const results = selected.map((assembly) => {
       const result = applyStaticAssembly({
         gilPath: temporary,
-        assembly: assembly as GstsStaticAssembly
+        assembly
       })
       fs.writeFileSync(temporary, result.bytes)
       return result

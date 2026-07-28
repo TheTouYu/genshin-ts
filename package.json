@@ -55,6 +55,7 @@
       "types": "./dist/src/definitions/*.d.ts",
       "default": "./dist/src/definitions/*.js"
     },
+    "./schemas/static-assembly.schema.json": "./schemas/static-assembly.schema.json",
     "./configs/ts-plugin": "./configs/ts-plugin/index.cjs",
     "./configs/ts-plugin/index.cjs": "./configs/ts-plugin/index.cjs",
     "./configs/*": "./configs/*",
@@ -65,6 +66,7 @@
     "dist/src",
     "types",
     "configs",
+    "schemas",
     "eslint.globals.mjs",
     "bin",
     "README.md",

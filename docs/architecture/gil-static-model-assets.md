@@ -927,7 +927,7 @@ Transform 的视觉调参需要从一次性脚本迁移到可重复配置工具�
 
 > 状态：当前实现 / 已验证
 > 来源：当前代码实现 + 自动回归 + 真实地图写回回读 + 用户游戏内验证
-> 最近校验：2026-07-25
+> 最近校验：2026-07-28
 > 适用范围：以本地图 `静态拼装H1` 为模板、使用长方体资源 `10009001` 创建新组件；其它模板、资源和地图待逐项验证
 
 当前实现入口为 `gsts assets:static-assemblies`，核心代码位于
@@ -994,8 +994,21 @@ node bin/gsts.mjs assets:static-assemblies --config gsts.static-assemblies.confi
 静态 `.gil` 元件拼装、GIA NodeGraph 注入与运行时 `createPrefab`。这些是当前实现和自动构建证据，
 颜色公开配置支持主体和逐 item 的 `enabled`、`rgb`、`opacity`、`overlay`。编码器只替换
 `field 32` 中已由真实 GIL 观察确认的 `field 1/3/4/5/6`，保留材质等其它未知字段；定义/实例及
-两侧辅助记录使用相同颜色快照。该行为已有 raw-wire 自动回归，尚未以本轮多资源候选完成编辑器或
-游戏视觉验证，尤其不能提前声称线框资源颜色一定生效。
+两侧辅助记录使用相同颜色快照。颜色行为已有 raw-wire 自动回归和 §19.2.2 的受限游戏验证。
+
+复杂模型还可使用 `structureFile` 将可移植结构从配置中分离。公开配置使用互斥联合：内联分支提供
+`items`/`color`，文件分支只提供 `structureFile`；地图相关名称、模板 ID、新 prefab ID、两侧辅助
+ID 和场景 Transform 始终留在配置。`src/cli/static_assembly_structure.ts` 将相对配置目录的严格
+JSON 解析为 `GstsResolvedStaticAssembly`，再交给现有 `applyStaticAssembly()`，因此文件解析不直接
+读写 `.gil`。格式固定为 `schemaVersion: 1`，只允许 `$schema`、`color`、`items` 及 item 的
+resource/Transform/color 字段；未知字段、非法版本、空 items、非有限 Transform 和非法颜色会给出
+字段路径诊断。发布包包含 `schemas/static-assembly.schema.json`，并从根入口公开
+`GstsStaticAssemblyStructure` 与 `GstsStaticColor`。
+
+自动证据包括 `tests/static_assembly_structure.ts` 的解析/归一化/只读回归，以及
+`tests/static_assembly_package_consumer.ts` 的 `npm pack`、全新脚手架、本地 tarball 安装、包名类型
+导入和已安装 CLI help 回归。这只证明当前发布包与脚手架消费链路，不证明新的结构文件入口已经经过
+真实地图写回或游戏验证；从已有 `.gil` 提取结构仍是独立的未实现功能。
 
 #### 19.2.1 第一轮生产验证
 
