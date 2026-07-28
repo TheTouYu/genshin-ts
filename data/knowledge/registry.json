@@ -47,7 +47,7 @@
         "game verification",
         "evidence scope"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "static-gil-assets",
@@ -68,7 +68,7 @@
         "辅助 ID",
         "闭包"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "game-map-writeback",
@@ -798,6 +798,21 @@
       "fact_classes": [
         "runtime_behavior",
         "documented_contract"
+      ]
+    },
+    "clm_5CA329CCBED7E15CB53C785F6B": {
+      "fact_classes": [
+        "public_type_surface"
+      ]
+    },
+    "clm_C86C803AF4C0869C6B0936196D": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_05549A29D25E2495E46D7E8E73": {
+      "fact_classes": [
+        "external_game_evidence"
       ]
     }
   }

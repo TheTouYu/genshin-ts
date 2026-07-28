@@ -2,6 +2,51 @@
   "schema_version": 1,
   "refs": [
     {
+      "id": "aref_4d7e1fd04a0ce1b49ab6e1599d",
+      "path": "src/compiler/gsts_config.ts",
+      "locator": "GstsStaticColor and static assembly color properties",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "1b50a8940ca1a281d52455a4d89e4f4594c22c5b2b2fdf9289067098035dfcc8",
+      "claim_ids": [
+        "clm_5CA329CCBED7E15CB53C785F6B"
+      ],
+      "supports_fact_classes": [
+        "public_type_surface"
+      ]
+    },
+    {
+      "id": "aref_5787c6a96f5faf7925d0d0cc36",
+      "path": "tests/gil_static_assemblies.ts",
+      "locator": "focused closure and color raw-wire regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "731e3c6b4a0d844c0d82d1d8187bead4ebbe005d5984f696151e73ff15697d7a",
+      "claim_ids": [
+        "clm_C86C803AF4C0869C6B0936196D"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_e065dd5ba487a55160337232c4",
+      "path": "src/cli/gil_static_assemblies.ts",
+      "locator": "applyStaticAssembly template identity replacement and closure synchronization",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "84271595f92e2216e6bd1a3fb1ab8823ec7a5d55a2d2839b2269decc9dff9b30",
+      "claim_ids": [
+        "clm_C86C803AF4C0869C6B0936196D"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "auth-common-scalar-fixture",
       "path": "tests/composite/test-composite-common-scalar-boundary-pins.ts",
       "locator": "whole focused fixture",
@@ -232,7 +277,7 @@
       "locator": "section 0 and DTC/scalar evidence sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "6a8a3d6d8318e7a262b6b0c618a4b16d39ff7c6345c5810921c3763bc8040887",
+      "approved_hash": "b1d8e659cd1af9316f73d7b9cb5f495d5e005ad8d9d58d9b07e05b52cc7ed5bb",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
@@ -332,6 +377,199 @@
       ]
     },
     {
+      "id": "auth-phase3-diagnostics-model",
+      "path": "src/diagnostics.ts",
+      "locator": "Diagnostic schema, persistence, aggregation and source classification",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "2041b41774ea13c74f0507f6c53ce6717f8bd727cd4a5b970a26b6bbcb99f2dd",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64VA25BVS99BD4K1P5F5S"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-diagnostics-regression",
+      "path": "tests/diagnostics_test.ts",
+      "locator": "whole structured diagnostic JSON reporter regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "83636cf53ff177421789c2c20b5795df5182df876bed495c708e28a60a0ac298",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH64VA25BVS99BD4K1P5F5S"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-ir-builder",
+      "path": "src/runtime/ir_builder.ts",
+      "locator": "buildArgument(), buildNodesFromFlow(), and buildIRDocument()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "a9a495d602541d2c971f1faf7393b813fda39233c10d3011c3498df6f3183cad",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TYS6MNC3JYD3EX74G04",
+        "clm_01KYH64V2V7AQ052RMREK81B8F"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-ir-types",
+      "path": "src/runtime/IR.d.ts",
+      "locator": "IRDocument, server/client graph documents, arguments and connections",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "b0b07c40bc00e49fd872db920c229a35d79756ee0870b4a9e7cd2b0a1647b0a2",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH64V2V7AQ052RMREK81B8F"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-pipeline-overview",
+      "path": "docs/architecture/compilation-pipeline-overview.md",
+      "locator": "three-stage artifacts and debugging entry points",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "5daa090aaa88b681ede26a58bf8af1e95ef0fccc36c03c110a6a943a9d848071",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64VA25BVS99BD4K1P5F5S"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-runtime-registry-builder",
+      "path": "src/runtime/core.ts",
+      "locator": "buildServerGraphRegistriesIRDocuments() and all-registry collection",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TYS6MNC3JYD3EX74G04"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage1-expression-semantics",
+      "path": "src/compiler/ts_to_gs_transform/expression_semantics.ts",
+      "locator": "classifyExpressionSemantics() and localValueTypeOf()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "44d9be7134139caa84d2f1d7037cfed204b22341a86de847a77ae1d6df126ab1",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TV56ENY9PTZX9HJDB22"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage1-local-lowering",
+      "path": "src/compiler/ts_to_gs_transform/local_variable_lowering.ts",
+      "locator": "checked LocalVariable initialization and assignment",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "b3a5ff74852f366f93a73e9ec73ec3f677f2dd30ee6bf7cdd1c3302eae064dac",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TV56ENY9PTZX9HJDB22"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage1-semantics-regression",
+      "path": "tests/stage1_expression_semantics_test.ts",
+      "locator": "whole focused expression/LocalVariable regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "a70b0247d4800a7e4644509209ad8804f4df0202aba729c8ea07c15ce3ccce59",
+      "change_policy": "invalidate_on_change",
+      "claim_ids": [
+        "clm_01KYH64TV56ENY9PTZX9HJDB22"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage2-runner",
+      "path": "src/compiler/gs_to_ir_json_transform/runner.ts",
+      "locator": "isolated entry import and buildAllGraphRegistriesIRDocuments() serialization",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "7d2e8266c716f85f22e4896fd03d40bb60053bc076587cdb57ccd3e675742abc",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64TYS6MNC3JYD3EX74G04"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage3-docs",
+      "path": "docs/architecture/stage3-ir-to-gia.md",
+      "locator": "Stage 3 architecture, responsibilities and encoding boundary",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "aacb639a2bf716a9f34eac1b6512f6448412c95676af3008e6b4c4404b65d191",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "auth-phase3-stage3-transform",
+      "path": "src/compiler/ir_to_gia_transform/index.ts",
+      "locator": "irToGia() dispatch, preprocessing and materialization seams",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "approved_hash": "58b2b9bde0b9328b707d781b285af8adfa8aadde84e5547e2cff4855decf37b3",
+      "change_policy": "review_on_change",
+      "claim_ids": [
+        "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior",
+        "documented_contract"
+      ]
+    },
+    {
       "id": "auth-r20-bool-wire-retrospective",
       "path": "docs/composite-ir/retrospectives/r20-bool-enum-metadata.md",
       "locator": "field 101 evidence and scope",
@@ -425,7 +663,7 @@
       "locator": "StaticAssemblyConfig, parseArgs(), loadConfig(), backupPath(), runAssetsStaticAssemblies()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "0ef07ed3a2114ac0dc66020b19d8307850f555ac926a1124cb32d132a15405be",
+      "approved_hash": "6663c33360bab0ca2733d3daa8c106f29066573afe1a1ad42e4fd9e3daed1bd2",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -458,7 +696,7 @@
       "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "65cb5946b65f8d8c2e98f1d53aa50ceb04ed9396df80fbbd3dcd3727a870df45",
+      "approved_hash": "84271595f92e2216e6bd1a3fb1ab8823ec7a5d55a2d2839b2269decc9dff9b30",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -475,7 +713,7 @@
       "locator": "whole focused regression",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "fd2bad54f8afe5f0c7cbf16c83913418df31244d7ce82aa9cd2a4ab5ed0784fb",
+      "approved_hash": "731e3c6b4a0d844c0d82d1d8187bead4ebbe005d5984f696151e73ff15697d7a",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
         "clm_01KYF24E81AEA72Z0W72RVEHX1",
@@ -507,7 +745,7 @@
       "locator": "GstsAssetsConfig and GstsConfig.assets",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "bbb46cc634852f713758641270e9e87ca427de6fdd628ef35c95856d0c9d153b",
+      "approved_hash": "1b50a8940ca1a281d52455a4d89e4f4594c22c5b2b2fdf9289067098035dfcc8",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
@@ -522,206 +760,13 @@
       "locator": "GstsConfig and GstsAssetsConfig exports",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "502ce61bc883fbcf974c88ea5a5d0bff91e9abf5d044ee60ad9b832361d782c6",
+      "approved_hash": "a0c05587072ff26efc70fecb1f04601fb1574977d4f8389d1c2a1296829aa50a",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
       ],
       "claim_ids": [
         "clm_01KYGSK9PHX67KFENCBF7MAY2E"
-      ]
-    },
-    {
-      "id": "auth-phase3-stage1-expression-semantics",
-      "path": "src/compiler/ts_to_gs_transform/expression_semantics.ts",
-      "locator": "classifyExpressionSemantics() and localValueTypeOf()",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "44d9be7134139caa84d2f1d7037cfed204b22341a86de847a77ae1d6df126ab1",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64TV56ENY9PTZX9HJDB22"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-stage1-local-lowering",
-      "path": "src/compiler/ts_to_gs_transform/local_variable_lowering.ts",
-      "locator": "checked LocalVariable initialization and assignment",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "b3a5ff74852f366f93a73e9ec73ec3f677f2dd30ee6bf7cdd1c3302eae064dac",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64TV56ENY9PTZX9HJDB22"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-stage1-semantics-regression",
-      "path": "tests/stage1_expression_semantics_test.ts",
-      "locator": "whole focused expression/LocalVariable regression",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "a70b0247d4800a7e4644509209ad8804f4df0202aba729c8ea07c15ce3ccce59",
-      "change_policy": "invalidate_on_change",
-      "claim_ids": [
-        "clm_01KYH64TV56ENY9PTZX9HJDB22"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-stage2-runner",
-      "path": "src/compiler/gs_to_ir_json_transform/runner.ts",
-      "locator": "isolated entry import and buildAllGraphRegistriesIRDocuments() serialization",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "7d2e8266c716f85f22e4896fd03d40bb60053bc076587cdb57ccd3e675742abc",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64TYS6MNC3JYD3EX74G04"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-runtime-registry-builder",
-      "path": "src/runtime/core.ts",
-      "locator": "buildServerGraphRegistriesIRDocuments() and all-registry collection",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64TYS6MNC3JYD3EX74G04"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-ir-builder",
-      "path": "src/runtime/ir_builder.ts",
-      "locator": "buildArgument(), buildNodesFromFlow(), and buildIRDocument()",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "a9a495d602541d2c971f1faf7393b813fda39233c10d3011c3498df6f3183cad",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64TYS6MNC3JYD3EX74G04",
-        "clm_01KYH64V2V7AQ052RMREK81B8F"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-ir-types",
-      "path": "src/runtime/IR.d.ts",
-      "locator": "IRDocument, server/client graph documents, arguments and connections",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "b0b07c40bc00e49fd872db920c229a35d79756ee0870b4a9e7cd2b0a1647b0a2",
-      "change_policy": "invalidate_on_change",
-      "claim_ids": [
-        "clm_01KYH64V2V7AQ052RMREK81B8F"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-stage3-transform",
-      "path": "src/compiler/ir_to_gia_transform/index.ts",
-      "locator": "irToGia() dispatch, preprocessing and materialization seams",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "58b2b9bde0b9328b707d781b285af8adfa8aadde84e5547e2cff4855decf37b3",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-stage3-docs",
-      "path": "docs/architecture/stage3-ir-to-gia.md",
-      "locator": "Stage 3 architecture, responsibilities and encoding boundary",
-      "role": "documented_contract",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "aacb639a2bf716a9f34eac1b6512f6448412c95676af3008e6b4c4404b65d191",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-pipeline-overview",
-      "path": "docs/architecture/compilation-pipeline-overview.md",
-      "locator": "three-stage artifacts and debugging entry points",
-      "role": "documented_contract",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "5daa090aaa88b681ede26a58bf8af1e95ef0fccc36c03c110a6a943a9d848071",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64VA25BVS99BD4K1P5F5S"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-diagnostics-model",
-      "path": "src/diagnostics.ts",
-      "locator": "Diagnostic schema, persistence, aggregation and source classification",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "2041b41774ea13c74f0507f6c53ce6717f8bd727cd4a5b970a26b6bbcb99f2dd",
-      "change_policy": "review_on_change",
-      "claim_ids": [
-        "clm_01KYH64VA25BVS99BD4K1P5F5S"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
-      ]
-    },
-    {
-      "id": "auth-phase3-diagnostics-regression",
-      "path": "tests/diagnostics_test.ts",
-      "locator": "whole structured diagnostic JSON reporter regression",
-      "role": "current_implementation",
-      "baseline_state": "committed_baseline",
-      "approved_hash": "83636cf53ff177421789c2c20b5795df5182df876bed495c708e28a60a0ac298",
-      "change_policy": "invalidate_on_change",
-      "claim_ids": [
-        "clm_01KYH64VA25BVS99BD4K1P5F5S"
-      ],
-      "supports_fact_classes": [
-        "runtime_behavior",
-        "documented_contract"
       ]
     }
   ]
