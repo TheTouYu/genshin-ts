@@ -2,13 +2,43 @@
   "schema_version": 1,
   "refs": [
     {
+      "id": "aref_13401bd2be8c8bd953fcb39e05",
+      "path": "tests/static_assembly_package_consumer.ts",
+      "locator": "whole npm-pack and installed-scaffold consumer regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "ee3c6391369a5afa4a60507bc756d711d0f4a7658b300617483d3ceb0b0b33ae",
+      "claim_ids": [
+        "clm_7395AFE937DC8FD43786AA5B34"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_3d306acb3e63a5c1810b4792d7",
+      "path": "src/cli/static_assembly_structure.ts",
+      "locator": "loadStaticAssemblyStructure() and resolveStaticAssemblyStructure()",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "c051bbd97a64c5615bfebc7ee7ee131b388d551ef563c5916db790e344ecb8c1",
+      "claim_ids": [
+        "clm_7395AFE937DC8FD43786AA5B34"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_4d7e1fd04a0ce1b49ab6e1599d",
       "path": "src/compiler/gsts_config.ts",
       "locator": "GstsStaticColor and static assembly color properties",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "1b50a8940ca1a281d52455a4d89e4f4594c22c5b2b2fdf9289067098035dfcc8",
+      "approved_hash": "6cf4cb23ac8881971c389248a0a461c7e253bc2b4bc9f049bb7d15a90c9916df",
       "claim_ids": [
         "clm_5CA329CCBED7E15CB53C785F6B"
       ],
@@ -32,13 +62,28 @@
       ]
     },
     {
+      "id": "aref_7a699f97ddf31ad4625e78460d",
+      "path": "schemas/static-assembly.schema.json",
+      "locator": "whole schemaVersion 1 JSON Schema",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "844257bd7eb30d20f96d61b7ca6cbcc0418a588262de60a3f4841d7ca25da185",
+      "claim_ids": [
+        "clm_7395AFE937DC8FD43786AA5B34"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_e065dd5ba487a55160337232c4",
       "path": "src/cli/gil_static_assemblies.ts",
       "locator": "applyStaticAssembly template identity replacement and closure synchronization",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "84271595f92e2216e6bd1a3fb1ab8823ec7a5d55a2d2839b2269decc9dff9b30",
+      "approved_hash": "13dbb5d417ca4b5efd6f75a082f261dea5bd8380d4b065d4c5fab3295e6a1fa0",
       "claim_ids": [
         "clm_C86C803AF4C0869C6B0936196D"
       ],
@@ -663,7 +708,7 @@
       "locator": "StaticAssemblyConfig, parseArgs(), loadConfig(), backupPath(), runAssetsStaticAssemblies()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "6663c33360bab0ca2733d3daa8c106f29066573afe1a1ad42e4fd9e3daed1bd2",
+      "approved_hash": "f9ce9b3ccdfaa9613c610ceafad6232919459b139841d5a725b2a7aaf5a96650",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -696,7 +741,7 @@
       "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "84271595f92e2216e6bd1a3fb1ab8823ec7a5d55a2d2839b2269decc9dff9b30",
+      "approved_hash": "13dbb5d417ca4b5efd6f75a082f261dea5bd8380d4b065d4c5fab3295e6a1fa0",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -745,7 +790,7 @@
       "locator": "GstsAssetsConfig and GstsConfig.assets",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "1b50a8940ca1a281d52455a4d89e4f4594c22c5b2b2fdf9289067098035dfcc8",
+      "approved_hash": "6cf4cb23ac8881971c389248a0a461c7e253bc2b4bc9f049bb7d15a90c9916df",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
@@ -760,7 +805,7 @@
       "locator": "GstsConfig and GstsAssetsConfig exports",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "a0c05587072ff26efc70fecb1f04601fb1574977d4f8389d1c2a1296829aa50a",
+      "approved_hash": "b408151895f499027fe506ad160fc62f4bf5f8191af434afd4eed716cd1af85f",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
