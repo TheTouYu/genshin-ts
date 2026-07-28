@@ -74,6 +74,35 @@ class ValidatePkcBundleTests(unittest.TestCase):
             )
             self.assertEqual((root / 'knowledge/new.md').read_bytes(), b'new\n')
 
+    def test_link_locked_runtime_uses_project_lock(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as source_directory, tempfile.TemporaryDirectory() as staged_directory:
+            source = Path(source_directory)
+            staged = Path(staged_directory)
+            runtime_relative = Path('.local/pkc/runtimes/exact-commit')
+            runtime = source / runtime_relative
+            runtime.mkdir(parents=True)
+            lock = source / 'tools/pkc-lock.json'
+            lock.parent.mkdir(parents=True)
+            lock.write_text(json.dumps({'runtime': str(runtime_relative)}))
+            module.link_locked_runtime(source, staged)
+            self.assertEqual(
+                json.loads((staged / 'tools/pkc-lock.json').read_text())['runtime'],
+                str(runtime_relative),
+            )
+            self.assertTrue((staged / runtime_relative).is_symlink())
+            self.assertEqual((staged / runtime_relative).resolve(), runtime.resolve())
+
+    def test_link_locked_runtime_rejects_path_escape(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as source_directory, tempfile.TemporaryDirectory() as staged_directory:
+            source = Path(source_directory)
+            lock = source / 'tools/pkc-lock.json'
+            lock.parent.mkdir(parents=True)
+            lock.write_text(json.dumps({'runtime': '../outside'}))
+            with self.assertRaisesRegex(RuntimeError, 'escapes the project'):
+                module.link_locked_runtime(source, Path(staged_directory))
+
     def test_copy_applied_bundle_outputs_restores_only_audited_content(self):
         module = load_module()
         with tempfile.TemporaryDirectory() as source_directory, tempfile.TemporaryDirectory() as staged_directory:

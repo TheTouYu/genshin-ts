@@ -35,7 +35,7 @@ python tools/validate_pkc_bundle.py \
 - 完整检索评估；
 - Authority Ref 路径存在性检查。
 
-它只接受尚未应用、其 before 状态仍可复现的 proposed Bundle；已应用 Bundle 应改跑真实工作树的 apply 后验证。它不 apply Bundle、不访问 SQLite、不安装/替换 runtime、不修改 Git 或工作树，也不复制构建输出、缓存或 action 外的未跟踪内容。临时快照通过只读 symlink 复用 `.local/pkc-runtime`。若 Bundle 将修改 staged validator 本身，必须先用当前已信任版本验证，并在 apply 后再运行一次目标版本。
+它只接受尚未应用、其 before 状态仍可复现的 proposed Bundle；已应用 Bundle 应改跑真实工作树的 apply 后验证。它不 apply Bundle、不访问 SQLite、不安装/替换 runtime、不修改 Git 或工作树，也不复制构建输出、缓存或 action 外的未跟踪内容。临时快照复制 `tools/pkc-lock.json`，并通过只读 symlink 复用 lock 指定的 `.local/pkc/runtimes/<commit>/`；路径逃逸或 runtime 缺失时直接失败。若 Bundle 将修改 staged validator 本身，必须先用当前已信任版本验证，并在 apply 后再运行一次目标版本。
 
 项目层工具能提前发现 schema、Topic/Claim、Authority fact coverage、路径和检索回归问题；它不能替代 portable-knowledge runtime 内部事务原子性，也不能证明真实 GIA、编辑器、写回或游戏行为。
 

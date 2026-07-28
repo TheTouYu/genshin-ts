@@ -58,10 +58,28 @@ def copy_tracked_snapshot(root: Path, destination: Path) -> None:
         else:
             shutil.copy2(source, target)
 
-    runtime = root / '.local' / 'pkc-runtime'
-    if not runtime.exists():
-        raise RuntimeError('PKC_RUNTIME_MISSING: .local/pkc-runtime is unavailable')
-    staged_runtime = destination / '.local' / 'pkc-runtime'
+    link_locked_runtime(root, destination)
+
+
+def link_locked_runtime(root: Path, destination: Path) -> None:
+    lock_relative = Path('tools/pkc-lock.json')
+    lock_path = root / lock_relative
+    if not lock_path.is_file():
+        raise RuntimeError('PKC_RUNTIME_MISSING: tools/pkc-lock.json is unavailable')
+    lock = json.loads(lock_path.read_text(encoding='utf-8'))
+    runtime_raw = lock.get('runtime')
+    if not isinstance(runtime_raw, str) or not runtime_raw:
+        raise RuntimeError('PKC_RUNTIME_INVALID: lock runtime must be a relative path')
+    runtime_relative = Path(runtime_raw)
+    if runtime_relative.is_absolute() or '..' in runtime_relative.parts:
+        raise RuntimeError('PKC_RUNTIME_INVALID: lock runtime escapes the project')
+    runtime = root / runtime_relative
+    if not runtime.is_dir():
+        raise RuntimeError(f'PKC_RUNTIME_MISSING: {runtime_raw} is unavailable')
+    staged_lock = destination / lock_relative
+    staged_lock.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(lock_path, staged_lock)
+    staged_runtime = destination / runtime_relative
     staged_runtime.parent.mkdir(parents=True, exist_ok=True)
     staged_runtime.symlink_to(runtime.resolve(), target_is_directory=True)
 

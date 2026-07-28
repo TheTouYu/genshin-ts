@@ -10,9 +10,9 @@
     "entry": "tools/pkc.py",
     "dependency": {
       "distribution": "portable-knowledge",
-      "source": "project-pinned-non-editable-candidate-runtime",
-      "runtime": ".local/pkc-runtime",
-      "candidate_manifest": ".local/pkc-candidate/manifest.json",
+      "source": "project-lock",
+      "lock": "tools/pkc-lock.json",
+      "runtime": "resolved-by-lock",
       "agent_managed": false
     }
   },
@@ -170,6 +170,78 @@
       "margin_threshold": 0.08
     },
     "intent_routes": [
+      {
+        "id": "compiler-multi-seam-composite-lifecycle-capture-stage3",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 60,
+        "keywords": [
+          "同时诊断 Composite 生命周期、capture IR 和 Stage 3 root impl 编码"
+        ],
+        "topic_ids": [
+          "composite-lifecycle",
+          "capture-ir-contract",
+          "stage3-root-impl-encoding"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "compiler-multi-seam-gia-tools-protobuf-presence",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 60,
+        "keywords": [
+          "我要选 GIA 工具并同时判断 unknown field oneof wire presence"
+        ],
+        "topic_ids": [
+          "gia-tool-selection",
+          "protobuf-presence-and-roundtrip"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation",
+          "documented_contract"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
+      {
+        "id": "compiler-multi-seam-stage1-stage3",
+        "contexts": [
+          "compiler-diagnostics"
+        ],
+        "priority": 60,
+        "keywords": [
+          "同时修改 Stage 1 LocalVariable lowering 和 Stage 3 synthetic boundary materialization"
+        ],
+        "topic_ids": [
+          "stage1-expression-local-variable-semantics",
+          "stage3-materialization-seams"
+        ],
+        "escalate_to_l3": false,
+        "verification_roles": [
+          "current_implementation"
+        ],
+        "capabilities": {
+          "read_knowledge": true,
+          "read_repository": false,
+          "write": false
+        }
+      },
       {
         "id": "compiler-recovery",
         "contexts": [

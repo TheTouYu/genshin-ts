@@ -213,11 +213,15 @@
     },
     {
       "id": "compiler-ambiguous-multi-seam",
-      "class": "ambiguous_mixed_intent",
+      "class": "explicit_route_regression",
       "context": "compiler-diagnostics",
       "query": "同时诊断 Composite 生命周期、capture IR 和 Stage 3 root impl 编码",
-      "expect_error": "RETRIEVAL_CANDIDATE_AMBIGUOUS",
-      "expect_failure_type": "ambiguous"
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "composite-lifecycle",
+        "capture-ir-contract",
+        "stage3-root-impl-encoding"
+      ]
     },
     {
       "id": "explicit-composite-flow-nesting",
@@ -375,11 +379,14 @@
     },
     {
       "id": "phase12-ambiguous-tools-wire",
-      "class": "ambiguous_mixed_intent",
+      "class": "explicit_route_regression",
       "context": "compiler-diagnostics",
       "query": "我要选 GIA 工具并同时判断 unknown field oneof wire presence",
-      "expect_error": "RETRIEVAL_CANDIDATE_AMBIGUOUS",
-      "expect_failure_type": "ambiguous"
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "gia-tool-selection",
+        "protobuf-presence-and-roundtrip"
+      ]
     },
     {
       "id": "phase12-cross-context-map",
@@ -513,11 +520,14 @@
     },
     {
       "id": "phase3-ambiguous-stage1-stage3",
-      "class": "ambiguous_mixed_intent",
+      "class": "explicit_route_regression",
       "context": "compiler-diagnostics",
       "query": "同时修改 Stage 1 LocalVariable lowering 和 Stage 3 synthetic boundary materialization",
-      "expect_error": "RETRIEVAL_CANDIDATE_AMBIGUOUS",
-      "expect_failure_type": "ambiguous"
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "stage1-expression-local-variable-semantics",
+        "stage3-materialization-seams"
+      ]
     },
     {
       "id": "phase3-cross-context-assets",
