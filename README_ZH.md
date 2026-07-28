@@ -54,8 +54,21 @@ npm run dev
 - 编译优化：常量预计算、无用节点清理、局部变量复用。
 - 可读 IR JSON：便于调试与二次处理。
 - CLI 工具链：增量编译、注入安全检查、地图定位、自动备份。
+- 受控 `.gil` 资产工具：自定义变量与静态元件拼装默认仅预览，显式 `--write` 才备份写回。
 - 定制化 ESLint：提前提示语义限制与不安全写法。
 - 内置元件资源id支持
+
+## 资产能力边界
+
+| 需求 | Genshin-TS 入口 | 修改对象 | 默认写真实地图 |
+|---|---|---|---|
+| 生成/注入 NodeGraph | `gsts` / `gsts dev` | `.gia` / `.gil` 内节点图 | 取决于 inject 配置 |
+| 提取已有自定义元件 ID | `inject.extractResources` | `src/resources/prefabs.ts` | 否 |
+| 生成静态拼装自定义元件 | `gsts assets:static-assemblies` | `.gil` 资产结构 | 否；仅 `--write` 写回 |
+| 修改自定义变量声明 | `gsts assets:custom-variables` | `.gil` 资产结构 | 否；仅 `--write` 写回 |
+| 运行时创建已有元件 | `createPrefab` | 游戏运行时实体 | 不修改编辑器资产 |
+
+静态元件拼装基于目标地图中已有模板闭包和已确认的官方基础资源，支持 item 的局部位置、旋转和缩放。它不是 GIA 节点图注入，也不等于运行时创生；当前颜色只继承模板未知字段，尚未公开任意颜色编码。
 
 ## 编译流程与产物
 

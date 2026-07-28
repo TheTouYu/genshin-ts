@@ -71,7 +71,8 @@ Language entry:
 - When working in Chinese, switch to `README_ZH.md` and `docs/EDITOR_BOUNDARIES_ZH.md` so terminology stays consistent.
 
 - Use code for runtime rules: gameplay flow, state machines, wave logic, economy, validation, spawning, settlement, and signal orchestration.
-- Use the editor for authored resources and configuration: prefabs, components, paths, UI layouts/control groups, signals, global timers, shops, currencies, ability units, text bubbles, minimap markers, and audio assets.
+- Normally use the editor for authored resources and configuration: prefabs, components, paths, UI layouts/control groups, signals, global timers, shops, currencies, ability units, text bubbles, minimap markers, and audio assets.
+- Bounded exception: `assets:static-assemblies` can build new static custom prefabs from an existing template closure in the target map and confirmed official base resources. It modifies `.gil` assets directly, is not GIA NodeGraph injection, and does not imply that arbitrary editor assets can be generated in code.
 - Before proposing or implementing a feature, check `docs/EDITOR_BOUNDARIES.md` and explicitly separate:
   - code changes
   - editor setup still required
@@ -374,6 +375,11 @@ Rules:
 - `npm run assets:custom-variables -- --write`: back up and write the real map
 - `npm run assets:custom-variables -- --map-id <id>`: temporarily choose a map
 - `npm run assets:custom-variables -- --gil <file.gil>`: process an offline GIL
+- `npm run assets:static-assemblies -- --map-id <id>`: preview the static assembly plan without modifying the map
+- `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`: save an offline candidate without overwriting an existing file
+- `npm run assets:static-assemblies -- --map-id <id> --write`: explicitly back up and write the real map
+
+Each `assets.staticAssemblies` item uses a local Transform relative to the assembly origin; the assembly's own `position`, `rotation`, and `scale` are scene Transforms. Unknown color/material fields currently inherit from template items; arbitrary colors are not exposed. Confirm the template, resource IDs, prefab ID, and both auxiliary ID lists for the target map—never copy documentation IDs into a real write.
 - `npm run typecheck`: TypeScript type check
 - `npm run lint`: ESLint
 

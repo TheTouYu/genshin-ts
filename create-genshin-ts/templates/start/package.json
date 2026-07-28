@@ -11,6 +11,7 @@
     "maps": "gsts maps",
     "backup": "gsts open backup",
     "assets:custom-variables": "gsts assets:custom-variables",
+    "assets:static-assemblies": "gsts assets:static-assemblies",
     "trace-exec": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-exec-flow.ts",
     "trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-dataflow.ts",
     "gia:decode": "NODE_OPTIONS='--no-deprecation' tsx tools/decode-gia.ts",

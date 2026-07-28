@@ -1597,7 +1597,17 @@ async function main() {
 
   program
     .command('assets:static-assemblies')
-    .description('preview or write configured static GIL assemblies')
+    .description(t('cmdAssetsStaticAssemblies'))
+    .option('--config <file>', t('staticAssembliesOptConfig'))
+    .option('--map-id <id>', t('staticAssembliesOptMapId'))
+    .option('--gil <file>', t('staticAssembliesOptGil'))
+    .option('--assembly <index>', t('staticAssembliesOptAssembly'))
+    .option('--output <file>', t('staticAssembliesOptOutput'))
+    .option('--write', t('staticAssembliesOptWrite'))
+    .addHelpText(
+      'after',
+      `\n${t('staticAssembliesHelpModes')}\n${t('staticAssembliesHelpBoundary')}`
+    )
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .action(async () => {

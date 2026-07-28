@@ -1,26 +1,7 @@
 import fs from 'node:fs'
 
+import type { GstsStaticAssembly, GstsStaticAssemblyItem } from '../compiler/gsts_config.js'
 import { buildFile, encodeVarint, readUint32BE, readVarint } from '../injector/binary.js'
-
-export type GstsStaticAssemblyItem = {
-  resourceId: number
-  position: readonly [number, number, number]
-  rotation?: readonly [number, number, number]
-  scale?: readonly [number, number, number]
-}
-
-export type GstsStaticAssembly = {
-  name: string
-  prefabId: number
-  templatePrefabId: number
-  templateName: string
-  position: readonly [number, number, number]
-  rotation?: readonly [number, number, number]
-  scale?: readonly [number, number, number]
-  items: readonly GstsStaticAssemblyItem[]
-  definitionAuxiliaryIds: readonly number[]
-  instanceAuxiliaryIds: readonly number[]
-}
 
 export type StaticAssemblyResult = {
   bytes: Uint8Array

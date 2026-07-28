@@ -1,24 +1,39 @@
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
+import type { GstsConfig, GstsInjectConfig, GstsStaticAssembly } from '../compiler/gsts_config.js'
+import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
-import { applyStaticAssembly, type GstsStaticAssembly } from './gil_static_assemblies.js'
+import { applyStaticAssembly } from './gil_static_assemblies.js'
 
-type StaticAssemblyConfig = GstsConfig & {
-  assets?: { staticAssemblies?: readonly GstsStaticAssembly[] }
+function usage(exitCode = 1): never {
+  const output = [
+    t('staticAssembliesHelpSummary'),
+    '',
+    'Usage: gsts assets:static-assemblies [--config <file>] [--map-id <id> | --gil <file>]',
+    '       [--write | --output <file>] [--assembly <index>]',
+    '',
+    t('staticAssembliesHelpOptions'),
+    '  --config <file>    ' + t('staticAssembliesOptConfig'),
+    '  --map-id <id>      ' + t('staticAssembliesOptMapId'),
+    '  --gil <file>       ' + t('staticAssembliesOptGil'),
+    '  --assembly <index> ' + t('staticAssembliesOptAssembly'),
+    '  --output <file>    ' + t('staticAssembliesOptOutput'),
+    '  --write            ' + t('staticAssembliesOptWrite'),
+    '  -h, --help         ' + t('staticAssembliesOptHelp'),
+    '',
+    t('staticAssembliesHelpModes'),
+    t('staticAssembliesHelpBoundary')
+  ].join('\n')
+  console[exitCode === 0 ? 'log' : 'error'](output)
+  process.exit(exitCode)
 }
 
-function usage(): never {
-  console.error(
-    [
-      'Usage: gsts assets:static-assemblies [--config <file>] [--map-id <id> | --gil <file>]',
-      '       [--write | --output <file>] [--assembly <index>]'
-    ].join('\n')
-  )
-  process.exit(1)
+function sha256(data: Uint8Array): string {
+  return createHash('sha256').update(data).digest('hex')
 }
 
 function parseArgs(argv: readonly string[]) {
@@ -36,7 +51,7 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--output') outputPath = argv[++index] ?? usage()
     else if (arg === '--assembly') assembly = Number(argv[++index])
     else if (arg === '--write') write = true
-    else if (arg === '--help' || arg === '-h') usage()
+    else if (arg === '--help' || arg === '-h') usage(0)
     else usage()
   }
   if (gilPath && mapId !== undefined)
@@ -48,21 +63,23 @@ function parseArgs(argv: readonly string[]) {
   return { configPath, mapId, gilPath, outputPath, write, assembly }
 }
 
-async function loadConfig(configPath: string): Promise<StaticAssemblyConfig> {
+async function loadConfig(configPath: string): Promise<GstsConfig> {
   const module = (await import(pathToFileURL(path.resolve(configPath)).href)) as {
-    default?: StaticAssemblyConfig
+    default?: GstsConfig
   }
   if (!module.default || typeof module.default !== 'object')
     throw new Error('[error] invalid gsts config')
   return module.default
 }
 
-function resolveGilPath(config: StaticAssemblyConfig, args: ReturnType<typeof parseArgs>): string {
+function resolveGilPath(config: GstsConfig, args: ReturnType<typeof parseArgs>): string {
   if (args.gilPath) return path.resolve(args.gilPath)
   const inject: GstsInjectConfig = { ...(config.inject ?? {}) }
   if (args.mapId !== undefined) inject.mapId = args.mapId
   if (inject.mapId === undefined)
-    throw new Error('[error] mapId is required; use --map-id or configure inject.mapId')
+    throw new Error(
+      '[error] mapId is required; run `gsts maps`, then use --map-id or configure inject.mapId'
+    )
   return resolveGilTarget(inject).gilPath
 }
 
@@ -77,12 +94,23 @@ export async function runAssetsStaticAssemblies(argv: readonly string[] = proces
   const args = parseArgs(argv)
   const config = await loadConfig(args.configPath)
   const assemblies = [...(config.assets?.staticAssemblies ?? [])]
-  const selected = args.assembly === undefined ? assemblies : [assemblies[args.assembly]]
-  if (selected.some((assembly) => !assembly)) throw new Error('[error] assembly index out of range')
-  if (!selected.length) throw new Error('[error] assets.staticAssemblies is empty')
+  let selected: GstsStaticAssembly[]
+  if (args.assembly === undefined) selected = assemblies
+  else {
+    const assembly = assemblies[args.assembly]
+    if (!assembly) throw new Error('[error] assembly index out of range')
+    selected = [assembly]
+  }
+  if (!selected.length)
+    throw new Error(
+      '[error] assets.staticAssemblies is empty; configure name, prefabId, templatePrefabId, ' +
+        'templateName, position, items, definitionAuxiliaryIds and instanceAuxiliaryIds'
+    )
 
   const sourcePath = resolveGilPath(config, args)
-  if (!fs.statSync(sourcePath).isFile()) throw new Error(`[error] gil not found: ${sourcePath}`)
+  if (!fs.existsSync(sourcePath) || !fs.statSync(sourcePath).isFile())
+    throw new Error(`[error] gil not found: ${sourcePath}`)
+  const sourceBytes = fs.readFileSync(sourcePath)
   const temporary = path.join(
     os.tmpdir(),
     `gsts-static-assemblies-${process.pid}-${Date.now()}.gil`
@@ -97,10 +125,33 @@ export async function runAssetsStaticAssemblies(argv: readonly string[] = proces
       fs.writeFileSync(temporary, result.bytes)
       return result
     })
+    const candidateBytes = fs.readFileSync(temporary)
+    const mode = args.write ? 'write' : args.outputPath ? 'output' : 'preview'
+    console.log(`mode=${mode}`)
+    console.log(`source=${sourcePath}`)
+    console.log(`sourceSha256=${sha256(sourceBytes)}`)
+    const effectiveMapId = args.mapId ?? config.inject?.mapId
+    if (effectiveMapId !== undefined) console.log(`mapId=${effectiveMapId}`)
+    for (const [index, result] of results.entries()) {
+      const assembly = selected[index]
+      console.log(`assemblyName=${assembly.name}`)
+      console.log(`templatePrefabId=${assembly.templatePrefabId}`)
+      console.log(`newPrefabId=${result.prefabId}`)
+      console.log(`itemCount=${assembly.items.length}`)
+      console.log(`resources=${assembly.items.map((item) => item.resourceId).join(',')}`)
+      console.log(`definitionAuxiliaryIds=${result.definitionAuxiliaryIds.join(',')}`)
+      console.log(`instanceAuxiliaryIds=${result.instanceAuxiliaryIds.join(',')}`)
+    }
+    console.log('touchedTopLevelFields=4,6,8,27')
+    console.log('field9=unchanged-by-current-implementation')
+    console.log(`candidateSha256=${sha256(candidateBytes)}`)
+    console.log(`candidateSize=${candidateBytes.length}`)
+
     const resultPath = args.outputPath ? path.resolve(args.outputPath) : sourcePath
+    let backup: string | undefined
     if (args.write || args.outputPath) {
       if (args.write) {
-        const backup = backupPath(sourcePath)
+        backup = backupPath(sourcePath)
         fs.copyFileSync(sourcePath, backup)
         console.log(`backup=${backup}`)
       } else if (fs.existsSync(resultPath)) {
@@ -109,14 +160,17 @@ export async function runAssetsStaticAssemblies(argv: readonly string[] = proces
       fs.mkdirSync(path.dirname(resultPath), { recursive: true })
       fs.copyFileSync(temporary, resultPath)
       console.log(`written=${resultPath}`)
-    } else {
-      console.log(`preview=${sourcePath}`)
+      console.log(`targetSha256=${sha256(fs.readFileSync(resultPath))}`)
     }
-    for (const result of results) {
+    console.log(`writePerformed=${args.write}`)
+    if (args.write) {
       console.log(
-        `assembly=${result.prefabId} definitionAuxiliaryIds=${result.definitionAuxiliaryIds.join(',')} ` +
-          `instanceAuxiliaryIds=${result.instanceAuxiliaryIds.join(',')}`
+        `next=write succeeded; backup=${backup}; editor loading and game behavior are not verified`
       )
+    } else if (args.outputPath) {
+      console.log('next=review and validate the offline candidate; the source map was not modified')
+    } else {
+      console.log('next=use --output to save candidate, or review and explicitly use --write')
     }
   } finally {
     fs.rmSync(temporary, { force: true })

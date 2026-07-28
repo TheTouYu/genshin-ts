@@ -71,7 +71,8 @@ export default config
 - 若以英文协作，则切换到 `README.md` 与 `docs/EDITOR_BOUNDARIES.md`。
 
 - 代码优先负责运行时规则：玩法流程、状态机、波次逻辑、经济结算、校验、刷怪、结算、信号编排。
-- 编辑器负责资源与配置：元件、组件、路径、界面布局/控件组、信号、全局计时器、商店、货币、能力单元、文本气泡、小地图标识、音频资源等。
+- 编辑器通常负责资源与配置：元件、组件、路径、界面布局/控件组、信号、全局计时器、商店、货币、能力单元、文本气泡、小地图标识、音频资源等。
+- 受限例外：`assets:static-assemblies` 可基于目标地图中已有的模板闭包和已确认的官方基础资源，生成新的静态拼装自定义元件。它直接修改 `.gil` 资产结构，不是 GIA 节点图注入，也不代表任意编辑器资产都能由代码生成。
 - 在设计或实现功能前，先查看 `docs/EDITOR_BOUNDARIES_ZH.md`，并明确区分：
   - 代码改动
   - 仍需手动完成的编辑器配置
@@ -373,10 +374,11 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run assets:custom-variables -- --write`：备份后写回真实地图
 - `npm run assets:custom-variables -- --map-id <id>`：临时指定地图
 - `npm run assets:custom-variables -- --gil <file.gil>`：处理离线 GIL 文件
-- `npm run assets:custom-variables`：预览 `assets.customVariables` 配置对 `.gil` 自定义变量的变更
-- `npm run assets:custom-variables -- --write`：备份后写回真实地图
-- `npm run assets:custom-variables -- --map-id <id>`：临时指定地图
-- `npm run assets:custom-variables -- --gil <file.gil>`：处理离线 GIL 文件
+- `npm run assets:static-assemblies -- --map-id <id>`：默认只预览静态拼装计划，不修改地图
+- `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`：保存离线候选，不覆盖已有文件
+- `npm run assets:static-assemblies -- --map-id <id> --write`：显式备份并写回真实地图
+
+`assets.staticAssemblies` 的 item 使用相对元件原点的局部 Transform；元件自身的 `position`、`rotation`、`scale` 则是场景 Transform。当前颜色/材质未知字段继承模板子项，不提供任意颜色配置。模板、资源 ID、主 ID 和两侧辅助 ID 都必须先针对目标地图确认，不能复制文档示例值直接写回。
 - `npm run typecheck`：TypeScript 类型检查
 - `npm run lint`：ESLint
 

@@ -983,6 +983,13 @@ node bin/gsts.mjs assets:static-assemblies --config gsts.static-assemblies.confi
 自动回归：`npx tsx tests/gil_static_assemblies.ts <map.gil> <templatePrefabId> <prefabId> <definitionStart> <instanceStart>`。
 该回归证明输入文件不变、候选 bytes 发生预期变化以及重复 ID 被拒绝；不能替代编辑器/游戏验证。
 
+自 2026-07-28 起，`GstsConfig.assets.staticAssemblies`、`GstsStaticAssembly` 和
+`GstsStaticAssemblyItem` 已成为 npm 根入口公开类型，CLI 不再维护私有配置副本。preview 会打印来源与
+候选 SHA-256、assembly/template/resource/辅助 ID 计划、候选大小、触及的顶层字段和
+`writePerformed=false`；`--write` 另打印备份与写后哈希。中英文 CLI help 和项目模板已明确区分
+静态 `.gil` 元件拼装、GIA NodeGraph 注入与运行时 `createPrefab`。这些是当前实现和自动构建证据，
+本轮没有执行新的真实地图写回或游戏验证；颜色仍只继承所复制模板子项的未知字段，未公开任意颜色编码。
+
 #### 19.2.1 第一轮生产验证
 
 本轮以 SHA-256 `0540f6f4...ba2a8`、大小 `50400 bytes` 的真实地图只读副本为固定输入，使用

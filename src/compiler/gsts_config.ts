@@ -165,8 +165,79 @@ export type GstsCustomVariableOperation = {
   declarations: readonly GstsCustomVariableDeclaration[]
 }
 
+export type GstsStaticAssemblyItem = {
+  /**
+   * [ZH] 官方基础模型资源 ID。资源必须在目标地图和模板的受限验证范围内确认。
+   *
+   * [EN] Official base-model resource ID. Confirm it against the target map and the
+   * validated scope of the template.
+   */
+  resourceId: number
+  /**
+   * [ZH] 子项相对拼装元件原点的局部位置。
+   *
+   * [EN] Item position relative to the assembly origin.
+   */
+  position: readonly [number, number, number]
+  /** [ZH] 子项局部旋转，默认 `[0, 0, 0]`。 / [EN] Local item rotation; defaults to `[0, 0, 0]`. */
+  rotation?: readonly [number, number, number]
+  /**
+   * [ZH] 子项局部缩放，默认 `[1, 1, 1]`，表示资源原始尺寸而非统一的游戏内 1×1×1。
+   * 已验证长方体资源 `10009001` 仅是受限示例，不能推广到其它资源。
+   *
+   * [EN] Local item scale; defaults to `[1, 1, 1]`, meaning the resource's original
+   * size rather than a universal in-game 1×1×1. The verified cuboid resource `10009001`
+   * is a bounded example and does not establish dimensions for other resources.
+   */
+  scale?: readonly [number, number, number]
+}
+
+export type GstsStaticAssembly = {
+  /** [ZH] 新自定义元件名称。 / [EN] Name of the new custom prefab. */
+  name: string
+  /** [ZH] 新元件主 ID；工具不会自动分配。 / [EN] New prefab ID; never auto-assigned. */
+  prefabId: number
+  /** [ZH] 目标地图中模板元件的 ID。 / [EN] Template prefab ID in the target map. */
+  templatePrefabId: number
+  /** [ZH] 模板元件的当前名称。 / [EN] Current template prefab name. */
+  templateName: string
+  /**
+   * [ZH] 拼装元件实例在场景中的位置；与 item 的局部 Transform 分属两层坐标。
+   *
+   * [EN] Scene position of the assembly instance; this is a separate coordinate layer
+   * from each item's local Transform.
+   */
+  position: readonly [number, number, number]
+  /** [ZH] 拼装元件的场景旋转，默认 `[0, 0, 0]`。 / [EN] Assembly scene rotation; defaults to `[0, 0, 0]`. */
+  rotation?: readonly [number, number, number]
+  /** [ZH] 拼装元件的场景缩放，默认 `[1, 1, 1]`。 / [EN] Assembly scene scale; defaults to `[1, 1, 1]`. */
+  scale?: readonly [number, number, number]
+  /**
+   * [ZH] 使用局部 Transform 拼装的子项。当前颜色/材质未知字段继承所复制的模板子项，
+   * 尚不提供任意颜色配置；模板子项不足时当前实现会按顺序循环复用。
+   *
+   * [EN] Items assembled with local Transforms. Unknown color/material fields currently
+   * inherit from the copied template item; arbitrary color configuration is not exposed.
+   * The current implementation reuses template items cyclically when there are fewer templates.
+   */
+  items: readonly GstsStaticAssemblyItem[]
+  /** [ZH] 每个 item 对应一个未占用的定义侧辅助 ID。 / [EN] One unused definition-side auxiliary ID per item. */
+  definitionAuxiliaryIds: readonly number[]
+  /** [ZH] 每个 item 对应一个未占用的实例侧辅助 ID。 / [EN] One unused instance-side auxiliary ID per item. */
+  instanceAuxiliaryIds: readonly number[]
+}
+
 export type GstsAssetsConfig = {
   customVariables?: readonly GstsCustomVariableOperation[]
+  /**
+   * [ZH] 基于目标地图中的模板闭包和官方基础资源，生成静态拼装自定义元件。
+   * 该工具修改 `.gil` 资产结构，不是 GIA NodeGraph 注入；CLI 默认只预览。
+   *
+   * [EN] Build static custom prefabs from a template closure in the target map and
+   * official base resources. This modifies `.gil` assets, not GIA NodeGraphs; CLI defaults
+   * to preview mode.
+   */
+  staticAssemblies?: readonly GstsStaticAssembly[]
 }
 
 export type GstsInjectConfig = {

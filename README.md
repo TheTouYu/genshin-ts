@@ -54,8 +54,21 @@ For detailed usage and constraints, see the template guide and docs:
 - Compile-time optimizations: constant precompute, dead node removal, local variable reuse.
 - Readable IR JSON for debugging and further processing.
 - CLI toolchain: incremental builds, injection safety checks, map discovery, auto backups.
+- Controlled `.gil` asset tools: custom variables and static prefab assembly preview by default; only explicit `--write` backs up and writes.
 - Custom ESLint rules to surface semantic constraints early.
 - Built-in prefab/resource ID support.
+
+## Asset Capability Boundaries
+
+| Need | Genshin-TS entry | Modified object | Writes the real map by default |
+|---|---|---|---|
+| Build/inject NodeGraphs | `gsts` / `gsts dev` | `.gia` / NodeGraphs in `.gil` | Depends on inject config |
+| Extract existing custom prefab IDs | `inject.extractResources` | `src/resources/prefabs.ts` | No |
+| Build static custom prefabs | `gsts assets:static-assemblies` | `.gil` asset structures | No; only with `--write` |
+| Change custom-variable declarations | `gsts assets:custom-variables` | `.gil` asset structures | No; only with `--write` |
+| Spawn an existing prefab at runtime | `createPrefab` | Runtime game entities | Does not modify editor assets |
+
+Static prefab assembly uses an existing template closure in the target map plus confirmed official base resources, with local position, rotation, and scale per item. It is neither GIA NodeGraph injection nor runtime spawning. Color currently inherits unknown template fields; arbitrary color encoding is not exposed.
 
 ## Compilation Pipeline and Outputs
 

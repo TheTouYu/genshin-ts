@@ -65,7 +65,8 @@ If something is wrong, compare `.gs.ts` and `.json` first.
 - For any non-trivial feature, state:
   - what can be implemented in code now
   - what still requires manual editor setup
-- Components are editor-authored unless verified otherwise.
+- Components are normally editor-authored. For static prefabs assembled from confirmed official base resources, check `assets:static-assemblies` and its template/ID/evidence boundaries before declaring manual authoring mandatory.
+- Keep static `.gil` prefab assembly, GIA NodeGraph injection, and runtime `createPrefab` separate. Before any real `.gil` write, show the target, source/candidate hashes, IDs, affected fields, backup, and rollback plan, then obtain explicit confirmation.
 - Normal timers can be created in node graphs; global timers must be defined in the editor first.
 - Prefab creation uses existing authored prefab resources; it does not replace asset authoring.
 - Shop, currency, backpack, UI layout/control groups, signal definitions, text bubbles, minimap markers, and ability units usually require editor setup first.

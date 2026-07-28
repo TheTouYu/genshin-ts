@@ -4,7 +4,9 @@ export type {
   GstsCustomVariableDeclaration,
   GstsCustomVariableOperation,
   GstsCustomVariableType,
-  GstsStage3Options
+  GstsStage3Options,
+  GstsStaticAssembly,
+  GstsStaticAssemblyItem
 } from './compiler/gsts_config.js'
 
 export type {
