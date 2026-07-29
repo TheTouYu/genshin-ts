@@ -148,7 +148,7 @@ function fullFollowComponent(): Uint8Array {
   ])
 }
 
-function setComponents(
+export function setStaticAssemblyComponents(
   record: Uint8Array,
   components: readonly GstsStaticAssemblyComponent[],
   fieldNumber: number
@@ -240,13 +240,7 @@ function vector(values: readonly number[], sparse: boolean): Uint8Array {
   )
 }
 
-function setTransform(
-  record: Uint8Array,
-  transform: Transform,
-  ownerFieldNumber?: number
-): Uint8Array {
-  const fields = parse(record)
-  if (!fields) throw new Error('[error] invalid transform record')
+function staticAssemblyTransformOwner(fields: WireField[], ownerFieldNumber?: number): WireField {
   const owner = fields.find((field) => {
     if (
       field.wire !== 2 ||
@@ -263,6 +257,17 @@ function setTransform(
     )
   })
   if (!owner) throw new Error('[error] transform owner not found')
+  return owner
+}
+
+export function setStaticAssemblyTransform(
+  record: Uint8Array,
+  transform: Transform,
+  ownerFieldNumber?: number
+): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid transform record')
+  const owner = staticAssemblyTransformOwner(fields, ownerFieldNumber)
   const ownerFields = message(owner)
   const transformField = nth(ownerFields, 11)
   const existing = message(transformField).filter((field) => ![1, 2, 3].includes(field.number))
@@ -272,6 +277,25 @@ function setTransform(
     { number: 3, wire: 2, value: vector(transform.scale, false) },
     ...existing
   ])
+  owner.value = emit(ownerFields)
+  return emit(fields)
+}
+
+export function setStaticAssemblyScale(
+  record: Uint8Array,
+  scale: readonly [number, number, number],
+  ownerFieldNumber?: number
+): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid transform record')
+  const owner = staticAssemblyTransformOwner(fields, ownerFieldNumber)
+  const ownerFields = message(owner)
+  const transformField = nth(ownerFields, 11)
+  const transformFields = message(transformField)
+  const scaleField = transformFields.find((field) => field.number === 3 && field.wire === 2)
+  if (!scaleField) throw new Error('[error] transform scale not found')
+  scaleField.value = vector(scale, false)
+  transformField.value = emit(transformFields)
   owner.value = emit(ownerFields)
   return emit(fields)
 }
@@ -345,7 +369,7 @@ function setAuxiliary(
   const named = replaceText(result, decorationName(result), `装饰物_${params.ordinal}`)
   if (named.count !== 1)
     throw new Error(`[error] expected one decoration name, changed ${named.count}`)
-  const transformed = setTransform(named.bytes, assemblyTransform(params.item))
+  const transformed = setStaticAssemblyTransform(named.bytes, assemblyTransform(params.item))
   return params.item.color ? setColor(transformed, params.item.color) : transformed
 }
 
@@ -480,7 +504,7 @@ export function applyStaticAssembly(params: {
   ).bytes
   definition = setPackedIds(definition, assembly.definitionAuxiliaryIds)
   if (assembly.color) definition = setColor(definition, assembly.color)
-  definition = setComponents(definition, assembly.components ?? [], 8)
+  definition = setStaticAssemblyComponents(definition, assembly.components ?? [], 8)
   top4.push({ number: 1, wire: 2, value: definition })
 
   const instanceName = replaceText(sourceInstance, assembly.templateName, assembly.name)
@@ -499,7 +523,7 @@ export function applyStaticAssembly(params: {
   if (!Buffer.from(instance).includes(Buffer.from(TEXT.encode(assembly.name)))) {
     throw new Error('[error] instance name lost while replacing packed IDs')
   }
-  instance = setTransform(
+  instance = setStaticAssemblyTransform(
     instance,
     {
       position: assembly.position,
@@ -512,7 +536,7 @@ export function applyStaticAssembly(params: {
     throw new Error('[error] instance name lost while setting Transform')
   }
   if (assembly.color) instance = setColor(instance, assembly.color)
-  instance = setComponents(instance, assembly.components ?? [], 7)
+  instance = setStaticAssemblyComponents(instance, assembly.components ?? [], 7)
   top8.push({ number: 1, wire: 2, value: instance })
 
   const auxiliaryDefinitions = top27

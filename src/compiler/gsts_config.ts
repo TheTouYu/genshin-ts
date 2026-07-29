@@ -289,6 +289,19 @@ export type GstsStaticAssemblyComponent = {
   preset: 'fullFollow'
 }
 
+export type GstsStaticPrefabUpdate = {
+  /** [ZH] 要更新的既有元件定义 ID。 / [EN] Existing prefab definition ID to update. */
+  prefabId: number
+  /** [ZH] 要同步更新的既有场景实例 ID。 / [EN] Existing scene instance ID to update. */
+  instanceId: number
+  /** [ZH] 当前定义与实例必须匹配的名称。 / [EN] Name that both current records must match. */
+  expectedName: string
+  /** [ZH] 同步更新定义与实例的组件。 / [EN] Components applied to definition and instance. */
+  components?: readonly GstsStaticAssemblyComponent[]
+  /** [ZH] 仅更新场景实例缩放。 / [EN] Update only the scene instance scale. */
+  scale?: readonly [number, number, number]
+}
+
 export type GstsStaticAssemblyItem = {
   /**
    * [ZH] 官方基础模型资源 ID。资源必须在目标地图和模板的受限验证范围内确认。
@@ -402,6 +415,12 @@ export type GstsResolvedStaticAssembly = Omit<
 
 export type GstsAssetsConfig = {
   customVariables?: readonly GstsCustomVariableOperation[]
+  /**
+   * [ZH] 原地更新已存在的元件定义和指定场景实例；不会创建新元件或辅助 ID。
+   *
+   * [EN] Update existing prefab definitions and selected scene instances in place; never creates prefabs or auxiliary IDs.
+   */
+  staticPrefabUpdates?: readonly GstsStaticPrefabUpdate[]
   /**
    * [ZH] 基于目标地图中的模板闭包和官方基础资源，生成静态拼装自定义元件。
    * 该工具修改 `.gil` 资产结构，不是 GIA NodeGraph 注入；CLI 默认只预览。

@@ -4,7 +4,8 @@ import type {
   GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
-  GstsStaticColor
+  GstsStaticColor,
+  GstsStaticPrefabUpdate
 } from '../src/index.js'
 
 const color: GstsStaticColor = {
@@ -59,11 +60,19 @@ const fileAssembly: GstsStaticAssembly = {
   instanceAuxiliaryIds: [8]
 }
 
+const update: GstsStaticPrefabUpdate = {
+  prefabId: 2,
+  instanceId: 5,
+  expectedName: '模板',
+  components: [component],
+  scale: [0.01, 0.01, 0.01]
+}
+
 const config = {
   compileRoot: '.',
   entries: [],
   outDir: './dist',
-  assets: { staticAssemblies: [assembly, fileAssembly] }
+  assets: { staticAssemblies: [assembly, fileAssembly], staticPrefabUpdates: [update] }
 } satisfies GstsConfig
 
 if (structure.items[0] !== item || config.assets.staticAssemblies[0] !== assembly) {

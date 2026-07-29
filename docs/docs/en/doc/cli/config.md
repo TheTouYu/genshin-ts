@@ -13,7 +13,7 @@ All optimize options are enabled by default.
 
 ## Static prefab assembly
 
-Root `-c/--config` is the project config and provides language, region, player, and map-location context. Static assembly commands load a separate asset config through `--asset-config`. An asset config needs only a default object export and a non-empty `assets.staticAssemblies`; it does not need non-empty compiler `entries`, while normal compilation keeps strict validation. Subcommand `--config` remains a deprecated alias and cannot disagree with `--asset-config`.
+Root `-c/--config` is the project config and provides language, region, player, and map-location context. Static assembly commands load a separate asset config through `--asset-config`. An asset config needs only a default object export and at least one non-empty `assets.staticAssemblies` or `assets.staticPrefabUpdates` array; it does not need non-empty compiler `entries`, while normal compilation keeps strict validation. Subcommand `--config` remains a deprecated alias and cannot disagree with `--asset-config`.
 
 `assets.staticAssemblies` builds new static custom prefabs from an existing template closure in the target map and confirmed official base-model resources:
 
@@ -62,6 +62,29 @@ export default config
 The assembly Transform uses scene coordinates; item Transforms are local to its origin. `scale: [1, 1, 1]` means the resource's original size and does not guarantee a universal in-game 1×1×1 size. Template definition and instance IDs are not guaranteed to match and must be confirmed separately. Colors use `0xRRGGBB`, an opacity from 0–100, and an `overwrite` or `multiply` overlay; `enabled: false` disables custom color. Omitting `color` inherits the template snapshot while preserving other unknown fields such as material settings.
 
 `components` currently accepts only `{ type: 'followMotion', preset: 'fullFollow' }`. It adds the same Follow Motion—Full Follow snapshot to both the prefab definition and scene instance, following both target position and orientation; a node graph may assign the target at runtime. Omitting `components` adds nothing and preserves all template components. The preset is backed by raw-wire comparison of three isomorphic real-GIL prefabs, automatic regression, and bounded writeback plus user editor/game validation across 26 `星枢3x3块` prefabs. Other follow types, tracking modes, and fine-grained parameters remain unsupported and must not be inferred from internal numeric values.
+
+Use `assets.staticPrefabUpdates` to modify existing prefabs in place instead of creating new ones:
+
+```ts
+assets: {
+  staticPrefabUpdates: [
+    {
+      prefabId: EXISTING_PREFAB_DEFINITION_ID,
+      instanceId: EXISTING_SCENE_INSTANCE_ID,
+      expectedName: 'Current confirmed name',
+      components: [{ type: 'followMotion', preset: 'fullFollow' }]
+    },
+    {
+      prefabId: EXISTING_PREFAB_DEFINITION_ID,
+      instanceId: EXISTING_SCENE_INSTANCE_ID,
+      expectedName: 'Current confirmed name',
+      scale: [0.01, 0.01, 0.01]
+    }
+  ]
+}
+```
+
+The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing Follow Motion slot instead of duplicating it. `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
 
 For a complex model, move the main color and `items` into a strict JSON structure file while keeping map-specific names, templates, IDs, and scene Transform in the config:
 

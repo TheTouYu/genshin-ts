@@ -9,11 +9,13 @@ import type {
   GstsInjectConfig,
   GstsResolvedStaticAssembly,
   GstsStaticAssembly,
+  GstsStaticPrefabUpdate,
   StaticAssemblySourceLocator
 } from '../compiler/gsts_config.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
+import { applyStaticPrefabUpdate } from './gil_static_prefab_updates.js'
 import { resolveStaticAssemblyStructure } from './static_assembly_structure.js'
 import { inspectStaticAssemblyMap } from './static_assembly/inspection.js'
 import { prettyStableJson, sha256Bytes } from './static_assembly/json.js'
@@ -156,7 +158,8 @@ async function loadAssetAssemblies(configPath: string) {
   const source = fs.readFileSync(absolute)
   const raw = [...(config.assets?.staticAssemblies ?? [])]
   const assemblies = raw.map((assembly) => resolveStaticAssemblyStructure(assembly, absolute))
-  return { absolute, source, raw, assemblies }
+  const updates = [...(config.assets?.staticPrefabUpdates ?? [])]
+  return { absolute, source, raw, assemblies, updates }
 }
 
 function structureInput(assembly: GstsStaticAssembly, configPath: string) {
@@ -236,11 +239,15 @@ async function runPreview(
   const assetPath = args.assetConfigPath ?? 'gsts.config.ts'
   const asset = await loadAssetAssemblies(assetPath)
   let selected: GstsResolvedStaticAssembly[]
-  if (args.assembly === undefined) selected = asset.assemblies
-  else {
+  let updates: GstsStaticPrefabUpdate[]
+  if (args.assembly === undefined) {
+    selected = asset.assemblies
+    updates = asset.updates
+  } else {
     const assembly = asset.assemblies[args.assembly]
     if (!assembly) throw new Error('[error] assembly index out of range')
     selected = [assembly]
+    updates = []
   }
   const source = resolveGilPath(
     projectConfig ?? (await loadGstsConfig(asset.absolute, { profile: 'project' })),
@@ -260,6 +267,11 @@ async function runPreview(
       fs.writeFileSync(temporary, result.bytes)
       return result
     })
+    const updateResults = updates.map((update) => {
+      const result = applyStaticPrefabUpdate({ gilPath: temporary, update })
+      fs.writeFileSync(temporary, result.bytes)
+      return result
+    })
     const candidateBytes = fs.readFileSync(temporary)
     console.log(`mode=${args.write ? 'write' : args.outputPath ? 'output' : 'preview'}`)
     console.log(`source=${source.path}`)
@@ -268,7 +280,14 @@ async function runPreview(
       console.log(`assemblyName=${selected[index].name}`)
       console.log(`newPrefabId=${result.prefabId}`)
     }
-    console.log('touchedTopLevelFields=4,6,8,27')
+    for (const [index, result] of updateResults.entries()) {
+      console.log(`updatedPrefabName=${updates[index].expectedName}`)
+      console.log(`updatedPrefabId=${result.prefabId}`)
+      console.log(`updatedInstanceId=${result.instanceId}`)
+    }
+    console.log(
+      `touchedTopLevelFields=${selected.length ? '4,6,8,27' : updateResults.length ? '4,8' : 'none'}`
+    )
     console.log('field9=unchanged-by-current-implementation')
     console.log(`candidateSha256=${sha256Bytes(candidateBytes)}`)
     const resultPath = args.outputPath ? path.resolve(args.outputPath) : source.path

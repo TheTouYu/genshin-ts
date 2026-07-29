@@ -57,11 +57,18 @@ function validateConfig(
   }
   if (profile === 'static-assemblies') {
     if (!isRecord(exported.assets)) fail(configPath, profile, 'assets', 'must be an object')
+    const assemblies = exported.assets.staticAssemblies
+    const updates = exported.assets.staticPrefabUpdates
     if (
-      !Array.isArray(exported.assets.staticAssemblies) ||
-      exported.assets.staticAssemblies.length === 0
+      (!Array.isArray(assemblies) || assemblies.length === 0) &&
+      (!Array.isArray(updates) || updates.length === 0)
     ) {
-      fail(configPath, profile, 'assets.staticAssemblies', 'must be a non-empty array')
+      fail(
+        configPath,
+        profile,
+        'assets',
+        'must contain a non-empty staticAssemblies or staticPrefabUpdates array'
+      )
     }
   }
   return exported as GstsConfig

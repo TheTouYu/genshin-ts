@@ -9,6 +9,7 @@ export type {
   GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
+  GstsStaticPrefabUpdate,
   GstsStaticColor,
   StaticAssemblyMapInspectionV1,
   StaticAssemblyPlanStatus,
@@ -39,6 +40,8 @@ export { createInjector, injectGilBytes, injectGilFile } from './injector/index.
 export { runAssetsCustomVariables } from './cli/assets_custom_variables.js'
 export { inspectStaticAssemblyMap } from './cli/static_assembly/inspection.js'
 export { createStaticAssemblyPlan } from './cli/static_assembly/plan.js'
+export { applyStaticPrefabUpdate } from './cli/gil_static_prefab_updates.js'
+export type { StaticPrefabUpdateResult } from './cli/gil_static_prefab_updates.js'
 
 export {
   applyCustomPrefabInitialCustomVariableDeclarations,
