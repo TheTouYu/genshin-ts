@@ -23,7 +23,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "283da1fe3f72057ba0bc989c81a1eb4706eee0435cce29148e470be7101a5729",
+      "approved_hash": "4c72c533f3128971363d323c6671fbeb250b54849ac3efd0008e653d0ef03221",
       "claim_ids": [
         "clm_7395AFE937DC8FD43786AA5B34"
       ],
@@ -47,13 +47,28 @@
       ]
     },
     {
+      "id": "aref_318f977d441bca0cc411d1de46",
+      "path": "docs/architecture/gil-static-model-assets.md",
+      "locator": "section 19.2.3 元件跟随运动组件真实样本与当前编码范围",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e5016a84c02731b94c0a2437f44eb7be387fbc77599d2d3ad5c7f7bbd16be841",
+      "claim_ids": [
+        "clm_2CFB8DF7716132B41A820E8001"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_3d306acb3e63a5c1810b4792d7",
       "path": "src/cli/static_assembly_structure.ts",
       "locator": "loadStaticAssemblyStructure() and resolveStaticAssemblyStructure()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "c051bbd97a64c5615bfebc7ee7ee131b388d551ef563c5916db790e344ecb8c1",
+      "approved_hash": "b6971ba9e6888624c3a5f08e673ec744d9313ba234e8e949d001c9eb908ca287",
       "claim_ids": [
         "clm_7395AFE937DC8FD43786AA5B34"
       ],
@@ -68,7 +83,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "283da1fe3f72057ba0bc989c81a1eb4706eee0435cce29148e470be7101a5729",
+      "approved_hash": "4c72c533f3128971363d323c6671fbeb250b54849ac3efd0008e653d0ef03221",
       "claim_ids": [
         "clm_CFC2CA7A47D98ED4C1C40B081E"
       ],
@@ -83,7 +98,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "231cf5719d076a095852064531b286a32ad3887c97fbd8aba6c97194bc91ef12",
+      "approved_hash": "e11e864fdd569c66fdc66baffc441f4544220c0ac402a719e97ada724dd1c0db",
       "claim_ids": [
         "clm_5CA329CCBED7E15CB53C785F6B"
       ],
@@ -98,7 +113,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "731e3c6b4a0d844c0d82d1d8187bead4ebbe005d5984f696151e73ff15697d7a",
+      "approved_hash": "e450e0812140532e0e90fb55da342b04ea7643055d0c94896934ceb2f74e9ea6",
       "claim_ids": [
         "clm_C86C803AF4C0869C6B0936196D"
       ],
@@ -122,13 +137,28 @@
       ]
     },
     {
+      "id": "aref_776ff4fb0cfabb30ebc5688dfe",
+      "path": "src/cli/gil_static_assemblies.ts",
+      "locator": "fullFollowComponent(), setComponents(), validateAssembly(), applyStaticAssembly() definition field 8 / instance field 7",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "87878ee512b473f8a8ca1f6f16df257c5548bc2f00c7de19b908d2c41b99ccf0",
+      "claim_ids": [
+        "clm_2CFB8DF7716132B41A820E8001"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_7a699f97ddf31ad4625e78460d",
       "path": "schemas/static-assembly.schema.json",
       "locator": "whole schemaVersion 1 JSON Schema",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "844257bd7eb30d20f96d61b7ca6cbcc0418a588262de60a3f4841d7ca25da185",
+      "approved_hash": "4f5cd737312b79d24c20e7c2ed66595d767cb38b8d8049c05ac326a69b4bb4e6",
       "claim_ids": [
         "clm_7395AFE937DC8FD43786AA5B34"
       ],
@@ -143,12 +173,27 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "5f1ceaad06d48917aa81fc4e9f5e00176f31d1c844dd0029fcb6dc4016506739",
+      "approved_hash": "9eeb4363db03d465440993fb3678c7e85942c6b0f88eab9fef1e49dcf2a966e9",
       "claim_ids": [
         "clm_CFC2CA7A47D98ED4C1C40B081E"
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_dc7687a6e3c993fd84594a1a8f",
+      "path": "tests/gil_static_assembly_components.ts",
+      "locator": "whole focused synthetic-fixture raw-wire regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "53cb991835642971013710e3aeb7ab3ab11bb73813a5fd257a7079e6f8c2d45b",
+      "claim_ids": [
+        "clm_2CFB8DF7716132B41A820E8001"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
       ]
     },
     {
@@ -158,7 +203,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "c9be25f6394916eea0ac52b0b8559fa5eebf8f341f9cb52b35f1f2337d188ff8",
+      "approved_hash": "87878ee512b473f8a8ca1f6f16df257c5548bc2f00c7de19b908d2c41b99ccf0",
       "claim_ids": [
         "clm_C86C803AF4C0869C6B0936196D"
       ],
@@ -816,7 +861,7 @@
       "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "c9be25f6394916eea0ac52b0b8559fa5eebf8f341f9cb52b35f1f2337d188ff8",
+      "approved_hash": "87878ee512b473f8a8ca1f6f16df257c5548bc2f00c7de19b908d2c41b99ccf0",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -833,7 +878,7 @@
       "locator": "whole focused regression",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "731e3c6b4a0d844c0d82d1d8187bead4ebbe005d5984f696151e73ff15697d7a",
+      "approved_hash": "e450e0812140532e0e90fb55da342b04ea7643055d0c94896934ceb2f74e9ea6",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
         "clm_01KYF24E81AEA72Z0W72RVEHX1",
@@ -865,7 +910,7 @@
       "locator": "GstsAssetsConfig and GstsConfig.assets",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "231cf5719d076a095852064531b286a32ad3887c97fbd8aba6c97194bc91ef12",
+      "approved_hash": "e11e864fdd569c66fdc66baffc441f4544220c0ac402a719e97ada724dd1c0db",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"
@@ -880,7 +925,7 @@
       "locator": "GstsConfig and GstsAssetsConfig exports",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "b7a4dadc62e65ae8895e2933aefe75d470e4cbcd5f9256e9d8eee8738431e649",
+      "approved_hash": "1c3f78b4754bba76c2acc515d58941377f3215c63a659cd0ec0908b3fdaca2f5",
       "change_policy": "review_on_change",
       "supports_fact_classes": [
         "public_type_surface"

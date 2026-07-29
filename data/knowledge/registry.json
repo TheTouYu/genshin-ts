@@ -825,6 +825,13 @@
         "cli_behavior",
         "runtime_behavior"
       ]
+    },
+    "clm_2CFB8DF7716132B41A820E8001": {
+      "fact_classes": [
+        "external_game_evidence",
+        "runtime_behavior",
+        "writeback_behavior"
+      ]
     }
   }
 }
