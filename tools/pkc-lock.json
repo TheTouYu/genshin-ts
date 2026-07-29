@@ -3,11 +3,11 @@
   "operator_contract": "0.1",
   "version": "0.2.0rc5",
   "release_channel": "remote-commit",
-  "source_repository": "https://github.com/TheTouYu/portable-knowledge.git",
-  "source_ref": "main",
-  "source_commit": "3d772a129ff222125f163cc1c717fafe45d41be9",
-  "wheel_sha256": "93bc818abc1143b39b384cb43e6dd58018b6b24ffb5b058fce6d4277345d2882",
-  "wheel_cache": "/home/h/.local/share/portable-knowledge/wheels/3d772a129ff222125f163cc1c717fafe45d41be9/portable_knowledge-0.2.0rc5-py3-none-any.whl",
-  "runtime": ".local/pkc/runtimes/3d772a129ff222125f163cc1c717fafe45d41be9",
+  "source_repository": "/home/h/portable-knowledge",
+  "source_ref": "da1ca489a6d5ce01bac8b7af498e4d98949bd065",
+  "source_commit": "da1ca489a6d5ce01bac8b7af498e4d98949bd065",
+  "wheel_sha256": "3d874c87122e2b914c9f9f0fa30252324e9fb26cffcfd5d47a875ccbf7079628",
+  "wheel_cache": "/home/h/.local/share/portable-knowledge/wheels/da1ca489a6d5ce01bac8b7af498e4d98949bd065/4a648e94d6f944b6/portable_knowledge-0.2.0rc5-py3-none-any.whl",
+  "runtime": ".local/pkc/runtimes/da1ca489a6d5ce01bac8b7af498e4d98949bd065",
   "python_requirement": ">=3.11"
 }
