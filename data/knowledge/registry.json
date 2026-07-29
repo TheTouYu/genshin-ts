@@ -832,6 +832,13 @@
         "runtime_behavior",
         "writeback_behavior"
       ]
+    },
+    "clm_4F59DF5C7CB9EEB3B39BDA8E0E": {
+      "fact_classes": [
+        "documented_contract",
+        "external_game_evidence",
+        "writeback_behavior"
+      ]
     }
   }
 }
