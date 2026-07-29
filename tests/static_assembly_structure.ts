@@ -14,6 +14,7 @@ const structurePath = path.join(directory, 'model.json')
 const valid = {
   schemaVersion: 1,
   color: { enabled: true, rgb: 0xff0000, opacity: 50, overlay: 'multiply' },
+  components: [{ type: 'followMotion', preset: 'fullFollow' }],
   items: [
     {
       resourceId: 10009001,
@@ -49,6 +50,7 @@ const target = {
 const normalized = resolveStaticAssemblyStructure(target, path.join(directory, 'gsts.config.ts'))
 assert.deepEqual(normalized.items, valid.items)
 assert.deepEqual(normalized.color, valid.color)
+assert.deepEqual(normalized.components, valid.components)
 assert.equal('structureFile' in normalized, false)
 assert.throws(
   () =>
@@ -65,6 +67,14 @@ assert.throws(
       path.join(directory, 'gsts.config.ts')
     ),
   /structureFile.*color.*mutually exclusive/i
+)
+assert.throws(
+  () =>
+    resolveStaticAssemblyStructure(
+      { ...target, components: valid.components } as unknown as GstsStaticAssembly,
+      path.join(directory, 'gsts.config.ts')
+    ),
+  /structureFile.*components.*mutually exclusive/i
 )
 
 function rejects(name: string, value: unknown, pattern: RegExp): void {
@@ -89,6 +99,16 @@ rejects(
   'unknown overlay',
   { ...valid, color: { enabled: true, rgb: 0, opacity: 50, overlay: 'screen' } },
   /color\.overlay.*overwrite.*multiply/i
+)
+rejects(
+  'unknown component preset',
+  { ...valid, components: [{ type: 'followMotion', preset: 'positionOnly' }] },
+  /components\[0\]\.preset.*fullFollow/i
+)
+rejects(
+  'duplicate components',
+  { ...valid, components: [...valid.components, ...valid.components] },
+  /components.*duplicate/i
 )
 rejects('unknown field', { ...valid, mapId: 1 }, /mapId.*unknown field/i)
 

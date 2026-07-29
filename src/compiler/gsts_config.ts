@@ -274,6 +274,21 @@ export type GstsStaticColor =
       overlay: 'overwrite' | 'multiply'
     }
 
+export type GstsStaticAssemblyComponent = {
+  /**
+   * [ZH] 跟随运动器组件。当前仅支持真实 GIL 已观察的“完全跟随”预设快照。
+   *
+   * [EN] Follow Motion component. Currently limited to the observed real-GIL Full Follow preset.
+   */
+  type: 'followMotion'
+  /**
+   * [ZH] 同时跟随目标的位置和朝向。追踪目标可在运行时通过节点图指定。
+   *
+   * [EN] Follow both target position and orientation. The target may be assigned at runtime.
+   */
+  preset: 'fullFollow'
+}
+
 export type GstsStaticAssemblyItem = {
   /**
    * [ZH] 官方基础模型资源 ID。资源必须在目标地图和模板的受限验证范围内确认。
@@ -313,6 +328,8 @@ export type GstsStaticAssemblyStructure = {
   schemaVersion: 1
   /** [ZH] 主模型颜色。 / [EN] Main-model color. */
   color?: GstsStaticColor
+  /** [ZH] 元件组件声明。 / [EN] Prefab component declarations. */
+  components?: readonly GstsStaticAssemblyComponent[]
   /** [ZH] 使用局部 Transform 拼装的子项。 / [EN] Items assembled with local Transforms. */
   items: readonly GstsStaticAssemblyItem[]
 }
@@ -322,6 +339,7 @@ type GstsStaticAssemblyItemsSource =
       /** [ZH] 内联结构不能同时使用结构文件。 / [EN] Inline structure cannot use a structure file. */
       structureFile?: never
       color?: GstsStaticColor
+      components?: readonly GstsStaticAssemblyComponent[]
       items: readonly GstsStaticAssemblyItem[]
     }
   | {
@@ -333,6 +351,8 @@ type GstsStaticAssemblyItemsSource =
       structureFile: string
       /** [ZH] 结构文件拥有主颜色，配置不可覆盖。 / [EN] The file owns main color; config cannot override it. */
       color?: never
+      /** [ZH] 结构文件拥有组件，配置不可覆盖。 / [EN] The file owns components; config cannot override them. */
+      components?: never
       /** [ZH] 结构文件拥有 items，配置不可内联。 / [EN] The file owns items; config cannot inline them. */
       items?: never
     }
@@ -372,10 +392,11 @@ export type GstsStaticAssembly = {
 
 export type GstsResolvedStaticAssembly = Omit<
   GstsStaticAssembly,
-  'structureFile' | 'color' | 'items'
+  'structureFile' | 'color' | 'components' | 'items'
 > & {
   structureFile?: never
   color?: GstsStaticColor
+  components?: readonly GstsStaticAssemblyComponent[]
   items: readonly GstsStaticAssemblyItem[]
 }
 

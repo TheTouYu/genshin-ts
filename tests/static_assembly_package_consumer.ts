@@ -80,6 +80,7 @@ writeFileSync(
   `import type {
   GstsConfig,
   GstsStaticAssembly,
+  GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
   GstsStaticColor
@@ -91,8 +92,14 @@ const color: GstsStaticColor = {
   opacity: 100,
   overlay: 'overwrite'
 }
+const component: GstsStaticAssemblyComponent = { type: 'followMotion', preset: 'fullFollow' }
 const item: GstsStaticAssemblyItem = { resourceId: 10009001, position: [0, 0, 0], color }
-const structure: GstsStaticAssemblyStructure = { schemaVersion: 1, color, items: [item] }
+const structure: GstsStaticAssemblyStructure = {
+  schemaVersion: 1,
+  color,
+  components: [component],
+  items: [item]
+}
 const assembly: GstsStaticAssembly = {
   name: 'package consumer',
   prefabId: 1,

@@ -95,6 +95,7 @@ function normalizeAssembly(
       scale: assembly.scale ?? [1, 1, 1]
     },
     ...(assembly.color ? { color: color(assembly.color) } : {}),
+    ...(assembly.components ? { components: assembly.components } : {}),
     items: assembly.items.map(item),
     resources: assembly.items.map((value) => value.resourceId),
     ...(input.structure

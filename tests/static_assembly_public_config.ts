@@ -1,6 +1,7 @@
 import type {
   GstsConfig,
   GstsStaticAssembly,
+  GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
   GstsStaticColor
@@ -21,9 +22,15 @@ const item: GstsStaticAssemblyItem = {
   color
 }
 
+const component: GstsStaticAssemblyComponent = {
+  type: 'followMotion',
+  preset: 'fullFollow'
+}
+
 const structure: GstsStaticAssemblyStructure = {
   schemaVersion: 1,
   color,
+  components: [component],
   items: [item]
 }
 
@@ -34,6 +41,7 @@ const assembly: GstsStaticAssembly = {
   templateInstanceId: 5,
   templateName: '模板',
   position: [0, 0, 0],
+  components: [component],
   items: [item],
   definitionAuxiliaryIds: [3],
   instanceAuxiliaryIds: [4]

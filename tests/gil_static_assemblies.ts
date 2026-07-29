@@ -91,6 +91,14 @@ function findRecord(records_: readonly Uint8Array[], id: number): Uint8Array {
   return matches[0]
 }
 
+function componentRecords(record: Uint8Array, fieldNumber: number): Uint8Array[] {
+  const fields = parse(record)
+  assert.ok(fields)
+  return fields
+    .filter((field) => field.number === fieldNumber && field.wire === 2)
+    .map((field) => field.value as Uint8Array)
+}
+
 function instanceDefinitionId(record: Uint8Array): number {
   const fields = parse(record)
   assert.ok(fields)
@@ -154,6 +162,7 @@ const result = applyStaticAssembly({
     templateName: '长方体',
     position: [12.5, 1.83551025390625, -6.2],
     color: { enabled: true, rgb: 0xff0000, opacity: 100, overlay: 'overwrite' },
+    components: [{ type: 'followMotion', preset: 'fullFollow' }],
     items: [
       {
         resourceId: 10009002,
@@ -216,7 +225,8 @@ const definitions = records(top, 4, 1)
 const instances = records(top, 8, 1)
 const auxiliaryDefinitions = records(top, 27, 1)
 const auxiliaryInstances = records(top, 27, 2)
-assertColor(findRecord(definitions, prefabId), {
+const createdDefinition = findRecord(definitions, prefabId)
+assertColor(createdDefinition, {
   enabled: true,
   argb: 0xffff0000,
   opacity: 100,
@@ -234,6 +244,17 @@ assertColor(createdInstance, {
   overlay: 6700,
   field9: 6710
 })
+const expectedFullFollowHex =
+  '080910019a0134120b47495f526f6f744e6f64651a0a0d0000803f1d0000803f220028b00930cc083a025a00b21f0ce5ae8ce585a8e8b79fe99a8f'
+const definitionComponents = componentRecords(createdDefinition, 8)
+const instanceComponents = componentRecords(createdInstance, 7)
+assert.equal(Buffer.from(definitionComponents.at(-1)!).toString('hex'), expectedFullFollowHex)
+assert.equal(Buffer.from(instanceComponents.at(-1)!).toString('hex'), expectedFullFollowHex)
+assert.equal(
+  Buffer.from(definitionComponents.at(-1)!).equals(Buffer.from(instanceComponents.at(-1)!)),
+  true,
+  'component snapshots must match on definition and instance records'
+)
 
 const expectedItems: ExpectedColor[] = [
   { enabled: true, argb: 0xffff00ff, opacity: 100, rgb: 0xff00ff, overlay: 6700 },
@@ -295,6 +316,7 @@ console.log(
       instanceAuxiliaryIds: result.instanceAuxiliaryIds,
       sourceUnchanged: true,
       colorWireValidated: true,
+      fullFollowComponentWireValidated: true,
       duplicateIdsRejected: true
     },
     null,

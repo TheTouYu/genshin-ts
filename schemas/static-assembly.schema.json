@@ -9,6 +9,11 @@
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
     "color": { "$ref": "#/$defs/color" },
+    "components": {
+      "type": "array",
+      "maxItems": 1,
+      "items": { "$ref": "#/$defs/component" }
+    },
     "items": {
       "type": "array",
       "minItems": 1,
@@ -40,6 +45,19 @@
             "rgb": { "type": "integer", "minimum": 0, "maximum": 16777215 },
             "opacity": { "type": "number", "minimum": 0, "maximum": 100 },
             "overlay": { "enum": ["overwrite", "multiply"] }
+          }
+        }
+      ]
+    },
+    "component": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "preset"],
+          "properties": {
+            "type": { "const": "followMotion" },
+            "preset": { "const": "fullFollow" }
           }
         }
       ]

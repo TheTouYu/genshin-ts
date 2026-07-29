@@ -4,6 +4,7 @@ import path from 'node:path'
 import type {
   GstsResolvedStaticAssembly,
   GstsStaticAssembly,
+  GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
   GstsStaticColor
@@ -83,6 +84,15 @@ function color(filePath: string, field: string, value: unknown): GstsStaticColor
   }
 }
 
+function component(filePath: string, index: number, value: unknown): GstsStaticAssemblyComponent {
+  const field = `components[${index}]`
+  const source = object(filePath, field, value)
+  exactFields(filePath, field, source, ['type', 'preset'])
+  if (source.type !== 'followMotion') fail(filePath, `${field}.type`, 'must be followMotion')
+  if (source.preset !== 'fullFollow') fail(filePath, `${field}.preset`, 'must be fullFollow')
+  return { type: 'followMotion', preset: 'fullFollow' }
+}
+
 function item(filePath: string, index: number, value: unknown): GstsStaticAssemblyItem {
   const field = `items[${index}]`
   const source = object(filePath, field, value)
@@ -112,11 +122,15 @@ export function resolveStaticAssemblyStructure(
   const structureFile = 'structureFile' in assembly ? assembly.structureFile : undefined
   const inlineItems = 'items' in assembly ? assembly.items : undefined
   const inlineColor = 'color' in assembly ? assembly.color : undefined
+  const inlineComponents = 'components' in assembly ? assembly.components : undefined
   if (structureFile !== undefined && inlineItems !== undefined) {
     throw new Error('[error] structureFile and items are mutually exclusive')
   }
   if (structureFile !== undefined && inlineColor !== undefined) {
     throw new Error('[error] structureFile and color are mutually exclusive')
+  }
+  if (structureFile !== undefined && inlineComponents !== undefined) {
+    throw new Error('[error] structureFile and components are mutually exclusive')
   }
   if (structureFile === undefined) {
     if (!inlineItems) throw new Error('[error] assembly requires items or structureFile')
@@ -133,6 +147,7 @@ export function resolveStaticAssemblyStructure(
   return {
     ...target,
     ...(structure.color ? { color: structure.color } : {}),
+    ...(structure.components ? { components: structure.components } : {}),
     items: structure.items
   }
 }
@@ -151,7 +166,7 @@ export function loadStaticAssemblyStructure(
     throw new Error(`[error] static assembly structure ${filePath}: ${detail}`)
   }
   const source = object(filePath, '', parsed)
-  exactFields(filePath, '', source, ['$schema', 'schemaVersion', 'color', 'items'])
+  exactFields(filePath, '', source, ['$schema', 'schemaVersion', 'color', 'components', 'items'])
   if (source.schemaVersion !== 1) fail(filePath, 'schemaVersion', 'must be 1')
   if (!Array.isArray(source.items) || source.items.length === 0) {
     fail(filePath, 'items', 'must contain at least one item')
@@ -159,9 +174,19 @@ export function loadStaticAssemblyStructure(
   if (source.$schema !== undefined && typeof source.$schema !== 'string') {
     fail(filePath, '$schema', 'must be a string')
   }
+  if (source.components !== undefined && !Array.isArray(source.components)) {
+    fail(filePath, 'components', 'must be an array')
+  }
+  const components = (source.components ?? []).map((value, index) =>
+    component(filePath, index, value)
+  )
+  if (new Set(components.map((value) => value.type)).size !== components.length) {
+    fail(filePath, 'components', 'must not contain duplicate component types')
+  }
   return {
     schemaVersion: 1,
     ...(source.color === undefined ? {} : { color: color(filePath, 'color', source.color) }),
+    ...(source.components === undefined ? {} : { components }),
     items: source.items.map((value, index) => item(filePath, index, value))
   }
 }

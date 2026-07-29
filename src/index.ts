@@ -6,6 +6,7 @@ export type {
   GstsCustomVariableType,
   GstsStage3Options,
   GstsStaticAssembly,
+  GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
   GstsStaticColor,

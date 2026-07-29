@@ -381,7 +381,7 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`：保存离线候选，不覆盖已有文件
 - `npm run assets:static-assemblies -- --map-id <id> --write`：显式备份并写回真实地图
 
-`assets.staticAssemblies` 的 item 使用相对元件原点的局部 Transform；元件自身的 `position`、`rotation`、`scale` 则是场景 Transform。主体和 item 颜色支持启用/关闭自定义颜色、`0xRRGGBB`、0–100 透明度及 `overwrite`/`multiply`，未知材质字段仍继承模板。复杂模型可用 `structureFile: './assemblies/model.json'` 替代配置中的 `items` 和 `color`；严格 JSON 使用 `schemaVersion: 1`，保存主颜色和 items，相对 `gsts.config.ts` 解析，并可引用 `node_modules/genshin-ts/schemas/static-assembly.schema.json` 获得补全。它不会从 `.gil` 提取结构。模板、资源 ID、主 ID 和两侧辅助 ID 都必须先针对目标地图确认，不能复制文档示例值直接写回。
+`assets.staticAssemblies` 的 item 使用相对元件原点的局部 Transform；元件自身的 `position`、`rotation`、`scale` 则是场景 Transform。主体和 item 颜色支持启用/关闭自定义颜色、`0xRRGGBB`、0–100 透明度及 `overwrite`/`multiply`，未知材质字段仍继承模板。`components` 当前仅支持 `{ type: 'followMotion', preset: 'fullFollow' }`，会在定义和实例两侧同步添加“完全跟随”快照；省略时不新增组件。该组件已有真实 GIL、自动回归、受限写回和用户编辑器/游戏验证证据。复杂模型可用 `structureFile: './assemblies/model.json'` 替代配置中的 `items`、`color` 和 `components`；严格 JSON 使用 `schemaVersion: 1`，保存主颜色、组件和 items，相对 `gsts.config.ts` 解析，并可引用 `node_modules/genshin-ts/schemas/static-assembly.schema.json` 获得补全。它不会从 `.gil` 提取结构。模板、资源 ID、主 ID 和两侧辅助 ID 都必须先针对目标地图确认，不能复制文档示例值直接写回。
 
 - `npm run typecheck`：TypeScript 类型检查
 - `npm run lint`：ESLint

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 
 import type {
   GstsResolvedStaticAssembly,
+  GstsStaticAssemblyComponent,
   GstsStaticAssemblyItem,
   GstsStaticColor
 } from '../compiler/gsts_config.js'
@@ -114,6 +115,64 @@ function float32(value: number): Uint8Array {
   const result = Buffer.alloc(4)
   result.writeFloatLE(value)
   return result
+}
+
+function fullFollowComponent(): Uint8Array {
+  return emit([
+    { number: 1, wire: 0, value: 9 },
+    { number: 2, wire: 0, value: 1 },
+    {
+      number: 19,
+      wire: 2,
+      value: emit([
+        { number: 2, wire: 2, value: TEXT.encode('GI_RootNode') },
+        {
+          number: 3,
+          wire: 2,
+          value: emit([
+            { number: 1, wire: 5, value: float32(1) },
+            { number: 3, wire: 5, value: float32(1) }
+          ])
+        },
+        { number: 4, wire: 2, value: new Uint8Array() },
+        { number: 5, wire: 0, value: 1200 },
+        { number: 6, wire: 0, value: 1100 },
+        {
+          number: 7,
+          wire: 2,
+          value: emit([{ number: 11, wire: 2, value: new Uint8Array() }])
+        },
+        { number: 502, wire: 2, value: TEXT.encode('完全跟随') }
+      ])
+    }
+  ])
+}
+
+function setComponents(
+  record: Uint8Array,
+  components: readonly GstsStaticAssemblyComponent[],
+  fieldNumber: number
+): Uint8Array {
+  if (!components.length) return record
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid component owner record')
+  const fullFollow = fullFollowComponent()
+  for (const component of components) {
+    if (component.type !== 'followMotion' || component.preset !== 'fullFollow') {
+      throw new Error('[error] unsupported static assembly component')
+    }
+    const existingIndex = fields.findIndex((field) => {
+      if (field.number !== fieldNumber || field.wire !== 2) return false
+      const componentFields = parse(field.value as Uint8Array)
+      return componentFields?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 9
+      )
+    })
+    const value = { number: fieldNumber, wire: 2, value: fullFollow } as WireField
+    if (existingIndex >= 0) fields[existingIndex] = value
+    else fields.push(value)
+  }
+  return emit(fields)
 }
 
 function colorFields(color: GstsStaticColor): WireField[] {
@@ -366,6 +425,15 @@ function validateAssembly(assembly: GstsResolvedStaticAssembly): void {
   if (ids.some((id) => !Number.isSafeInteger(id) || id < 0))
     throw new Error('[error] assembly IDs must be non-negative safe integers')
   assembly.items.forEach(assemblyTransform)
+  const components = assembly.components ?? []
+  if (new Set(components.map((component) => component.type)).size !== components.length) {
+    throw new Error('[error] assembly components must not contain duplicate component types')
+  }
+  for (const component of components) {
+    if (component.type !== 'followMotion' || component.preset !== 'fullFollow') {
+      throw new Error('[error] unsupported static assembly component')
+    }
+  }
 }
 
 export function applyStaticAssembly(params: {
@@ -412,6 +480,7 @@ export function applyStaticAssembly(params: {
   ).bytes
   definition = setPackedIds(definition, assembly.definitionAuxiliaryIds)
   if (assembly.color) definition = setColor(definition, assembly.color)
+  definition = setComponents(definition, assembly.components ?? [], 8)
   top4.push({ number: 1, wire: 2, value: definition })
 
   const instanceName = replaceText(sourceInstance, assembly.templateName, assembly.name)
@@ -443,6 +512,7 @@ export function applyStaticAssembly(params: {
     throw new Error('[error] instance name lost while setting Transform')
   }
   if (assembly.color) instance = setColor(instance, assembly.color)
+  instance = setComponents(instance, assembly.components ?? [], 7)
   top8.push({ number: 1, wire: 2, value: instance })
 
   const auxiliaryDefinitions = top27
