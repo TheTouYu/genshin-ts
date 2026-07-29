@@ -281,6 +281,25 @@ export function setStaticAssemblyTransform(
   return emit(fields)
 }
 
+export function setStaticAssemblyPosition(
+  record: Uint8Array,
+  position: readonly [number, number, number],
+  ownerFieldNumber?: number
+): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid transform record')
+  const owner = staticAssemblyTransformOwner(fields, ownerFieldNumber)
+  const ownerFields = message(owner)
+  const transformField = nth(ownerFields, 11)
+  const transformFields = message(transformField)
+  const positionField = transformFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!positionField) throw new Error('[error] transform position not found')
+  positionField.value = vector(position, true)
+  transformField.value = emit(transformFields)
+  owner.value = emit(ownerFields)
+  return emit(fields)
+}
+
 export function setStaticAssemblyScale(
   record: Uint8Array,
   scale: readonly [number, number, number],

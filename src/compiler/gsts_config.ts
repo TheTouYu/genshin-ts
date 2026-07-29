@@ -298,6 +298,8 @@ export type GstsStaticPrefabUpdate = {
   expectedName: string
   /** [ZH] 同步更新定义与实例的组件。 / [EN] Components applied to definition and instance. */
   components?: readonly GstsStaticAssemblyComponent[]
+  /** [ZH] 仅更新场景实例位置。 / [EN] Update only the scene instance position. */
+  position?: readonly [number, number, number]
   /** [ZH] 仅更新场景实例缩放。 / [EN] Update only the scene instance scale. */
   scale?: readonly [number, number, number]
 }

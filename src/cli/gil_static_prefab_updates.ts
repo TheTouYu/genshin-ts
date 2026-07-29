@@ -2,7 +2,11 @@ import fs from 'node:fs'
 
 import type { GstsStaticPrefabUpdate } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
-import { setStaticAssemblyComponents, setStaticAssemblyScale } from './gil_static_assemblies.js'
+import {
+  setStaticAssemblyComponents,
+  setStaticAssemblyPosition,
+  setStaticAssemblyScale
+} from './gil_static_assemblies.js'
 import {
   emitWireMessage,
   findWireRecord,
@@ -56,8 +60,8 @@ function validateUpdate(update: GstsStaticPrefabUpdate): void {
     throw new Error('[error] instanceId must be a non-negative safe integer')
   }
   if (!update.expectedName) throw new Error('[error] expectedName is required')
-  if (!update.components?.length && !update.scale) {
-    throw new Error('[error] static prefab update requires components or scale')
+  if (!update.components?.length && !update.position && !update.scale) {
+    throw new Error('[error] static prefab update requires components, position or scale')
   }
   if (
     update.components &&
@@ -65,9 +69,12 @@ function validateUpdate(update: GstsStaticPrefabUpdate): void {
   ) {
     throw new Error('[error] static prefab update components must not contain duplicate types')
   }
-  if (update.scale) {
-    if (update.scale.length !== 3 || update.scale.some((value) => !Number.isFinite(value))) {
-      throw new Error('[error] scale must contain three finite numbers')
+  for (const [name, values] of [
+    ['position', update.position],
+    ['scale', update.scale]
+  ] as const) {
+    if (values && (values.length !== 3 || values.some((value) => !Number.isFinite(value)))) {
+      throw new Error(`[error] ${name} must contain three finite numbers`)
     }
   }
 }
@@ -121,6 +128,9 @@ export function applyStaticPrefabUpdate(params: {
   if (update.components) {
     definition = setStaticAssemblyComponents(definition!, update.components, 8)
     instance = setStaticAssemblyComponents(instance, update.components, 7)
+  }
+  if (update.position) {
+    instance = setStaticAssemblyPosition(instance, update.position, 6)
   }
   if (update.scale) {
     instance = setStaticAssemblyScale(instance, update.scale, 6)

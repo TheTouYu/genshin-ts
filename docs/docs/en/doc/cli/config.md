@@ -84,7 +84,7 @@ assets: {
 }
 ```
 
-The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing Follow Motion slot instead of duplicating it. `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
+The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing Follow Motion slot instead of duplicating it. `position` changes only the selected scene instance while preserving its rotation, scale, and prefab definition; `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
 
 For a complex model, move the main color and `items` into a strict JSON structure file while keeping map-specific names, templates, IDs, and scene Transform in the config:
 

@@ -22,7 +22,7 @@ function record(bytes: Uint8Array, section: number, id: number): Uint8Array {
   return matches[0]
 }
 
-function fullFollowComponents(owner: Uint8Array, fieldNumber: number): Uint8Array[] {
+function components(owner: Uint8Array, fieldNumber: number, type: number): Uint8Array[] {
   const fields = parseWireMessage(owner)
   assert.ok(fields)
   return fields
@@ -30,7 +30,7 @@ function fullFollowComponents(owner: Uint8Array, fieldNumber: number): Uint8Arra
     .map((field) => field.value as Uint8Array)
     .filter((component) =>
       parseWireMessage(component)?.some(
-        (field) => field.number === 1 && field.wire === 0 && field.value === 9
+        (field) => field.number === 1 && field.wire === 0 && field.value === type
       )
     )
 }
@@ -46,17 +46,38 @@ const result = applyStaticPrefabUpdate({
   }
 })
 
-const definitionComponents = fullFollowComponents(
-  record(result.bytes, 4, FIXTURE_IDS.definition),
-  8
-)
-const instanceComponents = fullFollowComponents(record(result.bytes, 8, FIXTURE_IDS.instance), 7)
+const definitionComponents = components(record(result.bytes, 4, FIXTURE_IDS.definition), 8, 9)
+const instanceComponents = components(record(result.bytes, 8, FIXTURE_IDS.instance), 7, 9)
 assert.equal(definitionComponents.length, 1)
 assert.equal(instanceComponents.length, 1)
 assert.equal(Buffer.from(definitionComponents[0]).equals(Buffer.from(instanceComponents[0])), true)
 assert.equal(
   Buffer.from(definitionComponents[0]).toString('hex'),
   '080910019a0134120b47495f526f6f744e6f64651a0a0d0000803f1d0000803f220028b00930cc083a025a00b21f0ce5ae8ce585a8e8b79fe99a8f'
+)
+
+writeFileSync(gilPath, sourceBytes)
+const basicMotion = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    components: [{ type: 'basicMotion', preset: 'default' }]
+  }
+})
+const basicDefinition = components(
+  record(basicMotion.bytes, 4, FIXTURE_IDS.definition),
+  8,
+  18
+)
+const basicInstance = components(record(basicMotion.bytes, 8, FIXTURE_IDS.instance), 7, 18)
+assert.equal(basicDefinition.length, 1)
+assert.equal(basicInstance.length, 1)
+assert.equal(Buffer.from(basicDefinition[0]).equals(Buffer.from(basicInstance[0])), true)
+assert.equal(
+  Buffer.from(basicDefinition[0]).toString('hex'),
+  '08121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f6465'
 )
 
 writeFileSync(gilPath, sourceBytes)
@@ -90,6 +111,64 @@ assert.deepEqual(
   scale.map((field) => Buffer.from(field.value as Uint8Array).readFloatLE()),
   [Math.fround(0.01), Math.fround(0.01), Math.fround(0.01)]
 )
+
+writeFileSync(gilPath, sourceBytes)
+const positionOnly = applyStaticPrefabUpdate({
+  gilPath,
+  update: {
+    prefabId: FIXTURE_IDS.definition,
+    instanceId: FIXTURE_IDS.instance,
+    expectedName: '模板',
+    position: [12, 2, 0]
+  }
+})
+assert.equal(
+  Buffer.from(record(positionOnly.bytes, 4, FIXTURE_IDS.definition)).equals(
+    Buffer.from(record(sourceBytes, 4, FIXTURE_IDS.definition))
+  ),
+  true,
+  'position-only update must not modify the prefab definition'
+)
+const sourceInstance = parseWireMessage(record(sourceBytes, 8, FIXTURE_IDS.instance))!
+const sourceTransformOwner = parseWireMessage(
+  sourceInstance.find((field) => field.number === 6 && field.wire === 2)!.value as Uint8Array
+)!
+const sourceTransform = parseWireMessage(
+  sourceTransformOwner.find((field) => field.number === 11 && field.wire === 2)!.value as Uint8Array
+)!
+const positionedInstance = parseWireMessage(record(positionOnly.bytes, 8, FIXTURE_IDS.instance))!
+const positionedTransformOwner = parseWireMessage(
+  positionedInstance.find((field) => field.number === 6 && field.wire === 2)!.value as Uint8Array
+)!
+const positionedTransform = parseWireMessage(
+  positionedTransformOwner.find((field) => field.number === 11 && field.wire === 2)!
+    .value as Uint8Array
+)!
+const position = parseWireMessage(
+  positionedTransform.find((field) => field.number === 1 && field.wire === 2)!.value as Uint8Array
+)!
+assert.deepEqual(
+  position.map((field) => [field.number, Buffer.from(field.value as Uint8Array).readFloatLE()]),
+  [
+    [1, 12],
+    [2, 2]
+  ]
+)
+for (const fieldNumber of [2, 3]) {
+  assert.equal(
+    Buffer.from(
+      positionedTransform.find((field) => field.number === fieldNumber && field.wire === 2)!
+        .value as Uint8Array
+    ).equals(
+      Buffer.from(
+        sourceTransform.find((field) => field.number === fieldNumber && field.wire === 2)!
+          .value as Uint8Array
+      )
+    ),
+    true,
+    `position-only update must preserve transform field ${fieldNumber} bytes`
+  )
+}
 
 assert.throws(
   () =>
