@@ -14,7 +14,10 @@ const structurePath = path.join(directory, 'model.json')
 const valid = {
   schemaVersion: 1,
   color: { enabled: true, rgb: 0xff0000, opacity: 50, overlay: 'multiply' },
-  components: [{ type: 'followMotion', preset: 'fullFollow' }],
+  components: [
+    { type: 'followMotion', preset: 'fullFollow' },
+    { type: 'basicMotion', preset: 'default' }
+  ],
   items: [
     {
       resourceId: 10009001,

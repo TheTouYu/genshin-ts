@@ -88,9 +88,15 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
   const field = `components[${index}]`
   const source = object(filePath, field, value)
   exactFields(filePath, field, source, ['type', 'preset'])
-  if (source.type !== 'followMotion') fail(filePath, `${field}.type`, 'must be followMotion')
-  if (source.preset !== 'fullFollow') fail(filePath, `${field}.preset`, 'must be fullFollow')
-  return { type: 'followMotion', preset: 'fullFollow' }
+  if (source.type === 'followMotion') {
+    if (source.preset !== 'fullFollow') fail(filePath, `${field}.preset`, 'must be fullFollow')
+    return { type: 'followMotion', preset: 'fullFollow' }
+  }
+  if (source.type === 'basicMotion') {
+    if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
+    return { type: 'basicMotion', preset: 'default' }
+  }
+  fail(filePath, `${field}.type`, 'must be followMotion or basicMotion')
 }
 
 function item(filePath: string, index: number, value: unknown): GstsStaticAssemblyItem {

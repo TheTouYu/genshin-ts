@@ -5,6 +5,7 @@ import type {
   GstsStaticAssemblyItem,
   GstsStaticAssemblyStructure,
   GstsStaticColor,
+  GstsStaticPrefabCategory,
   GstsStaticPrefabUpdate
 } from '../src/index.js'
 
@@ -26,6 +27,11 @@ const item: GstsStaticAssemblyItem = {
 const component: GstsStaticAssemblyComponent = {
   type: 'followMotion',
   preset: 'fullFollow'
+}
+
+const basicMotion: GstsStaticAssemblyComponent = {
+  type: 'basicMotion',
+  preset: 'default'
 }
 
 const structure: GstsStaticAssemblyStructure = {
@@ -68,13 +74,33 @@ const update: GstsStaticPrefabUpdate = {
   scale: [0.01, 0.01, 0.01]
 }
 
+const category: GstsStaticPrefabCategory = {
+  name: '学习',
+  prefabIds: [2]
+}
+
+const createdCategory: GstsStaticPrefabCategory = {
+  name: '运动器',
+  create: true,
+  id: 6,
+  prefabIds: [2]
+}
+
 const config = {
   compileRoot: '.',
   entries: [],
   outDir: './dist',
-  assets: { staticAssemblies: [assembly, fileAssembly], staticPrefabUpdates: [update] }
+  assets: {
+    staticAssemblies: [assembly, fileAssembly],
+    staticPrefabUpdates: [update],
+    staticPrefabCategories: [category, createdCategory]
+  }
 } satisfies GstsConfig
 
-if (structure.items[0] !== item || config.assets.staticAssemblies[0] !== assembly) {
+if (
+  structure.items[0] !== item ||
+  basicMotion.type !== 'basicMotion' ||
+  config.assets.staticAssemblies[0] !== assembly
+) {
   throw new Error('static assembly config type regression')
 }

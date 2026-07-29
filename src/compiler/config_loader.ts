@@ -59,15 +59,17 @@ function validateConfig(
     if (!isRecord(exported.assets)) fail(configPath, profile, 'assets', 'must be an object')
     const assemblies = exported.assets.staticAssemblies
     const updates = exported.assets.staticPrefabUpdates
+    const categories = exported.assets.staticPrefabCategories
     if (
       (!Array.isArray(assemblies) || assemblies.length === 0) &&
-      (!Array.isArray(updates) || updates.length === 0)
+      (!Array.isArray(updates) || updates.length === 0) &&
+      (!Array.isArray(categories) || categories.length === 0)
     ) {
       fail(
         configPath,
         profile,
         'assets',
-        'must contain a non-empty staticAssemblies or staticPrefabUpdates array'
+        'must contain a non-empty staticAssemblies, staticPrefabUpdates, or staticPrefabCategories array'
       )
     }
   }

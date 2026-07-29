@@ -11,7 +11,7 @@
     "color": { "$ref": "#/$defs/color" },
     "components": {
       "type": "array",
-      "maxItems": 1,
+      "maxItems": 2,
       "items": { "$ref": "#/$defs/component" }
     },
     "items": {
@@ -58,6 +58,15 @@
           "properties": {
             "type": { "const": "followMotion" },
             "preset": { "const": "fullFollow" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "preset"],
+          "properties": {
+            "type": { "const": "basicMotion" },
+            "preset": { "const": "default" }
           }
         }
       ]

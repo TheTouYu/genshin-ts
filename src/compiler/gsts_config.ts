@@ -274,19 +274,45 @@ export type GstsStaticColor =
       overlay: 'overwrite' | 'multiply'
     }
 
-export type GstsStaticAssemblyComponent = {
+export type GstsStaticAssemblyComponent =
+  | {
+      /**
+       * [ZH] 跟随运动器组件。当前仅支持真实 GIL 已观察的“完全跟随”预设快照。
+       *
+       * [EN] Follow Motion component. Currently limited to the observed real-GIL Full Follow preset.
+       */
+      type: 'followMotion'
+      /**
+       * [ZH] 同时跟随目标的位置和朝向。追踪目标可在运行时通过节点图指定。
+       *
+       * [EN] Follow both target position and orientation. The target may be assigned at runtime.
+       */
+      preset: 'fullFollow'
+    }
+  | {
+      /**
+       * [ZH] 基础运动器组件。当前仅支持真实空模型样本的默认组件快照。
+       *
+       * [EN] Basic Motion component. Currently limited to the default snapshot observed on a real empty-model prefab.
+       */
+      type: 'basicMotion'
+      /** [ZH] 默认基础运动器组件快照。 / [EN] Default Basic Motion component snapshot. */
+      preset: 'default'
+    }
+
+export type GstsStaticPrefabCategory = {
+  /** [ZH] 分类页签名称。 / [EN] Category-tab name. */
+  name: string
   /**
-   * [ZH] 跟随运动器组件。当前仅支持真实 GIL 已观察的“完全跟随”预设快照。
+   * [ZH] 设为 true 时创建新分类；省略时更新已存在分类。新分类 ID 默认取 root 下最大分类 ID + 1。
    *
-   * [EN] Follow Motion component. Currently limited to the observed real-GIL Full Follow preset.
+   * [EN] Create a new category when true; update an existing category when omitted. A new category defaults to the largest root category ID plus one.
    */
-  type: 'followMotion'
-  /**
-   * [ZH] 同时跟随目标的位置和朝向。追踪目标可在运行时通过节点图指定。
-   *
-   * [EN] Follow both target position and orientation. The target may be assigned at runtime.
-   */
-  preset: 'fullFollow'
+  create?: boolean
+  /** [ZH] 可选的新分类 ID；省略时按当前 root 最大 ID 加 1。 / [EN] Optional new category ID; defaults to current root maximum plus one. */
+  id?: number
+  /** [ZH] 归入该分类的元件定义 ID。 / [EN] Prefab definition IDs assigned to this category. */
+  prefabIds: readonly number[]
 }
 
 export type GstsStaticPrefabUpdate = {
@@ -417,6 +443,12 @@ export type GstsResolvedStaticAssembly = Omit<
 
 export type GstsAssetsConfig = {
   customVariables?: readonly GstsCustomVariableOperation[]
+  /**
+   * [ZH] 更新目标地图中已存在的元件分类页签；只接受显式定义 ID，不自动猜测分类。
+   *
+   * [EN] Update existing prefab category tabs in the target map; definition IDs must be explicit and are never inferred.
+   */
+  staticPrefabCategories?: readonly GstsStaticPrefabCategory[]
   /**
    * [ZH] 原地更新已存在的元件定义和指定场景实例；不会创建新元件或辅助 ID。
    *

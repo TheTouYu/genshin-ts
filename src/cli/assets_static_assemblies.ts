@@ -9,12 +9,14 @@ import type {
   GstsInjectConfig,
   GstsResolvedStaticAssembly,
   GstsStaticAssembly,
+  GstsStaticPrefabCategory,
   GstsStaticPrefabUpdate,
   StaticAssemblySourceLocator
 } from '../compiler/gsts_config.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
+import { applyStaticPrefabCategories } from './gil_static_prefab_categories.js'
 import { applyStaticPrefabUpdate } from './gil_static_prefab_updates.js'
 import { resolveStaticAssemblyStructure } from './static_assembly_structure.js'
 import { inspectStaticAssemblyMap } from './static_assembly/inspection.js'
@@ -159,7 +161,8 @@ async function loadAssetAssemblies(configPath: string) {
   const raw = [...(config.assets?.staticAssemblies ?? [])]
   const assemblies = raw.map((assembly) => resolveStaticAssemblyStructure(assembly, absolute))
   const updates = [...(config.assets?.staticPrefabUpdates ?? [])]
-  return { absolute, source, raw, assemblies, updates }
+  const categories = [...(config.assets?.staticPrefabCategories ?? [])]
+  return { absolute, source, raw, assemblies, updates, categories }
 }
 
 function structureInput(assembly: GstsStaticAssembly, configPath: string) {
@@ -240,14 +243,17 @@ async function runPreview(
   const asset = await loadAssetAssemblies(assetPath)
   let selected: GstsResolvedStaticAssembly[]
   let updates: GstsStaticPrefabUpdate[]
+  let categories: GstsStaticPrefabCategory[]
   if (args.assembly === undefined) {
     selected = asset.assemblies
     updates = asset.updates
+    categories = asset.categories
   } else {
     const assembly = asset.assemblies[args.assembly]
     if (!assembly) throw new Error('[error] assembly index out of range')
     selected = [assembly]
     updates = []
+    categories = []
   }
   const source = resolveGilPath(
     projectConfig ?? (await loadGstsConfig(asset.absolute, { profile: 'project' })),
@@ -272,6 +278,10 @@ async function runPreview(
       fs.writeFileSync(temporary, result.bytes)
       return result
     })
+    const categoryResult = categories.length
+      ? applyStaticPrefabCategories({ gilPath: temporary, categories })
+      : undefined
+    if (categoryResult) fs.writeFileSync(temporary, categoryResult.bytes)
     const candidateBytes = fs.readFileSync(temporary)
     console.log(`mode=${args.write ? 'write' : args.outputPath ? 'output' : 'preview'}`)
     console.log(`source=${source.path}`)
@@ -285,9 +295,15 @@ async function runPreview(
       console.log(`updatedPrefabId=${result.prefabId}`)
       console.log(`updatedInstanceId=${result.instanceId}`)
     }
-    console.log(
-      `touchedTopLevelFields=${selected.length ? '4,6,8,27' : updateResults.length ? '4,8' : 'none'}`
-    )
+    for (const category of categoryResult?.categories ?? []) {
+      console.log(`updatedPrefabCategory=${category.name}`)
+      console.log(`categoryPrefabIds=${category.prefabIds.join(',')}`)
+    }
+    const touched = new Set<number>()
+    if (selected.length) [4, 6, 8, 27].forEach((field) => touched.add(field))
+    if (updateResults.length) [4, 8].forEach((field) => touched.add(field))
+    if (categoryResult) touched.add(6)
+    console.log(`touchedTopLevelFields=${[...touched].sort((a, b) => a - b).join(',') || 'none'}`)
     console.log('field9=unchanged-by-current-implementation')
     console.log(`candidateSha256=${sha256Bytes(candidateBytes)}`)
     const resultPath = args.outputPath ? path.resolve(args.outputPath) : source.path

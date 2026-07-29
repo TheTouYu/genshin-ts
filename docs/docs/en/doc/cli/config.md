@@ -61,7 +61,22 @@ export default config
 
 The assembly Transform uses scene coordinates; item Transforms are local to its origin. `scale: [1, 1, 1]` means the resource's original size and does not guarantee a universal in-game 1×1×1 size. Template definition and instance IDs are not guaranteed to match and must be confirmed separately. Colors use `0xRRGGBB`, an opacity from 0–100, and an `overwrite` or `multiply` overlay; `enabled: false` disables custom color. Omitting `color` inherits the template snapshot while preserving other unknown fields such as material settings.
 
-`components` currently accepts only `{ type: 'followMotion', preset: 'fullFollow' }`. It adds the same Follow Motion—Full Follow snapshot to both the prefab definition and scene instance, following both target position and orientation; a node graph may assign the target at runtime. Omitting `components` adds nothing and preserves all template components. The preset is backed by raw-wire comparison of three isomorphic real-GIL prefabs, automatic regression, and bounded writeback plus user editor/game validation across 26 `星枢3x3块` prefabs. Other follow types, tracking modes, and fine-grained parameters remain unsupported and must not be inferred from internal numeric values.
+`components` currently supports two conservative snapshots. `{ type: 'followMotion', preset: 'fullFollow' }` adds Follow Motion—Full Follow to both the definition and instance, following target position and orientation. `{ type: 'basicMotion', preset: 'default' }` adds the default Basic Motion snapshot observed on a real empty-model prefab. Omitting `components` adds nothing and preserves all template components. Follow Motion and Basic Motion both have real-GIL, regression, bounded-writeback, and user-confirmed game evidence. Basic Motion was also rescanned after the editor saved the map, confirming both component snapshots. Neither snapshot exposes unverified fine-grained meanings for its internal numeric fields.
+
+Prefab categories support both updating existing tabs and creating new tabs. Set `create: true` to create one; when `id` is omitted, the tool reads the largest category ID under `root` and adds one. The display name is written to category `field 1`, and the category ID to `field 3`. For example:
+
+```ts
+assets: {
+  staticPrefabCategories: [
+    { name: 'Learning', prefabIds: [COLOR_REFERENCE_ID, BASIC_MOTION_REFERENCE_ID] },
+    { name: 'Cube', prefabIds: [CUBE_PART_ID_1, CUBE_PART_ID_2] },
+    { name: 'Base Prefabs', prefabIds: [SPHERE_ID, CUBOID_ID] },
+    { name: 'Motion Devices', create: true, prefabIds: [BASIC_MOTION_ID] }
+  ]
+}
+```
+
+Update mode requires an existing category name. Create mode requires a new name and may take an explicit `id`; otherwise the current root maximum plus one is used. Every prefab ID must be a current definition, and an ID cannot appear in multiple custom categories. After custom assignment, `kind=100` definition members are removed from the default Unclassified tab; other system and scene index entries remain. The tool does not infer categories from names or fabricate IDs for system-resource references or scene instances without custom definition records. Category creation and exclusive migration have automatic regression, real-map writeback and post-editor-save reread evidence, plus user-confirmed game validation.
 
 Use `assets.staticPrefabUpdates` to modify existing prefabs in place instead of creating new ones:
 
@@ -72,7 +87,7 @@ assets: {
       prefabId: EXISTING_PREFAB_DEFINITION_ID,
       instanceId: EXISTING_SCENE_INSTANCE_ID,
       expectedName: 'Current confirmed name',
-      components: [{ type: 'followMotion', preset: 'fullFollow' }]
+      components: [{ type: 'basicMotion', preset: 'default' }]
     },
     {
       prefabId: EXISTING_PREFAB_DEFINITION_ID,
@@ -84,7 +99,7 @@ assets: {
 }
 ```
 
-The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing Follow Motion slot instead of duplicating it. `position` changes only the selected scene instance while preserving its rotation, scale, and prefab definition; `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
+The operation fails closed unless the IDs, names, and instance-to-definition reference match. `components` updates both the definition and selected instance, replacing an existing slot of the same component type instead of duplicating it. `position` changes only the selected scene instance while preserving its rotation, scale, and prefab definition; `scale` changes only the selected scene instance while preserving its position, rotation, and prefab definition. No prefab or auxiliary IDs are created. Preview remains the default; `--output` writes an offline candidate and `--write` backs up before writeback. In-place updates have automatic regression and offline real-map candidate validation, but each writeback and game result still requires separate confirmation.
 
 For a complex model, move the main color and `items` into a strict JSON structure file while keeping map-specific names, templates, IDs, and scene Transform in the config:
 

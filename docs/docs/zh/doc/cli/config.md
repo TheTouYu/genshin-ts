@@ -61,7 +61,22 @@ export default config
 
 元件自身 Transform 是场景坐标，item Transform 是相对元件原点的局部坐标。`scale: [1, 1, 1]` 表示资源原始尺寸，不保证所有资源在游戏中都是 1×1×1。模板定义 ID 和实例 ID 不保证相同，必须分别确认。颜色 `rgb` 使用 `0xRRGGBB`，`opacity` 为 0–100，叠加方式为 `overwrite` 或 `multiply`；`enabled: false` 关闭自定义颜色。未声明 `color` 时继承模板快照，材质等其它未知字段保持不变。
 
-`components` 当前只支持 `{ type: 'followMotion', preset: 'fullFollow' }`：为元件定义和场景实例同步添加“跟随运动器—完全跟随”组件快照，即同时跟随目标的位置和朝向；跟随目标可在运行时通过节点图指定。省略 `components` 时不新增组件，完整继承模板现有组件。该预设来自真实 GIL 中三个同构元件的 raw-wire 对照、自动回归，以及“星枢3x3块”系列 26 个元件的受限写回和用户编辑器/游戏验证；其它跟随类型、追踪方式和细粒度参数尚不支持，不能从内部数值猜测配置。
+`components` 当前支持两个保守快照：`{ type: 'followMotion', preset: 'fullFollow' }` 同步添加“跟随运动器—完全跟随”，即同时跟随目标位置和朝向；`{ type: 'basicMotion', preset: 'default' }` 同步添加真实空模型样本中观察到的基础运动器默认快照。省略 `components` 时不新增组件，完整继承模板现有组件。跟随运动器和基础运动器均已有真实 GIL、自动回归、受限写回和用户游戏验证；基础运动器还经过编辑器回存后的双侧快照复扫。两者都不开放内部数值对应的未验证细粒度参数。
+
+元件分类支持更新已有页签，也支持创建新页签。创建时设置 `create: true`；省略 `id` 时，工具会读取 `root` 下现有分类的最大 ID 并加 1。名称写入分类节点 `field 1`，分类 ID 写入 `field 3`。例如：
+
+```ts
+assets: {
+  staticPrefabCategories: [
+    { name: '学习', prefabIds: [COLOR_REFERENCE_ID, BASIC_MOTION_REFERENCE_ID] },
+    { name: '魔方', prefabIds: [CUBE_PART_ID_1, CUBE_PART_ID_2] },
+    { name: '基础元件', prefabIds: [SPHERE_ID, CUBOID_ID] },
+    { name: '运动器', create: true, prefabIds: [BASIC_MOTION_ID] }
+  ]
+}
+```
+
+更新模式要求分类名已存在；创建模式要求分类名不存在，可显式指定 `id`，否则按当前 root 最大分类 ID 加 1。元件 ID 必须是当前地图中的定义 ID，同一 ID 不能出现在多个自定义分类。写入自定义分类后，已归类的 `kind=100` 定义成员会从默认“未分类页签”移除；其它系统/场景索引保留。工具不按名称猜测，也不伪造只有系统资源引用或场景实例、却没有自定义定义记录的 ID。分类创建与互斥迁移已有自动回归、真实地图写回与回存复扫，并经用户游戏验证。
 
 若要原地修改已经存在的元件，而不是创建新元件，可使用 `assets.staticPrefabUpdates`：
 
@@ -72,7 +87,7 @@ assets: {
       prefabId: EXISTING_PREFAB_DEFINITION_ID,
       instanceId: EXISTING_SCENE_INSTANCE_ID,
       expectedName: '当前确认名称',
-      components: [{ type: 'followMotion', preset: 'fullFollow' }]
+      components: [{ type: 'basicMotion', preset: 'default' }]
     },
     {
       prefabId: EXISTING_PREFAB_DEFINITION_ID,
@@ -84,7 +99,7 @@ assets: {
 }
 ```
 
-该操作要求 ID、名称和实例到定义的引用全部匹配，否则失败关闭。`components` 同步更新定义与指定实例，已有跟随运动器槽时替换而不叠加；`position` 只更新指定场景实例的位置，保持旋转、缩放和元件定义不变；`scale` 只更新指定场景实例的缩放，保持位置、旋转和元件定义不变。它不会创建元件或辅助 ID。CLI 仍默认 preview，`--output` 生成离线候选，`--write` 自动备份后写回。当前原地更新能力已有自动回归和离线真实地图候选验证；具体写回与游戏表现必须另行确认，不能由自动测试替代。
+该操作要求 ID、名称和实例到定义的引用全部匹配，否则失败关闭。`components` 同步更新定义与指定实例，已有相同类型组件槽时替换而不叠加；`position` 只更新指定场景实例的位置，保持旋转、缩放和元件定义不变；`scale` 只更新指定场景实例的缩放，保持位置、旋转和元件定义不变。它不会创建元件或辅助 ID。CLI 仍默认 preview，`--output` 生成离线候选，`--write` 自动备份后写回。当前原地更新能力已有自动回归和离线真实地图候选验证；具体写回与游戏表现必须另行确认，不能由自动测试替代。
 
 复杂模型可以把主颜色和 `items` 移到严格 JSON 结构文件中，地图相关的名称、模板、ID 和场景 Transform 仍保留在配置里：
 

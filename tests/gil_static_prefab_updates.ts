@@ -66,11 +66,7 @@ const basicMotion = applyStaticPrefabUpdate({
     components: [{ type: 'basicMotion', preset: 'default' }]
   }
 })
-const basicDefinition = components(
-  record(basicMotion.bytes, 4, FIXTURE_IDS.definition),
-  8,
-  18
-)
+const basicDefinition = components(record(basicMotion.bytes, 4, FIXTURE_IDS.definition), 8, 18)
 const basicInstance = components(record(basicMotion.bytes, 8, FIXTURE_IDS.instance), 7, 18)
 assert.equal(basicDefinition.length, 1)
 assert.equal(basicInstance.length, 1)

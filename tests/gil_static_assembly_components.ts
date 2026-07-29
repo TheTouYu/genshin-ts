@@ -102,6 +102,22 @@ const expectedFullFollowHex =
   '080910019a0134120b47495f526f6f744e6f64651a0a0d0000803f1d0000803f220028b00930cc083a025a00b21f0ce5ae8ce585a8e8b79fe99a8f'
 assert.equal(Buffer.from(definitionComponents[0]).toString('hex'), expectedFullFollowHex)
 
+const basicMotionConfigured = applyStaticAssembly({
+  gilPath,
+  assembly: {
+    ...assembly(425),
+    components: [{ type: 'basicMotion', preset: 'default' }]
+  }
+})
+const basicDefinition = componentRecords(createdRecord(basicMotionConfigured.bytes, 4, 425), 8)
+const basicInstance = componentRecords(createdRecord(basicMotionConfigured.bytes, 8, 425), 7)
+const expectedBasicMotionHex =
+  '08121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f6465'
+assert.equal(basicDefinition.length, 1)
+assert.equal(basicInstance.length, 1)
+assert.equal(Buffer.from(basicDefinition[0]).equals(Buffer.from(basicInstance[0])), true)
+assert.equal(Buffer.from(basicDefinition[0]).toString('hex'), expectedBasicMotionHex)
+
 writeFileSync(gilPath, seedFollowMotionComponent(source))
 const replaced = applyStaticAssembly({
   gilPath,

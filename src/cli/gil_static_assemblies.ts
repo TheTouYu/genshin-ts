@@ -148,6 +148,28 @@ function fullFollowComponent(): Uint8Array {
   ])
 }
 
+function basicMotionComponent(): Uint8Array {
+  return Buffer.from(
+    '08121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587' +
+      'bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2' +
+      'abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f6465',
+    'hex'
+  )
+}
+
+function componentSnapshot(component: GstsStaticAssemblyComponent): {
+  typeCode: number
+  bytes: Uint8Array
+} {
+  if (component.type === 'followMotion' && component.preset === 'fullFollow') {
+    return { typeCode: 9, bytes: fullFollowComponent() }
+  }
+  if (component.type === 'basicMotion' && component.preset === 'default') {
+    return { typeCode: 18, bytes: basicMotionComponent() }
+  }
+  throw new Error('[error] unsupported static assembly component')
+}
+
 export function setStaticAssemblyComponents(
   record: Uint8Array,
   components: readonly GstsStaticAssemblyComponent[],
@@ -156,19 +178,16 @@ export function setStaticAssemblyComponents(
   if (!components.length) return record
   const fields = parse(record)
   if (!fields) throw new Error('[error] invalid component owner record')
-  const fullFollow = fullFollowComponent()
   for (const component of components) {
-    if (component.type !== 'followMotion' || component.preset !== 'fullFollow') {
-      throw new Error('[error] unsupported static assembly component')
-    }
+    const snapshot = componentSnapshot(component)
     const existingIndex = fields.findIndex((field) => {
       if (field.number !== fieldNumber || field.wire !== 2) return false
       const componentFields = parse(field.value as Uint8Array)
       return componentFields?.some(
-        (child) => child.number === 1 && child.wire === 0 && child.value === 9
+        (child) => child.number === 1 && child.wire === 0 && child.value === snapshot.typeCode
       )
     })
-    const value = { number: fieldNumber, wire: 2, value: fullFollow } as WireField
+    const value = { number: fieldNumber, wire: 2, value: snapshot.bytes } as WireField
     if (existingIndex >= 0) fields[existingIndex] = value
     else fields.push(value)
   }
@@ -472,11 +491,7 @@ function validateAssembly(assembly: GstsResolvedStaticAssembly): void {
   if (new Set(components.map((component) => component.type)).size !== components.length) {
     throw new Error('[error] assembly components must not contain duplicate component types')
   }
-  for (const component of components) {
-    if (component.type !== 'followMotion' || component.preset !== 'fullFollow') {
-      throw new Error('[error] unsupported static assembly component')
-    }
-  }
+  components.forEach(componentSnapshot)
 }
 
 export function applyStaticAssembly(params: {
