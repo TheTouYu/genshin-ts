@@ -292,6 +292,8 @@ npx tsx tests/ir_merge_composite_id_collision_test.ts
 
 `npm test` 和 `npm run quicktest` 的批量 GIA 生成固定使用 `--noinject`，只写仓库内测试产物；即使 `gsts.test.config.ts` 保留人工验收所需的 inject 配置，自动测试也不得写入真实地图。
 
+2026-07-31 的安全验收运行了 `npm test`：构建、Stage 1 输出和 67 个本地 GIA 生成项完成，日志明确输出 `[warn] --noinject is enabled, skipping injection`，未执行注入。最终 `scripts/nodegraph/assert-enum-combinations.ts` 在枚举组合断言阶段失败，错误为 `E_UNKNOWN_NODE_VARIANT: enumerations_equal requires enum literal value or connection enum metadata`。因此本次结果应记录为“无注入生成通过，完整测试未通过”，不能把生成成功或跳过注入误报为完整测试、编辑器导入或游戏验证；该失败仍待单独定位。
+
 ### 独立脚本模式
 
 复合测试是独立脚本，**不属于** `npm test` 自动执行流程。`gsts.test.config.ts` 也会排除
