@@ -5,7 +5,7 @@
     "name": "Genshin-TS"
   },
   "pkc": {
-    "version": "0.2.0rc1",
+    "version": "0.2.0rc5",
     "projection_path": ".local/knowledge",
     "entry": "tools/pkc.py",
     "dependency": {
