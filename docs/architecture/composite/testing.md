@@ -241,6 +241,7 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-mixed-composite-normal.ts`   | 复合调用与普通 `f.method()` 交叉排列                                                                 |
 | `test-composite-game-demo.ts`      | 模拟真实游戏逻辑的复合（条件、变量、多个复合）                                                       |
 | `test-composite-bool-input-gia.ts` | bool input/output 的 `enumId=1` wire 元数据；非 bool 参数不得携带 `enumId`；同时锁定调用 pin literal |
+| `test-composite-build-input-types.ts` | `defineComposite.inputs` 到 `build(args)` 的精确类型映射；实体位置调用和 entity/vec3/int 不退化为 `any` |
 | `test-stage3-p4w3-call-lowerer-contract.ts` | 复合调用边界；含“下游仍有执行流但定义未声明/绑定 OutFlow”的 `GSTS-COMPOSITE-MISSING-OUTFLOW` 负向诊断 |
 | `analyze-nested-composites.ts`     | 嵌套复合的历史可行性调查；当前行为以 nested focused tests 为准                                       |
 
@@ -351,6 +352,29 @@ npx tsx tests/composite/test-impl-prefab-literal-and-multiple-branches.ts
 ```
 
 覆盖：impl 内 `prefab_id` 字面量 `bId` + `alreadySetVal`；impl 内 `multiple_branches` 的 capture 控制脚 / case list / 默认 OutFlow 0。证据层级为自动 GIA 结构回归；2026-07-16 的该夹具已由用户导入编辑器核验两项表现，但仍不替代运行时游戏行为核验。
+
+### Composite build 输入类型回归
+
+> 状态：当前实现
+> 来源：当前代码实现 + 自动类型回归
+> 最近校验：2026-07-30
+> 适用范围：`g.defineComposite(...).build(args)` 的 TypeScript 类型；不证明 GIA 或游戏行为
+
+Focused 测试：
+
+```bash
+npm run build
+npx tsx tests/composite/test-composite-build-input-types.ts
+```
+
+该测试通过编译后的公开 API 创建临时用户 fixture，断言 `entity`、`vec3`、`int` schema 在
+`build(args)` 中分别映射为对应运行时代理值且不是 `any`，并直接调用
+`f.getEntityLocationAndRotation(args.pivot)` 复现原始不安全断言问题。测试在旧实现上会产生三条
+`Type 'true' does not satisfy the constraint 'false'`，修复后无 TypeScript 诊断。
+
+调用侧 `callComposite` / `declareDetached` 的输入 schema 校验不属于本回归；现有
+`test-composite-optional-call-inputs.ts` 仍锁定稀疏输入运行时契约，后续调用侧类型收紧必须先建立独立
+红灯，并保留可省略已声明输入的行为。
 
 ### Timer callback 中的复合输出类型回归
 
@@ -615,7 +639,9 @@ Composite capture flow，并合并 Timer 事件 flow 的 impl 节点与边；嵌
 > 最近校验：2026-07-19
 > 适用范围：gsts 当前编译器诊断；未进行注入或游戏内验证
 
-编译器 warning 通过 `src/diagnostics.ts` 统一收集，再由文本输出和 JSON 输出消费。当前结构化字段包括：
+编译器 warning 通过 `src/diagnostics.ts` 统一收集，再由文本输出和 JSON 输出消费。控制台文本通过
+`formatDiagnostic()` 渲染已有上下文：`source`、graph 名称/ID、entry 文件、node 类型/IR ID 和可用的
+源码行列；JSON 仍保留完整诊断对象。当前结构化字段包括：
 
 - `code`、`severity`、`source`（`user` / `generated` / `system`）；
 - `graphId` / `graphName`、`entryFile`、`nodeId` / `nodeType`；
@@ -636,8 +662,12 @@ node ./bin/gsts.mjs -c gsts.config.ts --noinject --warnings-json dist/warnings.j
 node ./bin/gsts.mjs -c gsts.config.ts --noinject --strict-warnings
 ```
 
-`--warnings-json` 输出与控制台相同的诊断对象数组；`--strict-warnings` 在存在编译 warning 时以非零状态结束。网络公告/更新检查失败仍属于 CLI 外部检查，不会伪装成编译器 warning。当前回归为 `tests/diagnostics_test.ts`、`tests/composite/test-runtime-value-adapter.ts` 和
-`tests/composite/test-multi-outflow-default-continuation-warning.ts`。这些自动回归证明诊断结构和编译期行为，不等同于 GIA 导入或游戏行为验证。
+`--warnings-json` 输出与控制台相同的诊断对象数组；`--strict-warnings` 在存在编译 warning 时以非零状态结束。网络公告/更新检查失败仍属于 CLI 外部检查，不会伪装成编译器 warning。当前回归为 `tests/diagnostics_test.ts`、`tests/diagnostics_console_context_test.ts`、
+`tests/composite/test-runtime-value-adapter.ts` 和
+`tests/composite/test-multi-outflow-default-continuation-warning.ts`。其中 console context 测试在旧实现上
+因缺少 `source: generated` 等上下文而失败，修复后锁定文本输出。现有 `diagnosticSourceForNode()` 仍是
+粗粒度来源分类，不应把显示 `generated` 误解为已经具备完整 Stage 1 provenance/source map。这些自动
+回归证明诊断结构和编译期行为，不等同于 GIA 导入或游戏行为验证。
 
 ## 6. 测试注意事项
 

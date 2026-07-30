@@ -1,0 +1,301 @@
+# 游戏实战编译器优化续作清单
+
+> 状态：当前续作入口
+> 来源：目标玩法实战反馈 + 当前代码实现 + 自动回归
+> 最近校验：2026-07-30
+> 适用范围：Genshin-TS Composite 类型、诊断、组件事件文档和 GIA 校验工具；不代表游戏内验证
+
+本文档承接
+`/home/h/star-cube-nexus/docs/compiler-findings/GENSHIN_TS_FINDINGS_2026_07_30_ZH.md`。
+下一轮应从本页按顺序继续，不能因为证据不足、环境阻断或实现范围较大而跳过项目。代码改动必须遵循
+“独立测试先复现红灯 → 最小生产修复 → 测试转绿 → 相邻回归 → 文档更新”；纯文档改动必须登记用户
+文档和索引入口。
+
+## 0. 本轮已完成
+
+### 0.1 Composite `build(args)` 输入不再退化为 `any`
+
+状态：**已完成，自动类型回归通过**。
+
+- 生产代码：`src/runtime/core.ts`、`src/runtime/composite_registry.ts`。
+- 红绿测试：`tests/composite/test-composite-build-input-types.ts`。
+- 旧实现红灯：`entity`、`vec3`、`int` 三项均报
+  `Type 'true' does not satisfy the constraint 'false'`，证明类型为 `any`。
+- 当前绿灯：测试直接执行类型检查
+  `f.getEntityLocationAndRotation(args.pivot)`，并断言三个输入映射为运行时代理值。
+- 权威文档：`docs/architecture/composite/dsl-api.md`；测试索引：
+  `docs/architecture/composite/testing.md`。
+- 证据边界：只证明 TypeScript 定义侧类型，不证明调用侧输入检查、GIA 或游戏行为。
+
+### 0.2 诊断控制台显示已有结构化上下文
+
+状态：**已完成，自动回归通过**。
+
+- 生产代码：`src/diagnostics.ts` 的 `formatDiagnostic()`。
+- 红绿测试：`tests/diagnostics_console_context_test.ts`。
+- 旧实现红灯：控制台缺少 `source`、graph、entry、IR node 和 location。
+- 当前绿灯：控制台会显示诊断对象中已经存在的上述字段；JSON 契约保持不变。
+- 相邻回归：`tests/diagnostics_test.ts`、
+  `tests/composite/test-multi-outflow-default-continuation-warning.ts`。
+- 权威文档：`docs/architecture/composite/testing.md` 的“结构化编译诊断”。
+- 剩余边界：显示字段不等于上游已提供准确 source map/provenance；见任务 2。
+
+### 0.3 基础运动器停止事件的组件持有者文档
+
+状态：**用户文档已完成，lint 尚未实现**。
+
+- 中文：`docs/docs/zh/doc/events/gserver.md` 的“组件持有者事件”。
+- 英文：`docs/docs/en/doc/events/gserver.md` 的“Component-owner events”。
+- 站点索引：对应目录 `_meta.json` 的 `gserver` 条目。
+- 交叉入口：中英文 `signals.md`。
+- 已说明：事件发送给组件持有者；跨实体应在持有者图处理或显式转发信号；编译成功不证明事件返回调用图。
+- 剩余 lint 调研见任务 4。
+
+## 1. 下一轮首项：Composite 调用侧输入类型安全
+
+状态：**未实现，必须继续**。当前 `build(args)` 已精确，但 `callComposite()` 和
+`declareDetached()` 仍接收 `Record<string, any>`。
+
+### 红灯测试要求
+
+新增独立文件：
+
+```text
+tests/composite/test-composite-call-input-types.ts
+```
+
+必须先在当前实现上证明以下 `@ts-expect-error` 未被消费：
+
+1. 已声明字段传入错误运行时值类型；
+2. 直接对象字面量带未知字段；
+3. `declareDetached()` 与 `callComposite()` 存在同一缺口。
+
+同时保留正向断言：
+
+- 所有字段均传入时合法；
+- 只传部分已声明字段合法；
+- `{}` 合法，因为当前 runtime 支持稀疏/可省略调用输入；
+- 输出类型不能从 `float` / `vec3` 退化为 `generic`。
+
+现有保护回归：
+
+```text
+tests/composite/test-composite-optional-call-inputs.ts
+tests/timer_composite_output_types_test.ts
+tests/timer_nested_composite_multi_output_test.ts
+```
+
+### 预计实现范围
+
+- 给 `CompositeHandle` 保留输入 schema phantom type，同时保持输出 schema 推导不变；
+- 调用参数使用 `Partial<CompositeInputValues<Inputs>>`，不能改成全必填；
+- `callComposite()` / `declareDetached()` 当前位于生成定义 `src/definitions/nodes.ts` 的手写区，禁止直接
+  修改生成物。必须先确定稳定生成来源或非生成声明 seam；若修改生成器，运行 `npm run gen` 并处理任务 7
+  的现有阻断，不得跳过。
+
+### 完成标准
+
+红灯转绿；`npm run build`；上述 optional/timer 回归通过；Stage 1 expression semantics 通过；
+`git diff --check`；更新 `dsl-api.md` 和 `testing.md`。
+
+## 2. 多出口诊断的真实源码位置和 provenance
+
+状态：**部分完成，不得关闭**。控制台已能渲染已有字段，但当前 multi-outflow 诊断通常没有
+`entryFile` / `location`，`diagnosticSourceForNode()` 也只是按少数 timer 节点类型粗略分类。
+
+### 红灯测试要求
+
+新增一个最小 Stage 1 → Stage 2 fixture，至少覆盖：
+
+1. 用户源码中的普通 `if` / `else if`；
+2. timer callback 中 lowering 产生的分支；
+3. Composite `build` 内分支；
+4. 编译器 helper/lowering 产生且用户无法直接修改的节点。
+
+测试应先证明诊断缺少或错误标注以下字段：
+
+```text
+entryFile
+location.file/line/column
+originKind: user | lowering | runtime-helper
+callback/event/timer/composite context
+```
+
+### 调查与实现
+
+- 先查 Stage 1 已有 TypeScript source map/AST 位置信息在哪个阶段丢失；
+- 设计最小 provenance 载体，贯穿 `.gs.ts`、runtime record 和 IR，不要仅按 `nodeType` 猜来源；
+- 对纯 lowering 内部且可由编译器正确连接的多出口，优先修 lowering 的显式 continuation，而不是静默
+  屏蔽所有 generated warning；
+- 控制台与 `--warnings-json` 必须保持同一对象语义。
+
+### 完成标准
+
+原始玩法项目的三条 warning 能回答：源文件行列、入口图、事件/timer callback、IR node、用户代码还是
+lowering，以及应由用户还是编译器修复。只完成控制台格式化不算完成本项。
+
+## 3. Composite 实体类别约束 `entityKinds`
+
+状态：**未实现，存在两层证据，必须分阶段处理**。
+
+当前节点签名已确认：`getEntityLocationAndRotation` 接受
+`character | object | creation`。目标玩法的 pivot 如果只允许 `object | creation`，这是 Composite 自身的
+更严格业务约束。
+
+### 3.1 TypeScript-only 阶段
+
+先新增红灯测试：
+
+```text
+tests/composite/test-composite-entity-kind-input-types.ts
+```
+
+目标 API 形态：
+
+```ts
+pivot: { type: 'entity', entityKinds: ['object', 'creation'] as const }
+```
+
+测试要求：object/creation 合法；player/stage 非法；是否允许 character 由 schema 决定；嵌套 Composite
+和调用侧均保持约束；显式 `entity(...)` 拓宽行为必须有测试和文档。
+
+实现不得手改 `src/definitions/`。优先复用 `EntityOf<K>` 和当前实体 helper 类型来源。
+
+### 3.2 IR/GIA 表达调查
+
+TypeScript 阶段完成后仍不能声称编辑器 pin 会限制实体类别。必须调查：
+
+1. 真实编辑器 Composite 输入是否保存实体类别过滤；
+2. protobuf 是否存在对应字段；
+3. 如果无真实 GIA 证据，则明确保持 authoring-only metadata，不扩展 wire；
+4. 如果有字段，按 Composite 完整 bug 流程建立最小真实样本、同构红灯和 shared/legacy 回归。
+
+## 4. 组件事件归属启发式 lint
+
+状态：**文档完成，lint 未做**。
+
+先收集至少两个真实模式：高置信错误案例和合法跨图/信号转发案例。新增 lint/诊断测试，验证：
+
+- 当前图监听组件持有者事件；
+- 同图对明确非 self 的实体添加/启动对应组件行为；
+- 未发现显式持有者图或信号转发时才 warning；
+- 未知实体来源不报强错误；
+- 合法结构不误报；warning 可配置或抑制。
+
+候选错误码：`GSTS-COMPONENT-EVENT-OWNER-MISMATCH`。严重级别只能是 warning，除非后续有可证明的
+静态语义。误报率不可控时，应记录调查证据并保持文档方案，但不能假装 lint 已完成。
+
+## 5. 稳定的只读 GIA 结构校验器
+
+状态：**未实现**。现有 `decode`、`gia-inspect`、`gia-compare` 和测试脚本分散，尚无稳定项目级
+`validate-gia` 契约。
+
+### 测试先行
+
+建议先为纯校验函数新增：
+
+```text
+tests/gia_validation_test.ts
+```
+
+每条规则必须有一个独立损坏 fixture/构造器先产生红灯：
+
+- 容器/header 解码失败；
+- nodeIndex 重复；
+- 连接目标节点不存在；
+- 连接目标 pin 不存在或方向错误；
+- `compositePins.innerNodeId` 不存在；
+- Composite call 引用不存在的定义；
+- CompositeDef 与 impl GraphUnit 引用不一致；
+- 参数 index/pinIndex 冲突；
+- accessory 构建失败不得留下部分 GIA。
+
+不要笼统断言“没有 nodeId=0”；必须分别定义 IR node id、GIA nodeIndex、generic/concrete node type ID
+中哪些 0 非法。
+
+### 产品形态和完成标准
+
+优先实现纯函数库，再接：
+
+```text
+gsts validate-gia <file.gia> --format json
+```
+
+输出带 `schemaVersion`、`valid`、summary 和稳定错误码；CLI 必须只读。完成前按
+`docs/architecture/composite/testing.md` 执行同构复现、主图对照、shared/legacy 和证据分层。
+自动校验通过不等同编辑器导入或游戏验证。
+
+## 6. 固定时长运动与完成处理辅助层
+
+状态：**暂未产品化，但不得遗忘**。这不是简单回调语法糖，必须处理组件持有者、同名、重启、关闭、
+迟到事件、超时、多实体并发和跨图转发。
+
+下一步先做独立示例/工具层原型及测试，不直接加入编译器核心。测试矩阵至少覆盖：
+
+- 单实体正常完成；
+- 两实体并发；
+- 同名运动；
+- 完成与主动关闭；
+- 超时与迟到事件；
+- 目标实体不是当前图组件持有者；
+- 状态切换期间旧事件不能完成新任务。
+
+首版优先返回显式 token/name 匹配器，而不是承诺隐式 `onStopped` 闭包。经过至少两个玩法复用后，再
+决定放入示例库、可选工具包、runtime DSL 或 compiler lowering。
+
+## 7. 已发现的环境/生成阻断
+
+### 7.1 `npm run gen` 阻断
+
+当前命令在定义生成时失败：
+
+```text
+Update Floating Interaction Page List Data
+nodeZh === undefined
+```
+
+位置：`scripts/generate-definitions.ts` 读取 `nodeZh.parameters`。下一轮若任务 1 或 3 需要改生成定义，必须
+先建立生成器失败测试或一致性检查，定位中英文资源缺失；修复来源后运行 `npm run gen`，不得直接手改
+`src/definitions/nodes.ts`。本轮失败产生的事件定义改动已恢复，没有纳入完成证据。
+
+### 7.2 文档站依赖阻断
+
+`cd docs && npm run build` 当前失败：
+
+```text
+rspress: command not found
+```
+
+说明 `docs/` 子包依赖未安装。下一轮需要在获准的依赖安装/CI 环境中运行文档构建；在此之前只能声称
+Markdown、索引路径和 `git diff --check` 已验证，不能声称站点构建通过。
+
+## 8. 游戏中的瞬移、斜线、缺块与重叠
+
+状态：**未确认是编译器 bug，也不能因无法归因而关闭**。
+
+当前优先候选仍是玩法状态与坐标系：结束后未精确吸附、已旋转 pivot 上仍使用初始局部偏移、绝对
+`(90, 0, 0)` 覆盖既有 Y 旋转，以及同一事件内解绑/更新/重绑竞争。
+
+若继续调查编译器归因，必须先建立 Composite 与非 Composite 的最小同构对照，并逐层比较：
+
+```text
+.ts → .gs.ts → IR JSON → GIA 数据/控制流 → 编辑器导入 → 游戏行为
+```
+
+只有出现主图正常而 impl 不同、IR 正确而 GIA 连接错误、或真实 GIA 与 gsts GIA 关键节点拓扑冲突时，
+才登记具体编译器 bug，并为该差异建立红灯测试。玩法逻辑修复和编译器修复必须分开记录。
+
+## 9. 推荐执行顺序
+
+1. 任务 1：调用侧输入类型安全；
+2. 任务 2：诊断 provenance 与真实源码位置；
+3. 任务 7.1：如类型工作需要生成定义，先修生成阻断；
+4. 任务 3.1：TypeScript 实体类别约束；
+5. 任务 5：`validate-gia` 首版；
+6. 任务 4：组件事件归属 lint 调研与高置信 warning；
+7. 任务 3.2：实体类别 GIA 能力调查；
+8. 任务 6：运动任务辅助层原型；
+9. 任务 8：按证据继续游戏异常归因；
+10. 任务 7.2：在依赖完整环境补跑文档站构建。
+
+每轮结束都要更新本页状态，不允许把“待验证”“环境阻断”改写成“无需处理”。

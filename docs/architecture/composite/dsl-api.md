@@ -166,7 +166,26 @@ f.callComposite(Condition, { x: int(-1) })
 
 ## 3. 类型安全
 
-`defineComposite` 会保留 `outputs` 的字符串字面量类型，并由 `callComposite` 映射为具体返回值类型：
+`defineComposite` 会把 `inputs` schema 映射为 `build(args)` 中的运行时代理值类型。例如
+`entity`、`vec3`、`int` 分别映射为 `entity`、`vec3`、`int`；参数不再退化为 `any`：
+
+```typescript
+const GetPivotPosition = g.defineComposite('GetPivotPosition', {
+  inputs: { pivot: { type: 'entity' } },
+  outputs: { location: { type: 'vec3' } },
+  build(args, f) {
+    const { location } = f.getEntityLocationAndRotation(args.pivot)
+    return { location }
+  }
+})
+```
+
+这里使用 `RuntimeValueTypeMap`，因为 `build` 捕获阶段收到的是带 pin metadata 的代理值，不是调用
+参数允许的原生值与代理值联合。当前自动类型回归为
+`tests/composite/test-composite-build-input-types.ts`；它直接检查上述实体位置调用，并覆盖
+`entity`、`vec3`、`int` 不为 `any`。该回归证明 TypeScript 类型契约，不等同于 GIA 或游戏行为验证。
+
+`defineComposite` 也会保留 `outputs` 的字符串字面量类型，并由 `callComposite` 映射为具体返回值类型：
 
 ```typescript
 const direction = f.callComposite(GetDirection, { x, y }).value
@@ -180,7 +199,10 @@ const parts = f.split3dVector(direction)
 - TypeScript/Stage 1：timer callback 中保存复合输出时，编译器可从 handle 的 `__outputs` 读取 `float` / `vec3` 等声明，生成正确的局部变量类型；
 - Stage 2/3：输出代理仍携带 `markPin` metadata，生成 OutParam 数据连接；复合输出连接到普通节点时由 Stage 3 的专用 overlay 路径处理。
 
-输入参数和运行时节点连接仍会在 Stage 2 进行实际类型校验，不能用 TypeScript 类型断言替代运行时验证。
+当前精确推导覆盖 Composite 定义侧的 `build(args)`。调用侧 `callComposite(handle, inputs)` /
+`declareDetached(handle, inputs)` 仍允许稀疏输入，并尚未按 handle 的输入 schema 拒绝错误类型或未知字段；
+该能力应作为独立测试先建立红灯后再实现，不能把定义侧修复扩大表述为端到端输入校验。输入参数和
+运行时节点连接仍会在 Stage 2 进行实际类型校验，不能用 TypeScript 类型断言替代运行时验证。
 
 运行时类型映射通过 `composite_registry.ts` 中的 `RUNTIME_TO_GIA_TYPE` 完成：
 

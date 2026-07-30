@@ -8,7 +8,7 @@ import type {
   ParamFlowDef
 } from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
-import { list, type value } from './value.js'
+import { list, type RuntimeValueTypeMap, type value } from './value.js'
 import { parseVariableDefinitions } from './variables.js'
 
 // ============== Constants ==============
@@ -36,9 +36,13 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 
 // ============== Types ==============
 
-export type CompositeParamType = string
+export type CompositeParamType = keyof RuntimeValueTypeMap
 
 export type CompositeParamDef = { type: CompositeParamType; pinIndex?: number }
+export type CompositeInputDefinitions = Record<string, CompositeParamDef>
+export type CompositeInputValues<Inputs extends CompositeInputDefinitions> = {
+  [K in keyof Inputs]: RuntimeValueTypeMap[Inputs[K]['type']]
+}
 export type CompositeFlowDef = { name: string; pinIndex?: number }
 
 /**

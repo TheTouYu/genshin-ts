@@ -60,6 +60,29 @@ g.server({
 For the full runnable cases:
 - https://github.com/josStorer/genshin-ts/blob/master/tests/variables_definition_test.ts
 
+## Component-owner events
+
+Some component events are sent to the graph associated with the **component owner**, not to the
+graph that initiated an operation. For example, `whenBasicMotionDeviceStops` is sent to the owner
+of the Basic Motion Device component when a motion completes or is disabled.
+
+Starting a motion device for entity B from graph A therefore does not make the stop event return to
+graph A. If graph A must continue a state machine, use one of these explicit structures:
+
+1. attach the listener graph to entity B and handle the event there;
+2. listen in entity B's graph and forward the required data to graph A with a
+   [signal](./signals.md);
+3. when the gameplay contract allows it, use an explicit timeout or another synchronization
+   condition and handle late events.
+
+In the handler, `evt.eventSourceEntity` identifies the component owner and
+`evt.motionDeviceName` can distinguish motion devices. Name filtering does not change event
+ownership and does not by itself handle duplicate names, restarts, disables, or late events.
+
+The compiler currently does not prove that the controlled entity is the current graph's component
+owner, and it does not generate cross-entity signal forwarding automatically. A successful build
+only proves that a graph can be generated, not that the completion event returns to the caller.
+
 Injection requirements:
 - Target graph must exist and be empty or start with `_GSTS`.
 - New graphs must be saved before injection can detect them.

@@ -37,15 +37,34 @@ export function configureDiagnostics(next: DiagnosticOptions) {
   options = { ...options, ...next }
 }
 
+export function formatDiagnostic(diagnostic: Diagnostic): string {
+  const prefix = diagnostic.severity === 'error' ? '[error]' : '[warning]'
+  const lines = [`${prefix} ${diagnostic.code}: ${diagnostic.message}`]
+  if (diagnostic.suggestion) lines.push(`  suggestion: ${diagnostic.suggestion}`)
+  lines.push(`  source: ${diagnostic.source}`)
+  if (diagnostic.graphName || diagnostic.graphId !== undefined) {
+    const graphName = diagnostic.graphName ?? '<unnamed>'
+    const graphId = diagnostic.graphId === undefined ? '' : ` (${diagnostic.graphId})`
+    lines.push(`  graph: ${graphName}${graphId}`)
+  }
+  if (diagnostic.entryFile) lines.push(`  entry: ${diagnostic.entryFile}`)
+  if (diagnostic.nodeType || diagnostic.nodeId !== undefined) {
+    const nodeType = diagnostic.nodeType ?? '<unknown>'
+    const nodeId = diagnostic.nodeId === undefined ? '' : ` (IR ${diagnostic.nodeId})`
+    lines.push(`  node: ${nodeType}${nodeId}`)
+  }
+  if (diagnostic.location) {
+    const file = diagnostic.location.file ?? diagnostic.entryFile ?? '<unknown>'
+    const line = diagnostic.location.line === undefined ? '' : `:${diagnostic.location.line}`
+    const column = diagnostic.location.column === undefined ? '' : `:${diagnostic.location.column}`
+    lines.push(`  location: ${file}${line}${column}`)
+  }
+  return lines.join('\n')
+}
+
 export function reportDiagnostic(diagnostic: Diagnostic): Diagnostic {
   diagnostics.push(diagnostic)
-  if (options.print) {
-    const prefix = diagnostic.severity === 'error' ? '[error]' : '[warning]'
-    console.warn(
-      `${prefix} ${diagnostic.code}: ${diagnostic.message}` +
-        (diagnostic.suggestion ? ` ${diagnostic.suggestion}` : '')
-    )
-  }
+  if (options.print) console.warn(formatDiagnostic(diagnostic))
   persistDiagnostics()
   return diagnostic
 }

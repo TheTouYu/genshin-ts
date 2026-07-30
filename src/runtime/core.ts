@@ -49,7 +49,9 @@ import { installScopedClientGlobals } from './client_scoped_globals.js'
 import {
   compositeRegistry,
   type CompositeDefinition,
-  type CompositeHandle
+  type CompositeHandle,
+  type CompositeInputDefinitions,
+  type CompositeInputValues
 } from './composite_registry.js'
 import type {
   ExecContext,
@@ -3120,8 +3122,8 @@ export const g = {
  * })
  */
 export function defineComposite<
-  Inputs extends Record<string, { type: any; pinIndex?: number }> = {},
-  Outputs extends Record<string, { type: LiteralValueType; pinIndex?: number }> = {}
+  Inputs extends CompositeInputDefinitions = {},
+  const Outputs extends Record<string, { type: LiteralValueType; pinIndex?: number }> = {}
 >(
   name: string,
   def: {
@@ -3130,7 +3132,7 @@ export function defineComposite<
     inflows?: Array<string | { name: string; pinIndex?: number }>
     outflows?: Array<string | { name: string; pinIndex?: number }>
     build: (
-      inputs: { [K in keyof Inputs]: any },
+      inputs: CompositeInputValues<Inputs>,
       f: ServerExecutionFlowFunctions
     ) => { [K in keyof Outputs]: any }
   }
