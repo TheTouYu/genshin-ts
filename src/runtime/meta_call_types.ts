@@ -1,3 +1,4 @@
+import type { DiagnosticProvenance } from '../diagnostics.js'
 import type { LiteralValueType } from './IR.js'
 import type { RuntimeValueTypeMap, value } from './value.js'
 
@@ -9,6 +10,7 @@ export interface MetaCallRecord {
   nodeType: string
   args: value[]
   compositeInputIndices?: Array<number | undefined>
+  provenance?: DiagnosticProvenance
 }
 
 export type MetaCallRecordRef = Readonly<MetaCallRecord>
@@ -17,10 +19,7 @@ export type FlowMarkerRef = {
   readonly __markerNodeId: number
 }
 
-export type CompositeOutputDefinitions = Record<
-  string,
-  { type: LiteralValueType }
->
+export type CompositeOutputDefinitions = Record<string, { type: LiteralValueType }>
 
 export type CompositeCallResult<
   Outputs extends CompositeOutputDefinitions = CompositeOutputDefinitions

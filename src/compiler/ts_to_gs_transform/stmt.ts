@@ -22,12 +22,12 @@ import {
   type StorableLocalValueType
 } from './expression_semantics.js'
 import { isArrayLikeExpression, SUPPORTED_LIST_METHODS } from './list_utils.js'
+import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
 import {
   makeCheckedLocalVariableInit,
   makeCheckedLocalVariableSet,
   makeKnownLocalVariableSet
 } from './local_variable_lowering.js'
-import { inferListTypeFromTypeNode, inferListTypeFromTypeString, type ListType } from './lists.js'
 import {
   transformDoStatement,
   transformForOfStatement,
@@ -37,7 +37,14 @@ import {
 import { getFMethodCall, isFMethodCall } from './matcher.js'
 import { isAssignmentLikeOperator } from './ops.js'
 import type { CollectionSourceKind, Env, VarPlan, VarPlanEntry } from './types.js'
-import { asBlock, isClientFMethodAvailable, makeFCall, withSameRange } from './utils.js'
+import {
+  asBlock,
+  isClientFMethodAvailable,
+  makeDiagnosticProvenance,
+  makeFCall,
+  withDiagnosticProvenance,
+  withSameRange
+} from './utils.js'
 
 function inferListConcreteType(env: Env, t: ts.Type, declTypeNode?: ts.TypeNode): ListType | null {
   const byNode = inferListTypeFromTypeNode(declTypeNode)
@@ -1150,7 +1157,12 @@ export function transformBlockStatements(
         ts.factory.createArrowFunction(undefined, undefined, [], undefined, undefined, tBlock),
         ts.factory.createArrowFunction(undefined, undefined, [], undefined, undefined, fBlock)
       ])
-      out.push(withSameRange(ts.factory.createExpressionStatement(call), s))
+      out.push(
+        withSameRange(
+          ts.factory.createExpressionStatement(withDiagnosticProvenance(env, s, call)),
+          s
+        )
+      )
       continue
     }
 

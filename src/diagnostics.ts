@@ -3,6 +3,19 @@ import path from 'node:path'
 
 export type DiagnosticSeverity = 'warning' | 'error'
 export type DiagnosticSource = 'user' | 'generated' | 'system'
+export type DiagnosticOriginKind = 'user' | 'lowering' | 'runtime-helper'
+export type DiagnosticContext = {
+  callback?: string
+  event?: string
+  timer?: string
+  composite?: string
+}
+export type DiagnosticProvenance = {
+  entryFile: string
+  location: { file: string; line: number; column: number }
+  originKind: DiagnosticOriginKind
+  context?: DiagnosticContext
+}
 
 export type Diagnostic = {
   code: string
@@ -18,6 +31,8 @@ export type Diagnostic = {
   composite?: { id?: number; name?: string }
   relatedNodes?: Array<{ id: number; type?: string }>
   location?: { file?: string; line?: number; column?: number }
+  originKind?: DiagnosticOriginKind
+  context?: DiagnosticContext
 }
 
 type DiagnosticOptions = {
@@ -58,6 +73,13 @@ export function formatDiagnostic(diagnostic: Diagnostic): string {
     const line = diagnostic.location.line === undefined ? '' : `:${diagnostic.location.line}`
     const column = diagnostic.location.column === undefined ? '' : `:${diagnostic.location.column}`
     lines.push(`  location: ${file}${line}${column}`)
+  }
+  if (diagnostic.originKind) lines.push(`  origin: ${diagnostic.originKind}`)
+  if (diagnostic.context) {
+    const context = Object.entries(diagnostic.context)
+      .map(([key, value]) => `${key}=${value}`)
+      .join(', ')
+    if (context) lines.push(`  context: ${context}`)
   }
   return lines.join('\n')
 }
@@ -110,7 +132,5 @@ export function readDiagnosticsDir(dir: string): Diagnostic[] {
 }
 
 export function diagnosticSourceForNode(nodeType?: string): DiagnosticSource {
-  return nodeType?.startsWith('when_timer_') || nodeType === 'start_timer'
-    ? 'generated'
-    : 'user'
+  return nodeType?.startsWith('when_timer_') || nodeType === 'start_timer' ? 'generated' : 'user'
 }

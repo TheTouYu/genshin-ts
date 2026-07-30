@@ -39,6 +39,7 @@ import {
   assertClientFMethodAvailable,
   isClientFMethodAvailable,
   makeFCall,
+  withDiagnosticProvenance,
   withSameRange
 } from './utils.js'
 
@@ -1457,7 +1458,10 @@ function transformTimerCall(
       timerCaptureMap,
       timerNameIdent,
       timerHandleSymbol: handleSymbol ?? undefined,
-      timerHandleDicts
+      timerHandleDicts,
+      diagnosticContext: { ...env.diagnosticContext, callback: 'timer', timer: kind },
+      diagnosticOriginKind: 'runtime-helper',
+      diagnosticNode: handlerArg
     },
     context,
     handler
@@ -1521,10 +1525,8 @@ function transformTimerCall(
   const optionsExpr = ts.factory.createObjectLiteralExpression(optionProps, true)
 
   const newArgs = [transformedHandler, delayExpr, optionsExpr]
-  return withSameRange(
-    ts.factory.updateCallExpression(expr, expr.expression, expr.typeArguments, newArgs),
-    expr
-  )
+  const call = ts.factory.updateCallExpression(expr, expr.expression, expr.typeArguments, newArgs)
+  return withSameRange(withDiagnosticProvenance(env, expr, call, 'runtime-helper'), expr)
 }
 
 const DATA_TYPE_CONVERSION_TARGETS: Readonly<Record<string, readonly string[]>> = {

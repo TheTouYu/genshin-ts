@@ -20,7 +20,11 @@ import {
   SERVER_F_ZH_TO_EN,
   type ServerEventNameZh
 } from '../definitions/zh_aliases.js'
-import { diagnosticSourceForNode, reportDiagnostic } from '../diagnostics.js'
+import {
+  diagnosticSourceForNode,
+  reportDiagnostic,
+  type DiagnosticProvenance
+} from '../diagnostics.js'
 import { CLIENT_ERROR_CODES, clientNodegraphError } from '../shared/client_capability_errors.js'
 import {
   applyClientFlowFunctionZhAliases,
@@ -468,6 +472,8 @@ export type GstsCtxType =
 export type GstsCtxApi = {
   readonly ctxType: GstsCtxType
   withCtx<T>(ctxType: GstsCtxType, fn: () => T): T
+  withDiagnosticProvenance<T>(provenance: DiagnosticProvenance, fn: () => T): T
+  readonly diagnosticProvenance: DiagnosticProvenance | undefined
   isServerCtx(): boolean
   isClientCtx(): boolean
   isClientGraphCtx(subType: ClientGraphSubType): boolean
@@ -608,12 +614,14 @@ declare global {
 }
 
 const kCtxStack: unique symbol = Symbol('gsts_ctxStack')
+const kDiagnosticProvenanceStack: unique symbol = Symbol('gsts_diagnosticProvenanceStack')
 const kServerF: unique symbol = Symbol('gsts_serverF')
 const kClientF: unique symbol = Symbol('gsts_clientF')
 const kTimers: unique symbol = Symbol('gsts_timers')
 
 type GstsInternal = GstsPublic & {
   [kCtxStack]?: GstsCtxType[]
+  [kDiagnosticProvenanceStack]?: DiagnosticProvenance[]
   [kServerF]?: ServerExecutionFlowFunctions
   [kClientF]?: Partial<Record<ClientGraphSubType, unknown>>
   [kTimers]?: GstsPublic['timers']
@@ -663,6 +671,7 @@ function ensureGsts(): GstsPublic {
   const g = (root.gsts ??= { ctx: {} as unknown as GstsCtxApi } as GstsInternal)
 
   const stack = (g[kCtxStack] ??= [])
+  const diagnosticProvenanceStack = (g[kDiagnosticProvenanceStack] ??= [])
 
   const ctx: GstsCtxApi = {
     get ctxType() {
@@ -675,6 +684,17 @@ function ensureGsts(): GstsPublic {
       } finally {
         stack.pop()
       }
+    },
+    withDiagnosticProvenance<T>(provenance: DiagnosticProvenance, fn: () => T): T {
+      diagnosticProvenanceStack.push(provenance)
+      try {
+        return fn()
+      } finally {
+        diagnosticProvenanceStack.pop()
+      }
+    },
+    get diagnosticProvenance() {
+      return diagnosticProvenanceStack[diagnosticProvenanceStack.length - 1]
     },
     isServerCtx() {
       return this.ctxType.startsWith('server_')
@@ -1308,6 +1328,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
           ...Array.from({ length: outflow.count - 1 }, (_, i) => `OutFlow[${i + 1}]`)
         ]
         const owner = outflow.owner ? `${outflow.owner} ` : ''
+        const provenance = outflow.provenance
         if (!this.warnedMultiOutflowContinuations.has(warningKey)) {
           this.warnedMultiOutflowContinuations.add(warningKey)
           const suggestion = outflow.owner?.startsWith('composite ')
@@ -1316,7 +1337,10 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
           reportDiagnostic({
             code: 'GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION',
             severity: 'warning',
-            source: diagnosticSourceForNode(outflow.owner),
+            source:
+              provenance?.originKind && provenance.originKind !== 'user'
+                ? 'generated'
+                : diagnosticSourceForNode(outflow.owner),
             message:
               `${owner}has multiple execution outflows; simple sequential continuation uses ` +
               `OutFlow[0] only. Unused outflow: ${unused.join(', ')}.`,
@@ -1324,7 +1348,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
             graphId: this.graphId,
             graphName: this.graphName,
             nodeId: fromNodeId,
-            nodeType: outflow.owner
+            nodeType: outflow.owner,
+            ...provenance
           })
         }
         sourceIndex = 0
@@ -1599,6 +1624,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     metadata.count = Math.max(metadata.count, tailEndpoints.length)
     metadata.names = names
     metadata.owner = `node "${nodeType}"`
+    metadata.provenance = current.execNodes.find((node) => node.id === nodeId)?.provenance
     current.execOutflows[nodeId] = metadata
 
     const unused = names?.slice(1).map((name) => `"${name}"`) ?? [
@@ -1610,7 +1636,10 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       reportDiagnostic({
         code: 'GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION',
         severity: 'warning',
-        source: diagnosticSourceForNode(nodeType),
+        source:
+          metadata.provenance?.originKind && metadata.provenance.originKind !== 'user'
+            ? 'generated'
+            : diagnosticSourceForNode(nodeType),
         message:
           `node "${nodeType}" has multiple execution outflows; simple sequential continuation ` +
           `uses OutFlow[0] only. Unused outflows: ${unused.join(', ')}.`,
@@ -1620,7 +1649,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
         graphId: this.graphId,
         graphName: this.graphName,
         nodeId,
-        nodeType
+        nodeType,
+        ...metadata.provenance
       })
     }
 
@@ -1878,6 +1908,7 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
 
   registerNode(record: MetaCallRecord): MetaCallRecordRef {
     const current = this.currentFlow
+    record.provenance ??= ensureGsts().ctx.diagnosticProvenance
     if (!record.id) {
       record.id = this.currentRecordId
     }

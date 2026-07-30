@@ -87,6 +87,86 @@ export function makeFCall(env: Env, method: string, args: ts.Expression[]) {
   )
 }
 
+export function makeDiagnosticProvenance(
+  env: Env,
+  node: ts.Node,
+  originKind = env.diagnosticOriginKind ?? 'user'
+): ts.ObjectLiteralExpression {
+  const sourceNode = node.pos >= 0 ? node : env.diagnosticNode
+  if (!sourceNode) throw new Error('[error] diagnostic provenance requires a source node')
+  if (node.pos >= 0 && originKind !== 'runtime-helper') originKind = 'user'
+  const { line, character } = env.file.getLineAndCharacterOfPosition(sourceNode.getStart(env.file))
+  const properties: ts.ObjectLiteralElementLike[] = [
+    ts.factory.createPropertyAssignment(
+      'entryFile',
+      ts.factory.createStringLiteral(env.file.fileName)
+    ),
+    ts.factory.createPropertyAssignment(
+      'location',
+      ts.factory.createObjectLiteralExpression([
+        ts.factory.createPropertyAssignment(
+          'file',
+          ts.factory.createStringLiteral(env.file.fileName)
+        ),
+        ts.factory.createPropertyAssignment('line', ts.factory.createNumericLiteral(line + 1)),
+        ts.factory.createPropertyAssignment(
+          'column',
+          ts.factory.createNumericLiteral(character + 1)
+        )
+      ])
+    ),
+    ts.factory.createPropertyAssignment('originKind', ts.factory.createStringLiteral(originKind))
+  ]
+  const context = {
+    ...(env.eventName ? { event: env.eventName, callback: 'event' } : {}),
+    ...env.diagnosticContext
+  }
+  const contextProperties = Object.entries(context).map(([key, value]) =>
+    ts.factory.createPropertyAssignment(key, ts.factory.createStringLiteral(value))
+  )
+  if (contextProperties.length > 0) {
+    properties.push(
+      ts.factory.createPropertyAssignment(
+        'context',
+        ts.factory.createObjectLiteralExpression(contextProperties)
+      )
+    )
+  }
+  return ts.factory.createObjectLiteralExpression(properties, true)
+}
+
+export function withDiagnosticProvenance(
+  env: Env,
+  node: ts.Node,
+  expression: ts.Expression,
+  originKind = env.diagnosticOriginKind ?? 'user'
+): ts.CallExpression {
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier('globalThis'),
+          env.gstsIdent
+        ),
+        'ctx'
+      ),
+      'withDiagnosticProvenance'
+    ),
+    undefined,
+    [
+      makeDiagnosticProvenance(env, node, originKind),
+      ts.factory.createArrowFunction(
+        undefined,
+        undefined,
+        [],
+        undefined,
+        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+        expression
+      )
+    ]
+  )
+}
+
 export function withSameRange<T extends ts.Node>(newNode: T, oldNode: ts.Node): T {
   return ts.setTextRange(newNode, oldNode)
 }

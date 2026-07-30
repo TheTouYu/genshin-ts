@@ -135,8 +135,13 @@ tests/timer_nested_composite_multi_output_test.ts
 
 ## 2. 多出口诊断的真实源码位置和 provenance
 
-状态：**部分完成，不得关闭**。控制台已能渲染已有字段，但当前 multi-outflow 诊断通常没有
-`entryFile` / `location`，`diagnosticSourceForNode()` 也只是按少数 timer 节点类型粗略分类。
+状态：**Stage 1→Stage 2 最小 provenance 已完成，原始玩法验收仍待执行**。控制台和
+`--warnings-json` 现在共享同一诊断对象；普通事件分支、timer callback、Composite `build` 和 timer
+runtime helper 均可携带 `entryFile`、源码行列、`originKind` 与 callback 上下文。
+
+自动回归：`tests/diagnostic_provenance_test.ts`。当前 `originKind` 为
+`user | lowering | runtime-helper`；非 user provenance 同步归类为 `source: generated`。字段为 additive
+JSON 契约，不改变既有字段。尚未拿原始玩法项目的三条 warning 做逐条验收，因此本项仍不得关闭。
 
 ### 红灯测试要求
 

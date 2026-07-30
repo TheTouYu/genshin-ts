@@ -10,6 +10,7 @@ import { getClientOnCallInfo, isServerOnCall } from './matcher.js'
 import { isAssignmentLikeOperator } from './ops.js'
 import { transformGstsServerFunction, transformHandler } from './stmt.js'
 import { buildFeatureFlags, type EnumImportInfo, type Env, type TransformCtx } from './types.js'
+import { makeDiagnosticProvenance } from './utils.js'
 
 function hasTopLevelDeclName(block: ts.Block, name: string): boolean {
   for (const s of block.statements) {
@@ -648,6 +649,84 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
     const visit = (node: ts.Node): ts.Node => {
       if (
         ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        ts.isIdentifier(node.expression.expression) &&
+        node.expression.expression.text === 'g' &&
+        node.expression.name.text === 'defineComposite' &&
+        node.arguments.length >= 2 &&
+        ts.isObjectLiteralExpression(node.arguments[1])
+      ) {
+        const definition = node.arguments[1]
+        const properties = definition.properties.map((property) => {
+          if (
+            ts.isMethodDeclaration(property) &&
+            ts.isIdentifier(property.name) &&
+            property.name.text === 'build' &&
+            property.body
+          ) {
+            const env = makeEnv('gsts', undefined, { graphDocumentType: 'server' })
+            env.diagnosticContext = {
+              callback: 'composite',
+              composite: ts.isStringLiteralLike(node.arguments[0])
+                ? node.arguments[0].text
+                : '<dynamic>'
+            }
+            const statements = [...property.body.statements]
+            const returnStatement = statements.at(-1)
+            if (!returnStatement || !ts.isReturnStatement(returnStatement)) return property
+            const transformed = transformHandler(
+              env,
+              context,
+              ts.factory.createFunctionExpression(
+                undefined,
+                property.asteriskToken,
+                undefined,
+                property.typeParameters,
+                property.parameters,
+                property.type,
+                ts.factory.updateBlock(property.body, statements.slice(0, -1))
+              )
+            )
+            return ts.factory.updateMethodDeclaration(
+              property,
+              property.modifiers,
+              property.asteriskToken,
+              property.name,
+              property.questionToken,
+              property.typeParameters,
+              property.parameters,
+              property.type,
+              ts.factory.updateBlock(property.body, [
+                ...(ts.isBlock(transformed.body) ? transformed.body.statements : []),
+                returnStatement
+              ])
+            )
+          }
+          return property
+        })
+        return ts.factory.updateCallExpression(node, node.expression, node.typeArguments, [
+          node.arguments[0],
+          ts.factory.updateObjectLiteralExpression(definition, [
+            ...properties,
+            ts.factory.createPropertyAssignment(
+              'provenance',
+              makeDiagnosticProvenance(
+                Object.assign(makeEnv('gsts', undefined, { graphDocumentType: 'server' }), {
+                  diagnosticContext: {
+                    callback: 'composite',
+                    composite: ts.isStringLiteralLike(node.arguments[0])
+                      ? node.arguments[0].text
+                      : '<dynamic>'
+                  }
+                }),
+                node
+              )
+            )
+          ])
+        ])
+      }
+      if (
+        ts.isCallExpression(node) &&
         isServerOnCall(node, ctx.checker) &&
         node.arguments.length >= 2
       ) {
@@ -663,6 +742,7 @@ export function transformToGs(sf: ts.SourceFile, ctx: TransformCtx): ts.SourceFi
               ? eventArg.text
               : undefined
           const env = makeEnv(gstsIdent, eventName, { graphDocumentType: 'server' })
+          env.diagnosticContext = { callback: 'event', event: eventName ?? '<dynamic>' }
           const newHandler = transformHandler(env, context, handler)
           const newArgs = [...node.arguments]
           newArgs[1] = newHandler

@@ -1,3 +1,4 @@
+import type { DiagnosticProvenance } from '../diagnostics.js'
 import type {
   ClientGraphMode,
   ClientGraphSubType,
@@ -13,6 +14,7 @@ export type ExecOutflowMetadata = {
   count: number
   names?: string[]
   owner?: string
+  provenance?: DiagnosticProvenance
 }
 
 export type ExecTailEndpoint = {

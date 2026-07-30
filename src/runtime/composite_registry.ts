@@ -1,5 +1,6 @@
 // @ts-nocheck thirdparty
 
+import type { DiagnosticProvenance } from '../diagnostics.js'
 import type {
   CompositeDefIR,
   CompositePinEntry,
@@ -143,6 +144,7 @@ export class CompositeRegistry {
       outflows?: Array<string | CompositeFlowDef>
       variables?: Record<string, unknown>
       build: (...args: any[]) => any
+      provenance?: DiagnosticProvenance
     }
   ): CompositeHandle {
     if (this.definitions.has(name)) {
@@ -158,7 +160,10 @@ export class CompositeRegistry {
       variables: parsedVars?.variables,
       inputs: def.inputs ?? {},
       outputs: def.outputs ?? {},
-      build: def.build,
+      build: def.provenance
+        ? (...args: any[]) =>
+            globalThis.gsts.ctx.withDiagnosticProvenance(def.provenance!, () => def.build(...args))
+        : def.build,
       captured: null,
       toCompositeDefIR: (capture?: CompositeCapture): CompositeDefIR => {
         const inputList: ParamFlowDef[] = Object.entries(def.inputs ?? {}).map(([n, pd], i) => ({

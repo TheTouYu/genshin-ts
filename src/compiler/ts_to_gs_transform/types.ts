@@ -1,12 +1,10 @@
 import type ts from 'typescript'
 
+import type { DiagnosticContext, DiagnosticOriginKind } from '../../diagnostics.js'
 import type { DictValueType } from '../../runtime/value.js'
 import type { ClientGraphSubType } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import type { GstsConfig, GstsFeatureFlags } from '../gsts_config.js'
-import type {
-  ExpressionSemantics,
-  StorableLocalValueType
-} from './expression_semantics.js'
+import type { ExpressionSemantics, StorableLocalValueType } from './expression_semantics.js'
 
 export type TransformCtx = {
   checker: ts.TypeChecker
@@ -102,6 +100,9 @@ export type Env = {
   features: GstsFeatureFlags
   varPlan?: VarPlan
   eventName?: string
+  diagnosticContext?: DiagnosticContext
+  diagnosticOriginKind?: DiagnosticOriginKind
+  diagnosticNode?: ts.Node
   timerHandleMeta?: Map<ts.Symbol, TimerHandleMeta>
   /**
    * 当前定时器回调内的捕获变量映射：
