@@ -3136,8 +3136,8 @@ export function defineComposite<
       f: ServerExecutionFlowFunctions
     ) => { [K in keyof Outputs]: any }
   }
-): CompositeHandle<Outputs> {
-  return compositeRegistry.define(name, def) as CompositeHandle<Outputs>
+): CompositeHandle<Outputs, Inputs> {
+  return compositeRegistry.define(name, def) as CompositeHandle<Outputs, Inputs>
 }
 
 export function printServerGraphRegistries() {

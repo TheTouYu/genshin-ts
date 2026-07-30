@@ -70,10 +70,26 @@
 - 已说明：事件发送给组件持有者；跨实体应在持有者图处理或显式转发信号；编译成功不证明事件返回调用图。
 - 剩余 lint 调研见任务 4。
 
-## 1. 下一轮首项：Composite 调用侧输入类型安全
+## 1. Composite 调用侧输入类型安全
 
-状态：**未实现，必须继续**。当前 `build(args)` 已精确，但 `callComposite()` 和
-`declareDetached()` 仍接收 `Record<string, any>`。
+状态：**已完成，自动类型与相邻回归通过**。
+
+- `CompositeHandle` 现在保留 inputs/outputs phantom schema，`callComposite()` 和
+  `declareDetached()` 按 input schema 检查直接对象字面量；错误运行时值类型与未知字段会被拒绝。
+- 调用输入仍是稀疏契约：完整输入、任意已声明字段子集和 `{}` 均合法；通用 `value` / `generic` 连接
+  继续交由 Stage 2 实际校验。
+- 输出推导保持不变，`float` / `vec3` 不退化为 `generic`。
+- 红绿测试：`tests/composite/test-composite-call-input-types.ts`；旧实现红灯为四条
+  `Unused '@ts-expect-error' directive`，当前转绿。
+- 相邻回归：build 输入类型、optional runtime contract、Stage 1 expression semantics、timer 与 nested
+  timer 无注入 GIA 生成均通过。
+- 稳定生成来源：`scripts/generate-definitions.ts --composite-contracts-only`；完整 `npm run gen` 的原
+  `nodeZh === undefined` 崩溃已修复，但资源快照与已提交 definitions 有大量无关漂移，因此本轮只纳入
+  contract-only 的最小 `src/definitions/nodes.ts` 生成 diff。
+- 权威文档：`docs/architecture/composite/dsl-api.md`、`testing.md`。
+- 证据边界：证明 TypeScript、Stage 1/2 回归和无注入 GIA 生成，不代表编辑器或游戏内验证。
+
+以下保留本项实施时的验收依据。
 
 ### 红灯测试要求
 
@@ -266,16 +282,16 @@ gsts validate-gia <file.gia> --format json
 
 ### 7.1 `npm run gen` 阻断
 
-当前命令在定义生成时失败：
+状态：**崩溃已修复，definitions 大范围漂移仍需独立维护**。
 
-```text
-Update Floating Interaction Page List Data
-nodeZh === undefined
-```
+原失败并非 `Update Floating Interaction Page List Data` 缺少中文定义，而是中文资源在该位置之前多出
+“光标碰撞盒组件”章节，导致英文 `sections[sIndex].nodes[nIndex]` 错配。生成器现在优先按章节参数形状
+匹配本地化 section，并保留章节序号 fallback；`npm run gen` 已可完整结束。
 
-位置：`scripts/generate-definitions.ts` 读取 `nodeZh.parameters`。下一轮若任务 1 或 3 需要改生成定义，必须
-先建立生成器失败测试或一致性检查，定位中英文资源缺失；修复来源后运行 `npm run gen`，不得直接手改
-`src/definitions/nodes.ts`。本轮失败产生的事件定义改动已恢复，没有纳入完成证据。
+完整生成会同时改写约 5,000 行 `src/definitions/nodes.ts` 及 event/prefab 生成物，说明当前资源快照与已
+提交生成物存在本任务之外的大范围漂移。该漂移未纳入任务 1；本轮恢复了无关生成结果，仅通过
+`--composite-contracts-only` 从同一生成脚本产出 Composite 契约的最小 diff。后续定义维护应独立审计
+并决定是否同步整批生成结果，不能把大范围资源更新伪装成 Composite 类型修复。
 
 ### 7.2 文档站依赖阻断
 

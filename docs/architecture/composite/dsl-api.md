@@ -221,10 +221,17 @@ const parts = f.split3dVector(direction)
 - TypeScript/Stage 1：timer callback 中保存复合输出时，编译器可从 handle 的 `__outputs` 读取 `float` / `vec3` 等声明，生成正确的局部变量类型；
 - Stage 2/3：输出代理仍携带 `markPin` metadata，生成 OutParam 数据连接；复合输出连接到普通节点时由 Stage 3 的专用 overlay 路径处理。
 
-当前精确推导覆盖 Composite 定义侧的 `build(args)`。调用侧 `callComposite(handle, inputs)` /
-`declareDetached(handle, inputs)` 仍允许稀疏输入，并尚未按 handle 的输入 schema 拒绝错误类型或未知字段；
-该能力应作为独立测试先建立红灯后再实现，不能把定义侧修复扩大表述为端到端输入校验。输入参数和
-运行时节点连接仍会在 Stage 2 进行实际类型校验，不能用 TypeScript 类型断言替代运行时验证。
+`CompositeHandle` 同时保留 inputs/outputs 两个 phantom schema。调用侧
+`callComposite(handle, inputs)` / `declareDetached(handle, inputs)` 会把直接对象字面量按 handle 的
+input schema 检查：已声明字段接受对应的运行时参数值，未知字段和明确错误类型在 TypeScript 阶段被
+拒绝；输入整体仍是稀疏的，因此 `{}`、单字段和任意已声明字段子集都合法。调用结果继续按 output
+schema 映射，`float` / `vec3` 不会退化为 `generic`。
+
+为兼容 runtime/Stage 1 已经类型化的通用 `value` / `generic` 连接，调用类型只在静态值类型可确定时
+拒绝冲突；这不会替代 Stage 2 对实际 runtime value 和节点连接的校验。独立自动类型回归为
+`tests/composite/test-composite-call-input-types.ts`，稀疏输入运行时契约由
+`test-composite-optional-call-inputs.ts` 保留。这些测试只证明 TypeScript/自动生成契约，不证明编辑器
+或游戏行为。
 
 运行时类型映射通过 `composite_registry.ts` 中的 `RUNTIME_TO_GIA_TYPE` 完成：
 

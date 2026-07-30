@@ -8,7 +8,13 @@ import type {
   ParamFlowDef
 } from './IR.js'
 import type { MetaCallRecord } from './meta_call_types.js'
-import { list, type RuntimeValueTypeMap, type value } from './value.js'
+import {
+  list,
+  type generic,
+  type RuntimeParameterValueTypeMap,
+  type RuntimeValueTypeMap,
+  type value
+} from './value.js'
 import { parseVariableDefinitions } from './variables.js'
 
 // ============== Constants ==============
@@ -42,6 +48,20 @@ export type CompositeParamDef = { type: CompositeParamType; pinIndex?: number }
 export type CompositeInputDefinitions = Record<string, CompositeParamDef>
 export type CompositeInputValues<Inputs extends CompositeInputDefinitions> = {
   [K in keyof Inputs]: RuntimeValueTypeMap[Inputs[K]['type']]
+}
+export type CompositeCallInputValues<
+  Inputs extends CompositeInputDefinitions,
+  Provided extends Record<string, unknown>
+> = Provided & {
+  [K in keyof Provided]: K extends keyof Inputs
+    ? Provided[K] extends RuntimeParameterValueTypeMap[Inputs[K]['type']]
+      ? Provided[K]
+      : Provided[K] extends generic
+        ? Provided[K]
+        : value extends Provided[K]
+          ? Provided[K]
+          : never
+    : never
 }
 export type CompositeFlowDef = { name: string; pinIndex?: number }
 
@@ -96,13 +116,15 @@ export type CompositeHandle<
   Outputs extends Record<string, { type: LiteralValueType }> = Record<
     string,
     { type: LiteralValueType }
-  >
+  >,
+  Inputs extends CompositeInputDefinitions = CompositeInputDefinitions
 > = {
   readonly __composite: true
   readonly name: string
   readonly id: number
   readonly definition: CompositeDefinition & { readonly outputs: Outputs }
   readonly __outputs: Outputs
+  readonly __inputs: Inputs
 }
 
 // ============== CompositeRegistry ==============

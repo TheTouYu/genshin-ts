@@ -654,6 +654,83 @@ function getEnumTypeForParam(paramName: string): string | null {
   return nameMap[name] || null
 }
 
+function parseChineseSectionOrdinal(title: string): number | undefined {
+  const heading = title.split('、', 1)[0]
+  const digits: Record<string, number> = {
+    一: 1,
+    二: 2,
+    三: 3,
+    四: 4,
+    五: 5,
+    六: 6,
+    七: 7,
+    八: 8,
+    九: 9
+  }
+  if (heading === '十') return 10
+  const [tens, ones] = heading.split('十')
+  if (ones === undefined) return digits[tens]
+  return (tens ? digits[tens] : 1) * 10 + (ones ? digits[ones] : 0)
+}
+
+function parseRomanSectionOrdinal(title: string): number | undefined {
+  const heading = title.split('.', 1)[0]
+  const values: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100 }
+  let total = 0
+  let previous = 0
+  for (const character of [...heading].reverse()) {
+    const current = values[character]
+    if (!current) return undefined
+    total += current < previous ? -current : current
+    previous = current
+  }
+  return total || undefined
+}
+
+type DefinitionSection = {
+  title?: string
+  nodes: Array<{ parameters?: Array<{ io: string }> }>
+}
+
+function sectionParameterShape(section: DefinitionSection): string {
+  return section.nodes
+    .map((node) =>
+      (node.parameters ?? [])
+        .map((parameter) => (/output|出参/i.test(parameter.io) ? 'o' : 'i'))
+        .sort()
+        .join('')
+    )
+    .sort()
+    .join('|')
+}
+
+function findLocalizedSection<Section extends DefinitionSection>(
+  sections: Section[],
+  englishSection: DefinitionSection,
+  fallbackIndex: number
+): Section | undefined {
+  const shape = sectionParameterShape(englishSection)
+  const shapeMatches = sections
+    .map((section, index) => ({ section, index }))
+    .filter(({ section }) => sectionParameterShape(section) === shape)
+    .sort((left, right) => {
+      const leftDistance = Math.abs(left.index - fallbackIndex)
+      const rightDistance = Math.abs(right.index - fallbackIndex)
+      return leftDistance - rightDistance
+    })
+  if (shapeMatches[0]) return shapeMatches[0].section
+
+  const ordinal = englishSection.title ? parseRomanSectionOrdinal(englishSection.title) : undefined
+  if (ordinal !== undefined) {
+    const matching = sections.find(
+      (section) =>
+        section.title !== undefined && parseChineseSectionOrdinal(section.title) === ordinal
+    )
+    if (matching) return matching
+  }
+  return sections[fallbackIndex]
+}
+
 function buildNodes() {
   const dictFunctionNames = new Set([
     'setOrAddKeyValuePairsToDictionary',
@@ -699,11 +776,15 @@ function buildNodes() {
           const nodeName = toIdentifier(node.name)
           if (skipNodes.includes(nodeName)) return
 
-          // @ts-ignore 获取中文节点定义, 必然成功
-          const nodeDefZh = rawDef[
-            key.replace('en-us', 'zh-cn')
-          ] as (typeof rawDef)['server_exec_zh-cn']
-          const nodeZh = nodeDefZh.sections[sIndex].nodes[nIndex]
+          const zhKey = key.replace('en-us', 'zh-cn') as keyof typeof rawDef
+          const nodeDefZh = rawDef[zhKey] as (typeof rawDef)['server_exec_zh-cn']
+          const sectionZh = findLocalizedSection(nodeDefZh.sections, section, sIndex)
+          const nodeZh = sectionZh?.nodes[nIndex]
+          if (!nodeZh) {
+            throw new Error(
+              `missing Chinese definition at section "${section.title}", node ${nIndex}`
+            )
+          }
 
           let inputParamCounter = 0
           const params = !('parameters' in node)
@@ -1459,16 +1540,44 @@ function buildNodes() {
     lines.push('}')
   }
 
-  const newNodesContent = replaceBetweenMarkers(
+  const generatedNodesContent = replaceBetweenMarkers(
     nodesContent,
     '// === AUTO-GENERATED START ===',
     '// === AUTO-GENERATED END ===',
     lines.join('\n')
   )
-  fs.writeFileSync(nodesPath, newNodesContent)
+  fs.writeFileSync(nodesPath, applyCompositeCallContracts(generatedNodesContent))
+}
+
+function applyCompositeCallContracts(nodesContent: string): string {
+  return nodesContent
+    .replace(
+      "import type { CompositeHandle } from '../runtime/composite_registry.js'",
+      `import type {
+  CompositeCallInputValues,
+  CompositeHandle,
+  CompositeInputDefinitions
+} from '../runtime/composite_registry.js'`
+    )
+    .replace(
+      /  callComposite<Outputs extends Record<string, \{ type: LiteralValueType \}>>\(\n    handle: CompositeHandle<Outputs>,\n    inputs: Record<string, any>\n  \): CompositeCallResult<Outputs> \{/,
+      `  callComposite<\n    const Outputs extends Record<string, { type: LiteralValueType }>,\n    Inputs extends CompositeInputDefinitions,\n    const Provided extends Partial<Record<keyof Inputs, unknown>>\n  >(\n    handle: CompositeHandle<Outputs, Inputs>,\n    inputs: CompositeCallInputValues<NoInfer<Inputs>, Provided>\n  ): CompositeCallResult<Outputs> {`
+    )
+    .replace(/    \}\) as CompositeCallResult<Outputs>/g, '    }) as CompositeCallResult<Outputs>')
+    .replace(
+      /  declareDetached<Outputs extends Record<string, \{ type: LiteralValueType \}>>\(\n    handle: CompositeHandle<Outputs>,\n    inputs: Record<string, any>\n  \): CompositeCallResult<Outputs> \{/,
+      `  declareDetached<\n    const Outputs extends Record<string, { type: LiteralValueType }>,\n    Inputs extends CompositeInputDefinitions,\n    const Provided extends Partial<Record<keyof Inputs, unknown>>\n  >(\n    handle: CompositeHandle<Outputs, Inputs>,\n    inputs: CompositeCallInputValues<NoInfer<Inputs>, Provided>\n  ): CompositeCallResult<Outputs> {`
+    )
+    .replace(/    \) as CompositeCallResult<Outputs>/g, '    ) as CompositeCallResult<Outputs>')
 }
 
 function main() {
+  if (process.argv.includes('--composite-contracts-only')) {
+    const nodesPath = path.join(ROOT, 'src', 'definitions', 'nodes.ts')
+    const nodesContent = fs.readFileSync(nodesPath, 'utf-8')
+    fs.writeFileSync(nodesPath, applyCompositeCallContracts(nodesContent))
+    return
+  }
   buildEvents()
   buildNodes()
 }

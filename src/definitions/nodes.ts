@@ -1,7 +1,11 @@
 import * as z from 'zod'
 
 import { t } from '../i18n/index.js'
-import type { CompositeHandle } from '../runtime/composite_registry.js'
+import type {
+  CompositeCallInputValues,
+  CompositeHandle,
+  CompositeInputDefinitions
+} from '../runtime/composite_registry.js'
 import {
   isSignalDefinition,
   type ExecutionFlowRegistry,
@@ -765,12 +769,7 @@ export class ServerExecutionFlowFunctions {
     targetRef: MetaCallRecordRef,
     targetInflowPinIndex = 0
   ): void {
-    this.registry.connect(
-      sourceRef,
-      sourceOutflowPinIndex,
-      targetRef,
-      targetInflowPinIndex
-    )
+    this.registry.connect(sourceRef, sourceOutflowPinIndex, targetRef, targetInflowPinIndex)
   }
 
   /**
@@ -17330,9 +17329,13 @@ export class ServerExecutionFlowFunctions {
     this.registry.fork(...branches)
   }
 
-  callComposite<Outputs extends Record<string, { type: LiteralValueType }>>(
-    handle: CompositeHandle<Outputs>,
-    inputs: Record<string, any>
+  callComposite<
+    const Outputs extends Record<string, { type: LiteralValueType }>,
+    Inputs extends CompositeInputDefinitions,
+    const Provided extends Partial<Record<keyof Inputs, unknown>>
+  >(
+    handle: CompositeHandle<Outputs, Inputs>,
+    inputs: CompositeCallInputValues<NoInfer<Inputs>, Provided>
   ): CompositeCallResult<Outputs> {
     const def = handle.definition
     return this.registry.runCompositeCall(handle.id, inputs, (captureFns, captureInputs) => {
@@ -17344,9 +17347,13 @@ export class ServerExecutionFlowFunctions {
    * 创建复合调用 marker 但不自动串联到当前 tail。
    * 用于 fan-in 场景：先 detached 创建多个 marker，再用 linkTo 连边。
    */
-  declareDetached<Outputs extends Record<string, { type: LiteralValueType }>>(
-    handle: CompositeHandle<Outputs>,
-    inputs: Record<string, any>
+  declareDetached<
+    const Outputs extends Record<string, { type: LiteralValueType }>,
+    Inputs extends CompositeInputDefinitions,
+    const Provided extends Partial<Record<keyof Inputs, unknown>>
+  >(
+    handle: CompositeHandle<Outputs, Inputs>,
+    inputs: CompositeCallInputValues<NoInfer<Inputs>, Provided>
   ): CompositeCallResult<Outputs> {
     const def = handle.definition
     return this.registry.runDetachedCompositeCall(

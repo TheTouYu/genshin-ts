@@ -250,6 +250,7 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-composite-game-demo.ts`      | 模拟真实游戏逻辑的复合（条件、变量、多个复合）                                                       |
 | `test-composite-bool-input-gia.ts` | bool input/output 的 `enumId=1` wire 元数据；非 bool 参数不得携带 `enumId`；同时锁定调用 pin literal |
 | `test-composite-build-input-types.ts` | `defineComposite.inputs` 到 `build(args)` 的精确类型映射；实体位置调用和 entity/vec3/int 不退化为 `any` |
+| `test-composite-call-input-types.ts` | `callComposite` / `declareDetached` 的稀疏 input schema 校验、未知字段拒绝及 float/vec3 输出保真 |
 | `test-stage3-p4w3-call-lowerer-contract.ts` | 复合调用边界；含“下游仍有执行流但定义未声明/绑定 OutFlow”的 `GSTS-COMPOSITE-MISSING-OUTFLOW` 负向诊断 |
 | `analyze-nested-composites.ts`     | 嵌套复合的历史可行性调查；当前行为以 nested focused tests 为准                                       |
 
@@ -380,9 +381,29 @@ npx tsx tests/composite/test-composite-build-input-types.ts
 `f.getEntityLocationAndRotation(args.pivot)` 复现原始不安全断言问题。测试在旧实现上会产生三条
 `Type 'true' does not satisfy the constraint 'false'`，修复后无 TypeScript 诊断。
 
-调用侧 `callComposite` / `declareDetached` 的输入 schema 校验不属于本回归；现有
-`test-composite-optional-call-inputs.ts` 仍锁定稀疏输入运行时契约，后续调用侧类型收紧必须先建立独立
-红灯，并保留可省略已声明输入的行为。
+### Composite 调用侧输入类型回归
+
+> 状态：当前实现
+> 来源：当前代码实现 + 自动类型回归
+> 最近校验：2026-07-30
+> 适用范围：`callComposite` / `declareDetached` 的 TypeScript 调用契约；不证明 GIA 或游戏行为
+
+Focused 测试：
+
+```bash
+npm run build
+npx tsx tests/composite/test-composite-call-input-types.ts
+npx tsx tests/composite/test-composite-optional-call-inputs.ts
+```
+
+`test-composite-call-input-types.ts` 通过编译后的公开 API 检查：完整输入、单字段和 `{}` 均合法；直接对象
+字面量中的错误 runtime value 类型与未知字段会消费 `@ts-expect-error`；`declareDetached` 与
+`callComposite` 使用相同契约；返回的 `float` / `vec3` 保持具体输出类型。旧实现上的红灯是四条
+`Unused '@ts-expect-error' directive`。
+
+`test-composite-optional-call-inputs.ts` 独立锁定 Stage 2 稀疏绑定行为，防止类型收紧误改 definition
+capture 或 call-site 参数索引。当前调用类型仍允许通用 `value` / `generic` 连接，实际 runtime value 与
+节点连接继续由 Stage 2 校验。自动类型检查和无注入 GIA 生成都不等同编辑器或游戏验证。
 
 ### Timer callback 中的复合输出类型回归
 
