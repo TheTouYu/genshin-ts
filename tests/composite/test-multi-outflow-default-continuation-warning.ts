@@ -104,7 +104,7 @@ try {
         (typeof connection === 'number' ? connection : connection.node_id) === formalAfter.id
     )
   )
-  assert.equal(formalAfterIncoming.length, 1)
+  assert.equal(formalAfterIncoming.length, 2)
 
   const switchDoc = docs.find((candidate) =>
     candidate.graph?.name?.includes('multi-outflow-multiple-branches')
@@ -123,7 +123,7 @@ try {
           (typeof connection === 'number' ? connection : connection.node_id) === switchAfter.id
       )
     ).length,
-    1
+    4
   )
 
   const loopDoc = docs.find((candidate) => candidate.graph?.name?.includes('multi-outflow-loops'))
@@ -186,15 +186,9 @@ try {
     ),
     warnings.join('\n')
   )
-  assert.ok(
-    warnings.some(
-      (warning) =>
-        warning.includes('node "double_branch"') &&
-        warning.includes(
-          'Move code intended for each branch into the corresponding branch callback'
-        ) &&
-        warning.includes('f.node()/f.link()')
-    ),
+  assert.equal(
+    warnings.filter((warning) => warning.includes('node "double_branch"')).length,
+    0,
     warnings.join('\n')
   )
   assert.ok(

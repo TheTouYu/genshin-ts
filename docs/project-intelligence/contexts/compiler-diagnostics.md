@@ -4,7 +4,7 @@
 > 恢复角色：current recovery
 > 状态：当前推荐
 > 来源：当前源码 + 当前自动回归 + Project Memory 配置
-> 最近校验：2026-07-27
+> 最近校验：2026-07-30
 > 适用范围：Genshin-TS 复杂编译器诊断；查询与恢复不授权源码修改、GIA 写入或游戏文件操作
 
 ## 目标
@@ -16,7 +16,9 @@
 - PPI Composite Pin Alpha 已完成，现有知识覆盖 Composite 生命周期、capture/IR、Stage 3 root/impl、物理 pin 与完整验证流程。
 - 当前分支的 Stage 3 Composite impl 默认后端是 `shared-vendor-impl-graph`；`legacy-handwritten` 仍可由显式 false 配置/API 或环境兼容面回退。源码依据是 `src/compiler/ir_to_gia_transform/stage3_backend.ts`。
 - `docs/composite-ir/architecture-redesign/STATUS.md` 声明适用旧分支，仅作历史 pointer；不得用它恢复当前检查点。
-- 当前尚未以初始化后的首个全新复杂 Bug 完成 Formal A/B；这是一项恢复评估缺口，不表示现有 Alpha 证据失效。
+- 首个真实复杂 Bug 已发生：共享 runtime 过早裁剪 multi-outflow tail，导致 terminal branch 误报，并使有后续节点时只连接 OutFlow[0]。本地工作树已完成红绿修复与 focused regressions，但尚未提交、刷新 consumer 固定快照或进行游戏验证。
+- 本轮真实查询暴露三个 PKC coverage gap：优化计划进度、terminal branch continuation 语义、star-cube 25 条 warning 的固定快照验收状态。它们先由本 Context 恢复面承接；稳定 runtime 语义须等提交基线后再提 Domain Knowledge。
+- Formal A/B 未补做，因为诊断发生在已有历史上下文的会话中，无法形成无隐藏上下文的公平 A/B；该评估缺口保留。
 
 ## Formal A/B 启动条件
 
@@ -40,14 +42,16 @@
      --max-level 2 --limit 3 --check-authority
    ```
 
-4. 查询若返回歧义或 coverage gap，停止并澄清；不要跨 Context 静默组合。只读取返回的 `minimum_files`，不要加载整个 `docs/`、`knowledge/` 或 Authority Ref 表。
-5. 默认停在 L2。仅当 `escalate_to_l3=true`，或需要精确 Claim/Evidence/Authority/失效边界时，使用 `show-claim` 读取该 Claim，并只读 progressive-query 返回的相关 Authority Refs。
-6. 先定位 Stage 1 TS→GS、Stage 2 Runtime→IR 或 Stage 3 IR→GIA，再定位 seam；不得从最终 GIA 直接猜 Stage 1 根因。
+4. 查询若返回歧义则停止并澄清，不要跨 Context 静默组合。若返回 coverage gap，记录原始查询与候选，再只读最小 Authority fallback；不得同时预加载传统文档体系。
+5. compiler optimization/status gap 的 fallback 是 `docs/architecture/compiler-practical-optimization-backlog.md`；具体语义 gap 再限量读取该文档指向的源码 seam 与 focused test。先建立红灯，修复后跑同一回归，并保持自动测试、consumer 固定快照和游戏验证三层证据分离。
+6. 默认停在 L2。仅当 `escalate_to_l3=true`，或需要精确 Claim/Evidence/Authority/失效边界时，使用 `show-claim` 读取该 Claim，并只读 progressive-query 返回的相关 Authority Refs。
+7. 先定位 Stage 1 TS→GS、Stage 2 Runtime→IR 或 Stage 3 IR→GIA，再定位 seam；不得从最终 GIA 直接猜 Stage 1 根因。
 
 ## 下一恢复点
 
-- 下一次真实复杂 Bug 到来时执行 Formal A/B，并把评估结果加入恢复/检索数据；没有真实 Bug 时不制造故障。
-- 若问题落在现有 Topic 外，先记录 coverage gap，确认权威源码、测试和边界后再提不可变 Bundle。
+- 当前 multi-outflow 修复下一步是代码审查与提交决策；提交后才可提 Domain Knowledge Bundle，之后 consumer vendor 刷新与 `--noinject` 复核仍需单独授权。
+- 检索回归固定覆盖优化进度、terminal branch 语义和 star-cube 快照验收；若仍落在现有 Topic 外，按最小 Authority fallback 闭环，不用猜测填补。
+- 后续适合的全新复杂 Bug 再执行 Formal A/B；没有真实 Bug 时不制造故障。
 - Composite/GIA 生产行为修改前必须执行 `docs/architecture/composite/testing.md` §0 的同构复现、节点族调查、主图对照、红灯回归、shared/legacy 验证和证据分层流程。
 
 ## 验证门

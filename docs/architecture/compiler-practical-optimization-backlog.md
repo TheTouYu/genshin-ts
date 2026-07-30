@@ -135,13 +135,23 @@ tests/timer_nested_composite_multi_output_test.ts
 
 ## 2. 多出口诊断的真实源码位置和 provenance
 
-状态：**Stage 1→Stage 2 最小 provenance 已完成，原始玩法验收仍待执行**。控制台和
-`--warnings-json` 现在共享同一诊断对象；普通事件分支、timer callback、Composite `build` 和 timer
+状态：**真实玩法验收与共享分支 join 修复已完成本地自动回归，待提交并更新 consumer 固定快照复核**。
+控制台和 `--warnings-json` 共享同一诊断对象；普通事件分支、timer callback、Composite `build` 和 timer
 runtime helper 均可携带 `entryFile`、源码行列、`originKind` 与 callback 上下文。
 
-自动回归：`tests/diagnostic_provenance_test.ts`。当前 `originKind` 为
-`user | lowering | runtime-helper`；非 user provenance 同步归类为 `source: generated`。字段为 additive
-JSON 契约，不改变既有字段。尚未拿原始玩法项目的三条 warning 做逐条验收，因此本项仍不得关闭。
+原始 star-cube 固定快照离线生成曾定位到 25 条 warning：1 条 terminal timer helper 过滤分支和 24 条
+terminal 运动器名称过滤分支。它们都位于各自 handler 末尾，没有实际 continuation，属于共享 runtime
+过早裁剪多分支 tail 并报警。当前修复保留全部未 `return` 的分支 tail：handler 末尾不报警；存在后续
+顺序节点时，所有活跃分支都汇合到该节点；真正有歧义的多 OutFlow Composite 顺序调用仍使用
+OutFlow[0] 并保留 warning。star-cube 玩法源码无需批量改为 `f.node()` / `f.link()`。
+
+自动回归：`tests/multi_outflow_terminal_join_test.ts`、
+`tests/composite/test-multi-outflow-default-continuation-warning.ts`、
+`tests/composite/test-explicit-multi-outflow-join-no-warning.ts`、`tests/diagnostic_provenance_test.ts`。
+当前 `originKind` 为 `user | lowering | runtime-helper`；非 user provenance 同步归类为
+`source: generated`。Composite call 的多出口 metadata 现在保留 marker provenance；字段仍为 additive
+JSON 契约。证据仅覆盖本地源码、IR/GIA 自动生成和 consumer 旧快照日志；新快照复核、注入和游戏验证
+仍未执行。
 
 ### 红灯测试要求
 

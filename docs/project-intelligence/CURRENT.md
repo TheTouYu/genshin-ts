@@ -16,7 +16,7 @@
 ### `compiler-diagnostics`（priority 2）
 
 - 目标：用可复现 IR/GIA 和编辑器/游戏证据诊断复杂编译器问题。
-- 当前状态：PPI Composite Pin Alpha 已完成，等待初始化后的首个全新复杂 Bug 做 Formal A/B。
+- 当前状态：PPI Composite Pin Alpha 已完成；首个真实复杂 Bug 已定位并完成本地红绿修复，Formal A/B 因同一会话已带历史上下文而未补做。
 - 恢复入口：[`contexts/compiler-diagnostics.md`](contexts/compiler-diagnostics.md)。
 - 当前后端：shared vendor impl Graph 默认启用，legacy handwritten 仅作显式回退；以恢复入口登记的当前源码为准。
 - 历史范围提醒：`docs/composite-ir/architecture-redesign/STATUS.md` 适用于旧分支，只作 pointer。
@@ -32,5 +32,6 @@
 1. Context 选择顺序是：用户明确指定 → 可判别任务路径 → 仅共享 workspace/branch 时询问 → 完全没有 Context/path/workspace/branch 提示时才使用唯一 priority 1 Context。
 2. 静态 `.gil`、地图写回、注入/覆盖和真实环境验证任务必须先走项目 Adapter，再从项目根运行 canonical `python tools/pkc.py progressive-query ...`，按返回的 `minimum_files` 做 L1→L2 读取；入口自动使用项目 `.local/` 内锁定的非 editable runtime，Agent 不安装或选择版本，也不得直接查询 SQLite。
 3. L3 先用 `show-claim` 恢复 Claim/Evidence 边界；progressive query 已返回与命中 Claim 关联的 Authority Ref 子集和 current/stale 状态，不得无差别读取完整引用表。
-4. 工作树改动保持受保护；working-tree observation 不能升级为稳定 Claim。
-5. 未经任务级明确确认，不注入、覆盖、删除游戏文件，不修改 mapId/nodeGraphId，不提交或推送。
+4. 查询返回 coverage gap 时，只读取 Context 指向的最小 Authority fallback，完成红灯复现与绿灯验证；不得并行预加载传统文档体系。
+5. 工作树改动保持受保护；working-tree observation 不能升级为稳定 Claim。稳定结论须在提交基线后走 knowledge-plan，提交前仅登记待录入。
+6. 未经任务级明确确认，不注入、覆盖、删除游戏文件，不修改 mapId/nodeGraphId，不提交或推送。

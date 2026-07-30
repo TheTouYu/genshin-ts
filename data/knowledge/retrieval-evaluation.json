@@ -544,6 +544,36 @@
       "query": "employee payroll vacation policy",
       "expect_error": "RETRIEVAL_CANDIDATE_UNKNOWN",
       "expect_failure_type": "coverage_gap"
+    },
+    {
+      "id": "compiler-optimization-progress-recovery",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "游戏项目提出的 Genshin-TS 优化计划目前完成了哪些，下一步是什么",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "pipeline-localization"
+      ]
+    },
+    {
+      "id": "multi-outflow-terminal-branch-recovery",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "multi-outflow warning at terminal if event handler with no following continuation should not warn",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "pipeline-localization"
+      ]
+    },
+    {
+      "id": "star-cube-snapshot-acceptance-recovery",
+      "class": "explicit_route_regression",
+      "context": "compiler-diagnostics",
+      "query": "star-cube fixed compiler snapshot 25 warnings runtime-helper user provenance acceptance status",
+      "expect_strategy": "explicit_route",
+      "expect_topics": [
+        "pipeline-localization"
+      ]
     }
   ]
 }

@@ -12,11 +12,25 @@ const { emitIrJsonForEntries } = await import(
 
 const source = `
 import { g } from 'genshin-ts/runtime/core'
+import { str } from 'genshin-ts/runtime/value'
+
+const branchChild = g.defineComposite('diagnostic provenance child', {
+  outflows: ['yes', 'no'],
+  build(_args, f) {
+    f.fork(
+      () => f.outflow('yes', f.registerExecNode('print_string', [new str('yes')]), 0),
+      () => f.outflow('no', f.registerExecNode('print_string', [new str('no')]), 0)
+    )
+    return {}
+  }
+})
 
 const branchComposite = g.defineComposite('diagnostic provenance composite', {
   build(_args, f) {
-    f.doubleBranch(bool(true), () => f.printString('yes'), () => f.printString('no'))
-    f.printString('composite continuation')
+    if (bool(true)) {
+      f.callComposite(branchChild, {})
+      f.printString('composite continuation')
+    }
     return {}
   }
 })
@@ -24,14 +38,17 @@ const branchComposite = g.defineComposite('diagnostic provenance composite', {
 g.server({ name: 'diagnostic provenance', id: 1073742420 }).on(
   'whenEntityIsCreated',
   (_event, f) => {
-    if (bool(true)) f.printString('user branch')
-    else if (bool(false)) f.printString('user else-if')
-    f.printString('user continuation')
+    if (bool(true)) {
+      f.callComposite(branchChild, {})
+      f.printString('user branch')
+    } else if (bool(false)) f.printString('user else-if')
 
     const captured = 'timer capture'
     setTimeout(() => {
-      if (bool(true)) f.printString(captured)
-      f.printString('timer continuation')
+      if (bool(true)) {
+        f.callComposite(branchChild, {})
+        f.printString(captured)
+      }
     }, 1000)
 
     f.callComposite(branchComposite, {})
@@ -96,6 +113,7 @@ try {
   assert.ok(
     warnings.some(
       (diagnostic) =>
+        diagnostic.nodeType?.startsWith('composite ') &&
         (diagnostic as Diagnostic & { originKind?: string }).originKind === 'runtime-helper'
     )
   )

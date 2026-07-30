@@ -5,7 +5,7 @@
 - 默认使用中文回复，表达应通俗易懂；保留完成任务所需的技术细节，避免不必要的术语堆砌。
 - 先读取目标目录最近的 `AGENTS.md`，再按任务读取匹配的 `.agents/skills/` 和相关文档。
 - 控制上下文用量：读取大型文档、JSON、wire 树、日志或工具结果前，先用文件大小、行数、键摘要或限量查询估算输出；优先读取目标段落并让断言脚本只输出 PASS/FAIL 与关键摘要，禁止未评估规模就打印或加载完整大型结果。
-- 复杂编译器诊断、历史约束、真实环境证据和破坏性地图操作，先通过 Project Adapter 选择 Context，再按关联 Nodes 执行 L1→L2。
+- 复杂编译器诊断、历史约束、真实环境证据和破坏性地图操作，先通过 Project Adapter 选择 Context，再按关联 Nodes 执行 L1→L2；不得同时预加载传统文档体系。仅在查询返回 coverage gap 后，按 Adapter 指向读取最小 Authority fallback，并将经红绿验证且已有提交基线的稳定结论回填知识树或登记待录入。
 - 遇到结构歧义、真实 GIA 结论、游戏状态、布局取舍、注入或其他破坏性操作时，先说明证据、方案和影响，再向用户确认；不要猜测。
 - 确定涉及游戏引擎节点、API 或合法类型组合的工作包范围时，先查本地 docs-search；资料不足或需对齐编辑器公开支持范围时，再用项目级 `miliastra-knowledge` skill 查询官方节点规则。外部资料只用于缩小范围，仍须以当前源码、真实 GIA、自动回归和用户编辑器验证分层确认。
 - 处理或修复复合节点、`.gia`、Composite/GIA Stage 3、复合参数/引脚、`compositePins`、impl GraphNode 或 capture 边界 bug 时，修改前必须阅读 `docs/architecture/composite/testing.md` 的“复合节点 Bug 的完整分析与修复流程”，并按其中的同构复现、节点族影响调查、主图对照、红灯回归、legacy/shared 路径验证和证据分层执行；GIA 编码细节同时阅读 `docs/architecture/composite/gia-encoding.md`。

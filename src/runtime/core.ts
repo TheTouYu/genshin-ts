@@ -1545,8 +1545,6 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
    */
   withExecBranch(fromNodeId: number, sourceIndex: number, fn: () => void) {
     const current = this.currentFlow
-    const parentCtx = this.getCurrentExecContext(current)
-    parentCtx.multiOutflowSourceId = fromNodeId
     const outflows = (current.execOutflows ??= {})
     const metadata: ExecOutflowMetadata = outflows[fromNodeId] ?? { count: 0 }
     metadata.count = Math.max(metadata.count, sourceIndex + 1)
@@ -1583,79 +1581,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
    * 设置当前执行链 tail (多路时用)
    */
   setCurrentExecTailEndpoints(tailEndpoints: ExecTailEndpoint[]) {
-    const current = this.currentFlow
-    const ctx = this.getCurrentExecContext(current)
-    // A branch join carries its source OutFlow on every endpoint. It is already explicit
-    // wiring, not a sequential continuation that needs to be guessed as OutFlow[0].
-    if (
-      tailEndpoints.length > 0 &&
-      tailEndpoints.every((endpoint) => endpoint.sourceIndex !== undefined)
-    ) {
-      ctx.tailEndpoints = tailEndpoints
-      ctx.pendingSourceIndex = undefined
-      return
-    }
-    if (tailEndpoints.length > 1 && ctx.multiOutflowSourceId !== undefined) {
-      const sourceId = ctx.multiOutflowSourceId
-      const outflow = current.execOutflows?.[sourceId]
-      if (outflow && outflow.count > 1) {
-        const sourceNode = current.execNodes.find((node) => node.id === sourceId)
-        this.setDefaultMultiOutflowContinuation(
-          sourceId,
-          sourceNode?.nodeType ?? 'unknown',
-          tailEndpoints,
-          sourceNode?.nodeType === 'double_branch' ? ['是', '否'] : undefined
-        )
-        return
-      }
-    }
+    const ctx = this.getCurrentExecContext(this.currentFlow)
     ctx.tailEndpoints = tailEndpoints
-    ctx.pendingSourceIndex = undefined
-  }
-
-  setDefaultMultiOutflowContinuation(
-    nodeId: number,
-    nodeType: string,
-    tailEndpoints: ExecTailEndpoint[],
-    names?: string[]
-  ) {
-    const current = this.currentFlow
-    const metadata = (current.execOutflows ??= {})[nodeId] ?? { count: 0 }
-    metadata.count = Math.max(metadata.count, tailEndpoints.length)
-    metadata.names = names
-    metadata.owner = `node "${nodeType}"`
-    metadata.provenance = current.execNodes.find((node) => node.id === nodeId)?.provenance
-    current.execOutflows[nodeId] = metadata
-
-    const unused = names?.slice(1).map((name) => `"${name}"`) ?? [
-      ...Array.from({ length: Math.max(0, metadata.count - 1) }, (_, i) => `OutFlow[${i + 1}]`)
-    ]
-    const warningKey = `${nodeId}:${metadata.owner}`
-    if (!this.warnedMultiOutflowContinuations.has(warningKey)) {
-      this.warnedMultiOutflowContinuations.add(warningKey)
-      reportDiagnostic({
-        code: 'GSTS-MULTI-OUTFLOW-DEFAULT-CONTINUATION',
-        severity: 'warning',
-        source:
-          metadata.provenance?.originKind && metadata.provenance.originKind !== 'user'
-            ? 'generated'
-            : diagnosticSourceForNode(nodeType),
-        message:
-          `node "${nodeType}" has multiple execution outflows; simple sequential continuation ` +
-          `uses OutFlow[0] only. Unused outflows: ${unused.join(', ')}.`,
-        suggestion:
-          'Move code intended for each branch into the corresponding branch callback, or use ' +
-          'f.node()/f.link() for explicit flow wiring.',
-        graphId: this.graphId,
-        graphName: this.graphName,
-        nodeId,
-        nodeType,
-        ...metadata.provenance
-      })
-    }
-
-    const ctx = this.getCurrentExecContext(current)
-    ctx.tailEndpoints = tailEndpoints.slice(0, 1)
     ctx.pendingSourceIndex = undefined
   }
 
@@ -2126,7 +2053,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       outflows[markerRecord.id!] = {
         count: def!.captured!.outflowMarks!.length,
         names: def!.captured!.outflowMarks!.map((mark) => mark.name),
-        owner: `composite "${def!.name}"`
+        owner: `composite "${def!.name}"`,
+        provenance: markerRecord.provenance
       }
     }
 
@@ -2302,7 +2230,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       nodeType: '__composite_call__',
       type: isPureData ? 'data' : 'exec',
       args: callArgs.args,
-      compositeInputIndices: callArgs.compositeInputIndices
+      compositeInputIndices: callArgs.compositeInputIndices,
+      provenance: ensureGsts().ctx.diagnosticProvenance
     }
     if (isPureData) {
       current.dataNodes.push(markerRecord)
@@ -2315,7 +2244,8 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       outflows[markerRecord.id!] = {
         count: def!.captured!.outflowMarks!.length,
         names: def!.captured!.outflowMarks!.map((mark) => mark.name),
-        owner: `composite "${def!.name}"`
+        owner: `composite "${def!.name}"`,
+        provenance: markerRecord.provenance
       }
     }
 

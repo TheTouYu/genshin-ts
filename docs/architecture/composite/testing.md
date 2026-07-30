@@ -252,6 +252,7 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-composite-build-input-types.ts` | `defineComposite.inputs` 到 `build(args)` 的精确类型映射；实体位置调用和 entity/vec3/int 不退化为 `any` |
 | `test-composite-call-input-types.ts` | `callComposite` / `declareDetached` 的稀疏 input schema 校验、未知字段拒绝及 float/vec3 输出保真 |
 | `test-stage3-p4w3-call-lowerer-contract.ts` | 复合调用边界；含“下游仍有执行流但定义未声明/绑定 OutFlow”的 `GSTS-COMPOSITE-MISSING-OUTFLOW` 负向诊断 |
+| `../multi_outflow_terminal_join_test.ts` | terminal 分支无需 continuation；存在后续节点时所有未 `return` 分支都汇合，不再静默裁为 OutFlow[0] |
 | `analyze-nested-composites.ts`     | 嵌套复合的历史可行性调查；当前行为以 nested focused tests 为准                                       |
 
 ---

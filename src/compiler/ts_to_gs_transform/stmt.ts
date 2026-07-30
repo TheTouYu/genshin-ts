@@ -1549,9 +1549,17 @@ export function transformBlockStatements(
         out.push(...collectionRebind)
         continue
       }
+      const expression = transformExpression(env, context, s.expression)
+      const isCompositeCall =
+        ts.isCallExpression(s.expression) &&
+        ts.isPropertyAccessExpression(s.expression.expression) &&
+        s.expression.expression.name.text === 'callComposite'
       out.push(
         withSameRange(
-          ts.factory.updateExpressionStatement(s, transformExpression(env, context, s.expression)),
+          ts.factory.updateExpressionStatement(
+            s,
+            isCompositeCall ? withDiagnosticProvenance(env, s, expression) : expression
+          ),
           s
         )
       )

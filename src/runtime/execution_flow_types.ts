@@ -47,8 +47,6 @@ export type ExecContext = {
    * 当前上下文是否调用了 return（用于触发 join 语义）
    */
   terminatedByReturn?: boolean
-  /** Source node whose multiple outflows produced this branch join. */
-  multiOutflowSourceId?: number
 }
 
 export interface ExecutionFlow {
