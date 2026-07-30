@@ -242,6 +242,51 @@
       ]
     },
     {
+      "id": "aref_8e31895ed6c958c67f8c0bbb04",
+      "path": "docs/project-intelligence/CURRENT.md",
+      "locator": "knowledge capture entry and recovery routing",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "48baffc02fa0960335d2b0242b96ced4e83eaff5395be026c7ee20bd446288d7",
+      "claim_ids": [
+        "clm_F25959994F5CD6EEE49495F001"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_9c65621c25a22e1d9bed78807f",
+      "path": "AGENTS.md",
+      "locator": "knowledge capture rule: fixed entry, serial plan, exact hash, post-apply validation",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "4a3d109767dea8cdf10d75cd594249c919746c677b66290bd1ff4685a76a8c37",
+      "claim_ids": [
+        "clm_F25959994F5CD6EEE49495F001"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_ac80ab3ccb2e6b0e716bcb70a9",
+      "path": "docs/project-intelligence/knowledge-capture-common-errors.md",
+      "locator": "sections 1-8: reusable command, preflight, evidence, approval, and verification errors",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "3e4ad3fe99c4cde46a39e4e038be6f5197bffe08facfeb513543408a150e176a",
+      "claim_ids": [
+        "clm_F25959994F5CD6EEE49495F001"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_bfba4c82cfb4ff1f7f70fe96b4",
       "path": "tests/composite/test-stage3-composite-accessory-fail-fast.ts",
       "locator": "partial accessory output rejection and error code regression",
@@ -316,6 +361,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_e1aa67645dd874ae17303d6574",
+      "path": "docs/project-intelligence/knowledge-capture-canonical-flow.md",
+      "locator": "sections 0-7: canonical capture flow, exact hash gate, post-apply verification",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "3e1515175ec46651f67728ac971fd614046e54a29940c2aa45bb2a3eec13e51b",
+      "claim_ids": [
+        "clm_F25959994F5CD6EEE49495F001"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {

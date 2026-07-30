@@ -141,6 +141,18 @@
         "runAssetsCustomVariables"
       ],
       "migration_status": "managed"
+    },
+    {
+      "id": "project-intelligence",
+      "name": "Project Intelligence",
+      "path": "knowledge/project-intelligence",
+      "boundary": "Reusable project knowledge capture, memory synchronization, Bundle lifecycle, and retrieval maintenance workflow; not domain implementation facts, real GIA evidence, or authorization for destructive operations.",
+      "keywords": [
+        "Bundle workflow",
+        "Project Memory",
+        "knowledge capture"
+      ],
+      "migration_status": "pilot"
     }
   ],
   "topics": [
@@ -686,6 +698,19 @@
         "GstsCustomVariableOperation"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "knowledge-capture-workflow",
+      "node_id": "project-intelligence",
+      "title": "Knowledge capture and memory synchronization workflow",
+      "path": "knowledge/project-intelligence/knowledge-capture-workflow.md",
+      "summary": "Committed-baseline intake, bounded retrieval, serial semantic planning, exact-hash Bundle approval, apply verification, and reusable error prevention.",
+      "keywords": [
+        "exact hash",
+        "knowledge capture",
+        "memory synchronization"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -853,6 +878,11 @@
     "clm_DB636CBE0663DA9543E864867E": {
       "fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    "clm_F25959994F5CD6EEE49495F001": {
+      "fact_classes": [
+        "cli_behavior"
       ]
     }
   }
