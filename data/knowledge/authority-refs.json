@@ -62,6 +62,21 @@
       ]
     },
     {
+      "id": "aref_305c48e46c522e6a1cc226281d",
+      "path": "src/runtime/core.ts",
+      "locator": "MetaCallRegistry.withExecBranch(), setCurrentExecTailEndpoints(), registerNode(), and addEdge() multi-outflow continuation handling",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "6c429015f5f0e418f8e524f64ec0e3bfc0b932e49131ae7319816cd4095a5ca3",
+      "claim_ids": [
+        "clm_1CF9B63712693301D1FFA1FBD5"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_318f977d441bca0cc411d1de46",
       "path": "docs/architecture/gil-static-model-assets.md",
       "locator": "section 19.2.3 元件跟随运动组件真实样本与当前编码范围",
@@ -248,12 +263,27 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "48baffc02fa0960335d2b0242b96ced4e83eaff5395be026c7ee20bd446288d7",
+      "approved_hash": "4e7994dce0632974e4555f006b4b820a66bcac3fc64ef8a1d197bcb94344dd41",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_8e566d292e6ea1136c63c5b46f",
+      "path": "tests/multi_outflow_terminal_join_test.ts",
+      "locator": "whole focused regression: terminal quiet and active branch tails join the following node",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "a2ba815b954fe00562b95f789b148d9010556db7a2c44f6a9383e93ba372828d",
+      "claim_ids": [
+        "clm_1CF9B63712693301D1FFA1FBD5"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -263,7 +293,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "4a3d109767dea8cdf10d75cd594249c919746c677b66290bd1ff4685a76a8c37",
+      "approved_hash": "f8336085e3d4dea0cbc13def118a01ef0ba528fc0b2c2aedc87ebcedc7cf0bb8",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
@@ -400,7 +430,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "29409f67efe456ba6d0837a88892db099931700c09103ca7df38275aebba3ddc",
+      "approved_hash": "1a52d27d447ab0ab8ca33370ba84a1a63c2af52dd923ab5dc9747f3d9e545210",
       "claim_ids": [
         "clm_DB636CBE0663DA9543E864867E"
       ],
@@ -473,7 +503,7 @@
       "locator": "whole focused warning regression",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "f94243509796d57cc4de9efedad413a7859e76d0f3b5a0d7c0ba3de58bc2228a",
+      "approved_hash": "e5a1dc14fc5b4eada4de421ee599c8728b89306f6a1480bff8b8d140466541b2",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
         "clm_01KYH4ZH6A6ZYM43SZFPR5K30R"
@@ -592,7 +622,7 @@
       "locator": "defineComposite(), ensureCompositeCaptured(), and Composite call/capture flow",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "516985cd930db2e57324c5f7f0f30bc4bd5c5a8f7c43c78cb3bc653f8585b66d",
+      "approved_hash": "6c429015f5f0e418f8e524f64ec0e3bfc0b932e49131ae7319816cd4095a5ca3",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
@@ -639,7 +669,7 @@
       "locator": "section 0 and DTC/scalar evidence sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "c689d4fdfa38e8213be444910f8dd09ee224cf1a1bcd598ec4150f3c896826ff",
+      "approved_hash": "6b83ea2846cbef71cf29e8bf50f3cf6875df7480466863663b0c125fa9884858",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
@@ -825,7 +855,7 @@
       "locator": "buildServerGraphRegistriesIRDocuments() and all-registry collection",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "516985cd930db2e57324c5f7f0f30bc4bd5c5a8f7c43c78cb3bc653f8585b66d",
+      "approved_hash": "6c429015f5f0e418f8e524f64ec0e3bfc0b932e49131ae7319816cd4095a5ca3",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64TYS6MNC3JYD3EX74G04"
