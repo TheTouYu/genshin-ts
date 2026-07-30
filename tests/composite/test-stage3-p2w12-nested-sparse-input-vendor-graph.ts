@@ -11,28 +11,29 @@
  *   npm run build
  *   npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts [output.gia]
  *   GSTS_STAGE3_VENDOR_IMPL_GRAPH=1 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts [output.gia]
+ *   GSTS_STAGE3_VENDOR_IMPL_GRAPH=0 npx tsx tests/composite/test-stage3-p2w12-nested-sparse-input-vendor-graph.ts [output.gia]
  */
+
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { writeFile } from 'node:fs/promises'
 
 import { irToGia } from '../../dist/src/compiler/ir_to_gia_transform/index.js'
+import { resolveStage3ImplBackend } from '../../dist/src/compiler/ir_to_gia_transform/stage3_backend.js'
 import { buildServerGraphRegistriesIRDocuments, g } from '../../dist/src/runtime/core.js'
-import { float, str } from '../../dist/src/runtime/value.js'
 import { setRuntimeOptions } from '../../dist/src/runtime/runtime_config.js'
+import { float, str } from '../../dist/src/runtime/value.js'
 import { decode_gia_file } from '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/decode.js'
 
 const PROTO_PATH = new URL(
   '../../src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto',
   import.meta.url
 ).pathname
-const EXPORT_DIR =
-  '/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/Beyond_Local_Export'
-const OUTPUT_PATH = process.argv[2] ?? `${EXPORT_DIR}/P2W12-nested-sparse-input-vendor-graph-candidate.gia`
+const OUTPUT_PATH = process.argv[2] ?? '/tmp/gsts-p2w12-nested-sparse-input-vendor-graph.gia'
 const GRAPH_ID = 1073742402
 const INNER_NAME = 'P2W12_InnerSparseInput_GSTS'
 const OUTER_NAME = 'P2W12_OuterSparseInput_GSTS'
-const USE_VENDOR_IMPL_GRAPH = process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH === '1'
+const BACKEND = resolveStage3ImplBackend().backend
 
 setRuntimeOptions({ optimize: { precompileExpression: false, removeUnusedNodes: false } })
 
@@ -86,18 +87,45 @@ g.server({ name: 'P2W12-nested-sparse-input-vendor-graph', id: GRAPH_ID }).on(
   }
 )
 
-const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'P2W12-nested-sparse-input-vendor-graph' })
+const docs = buildServerGraphRegistriesIRDocuments({
+  defaultName: 'P2W12-nested-sparse-input-vendor-graph'
+})
 const doc = docs.at(-1)
 const outerIr = doc?.compositeDefs?.find((definition: any) => definition.name === OUTER_NAME)
 const nestedIr = outerIr?.implNodes?.find((node: any) => node.type === '__composite_call__')
 assert.ok(nestedIr, 'outer IR nested composite call missing')
-const nestedIrCalls = outerIr?.implNodes?.filter((node: any) => node.type === '__composite_call__') ?? []
-assert.equal(nestedIrCalls.length, 4, 'outer IR must contain first-only, second-only, both, and empty calls')
-assert.equal(nestedIr.args?.[1]?.compositeInputIndex, 0, 'first-only IR must retain declared input index 0')
-assert.equal(nestedIrCalls[1]?.args?.[1]?.compositeInputIndex, 1, 'second-only IR must retain declared input index 1')
-assert.equal(nestedIrCalls[2]?.args?.[1]?.compositeInputIndex, 0, 'both IR must retain first input index 0')
-assert.equal(nestedIrCalls[2]?.args?.[2]?.compositeInputIndex, 1, 'both IR must retain second input index 1')
-assert.equal(nestedIrCalls[3]?.args?.length, 1, 'empty IR call must retain only the composite ID arg')
+const nestedIrCalls =
+  outerIr?.implNodes?.filter((node: any) => node.type === '__composite_call__') ?? []
+assert.equal(
+  nestedIrCalls.length,
+  4,
+  'outer IR must contain first-only, second-only, both, and empty calls'
+)
+assert.equal(
+  nestedIr.args?.[1]?.compositeInputIndex,
+  0,
+  'first-only IR must retain declared input index 0'
+)
+assert.equal(
+  nestedIrCalls[1]?.args?.[1]?.compositeInputIndex,
+  1,
+  'second-only IR must retain declared input index 1'
+)
+assert.equal(
+  nestedIrCalls[2]?.args?.[1]?.compositeInputIndex,
+  0,
+  'both IR must retain first input index 0'
+)
+assert.equal(
+  nestedIrCalls[2]?.args?.[2]?.compositeInputIndex,
+  1,
+  'both IR must retain second input index 1'
+)
+assert.equal(
+  nestedIrCalls[3]?.args?.length,
+  1,
+  'empty IR call must retain only the composite ID arg'
+)
 
 const bytes = irToGia(doc, {
   graphId: GRAPH_ID,
@@ -127,16 +155,30 @@ const outerImpl = outerAccessory?.graph?.inner?.graph
 assert.ok(outerImpl, `outer impl missing: ${OUTER_NAME}`)
 assert.ok(innerDefinition, `inner definition missing: ${INNER_NAME}`)
 
-const nestedNodes = outerImpl.nodes?.filter(
-  (node: any) => node.genericId?.kind === 22001 && definitionIds.has(node.genericId?.nodeId)
-) ?? []
+const nestedNodes =
+  outerImpl.nodes?.filter(
+    (node: any) => node.genericId?.kind === 22001 && definitionIds.has(node.genericId?.nodeId)
+  ) ?? []
 assert.equal(nestedNodes.length, 4, 'outer impl must retain all four nested SysGraph calls')
 
-function assertLiteralInput(node: any, inputIndex: number, expectedPinIndex: number, label: string): void {
+function assertLiteralInput(
+  node: any,
+  inputIndex: number,
+  expectedPinIndex: number,
+  label: string
+): void {
   const input = node.pins?.find((pin: any) => pin.i1?.kind === 3 && pin.i1?.index === inputIndex)
   assert.ok(input, `${label} must emit InParam[${inputIndex}]`)
-  assert.equal(input.compositePinIndex, expectedPinIndex, `${label} must use the child input pinIndex`)
-  assert.equal(input.connects?.length ?? 0, 0, `${label} literal input must not become an ordinary data edge`)
+  assert.equal(
+    input.compositePinIndex,
+    expectedPinIndex,
+    `${label} must use the child input pinIndex`
+  )
+  assert.equal(
+    input.connects?.length ?? 0,
+    0,
+    `${label} literal input must not become an ordinary data edge`
+  )
 }
 
 const [firstOnly, secondOnly, both, empty] = nestedNodes
@@ -154,7 +196,11 @@ assert.equal(
 )
 assertLiteralInput(both, 0, innerDefinition.inputs?.[0]?.pinIndex, 'both first')
 assertLiteralInput(both, 1, innerDefinition.inputs?.[1]?.pinIndex, 'both second')
-assert.equal(empty.pins?.filter((pin: any) => pin.i1?.kind === 3).length ?? 0, 0, 'empty must emit no input pins')
+assert.equal(
+  empty.pins?.filter((pin: any) => pin.i1?.kind === 3).length ?? 0,
+  0,
+  'empty must emit no input pins'
+)
 
 const innerAccessory = decoded.accessories?.find(
   (accessory: any) => accessory.which === 9 && definitions.get(accessory.id?.id) === INNER_NAME
@@ -177,9 +223,10 @@ for (const [index, nestedNode] of nestedNodes.entries()) {
   )
 }
 
-const entryRoutes = outerImpl.compositePins?.filter(
-  (pin: any) => pin.outerPin?.kind === 1 && pin.outerPin?.index === 0
-) ?? []
+const entryRoutes =
+  outerImpl.compositePins?.filter(
+    (pin: any) => pin.outerPin?.kind === 1 && pin.outerPin?.index === 0
+  ) ?? []
 assert.equal(entryRoutes.length, 4, 'outer entry must fan out to all four nested calls')
 assert.deepEqual(
   entryRoutes.map((pin: any) => pin.innerNodeId).sort((a: number, b: number) => a - b),
@@ -188,10 +235,10 @@ assert.deepEqual(
 )
 
 const sha256 = createHash('sha256').update(bytes).digest('hex')
-console.log(`PASS P2-W12 ${USE_VENDOR_IMPL_GRAPH ? 'vendor-Graph candidate' : 'legacy baseline'}: ${OUTPUT_PATH}`)
+console.log(`PASS P2-W12 ${BACKEND}: ${OUTPUT_PATH}`)
 console.log(`SHA-256: ${sha256}`)
 console.log(
-  USE_VENDOR_IMPL_GRAPH
+  BACKEND === 'shared-vendor-impl-graph'
     ? 'PENDING EDITOR REVIEW: candidate exercises first-only, second-only, both, and empty child calls under the vendor gate'
     : 'PENDING EDITOR REVIEW: legacy baseline only; do not treat it as vendor Graph evidence'
 )

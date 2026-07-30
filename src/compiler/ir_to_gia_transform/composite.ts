@@ -483,6 +483,12 @@ function buildImplGraphNodes(
     const callIdentity = resolveCompositeCallIdentity(node, compositeDefById)
     const calledDef = callIdentity?.calledDef
     if (callIdentity) nodeId = callIdentity.nodeId
+    if (nodeId === 0) {
+      throw new Error(
+        `[error] cannot resolve Composite impl node type "${node.type}" ` +
+          `(IR node ${node.id}, Composite "${def.name}")`
+      )
+    }
     const isCompositeCall = callIdentity !== undefined
     const isDTC = node.type.startsWith('data_type_conversion_')
     // data_type_conversion 节点：genericId 固定为 180（通用类型），
@@ -762,7 +768,10 @@ function materializeImplOrdinaryGraphWithVendor(
     // Synthetic Composite-call outputs are connected after vendor encoding. Give the
     // target input a typed placeholder now so the vendor protobuf encoder can serialize it.
     for (const [argIndex, arg] of (node.args ?? []).entries()) {
-      if (arg?.type !== 'conn' || !syntheticResults.some((result) => result.node.id === arg.value.node_id)) {
+      if (
+        arg?.type !== 'conn' ||
+        !syntheticResults.some((result) => result.node.id === arg.value.node_id)
+      ) {
         continue
       }
       const physicalIndex = isSharedSpecialArgAdapterNodeType(node.type)
@@ -877,8 +886,7 @@ function materializeImplOrdinaryGraphWithVendor(
         boundaryIndexes.has(pin.i1.index) &&
         !(encodedNode.pins ?? []).some(
           (existing: any) =>
-            existing.i1?.kind === NodePin_Index_Kind.InParam &&
-            existing.i1.index === pin.i1.index
+            existing.i1?.kind === NodePin_Index_Kind.InParam && existing.i1.index === pin.i1.index
         )
     )
     for (const pinIndex of boundaryIndexes) {
@@ -886,10 +894,16 @@ function materializeImplOrdinaryGraphWithVendor(
         (existing: any) =>
           existing.i1?.kind === NodePin_Index_Kind.InParam && existing.i1.index === pinIndex
       )
-      const inputType = boundaryTypes.get(pinIndex) ?? inferInputTypeFromNode(source.node.type, pinIndex)
+      const inputType =
+        boundaryTypes.get(pinIndex) ?? inferInputTypeFromNode(source.node.type, pinIndex)
       const pin = buildConnPin(pinIndex, inputType)
       if (needsConcreteWrapping(source.node.type) && pin.value) {
-        pin.value = wrapConcreteValueForNodeInput(source.node.type, pin.value, inputType, pinIndex) as any
+        pin.value = wrapConcreteValueForNodeInput(
+          source.node.type,
+          pin.value,
+          inputType,
+          pinIndex
+        ) as any
       }
       if (existingIndex >= 0) {
         encodedNode.pins.splice(existingIndex, 1)

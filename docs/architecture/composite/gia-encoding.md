@@ -2,7 +2,7 @@
 
 > 状态：已验证
 > 来源：当前代码实现 + 自动回归 + 真实 GIA 验证 + 用户游戏内验证
-> 最近校验：2026-07-17
+> 最近校验：2026-07-30
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
@@ -19,6 +19,15 @@ accessories (GraphUnit[]):
   ├── [0] CompositeDef GraphUnit (which: CompositeGraph)
   └── [1] impl NodeGraph GraphUnit (which: EntityNode)
 ```
+
+每个 `CompositeDefIR` 在 `accessories` 中必须原子地产生这一对 `GraphUnit`。当前
+`irToGia()` 逐定义调用 `buildCompositeAccessories()`；每次先完整构建一对附件，成功后才追加。
+任一定义的 impl 节点无法解析或编码失败时，会抛出
+`GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED`（含 Composite 名称和 ID），而不是返回 GIA。legacy/shared
+共用的 impl identity 阶段会拒绝无法解析为节点类型 ID 的普通节点，避免 legacy 静默编码
+`genericId.nodeId=0`；这里不限制 `nodeIndex` 或其他允许为 0 的 protobuf 字段。自动回归见
+`tests/composite/test-stage3-composite-accessory-fail-fast.ts`；该回归必须分别运行默认 shared 和显式
+legacy 后端。
 
 ### 结构关系图
 
@@ -221,6 +230,13 @@ compositePins: [{
 有一个重要例外：当 `data_type_conversion_*` 的 capture 输入被当前复合的 `compositePins` 直接指向时，真实编辑器 GIA 会保留类型化的物理 InParam，并同时生成该转换节点的 OutParam。这个 pin 不是由 `compositePins` 凭空创建的；缺失时，外部参数路由和下游数据边都会指向不存在的物理 pin，游戏运行可能失败。当前 Stage 3 会为这种边界 DTC 保留物理 pin，并对其执行物理 pin 完整性检查。回归见 `tests/composite/test-stage3-bool-boundary-dtc-physical-pins.ts`。
 
 同一规则适用于 impl 中的嵌套 `__composite_call__`：`args[0]` 仍是子复合 ID，`args[1..]` 中只有非 capture 输入生成物理 InParam；`capture: true` 输入保留逻辑 input index，并仅通过 impl Graph 的 `compositePins` 路由。针对性回归见 `tests/composite/test-nested-composite-capture-pins.ts`。
+
+这里的逻辑 input index 是**被调用复合的声明输入索引**，不是 `args` 数组下标，也不是外层复合的
+输入索引。例如外层 `input[0]` 传给子复合声明中的第二个参数时，IR 绑定位于 `args[1]`，携带
+`compositeInputIndex: 1`，而父 impl 的 `compositePins` 为
+`outer InParam[0] -> nested InParam[1]`。三层连续 capture 路由由
+`tests/composite/test-three-level-nested-capture-routing.ts` 同时覆盖默认 shared 和显式 legacy 后端；
+这是自动结构证据，尚不表示游戏内验证。
 
 ### 4.2 边界物理 pin 完整性
 

@@ -836,16 +836,20 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     throw e
   }
 
-  // 将复合节点定义编码为 accessories
-  try {
-    const compositeDefs: CompositeDefIR[] = irDoc.compositeDefs ?? []
-    const compositeDefById = new Map<number, CompositeDefIR>(compositeDefs.map((d) => [d.id, d]))
-    for (const def of compositeDefs) {
+  // 每个 Composite 的两个 accessories 先完整构建，成功后才追加；任一定义失败都必须终止。
+  const compositeDefs: CompositeDefIR[] = irDoc.compositeDefs ?? []
+  for (const def of compositeDefs) {
+    try {
       const accs = buildCompositeAccessories(def, compositeDefById)
       root.accessories.push(...accs)
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      throw new Error(
+        `[error] GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED: failed to encode Composite ` +
+          `"${def.name}" (id=${def.id}): ${detail}`,
+        { cause: error }
+      )
     }
-  } catch (e) {
-    console.error('[composite] failed to build composite accessories:', e)
   }
 
   // SignalDef (which=14) + 监听信号 CompositeDef + SysGraph id/cpi patch.

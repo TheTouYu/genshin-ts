@@ -40,7 +40,26 @@
 - 权威文档：`docs/architecture/composite/testing.md` 的“结构化编译诊断”。
 - 剩余边界：显示字段不等于上游已提供准确 source map/provenance；见任务 2。
 
-### 0.3 基础运动器停止事件的组件持有者文档
+### 0.3 Composite Stage 3 accessory fail-fast 与嵌套路由
+
+状态：**已完成自动结构回归，编辑器/游戏验证待后续具体候选**。
+
+- `irToGia()` 对每个 Composite 先完整构建 definition/impl accessory 对，失败时统一抛出
+  `GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED`，不返回部分 GIA。
+- shared/legacy 共用的 impl identity seam 会拒绝无法解析的节点类型 ID；legacy 不再静默编码
+  `genericId.nodeId=0`。这不限制合法 `nodeIndex=0` 或其他 protobuf 默认字段。
+- 红绿测试：`tests/composite/test-stage3-composite-accessory-fail-fast.ts`；审查期间先观察到 shared
+  fail-fast、legacy 未抛错，补齐 shared/legacy 公共检查后两条路径均转绿。
+- 三层 capture：`tests/composite/test-three-level-nested-capture-routing.ts`，覆盖
+  `Level1.input[0] -> Level2.input[0] -> Level3.input[1]` 的 IR `compositeInputIndex` 和逐层
+  `compositePins`，shared/legacy 均通过。
+- detached 执行边：`tests/composite/test-mixed-composite-normal.ts` 区分 Composite 数据边与
+  `f.link(f.entry(), ...)` 执行边；shared/legacy 均通过。旧 exec Composite 串行覆盖仍由
+  `test-two-exec.ts` 和 `test-nested-composite-call-continuation.ts` 保留。
+- P2-W11/P2-W12 默认测试输出已改到 `/tmp`，避免无参数运行写真实游戏导出目录。
+- 权威文档：`docs/architecture/composite/gia-encoding.md`、`dsl-api.md`、`testing.md`。
+
+### 0.4 基础运动器停止事件的组件持有者文档
 
 状态：**用户文档已完成，lint 尚未实现**。
 

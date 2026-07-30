@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-27
+> 最近校验：2026-07-30
 > 适用范围：gsts 当前复合节点测试脚本和验证流程；复合 GIA bug 的完整分析、修复和验收流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
@@ -76,7 +76,11 @@ OutParam 和数据连线仍然存在；
 2. 受影响节点族调查；
 3. 主图对照；
 4. DTC、nested capture、sparse input、root/impl parity 等相邻回归；其中 `tests/composite/test-composite-sparse-named-input.ts` 还要求父 Composite 输出经类型转换后接入 `print_string` 执行节点，避免仅以纯数据流误判为游戏运行时消费。对应候选 `Beyond_Local_Export/真-测试通过/v2.0/v2.0-composite-sparse-06-4ab1116.gia` 已于 2026-07-21 经用户游戏内测试通过；该游戏结论仅适用于此候选。
-5. 默认 shared vendor 路径和显式 legacy 回退路径；
+5. 默认 shared vendor 路径和显式 legacy 回退路径；若任一 Composite accessory 构建失败，
+   `irToGia()` 必须抛出 `GSTS-COMPOSITE-ACCESSORY-BUILD-FAILED`，不得记录错误后返回只含前置
+   accessories 的部分 GIA。聚焦回归：
+   `npx tsx tests/composite/test-stage3-composite-accessory-fail-fast.ts` 和
+   `GSTS_STAGE3_VENDOR_IMPL_GRAPH=0 npx tsx tests/composite/test-stage3-composite-accessory-fail-fast.ts`；
 6. 生产 TypeScript 改动后运行 `npm run build`，最后运行 `git diff --check`。
 
 报告必须分开写：
@@ -163,6 +167,8 @@ tests/composite/
 ├── test-two-exec.ts                # 两个 exec 复合串联
 ├── test-type-conversion.ts         # 类型转换复合
 ├── test-mixed-composite-normal.ts  # 复合与普通节点混合
+├── test-three-level-nested-capture-routing.ts # 三层 capture 路由
+├── test-stage3-composite-accessory-fail-fast.ts # shared/legacy accessory 失败禁止部分 GIA
 ├── test-composite-game-demo.ts     # 游戏场景示例
 │
 ├── analyze-nested-composites.ts    # 嵌套复合调研
@@ -238,7 +244,9 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-basic-call-param.ts`         | 带输入/输出参数的复合，参数传递正确性                                                                |
 | `test-two-exec.ts`                 | 两个 exec 复合在一条执行链上的顺序执行                                                               |
 | `test-type-conversion.ts`          | 内部节点含 `data_type_conversion_*` 的复合                                                           |
-| `test-mixed-composite-normal.ts`   | 复合调用与普通 `f.method()` 交叉排列                                                                 |
+| `test-mixed-composite-normal.ts`   | 纯数据 Composite 输出到 detached `f.node()` 的数据边，以及显式 `f.link(entry, node)` 执行边          |
+| `test-three-level-nested-capture-routing.ts` | 三层 capture；区分 `args` 槽位、被调用复合声明 input index 和逐层 `compositePins`                    |
+| `test-stage3-composite-accessory-fail-fast.ts` | shared/legacy 遇到无法解析的 Composite impl 节点时明确抛错，禁止返回部分 GIA                    |
 | `test-composite-game-demo.ts`      | 模拟真实游戏逻辑的复合（条件、变量、多个复合）                                                       |
 | `test-composite-bool-input-gia.ts` | bool input/output 的 `enumId=1` wire 元数据；非 bool 参数不得携带 `enumId`；同时锁定调用 pin literal |
 | `test-composite-build-input-types.ts` | `defineComposite.inputs` 到 `build(args)` 的精确类型映射；实体位置调用和 entity/vec3/int 不退化为 `any` |

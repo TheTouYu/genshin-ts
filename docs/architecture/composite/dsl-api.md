@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-19
+> 最近校验：2026-07-30
 > 适用范围：gsts 当前复合节点用户面 API
 
 > 本文档聚焦于 `g.defineComposite` / `f.callComposite` 的用户面 API 设计、类型约束及使用模式。
@@ -100,6 +100,28 @@ const { val } = f.callComposite(A, { x: int(1) })
 const { sum } = f.callComposite(B, { y: val })
 // compositeDataEdges: [{ fromNodeId, fromPinIndex, toMarkerId, toPinIndex }]
 ```
+
+#### `compositeInputIndex` 的索引空间
+
+`__composite_call__` 的 IR 参数布局和逻辑输入索引是两套编号：
+
+```text
+args[0] = 被调用复合的 ID
+args[1..] = 本次调用实际传入的参数
+args[n].compositeInputIndex = 该参数在被调用复合 inputs 声明中的 index
+```
+
+因此，`args[1].compositeInputIndex` 不一定是 `1`。若被调用复合声明
+`inputs: { cubie, pivot }`，调用 `{ pivot: outerArgs.pivot }` 时，`pivot` 虽然是本次调用实际传入的
+第一个值并位于 `args[1]`，但它对应被调用复合的 `input[1]`，所以
+`compositeInputIndex: 1` 是预期结果。若被调用复合只有 `inputs: { pivot }`，同一位置则应是
+`compositeInputIndex: 0`。
+
+当值来自外层复合输入时，`capture: true` 表示它不按普通数据边编码。外层
+`CompositeDefIR.compositePins` 会把 `outer InParam` 映射到嵌套调用的逻辑 `InParam`；
+`compositeInputIndex` 负责保留被调用复合的声明索引，不能理解为外层输入索引。当前自动回归见
+`tests/composite/test-three-level-nested-capture-routing.ts` 和
+`tests/composite/test-composite-sparse-named-input.ts`。这些测试验证当前 IR/GIA 输出，不等同游戏内验证。
 
 ### 返回值解构
 
@@ -251,7 +273,7 @@ const RUNTIME_TO_GIA_TYPE: Record<string, string> = {
 
 ### 关键实现细节
 
-1. **compositePins 是独立路由表** — outer pin 到 inner node pin 是多对多映射，不要求 inner pin 在 impl 图中实际存在
+1. **compositePins 是独立路由表** — outer pin 到 inner node pin 是多对多映射；capture 输入可只保留逻辑路由，不生成嵌套调用的物理 InParam
 2. **节点 pin 由角色决定** — 同一个 double_branch 在入口处有 OutFlow:0+1+InParam:0，在叶子处只有 0 pin
 3. **OutFlow 索引不固定** — 可以是 0/1/2/3...，取决于 edge 的 source_index
 4. **impl 节点 ID 自动从 1 重新编号**（捕获 event 节点占 ID 1）
@@ -333,6 +355,24 @@ const outer = g.defineComposite('Outer', {
 - `f.link(nested, 0, target)` 连接嵌套复合的逻辑 `OutFlow[0]`；Stage 3 使用被调复合的 `pinIndex` 编码物理 pin。
 - `f.outflow('完成', nested, 3)` 可把嵌套复合的逻辑 `OutFlow[3]` 直接提升为外层复合出口；这种 compositePins 穿透映射已在真实 GIA 中验证。
 - 空名默认入口不写 `f.inflow('')`；使用 `f.link(f.entry(), 0, firstNode)`。`f.inflow(name, ...)` 用于有明确名称的多 InFlow 接口。
+
+### 与 detached `f.node()` 混用
+
+`f.callComposite()` 与 `f.node()` 的默认执行流语义不同：执行型 `callComposite()` 会接入当前 tail，
+而 `f.node()` 只创建 detached 节点。把 Composite 输出作为 `f.node()` 参数只会建立数据连接，
+不会让该执行节点自动运行；必须再用 `f.link()`、`f.inflow()` 或其他控制流 API 把它接入图。
+
+```ts
+const queried = f.callComposite(queryCubie, {})
+const bind = f.node('switch_follow_motion_device_target_by_entity', [queried.cubie, args.pivot])
+
+f.link(f.entry(), 0, bind)
+```
+
+如果业务要求“查询执行完成后再绑定”，查询 Composite 必须声明并在内部绑定 OutFlow，然后显式连接
+该 OutFlow；不能假定数据依赖会替代执行顺序。并行从 entry 触发且存在数据依赖的拓扑可以由当前
+IR/GIA 表达，但自动结构回归不证明游戏引擎对具体节点组合的运行时调度；这类结论仍需针对候选 GIA
+进行编辑器/游戏验证。
 
 如果执行型复合调用后还有语句，复合定义必须同时**声明并绑定**对应出口：
 
