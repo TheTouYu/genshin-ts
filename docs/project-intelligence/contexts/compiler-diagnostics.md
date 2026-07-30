@@ -17,6 +17,8 @@
 - 当前分支的 Stage 3 Composite impl 默认后端是 `shared-vendor-impl-graph`；`legacy-handwritten` 仍可由显式 false 配置/API 或环境兼容面回退。源码依据是 `src/compiler/ir_to_gia_transform/stage3_backend.ts`。
 - `docs/composite-ir/architecture-redesign/STATUS.md` 声明适用旧分支，仅作历史 pointer；不得用它恢复当前检查点。
 - 首个真实复杂 Bug 已发生：共享 runtime 过早裁剪 multi-outflow tail，导致 terminal branch 误报，并使有后续节点时只连接 OutFlow[0]。修复与 focused regressions 已提交为 `9ca2cc635d67800796c6ebc117978665af829a7e`；consumer 固定快照刷新与游戏验证尚未执行。
+- 本轮编译器修复、测试安全和资源提取结论已形成提交基线：`8e36c5a` 包含 Stage 1/Stage 3 修复与 `--noinject` 脚本约束，`e4b55af` 记录安全测试边界并纳入预期生成的 `src/resources/prefabs.ts`。
+- `npm test` 在 `--noinject` 下完成构建、Stage 1 输出和 67 个本地 GIA 生成项，确认未注入；最终 `assert-enum-combinations.ts` 因 `E_UNKNOWN_NODE_VARIANT` 失败。该结果是自动测试失败边界，不是编辑器或游戏结论。
 - 本轮真实查询暴露三个 PKC coverage gap：优化计划进度、terminal branch continuation 语义、star-cube 25 条 warning 的固定快照验收状态。它们先由本 Context 恢复面承接；稳定 runtime 语义须等提交基线后再提 Domain Knowledge。
 - Formal A/B 未补做，因为诊断发生在已有历史上下文的会话中，无法形成无隐藏上下文的公平 A/B；该评估缺口保留。
 
