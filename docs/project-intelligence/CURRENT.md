@@ -1,6 +1,6 @@
 # Genshin-TS Project Intelligence 恢复入口
 
-更新时间：2026-07-27
+更新时间：2026-07-30
 
 本文件是有界 Global Router，不复制各 Context 的详细状态。新会话先选择一个 Primary Context，再读取其恢复入口；不要默认读取历史 handoff 或全部知识节点。
 
@@ -20,6 +20,12 @@
 - 恢复入口：[`contexts/compiler-diagnostics.md`](contexts/compiler-diagnostics.md)。
 - 当前后端：shared vendor impl Graph 默认启用，legacy handwritten 仅作显式回退；以恢复入口登记的当前源码为准。
 - 历史范围提醒：`docs/composite-ir/architecture-redesign/STATUS.md` 适用于旧分支，只作 pointer。
+
+## 知识录入入口
+
+- 常见错误：[`knowledge-capture-common-errors.md`](knowledge-capture-common-errors.md)。
+- 固化流程：[`knowledge-capture-canonical-flow.md`](knowledge-capture-canonical-flow.md)。
+- 录入原则：从已提交变更开始，固定使用 `python tools/pkc.py`，单计划串行 mutation，最终一次 delta check，精确 hash 审批，apply 后集中验证。
 
 ## 路由与安全
 

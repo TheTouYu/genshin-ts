@@ -2,6 +2,21 @@
   "schema_version": 1,
   "refs": [
     {
+      "id": "aref_038734edefe92414518efe8f2a",
+      "path": "tests/composite/test-composite-build-input-types.ts",
+      "locator": "type assertions for entity, vec3, int build inputs",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "49a7f0a07d65fafaba397ada7216a8799f92fd84f1918b1cc205e808517b03a6",
+      "claim_ids": [
+        "clm_BF84AB9A43CCFE104C55B93EE9"
+      ],
+      "supports_fact_classes": [
+        "public_type_surface"
+      ]
+    },
+    {
       "id": "aref_085b746b8b4bdf228c8b4f7184",
       "path": "src/cli/static_assembly/inspection.ts",
       "locator": "inspectStaticAssemblyMap() and Inspection V1 construction",
@@ -59,6 +74,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_3bf09dfe0f8d3ddf100f541ae3",
+      "path": "src/runtime/composite_registry.ts",
+      "locator": "CompositeInputDefinitions; CompositeInputValues; CompositeHandle input schema",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "041ed8ab24a50eb8435ede80ce324739096f2057465a450d30fd73f51c030d7b",
+      "claim_ids": [
+        "clm_BF84AB9A43CCFE104C55B93EE9"
+      ],
+      "supports_fact_classes": [
+        "public_type_surface"
       ]
     },
     {
@@ -122,6 +152,21 @@
       ]
     },
     {
+      "id": "aref_5bf83e21073b0aa07b6c362581",
+      "path": "tests/composite/test-three-level-nested-capture-routing.ts",
+      "locator": "three-level compositeInputIndex and decoded compositePins routing regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "22398088ee60a53841711494ca1b0e2a9c293f1aff144f577d2ce61b38378693",
+      "claim_ids": [
+        "clm_7FEA75E7BDC040A878FC3731F7"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_5f76872984aa1d7136b24fcbb2",
       "path": "tests/cli_static_assembly_plan.ts",
       "locator": "public CLI deterministic plan and read-only/output safety regression",
@@ -152,6 +197,21 @@
       ]
     },
     {
+      "id": "aref_7a1ca428c84877466e93864ebd",
+      "path": "src/compiler/ir_to_gia_transform/composite.ts",
+      "locator": "Composite accessory build and impl identity validation",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "734871ce66e106077ce0ef07bc99a55d126badc5275137a1377c9be03dfb29cb",
+      "claim_ids": [
+        "clm_7FEA75E7BDC040A878FC3731F7"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_7a699f97ddf31ad4625e78460d",
       "path": "schemas/static-assembly.schema.json",
       "locator": "whole schemaVersion 1 JSON Schema",
@@ -161,6 +221,36 @@
       "approved_hash": "d3f272b39f140eae6a8e589d35cda1f90032a1596081688095ac87cff71649ff",
       "claim_ids": [
         "clm_7395AFE937DC8FD43786AA5B34"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_8743f5362b4be1417f55301da2",
+      "path": "tests/composite/test-composite-call-input-types.ts",
+      "locator": "callComposite and declareDetached input type regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "ec170a462f3d3a730f937fa51e7486c22add92aa78b83d1246edba3e82820eb0",
+      "claim_ids": [
+        "clm_BF84AB9A43CCFE104C55B93EE9"
+      ],
+      "supports_fact_classes": [
+        "public_type_surface"
+      ]
+    },
+    {
+      "id": "aref_bfba4c82cfb4ff1f7f70fe96b4",
+      "path": "tests/composite/test-stage3-composite-accessory-fail-fast.ts",
+      "locator": "partial accessory output rejection and error code regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "a1eff9d38e10ff7069fb2529c39054c0166b0b5ae754a486456aba6830ac2f34",
+      "claim_ids": [
+        "clm_7FEA75E7BDC040A878FC3731F7"
       ],
       "supports_fact_classes": [
         "cli_behavior"
@@ -223,6 +313,36 @@
       "approved_hash": "06c73d9ca3cd4b72de5100bf3bb84644f298055b9428cdeb868dc391464848e6",
       "claim_ids": [
         "clm_C86C803AF4C0869C6B0936196D"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_f0b606de9922ca095c1242d8bc",
+      "path": "src/diagnostics.ts",
+      "locator": "DiagnosticProvenance and structured diagnostic rendering",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "314b460d6e3fa13b3444fc014f25a5815a3008cd2cae829d0046ec92eeb1a8b4",
+      "claim_ids": [
+        "clm_DB636CBE0663DA9543E864867E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_f2721036cfff8096fd057d5f1f",
+      "path": "tests/diagnostic_provenance_test.ts",
+      "locator": "Stage 1 to Stage 2 source provenance and context regression",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "29409f67efe456ba6d0837a88892db099931700c09103ca7df38275aebba3ddc",
+      "claim_ids": [
+        "clm_DB636CBE0663DA9543E864867E"
       ],
       "supports_fact_classes": [
         "runtime_behavior"
@@ -323,7 +443,7 @@
       "locator": "overall GraphUnit structure, impl NodeGraph, physical pin, and connection sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "f224b1dd6125cd86dacdabe0a2785fdc622f5781b0ae33761587cdf9029121a2",
+      "approved_hash": "266c8a51d8d812c517758b62b4abe56ef8f3e69083338773147a4914054a463d",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BSYPM9083KHHEHEP22H"
@@ -338,7 +458,7 @@
       "locator": "definitions, calls, typing, pure-data/exec, and nested Composite sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "1c5f0ab165bf1c9a04f293e1539c8c572529332115a37bda2e09c04648d15da3",
+      "approved_hash": "d0f69ffca9cd0f6c685f2e3114e4615acc5b155f41c122bcc7d519e3c6234d2d",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0"
@@ -396,7 +516,7 @@
       "locator": "CompositeCapture, CompositeDefinition, and toCompositeDefIR()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "b319a290a98574a02fe989e6199fe561fd29705b6262427e57b505521677eb45",
+      "approved_hash": "041ed8ab24a50eb8435ede80ce324739096f2057465a450d30fd73f51c030d7b",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
@@ -412,7 +532,7 @@
       "locator": "defineComposite(), ensureCompositeCaptured(), and Composite call/capture flow",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
+      "approved_hash": "516985cd930db2e57324c5f7f0f30bc4bd5c5a8f7c43c78cb3bc653f8585b66d",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BJHQ6B1RNR5DY3QEJC0",
@@ -444,7 +564,7 @@
       "locator": "buildCompositeAccessories() and impl Graph materialization",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "ec8ac2a85bed8da0355f228e78ba8e182223431dad9cae41ae397777549e85bb",
+      "approved_hash": "734871ce66e106077ce0ef07bc99a55d126badc5275137a1377c9be03dfb29cb",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BSYPM9083KHHEHEP22H"
@@ -459,7 +579,7 @@
       "locator": "section 0 and DTC/scalar evidence sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "b1d8e659cd1af9316f73d7b9cb5f495d5e005ad8d9d58d9b07e05b52cc7ed5bb",
+      "approved_hash": "c689d4fdfa38e8213be444910f8dd09ee224cf1a1bcd598ec4150f3c896826ff",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
@@ -564,7 +684,7 @@
       "locator": "Diagnostic schema, persistence, aggregation and source classification",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "2041b41774ea13c74f0507f6c53ce6717f8bd727cd4a5b970a26b6bbcb99f2dd",
+      "approved_hash": "314b460d6e3fa13b3444fc014f25a5815a3008cd2cae829d0046ec92eeb1a8b4",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64VA25BVS99BD4K1P5F5S"
@@ -645,7 +765,7 @@
       "locator": "buildServerGraphRegistriesIRDocuments() and all-registry collection",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "ae9497939d07e314497028fbb9c93197ef0bb041e067e93790a1081144c592e2",
+      "approved_hash": "516985cd930db2e57324c5f7f0f30bc4bd5c5a8f7c43c78cb3bc653f8585b66d",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64TYS6MNC3JYD3EX74G04"
@@ -741,7 +861,7 @@
       "locator": "irToGia() dispatch, preprocessing and materialization seams",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "58b2b9bde0b9328b707d781b285af8adfa8aadde84e5547e2cff4855decf37b3",
+      "approved_hash": "24b5c6904a5fc8d82c79df5e32a044fb42700d40a7e76adb4effa57c45ac8591",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64V6AG9Q1EFEVHBJJC93P"

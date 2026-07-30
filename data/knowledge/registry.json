@@ -33,7 +33,7 @@
         "捕获",
         "边界引脚"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "validation-evidence",
@@ -126,7 +126,7 @@
         "server graph",
         "client graph"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "cli-injector-asset-workflows",
@@ -838,6 +838,21 @@
         "documented_contract",
         "external_game_evidence",
         "writeback_behavior"
+      ]
+    },
+    "clm_BF84AB9A43CCFE104C55B93EE9": {
+      "fact_classes": [
+        "public_type_surface"
+      ]
+    },
+    "clm_7FEA75E7BDC040A878FC3731F7": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_DB636CBE0663DA9543E864867E": {
+      "fact_classes": [
+        "runtime_behavior"
       ]
     }
   }
