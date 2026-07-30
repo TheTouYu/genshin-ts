@@ -889,6 +889,21 @@
       "fact_classes": [
         "runtime_behavior"
       ]
+    },
+    "clm_36C2A562146E76BED4BFF7DE89": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_187AB1C3F90F1E99672658EE8D": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_1C7FBF676F01E516F73C95093E": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
     }
   }
 }

@@ -47,6 +47,51 @@
       ]
     },
     {
+      "id": "aref_1720ba080ea2e9ceebe1c58b73",
+      "path": "src/compiler/ts_to_gs_transform/expr.ts",
+      "locator": "transformTimerCall() timerHandleMeta registration and capture metadata preservation",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "b1cbe514632a81f8299098658277f4f64edccf65af4fe46965b504a62f6c4de9",
+      "claim_ids": [
+        "clm_36C2A562146E76BED4BFF7DE89"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_281924d7d3afc12322fb6176fb",
+      "path": "src/compiler/ir_to_gia_transform/composite.ts",
+      "locator": "Composite root/impl boundary materialization, pin-hole/special-arg overlay and metadata ownership",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "3788699adc591db5eecdf4a99b0d144a18a55532f1d8d366a78f3dc4e41ea4a9",
+      "claim_ids": [
+        "clm_1C7FBF676F01E516F73C95093E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_2b2d716ee98d5f69f76e8c4e6e",
+      "path": "tests/stage1_expression_semantics_test.ts",
+      "locator": "focused Stage 1 assertions for list length int lowering and captured timer handle metadata",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "3d4e088cd36d1a80e6c42684ece04d2d1b8514299c74ac9c55870c1059439e3e",
+      "claim_ids": [
+        "clm_36C2A562146E76BED4BFF7DE89"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_2c9a936055df3ddca1207d0b9b",
       "path": "tests/static_assembly_map_index.ts",
       "locator": "shared map index and complete closure synthetic fixture regression",
@@ -197,6 +242,36 @@
       ]
     },
     {
+      "id": "aref_6c67fed7ffff063c36abad0ba1",
+      "path": "tests/composite/test-stage3-resolved-node-contract.ts",
+      "locator": "focused resolved-node contract regression for enum alias resolution and supported Composite Stage 3 node identity",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "b14f54aa3a8d21cf06b443d1fc1b9dec6587f26dd9cef7018b12cafa2dfce7b0",
+      "claim_ids": [
+        "clm_1C7FBF676F01E516F73C95093E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_7615f2a373c38f6507086fabc8",
+      "path": "src/compiler/ir_to_gia_transform/pins.ts",
+      "locator": "typed pin helper and physical pin index mapping used by Composite boundary encoding",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "cb62428e8ae5150db7ab857565c7c36396fdc71477a20485bdfee5c4ec014e32",
+      "claim_ids": [
+        "clm_1C7FBF676F01E516F73C95093E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_776ff4fb0cfabb30ebc5688dfe",
       "path": "src/cli/gil_static_assemblies.ts",
       "locator": "fullFollowComponent(), setComponents(), validateAssembly(), applyStaticAssembly() definition field 8 / instance field 7",
@@ -218,7 +293,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "734871ce66e106077ce0ef07bc99a55d126badc5275137a1377c9be03dfb29cb",
+      "approved_hash": "3788699adc591db5eecdf4a99b0d144a18a55532f1d8d366a78f3dc4e41ea4a9",
       "claim_ids": [
         "clm_7FEA75E7BDC040A878FC3731F7"
       ],
@@ -287,13 +362,28 @@
       ]
     },
     {
+      "id": "aref_9b548aef1df20e5cd123e7288c",
+      "path": "docs/architecture/composite/testing.md",
+      "locator": "section 5 noinject policy and 2026-07-31 safe npm test result/failure boundary",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0b43578c9e9c79e09a93108fde324563d61f5e0d1a57062b6b20308f15198b10",
+      "claim_ids": [
+        "clm_187AB1C3F90F1E99672658EE8D"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_9c65621c25a22e1d9bed78807f",
       "path": "AGENTS.md",
       "locator": "knowledge capture rule: fixed entry, serial plan, exact hash, post-apply validation",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "f8336085e3d4dea0cbc13def118a01ef0ba528fc0b2c2aedc87ebcedc7cf0bb8",
+      "approved_hash": "f15c0b818512f74734433f985ccb70d35f2874800e8c26fa758e928c64b45593",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
@@ -346,6 +436,21 @@
         "documented_contract",
         "external_game_evidence",
         "writeback_behavior"
+      ]
+    },
+    {
+      "id": "aref_cf52a2d9276e0cc970846ddfa7",
+      "path": "src/compiler/ts_to_gs_transform/expression_semantics.ts",
+      "locator": "classifyExpressionSemantics() list length branch and storable runtime-value classification",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "707b0403fa75eb16ec5b31f7f08b329d4869d4514a9ff55497e40ca36f11b3f0",
+      "claim_ids": [
+        "clm_36C2A562146E76BED4BFF7DE89"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -436,6 +541,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_f6237451be5b313b7c13276340",
+      "path": "package.json",
+      "locator": "scripts.test and scripts.quicktest explicit --noinject arguments",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "91d47af07024bed0a0ebd2f9d51a3788cfdc48ab31ee1cb2aa9e887fb04698bd",
+      "claim_ids": [
+        "clm_187AB1C3F90F1E99672658EE8D"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -654,7 +774,7 @@
       "locator": "buildCompositeAccessories() and impl Graph materialization",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "734871ce66e106077ce0ef07bc99a55d126badc5275137a1377c9be03dfb29cb",
+      "approved_hash": "3788699adc591db5eecdf4a99b0d144a18a55532f1d8d366a78f3dc4e41ea4a9",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BSYPM9083KHHEHEP22H"
@@ -669,7 +789,7 @@
       "locator": "section 0 and DTC/scalar evidence sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "6b83ea2846cbef71cf29e8bf50f3cf6875df7480466863663b0c125fa9884858",
+      "approved_hash": "0b43578c9e9c79e09a93108fde324563d61f5e0d1a57062b6b20308f15198b10",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
@@ -871,7 +991,7 @@
       "locator": "classifyExpressionSemantics() and localValueTypeOf()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "44d9be7134139caa84d2f1d7037cfed204b22341a86de847a77ae1d6df126ab1",
+      "approved_hash": "707b0403fa75eb16ec5b31f7f08b329d4869d4514a9ff55497e40ca36f11b3f0",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64TV56ENY9PTZX9HJDB22"
@@ -903,7 +1023,7 @@
       "locator": "whole focused expression/LocalVariable regression",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "a70b0247d4800a7e4644509209ad8804f4df0202aba729c8ea07c15ce3ccce59",
+      "approved_hash": "3d4e088cd36d1a80e6c42684ece04d2d1b8514299c74ac9c55870c1059439e3e",
       "change_policy": "invalidate_on_change",
       "claim_ids": [
         "clm_01KYH64TV56ENY9PTZX9HJDB22"
@@ -951,7 +1071,7 @@
       "locator": "irToGia() dispatch, preprocessing and materialization seams",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "24b5c6904a5fc8d82c79df5e32a044fb42700d40a7e76adb4effa57c45ac8591",
+      "approved_hash": "90c1833721d7246cc9d0a9aa6986606a568a6a61ee936955f70f0d9c73caadc0",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
