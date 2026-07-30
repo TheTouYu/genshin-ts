@@ -135,7 +135,7 @@ tests/timer_nested_composite_multi_output_test.ts
 
 ## 2. 多出口诊断的真实源码位置和 provenance
 
-状态：**真实玩法验收与共享分支 join 修复已完成本地自动回归，待提交并更新 consumer 固定快照复核**。
+状态：**共享分支 join 修复已提交并完成本地自动回归，待更新 consumer 固定快照复核**。
 控制台和 `--warnings-json` 共享同一诊断对象；普通事件分支、timer callback、Composite `build` 和 timer
 runtime helper 均可携带 `entryFile`、源码行列、`originKind` 与 callback 上下文。
 

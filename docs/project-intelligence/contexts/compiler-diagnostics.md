@@ -16,7 +16,7 @@
 - PPI Composite Pin Alpha 已完成，现有知识覆盖 Composite 生命周期、capture/IR、Stage 3 root/impl、物理 pin 与完整验证流程。
 - 当前分支的 Stage 3 Composite impl 默认后端是 `shared-vendor-impl-graph`；`legacy-handwritten` 仍可由显式 false 配置/API 或环境兼容面回退。源码依据是 `src/compiler/ir_to_gia_transform/stage3_backend.ts`。
 - `docs/composite-ir/architecture-redesign/STATUS.md` 声明适用旧分支，仅作历史 pointer；不得用它恢复当前检查点。
-- 首个真实复杂 Bug 已发生：共享 runtime 过早裁剪 multi-outflow tail，导致 terminal branch 误报，并使有后续节点时只连接 OutFlow[0]。本地工作树已完成红绿修复与 focused regressions，但尚未提交、刷新 consumer 固定快照或进行游戏验证。
+- 首个真实复杂 Bug 已发生：共享 runtime 过早裁剪 multi-outflow tail，导致 terminal branch 误报，并使有后续节点时只连接 OutFlow[0]。修复与 focused regressions 已提交为 `9ca2cc635d67800796c6ebc117978665af829a7e`；consumer 固定快照刷新与游戏验证尚未执行。
 - 本轮真实查询暴露三个 PKC coverage gap：优化计划进度、terminal branch continuation 语义、star-cube 25 条 warning 的固定快照验收状态。它们先由本 Context 恢复面承接；稳定 runtime 语义须等提交基线后再提 Domain Knowledge。
 - Formal A/B 未补做，因为诊断发生在已有历史上下文的会话中，无法形成无隐藏上下文的公平 A/B；该评估缺口保留。
 
@@ -49,7 +49,7 @@
 
 ## 下一恢复点
 
-- 当前 multi-outflow 修复下一步是代码审查与提交决策；提交后才可提 Domain Knowledge Bundle，之后 consumer vendor 刷新与 `--noinject` 复核仍需单独授权。
+- 当前 multi-outflow 修复已完成代码审查并形成提交基线；下一步可提 Domain Knowledge Bundle，之后 consumer vendor 刷新与 `--noinject` 复核仍需单独授权。
 - 检索回归固定覆盖优化进度、terminal branch 语义和 star-cube 快照验收；若仍落在现有 Topic 外，按最小 Authority fallback 闭环，不用猜测填补。
 - 后续适合的全新复杂 Bug 再执行 Formal A/B；没有真实 Bug 时不制造故障。
 - Composite/GIA 生产行为修改前必须执行 `docs/architecture/composite/testing.md` §0 的同构复现、节点族调查、主图对照、红灯回归、shared/legacy 验证和证据分层流程。
