@@ -1436,6 +1436,10 @@ function transformTimerCall(
     name: cap.dictVarName,
     valueType: cap.valueType
   }))
+  if (handleSymbol) {
+    if (!env.timerHandleMeta) env.timerHandleMeta = new Map()
+    env.timerHandleMeta.set(handleSymbol, { dicts: timerHandleDicts })
+  }
   const timerCaptureMap = new Map<ts.Symbol, TimerCaptureInfo>()
   for (let i = 0; i < captureInfos.length; i += 1) {
     const info = captureInfos[i]

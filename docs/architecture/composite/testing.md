@@ -290,6 +290,8 @@ npx tsx tests/ir_merge_composite_id_collision_test.ts
 
 ## 5. 运行方式
 
+`npm test` 和 `npm run quicktest` 的批量 GIA 生成固定使用 `--noinject`，只写仓库内测试产物；即使 `gsts.test.config.ts` 保留人工验收所需的 inject 配置，自动测试也不得写入真实地图。
+
 ### 独立脚本模式
 
 复合测试是独立脚本，**不属于** `npm test` 自动执行流程。`gsts.test.config.ts` 也会排除

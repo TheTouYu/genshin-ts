@@ -270,10 +270,22 @@ export function classifyExpressionSemantics(env: Env, expr: ts.Expression): Expr
         }
   }
 
-  if (ts.isPropertyAccessExpression(current) && isCompositeCallExpression(current.expression)) {
-    const outputs = compositeOutputs(env, unwrapExpression(current.expression) as ts.CallExpression)
-    const valueType = outputs?.get(current.name.text)
-    if (valueType) return { kind: 'runtime-value', valueType }
+  if (ts.isPropertyAccessExpression(current)) {
+    if (
+      current.name.text === 'length' &&
+      inferListTypeFromType(
+        env.checker,
+        env.checker.getTypeAtLocation(current.expression),
+        current.expression
+      )
+    ) {
+      return { kind: 'runtime-value', valueType: 'int' }
+    }
+    if (isCompositeCallExpression(current.expression)) {
+      const outputs = compositeOutputs(env, unwrapExpression(current.expression) as ts.CallExpression)
+      const valueType = outputs?.get(current.name.text)
+      if (valueType) return { kind: 'runtime-value', valueType }
+    }
   }
 
   if (ts.isIdentifier(current)) {

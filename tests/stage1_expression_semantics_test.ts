@@ -34,12 +34,15 @@ const complete = g.server({ name: 'stage1-semantics', id: 1073742193 }).on(
     const output = f.callComposite(multi, { value: scalar }).x
     const timer = setTimeout(() => {}, 1000)
     const object = { x: scalar }
+    const length = values.length
     f.log(result.x)
     f.log(result.position)
     f.log(output)
     f.log(output)
     clearTimeout(timer)
     f.log(object.x)
+    f.log(length)
+    f.log(length)
   }
 )
 `
@@ -116,6 +119,7 @@ function classifyFixture() {
     assert.deepEqual(semantics('output'), { kind: 'runtime-value', valueType: 'float' })
     assert.equal(semantics('timer').kind, 'timer-handle')
     assert.equal(semantics('object').kind, 'unsupported')
+    assert.deepEqual(semantics('length'), { kind: 'runtime-value', valueType: 'int' })
   } finally {
     fs.rmSync(fixture.dir, { recursive: true, force: true })
   }
@@ -141,6 +145,7 @@ function assertStage1Output() {
   assert.doesNotMatch(output, /initLocalVariable\(['"]entity['"]\)/)
   assert.doesNotMatch(output, /setLocalVariable\(result\.localVariable/)
   assert.match(output, /initLocalVariable\(['"]float['"]\)/)
+  assert.match(output, /const length = .*\.initLocalVariable\(['"]int['"]\)/)
 }
 
 function assertFailure(text: string, expected: RegExp) {
@@ -176,6 +181,22 @@ function assertNegativeDiagnostics() {
   )
 }
 
+function assertCapturedTimerHandleMetadataPreserved() {
+  const timerSource = `${source}
+
+g.server({ name: 'stage1-captured-timer-handle', id: 1073742195 }).on(
+  'whenEntityIsCreated',
+  () => {
+    const interval = setInterval(() => {}, 1000)
+    setTimeout(() => clearInterval(interval), 2000)
+  }
+)
+`
+  const output = transformFixture(timerSource)
+  assert.match(output, /let interval = .*\.__gstsAttachTimerHandle\([^;]+, \[\]\)/)
+  assert.match(output, /clearInterval\(interval\)/)
+}
+
 function assertTimerCompositeOutputContainerPreserved() {
   const timerSource = `${source}
 
@@ -200,5 +221,6 @@ g.server({ name: 'stage1-timer-composite-capture', id: 1073742194 }).on(
 classifyFixture()
 assertStage1Output()
 assertNegativeDiagnostics()
+assertCapturedTimerHandleMetadataPreserved()
 assertTimerCompositeOutputContainerPreserved()
 console.log('stage1 expression semantics tests passed')

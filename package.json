@@ -100,8 +100,8 @@
   ],
   "scripts": {
     "pretest": "node scripts/clean-tests.mjs",
-    "test": "npm run build && tsx scripts/generate-node-gia-tests.ts && tsx scripts/generate-enum-gia-tests.ts && node ./bin/gsts.mjs -c gsts.test.config.ts && tsx scripts/nodegraph/assert-enum-combinations.ts",
-    "quicktest": "npm run build && node ./bin/gsts.mjs -c gsts.test.config.ts",
+    "test": "npm run build && tsx scripts/generate-node-gia-tests.ts && tsx scripts/generate-enum-gia-tests.ts && node ./bin/gsts.mjs -c gsts.test.config.ts --noinject && tsx scripts/nodegraph/assert-enum-combinations.ts",
+    "quicktest": "npm run build && node ./bin/gsts.mjs -c gsts.test.config.ts --noinject",
     "test:eslint": "tsx tests/eslint/node-graph-rules.test.ts",
     "test:injector": "tsx tests/injector/client-graph-injection.test.ts",
     "test:stage-bootstrap": "npm run build && tsx scripts/assert-stage-event-prelude.ts",

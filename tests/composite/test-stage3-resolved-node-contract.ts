@@ -167,6 +167,19 @@ assert.equal(
   resolveGiaNodeId(enumLiteralNode, context.connectionTypes, context.variablesByName),
   476
 )
+const disruptorAliasNode = {
+  id: 572,
+  type: 'enumerations_equal',
+  args: [
+    { type: 'enum', value: 'disruptor_device_type_tractor_device' },
+    { type: 'enum', value: 'disruptor_device_type_ejector' }
+  ]
+}
+assert.deepEqual(resolveNodeIdentity(disruptorAliasNode, context), {
+  logicalType: 'enumerations_equal',
+  genericNodeId: 475,
+  concreteNodeId: 497
+})
 const enumConnContext = {
   ...context,
   connectionTypes: new Map([

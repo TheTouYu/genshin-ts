@@ -480,6 +480,7 @@ export function parseEnumValue(
 export const ENUM_NAME_ALIASES: Record<string, string> = {
   sort_by: 'sorting_rules',
   character_skill_slot: 'skill_slot',
+  disruptor_device_types: 'disruptor_device_type',
   follow_coordinate_system: 'coordinate_system_type',
   rounding_mode: 'rounding_logic',
   type_conversion: 'type_conversions',
@@ -502,7 +503,8 @@ export function enumKeyLowerFromEnumName(enumName: string): string | undefined {
 
 /** Resolve vendor enum_id lower key from numeric enumId (literal parse path). */
 export function enumKeyLowerFromEnumId(enumId: number): string | undefined {
-  return ENUM_ID_TO_LOWER_KEY.get(enumId)
+  const key = ENUM_ID_TO_LOWER_KEY.get(enumId)
+  return key ? (ENUM_NAME_ALIASES[key] ?? key) : undefined
 }
 
 export function getNodeIdLowerMap() {

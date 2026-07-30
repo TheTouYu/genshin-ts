@@ -32,7 +32,7 @@
 
 ## 验证与文档
 
-- 优先运行针对性验证；TypeScript 生产代码改动通常还需运行 `npm run build`。通用构建为 `npm run build`，完整测试为 `npm test`。
+- 优先运行针对性验证；TypeScript 生产代码改动通常还需运行 `npm run build`。通用构建为 `npm run build`，完整测试为 `npm test`。`npm test` 和 `npm run quicktest` 必须显式保持 `--noinject`，不得依赖测试配置中的 inject 参数决定自动测试是否写入真实地图。
 - 每次修改至少运行 `git diff --check`；未运行的验证必须明确标为“未运行”，不能臆测结果。
 - 代码、测试、真实 GIA 结论或工作流变化时，更新对应的权威文档；文档要区分当前实现、自动回归、真实 GIA、用户游戏验证、历史记录和待验证假设。
 - 每轮结束前，检查本轮源码、测试、真实 GIA、用户反馈或失败案例是否与适用的 `AGENTS.md` 不一致。

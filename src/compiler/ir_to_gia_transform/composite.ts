@@ -38,6 +38,7 @@ import {
   splitSyntheticSourceDataEdges
 } from './ordinary_graph_materializer.js'
 import { createOrdinaryVendorNode, normalizeOrdinaryVendorPins } from './ordinary_node_factory.js'
+import { ensureTypedPin } from './pins.js'
 import {
   isSharedPinHoleAdapterNodeType,
   PIN_HOLE_ADAPTER_CONTRACT,
@@ -56,6 +57,7 @@ import { ROOT_ORDINARY_CAPABILITY_CONTRACT } from './root_ordinary_capability_in
 import {
   isAssemblySpecialArgNodeType,
   isSharedSpecialArgAdapterNodeType,
+  isSignalSpecialArgNodeType,
   remapSpecialArgInputIndex,
   SHARED_SPECIAL_ARG_ADAPTER_NODE_TYPES,
   SPECIAL_ARG_ADAPTER_CONTRACT,
@@ -593,7 +595,8 @@ function buildImplGraphNodes(
       layout,
       nodeIndexMap,
       boundaryInputIndexesByNode,
-      boundaryInputTypesByNode
+      boundaryInputTypesByNode,
+      implConnTypeIndex
     )
   }
 
@@ -679,7 +682,8 @@ function materializeImplOrdinaryGraphWithVendor(
   layout: Map<number, { x: number; y: number }>,
   nodeIndexMap: Map<number, number>,
   boundaryInputIndexesByNode: Map<number, Set<number>>,
-  boundaryInputTypesByNode: Map<number, Map<number, string>>
+  boundaryInputTypesByNode: Map<number, Map<number, string>>,
+  implConnTypeIndex: Map<number, Map<number, { type: string }>>
 ): GraphNode[] {
   const graph = new Graph('server', 0, '', 0)
   const vendorNodes = new Map<number, Node<any>>()
@@ -727,6 +731,19 @@ function materializeImplOrdinaryGraphWithVendor(
       skipCapturedInputs: true,
       inputPinIndex: vendorInputPinIndex
     })
+    for (const [argIndex, arg] of (node.args ?? []).entries()) {
+      if (arg?.type !== 'conn' || arg.capture === true) continue
+      if (isSignalSpecialArgNodeType(node.type)) continue
+      const physicalIndex = isSharedSpecialArgAdapterNodeType(node.type)
+        ? remapSpecialArgInputIndex(node.type, argIndex)
+        : remapPinHoleInputIndex(node.type, argIndex)
+      ensureTypedPin(vendorNode, 3, physicalIndex, arg.value.type, true)
+    }
+    if (!isSharedSpecialArgAdapterNodeType(node.type)) {
+      implConnTypeIndex
+        .get(node.id)
+        ?.forEach((info, index) => ensureTypedPin(vendorNode, 4, index, info.type, true))
+    }
 
     // Capture inputs usually drop physical InParam (compositePins overlay owns them).
     // multiple_branches control@0 is an exception: keep typed schema pin so case list@1
@@ -840,6 +857,7 @@ function materializeImplOrdinaryGraphWithVendor(
     nodesById: vendorNodes,
     dataEdges: splitImplDataEdges.ordinary,
     flowEdges: ordinaryFlowEdges,
+    mapInputIndex: mapImplInputIndex,
     flowInsertPosition: (edge) => {
       const flowKey = `${edge.fromId}:${edge.fromIndex}`
       const position = vendorFlowCountBySource.get(flowKey) ?? 0

@@ -46,6 +46,41 @@ function toVendorBaseTag(argType: string): BaseTag | null {
   }
 }
 
+export function ensureTypedPin(
+  node: GiaNode,
+  kind: 3 | 4,
+  pinIndex: number,
+  type: string,
+  replaceExistingType = false
+): Pin {
+  const listType = type.endsWith('_list')
+  const base = toVendorBaseTag(listType ? type.slice(0, -5) : type)
+  const existing = node.pins?.find(
+    (pin) => pinKind(pin) === kind && pinIndex === getPinIndex(pin)
+  )
+  const nodeType = base
+    ? listType
+      ? ({ t: 'l', i: { t: 'b', b: base } } as const)
+      : ({ t: 'b', b: base } as const)
+    : null
+  if (existing) {
+    if (
+      replaceExistingType &&
+      nodeType &&
+      JSON.stringify(existing.type) !== JSON.stringify(nodeType)
+    ) {
+      existing.value = null
+      existing.setType(nodeType)
+    }
+    return existing
+  }
+
+  const pin = new Pin(node.ConcreteId!, kind, pinIndex)
+  if (nodeType) pin.setType(nodeType)
+  node.pins.push(pin)
+  return pin
+}
+
 function ensureInputPin(node: GiaNode, pinIndex: number): Pin {
   const existing = node.pins?.find((pin) => pinKind(pin) === 3 && pinIndex === getPinIndex(pin))
   if (existing) return existing
