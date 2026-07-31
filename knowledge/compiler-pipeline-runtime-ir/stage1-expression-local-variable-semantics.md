@@ -38,3 +38,15 @@ This is current Stage 1 behavior, not a promise that arbitrary JavaScript values
 这是当前测试脚本与自动测试日志的 CLI/工作流契约，不是对历史命令或用户自行调用 gsts 的保证；只证明本次命令跳过注入，不证明 GIA、编辑器或游戏行为。修改 package.json、测试配置或测试入口时重新验证。
 
 <!-- CLAIM:END clm_187AB1C3F90F1E99672658EE8D -->
+
+<!-- CLAIM:START clm_D9ECC27260829E9EA8C85E20F1 -->
+
+### Stage 1 resolves shorthand LocalVariable values before Composite calls
+
+When Stage 1 lowers an object literal shorthand such as { pivot } and the referenced value has been promoted to a LocalVariable, it must resolve the shorthand assignment value symbol with the TypeScript checker and emit the runtime value expression (for example { pivot: pivot.value }) before a Composite call. Resolving only the shorthand property symbol can leave the LocalVariable handle object at the Stage 2 Composite boundary and cause arg.getMetadata is not a function. The minimum reproducing shape is an outer value promoted by multiple branches and passed through shorthand syntax; branch count is not a threshold.
+
+#### 适用边界
+
+Applies to current Stage 1 TS-to-.gs.ts lowering for object-literal shorthand values that reference checked LocalVariables, especially Composite inputs. Proven by the formal 20-branch regression, consumer no-injection generation, and user game test after vendor integration. Does not prove arbitrary Stage 3/GIA encoding, injection success, map safety, or general game behavior outside the tested consumer sequence.
+
+<!-- CLAIM:END clm_D9ECC27260829E9EA8C85E20F1 -->

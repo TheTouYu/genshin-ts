@@ -53,7 +53,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "b1cbe514632a81f8299098658277f4f64edccf65af4fe46965b504a62f6c4de9",
+      "approved_hash": "a5d9f5ab2eee45cdace533fcbbe802e190f00e938e33270ad5568219720ecdcd",
       "claim_ids": [
         "clm_36C2A562146E76BED4BFF7DE89"
       ],
@@ -86,6 +86,21 @@
       "approved_hash": "3d4e088cd36d1a80e6c42684ece04d2d1b8514299c74ac9c55870c1059439e3e",
       "claim_ids": [
         "clm_36C2A562146E76BED4BFF7DE89"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_2c323706af1c625bdce4e48caa",
+      "path": "docs/architecture/stage1-ts-to-gs.md",
+      "locator": "LocalVariable lowering and shorthand Composite input behavior",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "b56b194da20c71c8926893896db7bd56e726b082d138f773da00106d22442755",
+      "claim_ids": [
+        "clm_D9ECC27260829E9EA8C85E20F1"
       ],
       "supports_fact_classes": [
         "runtime_behavior"
@@ -167,6 +182,21 @@
       ]
     },
     {
+      "id": "aref_408d1683769af803c77e99272d",
+      "path": "tests/long_motion_device_stop_handler_test.ts",
+      "locator": "formal 20-branch Stage 1 to Stage 2 regression and IR structure assertions",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "ca89c85cd5c44c90513fa2af548dcbe7752e702c5472ffe6851a0be6b8794d87",
+      "claim_ids": [
+        "clm_D9ECC27260829E9EA8C85E20F1"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_4ac3f390ab75c2f8324827fbea",
       "path": "tests/static_assembly_package_consumer.ts",
       "locator": "real tarball starter, .js subpath, schema, and template-tool consumer regression",
@@ -179,6 +209,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_4c382d377794f52e30a953f6c0",
+      "path": "src/compiler/ts_to_gs_transform/expr.ts",
+      "locator": "transformExpression: shorthand property assignment lowering around the LocalVariable VarPlan branch",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "a5d9f5ab2eee45cdace533fcbbe802e190f00e938e33270ad5568219720ecdcd",
+      "claim_ids": [
+        "clm_D9ECC27260829E9EA8C85E20F1"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -368,7 +413,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "0b43578c9e9c79e09a93108fde324563d61f5e0d1a57062b6b20308f15198b10",
+      "approved_hash": "0fd1d9578c2ba4c884f7e7df039846a4190b64e3f1fbb4233be41e73ff9e8686",
       "claim_ids": [
         "clm_187AB1C3F90F1E99672658EE8D"
       ],
@@ -789,7 +834,7 @@
       "locator": "section 0 and DTC/scalar evidence sections",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "0b43578c9e9c79e09a93108fde324563d61f5e0d1a57062b6b20308f15198b10",
+      "approved_hash": "0fd1d9578c2ba4c884f7e7df039846a4190b64e3f1fbb4233be41e73ff9e8686",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01K13DM5F3F3F3F3F3F3F3F3F3",
