@@ -210,6 +210,9 @@ f.multipleBranches(controlExpr, {
 - **常量折叠**（`const_eval.ts`）：纯字面量表达式在编译期预计算
 - **集合引用快照**（`tryTransformCollectionRebindSnapshot`）：对 `xs = list(…)` 这种集合绑定，插入 `initLocalVariable` + `setLocalVariable` 的快照
 - **timer 中复合输出类型保真**（`inferCompositeOutputType`）：当 timer callback 中的 `f.callComposite(...).output` 因回调参数类型不可见而无法由 TypeScript checker 推断时，从 `CompositeHandle.__outputs` 或同一 `defineComposite` 声明回退读取输出类型，避免生成错误的 `entity` 局部变量。
+- **对象简写中的 LocalVariable 读取**：`{ pivot }` 的属性符号不等同于值变量符号；使用 TypeScript
+  checker 的 `getShorthandAssignmentValueSymbol()` 找回值变量的 `VarPlan`，需要 LocalVariable
+  语义时输出 `{ pivot: pivot.value }`。
 
 ### 4.3 ops.ts — 运算符映射
 
@@ -249,7 +252,7 @@ f.multipleBranches(controlExpr, {
 
 > 状态：当前实现
 > 来源：`expression_semantics.ts`、`local_variable_lowering.ts`、focused Stage 1 回归
-> 最近校验：2026-07-16
+> 最近校验：2026-07-31
 > 适用范围：Stage 1 TS → `.gs.ts`；不改变 Stage 2 IR 或 Stage 3 GIA 编码
 
 在变换执行前，gsts 会扫描整个 handler 体来**分析变量使用模式**（`buildVarPlan` 函数）。
@@ -268,7 +271,9 @@ LocalVariable 类型推断的共同 seam。它把表达式区分为：
 
 `VarPlanEntry` 保存分类结果和可选的 `localValueType`，后续消费者不再各自把未知对象猜成
 `entity`。完整 Composite 结果可以保留为普通 JS `const` 代理并读取命名输出，但不能进入
-LocalVariable；需要重绑定或跨分支存储时会在 Stage 1 给出定位诊断。
+LocalVariable；需要重绑定或跨分支存储时会在 Stage 1 给出定位诊断。跨分支提升后的值若通过对象
+简写传入 Composite，也必须读取其 `.value`；回归入口为
+`tests/long_motion_device_stop_handler_test.ts`。
 
 ### 5.2 checked LocalVariable lowering
 

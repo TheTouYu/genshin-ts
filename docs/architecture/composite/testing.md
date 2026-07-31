@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现
-> 最近校验：2026-07-30
+> 最近校验：2026-07-31
 > 适用范围：gsts 当前复合节点测试脚本和验证流程；复合 GIA bug 的完整分析、修复和验收流程
 
 > 本文档描述复合节点功能的测试架构——从 GIA 比对测试到单元行为验证，以及已知的限制和注意事项。
@@ -253,6 +253,7 @@ npx tsx tests/composite/test-composite-part3.ts
 | `test-composite-call-input-types.ts` | `callComposite` / `declareDetached` 的稀疏 input schema 校验、未知字段拒绝及 float/vec3 输出保真 |
 | `test-stage3-p4w3-call-lowerer-contract.ts` | 复合调用边界；含“下游仍有执行流但定义未声明/绑定 OutFlow”的 `GSTS-COMPOSITE-MISSING-OUTFLOW` 负向诊断 |
 | `../multi_outflow_terminal_join_test.ts` | terminal 分支无需 continuation；存在后续节点时所有未 `return` 分支都汇合，不再静默裁为 OutFlow[0] |
+| `../long_motion_device_stop_handler_test.ts` | 单停止事件长 `if / else if` 链；跨分支 LocalVariable 经 `{ pivot }` 简写传入 Composite 时读取 `.value`，且 20 个分支/调用均保留 |
 | `analyze-nested-composites.ts`     | 嵌套复合的历史可行性调查；当前行为以 nested focused tests 为准                                       |
 
 ---
@@ -507,7 +508,7 @@ GIA 节点 ID。需要浮点值时使用已支持的 `bool→int→float`，或�
 
 > 状态：当前实现
 > 来源：当前 Stage 1 代码 + 自动回归
-> 最近校验：2026-07-16
+> 最近校验：2026-07-31
 > 适用范围：TS → `.gs.ts` 变量规划、timer capture、conditional 与 LocalVariable lowering
 
 focused 测试：
@@ -519,6 +520,16 @@ npx tsx tests/stage1_expression_semantics_test.ts
 该测试直接调用真实 `transformToGs()` 入口，并同时覆盖纯 `ExpressionSemantics` 分类 seam。它锁定：
 完整 Composite 结果不提升、命名输出保持声明类型、timer/普通对象分类，以及 Composite 完整结果、
 普通对象和类型冲突的 Stage 1 定位诊断。
+
+跨分支 LocalVariable 经对象简写传入 Composite 的 Stage 1→2 回归为：
+
+```bash
+npx tsx tests/long_motion_device_stop_handler_test.ts
+```
+
+该 fixture 在单个 `whenBasicMotionDeviceStops` handler 内保留 20 个名称分支，并断言所有分支标记和
+Composite 调用均进入 IR。它证明当前自动管线不再因 `{ pivot }` 传入整个 LocalVariable 句柄而抛出
+`arg.getMetadata is not a function`；不证明 consumer 已移除多 handler 规避、GIA 导入或游戏行为。
 
 通用 LocalVariable init/set 已由 checked builder 保护。`list_methods.ts` / `builtins.ts` 中剩余直接
 `setLocalVariable` 是显式 typed 内部算法写入；其初始化入口已收窄为

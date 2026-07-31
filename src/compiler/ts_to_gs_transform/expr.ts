@@ -1848,13 +1848,12 @@ export function transformExpression(
         return ts.factory.updatePropertyAssignment(p, p.name, transformObjValue(p.initializer))
       }
       if (ts.isShorthandPropertyAssignment(p)) {
-        const name = p.name
-        const sym = env.checker.getSymbolAtLocation(name)
+        const sym = env.checker.getShorthandAssignmentValueSymbol(p)
         const plan = sym ? env.varPlan?.get(sym) : undefined
         if (plan?.needsLocalVar) {
           return ts.factory.createPropertyAssignment(
-            name,
-            withSameRange(ts.factory.createPropertyAccessExpression(name, 'value'), p)
+            p.name,
+            withSameRange(ts.factory.createPropertyAccessExpression(p.name, 'value'), p)
           )
         }
         return p

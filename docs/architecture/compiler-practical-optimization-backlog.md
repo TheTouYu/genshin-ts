@@ -2,7 +2,7 @@
 
 > 状态：当前续作入口
 > 来源：目标玩法实战反馈 + 当前代码实现 + 自动回归
-> 最近校验：2026-07-30
+> 最近校验：2026-07-31
 > 适用范围：Genshin-TS Composite 类型、诊断、组件事件文档和 GIA 校验工具；不代表游戏内验证
 
 本文档承接
@@ -69,6 +69,27 @@
 - 交叉入口：中英文 `signals.md`。
 - 已说明：事件发送给组件持有者；跨实体应在持有者图处理或显式转发信号；编译成功不证明事件返回调用图。
 - 剩余 lint 调研见任务 4。
+
+### 0.5 长停止事件分支中的 Composite 简写输入
+
+状态：**根因已修复，Stage 1→2 自动红绿回归通过；consumer 与游戏复验待执行**。
+
+- 同构回归：`tests/long_motion_device_stop_handler_test.ts` 在单个
+  `whenBasicMotionDeviceStops` handler 中保留 20 个 `if / else if` 分支；每支同时覆盖
+  Composite 简写输入 `{ pivot }`、节点图变量读写和运动器调用，并断言 IR 中 20 个分支标记与
+  Composite 调用全部保留。
+- 根因：分支 lowering 会把跨分支读取的 `pivot` 提升为 LocalVariable；普通参数读取已变换为
+  `pivot.value`，但对象简写的 checker symbol 是属性符号，旧实现无法命中值变量的 `VarPlan`，导致
+  Stage 2 的 `__composite_call__` 收到整个 `{ localVariable, value }` 句柄并抛出
+  `arg.getMetadata is not a function`。
+- 修复：`src/compiler/ts_to_gs_transform/expr.ts` 使用 TypeScript checker 的
+  `getShorthandAssignmentValueSymbol()` 解析简写属性的值符号，再复用既有 LocalVariable `.value`
+  lowering；未在 Stage 2 增加容错。
+- 历史红灯：将同一 focused fixture 放入 `/tmp` 的 `7883ecb703d252459a6b493905c7c8a9c849fcd2`
+  只读归档后，稳定复现精确错误；当前代码构建后转绿。最小化显示 1 个分支通过、2 个分支即复现，
+  长链不是阈值，只是放大器。
+- 证据边界：原始 20 分支失败源码没有提交基线，测试是按游戏反馈和已提交的分支体构造的同构复现；
+  尚未在 star-cube 移除 24-handler 规避，也未生成/注入新的 consumer GIA 或完成游戏验证。
 
 ## 1. Composite 调用侧输入类型安全
 
