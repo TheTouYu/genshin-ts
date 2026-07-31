@@ -7,6 +7,7 @@
 - `gsts open map` / `gsts open backup`
 - `gsts assets:custom-variables`
 - `gsts assets:static-assemblies`
+- `gsts assets:signals`
 
 ## Map discovery and static prefab assembly
 
@@ -29,4 +30,4 @@ Map JSON sorts by modification time descending and then map ID, and omits player
 
 `inspect` and `plan` are always read-only, and `--output` creates but never overwrites. `closureStatus=complete` proves only the currently known structural checks; compatibility remains `unknown`, and automatic inspection is not editor/game validation. Subcommand `--config` remains a deprecated alias of `--asset-config`; root `-c/--config` means only the project config.
 
-Static prefab assembly writes `.gil` asset structures; GIA injection replaces a NodeGraph; `createPrefab` spawns an existing prefab at runtime. They are separate steps.
+Static prefab assembly writes `.gil` asset structures; GIA injection replaces a NodeGraph; `createPrefab` spawns an existing prefab at runtime. They are separate steps. `assets:signals` registers new signals by cloning parameter entries from an existing signal (one per type, at most 9 parameters); omitting `--send-id/--monitor-id/--server-id` auto-assigns consecutive IDs after the current highest occupied one; `inspect` lists registered signals read-only, `--write` verifies the source SHA before writing and auto-backs up to sibling `.gsts/backups/`, `--output` creates but never overwrites.

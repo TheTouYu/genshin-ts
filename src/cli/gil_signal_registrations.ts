@@ -20,6 +20,13 @@ export type SignalRegistrationSpec = {
   serverId: number
 }
 
+// Register input: node IDs optional, auto-assigned from the highest occupied ID.
+export type SignalRegistrationInput = Omit<SignalRegistrationSpec, 'sendId' | 'monitorId' | 'serverId'> & {
+  sendId?: number
+  monitorId?: number
+  serverId?: number
+}
+
 export type RegisterSignalResult = {
   bytes: Uint8Array
   signal: SignalRegistrationSpec
@@ -58,7 +65,7 @@ const CLIENT_NODE_TYPE = 20002
 const SIGNAL_NODE_KIND = 22001
 const MONITOR_FIXED_OUTPUTS = new Set(['事件源实体', '事件源GUID', '信号来源实体'])
 
-const PARAM_TYPE_CODES: Partial<Record<SignalParamType, number>> = {
+export const PARAM_TYPE_CODES: Partial<Record<SignalParamType, number>> = {
   entity: 1,
   guid: 2,
   int: 3,
@@ -307,6 +314,27 @@ function replaceInFixed(
   })
 }
 
+// Signal node IDs live in the 0x60000000 segment; the editor assigns them
+// consecutively per registered signal (send, monitor, server). The builtin
+// send/monitor/sendServer definitions occupy 1610612738..1610612740, so
+// auto-assignment starts after the highest occupied ID and is therefore
+// guaranteed collision-free (IDs carry no semantics, only uniqueness).
+function assignSignalIds(
+  spec: SignalRegistrationInput,
+  occupiedIds: ReadonlySet<number>
+): SignalRegistrationSpec {
+  const provided = [spec.sendId, spec.monitorId, spec.serverId].filter((id) => id !== undefined)
+  if (provided.length > 0 && provided.length < 3) {
+    throw new Error('[error] provide all three of sendId/monitorId/serverId or none (auto-assigned)')
+  }
+  if (provided.length === 3) {
+    return { ...spec, sendId: spec.sendId!, monitorId: spec.monitorId!, serverId: spec.serverId! }
+  }
+  const base = occupiedIds.size > 0 ? Math.max(...occupiedIds) : 1610612740
+  const sendId = base + 1
+  return { ...spec, sendId, monitorId: sendId + 1, serverId: sendId + 2 }
+}
+
 function validateSpec(spec: SignalRegistrationSpec, pool: SignalPool): void {
   if (!spec.name.trim()) throw new Error('[error] signal name is required')
   const ids = [spec.sendId, spec.monitorId, spec.serverId]
@@ -466,7 +494,7 @@ function header(bytes: Uint8Array) {
 export function registerSignalInGil(input: {
   bytes: Uint8Array
   templateSignalName: string
-  signal: SignalRegistrationSpec
+  signal: SignalRegistrationInput
   templateBytes?: Uint8Array
 }): RegisterSignalResult {
   const sourceHeader = header(input.bytes)
@@ -488,7 +516,8 @@ export function registerSignalInGil(input: {
   const occupiedIds = new Set(
     existingEntries.flatMap((entry) => [entry.identity.sendId, entry.identity.monitorId, entry.identity.serverId])
   )
-  for (const id of [input.signal.sendId, input.signal.monitorId, input.signal.serverId]) {
+  const signal = assignSignalIds(input.signal, occupiedIds)
+  for (const id of [signal.sendId, signal.monitorId, signal.serverId]) {
     if (occupiedIds.has(id)) throw new Error(`[error] signal node ID already occupied: ${id}`)
   }
 
@@ -502,7 +531,7 @@ export function registerSignalInGil(input: {
   if (!template) throw new Error(`[error] template signal not found: ${input.templateSignalName}`)
 
   const pool = buildParamPool(templateTop, signalEntries(signalIndex(templateTop).fields))
-  validateSpec(input.signal, pool)
+  validateSpec(signal, pool)
 
   const templateDefinitions = templateTop.filter(
     (field) => field.number === 2 && definitionTexts(field).includes(template.name)
@@ -517,7 +546,7 @@ export function registerSignalInGil(input: {
   const clones = orderedTemplateIds.map((id) => {
     const field = byId.get(id)
     if (!field || field.wire !== 2) throw new Error(`[error] incomplete template signal definition: ${id}`)
-    return buildDefinition(field, kinds[id], template, input.signal, pool)
+    return buildDefinition(field, kinds[id], template, signal, pool)
   })
 
   const signalDefinitionIndexes = top
@@ -532,14 +561,14 @@ export function registerSignalInGil(input: {
 
   const indexPosition = nextTop.findIndex((field) => field === index.field)
   const idFields: WireField[] = [
-    { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, input.signal.sendId) },
-    { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, input.signal.monitorId) },
-    { number: 2, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, input.signal.serverId) }
+    { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId) },
+    { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
+    { number: 2, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
   ]
   const firstEntry = index.fields.findIndex((field) => field.number === 3)
   const nextIndex = [...index.fields]
   nextIndex.splice(firstEntry < 0 ? nextIndex.length : firstEntry, 0, ...idFields)
-  nextIndex.push(buildIndexEntry(template, input.signal, pool))
+  nextIndex.push(buildIndexEntry(template, signal, pool))
   const indexCount = nextIndex.find((field) => field.number === 6 && field.wire === 0)
   if (indexCount) indexCount.value = (indexCount.value as number) + 1
   nextTop[indexPosition] = { ...index.field, value: emitWireMessage(nextIndex) }
@@ -550,7 +579,7 @@ export function registerSignalInGil(input: {
   const result = buildFile(emitWireMessage(nextRoot), sourceHeader)
   return {
     bytes: result,
-    signal: input.signal,
+    signal,
     templateSignalName: template.name
   }
 }

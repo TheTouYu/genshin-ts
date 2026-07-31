@@ -7,6 +7,7 @@
 - `gsts open map` / `gsts open backup`
 - `gsts assets:custom-variables`
 - `gsts assets:static-assemblies`
+- `gsts assets:signals`
 
 ## 地图发现与静态元件拼装
 
@@ -29,4 +30,4 @@ npm run assets:static-assemblies -- --asset-config assemblies.config.ts --gil so
 
 `inspect` 和 `plan` 始终只读，`--output` 只新建、不覆盖。`closureStatus=complete` 只证明当前已知结构完整，`compatibility=unknown`；自动检查不等于编辑器或游戏验证。旧子命令 `--config` 暂作为 `--asset-config` 的 deprecated alias，根 `-c/--config` 只表示项目配置。
 
-静态元件拼装写入 `.gil` 资产结构；GIA injection 替换 NodeGraph；`createPrefab` 在运行时创生已有元件。三者不能互相替代。
+静态元件拼装写入 `.gil` 资产结构；GIA injection 替换 NodeGraph；`createPrefab` 在运行时创生已有元件。三者不能互相替代。 `assets:signals` 从已有信号按参数类型克隆条目注册新信号（每类型一次、≤9 参数）；省略 `--send-id/--monitor-id/--server-id` 时自动从当前最大占用 ID 之后连续分配；`inspect` 只读列出已注册信号，`--write` 写回前校验源 SHA 并自动备份到同级 `.gsts/backups/`，`--output` 只新建不覆盖。

@@ -31,6 +31,7 @@ import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import { runAssetsCustomVariables } from './assets_custom_variables.js'
+import { runAssetsSignals } from './assets_signals.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
 import { ensureDataDirs } from './data.js'
@@ -1653,6 +1654,19 @@ async function main() {
       const opts = program.opts<GlobalOptions>()
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsStaticAssemblies(args, { projectConfigPath })
+    })
+
+  program
+    .command('assets:signals')
+    .description('inspect or register signals in a map GIL')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:signals')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      await runAssetsSignals(args, { projectConfigPath })
     })
 
   program

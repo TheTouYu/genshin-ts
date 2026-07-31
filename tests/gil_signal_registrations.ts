@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
+import { parseArgs } from '../src/cli/assets_signals.js'
 import { readRegisteredSignalsFromGil } from '../src/cli/gil_signals.js'
 import { registerSignalInGil } from '../src/cli/gil_signal_registrations.js'
 import { parseWireMessage, printableWireText, type WireField } from '../src/cli/static_assembly/wire.js'
@@ -169,6 +170,104 @@ await import('node:fs/promises').then(({ writeFile, unlink }) =>
   })
 )
 
+// --- layer 5: CLI argument parsing and constraints ---
+const cli = parseArgs([
+  '--gil',
+  beforePath,
+  '--template-signal',
+  signal.name,
+  '--name',
+  '信号_1_测试',
+  '--param',
+  '参数_1:int',
+  '--param',
+  '参数_2:entity',
+  '--send-id',
+  String(signal.sendId),
+  '--monitor-id',
+  String(signal.monitorId),
+  '--server-id',
+  String(signal.serverId)
+])
+assert.equal(cli.command, 'register')
+assert.deepEqual(
+  cli.params.map((param) => ({ name: param.name, type: param.type })),
+  signal.params.slice(0, 2)
+)
+assert.throws(() => parseArgs(['--gil', beforePath, '--write', '--output', '/tmp/x.gil']), /mutually exclusive/)
+assert.throws(() => parseArgs(['--gil', beforePath, '--template-signal', signal.name]), /--name is required/)
+assert.throws(() => parseArgs(['--gil', beforePath, '--param', 'a:unknown_type']), /unknown parameter type/)
+assert.throws(() => parseArgs(['--gil', beforePath, '--param', 'bad']), /<name:type>/)
+assert.throws(
+  () =>
+    parseArgs([
+      '--gil',
+      beforePath,
+      '--template-signal',
+      signal.name,
+      '--name',
+      'x',
+      '--send-id',
+      '1',
+      '--monitor-id',
+      '2',
+      '--server-id',
+      '3',
+      '--param',
+      'a:int',
+      '--param',
+      'a2:int',
+      '--param',
+      'a3:int',
+      '--param',
+      'a4:int',
+      '--param',
+      'a5:int',
+      '--param',
+      'a6:int',
+      '--param',
+      'a7:int',
+      '--param',
+      'a8:int',
+      '--param',
+      'a9:int',
+      '--param',
+      'a10:int'
+    ]),
+  /at most 9/
+)
+const inspect = parseArgs(['inspect', '--gil', beforePath])
+assert.equal(inspect.command, 'inspect')
+assert.equal(inspect.gilPath, beforePath)
+assert.throws(
+  () =>
+    parseArgs([
+      '--gil',
+      beforePath,
+      '--template-signal',
+      signal.name,
+      '--name',
+      'x',
+      '--send-id',
+      '1'
+    ]),
+  /all of --send-id/
+)
+const noIds = parseArgs(['--gil', beforePath, '--template-signal', signal.name, '--name', 'x'])
+assert.equal(noIds.sendId, undefined)
+
+// --- layer 6: auto-assigned node IDs when omitted (cube_turn occupies 41/42/43) ---
+const auto = registerSignalInGil({
+  bytes: before,
+  templateBytes: editorAfter,
+  templateSignalName: signal.name,
+  signal: { name: '信号_自动ID', params: [{ name: '参数_1', type: 'int' as const }] }
+})
+assert.deepEqual(
+  [auto.signal.sendId, auto.signal.monitorId, auto.signal.serverId],
+  [1610612744, 1610612745, 1610612746]
+)
+
 // --- layer 4: duplicate registration rejected ---
 assert.throws(
   () =>
@@ -187,6 +286,8 @@ console.log(
     generatedSize: generated.bytes.length,
     editorSize: editorAfter.length,
     newDefinitions: 3,
-    registryEntries: 2
+    registryEntries: 2,
+    cliChecks: 10,
+    autoAssignedIds: [auto.signal.sendId, auto.signal.monitorId, auto.signal.serverId].join(',')
   })
 )
