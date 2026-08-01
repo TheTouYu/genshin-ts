@@ -1,9 +1,9 @@
 # 信号
 
-> 状态：已验证（发送固定值、监听骨架和信号定义原位修改）；参数消费和端到端行为待验证
-> 来源：真实 GIL 相邻快照 + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器导入/地图检查
+> 状态：已验证（发送固定值、监听骨架、部分参数消费和信号定义原位修改）；全参数消费和端到端行为待验证
+> 来源：真实 GIL 相邻快照 + 批次 Validator + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器导入/地图检查
 > 最近校验：2026-08-01
-> 适用范围：服务器节点图中引用当前关卡既有注册定义的普通发送与监听节点；客户端、列表、监听参数消费和跨地图注册另行验证
+> 适用范围：服务器节点图中引用当前关卡既有注册定义的普通发送与监听节点；客户端、未覆盖参数类型和跨地图注册另行验证
 
 信号用于在节点图之间传递一次事件及其参数。信号必须先在关卡中注册，发送或监听节点再引用该注册定义。只包含信号节点的 GIA 不等于携带信号注册定义；导入目标必须已经存在名称、参数结构和 identity 相符的注册信号。
 
@@ -110,6 +110,32 @@ genericId / concreteId = 目标 monitorId
 
 `signalVersion`、节点位置和其余结构保持不变。该结论不允许推广到布局不同的信号；新布局必须重新从注册定义和真实同构样本闭合。
 
+## 已验证的监听参数消费
+
+当前地图、当前 monitor 定义和节点图 `1073741842` 的真实相邻快照已经连续验证前三个普通参数：
+
+| 参数 | 监听输出 | 目标输入类型 | 状态 |
+| --- | --- | ---: | --- |
+| `int` | `OutParam[3]` | `Integer / VarType=3` | 已验证 |
+| `float` | `OutParam[4]` | `Float / VarType=5` | 已验证 |
+| `vec3` | `OutParam[5]` | `Vector / VarType=12` | 已验证 |
+
+三者都把连接记录写在目标消费节点的 `InParam[0]`：`connect.id` 指向监听节点，
+`connect` / `connect2` 指向源 `OutParam`；监听 GraphNode 本身不变化。三个消费节点和连接可同时存在，当前样本支持“固定输出之后，普通参数按注册定义顺序连续且不压缩”，但新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
+
+连接批次还验证了 `Query GUID By Entity`（`genericId=concreteId=76`）的 Entity 输入与 GUID 输出，以及 GUID `Assembly List` 两元素样本（`genericId=169`、`concreteId=172`）的 count、两个 GUID 输入和列表输出结构。该证据只覆盖当前节点族与两元素 GUID 列表，不推广到任意列表类型或长度。
+
+批次 Validator 同时保留一个协议边界：解码结果中 `OutParam.index` 字段缺失不等于显式
+`index=0`。固定 entity 输出改接和最后两处连线实验中涉及缺失 index 的默认语义仍为
+`CONFLICT/INSUFFICIENT`；实现和重放必须保留 protobuf presence，不能静默补零。裁决入口：
+
+```text
+/home/h/genshin-ts-evidence/node-graph-logic/signals/2026-08-01-monitor-signal/
+  batches/connection-lifecycle-batch-01/validation.json
+```
+
+以上只证明真实编辑器保存后的结构；尚未完成这些消费组合的同构 GIA 重放、编辑器导入和游戏参数值验证。
+
 ## 信号定义原位修改
 
 当前实现提供 `gsts assets:signals update`，复用创建信号的参数模板和三份定义构建逻辑，在原注册项位置替换目标信号的名称与参数定义，并保留原 `sendId`、`monitorId`、`serverId`。目标信号不存在、名称冲突、类型模板缺失或结构回读不一致时停止，不写回地图。
@@ -171,8 +197,9 @@ after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
 - `entity` 发送参数的数据源连接；
 - 9 种列表发送参数及各自 List/Assembly 节点；
 - 发送节点的控制流输入、输出以及多发送节点复用；
-- 监听节点 9 种普通参数的输出序号、类型、`compositePinIndex`；
-- 监听输出的数据消费连接和多参数共存；
+- 除 `int/float/vec3` 外其余监听普通参数的输出序号、类型和 `compositePinIndex`；
+- 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
+- 已观察消费组合的同构 GIA 重放、编辑器导入和运行时参数值；
 - 监听信号实际触发及参数值的游戏行为；
 - 客户端信号节点；
 - 携带信号注册三元组、可跨地图独立导入的 GIA；

@@ -78,7 +78,7 @@ PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID
 
 写回流程固定为：读取源 hash → 生成临时候选 → 规范 `readRegisteredSignalsFromGil()` 回读 ID、名称和参数类型顺序 → 确认源 hash 未变 → 创建备份 → 写回 → 再次读取真实地图。候选回读或 hash 竞态失败时不得写回。原位修改成功不等于编辑器导入或游戏行为验证成功。
 
-多模型调查时，主模型维护 manifest、快照和 Authority，子模型只读独立实验包，只有主模型执行真实地图写回。用户编辑器每轮只做一个可归因变化；未知伴随变化标记 `INSUFFICIENT`，不推广规则。完整流程见 `docs/operations/gil-parallel-investigation.md`。
+多模型调查时，主模型维护共享 manifest 和 Authority，实验 Agent 可在自己的独立实验目录内捕获/比较并写 `diff.json`、局部 manifest 和 `result.json`，只有主模型执行真实地图写回。连续批次先固定每个相邻快照对，再并行调查并串行运行 Validator；用户编辑器每轮只做一个可归因变化，未知伴随变化标记 `INSUFFICIENT`，不推广规则。可直接复用 `references/parallel-investigation-prompts.md` 的提示词模板；完整流程见 `docs/operations/gil-parallel-investigation.md`。
 
 ### C. 阶段切换
 
@@ -141,11 +141,19 @@ npx tsx tools/list-gil-node-graphs.ts <map.gil>
 ${GTS_EVIDENCE_HOME:-$HOME/genshin-ts-evidence}/<module>/<experiment>/raw/
 ```
 
-使用 Skill 自带脚本做不覆盖复制和 SHA-256 复核：
+单个证据文件使用 Skill 自带脚本做不覆盖复制和 SHA-256 复核：
 
 ```bash
 python .agents/skills/editor-incremental-gia-investigator/scripts/capture-evidence.py \
   <source-file> <destination-directory>
+```
+
+连续编辑器调查优先用实验封装一次锁定 before/after；它拒绝未变化地图和已有目标，
+并只输出包含路径、SHA-256 和大小的小型 JSON：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/capture-experiment.py \
+  <current-map> <before-snapshot> <experiment-directory>
 ```
 
 相邻快照使用明确语义名：

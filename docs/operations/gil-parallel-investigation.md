@@ -67,7 +67,14 @@ v2 → v3：移动一个节点
 v3 → v4：新增一个变量
 ```
 
-每轮保存地图。主模型在用户回复“好了”后立即捕获新快照、记录 hash，并为下一轮重新锁定前快照。不能把多个未记录的变化合并为一个“实验”。
+每轮保存地图。主模型在用户回复“好了”后立即捕获新快照、记录 hash，并为下一轮重新锁定前快照。连续采集时使用：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/capture-experiment.py \
+  <current-map> <before-snapshot> <experiment-directory>
+```
+
+脚本拒绝未变化地图和已有目标，只输出路径、SHA-256 和大小。捕获完成后，后续 Agent 只读取实验目录中的不可变 `before.gil` / `after.gil`，不得依赖仍会变化的实时地图。不能把多个未记录的变化合并为一个“实验”。
 
 用户动作必须具体到可执行的一句话，例如：
 
@@ -100,7 +107,13 @@ Agent C：v2 → v3，布局变化
 Agent D：v3 → v4，变量变化
 ```
 
-子模型只读自己的输入和所需最小文档，不重新运行 PKC、地图发现、全图扫描或旧实验。
+子模型只读取自己的输入和所需最小文档，不重新运行 PKC、地图发现、全图扫描或旧实验。为减少 Coordinator 重复展开上下文，优先复用
+`.agents/skills/editor-incremental-gia-investigator/references/parallel-investigation-prompts.md`；任务只需给恢复锚点、实验目录、用户声明和写入边界，其余字段由 Agent 从局部 manifest 读取。
+
+实验 Agent 可以写自己的独立实验目录，包括 `diff.json`、局部 `notes/manifest.json` 和
+`result.json`；不能修改共享恢复 manifest、Authority、真实地图或其他实验。共享状态始终保持单写者。
+
+可以先连续捕获约定数量的相邻实验，再并行调查各快照对。批次调查结束后必须串行运行独立 Validator，核对 hash 链、用户变化、protobuf presence、类型和连接方向。Validator 只写批次 `validation.json`，逐实验给 `ACCEPT`、`CONFLICT` 或 `INSUFFICIENT`；共享 manifest 和 Authority 只合并 Validator 接受的证据。原始 Investigator 结果保留，不能静默改写来掩盖冲突。
 
 ## 证据包与输出协议
 
