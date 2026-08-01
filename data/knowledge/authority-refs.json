@@ -38,7 +38,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "e61c297d23e5ecac3b80f60aab6dc47cac443e0470eb617d957df126f3d6af82",
+      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
       "claim_ids": [
         "clm_C94874AE97BFE0BC3B9F1986D7"
       ],
@@ -74,6 +74,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_211e3b3944e8739fad12c945d4",
+      "path": "docs/composite-ir/04-validation-signal.md",
+      "locator": "§13.8",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
+      "claim_ids": [
+        "clm_9FA1660915D1832D0763A499E4"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -293,7 +308,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "e61c297d23e5ecac3b80f60aab6dc47cac443e0470eb617d957df126f3d6af82",
+      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
       "claim_ids": [
         "clm_B334BFA5DAE015C296764EADF9"
       ],
@@ -458,7 +473,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "f15c0b818512f74734433f985ccb70d35f2874800e8c26fa758e928c64b45593",
+      "approved_hash": "6ecf5e421bccace5a50d739511ec81dd98541e9c0bf27561d7aef5dfb5285fe9",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
@@ -565,7 +580,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "e61c297d23e5ecac3b80f60aab6dc47cac443e0470eb617d957df126f3d6af82",
+      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
       "claim_ids": [
         "clm_9F3BC0989E06157B2B43343C86"
       ],
@@ -655,7 +670,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "e61c297d23e5ecac3b80f60aab6dc47cac443e0470eb617d957df126f3d6af82",
+      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
       "claim_ids": [
         "clm_BA34651BAE20402536B7CD711B"
       ],

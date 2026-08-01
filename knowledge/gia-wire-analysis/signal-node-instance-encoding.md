@@ -54,11 +54,11 @@ GIL f5 大容器内每个信号一个注册表条目：f1=sendId、f2=monitorId�
 
 ### Listen-node parameter consumption: instance encodes no OutParam; consumers reference OutParam index = output ordinal (0-based, 0 omitted)
 
-监听节点实例不编码任何参数 OutParam pin（参数输出隐式，由定义容器决定）；消费方 pin.connects=[{id:监听节点nodeIndex, connect/connect2:{kind:OutParam, index:输出序号}}]。OutParam index=监听节点输出序号（0-based，0 省略），输出顺序=定义容器 f103 完整输出列表：事件源实体=0、事件源GUID=1、信号来源实体=2、自定义参数排后（face=3、direction=4）。v9 消费事件源实体=无 index、v10 改消费信号来源实体=index:2、v8 遗留连接 face=index:3。固定三个参数（事件源实体/事件源GUID/信号来源实体，f3={f1:4} 组）先于自定义参数（f3={f1:4,f2:序号}，face/direction）
+监听节点实例不编码任何参数 OutParam pin（参数输出隐式，由定义容器决定）；消费方 pin.connects=[{id:监听节点nodeIndex, connect/connect2:{kind:OutParam, index:输出序号}}]。OutParam index=监听节点输出序号（0-based，0 省略），输出顺序=定义容器 f103 完整输出列表：事件源实体=0、事件源GUID=1、信号来源实体=2、自定义参数排后（face=3、direction=4）。v9 消费事件源实体=无 index、v10 消费信号来源实体=index:2、v11 消费事件源GUID=index:1（新增，0/1/2/3 全闭环）、v8 遗留连接 face=index:3。固定三个参数（事件源实体/事件源GUID/信号来源实体，f3={f1:4} 组）先于自定义参数（f3={f1:4,f2:序号}，face/direction）
 
 #### 适用边界
 
-输出 0/2/3 三点外推（index=1 无样本）；f103 列表基于 cube_turn 单一信号；其他信号固定输出结构未样本
+输出 0/1/2/3 已由 v9/v10/v11/v8 样本证实；输出 4（direction）未被直接消费过（由 f103 列表推断）；f103 列表基于 cube_turn 单一信号；其他信号固定输出结构未样本
 
 <!-- CLAIM:END clm_B334BFA5DAE015C296764EADF9 -->
 
@@ -66,10 +66,22 @@ GIL f5 大容器内每个信号一个注册表条目：f1=sendId、f2=monitorId�
 
 ### Consumer SysCall nodes: print=SysCall 1/1, type-convert=180/183; no cpi, no signalVersion; ConcreteBase type declarations
 
-信号消费链中的 SysCall 节点：打印节点 genericId=concreteId=SysCall 1（InParam type=6 String，connects 引用来源）；类型转化节点 genericId=SysCall 180 / concreteId=183（generic≠concrete，同 Assembly List 169/175 模式），InParam 声明 ConcreteBase{indexOfConcrete:1,itemType:Entity}（type=1）、OutParam 声明 ConcreteBase{indexOfConcrete:2,itemType:String}（type=6）。SysCall 节点一律无 compositePinIndex、无 signalVersion（同 §12.5 拼装节点）。pin.type 类型枚举：Entity=1、Integer=3、Boolean=4、String=6、BooleanList=9
+信号消费链中的 SysCall 节点：打印节点 genericId=concreteId=SysCall 1（InParam type=6 String，connects 引用来源）；类型转化节点 genericId=SysCall 180、concreteId 随输入具体类型变——concreteId=183（输入 Entity，InParam ConcreteBase{indexOfConcrete:1,itemType:Entity} type=1）/ concreteId=184（输入 GUID，InParam ConcreteBase{indexOfConcrete:2,itemType:GUID} type=2，v11 新增），OutParam 均为 ConcreteBase{indexOfConcrete:2,itemType:String}（type=6）。indexOfConcrete=转化输入类型注册序列（DTC_IN_PARAM_VARTYPE_SEQUENCE）下标：0=int/1=entity/2=guid/3=bool/4=float/5=vec3/6=faction（v9 ioC=1=Entity、v11 ioC=2=GUID 双样本证实），不是类型编号；concreteId 与 ioC 换算公式未验证。SysCall 节点一律无 compositePinIndex、无 signalVersion（同 §12.5 拼装节点）。pin.type=游戏全局 VarType（完整表见 04-validation-signal.md §13.8）
 
 #### 适用边界
 
-基于打印节点(idx=7/8)与类型转化节点(idx=9)实例；SysCall 1/180/183 的编辑器语义由用户口述确认（打印/类型转化），非字节证据
+基于打印节点(idx=7/8)与类型转化节点(idx=9/10)实例；SysCall 1/180/183/184 的编辑器语义由用户口述确认（打印/类型转化），非字节证据；DTC 序列仅 7 种输入类型（int/entity/guid/bool/float/vec3/faction），其余类型转化样本未出现
 
 <!-- CLAIM:END clm_C94874AE97BFE0BC3B9F1986D7 -->
+
+<!-- CLAIM:START clm_9FA1660915D1832D0763A499E4 -->
+
+### Signal/node types use the global VarType enum; repo maps (PARAM_TYPE_CODES/argVarType/DTC sequence) are subsets, all matching real samples
+
+游戏数据类型是全局通用的：信号注册 f4 参数类型、节点实例 pin.type、类型转化节点 ConcreteBase 均编码自同一张 VarType 枚举（thirdparty node_data/types_list.ts + protobuf/gia.proto.ts）：Entity=1/GUID=2/Integer=3/Boolean=4/Float=5/String=6/GUIDList=7/IntegerList=8/BooleanList=9/FloatList=10/StringList=11/Vector=12/EntityList=13/EnumItem=14/VectorList=15/LocalVariable=16/Faction=17/Configuration=20/Prefab=21/ConfigurationList=22/PrefabList=23/FactionList=24/Struct=25/StructList=26/Dictionary=27/VariableSnapshot=28。仓库侧三处映射均为该表子集且与真实样本全吻合：gil_signal_registrations.ts PARAM_TYPE_CODES（信号注册 f4 类型，f4 的 3/6/9 已证）、composite.ts argVarType()（实例 pin.type，v1-v11 的 1/2/3/6/9/12 已证）、composite.ts DTC_IN_PARAM_VARTYPE_SEQUENCE（转化节点 indexOfConcrete=序列下标 0=int/1=entity/2=guid/3=bool/4=float/5=vec3/6=faction，v9 ioC=1 Entity/183、v11 ioC=2 GUID/184 双样本证实）。GUID=2 是 VarType 正常值而非新类型；映射缺口属合理子集（信号参数不支持 EnumItem/Struct/Dictionary 等，argVarType 列表仅 6 种，DTC 输入仅 7 种）
+
+#### 适用边界
+
+VarType 表来自 thirdparty vendor 定义（未与游戏运行时逐项核对，其中 Configuration=20/Prefab=21 等未在真实样本出现）；真实样本仅覆盖 type 1/2/3/6/9/12；DTC 序列为仓库代码定义，7 种输入类型之外未样本；concreteId 与 ioC 的换算公式未验证
+
+<!-- CLAIM:END clm_9FA1660915D1832D0763A499E4 -->
