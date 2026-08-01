@@ -107,7 +107,7 @@
         "GIA tools",
         "real GIA sample"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "compiler-pipeline-runtime-ir",
@@ -711,6 +711,17 @@
         "memory synchronization"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "signal-node-instance-encoding",
+      "node_id": "gia-wire-analysis",
+      "title": "Signal send-node instance encoding (real editor GIL samples)",
+      "path": "knowledge/gia-wire-analysis/signal-node-instance-encoding.md",
+      "summary": "Send-node instance fields and compositePinIndex rules confirmed by user-driven incremental GIL samples v1-v6.",
+      "keywords": [
+        "signal, send node, 发送信号, compositePinIndex, 信号三元组, Assembly List, 拼装列表"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -908,6 +919,36 @@
     "clm_D9ECC27260829E9EA8C85E20F1": {
       "fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    "clm_16D507DAD132C32BCF97EFFEB9": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_3E23026CFBD9CB597EAB32042C": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_9F3BC0989E06157B2B43343C86": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_BA34651BAE20402536B7CD711B": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_B334BFA5DAE015C296764EADF9": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_C94874AE97BFE0BC3B9F1986D7": {
+      "fact_classes": [
+        "external_game_evidence"
       ]
     }
   }
