@@ -13,31 +13,39 @@
 
 1. [游戏运行生命周期](game-lifecycle.md)
 2. [关卡结构](level-structure.md)
-3. [资产、关卡保存与导出文件](assets-and-files.md)
-4. [组件](components.md)
-5. [屏幕控件与 UI](ui-controls.md)
-6. [镜头系统](camera-system.md)
-7. [节点图挂载与生命周期](graph-mounting.md)
-8. [节点图与拓扑](node-graphs.md)
-9. [参数类型](parameter-types.md)
-10. [变量与作用域](variables.md)
-11. [控制流](control-flow.md)
-12. [数据流与连接](data-flow.md)
-13. [信号知识](signals.md)
-14. [信号实验事实](signals/README.md)
-15. [复合节点](composite-nodes.md)
-15. [游戏引擎知识与项目编译管线](project-pipeline.md)
-16. [验证与规则学习流程](validation-workflow.md)
+3. [GIL 整体结构与语义树](gil-structure-semantics.md)
+4. [资产、关卡保存与导出文件](assets-and-files.md)
+5. [组件](components.md)
+6. [屏幕控件与 UI](ui-controls.md)
+7. [镜头系统](camera-system.md)
+8. [节点图挂载与生命周期](graph-mounting.md)
+9. [节点图与拓扑](node-graphs.md)
+10. [参数类型](parameter-types.md)
+11. [变量与作用域](variables.md)
+12. [控制流](control-flow.md)
+13. [数据流与连接](data-flow.md)
+14. [信号知识](signals.md)
+15. [信号实验事实](signals/README.md)
+16. [复合节点](composite-nodes.md)
+17. [游戏引擎知识与项目编译管线](project-pipeline.md)
+18. [验证与规则学习流程](validation-workflow.md)
 
 ## 知识关系图
 
 ```text
 关卡结构
+├── GIL 根字段与资源/图容器 ────→ GIL 整体结构与语义树
 ├── 完整保存为 GIL ─────────────→ 资产、关卡保存与导出文件
 ├── 包含多个节点图 ─────────────→ 节点图与拓扑
 ├── 包含模型原件与初始模型
 ├── 实体可配置官方预置能力 ─────→ 组件
 └── 为节点中的实体、配置等参数提供资源背景
+
+GIL 整体结构与语义树
+├── 严格区分 GIL payload 根与 GIA Root
+├── 记录字段 presence、wire type、大小与证据状态
+├── 当前有限闭合资源、NodeGraph、CompositeDef 和信号索引路径
+└── 按章节和编辑器单变化逐步闭合未知字段
 
 游戏运行生命周期
 ├── 初始化关卡、玩家和角色
