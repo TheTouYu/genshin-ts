@@ -57,9 +57,12 @@ python tools/pkc.py knowledge-plan init \
 
 在同一个 plan 中依次执行：
 
-1. 每条稳定事实一次 `add-claim`；
-2. 每个 Claim 添加最小且当前的 `add-authority-ref`；
-3. 若 finalize 的 full preflight 报 stale，只刷新实际被提交改变且事实边界未变的旧 Ref。
+1. **先提交 authority 文档，再 `init` plan**：`add-authority-ref` 要求目标文件存在于 committed baseline 且工作树干净；
+   plan 中途提交 git 会触发 `PLAN_STALE_BASELINE`，只能 abandon 重建；
+2. 每条稳定事实一次 `add-claim`（需 `--fact-class`，如 `external_game_evidence`）；
+3. 每个**新增** Claim 添加最小且当前的 `add-authority-ref`（只接受 plan 内新增 claim；
+   存量 claim 的 ref 一律用 `refresh-authority-ref`，不适用 `add-authority-ref`）；
+4. 若 finalize 的 full preflight 报 stale，只刷新实际被提交改变且事实边界未变的旧 Ref。
 
 每个命令必须等待前一个命令成功后再执行。记录返回的 `plan_id`、Claim ID 和 Authority Ref ID；不要重复 `init`。
 
