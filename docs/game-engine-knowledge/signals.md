@@ -1,7 +1,7 @@
 # 信号
 
-> 状态：已验证（发送固定值与监听骨架）；参数消费和端到端行为待验证
-> 来源：真实 GIL 相邻快照 + 手工同构 GIA/GIL 回读 + 用户编辑器导入/地图检查
+> 状态：已验证（发送固定值、监听骨架和信号定义原位修改）；参数消费和端到端行为待验证
+> 来源：真实 GIL 相邻快照 + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器导入/地图检查
 > 最近校验：2026-08-01
 > 适用范围：服务器节点图中引用当前关卡既有注册定义的普通发送与监听节点；客户端、列表、监听参数消费和跨地图注册另行验证
 
@@ -109,6 +109,24 @@ genericId / concreteId = 目标 monitorId
 ```
 
 `signalVersion`、节点位置和其余结构保持不变。该结论不允许推广到布局不同的信号；新布局必须重新从注册定义和真实同构样本闭合。
+
+## 信号定义原位修改
+
+当前实现提供 `gsts assets:signals update`，复用创建信号的参数模板和三份定义构建逻辑，在原注册项位置替换目标信号的名称与参数定义，并保留原 `sendId`、`monitorId`、`serverId`。目标信号不存在、名称冲突、类型模板缺失或结构回读不一致时停止，不写回地图。
+
+本轮真实地图写回证据：
+
+```text
+map: /mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/1073741849.gil
+signal: 信号测试全参数
+parameters: 伤害值:int / 移动速度:float / 目标位置:vec3 / 文本:str / 是否暴击:bool / 目标GUID:guid / 目标实体:entity / 预制体:prefab_id / 配置ID:config_id
+IDs preserved: send=1610612753 monitor=1610612754 server=1610612755
+backup: .../.gsts/backups/1073741849.gil.2026-08-01T12-08-19-329Z.bak
+before SHA-256: 6f427a70cd1f5772cf4ee4096694b2835d6946e50ce4fce10931bc691d2b4034
+after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
+```
+
+该证据证明候选严格回读和真实文件写回成功；尚未证明编辑器重新导入或游戏内行为正确。
 
 ## GIA/GIL 重放与编辑器验证
 

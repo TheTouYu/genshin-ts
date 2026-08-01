@@ -63,6 +63,21 @@ value / connects
 图 metadata 和节点数是否保持
 ```
 
+## 修改信号与创建信号复用
+
+“修改信号”不是全局文本替换，而是创建信号的原位替换变体。复用 `src/cli/gil_signal_registrations.ts` 的参数模板池、`buildIndexEntry()`、`buildDefinition()` 和严格结构回读：
+
+```bash
+npx tsx src/cli/assets_signals.ts update \
+  --gil <map.gil> \
+  --target-signal <existing-name> \
+  --name <result-name> \
+  --param <name:type> ... \
+  --write
+```
+
+更新路径从当前地图自动读取目标 signal 的 send/monitor/server ID，原位替换注册表及三份定义；ID、类型编码结构、pinIndex 分配和其他信号保持约束。不能手填或推算 ID，也不能用一次性递归文本脚本替代共享编码器。写回前必须候选回读，写回时先备份并做源 hash 竞态检查；写回成功只证明文件替换和结构回读成功，不证明编辑器导入或游戏行为正确。
+
 ## 当前地图信号发现与监听切换
 
 列出当前注册信号时，优先复用 `src/cli/gil_signals.ts` 的 `readRegisteredSignalsFromGil()`，只输出有界摘要：

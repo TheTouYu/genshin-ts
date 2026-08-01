@@ -72,6 +72,14 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID。自然语言查询出现 `coverage_gap` 时停止扩散：它不等于传统 Authority 没有内容，也不授权连续尝试多个近似 Topic。最多根据返回结果改用一个明确候选 Topic；仍无关键规则就报告缺口。
 
+### 修改信号的生产复用规则
+
+信号修改应复用创建信号的生产编码路径，不再编写独立的递归文本替换脚本。当前入口为 `gsts assets:signals update`，底层复用参数模板池、注册表索引构建、send/monitor/server 三份定义构建和规范回读；目标信号的三个 identity ID 自动读取并保持不变。
+
+写回流程固定为：读取源 hash → 生成临时候选 → 规范 `readRegisteredSignalsFromGil()` 回读 ID、名称和参数类型顺序 → 确认源 hash 未变 → 创建备份 → 写回 → 再次读取真实地图。候选回读或 hash 竞态失败时不得写回。原位修改成功不等于编辑器导入或游戏行为验证成功。
+
+多模型调查时，主模型维护 manifest、快照和 Authority，子模型只读独立实验包，只有主模型执行真实地图写回。用户编辑器每轮只做一个可归因变化；未知伴随变化标记 `INSUFFICIENT`，不推广规则。完整流程见 `docs/operations/gil-parallel-investigation.md`。
+
 ### C. 阶段切换
 
 从真实增量切到手工 GIA、写回、生产修复或知识回填时，只补读新阶段要求的安全规则和最小 Authority，不重放前一阶段的加载清单。

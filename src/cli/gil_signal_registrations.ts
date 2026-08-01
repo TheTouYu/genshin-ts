@@ -33,6 +33,10 @@ export type RegisterSignalResult = {
   templateSignalName: string
 }
 
+export type UpdateSignalResult = RegisterSignalResult & {
+  previousSignalName: string
+}
+
 type SignalIdentity = Pick<SignalRegistrationSpec, 'sendId' | 'monitorId' | 'serverId'>
 
 type SignalIndexEntry = {
@@ -494,17 +498,19 @@ function header(bytes: Uint8Array) {
   }
 }
 
-export function registerSignalInGil(input: {
-  bytes: Uint8Array
-  templateSignalName: string
-  signal: SignalRegistrationInput
-  templateBytes?: Uint8Array
-}): RegisterSignalResult {
-  const sourceHeader = header(input.bytes)
+function readSignalSource(bytes: Uint8Array): {
+  sourceHeader: ReturnType<typeof header>
+  sourceRoot: WireField[]
+  topField: WireField
+  top: WireField[]
+  index: ReturnType<typeof signalIndex>
+  entries: SignalIndexEntry[]
+} {
+  const sourceHeader = header(bytes)
   if (sourceHeader.headTag !== 0x0326 || sourceHeader.tailTag !== 0x0679) {
     throw new Error('[error] invalid GIL header tags')
   }
-  const sourcePayload = input.bytes.slice(20, -4)
+  const sourcePayload = bytes.slice(20, -4)
   const sourceRoot = fields(sourcePayload, 'GIL payload')
   if (!Buffer.from(emitWireMessage(sourceRoot)).equals(Buffer.from(sourcePayload))) {
     throw new Error('[error] GIL payload is not safely round-trippable')
@@ -512,7 +518,63 @@ export function registerSignalInGil(input: {
   const topField = one(sourceRoot, 10, 'top-level field 10')
   const top = message(topField, 'top-level field 10')
   const index = signalIndex(top)
-  const existingEntries = signalEntries(index.fields)
+  return { sourceHeader, sourceRoot, topField, top, index, entries: signalEntries(index.fields) }
+}
+
+export function updateSignalInGil(input: {
+  bytes: Uint8Array
+  targetSignalName: string
+  signal: Omit<SignalRegistrationSpec, 'sendId' | 'monitorId' | 'serverId'>
+}): UpdateSignalResult {
+  const { sourceHeader, sourceRoot, topField, top, index, entries } = readSignalSource(input.bytes)
+  const target = entries.find((entry) => entry.name === input.targetSignalName)
+  if (!target) throw new Error(`[error] signal not found: ${input.targetSignalName}`)
+  if (input.signal.name !== target.name && entries.some((entry) => entry.name === input.signal.name)) {
+    throw new Error(`[error] signal already registered: ${input.signal.name}`)
+  }
+
+  const signal: SignalRegistrationSpec = { ...input.signal, ...target.identity }
+  const pool = buildParamPool(top, entries)
+  validateSpec(signal, pool)
+  const kinds = new Map<number, DefinitionKind>([
+    [target.identity.sendId, 'send'],
+    [target.identity.monitorId, 'monitor'],
+    [target.identity.serverId, 'server']
+  ])
+  const found = new Set<number>()
+  const nextTop = top.map((field) => {
+    const id = definitionNodeId(field)
+    const kind = id === undefined ? undefined : kinds.get(id)
+    if (!kind) return field
+    found.add(id!)
+    return buildDefinition(field, kind, target, signal, pool)
+  })
+  if (found.size !== 3) throw new Error(`[error] incomplete signal definitions: ${target.name}`)
+
+  const targetIndexPosition = index.fields.indexOf(target.field)
+  const nextIndex = [...index.fields]
+  nextIndex[targetIndexPosition] = buildIndexEntry(target, signal, pool)
+  const indexPosition = nextTop.indexOf(index.field)
+  nextTop[indexPosition] = { ...index.field, value: emitWireMessage(nextIndex) }
+  const nextRoot = sourceRoot.map((field) =>
+    field === topField ? { ...field, value: emitWireMessage(nextTop) } : field
+  )
+  return {
+    bytes: buildFile(emitWireMessage(nextRoot), sourceHeader),
+    signal,
+    templateSignalName: target.name,
+    previousSignalName: target.name
+  }
+}
+
+export function registerSignalInGil(input: {
+  bytes: Uint8Array
+  templateSignalName: string
+  signal: SignalRegistrationInput
+  templateBytes?: Uint8Array
+}): RegisterSignalResult {
+  const { sourceHeader, sourceRoot, topField, top, index, entries: existingEntries } =
+    readSignalSource(input.bytes)
   if (existingEntries.some((entry) => entry.name === input.signal.name)) {
     throw new Error(`[error] signal already registered: ${input.signal.name}`)
   }

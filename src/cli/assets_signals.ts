@@ -11,11 +11,12 @@ import { DEFAULT_SIGNALS_PATH, extractSignalsFromGil, readRegisteredSignalsFromG
 import {
   PARAM_TYPE_CODES,
   registerSignalInGil,
+  updateSignalInGil,
   type SignalRegistrationParam
 } from './gil_signal_registrations.js'
 import { sha256Bytes } from './static_assembly/json.js'
 
-type Command = 'inspect' | 'register'
+type Command = 'inspect' | 'register' | 'update'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 const MAX_PARAMS = 9
@@ -25,7 +26,7 @@ const PARAM_TYPES = new Set<string>(
 
 function usage(exitCode = 1): never {
   const output = [
-    'Usage: gsts assets:signals [inspect] [options]',
+    'Usage: gsts assets:signals [inspect|update] [options]',
     '',
     '  --config <file>          project config (for --map-id resolution)',
     '  --map-id <id>            target map ID (location only)',
@@ -33,7 +34,8 @@ function usage(exitCode = 1): never {
     '  --output <file>          create output without overwriting',
     '  --write                  write source GIL after backup',
     '  --template-signal <name> existing signal to clone parameter entries from',
-    '  --name <name>            new signal name',
+    '  --target-signal <name>   existing signal to update in place',
+    '  --name <name>            resulting signal name',
     '  --param <name:type>      new signal parameter (repeatable, <=9, one per type)',
     '  --send-id <id>           new signal send node ID (auto when omitted)',
     '  --monitor-id <id>        new signal monitor node ID (auto when omitted)',
@@ -78,13 +80,14 @@ export function parseArgs(argv: readonly string[]) {
   let outputPath: string | undefined
   let write = false
   let templateSignalName: string | undefined
+  let targetSignalName: string | undefined
   let name: string | undefined
   let sendId: number | undefined
   let monitorId: number | undefined
   let serverId: number | undefined
   const params: SignalRegistrationParam[] = []
-  if (argv[0] === 'inspect') {
-    command = 'inspect'
+  if (argv[0] === 'inspect' || argv[0] === 'update') {
+    command = argv[0]
     argv = argv.slice(1)
   }
   for (let i = 0; i < argv.length; i++) {
@@ -94,6 +97,7 @@ export function parseArgs(argv: readonly string[]) {
     else if (arg === '--output') outputPath = value(argv, i++)
     else if (arg === '--write') write = true
     else if (arg === '--template-signal') templateSignalName = value(argv, i++)
+    else if (arg === '--target-signal') targetSignalName = value(argv, i++)
     else if (arg === '--name') name = value(argv, i++)
     else if (arg === '--param') params.push(parseParam(value(argv, i++)))
     else if (arg === '--send-id') sendId = nonNegativeId(value(argv, i++), '--send-id')
@@ -106,18 +110,39 @@ export function parseArgs(argv: readonly string[]) {
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
   if (command === 'register') {
     if (!templateSignalName) throw new Error('[error] --template-signal is required')
+  } else if (command === 'update') {
+    if (!targetSignalName) throw new Error('[error] --target-signal is required')
     if (!name) throw new Error('[error] --name is required')
+    if (templateSignalName || sendId !== undefined || monitorId !== undefined || serverId !== undefined) {
+      throw new Error('[error] update preserves signal IDs and does not accept template or ID options')
+    }
+  }
+  if (command !== 'inspect' && !name) throw new Error('[error] --name is required')
+  if (command === 'register') {
     const providedIds = [sendId, monitorId, serverId].filter((id) => id !== undefined)
     if (providedIds.length > 0 && providedIds.length < 3) {
       throw new Error(
         '[error] provide all of --send-id/--monitor-id/--server-id or none (auto-assigned)'
       )
     }
-    if (params.length > MAX_PARAMS) {
-      throw new Error(`[error] at most ${MAX_PARAMS} parameters per signal`)
-    }
   }
-  return { command, gilPath, mapId, outputPath, write, templateSignalName, name, sendId, monitorId, serverId, params }
+  if (params.length > MAX_PARAMS) {
+    throw new Error(`[error] at most ${MAX_PARAMS} parameters per signal`)
+  }
+  return {
+    command,
+    gilPath,
+    mapId,
+    outputPath,
+    write,
+    templateSignalName,
+    targetSignalName,
+    name,
+    sendId,
+    monitorId,
+    serverId,
+    params
+  }
 }
 
 function resolveGilPath(
@@ -180,17 +205,24 @@ async function runRegister(
   if (!fs.statSync(sourcePath).isFile()) throw new Error(`[error] gil not found: ${sourcePath}`)
   const sourceBytes = new Uint8Array(fs.readFileSync(sourcePath))
   const sourceSha = sha256Bytes(sourceBytes)
-  const result = registerSignalInGil({
-    bytes: sourceBytes,
-    templateSignalName: args.templateSignalName!,
-    signal: {
-      name: args.name!,
-      params: args.params,
-      sendId: args.sendId,
-      monitorId: args.monitorId,
-      serverId: args.serverId
-    }
-  })
+  const result =
+    args.command === 'update'
+      ? updateSignalInGil({
+          bytes: sourceBytes,
+          targetSignalName: args.targetSignalName!,
+          signal: { name: args.name!, params: args.params }
+        })
+      : registerSignalInGil({
+          bytes: sourceBytes,
+          templateSignalName: args.templateSignalName!,
+          signal: {
+            name: args.name!,
+            params: args.params,
+            sendId: args.sendId,
+            monitorId: args.monitorId,
+            serverId: args.serverId
+          }
+        })
   const candidateSha = sha256Bytes(result.bytes)
 
   // Structural read-back through the shared extractor before any write.
@@ -204,7 +236,10 @@ async function runRegister(
     if (
       readBack.sendId !== result.signal.sendId ||
       readBack.monitorId !== result.signal.monitorId ||
-      readBack.serverId !== result.signal.serverId
+      readBack.serverId !== result.signal.serverId ||
+      (args.command === 'update' &&
+        readBack.params.map((param) => `${param.name}:${param.type}`).join('|') !==
+          args.params.map((param) => `${param.name}:${param.type}`).join('|'))
     ) {
       throw new Error('[error] candidate read-back identity mismatch')
     }
@@ -242,7 +277,7 @@ async function runRegister(
     console.log(`preview=${sourcePath}`)
   }
   console.log(
-    `signal=${args.name} template=${result.templateSignalName} params=${args.params.length} ` +
+    `signal=${args.name} mode=${args.command} template=${result.templateSignalName} params=${args.params.length} ` +
       `sendId=${result.signal.sendId} monitorId=${result.signal.monitorId} ` +
       `serverId=${result.signal.serverId} candidateSha256=${candidateSha}`
   )
