@@ -539,5 +539,106 @@ GraphNode = { f1=nodeIndex, f2=genericId, f3=concreteId, f4=NodePin×N,
 | 发送节点 genericId | 客户端路径 patch 成 serverId | **= sendId（定义三元组第一个）** |
 | concreteId | SysCall 2000 | **= genericId（SysGraph）** |
 
-监听节点（onSignal）与客户端 sendSignalToServerNodeGraph 的实例编码**尚无增量样本**，
-待样本确认后再修正；在此之前 §11.2 相关行仅作历史记录。
+监听节点（onSignal）实例编码见 **§13（增量样本 v7-v10，已证实）**；
+客户端 sendSignalToServerNodeGraph 的实例编码仍无增量样本，§11.2 相关行仅作历史记录。
+---
+
+## 13 监听信号节点（onSignal）实例编码——增量样本 v7-v10（已证实）
+
+> 证据链：v7 仅监听未用参数 → v8 打印节点直接消费参数 → v9 类型转化链消费「固定三个参数」第一个 → v10 改为第三个。
+> 四轮均为用户多次新增后取变更，样本可靠性同 v1-v6。全轮验证：定义容器（cube_turn 三个 268/366/328B、
+> 工具_新信号三元组 393/431/331B）一字未变，文件增量全部在图定义容器（nodeGraphBlob）。
+
+### 13.1 监听节点最小字段集（v7）
+
+```
+genericId = concreteId = { class:10001, type:20000, kind:22001(SysGraph), nodeId=monitorId }
+pins[0]: 信号名 pin — i1=ClientExecNode(无 index), value=StringBase(信号名),
+          clientExecNode={ClientSignal, index:1}, compositePinIndex=44
+signalVersion = 2；x/y 坐标已编码
+```
+
+- **nodeId = monitorId = 信号注册表条目 f2**。cube_turn 的 monitorId=1610612742（0x60000006）；
+  对照发送节点 nodeId=sendId=注册表条目 f1（工具_新信号=1610612768/0x60000020）。
+  **每个信号在注册表里有一对 ID：f1=sendId（发送节点引用）、f2=monitorId（监听节点引用）**；
+  handoff 曾预期 monitorId=1610612769（0x60000021）有误——那是工具_新信号的 monitorId，用户监听的是内置信号 cube_turn。
+- **signalVersion 不是节点类型属性，而是信号版本**：= 注册表条目 f6（cube_turn=2、工具_新信号=1）。
+  发送节点 signalVersion=1 只是该信号版本恰好为 1（修正 §12.7 的表述）。
+- 仅信号名 pin 时无 OutFlow、无参数 pin——pin 按需编码（与发送节点一致）。
+
+### 13.2 信号注册表条目结构（f5 大容器，新发现）
+
+每个信号在 GIL 的 f5 大容器（≈2531B）里一个条目：
+
+```
+f1=sendId(NodeGraphId)  f2=monitorId(NodeGraphId)  f3=信号名
+f4×N=参数条目 { f1=参数名, f2=类型(3=Integer/6=String/9=BooleanList), f3=1,
+               f4/f5/f6=该参数在三个定义容器中的 pinIndex }
+f6=信号版本  f7=下一个信号 ID
+```
+
+- cube_turn：`{f1=0x60000005, f2=0x60000006, f3="cube_turn", f4=face{6,1,12,34,40}, f4=direction{6,1,16,35,41}, f6=2}`
+- 工具_新信号：`{f1=0x60000020, f2=0x60000021, f3="工具_新信号", f4=参数_1{3,1,68,76,83}, f4=参数_2{6,1,12,34,40}, f4=参数_3{9,1,70,78,85}, f6=1}`
+- **参数条目 f4/f5/f6 = 同一参数在三个定义容器中的 pinIndex**（face: 12/34/40、direction: 16/35/41），
+  与发送节点实例参数 cpi（68/12/70）逐一吻合——三个容器是同一信号定义的三套 pinIndex 视图。
+- 工具_新信号 参数_2 的 cpi=12 = cube_turn face 的 cpi=12，坐实「工具_新信号复制自 cube_turn 后改参数」。
+- 信号 ID 为 Server 基址 0x60000000 上的小序号；cube_turn 是内置信号（ID 更小、版本更高）。
+
+### 13.3 监听节点输出体系：固定三个参数 + 自定义参数（v9/v10）
+
+cube_turn 定义容器（第二个，366B）的 **f103 = 完整输出 pin 列表**（顺序即输出序号）：
+
+| 输出序号 | pin | 定义 f3 | 定义 f8 | 类型 |
+|:---:|:---|:---|:---:|:---|
+| 0 | 事件源实体 | {f1:4} | 15 | Entity |
+| 1 | 事件源GUID | {f1:4, f2:1} | 16 | GUID |
+| 2 | 信号来源实体 | {f1:4, f2:2} | 17 | Entity |
+| 3 | face | {f1:4, f2:3} | 34 | String |
+| 4 | direction | {f1:4, f2:4} | 35 | String |
+
+- 「固定的三个参数」= 前三个固定输出（事件源实体/GUID/信号来源实体，f3.f1=4 组）；
+  自定义参数（face/direction）排在其后。f3.f2 = 组内序号（1 起，固定组内从 1/2 起）。
+- 监听节点实例的 OutFlow cpi=13、信号名 cpi=44 均取自定义容器 f8（对照 §12.3 规律）。
+- 第一个容器（268B）f102=用户参数视图（face f8=12、direction f8=16，f3={f1:3}=自定义组）；
+  第三个容器（328B）为另一视图（face f8=40、direction f8=41）。
+
+### 13.4 参数消费：实例不编码 OutParam，connects 用输出序号引用（v8-v10）
+
+**监听节点实例不编码任何参数 OutParam pin**——参数输出是隐式的（由定义容器决定），消费方只写 connects：
+
+```
+消费方 pin.connects = [{ id: 监听节点nodeIndex, connect: {kind: OutParam, index: 输出序号},
+                         connect2: {kind: OutParam, index: 输出序号} }]
+```
+
+- **OutParam index = 输出序号（0-based，0 省略）**：v9 消费第一个（事件源实体）= 无 index；
+  v10 改为第三个（信号来源实体）= index:2；idx=7 遗留连接 face = index:3。与 13.3 表完全对应。
+- 消费链示例（v9/v10）：监听节点 OutFlow → 打印节点 InFlow；监听节点 OutParam(0/2)
+  → 类型转化节点 InParam(type=1 Entity) → OutParam(type=6 String) → 打印节点 InParam(type=6)。
+
+### 13.5 消费节点（SysCall）模式
+
+- **打印节点 = SysCall genericId=concreteId=1**：InParam type=6，connects 引用来源；
+  **无 compositePinIndex、无 signalVersion**（与拼装节点 §12.5 一致）。
+- **类型转化节点 = SysCall genericId=180 / concreteId=183**（generic≠concrete，同拼装节点 169/175 模式）：
+  InParam 声明 `ConcreteBase{indexOfConcrete:1, itemType:Entity}`（type=1），
+  OutParam 声明 `ConcreteBase{indexOfConcrete:2, itemType:String}`（type=6）——类型用 ConcreteBase 声明。
+- 类型枚举（实例 pin.type）：Entity=1、Integer=3、Boolean=4、String=6、BooleanList=9。
+
+### 13.6 增量核验表（v7-v10）
+
+| 版本 | 用户操作 | 关键结论 |
+|---|---|---|
+| v7 | 新增监听节点（仅监听，未用参数） | 最小字段集；monitorId=注册表 f2；signalVersion=注册表 f6=2；信号名 pin cpi=44 |
+| v8 | 新增打印节点，直接消费参数 | 监听节点 OutFlow cpi=13；打印节点 SysCall 1；实例不编码 OutParam；index=3=face |
+| v9 | 类型转化链消费「第一个」参数 | 固定三参数=事件源实体/GUID/信号来源实体；无 index=输出0；转化节点 SysCall 180/183 |
+| v10 | 改消费「第三个」参数 | OutParam index=2=信号来源实体——**index=输出序号（0-based，0 省略）闭环** |
+
+全轮确认：cube_turn 三容器与工具_新信号三元组一字未变；字节增量仅 nodeGraphBlob（v8 +107B、v9 +215B、v10 +4B）。
+
+### 13.7 未解释/待验证
+
+- 第三个容器（328B）的 f8=19/20/45/46 对应 pin 语义未用未证（可能是客户端侧 pinIndex 视图）。
+- OutParam index=1（事件源GUID）样本未出现，index 语义由 0/2/3 三点外推。
+- f103 定义 f4（如事件源实体 {f3:1,f4:1} vs face {f1:5,f3:6,f4:6}）的差异含义未深究。
+- 客户端 sendSignalToServerNodeGraph 节点编码仍无样本。
