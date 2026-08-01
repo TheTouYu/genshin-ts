@@ -140,7 +140,7 @@
         "collectFolderIndexes",
         "runAssetsCustomVariables"
       ],
-      "migration_status": "managed"
+      "migration_status": "pilot"
     },
     {
       "id": "project-intelligence",
@@ -971,6 +971,21 @@
       ]
     },
     "clm_EB98A0BAEA640B8ECB6577B16C": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_880C4DB58E0AD04C130A856689": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_2B593993003299201E6F576C7E": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_9D4E6D9B9268F9425BD2BE264F": {
       "fact_classes": [
         "external_game_evidence"
       ]

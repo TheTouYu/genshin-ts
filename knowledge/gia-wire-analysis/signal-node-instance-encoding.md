@@ -76,12 +76,24 @@ GIL f5 大容器内每个信号一个注册表条目：f1=sendId、f2=monitorId�
 
 <!-- CLAIM:START clm_9FA1660915D1832D0763A499E4 -->
 
-### Signal/node types use the global VarType enum; repo maps (PARAM_TYPE_CODES/argVarType/DTC sequence) are subsets, all matching real samples
+### Signal/node types use the global VarType enum; real samples and current production cover distinct subsets
 
-游戏数据类型是全局通用的：信号注册 f4 参数类型、节点实例 pin.type、类型转化节点 ConcreteBase 均编码自同一张 VarType 枚举（thirdparty node_data/types_list.ts + protobuf/gia.proto.ts）：Entity=1/GUID=2/Integer=3/Boolean=4/Float=5/String=6/GUIDList=7/IntegerList=8/BooleanList=9/FloatList=10/StringList=11/Vector=12/EntityList=13/EnumItem=14/VectorList=15/LocalVariable=16/Faction=17/Configuration=20/Prefab=21/ConfigurationList=22/PrefabList=23/FactionList=24/Struct=25/StructList=26/Dictionary=27/VariableSnapshot=28。仓库侧三处映射均为该表子集且与真实样本全吻合：gil_signal_registrations.ts PARAM_TYPE_CODES（信号注册 f4 类型，f4 的 3/6/9 已证）、composite.ts argVarType()（实例 pin.type，v1-v11 的 1/2/3/6/9/12 已证）、composite.ts DTC_IN_PARAM_VARTYPE_SEQUENCE（转化节点 indexOfConcrete=序列下标 0=int/1=entity/2=guid/3=bool/4=float/5=vec3/6=faction，v9 ioC=1 Entity/183、v11 ioC=2 GUID/184 双样本证实）。GUID=2 是 VarType 正常值而非新类型；映射缺口属合理子集（信号参数不支持 EnumItem/Struct/Dictionary 等，argVarType 列表仅 6 种，DTC 输入仅 7 种）
+游戏数据类型使用全局 VarType：Entity=1、GUID=2、Integer=3、Boolean=4、Float=5、String=6、GUIDList=7、IntegerList=8、BooleanList=9、FloatList=10、StringList=11、Vector=12、EntityList=13、EnumItem=14、VectorList=15、LocalVariable=16、Faction=17、Configuration=20、Prefab=21、ConfigurationList=22、PrefabList=23、FactionList=24、Struct=25、StructList=26、Dictionary=27、VariableSnapshot=28。真实信号/节点样本已覆盖 1/2/3/6/9/12/15；v14 证明 vec3_list 参数与 Assembly 输出使用 15。当前生产 argVarType 已支持 vec3_list=15、config_id_list=22、prefab_id_list=23，并由 shared/legacy focused regression 覆盖；信号注册 UI 仅允许 9 种普通类型及其 9 种列表类型，faction/faction_list 只保留解码兼容而禁止新注册。DTC 输入序列仍是独立的 7 类型子集。
 
 #### 适用边界
 
-VarType 表来自 thirdparty vendor 定义（未与游戏运行时逐项核对，其中 Configuration=20/Prefab=21 等未在真实样本出现）；真实样本仅覆盖 type 1/2/3/6/9/12；DTC 序列为仓库代码定义，7 种输入类型之外未样本；concreteId 与 ioC 的换算公式未验证
+全局枚举来自 vendor 定义，不表示每个编辑器 UI 或节点都支持全部类型。真实实例只覆盖 1/2/3/6/9/12/15；22/23 当前只有生产自动回归和编辑器合法类型边界，不声称已有真实发送实例或游戏行为验证。DTC concreteId 换算公式及其余类型仍未验证。
 
 <!-- CLAIM:END clm_9FA1660915D1832D0763A499E4 -->
+
+<!-- CLAIM:START clm_9D4E6D9B9268F9425BD2BE264F -->
+
+### vec3_list send instance and Vector Assembly List encoding from v12-v14
+
+在真实编辑器相邻 GIL 样本 v12-v14 中，已注册信号 gsts_type_probe_vec3_list 的 send/monitor/server ID 为 1610612771/72/73、signalVersion=1。绑定但未赋参的发送节点只编码信号名 pin（compositePinIndex=172）；连接 [(1,2,3)] 后新增 InParam[0] type=VectorList(15)、compositePinIndex=173，连接 Assembly List nodeIndex=3 OutParam[0]。Assembly List 使用 SysCall genericId=169/concreteId=174，含 100 个 Vector(12) InParam[1..100]、首槽 (1,2,3) 和一个 VectorList(15) OutParam。
+
+#### 适用边界
+
+只适用于地图 1073741849、图 1073741836/后续专用增量图 1073741840 中该注册信号的真实编辑器样本。172/173 是该信号定义分配值，不可推广到其他信号；signalVersion 也必须从注册定义读取。真实编辑器观察和临时副本同构回读已完成，本轮没有新的真实写回或游戏行为验证。
+
+<!-- CLAIM:END clm_9D4E6D9B9268F9425BD2BE264F -->

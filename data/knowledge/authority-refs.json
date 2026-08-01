@@ -38,7 +38,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
+      "approved_hash": "6faacde388057f9ff68ed36f17e25b8aa7dc83a3c864563925ddbf99f82899c0",
       "claim_ids": [
         "clm_C94874AE97BFE0BC3B9F1986D7"
       ],
@@ -83,7 +83,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "56b94f6b6d553dd75648983929574bb113befe9e0e81f10928df1a7d2a873611",
+      "approved_hash": "747b64838b9d74b583326451386f1cae467fc0a687a41cfcf18b9f0be2d7e87a",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
@@ -98,7 +98,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
+      "approved_hash": "6faacde388057f9ff68ed36f17e25b8aa7dc83a3c864563925ddbf99f82899c0",
       "claim_ids": [
         "clm_9FA1660915D1832D0763A499E4"
       ],
@@ -113,7 +113,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "f4b4ee75ede48c7abd614e7aa4931cb6ba11fb1152d29110c990ca5a66e0e534",
+      "approved_hash": "6a71c1a06c986842ef50a79e7f5e478af5ccf7ae7ea366829a1e09704117325a",
       "claim_ids": [
         "clm_1C7FBF676F01E516F73C95093E"
       ],
@@ -197,6 +197,21 @@
       ]
     },
     {
+      "id": "aref_347b2c2c0d5ec93f1254f21330",
+      "path": "tests/compare_gil_node_graph_test.ts",
+      "locator": "focused CLI regression: empty graph to one placeholder node",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "74c6c62159b9e04470831fa4e81beec77c70944a4f3ec7ce101e32252484a6aa",
+      "claim_ids": [
+        "clm_2B593993003299201E6F576C7E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_3bf09dfe0f8d3ddf100f541ae3",
       "path": "src/runtime/composite_registry.ts",
       "locator": "CompositeInputDefinitions; CompositeInputValues; CompositeHandle input schema",
@@ -212,6 +227,21 @@
       ]
     },
     {
+      "id": "aref_3c1e799f9b69fcdfd3ccca17ef",
+      "path": "tools/compare-gil-node-graph.ts",
+      "locator": "compareGilNodeGraph and CLI entry",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "3a027d71147e1a61d143a3ac872263b8599b362630e440725d4c8c10229c5801",
+      "claim_ids": [
+        "clm_2B593993003299201E6F576C7E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_3d306acb3e63a5c1810b4792d7",
       "path": "src/cli/static_assembly_structure.ts",
       "locator": "loadStaticAssemblyStructure() and resolveStaticAssemblyStructure()",
@@ -224,6 +254,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_3e2ed4f88dbba42c328858ca2d",
+      "path": ".agents/skills/editor-incremental-gia-investigator/SKILL.md",
+      "locator": "hard constraints and adjacent-snapshot workflow",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "883fe4cbaf6cd43f03e84611d6d746b36623588c2e33740e4722e3387b0b746f",
+      "claim_ids": [
+        "clm_880C4DB58E0AD04C130A856689"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -323,7 +368,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
+      "approved_hash": "6faacde388057f9ff68ed36f17e25b8aa7dc83a3c864563925ddbf99f82899c0",
       "claim_ids": [
         "clm_B334BFA5DAE015C296764EADF9"
       ],
@@ -353,7 +398,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "ae12d02e685a4de02c9e0c28a5cea3b4813370406aad025562a58d151303e721",
+      "approved_hash": "c8135f7a192cb435167bb40bab7feb3502398771564eb8a432bf2d0b33e55c75",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
@@ -368,7 +413,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "bd3e722c3dc84868c3112099deed87ed55b2831bdd76ae41ce9e14fbcdc21bba",
+      "approved_hash": "4bd4ff3655868b8ff5690a822d2dd8026cfd01d2555743fcb10f8505e1b62573",
       "claim_ids": [
         "clm_EB98A0BAEA640B8ECB6577B16C"
       ],
@@ -398,7 +443,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "ae12d02e685a4de02c9e0c28a5cea3b4813370406aad025562a58d151303e721",
+      "approved_hash": "c8135f7a192cb435167bb40bab7feb3502398771564eb8a432bf2d0b33e55c75",
       "claim_ids": [
         "clm_EB98A0BAEA640B8ECB6577B16C"
       ],
@@ -443,7 +488,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "f4b4ee75ede48c7abd614e7aa4931cb6ba11fb1152d29110c990ca5a66e0e534",
+      "approved_hash": "6a71c1a06c986842ef50a79e7f5e478af5ccf7ae7ea366829a1e09704117325a",
       "claim_ids": [
         "clm_7FEA75E7BDC040A878FC3731F7"
       ],
@@ -479,6 +524,21 @@
       ],
       "supports_fact_classes": [
         "public_type_surface"
+      ]
+    },
+    {
+      "id": "aref_8d54507653cac609d4988414f0",
+      "path": "docs/architecture/injector-system.md",
+      "locator": "3.4 向特定 NodeGraph 增加节点：相邻快照与整图替换",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "1bab489ff237ab80d1054dd73d5117d59d530aa1555fc4c93a2c889a27b14a92",
+      "claim_ids": [
+        "clm_2B593993003299201E6F576C7E"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -533,7 +593,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "6ecf5e421bccace5a50d739511ec81dd98541e9c0bf27561d7aef5dfb5285fe9",
+      "approved_hash": "efb56134b72e30d74a5c551d10803af3c070a2fd8c8a42d501e2f140742037ea",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
@@ -548,7 +608,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "bd3e722c3dc84868c3112099deed87ed55b2831bdd76ae41ce9e14fbcdc21bba",
+      "approved_hash": "4bd4ff3655868b8ff5690a822d2dd8026cfd01d2555743fcb10f8505e1b62573",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
@@ -655,7 +715,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
+      "approved_hash": "6faacde388057f9ff68ed36f17e25b8aa7dc83a3c864563925ddbf99f82899c0",
       "claim_ids": [
         "clm_9F3BC0989E06157B2B43343C86"
       ],
@@ -676,6 +736,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_e190a4844c7344c1d3900e5d8d",
+      "path": "AGENTS.md",
+      "locator": "回复与协作：知识优先的最小单变化收敛流程",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "efb56134b72e30d74a5c551d10803af3c070a2fd8c8a42d501e2f140742037ea",
+      "claim_ids": [
+        "clm_880C4DB58E0AD04C130A856689"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -745,9 +820,24 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d5e9f6ed26f54152c9f520dfee3c2471f9dcea75fcef949e8a5ee0aa7ea6fcc3",
+      "approved_hash": "6faacde388057f9ff68ed36f17e25b8aa7dc83a3c864563925ddbf99f82899c0",
       "claim_ids": [
         "clm_BA34651BAE20402536B7CD711B"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_ff3c3b2a20b151f797048fda31",
+      "path": "docs/composite-ir/04-validation-signal.md",
+      "locator": "§14.1 真实 GIL 观察：增量样本 v12-v14",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6faacde388057f9ff68ed36f17e25b8aa7dc83a3c864563925ddbf99f82899c0",
+      "claim_ids": [
+        "clm_9D4E6D9B9268F9425BD2BE264F"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
@@ -788,7 +878,7 @@
       "locator": "call identity, sparse pins and collectCalledCompositeIds()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "d324a6983a588419ab2e20543e67e67bab8f5a5569ebbcd7e224dcbc3a64f9ac",
+      "approved_hash": "9c28cf6b21961e2e17d1360a10d7f059b33e839cd3a5ff13f0ae58bb3f4a672e",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH4ZHG20242R3TTYBWTJTXR"
@@ -969,7 +1059,7 @@
       "locator": "buildCompositeAccessories() and impl Graph materialization",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "f4b4ee75ede48c7abd614e7aa4931cb6ba11fb1152d29110c990ca5a66e0e534",
+      "approved_hash": "6a71c1a06c986842ef50a79e7f5e478af5ccf7ae7ea366829a1e09704117325a",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH07BSYPM9083KHHEHEP22H"
@@ -1044,7 +1134,7 @@
       "locator": "tool selection and evidence limits",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "0df0d8939583761174b1a6483b721b45916ff97071fca4befd2bbe6b7f43c05c",
+      "approved_hash": "5866bb1718116e9ec13192fb314f36791414e6dcf7caec574bfc718011da3584",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH4ZJ0Q06EDE5T9ETYCAGK4"
@@ -1266,7 +1356,7 @@
       "locator": "irToGia() dispatch, preprocessing and materialization seams",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "ab5f0b4329ae76f9df5237a7a3c03863df66e11191d2b48b8f34198baa27b034",
+      "approved_hash": "59e215df0a39ba4d37ad393024e08af52c56e50a81d7ec0d9d4d662567b67765",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH64V6AG9Q1EFEVHBJJC93P"
