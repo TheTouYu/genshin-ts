@@ -19,7 +19,9 @@ type Command = 'inspect' | 'register'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 const MAX_PARAMS = 9
-const PARAM_TYPES = new Set<string>(Object.keys(PARAM_TYPE_CODES))
+const PARAM_TYPES = new Set<string>(
+  Object.keys(PARAM_TYPE_CODES).filter((type) => type !== 'faction' && type !== 'faction_list')
+)
 
 function usage(exitCode = 1): never {
   const output = [

@@ -1,9 +1,9 @@
 # 信号型复合节点验证
 
 > 状态：已验证
-> 来源：真实 GIA 验证（信号目录样本 + log系统.gia + 物理运动.gia + 2026-08-01 增量实验样本 v1-v6）
+> 来源：真实 GIA 验证（信号目录样本 + log系统.gia + 物理运动.gia + 2026-08-01 增量实验样本 v1-v14）+ 当前代码实现 + 自动回归
 > 最近校验：2026-08-01
-> 适用范围：真实 GIA 信号型复合逆向结论；§12 发送节点实例编码为游戏编辑器真实输出（增量实验逐轮核验）。
+> 适用范围：真实 GIA 信号型复合逆向结论；§12–§14 为游戏编辑器真实输出的增量核验；§14.2 另记录 gsts 当前修复和自动回归范围。
 
 覆盖：信号目录 6 个 GIA 文件。信号型复合是复合节点的特殊子类，执行由游戏信号系统驱动而非 InFlow。
 
@@ -687,6 +687,50 @@ v10 +4B、v11 +143B）。v11 为**纯追加**：nodeGraphBlob 5373→5516B，v10
 
 - **indexOfConcrete = DTC_IN_PARAM_VARTYPE_SEQUENCE 下标**（代码已实现，双样本证实）——修正 13.5 早期
   「ioC=1 Entity/2 String」的误读：OutParam 的 ioC=2 与输入序列无关（输出声明另表，目前只见 String）。
-- 映射缺口属合理子集：信号参数不支持 EnumItem/Struct/Dictionary 等；`argVarType` 列表仅 6 种
-  （缺 vec3_list/faction_list/config_id_list/prefab_id_list）；DTC 输入仅 7 种。
+- v12–v14 已确认编辑器信号参数只允许 **9 种普通类型 + 对应 9 种列表类型**；不允许
+  Faction/FactionList、EnumItem、Struct 或 Dictionary。`PARAM_TYPE_CODES` 仍保留 17/24 供历史/异常
+  GIL 解码兼容，但 `assets:signals register` 与底层 `registerSignalInGil()` 不再允许写入这两种类型。
+- `argVarType()` 的真实缺口只有 `vec3_list/config_id_list/prefab_id_list` 三种；2026-08-01 已按
+  v14 的 15/22/23 修复。DTC 输入仍仅支持 7 种，这是独立的节点能力子集。
 - 同轮修正：**GUID=2 是 VarType 正常值**，非新增类型；§12/§13 早期「类型枚举」表述以本表为准。
+
+## 14 信号参数类型池与列表实例编码——增量样本 v12-v14（已证实）
+
+### 14.1 真实 GIL 观察
+
+只读快照：`/tmp/gil-v12.gil`、`/tmp/gil-v13.gil`、`/tmp/gil-v14.gil`；源地图由用户在编辑器中逐步保存，分析期间未写回。v14 SHA-256：
+`1f7b749526ca4fff6bd8524889a645d60424935125ecbc3ef033eae4767c806c`。
+
+| 版本 | 唯一相关变化 | 观察结果 |
+|---|---|---|
+| v12 | 新增空节点图并注册 `gsts_type_probe_vec3_list(value: vec3_list)` | 注册表 `VarType=15`；send/monitor/server ID 为 1610612771/72/73 |
+| v13 | 放置未连接的发送节点 | `genericId=concreteId=sendId`、`signalVersion=1`；未赋值参数不编码实例 pin |
+| v14 | 新增 `(1,2,3)` 向量 Assembly List 并连接 `value` | 发送参数 `type=15`、`compositePinIndex=173`；连接到 nodeIndex 3 |
+
+v14 Assembly List 使用 `genericId=169/concreteId=174`，编码 100 个 `Vector=12` 输入槽和一个
+`VectorList=15` 输出；第一个元素为 `(1,2,3)`。这与 bool 列表样本的 concreteId=175 不同，证明
+Assembly List concrete ID 随元素具体类型变化。`compositePinIndex=173` 来自当前信号定义，不能与
+`VarType.VectorList=15` 混淆。
+
+用户同时确认编辑器信号参数下拉框只有 9 种普通类型及其 9 种列表类型；`faction/faction_list` 与枚举
+不在信号可选类型池中。该结论适用于当前编辑器信号注册 UI，不推广为全局 VarType 不存在这些类型。
+
+### 14.2 当前 gsts 修复与自动回归
+
+当前实现同步修复：
+
+- `composite.ts` 与 `lower_composite_call.ts` 的 `argVarType()`：补齐
+  `vec3_list=15/config_id_list=22/prefab_id_list=23`；
+- `index.ts` 根图 Composite call：列表接口使用 vendor list pin，而非误编码为元素标量 pin；
+- `assets_signals.ts` 与 `gil_signal_registrations.ts`：写入边界拒绝编辑器不支持的
+  `faction/faction_list`，解码表保留兼容。
+
+聚焦回归：
+
+```bash
+npm run build
+npx tsx tests/composite/test-stage3-signal-supported-list-var-types.ts
+```
+
+该回归经公开 `irToGia()` seam 验证 shared 与 legacy 两条后端的 Composite call 和 impl signal pin
+均为 22/23/15。它证明当前自动编码结构，不替代编辑器导入或游戏行为验证。

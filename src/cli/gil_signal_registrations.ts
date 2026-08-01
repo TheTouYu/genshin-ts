@@ -348,6 +348,9 @@ function validateSpec(spec: SignalRegistrationSpec, pool: SignalPool): void {
       throw new Error(`[error] duplicate or empty signal parameter name: ${param.name}`)
     }
     names.add(param.name)
+    if (param.type === 'faction' || param.type === 'faction_list') {
+      throw new Error(`[error] unsupported editor signal parameter type: ${param.type}`)
+    }
     const templates = pool.byType.get(param.type)
     if (!templates) {
       throw new Error(

@@ -1208,10 +1208,16 @@ function argVarType(argType: string): number {
             return VarType.FloatList
           case 'str':
             return VarType.StringList
+          case 'vec3':
+            return VarType.VectorList
           case 'guid':
             return VarType.GUIDList
           case 'entity':
             return VarType.EntityList
+          case 'prefab_id':
+            return VarType.PrefabList
+          case 'config_id':
+            return VarType.ConfigurationList
           default:
             return 0
         }

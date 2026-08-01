@@ -526,7 +526,7 @@ function assertSendSignal(name: string, types: readonly string[], signal: any, i
     `${name} send must use signal-specific id`
   )
   assert.equal(signal.genericId?.kind, 22001, `${name} send must be SysGraph`)
-  assert.equal(signal.signalVersion, 1, `${name} signalVersion=1`)
+  assert.equal(signal.signalVersion, 2, `${name} signalVersion=2`)
   const namePin = (signal.pins ?? []).find((p: any) => p.i1?.kind === 5 && p.i1?.index === 0)
   assert.ok(namePin, `${name} send missing ClientExec name pin`)
   assert.equal(signalNameOf(signal), name)
@@ -535,18 +535,20 @@ function assertSendSignal(name: string, types: readonly string[], signal: any, i
     .filter((p: any) => p.i1?.kind === 3)
     .sort((a: any, b: any) => a.i1.index - b.i1.index)
   const entityIndex = types.indexOf('entity')
-  const expectedCount = isImpl ? types.length - (entityIndex >= 0 ? 1 : 0) : types.length
-  assert.equal(dataPins.length, expectedCount, `${name} send pin count`)
+  assert.equal(dataPins.length, types.length, `${name} send pin count`)
   for (const pin of dataPins) {
     assert.equal(pin.compositePinIndex, 12 + pin.i1.index, `${name} send cpi ${pin.i1.index}`)
+    const isCapturedEntity = isImpl && pin.i1.index === entityIndex
     assert.ok(
-      (pin.connects ?? []).length > 0 || pin.value?.alreadySetVal === true,
+      isCapturedEntity || (pin.connects ?? []).length > 0 || pin.value?.alreadySetVal === true,
       `${name} send param ${pin.i1.index} unused`
     )
   }
-  if (entityIndex >= 0 && !isImpl) {
+  if (entityIndex >= 0) {
     assert.equal(dataPins[entityIndex].type, 1, `${name} entity physical type`)
-    assert.ok((dataPins[entityIndex].connects ?? []).length > 0, `${name} entity not wired`)
+    if (!isImpl) {
+      assert.ok((dataPins[entityIndex].connects ?? []).length > 0, `${name} entity not wired`)
+    }
   }
 }
 const SIGNAL_CASES = [
@@ -656,7 +658,7 @@ assert.ok(listMonitors.length >= 1, 'list signal monitor missing')
 for (const mon of [...rootMonitors, ...listMonitors]) {
   assert.equal(mon.genericId?.nodeId, SIGNAL_IDENTITIES.get(signalNameOf(mon))?.monitor)
   assert.equal(mon.genericId?.kind, 22001)
-  assert.equal(mon.signalVersion, 1)
+  assert.equal(mon.signalVersion, 2)
   const namePin = (mon.pins ?? []).find((p: any) => p.i1?.kind === 5)
   assert.ok(namePin, 'monitor missing ClientExec')
   const nameVal = typeof namePin?.value === 'string' ? namePin.value : namePin?.value?.bString?.val
@@ -664,19 +666,7 @@ for (const mon of [...rootMonitors, ...listMonitors]) {
   const paramOuts = (mon.pins ?? [])
     .filter((p: any) => p.i1?.kind === 4 && (p.i1?.index ?? 0) >= 3)
     .sort((a: any, b: any) => a.i1.index - b.i1.index)
-  assert.equal(
-    paramOuts.length,
-    SIGNAL_PARAM_COUNT,
-    `monitor should expose ${SIGNAL_PARAM_COUNT} param OutParams (index>=3), got ${paramOuts.length}`
-  )
-  for (let i = 0; i < SIGNAL_PARAM_COUNT; i++) {
-    assert.equal(paramOuts[i].i1.index, 3 + i, `monitor param out physical index`)
-    assert.equal(
-      paramOuts[i].compositePinIndex,
-      15 + 3 + i,
-      `monitor param ${i} cpi (firstFixedOutput=15 + index)`
-    )
-  }
+  assert.equal(paramOuts.length, 0, 'monitor parameter OutParams belong to CompositeDef only')
 }
 
 // SignalDef accessories (which=14) + 监听信号 CompositeDef (which=12)

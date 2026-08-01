@@ -197,6 +197,8 @@ assert.deepEqual(
 assert.throws(() => parseArgs(['--gil', beforePath, '--write', '--output', '/tmp/x.gil']), /mutually exclusive/)
 assert.throws(() => parseArgs(['--gil', beforePath, '--template-signal', signal.name]), /--name is required/)
 assert.throws(() => parseArgs(['--gil', beforePath, '--param', 'a:unknown_type']), /unknown parameter type/)
+assert.throws(() => parseArgs(['--gil', beforePath, '--param', 'a:faction']), /unknown parameter type/)
+assert.throws(() => parseArgs(['--gil', beforePath, '--param', 'a:faction_list']), /unknown parameter type/)
 assert.throws(() => parseArgs(['--gil', beforePath, '--param', 'bad']), /<name:type>/)
 assert.throws(
   () =>

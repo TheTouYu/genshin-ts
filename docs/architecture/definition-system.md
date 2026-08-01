@@ -235,7 +235,7 @@ type RuntimeValueTypeMap = {
 
 **位置**: `src/runtime/core.ts:58-79`
 
-信号定义 `defineSignal()` 允许的 21 种参数类型：
+`SignalParamType` 是运行时兼容联合，共 21 种（含 `unknown`）；它不等同于编辑器信号注册 UI 的可选类型池：
 
 ```typescript
 type SignalParamType =
@@ -247,6 +247,8 @@ type SignalParamType =
 ```
 
 比完整 `ValueType` 少：`struct`, `struct_list`, `dict`, `enum`, `enumeration`, `generic`, `local_variable`, `custom_variable_snapshot`。多一个 `unknown` 用于未指定的类型。
+
+2026-08-01 的编辑器增量样本 v12–v14 与用户类型下拉框核验确认：信号注册 UI 实际只允许 9 种普通类型（不含 `faction`）及对应 9 种列表类型（不含 `faction_list`）。因此 `assets:signals register` 和 `registerSignalInGil()` 只允许这 18 种；底层联合与 wire 解码仍保留 `faction/faction_list`，用于其他运行时领域和历史/异常 GIL 兼容。证据与字段见 [`../composite-ir/04-validation-signal.md`](../composite-ir/04-validation-signal.md) §14。
 
 ### 3.8 IR→GIA 映射函数
 
@@ -287,10 +289,10 @@ type SignalParamType =
 | `str_list` | `StringList` | 11 | ✅ |
 | `entity_list` | `EntityList` | 13 | ✅ |
 | `guid_list` | `GUIDList` | 7 | ✅ |
-| `vec3_list` | `VectorList` | 15 | ❌ |
-| `faction_list` | `FactionList` | 24 | ❌ |
-| `config_id_list` | `ConfigurationList` | 22 | ❌ |
-| `prefab_id_list` | `PrefabList` | 23 | ❌ |
+| `vec3_list` | `VectorList` | 15 | ✅ |
+| `faction_list` | `FactionList` | 24 | ❌（信号注册 UI 不支持；其他领域仍保留类型） |
+| `config_id_list` | `ConfigurationList` | 22 | ✅ |
+| `prefab_id_list` | `PrefabList` | 23 | ✅ |
 | `struct_list` | `StructList` | 26 | ❌ |
 | `struct` | `Struct` | 25 | ❌ |
 | `dict` | `Dictionary` | 27 | ❌ |

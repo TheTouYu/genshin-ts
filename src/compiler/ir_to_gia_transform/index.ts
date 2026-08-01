@@ -478,8 +478,11 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
           const arg: Argument | null = ai < callArgs.length ? (callArgs[ai] ?? null) : null
           const p = new Pin(giaNode.ConcreteId!, 3, input.index) // InParam
           ;(p as any).compositePinIndex = input.pinIndex
-          const bt = compositeTypeToBaseTag(input.type as string)
-          if (bt) p.setType({ t: 'b', b: bt })
+          const type = input.type as string
+          const bt = compositeTypeToBaseTag(type)
+          if (bt) {
+            p.setType(type.endsWith('_list') ? { t: 'l', i: { t: 'b', b: bt } } : { t: 'b', b: bt })
+          }
           giaNode.pins.push(p)
         }
         // 从 IR args[1..] 填充 InParam 字面量值（args[0] 是 compositeId）。
