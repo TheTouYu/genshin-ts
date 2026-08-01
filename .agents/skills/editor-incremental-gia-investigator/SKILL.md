@@ -1,6 +1,6 @@
 ---
 name: editor-incremental-gia-investigator
-description: Investigate and accumulate Genshin editor engine rules through user-saved, adjacent map snapshots. Always use this skill when adding a game-engine feature, studying how a level asset/node/pin/connection/parameter/component/UI/variable is encoded, comparing before/after GIL files, or preparing a learned rule for Genshin-TS implementation. It first reads the project's human-readable game-engine knowledge graph to reuse known concepts and evidence, then performs only the missing incremental experiment, preserves immutable snapshots and hashes, derives bounded rules, hand-replays them in temporary GIA/GIL, and keeps real-map writes behind explicit confirmation.
+description: Investigate and accumulate Genshin editor engine rules through user-saved, adjacent map snapshots. Always use this skill when adding a game-engine feature, studying how a level asset/node/pin/connection/parameter/component/UI/variable is encoded, comparing before/after GIL files, or preparing a learned rule for Genshin-TS implementation. It first reads the project's human-readable game-engine knowledge graph to reuse known concepts and evidence, then performs only the missing incremental experiment, preserves immutable snapshots and hashes, derives bounded rules, hand-replays them in temporary GIA/GIL, and keeps real-map writes behind explicit or scoped standing authorization.
 compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list-gil-node-graphs.ts, and tools/compare-gil-node-graph.ts.
 ---
 
@@ -17,7 +17,8 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 - 未知规则闭合前，不改生产代码，不调用待修 production lowering/finalize 链生成“规则证明”。
 - 不未经规模评估打印完整地图、整图 JSON 或 100 槽列表节点；默认只输出摘要和 PASS/FAIL。
 - 手工重放只写临时 GIA/GIL；真实注入前必须单独展示目标、当前 hash、命令、修改范围和回滚路径，并获得明确确认。
-- 自动比较、临时注入、真实写回、编辑器导入和游戏行为是不同证据层，分别报告。
+- 用户可以对一个已锁定实验授予持续写回授权。授权后，同一 `map path/mapId/nodeGraphId`、同一实验目录和同一候选验证流程内，不再逐轮请求确认：候选通过严格回读后，先核对真实地图当前 hash 与锁定前快照一致，再创建唯一备份并原子写回，同时把同一候选 GIA 以不覆盖的清晰文件名复制到 `Beyond_Local_Export/` 根目录，随后直接通知用户测试。路径、ID、实验范围或预期 hash 任一变化时，持续授权失效并停止确认；授权不扩展到其他地图、图或实验。
+- 自动比较、临时注入、真实写回、GIA 导出、编辑器导入和游戏行为是不同证据层，分别报告。
 
 ## 新功能与调查入口
 
@@ -85,13 +86,23 @@ PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID
 
 若用户只说“好了/已保存”，沿用上一轮明确约定的唯一变化；若没有明确约定，先问一个问题，不扫描猜测。
 
-只有冷启动或用户明确切换地图时才运行 `gsts maps`。只有新图尚未识别时才运行：
+只有冷启动、用户明确切换地图，或**同一固定关卡中新建实验图但当前会话缺少 map path** 时才运行 `gsts maps`。后一种是续作恢复，不要先反问用户路径：只运行一次 `gsts maps`，选择工具标记的最新修改地图；若最新地图不唯一或与用户描述冲突，再请用户确认。
+
+只有新图尚未识别时才运行：
 
 ```bash
 npx tsx tools/list-gil-node-graphs.ts <map.gil>
 ```
 
-通过明确 graph ID 或图名定位目标；新图用前后图集合差识别，不能按常见 ID 推断。已锁定路径和图后进入快速续轮。
+对于“每个实验都在同一关卡新增一个节点图”的固定流程：
+
+1. 优先沿用已锁定 map path；缺失时按上面的最新地图恢复一次；
+2. 对当前地图列图一次，并优先用用户给出的图名定位；
+3. 没有图名时，用上一实验不可变快照与当前地图的图集合差确认唯一新增图；
+4. 用户提供的“上一图 ID + 1”只能用于筛选候选，必须由实际列表和图集合差验证，不能直接推算；
+5. 立即把当前地图保存为新实验的 v0，并锁定 map path、`nodeGraphId`、图名、前快照和 hash；后续轮次进入快速续轮，不再运行 `gsts maps` 或全图列表。
+
+若缺少可比较的旧快照、集合差不唯一且用户也未给图名，才询问一个最小澄清问题。通过明确 graph ID、图名或唯一图集合差定位目标，不能按常见 ID 推断。已锁定路径和图后进入快速续轮。
 
 ### 已锁定实验的快速续轮
 
@@ -147,6 +158,19 @@ nodeGraphId / type / name / node count
 用户声明的唯一变化
 snapshot path / SHA-256
 ```
+
+每个实验在 `notes/manifest` 中维护可续作的最小状态，不依赖聊天上下文恢复：
+
+```text
+锁定的 map path / mapId / nodeGraphId
+当前前快照及 SHA-256
+本轮唯一变化和 donor
+候选 GIA/GIL 路径及 SHA-256
+自动结构 / 临时回读 / 真实写回 / 编辑器导入 / 游戏验证状态
+下一缺口
+```
+
+manifest 只记录已发生的证据，不能把“文件被扫描或消失”写成“编辑器导入成功”。
 
 ## 比较相邻快照
 
@@ -204,12 +228,21 @@ protobuf 默认值不能证明 wire presence；需要区分“缺失”和“默
 
 1. 从前快照读取完整目标 NodeGraph；
 2. 只应用刚观察到的节点/pin/connection 增量；
-3. 用 protobuf 编码器包装成完整 GIA，但不调用待验证 production lowering；
+3. 复用项目正式 GIA 包装器生成编辑器可导入文件，不从 injector 单元测试 fixture 复制最小 Root/header；至少断言正式 `fileType`、Root identity、`filePath` 和 `gameVersion`，同时不调用待验证 production lowering；
 4. 用现有 `createInjector().injectBytes()` 对 `/tmp` GIL 副本按明确 `targetId` 整图替换；
 5. 回读目标 NodeGraph，与后一真实快照做 protobuf bytes 或严格结构比较；
-6. 留下一个最小 runnable 断言，只输出 PASS/FAIL 和关键摘要。
+6. 同一次候选生成同源的正式 `.gia` 和临时 `.gil`，分别验证编辑器导入包装与目标图回读；
+7. 留下一个最小 runnable 断言，只输出 PASS/FAIL 和关键摘要。
 
-目标图一致即可；编辑器可能同步改动地图其他记录，因此不要要求整个 GIL 文件 hash 相同。
+目标图一致即可；编辑器可能同步改动地图其他记录，因此不要要求整个 GIL 文件 hash 相同。文件被扫描、移动或消失只说明文件处理状态；编辑器显示候选、导入成功、节点结构正确和游戏行为正确必须由各自证据确认。
+
+## 验证成本分级
+
+只运行覆盖改动层级的最小验证：
+
+- 仅修改 Skill、调查脚本或 `tools/`/Skill 下由 `tsx` 直接运行的工具：运行目标脚本的正常/失败路径（适用时）和 `git diff --check`，默认不运行 `npm run build`；
+- 修改生产 TypeScript、公共编译/注入 seam、构建入口或被 `tsconfig` 编译的发布代码：运行 focused regression、`npm run build` 和 `git diff --check`；
+- 不用全量构建替代目标脚本的真实输入验证，也不因“工具能运行”宣称编辑器或游戏验证通过。
 
 ## 进入生产修复的门
 

@@ -63,6 +63,49 @@ value / connects
 图 metadata 和节点数是否保持
 ```
 
+## 当前地图信号发现与监听切换
+
+列出当前注册信号时，优先复用 `src/cli/gil_signals.ts` 的 `readRegisteredSignalsFromGil()`，只输出有界摘要：
+
+```text
+name / sendId / monitorId / serverId / 参数类型顺序
+```
+
+`tools/decode-gil-signals.ts` 和旧 accessory 扫描器只覆盖其历史 GraphUnit 布局；在当前 GIL 返回 0 不能证明地图没有注册信号，也不能作为监听切换入口。若保留该工具，应让它复用规范读取函数或明确标注适用范围。
+
+可复用的监听替换工具只接收目标 `signalName`；其余字段必须从锁定的当前 GIL 自动解析，不让调用者手填或推算：
+
+```text
+monitorId
+monitor CompositeDef 的 outflow / 固定输出 / 参数输出 pinIndex
+信号名 pin 的 compositePinIndex
+参数名称、类型和定义序号
+```
+
+信号名 pinIndex 必须由当前注册定义布局和至少一个同构真实监听样本共同闭合；不能把定义中的空号、相邻信号 ID 或历史样本 pinIndex 单独当成证据。切换时只覆盖已闭合的 `signalName`、`genericId/concreteId=monitorId` 和信号名 `compositePinIndex`，保留 `signalVersion`、节点坐标及其余结构；输出后严格回读。
+
+同一次运行生成同源产物：
+
+```text
+replay/<candidate>.gia  # 正式编辑器导入包装
+replay/<candidate>.gil  # 临时 injector 回读
+```
+
+正式 GIA 至少断言 header `fileType=3`、Entity root identity、有效 `filePath`、当前 `gameVersion`、Root/inner graph ID 一致；不要复用仅供 injector 单测解析的最小 fixture 包装。
+
+### 监听切换 focused regression
+
+保留一个最小回归，使用持久 donor/target fixture 或去标识化等价 fixture，至少覆盖：
+
+- 仅给目标信号名即可解析 `monitorId` 和信号名 pinIndex；
+- 目标监听节点 `genericId = concreteId = monitorId`、`signalVersion` 保持；
+- 参数定义布局与信号名 pinIndex 可回溯到当前注册定义；
+- 正式 GIA 包装字段存在且 header 合法；
+- 临时 GIL 回读后的目标 NodeGraph 与候选严格一致；
+- 未知信号、定义不完整或同构证据不足时 fail closed。
+
+Skill/调查工具由 `tsx` 直接运行且不进入生产构建时，运行该 focused regression 和 `git diff --check` 即可；只有修改生产信号 lowering、公共 injector 或构建代码时才运行 `npm run build`。
+
 ## 信号专项断言
 
 ### 绑定发送节点
@@ -85,6 +128,8 @@ compositePinIndex 是否来自该信号定义
 ```
 
 同一已确认固定值骨架可以批量填写并逐项断言；`entity` 数据连接、列表 Assembly、监听输出或客户端节点属于不同骨架，必须拆开。
+
+编辑器/游戏验收分别记录：文件被扫描、编辑器显示候选、导入成功、目标监听信号正确、参数输出/消费正确、游戏行为正确；不得用前一层代替后一层。
 
 ## 当前覆盖与停止条件
 
