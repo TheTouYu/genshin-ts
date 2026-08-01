@@ -4,18 +4,42 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { readGilPayloadFields } from '../../../../src/cli/gil_extract_utils.js'
+import { readRegisteredSignalsFromGil } from '../../../../src/cli/gil_signals.js'
 import { buildFile, parseMessage } from '../../../../src/injector/binary.js'
 import { createInjector } from '../../../../src/injector/index.js'
 import { loadGiaProto } from '../../../../src/injector/proto.js'
 import type { LenField } from '../../../../src/injector/types.js'
 
 type GraphNode = {
+  nodeIndex?: number
   genericId?: { nodeId?: number }
   concreteId?: { nodeId?: number }
+  x?: number
+  y?: number
   pins?: Array<{
+    i1?: { kind?: string | number; index?: number }
+    i2?: { kind?: string | number; index?: number }
     clientExecNode?: { kind?: string | number; index?: number }
     compositePinIndex?: number
-    value?: { bString?: { val?: string } }
+    value?: {
+      class?: string | number
+      alreadySetVal?: boolean
+      bString?: { val?: string }
+      bConcreteValue?: {
+        indexOfConcrete?: number
+        value?: {
+          class?: string | number
+          bFloat?: unknown
+          bVector?: unknown
+        }
+      }
+    }
+    type?: number
+    connects?: Array<{
+      id?: number
+      connect?: { kind?: string | number; index?: number }
+      connect2?: { kind?: string | number; index?: number }
+    }>
   }>
   signalVersion?: number
 }
@@ -46,75 +70,245 @@ function readGraph(gilPath: string, graphId: number): NodeGraph {
   throw new Error(`NodeGraph ${graphId} not found in ${gilPath}`)
 }
 
-function listenerSummary(graph: NodeGraph) {
-  assert.equal(graph.nodes?.length, 1, 'donor graph must contain exactly one listener node')
-  const node = graph.nodes[0]
-  const monitorId = Number(node.genericId?.nodeId)
-  assert(Number.isFinite(monitorId), 'listener genericId is missing')
-  assert.equal(Number(node.concreteId?.nodeId), monitorId, 'genericId/concreteId mismatch')
-  assert.equal(node.signalVersion, 1, 'unexpected signalVersion')
-  assert.equal(node.pins?.length, 1, 'listener must have only the signal-name pin')
+function findListener(graph: NodeGraph): GraphNode {
+  const listeners = (graph.nodes ?? []).filter(
+    (node) => Number(node.genericId?.nodeId) >= 1_000_000_000 && node.signalVersion === 1
+  )
+  assert.equal(listeners.length, 1, 'target graph must contain exactly one listener donor')
+  const node = listeners[0]
+  assert(node.genericId && node.concreteId, 'listener identity is incomplete')
+  assert.equal(Number(node.genericId.nodeId), Number(node.concreteId.nodeId))
+  assert.equal(node.pins?.length, 1, 'listener donor must contain only the signal-name pin')
   const pin = node.pins[0]
-  const signalName = pin.value?.bString?.val
-  assert(signalName, 'signal name is missing')
-  assert.equal(Number(pin.clientExecNode?.index), 1, 'unexpected ClientSignal index')
+  assert(pin.value?.bString?.val, 'listener signal-name value is missing')
+  assert.equal(Number(pin.clientExecNode?.index), 1, 'listener ClientSignal index is ambiguous')
+  assert(Number.isInteger(pin.compositePinIndex), 'listener signal pin index is ambiguous')
+  return node
+}
+
+function listenerSummary(node: GraphNode) {
+  const pin = node.pins?.[0]
   return {
-    signalName,
-    monitorId,
+    nodeIndex: Number(node.nodeIndex),
+    signalName: pin?.value?.bString?.val,
+    monitorId: Number(node.genericId?.nodeId),
     signalVersion: node.signalVersion,
-    signalPinIndex: Number(pin.compositePinIndex)
+    signalPinIndex: Number(pin?.compositePinIndex)
   }
+}
+
+function replaceListener(
+  graph: NodeGraph,
+  signalName: string,
+  monitorId: number,
+  signalPinIndex: number
+) {
+  const node = findListener(graph)
+  node.genericId!.nodeId = monitorId
+  node.concreteId!.nodeId = monitorId
+  node.pins![0].value!.bString!.val = signalName
+  node.pins![0].compositePinIndex = signalPinIndex
+  return node
+}
+
+function appendListener(graph: NodeGraph, signalName: string) {
+  const donor = findListener(graph)
+  const entries = readRegisteredSignalsFromGil(sourcePath)
+  const signal = entries.find((entry) => entry.name === signalName)
+  assert(signal, `registered signal not found: ${signalName}`)
+  assert(Number.isInteger(signal.monitorId), 'registered monitorId is incomplete')
+  assert(
+    signal.params.every((param) => param.name && param.type),
+    'signal parameter definition is incomplete'
+  )
+
+  const donorSummary = listenerSummary(donor)
+  assert.equal(
+    donorSummary.signalName,
+    signal.name,
+    'listener donor uses a different signal layout'
+  )
+  assert.equal(donorSummary.monitorId, signal.monitorId, 'listener donor monitorId is stale')
+
+  const nodes = graph.nodes ?? []
+  const nodeIndex = Math.max(0, ...nodes.map((node) => Number(node.nodeIndex) || 0)) + 1
+  const candidate = structuredClone(donor)
+  candidate.nodeIndex = nodeIndex
+  candidate.genericId!.nodeId = signal.monitorId
+  candidate.concreteId!.nodeId = signal.monitorId
+  candidate.pins![0].value!.bString!.val = signal.name
+
+  const donorPinIndex = candidate.pins![0].compositePinIndex
+  assert(Number.isInteger(donorPinIndex), 'current listener signal pin layout is ambiguous')
+  candidate.pins![0].compositePinIndex = donorPinIndex
+  candidate.x = Math.max(...nodes.map((node) => Number(node.x) || 0), Number(donor.x) || 0) + 800
+  candidate.y = Number(donor.y) || 0
+  graph.nodes = [...nodes, candidate]
+  return { candidate, signal, donorNodeIndex: donor.nodeIndex }
 }
 
 function usage(): never {
   console.error(
-    'Usage: npx tsx replay-listener-signal.ts <donor.gil> <target.gil> <graphId> <out.gia> <out.gil> [signalName monitorId signalPinIndex]'
+    'Usage: npx tsx replay-listener-signal.ts append-listener <source.gil> <graphId> <signalName> <out.gia> <out.gil>'
+  )
+  console.error(
+    '   or: npx tsx replay-listener-signal.ts consume-int|consume-float|consume-vec3 <target.gil> <donor.gil> <graphId> <out.gia> <out.gil>'
+  )
+  console.error(
+    '   or: npx tsx replay-listener-signal.ts replace-listener <donor.gil> <target.gil> <graphId> <out.gia> <out.gil> <signalName> <monitorId> <signalPinIndex>'
   )
   process.exit(1)
 }
 
-const [
-  donorPath,
-  targetPath,
-  graphIdText,
-  giaPath,
-  outGilPath,
-  signalName,
-  monitorIdText,
-  signalPinIndexText
-] = process.argv.slice(2)
+const args = process.argv.slice(2)
+const mode = args.shift()
+if (
+  mode !== 'append-listener' &&
+  mode !== 'consume-int' &&
+  mode !== 'consume-float' &&
+  mode !== 'consume-vec3' &&
+  mode !== 'replace-listener'
+)
+  usage()
+
+let sourcePath: string
+let targetPath: string
+let graphIdText: string
+let giaPath: string
+let outGilPath: string
+let signalName: string
+let replacementMonitorId: number | undefined
+let replacementSignalPinIndex: number | undefined
+
+if (mode === 'append-listener') {
+  ;[sourcePath, graphIdText, signalName, giaPath, outGilPath] = args
+  targetPath = sourcePath
+} else if (mode === 'consume-int' || mode === 'consume-float' || mode === 'consume-vec3') {
+  ;[targetPath, sourcePath, graphIdText, giaPath, outGilPath] = args
+  signalName = '信号测试全参数'
+} else {
+  ;[sourcePath, targetPath, graphIdText, giaPath, outGilPath, signalName] = args
+  replacementMonitorId = Number(args[6])
+  replacementSignalPinIndex = Number(args[7])
+}
+
 const graphId = Number(graphIdText)
-if (!donorPath || !targetPath || !Number.isFinite(graphId) || !giaPath || !outGilPath) usage()
-const overrides = [signalName, monitorIdText, signalPinIndexText]
-if (overrides.some(Boolean) && !overrides.every(Boolean)) usage()
+if (
+  !sourcePath ||
+  !targetPath ||
+  !signalName ||
+  !Number.isFinite(graphId) ||
+  !giaPath ||
+  !outGilPath
+)
+  usage()
 for (const output of [giaPath, outGilPath]) {
   if (fs.existsSync(output)) throw new Error(`refusing to overwrite: ${output}`)
   fs.mkdirSync(path.dirname(output), { recursive: true })
 }
 
-const donorBytes = fs.readFileSync(donorPath)
+const sourceBytes = fs.readFileSync(sourcePath)
 const targetBytes = fs.readFileSync(targetPath)
-const donorGraph = readGraph(donorPath, graphId)
-const candidateGraph = structuredClone(donorGraph)
-if (signalName) {
-  const monitorId = Number(monitorIdText)
-  const signalPinIndex = Number(signalPinIndexText)
-  assert(Number.isFinite(monitorId), 'invalid monitorId override')
-  assert(Number.isFinite(signalPinIndex), 'invalid signalPinIndex override')
-  const node = candidateGraph.nodes?.[0]
-  assert(node?.genericId && node.concreteId && node.pins?.[0], 'invalid donor listener')
-  node.genericId.nodeId = monitorId
-  node.concreteId.nodeId = monitorId
-  node.pins[0].value!.bString!.val = signalName
-  node.pins[0].compositePinIndex = signalPinIndex
+const candidateGraph = readGraph(targetPath, graphId)
+let added: {
+  candidate: GraphNode
+  signal: {
+    name: string
+    monitorId: number
+    params?: Array<{ name: string; type: string; parameterDefinitionPinIndex?: number }>
+  }
+  donorNodeIndex?: number
 }
-const listener = listenerSummary(candidateGraph)
+
+if (mode === 'append-listener') {
+  added = appendListener(candidateGraph, signalName)
+} else if (mode === 'consume-int' || mode === 'consume-float' || mode === 'consume-vec3') {
+  const signal = readRegisteredSignalsFromGil(targetPath).find((entry) => entry.name === signalName)
+  assert(signal, `registered signal not found: ${signalName}`)
+  const parameterIndex = mode === 'consume-int' ? 0 : mode === 'consume-float' ? 1 : 2
+  const expectedType = mode === 'consume-int' ? 'int' : mode === 'consume-float' ? 'float' : 'vec3'
+  const expectedVarType = mode === 'consume-int' ? 3 : mode === 'consume-float' ? 5 : 12
+  const expectedOutputIndex = mode === 'consume-int' ? 3 : mode === 'consume-float' ? 4 : 5
+  const param = signal.params[parameterIndex]
+  assert.equal(
+    param?.type,
+    expectedType,
+    `signal parameter ${parameterIndex} must be ${expectedType}`
+  )
+  assert(
+    Number.isInteger(param.parameterDefinitionPinIndex),
+    `${expectedType} parameter definition pin index is missing`
+  )
+
+  const listener = findListener(candidateGraph)
+  assert.equal(Number(listener.genericId?.nodeId), signal.monitorId, 'listener monitorId is stale')
+  assert.equal(listener.pins?.[0]?.value?.bString?.val, signalName, 'listener signal name differs')
+
+  const donorGraph = readGraph(sourcePath, graphId)
+  const donorNodes = (donorGraph.nodes ?? []).filter(
+    (node) => Number(node.genericId?.nodeId) === 180 && node.pins?.[0]?.type === expectedVarType
+  )
+  assert.equal(donorNodes.length, 1, `expected exactly one ${expectedType} DTC donor node`)
+  const donorNode = donorNodes[0]
+  assert.equal(donorNode.pins?.length, 1, 'DTC donor pin layout is ambiguous')
+  const donorPin = donorNode.pins[0]
+  assert.equal(Number(donorPin.i1?.kind), 3, 'DTC donor input kind is not InParam')
+  assert(!Object.hasOwn(donorPin.i1 ?? {}, 'index'), 'DTC donor i1.index presence changed')
+  assert(!Object.hasOwn(donorPin.i2 ?? {}, 'index'), 'DTC donor i2.index presence changed')
+  assert.equal(donorPin.type, expectedVarType, `DTC donor input type is not ${expectedType}`)
+  assert.equal(donorPin.connects?.length, 1, 'DTC donor must contain one connection')
+  const donorConnection = donorPin.connects[0]
+  assert.equal(Number(donorConnection.id), Number(findListener(donorGraph).nodeIndex))
+  assert.equal(Number(donorConnection.connect?.kind), 4, 'DTC donor source kind is not OutParam')
+  assert.equal(
+    donorConnection.connect?.index,
+    expectedOutputIndex,
+    'DTC donor source index differs'
+  )
+  assert.deepEqual(donorConnection.connect2, donorConnection.connect, 'DTC donor endpoints differ')
+  if (mode === 'consume-float') {
+    assert.equal(donorPin.value?.bConcreteValue?.indexOfConcrete, 4)
+    assert(donorPin.value?.bConcreteValue?.value?.bFloat, 'float donor bFloat is missing')
+  }
+  if (mode === 'consume-vec3') {
+    assert.equal(Number(donorNode.concreteId?.nodeId), 189)
+    assert.equal(donorPin.value?.bConcreteValue?.indexOfConcrete, 5)
+    assert(donorPin.value?.bConcreteValue?.value?.bVector, 'vec3 donor bVector is missing')
+  }
+
+  const nodeIndex =
+    Math.max(0, ...(candidateGraph.nodes ?? []).map((node) => Number(node.nodeIndex) || 0)) + 1
+  const candidate = structuredClone(donorNode)
+  candidate.nodeIndex = nodeIndex
+  candidate.x = Math.max(...(candidateGraph.nodes ?? []).map((node) => Number(node.x) || 0)) + 800
+  candidate.y = Number(listener.y) || 0
+  candidate.pins![0].connects = [
+    {
+      id: Number(listener.nodeIndex),
+      connect: { kind: 4, index: expectedOutputIndex },
+      connect2: { kind: 4, index: expectedOutputIndex }
+    }
+  ]
+  candidateGraph.nodes = [...(candidateGraph.nodes ?? []), candidate]
+  added = { candidate, signal, donorNodeIndex: donorNode.nodeIndex }
+} else {
+  assert(Number.isInteger(replacementMonitorId), 'invalid monitorId')
+  assert(Number.isInteger(replacementSignalPinIndex), 'invalid signalPinIndex')
+  const node = replaceListener(
+    candidateGraph,
+    signalName,
+    replacementMonitorId!,
+    replacementSignalPinIndex!
+  )
+  added = { candidate: node, signal: { name: signalName, monitorId: replacementMonitorId! } }
+}
+
 const { rootMessage, nodeGraphMessage } = loadGiaProto()
 const fileName = path.basename(giaPath, path.extname(giaPath))
 const root = rootMessage.create({
   graph: {
     id: { class: 5, type: 0, id: graphId },
-    name: donorGraph.name,
+    name: candidateGraph.name,
     which: 9,
     graph: { inner: { graph: candidateGraph } }
   },
@@ -127,6 +321,18 @@ const giaBytes = buildFile(rootMessage.encode(root).finish(), {
   fileType: 3,
   tailTag: 0x0679
 })
+const headerView = new DataView(giaBytes.buffer, giaBytes.byteOffset, giaBytes.byteLength)
+assert.equal(headerView.getUint32(12, false), 3, 'GIA fileType is not 3')
+const decodedRoot = rootMessage.decode(giaBytes.subarray(20, giaBytes.length - 4)) as typeof root
+assert.equal(Number(decodedRoot.graph?.id?.id), graphId, 'Root graph identity differs')
+assert.equal(
+  Number(decodedRoot.graph?.graph?.inner?.graph?.id?.id),
+  graphId,
+  'inner graph identity differs'
+)
+assert.equal(decodedRoot.filePath, root.filePath, 'GIA filePath differs')
+assert.equal(decodedRoot.gameVersion, root.gameVersion, 'GIA gameVersion differs')
+
 const result = createInjector({ lang: 'zh-CN' }).injectBytes({
   gilBytes: targetBytes,
   giaBytes,
@@ -137,7 +343,6 @@ fs.writeFileSync(giaPath, giaBytes, { flag: 'wx' })
 fs.writeFileSync(outGilPath, result.bytes, { flag: 'wx' })
 
 const replayGraph = readGraph(outGilPath, graphId)
-assert.deepEqual(listenerSummary(replayGraph), listener)
 assert.deepEqual(
   Buffer.from(nodeGraphMessage.encode(replayGraph as never).finish()),
   Buffer.from(nodeGraphMessage.encode(candidateGraph as never).finish()),
@@ -148,14 +353,47 @@ console.log(
   JSON.stringify(
     {
       status: 'PASS',
+      mode,
       graphId,
-      graphName: donorGraph.name,
-      listener,
-      donor: { path: donorPath, sha256: sha256(donorBytes) },
-      target: { path: targetPath, sha256: sha256(targetBytes) },
+      graphName: candidateGraph.name,
+      listener: listenerSummary(findListener(candidateGraph)),
+      addedNode: {
+        nodeIndex: added.candidate.nodeIndex,
+        genericId: Number(added.candidate.genericId?.nodeId),
+        concreteId: Number(added.candidate.concreteId?.nodeId),
+        pinCount: added.candidate.pins?.length ?? 0
+      },
+      parameterSummary:
+        mode === 'append-listener'
+          ? added.signal.params?.map((param, index) => ({ definitionOrder: index, ...param }))
+          : undefined,
+      donorNodeIndex: added.donorNodeIndex,
+      connection: added.candidate.pins?.[0]?.connects?.[0],
+      presence: {
+        concreteId: Object.hasOwn(added.candidate, 'concreteId'),
+        i1Index: Object.hasOwn(added.candidate.pins?.[0]?.i1 ?? {}, 'index'),
+        i2Index: Object.hasOwn(added.candidate.pins?.[0]?.i2 ?? {}, 'index'),
+        connectIndex: Object.hasOwn(
+          added.candidate.pins?.[0]?.connects?.[0]?.connect ?? {},
+          'index'
+        ),
+        connect2Index: Object.hasOwn(
+          added.candidate.pins?.[0]?.connects?.[0]?.connect2 ?? {},
+          'index'
+        )
+      },
+      formalGia: {
+        fileType: headerView.getUint32(12, false),
+        rootId: Number(decodedRoot.graph?.id?.id),
+        innerGraphId: Number(decodedRoot.graph?.graph?.inner?.graph?.id?.id),
+        filePath: decodedRoot.filePath,
+        gameVersion: decodedRoot.gameVersion
+      },
+      source: { path: sourcePath, sha256: sha256(new Uint8Array(sourceBytes)) },
+      target: { path: targetPath, sha256: sha256(new Uint8Array(targetBytes)) },
       gia: { path: giaPath, sha256: sha256(giaBytes) },
       output: { path: outGilPath, sha256: sha256(result.bytes) },
-      validation: 'strict NodeGraph protobuf re-encode equality'
+      validation: 'strict target NodeGraph protobuf re-encode equality'
     },
     null,
     2

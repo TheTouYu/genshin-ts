@@ -4,6 +4,8 @@
 > 来源：真实 GIL 相邻快照 + 批次 Validator + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器导入/地图检查
 > 最近校验：2026-08-01
 > 适用范围：服务器节点图中引用当前关卡既有注册定义的普通发送与监听节点；客户端、未覆盖参数类型和跨地图注册另行验证
+>
+> 本轮具体候选、SHA-256 和用户测试记录见 [`signals/2026-08-01-monitor-consumption-batch.md`](signals/2026-08-01-monitor-consumption-batch.md)。
 
 信号用于在节点图之间传递一次事件及其参数。信号必须先在关卡中注册，发送或监听节点再引用该注册定义。只包含信号节点的 GIA 不等于携带信号注册定义；导入目标必须已经存在名称、参数结构和 identity 相符的注册信号。
 
@@ -134,7 +136,7 @@ genericId / concreteId = 目标 monitorId
   batches/connection-lifecycle-batch-01/validation.json
 ```
 
-以上只证明真实编辑器保存后的结构；尚未完成这些消费组合的同构 GIA 重放、编辑器导入和游戏参数值验证。
+真实相邻快照证明了上述节点与连接结构；三份消费候选的具体实验事实和用户验证状态见[监听参数消费批次记录](signals/2026-08-01-monitor-consumption-batch.md)。该游戏结论仅适用于该记录中的具体候选、当前地图、节点图和信号定义。
 
 ## 信号定义原位修改
 
@@ -172,7 +174,7 @@ after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
 | `raw/monitor-signal-v1-bound-all-fixed-params.gil` | `570987915274339a905348c63747c7825d067ddb5e2dee761c8da6bfa311c842` | 绑定「信号测试全参数」 |
 | `raw/monitor-signal-v2-switched-signal.gil` | `4f65cc549387557de55e9e3faf95feb565e8c40056b64de9f7fdf15436d57cf4` | 切换到「信号_1_测试」 |
 
-自动同构重放使用 `.agents/skills/editor-incremental-gia-investigator/scripts/replay-listener-signal.ts`：从真实 donor 提取 NodeGraph，生成正式 GIA 和临时 GIL，通过 injector 写入临时副本后严格回读目标 NodeGraph；不调用待验证的 production signal lowering。
+自动同构重放使用 `.agents/skills/editor-incremental-gia-investigator/scripts/replay-listener-signal.ts`：从真实 donor 提取 NodeGraph，生成正式 GIA 和临时 GIL，通过 injector 写入临时副本后严格回读目标 NodeGraph；不调用待验证的 production signal lowering。具体批次事实、候选路径、哈希和用户验证见[监听参数消费批次记录](signals/2026-08-01-monitor-consumption-batch.md)。注册定义的 `parameterDefinitionPinIndex` 不直接当作监听实例 `OutParam` index。
 
 编辑器可导入候选：
 
@@ -199,7 +201,7 @@ after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
 - 发送节点的控制流输入、输出以及多发送节点复用；
 - 除 `int/float/vec3` 外其余监听普通参数的输出序号、类型和 `compositePinIndex`；
 - 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
-- 已观察消费组合的同构 GIA 重放、编辑器导入和运行时参数值；
+- int、float、vec3 均已完成同构 GIA 重放，并由用户确认编辑器导入、节点/连线和游戏内测试通过；结论只覆盖三份具体候选，不推广到其他类型或变体；
 - 监听信号实际触发及参数值的游戏行为；
 - 客户端信号节点；
 - 携带信号注册三元组、可跨地图独立导入的 GIA；
