@@ -543,11 +543,12 @@ GraphNode = { f1=nodeIndex, f2=genericId, f3=concreteId, f4=NodePin×N,
 客户端 sendSignalToServerNodeGraph 的实例编码仍无增量样本，§11.2 相关行仅作历史记录。
 ---
 
-## 13 监听信号节点（onSignal）实例编码——增量样本 v7-v10（已证实）
+## 13 监听信号节点（onSignal）实例编码——增量样本 v7-v11（已证实）
 
-> 证据链：v7 仅监听未用参数 → v8 打印节点直接消费参数 → v9 类型转化链消费「固定三个参数」第一个 → v10 改为第三个。
-> 四轮均为用户多次新增后取变更，样本可靠性同 v1-v6。全轮验证：定义容器（cube_turn 三个 268/366/328B、
-> 工具_新信号三元组 393/431/331B）一字未变，文件增量全部在图定义容器（nodeGraphBlob）。
+> 证据链：v7 仅监听未用参数 → v8 打印节点直接消费参数 → v9 类型转化链消费「固定三个参数」第一个 → v10 改为第三个
+> → v11 新增类型转化节点消费事件源GUID（输出 1）。五轮均为用户多次新增后取变更，样本可靠性同 v1-v6。
+> 全轮验证：定义容器（cube_turn 三个 268/366/328B、工具_新信号三元组 393/431/331B）一字未变，
+> 文件增量全部在图定义容器（nodeGraphBlob）。
 
 ### 13.1 监听节点最小字段集（v7）
 
@@ -602,7 +603,7 @@ cube_turn 定义容器（第二个，366B）的 **f103 = 完整输出 pin 列表
 - 第一个容器（268B）f102=用户参数视图（face f8=12、direction f8=16，f3={f1:3}=自定义组）；
   第三个容器（328B）为另一视图（face f8=40、direction f8=41）。
 
-### 13.4 参数消费：实例不编码 OutParam，connects 用输出序号引用（v8-v10）
+### 13.4 参数消费：实例不编码 OutParam，connects 用输出序号引用（v8-v11）
 
 **监听节点实例不编码任何参数 OutParam pin**——参数输出是隐式的（由定义容器决定），消费方只写 connects：
 
@@ -612,20 +613,26 @@ cube_turn 定义容器（第二个，366B）的 **f103 = 完整输出 pin 列表
 ```
 
 - **OutParam index = 输出序号（0-based，0 省略）**：v9 消费第一个（事件源实体）= 无 index；
-  v10 改为第三个（信号来源实体）= index:2；idx=7 遗留连接 face = index:3。与 13.3 表完全对应。
-- 消费链示例（v9/v10）：监听节点 OutFlow → 打印节点 InFlow；监听节点 OutParam(0/2)
-  → 类型转化节点 InParam(type=1 Entity) → OutParam(type=6 String) → 打印节点 InParam(type=6)。
+  v10 改为第三个（信号来源实体）= index:2；v11 消费事件源GUID = **index:1**（新增，见 13.6）；
+  idx=7 遗留连接 face = index:3。**输出序号 0/1/2/3 已全部闭环**，与 13.3 表完全对应。
+- 消费链示例（v9/v11）：监听节点 OutFlow → 打印节点 InFlow；监听节点 OutParam(0/2)
+  → 类型转化节点 InParam(183/Entity) → OutParam(type=6 String) → 打印节点 InParam(type=6)；
+  监听节点 OutParam(1/GUID) → 类型转化节点 InParam(184/GUID，输出悬空未消费)。
 
 ### 13.5 消费节点（SysCall）模式
 
 - **打印节点 = SysCall genericId=concreteId=1**：InParam type=6，connects 引用来源；
   **无 compositePinIndex、无 signalVersion**（与拼装节点 §12.5 一致）。
-- **类型转化节点 = SysCall genericId=180 / concreteId=183**（generic≠concrete，同拼装节点 169/175 模式）：
-  InParam 声明 `ConcreteBase{indexOfConcrete:1, itemType:Entity}`（type=1），
-  OutParam 声明 `ConcreteBase{indexOfConcrete:2, itemType:String}`（type=6）——类型用 ConcreteBase 声明。
-- 类型枚举（实例 pin.type）：Entity=1、Integer=3、Boolean=4、String=6、BooleanList=9。
+- **类型转化节点 = SysCall genericId=180，concreteId 随输入具体类型变**（generic≠concrete，同拼装节点 169/175 模式）：
+  - **concreteId=183**：输入 Entity——InParam 声明 `ConcreteBase{indexOfConcrete:1, itemType:Entity}`（type=1）
+  - **concreteId=184**：输入 GUID（v11）——InParam 声明 `ConcreteBase{indexOfConcrete:2, itemType:GUID}`（type=2）
+  - 两者 OutParam 相同：`ConcreteBase{indexOfConcrete:2, itemType:String}`（type=6）
+  - **indexOfConcrete = 转化输入类型注册序列的下标**（0=int/1=entity/2=guid/3=bool/4=float/5=vec3/6=faction，
+    见 13.8）——不是类型编号；concreteId 与 ioC 的换算公式待验证。
+- 类型枚举（实例 pin.type）= 游戏全局 VarType（完整表见 13.8）：Entity=1、GUID=2、Integer=3、Boolean=4、
+  Float=5、String=6、BooleanList=9 等。
 
-### 13.6 增量核验表（v7-v10）
+### 13.6 增量核验表（v7-v11）
 
 | 版本 | 用户操作 | 关键结论 |
 |---|---|---|
@@ -633,12 +640,53 @@ cube_turn 定义容器（第二个，366B）的 **f103 = 完整输出 pin 列表
 | v8 | 新增打印节点，直接消费参数 | 监听节点 OutFlow cpi=13；打印节点 SysCall 1；实例不编码 OutParam；index=3=face |
 | v9 | 类型转化链消费「第一个」参数 | 固定三参数=事件源实体/GUID/信号来源实体；无 index=输出0；转化节点 SysCall 180/183 |
 | v10 | 改消费「第三个」参数 | OutParam index=2=信号来源实体——**index=输出序号（0-based，0 省略）闭环** |
+| v11 | 新增类型转化节点，消费事件源GUID（输出 1） | **index:1 编码证实（0/1/2/3 全闭环）**；concreteId 184=GUID 输入（对照 183=Entity）；ioC=序列下标 |
 
-全轮确认：cube_turn 三容器与工具_新信号三元组一字未变；字节增量仅 nodeGraphBlob（v8 +107B、v9 +215B、v10 +4B）。
+全轮确认：cube_turn 三容器与工具_新信号三元组一字未变；字节增量仅 nodeGraphBlob（v8 +107B、v9 +215B、
+v10 +4B、v11 +143B）。v11 为**纯追加**：nodeGraphBlob 5373→5516B，v10 的 blob 是 v11 的完整前缀，零其他字节变化。
 
 ### 13.7 未解释/待验证
 
 - 第三个容器（328B）的 f8=19/20/45/46 对应 pin 语义未用未证（可能是客户端侧 pinIndex 视图）。
-- OutParam index=1（事件源GUID）样本未出现，index 语义由 0/2/3 三点外推。
+- 类型转化节点 concreteId 与 ioC 的换算公式（样本 183=Entity/1、184=GUID/2，推测 182+ioC，未验证）。
 - f103 定义 f4（如事件源实体 {f3:1,f4:1} vs face {f1:5,f3:6,f4:6}）的差异含义未深究。
 - 客户端 sendSignalToServerNodeGraph 节点编码仍无样本。
+- 输出序号 4（direction）未被直接消费过；Struct/Dictionary 等复杂类型的 pin 编码未样本。
+
+### 13.8 全局类型表：游戏 VarType 与仓库映射共识（用户指引确认，2026-08-01）
+
+> 用户指引：游戏数据类型是全局通用的——信号注册时指定的类型、节点实例 pin.type、节点图变量类型
+> 共用同一张枚举表。经查证 thirdparty 类型表与仓库编译侧三处映射，确认一致。
+
+**游戏权威枚举 `VarType`**（thirdparty `node_data/types_list.ts` + `protobuf/gia.proto.ts`，与客户端
+`ClientVarType` 并列；下表为服务端表）：
+
+| ID | 类型 | ID | 类型 |
+|:---:|:---|:---:|:---|
+| 1 | Entity | 17 | Faction |
+| 2 | GUID | 20 | Configuration |
+| 3 | Integer | 21 | Prefab |
+| 4 | Boolean | 22 | ConfigurationList |
+| 5 | Float | 23 | PrefabList |
+| 6 | String | 24 | FactionList |
+| 7 | GUIDList | 25 | Struct |
+| 8 | IntegerList | 26 | StructList |
+| 9 | BooleanList | 27 | Dictionary |
+| 10 | FloatList | 28 | VariableSnapshot |
+| 11 | StringList | 14 | EnumItem |
+| 12 | Vector | 16 | LocalVariable |
+| 13 | EntityList | 15 | VectorList |
+
+**仓库侧三处映射，均为 VarType 子集，且与真实样本全部吻合**：
+
+| 位置 | 作用 | 覆盖 | 真实样本对照 |
+|---|---|---|---|
+| `src/cli/gil_signal_registrations.ts` `PARAM_TYPE_CODES` | 信号注册 f4 参数类型 | entity/guid/int/bool/float/str + 对应列表 + vec3/vec3_list + faction/config_id/prefab_id(+列表) | f4 的 3/6/9 ✓ |
+| `src/compiler/ir_to_gia_transform/composite.ts` `argVarType()` | 节点实例 pin.type | bool/int/float/str/vec3/guid/entity/faction/prefab_id/config_id/local_variable + int/bool/float/str/guid/entity 六种列表 | v1-v11 的 1/2/3/6/9/12 ✓ |
+| 同上 `DTC_IN_PARAM_VARTYPE_SEQUENCE` | 类型转化节点 ioC | 0=int/1=entity/2=guid/3=bool/4=float/5=vec3/6=faction | v9 ioC=1=Entity(183)、v11 ioC=2=GUID(184) ✓ |
+
+- **indexOfConcrete = DTC_IN_PARAM_VARTYPE_SEQUENCE 下标**（代码已实现，双样本证实）——修正 13.5 早期
+  「ioC=1 Entity/2 String」的误读：OutParam 的 ioC=2 与输入序列无关（输出声明另表，目前只见 String）。
+- 映射缺口属合理子集：信号参数不支持 EnumItem/Struct/Dictionary 等；`argVarType` 列表仅 6 种
+  （缺 vec3_list/faction_list/config_id_list/prefab_id_list）；DTC 输入仅 7 种。
+- 同轮修正：**GUID=2 是 VarType 正常值**，非新增类型；§12/§13 早期「类型枚举」表述以本表为准。
