@@ -908,6 +908,7 @@ function materializeImplOrdinaryGraphWithVendor(
         )
     )
     for (const pinIndex of boundaryIndexes) {
+      if (boundaryPins.some((p: any) => p.i1?.index === pinIndex)) continue
       const existingIndex = (encodedNode.pins ?? []).findIndex(
         (existing: any) =>
           existing.i1?.kind === NodePin_Index_Kind.InParam && existing.i1.index === pinIndex

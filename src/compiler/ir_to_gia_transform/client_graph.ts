@@ -20,6 +20,10 @@ import type {
   ClientPinMetadata
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/client_node_metadata.js'
 import {
+  GraphUnit_Id_Class,
+  GraphUnit_Id_Type,
+  NodeGraph_Id_Class,
+  NodeGraph_Id_Kind,
   NodePin_Index_Kind,
   VarBase_Class
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
@@ -51,6 +55,15 @@ import {
   type ClientReflectVariant
 } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
+import {
+  assertRegisteredSchema,
+  buildSignalDefinitionAccessories,
+  collectClientSignalUsages,
+  SIGNAL_DEFINITION_CONTRACT,
+  toSignalDefinitionIdentity,
+  type SignalDefinitionIdentity
+} from './build_signal_definition.js'
+import type { SignalRegistry } from '../signal_registry.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { parseEnumValue } from './mappings.js'
 import { buildConnTypeIndex, type ConnTypeIndex } from './node_id.js'
@@ -59,6 +72,7 @@ import type { IRNode, NodeId } from './types.js'
 const PIN_KIND_OUT_FLOW = NodePin_Index_Kind.OutFlow
 const PIN_KIND_IN_PARAM = NodePin_Index_Kind.InParam
 const PIN_KIND_CLIENT_EXEC = NodePin_Index_Kind.ClientExecNode
+const PIN_KIND_IN_FLOW = NodePin_Index_Kind.InFlow
 const CLIENT_VAR_TYPE_ENUM = 13
 const CLIENT_SEND_SIGNAL_PLACEHOLDER_GID = 300002
 
@@ -990,7 +1004,8 @@ const SIGNAL_PARAM_DEFAULT_BY_TYPE: Record<number, unknown> = {
 function applySendSignalToServer(
   node: ClientGiaNode,
   irNode: IRNode,
-  metadata: ClientNodeMetadata
+  metadata: ClientNodeMetadata,
+  identity: SignalDefinitionIdentity
 ) {
   const nameArg = irNode.args?.[0]
   if (nameArg?.type === 'conn') {
@@ -1005,10 +1020,23 @@ function applySendSignalToServer(
       `${metadata.subType}.send_signal_to_server_node_graph expects a literal signal name`
     )
   }
-  node.genericId!.nodeId = CLIENT_SEND_SIGNAL_PLACEHOLDER_GID
+  // 真实客户端样本（客户端/信号.gia）：genericId = 注册 serverId + SysGraph(22001)，
+  // concreteId 保持 2000 (SysCall)；signalVersion=1（客户端；服务器 send/monitor 为 2）
+  node.genericId!.class = NodeGraph_Id_Class.SystemDefined
+  node.genericId!.type = 20002
+  node.genericId!.kind = NodeGraph_Id_Kind.SysGraph
+  node.genericId!.nodeId = identity.serverId
+  node.signalVersion = SIGNAL_DEFINITION_CONTRACT.clientSignalVersion
   // corpus: signal name lives on the client_exec (kind 5) str pin
   const signalPin = node.pins.find((p) => p.i1?.kind === PIN_KIND_CLIENT_EXEC && p.type === 9)
-  if (signalPin) signalPin.value = client_signal_name_value(String(nameArg.value))
+  if (signalPin) {
+    signalPin.value = client_signal_name_value(String(nameArg.value))
+    // 真实样本信号名 pin 的 clientExecNode.kind=6（ClientSignal）；exec 流 pin 保持 kind=5
+    signalPin.clientExecNode = {
+      kind: NodePin_Index_Kind.ClientSignal,
+      index: 1
+    }
+  }
 
   // 参数引脚：kind 3、按信号参数顺序（args[1..] -> pin 0..），类型为普通
   // 客户端类型（无 ConcreteBase 包裹）——客户端信号_局部变量类型补充.gia 实证
@@ -1046,8 +1074,12 @@ function applySendSignalToServer(
       connects: []
     } as ClientGiaNode['pins'][number])
   }
-  // 样本引脚顺序：参数（kind3）在前，exec/信号名（kind5）与流出在后
+  // 样本引脚顺序：参数（kind3）在前，exec/信号名（kind5）与流出在后；
+  // 真实样本不编码 InFlow/OutFlow pin（start 的流出引用发送节点 InFlow(0)，悬空）
   node.pins.unshift(...paramPins)
+  node.pins = node.pins.filter(
+    (p) => p.i1?.kind !== PIN_KIND_IN_FLOW && p.i1?.kind !== PIN_KIND_OUT_FLOW
+  )
 }
 
 function applySpecialArgs(
@@ -1056,7 +1088,8 @@ function applySpecialArgs(
   metadata: ClientNodeMetadata,
   concreteId: number | string,
   variant: ClientReflectVariant | undefined,
-  inferredOutTypeInfo: ClientValueTypeInfo | undefined
+  inferredOutTypeInfo: ClientValueTypeInfo | undefined,
+  signalIdentitiesByName: ReadonlyMap<string, SignalDefinitionIdentity>
 ): boolean {
   if (irNode.type === 'assembly_list') {
     if (!variant) throw new Error('[error] assembly_list reflect variant was not resolved')
@@ -1102,7 +1135,11 @@ function applySpecialArgs(
     return true
   }
   if (irNode.type === 'send_signal_to_server_node_graph') {
-    applySendSignalToServer(node, irNode, metadata)
+    const identity = signalIdentitiesByName.get(String((irNode.args?.[0] as any)?.value ?? ''))
+    if (!identity) {
+      throw new Error(`[error] signal is not registered in target map: ${String((irNode.args?.[0] as any)?.value)}`)
+    }
+    applySendSignalToServer(node, irNode, metadata, identity)
     return true
   }
   return false
@@ -1200,6 +1237,22 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
   const metadataById = new Map<NodeId, ClientNodeMetadata>()
   const variantById = new Map<NodeId, ClientReflectVariant | undefined>()
 
+  // ---- 信号（send_signal_to_server_node_graph）：注册三元组身份 ----
+  const signalUsages = collectClientSignalUsages(ir)
+  const signalIdentitiesByName = new Map<string, SignalDefinitionIdentity>()
+  const signalRegistry: SignalRegistry | undefined = opts.signalRegistry
+  if (signalUsages.length > 0 && !signalRegistry) {
+    throw new Error('[error] signal registry is required when encoding signal nodes')
+  }
+  for (const usage of signalUsages) {
+    const registered = signalRegistry!.get(usage.name)
+    if (!registered) {
+      throw new Error(`[error] signal is not registered in target map: ${usage.name}`)
+    }
+    assertRegisteredSchema(usage, registered)
+    signalIdentitiesByName.set(usage.name, toSignalDefinitionIdentity(registered))
+  }
+
   for (const irNode of nodes) {
     const metadata = resolveClientNodeMetadata(ir.graph.sub_type, mode, irNode)
     metadataById.set(irNode.id, metadata)
@@ -1231,7 +1284,7 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
       )
     }
     applyResolvedReflectivePins(node, metadata, variant)
-    if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutTypeInfo)) {
+    if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutTypeInfo, signalIdentitiesByName)) {
       applyLiteralArgs(node, irNode, metadata, variant)
     }
     builtById.set(irNode.id, node)
@@ -1316,6 +1369,20 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     related_graph_ids: relatedStatusGraphIds,
     nodes: [...builtById.values()]
   })
+
+  // 客户端信号：追加 SignalDef/监听/向服务器 accessory 三元组；图 relatedIds 只含 serverId
+  // （真实样本 客户端/信号.gia：relatedIds=[serverId]，accessory 为完整三元组）
+  if (signalUsages.length > 0) {
+    root.accessories.push(...buildSignalDefinitionAccessories(signalUsages, signalRegistry!))
+    const serverIds = [...new Set([...signalIdentitiesByName.values()].map((i) => i.serverId))]
+    for (const id of serverIds) {
+      root.graph.relatedIds.push({
+        class: GraphUnit_Id_Class.AffiliatedNode,
+        type: GraphUnit_Id_Type.ServerGraph,
+        id
+      })
+    }
+  }
 
   const { rootMessage } = loadGiaProto(opts.protoPath)
   return new Uint8Array(wrap_gia(rootMessage, root))

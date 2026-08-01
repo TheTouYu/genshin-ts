@@ -1,23 +1,28 @@
 /**
- * Signal definition accessories + encoded-node patch for send/monitor (P5-W10).
+ * Signal definition accessories + encoded-node patch for send/monitor/server (P5-W10).
  *
- * Real editor GIA (user_edit/信号/001.gia, 002.gia, test/信号使用-带参数版本.gia):
- * - send node id 1610612738, kind SysGraph(22001), signalVersion=2
- * - monitor node id 1610612739, kind SysGraph(22001), signalVersion=2
- * - SignalDef accessory which=14 name="发送信号" id=1610612738 with ParameterFlow inputs
- * - Monitor CompositeDef which=12 name="监听信号" id=1610612739 graphId=0 with OutParams
+ * Real editor GIA evidence (修复后 min_main/min_composite 2026-07-31、多信号2.gia、
+ * 客户端/信号.gia、001/002.gia):
+ * - send/monitor node ids are the REGISTERED signal triplet ids (e.g. cube_turn
+ *   1610612741/42/43), kind SysGraph(22001), server signalVersion=2
+ * - client send_signal_to_server_node_graph node uses the registered serverId
+ *   (1610612743), kind SysGraph(22001), concreteId 2000 (SysCall), signalVersion=1
+ * - 1610612738/39/40 are NOT special builtins: they are the `信号_1` triplet
+ *   (the editor's first/default signal), which is why old samples show them.
+ *   gsts never hardcodes them; it always patches to the map-registered triplet.
+ * - SignalDef accessory which=14 name="发送信号" id=sendId with ParameterFlow inputs
+ * - Monitor CompositeDef which=12 name="监听信号" id=monitorId graphId=0 with OutParams
  * - ClientExec pin compositePinIndex=7 (send); data InParam cpi = SignalDef input pinIndex
  * - Data pins start at physical index 0 (= IR arg 1); name is ClientExec not InParam
  *
- * Historical gsts placeholders 300000/300001 remain SPECIAL_NODE_IDS for IR resolution
- * and injector remap; this module rewrites encoded nodes to builtin SysGraph ids and
- * emits the missing SignalDef/Monitor definition accessories so the editor can show
- * parameters without injection.
+ * Historical gsts placeholders 300000/300001/300002 remain for IR resolution and
+ * injector remap; this module rewrites encoded nodes to the registered SysGraph ids
+ * and emits the missing SignalDef/Monitor definition accessories so the editor can
+ * show parameters without injection.
  */
 
 import type { Argument, IRDocument } from '../../runtime/IR.js'
 import {
-  CompositeDef_Type_Kind,
   GraphUnit_Id_Class,
   GraphUnit_Id_Type,
   GraphUnit_Which,
@@ -34,13 +39,10 @@ import { buildCompositeParameterType } from './build_composite_definition.js'
 import { SPECIAL_NODE_IDS } from './mappings.js'
 import type { RegisteredSignalDefinition, SignalRegistry } from '../signal_registry.js'
 
-/** Builtin editor ids (real GIA SignalDef / 监听信号 CompositeDef). */
-export const BUILTIN_SEND_SIGNAL_NODE_ID = 1610612738
-export const BUILTIN_MONITOR_SIGNAL_NODE_ID = 1610612739
-export const BUILTIN_SEND_SERVER_SIGNAL_NODE_ID = 1610612740
-
 export const SIGNAL_PLACEHOLDER_SEND_ID = SPECIAL_NODE_IDS.send_signal // 300000
 export const SIGNAL_PLACEHOLDER_MONITOR_ID = SPECIAL_NODE_IDS.monitor_signal // 300001
+/** Client send_signal_to_server_node_graph placeholder (client_graph.ts CLIENT_SEND_SIGNAL_PLACEHOLDER_GID). */
+export const SIGNAL_PLACEHOLDER_SERVER_ID = 300002
 
 /** Stable pinIndex layout from 001/002.gia for send SignalDef. */
 export const SEND_SIGNAL_PIN_INDEX = {
@@ -65,16 +67,18 @@ export const MONITOR_SIGNAL_PIN_INDEX = {
 export const SIGNAL_DEFINITION_CONTRACT = {
   workPackage: 'P5-W10',
   phase: 'P5-W10',
-  signalVersion: 1,
+  // Real editor samples (001.gia, 修复后 min_main/min_composite) signalVersion=2;
+  // 153f2ec flipped this to 1 without evidence and real-game send/receive broke.
+  signalVersion: 2,
   signalDefWhich: 14 as const,
   signalDefXxx: 1,
   /** Real samples use type.kind=1001 for SignalDef (not Composite=1000). */
   signalDefTypeKind: 1001,
-  sendNodeId: BUILTIN_SEND_SIGNAL_NODE_ID,
-  monitorNodeId: BUILTIN_MONITOR_SIGNAL_NODE_ID,
-  sendServerNodeId: BUILTIN_SEND_SERVER_SIGNAL_NODE_ID,
+  /** Client send_signal_to_server_node_graph nodes use signalVersion=1 (客户端/信号.gia). */
+  clientSignalVersion: 1,
   placeholderSendId: SIGNAL_PLACEHOLDER_SEND_ID,
   placeholderMonitorId: SIGNAL_PLACEHOLDER_MONITOR_ID,
+  placeholderServerId: SIGNAL_PLACEHOLDER_SERVER_ID,
   sendPinIndex: SEND_SIGNAL_PIN_INDEX,
   monitorPinIndex: MONITOR_SIGNAL_PIN_INDEX,
   clientExecNodeKind: 6,
@@ -382,10 +386,11 @@ export function buildMonitorSignalCompositeGraphUnit(
     ],
     inputs: [],
     outputs,
-    type: { kind: CompositeDef_Type_Kind.Composite },
+    // Real 监听信号 samples use type.kind=1002 and xxx=2 (SignalDef send=1001/xxx=1).
+    type: { kind: 1002 as any },
     name: '监听信号',
     description: '',
-    xxx: SIGNAL_DEFINITION_CONTRACT.signalDefXxx
+    xxx: 2
   }
 
   return {
@@ -509,11 +514,37 @@ export function buildSendServerSignalDefGraphUnit(
 }
 
 /**
+ * Collect send_signal_to_server_node_graph usages from a client IR document.
+ * Same shape as CollectedSignalUsage so accessories reuse the server builders.
+ */
+export function collectClientSignalUsages(ir: {
+  nodes?: Array<{ type: string; args?: Array<Argument | null | undefined> }>
+}): CollectedSignalUsage[] {
+  const byName = new Map<string, CollectedSignalUsage>()
+  for (const node of ir.nodes ?? []) {
+    if (node.type !== 'send_signal_to_server_node_graph') continue
+    const name = signalNameFromArgs(node.args)
+    if (!name) continue
+    let entry = byName.get(name)
+    if (!entry) {
+      entry = { name, params: [], hasSend: false, hasMonitor: false, monitorOutIndexes: [] }
+      byName.set(name, entry)
+    }
+    const params: SignalParamSpec[] = []
+    for (let i = 1; i < (node.args ?? []).length; i++) {
+      params.push({ name: `参数_${i}`, type: paramTypeFromArg(node.args![i]) })
+    }
+    if (params.length >= entry.params.length) entry.params = params
+  }
+  return [...byName.values()]
+}
+
+/**
  * Build all signal definition accessories for the collected usages.
  * Single-schema path: one 发送信号 SignalDef + 监听信号 CompositeDef + 向服务器 shell.
  * Param schema is the longest param list among usages (covers send+monitor).
  */
-function toSignalDefinitionIdentity(
+export function toSignalDefinitionIdentity(
   entry: RegisteredSignalDefinition
 ): SignalDefinitionIdentity {
   return {
@@ -523,7 +554,7 @@ function toSignalDefinitionIdentity(
   }
 }
 
-function assertRegisteredSchema(
+export function assertRegisteredSchema(
   usage: CollectedSignalUsage,
   registered: RegisteredSignalDefinition
 ): void {
@@ -663,14 +694,21 @@ export function patchEncodedSignalNodes(
       }
 
       if (kind === 'monitor' && pinKind === NodePin_Index_Kind.OutParam) {
-        // physical index 0..2 fixed; 3+ signal params
-        pin.compositePinIndex = MONITOR_SIGNAL_PIN_INDEX.firstFixedOutput + pinIndex
+        // Real editor samples never encode monitor OutParam pins: parameter
+        // outputs come from the CompositeDef declaration and consumer connections
+        // reference OutParam kind/index directly (see 修复后 min_main 样本).
         continue
       }
 
       if (kind === 'monitor' && pinKind === NodePin_Index_Kind.OutFlow) {
         pin.compositePinIndex = MONITOR_SIGNAL_PIN_INDEX.outflow
       }
+    }
+
+    if (kind === 'monitor') {
+      node.pins = (node.pins ?? []).filter(
+        (pin: any) => pin.i1?.kind !== NodePin_Index_Kind.OutParam
+      )
     }
   }
 }
@@ -685,9 +723,9 @@ export function finalizeSignalEncoding(input: {
   accessoryGraphs?: Array<{ nodes?: any[] }>
   connIndex?: Map<number, Map<number, { type: string; dict?: { k: string; v: string } }>>
   signalRegistry?: SignalRegistry
-}): GraphUnit[] {
+}): { accessories: GraphUnit[]; signalRelatedIds: number[] } {
   const usages = collectSignalUsages(input.ir, input.connIndex)
-  if (usages.length === 0) return []
+  if (usages.length === 0) return { accessories: [], signalRelatedIds: [] }
   if (!input.signalRegistry) {
     throw new Error('[error] signal registry is required when encoding signal nodes')
   }
@@ -706,7 +744,19 @@ export function finalizeSignalEncoding(input: {
     patchEncodedSignalNodes(g.nodes, identitiesByName)
   }
 
-  return buildSignalDefinitionAccessories(usages, input.signalRegistry)
+  // Real samples list send/monitor ids in graph.relatedIds (001.gia
+  // [send, monitor]; 修复后样本 [monitor, send]). Dedupe keeps order stable.
+  const signalRelatedIds: number[] = []
+  for (const identity of identitiesByName.values()) {
+    for (const id of [identity.sendId, identity.monitorId]) {
+      if (!signalRelatedIds.includes(id)) signalRelatedIds.push(id)
+    }
+  }
+
+  return {
+    accessories: buildSignalDefinitionAccessories(usages, input.signalRegistry),
+    signalRelatedIds
+  }
 }
 
 // Keep isValueArg used for future arg inspection helpers.

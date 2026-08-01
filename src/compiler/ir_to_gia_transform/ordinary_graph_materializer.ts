@@ -111,6 +111,14 @@ function pinType(pin: any): string | undefined {
   return pin?.type === null || pin?.type === undefined ? undefined : JSON.stringify(pin.type)
 }
 
+// Real editor samples never encode monitor OutParam pins: signal parameter
+// outputs come from the CompositeDef declaration and consumer connections
+// reference OutParam kind/index directly (see 修复后 min_main 样本). The
+// materializer keeps the edge for graph.connect but skips pin existence here.
+function isMonitorSignalPlaceholder(node: Node<any>): boolean {
+  return (node.GenericId as unknown) === 300001 || (node.ConcreteId as unknown) === 300001
+}
+
 function assertDataPins(
   edge: OrdinaryDataEdge,
   source: Node<any>,
@@ -121,8 +129,11 @@ function assertDataPins(
   const sourcePin = source.pins.find((pin) => pin.kind === 4 && pin.index === fromIndex)
   const targetPin = target.pins.find((pin) => pin.kind === 3 && pin.index === toIndex)
   if (!sourcePin || !targetPin) {
+    if (!sourcePin && targetPin && fromIndex >= 3 && isMonitorSignalPlaceholder(source)) {
+      return
+    }
     throw new Error(
-      `[error] ordinary data edge pin missing: ${edge.fromId}.${fromIndex}->${edge.toId}.${toIndex}`
+      `[error] ordinary data edge pin missing: ${edge.fromId}.${fromIndex}->${edge.toId}.${toIndex} sourceIds=${JSON.stringify({ g: source.GenericId, c: source.ConcreteId })}`
     )
   }
   const sourceType = pinType(sourcePin)

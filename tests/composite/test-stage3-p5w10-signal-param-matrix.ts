@@ -302,7 +302,7 @@ const rootSends = (rootGraph.nodes ?? []).filter(isSendSignalNode)
 assert.equal(rootSends.length, 1, `root should have exactly 1 send, got ${rootSends.length}`)
 const rootSend = rootSends[0]
 assert.equal(rootSend.genericId?.nodeId, BUILTIN_SEND)
-assert.equal(rootSend.signalVersion, 1)
+assert.equal(rootSend.signalVersion, 2)
 const rootNamePin = (rootSend.pins ?? []).find((p: any) => p.i1?.kind === 5)
 assert.equal(
   typeof rootNamePin?.value === 'string' ? rootNamePin.value : rootNamePin?.value?.bString?.val,
@@ -339,7 +339,7 @@ const implSends = (implGraph.nodes ?? []).filter(isSendSignalNode)
 assert.equal(implSends.length, 1, `impl should have exactly 1 send, got ${implSends.length}`)
 const implSend = implSends[0]
 assert.equal(implSend.genericId?.nodeId, SIGNAL_SEND_ID)
-assert.equal(implSend.signalVersion, 1)
+assert.equal(implSend.signalVersion, 2)
 const implNamePin = (implSend.pins ?? []).find((p: any) => p.i1?.kind === 5)
 assert.equal(
   typeof implNamePin?.value === 'string' ? implNamePin.value : implNamePin?.value?.bString?.val,
@@ -400,7 +400,7 @@ const rootMonitors = (rootGraph.nodes ?? []).filter(isMonitorSignalNode)
 assert.equal(rootMonitors.length, 1, 'root should have exactly 1 monitor')
 const mon = rootMonitors[0]
 assert.equal(mon.genericId?.nodeId, SIGNAL_MONITOR_ID)
-assert.equal(mon.signalVersion, 1)
+assert.equal(mon.signalVersion, 2)
 const monName = (mon.pins ?? []).find((p: any) => p.i1?.kind === 5)
 assert.equal(
   typeof monName?.value === 'string' ? monName.value : monName?.value?.bString?.val,

@@ -17,6 +17,7 @@ const config: GstsConfig = {
     '!./tests/signal_parameters_test.ts',
     '!./tests/composite_bool_parameter_reference_repro.ts',
     '!./tests/manual_verify_post_v0_1_9_nodes.ts',
+    '!./tests/manual_verify_2026_07_enum_updates.ts',
     '!./tests/layout-r6-b3-data-composite.ts',
     '!./tests/layout-r6-b3-pure-data-repro.ts',
     '!./tests/layout-r6-b4-pure-data-composite.ts',

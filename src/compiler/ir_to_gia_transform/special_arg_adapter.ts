@@ -34,11 +34,9 @@ export const SPECIAL_ARG_ADAPTER_CONTRACT = {
 } as const
 
 export type SpecialArgApplyContext = {
-  /**
-   * monitor_signal only: map of OutParam pinIndex → type tag used to create
-   * dynamic signal-parameter outputs (root connIndex). Pins with index < 3
-   * are ignored (historical root filter).
-   */
+  /** Kept for API compatibility; monitor OutParam pins are no longer encoded
+   * (real editor samples never carry them — connections reference the
+   * CompositeDef-declared OutParam kind/index directly). */
   monitorOutParams?: ReadonlyMap<number, SpecialArgTypeTag>
 }
 
@@ -123,26 +121,6 @@ function scalarToNodeType(type: ScalarArgType): NodeType {
     case 'faction':
       return { t: 'b', b: 'Fct' }
   }
-}
-
-function typeTagToNodeType(tag: SpecialArgTypeTag): NodeType {
-  if (tag.kind === 'enum') {
-    throw new Error('[error] enum signal parameters are not supported in GIA conversion')
-  }
-  if (tag.kind === 'list') {
-    return { t: 'l', i: scalarToNodeType(tag.element) }
-  }
-  if (tag.kind === 'dict') {
-    const valueType: NodeType = tag.value.endsWith('_list')
-      ? { t: 'l', i: scalarToNodeType(tag.value.slice(0, -5) as ScalarArgType) }
-      : scalarToNodeType(tag.value as ScalarArgType)
-    return {
-      t: 'd',
-      k: scalarToNodeType(tag.key),
-      v: valueType
-    }
-  }
-  return scalarToNodeType(tag.type)
 }
 
 function setValueArg(
@@ -274,14 +252,15 @@ export function applySignalSpecialArgs(
   }
 
   giaNode.pins = []
-  if (nameArg) {
-    setClientExecLiteralArgValue(giaNode, 0, 0, nodeType, nameArg.type, nameArg.value)
-  }
 
   if (nodeType === 'send_signal') {
     for (let i = 1; i < list.length; i++) {
       const arg = list[i]
       if (!arg) continue
+      // Composite impl: signal params wired to composite inputs arrive as capture
+      // placeholders ({ capture: true }, no type/value). Physical InParam is owned
+      // by compositePins overlay; skip literal apply instead of crashing.
+      if ((arg as { capture?: boolean }).capture === true) continue
       if (arg.type === 'conn') {
         const connType = (arg as { value: { type?: string } }).value?.type
         if (!connType) continue
@@ -324,19 +303,14 @@ export function applySignalSpecialArgs(
         setValueArg(giaNode, i - 1, i, nodeType, arg)
       }
     }
-    return true
   }
 
-  // monitor_signal: name ClientExec + optional dynamic OutParams from context
-  const outs = context?.monitorOutParams
-  if (outs) {
-    outs.forEach((tag, pinIndex) => {
-      if (pinIndex < 3) return
-      const concreteId = (giaNode as any).ConcreteId
-      const p = new Pin(concreteId, 4, pinIndex)
-      p.setType(typeTagToNodeType(tag))
-      giaNode.pins.push(p)
-    })
+  // Real editor samples (001.gia / 多信号2.gia / 修复后样本) always end the pin
+  // array with the ClientExec name pin; monitor nodes never carry OutParam pins
+  // (parameter outputs come from the CompositeDef declaration and connections
+  // reference OutParam kind/index directly).
+  if (nameArg) {
+    setClientExecLiteralArgValue(giaNode, 0, 0, nodeType, nameArg.type, nameArg.value)
   }
   return true
 }

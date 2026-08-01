@@ -118,14 +118,15 @@ function mergeWrappedFieldMessages(
   for (const inner of incomingInnerMessages) {
     const id = getId(inner)
     if (typeof id !== 'number') continue
-    const wrapper = encodeMessageField(1, inner)
     const existingIndex = indexById.get(id)
-    if (existingIndex === undefined) {
-      indexById.set(id, ordered.length)
-      ordered.push(wrapper)
-      continue
-    }
-    ordered[existingIndex] = wrapper
+    // Keep the GIL-side definition when ids collide: GIA signal accessories
+    // carry the registered signal id (sendId/monitorId), so overwriting here
+    // clobbers the game-managed signal registration and breaks signal routing
+    // (real-game failure 2026-07-31, verified by inject->re-read test).
+    if (existingIndex !== undefined) continue
+    const wrapper = encodeMessageField(1, inner)
+    indexById.set(id, ordered.length)
+    ordered.push(wrapper)
   }
 
   return [...ordered, ...anonymous]

@@ -61,8 +61,7 @@ import { expandListLiterals } from './preprocess.js'
 import {
   applySpecialArgLiteralArgs,
   isSharedSpecialArgAdapterNodeType,
-  remapSpecialArgInputIndex,
-  type SpecialArgTypeTag
+  remapSpecialArgInputIndex
 } from './special_arg_adapter.js'
 import type { IRNode, NodeId } from './types.js'
 
@@ -392,36 +391,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
     // Shared special-arg family (P5-W10): signal / assembly / multiple_branches.
     if (isSharedSpecialArgAdapterNodeType(nodeType)) {
-      let monitorOutParams: Map<number, SpecialArgTypeTag> | undefined
-      if (nodeType === 'monitor_signal') {
-        const signalParams = connIndex.get(irNode.id)
-        if (signalParams) {
-          monitorOutParams = new Map()
-          signalParams.forEach((info, pinIndex) => {
-            if (pinIndex < 3) return
-            if (info.type === 'enum') {
-              monitorOutParams!.set(pinIndex, { kind: 'enum' })
-            } else if (info.type === 'dict') {
-              monitorOutParams!.set(pinIndex, {
-                kind: 'dict',
-                key: info.dict.k as any,
-                value: info.dict.v as any
-              })
-            } else if (info.type.endsWith('_list')) {
-              monitorOutParams!.set(pinIndex, {
-                kind: 'list',
-                element: info.type.slice(0, -5) as any
-              })
-            } else {
-              monitorOutParams!.set(pinIndex, {
-                kind: 'scalar',
-                type: info.type as any
-              })
-            }
-          })
-        }
-      }
-      return applySpecialArgLiteralArgs(nodeType, giaNode, irNode.args, { monitorOutParams })
+      return applySpecialArgLiteralArgs(nodeType, giaNode, irNode.args)
     }
 
     return false
@@ -805,15 +775,6 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
         }
       }
     }
-
-    // 为主图添加 relatedIds 指向被调用的复合定义
-    if (calledCompositeIds.length > 0) {
-      ;(root.graph as any).relatedIds = calledCompositeIds.map((id) => ({
-        class: GraphUnit_Id_Class.AffiliatedNode,
-        type: 0,
-        id
-      }))
-    }
   } catch (e) {
     throw e
   }
@@ -842,19 +803,33 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
     const accessoryGraphs = (root.accessories ?? [])
       .map((acc: any) => acc.graph?.inner?.graph)
       .filter(Boolean)
-    const signalAccs = finalizeSignalEncoding({
+    const signalResult = finalizeSignalEncoding({
       ir,
       rootNodes: mainNodes,
       accessoryGraphs,
       connIndex,
       signalRegistry: opts.signalRegistry
     })
-    if (signalAccs.length > 0) {
-      root.accessories.push(...signalAccs)
+    if (signalResult.accessories.length > 0) {
+      root.accessories.push(...signalResult.accessories)
+      // Real samples list send/monitor ids in graph.relatedIds together with
+      // called composite ids (001.gia [send, monitor]; 修复后样本 [monitor, send]).
+      for (const id of signalResult.signalRelatedIds) {
+        if (!calledCompositeIds.includes(id)) calledCompositeIds.push(id)
+      }
     }
   } catch (e) {
     console.error('[signal] failed to finalize signal encoding:', e)
     throw e
+  }
+
+  // 为主图添加 relatedIds：被调用的复合定义 + 信号发送/监听节点 ID
+  if (calledCompositeIds.length > 0) {
+    ;(root.graph as any).relatedIds = calledCompositeIds.map((id) => ({
+      class: GraphUnit_Id_Class.AffiliatedNode,
+      type: 0,
+      id
+    }))
   }
 
   if (assemblyDictMeta.size > 0) {
