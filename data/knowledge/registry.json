@@ -722,6 +722,15 @@
         "signal, send node, 发送信号, compositePinIndex, 信号三元组, Assembly List, 拼装列表"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "signal-registration-and-extraction",
+      "node_id": "static-gil-assets",
+      "title": "Signal registration and extraction (assets:signals tool + GIL encoding)",
+      "path": "knowledge/static-gil-assets/signal-registration-and-extraction.md",
+      "summary": "",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -952,6 +961,16 @@
       ]
     },
     "clm_9FA1660915D1832D0763A499E4": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_747B855B2F15D8CF565A95D92D": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_EB98A0BAEA640B8ECB6577B16C": {
       "fact_classes": [
         "external_game_evidence"
       ]

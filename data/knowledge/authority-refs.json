@@ -77,6 +77,21 @@
       ]
     },
     {
+      "id": "aref_1eb66dd756e13665e7d36f760f",
+      "path": "src/cli/assets_signals.ts",
+      "locator": "runAssetsSignals / parseArgs / writeback + extraction",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "56b94f6b6d553dd75648983929574bb113befe9e0e81f10928df1a7d2a873611",
+      "claim_ids": [
+        "clm_747B855B2F15D8CF565A95D92D"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_211e3b3944e8739fad12c945d4",
       "path": "docs/composite-ir/04-validation-signal.md",
       "locator": "§13.8",
@@ -332,6 +347,36 @@
       ]
     },
     {
+      "id": "aref_6478bd5c86335d60cd4036fcad",
+      "path": "tests/gil_signal_registrations.ts",
+      "locator": "6-layer regression: cloning, read-back, auto IDs, CLI args",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "ae12d02e685a4de02c9e0c28a5cea3b4813370406aad025562a58d151303e721",
+      "claim_ids": [
+        "clm_747B855B2F15D8CF565A95D92D"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_69a02fc772cd5a0566d144c031",
+      "path": "src/cli/gil_signal_registrations.ts",
+      "locator": "parseSignalIndexEntry / PARAM_TYPE_CODES / buildIndexEntry / buildDefinition",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bd3e722c3dc84868c3112099deed87ed55b2831bdd76ae41ce9e14fbcdc21bba",
+      "claim_ids": [
+        "clm_EB98A0BAEA640B8ECB6577B16C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_6c67fed7ffff063c36abad0ba1",
       "path": "tests/composite/test-stage3-resolved-node-contract.ts",
       "locator": "focused resolved-node contract regression for enum alias resolution and supported Composite Stage 3 node identity",
@@ -344,6 +389,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_6d1c340214dc5075032091a503",
+      "path": "tests/gil_signal_registrations.ts",
+      "locator": "editor byte comparison and read-back layers",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "ae12d02e685a4de02c9e0c28a5cea3b4813370406aad025562a58d151303e721",
+      "claim_ids": [
+        "clm_EB98A0BAEA640B8ECB6577B16C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -482,6 +542,21 @@
       ]
     },
     {
+      "id": "aref_ab78d420c34b6305669b03627c",
+      "path": "src/cli/gil_signal_registrations.ts",
+      "locator": "registerSignalInGil / assignSignalIds / validateSpec / buildParamPool",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bd3e722c3dc84868c3112099deed87ed55b2831bdd76ae41ce9e14fbcdc21bba",
+      "claim_ids": [
+        "clm_747B855B2F15D8CF565A95D92D"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_ac80ab3ccb2e6b0e716bcb70a9",
       "path": "docs/project-intelligence/knowledge-capture-common-errors.md",
       "locator": "sections 1-8: reusable command, preflight, evidence, approval, and verification errors",
@@ -610,7 +685,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "3e1515175ec46651f67728ac971fd614046e54a29940c2aa45bb2a3eec13e51b",
+      "approved_hash": "43a308f8ac3620544acd92cda4a0f0f2b4d618af143b77a0ddef70253eda8a19",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
