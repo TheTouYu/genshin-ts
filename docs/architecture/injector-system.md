@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现 + 真实地图验证
-> 最近校验：2026-07-11
+> 最近校验：2026-08-01
 > 适用范围：gsts 当前注入流程；地图 ID 分配规律仅适用于已观察的真实地图样本
 
 > 本文档描述 genshin-ts 的**节点图注入器**——如何将编译产出的 `.gia` 二进制文件注入到原神的 `.gil` 关卡文件中。
@@ -96,36 +96,36 @@ function createInjector(options?: { protoPath?: string; lang?: string }): Inject
 function injectBytes(input: InjectGilInput): InjectGilResult {
   // 1. 从 .gia 字节流解析出节点图对象（protobuf decode）
   const newGraph = loadGiaGraph(giaBytes, rootMessage, nodeGraphMessage, targetId)
-  
+
   // 2. 确定目标 ID（从参数或 GIA 自身推断）
   const targetId = input.targetId ?? getGraphId(newGraph)
-  
+
   // 3. 验证 .gil 文件头
   //   → headTag === 0x0326, tailTag === 0x0679
-  
+
   // 4. 从 .gil 原始字节中解析 protobuf 字段
   //   → 遍历所有字段，收集 LenField 信息
   //   → 特别识别 NodeGraph blob 字段（depth=3, p0=10, p1=1, p2=1）
-  
+
   // 5. 查找目标节点图位置
   const matches = findNodeGraphTargets(payload, fields, nodeGraphMessage, targetId)
-  
+
   // 6. 应用信号补丁（修正信号节点 ID）
   patchSignalNodeIds(newGraph, gilBytes, context)
-  
+
   // 7. 安全检查
   //   → 目标已存在节点? 需要 _GSTS 前缀
   //   → 多个匹配? 中止防止损坏
-  
+
   // 8. 更新节点图名称、ID、类型
   setGraphId(newGraph, targetId)
   setGraphType(newGraph, graphType)
-  
+
   // 9. protobuf encode → 替换 .gil 中的原节点图字节
   const newGraphBytes = nodeGraphMessage.encode(newGraph).finish()
   const newPayload = applyReplacement(payload, fields, target.field, newGraphBytes)
   const newFile = buildFile(newPayload, { schema, headTag, fileType, tailTag })
-  
+
   return { bytes: newFile, mode: 'replace' }
 }
 ```
@@ -140,6 +140,43 @@ function injectFile(options: InjectGilFileOptions): InjectGilFileResult {
   // 4. 自动创建输出目录
 }
 ```
+
+---
+
+### 3.4 向特定 NodeGraph 增加节点：相邻快照与整图替换
+
+> 来源分层：当前 injector 实现 + 真实编辑器相邻 GIL 快照 + 临时副本自动回读；尚未把本轮临时重放称为真实地图写回或游戏行为验证。
+
+注入器不在 `.gil` 内原地追加单个 GraphNode。安全且可验证的增量方法是：
+
+```text
+知识树/Authority 已有规则先复用
+→ 用户在编辑器创建名称以 _GSTS 开头的专用空图
+→ 每轮只做一个编辑器变化并保存相邻 GIL 快照
+→ 比较同一 nodeGraphId 的节点和图级字段
+→ 在前一快照的 NodeGraph 上手工同构重放该增量
+→ 包装为完整 GIA
+→ 用 injectBytes() 替换临时 GIL 副本中的整个 NodeGraph
+→ 回读目标图并与后一真实快照比较
+→ 真实写回前另行展示目标、哈希、命令和回滚并取得确认
+```
+
+相邻快照比较使用只读工具：
+
+```bash
+npx tsx tools/compare-gil-node-graph.ts \
+  <before.gil> <after.gil> <nodeGraphId>
+
+# 仅在需要检查完整 pin/value/connects 时展开节点；列表节点可能很大
+npx tsx tools/compare-gil-node-graph.ts \
+  <before.gil> <after.gil> <nodeGraphId> --full
+```
+
+默认输出文件 SHA-256、图元数据是否变化、节点数以及 added/removed/changed 节点的 identity 与 pin 数，避免 Assembly List 的 100 个输入槽淹没关键信息。`--full` 输出完整节点只是语义解码证据；涉及默认值与 wire presence 时仍需 raw-wire 或 round-trip 断言。
+
+2026-08-01 的最小真实增量在地图 `1073741849` 的专用图 `1073741840` 上完成：空图 → 未绑定 send placeholder → 绑定 `gsts_type_probe_vec3_list` → 连接 `[(1,2,3)]` 的 Assembly List<Vector>。从绑定未赋参快照手工重放最后一步后，现有 injector 对临时 GIL 副本执行 `mode=replace`，回读目标 NodeGraph 与编辑器后一快照的 protobuf 编码逐字节一致。该结果证明“相邻增量可通过整图替换同构重放”，不证明尚未执行的真实地图写回或游戏行为。
+
+调查未知节点或修 bug 时必须保持单变化；不得用正处于待修状态的编译/降低链来证明编辑器规则，也不得一次混入多个节点族。生产修复必须在规则侧同构重放闭合后，以 focused red/green regression 进入。
 
 ---
 
@@ -183,10 +220,10 @@ parseMessage(buf, offset, ...) → LenField[]
   // 遍历 protobuf 消息的所有字段
   // 识别字段号 (field number) 和 wire type
   // 对 wire type 2（长度前缀），记录 LenField { offset, len, ... }
-  
+
 readFieldBytes(buf, targetField) → Uint8Array | undefined
   // 提取指定字段号对应的原始字节块
-  
+
 decodeUtf8(buf, start, end) → string
   // UTF-8 解码
 ```
@@ -284,11 +321,7 @@ function resolveGraphTypeForTypeValue(typeValue, folderIndexes, idToType) {
 
 ```ts
 {
-  name,
-  params,
-  sendId,
-  monitorId,
-  serverId
+  ;(name, params, sendId, monitorId, serverId)
 }
 ```
 
@@ -312,11 +345,11 @@ GIA 编码阶段也使用同一 registry，而不是生成固定 ID、哈希 ID 
 
 注入器包含多项安全检查：
 
-| 检查 | 触发条件 | 处理 |
-|------|----------|------|
-| 文件头校验 | headTag ≠ 0x0326 或 tailTag ≠ 0x0679 | 抛错终止 |
-| 目标非空检查 | 目标节点图已有节点且名称非 _GSTS 前缀 | 抛错终止（除非 skipNonEmptyCheck） |
-| 多匹配检查 | 找到 > 1 个匹配 targetId 的字段 | 抛错终止（防止损坏） |
-| 目标 ID 检查 | targetId >= 1000000000 但路径结构不匹配 | 抛错终止 |
-| protobuf 验证 | encode 后的 NodeGraph 无效 | 抛错终止 |
-| 类型兼容检查 | 传入的图类型与目标位置不匹配 | 打印警告（非致命） |
+| 检查          | 触发条件                                | 处理                               |
+| ------------- | --------------------------------------- | ---------------------------------- |
+| 文件头校验    | headTag ≠ 0x0326 或 tailTag ≠ 0x0679    | 抛错终止                           |
+| 目标非空检查  | 目标节点图已有节点且名称非 \_GSTS 前缀  | 抛错终止（除非 skipNonEmptyCheck） |
+| 多匹配检查    | 找到 > 1 个匹配 targetId 的字段         | 抛错终止（防止损坏）               |
+| 目标 ID 检查  | targetId >= 1000000000 但路径结构不匹配 | 抛错终止                           |
+| protobuf 验证 | encode 后的 NodeGraph 无效              | 抛错终止                           |
+| 类型兼容检查  | 传入的图类型与目标位置不匹配            | 打印警告（非致命）                 |

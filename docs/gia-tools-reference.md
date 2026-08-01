@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：当前工具实现 + 真实 GIA 分析流程
-> 最近校验：2026-07-07
+> 最近校验：2026-08-01
 > 适用范围：gsts 当前工具链
 
 > 本项目有约 30 个 GIA 分析/调试脚本，分散在 `tests/composite/` 和 `tools/` 下。本文按**使用场景**组织，告诉你遇到什么问题该用哪个工具。
@@ -117,8 +117,8 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 
 | 工具                        | 功能                                                                                                                  | 用法                                                                      |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `ascii-layout.ts`           | **ASCII 布局图** — 将节点渲染为 2D 制表符图形，直观看到位置和连线；支持 `--composite <名称>` 选择 impl 图 | `npx tsx tests/composite/ascii-layout.ts [--composite <名称>] <文件.gia>` |
-| `audit-layout.ts`           | **布局质量审计** — 重叠检测、间距过近（<20px）、OutFlow 分支分析；默认忽略无 exec 边的数据节点，可用 `--strict` 恢复 | `npx tsx tests/composite/audit-layout.ts [--strict] <文件.gia>`          |
+| `ascii-layout.ts`           | **ASCII 布局图** — 将节点渲染为 2D 制表符图形，直观看到位置和连线；支持 `--composite <名称>` 选择 impl 图             | `npx tsx tests/composite/ascii-layout.ts [--composite <名称>] <文件.gia>` |
+| `audit-layout.ts`           | **布局质量审计** — 重叠检测、间距过近（<20px）、OutFlow 分支分析；默认忽略无 exec 边的数据节点，可用 `--strict` 恢复  | `npx tsx tests/composite/audit-layout.ts [--strict] <文件.gia>`           |
 | `dump-nodes.ts`             | **坐标 dump** — 输出所有 GIA 节点的 `nIdx @ (x, y)`                                                                   | `npx tsx tests/composite/dump-nodes.ts <文件.gia>`                        |
 | `analyze-exec-lanes.ts`     | **执行分叉泳道分析** — 输出 fan-out parent/child 坐标、dx/dy、stepFromPrev                                            | `npx tsx tests/composite/analyze-exec-lanes.ts <文件.gia> [files...]`     |
 | `calibrate-layout-lanes.ts` | **布局调参校准** — 输出 sibling step、exec/data Y 范围、blockBottom、gapAfterPrevBlock，适合对比参考 GIA 与 gsts 输出 | `npx tsx tests/composite/calibrate-layout-lanes.ts <文件.gia> [files...]` |
@@ -150,17 +150,19 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 
 > 推荐使用 `npm run gia:decode -- <file.gia>`、`npm run gia:inspect -- <file.gia>`、`npm run gia:compare -- <ref.gia> <gen.gia>` 和 `npm run gia:diff -- <ref.gia> <gen.gia>`，避免 deprecation warning 污染输出。`decode-gia.ts`、`analyze-composite-gia.ts`、`topology.ts` 支持 `--help`。
 
-| 工具                       | 功能                                                | 用法                                                           |
-| -------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
-| `decode-gia.ts`            | **解码 GIA → 完整 JSON**，支持 compact、header 校验、文件输出和 stdin | `npm run gia:decode -- <文件.gia> \| jq '...'`           |
-| `analyze-composite-gia.ts` | **CompositeDef/SignalDef 深度分析**，支持多文件对比 | `npx tsx tools/analyze-composite-gia.ts <f1.gia> [f2.gia ...]` |
-| `analyze-gia-arch.ts`      | **架构概览** — 分析复杂 GIA 的顶层结构              | `npx tsx tools/analyze-gia-arch.ts`                            |
-| `topology.ts`              | **复合调用拓扑** — 主图中复合节点的调用关系图       | `npx tsx tools/topology.ts <文件.gia>`                         |
-| `coverage.ts`              | **文档覆盖率** — 按已知模式分类复合定义             | `npx tsx tools/coverage.ts <文件.gia>`                         |
-| `gap-scan.ts`              | **文档缺口扫描** — 用启发式找未知模式               | `npx tsx tools/gap-scan.ts <文件.gia>`                         |
-| `inspect-gil-custom-variables.ts` | **GIL 自定义变量候选检查** — 只读显示变量名所在 protobuf 容器、字段路径及原始 wire 摘要 | `npx tsx tools/inspect-gil-custom-variables.ts <地图.gil> <变量名> [出现序号]` |
-| `scan-gil-custom-variable-candidates.ts` | **GIL 自定义变量批量候选扫描** — 按定义容器枚举名称、类型码、初值 wire 摘要及可识别的 CustomPrefab 所有者 | `npx tsx tools/scan-gil-custom-variable-candidates.ts <地图.gil>` |
-| `preview_markdown.ts`      | **终端渲染 Markdown**                               | `npx tsx tools/preview_markdown.ts <文件.md>`                  |
+| 工具                                     | 功能                                                                                                                          | 用法                                                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `decode-gia.ts`                          | **解码 GIA → 完整 JSON**，支持 compact、header 校验、文件输出和 stdin                                                         | `npm run gia:decode -- <文件.gia> \| jq '...'`                                            |
+| `analyze-composite-gia.ts`               | **CompositeDef/SignalDef 深度分析**，支持多文件对比                                                                           | `npx tsx tools/analyze-composite-gia.ts <f1.gia> [f2.gia ...]`                            |
+| `analyze-gia-arch.ts`                    | **架构概览** — 分析复杂 GIA 的顶层结构                                                                                        | `npx tsx tools/analyze-gia-arch.ts`                                                       |
+| `topology.ts`                            | **复合调用拓扑** — 主图中复合节点的调用关系图                                                                                 | `npx tsx tools/topology.ts <文件.gia>`                                                    |
+| `coverage.ts`                            | **文档覆盖率** — 按已知模式分类复合定义                                                                                       | `npx tsx tools/coverage.ts <文件.gia>`                                                    |
+| `gap-scan.ts`                            | **文档缺口扫描** — 用启发式找未知模式                                                                                         | `npx tsx tools/gap-scan.ts <文件.gia>`                                                    |
+| `inspect-gil-custom-variables.ts`        | **GIL 自定义变量候选检查** — 只读显示变量名所在 protobuf 容器、字段路径及原始 wire 摘要                                       | `npx tsx tools/inspect-gil-custom-variables.ts <地图.gil> <变量名> [出现序号]`            |
+| `scan-gil-custom-variable-candidates.ts` | **GIL 自定义变量批量候选扫描** — 按定义容器枚举名称、类型码、初值 wire 摘要及可识别的 CustomPrefab 所有者                     | `npx tsx tools/scan-gil-custom-variable-candidates.ts <地图.gil>`                         |
+| `list-gil-node-graphs.ts`                | **GIL NodeGraph 列表** — 只读列出图 ID、类型、名称和节点数，用于先定位目标图                                                  | `npx tsx tools/list-gil-node-graphs.ts <地图.gil>`                                        |
+| `compare-gil-node-graph.ts`              | **相邻 GIL 快照的定点 NodeGraph 比较** — 输出文件哈希、图元数据变化和 added/removed/changed 节点摘要；`--full` 才展开完整节点 | `npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <nodeGraphId> [--full]` |
+| `preview_markdown.ts`                    | **终端渲染 Markdown**                                                                                                         | `npx tsx tools/preview_markdown.ts <文件.md>`                                             |
 
 **`decode-gia.ts` 选项与常用查询：**
 
@@ -200,6 +202,19 @@ npx tsx tools/inspect-gil-custom-variables.ts <地图.gil> <变量名> [出现�
 该工具基于 `readGilPayloadFields()` 的通用 length-field 扫描，显示匹配变量名的直接容器和祖先
 protobuf 字段摘要；它**不写入**地图，也不推断或修改资产。它适用于为自定义变量抽取器建立真实
 GIL 字段证据：先用编辑器创建最小样本，再比较同一变量在类型/初值变动前后的输出。
+
+### 4.2 相邻 GIL 快照中的 NodeGraph 单变化
+
+未知节点编码、新功能或疑难 bug 优先查询 PKC 和当前 Authority；只有 coverage gap 才启动编辑器实验。让用户在专用 `_GSTS*` 图中每轮只改一个变量，保存相邻快照后运行：
+
+```bash
+npx tsx tools/list-gil-node-graphs.ts <after.gil>
+npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <nodeGraphId>
+```
+
+默认摘要用于快速判断节点是新增、删除、重建为新 `nodeIndex`，还是只变化 pins。确认唯一差异后才使用 `--full` 检查 `type`、`compositePinIndex`、value 和 connects，并为关键字段留下最小 PASS/FAIL 断言。不要未经规模评估就打印完整列表节点；不要把语义 JSON 默认值当成 wire presence；不要在规则闭合前调用待修生产 lowering 生成“证明候选”。
+
+若需要验证可重放性，应在临时 GIL 副本上把“前快照目标图 + 手工增量”包装为完整 GIA，再通过现有 injector 整图替换并回读，与后一真实快照比较。临时替换成功不等于真实地图写回，更不等于游戏行为通过。
 
 批量扫描可使用：
 
