@@ -1,23 +1,79 @@
 ---
 name: editor-incremental-gia-investigator
-description: Investigate Genshin editor GIA/GIL behavior through user-saved, adjacent, single-change map snapshots. Always use this skill when the user says they saved a map or NodeGraph after adding/changing/removing one node, pin, connection, parameter, signal, variable, or editor setting; asks to compare before/after GIL files; wants incremental exploration of an unknown editor rule; or wants a new feature/bug narrowed through minimal editor changes. It locates the exact map and NodeGraph without guessing, preserves immutable snapshots and hashes, produces bounded structural diffs, derives one falsifiable rule at a time, and optionally hand-replays the increment into a temporary GIL copy before any production fix or real injection.
+description: Investigate and accumulate Genshin editor engine rules through user-saved, adjacent map snapshots. Always use this skill when adding a game-engine feature, studying how a level asset/node/pin/connection/parameter/component/UI/variable is encoded, comparing before/after GIL files, or preparing a learned rule for Genshin-TS implementation. It first reads the project's human-readable game-engine knowledge graph to reuse known concepts and evidence, then performs only the missing incremental experiment, preserves immutable snapshots and hashes, derives bounded rules, hand-replays them in temporary GIA/GIL, and keeps real-map writes behind explicit confirmation.
 compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list-gil-node-graphs.ts, and tools/compare-gil-node-graph.ts.
 ---
 
-# 编辑器单变化 GIA/GIL 调查
+# 游戏引擎增量学习与 GIA/GIL 调查
 
-把用户在游戏编辑器中的一次最小变化，转换成可复查的相邻快照、定点差分和同构重放证据。目标是逐步缩小范围直到规则闭合，而不是一次分析整张地图。
+把用户在游戏编辑器中的小变化转换成可复查的相邻快照、定点差分和同构重放证据，并把稳定规则接回 `docs/game-engine-knowledge/`。目标是持续还原游戏引擎，而不是在每个新会话中重新调查，或只为当前生产代码打补丁。
 
 ## 硬约束
 
 - 默认全程只读；复制快照到 `/tmp` 不构成真实地图写回。
-- 先用 Project Adapter / PKC 查询已有规则。只有 coverage gap 才启动新实验，不从头重做已有逆向。
-- 每轮只允许一个可唯一归因的编辑器变化。出现多个变量时停止并请用户拆分。
+- 先判断本轮是冷启动、已有任务续作还是阶段切换，再按最小恢复路径加载；不要把冷启动清单机械用于续作。概念知识、真实编码和当前实现三者分开，不从头重做已有调查。
+- 默认每轮一个可唯一归因的编辑器变化。若多个变化均有已验证规则且能逐项断言，可组合验证；任何未知增量都停止推广并拆分。
 - 不猜 `mapId`、`nodeGraphId`、图类型、信号 ID、pin index 或版本；都从当前地图和相邻快照读取。
 - 未知规则闭合前，不改生产代码，不调用待修 production lowering/finalize 链生成“规则证明”。
 - 不未经规模评估打印完整地图、整图 JSON 或 100 槽列表节点；默认只输出摘要和 PASS/FAIL。
 - 手工重放只写临时 GIA/GIL；真实注入前必须单独展示目标、当前 hash、命令、修改范围和回滚路径，并获得明确确认。
 - 自动比较、临时注入、真实写回、编辑器导入和游戏行为是不同证据层，分别报告。
+
+## 新功能与调查入口
+
+处理任何游戏引擎新功能前，先回答：
+
+```text
+引擎概念：它属于关卡、资产、组件、UI、节点图、复合节点、控制流、数据流、变量还是镜头？
+已有知识：知识目录已确认什么，证据层级是什么？
+真实缺口：缺的是游戏概念、GIA/GIL 编码，还是项目某个编译层的实现？
+```
+
+按 `docs/game-engine-knowledge/project-pipeline.md` 定位层级：
+
+```text
+高级 TS → 扁平原生 API TS → JSON/IR → 特殊规则 + 第三方编码 → GIA → GIL
+```
+
+- 游戏规则和编码已知：直接进入对应生产层的 red/green，不要求用户重复实验。
+- 概念已知、编码未知：进入本 Skill 的相邻快照流程。
+- 游戏功能尚未开放或项目尚未设计：记录边界，不虚构 API。
+- 仅当前实现未知：查源码和测试，不用编辑器实验替代代码调查。
+
+## 模块路由
+
+主 Skill 只承载通用调查、安全和证据流程。先判断领域，只加载一个匹配模块；模块不存在时才按冷启动流程定位缺口。
+
+| 领域 | 模块 |
+|---|---|
+| 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
+
+模块记录领域恢复字段、专项断言和比较入口，不复制通用安全规则或整份领域知识。新增模块应等规则和重复流程稳定后再建，不为尚无复用价值的单例预先搭架子。
+
+## 最小恢复路由
+
+开始前只选一种模式，不叠加执行：
+
+### A. 已有任务续作（优先）
+
+出现任一条件即走续作：用户说“继续/好了/已保存”、会话中已有明确 handoff/快照路径，或已锁定地图、图和下一轮变化。
+
+只读取匹配模块和一个**恢复锚点**：优先使用用户或当前会话明确给出的 handoff/status 文件；没有 handoff 时，读取模块指向的领域 Authority。从锚点取得前快照、地图路径、`nodeGraphId`、已确认规则和下一缺口后直接工作。不要再次加载索引、`project-pipeline.md`、导航 Skill、通用领域文档或 PKC，除非锚点明确指出 coverage gap。
+
+### B. 冷启动
+
+没有可用恢复锚点时：
+
+1. 读取根 `AGENTS.md`、本 Skill和必要的 `.gia/.gil` 安全导航规则；
+2. 读取 `docs/game-engine-knowledge/index.md`；
+3. 沿索引只读取一个本轮领域文件；仅当无法判断项目转换层级时再读 `project-pipeline.md`；
+4. 只在领域文件没有所需编码结论时，运行一次 bounded PKC 查询。
+
+PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID。自然语言查询出现 `coverage_gap` 时停止扩散：它不等于传统 Authority 没有内容，也不授权连续尝试多个近似 Topic。最多根据返回结果改用一个明确候选 Topic；仍无关键规则就报告缺口。
+
+### C. 阶段切换
+
+从真实增量切到手工 GIA、写回、生产修复或知识回填时，只补读新阶段要求的安全规则和最小 Authority，不重放前一阶段的加载清单。
 
 ## 开始一轮
 
@@ -29,30 +85,58 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 若用户只说“好了/已保存”，沿用上一轮明确约定的唯一变化；若没有明确约定，先问一个问题，不扫描猜测。
 
-然后：
-
-1. 读取根 `AGENTS.md`、本 Skill，以及 `.gia/.gil` 导航/Adapter Skill。
-2. 运行一次 bounded PKC 查询，目标是本轮节点/字段规则；已有 Claim 直接复用。
-3. 只读运行实际配置的 `gsts maps`，把 `[recent]` 当候选，不当授权。
-4. 对比已保存基线的路径/hash 与最近地图；地图未变化时停止，出现多个候选时请用户确认。
-5. 使用现有工具列图，不写一次性全量 decoder：
+只有冷启动或用户明确切换地图时才运行 `gsts maps`。只有新图尚未识别时才运行：
 
 ```bash
 npx tsx tools/list-gil-node-graphs.ts <map.gil>
 ```
 
-通过上一轮 graph ID 或明确图名定位目标。新图必须用“前后图集合差”识别，不能按常见 ID 推断。
+通过明确 graph ID 或图名定位目标；新图用前后图集合差识别，不能按常见 ID 推断。已锁定路径和图后进入快速续轮。
+
+### 已锁定实验的快速续轮
+
+当上一轮已经锁定 `map path/mapId`、`nodeGraphId`、前快照和下一轮唯一变化，且用户只回复“好了/已保存”时，不重复执行 PKC 查询、`gsts maps`、全图列表、全仓状态或无关文档加载。直接沿用锁定上下文：
+
+```text
+当前地图 SHA-256
+→ 复制到新的不可变快照并复核 SHA-256
+→ 对固定 nodeGraphId 做相邻定点差分
+→ 更新规则覆盖矩阵并约定下一轮唯一变化
+```
+
+只有以下情况才退出快速续轮并重新定位：
+
+- 当前地图 hash 未变化；
+- 锁定路径不存在，或用户明确切换地图/图；
+- 目标图出现约定外 metadata、节点或多项字段变化；
+- 观察与已有规则冲突；
+- 进入 GIA 重放、真实写回、生产修复或知识回填等新阶段。
+
+若一批变化全部属于已由真实证据确认的同一编码骨架，可以让用户一次填写多个值并逐项断言；仍须保留每项的类型、值字段、序号和定义 pinIndex 检查，任何一项不匹配就停止整批推广。不要为重复的一致样本继续消耗一轮单变化实验。
 
 ## 保存不可变快照
 
-每轮都在读取当前地图 hash 后复制到一个不存在的 `/tmp` 路径：
+规则证据默认持久化到：
 
 ```text
-/tmp/<task>-v0-<semantic>.gil
-/tmp/<task>-v1-<semantic>.gil
+${GTS_EVIDENCE_HOME:-$HOME/genshin-ts-evidence}/<module>/<experiment>/raw/
 ```
 
-复制前 `test ! -e <snapshot>`，复制后再次计算源和快照 SHA-256，必须一致。不得覆盖旧快照。
+使用 Skill 自带脚本做不覆盖复制和 SHA-256 复核：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/capture-evidence.py \
+  <source-file> <destination-directory>
+```
+
+相邻快照使用明确语义名：
+
+```text
+<task>-v0-<semantic>.gil
+<task>-v1-<semantic>.gil
+```
+
+脚本会生成同名 `.sha256`。不得覆盖旧快照。`/tmp` 只用于可丢弃的解码输出或临时注入副本；凡被规则、文档或 handoff 引用的原始 GIL/GIA、手工候选和重放结果都必须持久化。
 
 记录最小基线：
 
@@ -138,6 +222,18 @@ protobuf 默认值不能证明 wire presence；需要区分“缺失”和“默
 - 用户要求进入修复。
 
 之后执行最小 red→green 修复，重新用生产代码生成同样的最小候选，并把自动结果与用户编辑器/游戏核验分开报告。
+
+## 知识回填
+
+规则通过真实增量和同构重放后，更新 `docs/game-engine-knowledge/` 中适用范围最小的文件：
+
+- 先写人能读懂的游戏概念和行为；
+- 再写节点、参数、连接或资产的具体编码规则；
+- 记录真实快照、命令、观察、适用图类型和验证层级；
+- 更新 `index.md` 的关联，不复制相同结论到多个文件；
+- 当前生产实现另写源码、测试和架构文档，不把实现状态混成游戏规则。
+
+工作中的 `/tmp` 快照和聊天内容不是长期知识。稳定结论进入跟踪文件后，才可在后续会话中作为恢复入口。
 
 ## 知识与提交
 
