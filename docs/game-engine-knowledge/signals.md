@@ -132,10 +132,20 @@ genericId / concreteId = 目标 monitorId
 
 全部 9 个消费节点和连接可同时存在：`connect.id` 指向监听节点，`connect` 指向源
 `OutParam`，监听 GraphNode 本身不变化；输出序号 `3..11` 按注册定义顺序连续且不压缩。
-`connect2` 经验规则：= 源 `OutParam` index；唯一例外：str 源(6)→3、entity 源(9)→4
-（均经 genericId=18 获取局部变量节点，多实例复现），例外语义未解释，保持
-`INSUFFICIENT`，实现按经验规则写值。获取局部变量 concreteId 变体：str=2656 /
+`connect2` 经验规则：= 源 `OutParam` index；唯一例外：str 源(6)→3、entity 源(9)→4。
+entity 例外已跨家族确认（18 族 2657 与 180 族 183 均为 connect2=4，独立 Validator
+ACCEPT，实验 `entity-dtc-connect2-discriminator-01`）；str 例外目前仅 18 族 2 样本
+（180 族无 str 输入变体）。例外值 3/4 的底层语义未解释，保持 `INSUFFICIENT`，实现按
+经验规则写值。注册定义三套参数 pinIndex（send/monitor/server）与例外值 3/4 无关联
+（str 源三套 pinIndex=12/34/40、entity=69/77/84，其余参数亦不匹配），compositePinIndex、
+参数定义序号等候选解释均被排除。获取局部变量 concreteId 变体：str=2656 /
 entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
+
+**生产红灯（步骤 9 证据）**：production lowering 对数据连接一律写
+`connect2=connect=源 index`（`src/compiler/ir_to_gia_transform/composite.ts`），未实现
+entity 例外。`tests/composite/test-signal-monitor-consume-entity-connect2-red.ts` 驱动
+production 生成 entity→DTC(180/183) 消费的 GIA，断言 connect2=4，当前生产写 9 →
+RED。只有用户要求修复时才进入 production lowering；修复后该测试转绿。
 新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
 
 连接批次还验证了 `Query GUID By Entity`（`genericId=concreteId=76`）的 Entity 输入与 GUID 输出，以及 GUID `Assembly List` 两元素样本（`genericId=169`、`concreteId=172`）的 count、两个 GUID 输入和列表输出结构。该证据只覆盖当前节点族与两元素 GUID 列表，不推广到任意列表类型或长度。
@@ -239,6 +249,15 @@ direction pin triplet=16/35/41
 
 8 个 consume 候选（`replay/consume-{int,float,str,bool,guid,entity,prefab,config}-replay-v1.gia`）全部严格回读一致；`consume-str-replay-v1.gia`（SHA-256 `ea369ae2e3a1e592828126986eff43c50b2658a27127225d3928d509eed849af`）已由用户确认编辑器导入成功（“测试完美通过”）。导入语义证据：同名图 GIA 导入时编辑器**不合并**，自动改名（追加 `_1`）并创建新图（id `1073741847`，16 节点），原图 `1073741842` 不变；落盘结构与重放候选逐节点一致（含 connect2=3 例外），仅图名差异。
 
+消费规则 focused regression（工作包步骤 9）：`tests/signal_consumption_replay_regression.ts`
+直接运行 `replay-listener-signal.ts`，夹具为真实地图裁剪副本
+`tests/fixtures/signals/monitor-consume-donor.gil`（SHA-256
+`ae28ffcdd20fb6f4e2872e95a6616d1945c10c83d99e73650f40c07a0a4423f0`，仅保留图
+`1073741842` 与全部注册定义/索引，夹具哈希被测试断言锁定）。8/8 消费模式 PASS +
+fail-closed（未知图拒绝）PASS。生产红灯：`tests/composite/test-signal-monitor-consume-entity-connect2-red.ts`
+驱动 production 生成 entity→DTC(180/183) 消费 GIA，断言 connect2=4（真实规则），
+当前生产写 9 → RED（步骤 9 红灯已就位）；未进入 production lowering，修复需用户要求。
+
 编辑器可导入候选：
 
 | 候选 | SHA-256 | 自动结果 | 用户验证 |
@@ -262,9 +281,9 @@ direction pin triplet=16/35/41
 - `entity` 发送参数的数据源连接；
 - 9 种列表发送参数及各自 List/Assembly 节点；
 - 发送节点的控制流输入、输出以及多发送节点复用；
-- 监听普通参数 `connect2` 例外（str→3、entity→4）的语义；`compositePinIndex` 与实例输出 index 的映射；
+- 监听普通参数 `connect2` 例外（str→3、entity→4）的底层语义；entity 例外已跨家族确认（18 族+180 族），str 例外仅 18 族样本；例外值 3/4 无解释，按经验规则写值，生产红灯已由 `test-signal-monitor-consume-entity-connect2-red.ts` 锁定（connect2=9 vs 真实 4），修复需用户确认；`compositePinIndex` 与实例输出 index 的映射；
 - 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
-- 9 种普通参数消费均已真实差分闭合，8 个 consume 候选同构重放通过，`consume-str` 已由用户确认编辑器导入成功（新图 `1073741847`）；其余 7 个候选未逐个导入核验；
+- 9 种普通参数消费均已真实差分闭合，8 个 consume 候选同构重放通过，`consume-str` 已由用户确认编辑器导入成功（新图 `1073741847`）；其余 7 个候选未逐个导入核验（同一生成器 + 严格回读 + focused regression `tests/signal_consumption_replay_regression.ts` 保证结构一致，导入仅作可选确认）；
 - 监听信号实际触发及参数值的游戏行为；
 - 客户端信号节点；
 - 除当前 `cube_turn` 两个 `str` 参数样本外，其他重复类型数量和参数组合的跨地图注册；
