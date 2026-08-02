@@ -210,6 +210,8 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 
 固定顺序为：文件大小/哈希/presence → 全 root raw bytes → 仅变化 root 的直接子记录集合差 → 唯一目标记录定点解码。完整流程见 `references/gil-whole-structure.md`。等长同步字段只记录变化，不能按重复出现猜测语义。
 
+定点解码优先复用 `scripts/` 下已有资产（如 `inspect-gil-root-container.py <before> <after> <rootField>`、各领域专用 inspect 脚本和 NodeGraph 比较器），不手写一次性解析；动手前先读模块 references 的工具清单，避免重复实现已有能力。现有资产不覆盖目标时才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。
+
 已锁定 NodeGraph 的专项调查再运行有界图摘要：
 
 ```bash
@@ -298,6 +300,8 @@ Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计�
 如果观察与已有知识冲突，标 `CONFLICT` 并停止；不静默覆盖旧规则。
 
 ## 重复操作资产化
+
+每轮开始先查 `scripts/` 目录与模块 references 的工具清单：已资产化的解析/差分/Validator 前置断言直接复用，缺什么再写什么。手写临时解码只允许在无覆盖时发生，并记录缺什么；同一模式三次重复后必须提炼为参数化资产。
 
 同一只读解析、路径提取或 Validator 前置断言在至少三轮重复，且对应路径已由独立
 Validator 接受后，将它提炼为 `scripts/` 下的最小参数化资产；单例和仍在变化的规则继续留在

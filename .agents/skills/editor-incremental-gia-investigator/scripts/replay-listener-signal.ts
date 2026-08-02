@@ -155,6 +155,9 @@ function usage(): never {
     '   or: npx tsx replay-listener-signal.ts consume-int|consume-float|consume-vec3 <target.gil> <donor.gil> <graphId> <out.gia> <out.gil>'
   )
   console.error(
+    '   or: npx tsx replay-listener-signal.ts consume-str|consume-bool|consume-guid|consume-entity|consume-prefab|consume-config <target.gil> <donor.gil> <graphId> <out.gia> <out.gil>'
+  )
+  console.error(
     '   or: npx tsx replay-listener-signal.ts replace-listener <donor.gil> <target.gil> <graphId> <out.gia> <out.gil> <signalName> <monitorId> <signalPinIndex>'
   )
   process.exit(1)
@@ -164,9 +167,7 @@ const args = process.argv.slice(2)
 const mode = args.shift()
 if (
   mode !== 'append-listener' &&
-  mode !== 'consume-int' &&
-  mode !== 'consume-float' &&
-  mode !== 'consume-vec3' &&
+  !mode.startsWith('consume-') &&
   mode !== 'replace-listener'
 )
   usage()
@@ -183,7 +184,7 @@ let replacementSignalPinIndex: number | undefined
 if (mode === 'append-listener') {
   ;[sourcePath, graphIdText, signalName, giaPath, outGilPath] = args
   targetPath = sourcePath
-} else if (mode === 'consume-int' || mode === 'consume-float' || mode === 'consume-vec3') {
+} else if (mode.startsWith('consume-')) {
   ;[targetPath, sourcePath, graphIdText, giaPath, outGilPath] = args
   signalName = '信号测试全参数'
 } else {
@@ -220,6 +221,67 @@ let added: {
   donorNodeIndex?: number
 }
 
+type Consume18Spec = {
+  expectedType: string
+  paramIndex: number
+  outIndex: number
+  varType: number
+  concreteId: number
+  connect2Index: number
+}
+
+// 获取局部变量(18族)消费监听参数输出的重放规格；connect2Index 含 str→3 / entity→4 经验例外
+const CONSUME_18_SPECS: Record<string, Consume18Spec> = {
+  'consume-str': {
+    expectedType: 'str',
+    paramIndex: 3,
+    outIndex: 6,
+    varType: 6,
+    concreteId: 2656,
+    connect2Index: 3
+  },
+  'consume-bool': {
+    expectedType: 'bool',
+    paramIndex: 4,
+    outIndex: 7,
+    varType: 4,
+    concreteId: 18,
+    connect2Index: 7
+  },
+  'consume-guid': {
+    expectedType: 'guid',
+    paramIndex: 5,
+    outIndex: 8,
+    varType: 2,
+    concreteId: 2658,
+    connect2Index: 8
+  },
+  'consume-entity': {
+    expectedType: 'entity',
+    paramIndex: 6,
+    outIndex: 9,
+    varType: 1,
+    concreteId: 2657,
+    connect2Index: 4
+  },
+  'consume-prefab': {
+    expectedType: 'prefab_id',
+    paramIndex: 7,
+    outIndex: 10,
+    varType: 21,
+    concreteId: 2669,
+    connect2Index: 10
+  },
+  'consume-config': {
+    expectedType: 'config_id',
+    paramIndex: 8,
+    outIndex: 11,
+    varType: 20,
+    concreteId: 2668,
+    connect2Index: 11
+  }
+}
+
 if (mode === 'append-listener') {
   added = appendListener(candidateGraph, signalName)
 } else if (mode === 'consume-int' || mode === 'consume-float' || mode === 'consume-vec3') {
@@ -236,8 +298,8 @@ if (mode === 'append-listener') {
     `signal parameter ${parameterIndex} must be ${expectedType}`
   )
   assert(
-    Number.isInteger(param.parameterDefinitionPinIndex),
-    `${expectedType} parameter definition pin index is missing`
+    Number.isInteger(param.monitorPinIndex),
+    `${expectedType} parameter monitor pin index is missing`
   )
 
   const listener = findListener(candidateGraph)
@@ -287,6 +349,67 @@ if (mode === 'append-listener') {
       id: Number(listener.nodeIndex),
       connect: { kind: 4, index: expectedOutputIndex },
       connect2: { kind: 4, index: expectedOutputIndex }
+    }
+  ]
+  candidateGraph.nodes = [...(candidateGraph.nodes ?? []), candidate]
+  added = { candidate, signal, donorNodeIndex: donorNode.nodeIndex }
+} else if (mode in CONSUME_18_SPECS) {
+  const spec = CONSUME_18_SPECS[mode]
+  const signal = readRegisteredSignalsFromGil(targetPath).find(
+    (entry) => entry.name === signalName
+  )
+  assert(signal, `registered signal not found: ${signalName}`)
+  const param = signal.params[spec.paramIndex]
+  assert.equal(
+    param?.type,
+    spec.expectedType,
+    `signal parameter ${spec.paramIndex} must be ${spec.expectedType}`
+  )
+  const listener = findListener(candidateGraph)
+  assert.equal(Number(listener.genericId?.nodeId), signal.monitorId, 'listener monitorId is stale')
+  assert.equal(listener.pins?.[0]?.value?.bString?.val, signalName, 'listener signal name differs')
+
+  const donorGraph = readGraph(sourcePath, graphId)
+  const donorNodes = (donorGraph.nodes ?? []).filter(
+    (node) =>
+      Number(node.genericId?.nodeId) === 18 &&
+      Number(node.concreteId?.nodeId) === spec.concreteId &&
+      node.pins?.[0]?.type === spec.varType
+  )
+  assert.ok(
+    donorNodes.length >= 1,
+    `expected at least one 18/${spec.concreteId} donor node`
+  )
+  const donorNode = donorNodes[0]
+  const donorPin = donorNode.pins?.[0]
+  assert.ok(donorPin, 'donor pin missing')
+  assert.equal(Number(donorPin.i1?.kind), 3, 'donor input kind is not InParam')
+  assert.equal(donorPin.connects?.length, 1, 'donor must contain one connection')
+  const donorConnection = donorPin.connects[0]
+  assert.equal(
+    Number(donorConnection.id),
+    Number(findListener(donorGraph).nodeIndex),
+    'donor connects id stale'
+  )
+  assert.equal(Number(donorConnection.connect?.kind), 4, 'donor source kind is not OutParam')
+  assert.equal(donorConnection.connect?.index, spec.outIndex, 'donor source index differs')
+  assert.equal(
+    donorConnection.connect2?.index,
+    spec.connect2Index,
+    'donor connect2 index differs from replay spec'
+  )
+
+  const nodeIndex =
+    Math.max(0, ...(candidateGraph.nodes ?? []).map((node) => Number(node.nodeIndex) || 0)) + 1
+  const candidate = structuredClone(donorNode)
+  candidate.nodeIndex = nodeIndex
+  candidate.x = Math.max(...(candidateGraph.nodes ?? []).map((node) => Number(node.x) || 0)) + 800
+  candidate.y = Number(listener.y) || 0
+  candidate.pins![0].connects = [
+    {
+      id: Number(listener.nodeIndex),
+      connect: { kind: 4, index: spec.outIndex },
+      connect2: { kind: 4, index: spec.connect2Index }
     }
   ]
   candidateGraph.nodes = [...(candidateGraph.nodes ?? []), candidate]
