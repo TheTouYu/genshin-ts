@@ -40,6 +40,10 @@ export type UpdateSignalResult = RegisterSignalResult & {
   previousSignalName: string
 }
 
+export type RepairSignalResult = RegisterSignalResult & {
+  status: 'repaired' | 'already-repaired'
+}
+
 type SignalIdentity = Pick<SignalRegistrationSpec, 'sendId' | 'monitorId' | 'serverId'>
 
 type SignalIndexEntry = {
@@ -484,6 +488,35 @@ function buildDefinition(
   }
 }
 
+function containsText(data: Uint8Array, expected: string, depth = 0): boolean {
+  if (depth > 8) return false
+  for (const field of parseWireMessage(data) ?? []) {
+    if (field.wire !== 2) continue
+    const value = field.value as Uint8Array
+    const candidate = printableWireText(value)
+    if (
+      candidate === expected ||
+      (candidate === undefined && containsText(value, expected, depth + 1))
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
+function definitionNamePinIndex(wrapper: WireField, signalName: string): number | undefined {
+  const wrapperFields = message(wrapper, 'signal definition wrapper')
+  const inner = wrapperFields.find((field) => field.number === 1 && field.wire === 2)
+  if (!inner) return undefined
+  const root = message(inner, 'signal definition')
+  for (const field of root.filter((entry) => entry.number === 106 && entry.wire === 2)) {
+    if (!containsText(field.value as Uint8Array, signalName)) continue
+    const pinIndex = varint(message(field, 'signal name pin layout'), 8)
+    if (pinIndex !== undefined) return pinIndex
+  }
+  return undefined
+}
+
 function definitionTexts(wrapper: WireField): string[] {
   if (wrapper.number !== 2 || wrapper.wire !== 2) return []
   const wrapperFields = message(wrapper, 'signal definition wrapper')
@@ -548,6 +581,131 @@ function readSignalSource(bytes: Uint8Array): {
   const top = message(topField, 'top-level field 10')
   const index = signalIndex(top)
   return { sourceHeader, sourceRoot, topField, top, index, entries: signalEntries(index.fields) }
+}
+
+export function repairSignalInGil(input: {
+  bytes: Uint8Array
+  targetSignalName: string
+  templateBytes: Uint8Array
+  templateSignalName: string
+  expectedParams?: SignalRegistrationParam[]
+}): RepairSignalResult {
+  const targetSource = readSignalSource(input.bytes)
+  const targets = targetSource.entries.filter((entry) => entry.name === input.targetSignalName)
+  if (targets.length !== 1) {
+    throw new Error(`[error] target signal registry entry is not unique: ${input.targetSignalName}`)
+  }
+  const target = targets[0]
+  if (input.templateSignalName !== target.name) {
+    throw new Error('[error] template signal name must match target signal')
+  }
+  if (
+    input.expectedParams &&
+    input.expectedParams.map(({ name, type }) => `${name}:${type}`).join('|') !==
+      target.params.map(({ name, type }) => `${name}:${type}`).join('|')
+  ) {
+    throw new Error(`[error] target signal schema mismatch: ${target.name}`)
+  }
+
+  const templateSource = readSignalSource(input.templateBytes)
+  const templates = templateSource.entries.filter(
+    (entry) => entry.name === input.templateSignalName
+  )
+  if (templates.length !== 1) {
+    throw new Error(
+      `[error] template signal registry entry is not unique: ${input.templateSignalName}`
+    )
+  }
+  const template = templates[0]
+  if (
+    template.params.map(({ name, type }) => `${name}:${type}`).join('|') !==
+    target.params.map(({ name, type }) => `${name}:${type}`).join('|')
+  ) {
+    throw new Error(`[error] template signal schema mismatch: ${target.name}`)
+  }
+
+  const targetIds = [target.identity.sendId, target.identity.monitorId, target.identity.serverId]
+  if (new Set(targetIds).size !== 3) {
+    throw new Error(`[error] target signal identity conflict: ${target.name}`)
+  }
+  const targetDefinitions = new Map<number, WireField>()
+  for (const id of targetIds) {
+    const matches = targetSource.top.filter(
+      (field) => field.number === 2 && definitionNodeId(field) === id
+    )
+    if (matches.length !== 1) {
+      throw new Error(`[error] target signal definition cannot be uniquely located: ${id}`)
+    }
+    targetDefinitions.set(id, matches[0])
+  }
+
+  const templateIds = [
+    template.identity.sendId,
+    template.identity.monitorId,
+    template.identity.serverId
+  ]
+  if (new Set(templateIds).size !== 3) {
+    throw new Error(`[error] template signal identity conflict: ${template.name}`)
+  }
+  const templateDefinitions = new Map<number, WireField>()
+  for (const id of templateIds) {
+    const matches = templateSource.top.filter(
+      (field) =>
+        field.number === 2 &&
+        definitionNodeId(field) === id &&
+        definitionTexts(field).includes(template.name)
+    )
+    if (matches.length !== 1) {
+      throw new Error(`[error] incomplete template signal definition: ${id}`)
+    }
+    if (definitionNamePinIndex(matches[0], template.name) === undefined) {
+      throw new Error(`[error] template signal name pin layout is missing: ${id}`)
+    }
+    templateDefinitions.set(id, matches[0])
+  }
+
+  const pool = buildParamPool(templateSource.top, [template])
+  const signal: SignalRegistrationSpec = { ...target, ...target.identity }
+  validateSpec(signal, pool)
+  const replacements = new Map<WireField, WireField>()
+  const kinds: DefinitionKind[] = ['send', 'monitor', 'server']
+  for (let index = 0; index < kinds.length; index++) {
+    replacements.set(
+      targetDefinitions.get(targetIds[index])!,
+      buildDefinition(
+        templateDefinitions.get(templateIds[index])!,
+        kinds[index],
+        template,
+        signal,
+        pool
+      )
+    )
+  }
+  const nextTop = targetSource.top.map((field) => replacements.get(field) ?? field)
+  const unchanged = [...replacements].every(
+    ([before, after]) =>
+      Buffer.compare(
+        Buffer.from(emitWireMessage([before])),
+        Buffer.from(emitWireMessage([after]))
+      ) === 0
+  )
+  if (unchanged) {
+    return {
+      bytes: input.bytes,
+      signal,
+      templateSignalName: template.name,
+      status: 'already-repaired'
+    }
+  }
+  const nextRoot = targetSource.sourceRoot.map((field) =>
+    field === targetSource.topField ? { ...field, value: emitWireMessage(nextTop) } : field
+  )
+  return {
+    bytes: buildFile(emitWireMessage(nextRoot), targetSource.sourceHeader),
+    signal,
+    templateSignalName: template.name,
+    status: 'repaired'
+  }
 }
 
 export function updateSignalInGil(input: {

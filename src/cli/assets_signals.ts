@@ -10,6 +10,7 @@ import { resolveGilTarget } from './gil_paths.js'
 import {
   PARAM_TYPE_CODES,
   registerSignalInGil,
+  repairSignalInGil,
   updateSignalInGil,
   type SignalRegistrationParam
 } from './gil_signal_registrations.js'
@@ -20,7 +21,7 @@ import {
 } from './gil_signals.js'
 import { sha256Bytes } from './static_assembly/json.js'
 
-type Command = 'inspect' | 'register' | 'update'
+type Command = 'inspect' | 'register' | 'repair' | 'update'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 const MAX_PARAMS = 9
@@ -30,7 +31,7 @@ const PARAM_TYPES = new Set<string>(
 
 function usage(exitCode = 1): never {
   const output = [
-    'Usage: gsts assets:signals [inspect|update] [options]',
+    'Usage: gsts assets:signals [inspect|register|repair|update] [options]',
     '',
     '  --config <file>          project config (for --map-id resolution)',
     '  --map-id <id>            target map ID (location only)',
@@ -39,7 +40,7 @@ function usage(exitCode = 1): never {
     '  --write                  write source GIL after backup',
     '  --template-gil <file>    optional donor GIL for parameter layouts',
     '  --template-signal <name> existing signal to clone parameter entries from',
-    '  --target-signal <name>   existing signal to update in place',
+    '  --target-signal <name>   existing signal to update or repair in place',
     '  --name <name>            resulting signal name',
     '  --param <name:type>      new signal parameter (repeatable, <=9; donor layouts required for repeats)',
     '  --send-id <id>           new signal send node ID (auto when omitted)',
@@ -94,7 +95,7 @@ export function parseArgs(argv: readonly string[]) {
   let monitorId: number | undefined
   let serverId: number | undefined
   const params: SignalRegistrationParam[] = []
-  if (argv[0] === 'inspect' || argv[0] === 'update') {
+  if (argv[0] === 'inspect' || argv[0] === 'repair' || argv[0] === 'update') {
     command = argv[0]
     argv = argv.slice(1)
   }
@@ -133,8 +134,15 @@ export function parseArgs(argv: readonly string[]) {
         '[error] update preserves signal IDs and does not accept template or ID options'
       )
     }
+  } else if (command === 'repair') {
+    if (!targetSignalName) throw new Error('[error] --target-signal is required')
+    if (!templateGilPath) throw new Error('[error] --template-gil is required')
+    if (!templateSignalName) throw new Error('[error] --template-signal is required')
+    if (name || sendId !== undefined || monitorId !== undefined || serverId !== undefined) {
+      throw new Error('[error] repair preserves signal name and IDs')
+    }
   }
-  if (command !== 'inspect' && !name) throw new Error('[error] --name is required')
+  if (command === 'register' && !name) throw new Error('[error] --name is required')
   if (command === 'register') {
     const providedIds = [sendId, monitorId, serverId].filter((id) => id !== undefined)
     if (providedIds.length > 0 && providedIds.length < 3) {
@@ -235,40 +243,53 @@ async function runRegister(
           targetSignalName: args.targetSignalName!,
           signal: { name: args.name!, params: args.params }
         })
-      : registerSignalInGil({
-          bytes: sourceBytes,
-          templateBytes: args.templateGilPath
-            ? new Uint8Array(fs.readFileSync(path.resolve(args.templateGilPath)))
-            : undefined,
-          templateSignalName: args.templateSignalName!,
-          signal: {
-            name: args.name!,
-            params: args.params,
-            sendId: args.sendId,
-            monitorId: args.monitorId,
-            serverId: args.serverId
-          }
-        })
+      : args.command === 'repair'
+        ? repairSignalInGil({
+            bytes: sourceBytes,
+            targetSignalName: args.targetSignalName!,
+            templateBytes: new Uint8Array(fs.readFileSync(path.resolve(args.templateGilPath!))),
+            templateSignalName: args.templateSignalName!,
+            expectedParams: args.params.length > 0 ? args.params : undefined
+          })
+        : registerSignalInGil({
+            bytes: sourceBytes,
+            templateBytes: args.templateGilPath
+              ? new Uint8Array(fs.readFileSync(path.resolve(args.templateGilPath)))
+              : undefined,
+            templateSignalName: args.templateSignalName!,
+            signal: {
+              name: args.name!,
+              params: args.params,
+              sendId: args.sendId,
+              monitorId: args.monitorId,
+              serverId: args.serverId
+            }
+          })
   const candidateSha = sha256Bytes(result.bytes)
+
+  const validateReadBack = (gilPath: string, stage: 'candidate' | 'written') => {
+    const resultName = args.command === 'repair' ? args.targetSignalName : args.name
+    const readBack = readRegisteredSignalsFromGil(gilPath).find(
+      (entry) => entry.name === resultName
+    )
+    if (!readBack) throw new Error(`[error] ${stage} failed structural read-back`)
+    if (
+      readBack.sendId !== result.signal.sendId ||
+      readBack.monitorId !== result.signal.monitorId ||
+      readBack.serverId !== result.signal.serverId ||
+      ((args.command === 'update' || (args.command === 'repair' && args.params.length > 0)) &&
+        readBack.params.map((param) => `${param.name}:${param.type}`).join('|') !==
+          args.params.map((param) => `${param.name}:${param.type}`).join('|'))
+    ) {
+      throw new Error(`[error] ${stage} read-back identity mismatch`)
+    }
+  }
 
   // Structural read-back through the shared extractor before any write.
   const temporary = path.join(os.tmpdir(), `gsts-signals-${process.pid}-${Date.now()}.gil`)
   fs.writeFileSync(temporary, result.bytes)
   try {
-    const readBack = readRegisteredSignalsFromGil(temporary).find(
-      (entry) => entry.name === args.name
-    )
-    if (!readBack) throw new Error('[error] candidate failed structural read-back')
-    if (
-      readBack.sendId !== result.signal.sendId ||
-      readBack.monitorId !== result.signal.monitorId ||
-      readBack.serverId !== result.signal.serverId ||
-      (args.command === 'update' &&
-        readBack.params.map((param) => `${param.name}:${param.type}`).join('|') !==
-          args.params.map((param) => `${param.name}:${param.type}`).join('|'))
-    ) {
-      throw new Error('[error] candidate read-back identity mismatch')
-    }
+    validateReadBack(temporary, 'candidate')
   } finally {
     fs.rmSync(temporary, { force: true })
   }
@@ -284,6 +305,7 @@ async function runRegister(
       fs.copyFileSync(sourcePath, backup)
       console.log(`backup=${backup}`)
       fs.writeFileSync(resultPath, result.bytes)
+      validateReadBack(resultPath, 'written')
       // Keep the generated signal source in sync with the map, mirroring the
       // inject flow (maybeExtractResources). Only a real map write triggers it.
       const outPath = resolveSignalsPath(projectConfigPath, projectConfig?.inject)
@@ -303,7 +325,9 @@ async function runRegister(
     console.log(`preview=${sourcePath}`)
   }
   console.log(
-    `signal=${args.name} mode=${args.command} template=${result.templateSignalName} params=${args.params.length} ` +
+    `signal=${args.command === 'repair' ? args.targetSignalName : args.name} mode=${args.command} ` +
+      `status=${'status' in result ? result.status : 'changed'} template=${result.templateSignalName} ` +
+      `params=${result.signal.params.length} ` +
       `sendId=${result.signal.sendId} monitorId=${result.signal.monitorId} ` +
       `serverId=${result.signal.serverId} candidateSha256=${candidateSha}`
   )

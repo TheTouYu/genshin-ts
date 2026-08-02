@@ -15,6 +15,7 @@ const config: GstsConfig = {
     '!./tests/builtins_math_success_test.ts',
     '!./tests/data_type_conversion_invalid_test.ts',
     '!./tests/signal_parameters_test.ts',
+    '!./tests/generate-signal-min-send-monitor.ts',
     '!./tests/composite_bool_parameter_reference_repro.ts',
     '!./tests/manual_verify_post_v0_1_9_nodes.ts',
     '!./tests/manual_verify_2026_07_enum_updates.ts',
