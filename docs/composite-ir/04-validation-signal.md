@@ -242,7 +242,7 @@ structureDef:   GraphUnit { which=29, structureDef: {...}, relatedIds: [...] }
 - SignalDef ID 不能按信号名 hash、固定步长或任意新整数生成；
 - 复用已有三元组 ID 会使编辑器按已有注册信号解析 schema 和名称，即使 ClientExec 字符串不同；
 - 仅写入一个新的 ClientExec 字符串不能注册新信号；
-- 新信号必须先在地图/编辑器注册并导出其真实三元组，编译器才能安全引用。
+- 直接 GIL 注入的新信号可由 `assets:signals register` 从 donor GIL 复用真实三元组和参数布局后注册；跨地图 GIA 编辑器导入也可携带并注册 signal definitions。编译器/注入器仍必须按目标地图 identity 和 schema 校验，不能自造 pin 或 identity。
 
 **节点 ID 规则（已解决，2026-08-01）**：发送/监听/服务器发送节点一律使用**注册三元组 ID**
 （如 cube_turn 1610612741/42/43），`kind=SysGraph(22001)`；1610612738/39/40 不是特殊内置，

@@ -1,13 +1,15 @@
 # 信号
 
-> 状态：已验证（发送固定值、监听骨架、部分参数消费和信号定义原位修改）；全参数消费和端到端行为待验证
-> 来源：真实 GIL 相邻快照 + 批次 Validator + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器导入/地图检查
-> 最近校验：2026-08-01
-> 适用范围：服务器节点图中引用当前关卡既有注册定义的普通发送与监听节点；客户端、未覆盖参数类型和跨地图注册另行验证
+> 状态：已验证（发送固定值、监听骨架、部分参数消费、信号定义修改和跨地图导入/注入）；全参数消费待验证
+> 来源：真实 GIL 相邻快照 + 批次 Validator + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器/游戏验证
+> 最近校验：2026-08-02
+> 适用范围：服务器节点图普通发送与监听；当前跨地图结论覆盖 `cube_turn(face:str,direction:str)` 候选和地图 `1073741848/1849`
 >
 > 本轮具体候选、SHA-256 和用户测试记录见 [`signals/2026-08-01-monitor-consumption-batch.md`](signals/2026-08-01-monitor-consumption-batch.md)。
 
-信号用于在节点图之间传递一次事件及其参数。信号必须先在关卡中注册，发送或监听节点再引用该注册定义。只包含信号节点的 GIA 不等于携带信号注册定义；导入目标必须已经存在名称、参数结构和 identity 相符的注册信号。
+信号用于在节点图之间传递一次事件及其参数。编辑器导入可由正式 GIA 携带 send/monitor/server 三份 signal definition，在目标地图注册此前不存在的信号；用户已确认同一 `cube_turn` GIA 在另一关卡导入正常。直接写 GIL 的生产流程仍将“注册信号”和“注入 NodeGraph”分成两步：`assets:signals register/update` 修改注册表，injector 按信号名把 GIA 中的 donor identity 重绑定为目标地图 identity，并保持目标注册定义不变。
+
+2026-08-02 对用户修复版 `主图-发送-接受.gia` 与来源地图 `1073741849.gil` 做 raw-wire 比较，三份 `CompositeDef` payload 逐字节相同。当前 GIA 生产读取器从 GIL registry entry 读取参数名、三套参数 pinIndex 和 `signalVersion`，从三份 definition 读取信号名 pinIndex，并在最终 GIA 中保留原始 definition bytes，避免 schema 未声明的 field `106` 在 decode/encode 后丢失。自动回归为 `tests/composite/test-signal-registered-layout.ts`。
 
 ## 注册定义与节点身份
 
@@ -21,7 +23,7 @@ serverId
 按定义顺序排列的参数名称、类型和 pinIndex
 ```
 
-这些 ID 和 pinIndex 必须从当前 GIL 的注册定义读取，不能由相邻 ID、参数序号或历史样本推算。当前项目规范读取入口是 `src/cli/gil_signals.ts` 的 `readRegisteredSignalsFromGil()`；旧 accessory 扫描器返回 0 不能证明地图没有注册信号。
+这些 ID 和 pinIndex 必须从当前 GIL 的注册定义读取，不能由相邻 ID、参数序号或历史样本推算。当前项目规范读取入口是 `src/cli/gil_signals.ts` 的 `readRegisteredSignalsFromGil()`；它返回三套参数 pinIndex、server definition VarType、signalVersion、send/monitor 信号名 pinIndex和三份原始 definition bytes。旧 accessory 扫描器返回 0 不能证明地图没有注册信号。
 
 ## 已验证的发送节点骨架
 
@@ -156,6 +158,33 @@ after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
 
 该证据证明候选严格回读和真实文件写回成功；尚未证明编辑器重新导入或游戏内行为正确。
 
+## 跨地图注册与直接 GIL 注入
+
+真实验证候选：
+
+```text
+GIA: Beyond_Local_Export/gsts-signal-cube-turn-layout-fixed-v1.gia
+GIA SHA-256: b926a1a83222bc2cf7ce02493332dc4da99602a5b3e775115f5012c2e6481508
+source map: 1073741849
+target map: 1073741848
+target first graph: 1073741825
+```
+
+用户先确认该 GIA 在来源关卡正常，又确认同一文件可在另一关卡由编辑器导入并注册新信号。随后生产 CLI 从 donor GIL 的 `cube_turn` 复用两套独立 `str` 参数布局，在目标地图注册：
+
+```text
+cube_turn(face:str, direction:str)
+sendId=1610612747
+monitorId=1610612748
+serverId=1610612749
+face pin triplet=12/34/40
+direction pin triplet=16/35/41
+```
+
+`assets:signals register --template-gil <donor>` 支持同类型参数重复，但每次出现都必须消费 donor 中一套真实且不同的参数布局；donor 套数不足时 fail closed，不推算 pin。跨地图 injector 从 GIA signal accessories 识别源 send/monitor/server kind，按信号名重绑定目标 identity，并继续校验发送参数数量和类型。目标 `1073741825` 在本次 GIL 中有 folder `typeValue=7000` 占位但没有 NodeGraph blob；injector 只在 `targetId=1073741825 + typeValue=7000 + incoming server BasicNode(type=20000)` 同时满足时补入首图，其他缺失图仍拒绝。
+
+真实 GIL 写回后 SHA-256 为 `4fcf353be76551fa94936f5ef9026aa6ff094b976d8ea245d2d2d1d1887119cc`；严格回读得到一个 `1073741825` 图、5 个节点和目标 identity。用户确认游戏测试通过。该结果证明本候选的跨地图注册、identity 重绑定、首图创建和游戏行为，不推广为任意信号 schema、任意缺失 graph ID 或客户端图。
+
 ## GIA/GIL 重放与编辑器验证
 
 监听证据根目录：
@@ -204,7 +233,7 @@ after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
 - int、float、vec3 均已完成同构 GIA 重放，并由用户确认编辑器导入、节点/连线和游戏内测试通过；结论只覆盖三份具体候选，不推广到其他类型或变体；
 - 监听信号实际触发及参数值的游戏行为；
 - 客户端信号节点；
-- 携带信号注册三元组、可跨地图独立导入的 GIA；
+- 除当前 `cube_turn` 两个 `str` 参数样本外，其他重复类型数量和参数组合的跨地图注册；
 - 全参数端到端游戏行为。
 
 参数类型总表见[参数类型](parameter-types.md)，直接值与数据连接见[数据流与连接](data-flow.md)，正式 GIA/GIL 资产边界见[资产、关卡保存与导出文件](assets-and-files.md)，证据分层见[验证与规则学习流程](validation-workflow.md)。

@@ -1,6 +1,6 @@
 # Signals
 
-Signals are custom stage-wide events. Define the signal in the editor signal manager before using it; injection and direct editor loading fail when a generated graph references a signal that does not exist in the target map. The compiler uses the target `.gil` signal registry (name, parameter schema, and send/monitor/server definition IDs) and rejects unregistered or schema-mismatched signals.
+Signals are custom stage-wide events. A formal GIA can carry signal definitions, and the editor can import that GIA into another map and register a previously missing signal. Direct GIL injection keeps registration explicit: use `gsts assets:signals` first, then inject the NodeGraph. The compiler and injector use the target `.gil` registry and reject missing names or schema mismatches; cross-map injection rebinds donor send/monitor/server identities by signal name.
 
 ## Basic Usage
 
@@ -65,6 +65,7 @@ In this example, the first parameter is a node output and the other two are lite
 ## Notes
 
 - `Signal.xxx` comes from the extracted map data; after editing signals in the editor, save the map first, then rerun compilation to extract the updated signal information.
-- The extracted registry also carries the real send/monitor/server SignalDef identity used by GIA encoding. ClientExec text alone does not register a new signal.
-- A signal name not registered in the target map, or a parameter schema that differs from the target `.gil`, is a compile-time error under the current map-registered-signal workflow.
+- The extracted registry also carries the real send/monitor/server SignalDef identity and pin layout used by GIA encoding.
+- Editor GIA import and direct GIL injection are different workflows: editor import can register definitions carried by the GIA, while direct GIL injection requires `assets:signals register/update` first.
+- A missing target registration or schema mismatch remains an error for direct GIL compilation/injection.
 - String-based usage does not provide parameter names or parameter type hints.

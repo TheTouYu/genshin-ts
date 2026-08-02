@@ -214,7 +214,7 @@
 - [ ] 布局坐标对齐 ← impl 图布局已完成（BFS+Kahn）
 
 **P2**（待验证）：
-- [~] SignalDef 编码支持：当前 gsts 已有实验性 `build_signal_definition.ts` 输出，但真实编辑器要求外部注册的 SignalDef identity；自造 ID / 固定复用 ID 尚未完成游戏验证，不能视为完成
+- [x] SignalDef 编码与注册/注入支持：`build_signal_definition.ts` 从目标 GIL 复用完整布局和 raw definition bytes；`assets:signals register --template-gil` 支持重复类型的 donor layouts；跨地图 GIA identity 重绑定和固定首图 `1073741825` 注入已由用户完成游戏验证。适用范围为当前 signal definition/GIL 结构；其他未覆盖信号类型和任意缺失 graph ID 仍不推广。
 - [ ] structureDef 编码支持（which=29 编码器尚不输出）
 - [ ] 多 OutFlow pinIndex 对齐
 - [~] ClientExec 信号触发支持：节点字符串与 cpi 的自动结构检查存在，但新 signal 的编辑器/游戏接受仍待外部 SignalDef identity 和用户验证

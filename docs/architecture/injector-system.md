@@ -333,7 +333,13 @@ function resolveGraphTypeForTypeValue(typeValue, folderIndexes, idToType) {
 ```
 
 GIA 编码阶段也使用同一 registry，而不是生成固定 ID、哈希 ID 或 `+6` 推导 ID。
-未注册信号和参数 schema 不一致会在编码阶段失败。ClientExec 字符串不是新信号注册机制。
+未注册信号和参数 schema 不一致会在编码阶段失败；注入阶段还会用目标 `.gil` 的规范注册项再次校验名称、send/monitor/server identity、参数数量和参数类型，任一失败都 fail closed。ClientExec 字符串不是新信号注册机制。
+
+普通 NodeGraph GIA 的 signal definition accessories 在编辑器导入时可以注册新信号；用户已确认同一 `cube_turn(face:str,direction:str)` GIA 可跨地图导入。直接写 GIL 时，injector 不把这些 accessories 合并进目标注册表，注册仍由 `assets:signals register/update` 显式完成。生产编码通过 `readRegisteredSignalsFromGil()` 读取完整注册布局并保留三份原始 `CompositeDef` bytes；跨地图注入时，injector 从 GIA accessories 识别源 send/monitor/server kind，再按信号名重绑定目标地图 identity，同时校验发送参数数量和类型。非信号 CompositeDef/impl graph accessories继续按 ID 合并。
+
+`assets:signals register --template-gil <donor.gil>` 可从独立 donor 取得参数布局。同一类型可重复出现，但第 N 次出现必须消费 donor 中第 N 套真实 parameter entry/send/monitor/server definition 布局；模板不足时 fail closed，不按参数序号生成 pinIndex。当前真实验证覆盖两个 `str` 参数。
+
+新地图首图可能已经存在 folder index 占位但没有 NodeGraph blob。当前 injector 仅对 `targetId=1073741825`、folder `typeValue=7000`、incoming graph `type=20000` 的组合补入服务器首图；其他缺失 NodeGraph ID、无 folder 占位和客户端图继续拒绝。地图 `1073741848` 的跨地图 signal 注册、identity 重绑定、首图创建、严格回读和用户游戏测试已于 2026-08-02 通过。
 
 证据：目标地图 `1073741848.gil` 的 9+9 双信号候选
 `P5W10-two-signal-param-matrix-registered.gia` 已由用户在游戏编辑器/游戏内测试通过。
