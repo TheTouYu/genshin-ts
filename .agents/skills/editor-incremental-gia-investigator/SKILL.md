@@ -212,38 +212,11 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 
 定点解码优先复用 `scripts/` 下已有资产（如 `inspect-gil-root-container.py <before> <after> <rootField>`、各领域专用 inspect 脚本和 NodeGraph 比较器），不手写一次性解析；动手前先读模块 references 的工具清单，避免重复实现已有能力。现有资产不覆盖目标时才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。
 
-已锁定 NodeGraph 的专项调查再运行有界图摘要：
-
-```bash
-npx tsx tools/compare-gil-node-graph.ts \
-  <before.gil> <after.gil> <nodeGraphId>
-```
-
-先判断：
-
-- 图 metadata 是否变化；
-- 节点 added / removed / changed；
-- 编辑器是否重建节点并改变 `nodeIndex`；
-- identity 和 pin 数是否符合用户声明的单变化。
-
-只有摘要能唯一定位后才运行：
-
-```bash
-npx tsx tools/compare-gil-node-graph.ts \
-  <before.gil> <after.gil> <nodeGraphId> --full
-```
-
-对完整输出做定点提取，只报告相关节点的：
-
-```text
-nodeIndex
-genericId / concreteId / signalVersion
-pin kind + index / type / compositePinIndex
-value / connects
-必要的图级字段
-```
-
-protobuf 默认值不能证明 wire presence；需要区分“缺失”和“默认值”时补 raw-wire 或 round-trip 断言。
+已锁定 NodeGraph 的专项差分命令（`compare-gil-node-graph.ts` 摘要 → `--full` 定点提取）、
+字段清单和 raw-wire 形态断言速查见匹配模块的 reference「快速相邻比较」。原则：先摘要确认
+唯一变化（added/removed/changed、nodeIndex 重建、identity 与 pin 数），再加 `--full`
+定点提取；protobuf 默认值不能证明 wire presence，需要区分“缺失”和“默认值”时补
+raw-wire 或 round-trip 断言。
 
 ### 同步记录与多 ID 命名空间消歧
 

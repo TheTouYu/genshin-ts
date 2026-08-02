@@ -63,6 +63,21 @@ value / connects
 图 metadata 和节点数是否保持
 ```
 
+raw wire 级定点提取（区分 protobuf index 缺失与显式 index=0，decode 层无法区分）：
+
+```bash
+npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-raw.ts \
+  <map.gil> <graphId> <nodeIndex> [--pins]
+```
+
+输出目标节点完整 raw hex，`--pins` 时拆分 pins 数组各记录 hex。关键形态速查：
+
+```text
+OutFlow pin i1 无 index：0a 02 08 02     显式 index=0：0a 04 08 02 10 00
+InFlow connect 无 index：12 02 08 01    显式 index=0：12 04 08 01 10 00
+str 例外 connect2=3：1a 04 08 04 10 03
+```
+
 ## 修改信号与创建信号复用
 
 “修改信号”不是全局文本替换，而是创建信号的原位替换变体。复用 `src/cli/gil_signal_registrations.ts` 的参数模板池、`buildIndexEntry()`、`buildDefinition()` 和严格结构回读：
@@ -141,6 +156,8 @@ Skill/调查工具由 `tsx` 直接运行且不进入生产构建时，运行该 
 - 链式 = 中间节点实例化自己的 OutFlow pin（SysCall 普通节点**无** compositePinIndex，
   SysGraph 复合调用如监听节点有 CPI）；OutFlow pin 实例化时插入 pins 数组位置 0。
 - 目标节点无 InExec 实例 pin 落盘。
+- 多槽节点（双分支 SysCall 2）：只实例化被连槽位的 1 个 OutFlow pin，i1/i2 无 index、
+  无 CPI；作为 exec 目标时逐字节不变（实验 branch-node-01/02/03，Validator 4/4+6/6+7/7）。
 
 ### 生产比对红灯
 
