@@ -2,7 +2,7 @@
 
 > 状态：当前实现
 > 来源：当前代码实现 + 自动回归
-> 最近校验：2026-07-11
+> 最近校验：2026-08-02
 > 适用范围：Genshin-TS 仓库内开发文档、引擎 API 用法和 API 签名检索；不替代知识技能、codebase-memory 或真实 GIA 工具
 
 ## 目的
@@ -39,11 +39,13 @@ VECTORENGINE_EMBEDDING_MODEL=text-embedding-3-small
 npm run docs:index
 ```
 
-索引器会扫描受治理 Markdown，并额外生成引擎 API 集合。embedding 按 `model + input sha256` 缓存到：
+索引器会扫描 `README*.md`、`docs/**/*.md`、`.agents/skills/**/*.md` 和 `knowledge/**/*.md`，并额外生成引擎 API 集合。`knowledge/` 文档沿用现有 Markdown metadata 规则；没有状态标签的 Domain Knowledge 不会被擅自标记为真实 GIA 或已验证。embedding 按 `model + input sha256` 缓存到：
 
 ```text
 .gsts-doc-search/embedding-cache.json
 ```
+
+cache 和最终 `index.json` 都通过临时文件再原子替换，避免并发或中断写入留下半个 JSON。已有损坏的 cache 会被忽略并在下一次成功请求后重建；索引模型和维度不匹配时，查询会直接提示重新运行 `npm run docs:index`。embedding 请求使用 Node 内置 `globalThis.fetch`，避免独立 `undici` 与 Node 26 内置版本不兼容。索引器每次提交 128 条输入，客户端最多并发 8 个 16 条请求，并保留网络异常、429/5xx 重试。
 
 索引文件位于：
 
@@ -95,7 +97,7 @@ JSON 结果只包含查询信息、评分和可公开的 chunk 元数据/文本�
 
 ### `current`
 
-当前开发文档、项目入口、架构说明和技能 references。默认参与检索。
+当前开发文档、项目入口、架构说明、技能 references 和 `knowledge/` Domain Knowledge。默认参与检索。
 
 ### `verified-gia`
 
@@ -182,17 +184,20 @@ handover、旧方案和部分过期内容。默认排除或降权；只有查询
 - `scripts/docs-index.ts`：扫描、切片、embedding 和索引写入。
 - `scripts/docs-search.ts`：查询、collection 过滤、混合排序和 JSON 输出。
 - `src/docs_search/config.ts`：`.env` 配置加载。
-- `src/docs_search/embedding.ts`：VectorEngine 请求和 embedding cache。
+- `src/docs_search/embedding.ts`：VectorEngine 请求、embedding cache 校验和原子写入。
 - `src/docs_search/markdown.ts`：Markdown metadata 和切片。
 - `src/docs_search/engine_api.ts`：引擎 API 用法卡片和签名抽取。
 
 最近自动验证：
 
 ```text
-npm run build：通过
-npm run docs:index：234 个文档、4019 个 chunk，text-embedding-3-small、1536 维
-实体创建/三维向量/节点图变量变化查询：已执行
-DEP0205 warning：已通过 NODE_OPTIONS=--disable-warning=DEP0205 移除
+npm run build：本轮通过
+npx tsx tests/docs_search_embedding_test.ts：本轮通过，损坏 cache 恢复、合法 JSON 写回和受控并发
+npm run docs:index：本轮通过，356 个文档、5781 个 chunk；knowledge/ 35 个文件、151 个 chunk；text-embedding-3-small、1536 维
+knowledge 查询：本轮通过，结果包含 knowledge/gia-wire-analysis/gia-object-model.md
+原始 engine-api-usage JSON 查询：本轮通过，返回 5 条自然语言片段且不含 embedding/tokens
+模型不一致负向检查：已验证，在请求前提示重新运行 npm run docs:index
+DEP0205 warning：通过 npm script 的 NODE_OPTIONS 配置移除
 ```
 
 当前未声称：游戏内验证、所有 API 用法完整、所有生成签名都具备教程级说明。

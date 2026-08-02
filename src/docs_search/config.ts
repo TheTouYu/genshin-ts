@@ -25,7 +25,7 @@ export function loadDocsSearchConfig(root = process.cwd()): DocsSearchConfig {
   return {
     apiKey: process.env.VECTORENGINE_API_KEY ?? dotEnv.VECTORENGINE_API_KEY,
     baseUrl: get('VECTORENGINE_BASE_URL', 'https://api.vectorengine.ai/v1'),
-    model: get('VECTORENGINE_EMBEDDING_MODEL', 'text-embedding-3-small:price'),
+    model: get('VECTORENGINE_EMBEDDING_MODEL', 'text-embedding-3-small'),
     indexDir: path.join(root, '.gsts-doc-search')
   }
 }

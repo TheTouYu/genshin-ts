@@ -23,8 +23,30 @@ if (!query) throw new Error('Usage: npm run docs:search -- "query" [--collection
 const config = loadDocsSearchConfig()
 const indexPath = path.join(config.indexDir, 'index.json')
 if (!fs.existsSync(indexPath)) throw new Error('Index not found. Run npm run docs:index first')
-const index = JSON.parse(fs.readFileSync(indexPath, 'utf8')) as SearchIndex
+let index: SearchIndex
+try {
+  index = JSON.parse(fs.readFileSync(indexPath, 'utf8')) as SearchIndex
+} catch {
+  throw new Error('Invalid docs search index. Run npm run docs:index')
+}
+if (!index || index.schemaVersion !== 1 || !Array.isArray(index.chunks) || !index.embedding)
+  throw new Error('Invalid docs search index. Run npm run docs:index')
+const { model, dimensions } = index.embedding
+if (model !== config.model)
+  throw new Error(
+    `Search index uses embedding model ${model}, but config uses ${config.model}. ` +
+      'Run npm run docs:index'
+  )
+if (!Number.isInteger(dimensions) || dimensions <= 0)
+  throw new Error('Invalid embedding dimensions in docs search index. Run npm run docs:index')
+const invalidChunk = index.chunks.find(
+  (chunk) => !Array.isArray(chunk.embedding) || chunk.embedding.length !== dimensions
+)
+if (invalidChunk)
+  throw new Error('Docs search index contains invalid embeddings. Run npm run docs:index')
 const [queryEmbedding] = await new EmbeddingClient(config).embed([query])
+if (!Array.isArray(queryEmbedding) || queryEmbedding.length !== dimensions)
+  throw new Error('Query embedding dimensions do not match the docs search index')
 const queryTokens = new Set(query.toLowerCase().match(/[a-z0-9_./:-]+|[\u4e00-\u9fff]/g) ?? [])
 const collection = options.get('collection')
 const includeHistory = options.get('include-history') === 'true'
@@ -81,7 +103,9 @@ if (options.has('json')) {
     const { tokens: _tokens, embedding: _embedding, ...publicChunk } = chunk
     return { ...result, chunk: publicChunk }
   })
-  console.log(JSON.stringify({ query, indexVersion: index.updatedAt, results: publicResults }, null, 2))
+  console.log(
+    JSON.stringify({ query, indexVersion: index.updatedAt, results: publicResults }, null, 2)
+  )
 } else {
   for (const result of results) {
     console.log(
