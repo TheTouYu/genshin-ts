@@ -2,7 +2,7 @@
 
 > 状态：当前推荐
 > 来源：当前调查流程 + 真实 GIL 批次实践
-> 最近校验：2026-08-01
+> 最近校验：2026-08-02
 > 适用范围：不可变相邻 GIL 快照调查、批次裁决和候选写回准备
 
 这些模板减少 Coordinator 重复展开上下文。具体地图、图、用户变化和文件 hash 始终从
@@ -16,7 +16,8 @@
 - Agent 按需读取主 Skill、匹配领域模块、当前 Authority 和前序已确认 `result.json`。
 - `result.json` 只写证据支持的 `CONFIRMED`、`CONFLICT` 或 `INSUFFICIENT`。
 - protobuf 缺失字段与显式默认值必须分开；语义 JSON 不能证明 wire presence。
-- 批次 Investigator 结果必须经独立 Validator 裁决后才能合并到共享恢复锚点或 Authority。
+- 批次 Investigator 结果必须经独立 Validator 裁决后才能合并到共享恢复锚点或 Authority；Validator 可读取 claim，但关键断言必须从原始快照重算，不能复用 Investigator 中间结果作为独立证据。
+- 一个单变化同步新增多个 ID/记录时，不按数值相等或相邻关系命名；追加一个同类型默认样本，比较两轮唯一新增记录和稳定 raw-wire 引用路径，仍不唯一则写 `INSUFFICIENT`。
 - SHA sidecar 含相对文件名时，在其 `raw/` 目录运行 `sha256sum -c`，或直接比较实际 hash 与 manifest；不要从仓库根校验绝对 sidecar 路径。
 - Skill 内相对 reference 按 Skill 目录解析；前序实验路径从恢复锚点/局部 manifest 读取，不按版本号猜测。
 - 连续捕获直接使用 `capture-experiment.py`；不要用 `capture-evidence.py --help` 试探接口。
@@ -54,14 +55,17 @@ editor-incremental-gia-investigator Skill。
 批次目录：<batch-directory>
 按顺序验证这些独立实验：<ordered-experiment-directories>
 
-核验每对 SHA-256 和相邻链连续性；检查每个 result.json 是否由快照支持；区分用户目标
-变化、编辑器伴随变化和 unknown；重点检查 protobuf presence、类型 oneof、源/目标方向、
-nodeIndex、pin index、compositePinIndex 及 Assembly 结构。源码定义只验证 identity 和 pin
-语义，不能替代真实 wire 证据。
+核验每对 SHA-256 和相邻链连续性；可读取 result.json 取得待裁决 claim，但必须直接从
+raw/before.gil、raw/after.gil 重算关键断言，不得调用 Investigator 的中间 JSON、解析结果或
+辅助函数后称为独立验证。区分用户目标变化、编辑器伴随变化和 unknown；重点重算 protobuf
+presence、记录集合差、引用方向、目标 ID、类型 oneof、nodeIndex、pin index、
+compositePinIndex 及 Assembly 结构。源码定义只验证 identity 和 pin 语义，不能替代真实 wire
+证据。
 
-逐实验给 ACCEPT、CONFLICT 或 INSUFFICIENT，列出可合并规则、必须修正字段和不可推广项。
-相同猜测不算交叉验证。只写 <batch-directory>/validation.json；禁止修改实验结果、共享
-manifest、Authority、源码和真实地图。
+逐实验给 ACCEPT、CONFLICT 或 INSUFFICIENT，validation.json 必须列出每项重算检查、可合并
+规则、适用范围、必须修正字段、不可推广项和未验证层级。相同猜测或同源中间结果不算交叉
+验证。只写 <batch-directory>/validation.json；禁止修改实验结果、共享 manifest、Authority、
+源码和真实地图。
 ```
 
 ## 候选生成与写回准备 Agent

@@ -45,8 +45,8 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 主 Skill 只承载通用调查、安全和证据流程。先判断领域，只加载一个匹配模块；模块不存在时才按冷启动流程定位缺口。
 
-| 领域 | 模块 |
-|---|---|
+| 领域                                         | 模块                                     |
+| -------------------------------------------- | ---------------------------------------- |
 | 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
 
 模块记录领域恢复字段、专项断言和比较入口，不复制通用安全规则或整份领域知识。新增模块应等规则和重复流程稳定后再建，不为尚无复用价值的单例预先搭架子。
@@ -222,6 +222,25 @@ value / connects
 ```
 
 protobuf 默认值不能证明 wire presence；需要区分“缺失”和“默认值”时补 raw-wire 或 round-trip 断言。
+
+### 同步记录与多 ID 命名空间消歧
+
+一个编辑器单变化仍可能同步创建 definition、instance、owner registry、auxiliary 或派生索引。不要因 ID 与用户对象相等、相邻或首次出现，就直接决定哪一条记录代表编辑器对象。
+
+第一轮出现多记录或多 ID 歧义时，优先追加一个同类型、保持默认设置的第二样本：
+
+```text
+基线 → 对象 A → 对象 B
+     相邻差分 A   相邻差分 B
+```
+
+分别计算两轮唯一新增记录、稳定引用路径和同步 registry 变化。只有两轮根字段集合稳定、目标容器各有唯一可归因记录、引用使用相同 raw-wire 子路径，并经独立 Validator 复核后，才能合并受对象类型、地图和版本限制的 `CONFIRMED`。否则保持 `INSUFFICIENT`；不要为了重复采样而无限追加第三个样本。
+
+### Validator 原始证据独立性
+
+Validator 可以读取 Investigator 结果以知道待裁决 claim，但关键断言必须直接从原始 before/after 快照重新计算，包括 SHA-256、相邻链、字段 presence、记录集合差、引用方向和目标 ID。不得仅检查 `result.json` 内部一致性，或调用 Investigator 生成的中间 JSON/辅助函数后把同一结果称为独立验证。
+
+Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计算的检查、`ACCEPT/CONFLICT/INSUFFICIENT`、适用范围和未验证层级；Coordinator 只合并这些独立检查通过的 claim。
 
 ## 每轮输出
 
