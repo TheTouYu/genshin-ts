@@ -27,3 +27,6 @@ worktrees/
 /tests/generated
 /.codebase-memory
 /.claude/skills
+
+# gsts 自动提取的游戏信号定义（每次注入时重新生成）
+src/resources/signals.ts
