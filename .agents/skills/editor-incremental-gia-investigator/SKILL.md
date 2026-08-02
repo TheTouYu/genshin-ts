@@ -47,6 +47,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 | 领域                                         | 模块                                     |
 | -------------------------------------------- | ---------------------------------------- |
+| GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
 | 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
 
 模块记录领域恢复字段、专项断言和比较入口，不复制通用安全规则或整份领域知识。新增模块应等规则和重复流程稳定后再建，不为尚无复用价值的单例预先搭架子。
@@ -171,9 +172,11 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/capture-experi
 map path / mapId
 map SHA-256 / size / mtime
 nodeGraphId / type / name / node count
-用户声明的唯一变化
+用户声明的对象 identity、旧值 → 新值和唯一变化
 snapshot path / SHA-256
 ```
+
+用户只说“又修改了”且对象 identity 或旧值不明确时，先问一个澄清问题；不要依赖差分反推用户意图。用户声明与 raw-wire 不一致时，以文件事实为准并标记 `CONFLICT`。
 
 每个实验在 `notes/manifest` 中维护可续作的最小状态，不依赖聊天上下文恢复：
 
@@ -190,7 +193,17 @@ manifest 只记录已发生的证据，不能把“文件被扫描或消失”�
 
 ## 比较相邻快照
 
-默认运行有界摘要：
+整体 GIL 语义树调查先比较**每个 root occurrence 的完整 raw encoded bytes**，不能只比较字段总大小；后者会漏掉等长内容变化。使用：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-root-wire.py \
+  <before.gil> <after.gil> \
+  --output <experiment>/coordinator/root-wire-diff.json
+```
+
+固定顺序为：文件大小/哈希/presence → 全 root raw bytes → 仅变化 root 的直接子记录集合差 → 唯一目标记录定点解码。完整流程见 `references/gil-whole-structure.md`。等长同步字段只记录变化，不能按重复出现猜测语义。
+
+已锁定 NodeGraph 的专项调查再运行有界图摘要：
 
 ```bash
 npx tsx tools/compare-gil-node-graph.ts \
