@@ -158,6 +158,27 @@ after SHA-256: 2c3e887fc503c27d0cd2b9a7a197fb6f0b0ac3b4613b4a1492769d521bdcf073
 
 该证据证明候选严格回读和真实文件写回成功；尚未证明编辑器重新导入或游戏内行为正确。
 
+## 旧版残缺注册修复
+
+2026-08-02 在地图 `1073741849` 的只读快照确认：`cube_turn` registry entry 与完整 donor 逐字节相同，仍包含 `1610612741/42/43`、两个 `str` 参数、三套参数 pinIndex 和 `signalVersion=2`；但这三个 ID 指向的 send/monitor/server definitions 都缺失 signal-name definition entry 和 field `106` name CPI。普通 `inspect`/compiler 因此继续 fail closed，不把该结构视为合法旧布局。调查期间真实地图从 SHA-256 `a42339d0...` 变为 `e4196f8f...`，两份快照中的三份残缺 definition bytes 相同，但其他字段有外部变化；旧候选随即作废，并从最新只读快照生成 SHA-256 `40ae14c8...` 的候选。该案例再次证明候选只能绑定锁定源 hash，不能覆盖期间更新的地图。
+
+当前 CLI 提供受控迁移入口：
+
+```bash
+gsts assets:signals repair \
+  --gil <target.gil> \
+  --target-signal cube_turn \
+  --template-gil <verified-donor.gil> \
+  --template-signal cube_turn \
+  --param face:str \
+  --param direction:str \
+  --output <candidate.gil>
+```
+
+repair 只通过目标 registry entry 定位 identity，不要求目标 definitions 先通过严格 extractor；要求目标 entry、三份 definition、donor entry 和 donor 三份完整 definition 均可唯一定位，名称与参数 schema 完全一致。它从 donor 克隆完整 definitions 并重绑定为目标 IDs，保持目标 registry entry 和所有非目标 wire fields 原样；identity 冲突、schema/name 不一致或定义不唯一时停止。CLI 复用源 SHA 竞态检查、自动备份、候选及写后严格回读；`--output` 可先生成不覆盖候选。自动回归为 `tests/signal_registration_legacy_repair.ts`，真实快照候选差异审计仅证明结构修复，不等于真实地图写回、编辑器或游戏验证。
+
+旧源码调查表明，`29dbe76` 的 signal builder 生成 minimal definition shell，旧 injector 又会合并同 ID incoming definitions；`55437d4` 同时改为复用 raw definitions 并禁止 signal accessories 覆盖 GIL definitions。结合当前目标 raw 结构，根因归类为旧生成与旧注入共同留下残缺 definitions，而不是新版读取器误拒绝合法布局。由于未保留当时实际注入的旧 GIA，该因果链属于源码与现存 raw 结构证据，不冒充历史 artifact 逐字节证明。
+
 ## 跨地图注册与直接 GIL 注入
 
 真实验证候选：
