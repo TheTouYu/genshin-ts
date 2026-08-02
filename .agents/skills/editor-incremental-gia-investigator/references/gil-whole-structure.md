@@ -47,6 +47,17 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-le
 名称、类型 discriminator、字段摘要和 raw hash。路径与 discriminator 都是当前证据边界，
 不是正式 schema；不满足唯一差分时脚本应失败，不放宽匹配。
 
+调查当前受限自定义镜头 records 时，复用：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-custom-cameras.py \
+  <before.gil> <after.gil> --output <experiment>/investigator/cameras.json
+```
+
+它只接受 root `18.1` 恰好一条 append 或同 identity rewrite，输出 identity/name 候选、record
+hash 和非名称骨架 hash；差分不唯一时失败。root `18` 的正式消息名仍须由相邻实验和独立
+Validator 裁决，不能由脚本名称或第三方 schema 直接确认。
+
 ## 自由新建与自由修改
 
 整体调查优先采用：

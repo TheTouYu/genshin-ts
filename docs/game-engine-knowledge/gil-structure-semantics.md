@@ -38,9 +38,18 @@
 398432 bytes / c6222352...cf0：bool 变量 1 恢复为 false
 398420 bytes / abd1ca65...835：bool 变量 2 重命名为 A
 398432 bytes / f8462196...11ed：bool 变量 2 恢复默认名称
+398519 bytes / d18d0c17...e3a3：新增默认自定义镜头 1
+398604 bytes / 8be8ca17...b17f：新增默认自定义镜头 2
+398588 bytes / a9ebc676...a952：自定义镜头 2 重命名为 A
+398605 bytes / 3e2a40e2...f48a：故意加入前导空格的冲突样本
+398604 bytes / 9697a496...e68a：删除前导空格并恢复名称
+398644 bytes / 0fa227e9...40b7：切换为物件镜头
+398644 bytes / 4f9cc762...7eca：镜头视野检测改为 60
+398644 bytes / ce4e1af0...1b6a：镜头视野检测显示恢复为 45
+398644 bytes / 8ee81c39...985e：镜头视野检测改为 33.83
 ```
 
-Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。后续全 root raw-byte 比较在两个空图创建轮次补充发现 root `46` 等长变化，由证据提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。root `9` UI 章节由证据提交 `65a86e2a3f3118c92dd65028258d88d713dc10d3` 锁定；root `5` 关卡变量章节由证据提交 `d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定。
+Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。后续全 root raw-byte 比较在两个空图创建轮次补充发现 root `46` 等长变化，由证据提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。root `9` UI 章节由证据提交 `65a86e2a3f3118c92dd65028258d88d713dc10d3` 锁定；root `5` 关卡变量章节由证据提交 `d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定；root `18` 自定义镜头章节由证据提交 `b553021b9c578e6b342ab79f8b72fcb3a501002f` 锁定。
 
 ## 证据状态
 
@@ -96,6 +105,8 @@ GIL file
     ├── 9：当前限定样本中的屏幕 UI 控件记录容器（完整 schema 未闭合）
     │   └── 9.502[*]：默认布局与文本框 records（限定样本）
     │       └── 文本框：identity / 名称 / 显示内容 / 几何 / 字号 / 颜色
+    ├── 18：当前限定样本中的自定义镜头 records（正式 schema 未闭合）
+    │   └── 18.1[*]：identity / UTF-8 名称 / 类型联合子树 / 视野检测候选
     ├── 10：当前复合容器（正式消息名未闭合）
     │   ├── 10.1[*]：默认节点图注册 records（限定样本）
     │   │   ├── 10.1[*].1.1.5：稳定节点图 ID
@@ -122,6 +133,7 @@ GIL file
 | `5.1[*]`     | 两个新增场景实体 records；另一个既有 record 内承载当前关卡变量列表                 | 场景实体只确认两个箭头指示牌样本；变量只确认本批 bool/int；root field `5` 正式消息名未知 |
 | `5.1[*].2.1` | 场景实体对所选元件 definition ID 的 varint 引用                            | 只确认上述两个场景实体样本；正式字段名未知                    |
 | `6`          | owner/registry 容器                                                        | 当前只闭合 owner ID；不同操作登记不同一侧的记录 ID            |
+| `18.1[*]`   | 当前限定样本中的自定义镜头 records                                   | 两次默认创建与目标 record 属性修改；正式 schema 未知 |
 | `8.1[*]`     | instance records；创建上述元件时同步新增并回指 definition                  | reader 边界 + 两个同类型默认元件样本                          |
 | `27.1[*]`    | definition-side auxiliaries                                                | 完整 auxiliary record schema 未知                             |
 | `27.2[*]`    | instance-side auxiliaries                                                  | 完整 auxiliary record schema 未知                             |
@@ -284,6 +296,45 @@ entry 逐字节不变。bool 与 integer entry 的顶层字段形状一致；fie
 `d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定。未执行 round-trip、临时重放、真实
 写回、编辑器导入或游戏行为验证。
 
+### 自定义镜头：创建、名称、物件镜头联合变化与视野检测
+
+`CONFIRMED_BOUNDED`，但仅限当前锁定地图、编辑器版本和本批自定义镜头样本。连续创建两个
+默认自定义镜头时，root `18.1[*]` records 按 `1→2→3` append-only 增加；既有 records
+逐字节保持。当前 identity 候选为 `1073741825/26/27`，不能推广为通用 ID 分配器。
+
+受限路径如下：
+
+| raw 路径（省略 `GIL.payload`） | 当前限定语义 | 状态 |
+| --- | --- | --- |
+| `18.1[*]` | 自定义镜头 records | `CONFIRMED_BOUNDED` |
+| `18.1[*].1` | identity candidate | `CONFIRMED_BOUNDED` |
+| `18.1[*].2.1` | 显式 UTF-8 名称 candidate | `CONFIRMED_BOUNDED` |
+| `18.1[target].2.3` | UI “镜头视野检测”对应的 fixed32 candidate | `CONFIRMED_BOUNDED` |
+| `18.1[target].2.{4,6,12,21,23,24,32,33}` | 切换为“物件镜头”时的联合变化 | `INSUFFICIENT` |
+
+名称从 `自定义镜头_2→A→自定义镜头_2` 时，identity 保持且只重写名称字段。一次用户故意
+加入前导 ASCII 空格的样本，raw Validator 正确裁为 `CONFLICT`；随后删除一个空格后，目标
+record 精确恢复历史 raw bytes。这证明流程能发现“声明操作”和文件事实的偏离，不证明名称
+边界规则。
+
+在物件镜头类型下，用户修改“镜头视野检测”得到以下 bounded raw observations：
+
+```text
+显示 45    → fixed32 45.000030517578125 / 08003442
+显示 60    → fixed32 60.0                 / 00007042
+显示 33.83 → fixed32 33.82655715942383   / 654e0742
+```
+
+三轮均只改变目标 record 的 field `3`，其他 sibling fields、identity、名称和其他镜头保持。
+因此当前地图/版本/物件镜头类型中，`18.1[target].2.3` 可作为“镜头视野检测”候选路径；UI
+显示值到 raw float 的量化、范围边界、其他镜头类型/地图/版本仍为 `INSUFFICIENT`。切换
+“物件镜头”本身同时改变 fields `4/6/12/21/23/24/32/33`，不能单独命名其中任何字段。
+root `21/46` 继续隔离；root `46` 多轮等长变化不能命名。
+
+本批 camera 实验、机器汇总和独立 Validator 由证据提交
+`b553021b9c578e6b342ab79f8b72fcb3a501002f` 锁定。未执行 round-trip、临时重放、真实写回、
+编辑器导入或游戏行为验证。
+
 ### 第三方开发分支候选 schema
 
 `INSUFFICIENT`：第三方逆向仓库
@@ -324,6 +375,7 @@ root `2/10/43` 可分别按该草案有界解码为 `模型比对`、节点图�
 - auxiliary record 的完整 schema；
 - 缺失 connection index 的编辑器和运行时语义；
 - root field `9` 的完整消息 schema、其他 UI 控件类型和透明度量化规则；
+- root field `18` 的正式消息 schema、镜头类型联合字段、identity 通用分配规则、视野检测量化和边界；
 - root field `5` 的正式消息 schema、关卡变量其他作用域/类型、负整数/范围和名称约束；
 - root fields `21/45/46` 的正式消息名和同步变化语义；
 - 当前字段路径的跨地图、跨游戏版本普适性。
