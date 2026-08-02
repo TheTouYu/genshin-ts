@@ -116,16 +116,27 @@ genericId / concreteId = 目标 monitorId
 
 ## 已验证的监听参数消费
 
-当前地图、当前 monitor 定义和节点图 `1073741842` 的真实相邻快照已经连续验证前三个普通参数：
+当前地图、当前 monitor 定义和节点图 `1073741842` 的真实相邻快照已经连续验证全部 9 种普通参数（「信号测试全参数」）：
 
-| 参数 | 监听输出 | 目标输入类型 | 状态 |
-| --- | --- | ---: | --- |
-| `int` | `OutParam[3]` | `Integer / VarType=3` | 已验证 |
-| `float` | `OutParam[4]` | `Float / VarType=5` | 已验证 |
-| `vec3` | `OutParam[5]` | `Vector / VarType=12` | 已验证 |
+| 参数 | 定义序号 | 监听输出 | 目标输入类型 | 状态 |
+| --- | ---: | --- | --- | ---: |
+| `伤害值 int` | 0 | `OutParam[3]` | `Integer / VarType=3` | CONFIRMED |
+| `移动速度 float` | 1 | `OutParam[4]` | `Float / VarType=5` | CONFIRMED |
+| `目标位置 vec3` | 2 | `OutParam[5]` | `Vector / VarType=12` | CONFIRMED |
+| `文本 str` | 3 | `OutParam[6]` | `String / VarType=6` | CONFIRMED |
+| `是否暴击 bool` | 4 | `OutParam[7]` | `Boolean / VarType=4 (EnumBase)` | CONFIRMED |
+| `目标GUID guid` | 5 | `OutParam[8]` | `GUID / VarType=2 (IdBase)` | CONFIRMED |
+| `目标实体 entity` | 6 | `OutParam[9]` | `Entity / VarType=1（无 base 类，仅 itemType）` | CONFIRMED |
+| `预制体 prefab_id` | 7 | `OutParam[10]` | `Prefab / VarType=21 (IdBase)` | CONFIRMED |
+| `配置ID config_id` | 8 | `OutParam[11]` | `Configuration / VarType=20 (IdBase)` | CONFIRMED |
 
-三者都把连接记录写在目标消费节点的 `InParam[0]`：`connect.id` 指向监听节点，
-`connect` / `connect2` 指向源 `OutParam`；监听 GraphNode 本身不变化。三个消费节点和连接可同时存在，当前样本支持“固定输出之后，普通参数按注册定义顺序连续且不压缩”，但新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
+全部 9 个消费节点和连接可同时存在：`connect.id` 指向监听节点，`connect` 指向源
+`OutParam`，监听 GraphNode 本身不变化；输出序号 `3..11` 按注册定义顺序连续且不压缩。
+`connect2` 经验规则：= 源 `OutParam` index；唯一例外：str 源(6)→3、entity 源(9)→4
+（均经 genericId=18 获取局部变量节点，多实例复现），例外语义未解释，保持
+`INSUFFICIENT`，实现按经验规则写值。获取局部变量 concreteId 变体：str=2656 /
+entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
+新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
 
 连接批次还验证了 `Query GUID By Entity`（`genericId=concreteId=76`）的 Entity 输入与 GUID 输出，以及 GUID `Assembly List` 两元素样本（`genericId=169`、`concreteId=172`）的 count、两个 GUID 输入和列表输出结构。该证据只覆盖当前节点族与两元素 GUID 列表，不推广到任意列表类型或长度。
 
@@ -224,7 +235,9 @@ direction pin triplet=16/35/41
 | `raw/monitor-signal-v1-bound-all-fixed-params.gil` | `570987915274339a905348c63747c7825d067ddb5e2dee761c8da6bfa311c842` | 绑定「信号测试全参数」 |
 | `raw/monitor-signal-v2-switched-signal.gil` | `4f65cc549387557de55e9e3faf95feb565e8c40056b64de9f7fdf15436d57cf4` | 切换到「信号_1_测试」 |
 
-自动同构重放使用 `.agents/skills/editor-incremental-gia-investigator/scripts/replay-listener-signal.ts`：从真实 donor 提取 NodeGraph，生成正式 GIA 和临时 GIL，通过 injector 写入临时副本后严格回读目标 NodeGraph；不调用待验证的 production signal lowering。具体批次事实、候选路径、哈希和用户验证见[监听参数消费批次记录](signals/2026-08-01-monitor-consumption-batch.md)。注册定义的 `parameterDefinitionPinIndex` 不直接当作监听实例 `OutParam` index。
+自动同构重放使用 `.agents/skills/editor-incremental-gia-investigator/scripts/replay-listener-signal.ts`：从真实 donor 提取 NodeGraph，生成正式 GIA 和临时 GIL，通过 injector 写入临时副本后严格回读目标 NodeGraph；不调用待验证的 production signal lowering。脚本支持 consume-int/float/vec3（genericId=180 donor）与 consume-str/bool/guid/entity/prefab/config（genericId=18 donor，按 concreteId 精确筛选，connect2 含 str→3 / entity→4 经验例外）；consume-vec3 需图中存在 180+type=12 donor。具体批次事实、候选路径、哈希和用户验证见[监听参数消费批次记录](signals/2026-08-01-monitor-consumption-batch.md)。注册定义的 `parameterDefinitionPinIndex` 不直接当作监听实例 `OutParam` index。
+
+8 个 consume 候选（`replay/consume-{int,float,str,bool,guid,entity,prefab,config}-replay-v1.gia`）全部严格回读一致；`consume-str-replay-v1.gia`（SHA-256 `ea369ae2e3a1e592828126986eff43c50b2658a27127225d3928d509eed849af`）已由用户确认编辑器导入成功（“测试完美通过”）。导入语义证据：同名图 GIA 导入时编辑器**不合并**，自动改名（追加 `_1`）并创建新图（id `1073741847`，16 节点），原图 `1073741842` 不变；落盘结构与重放候选逐节点一致（含 connect2=3 例外），仅图名差异。
 
 编辑器可导入候选：
 
@@ -249,9 +262,9 @@ direction pin triplet=16/35/41
 - `entity` 发送参数的数据源连接；
 - 9 种列表发送参数及各自 List/Assembly 节点；
 - 发送节点的控制流输入、输出以及多发送节点复用；
-- 除 `int/float/vec3` 外其余监听普通参数的输出序号、类型和 `compositePinIndex`；
+- 监听普通参数 `connect2` 例外（str→3、entity→4）的语义；`compositePinIndex` 与实例输出 index 的映射；
 - 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
-- int、float、vec3 均已完成同构 GIA 重放，并由用户确认编辑器导入、节点/连线和游戏内测试通过；结论只覆盖三份具体候选，不推广到其他类型或变体；
+- 9 种普通参数消费均已真实差分闭合，8 个 consume 候选同构重放通过，`consume-str` 已由用户确认编辑器导入成功（新图 `1073741847`）；其余 7 个候选未逐个导入核验；
 - 监听信号实际触发及参数值的游戏行为；
 - 客户端信号节点；
 - 除当前 `cube_turn` 两个 `str` 参数样本外，其他重复类型数量和参数组合的跨地图注册；
