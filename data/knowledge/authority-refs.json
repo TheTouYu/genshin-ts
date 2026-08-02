@@ -83,7 +83,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "747b64838b9d74b583326451386f1cae467fc0a687a41cfcf18b9f0be2d7e87a",
+      "approved_hash": "094ce56bc77cb61fde1d8fb0377d5911c1b32e22fd4c57e1c32882e66e61d666",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
@@ -212,6 +212,21 @@
       ]
     },
     {
+      "id": "aref_39bc846325e8542fe6216cceb3",
+      "path": "docs/game-engine-knowledge/validation-workflow.md",
+      "locator": "整体语义树的章节式调查；单变化、不可变快照、presence、Validator 和证据状态边界",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "f390519d2f06a823cb92522877b4c18ed50988bca3130f0697697c0dfe822899",
+      "claim_ids": [
+        "clm_1E31BAC638F84B68E6F1CB17B4"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_3bf09dfe0f8d3ddf100f541ae3",
       "path": "src/runtime/composite_registry.ts",
       "locator": "CompositeInputDefinitions; CompositeInputValues; CompositeHandle input schema",
@@ -263,7 +278,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "883fe4cbaf6cd43f03e84611d6d746b36623588c2e33740e4722e3387b0b746f",
+      "approved_hash": "51524798fe914d576dc47ff667d8a807dae3b6f89eeed87dcafde7b6a65b7aaa",
       "claim_ids": [
         "clm_880C4DB58E0AD04C130A856689"
       ],
@@ -413,7 +428,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "4bd4ff3655868b8ff5690a822d2dd8026cfd01d2555743fcb10f8505e1b62573",
+      "approved_hash": "83ba47f654ad214d6acce0c021ffbfd86f1db6a50057b816097fcce41cc68185",
       "claim_ids": [
         "clm_EB98A0BAEA640B8ECB6577B16C"
       ],
@@ -608,7 +623,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "4bd4ff3655868b8ff5690a822d2dd8026cfd01d2555743fcb10f8505e1b62573",
+      "approved_hash": "83ba47f654ad214d6acce0c021ffbfd86f1db6a50057b816097fcce41cc68185",
       "claim_ids": [
         "clm_747B855B2F15D8CF565A95D92D"
       ],
@@ -766,6 +781,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_ed4923d5b5291ada326dcd22e8",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "GIL 根与 GIA Root 的边界；锁定快照 SHA-256、root wire 统计与直接解码冲突",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "da32ab9c17ae9601a8770b61f70714f9a8a86bd1bf1f260f1d7c9de8cead8492",
+      "claim_ids": [
+        "clm_D855DC6B45CDA71076665B0BFA"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
