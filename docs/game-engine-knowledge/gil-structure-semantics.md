@@ -28,9 +28,19 @@
 376375 bytes / d860df63...b32d5：节点图 1073741845 再次修改名称
 376342 bytes / ae0216b9...937bd：节点图 1073741845 名称缩短为 A
 376386 bytes / 7d279e9f...272a2：在节点图 A 新增默认“关卡开始时”节点
+398313 bytes / 4cc017e4...fbd2：root 9 文本框章节最终快照 / 变量章节基线
+398354 bytes / ae7f67db...7c18：新增默认 bool 关卡变量 1
+398393 bytes / 9d4bac03...41cc：新增默认 bool 关卡变量 2
+398432 bytes / 423a0676...6d4：新增默认 integer 关卡变量 3
+398436 bytes / 1dd974e7...414a：integer 默认值改为 123456
+398432 bytes / e72bd051...5eca：integer 默认值恢复为 0
+398434 bytes / 08af6f72...d1b：bool 变量 1 改为 true
+398432 bytes / c6222352...cf0：bool 变量 1 恢复为 false
+398420 bytes / abd1ca65...835：bool 变量 2 重命名为 A
+398432 bytes / f8462196...11ed：bool 变量 2 恢复默认名称
 ```
 
-Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。后续全 root raw-byte 比较在两个空图创建轮次补充发现 root `46` 等长变化，由证据提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。
+Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。后续全 root raw-byte 比较在两个空图创建轮次补充发现 root `46` 等长变化，由证据提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。root `9` UI 章节由证据提交 `65a86e2a3f3118c92dd65028258d88d713dc10d3` 锁定；root `5` 关卡变量章节由证据提交 `d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定。
 
 ## 证据状态
 
@@ -78,7 +88,9 @@ GIL file
 └── payload：GIL 自有根消息（正式 schema 未取得）
     ├── 4.1[*]：static assembly definition records
     ├── 5.1[*]：场景实体 records（两个锁定样本）
-    │   └── 5.1[*].2.1：所选元件 definition ID 引用（两个锁定样本）
+    │   ├── 5.1[*].2.1：所选元件 definition ID 引用（两个锁定样本）
+    │   └── 5.1[changed].7[0].11：当前关卡变量列表（限定样本）
+    │       └── entry：名称 / bool-int 类型关联 / 默认值分支
     ├── 6：owner/registry 容器
     ├── 8.1[*]：static assembly instance records
     ├── 9：当前限定样本中的屏幕 UI 控件记录容器（完整 schema 未闭合）
@@ -107,7 +119,7 @@ GIL file
 | 路径         | 当前含义                                                                   | 边界                                                          |
 | ------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `4.1[*]`     | definition records；两个新增默认元件的 definition ID 等于用户看到的元件 ID | reader 边界 + 两个同类型默认元件样本；不是完整资源消息 schema |
-| `5.1[*]`     | 从已有元件新增的场景实体 records                                           | 只确认两个箭头指示牌样本；root field `5` 正式消息名未知       |
+| `5.1[*]`     | 两个新增场景实体 records；另一个既有 record 内承载当前关卡变量列表                 | 场景实体只确认两个箭头指示牌样本；变量只确认本批 bool/int；root field `5` 正式消息名未知 |
 | `5.1[*].2.1` | 场景实体对所选元件 definition ID 的 varint 引用                            | 只确认上述两个场景实体样本；正式字段名未知                    |
 | `6`          | owner/registry 容器                                                        | 当前只闭合 owner ID；不同操作登记不同一侧的记录 ID            |
 | `8.1[*]`     | instance records；创建上述元件时同步新增并回指 definition                  | reader 边界 + 两个同类型默认元件样本                          |
@@ -231,6 +243,47 @@ record。
 `65a86e2a3f3118c92dd65028258d88d713dc10d3` 锁定。未执行 round-trip、临时重放、真实
 写回、编辑器导入或游戏行为验证。
 
+### 关卡变量：默认创建、名称、bool/int 类型与默认值
+
+`CONFIRMED`，但只限当前锁定地图、编辑器版本、两个默认 bool 关卡变量和一个默认 integer
+关卡变量。连续 9 个最小编辑器操作形成 10 个不可变快照；9 个独立 Validator 均
+`ACCEPT`。各轮 root occurrence 均为 41，presence 稳定。第一轮改变 root `5/21/46`，
+其余八轮只改变 root `5/46`。
+
+稳定业务变化不新增 root `5.1` record，而是重写同一个既有 record，并在以下受限路径维护
+变量 entries：
+
+| raw 路径（省略 `GIL.payload`） | wire | 当前限定语义 |
+| --- | --- | --- |
+| `5.1[changed].7[0].11.1[*]` | length-delimited | 关卡变量 entries |
+| `...1[*].2` | length-delimited | 显式 UTF-8 名称 |
+| `...1[*].3` | varint | 类型关联 discriminator；当前 bool=`4`、integer=`3` |
+| `...1[type=integer].4.13` | length-delimited | 当前 integer 默认值分支 |
+| `...1[type=bool].4.14` | length-delimited | 当前 bool 默认值分支 |
+
+`CONFIRMED`：连续创建两个默认 bool 变量时，每轮追加一个 39-byte 同构 field `1` entry；
+除默认名称末尾 `1/2` 外，两条 entry 字节一致。随后创建默认 integer 变量时，已有两条 bool
+entry 逐字节不变。bool 与 integer entry 的顶层字段形状一致；fields `3/4/6` 随用户所选
+类型共同变化，field `5 = 1` 保持不变。这里的 `4/3` 只是在当前样本中与 bool/integer
+关联，不能升级为正式 enum 或其他作用域的通用类型码。
+
+`CONFIRMED`：当前 integer 变量中，值 `0` 对应显式存在的空 field `13`；值 `123456`
+对应 `13.1 = explicit varint 123456`。当前 bool 变量中，`false` 对应显式存在的空 field
+`14`；`true` 对应 `14.1 = explicit varint 1`。两组值恢复后，目标 entry 与所属 root
+`5.1` record 均精确恢复为修改前 raw bytes；整个 GIL hash 不恢复，因为 root `46` 仍独立
+等长变化。
+
+`CONFIRMED`：名称 `新增变量2 → A → 新增变量2` 只重写显式 UTF-8 entry field `2`；
+其他 entry 字段、其他变量 entry 与最终所属 root `5.1` record 均精确恢复。
+
+`INSUFFICIENT`：root `5` 与嵌套消息的正式名称、完整 schema、其他变量作用域/类型、负整数
+与范围、空名/重名规则及跨版本普适性。root `21` 只在首次创建变量时伴随变化，第二个同构
+创建样本未复现；root `46` 在九轮均等长变化，两者都不并入稳定变量骨架。
+
+本批真实相邻快照、机器总图和 9 个 `ACCEPT` Validator 由证据提交
+`d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定。未执行 round-trip、临时重放、真实
+写回、编辑器导入或游戏行为验证。
+
 ### 第三方开发分支候选 schema
 
 `INSUFFICIENT`：第三方逆向仓库
@@ -271,7 +324,8 @@ root `2/10/43` 可分别按该草案有界解码为 `模型比对`、节点图�
 - auxiliary record 的完整 schema；
 - 缺失 connection index 的编辑器和运行时语义；
 - root field `9` 的完整消息 schema、其他 UI 控件类型和透明度量化规则；
-- root fields `45/46` 的正式消息名和同步变化语义；
+- root field `5` 的正式消息 schema、关卡变量其他作用域/类型、负整数/范围和名称约束；
+- root fields `21/45/46` 的正式消息名和同步变化语义；
 - 当前字段路径的跨地图、跨游戏版本普适性。
 
 ## 整棵语义树的增量闭合方法
@@ -307,12 +361,12 @@ Validator 从原始 wire 复核通过，才合并受限语义。
 2. NodeGraph 之外的 GraphUnit/注册表包装；
 3. 静态资源 definition/instance/auxiliary 内部字段；
 4. 实体、Prefab、组件和挂载关系；
-5. 变量、root `9` 当前文本框之外的 UI、镜头与其他注册表；
+5. 当前 bool/int 关卡变量之外的变量作用域/类型、root `9` 当前文本框之外的 UI、镜头与其他注册表；
 6. 缓存、编辑器状态和派生索引等非业务字段。
 
-下一项最小缺口是：从 GIL 整体根层选择 root `9/10` 之外一个尚未命名的业务子容器，
-设计一个编辑器可实现的最小原子操作。root `45/46` 暂作为未知同步状态隔离，不通过重复
-保存直接命名。单快照的重复形状、可递归解析性或等长变化不足以命名消息。
+下一项最小缺口是：从 GIL 整体根层选择 root `5/9/10` 之外一个尚未命名的业务子容器，
+设计一个编辑器可实现的最小原子操作。root `21/45/46` 暂作为未知同步状态隔离，不通过首次
+或重复保存直接命名。单快照的重复形状、可递归解析性或等长变化不足以命名消息。
 
 完整机器可读调查结果见证据目录中的：
 

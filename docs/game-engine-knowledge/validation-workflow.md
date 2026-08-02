@@ -141,6 +141,27 @@ protobuf 字段缺失、显式空值和显式默认值必须分别记录。当�
 
 当前“自由新建 / 自由修改”受限实例见 [GIL 整体结构与语义树](gil-structure-semantics.md)，原始批次证据由独立证据仓库提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；全 root raw-byte 比较对空图创建轮次的等长变化补充由提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。
 
+### 重复调查操作的资产化门槛
+
+同一只读解析、字段提取或 Validator 前置断言重复至少三轮，且路径已由独立 Validator
+接受后，才提炼为参数化脚本。脚本必须满足：
+
+- 只接收显式快照路径，不内置实时地图、对象名或一次性 ID；
+- 差分不唯一或证据边界不满足时直接失败；
+- 至少用一个真实正常样本和一个失败样本验证；
+- 输出紧凑 JSON，不把候选 discriminator 写成正式 schema；
+- 自动提取结果仍由独立 Validator 从 raw 快照重新裁决。
+
+稳定且频繁出现的长路径写入 manifest，用 `EVIDENCE_ROOT`、`EXPERIMENT_ROOT`、`LIVE_MAP`、
+`LOCKED_BEFORE` 等短变量恢复。短变量只减少重复文本，不替代 SHA-256 核验，也不授予读取或
+写回权限。一次性实验不为“以后可能复用”提前创建抽象。
+
+当前受限实例是关卡变量只读提取器
+`.agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-level-variables.py`：它只接受
+root `5` 中恰好一个直接 field `1` record 被重写的相邻快照，并在差分不唯一时失败。对应
+9 轮真实实验与独立 Validator 由证据提交
+`d7bd151f9b8e914ca4ad3a1873021983e08c4f0f` 锁定；脚本自动输出不是 Validator 裁决。
+
 ## 第二阶段：手工同构重放
 
 规则闭合后，先在临时文件中重放观察到的变化：

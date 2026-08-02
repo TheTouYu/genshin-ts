@@ -36,6 +36,17 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 脚本默认只展开变化根字段的直接子记录，每侧最多 20 条；需要更小输出时用
 `--max-records`。递归可解析性、记录位置和相邻 ID 都不证明语义。
 
+调查当前已闭合的受限关卡变量列表时，复用只读提取器，不再为每轮复制 protobuf 解析器：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-level-variables.py \
+  <before.gil> <after.gil> --output <experiment>/investigator/variables.json
+```
+
+它只接受 root `5` 中恰好一个直接 field `1` record 被重写的相邻快照，输出变量 entry 的
+名称、类型 discriminator、字段摘要和 raw hash。路径与 discriminator 都是当前证据边界，
+不是正式 schema；不满足唯一差分时脚本应失败，不放宽匹配。
+
 ## 自由新建与自由修改
 
 整体调查优先采用：
