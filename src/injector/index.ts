@@ -28,7 +28,7 @@ import {
   setGraphType
 } from './node_graph.js'
 import { loadGiaProto } from './proto.js'
-import { patchSignalNodeIds } from './signal_nodes.js'
+import { patchSignalNodeIds, type SignalNodeKind } from './signal_nodes.js'
 import type {
   InjectGilFileOptions,
   InjectGilFileResult,
@@ -152,11 +152,41 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
       proto.nodeGraphMessage,
       input.targetId
     )
+    const isSignalDefinitionAccessory = (unit: NonNullable<typeof giaRoot.accessories>[number]) => {
+      const def = unit.compositeDef?.inner?.def as
+        | { name?: unknown; type?: { kind?: unknown } }
+        | undefined
+      return (
+        (def?.name === '发送信号' ||
+          def?.name === '监听信号' ||
+          def?.name === '向服务器节点图发送信号') &&
+        typeof def.type?.kind === 'number' &&
+        def.type.kind >= 1001
+      )
+    }
+    const sourceSignalKindsById = new Map<number, SignalNodeKind>()
+    for (const unit of giaRoot.accessories ?? []) {
+      const def = unit.compositeDef?.inner?.def as
+        | { name?: unknown; id?: { genericId?: { id?: unknown } } }
+        | undefined
+      const id = toFiniteNumber(def?.id?.genericId?.id)
+      const kind =
+        def?.name === '发送信号'
+          ? 'send'
+          : def?.name === '监听信号'
+            ? 'monitor'
+            : def?.name === '向服务器节点图发送信号'
+              ? 'sendServer'
+              : undefined
+      if (id !== undefined && kind) sourceSignalKindsById.set(id, kind)
+    }
     const incomingCompositeDefBytes = (giaRoot.accessories ?? [])
+      .filter((unit) => !isSignalDefinitionAccessory(unit))
       .map((unit) => unit.compositeDef?.inner?.def)
       .filter((def): def is Record<string, unknown> => !!def)
       .map((def) => compositeDefMessage.encode(def as never).finish())
     const incomingImplGraphBytes = (giaRoot.accessories ?? [])
+      .filter((unit) => !isSignalDefinitionAccessory(unit))
       .map((unit) => unit.graph?.inner?.graph)
       .filter((graph): graph is Record<string, unknown> => !!graph)
       .map((graph) => proto.nodeGraphMessage.encode(graph as never).finish())
@@ -183,7 +213,7 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
     const fields: LenField[] = []
     const nodeGraphBlobFields: LenField[] = []
     parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields, { nodeGraphBlobFields })
-    patchSignalNodeIds(newGraph, input.gilBytes, { payload, fields }, t)
+    patchSignalNodeIds(newGraph, input.gilBytes, { payload, fields }, t, sourceSignalKindsById)
     const matches = findNodeGraphTargets(
       payload,
       nodeGraphBlobFields.length ? nodeGraphBlobFields : fields,
@@ -334,7 +364,62 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
     if (matches.length > 1) {
       throw new Error('[error] multiple NodeGraph targets found; aborting to avoid corruption')
     }
-    throw new Error(`[error] target NodeGraph not found: ${targetId}`)
+
+    const folderEntry = findFolderEntryField(payload, fields, targetId)
+    if (!folderEntry) throw new Error(`[error] target NodeGraph not found: ${targetId}`)
+    const top10Field = findTopLevelMessageField(fields, 10)
+    if (!top10Field) throw new Error('[error] composite container not found in gil payload')
+    const incomingType = extractGraphType(newGraph)
+    const graphType =
+      targetId === 1073741825 && folderEntry.entry.typeValue === 7000 && incomingType === 20000
+        ? 20000
+        : resolveGraphTypeForTypeValue(
+            folderEntry.entry.typeValue,
+            collectFolderIndexes(payload, fields),
+            buildGraphTypeMap(
+              payload,
+              nodeGraphBlobFields.length ? nodeGraphBlobFields : fields,
+              proto.nodeGraphMessage
+            )
+          )
+    if (
+      graphType === undefined ||
+      isClientGraphType(graphType) ||
+      isClientGraphType(incomingType)
+    ) {
+      throw new Error(`[error] target NodeGraph not found: ${targetId}`)
+    }
+    setGraphId(newGraph, targetId)
+    setGraphType(newGraph, graphType)
+    const verified = proto.nodeGraphMessage.verify(newGraph as unknown as Record<string, unknown>)
+    if (verified) throw new Error(`[error] updated NodeGraph invalid: ${verified}`)
+
+    const top10Bytes = payload.subarray(top10Field.dataStart, top10Field.dataEnd)
+    const newGraphWrapper = encodeMessageField(
+      1,
+      proto.nodeGraphMessage.encode(newGraph as never).finish()
+    )
+    const rebuiltTop10Bytes = Buffer.concat([
+      ...readFieldMessages(top10Bytes, 1).map((wrapper) =>
+        Buffer.from(encodeMessageField(1, wrapper))
+      ),
+      Buffer.from(encodeMessageField(1, newGraphWrapper)),
+      ...[2, 3, 4, 5].flatMap((field) =>
+        readFieldMessages(top10Bytes, field).map((message) =>
+          Buffer.from(encodeMessageField(field, message))
+        )
+      )
+    ])
+    const newPayload = applyReplacement(payload, fields, top10Field, rebuiltTop10Bytes)
+    return {
+      bytes: buildFile(newPayload, {
+        schema: header.schema,
+        headTag: header.headTag,
+        fileType: header.fileType,
+        tailTag: header.tailTag
+      }),
+      mode: 'replace'
+    }
   }
 
   function injectFile(options: InjectGilFileOptions): InjectGilFileResult {

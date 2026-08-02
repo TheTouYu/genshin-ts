@@ -44,6 +44,16 @@ import {
   wrap_gia,
   type Root as GiaRoot
 } from '../gia_vendor.js'
+import type { SignalRegistry } from '../signal_registry.js'
+import {
+  assertRegisteredSchema,
+  buildSignalDefinitionAccessories,
+  collectClientSignalUsages,
+  restoreRegisteredSignalDefinitionBytes,
+  SIGNAL_DEFINITION_CONTRACT,
+  toSignalDefinitionIdentity,
+  type SignalDefinitionIdentity
+} from './build_signal_definition.js'
 import {
   CLIENT_VAR_TYPE_BY_IR_TYPE,
   customVariableTypeOffset,
@@ -55,15 +65,6 @@ import {
   type ClientReflectVariant
 } from './client_nodes.js'
 import type { IrToGiaOptions } from './index.js'
-import {
-  assertRegisteredSchema,
-  buildSignalDefinitionAccessories,
-  collectClientSignalUsages,
-  SIGNAL_DEFINITION_CONTRACT,
-  toSignalDefinitionIdentity,
-  type SignalDefinitionIdentity
-} from './build_signal_definition.js'
-import type { SignalRegistry } from '../signal_registry.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
 import { parseEnumValue } from './mappings.js'
 import { buildConnTypeIndex, type ConnTypeIndex } from './node_id.js'
@@ -1137,7 +1138,9 @@ function applySpecialArgs(
   if (irNode.type === 'send_signal_to_server_node_graph') {
     const identity = signalIdentitiesByName.get(String((irNode.args?.[0] as any)?.value ?? ''))
     if (!identity) {
-      throw new Error(`[error] signal is not registered in target map: ${String((irNode.args?.[0] as any)?.value)}`)
+      throw new Error(
+        `[error] signal is not registered in target map: ${String((irNode.args?.[0] as any)?.value)}`
+      )
     }
     applySendSignalToServer(node, irNode, metadata, identity)
     return true
@@ -1284,7 +1287,17 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
       )
     }
     applyResolvedReflectivePins(node, metadata, variant)
-    if (!applySpecialArgs(node, irNode, metadata, concreteId, variant, inferredOutTypeInfo, signalIdentitiesByName)) {
+    if (
+      !applySpecialArgs(
+        node,
+        irNode,
+        metadata,
+        concreteId,
+        variant,
+        inferredOutTypeInfo,
+        signalIdentitiesByName
+      )
+    ) {
       applyLiteralArgs(node, irNode, metadata, variant)
     }
     builtById.set(irNode.id, node)
@@ -1384,6 +1397,19 @@ export function clientIrToGia(ir: ClientIRDocument, opts: IrToGiaOptions): Uint8
     }
   }
 
+  const signalSource = [...(signalRegistry?.values() ?? [])]
+    .map((signal) => signal.encoding?.source)
+    .find((source) => source !== undefined)
+  if (signalSource) {
+    const parts = root.filePath.split('-')
+    if (parts.length >= 4) {
+      root.filePath = `${signalSource.uid}-${parts[1]}-${signalSource.mapId}-${parts.slice(3).join('-')}`
+    }
+    root.gameVersion = signalSource.gameVersion
+  }
   const { rootMessage } = loadGiaProto(opts.protoPath)
-  return new Uint8Array(wrap_gia(rootMessage, root))
+  return restoreRegisteredSignalDefinitionBytes(
+    new Uint8Array(wrap_gia(rootMessage, root)),
+    signalRegistry
+  )
 }

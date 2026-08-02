@@ -7,13 +7,17 @@ import { loadGstsConfig } from '../compiler/config_loader.js'
 import type { GstsConfig, GstsInjectConfig } from '../compiler/gsts_config.js'
 import type { SignalParamType } from '../runtime/core.js'
 import { resolveGilTarget } from './gil_paths.js'
-import { DEFAULT_SIGNALS_PATH, extractSignalsFromGil, readRegisteredSignalsFromGil } from './gil_signals.js'
 import {
   PARAM_TYPE_CODES,
   registerSignalInGil,
   updateSignalInGil,
   type SignalRegistrationParam
 } from './gil_signal_registrations.js'
+import {
+  DEFAULT_SIGNALS_PATH,
+  extractSignalsFromGil,
+  readRegisteredSignalsFromGil
+} from './gil_signals.js'
 import { sha256Bytes } from './static_assembly/json.js'
 
 type Command = 'inspect' | 'register' | 'update'
@@ -33,10 +37,11 @@ function usage(exitCode = 1): never {
     '  --gil <file>             explicit read-only GIL source',
     '  --output <file>          create output without overwriting',
     '  --write                  write source GIL after backup',
+    '  --template-gil <file>    optional donor GIL for parameter layouts',
     '  --template-signal <name> existing signal to clone parameter entries from',
     '  --target-signal <name>   existing signal to update in place',
     '  --name <name>            resulting signal name',
-    '  --param <name:type>      new signal parameter (repeatable, <=9, one per type)',
+    '  --param <name:type>      new signal parameter (repeatable, <=9; donor layouts required for repeats)',
     '  --send-id <id>           new signal send node ID (auto when omitted)',
     '  --monitor-id <id>        new signal monitor node ID (auto when omitted)',
     '  --server-id <id>         new signal server identity node ID (auto when omitted)',
@@ -68,7 +73,9 @@ function parseParam(raw: string): SignalRegistrationParam {
   const name = raw.slice(0, separator)
   const type = raw.slice(separator + 1)
   if (!PARAM_TYPES.has(type)) {
-    throw new Error(`[error] unknown parameter type: ${type}; valid: ${[...PARAM_TYPES].join(', ')}`)
+    throw new Error(
+      `[error] unknown parameter type: ${type}; valid: ${[...PARAM_TYPES].join(', ')}`
+    )
   }
   return { name, type: type as SignalParamType }
 }
@@ -79,6 +86,7 @@ export function parseArgs(argv: readonly string[]) {
   let mapId: number | undefined
   let outputPath: string | undefined
   let write = false
+  let templateGilPath: string | undefined
   let templateSignalName: string | undefined
   let targetSignalName: string | undefined
   let name: string | undefined
@@ -96,6 +104,7 @@ export function parseArgs(argv: readonly string[]) {
     else if (arg === '--map-id') mapId = nonNegativeId(value(argv, i++), '--map-id')
     else if (arg === '--output') outputPath = value(argv, i++)
     else if (arg === '--write') write = true
+    else if (arg === '--template-gil') templateGilPath = value(argv, i++)
     else if (arg === '--template-signal') templateSignalName = value(argv, i++)
     else if (arg === '--target-signal') targetSignalName = value(argv, i++)
     else if (arg === '--name') name = value(argv, i++)
@@ -106,15 +115,23 @@ export function parseArgs(argv: readonly string[]) {
     else if (arg === '--help' || arg === '-h') usage(0)
     else usage()
   }
-  if (gilPath && mapId !== undefined) throw new Error('[error] --gil and --map-id are mutually exclusive')
+  if (gilPath && mapId !== undefined)
+    throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
   if (command === 'register') {
     if (!templateSignalName) throw new Error('[error] --template-signal is required')
   } else if (command === 'update') {
     if (!targetSignalName) throw new Error('[error] --target-signal is required')
     if (!name) throw new Error('[error] --name is required')
-    if (templateSignalName || sendId !== undefined || monitorId !== undefined || serverId !== undefined) {
-      throw new Error('[error] update preserves signal IDs and does not accept template or ID options')
+    if (
+      templateSignalName ||
+      sendId !== undefined ||
+      monitorId !== undefined ||
+      serverId !== undefined
+    ) {
+      throw new Error(
+        '[error] update preserves signal IDs and does not accept template or ID options'
+      )
     }
   }
   if (command !== 'inspect' && !name) throw new Error('[error] --name is required')
@@ -135,6 +152,7 @@ export function parseArgs(argv: readonly string[]) {
     mapId,
     outputPath,
     write,
+    templateGilPath,
     templateSignalName,
     targetSignalName,
     name,
@@ -153,7 +171,9 @@ function resolveGilPath(
   const inject: GstsInjectConfig = { ...(projectConfig?.inject ?? {}) }
   if (args.mapId !== undefined) inject.mapId = args.mapId
   if (inject.mapId === undefined) {
-    throw new Error('[error] mapId is required; use --gil, or provide --map-id with a project config')
+    throw new Error(
+      '[error] mapId is required; use --gil, or provide --map-id with a project config'
+    )
   }
   return resolveGilTarget(inject).gilPath
 }
@@ -173,7 +193,10 @@ function writeNew(outputPath: string, contents: string | Uint8Array): string {
   return absolute
 }
 
-function resolveSignalsPath(projectConfigPath: string | undefined, injectCfg: GstsInjectConfig | undefined): string {
+function resolveSignalsPath(
+  projectConfigPath: string | undefined,
+  injectCfg: GstsInjectConfig | undefined
+): string {
   const raw = injectCfg?.signalsPath ?? DEFAULT_SIGNALS_PATH
   if (path.isAbsolute(raw)) return raw
   const base = projectConfigPath ? path.dirname(projectConfigPath) : process.cwd()
@@ -214,6 +237,9 @@ async function runRegister(
         })
       : registerSignalInGil({
           bytes: sourceBytes,
+          templateBytes: args.templateGilPath
+            ? new Uint8Array(fs.readFileSync(path.resolve(args.templateGilPath)))
+            : undefined,
           templateSignalName: args.templateSignalName!,
           signal: {
             name: args.name!,

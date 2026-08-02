@@ -73,12 +73,12 @@ const targetGraph = proto.nodeGraphMessage.create({
   nodes: [entryNode]
 })
 
-const folderEntry = (typeValue: number) =>
+const folderEntry = (typeValue: number, id = targetId) =>
   bytesField(
     6,
     bytesField(
       1,
-      bytesField(3, bytesField(5, concat(varintField(1, typeValue), varintField(2, targetId))))
+      bytesField(3, bytesField(5, concat(varintField(1, typeValue), varintField(2, id))))
     )
   )
 const targetGraphField = bytesField(
@@ -164,4 +164,25 @@ const serverMatches = findNodeGraphTargets(
 )
 assert.equal(extractGraphType(serverMatches[0].obj), 20003)
 
-console.log('[ok] client graph types are strict while server graph types remain auto-corrected')
+const firstGraphId = 1073741825
+const firstGraphGil = buildFile(
+  concat(folderEntry(7000, firstGraphId), bytesField(10, new Uint8Array())),
+  { schema: 1, headTag: 0x0326, fileType: 0, tailTag: 0x0679 }
+)
+const firstGraphGia = makeGiaBytes(firstGraphId, 20000, 9, '_GSTS_first_server_graph', [])
+const firstGraphResult = createInjector({ lang: 'en' }).injectBytes({
+  gilBytes: firstGraphGil,
+  giaBytes: firstGraphGia,
+  targetId: firstGraphId
+})
+const firstGraphPayload = firstGraphResult.bytes.slice(20, -4)
+const firstGraphFields: LenField[] = []
+parseMessage(firstGraphPayload, 0, firstGraphPayload.length, 0, 0, 0, 0, 0, 0, 0, firstGraphFields)
+assert.equal(
+  findNodeGraphTargets(firstGraphPayload, firstGraphFields, proto.nodeGraphMessage, firstGraphId)
+    .length,
+  1,
+  'fixed first server graph is created only from its existing folder placeholder'
+)
+
+console.log('[ok] client graph types are strict; server replacement and first-graph creation pass')

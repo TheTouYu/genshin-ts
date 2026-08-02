@@ -1,7 +1,14 @@
-import { decodeUtf8, parseMessage, readFieldBytes, readFieldMessages, readVarint } from './binary.js'
+import {
+  decodeUtf8,
+  parseMessage,
+  readFieldBytes,
+  readFieldMessages,
+  readFieldVarint,
+  readVarint
+} from './binary.js'
 import type { LenField } from './types.js'
 
-type SignalNodeKind = 'send' | 'monitor' | 'sendServer'
+export type SignalNodeKind = 'send' | 'monitor' | 'sendServer'
 
 type NodeGraphIdInfo = {
   class?: number
@@ -14,6 +21,7 @@ export type SignalNodeIds = {
   send?: NodeGraphIdInfo
   monitor?: NodeGraphIdInfo
   sendServer?: NodeGraphIdInfo
+  parameterTypes?: number[]
 }
 
 type SignalParseContext = {
@@ -129,10 +137,16 @@ export function buildSignalNodeIdMapFromFields(
     if (!nodeId?.nodeId) continue
 
     const outputs = readFieldMessages(containerBytes, 103).length
+    const parameterTypes = readFieldMessages(containerBytes, 102).flatMap((param) => {
+      const type = readFieldBytes(param, 4)
+      const code = type ? (readFieldVarint(type, 4) ?? readFieldVarint(type, 3)) : undefined
+      return typeof code === 'number' ? [code] : []
+    })
     const kind: SignalNodeKind | undefined =
       nodeId.type === SIGNAL_NODE_TYPE_SKILLS ? 'sendServer' : outputs >= 3 ? 'monitor' : 'send'
 
     const entry = result.get(signalName) ?? {}
+    if (kind === 'send' && parameterTypes.length > 0) entry.parameterTypes = parameterTypes
     const existing = entry[kind]
     if (existing && existing.nodeId !== nodeId.nodeId) {
       const msg = t
@@ -184,7 +198,8 @@ function placeholderKindOfNode(node: {
   const targets: NodeGraphIdInfo[] = []
   let kind: SignalNodeKind | undefined
   for (const id of [node.genericId, node.concreteId]) {
-    const k = typeof id?.nodeId === 'number' ? SIGNAL_NODE_ID_PLACEHOLDERS.get(id.nodeId) : undefined
+    const k =
+      typeof id?.nodeId === 'number' ? SIGNAL_NODE_ID_PLACEHOLDERS.get(id.nodeId) : undefined
     if (!k) continue
     if (k === 'sendServer' && id?.type !== SIGNAL_NODE_TYPE_SKILLS) continue
     kind = k
@@ -201,22 +216,50 @@ export function extractSignalNodeIds(
   return buildSignalNodeIdMapFromFields(payload, fields, t)
 }
 
+function validateSignalNode(
+  node: {
+    genericId?: NodeGraphIdInfo
+    concreteId?: NodeGraphIdInfo
+    pins?: Array<{ i1?: { kind?: number }; type?: unknown; value?: unknown }>
+  },
+  entry: SignalNodeIds,
+  kind: SignalNodeKind,
+  signalName: string
+) {
+  const expected = entry[kind]
+  if (!expected?.nodeId) throw new Error(`[error] signal is not registered: ${signalName}`)
+  for (const id of [node.genericId, node.concreteId]) {
+    if (id?.nodeId !== expected.nodeId) {
+      throw new Error(`[error] signal identity mismatch: ${signalName}`)
+    }
+  }
+  if (kind !== 'send') return
+  const params = (node.pins ?? []).filter((pin) => pin.i1?.kind === 3)
+  const expectedTypes = entry.parameterTypes ?? []
+  if (params.length !== expectedTypes.length) {
+    throw new Error(`[error] signal schema mismatch: ${signalName}`)
+  }
+  for (const [index, pin] of params.entries()) {
+    if (pin.type !== expectedTypes[index]) {
+      throw new Error(`[error] signal schema mismatch: ${signalName}`)
+    }
+  }
+}
+
 export function patchSignalNodeIds(
   graph: {
     nodes?: Array<{
       genericId?: NodeGraphIdInfo
       concreteId?: NodeGraphIdInfo
-      pins?: Array<{ value?: unknown }>
+      pins?: Array<{ i1?: { kind?: number }; type?: unknown; value?: unknown }>
     }>
   },
   gilBytes: Uint8Array,
   parsed?: SignalParseContext,
-  t?: TFunc
+  t?: TFunc,
+  sourceKindsById: ReadonlyMap<number, SignalNodeKind> = new Map()
 ) {
   const nodes = graph.nodes ?? []
-  const needsPatch = nodes.some((n) => placeholderKindOfNode(n) !== undefined)
-  if (!needsPatch) return
-
   const ctx = buildSignalParseContext(gilBytes, parsed)
   const signalMap = buildSignalNodeIdMapFromFields(ctx.payload, ctx.fields, t)
 
@@ -231,12 +274,35 @@ export function patchSignalNodeIds(
       throw new Error(missingMsg)
     }
     const entry = signalMap.get(signalName)
-    const target = entry?.[placeholder.kind]
+    if (!entry) throw new Error(missingMsg)
+    const target = entry[placeholder.kind]
     if (!target?.nodeId) {
       throw new Error(missingMsg)
     }
     for (const idTarget of placeholder.targets) {
       setNodeGraphIdFields(idTarget, target)
     }
+    validateSignalNode(node, entry, placeholder.kind, signalName)
+  }
+
+  for (const node of nodes) {
+    if (placeholderKindOfNode(node)) continue
+    const signalName = extractSignalNameFromNode(node)
+    if (!signalName) continue
+    const entry = signalMap.get(signalName)
+    if (!entry) throw new Error(`[error] signal is not registered: ${signalName}`)
+    const nodeIds = [node.genericId?.nodeId, node.concreteId?.nodeId]
+    const kind =
+      (['send', 'monitor', 'sendServer'] as SignalNodeKind[]).find(
+        (candidate) =>
+          entry[candidate]?.nodeId !== undefined && nodeIds.includes(entry[candidate]!.nodeId)
+      ) ??
+      nodeIds.flatMap((id) => (id === undefined ? [] : [sourceKindsById.get(id)])).find(Boolean)
+    if (!kind) throw new Error(`[error] signal identity mismatch: ${signalName}`)
+    const target = entry[kind]
+    if (!target) throw new Error(`[error] signal identity mismatch: ${signalName}`)
+    setNodeGraphIdFields(node.genericId!, target)
+    setNodeGraphIdFields(node.concreteId!, target)
+    validateSignalNode(node, entry, kind, signalName)
   }
 }

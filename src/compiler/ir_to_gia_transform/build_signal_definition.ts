@@ -21,6 +21,8 @@
  * show parameters without injection.
  */
 
+import { emitWireMessage, parseWireMessage } from '../../cli/static_assembly/wire.js'
+import { buildFile, readFieldBytes, readFieldVarint } from '../../injector/binary.js'
 import type { Argument, IRDocument } from '../../runtime/IR.js'
 import {
   GraphUnit_Id_Class,
@@ -35,9 +37,9 @@ import {
   VarType,
   type GraphUnit
 } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/protobuf/gia.proto.js'
+import type { RegisteredSignalDefinition, SignalRegistry } from '../signal_registry.js'
 import { buildCompositeParameterType } from './build_composite_definition.js'
 import { SPECIAL_NODE_IDS } from './mappings.js'
-import type { RegisteredSignalDefinition, SignalRegistry } from '../signal_registry.js'
 
 export const SIGNAL_PLACEHOLDER_SEND_ID = SPECIAL_NODE_IDS.send_signal // 300000
 export const SIGNAL_PLACEHOLDER_MONITOR_ID = SPECIAL_NODE_IDS.monitor_signal // 300001
@@ -89,12 +91,18 @@ export const SIGNAL_DEFINITION_CONTRACT = {
 export type SignalParamSpec = {
   name: string
   type: string
+  sendPinIndex?: number
+  monitorPinIndex?: number
+  serverPinIndex?: number
+  serverType?: number
 }
 
 export type SignalDefinitionIdentity = {
   sendId: number
   monitorId: number
   serverId: number
+  encoding?: RegisteredSignalDefinition['encoding']
+  params?: RegisteredSignalDefinition['params']
 }
 
 export type CollectedSignalUsage = {
@@ -107,11 +115,15 @@ export type CollectedSignalUsage = {
   monitorOutIndexes: number[]
 }
 
-function isValueArg(a: Argument | undefined | null): a is Exclude<Argument, { type: 'conn' } | null> {
+function isValueArg(
+  a: Argument | undefined | null
+): a is Exclude<Argument, { type: 'conn' } | null> {
   return !!a && a.type !== 'conn'
 }
 
-function signalNameFromArgs(args: Array<Argument | null | undefined> | undefined): string | undefined {
+function signalNameFromArgs(
+  args: Array<Argument | null | undefined> | undefined
+): string | undefined {
   const nameArg = args?.[0]
   if (!nameArg || nameArg.type === 'conn') return undefined
   if (nameArg.type !== 'str') return undefined
@@ -246,7 +258,7 @@ export function buildSendSignalDefGraphUnit(
     visible: true,
     index: { kind: NodePin_Index_Kind.InParam, index: i },
     type: parameterTypeForSignal(p.type),
-    pinIndex: SEND_SIGNAL_PIN_INDEX.firstParam + i
+    pinIndex: p.sendPinIndex ?? SEND_SIGNAL_PIN_INDEX.firstParam + i
   }))
 
   const compositeDef = {
@@ -349,7 +361,7 @@ export function buildMonitorSignalCompositeGraphUnit(
       visible: true,
       index: { kind: NodePin_Index_Kind.OutParam, index: 3 + i },
       type: parameterTypeForSignal(p.type),
-      pinIndex: MONITOR_SIGNAL_PIN_INDEX.firstParamOutput + i
+      pinIndex: p.monitorPinIndex ?? MONITOR_SIGNAL_PIN_INDEX.firstParamOutput + i
     }))
   ]
 
@@ -433,9 +445,11 @@ export function buildSendServerSignalDefGraphUnit(
     name: p.name,
     visible: true,
     index: { kind: NodePin_Index_Kind.InParam, index: i },
-    type: parameterTypeForSignal(p.type),
-    // Real samples use a separate pinIndex pool (e.g. 23+); keep offset from send.
-    pinIndex: 23 + i
+    type: {
+      ...parameterTypeForSignal(p.type),
+      ...(p.serverType === undefined ? {} : { type1: p.serverType, type2: p.serverType })
+    },
+    pinIndex: p.serverPinIndex ?? 23 + i
   }))
 
   const compositeDef = {
@@ -550,7 +564,9 @@ export function toSignalDefinitionIdentity(
   return {
     sendId: entry.sendId,
     monitorId: entry.monitorId,
-    serverId: entry.serverId
+    serverId: entry.serverId,
+    encoding: entry.encoding,
+    params: entry.params
   }
 }
 
@@ -563,7 +579,7 @@ export function assertRegisteredSchema(
   if (actual.length !== expected.length || actual.some((type, i) => type !== expected[i])) {
     throw new Error(
       `[error] signal schema mismatch for ${usage.name}: ` +
-      `IR=[${actual.join(', ')}], map=[${expected.join(', ')}]`
+        `IR=[${actual.join(', ')}], map=[${expected.join(', ')}]`
     )
   }
 }
@@ -587,6 +603,7 @@ export function buildSignalDefinitionAccessories(
     }
     assertRegisteredSchema(usage, registered)
     const identity = toSignalDefinitionIdentity(registered)
+    params = registered.params
     return [
       buildSendSignalDefGraphUnit(params, identity),
       buildMonitorSignalCompositeGraphUnit(params, identity),
@@ -596,7 +613,9 @@ export function buildSignalDefinitionAccessories(
 }
 
 function signalNameFromEncodedNode(node: any): string | undefined {
-  const pin = (node?.pins ?? []).find((p: any) => p.i1?.kind === NodePin_Index_Kind.ClientExecNode || p.i1?.kind === 5)
+  const pin = (node?.pins ?? []).find(
+    (p: any) => p.i1?.kind === NodePin_Index_Kind.ClientExecNode || p.i1?.kind === 5
+  )
   const value = pin?.value
   const name = typeof value === 'string' ? value : value?.bString?.val
   return typeof name === 'string' ? name.trim() : undefined
@@ -635,9 +654,7 @@ export function patchEncodedSignalNodes(
     if (!kind) continue
 
     const signalName = signalNameFromEncodedNode(node)
-    const identity = signalName
-      ? identitiesByName.get(signalName)
-      : undefined
+    const identity = signalName ? identitiesByName.get(signalName) : undefined
     if (!identity) continue
     const targetId = kind === 'send' ? identity.sendId : identity.monitorId
 
@@ -653,7 +670,8 @@ export function patchEncodedSignalNodes(
       node.concreteId.kind = NodeGraph_Id_Kind.SysGraph
       node.concreteId.nodeId = targetId
     }
-    node.signalVersion = SIGNAL_DEFINITION_CONTRACT.signalVersion
+    node.signalVersion =
+      identity.encoding?.signalVersion ?? SIGNAL_DEFINITION_CONTRACT.signalVersion
 
     for (const pin of node.pins ?? []) {
       const pinKind = pin.i1?.kind
@@ -662,8 +680,9 @@ export function patchEncodedSignalNodes(
       if (pinKind === NodePin_Index_Kind.ClientExecNode || pinKind === 5) {
         pin.compositePinIndex =
           kind === 'send'
-            ? SEND_SIGNAL_PIN_INDEX.clientExec
-            : MONITOR_SIGNAL_PIN_INDEX.clientExec
+            ? (identity.encoding?.sendNameCompositePinIndex ?? SEND_SIGNAL_PIN_INDEX.clientExec)
+            : (identity.encoding?.monitorNameCompositePinIndex ??
+              MONITOR_SIGNAL_PIN_INDEX.clientExec)
         // Real GIA: type=0, clientExecNode.kind=6, i2=null
         pin.type = 0
         pin.i2 = null
@@ -679,7 +698,8 @@ export function patchEncodedSignalNodes(
       }
 
       if (kind === 'send' && pinKind === NodePin_Index_Kind.InParam) {
-        pin.compositePinIndex = SEND_SIGNAL_PIN_INDEX.firstParam + pinIndex
+        pin.compositePinIndex =
+          identity.params?.[pinIndex]?.sendPinIndex ?? SEND_SIGNAL_PIN_INDEX.firstParam + pinIndex
         continue
       }
 
@@ -717,6 +737,62 @@ export function patchEncodedSignalNodes(
  * Full signal post-process for an encoded root: patch all graphs' signal nodes
  * and return accessories to append.
  */
+function signalDefinitionId(raw: Uint8Array): number | undefined {
+  const id = readFieldBytes(raw, 4)
+  const genericId = id ? readFieldBytes(id, 1) : undefined
+  return genericId ? readFieldVarint(genericId, 5) : undefined
+}
+
+/** Replace schema-decoded SignalDefs with exact target-GIL bytes, retaining unknown fields. */
+export function restoreRegisteredSignalDefinitionBytes(
+  giaBytes: Uint8Array,
+  registry: SignalRegistry | undefined
+): Uint8Array {
+  if (!registry) return giaBytes
+  const replacements = new Map<number, Uint8Array>()
+  for (const signal of registry.values()) {
+    const raw = signal.encoding?.definitionBytes
+    if (!raw) continue
+    replacements.set(signal.sendId, Buffer.from(raw.send, 'base64'))
+    replacements.set(signal.monitorId, Buffer.from(raw.monitor, 'base64'))
+    replacements.set(signal.serverId, Buffer.from(raw.server, 'base64'))
+  }
+  if (replacements.size === 0) return giaBytes
+  const fields = parseWireMessage(giaBytes.slice(20, -4))
+  if (!fields) throw new Error('[error] generated GIA root is not protobuf-like')
+  const next = fields.map((field) => {
+    if (field.number !== 2 || field.wire !== 2) return field
+    const unit = parseWireMessage(field.value as Uint8Array)
+    if (!unit) return field
+    const composite = unit.find((entry) => entry.number === 14 && entry.wire === 2)
+    const wrapper = composite ? parseWireMessage(composite.value as Uint8Array) : undefined
+    const inner = wrapper?.find((entry) => entry.number === 1 && entry.wire === 2)
+    const innerFields = inner ? parseWireMessage(inner.value as Uint8Array) : undefined
+    const def = innerFields?.find((entry) => entry.number === 1 && entry.wire === 2)
+    if (!def) return field
+    const replacement = replacements.get(signalDefinitionId(def.value as Uint8Array) ?? 0)
+    if (!replacement) return field
+    const nextInner = emitWireMessage(
+      innerFields!.map((entry) => (entry === def ? { ...entry, value: replacement } : entry))
+    )
+    const nextWrapper = emitWireMessage(
+      wrapper!.map((entry) => (entry === inner ? { ...entry, value: nextInner } : entry))
+    )
+    return {
+      ...field,
+      value: emitWireMessage(
+        unit.map((entry) => (entry === composite ? { ...entry, value: nextWrapper } : entry))
+      )
+    }
+  })
+  return buildFile(emitWireMessage(next), {
+    schema: 1,
+    headTag: 0x0326,
+    fileType: 3,
+    tailTag: 0x0679
+  })
+}
+
 export function finalizeSignalEncoding(input: {
   ir: IRDocument
   rootNodes?: any[]

@@ -21,7 +21,10 @@ export type SignalRegistrationSpec = {
 }
 
 // Register input: node IDs optional, auto-assigned from the highest occupied ID.
-export type SignalRegistrationInput = Omit<SignalRegistrationSpec, 'sendId' | 'monitorId' | 'serverId'> & {
+export type SignalRegistrationInput = Omit<
+  SignalRegistrationSpec,
+  'sendId' | 'monitorId' | 'serverId'
+> & {
   sendId?: number
   monitorId?: number
   serverId?: number
@@ -59,7 +62,7 @@ type ParamTemplates = {
 }
 
 type SignalPool = {
-  byType: Map<SignalParamType, ParamTemplates>
+  byType: Map<SignalParamType, ParamTemplates[]>
 }
 
 const TEXT = new TextEncoder()
@@ -121,7 +124,12 @@ function text(source: readonly WireField[], number: number): string | undefined 
   return field ? printableWireText(field.value as Uint8Array) : undefined
 }
 
-function nodeIdentity(data: Uint8Array): { class?: number; type?: number; kind?: number; id?: number } {
+function nodeIdentity(data: Uint8Array): {
+  class?: number
+  type?: number
+  kind?: number
+  id?: number
+} {
   const value = fields(data, 'signal node identity')
   return {
     class: varint(value, 1),
@@ -176,7 +184,8 @@ function parseSignalIndexEntry(field: WireField): SignalIndexEntry | undefined {
         | SignalParamType
         | undefined
       const paramName = text(param, 1)
-      if (!paramName || !type) throw new Error(`[error] unsupported template signal parameter type: ${code}`)
+      if (!paramName || !type)
+        throw new Error(`[error] unsupported template signal parameter type: ${code}`)
       return { name: paramName, type }
     })
   return {
@@ -198,7 +207,9 @@ function signalIndex(top: readonly WireField[]): { field: WireField; fields: Wir
 }
 
 function signalEntries(indexFields: readonly WireField[]): SignalIndexEntry[] {
-  return indexFields.map(parseSignalIndexEntry).filter((entry): entry is SignalIndexEntry => !!entry)
+  return indexFields
+    .map(parseSignalIndexEntry)
+    .filter((entry): entry is SignalIndexEntry => !!entry)
 }
 
 function transformMessage(
@@ -212,7 +223,10 @@ function transformMessage(
         field.wire === 2 && printableWireText(field.value as Uint8Array) === undefined
           ? {
               ...field,
-              value: transformMessage(field.value as Uint8Array, transform, [...ancestors, field.number])
+              value: transformMessage(field.value as Uint8Array, transform, [
+                ...ancestors,
+                field.number
+              ])
             }
           : field
       return transform(nested, ancestors)
@@ -249,7 +263,7 @@ function buildParamPool(top: readonly WireField[], entries: SignalIndexEntry[]):
     const id = definitionNodeId(field)
     if (id) definitions.set(id, { kind: 'send', wrapper: field })
   }
-  const byType = new Map<SignalParamType, ParamTemplates>()
+  const byType = new Map<SignalParamType, ParamTemplates[]>()
   for (const entry of entries) {
     const kindOfId = new Map<number, DefinitionKind>([
       [entry.identity.sendId, 'send'],
@@ -267,16 +281,21 @@ function buildParamPool(top: readonly WireField[], entries: SignalIndexEntry[]):
     for (let i = 0; i < entry.paramEntries.length; i++) {
       const param = entry.params[i]
       if (!param) continue
-      let templates = byType.get(param.type)
-      if (!templates) {
-        templates = { sourceSignal: entry.name, sourceParam: param.name, index: entry.paramEntries[i] }
-        byType.set(param.type, templates)
+      const templates: ParamTemplates = {
+        sourceSignal: entry.name,
+        sourceParam: param.name,
+        index: entry.paramEntries[i]
       }
       for (const kind of ['send', 'monitor', 'server'] as const) {
         const def = defs.get(kind)
-        if (!def || templates[kind]) continue
+        if (!def) continue
         const match = definitionParams(def, kind).find((sub) => subParamName(sub) === param.name)
         if (match) templates[kind] = match
+      }
+      if (templates.send && templates.monitor && templates.server) {
+        const existing = byType.get(param.type) ?? []
+        existing.push(templates)
+        byType.set(param.type, existing)
       }
     }
   }
@@ -329,7 +348,9 @@ function assignSignalIds(
 ): SignalRegistrationSpec {
   const provided = [spec.sendId, spec.monitorId, spec.serverId].filter((id) => id !== undefined)
   if (provided.length > 0 && provided.length < 3) {
-    throw new Error('[error] provide all three of sendId/monitorId/serverId or none (auto-assigned)')
+    throw new Error(
+      '[error] provide all three of sendId/monitorId/serverId or none (auto-assigned)'
+    )
   }
   if (provided.length === 3) {
     return { ...spec, sendId: spec.sendId!, monitorId: spec.monitorId!, serverId: spec.serverId! }
@@ -343,7 +364,9 @@ function validateSpec(spec: SignalRegistrationSpec, pool: SignalPool): void {
   if (!spec.name.trim()) throw new Error('[error] signal name is required')
   const ids = [spec.sendId, spec.monitorId, spec.serverId]
   if (ids.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
-    throw new Error('[error] sendId, monitorId and serverId must be distinct positive safe integers')
+    throw new Error(
+      '[error] sendId, monitorId and serverId must be distinct positive safe integers'
+    )
   }
   const names = new Set<string>()
   const typeCounts = new Map<SignalParamType, number>()
@@ -356,20 +379,17 @@ function validateSpec(spec: SignalRegistrationSpec, pool: SignalPool): void {
       throw new Error(`[error] unsupported editor signal parameter type: ${param.type}`)
     }
     const templates = pool.byType.get(param.type)
-    if (!templates) {
+    if (!templates?.length) {
       throw new Error(
         `[error] no template entry for parameter type "${param.type}" in this map; register it first via the editor`
       )
     }
-    // Two parameters of the same type would clone the same template entries and
-    // collide on the pin numbers (f8/f4-f6) embedded in the entries; the editor
-    // assigns fresh pins per parameter, which we cannot fabricate without a
-    // pin-allocation spec.
-    typeCounts.set(param.type, (typeCounts.get(param.type) ?? 0) + 1)
-    if (typeCounts.get(param.type)! > 1) {
+    const count = (typeCounts.get(param.type) ?? 0) + 1
+    typeCounts.set(param.type, count)
+    if (count > templates.length) {
       throw new Error(
-        `[error] parameter type "${param.type}" appears ${typeCounts.get(param.type)} times; ` +
-          'each type may be used once per signal because pin numbers are cloned from the template entry'
+        `[error] parameter type "${param.type}" needs ${count} distinct layouts, ` +
+          `but the template GIL provides ${templates.length}`
       )
     }
   }
@@ -382,6 +402,12 @@ function buildIndexEntry(
 ): WireField {
   const value = message(template.field, 'signal index entry')
   let paramSlot = 0
+  const typeOffsets = new Map<SignalParamType, number>()
+  const templateFor = (param: SignalRegistrationParam) => {
+    const offset = typeOffsets.get(param.type) ?? 0
+    typeOffsets.set(param.type, offset + 1)
+    return pool.byType.get(param.type)![offset]
+  }
   const rebuilt = value.flatMap((field) => {
     if (field.number === 1) {
       return [{ ...field, value: encodeNodeIdentity(SERVER_NODE_TYPE, spec.sendId) }]
@@ -397,7 +423,7 @@ function buildIndexEntry(
     if (paramSlot > 0) return []
     paramSlot++
     return spec.params.map((param) => {
-      const templates = pool.byType.get(param.type)!
+      const templates = templateFor(param)
       return cloneParamEntry(templates.index, templates.sourceParam, param.name)
     })
   })
@@ -416,6 +442,7 @@ function buildDefinition(
   if (!inner) throw new Error(`[error] incomplete template signal definition: ${template.name}`)
   const root = message(inner, 'signal definition')
   let paramSlot = 0
+  const typeOffsets = new Map<SignalParamType, number>()
   const rebuilt = root.flatMap((sub) => {
     const name = sub.wire === 2 ? subParamName(sub) : undefined
     const isParam =
@@ -437,7 +464,9 @@ function buildDefinition(
     if (paramSlot > 0) return []
     paramSlot++
     return spec.params.map((param) => {
-      const templates = pool.byType.get(param.type)
+      const offset = typeOffsets.get(param.type) ?? 0
+      typeOffsets.set(param.type, offset + 1)
+      const templates = pool.byType.get(param.type)?.[offset]
       const entry = templates?.[kind]
       if (!templates || !entry) {
         throw new Error(`[error] no ${kind} template entry for parameter type: ${param.type}`)
@@ -529,7 +558,10 @@ export function updateSignalInGil(input: {
   const { sourceHeader, sourceRoot, topField, top, index, entries } = readSignalSource(input.bytes)
   const target = entries.find((entry) => entry.name === input.targetSignalName)
   if (!target) throw new Error(`[error] signal not found: ${input.targetSignalName}`)
-  if (input.signal.name !== target.name && entries.some((entry) => entry.name === input.signal.name)) {
+  if (
+    input.signal.name !== target.name &&
+    entries.some((entry) => entry.name === input.signal.name)
+  ) {
     throw new Error(`[error] signal already registered: ${input.signal.name}`)
   }
 
@@ -573,13 +605,23 @@ export function registerSignalInGil(input: {
   signal: SignalRegistrationInput
   templateBytes?: Uint8Array
 }): RegisterSignalResult {
-  const { sourceHeader, sourceRoot, topField, top, index, entries: existingEntries } =
-    readSignalSource(input.bytes)
+  const {
+    sourceHeader,
+    sourceRoot,
+    topField,
+    top,
+    index,
+    entries: existingEntries
+  } = readSignalSource(input.bytes)
   if (existingEntries.some((entry) => entry.name === input.signal.name)) {
     throw new Error(`[error] signal already registered: ${input.signal.name}`)
   }
   const occupiedIds = new Set(
-    existingEntries.flatMap((entry) => [entry.identity.sendId, entry.identity.monitorId, entry.identity.serverId])
+    existingEntries.flatMap((entry) => [
+      entry.identity.sendId,
+      entry.identity.monitorId,
+      entry.identity.serverId
+    ])
   )
   const signal = assignSignalIds(input.signal, occupiedIds)
   for (const id of [signal.sendId, signal.monitorId, signal.serverId]) {
@@ -589,20 +631,27 @@ export function registerSignalInGil(input: {
   const templateBytes = input.templateBytes ?? input.bytes
   const templatePayload = templateBytes.slice(20, -4)
   const templateRoot = fields(templatePayload, 'template GIL payload')
-  const templateTop = message(one(templateRoot, 10, 'template top-level field 10'), 'template field 10')
+  const templateTop = message(
+    one(templateRoot, 10, 'template top-level field 10'),
+    'template field 10'
+  )
   const template = signalEntries(signalIndex(templateTop).fields).find(
     (entry) => entry.name === input.templateSignalName
   )
   if (!template) throw new Error(`[error] template signal not found: ${input.templateSignalName}`)
 
-  const pool = buildParamPool(templateTop, signalEntries(signalIndex(templateTop).fields))
+  const pool = buildParamPool(templateTop, [template])
   validateSpec(signal, pool)
 
   const templateDefinitions = templateTop.filter(
     (field) => field.number === 2 && definitionTexts(field).includes(template.name)
   )
   const byId = new Map(templateDefinitions.map((field) => [definitionNodeId(field), field]))
-  const orderedTemplateIds = [template.identity.serverId, template.identity.monitorId, template.identity.sendId]
+  const orderedTemplateIds = [
+    template.identity.serverId,
+    template.identity.monitorId,
+    template.identity.sendId
+  ]
   const kinds: Record<number, DefinitionKind> = {
     [template.identity.serverId]: 'server',
     [template.identity.monitorId]: 'monitor',
@@ -610,7 +659,8 @@ export function registerSignalInGil(input: {
   }
   const clones = orderedTemplateIds.map((id) => {
     const field = byId.get(id)
-    if (!field || field.wire !== 2) throw new Error(`[error] incomplete template signal definition: ${id}`)
+    if (!field || field.wire !== 2)
+      throw new Error(`[error] incomplete template signal definition: ${id}`)
     return buildDefinition(field, kinds[id], template, signal, pool)
   })
 

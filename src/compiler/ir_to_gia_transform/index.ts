@@ -30,7 +30,10 @@ import {
   type Root as GiaRoot
 } from '../gia_vendor.js'
 import type { SignalRegistry } from '../signal_registry.js'
-import { finalizeSignalEncoding } from './build_signal_definition.js'
+import {
+  finalizeSignalEncoding,
+  restoreRegisteredSignalDefinitionBytes
+} from './build_signal_definition.js'
 import { clientIrToGia } from './client_graph.js'
 import { buildCompositeAccessories } from './composite.js'
 import { buildExecutionGraph, layoutPositions } from './layout.js'
@@ -283,7 +286,10 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const graphId = opts.graphId ?? ir.graph?.id ?? 1073741825
   const name = opts.name ?? ir.graph?.name ?? '_GSTS_Generated_Graph'
-  const uid = opts.uid ?? 100000001
+  const signalSource = [...(opts.signalRegistry?.values() ?? [])]
+    .map((signal) => signal.encoding?.source)
+    .find((source) => source !== undefined)
+  const uid = opts.uid ?? signalSource?.uid ?? 100000001
 
   if (!ir.nodes || ir.nodes.length === 0) {
     throw new Error('IR document must have at least one node')
@@ -686,6 +692,13 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   let root: GiaRoot
   try {
     root = graph.encode()
+    if (signalSource) {
+      const parts = root.filePath.split('-')
+      if (parts.length >= 4) {
+        root.filePath = `${signalSource.uid}-${parts[1]}-${signalSource.mapId}-${parts.slice(3).join('-')}`
+      }
+      root.gameVersion = signalSource.gameVersion
+    }
 
     const mainNodes = (root.graph as any)?.graph?.inner?.graph?.nodes as any[] | undefined
 
@@ -881,5 +894,5 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   const buffer = wrap_gia(rootMessage, root)
   const bytes = new Uint8Array(buffer)
 
-  return bytes
+  return restoreRegisteredSignalDefinitionBytes(bytes, opts.signalRegistry)
 }

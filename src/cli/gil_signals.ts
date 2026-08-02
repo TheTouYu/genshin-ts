@@ -1,8 +1,11 @@
-import type { LenField } from '../injector/types.js'
-import { extractSignalNodeIds } from '../injector/signal_nodes.js'
-import { readVarint } from '../injector/binary.js'
-import type { SignalParamType } from '../runtime/core.js'
+import fs from 'node:fs'
+import path from 'node:path'
+
 import type { RegisteredSignalDefinition } from '../compiler/signal_registry.js'
+import { readVarint } from '../injector/binary.js'
+import { extractSignalNodeIds } from '../injector/signal_nodes.js'
+import type { LenField } from '../injector/types.js'
+import type { SignalParamType } from '../runtime/core.js'
 import {
   checkExistingGeneratedFile,
   decodeUtf8,
@@ -12,6 +15,7 @@ import {
   readGilPayloadFields,
   writeGeneratedFile
 } from './gil_extract_utils.js'
+import { parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
 export const SIGNALS_HEADER = '// @gsts:signals'
 export const DEFAULT_SIGNALS_PATH = 'src/resources/signals.ts'
@@ -23,7 +27,22 @@ type NodeGraphIdInfo = {
 
 type SignalEntry = {
   name: string
-  params: { name: string; type: SignalParamType; parameterDefinitionPinIndex?: number }[]
+  params: { name: string; type: SignalParamType }[]
+}
+
+type SignalLayout = {
+  signalVersion: number
+  params: Array<{
+    name: string
+    type: SignalParamType
+    sendPinIndex: number
+    monitorPinIndex: number
+    serverPinIndex: number
+    serverType: number
+  }>
+  sendNameCompositePinIndex: number
+  monitorNameCompositePinIndex: number
+  definitionBytes: { send: string; monitor: string; server: string }
 }
 
 export type ExtractSignalsOutcome =
@@ -132,7 +151,7 @@ function mapSignalParamType(typeCode: number | undefined): SignalParamType {
   }
 }
 
-function parseSignalParam(buf: Uint8Array): { name: string; type: SignalParamType; parameterDefinitionPinIndex?: number } | undefined {
+function parseSignalParam(buf: Uint8Array): { name: string; type: SignalParamType } | undefined {
   const nameBytes = readFieldBytes(buf, 1)
   const name = nameBytes ? decodeUtf8(nameBytes) : undefined
   if (!name) return undefined
@@ -141,11 +160,7 @@ function parseSignalParam(buf: Uint8Array): { name: string; type: SignalParamTyp
   const typeCode = typeBytes
     ? (readFieldVarint(typeBytes, 4) ?? readFieldVarint(typeBytes, 3))
     : undefined
-  const pinBytes = readFieldBytes(buf, 4)
-  const parameterDefinitionPinIndex = pinBytes
-    ? readFieldVarint(pinBytes, 4) ?? readFieldVarint(pinBytes, 3)
-    : undefined
-  return { name, type: mapSignalParamType(typeCode), parameterDefinitionPinIndex }
+  return { name, type: mapSignalParamType(typeCode) }
 }
 
 function parseSignalEntries(payload: Uint8Array, fields: LenField[]): SignalEntry[] {
@@ -165,8 +180,7 @@ function parseSignalEntries(payload: Uint8Array, fields: LenField[]): SignalEntr
     const idBytes = readFieldBytes(containerBytes, 4)
     const nodeId = idBytes ? parseCompositeDefId(idBytes) : undefined
     const outputs = readFieldMessages(containerBytes, 103).length
-    const isSendSignal =
-      !!nodeId?.nodeId && nodeId.type !== SIGNAL_NODE_TYPE_SKILLS && outputs < 3
+    const isSendSignal = !!nodeId?.nodeId && nodeId.type !== SIGNAL_NODE_TYPE_SKILLS && outputs < 3
     if (!isSendSignal) continue
 
     const params = readFieldMessages(containerBytes, 102)
@@ -194,20 +208,153 @@ function buildSignalsSource(entries: SignalEntry[]): string {
   return lines.join('\n')
 }
 
+function fieldText(fields: readonly WireField[], number: number): string | undefined {
+  const field = fields.find((entry) => entry.number === number && entry.wire === 2)
+  return field ? printableWireText(field.value as Uint8Array) : undefined
+}
+
+function fieldVarint(fields: readonly WireField[], number: number): number | undefined {
+  const field = fields.find((entry) => entry.number === number && entry.wire === 0)
+  return field?.value as number | undefined
+}
+
+function containsText(data: Uint8Array, expected: string, depth = 0): boolean {
+  if (depth > 8) return false
+  for (const field of parseWireMessage(data) ?? []) {
+    if (field.wire !== 2) continue
+    const value = field.value as Uint8Array
+    const text = printableWireText(value)
+    if (text === expected || (text === undefined && containsText(value, expected, depth + 1))) {
+      return true
+    }
+  }
+  return false
+}
+
+function definitionNameCompositePinIndex(raw: Uint8Array, signalName: string): number {
+  for (const encoded of readFieldMessages(raw, 106)) {
+    if (!containsText(encoded, signalName)) continue
+    const pinIndex = readFieldVarint(encoded, 8)
+    if (pinIndex !== undefined) return pinIndex
+  }
+  throw new Error(`[error] signal name pin layout is missing: ${signalName}`)
+}
+
+function readSignalLayouts(payload: Uint8Array): Map<string, SignalLayout> {
+  const top = parseWireMessage(payload) ?? []
+  const containerField = top.find((field) => field.number === 10 && field.wire === 2)
+  const container = containerField
+    ? (parseWireMessage(containerField.value as Uint8Array) ?? [])
+    : []
+  const definitions = new Map<number, Uint8Array>()
+  for (const wrapper of container.filter((field) => field.number === 2 && field.wire === 2)) {
+    const inner = readFieldBytes(wrapper.value as Uint8Array, 1)
+    const idBytes = inner ? readFieldBytes(inner, 4) : undefined
+    const id = idBytes ? parseCompositeDefId(idBytes)?.nodeId : undefined
+    if (id && inner) definitions.set(id, inner)
+  }
+
+  const indexField = container.find((field) => field.number === 5 && field.wire === 2)
+  const index = indexField ? (parseWireMessage(indexField.value as Uint8Array) ?? []) : []
+  const result = new Map<string, SignalLayout>()
+  for (const field of index.filter((entry) => entry.number === 3 && entry.wire === 2)) {
+    const entry = parseWireMessage(field.value as Uint8Array) ?? []
+    const name = fieldText(entry, 3)
+    if (!name) continue
+    const send = readFieldBytes(field.value as Uint8Array, 1)
+    const monitor = readFieldBytes(field.value as Uint8Array, 2)
+    const server = readFieldBytes(field.value as Uint8Array, 7)
+    const sendId = send ? parseNodeGraphId(send).nodeId : undefined
+    const monitorId = monitor ? parseNodeGraphId(monitor).nodeId : undefined
+    const serverId = server ? parseNodeGraphId(server).nodeId : undefined
+    const sendDef = sendId ? definitions.get(sendId) : undefined
+    const monitorDef = monitorId ? definitions.get(monitorId) : undefined
+    const serverDef = serverId ? definitions.get(serverId) : undefined
+    if (!sendDef || !monitorDef || !serverDef) continue
+    const serverParams = readFieldMessages(serverDef, 102)
+    const params = entry
+      .filter((item) => item.number === 4 && item.wire === 2)
+      .map((item, index) => {
+        const param = parseWireMessage(item.value as Uint8Array) ?? []
+        const paramName = fieldText(param, 1)
+        const typeCode = fieldVarint(param, 2)
+        const sendPinIndex = fieldVarint(param, 4)
+        const monitorPinIndex = fieldVarint(param, 5)
+        const serverPinIndex = fieldVarint(param, 6)
+        const serverTypeBytes = serverParams[index]
+          ? readFieldBytes(serverParams[index], 4)
+          : undefined
+        const serverType = serverTypeBytes
+          ? (readFieldVarint(serverTypeBytes, 3) ?? readFieldVarint(serverTypeBytes, 4))
+          : undefined
+        if (
+          !paramName ||
+          typeCode === undefined ||
+          sendPinIndex === undefined ||
+          monitorPinIndex === undefined ||
+          serverPinIndex === undefined ||
+          serverType === undefined
+        ) {
+          throw new Error(`[error] incomplete signal parameter layout: ${name}`)
+        }
+        return {
+          name: paramName,
+          type: mapSignalParamType(typeCode),
+          sendPinIndex,
+          monitorPinIndex,
+          serverPinIndex,
+          serverType
+        }
+      })
+    const signalVersion = fieldVarint(entry, 6)
+    if (signalVersion === undefined) throw new Error(`[error] signal version is missing: ${name}`)
+    result.set(name, {
+      signalVersion,
+      params,
+      sendNameCompositePinIndex: definitionNameCompositePinIndex(sendDef, name),
+      monitorNameCompositePinIndex: definitionNameCompositePinIndex(monitorDef, name),
+      definitionBytes: {
+        send: Buffer.from(sendDef).toString('base64'),
+        monitor: Buffer.from(monitorDef).toString('base64'),
+        server: Buffer.from(serverDef).toString('base64')
+      }
+    })
+  }
+  return result
+}
+
+function readSignalSource(gilPath: string, payload: Uint8Array) {
+  const normalized = path.resolve(gilPath)
+  const uid = Number(normalized.match(/[\\/]BeyondLocal[\\/](\d+)[\\/]/)?.[1])
+  const mapId = Number(path.basename(normalized, path.extname(normalized)))
+  const root = parseWireMessage(payload) ?? []
+  const versionField = root.find((field) => field.number === 43 && field.wire === 2)
+  const gameVersion = versionField ? printableWireText(versionField.value as Uint8Array) : undefined
+  return Number.isInteger(uid) && Number.isInteger(mapId) && gameVersion
+    ? { uid, mapId, gameVersion }
+    : undefined
+}
+
 export function readRegisteredSignalsFromGil(gilPath: string): RegisteredSignalDefinition[] {
   const { payload, fields } = readGilPayloadFields(gilPath)
   const entries = parseSignalEntries(payload, fields)
   const ids = extractSignalNodeIds(payload, fields)
+  const layouts = readSignalLayouts(payload)
+  const source = readSignalSource(gilPath, payload)
   return entries.map((entry) => {
     const identity = ids.get(entry.name)
-    if (!identity?.send?.nodeId || !identity.monitor?.nodeId) {
+    const layout = layouts.get(entry.name)
+    if (!identity?.send?.nodeId || !identity.monitor?.nodeId || !identity.sendServer?.nodeId) {
       throw new Error(`[error] incomplete signal identity: ${entry.name}`)
     }
+    if (!layout) throw new Error(`[error] incomplete signal layout: ${entry.name}`)
     return {
       ...entry,
-      sendId: identity.send.nodeId!,
-      monitorId: identity.monitor.nodeId!,
-      serverId: identity.sendServer?.nodeId ?? identity.send.nodeId! + 2
+      params: layout.params,
+      sendId: identity.send.nodeId,
+      monitorId: identity.monitor.nodeId,
+      serverId: identity.sendServer.nodeId,
+      encoding: { ...layout, source }
     }
   })
 }
