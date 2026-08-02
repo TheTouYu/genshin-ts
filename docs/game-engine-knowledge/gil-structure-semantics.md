@@ -30,7 +30,7 @@
 376386 bytes / 7d279e9f...272a2：在节点图 A 新增默认“关卡开始时”节点
 ```
 
-Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。
+Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。后续全 root raw-byte 比较在两个空图创建轮次补充发现 root `46` 等长变化，由证据提交 `dfd63e6b7b50d08de35ad5234aaf6ba3052930dd` 锁定。
 
 ## 证据状态
 
@@ -155,14 +155,14 @@ connections: 6
 
 ### 自由新建
 
-用户连续自由新建两个同类型默认空节点图。两轮 root occurrence 均保持 41，presence 集合稳定，且都只改变 root `6/10`：
+用户连续自由新建两个同类型默认空节点图。两轮 root occurrence 均保持 41，presence 集合稳定；业务大小变化都在 root `6/10`，同时 root `46` 都发生等长 raw-byte 变化：
 
-| 操作               | root `10`                                                                    | root `6`                                         |
-| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------ |
-| 新建第一个默认空图 | 新增一个直接 field `1` length-delimited record，编码长度 40 bytes            | 35 个直接 record 不变；一个聚合 record 被重写   |
-| 新建第二个默认空图 | 新增一个同构的直接 field `1` length-delimited record，编码长度 42 bytes       | 35 个直接 record 不变；同一形态聚合 record 被重写 |
+| 操作               | root `10`                                                               | root `6`                                           | root `46`               |
+| ------------------ | ----------------------------------------------------------------------- | -------------------------------------------------- | ----------------------- |
+| 新建第一个默认空图 | 新增一个直接 field `1` length-delimited record，编码长度 40 bytes       | 35 个直接 record 不变；一个聚合 record 被重写     | 113 bytes，内容等长变化 |
+| 新建第二个默认空图 | 新增一个同构的直接 field `1` length-delimited record，编码长度 42 bytes | 35 个直接 record 不变；同一形态聚合 record 被重写 | 113 bytes，内容等长变化 |
 
-`CONFIRMED`：在当前锁定地图、版本和两个默认空图样本中，自由新建默认节点图会在 root `10` 新增一个直接 field `1` 注册记录，并同步重写 root `6` 的一个聚合记录。独立 Validator 从原始快照复核哈希链、presence 和记录集合差后 `ACCEPT`。
+`CONFIRMED`：在当前锁定地图、版本和两个默认空图样本中，自由新建默认节点图会在 root `10` 新增一个直接 field `1` 注册记录，并同步重写 root `6` 的一个聚合记录。原独立 Validator 从原始快照复核哈希链、presence 和 `6/10` 记录集合差后 `ACCEPT`；后续全 root raw-byte 比较补充发现两轮 root `46` 等长变化，不改变上述 `6/10` 记录关系结论。
 
 随后在节点图 `1073741845 / A / type 20000` 自由新增一个默认“关卡开始时”节点。真实相邻差分为节点数 `0→1`，唯一新增 `nodeIndex=1`、`genericId=concreteId=71` 的 `SystemDefined / Server / SysCall`，没有显式实例 pin；图 identity、名称和 metadata 保持不变。独立 Validator `ACCEPT`。
 
@@ -184,6 +184,21 @@ GIL.payload.10.1[*].1.2                 # 显式 length-delimited UTF-8 名称
 `CONFLICT`：早期 `rename-empty-node-graph-01` 的用户声明是修改名称，但 raw-wire 实际新增 identity `1073741847` 并同步改变 root `6`。该轮保留为冲突调查记录，不作为名称字段正证据。
 
 上述“自由新建”和“自由修改”证据均由独立证据仓库提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定。未执行 round-trip、临时重放、真实写回、编辑器导入或游戏行为验证。
+
+### 第三方开发分支候选 schema
+
+`INSUFFICIENT`：第三方逆向仓库
+`Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack` 的 `origin/dev@a9174c9`
+在 `utils/protobuf/gia.proto` 中提供了 `Level` 与 `LevelNodeGraphContainer` 草案。锁定快照的
+root `2/10/43` 可分别按该草案有界解码为 `模型比对`、节点图复合容器和 `6.7.0`；root
+`10` 的有限计数为 `inner=16`、`generated_nodes=55`、`composite_graphs=25`、
+`structure_definitions=0`。这只确认 schema 与当前 wire 相容，不能替代编辑器相邻差分或
+独立 Validator，也不能把第三方字段名直接升级为正式 GIL 语义。
+
+`INSUFFICIENT`：草案中 root `4/5/6/7/9/18/27` 等业务名称均被注释，部分还带有“好像”
+等不确定措辞。它们只用于缩小下一轮实验候选；真实差分不一致时以文件事实为准并标记
+`CONFLICT/INSUFFICIENT`。该只读交叉检查由证据提交
+`879858af33dccfeff3e49854fbb6060b186dbed6` 记录。
 
 ### 连接 index presence
 
