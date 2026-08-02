@@ -133,10 +133,12 @@ genericId / concreteId = 目标 monitorId
 全部 9 个消费节点和连接可同时存在：`connect.id` 指向监听节点，`connect` 指向源
 `OutParam`，监听 GraphNode 本身不变化；输出序号 `3..11` 按注册定义顺序连续且不压缩。
 `connect2` 经验规则：= 源 `OutParam` index；唯一例外：str 源(6)→3、entity 源(9)→4。
-entity 例外已跨家族确认（18 族 2657 与 180 族 183 均为 connect2=4，独立 Validator
-ACCEPT，实验 `entity-dtc-connect2-discriminator-01`）；str 例外目前仅 18 族 2 样本
-（180 族无 str 输入变体）。例外值 3/4 的底层语义未解释，保持 `INSUFFICIENT`，实现按
-经验规则写值。注册定义三套参数 pinIndex（send/monitor/server）与例外值 3/4 无关联
+两例外均已跨家族确认，与消费节点家族无关：entity（18 族 2657 与 180 族 183 均
+connect2=4，实验 `entity-dtc-connect2-discriminator-01`）；str（18 族 2656 两样本 +
+打印字符串 SysCall 1 两样本，实验 `str-cross-family-print-string-01` 与
+`print-string-fork-01`）。例外值 3/4 的底层
+语义未解释，保持 `INSUFFICIENT`，实现按经验规则写值。注册定义三套参数 pinIndex
+（send/monitor/server）与例外值 3/4 无关联
 （str 源三套 pinIndex=12/34/40、entity=69/77/84，其余参数亦不匹配），compositePinIndex、
 参数定义序号等候选解释均被排除。获取局部变量 concreteId 变体：str=2656 /
 entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
@@ -146,6 +148,17 @@ entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
 entity 例外。`tests/composite/test-signal-monitor-consume-entity-connect2-red.ts` 驱动
 production 生成 entity→DTC(180/183) 消费的 GIA，断言 connect2=4，当前生产写 9 →
 RED。只有用户要求修复时才进入 production lowering；修复后该测试转绿。
+
+**生产红灯二（exec 连接 index，2026-08-02 比对轮）**：production 对控制流连接写
+`connect/connect2 = {kind:InFlow, index:0}`（`composite.ts`
+materializeLegacyImplGraphNode 与 vendor fork overlay），对 OutFlow pin 的 i1/i2 写
+`{kind:OutFlow, index:0}`；真实编辑器这些 Index 的 index 字段在 wire 上**缺失**
+（print-string-control-flow/fork/order-swap/chain 四轮 Validator ACCEPT 证明）。
+`tests/composite/test-signal-monitor-exec-conn-index-red.ts` 做 raw wire 断言（2B 无
+index 形态必须存在、4B 显式 index=0 形态必须不存在），当前生产输出只有 4B 形态 →
+RED。生产不落 InExec 目标 pin、exec 连接挂源 OutFlow、fork 数组保序三处与真实一致。
+修复范围（用户要求后）：exec Index 不写 index 字段（含 i1/i2）+ 数据连接 connect2
+例外（str→3 / entity→4）。
 新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
 
 连接批次还验证了 `Query GUID By Entity`（`genericId=concreteId=76`）的 Entity 输入与 GUID 输出，以及 GUID `Assembly List` 两元素样本（`genericId=169`、`concreteId=172`）的 count、两个 GUID 输入和列表输出结构。该证据只覆盖当前节点族与两元素 GUID 列表，不推广到任意列表类型或长度。
@@ -160,6 +173,32 @@ RED。只有用户要求修复时才进入 production lowering；修复后该测
 ```
 
 真实相邻快照证明了上述节点与连接结构；三份消费候选的具体实验事实和用户验证状态见[监听参数消费批次记录](signals/2026-08-01-monitor-consumption-batch.md)。该游戏结论仅适用于该记录中的具体候选、当前地图、节点图和信号定义。
+
+## 已验证的监听执行输出连接
+
+监听节点连接消费节点控制流（监听信号 → 打印字符串，实验 `print-string-control-flow-01`，
+独立 Validator ACCEPT）时，编辑器在**监听节点**上实例化执行输出 pin：
+
+```text
+i1.kind = i2.kind = OutFlow(2)
+compositePinIndex = monitor 定义中执行输出的 pinIndex（本定义=98；信号名=99）
+connects = [{ id=目标节点, connect={kind:InFlow}, connect2={kind:InFlow} }]
+connect/connect2 的 index 字段在 wire 上缺失（解码层 0 是 protobuf 默认值，presence 为缺）
+目标节点无 InExec 实例 pin 落盘（pins 逐字节不变）
+```
+
+方向性与数据连接相反：数据连接挂在**目标 InParam**（connects.id=源节点）；控制流连接挂在
+**源 OutFlow**（connects.id=目标节点）。proto 注释佐证：`NodePin.connects = 5; // OutFlow
+or InParam`。控制流 fork 已验证（实验 `print-string-fork-01`）：同一 OutFlow pin 的
+connects 数组 append 多条连接（id 7 与 id 8 共存），目标节点均无 InExec 落盘；fork 顺序
+可由编辑器交换（实验 `print-string-fork-order-swap-01`，connects [7,8]→[8,7] 等长重排），
+数组顺序即编辑器连线顺序，**不是按目标 id 排序**，无独立 fork 序号字段。链式串联同构
+（实验 `print-string-chain-01`）：中间节点实例化自己的 OutFlow pin 挂 connects
+（id=下一目标）；SysCall 普通节点的 OutFlow pin **无 compositePinIndex**（仅 SysGraph
+复合调用节点如监听节点带 CPI=98）；OutFlow pin 实例化时插入 pins 数组位置 0，原
+InParam 后移逐字节保持。本样本仅
+覆盖监听→打印字符串一对节点、当前 monitor 定义和当前地图，不推广到其他执行输出布局；
+复合调用/分支等控制流骨架未调查。
 
 ## 信号定义原位修改
 
@@ -281,7 +320,7 @@ fail-closed（未知图拒绝）PASS。生产红灯：`tests/composite/test-sign
 - `entity` 发送参数的数据源连接；
 - 9 种列表发送参数及各自 List/Assembly 节点；
 - 发送节点的控制流输入、输出以及多发送节点复用；
-- 监听普通参数 `connect2` 例外（str→3、entity→4）的底层语义；entity 例外已跨家族确认（18 族+180 族），str 例外仅 18 族样本；例外值 3/4 无解释，按经验规则写值，生产红灯已由 `test-signal-monitor-consume-entity-connect2-red.ts` 锁定（connect2=9 vs 真实 4），修复需用户确认；`compositePinIndex` 与实例输出 index 的映射；
+- 监听普通参数 `connect2` 例外（str→3、entity→4）的底层语义；两例外均已跨家族确认（entity：18 族+180 族；str：18 族+SysCall 1 打印字符串）；例外值 3/4 无解释，按经验规则写值，生产红灯已由 `test-signal-monitor-consume-entity-connect2-red.ts` 锁定（connect2=9 vs 真实 4），修复需用户确认；`compositePinIndex` 与实例输出 index 的映射；
 - 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
 - 9 种普通参数消费均已真实差分闭合，8 个 consume 候选同构重放通过，`consume-str` 已由用户确认编辑器导入成功（新图 `1073741847`）；其余 7 个候选未逐个导入核验（同一生成器 + 严格回读 + focused regression `tests/signal_consumption_replay_regression.ts` 保证结构一致，导入仅作可选确认）；
 - 监听信号实际触发及参数值的游戏行为；

@@ -123,6 +123,31 @@ Skill/调查工具由 `tsx` 直接运行且不进入生产构建时，运行该 
 
 ## 信号专项断言
 
+### 监听参数消费（数据连接）
+
+- 消费节点 InParam 实例 pin 上挂 `connects`：`connect` = 源 `OutParam`（含 index），
+  `connect2` 经验规则 = 源 index，例外 str 源(6)→3 / entity 源(9)→4（跨家族恒定，
+  与消费节点族无关；例外值 3/4 底层语义 INSUFFICIENT，实现按经验规则写值）。
+- `connects.id` = 源节点（监听节点）；目标侧（消费节点）承载 pin，源监听节点不变化。
+- 多参数消费共存：各 OutParam 序号按注册定义顺序连续不压缩。
+
+### 控制流连接（exec）
+
+- 执行连接挂在**源节点 OutFlow pin** 上（与数据连接挂在目标 InParam 相反）：
+  `connects=[{id=目标节点, connect:{kind:InFlow}, connect2:{kind:InFlow}}]`，无 index。
+- InFlow/OutFlow 的 index 字段在 wire 上**缺失**（解码层 0 是 protobuf 默认值，
+  protobufjs encode 会把 `index:0` 写成显式 `10 00`，与真实 2B 形态 `08 01` 不同）。
+- fork = 同源 OutFlow pin 的 connects 数组 append；顺序即编辑器连线顺序，非按 id 排序。
+- 链式 = 中间节点实例化自己的 OutFlow pin（SysCall 普通节点**无** compositePinIndex，
+  SysGraph 复合调用如监听节点有 CPI）；OutFlow pin 实例化时插入 pins 数组位置 0。
+- 目标节点无 InExec 实例 pin 落盘。
+
+### 生产比对红灯
+
+真实规则闭合后与 production 实现比对（见 SKILL「生产实现比对与红灯锁定」），差异点
+写成总表并各配 focused regression；红灯测试用 raw-wire 形态断言（无 index 2B 形态
+必须存在、显式 index=0 4B 形态必须不存在），当前 production 输出不满足时预期 RED。
+
 ### 绑定发送节点
 
 - 编辑器可能删除未绑定 `SysCall 300000` 并以新 `nodeIndex` 创建信号节点；

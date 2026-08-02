@@ -306,9 +306,10 @@ Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计�
 同一只读解析、路径提取或 Validator 前置断言在至少三轮重复，且对应路径已由独立
 Validator 接受后，将它提炼为 `scripts/` 下的最小参数化资产；单例和仍在变化的规则继续留在
 实验目录。资产不得内置实时地图路径、对象名或一次性 ID，必须在差分不唯一时失败，并用至少
-一条真实正常路径和一条失败路径验证。稳定的长恢复路径写入 manifest，并在命令中用
-`EVIDENCE_ROOT/EXPERIMENT_ROOT/LIVE_MAP/LOCKED_BEFORE` 等短变量引用，减少重复上下文；变量
-只缩短表达，不扩大授权或证据范围。
+一条真实正常路径和一条失败路径验证。稳定的长恢复路径写入 manifest 顶部恢复块，并在命令中用
+`SIG/MAP/GID/LOCKED_BEFORE/LOCKED_HASH` 等短变量引用，减少重复上下文；变量
+只缩短表达，不扩大授权或证据范围。每会话开跑前粘贴一次恢复块，`LOCKED_BEFORE/LOCKED_HASH`
+随每轮更新。
 
 ## 手工同构重放
 
@@ -331,6 +332,27 @@ Validator 接受后，将它提炼为 `scripts/` 下的最小参数化资产；�
 - 仅修改 Skill、调查脚本或 `tools/`/Skill 下由 `tsx` 直接运行的工具：运行目标脚本的正常/失败路径（适用时）和 `git diff --check`，默认不运行 `npm run build`；
 - 修改生产 TypeScript、公共编译/注入 seam、构建入口或被 `tsconfig` 编译的发布代码：运行 focused regression、`npm run build` 和 `git diff --check`；
 - 不用全量构建替代目标脚本的真实输入验证，也不因“工具能运行”宣称编辑器或游戏验证通过。
+
+## 生产实现比对与红灯锁定
+
+真实规则闭合后、进入生产修复前，先做一次只读比对（不改生产代码）：把已闭合规则逐项
+对照 production 实现，差异点写成总表（实现 vs 真实 vs 测试），并为每个可断言差异写
+focused regression 锁定红灯。真实样本已覆盖的方向（数据连接、控制流连接、fork、链式、
+pin 字段 presence）按以下模板检查：
+
+```text
+数据连接：挂目标 InParam；connect=源 OutParam（含 index）；connect2 例外表
+控制流连接：挂源 OutFlow；connects.id=目标；connect/connect2 的 kind 与 index presence
+fork/链式：同源 pin 多 connects 保序；中间节点自己的 OutFlow
+exec pin：i1/i2 的 kind 与 index presence；SysCall 无 CPI / SysGraph 有 CPI
+目标侧：InExec 是否落盘
+```
+
+protobufjs encode 对 proto3 普通标量的默认值（如 `index: 0`）会写出**显式字段**
+（`{kind:1,index:0}` → `08 01 10 00`，而 `{kind:1}` → `08 01`）。因此"解码层 index=0"
+与"wire 缺失"必须用 raw-wire 形态断言区分：搜 2B 无 index 形态必须存在、4B 显式
+index=0 形态必须不存在。红灯测试输出 wire diagnostics 总表，当前生产实现不满足真实
+规则时测试预期 RED，并在注释中写明真实证据实验与修复方向。
 
 ## 进入生产修复的门
 
