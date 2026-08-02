@@ -1,9 +1,9 @@
 # GIL 整体结构与语义树
 
 > 状态：部分已验证
-> 来源：真实 GIL raw-wire 调查 + 当前 protobuf schema/源码 reader + 已提交实验 Validator
-> 最近校验：2026-08-01
-> 适用范围：锁定快照 `1d7413ab...afb3de2` 的整体结构，以及当前源码 reader 已闭合的有限 GIL 容器路径；不是完整或跨版本通用的 GIL schema
+> 来源：真实 GIL 不可变相邻快照 + raw-wire 调查 + 当前 protobuf schema/源码 reader + 独立实验 Validator
+> 最近校验：2026-08-02
+> 适用范围：锁定地图当前版本的五份相邻快照，以及当前源码 reader 已闭合的有限 GIL 容器路径；不是完整或跨版本通用的 GIL schema
 
 本文记录从 GIL 根层逐步建立“字段路径 → protobuf 消息 → 资源或图结构 → 编辑器语义”的当前基线。目标是通过编辑器单变化和不可变相邻快照逐章闭合整棵语义树，而不是按字段位置、相邻 ID 或重复形状猜测含义。
 
@@ -14,16 +14,17 @@
   experiments/gil-whole-structure-readonly/
 ```
 
-锁定输入：
+锁定快照链：
 
 ```text
-path: experiments/change-two-connections-v6-v7/raw/after.gil
-SHA-256: 1d7413ab8a80b16a366df7596b211eaa65604907177387c359904cb92afb3de2
-file size: 372694 bytes
-payload size: 372670 bytes
+372694 bytes / 1d7413ab...afb3de2：整体 wire 基线
+373849 bytes / 3e21435a...45ac1e9：新增默认元件 1077936181
+375008 bytes / 3e1fd259...3fd41e：新增同类型默认元件 1077936182
+375586 bytes / e3eb0ae2...cee8afc：从元件 1077936181 新增场景实体
+376171 bytes / e3a24214...15fd27：从元件 1077936182 新增场景实体
 ```
 
-调查只读取该不可变快照、当前源码/schema/Authority 和已提交实验结果；没有读取实时地图，没有运行 PKC、`gsts maps` 或旧扫描，也没有修改真实地图。
+Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。两组增量 Validator 均为 `ACCEPT`。完整证据由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。
 
 ## 证据状态
 
@@ -70,6 +71,8 @@ payload size: 372670 bytes
 GIL file
 └── payload：GIL 自有根消息（正式 schema 未取得）
     ├── 4.1[*]：static assembly definition records
+    ├── 5.1[*]：场景实体 records（两个锁定样本）
+    │   └── 5.1[*].2.1：所选元件 definition ID 引用（两个锁定样本）
     ├── 6：owner/registry 容器
     ├── 8.1[*]：static assembly instance records
     ├── 10：当前复合容器（正式消息名未闭合）
@@ -84,19 +87,47 @@ GIL file
         └── 27.2[*]：instance-side auxiliary records
 ```
 
-### 静态资源容器
+### 静态资源与场景实体容器
 
-`CONFIRMED`，但只限当前 static assembly reader 的操作性边界：
+`CONFIRMED`，但每条结论都受表中边界限制：
 
-| 路径 | 当前含义 | 边界 |
-| --- | --- | --- |
-| `4.1[*]` | definition records | 只闭合 reader 使用的字段，不是完整资源消息 schema |
-| `6` | owner/registry 容器 | 当前只闭合 owner ID |
-| `8.1[*]` | instance records | 只闭合 reader 使用的字段 |
-| `27.1[*]` | definition-side auxiliaries | 完整 auxiliary record schema 未知 |
-| `27.2[*]` | instance-side auxiliaries | 完整 auxiliary record schema 未知 |
+| 路径         | 当前含义                                                                   | 边界                                                          |
+| ------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `4.1[*]`     | definition records；两个新增默认元件的 definition ID 等于用户看到的元件 ID | reader 边界 + 两个同类型默认元件样本；不是完整资源消息 schema |
+| `5.1[*]`     | 从已有元件新增的场景实体 records                                           | 只确认两个箭头指示牌样本；root field `5` 正式消息名未知       |
+| `5.1[*].2.1` | 场景实体对所选元件 definition ID 的 varint 引用                            | 只确认上述两个场景实体样本；正式字段名未知                    |
+| `6`          | owner/registry 容器                                                        | 当前只闭合 owner ID；不同操作登记不同一侧的记录 ID            |
+| `8.1[*]`     | instance records；创建上述元件时同步新增并回指 definition                  | reader 边界 + 两个同类型默认元件样本                          |
+| `27.1[*]`    | definition-side auxiliaries                                                | 完整 auxiliary record schema 未知                             |
+| `27.2[*]`    | instance-side auxiliaries                                                  | 完整 auxiliary record schema 未知                             |
 
-这些身份主要由 `src/cli/static_assembly/map_index.ts` 的显式字段选择支持。既有 focused test 证明当前 reader/closure 行为，不是锁定快照的字节 round-trip，也不证明所有 GIL 版本都使用相同结构。
+`4/6/8/27` 的操作性身份由 `src/cli/static_assembly/map_index.ts` 的显式字段选择支持。既有 focused test 证明当前 reader/closure 行为，不是锁定快照的字节 round-trip，也不证明所有 GIL 版本都使用相同结构。
+
+#### 新增两个同类型默认元件
+
+用户连续新增两个默认“箭头指示牌”元件。两轮根字段 occurrence 均保持 41，只改变 root `4/6/8`：
+
+| 用户元件 ID | 新 `4.1` definition | 新 `8.1` instance | instance 的 definition 引用 | field `6` 新 owner ID |
+| ----------: | ------------------: | ----------------: | --------------------------: | --------------------: |
+|  1077936181 |          1077936181 |        1077936183 |                  1077936181 |            1077936183 |
+|  1077936182 |          1077936182 |        1077936184 |                  1077936182 |            1077936184 |
+
+`CONFIRMED`：在这两个相邻样本中，编辑器元件 ID 对应 `4.1` definition；编辑器同步创建一个 `8.1` instance，其 definition 引用回指该元件，并在 field `6` 登记 instance ID。两轮均未改变 root `10/27`。
+
+`INSUFFICIENT`：其他元件类型是否使用相同链路，以及 `4/6/8` 的完整正式 schema。
+
+#### 从两个已有元件新增场景实体
+
+随后分别使用上述两个元件新增一个默认场景实体。两轮只改变 root `5/6`，`5.1` 记录数为 `14→15→16`：
+
+| 所选元件 definition | 新 `5.1` entity record | `entity.2.1` varint | field `6` 新 owner ID |
+| ------------------: | ---------------------: | ------------------: | --------------------: |
+|          1077936181 |             1077936185 |          1077936181 |            1077936185 |
+|          1077936182 |             1077936186 |          1077936182 |            1077936186 |
+
+`CONFIRMED`：在这两个相邻样本中，`5.1[*]` 是新增场景实体记录；记录内唯一 raw-wire 路径 `2.1` 回指用户声明的元件 definition；field `6` 同步登记实体记录 ID。两轮均未改变 root `10/27` 和目标 NodeGraph `1073741842`。
+
+`INSUFFICIENT`：root field `5` 的正式消息名、完整实体 schema、其他实体来源以及跨地图、跨版本普适性。
 
 ### NodeGraph 路径
 
@@ -130,7 +161,7 @@ connections: 6
 
 以下内容保持 `INSUFFICIENT`：
 
-- 除 `4/6/8/10/27` 外其余根字段的正式消息类型和编辑器语义；
+- 除已限定闭合的 `4/5/6/8/10/27` 路径外，其余根字段的正式消息类型和编辑器语义；
 - 已知容器内部未被当前 reader 使用的字段；
 - root field 10 的正式消息名及 NodeGraph、CompositeDef、信号索引之外的子容器；
 - owner ID 之外的 field 6 registry 结构；
@@ -154,7 +185,7 @@ connections: 6
 → Coordinator 只合并 ACCEPT 的结论
 ```
 
-用户提供的是“编辑器中唯一做了什么”，不是直接替未知字段命名。字段名称必须由唯一差分和其他证据共同支持。一个变化同时影响多个未知分支时停止命名并拆分实验。
+用户提供的是“编辑器中唯一做了什么”，不是直接替未知字段命名。字段名称必须由唯一差分和其他证据共同支持。一个变化同时影响多个未知分支时停止命名并拆分实验。若第一次单变化仍存在 ID 命名空间或同步记录歧义，优先追加一个同类型、默认设置的第二样本；只有两次独立增量都形成相同关系，且独立 Validator 从原始 wire 复核通过，才合并受限语义。
 
 推荐按以下章节推进：
 
