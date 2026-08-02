@@ -58,6 +58,21 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-cu
 hash 和非名称骨架 hash；差分不唯一时失败。root `18` 的正式消息名仍须由相邻实验和独立
 Validator 裁决，不能由脚本名称或第三方 schema 直接确认。
 
+定位未命名的新 root 容器（如“空 length-delimited → 非空”的首次创建）时，复用：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-root-container.py \
+  <before.gil> <after.gil> <rootField>
+```
+
+它比较指定 root 的直接 field-1 子记录集合差，只接受唯一差分（append 一条 / 删除一条 /
+一换一），并定点解码到 depth 2（varint / fixed32 / UTF-8 摘要）；差分不唯一、无变化或
+root 缺失时失败。字段语义仍由后续单属性相邻实验和独立 Validator 闭合，脚本只缩短定位。
+
+相邻实验复制上一轮 validate.py 作为新 Validator 时，必须重新核对：`EXPECTED` 两个 SHA-256
+与 `raw/*.gil.sha256` 逐字节一致、断言方向（before/after）与本轮唯一变化一致、删除不再
+适用的旧断言；核对后再从原始快照运行。
+
 ## 自由新建与自由修改
 
 整体调查优先采用：
