@@ -143,22 +143,11 @@ connect2=4，实验 `entity-dtc-connect2-discriminator-01`）；str（18 族 265
 参数定义序号等候选解释均被排除。获取局部变量 concreteId 变体：str=2656 /
 entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
 
-**生产红灯（步骤 9 证据）**：production lowering 对数据连接一律写
-`connect2=connect=源 index`（`src/compiler/ir_to_gia_transform/composite.ts`），未实现
-entity 例外。`tests/composite/test-signal-monitor-consume-entity-connect2-red.ts` 驱动
-production 生成 entity→DTC(180/183) 消费的 GIA，断言 connect2=4，当前生产写 9 →
-RED。只有用户要求修复时才进入 production lowering；修复后该测试转绿。
-
-**生产红灯二（exec 连接 index，2026-08-02 比对轮）**：production 对控制流连接写
-`connect/connect2 = {kind:InFlow, index:0}`（`composite.ts`
-materializeLegacyImplGraphNode 与 vendor fork overlay），对 OutFlow pin 的 i1/i2 写
-`{kind:OutFlow, index:0}`；真实编辑器这些 Index 的 index 字段在 wire 上**缺失**
-（print-string-control-flow/fork/order-swap/chain 四轮 Validator ACCEPT 证明）。
-`tests/composite/test-signal-monitor-exec-conn-index-red.ts` 做 raw wire 断言（2B 无
-index 形态必须存在、4B 显式 index=0 形态必须不存在），当前生产输出只有 4B 形态 →
-RED。生产不落 InExec 目标 pin、exec 连接挂源 OutFlow、fork 数组保序三处与真实一致。
-修复范围（用户要求后）：exec Index 不写 index 字段（含 i1/i2）+ 数据连接 connect2
-例外（str→3 / entity→4）。
+**生产红灯（A/B/C 三项，修复待用户要求）**：production lowering 未实现 connect2 例外
+（str→3 / entity→4）且 exec 连接与 OutFlow i1/i2 写显式 `index:0`（真实 wire 缺失）。
+两个 focused regression 已锁定红灯：`test-signal-monitor-consume-entity-connect2-red.ts`
+与 `test-signal-monitor-exec-conn-index-red.ts`。差异总表、wire 形态、修复范围、约束与
+验证方式见 [`signal-production-red-lights.md`](signal-production-red-lights.md)（唯一入口）。
 新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
 
 连接批次还验证了 `Query GUID By Entity`（`genericId=concreteId=76`）的 Entity 输入与 GUID 输出，以及 GUID `Assembly List` 两元素样本（`genericId=169`、`concreteId=172`）的 count、两个 GUID 输入和列表输出结构。该证据只覆盖当前节点族与两元素 GUID 列表，不推广到任意列表类型或长度。
@@ -199,6 +188,27 @@ connects 数组 append 多条连接（id 7 与 id 8 共存），目标节点均�
 InParam 后移逐字节保持。本样本仅
 覆盖监听→打印字符串一对节点、当前 monitor 定义和当前地图，不推广到其他执行输出布局；
 复合调用/分支等控制流骨架未调查。
+
+### 分支节点多输出槽（2026-08-02 闭合）
+
+双分支节点（SysCall 2）的三轮实验（`branch-node-01/02/03`，独立 Validator 分别
+ACCEPT 4/4、6/6、7/7）：
+
+- 新建未连线：仅 nodeIndex/genericId/concreteId/坐标，**无任何实例 pin**（与打印字符串
+  SysCall 1 同模式；SysCall 普通节点 pin 全部惰性实例化，区别于 SysGraph 绑定后自动
+  实例化信号名 pin）。
+- 作为 exec 连接目标（监听 OutFlow 连到双分支输入）：**目标节点逐字节不变**，无 InExec
+  落盘、无 OutFlow 实例化；监听 OutFlow connects 从 [8,7] 追加为 [8,7,20]，顺序即执行
+  顺序（用户声明 1->2->3 与 wire 一致），全部 `{InFlow,InFlow}` 无 index（raw wire 3 处
+  `12 02 08 01` 形态、显式 index=0 零出现）。
+- 连出"是"槽到打印字符串：只实例化**被连槽位的 1 个 OutFlow pin**，i1/i2 =
+  `{kind:OutFlow}` 2B 形态无 index、无 compositePinIndex（SysCall 家族）、connects
+  `{id:21,{InFlow,InFlow}}` 无 index。"否"槽不实例化，**槽位区分不落 index 字段**
+  （"否"槽未独立采样，视为同构假设）。
+
+结论：OutFlow 无 index 规则从单槽（SysCall 1）扩展到多槽（SysCall 2）节点；多槽节点只
+实例化被连槽位的单 pin。生产比对差异 C（OutFlow i1/i2 写显式 index=0）对双分支同样
+成立。str 例外 connect2=3 在 print4（node 21）获得第 6 样本，与 node 9 逐字节同构。
 
 ## 信号定义原位修改
 
@@ -293,9 +303,8 @@ direction pin triplet=16/35/41
 `tests/fixtures/signals/monitor-consume-donor.gil`（SHA-256
 `ae28ffcdd20fb6f4e2872e95a6616d1945c10c83d99e73650f40c07a0a4423f0`，仅保留图
 `1073741842` 与全部注册定义/索引，夹具哈希被测试断言锁定）。8/8 消费模式 PASS +
-fail-closed（未知图拒绝）PASS。生产红灯：`tests/composite/test-signal-monitor-consume-entity-connect2-red.ts`
-驱动 production 生成 entity→DTC(180/183) 消费 GIA，断言 connect2=4（真实规则），
-当前生产写 9 → RED（步骤 9 红灯已就位）；未进入 production lowering，修复需用户要求。
+fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec index）见
+[`signal-production-red-lights.md`](signal-production-red-lights.md)。
 
 编辑器可导入候选：
 
@@ -320,7 +329,7 @@ fail-closed（未知图拒绝）PASS。生产红灯：`tests/composite/test-sign
 - `entity` 发送参数的数据源连接；
 - 9 种列表发送参数及各自 List/Assembly 节点；
 - 发送节点的控制流输入、输出以及多发送节点复用；
-- 监听普通参数 `connect2` 例外（str→3、entity→4）的底层语义；两例外均已跨家族确认（entity：18 族+180 族；str：18 族+SysCall 1 打印字符串）；例外值 3/4 无解释，按经验规则写值，生产红灯已由 `test-signal-monitor-consume-entity-connect2-red.ts` 锁定（connect2=9 vs 真实 4），修复需用户确认；`compositePinIndex` 与实例输出 index 的映射；
+- 监听普通参数 `connect2` 例外（str→3、entity→4）的底层语义；两例外均已跨家族确认（entity：18 族+180 族；str：18 族+SysCall 1 打印字符串）；例外值 3/4 无解释，按经验规则写值，生产红灯修复见 [`signal-production-red-lights.md`](signal-production-red-lights.md)；`compositePinIndex` 与实例输出 index 的映射；
 - 缺失 `OutParam.index` 的 protobuf presence、默认值及固定输出语义；
 - 9 种普通参数消费均已真实差分闭合，8 个 consume 候选同构重放通过，`consume-str` 已由用户确认编辑器导入成功（新图 `1073741847`）；其余 7 个候选未逐个导入核验（同一生成器 + 严格回读 + focused regression `tests/signal_consumption_replay_regression.ts` 保证结构一致，导入仅作可选确认）；
 - 监听信号实际触发及参数值的游戏行为；

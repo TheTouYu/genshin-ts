@@ -25,10 +25,11 @@
 12. [控制流](control-flow.md)
 13. [数据流与连接](data-flow.md)
 14. [信号知识](signals.md)
-15. [信号实验事实](signals/README.md)
-16. [复合节点](composite-nodes.md)
-17. [游戏引擎知识与项目编译管线](project-pipeline.md)
-18. [验证与规则学习流程](validation-workflow.md)
+15. [信号生产红灯修复清单](signal-production-red-lights.md)
+16. [信号实验事实](signals/README.md)
+17. [复合节点](composite-nodes.md)
+18. [游戏引擎知识与项目编译管线](project-pipeline.md)
+19. [验证与规则学习流程](validation-workflow.md)
 
 ## 知识关系图
 
