@@ -63,7 +63,7 @@ def payload(path):
 def child_records(p, root_field):
     for f, wt, v in fields(p):
         if f == root_field and wt == 2:
-            return [v for f2, wt2, v2 in fields(v) if f2 == 1]
+            return [v2 for f2, wt2, v2 in fields(v) if f2 == 1]
     return None  # root field absent
 
 
