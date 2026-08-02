@@ -97,6 +97,8 @@ PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID
 
 只有冷启动、用户明确切换地图，或**同一固定关卡中新建实验图但当前会话缺少 map path** 时才运行 `gsts maps`。后一种是续作恢复，不要先反问用户路径：只运行一次 `gsts maps`，选择工具标记的最新修改地图；若最新地图不唯一或与用户描述冲突，再请用户确认。
 
+若用户明确指定第三方逆向仓库、分支和用途，可以在不读取实时地图的情况下做一次有界只读交叉检查：固定 commit，读取最小 schema/工具片段，只报告与锁定快照候选字段的 wire 相容性和有限计数。第三方字段名、注释、递归可解析性和成功解码都只能作为实验选题线索，不能命名 GIL 根字段或替代真实相邻差分；交叉检查结论必须记录为 `INSUFFICIENT`，直到独立 Validator 接受真实编辑器增量。
+
 只有新图尚未识别时才运行：
 
 ```bash
@@ -254,6 +256,26 @@ protobuf 默认值不能证明 wire presence；需要区分“缺失”和“默
 Validator 可以读取 Investigator 结果以知道待裁决 claim，但关键断言必须直接从原始 before/after 快照重新计算，包括 SHA-256、相邻链、字段 presence、记录集合差、引用方向和目标 ID。不得仅检查 `result.json` 内部一致性，或调用 Investigator 生成的中间 JSON/辅助函数后把同一结果称为独立验证。
 
 Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计算的检查、`ACCEPT/CONFLICT/INSUFFICIENT`、适用范围和未验证层级；Coordinator 只合并这些独立检查通过的 claim。
+
+## 第三方 schema 交叉检查
+
+第三方仓库只作为辅助证据源，不是当前 GIL Authority。执行前固定：
+
+```text
+仓库路径 / 分支或 tag / commit
+读取的 schema 或工具文件
+对应锁定快照及 SHA-256
+只检查的候选字段和输出上限
+```
+
+检查必须满足：
+
+- 不切换或修改第三方工作树，不读取无关大型数据文件；
+- 不扫描实时地图，不进行写回、round-trip、编辑器导入或游戏验证；
+- 先报告候选字段的 wire type、长度、UTF-8/varint 摘要和有限嵌套计数；
+- 将“schema 与当前 wire 相容”与“编辑器语义已确认”分开记录；
+- 与真实相邻差分不一致时，以文件事实为准并标记 `CONFLICT/INSUFFICIENT`；
+- 只有真实相邻差分和独立 Validator 接受后，才能把受限语义写入 Authority。
 
 ## 每轮输出
 
