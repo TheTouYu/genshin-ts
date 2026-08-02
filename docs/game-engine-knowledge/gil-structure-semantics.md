@@ -3,7 +3,7 @@
 > 状态：部分已验证
 > 来源：真实 GIL 不可变相邻快照 + raw-wire 调查 + 当前 protobuf schema/源码 reader + 独立实验 Validator
 > 最近校验：2026-08-02
-> 适用范围：锁定地图当前版本的五份相邻快照，以及当前源码 reader 已闭合的有限 GIL 容器路径；不是完整或跨版本通用的 GIL schema
+> 适用范围：锁定地图当前版本的相邻快照链，以及当前源码 reader 已闭合的有限 GIL 容器路径；不是完整或跨版本通用的 GIL schema
 
 本文记录从 GIL 根层逐步建立“字段路径 → protobuf 消息 → 资源或图结构 → 编辑器语义”的当前基线。目标是通过编辑器单变化和不可变相邻快照逐章闭合整棵语义树，而不是按字段位置、相邻 ID 或重复形状猜测含义。
 
@@ -22,9 +22,15 @@
 375008 bytes / 3e1fd259...3fd41e：新增同类型默认元件 1077936182
 375586 bytes / e3eb0ae2...cee8afc：从元件 1077936181 新增场景实体
 376171 bytes / e3a24214...15fd27：从元件 1077936182 新增场景实体
+376222 bytes / 630bd6ca...e82a42：自由新建第一个默认空节点图
+376276 bytes / e24f6440...ff2a40：自由新建第二个默认空节点图
+376356 bytes / 6f82e971...bdd93：两个空节点图已分别修改名称后的基线
+376375 bytes / d860df63...b32d5：节点图 1073741845 再次修改名称
+376342 bytes / ae0216b9...937bd：节点图 1073741845 名称缩短为 A
+376386 bytes / 7d279e9f...272a2：在节点图 A 新增默认“关卡开始时”节点
 ```
 
-Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。两组增量 Validator 均为 `ACCEPT`。完整证据由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。
+Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快照；后续 Investigator 和 Validator 只读取快照。调查没有运行 PKC、`gsts maps` 或旧扫描，没有修改真实地图。元件和场景实体两组增量 Validator 均为 `ACCEPT`，由独立证据仓库提交 `50dccb776c1749c42a934b1091af7409a1b329ba` 锁定。自由新建、自由修改和新增默认节点批次由证据提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定；稳定批次 Validator 均为 `ACCEPT`。
 
 ## 证据状态
 
@@ -76,15 +82,19 @@ GIL file
     ├── 6：owner/registry 容器
     ├── 8.1[*]：static assembly instance records
     ├── 10：当前复合容器（正式消息名未闭合）
+    │   ├── 10.1[*]：默认节点图注册 records（限定样本）
+    │   │   ├── 10.1[*].1.1.5：稳定节点图 ID
+    │   │   └── 10.1[*].1.2：显式 UTF-8 节点图名称
     │   ├── 10.1.1[*]：gia.NodeGraph blob
     │   │   └── NodeGraph → GraphNode → NodePin → NodeConnection
     │   ├── 10.2[*]：gia.CompositeDef
     │   │   └── CompositeDef.ParameterFlow
     │   └── 10.5.3[*]：信号注册索引条目
     │       └── field 4[*]：信号参数名称与类型码
-    └── 27
-        ├── 27.1[*]：definition-side auxiliary records
-        └── 27.2[*]：instance-side auxiliary records
+    ├── 27
+    │   ├── 27.1[*]：definition-side auxiliary records
+    │   └── 27.2[*]：instance-side auxiliary records
+    └── 46：保存时可发生等长 raw-byte 变化；语义未知
 ```
 
 ### 静态资源与场景实体容器
@@ -143,6 +153,38 @@ connections: 6
 
 `NodeGraph.nodes`、`GraphNode.pins` 和 `NodePin.connects` 的内层字段映射由 `gia.proto` 支持。
 
+### 自由新建
+
+用户连续自由新建两个同类型默认空节点图。两轮 root occurrence 均保持 41，presence 集合稳定，且都只改变 root `6/10`：
+
+| 操作               | root `10`                                                                    | root `6`                                         |
+| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------ |
+| 新建第一个默认空图 | 新增一个直接 field `1` length-delimited record，编码长度 40 bytes            | 35 个直接 record 不变；一个聚合 record 被重写   |
+| 新建第二个默认空图 | 新增一个同构的直接 field `1` length-delimited record，编码长度 42 bytes       | 35 个直接 record 不变；同一形态聚合 record 被重写 |
+
+`CONFIRMED`：在当前锁定地图、版本和两个默认空图样本中，自由新建默认节点图会在 root `10` 新增一个直接 field `1` 注册记录，并同步重写 root `6` 的一个聚合记录。独立 Validator 从原始快照复核哈希链、presence 和记录集合差后 `ACCEPT`。
+
+随后在节点图 `1073741845 / A / type 20000` 自由新增一个默认“关卡开始时”节点。真实相邻差分为节点数 `0→1`，唯一新增 `nodeIndex=1`、`genericId=concreteId=71` 的 `SystemDefined / Server / SysCall`，没有显式实例 pin；图 identity、名称和 metadata 保持不变。独立 Validator `ACCEPT`。
+
+`INSUFFICIENT`：root `6/10` 的正式消息名和完整 schema、节点 ID `71` 的跨版本稳定性、隐式定义 pin、节点位置规则以及其他节点族。保存的位置只属于本轮编辑器落点，不是默认常量。
+
+### 自由修改
+
+对节点图 `1073741845` 做两次连续名称修改，最终将名称缩短为 `A`。受独立 Validator 接受的 raw-wire 路径为：
+
+```text
+GIL.payload.10.1[*].1.1.5 = 1073741845   # 稳定图 ID；正式字段名未知
+GIL.payload.10.1[*].1.2                 # 显式 length-delimited UTF-8 名称
+```
+
+`CONFIRMED`：在当前限定样本中，名称从 `新建节点图` 改为 `新建节点图-又修改了名字`，再改为 `A` 时，identity 保持不变，只重写同一直接记录的显式 field `2`。最后一轮名称字段从 34 bytes 缩为 1 byte，整个直接记录从 59 bytes 缩为 26 bytes，差值均为 33。短名称 `A` 下 field `2` 仍显式存在，不是字段缺失或 protobuf 默认值。
+
+`INSUFFICIENT`：正式字段名、其他节点图类型及跨版本普适性。多轮保存还使 root `46` 发生等长 raw-byte 变化；它与名称字节和 NodeGraph 节点增量不共形，只能确认“同步变化”，不得命名为时间戳、校验值、缓存或编辑器状态。
+
+`CONFLICT`：早期 `rename-empty-node-graph-01` 的用户声明是修改名称，但 raw-wire 实际新增 identity `1073741847` 并同步改变 root `6`。该轮保留为冲突调查记录，不作为名称字段正证据。
+
+上述“自由新建”和“自由修改”证据均由独立证据仓库提交 `d1b8fad91bf3f07c3846b0f6e28fb85d0089de39` 锁定。未执行 round-trip、临时重放、真实写回、编辑器导入或游戏行为验证。
+
 ### 连接 index presence
 
 `CONFIRMED`：目标图 6 条连接中，`connect.index` 与 `connect2.index` 都分别有 3 个显式存在、3 个缺失。目标 NodeGraph 的 decode/encode 字节 round-trip 保持一致。
@@ -163,10 +205,11 @@ connections: 6
 
 - 除已限定闭合的 `4/5/6/8/10/27` 路径外，其余根字段的正式消息类型和编辑器语义；
 - 已知容器内部未被当前 reader 使用的字段；
-- root field 10 的正式消息名及 NodeGraph、CompositeDef、信号索引之外的子容器；
+- root field 10 的正式消息名，以及已闭合节点图注册/NodeGraph/CompositeDef/信号索引之外的子容器；
 - owner ID 之外的 field 6 registry 结构；
 - auxiliary record 的完整 schema；
 - 缺失 connection index 的编辑器和运行时语义；
+- root field `46` 的正式消息名和保存时等长变化语义；
 - 当前字段路径的跨地图、跨游戏版本普适性。
 
 ## 整棵语义树的增量闭合方法
@@ -196,7 +239,7 @@ connections: 6
 5. 变量、UI、镜头与其他注册表；
 6. 缓存、编辑器状态和派生索引等非业务字段。
 
-下一项最小缺口是：只选择 root field 10 内一个尚未命名的直接子容器，通过一对编辑器单变化的相邻不可变快照做定点 raw-wire 差分。单快照的重复形状或可递归解析性不足以命名消息。
+下一项最小缺口是：继续从 GIL 整体根层选择 root `10` 之外一个尚未命名的业务子容器，设计一个可唯一归因的编辑器单变化。root `46` 暂作为保存时未知同步状态隔离，不通过重复保存直接命名。单快照的重复形状、可递归解析性或等长变化不足以命名消息。
 
 完整机器可读调查结果见证据目录中的：
 
