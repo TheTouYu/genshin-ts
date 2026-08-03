@@ -574,12 +574,31 @@ export function assertRegisteredSchema(
   usage: CollectedSignalUsage,
   registered: RegisteredSignalDefinition
 ): void {
-  const actual = usage.params.map((param) => param.type)
   const expected = registered.params.map((param) => param.type)
+  if (!usage.hasSend && usage.hasMonitor) {
+    // monitor-only：IR 端参数按"被消费"推断（SSA 裁剪），未消费参数合法缺失。
+    // 按 pinIndex 对齐注册表参数下标（IR 输出引脚 3 = 第 1 个声明参数），避免顺序
+    // 前缀比较在"只消费第 2 个参数且类型不同"时误报；消费越界/类型不符仍报错。
+    for (let i = 0; i < usage.monitorOutIndexes.length; i++) {
+      const idx = usage.monitorOutIndexes[i] - 3
+      const registeredParam = registered.params[idx]
+      const inferred = usage.params[i]?.type ?? 'int'
+      if (!registeredParam || inferred !== registeredParam.type) {
+        throw new Error(
+          `[error] signal schema mismatch for ${usage.name}: ` +
+            `monitor consumes param ${idx + 1} as [${inferred}] ` +
+            `but registered map has ${expected.length} param(s) [${expected.join(', ')}]`
+        )
+      }
+    }
+    return
+  }
+  const actual = usage.params.map((param) => param.type)
   if (actual.length !== expected.length || actual.some((type, i) => type !== expected[i])) {
     throw new Error(
       `[error] signal schema mismatch for ${usage.name}: ` +
-        `IR=[${actual.join(', ')}], map=[${expected.join(', ')}]`
+        `IR=[${actual.join(', ')}] (send args / inferred from monitor consumption), ` +
+        `map=[${expected.join(', ')}]`
     )
   }
 }
