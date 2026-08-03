@@ -191,6 +191,8 @@ compositePinIndex 是否来自该信号定义
 ## 当前覆盖与停止条件
 
 当前已验证覆盖和待验证项只读 `docs/game-engine-knowledge/signals.md`，不在本模块复制具体 ID 或测试值。
+复合节点 impl 图内信号节点规则（capture 物理 pin、monitor 不落盘 OutParam、connect2 例外、
+relatedIds 不含信号 ID）与端到端 demo 资产见该文档“复合 impl 图内信号节点”小节。
 
 出现以下情况停止本轮推广：
 

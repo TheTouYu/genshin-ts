@@ -34,6 +34,10 @@ root 6 重写“未分类页签”聚合 record（顶层 #1=4）：field 3 容�
   17B 的 Id 并报 `index out of range`。
 - 新地图无任何节点图时，注入器 `findFolderEntryField` 找不到目标；必须先生成空图
   （folder 条目存在 + root 10 append wrapper 的“创建新图”路径才可用）。
+- **目标图 ID 不存在但地图已有其他图**：同样报 `[error] target NodeGraph not found: <id>`，
+  先 `create-empty-node-graph.ts --graph-id <id> --output <candidate>` 预览 → `--write` 写回
+  （自动备份 + 源 SHA 检查）→ 再注入。示例：`gsts-signal-composite-demo` 注入前为
+  `1073741850.gil` 建空图 `1073741826`。
 - root 46 的等长变化语义 INSUFFICIENT，不模拟。
 
 ## GIA 生成链路（生产代码）
@@ -73,3 +77,29 @@ vendor `node_body()` 的 `x = body.x * 300 + Math.random() * 10 // shakings` 给
 出现以下情况停止本轮推广：目标图/注册表之外出现无法解释的结构变化；新图 ID 与编辑器
 分配规则冲突；图类型不是 20000（client 20002 等 folder typeValue 未闭合）；root 46
 变化被当成时间戳/校验值命名。
+
+## 完整通路（生成 → 导入 → 注入 → 验证，2026-08-03 已闭环）
+
+```text
+生成 GIA（生产 irToGia + readRegisteredSignalsFromGil 真实注册数据）
+→ 用户编辑器导入（资产包导入验证）
+→ create-empty-node-graph 建空图（仅目标图不存在时）
+→ gsts 单文件注入（config.inject.nodeGraphId 为目标；多 WSL 用户需 GSTS_LOCALLOW_DIR）
+→ 回读验证 → 用户游戏内核验
+```
+
+注入后验证清单（独立证据，逐项分开报告）：
+
+1. `tools/list-gil-node-graphs.ts`：目标图存在、图名被替换、节点数符合、旧图未动；
+2. `gsts assets:signals inspect`：信号注册表逐项不变；
+3. 图内节点身份回读（nodeGraphMessage）：send/monitor genericId=注册 ID、kind=SysGraph、
+   signalVersion、信号名 pin；
+4. 用户游戏内：图显示正常（复合内部 send 不显空壳）+ 信号触发消费生效。
+
+真实注入配置模板：`gsts.signal-demo.config.ts`（gameRegion/playerId/mapId/nodeGraphId）。
+更多坑位（GSTS_LOCALLOW_DIR、target not found、单文件 vs 批量目标 ID 语义）与分层证据见
+`docs/game-engine-knowledge/gia-generation-chain.md`。
+
+方法论（用户长期实践）：**不轻信生产代码**——把真实编辑器的最小单变化快照
+（`genshin-ts-evidence/`）当作裁决依据；测试断言与生产输出冲突时，先核对真实证据
+再决定改测试还是改代码（本轮修正 3 处旧断言、生产零改动即是一例）。
