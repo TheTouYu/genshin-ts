@@ -26,8 +26,9 @@
 13. [数据流与连接](data-flow.md)
 14. [信号知识](signals.md)
 15. [信号生产红灯修复清单](signal-production-red-lights.md)
-16. [信号实验事实](signals/README.md)
-17. [复合节点](composite-nodes.md)
+16. [GIA 生产链路与可复现性](gia-generation-chain.md)
+17. [信号实验事实](signals/README.md)
+18. [复合节点](composite-nodes.md)
 18. [游戏引擎知识与项目编译管线](project-pipeline.md)
 19. [验证与规则学习流程](validation-workflow.md)
 
