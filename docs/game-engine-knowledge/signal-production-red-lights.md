@@ -1,8 +1,8 @@
 # 信号生产红灯修复清单
 
-> 状态：红灯已锁定（两个 focused regression 均 RED），修复**待用户明确要求**
+> 状态：两个 focused regression 已转绿（2026-08-02，用户已明确要求修复）；等待用户编辑器/游戏核验
 > 来源：真实 GIL 相邻快照 + 独立 Validator ACCEPT + 生产实现只读比对（2026-08-02）
-> 适用范围：`src/compiler/ir_to_gia_transform/composite.ts` 的信号消费与控制流 lowering
+> 适用范围：`src/compiler/ir_to_gia_transform/` 的信号消费与控制流 lowering
 > 证据细节：`docs/game-engine-knowledge/signals.md` 及
 > `genshin-ts-evidence/node-graph-logic/signals/2026-08-01-monitor-signal/notes/manifest.md`
 
@@ -13,9 +13,9 @@
 
 | 项 | production 当前实现 | 真实编辑器 wire | focused regression | 状态 |
 | --- | --- | --- | --- | --- |
-| A. 数据连接 connect2 | 一律 `connect2=connect=源 index`（composite.ts） | str 源→`3`、entity 源→`4`（跨家族恒定） | `tests/composite/test-signal-monitor-consume-entity-connect2-red.ts` | RED |
-| B. exec 连接 connect/connect2 | 写 `{kind:InFlow, index:0}`（composite.ts 636-642/1019-1024 等） | index 字段 wire 缺失（2B 形态） | `tests/composite/test-signal-monitor-exec-conn-index-red.ts` | RED |
-| C. OutFlow pin i1/i2 | 写 `{kind:OutFlow, index:0}`（composite.ts 942/1342/1419/1486/1568 等） | index 字段 wire 缺失（2B 形态） | 同上（raw wire 断言覆盖） | RED |
+| A. 数据连接 connect2 | 一律 `connect2=connect=源 index`（vendor `node_connect_from` 编码） | str 源→`3`、entity 源→`4`（跨家族恒定） | `tests/composite/test-signal-monitor-consume-entity-connect2-red.ts` | GREEN |
+| B. exec 连接 connect/connect2 | 写 `{kind:InFlow, index:0}`（vendor `node_connect_to` 编码） | index 字段 wire 缺失（2B 形态） | `tests/composite/test-signal-monitor-exec-conn-index-red.ts` | GREEN |
+| C. OutFlow pin i1/i2 | 写 `{kind:OutFlow, index:0}`（vendor `Pin.encode_flows` 编码） | index 字段 wire 缺失（2B 形态） | 同上（raw wire 断言覆盖） | GREEN |
 | D. 目标节点 InExec | 不落盘 | 不落盘 | 一致 | 一致 |
 | E. exec 连接挂源 OutFlow、connects.id=目标 | 一致 | 一致（vendor/legacy 两路径） | — | 一致 |
 | F. fork connects 数组保序 | vendor 路径 push 保序（代码审查） | 顺序即编辑器连线顺序 | — | 一致（未逐字节验证） |
@@ -33,13 +33,35 @@ OutFlow i2 无 index：12 02 08 02         显式 index=0：12 04 08 02 10 00
 str 例外 connect2=3：1a 04 08 04 10 03
 ```
 
-## 修复范围（用户要求后执行）
+## 修复范围（已执行，2026-08-02）
 
 ```text
 1. exec Index 不写 index 字段：connect/connect2（InFlow）+ OutFlow pin 的 i1/i2
 2. 数据连接 connect2 例外：str 源→3、entity 源→4（经验规则；底层语义 INSUFFICIENT，
    例外值 3/4 的注册定义 pinIndex、compositePinIndex、参数序号等解释均已排除）
 ```
+
+### 实际实现位置（与只读比对时的预判不同）
+
+红灯测试驱动 `irToGia` 生成 **root server 图**（监听节点作为普通 SysCall 300001 占位
+节点，经 `materializeOrdinaryGraphEdges` → vendor `Graph.connect`/`flow` 编码），
+数据/exec 连接的 wire 形态完全由 vendor `Connect.encode()`（`node_connect_from`/
+`node_connect_to`）决定，**不经过 composite.ts 的手写 connects 路径**。因此修复不能
+改 thirdparty vendor，也不能只改 composite.ts 手写写入点。
+
+统一修复入口：`src/compiler/ir_to_gia_transform/ordinary_graph_materializer.ts` 新增
+`applyEditorConnectionWireRules(nodes)`，在 **encode 之后、序列化之前**对已编码
+GraphNode 数组统一改写（幂等，不影响内部 index 查找）：
+
+- OutFlow pin：删除 `i1.index`/`i2.index`；
+- InFlow 连接（exec）：删除 `connect.index`/`connect2.index`；
+- OutParam 连接（数据）：`connect2.index` 按源 index 例外（6→3、9→4，其余保持）。
+
+调用点：
+
+- `ir_to_gia_transform/index.ts`（root 图，wrap 前）；
+- `ir_to_gia_transform/composite.ts` vendor 路径 `materializeImplOrdinaryGraphWithVendor`
+  返回前、legacy 路径 `materializeLegacyImplGraphNode` 批量返回前。
 
 约束：
 
@@ -71,4 +93,16 @@ str 例外 connect2=3：1a 04 08 04 10 03
 → 用户编辑器导入核验 → 游戏行为核验（步骤 10，尚未进行）
 ```
 
-当前停在"红灯 RED"；进入修复需满足 SKILL「进入生产修复的门」全部条件（用户要求是其一）。
+当前状态：自动测试 red→green 已完成；**编辑器/游戏核验待用户执行**。
+
+自动回归结果（2026-08-02）：
+
+- 两个红灯测试 GREEN（`test-signal-monitor-consume-entity-connect2-red.ts`、
+  `test-signal-monitor-exec-conn-index-red.ts`）；
+- `tests/signal_consumption_replay_regression.ts` OK；
+- `test-signal-registered-layout` / `test-signal-client-min-repro` / `test-signal-min-repro`
+  / `test-stage3-signal-supported-list-var-types` / `test-stage3-p2w7-captured-connection-vendor-graph`
+  / `test-exec-lane-spacing-scale` PASS；
+- `npm test` 与 `npm run quicktest` 无新增失败（`E_UNKNOWN_NODE_VARIANT` 与
+  `test-stage3-p5w10-*` 矩阵、`exec-with-data` 的失败为基线预存，与本次改动无关）；
+- `npm run build`、`git diff --check` 通过。

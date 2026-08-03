@@ -1,4 +1,4 @@
-import { Graph, Node } from '../gia_vendor.js'
+import { Graph, Node, NodePin_Index_Kind } from '../gia_vendor.js'
 
 export type OrdinaryDataEdge = {
   fromId: number
@@ -8,6 +8,37 @@ export type OrdinaryDataEdge = {
 }
 
 export type OrdinaryFlowEdge = OrdinaryDataEdge
+
+/**
+ * Apply real-editor wire rules to already-encoded GraphNode arrays (root and impl paths).
+ *
+ * Vendor `Connect.encode()` writes `node_connect_from(from_index)` / `node_connect_to(to_index)`,
+ * which materializes connect2 = connect index and an explicit InFlow index. Real editor wire
+ * omits the index field on InFlow connects and OutFlow pins, and applies the connect2 exception
+ * for signal data consumption (str source OutParam[6] -> 3, entity source OutParam[9] -> 4).
+ *
+ * Must run after all index-based post-processing (compositePinIndex etc.), before serialization.
+ */
+export function applyEditorConnectionWireRules(nodes: any[]): void {
+  for (const node of nodes) {
+    for (const pin of node.pins ?? []) {
+      if (pin.i1?.kind === NodePin_Index_Kind.OutFlow) {
+        delete pin.i1.index
+        if (pin.i2) delete pin.i2.index
+      }
+      for (const conn of pin.connects ?? []) {
+        if (conn.connect?.kind === NodePin_Index_Kind.InFlow) {
+          if (conn.connect) delete conn.connect.index
+          if (conn.connect2) delete conn.connect2.index
+        } else if (conn.connect?.kind === NodePin_Index_Kind.OutParam && conn.connect2) {
+          // ponytail: data connect2 = source OutParam index, except str(6)->3, entity(9)->4.
+          conn.connect2.index =
+            conn.connect.index === 6 ? 3 : conn.connect.index === 9 ? 4 : conn.connect.index
+        }
+      }
+    }
+  }
+}
 
 /**
  * Synthetic sources (currently Composite-call OutParam overlays) do not belong to a vendor

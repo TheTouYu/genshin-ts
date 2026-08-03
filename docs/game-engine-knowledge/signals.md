@@ -6,6 +6,8 @@
 > 适用范围：服务器节点图普通发送与监听；当前跨地图结论覆盖 `cube_turn(face:str,direction:str)` 候选和地图 `1073741848/1849`
 >
 > 本轮具体候选、SHA-256 和用户测试记录见 [`signals/2026-08-01-monitor-consumption-batch.md`](signals/2026-08-01-monitor-consumption-batch.md)。
+>
+> 用生产 `irToGia` 从地图注册数据生成正式 GIA 资产的链路、可复现性边界（vendor 坐标抖动）和坑位清单见 [`gia-generation-chain.md`](gia-generation-chain.md)。
 
 信号用于在节点图之间传递一次事件及其参数。编辑器导入可由正式 GIA 携带 send/monitor/server 三份 signal definition，在目标地图注册此前不存在的信号；用户已确认同一 `cube_turn` GIA 在另一关卡导入正常。直接写 GIL 的生产流程仍将“注册信号”和“注入 NodeGraph”分成两步：`assets:signals register/update` 修改注册表，injector 按信号名把 GIA 中的 donor identity 重绑定为目标地图 identity，并保持目标注册定义不变。
 
@@ -143,12 +145,16 @@ connect2=4，实验 `entity-dtc-connect2-discriminator-01`）；str（18 族 265
 参数定义序号等候选解释均被排除。获取局部变量 concreteId 变体：str=2656 /
 entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
 
-**生产红灯（A/B/C 三项，修复待用户要求）**：production lowering 未实现 connect2 例外
-（str→3 / entity→4）且 exec 连接与 OutFlow i1/i2 写显式 `index:0`（真实 wire 缺失）。
-两个 focused regression 已锁定红灯：`test-signal-monitor-consume-entity-connect2-red.ts`
-与 `test-signal-monitor-exec-conn-index-red.ts`。差异总表、wire 形态、修复范围、约束与
-验证方式见 [`signal-production-red-lights.md`](signal-production-red-lights.md)（唯一入口）。
-新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`。
+**生产红灯（A/B/C 三项）已修复（2026-08-02，自动测试转绿）**：production lowering 已实现
+connect2 例外（str→3 / entity→4）且 exec 连接与 OutFlow i1/i2 不再写显式 `index:0`。
+两个 focused regression 已转绿：`test-signal-monitor-consume-entity-connect2-red.ts`
+与 `test-signal-monitor-exec-conn-index-red.ts`。修复统一在 encode 后通过
+`applyEditorConnectionWireRules`（`ordinary_graph_materializer.ts`）改写已编码
+GraphNode（root 图与 composite vendor/legacy 路径），不手改 thirdparty vendor。差异总表、
+wire 形态、修复范围、约束与验证方式见
+[`signal-production-red-lights.md`](signal-production-red-lights.md)（唯一入口）。
+新 monitor 布局仍必须从当前 CompositeDef/注册定义解析，不能只写死 `3 + 参数序号`；
+编辑器导入与游戏行为核验待用户执行。
 
 连接批次还验证了 `Query GUID By Entity`（`genericId=concreteId=76`）的 Entity 输入与 GUID 输出，以及 GUID `Assembly List` 两元素样本（`genericId=169`、`concreteId=172`）的 count、两个 GUID 输入和列表输出结构。该证据只覆盖当前节点族与两元素 GUID 列表，不推广到任意列表类型或长度。
 
@@ -303,7 +309,8 @@ direction pin triplet=16/35/41
 `tests/fixtures/signals/monitor-consume-donor.gil`（SHA-256
 `ae28ffcdd20fb6f4e2872e95a6616d1945c10c83d99e73650f40c07a0a4423f0`，仅保留图
 `1073741842` 与全部注册定义/索引，夹具哈希被测试断言锁定）。8/8 消费模式 PASS +
-fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec index）见
+fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec index）已修复，
+自动测试转绿，见
 [`signal-production-red-lights.md`](signal-production-red-lights.md)。
 
 编辑器可导入候选：

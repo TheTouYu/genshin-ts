@@ -33,6 +33,7 @@ import {
 import { getNodeIdLowerMap, SPECIAL_NODE_IDS, SPECIAL_NODE_MAPPINGS } from './mappings.js'
 import { COMPOSITE_CAPTURE_NODE_TYPE, normalizeCompositeCaptures } from './normalize_capture.js'
 import {
+  applyEditorConnectionWireRules,
   materializeOrdinaryGraphEdges,
   materializeSyntheticSourceDataEdges,
   splitSyntheticSourceDataEdges
@@ -605,6 +606,8 @@ function buildImplGraphNodes(
   )
   // Same signal SysGraph/cpi patch as vendor path (root still emits SignalDef accessories).
   patchEncodedSignalNodes(legacyNodes as any)
+  // Real-editor wire rules apply to handwritten legacy nodes too (idempotent).
+  applyEditorConnectionWireRules(legacyNodes)
   return legacyNodes
 }
 
@@ -1026,6 +1029,8 @@ function materializeImplOrdinaryGraphWithVendor(
     }
   }
 
+  // Real-editor wire rules: InFlow/OutFlow omit index, data connect2 has str/entity exception.
+  applyEditorConnectionWireRules(allNodes)
   return allNodes.sort((a, b) => a.nodeIndex - b.nodeIndex)
 }
 

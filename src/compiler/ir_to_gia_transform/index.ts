@@ -45,6 +45,7 @@ import {
 import { buildConnTypeIndex, resolveGiaNodeId, type ConnTypeInfo } from './node_id.js'
 import { optimizeTimerDispatchAggregate } from './optimize_timer_dispatch.js'
 import {
+  applyEditorConnectionWireRules,
   materializeOrdinaryGraphEdges,
   materializeSyntheticSourceDataEdges,
   splitSyntheticSourceDataEdges
@@ -891,6 +892,10 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const protoPath = opts.protoPath
   const { rootMessage } = loadGiaProto(protoPath)
+  // Real-editor wire rules: InFlow/OutFlow omit index, data connect2 has str/entity exception.
+  // Runs after all index-based post-processing, before serialization (root graph only; the
+  // accessories of composite defs are patched by their own builder).
+  applyEditorConnectionWireRules(root.graph?.graph?.inner?.graph?.nodes ?? [])
   const buffer = wrap_gia(rootMessage, root)
   const bytes = new Uint8Array(buffer)
 
