@@ -22,7 +22,7 @@ readRegisteredSignalsFromGil(<map.gil>)     src/cli/gil_signals.ts
 ```
 
 参考实现：`.local/tmp/generate-signal-layout-fixed.ts`（参照 GIA）、
-`.local/tmp/generate-signal-demo-gia.ts`（本轮业务 GIA）。两个脚本都是独立可跑的生产
+`.agents/skills/editor-incremental-gia-investigator/scripts/generate-signal-demo-gia.ts`（本轮业务 GIA）。两个脚本都是独立可跑的生产
 链路示范；生成脚本必须“已存在则断言逐字节相同，不同则拒绝覆盖”。
 
 ## 可复现性边界（重要）
@@ -64,10 +64,17 @@ src/cli/static_assembly/wire.js                 通用 wire 解析/编码（pars
 | 4 | decode 后读 `genericId.id` 得到 undefined | decode 产物是 `genericId.nodeId`（int64 在 protobufjs 中显示为 Long 对象，`===` 数字比较前先 `.toString()` 或转 Number） |
 | 5 | `decode_gia_file(bytes)` 直接传 Uint8Array 报错 | 它只接受文件路径；先写临时文件再解码 |
 | 6 | tsx 脚本顶层 `await` 报 “Top-level await is currently not supported with the cjs output format” | 包 `async function main() { ... }; main()` |
-| 7 | 注入目标地图没有任何节点图时，注入器找不到目标（`findFolderEntryField` 失败） | 先用 `.local/tmp/create-empty-node-graph.ts` 生成空图（root 10 双层包装 + root 6 “未分类页签” #5 条目），再注入 |
+| 7 | 注入目标地图没有任何节点图时，注入器找不到目标（`findFolderEntryField` 失败） | 先用 `.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts` 生成空图（root 10 双层包装 + root 6 “未分类页签” #5 条目），再注入 |
 | 8 | GIA 字节对比失败以为是 bug | 先排除 vendor 坐标抖动（#7 的 Math.random）与 filePath 时间戳；两者都非回归 |
 | 9 | 注入后图名被覆盖为 `_GSTS_<name>` | 预期行为（injector 用 GIA 图名替换）；空图占位名不重要 |
-| 10 | `gsts` 注入会自动覆盖 `src/resources/prefabs.ts`（从目标地图提取） | 新地图提取会删除旧地图的 prefab 定义；提交前检查该文件 diff，非预期变化应 `git checkout --` 恢复 |
+| 10 | `gsts` 注入会自动覆盖 `src/resources/prefabs.ts`（从目标地图提取） | 新地图提取会删除旧地图的 prefab 定义；该文件与 `signals.ts` 一样属自动提取产物，已加入 `.gitignore`，提交前无需处理；不要手动提交其提取内容 |
+
+生成与建图工具已正式放入技能脚本目录（可复用资产）：
+
+```text
+.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts
+.agents/skills/editor-incremental-gia-investigator/scripts/generate-signal-demo-gia.ts
+```
 
 ## 分层证据
 

@@ -199,7 +199,7 @@ connections: 6
 
 依据上述相邻快照 + `tools/list-gil-node-graphs.ts`（`nodeGraphBlobFields` 收集 `10.1.1`）
 proto 解码回读，可生成与编辑器原生空图逐字段同构的记录（生成工具：
-`.local/tmp/create-empty-node-graph.ts`，已在新地图 `1073741850.gil` 真实写回并
+`.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts`，已在新地图 `1073741850.gil` 真实写回并
 被注入器识别）：
 
 ```text

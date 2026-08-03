@@ -10,7 +10,7 @@
 目标 GIL（新地图）是否已有节点图（tools/list-gil-node-graphs.ts）
 注入目标 nodeGraphId
 信号注册数据来源（readRegisteredSignalsFromGil）
-参照 GIA 及其生成脚本（.local/tmp/generate-signal-layout-fixed.ts）
+参照 GIA 及其生成脚本（.local/tmp/generate-signal-layout-fixed.ts，未迁移仅作参照）
 ```
 
 领域 Authority：`docs/game-engine-knowledge/gil-structure-semantics.md`（NodeGraph 路径 /
@@ -18,7 +18,7 @@
 
 ## 新建空 NodeGraph（已闭合，勿重做）
 
-编辑器原生空图 wire 结构（生成工具 `.local/tmp/create-empty-node-graph.ts`，已在
+编辑器原生空图 wire 结构（生成工具 `.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts`，已在
 1073741850.gil 真实写回并被注入器识别）：
 
 ```text
@@ -44,8 +44,8 @@ readRegisteredSignalsFromGil → createSignalRegistry → buildServerGraphRegist
 → decode_gia_file(<路径>) 断言（graph.id / filePath / gameVersion / send+monitor 节点）
 ```
 
-参考脚本：`.local/tmp/generate-signal-layout-fixed.ts`（参照）、
-`.local/tmp/generate-signal-demo-gia.ts`（业务图）。生成脚本必须“已存在则断言逐字节
+参考脚本：`.local/tmp/generate-signal-layout-fixed.ts`（参照 GIA，未迁移）、
+`.agents/skills/editor-incremental-gia-investigator/scripts/generate-signal-demo-gia.ts`（业务图）。生成脚本必须“已存在则断言逐字节
 相同，不同则拒绝覆盖”。
 
 ## GIA 字节级不可复现（重要，勿当 bug 排查）
