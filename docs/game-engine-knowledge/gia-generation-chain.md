@@ -68,6 +68,9 @@ src/cli/static_assembly/wire.js                 通用 wire 解析/编码（pars
 | 8 | GIA 字节对比失败以为是 bug | 先排除 vendor 坐标抖动（#7 的 Math.random）与 filePath 时间戳；两者都非回归 |
 | 9 | 注入后图名被覆盖为 `_GSTS_<name>` | 预期行为（injector 用 GIA 图名替换）；空图占位名不重要 |
 | 10 | `gsts` 注入会自动覆盖 `src/resources/prefabs.ts`（从目标地图提取） | 新地图提取会删除旧地图的 prefab 定义；该文件与 `signals.ts` 一样属自动提取产物，已加入 `.gitignore`，提交前无需处理；不要手动提交其提取内容 |
+| 11 | 注入报 `multiple WSL LocalLow folders found` | 多 WSL 用户目录时显式设置 `GSTS_LOCALLOW_DIR=/mnt/c/Users/<user>/AppData/LocalLow`（按确认的游戏用户目录） |
+| 12 | 注入报 `[error] target NodeGraph not found: <id>` | 目标图 ID 在地图里不存在。先用 `create-empty-node-graph.ts --gil <map.gil> --graph-id <id> --output <candidate>` 预览，再 `--write`（自动备份 + 源 SHA 检查）写回空图占位，然后重新注入 |
+| 13 | 单文件注入用错目标图 | 单文件模式 `node bin/gsts.mjs -c <config> <file.gia>` 以 `config.inject.nodeGraphId` 为目标 ID（批量模式才用 GIA 内 graph id）；注入前确认 config 的 `mapId`/`nodeGraphId` 与意图一致 |
 
 生成与建图工具已正式放入技能脚本目录（可复用资产）：
 
@@ -85,3 +88,27 @@ src/cli/static_assembly/wire.js                 通用 wire 解析/编码（pars
 
 自动断言通过 ≠ 编辑器可导入/游戏行为正确；本链路的两层用户核验（注入后游戏运行、
 GIA 编辑器导入）均已 PASS。
+
+## 完整通路与注入后验证（2026-08-03 复合内信号 demo 闭环）
+
+```text
+生成 GIA（生产 irToGia + 真实注册数据）→ 用户编辑器导入（资产包）
+→ create-empty-node-graph 建空图（仅目标图不存在时）→ gsts 单文件注入
+→ 回读验证 → 用户游戏内核验
+```
+
+注入后验证清单（每项独立证据，不能互相替代）：
+
+1. `tools/list-gil-node-graphs.ts <map.gil>`：目标图存在、图名被替换为 GIA 图名、节点数符合；
+   旧图未被误动。
+2. `gsts assets:signals inspect --gil <map.gil>`：信号注册表逐项不变（注入不得破坏注册定义）。
+3. 图内节点身份解码（nodeGraphMessage 回读）：send/monitor 节点 `genericId`=注册 ID、
+   `kind`=SysGraph(22001)、`signalVersion`=注册值、信号名 ClientExec pin 存在。
+4. 注入器 accessories 合并路径（源码确认）：CompositeDef 写入 root 10 field 2、impl 图写
+   field 4，按 ID 合并去重（冲突保留 GIL 侧）；信号 accessories 按信号名重绑定目标 identity。
+5. 用户游戏内：图正常显示（复合内部 send 不显空壳）+ 信号触发后监听消费生效。
+
+方法论（用户长期实践）：**不轻信生产代码**——把真实编辑器的最小单变化快照（用户记录在
+`genshin-ts-evidence/`）当作裁决依据，测试断言与生产输出冲突时先核对真实证据再决定改
+测试还是改代码。本轮即修正了 3 处与真实证据冲突的旧断言（capture 物理 pin、monitor
+OutParam 不落盘、列表 ParameterFlow 类型），生产代码零改动。
