@@ -95,7 +95,7 @@ export function parseArgs(argv: readonly string[]) {
   let monitorId: number | undefined
   let serverId: number | undefined
   const params: SignalRegistrationParam[] = []
-  if (argv[0] === 'inspect' || argv[0] === 'repair' || argv[0] === 'update') {
+  if (argv[0] === 'inspect' || argv[0] === 'repair' || argv[0] === 'update' || argv[0] === 'register') {
     command = argv[0]
     argv = argv.slice(1)
   }
