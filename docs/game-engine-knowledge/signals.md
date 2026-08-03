@@ -348,7 +348,8 @@ fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec in
 - **impl 图 EntityNode.relatedIds 不含信号 SysGraph 节点**：`collectCalledCompositeIds()` 只收集
   `__composite_call__`，信号节点由独立 SignalDef accessory（which=14）覆盖（生成 GIA 已核实）。
 - 端到端业务 GIA（复合内发送 + 主图监听消费，`test_mixed`）：
-  `Beyond_Local_Export/gsts-signal-composite-demo.gia`，生成脚本 `.local/tmp/generate-signal-composite-demo.ts`。
+  `Beyond_Local_Export/gsts-signal-composite-demo.gia`，生成脚本
+  `.agents/skills/editor-incremental-gia-investigator/scripts/generate-signal-composite-demo.ts`。
   全链路已闭环（2026-08-03）：编辑器导入通过 → 注入 `1073741850.gil` 图 `1073741826`（16 节点）成功 →
   回读验证节点身份/信号注册表不变 → 用户游戏内确认信号触发与监听消费正常。
   注入前置：目标图不存在时先 `create-empty-node-graph.ts` 建空图占位（见 `gia-generation-chain.md`）。
