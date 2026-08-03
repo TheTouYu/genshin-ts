@@ -30,3 +30,5 @@ worktrees/
 
 # gsts 自动提取的游戏信号定义（每次注入时重新生成）
 src/resources/signals.ts
+# gsts 自动提取的游戏预定义资源（每次注入时从目标地图覆盖，变更不提交）
+src/resources/prefabs.ts
