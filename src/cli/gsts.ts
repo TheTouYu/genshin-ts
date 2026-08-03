@@ -31,6 +31,7 @@ import { detectLang, initCliI18n, type Lang } from '../i18n/index.js'
 import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import { runAssetsCustomVariables } from './assets_custom_variables.js'
+import { runAssetsEntities } from './assets_entities.js'
 import { runAssetsSignals } from './assets_signals.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
@@ -269,6 +270,7 @@ const ROOT_SUBCOMMANDS = new Set([
   'dev',
   'maps',
   'assets:static-assemblies',
+  'assets:entities',
   'assets:custom-variables',
   'open',
   'help'
@@ -1655,6 +1657,27 @@ async function main() {
       const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
       await runAssetsStaticAssemblies(args, { projectConfigPath })
     })
+
+  program
+    .command('assets:entities')
+    .description('export or import scene entities (root 5) of a GIL map')
+    .option('--entities <file>', 'entity import JSON (import only)')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--format <format>', 'output format: text or json')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup (import only)')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:entities')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      await runAssetsEntities(args, { projectConfigPath })
+    })
+
+
 
   program
     .command('assets:signals')

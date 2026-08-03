@@ -87,7 +87,7 @@ function color(filePath: string, field: string, value: unknown): GstsStaticColor
 function component(filePath: string, index: number, value: unknown): GstsStaticAssemblyComponent {
   const field = `components[${index}]`
   const source = object(filePath, field, value)
-  exactFields(filePath, field, source, ['type', 'preset'])
+  exactFields(filePath, field, source, ['type', 'preset', 'regionName', 'options'])
   if (source.type === 'followMotion') {
     if (source.preset !== 'fullFollow') fail(filePath, `${field}.preset`, 'must be fullFollow')
     return { type: 'followMotion', preset: 'fullFollow' }
@@ -96,7 +96,23 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
     if (source.preset !== 'default') fail(filePath, `${field}.preset`, 'must be default')
     return { type: 'basicMotion', preset: 'default' }
   }
-  fail(filePath, `${field}.type`, 'must be followMotion or basicMotion')
+  if (source.type === 'tabBar') {
+    if (source.preset !== undefined) fail(filePath, `${field}.preset`, 'must be omitted for tabBar')
+    if (typeof source.regionName !== 'string' || !source.regionName) {
+      fail(filePath, `${field}.regionName`, 'must be a non-empty string')
+    }
+    if (
+      !Array.isArray(source.options) ||
+      !source.options.length ||
+      source.options.some(
+        (option) => typeof option !== 'string' || !option || option.includes('\u0000')
+      )
+    ) {
+      fail(filePath, `${field}.options`, 'must be a non-empty array of non-empty strings')
+    }
+    return { type: 'tabBar', regionName: source.regionName, options: source.options as string[] }
+  }
+  fail(filePath, `${field}.type`, 'must be followMotion, basicMotion or tabBar')
 }
 
 function item(filePath: string, index: number, value: unknown): GstsStaticAssemblyItem {

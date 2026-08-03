@@ -157,6 +157,52 @@ function basicMotionComponent(): Uint8Array {
   )
 }
 
+function tabBarComponent(regionName: string, options: readonly string[]): Uint8Array {
+  const region = emit([
+    {
+      number: 11,
+      wire: 2,
+      value: emit([
+        { number: 1, wire: 2, value: new Uint8Array() },
+        {
+          number: 2,
+          wire: 2,
+          value: emit([
+            { number: 1, wire: 5, value: float32(1) },
+            { number: 2, wire: 5, value: float32(1) },
+            { number: 3, wire: 5, value: float32(1) }
+          ])
+        },
+        { number: 3, wire: 2, value: new Uint8Array() }
+      ])
+    },
+    { number: 502, wire: 2, value: TEXT.encode(regionName) },
+    { number: 503, wire: 0, value: 1 }
+  ])
+  const optionFields = options.map((option, index) => {
+    const ordinal = index + 1
+    return {
+      number: 2,
+      wire: 2,
+      value: emit([
+        { number: 1, wire: 0, value: ordinal },
+        { number: 2, wire: 2, value: TEXT.encode(option) },
+        { number: 3, wire: 0, value: 1 },
+        { number: 4, wire: 0, value: 1 },
+        { number: 5, wire: 0, value: 1 },
+        { number: 6, wire: 2, value: new Uint8Array() },
+        { number: 503, wire: 2, value: TEXT.encode(`${option}  序号: ${ordinal}`) },
+        { number: 504, wire: 0, value: 13 }
+      ])
+    } as WireField
+  })
+  return emit([
+    { number: 1, wire: 0, value: 17 },
+    { number: 2, wire: 0, value: 1 },
+    { number: 27, wire: 2, value: emit([{ number: 1, wire: 2, value: region }, ...optionFields]) }
+  ])
+}
+
 function componentSnapshot(component: GstsStaticAssemblyComponent): {
   typeCode: number
   bytes: Uint8Array
@@ -166,6 +212,9 @@ function componentSnapshot(component: GstsStaticAssemblyComponent): {
   }
   if (component.type === 'basicMotion' && component.preset === 'default') {
     return { typeCode: 18, bytes: basicMotionComponent() }
+  }
+  if (component.type === 'tabBar') {
+    return { typeCode: 17, bytes: tabBarComponent(component.regionName, component.options) }
   }
   throw new Error('[error] unsupported static assembly component')
 }

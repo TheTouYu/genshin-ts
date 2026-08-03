@@ -16,7 +16,8 @@ const valid = {
   color: { enabled: true, rgb: 0xff0000, opacity: 50, overlay: 'multiply' },
   components: [
     { type: 'followMotion', preset: 'fullFollow' },
-    { type: 'basicMotion', preset: 'default' }
+    { type: 'basicMotion', preset: 'default' },
+    { type: 'tabBar', regionName: '区域1', options: ['U', 'R', 'F'] }
   ],
   items: [
     {
@@ -107,6 +108,21 @@ rejects(
   'unknown component preset',
   { ...valid, components: [{ type: 'followMotion', preset: 'positionOnly' }] },
   /components\[0\]\.preset.*fullFollow/i
+)
+rejects(
+  'tabBar missing options',
+  { ...valid, components: [{ type: 'tabBar', regionName: '区域1' }] },
+  /components\[0\]\.options.*non-empty/i
+)
+rejects(
+  'tabBar empty option',
+  { ...valid, components: [{ type: 'tabBar', regionName: '区域1', options: ['U', ''] }] },
+  /components\[0\]\.options.*non-empty/i
+)
+rejects(
+  'tabBar unknown field',
+  { ...valid, components: [{ type: 'tabBar', regionName: '区域1', options: ['U'], preset: 'x' }] },
+  /components\[0\]\.preset.*omitted/i
 )
 rejects(
   'duplicate components',

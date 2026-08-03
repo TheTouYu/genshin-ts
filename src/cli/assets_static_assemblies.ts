@@ -20,10 +20,11 @@ import { applyStaticPrefabCategories } from './gil_static_prefab_categories.js'
 import { applyStaticPrefabUpdate } from './gil_static_prefab_updates.js'
 import { resolveStaticAssemblyStructure } from './static_assembly_structure.js'
 import { inspectStaticAssemblyMap } from './static_assembly/inspection.js'
+import { exportStaticAssemblies } from './static_assembly/export.js'
 import { prettyStableJson, sha256Bytes } from './static_assembly/json.js'
 import { createStaticAssemblyPlan } from './static_assembly/plan.js'
 
-type Command = 'preview' | 'inspect' | 'plan'
+type Command = 'preview' | 'inspect' | 'plan' | 'export'
 type Format = 'text' | 'json'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
@@ -31,7 +32,7 @@ function usage(exitCode = 1): never {
   const output = [
     t('staticAssembliesHelpSummary'),
     '',
-    'Usage: gsts assets:static-assemblies [inspect|plan] [options]',
+    'Usage: gsts assets:static-assemblies [inspect|plan|export] [options]',
     '',
     '  --asset-config <file>  static assembly asset configuration',
     '  --config <file>        deprecated alias for --asset-config',
@@ -73,7 +74,7 @@ function parseArgs(argv: readonly string[]) {
   let assembly: number | undefined
   let format: Format = 'text'
   let index = 0
-  if (argv[0] === 'inspect' || argv[0] === 'plan') {
+  if (argv[0] === 'inspect' || argv[0] === 'plan' || argv[0] === 'export') {
     command = argv[0]
     index++
   }
@@ -106,6 +107,9 @@ function parseArgs(argv: readonly string[]) {
   if (command !== 'preview' && write) throw new Error('[error] inspect and plan are read-only')
   if (command === 'plan' && !assetConfigPath && !legacyConfigPath) {
     throw new Error('[error] plan requires --asset-config <file>')
+  }
+  if (command === 'export' && !gilPath && mapId === undefined) {
+    throw new Error('[error] export requires --gil <file> or --map-id')
   }
   return {
     command,
@@ -319,6 +323,34 @@ async function runPreview(
   }
 }
 
+async function runExport(
+  args: ReturnType<typeof parseArgs>,
+  projectConfig: GstsConfig | undefined
+): Promise<void> {
+  const source = resolveGilPath(projectConfig, args)
+  const before = fs.statSync(source.path)
+  const bytes = new Uint8Array(fs.readFileSync(source.path))
+  const assemblies = exportStaticAssemblies(bytes)
+  const serialized = prettyStableJson({ schemaVersion: 1, assemblies })
+  if (args.outputPath) writeNew(args.outputPath, serialized)
+  if (args.format === 'json' || !args.outputPath) process.stdout.write(serialized)
+  else {
+    console.log(`exportedAssemblies=${assemblies.length}`)
+    for (const assembly of assemblies) {
+      console.log(
+        `assembly=${assembly.name} prefabId=${assembly.prefabId} ` +
+          `templateResourceId=${assembly.templateResourceId} items=${assembly.items.length} ` +
+          `components=${assembly.components.map((component) => component.type).join(',') || '-'}`
+      )
+    }
+    console.log('compatibility=not-proven; editorOrGameValidation=not-performed')
+  }
+  const after = fs.statSync(source.path)
+  if (before.mtimeMs !== after.mtimeMs || before.size !== after.size) {
+    throw new Error('[error] export source changed during read-only operation')
+  }
+}
+
 export async function runAssetsStaticAssemblies(
   argv: readonly string[] = process.argv.slice(2),
   rootContext: RootContext = {}
@@ -331,6 +363,7 @@ export async function runAssetsStaticAssemblies(
   }
   if (args.command === 'inspect') return runInspect(args, projectConfig)
   if (args.command === 'plan') return runPlan(args, projectConfig)
+  if (args.command === 'export') return runExport(args, projectConfig)
   return runPreview(args, projectConfig)
 }
 

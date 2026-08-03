@@ -149,4 +149,36 @@ assert.throws(
   /components.*duplicate/i
 )
 
+// 选项卡（code 17）：区域 + 选项列表。逐字节对照真实元件样本
+// “空模型_选项卡组件”（def 1077936180）的 313-byte 组件槽。
+const tabBarConfigured = applyStaticAssembly({
+  gilPath,
+  assembly: {
+    ...assembly(475),
+    components: [
+      {
+        type: 'tabBar',
+        regionName: '区域1',
+        options: ['U', 'R', 'F', 'D', 'L', 'B', '逆/顺时针切换']
+      }
+    ]
+  }
+})
+const tabBarDefinition = componentRecords(createdRecord(tabBarConfigured.bytes, 4, 475), 8)
+const tabBarInstance = componentRecords(createdRecord(tabBarConfigured.bytes, 8, 475), 7)
+const expectedTabBarHex =
+  '08111001da01b1020a245a150a00120f0d0000803f150000803f1d0000803f1a00b21f07e58cbae59f9f31' +
+  'b81f01121f08011201551801200128013200ba1f0c552020e5ba8fe58fb73a2031c01f0d' +
+  '121f08021201521801200128013200ba1f0c522020e5ba8fe58fb73a2032c01f0d' +
+  '121f08031201461801200128013200ba1f0c462020e5ba8fe58fb73a2033c01f0d' +
+  '121f08041201441801200128013200ba1f0c442020e5ba8fe58fb73a2034c01f0d' +
+  '121f080512014c1801200128013200ba1f0c4c2020e5ba8fe58fb73a2035c01f0d' +
+  '121f08061201421801200128013200ba1f0c422020e5ba8fe58fb73a2036c01f0d' +
+  '124308071213e980862fe9a1bae697b6e99288e58887e68da21801200128013200' +
+  'ba1f1ee980862fe9a1bae697b6e99288e58887e68da22020e5ba8fe58fb73a2037c01f0d'
+assert.equal(tabBarDefinition.length, 1)
+assert.equal(tabBarInstance.length, 1)
+assert.equal(Buffer.from(tabBarDefinition[0]).equals(Buffer.from(tabBarInstance[0])), true)
+assert.equal(Buffer.from(tabBarDefinition[0]).toString('hex'), expectedTabBarHex)
+
 console.log('static assembly component tests passed')
