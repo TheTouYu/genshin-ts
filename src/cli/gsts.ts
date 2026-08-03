@@ -32,6 +32,7 @@ import { injectGilFile } from '../injector/index.js'
 import { resolveGraphIdForGraph } from '../runtime/graph_defaults.js'
 import { runAssetsCustomVariables } from './assets_custom_variables.js'
 import { runAssetsEntities } from './assets_entities.js'
+import { runAssetsNodeGraphs } from './assets_node_graphs.js'
 import { runAssetsSignals } from './assets_signals.js'
 import { runAssetsStaticAssemblies } from './assets_static_assemblies.js'
 import { maybeCheckRemoteMarkdown } from './checks.js'
@@ -43,7 +44,7 @@ import {
   extractSignalsFromGil,
   readRegisteredSignalsFromGil
 } from './gil_signals.js'
-import { listMaps } from './maps.js'
+import { listMaps, renameMap, createMap } from './maps.js'
 import { getMapKey, loadState, saveState } from './state.js'
 import { createUi } from './ui.js'
 import { openAndSelect, openDir } from './windows_open.js'
@@ -1289,7 +1290,7 @@ async function runMaps(
   const resolved = resolveGilFolder(gil)
   const result = listMaps(
     resolved.saveLevelDir,
-    { includeHash: commandOptions.includeHash },
+    { includeHash: commandOptions.includeHash, includeName: true },
     { warn: (message) => console.error(`[warning] ${message}`) }
   )
   if (commandOptions.format === 'json') {
@@ -1299,8 +1300,39 @@ async function runMaps(
   ui.ok(`maps: ${resolved.saveLevelDir}`)
   for (const map of result.maps) {
     const prefix = map.recent ? ui.highlight('[recent]') : '        '
-    console.log(`${prefix} ${map.mapId}  ${new Date(map.modifiedAtMs).toLocaleString()}`)
+    const name = map.name ?? '(no name)'
+    console.log(`${prefix} ${map.mapId}  ${name}  ${new Date(map.modifiedAtMs).toLocaleString()}`)
   }
+}
+
+async function runMapsRename(
+  opts: GlobalOptions,
+  commandOptions: { mapId: string; name: string }
+) {
+  const loaded = await loadConfigOrNull(opts, 'project')
+  const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
+  const resolved = resolveGilFolder(gil)
+  const mapId = Number(commandOptions.mapId)
+  if (!Number.isSafeInteger(mapId) || mapId < 0) {
+    throw new Error(`[error] invalid map id: ${commandOptions.mapId}`)
+  }
+  const result = renameMap(resolved.saveLevelDir, mapId, commandOptions.name, {
+    warn: (message) => console.error(`[warning] ${message}`)
+  })
+  ui.ok(`renamed map ${result.mapId}: ${result.oldName ?? '(no name)'} -> ${result.newName}`)
+  console.log(`backup=${result.backupPath}`)
+  console.log(`written=${result.gilPath} size=${result.size} sha256=${result.sha256}`)
+}
+
+async function runMapsCreate(opts: GlobalOptions, commandOptions: { name: string }) {
+  const loaded = await loadConfigOrNull(opts, 'project')
+  const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
+  const resolved = resolveGilFolder(gil)
+  const result = createMap(resolved.saveLevelDir, commandOptions.name, {
+    warn: (message) => console.error(`[warning] ${message}`)
+  })
+  ui.ok(`created map ${result.mapId}: ${result.name}`)
+  console.log(`written=${result.gilPath} size=${result.size} sha256=${result.sha256}`)
 }
 
 async function runOpen(target: string | undefined, opts: GlobalOptions) {
@@ -1634,6 +1666,25 @@ async function main() {
     })
 
   program
+    .command('maps:rename')
+    .description(t('cmdMapsRename'))
+    .requiredOption('--map-id <id>', t('mapsOptMapId'))
+    .requiredOption('--name <name>', t('mapsOptName'))
+    .action(async (commandOptions: { mapId: string; name: string }) => {
+      const opts = program.opts<GlobalOptions>()
+      await runMapsRename(opts, commandOptions)
+    })
+
+  program
+    .command('maps:create')
+    .description(t('cmdMapsCreate'))
+    .requiredOption('--name <name>', t('mapsOptName'))
+    .action(async (commandOptions: { name: string }) => {
+      const opts = program.opts<GlobalOptions>()
+      await runMapsCreate(opts, commandOptions)
+    })
+
+  program
     .command('assets:static-assemblies')
     .description(t('cmdAssetsStaticAssemblies'))
     .option('--asset-config <file>', t('staticAssembliesOptConfig'))
@@ -1677,7 +1728,25 @@ async function main() {
       await runAssetsEntities(args, { projectConfigPath })
     })
 
-
+  program
+    .command('assets:node-graphs')
+    .description(t('cmdAssetsNodeGraphs'))
+    .option('--config <file>', 'project config (for --map-id resolution)')
+    .option('--gil <file>', 'explicit GIL source')
+    .option('--map-id <id>', 'target map ID (location only; requires project config)')
+    .option('--graph-id <id>', 'new NodeGraph ID (default: 1073741825)')
+    .option('--name <string>', 'new NodeGraph name (default: 新建节点图)')
+    .option('--output <file>', 'create output without overwriting')
+    .option('--write', 'write source GIL after backup')
+    .allowUnknownOption(true)
+    .allowExcessArguments(true)
+    .action(async () => {
+      const commandIndex = process.argv.indexOf('assets:node-graphs')
+      const args = process.argv.slice(commandIndex + 1).filter((arg) => arg !== '--')
+      const opts = program.opts<GlobalOptions>()
+      const projectConfigPath = opts.config ? path.resolve(opts.config) : undefined
+      await runAssetsNodeGraphs(args, { projectConfigPath })
+    })
 
   program
     .command('assets:signals')

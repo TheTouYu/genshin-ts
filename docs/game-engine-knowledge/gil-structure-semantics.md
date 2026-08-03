@@ -90,11 +90,39 @@ Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快�
 
 字段缺失、显式空 length-delimited 和显式 varint 必须分别记录。proto3 解码后的默认值不能证明字段在 wire 中存在。
 
+### 关卡图名字（root 2）
+
+`GIL.payload.2`（payload 第一个字段，tag `0x12` len `0x18`）为显式 length-delimited UTF-8 字符串，即编辑器 UI 中的关卡图名字。
+
+`CONFIRMED`（真实编辑器观察，map-name exp1 轮 2 + exp2 轮 3）：关卡图名字从 `未分类页签_存档_2` 改为 `未分类页签_存档_3` 时，全文件仅 1 处字符串，root 2 等长重写（24B），唯一字节差异 0x32→0x33（'2'→'3'），与 UI 完全一致；再改为 `A3` 时 root 2 缩为 4B（`1202 4133`，len 随名字 24→2），文件尺寸差 -22B 与 root 2 缩量完全吻合，短名（2B）下字段仍显式存在。单处存储，无 definition/instance 双写；root 46 会话标记 1 换 1（保存副作用，同组件各轮）。
+
+`INSUFFICIENT`：非等长改名/清空名字的形态；新图另存为时 root 2 的写入规则及与文件名的关系；正式字段名。
+
+### 新建地图骨架（root 1/34/39/40/41/43）
+
+编辑器新建空地图（map-name exp2 轮 4）产生极简骨架，仅 6 个顶层字段（payload 51B）：
+
+```text
+1  varint = 地图 ID（= 文件名数字，样本 1073741852）
+2  bytes  = 名字 UTF-8（同 root 2 规则）
+34 varint = 1（成熟地图无此字段）
+39 varint = 110170759（= BeyondLocal 目录号，存档/账号 ID）
+40 varint = 时间戳（样本 = 创建时刻 2026-08-03 19:59:36）
+41 varint = 1（成熟地图同为 1）
+```
+
+`CONFIRMED`（单样本）：新建地图文件含 root 1=ID/root 39=账号/root 40=创建时间戳，名字仍存于 root 2。
+
+首次保存（map-name exp2 轮 5，改名“新地图A4”）：root 1 与 root 34 **消失**（保存重写为完整格式时省略），root 43=`"6.7.0"` **首次保存时写入**，root 40 保持创建时间戳不变（两样本：1851 多轮保存 + 1852 首次保存），root 2 名字正常重写。
+
+`INSUFFICIENT`：root 34 语义；root 1 骨架标记的完整规则；首次保存写入的默认结构与成熟地图的差异。
+
 ## 当前已闭合的有限字段树
 
 ```text
 GIL file
 └── payload：GIL 自有根消息（正式 schema 未取得）
+    ├── 2：关卡图名字（UTF-8 字符串，payload 第一个字段；单处存储）
     ├── 4.1[*]：static assembly definition records
     ├── 5.1[*]：场景实体 records（两个锁定样本）
     │   ├── 5.1[*].2.1：所选元件 definition ID 引用（两个锁定样本）
