@@ -20,7 +20,8 @@ gsts -c gsts.config.ts maps --format json --include-hash
 gsts -c gsts.config.ts maps:rename --map-id <id> --name <new name>
 
 # Create a level map: writes a new-map skeleton .gil and registers it in .gip (ID = max existing + 1)
-gsts -c gsts.config.ts maps:create --name <name>
+# --graphs <name1,name2,...>: also create placeholder NodeGraphs (IDs auto-allocated from 1073741825)
+gsts -c gsts.config.ts maps:create --name <name> --graphs "mount-test,collision-module"
 
 # Inspect an explicit GIL without a project config
 gsts assets:static-assemblies inspect --gil source.gil --format json

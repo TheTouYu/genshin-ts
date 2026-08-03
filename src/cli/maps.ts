@@ -4,6 +4,7 @@ import path from 'node:path'
 
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { decodeUtf8, readGilPayloadFields } from './gil_extract_utils.js'
+import { buildEmptyNodeGraph, nextGraphId } from './assets_node_graphs.js'
 import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
 export type MapsResultV1 = {
@@ -267,6 +268,7 @@ export type CreateMapResult = {
   name: string
   size: number
   sha256: string
+  graphs: { graphId: number; name: string }[]
 }
 
 // 新建地图骨架（真实编辑器观察，map-name exp1 轮 4/5）：
@@ -274,12 +276,36 @@ export type CreateMapResult = {
 //   header：schema 1 / headTag 0x0326 / fileType 2 / tailTag 0x0679
 const FIRST_MAP_ID = 1073741825 // 图 ID 起点（gil-structure-semantics.md 自由新建节）
 
+// 最小 root 6：编辑器新图首次保存才有完整 records（33 条模板/元件目录）；
+// 占位节点图只需“未分类页签”聚合 record（#1=4，tab 含“未分类页签”），
+// buildEmptyNodeGraph 的 folder entry 挂载点；编辑器打开保存后自会补全其余 records
+function minimalFolderRoot6(): Uint8Array {
+  const rootTab = emitWireMessage([
+    { number: 1, wire: 2, value: new TextEncoder().encode('root') },
+    { number: 3, wire: 0, value: 1 }
+  ])
+  const tab = emitWireMessage([
+    { number: 1, wire: 2, value: new TextEncoder().encode('未分类页签') },
+    { number: 3, wire: 0, value: 2 }
+  ])
+  const record = emitWireMessage([
+    { number: 1, wire: 0, value: 4 },
+    { number: 2, wire: 2, value: rootTab },
+    { number: 3, wire: 2, value: tab }
+  ])
+  return emitWireMessage([{ number: 1, wire: 2, value: record }])
+}
+
 export function createMap(
   saveLevelDir: string,
   name: string,
-  dependencies: ListMapsDependencies = {}
+  dependencies: ListMapsDependencies & { graphs?: string[] } = {}
 ): CreateMapResult {
   const warn = dependencies.warn ?? (() => {})
+  const graphNames = dependencies.graphs ?? []
+  for (const graphName of graphNames) {
+    if (!graphName.trim()) throw new Error('[error] --graphs contains an empty name')
+  }
   const existing = listMaps(saveLevelDir, {}, dependencies).maps
   const nextId = existing.length
     ? Math.max(...existing.map((map) => map.mapId)) + 1
@@ -303,7 +329,26 @@ export function createMap(
     { number: 40, wire: 0, value: Math.floor(Date.now() / 1000) },
     { number: 41, wire: 0, value: 1 }
   ])
-  const file = buildFile(payload, { schema: 1, headTag: 0x0326, fileType: 2, tailTag: 0x0679 })
+  const header = { schema: 1, headTag: 0x0326, fileType: 2, tailTag: 0x0679 }
+  let file = buildFile(payload, header)
+
+  const graphs: CreateMapResult['graphs'] = []
+  if (graphNames.length > 0) {
+    // 骨架没有 root 6/10：先构造最小挂载容器，再逐个追加占位节点图
+    // 节点图 ID 自动分配：空地图从固定起始值 1073741825 起递增（nextGraphId），名字 = 传入名字
+    let nextPayload = emitWireMessage([
+      ...parseWireMessage(payload)!,
+      { number: 6, wire: 2, value: minimalFolderRoot6() },
+      { number: 10, wire: 2, value: emitWireMessage([{ number: 7, wire: 0, value: 1 }]) }
+    ])
+    for (const graphName of graphNames) {
+      const graphId = nextGraphId(nextPayload)
+      nextPayload = buildEmptyNodeGraph(nextPayload, graphId, graphName)
+      graphs.push({ graphId, name: graphName })
+    }
+    file = buildFile(nextPayload, header)
+  }
+
   fs.writeFileSync(gilPath, file)
   warn(`created=${gilPath}`)
   gipRegister(saveLevelDir, nextId, name, warn)
@@ -312,6 +357,7 @@ export function createMap(
     gilPath,
     name,
     size: file.length,
-    sha256: createHash('sha256').update(file).digest('hex')
+    sha256: createHash('sha256').update(file).digest('hex'),
+    graphs
   }
 }

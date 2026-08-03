@@ -20,7 +20,8 @@ gsts -c gsts.config.ts maps --format json --include-hash
 gsts -c gsts.config.ts maps:rename --map-id <id> --name <新名字>
 
 # 创建新关卡图：写新建骨架 .gil 并注册 .gip（ID = 现有最大 + 1）
-gsts -c gsts.config.ts maps:create --name <名字>
+# --graphs <名字1,名字2,...>：同时创建占位节点图（ID 自动分配：空地图从 1073741825 起递增）
+gsts -c gsts.config.ts maps:create --name <名字> --graphs "挂载测试,碰撞模块,浮空蓄力"
 
 # 直接检查一个 GIL，不需要项目配置
 gsts assets:static-assemblies inspect --gil source.gil --format json

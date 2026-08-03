@@ -12,6 +12,7 @@
   "cmdMapsCreate": "Create a new level map (new-file skeleton: ID/name/account/timestamp; writes a new .gil file)",
   "mapsOptMapId": "Target map ID (run `gsts maps` first)",
   "mapsOptName": "Level map name (UTF-8)",
+  "mapsOptGraphs": "Comma-separated placeholder NodeGraph names (IDs auto-allocated from 1073741825 on empty maps)",
   "cmdAssetsStaticAssemblies": "Inspect maps, create deterministic plans, or preview static prefab assembly",
   "cmdAssetsNodeGraphs": "Create an empty NodeGraph placeholder in a map GIL (for injector targeting)",
   "staticAssembliesHelpSummary": "Build new static custom prefabs from a template in the map and official base-model resources. Preview is the default; --write backs up before modifying the map.",

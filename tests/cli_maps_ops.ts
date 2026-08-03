@@ -79,16 +79,66 @@ const created2 = createMap(saveLevelDir, '第二张', { warn: () => {} })
 assert.equal(created2.mapId, created.mapId + 1)
 assert.equal(gipEntryCount(), 19, 'second gip entry appended')
 
+// --- createMap --graphs：名字列表 + ID 自动分配（空地图从 1073741825 起） ---
+const created3 = createMap(saveLevelDir, '带占位图', {
+  warn: () => {},
+  graphs: ['挂载测试', '碰撞模块', '浮空蓄力']
+})
+const g3 = created3.graphs
+assert.deepEqual(
+  g3.map((g) => [g.graphId, g.name]),
+  [
+    [1073741825, '挂载测试'],
+    [1073741826, '碰撞模块'],
+    [1073741827, '浮空蓄力']
+  ],
+  'empty map: graph ids start at 1073741825 with given names'
+)
+// root 10 含 3 个图 wrapper，root 6 的“未分类页签”tab 含 3 条 folder entry
+const g3Root = parseWireMessage(new Uint8Array(readFileSync(created3.gilPath)).slice(20, -4))!
+const g3Top10 = parseWireMessage(
+  (g3Root.find((f) => f.number === 10 && f.wire === 2)!.value as Uint8Array)
+)!
+assert.equal(g3Top10.filter((f) => f.number === 1 && f.wire === 2).length, 3, 'three graph wrappers')
+const g3Top6 = parseWireMessage(
+  (g3Root.find((f) => f.number === 6 && f.wire === 2)!.value as Uint8Array)
+)!
+const g3Folder = g3Top6
+  .filter((f) => f.number === 1 && f.wire === 2)
+  .map((f) => parseWireMessage(f.value as Uint8Array)!)
+  .find((inner) => inner.find((x) => x.number === 1 && x.wire === 0)?.value === 4)!
+const g3Tab = parseWireMessage(
+  (g3Folder.find((f) => f.number === 3 && f.wire === 2)!.value as Uint8Array)
+)!
+assert.equal(g3Tab.filter((f) => f.number === 5 && f.wire === 2).length, 3, 'three folder entries')
+// listMaps 可见新图
+assert.ok(
+  listMaps(saveLevelDir, { includeName: true }).maps.some(
+    (m) => m.mapId === created3.mapId && m.name === '带占位图'
+  )
+)
+
+// --- nextGraphId：对已有节点图的地图自动分配 max+1 ---
+const { nextGraphId } = await import('../src/cli/assets_node_graphs.js')
+assert.equal(nextGraphId(new Uint8Array(readFileSync(created3.gilPath)).slice(20, -4)), 1073741828, 'next after existing graphs')
+// 空 payload（无 root 10）→ 固定起始值
+assert.equal(nextGraphId(new Uint8Array(0)), 1073741825, 'empty payload uses fixed start')
+
 // --- listMaps includeName：能读出名字 ---
 const listed = listMaps(saveLevelDir, { includeName: true }, { now: () => Date.now() })
-assert.deepEqual(
-  listed.maps.map((m) => [m.mapId, m.name]),
-  [
-    [created2.mapId, '第二张'],
-    [created.mapId, '未分类页签_存档_测试']
-  ],
+const listedPairs = listed.maps.map((m) => [m.mapId, m.name] as const)
+for (const [mapId, name] of listedPairs) {
+  assert.equal(
+    listedPairs.filter(([id]) => id === mapId).length,
+    1,
+    `map ${mapId} listed once`
+  )
+}
+assert.ok(
+  listedPairs.some(([id, name]) => id === created.mapId && name === '未分类页签_存档_测试'),
   'listMaps reads root-2 names'
 )
+assert.ok(listedPairs.some(([id, name]) => id === created2.mapId && name === '第二张'))
 // 默认（不 includeName）不读文件内容
 let reads = 0
 listMaps(saveLevelDir, {}, {

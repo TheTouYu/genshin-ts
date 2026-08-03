@@ -1324,15 +1324,25 @@ async function runMapsRename(
   console.log(`written=${result.gilPath} size=${result.size} sha256=${result.sha256}`)
 }
 
-async function runMapsCreate(opts: GlobalOptions, commandOptions: { name: string }) {
+async function runMapsCreate(opts: GlobalOptions, commandOptions: { name: string; graphs?: string }) {
   const loaded = await loadConfigOrNull(opts, 'project')
   const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
   const resolved = resolveGilFolder(gil)
-  const result = createMap(resolved.saveLevelDir, commandOptions.name, {
-    warn: (message) => console.error(`[warning] ${message}`)
-  })
+  const result = createMap(
+    resolved.saveLevelDir,
+    commandOptions.name,
+    {
+      warn: (message) => console.error(`[warning] ${message}`),
+      graphs: commandOptions.graphs
+        ? commandOptions.graphs.split(',').map((n) => n.trim()).filter(Boolean)
+        : []
+    }
+  )
   ui.ok(`created map ${result.mapId}: ${result.name}`)
   console.log(`written=${result.gilPath} size=${result.size} sha256=${result.sha256}`)
+  for (const graph of result.graphs) {
+    console.log(`graph=${graph.graphId} name=${graph.name}`)
+  }
 }
 
 async function runOpen(target: string | undefined, opts: GlobalOptions) {
@@ -1679,7 +1689,8 @@ async function main() {
     .command('maps:create')
     .description(t('cmdMapsCreate'))
     .requiredOption('--name <name>', t('mapsOptName'))
-    .action(async (commandOptions: { name: string }) => {
+    .option('--graphs <names>', t('mapsOptGraphs'))
+    .action(async (commandOptions: { name: string; graphs?: string }) => {
       const opts = program.opts<GlobalOptions>()
       await runMapsCreate(opts, commandOptions)
     })
