@@ -348,14 +348,12 @@ assert.equal(
 const implData = dataInParams(implSend)
 assert.equal(
   implData.length,
-  SIGNAL_PARAM_COUNT - 1,
-  `impl send should expose ${SIGNAL_PARAM_COUNT - 1} physical data pins (entity captured), got ${implData.length}`
+  SIGNAL_PARAM_COUNT,
+  `impl send should expose ${SIGNAL_PARAM_COUNT} physical data pins (capture params keep physical pins, real GIL v14), got ${implData.length}`
 )
-const implIndexes = new Set(implData.map((p: any) => p.i1.index))
-assert.ok(
-  !implIndexes.has(ENTITY_PARAM_INDEX),
-  `impl send must not keep physical entity pin ${ENTITY_PARAM_INDEX}`
-)
+const implEntity = implData.find((p: any) => p.i1.index === ENTITY_PARAM_INDEX)
+assert.ok(implEntity, `impl send must keep physical entity pin ${ENTITY_PARAM_INDEX}`)
+assert.equal(implEntity.type, 1, 'impl entity physical type Entity')
 for (const pin of implData) {
   assert.equal(pin.compositePinIndex, 12 + pin.i1.index, `impl cpi for pin ${pin.i1.index}`)
 }
@@ -406,17 +404,33 @@ assert.equal(
   typeof monName?.value === 'string' ? monName.value : monName?.value?.bString?.val,
   SIGNAL_NAME
 )
-const monParamOuts = (mon.pins ?? [])
-  .filter((p: any) => p.i1?.kind === 4 && (p.i1?.index ?? 0) >= 3)
-  .sort((a: any, b: any) => a.i1.index - b.i1.index)
+const monParamOuts = (mon.pins ?? []).filter((p: any) => p.i1?.kind === 4)
 assert.equal(
   monParamOuts.length,
+  0,
+  `monitor must not persist param OutParams (real editor rule: consumers reference OutParam directly), got ${monParamOuts.length}`
+)
+// Real editor rule (signals.md + fixture monitor-consume-donor.gil): monitor nodes never
+// carry physical param OutPins; consumers wire OutParam kind/index on their own InParams.
+// Every param OutParam 3..3+COUNT-1 must be referenced by at least one consumer connect.
+const consumedIndexes = new Set<number>()
+for (const n of rootGraph.nodes ?? []) {
+  for (const p of n.pins ?? []) {
+    for (const c of p.connects ?? []) {
+      if (c.id === mon.nodeIndex && c.connect?.kind === 4) consumedIndexes.add(c.connect.index)
+    }
+  }
+}
+assert.equal(
+  consumedIndexes.size,
   SIGNAL_PARAM_COUNT,
-  `monitor should expose ${SIGNAL_PARAM_COUNT} param OutParams, got ${monParamOuts.length}`
+  `consumers must reference all ${SIGNAL_PARAM_COUNT} param OutParams, got ${consumedIndexes.size}`
 )
 for (let i = 0; i < SIGNAL_PARAM_COUNT; i++) {
-  assert.equal(monParamOuts[i].i1.index, 3 + i)
-  assert.equal(monParamOuts[i].compositePinIndex, 15 + 3 + i)
+  assert.ok(
+    consumedIndexes.has(3 + i),
+    `param OutParam[${3 + i}] must be consumed (real editor rule: not persisted on monitor)`
+  )
 }
 
 // --- SignalDef ParameterFlow types ---
@@ -446,11 +460,7 @@ for (let i = 0; i < SIGNAL_PARAM_COUNT; i++) {
 
 // Root/impl parity: same signal name, same param count in SignalDef, both send once
 assert.equal(rootData.length, SIGNAL_PARAM_COUNT, 'root physical pins = full schema')
-assert.equal(
-  implData.length + 1,
-  SIGNAL_PARAM_COUNT,
-  'impl physical + 1 capture entity = full schema'
-)
+assert.equal(implData.length, SIGNAL_PARAM_COUNT, 'impl physical = full schema (capture keeps physical pin)')
 
 console.log(
   [
@@ -458,7 +468,7 @@ console.log(
     `params=${SIGNAL_PARAM_COUNT}`,
     `types=${SIGNAL_PARAM_TYPES.join(',')}`,
     `rootSendPins=${rootData.length}`,
-    `implSendPins=${implData.length} (entity capture @${ENTITY_PARAM_INDEX})`,
+    `implSendPins=${implData.length} (capture entity pin @${ENTITY_PARAM_INDEX} kept)`,
     `monitorOuts=${monParamOuts.length}`,
     `output=${OUTPUT_PATH}`,
     `bytes=${bytes.length}`,

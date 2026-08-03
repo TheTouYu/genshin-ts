@@ -52,6 +52,18 @@ const COMPOSITE_NAME = 'P5W10_TwoSignal_Param_Matrix'
 const OrdinaryTypes = [
   'int', 'float', 'vec3', 'guid', 'bool', 'entity', 'prefab_id', 'config_id', 'str'
 ] as const
+// List VarType by element type (matches physical pin types in signal-param-matrix).
+const LIST_ELEMENT_VAR_TYPE: Record<string, number> = {
+  bool: 9,
+  int: 8,
+  float: 10,
+  str: 11,
+  vec3: 15,
+  guid: 7,
+  entity: 13,
+  prefab_id: 23,
+  config_id: 22
+}
 const ListTypes = [
   'config_id_list', 'prefab_id_list', 'entity_list', 'guid_list', 'bool_list',
   'vec3_list', 'str_list', 'float_list', 'int_list'
@@ -159,9 +171,9 @@ g.server({ name: 'P5W10-TwoSignal-Param-Matrix', id: GRAPH_ID })
 const previous = process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH
 process.env.GSTS_STAGE3_VENDOR_IMPL_GRAPH = '1'
 let bytes: Uint8Array
+const signalRegistry = createSignalRegistry(readRegisteredSignalsFromGil(GIL_PATH))
 try {
   const docs = buildServerGraphRegistriesIRDocuments({ defaultName: 'P5W10-TwoSignal-Param-Matrix' })
-  const signalRegistry = createSignalRegistry(readRegisteredSignalsFromGil(GIL_PATH))
   bytes = irToGia(docs.at(-1), {
     graphId: GRAPH_ID,
     name: 'P5W10-TwoSignal-Param-Matrix',
@@ -205,9 +217,13 @@ function assertParamType(label: string, typeName: string, encoded: any) {
     assert.equal(encoded.type1, 1)
     assert.equal(encoded.type2, 1)
   } else if (typeName.endsWith('_list')) {
+    // Element-aware List VarType (real GIL v14: config→22, prefab→23; physical pins
+    // and ParameterFlow share the same List VarType table).
+    const listVarType = LIST_ELEMENT_VAR_TYPE[typeName.slice(0, -5)]
+    assert.ok(listVarType, `${label} unknown list element ${typeName}`)
     assert.equal(encoded.class, 10002)
-    assert.equal(encoded.type1, 11)
-    assert.equal(encoded.type2, 11)
+    assert.equal(encoded.type1, listVarType, `${label} ${typeName} type1`)
+    assert.equal(encoded.type2, listVarType, `${label} ${typeName} type2`)
   } else {
     assert.notEqual(encoded.class, undefined)
   }
@@ -262,23 +278,50 @@ for (const testCase of SIGNAL_CASES) {
   for (const [where, node] of [['root', rootSends[0]], ['impl', implSends[0]]]) {
     assert.equal(node.signalVersion, 1, `${testCase.name} ${where} signalVersion`)
     const pins = dataPins(node)
-    assert.equal(pins.length, where === 'root' || testCase.name === ListSignalName ? 9 : 8,
-      `${testCase.name} ${where} physical data count`)
+    // Capture params keep physical pins (real GIL v14 list evidence; entity capture
+    // keeps a typed physical InParam too, see signal-param-matrix).
+    assert.equal(
+      pins.length,
+      9,
+      `${testCase.name} ${where} physical data count`
+    )
     for (const pin of pins) {
-      assert.equal(pin.compositePinIndex, 12 + pin.i1.index)
+      // compositePinIndex comes from the real registered definition (sendPinIndex),
+      // not the fallback 12+i layout.
+      const expectedCpi = signalRegistry.get(testCase.name)?.params[pin.i1.index]?.sendPinIndex
+      assert.ok(expectedCpi !== undefined, `${testCase.name} missing registered sendPinIndex for pin ${pin.i1.index}`)
+      assert.equal(pin.compositePinIndex, expectedCpi)
+      // Impl capture entity param keeps a typed physical pin without a wire value.
+      if (where === 'impl' && pin.type === 1 && pin.i1.index === 5) continue
       assertUsed(pin, `${testCase.name} ${where} 参数_${pin.i1.index + 1}`)
     }
   }
   const monitors = signalNodes(rootGraph, identity.monitor, testCase.name)
   assert.equal(monitors.length, 1, `${testCase.name} monitor count`)
-  const monitorParams = (monitors[0].pins ?? [])
-    .filter((p: any) => p.i1?.kind === 4 && p.i1.index >= 3)
-    .sort((a: any, b: any) => a.i1.index - b.i1.index)
-  assert.equal(monitorParams.length, 9, `${testCase.name} monitor parameter count`)
-  monitorParams.forEach((pin: any, i: number) => {
-    assert.equal(pin.i1.index, 3 + i)
-    assert.equal(pin.compositePinIndex, 18 + i)
-  })
+  // Real editor rule (signals.md + fixture monitor-consume-donor.gil): monitor nodes never
+  // persist param OutPins; consumers reference OutParam kind/index on their own InParams.
+  const monitorParams = (monitors[0].pins ?? []).filter((p: any) => p.i1?.kind === 4)
+  assert.equal(
+    monitorParams.length,
+    0,
+    `${testCase.name} monitor must not persist param OutParams (consumers reference them directly)`
+  )
+  const consumedIndexes = new Set<number>()
+  for (const n of rootGraph.nodes ?? []) {
+    for (const p of n.pins ?? []) {
+      for (const c of p.connects ?? []) {
+        if (c.id === monitors[0].nodeIndex && c.connect?.kind === 4) consumedIndexes.add(c.connect.index)
+      }
+    }
+  }
+  assert.equal(
+    consumedIndexes.size,
+    9,
+    `${testCase.name} consumers must reference all 9 param OutParams, got ${consumedIndexes.size}`
+  )
+  for (let i = 0; i < 9; i++) {
+    assert.ok(consumedIndexes.has(3 + i), `${testCase.name} param OutParam[${3 + i}] must be consumed`)
+  }
 }
 
 const implAccessories = accessories.filter((a: any) => a.which === 9)

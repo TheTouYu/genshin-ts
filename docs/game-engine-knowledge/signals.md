@@ -331,6 +331,28 @@ fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec in
 - 手工重放脚本只用于已由真实地图闭合的调查规则；生产 lowering 需另走 focused red/green regression。
 - 自动结构回读、真实地图写回、编辑器导入和游戏行为分别记录。
 
+## 复合 impl 图内信号节点（2026-08-03 测试断言对齐，无生产代码变更）
+
+自动回归 `tests/composite/test-stage3-p5w10-signal-param-matrix.ts`、`...-two-signal-param-matrix.ts`
+与 `...-special-arg-shared-adapter.ts` 对同一行为曾断言冲突，按真实证据裁决并修正测试：
+
+- **impl 内发送节点保留全部参数物理 pin**：含 capture 路由的复合输入参数（entity 或列表）也保留
+  类型化物理 InParam，`compositePins` 同时指向该物理 pin。证据：真实 GIL v14 的列表参数
+  （ConfigurationList=22 / PrefabList=23 / VectorList=15，见 `test-stage3-signal-supported-list-var-types.ts`）；
+  旧断言“capture 参数无物理 pin”被推翻。
+- **监听节点不落盘参数 OutParam**：真实 fixture `tests/fixtures/signals/monitor-consume-donor.gil`
+  的监听节点只有信号名 ClientExec pin；消费连接挂在目标 InParam 的 `connects` 上直接引用
+  OutParam kind/index（含 connect2 例外）。
+- **connect2 例外按键源 OutParam index**（6→3、9→4），与参数类型/定义序号无关；例外汇总见
+  `signal-production-red-lights.md`。
+- **impl 图 EntityNode.relatedIds 不含信号 SysGraph 节点**：`collectCalledCompositeIds()` 只收集
+  `__composite_call__`，信号节点由独立 SignalDef accessory（which=14）覆盖（生成 GIA 已核实）。
+- 端到端业务 GIA（复合内发送 + 主图监听消费，`test_mixed`）：
+  `Beyond_Local_Export/gsts-signal-composite-demo.gia`，生成脚本 `.local/tmp/generate-signal-composite-demo.ts`。
+  全链路已闭环（2026-08-03）：编辑器导入通过 → 注入 `1073741850.gil` 图 `1073741826`（16 节点）成功 →
+  回读验证节点身份/信号注册表不变 → 用户游戏内确认信号触发与监听消费正常。
+  注入前置：目标图不存在时先 `create-empty-node-graph.ts` 建空图占位（见 `gia-generation-chain.md`）。
+
 ## 尚未闭合
 
 - `entity` 发送参数的数据源连接；

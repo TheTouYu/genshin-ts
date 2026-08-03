@@ -8,7 +8,7 @@ const config: GstsConfig = {
     gameRegion: 'China',
     playerId: 110170759,
     mapId: 1073741850,
-    nodeGraphId: 1073741825
+    nodeGraphId: 1073741826
   }
 }
 
