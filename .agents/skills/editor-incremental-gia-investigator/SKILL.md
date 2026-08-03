@@ -223,6 +223,11 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 定点提取；protobuf 默认值不能证明 wire presence，需要区分“缺失”和“默认值”时补
 raw-wire 或 round-trip 断言。
 
+**重复字段必须按 occurrence 比较，不能按字段号去重**：列表容器（如铭牌配置的
+501、内容组的 512）以同字段号重复出现，按字段号建 dict 去重会把“列表追加一条”
+误判成“原记录被重置”（名牌 exp11 实测踩坑）。差分脚本输出 added/removed 时逐
+条带字段号，解码器遍历时保留重复 occurrence，不要用 `{field: record}` 字典折叠。
+
 ### 同步记录与多 ID 命名空间消歧
 
 一个编辑器单变化仍可能同步创建 definition、instance、owner registry、auxiliary 或派生索引。不要因 ID 与用户对象相等、相邻或首次出现，就直接决定哪一条记录代表编辑器对象。
