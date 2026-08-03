@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { decodeUtf8, readGilPayloadFields } from './gil_extract_utils.js'
-import { emitWireMessage, parseWireMessage } from './static_assembly/wire.js'
+import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
 export type MapsResultV1 = {
   schemaVersion: 1
@@ -83,6 +83,120 @@ function readMapName(gilPath: string, warn: (message: string) => void): string |
   }
 }
 
+// 地图注册表 Beyond_Local_Save_Player.gip（真实编辑器观察，map-name exp1 轮 6）：
+//   顶层 {1: 页签树, 2[*]: 地图条目{1:ID, 2:名字UTF-8, 3:时间戳秒}, 3: 最近地图, 4: 未知}
+//   页签树内“未分类页签”容器 {1:"未分类页签", 3:2, 5[*]: {1:1600, 2:图ID}}
+//   编辑器列表读 .gip，不扫描目录；新 .gil 不注册则列表不可见
+const GIP_FILENAME = 'Beyond_Local_Save_Player.gip'
+const GIP_FOLDER_TYPE = 1600 // “未分类页签” typeValue
+
+function gipPathOf(saveLevelDir: string): string {
+  return path.join(saveLevelDir, '..', GIP_FILENAME)
+}
+
+function readGipPayload(gipPath: string): Uint8Array {
+  const bytes = new Uint8Array(fs.readFileSync(gipPath))
+  return bytes.slice(20, -4)
+}
+
+function writeGip(gipPath: string, payload: Uint8Array) {
+  const bytes = new Uint8Array(fs.readFileSync(gipPath))
+  const header = {
+    schema: readUint32BE(bytes, 4),
+    headTag: readUint32BE(bytes, 8),
+    fileType: readUint32BE(bytes, 12),
+    tailTag: readUint32BE(bytes, bytes.length - 4)
+  }
+  fs.writeFileSync(gipPath, buildFile(payload, header))
+}
+
+function gipMapEntry(mapId: number, name: string, nowSec: number): WireField[] {
+  return [
+    { number: 1, wire: 0, value: mapId },
+    { number: 2, wire: 2, value: new TextEncoder().encode(name) },
+    { number: 3, wire: 0, value: nowSec }
+  ]
+}
+
+// 在“未分类页签”容器内追加 {5: {1:1600, 2:图ID}}
+function appendGipFolderLink(tabTree: WireField[], mapId: number): WireField[] {
+  return tabTree.map((tab) => {
+    if (tab.number !== 3 || tab.wire !== 2) return tab
+    const tabMsg = parseWireMessage(tab.value as Uint8Array)
+    if (!tabMsg || printableWireText(tabMsg.find((f) => f.number === 1 && f.wire === 2)?.value as Uint8Array) !== '未分类页签') {
+      return tab
+    }
+    const link = emitWireMessage([
+      { number: 1, wire: 0, value: GIP_FOLDER_TYPE },
+      { number: 2, wire: 0, value: mapId }
+    ])
+    return { ...tab, value: emitWireMessage([...tabMsg, { number: 5, wire: 2, value: link }]) }
+  })
+}
+
+// 注册新图到 .gip（追加顶层条目 + 页签链接）；.gip 不存在时跳过（warn）
+function gipRegister(
+  saveLevelDir: string,
+  mapId: number,
+  name: string,
+  warn: (message: string) => void
+): void {
+  const gipPath = gipPathOf(saveLevelDir)
+  if (!fs.existsSync(gipPath)) {
+    warn(`skip .gip register (missing): ${gipPath}`)
+    return
+  }
+  const root = parseWireMessage(readGipPayload(gipPath))
+  if (!root) throw new Error(`[error] malformed .gip payload: ${gipPath}`)
+  const updated = root.map((field) => {
+    if (field.number !== 1 || field.wire !== 2) return field
+    const tabTree = parseWireMessage(field.value as Uint8Array)
+    if (!tabTree) return field
+    return { ...field, value: emitWireMessage(appendGipFolderLink(tabTree, mapId)) }
+  })
+  const nowSec = Math.floor(Date.now() / 1000)
+  writeGip(gipPath, emitWireMessage([...updated, { number: 2, wire: 2, value: emitWireMessage(gipMapEntry(mapId, name, nowSec)) }]))
+}
+
+// 更新 .gip 中地图条目名字（编辑器列表同步显示新名）；.gip 不存在时跳过
+function gipRename(
+  saveLevelDir: string,
+  mapId: number,
+  newName: string,
+  warn: (message: string) => void
+): void {
+  const gipPath = gipPathOf(saveLevelDir)
+  if (!fs.existsSync(gipPath)) {
+    warn(`skip .gip rename (missing): ${gipPath}`)
+    return
+  }
+  const root = parseWireMessage(readGipPayload(gipPath))
+  if (!root) throw new Error(`[error] malformed .gip payload: ${gipPath}`)
+  let found = false
+  const updated = root.map((field) => {
+    if (field.number !== 2 || field.wire !== 2) return field
+    const entry = parseWireMessage(field.value as Uint8Array)
+    if (!entry) return field
+    const id = entry.find((f) => f.number === 1 && f.wire === 0)?.value
+    if (typeof id !== 'number' || id !== mapId) return field
+    found = true
+    return {
+      ...field,
+      value: emitWireMessage(
+        entry.map((f) =>
+          f.number === 2 && f.wire === 2
+            ? { ...f, value: new TextEncoder().encode(newName) }
+            : f
+        )
+      )
+    }
+  })
+  if (!found) {
+    warn(`map ${mapId} not registered in .gip; editor list may keep old name`)
+  }
+  writeGip(gipPath, emitWireMessage(updated))
+}
+
 export type RenameMapResult = {
   mapId: number
   gilPath: string
@@ -135,6 +249,7 @@ export function renameMap(
   fs.copyFileSync(gilPath, backupPath)
   fs.writeFileSync(gilPath, newFile)
   warn(`backup=${backupPath}`)
+  gipRename(saveLevelDir, mapId, newName, warn)
   return {
     mapId,
     gilPath,
@@ -191,6 +306,7 @@ export function createMap(
   const file = buildFile(payload, { schema: 1, headTag: 0x0326, fileType: 2, tailTag: 0x0679 })
   fs.writeFileSync(gilPath, file)
   warn(`created=${gilPath}`)
+  gipRegister(saveLevelDir, nextId, name, warn)
   return {
     mapId: nextId,
     gilPath,

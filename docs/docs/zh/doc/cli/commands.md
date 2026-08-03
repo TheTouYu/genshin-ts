@@ -4,6 +4,7 @@
 - `gsts dev`
 - `gsts inject`
 - `gsts maps`
+- `gsts maps:rename` / `gsts maps:create`
 - `gsts open map` / `gsts open backup`
 - `gsts assets:custom-variables`
 - `gsts assets:static-assemblies`
@@ -12,8 +13,14 @@
 ## 地图发现与静态元件拼装
 
 ```bash
-# 稳定、默认脱敏的地图 JSON；仅显式要求时计算文件哈希
+# 稳定、默认脱敏的地图 JSON；含关卡图名字（root 2），仅显式要求时计算文件哈希
 gsts -c gsts.config.ts maps --format json --include-hash
+
+# 重命名关卡图：改 .gil root 2 并同步 .gip 注册表名字，自动备份到 .gsts/backups
+gsts -c gsts.config.ts maps:rename --map-id <id> --name <新名字>
+
+# 创建新关卡图：写新建骨架 .gil 并注册 .gip（ID = 现有最大 + 1）
+gsts -c gsts.config.ts maps:create --name <名字>
 
 # 直接检查一个 GIL，不需要项目配置
 gsts assets:static-assemblies inspect --gil source.gil --format json

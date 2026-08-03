@@ -44,6 +44,8 @@ function getWslLocalLowDir(): string | undefined {
   const candidates = fs
     .readdirSync(usersRoot, { withFileTypes: true })
     .filter((d) => d.isDirectory())
+    // CodexSandbox* 是沙箱环境用户目录，不可能是真实游戏目录，排除以免干扰自动探测
+    .filter((d) => !d.name.toLowerCase().startsWith('codexsandbox'))
     .map((d) => path.join(usersRoot, d.name, 'AppData', 'LocalLow'))
     .filter((p) => existsDir(p))
 

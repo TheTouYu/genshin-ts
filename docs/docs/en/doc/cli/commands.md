@@ -4,6 +4,7 @@
 - `gsts dev`
 - `gsts inject`
 - `gsts maps`
+- `gsts maps:rename` / `gsts maps:create`
 - `gsts open map` / `gsts open backup`
 - `gsts assets:custom-variables`
 - `gsts assets:static-assemblies`
@@ -12,8 +13,14 @@
 ## Map discovery and static prefab assembly
 
 ```bash
-# Stable, privacy-safe map JSON; hashes are computed only when requested
+# Stable, privacy-safe map JSON; includes level map names (root 2); hashes only when requested
 gsts -c gsts.config.ts maps --format json --include-hash
+
+# Rename a level map: rewrites .gil root 2 and syncs the .gip registry name, backup to .gsts/backups
+gsts -c gsts.config.ts maps:rename --map-id <id> --name <new name>
+
+# Create a level map: writes a new-map skeleton .gil and registers it in .gip (ID = max existing + 1)
+gsts -c gsts.config.ts maps:create --name <name>
 
 # Inspect an explicit GIL without a project config
 gsts assets:static-assemblies inspect --gil source.gil --format json

@@ -6,13 +6,32 @@ import path from 'node:path'
 import { buildFile, decodeUtf8, readUint32BE } from '../src/injector/binary.js'
 import { readGilPayloadFields } from '../src/cli/gil_extract_utils.js'
 import { createMap, listMaps, renameMap } from '../src/cli/maps.js'
-import { emitWireMessage, parseWireMessage } from '../src/cli/static_assembly/wire.js'
+import { emitWireMessage, parseWireMessage, printableWireText } from '../src/cli/static_assembly/wire.js'
 
 // 临时目录：saveLevelDir = <tmp>/110170759/Beyond_Local_Save_Level（父目录名 = 账号 ID）
 const root = mkdtempSync(path.join(tmpdir(), 'gsts-maps-ops-'))
 const saveLevelDir = path.join(root, '110170759', 'Beyond_Local_Save_Level')
 mkdirSync(saveLevelDir, { recursive: true })
 const playerId = 110170759
+
+// 用真实编辑器 .gip 快照副本作为注册表基线（轮 6 捕获，含 17 张图）
+const gipPath = path.join(saveLevelDir, '..', 'Beyond_Local_Save_Player.gip')
+writeFileSync(gipPath, readFileSync('/home/h/genshin-ts-evidence/map-name/exp2/raw/player-before.gip'))
+const gipEntryCount = () =>
+  parseWireMessage(readGilPayloadFields(gipPath).payload)!.filter(
+    (f) => f.number === 2 && f.wire === 2
+  ).length
+const gipNameOf = (mapId: number) => {
+  const root = parseWireMessage(readGilPayloadFields(gipPath).payload)!
+  for (const f of root) {
+    if (f.number !== 2 || f.wire !== 2) continue
+    const entry = parseWireMessage(f.value as Uint8Array)!
+    if (entry.find((x) => x.number === 1 && x.wire === 0)?.value === mapId) {
+      return printableWireText(entry.find((x) => x.number === 2 && x.wire === 2)?.value as Uint8Array)
+    }
+  }
+  return undefined
+}
 
 function nameOf(gilPath: string): string | undefined {
   const { payload, fields } = readGilPayloadFields(gilPath)
@@ -41,10 +60,24 @@ assert.deepEqual(
   'new-map skeleton fields match editor-observed layout'
 )
 assert.equal(created.size, bytes.length)
+// .gip 注册：条目数 +1，名字正确
+assert.equal(gipEntryCount(), 18, 'gip entry appended')
+assert.equal(gipNameOf(created.mapId), '未分类页签_存档_测试', 'gip entry name')
+// 页签树“未分类页签”容器内地图链接 +1
+const gipLinks = () => {
+  const root = parseWireMessage(readGilPayloadFields(gipPath).payload)!
+  const tabs = root.find((f) => f.number === 1 && f.wire === 2)
+  const tabTree = parseWireMessage(tabs!.value as Uint8Array)!
+  const folder = tabTree.find((f) => f.number === 3 && f.wire === 2)
+  const folderMsg = parseWireMessage(folder!.value as Uint8Array)!
+  return folderMsg.filter((f) => f.number === 5 && f.wire === 2).length
+}
+assert.equal(gipLinks(), 18, 'folder link appended')
 
 // --- createMap：ID 递增（最大 +1） ---
 const created2 = createMap(saveLevelDir, '第二张', { warn: () => {} })
 assert.equal(created2.mapId, created.mapId + 1)
+assert.equal(gipEntryCount(), 19, 'second gip entry appended')
 
 // --- listMaps includeName：能读出名字 ---
 const listed = listMaps(saveLevelDir, { includeName: true }, { now: () => Date.now() })
@@ -86,6 +119,8 @@ assert.equal(backups.length, 1, 'one backup created')
 assert.equal(nameOf(path.join(saveLevelDir, '.gsts', 'backups', backups[0])), '未分类页签_存档_测试')
 // listMaps 反映新名字
 assert.equal(listMaps(saveLevelDir, { includeName: true }).maps.find((m) => m.mapId === created.mapId)!.name, '改名后A')
+// .gip 同步改名
+assert.equal(gipNameOf(created.mapId), '改名后A', 'gip name updated by rename')
 
 // --- renameMap：非法地图（无 root 2）报错 ---
 const fakeGil = path.join(saveLevelDir, '999999999.gil')

@@ -117,6 +117,26 @@ Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快�
 
 `INSUFFICIENT`：root 34 语义；root 1 骨架标记的完整规则；首次保存写入的默认结构与成熟地图的差异。
 
+### 地图注册表 Beyond_Local_Save_Player.gip
+
+编辑器地图列表读自玩家目录下的 `Beyond_Local_Save_Player.gip`（与 `Beyond_Local_Save_Level/` 平级，`110170759/Beyond_Local_Save_Player.gip`），**不扫描 .gil 目录**；未注册的 .gil 文件不出现在列表。
+
+header 与 .gil 同构（schema 1 / headTag 0x0326 / tailTag 0x0679），fileType = 1。顶层结构：
+
+```text
+1   bytes 221B  页签树：sub2={1:"root",3:1}；sub3={1:"未分类页签",3:2, 5[*]={1:1600,2:图ID}}
+2[*] bytes      地图条目：{1: 地图ID, 2: 名字 UTF-8, 3: 时间戳秒}
+3   varint      最近/当前地图 ID（新建时更新为新图）
+4   varint      未知（样本恒为 1073741835）
+```
+
+`CONFIRMED`（map-name exp1 轮 6/7，双快照 + 编辑器新建对照）：
+- 新图注册 = 顶层追加 field 2 条目 + “未分类页签”容器末尾追加 `{5:{1:1600,2:图ID}}`（1600 = 未分类页签 typeValue），field 3 更新为新图 ID
+- 改名同步：编辑器改 .gil root 2 时 .gip 条目名字同步更新（样本：1851=A3、1852=新地图A4）
+- 编辑器新建图时若发现未注册的最大 ID 文件（如我们创建的 70B 骨架），会直接接管并首次保存（骨架格式与编辑器原生兼容）
+
+`INSUFFICIENT`：field 4 语义；页签 typeValue 1600 的完整映射；多页签（非“未分类”）的注册路径。
+
 ## 当前已闭合的有限字段树
 
 ```text
