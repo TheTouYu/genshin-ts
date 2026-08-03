@@ -98,7 +98,8 @@ function findTopLevelMessageField(fields: LenField[], field: number): LenField |
 function mergeWrappedFieldMessages(
   existingWrappers: Uint8Array[],
   incomingInnerMessages: Uint8Array[],
-  getId: (bytes: Uint8Array) => number | undefined
+  getId: (bytes: Uint8Array) => number | undefined,
+  overwriteExisting = false
 ): Uint8Array[] {
   const ordered: Uint8Array[] = []
   const indexById = new Map<number, number>()
@@ -119,14 +120,17 @@ function mergeWrappedFieldMessages(
     const id = getId(inner)
     if (typeof id !== 'number') continue
     const existingIndex = indexById.get(id)
-    // Keep the GIL-side definition when ids collide: GIA signal accessories
-    // carry the registered signal id (sendId/monitorId), so overwriting here
-    // clobbers the game-managed signal registration and breaks signal routing
-    // (real-game failure 2026-07-31, verified by inject->re-read test).
-    if (existingIndex !== undefined) continue
-    const wrapper = encodeMessageField(1, inner)
-    indexById.set(id, ordered.length)
-    ordered.push(wrapper)
+    if (existingIndex === undefined) {
+      const wrapper = encodeMessageField(1, inner)
+      indexById.set(id, ordered.length)
+      ordered.push(wrapper)
+    } else if (overwriteExisting) {
+      // Replace the GIL-side definition in place: composite implementations must
+      // be updatable across builds (same id, new internals). Callers pass only
+      // non-signal accessories (filtered via isSignalDefinitionAccessory), so
+      // game-managed signal registrations are never touched here.
+      ordered[existingIndex] = encodeMessageField(1, inner)
+    }
   }
 
   return [...ordered, ...anonymous]
@@ -326,7 +330,9 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
             id?: { genericId?: { id?: unknown }; concreteId?: { id?: unknown } }
           }
           return toFiniteNumber(def.id?.genericId?.id) ?? toFiniteNumber(def.id?.concreteId?.id)
-        }
+        },
+        // incoming 已过滤信号定义 accessories，普通复合实现需支持同 id 覆盖
+        true
       )
       const nextImplGraphWrappers = mergeWrappedFieldMessages(
         readFieldMessages(top10Bytes, 4),
@@ -334,7 +340,8 @@ export function createInjector(options?: { protoPath?: string; lang?: string }):
         (bytes) => {
           const graph = proto.nodeGraphMessage.decode(bytes) as { id?: { id?: unknown } }
           return toFiniteNumber(graph.id?.id)
-        }
+        },
+        true
       )
 
       const rebuiltTop10Parts: Uint8Array[] = []
