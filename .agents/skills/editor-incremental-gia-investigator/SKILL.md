@@ -49,6 +49,11 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | -------------------------------------------- | ---------------------------------------- |
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
 | 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
+| 新建节点图 / 用生产 irToGia 生成 GIA 资产、GIA 字节对比与可复现性 | `references/node-graph-logic/node-graph-creation.md` |
+
+新建节点图或生成 GIA 资产时，先读 `node-graph-creation.md` 再动手：它记录 root 10 双层
+包装与 root 6 folder 条目的 wire 结构、生产链路脚本、以及 vendor 坐标抖动导致的 GIA
+字节不可复现边界——避免重新踩“少包一层解码报错”“逐字节对比失败误当 bug”等坑。
 
 模块记录领域恢复字段、专项断言和比较入口，不复制通用安全规则或整份领域知识。新增模块应等规则和重复流程稳定后再建，不为尚无复用价值的单例预先搭架子。
 

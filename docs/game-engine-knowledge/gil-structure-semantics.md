@@ -195,6 +195,32 @@ connections: 6
 
 `INSUFFICIENT`：root `6/10` 的正式消息名和完整 schema、节点 ID `71` 的跨版本稳定性、隐式定义 pin、节点位置规则以及其他节点族。保存的位置只属于本轮编辑器落点，不是默认常量。
 
+#### 新建空 NodeGraph 的可生成 wire 结构（2026-08-02 生产写回验证）
+
+依据上述相邻快照 + `tools/list-gil-node-graphs.ts`（`nodeGraphBlobFields` 收集 `10.1.1`）
+proto 解码回读，可生成与编辑器原生空图逐字段同构的记录（生成工具：
+`.local/tmp/create-empty-node-graph.ts`，已在新地图 `1073741850.gil` 真实写回并
+被注入器识别）：
+
+```text
+root 10 新增一条 field 1 记录（编码后 40B，value 38B）：
+  记录 value = {1: NodeGraph}                     # 双层包装，勿只包一层
+  NodeGraph  = {1: Id, 2: name, 3: nodes...}      # 空图无 field 3
+  Id         = {1: class=10000, 2: type=20000, 3: kind=21001, 5: id=图ID}
+
+root 6 重写“未分类页签”聚合 record（顶层 #1=4）：
+  其 field 3 容器内追加一条 #5 = {1: typeValue=800, 2: 图ID}
+  # typeValue 800 对应 server 图 20000（DEFAULT_GRAPH_TYPE_VALUES）
+
+图 ID 起点：1073741825（地图内首个图；1849/1850 均如此）
+```
+
+`CONFIRMED`（生产链路层级）：生成后 proto 解码回读 `id=1073741825 / type=20000 /
+nodeCount=0`；注入器 `findFolderEntryField`（root 6 条目）→ 目标图不存在时 append
+新 wrapper 的“创建新图”路径可用；游戏内图正常显示。`INSUFFICIENT`：其他图类型
+（client 20002 等）的 folder typeValue、root 46 同步变化，以及新图 ID 的编辑器分配
+规则（新地图首个图 ID 未在编辑器原生创建中独立采样，1073741825 是推断）。
+
 ### 自由修改
 
 对节点图 `1073741845` 做两次连续名称修改，最终将名称缩短为 `A`。受独立 Validator 接受的 raw-wire 路径为：
