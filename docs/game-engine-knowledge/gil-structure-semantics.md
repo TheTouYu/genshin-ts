@@ -129,12 +129,12 @@ GIL file
 
 | 路径         | 当前含义                                                                   | 边界                                                          |
 | ------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `4.1[*]`     | definition records；两个新增默认元件的 definition ID 等于用户看到的元件 ID | reader 边界 + 两个同类型默认元件样本；不是完整资源消息 schema |
+| `4.1[*]`     | definition records；两个新增默认元件的 definition ID 等于用户看到的元件 ID；`4.1[*].f8` 系列为组件配置列表（与 instance 侧 f7 双写一致，见 [components.md](components.md)） | reader 边界 + 铭牌元件 14 轮相邻快照；不是完整资源消息 schema |
 | `5.1[*]`     | 两个新增场景实体 records；另一个既有 record 内承载当前关卡变量列表                 | 场景实体只确认两个箭头指示牌样本；变量只确认本批 bool/int；root field `5` 正式消息名未知 |
 | `5.1[*].2.1` | 场景实体对所选元件 definition ID 的 varint 引用                            | 只确认上述两个场景实体样本；正式字段名未知                    |
 | `6`          | owner/registry 容器                                                        | 当前只闭合 owner ID；不同操作登记不同一侧的记录 ID            |
 | `18.1[*]`   | 当前限定样本中的自定义镜头 records                                   | 两次默认创建与目标 record 属性修改；正式 schema 未知 |
-| `8.1[*]`     | instance records；创建上述元件时同步新增并回指 definition                  | reader 边界 + 两个同类型默认元件样本                          |
+| `8.1[*]`     | instance records；创建上述元件时同步新增并回指 definition；`8.1[*].f7` 系列为组件配置列表（与 definition 侧 f8 双写一致，见 [components.md](components.md)） | reader 边界 + 铭牌元件 14 轮相邻快照                        |
 | `27.1[*]`    | definition-side auxiliaries                                                | 完整 auxiliary record schema 未知                             |
 | `27.2[*]`    | instance-side auxiliaries                                                  | 完整 auxiliary record schema 未知                             |
 
@@ -199,7 +199,7 @@ connections: 6
 
 依据上述相邻快照 + `tools/list-gil-node-graphs.ts`（`nodeGraphBlobFields` 收集 `10.1.1`）
 proto 解码回读，可生成与编辑器原生空图逐字段同构的记录（生成工具：
-`.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts`，已在新地图 `1073741850.gil` 真实写回并
+`gsts assets:node-graphs create`（正式命令，由原 skill 脚本迁移，输出逐字节一致），已在新地图 `1073741850.gil` 真实写回并
 被注入器识别）：
 
 ```text
