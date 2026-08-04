@@ -1,6 +1,6 @@
-import { CompositeDefIR } from '../../runtime/IR'
+import type { CompositeDefIR } from '../../runtime/IR.js'
 import { isConnectionArgument } from './node_id.js'
-import { IRNode, NodeId, Position } from './types.js'
+import type { IRNode, NodeId, Position } from './types.js'
 
 type LayoutConfig = {
   columnWidth: number
@@ -175,50 +175,6 @@ function updateEventHeight(
   }
 }
 
-/**
- * Compute the aggregate extra vertical space needed for data chains
- * in the exec subtree rooted at `nodeId`. Direct data inputs and longer
- * data ancestors add conservative allowance below their exec consumer.
- */
-function computeSubtreeDataExtraHeight(
-  nodeId: NodeId,
-  dataBlockHeightMap: Map<NodeId, number>,
-  execChildrenMap: Map<NodeId, NodeId[]>,
-  memo: Map<NodeId, number>,
-  visiting = new Set<NodeId>()
-): number {
-  const cached = memo.get(nodeId)
-  if (cached !== undefined) return cached
-  if (visiting.has(nodeId)) return 0
-
-  visiting.add(nodeId)
-  let total = dataBlockHeightMap.get(nodeId) ?? 0
-
-  for (const child of execChildrenMap.get(nodeId) ?? []) {
-    total += computeSubtreeDataExtraHeight(
-      child,
-      dataBlockHeightMap,
-      execChildrenMap,
-      memo,
-      visiting
-    )
-  }
-
-  visiting.delete(nodeId)
-  memo.set(nodeId, total)
-  return total
-}
-
-/**
- * Layout one exec node and all its descendants using block-height-aware
- * branch placement.  Returns the maximum Y coordinate occupied by the
- * subtree rooted at `nodeId`.
- *
- * Sibling branches are positioned below the previous sibling's subtree
- * block-bottom plus a context-dependent visual buffer, instead of using
- * a fixed per-index branch gap.  This matches the Round 8 requirement:
- * exec fan-out lanes are driven by semantic block height.
- */
 function layoutExecutionChain(
   nodeId: NodeId,
   depth: number,
@@ -227,13 +183,9 @@ function layoutExecutionChain(
   laneOffset: number,
   execChildrenMap: Map<NodeId, NodeId[]>,
   state: ReturnType<typeof createLayoutState>,
-  config: LayoutConfig,
-  dataBlockHeightMap: Map<NodeId, number>,
-  dataExtraHeightMemo: Map<NodeId, number>,
-  minFirstChildLaneOffset?: number
-): number {
-  const existingPos = state.positions.get(nodeId)
-  if (existingPos) return existingPos[1] + config.rowHeight
+  config: LayoutConfig
+) {
+  if (state.positions.has(nodeId)) return
 
   const row = Math.floor(depth / config.maxColumns)
   const column = depth % config.maxColumns
@@ -249,87 +201,20 @@ function layoutExecutionChain(
 
   state.unplacedNodes.delete(nodeId)
 
-  // Default subtree bottom: this node plus one row height
-  let subtreeMaxY = y + config.rowHeight
-
   const children = execChildrenMap.get(nodeId) ?? []
-  if (children.length === 0) return subtreeMaxY
-
-  // --- Determine spacing intent ---
-  // Main swim lanes (depth 0 = direct children of event) use wide spacing
-  // Multi-outlet columns (>3 children, not at root level) use tight spacing
-  // Normal forks (2-3 children, not at root level) use medium spacing
-  const isRootSwimLane = depth === 0
-  let branchBaseSpacing: number
-  if (isRootSwimLane) {
-    branchBaseSpacing = 480
-  } else if (children.length > 3) {
-    branchBaseSpacing = 350
-  } else {
-    branchBaseSpacing = 400
-  }
-
-  // --- First child: place on the main lane ---
-  const child0MaxY = layoutExecutionChain(
-    children[0],
-    depth + 1,
-    baseY,
-    eventIndex,
-    Math.max(actualLaneOffset, minFirstChildLaneOffset ?? actualLaneOffset),
-    execChildrenMap,
-    state,
-    config,
-    dataBlockHeightMap,
-    dataExtraHeightMemo
-  )
-  subtreeMaxY = Math.max(subtreeMaxY, child0MaxY)
-
-  // --- Subsequent children: position below previous sibling's block ---
-  let prevSubtreeMaxY = child0MaxY
-
-  for (let idx = 1; idx < children.length; idx++) {
-    const prevChildId = children[idx - 1]
-
-    // Extra vertical allowance for data chains of the previous sibling
-    const extraDataHeight = computeSubtreeDataExtraHeight(
-      prevChildId,
-      dataBlockHeightMap,
-      execChildrenMap,
-      dataExtraHeightMemo
-    )
-
-    // Root event lanes are independent swimlanes: their direct children should not
-    // be pushed below the whole nested subtree of the previous root child.
-    // Nested siblings still use block-bottom placement to avoid local data-heavy blocks.
-    const dataLanePadding = Math.min(1100, Math.round(extraDataHeight * 0.35))
-    const prevLaneBottom = prevSubtreeMaxY - (baseY + row * config.wrapHeight)
-    const prevChildHasExecChildren = (execChildrenMap.get(prevChildId)?.length ?? 0) > 0
-    const rootLanePadding = prevChildHasExecChildren ? 380 : dataLanePadding + 120
-    const newLaneOffset = isRootSwimLane
-      ? Math.max(actualLaneOffset + idx * branchBaseSpacing, prevLaneBottom + rootLanePadding)
-      : Math.max(actualLaneOffset, prevLaneBottom + branchBaseSpacing + dataLanePadding)
-
-    const childFirstLaneOffset = isRootSwimLane ? newLaneOffset : undefined
-
-    const childMaxY = layoutExecutionChain(
-      children[idx],
+  const branchGap = Math.trunc(config.rowHeight * 0.6)
+  children.forEach((child, idx) =>
+    layoutExecutionChain(
+      child,
       depth + 1,
       baseY,
       eventIndex,
-      newLaneOffset,
+      actualLaneOffset + idx * branchGap,
       execChildrenMap,
       state,
-      config,
-      dataBlockHeightMap,
-      dataExtraHeightMemo,
-      childFirstLaneOffset
+      config
     )
-
-    subtreeMaxY = Math.max(subtreeMaxY, childMaxY)
-    prevSubtreeMaxY = childMaxY
-  }
-
-  return subtreeMaxY
+  )
 }
 
 function placeDataNearConsumers(
@@ -352,10 +237,9 @@ function placeDataNearConsumers(
     const [cx, cy] = position
     const stackCount = state.consumerStackCount.get(placedConsumer) ?? 0
     const isExecConsumer = execNodes.has(placedConsumer)
+    const y = isExecConsumer ? cy + (stackCount + 1) * 250 : cy + stackCount * 250
 
-    // 数据节点初放在消费者左下方；后续 expandExecGapsForDataChains 会按整条数据链重新锚定。
-    const y = isExecConsumer ? cy + (stackCount + 1) * 230 : cy + stackCount * 230
-    state.positions.set(nodeId, [cx - 450, y])
+    state.positions.set(nodeId, [cx - 300, y])
     state.consumerStackCount.set(placedConsumer, stackCount + 1)
 
     const eventIndex = state.nodeToEventIndex.get(placedConsumer) ?? 0
@@ -368,502 +252,6 @@ function placeDataNearConsumers(
 
   toDelete.forEach((id) => state.unplacedNodes.delete(id))
   return placedAny
-}
-
-function shiftExecChainFrom(
-  startId: NodeId,
-  deltaX: number,
-  execChildrenMap: Map<NodeId, NodeId[]>,
-  state: ReturnType<typeof createLayoutState>,
-  visited = new Set<NodeId>()
-) {
-  if (deltaX <= 0 || visited.has(startId)) return
-  visited.add(startId)
-
-  const pos = state.positions.get(startId)
-  if (pos) {
-    state.positions.set(startId, [pos[0] + deltaX, pos[1]])
-  }
-
-  for (const child of execChildrenMap.get(startId) ?? []) {
-    shiftExecChainFrom(child, deltaX, execChildrenMap, state, visited)
-  }
-}
-
-function shiftExecChainYFrom(
-  startId: NodeId,
-  deltaY: number,
-  execChildrenMap: Map<NodeId, NodeId[]>,
-  state: ReturnType<typeof createLayoutState>,
-  visited = new Set<NodeId>()
-) {
-  if (deltaY <= 0 || visited.has(startId)) return
-  visited.add(startId)
-
-  const pos = state.positions.get(startId)
-  if (pos) {
-    const nextY = pos[1] + deltaY
-    state.positions.set(startId, [pos[0], nextY])
-    const eventIndex = state.nodeToEventIndex.get(startId)
-    if (eventIndex !== undefined) updateEventHeight(state, eventIndex, nextY)
-  }
-
-  for (const child of execChildrenMap.get(startId) ?? []) {
-    shiftExecChainYFrom(child, deltaY, execChildrenMap, state, visited)
-  }
-}
-
-function shiftDataChainFrom(
-  startId: NodeId,
-  deltaX: number,
-  dataChildrenMap: Map<NodeId, NodeId[]>,
-  execNodes: Set<NodeId>,
-  state: ReturnType<typeof createLayoutState>,
-  visited = new Set<NodeId>()
-) {
-  if (deltaX <= 0 || visited.has(startId) || execNodes.has(startId)) return
-  visited.add(startId)
-
-  const pos = state.positions.get(startId)
-  if (pos) {
-    state.positions.set(startId, [pos[0] + deltaX, pos[1]])
-  }
-
-  for (const child of dataChildrenMap.get(startId) ?? []) {
-    shiftDataChainFrom(child, deltaX, dataChildrenMap, execNodes, state, visited)
-  }
-}
-
-function collectDataAncestors(
-  nodeId: NodeId,
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  result = new Set<NodeId>(),
-  traversalStopNodes = new Set<NodeId>()
-): Set<NodeId> {
-  for (const parent of dataParentsMap.get(nodeId) ?? []) {
-    if (result.has(parent)) continue
-    result.add(parent)
-    if (traversalStopNodes.has(parent)) continue
-    collectDataAncestors(parent, dataParentsMap, result, traversalStopNodes)
-  }
-  return result
-}
-
-function compositeDefIdFromCall(node: IRNode): number | undefined {
-  if (node.type !== '__composite_call__') return undefined
-  const firstArg = node.args?.[0]
-  if (!firstArg || firstArg.type === 'conn') return undefined
-  return Number(firstArg.value)
-}
-
-function compositeCallPinCount(
-  node: IRNode,
-  compositeDefById: Map<number, CompositeDefIR>
-): number {
-  if (node.type !== '__composite_call__') return 0
-
-  const compositeId = compositeDefIdFromCall(node)
-  const def = compositeId === undefined ? undefined : compositeDefById.get(compositeId)
-  const inputCount = def?.inputs.length ?? Math.max(0, (node.args?.length ?? 1) - 1)
-  const outputCount = def?.outputs.length ?? 0
-  return inputCount + outputCount
-}
-
-function estimateDataNodeVisualExtra(
-  node: IRNode,
-  compositeDefById: Map<number, CompositeDefIR>
-): number {
-  const pinCount = compositeCallPinCount(node, compositeDefById)
-
-  // Composite calls with many visible input/output pins occupy a taller card than a
-  // regular data node.  Reserve additional vertical space for the exec branch below
-  // their consumer so a large composite data node does not overlap the next branch.
-  return Math.max(0, pinCount - 2) * 140
-}
-
-function estimateDataNodeHorizontalExtra(
-  node: IRNode,
-  compositeDefById: Map<number, CompositeDefIR>
-): number {
-  const pinCount = compositeCallPinCount(node, compositeDefById)
-
-  // Wide composite calls with many visible pins can reach into their consumer's
-  // column.  Add horizontal clearance before the consumer exec node, separate from
-  // vertical block-height padding.
-  return Math.max(0, pinCount - 2) * 55
-}
-
-function computeDataDepths(
-  dataIds: NodeId[],
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  dataIdSet: Set<NodeId>
-): Map<NodeId, number> {
-  const memo = new Map<NodeId, number>()
-  const visit = (id: NodeId): number => {
-    const cached = memo.get(id)
-    if (cached !== undefined) return cached
-    const parents = (dataParentsMap.get(id) ?? []).filter((parent) => dataIdSet.has(parent))
-    const depth = parents.length === 0 ? 0 : Math.max(...parents.map((parent) => visit(parent))) + 1
-    memo.set(id, depth)
-    return depth
-  }
-  dataIds.forEach((id) => visit(id))
-  return memo
-}
-
-function buildExecParentsMap(execChildrenMap: Map<NodeId, NodeId[]>): Map<NodeId, NodeId[]> {
-  const parents = new Map<NodeId, NodeId[]>()
-  for (const [from, children] of execChildrenMap) {
-    for (const child of children) {
-      const list = parents.get(child) ?? []
-      list.push(from)
-      parents.set(child, list)
-    }
-  }
-  return parents
-}
-
-function buildDataChildrenMap(dataParentsMap: Map<NodeId, NodeId[]>): Map<NodeId, NodeId[]> {
-  const children = new Map<NodeId, NodeId[]>()
-  for (const [child, parents] of dataParentsMap) {
-    for (const parent of parents) {
-      const list = children.get(parent) ?? []
-      list.push(child)
-      children.set(parent, list)
-    }
-  }
-  return children
-}
-
-function hasDataChildWithin(
-  nodeId: NodeId,
-  dataChildrenMap: Map<NodeId, NodeId[]>,
-  candidateSet: Set<NodeId>,
-  execNodes: Set<NodeId>
-): boolean {
-  for (const child of dataChildrenMap.get(nodeId) ?? []) {
-    if (execNodes.has(child)) continue
-    if (candidateSet.has(child)) return true
-  }
-  return false
-}
-
-function hasEarlierExecConsumer(
-  nodeId: NodeId,
-  currentConsumerId: NodeId,
-  dataChildrenMap: Map<NodeId, NodeId[]>,
-  execNodes: Set<NodeId>,
-  state: ReturnType<typeof createLayoutState>
-): boolean {
-  const currentPos = state.positions.get(currentConsumerId)
-  if (!currentPos) return false
-
-  for (const child of dataChildrenMap.get(nodeId) ?? []) {
-    if (child === currentConsumerId || !execNodes.has(child)) continue
-    const childPos = state.positions.get(child)
-    if (childPos && (childPos[0] < currentPos[0] || childPos[1] < currentPos[1])) return true
-  }
-  return false
-}
-
-function expandExecGapsForDataChains(
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  execChildrenMap: Map<NodeId, NodeId[]>,
-  execNodes: Set<NodeId>,
-  state: ReturnType<typeof createLayoutState>,
-  config: LayoutConfig,
-  nodeById: Map<NodeId, IRNode>,
-  compositeDefById: Map<number, CompositeDefIR>
-) {
-  // 这些经验值来自真实正样本「主图布局1.gia」：
-  // - 数据链通常在消费者下方约 190-230px。
-  // - 最后一个数据节点到消费者左侧约 440-470px。
-  // - 2/3 个数据节点时，执行节点间距约为 1200/1600px。
-  const dataYBelowConsumer = 190
-  const dataNodeStepX = 450
-  const dataNodeStepY = 175
-  const extraExecGapPerAdditionalDataNode = 400
-  const extraGapPerAdditionalInput = 260
-  const execParentsMap = buildExecParentsMap(execChildrenMap)
-  const dataChildrenMap = buildDataChildrenMap(dataParentsMap)
-
-  for (const consumerId of execNodes) {
-    const consumerPos = state.positions.get(consumerId)
-    if (!consumerPos) continue
-
-    const directDataInputs = (dataParentsMap.get(consumerId) ?? []).filter((id) =>
-      state.positions.has(id)
-    )
-    const ownedDirectDataInputs = directDataInputs.filter(
-      (id) => !hasEarlierExecConsumer(id, consumerId, dataChildrenMap, execNodes, state)
-    )
-    const directDataInputSet = new Set(ownedDirectDataInputs)
-    const allDataAncestors = [
-      ...collectDataAncestors(consumerId, dataParentsMap, new Set(), execNodes)
-    ].filter((id) => state.positions.has(id) && !execNodes.has(id))
-    const allDataAncestorSet = new Set(allDataAncestors)
-
-    // Keep long upstream data chains owned by their nearest data consumer instead of letting
-    // a later exec node drag the entire chain into its swimlane.
-    const dataAncestors = allDataAncestors.filter(
-      (id) =>
-        !hasEarlierExecConsumer(id, consumerId, dataChildrenMap, execNodes, state) &&
-        (directDataInputSet.has(id) ||
-          !hasDataChildWithin(id, dataChildrenMap, allDataAncestorSet, execNodes))
-    )
-    if (dataAncestors.length === 0) continue
-
-    const dataDepths = computeDataDepths(dataAncestors, dataParentsMap, new Set(dataAncestors))
-    const maxDepth = Math.max(...dataAncestors.map((id) => dataDepths.get(id) ?? 0), 0)
-
-    const execParents = (execParentsMap.get(consumerId) ?? []).filter((id) =>
-      state.positions.has(id)
-    )
-    const parentX = execParents.length
-      ? Math.max(...execParents.map((id) => state.positions.get(id)![0]))
-      : consumerPos[0] - config.columnWidth
-    let directCompositeHorizontalExtra = 0
-    for (const inputId of new Set(ownedDirectDataInputs)) {
-      const inputNode = nodeById.get(inputId)
-      if (inputNode) {
-        directCompositeHorizontalExtra += estimateDataNodeHorizontalExtra(
-          inputNode,
-          compositeDefById
-        )
-      }
-    }
-    const desiredGap =
-      config.columnWidth +
-      Math.max(0, maxDepth) * extraExecGapPerAdditionalDataNode +
-      Math.min(2, Math.max(0, ownedDirectDataInputs.length - 1)) * extraGapPerAdditionalInput +
-      directCompositeHorizontalExtra
-    const desiredConsumerX = parentX + desiredGap
-    const deltaX = Math.ceil(desiredConsumerX - consumerPos[0])
-
-    if (deltaX > 0) {
-      shiftExecChainFrom(consumerId, deltaX, execChildrenMap, state)
-    }
-
-    const [cx, cy] = state.positions.get(consumerId)!
-    const dataAnchorX = cx - directCompositeHorizontalExtra
-    const rowCounts = new Map<number, number>()
-    for (const id of dataAncestors) {
-      const depth = dataDepths.get(id) ?? 0
-      const row = rowCounts.get(depth) ?? 0
-      rowCounts.set(depth, row + 1)
-      const x = dataAnchorX - (maxDepth - depth + 1) * dataNodeStepX
-      const y = cy + dataYBelowConsumer + row * dataNodeStepY
-      state.positions.set(id, [x, y])
-    }
-  }
-}
-
-function hasDirectDataRelation(
-  aId: NodeId,
-  bId: NodeId,
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  dataChildrenMap: Map<NodeId, NodeId[]>
-): boolean {
-  return (
-    (dataParentsMap.get(aId) ?? []).includes(bId) ||
-    (dataParentsMap.get(bId) ?? []).includes(aId) ||
-    (dataChildrenMap.get(aId) ?? []).includes(bId) ||
-    (dataChildrenMap.get(bId) ?? []).includes(aId)
-  )
-}
-
-function wouldOverlapUnrelatedNode(
-  nodeId: NodeId,
-  targetX: number,
-  targetY: number,
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  dataChildrenMap: Map<NodeId, NodeId[]>,
-  state: ReturnType<typeof createLayoutState>
-): boolean {
-  const minUnrelatedNodeGapX = 320
-  const minUnrelatedNodeGapY = 260
-
-  for (const [otherId, [otherX, otherY]] of state.positions) {
-    if (otherId === nodeId) continue
-    if (hasDirectDataRelation(nodeId, otherId, dataParentsMap, dataChildrenMap)) continue
-    if (Math.abs(otherX - targetX) >= minUnrelatedNodeGapX) continue
-    if (Math.abs(otherY - targetY) >= minUnrelatedNodeGapY) continue
-    return true
-  }
-
-  return false
-}
-
-function compactLocalDataChains(
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  execNodes: Set<NodeId>,
-  state: ReturnType<typeof createLayoutState>,
-  nodeById: Map<NodeId, IRNode>
-) {
-  const dataChildrenMap = buildDataChildrenMap(dataParentsMap)
-  const compactDataStepX = 420
-  const minExecConsumerGapX = 460
-
-  for (const [nodeId, parentIds] of dataParentsMap) {
-    if (execNodes.has(nodeId) || parentIds.length === 0) continue
-
-    const pos = state.positions.get(nodeId)
-    if (!pos) continue
-
-    const parentPositions = parentIds
-      .map((id) => state.positions.get(id))
-      .filter((parentPos): parentPos is Position => parentPos !== undefined)
-    if (parentPositions.length === 0) continue
-
-    const dataChildren = (dataChildrenMap.get(nodeId) ?? []).filter((id) => !execNodes.has(id))
-    const execConsumers = (dataChildrenMap.get(nodeId) ?? []).filter((id) => execNodes.has(id))
-    const hasLocalDataChild = dataChildren.length > 0
-    const feedsLocalVariableStore = execConsumers.some(
-      (consumerId) => nodeById.get(consumerId)?.type === 'set_local_variable'
-    )
-
-    // Only compact true local calculation chains.  Data leaves that merely feed an exec
-    // node's ordinary parameter stack should remain anchored near that exec consumer.
-    if (!hasLocalDataChild && !feedsLocalVariableStore) continue
-
-    const parentMaxX = Math.max(...parentPositions.map(([x]) => x))
-    let targetX = parentMaxX + compactDataStepX
-
-    for (const consumerId of execConsumers) {
-      const consumerPos = state.positions.get(consumerId)
-      if (!consumerPos) continue
-      targetX = Math.min(targetX, consumerPos[0] - minExecConsumerGapX)
-    }
-
-    const newX = Math.min(pos[0], targetX)
-    const overlapsUnrelatedNode = wouldOverlapUnrelatedNode(
-      nodeId,
-      newX,
-      pos[1],
-      dataParentsMap,
-      dataChildrenMap,
-      state
-    )
-    if (newX < pos[0] && !overlapsUnrelatedNode) {
-      state.positions.set(nodeId, [newX, pos[1]])
-    }
-  }
-}
-
-function avoidExecLanesNearDataBlocks(
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  execChildrenMap: Map<NodeId, NodeId[]>,
-  execNodes: Set<NodeId>,
-  state: ReturnType<typeof createLayoutState>
-) {
-  const minExecDataLaneGapX = 700
-  const minExecDataLaneGapY = 360
-  const maxShiftPerPass = 760
-
-  for (let pass = 0; pass < 6; pass++) {
-    let changed = false
-    const execIds = [...execNodes].sort((a, b) => {
-      const pa = state.positions.get(a)
-      const pb = state.positions.get(b)
-      if (!pa || !pb) return a - b
-      return pa[1] - pb[1] || pa[0] - pb[0] || a - b
-    })
-    const dataIds = [...state.positions.keys()].filter((id) => !execNodes.has(id))
-
-    for (const execId of execIds) {
-      const execPos = state.positions.get(execId)
-      if (!execPos) continue
-
-      let requiredY = execPos[1]
-      for (const dataId of dataIds) {
-        const dataPos = state.positions.get(dataId)
-        if (!dataPos) continue
-        if (Math.abs(dataPos[0] - execPos[0]) >= minExecDataLaneGapX) continue
-        if (execPos[1] <= dataPos[1]) continue
-        if (execPos[1] - dataPos[1] >= minExecDataLaneGapY) continue
-
-        requiredY = Math.max(requiredY, dataPos[1] + minExecDataLaneGapY)
-      }
-
-      const deltaY = Math.min(maxShiftPerPass, Math.ceil(requiredY - execPos[1]))
-      if (deltaY <= 0) continue
-
-      shiftExecChainYFrom(execId, deltaY, execChildrenMap, state)
-      changed = true
-    }
-
-    if (!changed) break
-  }
-}
-
-function resolveDataBackflowAndOverlap(
-  dataParentsMap: Map<NodeId, NodeId[]>,
-  execChildrenMap: Map<NodeId, NodeId[]>,
-  execNodes: Set<NodeId>,
-  state: ReturnType<typeof createLayoutState>
-) {
-  const dataChildrenMap = buildDataChildrenMap(dataParentsMap)
-  const minDataEdgeGapX = 380
-  const minDataNodeGapX = 360
-  const minDataNodeGapY = 190
-
-  for (let pass = 0; pass < 8; pass++) {
-    let changed = false
-
-    for (const [consumerId, parentIds] of dataParentsMap) {
-      const consumerPos = state.positions.get(consumerId)
-      if (!consumerPos) continue
-
-      for (const parentId of parentIds) {
-        const parentPos = state.positions.get(parentId)
-        if (!parentPos) continue
-
-        const requiredGap = execNodes.has(consumerId) ? 80 : minDataEdgeGapX
-        const minConsumerX = parentPos[0] + requiredGap
-        const deltaX = Math.ceil(minConsumerX - consumerPos[0])
-        if (deltaX <= 0) continue
-
-        if (execNodes.has(consumerId)) {
-          shiftExecChainFrom(consumerId, deltaX, execChildrenMap, state)
-        } else {
-          shiftDataChainFrom(consumerId, deltaX, dataChildrenMap, execNodes, state)
-        }
-        changed = true
-      }
-    }
-
-    const dataIds = [...state.positions.keys()]
-      .filter((id) => !execNodes.has(id))
-      .sort((a, b) => {
-        const pa = state.positions.get(a)!
-        const pb = state.positions.get(b)!
-        return pa[0] - pb[0] || pa[1] - pb[1] || a - b
-      })
-
-    for (let i = 0; i < dataIds.length; i++) {
-      const aId = dataIds[i]
-      const aPos = state.positions.get(aId)
-      if (!aPos) continue
-
-      for (let j = i + 1; j < dataIds.length; j++) {
-        const bId = dataIds[j]
-        const bPos = state.positions.get(bId)
-        if (!bPos) continue
-        if (bPos[0] - aPos[0] >= minDataNodeGapX) break
-        if (Math.abs(bPos[1] - aPos[1]) >= minDataNodeGapY) continue
-        const hasLocalDataLink =
-          (dataChildrenMap.get(aId) ?? []).includes(bId) ||
-          (dataChildrenMap.get(bId) ?? []).includes(aId)
-        if (!hasLocalDataLink) continue
-
-        const deltaX = Math.ceil(aPos[0] + minDataNodeGapX - bPos[0])
-        shiftDataChainFrom(bId, deltaX, dataChildrenMap, execNodes, state)
-        changed = true
-      }
-    }
-
-    if (!changed) break
-  }
 }
 
 function placeVirtualConsumers(
@@ -917,22 +305,20 @@ function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: 
   if (state.unplacedNodes.size === 0) return
 
   const count = state.unplacedNodes.size
-  const cols = Math.min(count, 50)
-  const rows = Math.ceil(count / cols)
+  const maxCols = 50
+  const cols = Math.min(count, maxCols)
+  const rows = Math.ceil(count / maxCols)
 
-  // 放在 exec 流下方，避免覆盖
-  let maxY = 0
-  for (const pos of state.positions.values()) {
-    if (pos[1] > maxY) maxY = pos[1]
-  }
-  const baseY = maxY + config.eventGap
+  // 以左上角为起点，向右、向下排布；整体放在已放置区域的左上方，避免接触
+  const left = -cols * config.columnWidth
+  const top = -rows * config.rowHeight
 
   let idx = 0
   for (const nodeId of state.unplacedNodes.keys()) {
     const col = idx % cols
     const row = Math.floor(idx / cols)
-    const x = col * config.columnWidth
-    const y = baseY + row * config.rowHeight
+    const x = left + col * config.columnWidth
+    const y = top + row * config.rowHeight
 
     state.positions.set(nodeId, [x, y])
     idx += 1
@@ -944,89 +330,35 @@ function placeDetachedGrid(state: ReturnType<typeof createLayoutState>, config: 
 export function layoutPositions(
   irNodes: IRNode[],
   graphInfo: ReturnType<typeof buildExecutionGraph>,
-  compositeDefs: CompositeDefIR[] = [],
+  _compositeDefs: CompositeDefIR[] = [],
   options: LayoutOptions = {}
 ): Map<NodeId, Position> {
   const config: LayoutConfig = {
     columnWidth: 800,
-    rowHeight: 350,
-    maxColumns: 8,
-    wrapHeight: 350,
-    eventGap: 300
+    rowHeight: 600,
+    maxColumns: 50,
+    wrapHeight: 600,
+    eventGap: 600
   }
 
-  const { execNodes, roots, execChildrenMap, dataConnections } = graphInfo
-  const dataConsumersMap = new Map<NodeId, NodeId[]>(graphInfo.dataConsumersMap)
-  for (const conn of options.extraDataConnections ?? []) {
-    const consumers = dataConsumersMap.get(conn.fromId) ?? []
-    if (!consumers.includes(conn.toId)) {
-      consumers.push(conn.toId)
-      dataConsumersMap.set(conn.fromId, consumers)
-    }
+  const { execNodes, roots, execChildrenMap, dataConsumersMap: initialDataConsumersMap } = graphInfo
+  const dataConsumersMap = new Map<NodeId, NodeId[]>(
+    [...initialDataConsumersMap].map(([nodeId, consumers]) => [nodeId, [...consumers]])
+  )
+  for (const connection of options.extraDataConnections ?? []) {
+    const consumers = dataConsumersMap.get(connection.fromId) ?? []
+    if (!consumers.includes(connection.toId)) consumers.push(connection.toId)
+    dataConsumersMap.set(connection.fromId, consumers)
   }
+
   const state = createLayoutState(irNodes)
-
-  const dataParentsMap = new Map<NodeId, NodeId[]>()
-  for (const conn of [...dataConnections, ...(options.extraDataConnections ?? [])]) {
-    const parents = dataParentsMap.get(conn.toId) ?? []
-    parents.push(conn.fromId)
-    dataParentsMap.set(conn.toId, parents)
-  }
-
-  const nodeById = new Map(irNodes.map((node) => [node.id, node]))
-  const compositeDefById = new Map(compositeDefs.map((def) => [def.id, def]))
-
-  // Estimate the vertical footprint of data chains attached to each exec node before placing lanes.
-  const dataBlockHeightMap = new Map<NodeId, number>()
-  for (const node of irNodes) {
-    const directDataInputs = dataParentsMap.get(node.id) ?? []
-    const dataAncestorCount = collectDataAncestors(
-      node.id,
-      dataParentsMap,
-      new Set(),
-      execNodes
-    ).size
-    const directInputExtra =
-      directDataInputs.length > 0 ? 260 + Math.max(0, directDataInputs.length - 1) * 200 : 0
-    const chainExtra = Math.max(0, dataAncestorCount - 1) * 150
-    const uniqueDirectDataInputs = new Set(directDataInputs)
-    let dataNodeVisualExtra = 0
-    for (const inputId of uniqueDirectDataInputs) {
-      const inputNode = nodeById.get(inputId)
-      if (inputNode) {
-        dataNodeVisualExtra += estimateDataNodeVisualExtra(inputNode, compositeDefById)
-      }
-    }
-    dataBlockHeightMap.set(node.id, directInputExtra + chainExtra + dataNodeVisualExtra)
-  }
-
-  const dataExtraHeightMemo = new Map<NodeId, number>()
-  for (const execNodeId of execNodes) {
-    computeSubtreeDataExtraHeight(
-      execNodeId,
-      dataBlockHeightMap,
-      execChildrenMap,
-      dataExtraHeightMemo
-    )
-  }
 
   let currentBaseY = 0
   roots.forEach((root, eventIndex) => {
     currentBaseY = state.eventMaxYCoord.size
       ? Math.max(...state.eventMaxYCoord.values()) + config.eventGap
       : 0
-    layoutExecutionChain(
-      root.id,
-      0,
-      currentBaseY,
-      eventIndex,
-      0,
-      execChildrenMap,
-      state,
-      config,
-      dataBlockHeightMap,
-      dataExtraHeightMemo
-    )
+    layoutExecutionChain(root.id, 0, currentBaseY, eventIndex, 0, execChildrenMap, state, config)
 
     // 使用 while 循环，只有当放置了新节点时才继续
     while (placeDataNearConsumers(dataConsumersMap, execNodes, state)) {
@@ -1040,25 +372,7 @@ export function layoutPositions(
     // 让额外虚拟消费者锚定只输出到图边界的数据节点
   }
 
-  expandExecGapsForDataChains(
-    dataParentsMap,
-    execChildrenMap,
-    execNodes,
-    state,
-    config,
-    nodeById,
-    compositeDefById
-  )
-
-  compactLocalDataChains(dataParentsMap, execNodes, state, nodeById)
-
-  avoidExecLanesNearDataBlocks(dataParentsMap, execChildrenMap, execNodes, state)
-
-  resolveDataBackflowAndOverlap(dataParentsMap, execChildrenMap, execNodes, state)
-
-  // 剩余游离节点（无消费者或无关联）统一放到左上角网格
   placeDetachedGrid(state, config)
-
   scaleExecLaneSpacing(execNodes, state, options.execLaneSpacingScale ?? 1)
 
   // 如有指定位置，则使用指定位置

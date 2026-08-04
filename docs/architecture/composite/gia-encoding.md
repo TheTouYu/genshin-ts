@@ -5,6 +5,15 @@
 > 最近校验：2026-07-30
 > 适用范围：gsts 当前 Stage 3 复合节点 GIA 编码。pinIndex 默认值仅适用于 gsts 生成输出，真实编辑器文件需看 composite-ir 验证文档。
 
+> 布局算法状态：当前实现 / 已验证（限定样例）
+> 来源：当前代码实现 + 自动回归 + GIA 生成与解码 + 用户游戏内验证
+> 最近校验：2026-08-04
+> 适用范围：gsts 当前 Stage 3 输出；游戏结论仅覆盖本轮 5 个 round-branch legacy 样例
+>
+> 2026-08-04，`src/compiler/ir_to_gia_transform/layout.ts` 的 `layoutPositions()` 已切回
+> `db03f15` 的固定间距布局核心；保留当前 `buildExecutionGraph()` 的 special-arg remap、
+> Composite 虚拟锚点和 lane scale 接口。`npm run build`、布局隔离回归、nested/P3-W20
+> focused harness 以及 5 个 round-branch GIA 解码均通过；用户已确认这 5 个候选在游戏内布局正常。
 > 本文档描述 `CompositeDefIR` 如何在阶段三被编码为 GIA 文件中的 accessories（附件数据段）——包括 CompositeDef 定义、impl NodeGraph、引脚构建细节和布局算法。
 > 参见：[IR 表示](./ir-representation.md) | [管线追踪](./pipeline-flow.md) | [阶段三 GIA 编码](../stage3-ir-to-gia.md) | [关键 ID 对照（composite-ir/05）](../../composite-ir/05-gia-encoding.md)
 
