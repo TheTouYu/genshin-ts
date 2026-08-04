@@ -892,7 +892,8 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
 
   const protoPath = opts.protoPath
   const { rootMessage } = loadGiaProto(protoPath)
-  // Real-editor wire rules: InFlow/OutFlow omit index, data connect2 has str/entity exception.
+  // Real-editor wire rules: InFlow indexes and default OutFlow[0] indexes omit; non-default
+  // OutFlow indexes remain explicit. Data connect2 has the str/entity exception.
   // Runs after all index-based post-processing, before serialization (root graph only; the
   // accessories of composite defs are patched by their own builder).
   applyEditorConnectionWireRules(root.graph?.graph?.inner?.graph?.nodes ?? [])

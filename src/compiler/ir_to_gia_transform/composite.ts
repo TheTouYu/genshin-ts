@@ -1029,7 +1029,8 @@ function materializeImplOrdinaryGraphWithVendor(
     }
   }
 
-  // Real-editor wire rules: InFlow/OutFlow omit index, data connect2 has str/entity exception.
+  // Real-editor wire rules: InFlow indexes and default OutFlow[0] indexes omit; non-default
+  // OutFlow indexes remain explicit. Data connect2 has the str/entity exception.
   applyEditorConnectionWireRules(allNodes)
   return allNodes.sort((a, b) => a.nodeIndex - b.nodeIndex)
 }

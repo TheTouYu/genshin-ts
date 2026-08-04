@@ -1,8 +1,11 @@
 // @ts-nocheck
 import assert from 'node:assert/strict'
 
-import { Graph, Node, Pin } from '../../dist/src/compiler/gia_vendor.js'
-import { materializeOrdinaryGraphEdges } from '../../dist/src/compiler/ir_to_gia_transform/ordinary_graph_materializer.js'
+import { Graph, Node, NodePin_Index_Kind, Pin } from '../../dist/src/compiler/gia_vendor.js'
+import {
+  applyEditorConnectionWireRules,
+  materializeOrdinaryGraphEdges
+} from '../../dist/src/compiler/ir_to_gia_transform/ordinary_graph_materializer.js'
 
 const graph = new Graph('server', 0, '', 0)
 const source = graph.add_node(new Node(1, 'server', 201, 200))
@@ -93,5 +96,23 @@ assert.throws(
   }),
   /ordinary nodeIndex mismatch/
 )
+
+const editorFlowPins = [
+  {
+    i1: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
+    i2: { kind: NodePin_Index_Kind.OutFlow, index: 0 },
+    connects: []
+  },
+  {
+    i1: { kind: NodePin_Index_Kind.OutFlow, index: 1 },
+    i2: { kind: NodePin_Index_Kind.OutFlow, index: 1 },
+    connects: []
+  }
+]
+applyEditorConnectionWireRules([{ pins: editorFlowPins }])
+assert.equal(editorFlowPins[0].i1.index, undefined, 'default OutFlow[0] may omit its index')
+assert.equal(editorFlowPins[0].i2.index, undefined, 'default OutFlow[0] may omit its paired index')
+assert.equal(editorFlowPins[1].i1.index, 1, 'non-default OutFlow[1] must retain its index')
+assert.equal(editorFlowPins[1].i2.index, 1, 'non-default paired OutFlow[1] must retain its index')
 
 console.log('PASS P3-W21 encoded ordinary Graph edge integrity contract')
