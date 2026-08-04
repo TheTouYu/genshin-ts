@@ -50,6 +50,11 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
 | 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
 | 新建节点图 / 用生产 irToGia 生成 GIA 资产、GIA 字节对比与可复现性 | `references/node-graph-logic/node-graph-creation.md` |
+| 第三方仓库交叉核对：用千星沙箱知识库 / 本地 thirdparty 代码包确认编码语义并与自有实验互证 | `references/third-party-cross-check.md` |
+
+需要确认 wire 类型码、组件/变量语义或参数类型时，先读 `third-party-cross-check.md`：
+它记录本地 proto `VarType` 枚举入口、千星知识库 API 调用方式（必须 https）和已闭合案例，
+避免重新花长时间在知识库里找映射。
 
 新建节点图或生成 GIA 资产时，先读 `node-graph-creation.md` 再动手：它记录 root 10 双层
 包装与 root 6 folder 条目的 wire 结构、生产链路脚本、以及 vendor 坐标抖动导致的 GIA
