@@ -1026,6 +1026,10 @@ function printGraphIndex(graph) {
       .join(', ')
     console.log(`接口: inputs=[${inputs}] outputs=[${outputs}]`)
   }
+  if (graph.children.length > 0)
+    console.log(
+      `提示: 含 ${graph.children.length} 个复合子图，--depth 展开仅在 --full/--json 模式可见`
+    )
   console.log('节点索引:')
   for (const node of graph.nodes) {
     const composite = node.composite
@@ -1046,7 +1050,7 @@ function usage(exitCode = 0) {
     '  --graph <id|name|auto>   解析指定主图；auto 选择唯一非空用户图',
     '  --auto                   等价于 --graph auto；多个候选时拒绝猜测',
     '  --composite <id|name>   单独解析指定复合节点',
-    `  --depth <n>             复合子图展开层数（默认 ${DEFAULT_DEPTH}，0=不展开）`,
+    `  --depth <n>             复合子图展开层数（默认 ${DEFAULT_DEPTH}，0=不展开；仅 --full/--json 可见）`,
     '  --full                  显示低层综合文本（可能很大，生产分析请用 trace 工具）',
     '  --max-items <n>         单个字面量数组最多展开项数（默认 16）',
     `  --max-pins <n>          文本每个节点最多显示 n 个字面量/未连接引脚（默认 ${DEFAULT_MAX_PRINT_PINS}，0=全部）`,
