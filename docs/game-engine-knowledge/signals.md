@@ -144,6 +144,8 @@ connect2=4，实验 `entity-dtc-connect2-discriminator-01`）；str（18 族 265
 （str 源三套 pinIndex=12/34/40、entity=69/77/84，其余参数亦不匹配），compositePinIndex、
 参数定义序号等候选解释均被排除。获取局部变量 concreteId 变体：str=2656 /
 entity=2657 / guid=2658 / int=20 / bool=18 / config=2668 / prefab=2669。
+该变体机制 2026-08-06 已闭环：**concreteId = data.json `Variants` 表中选中变体的 KernelID**
+（未配置变体时 concreteId 不落盘），见 node-graphs.md。
 
 **生产红灯（A/B/C 三项）已修复（2026-08-02，自动测试转绿）**：production lowering 已实现
 connect2 例外（str→3 / entity→4）且 exec 连接与 OutFlow i1/i2 不再写显式 `index:0`。
@@ -352,7 +354,7 @@ fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec in
   `.agents/skills/editor-incremental-gia-investigator/scripts/generate-signal-composite-demo.ts`。
   全链路已闭环（2026-08-03）：编辑器导入通过 → 注入 `1073741850.gil` 图 `1073741826`（16 节点）成功 →
   回读验证节点身份/信号注册表不变 → 用户游戏内确认信号触发与监听消费正常。
-  注入前置：目标图不存在时先 `create-empty-node-graph.ts` 建空图占位（见 `gia-generation-chain.md`）。
+  注入前置：目标图不存在时先 `gsts assets:node-graphs create` 建空图占位（见 `gia-generation-chain.md`）。
 
 ## 尚未闭合
 

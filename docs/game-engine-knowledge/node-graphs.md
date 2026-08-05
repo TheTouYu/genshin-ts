@@ -73,6 +73,21 @@ genericId = concreteId = NodeProperty{
 （GraphOrigin=10000 / GraphCategory=20000 / GraphKind=21001；NodeOrigin=10001 / NodeCategory=20000 /
 NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CONFIRMED。
 
+**Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 快照 + data.json `Variants` 表闭环）**：
+
+- Fixed 节点：`concreteId = genericId = 节点 ID`（编辑器保存后保留）；
+- Variant 节点：`concreteId = 选中变体的 KernelID`；**未配置变体时 concreteId 不落盘**（9 个
+  Variant 节点保存后 concreteId 全缺失）；
+- 实例验证：337 获取节点图变量连 Int → concreteId=339，切 Str → 342（data.json 337 的
+  `Variants`：`C<T:Int> KernelID=339` / `C<T:Str> KernelID=342`）；3 多分支选 Int → 3，
+  切 Str → 4；
+- 变体切换联动：pin `type`（3=Int→6=Str）、`value.bConcreteValue.f1 = TypeSelectorIndex`
+  （337 Int=2/Str=5，多分支 Int=0 省略/Str=1）、cases 列表类型（IntegerList=8→StringList=11）
+  全部跟随变体；
+- 推论：批量注入写 `concreteId=ID` 对 Variant 节点是冗余（编辑器保存会移除，Fixed 保留）；
+  游戏/编辑器显示不依赖它（434 节点注入核验通过）。signals.md 既有记录
+  （获取局部变量 str=2656/int=20/bool=18）即 KernelID，与 data.json 一致。
+
 ### 节点 ID 目录（第三方 data.json，558 节点）
 
 节点 ID 是全局 SysCall 目录编号（不连续）：
@@ -101,17 +116,26 @@ NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CON
 
 ```text
 NodePin {
-  i1: NodePin_Index{kind:3(InParam), index: 定义 ShellIndex}   # index=0 时 wire 缺失
-  i2: NodePin_Index{kind:3(InParam), index: ?}                 # 语义未闭合（v6: 5/7 与 data.json Kernel 不对齐）
+  i1: NodePin_Index{kind:3(InParam) / 4(OutParam), index: 定义 ShellIndex}   # index=0 时 wire 缺失
+  i2: NodePin_Index{kind:同 i1, index: ?}                 # 数据连接样本中 i1==i2；252 pin4/5 不等，语义未闭合
   value: VarBase{
-    class: 1=IdBase / 2=IntBase / 6=EnumBase / 7=VectorBase ...
+    class: 1=IdBase / 2=IntBase / 5=StringBase / 6=EnumBase / 7=VectorBase / 10000=ConcreteBase / 10002=ArrayBase
     alreadySetVal: true
     itemType: {1: classBase(1=Server), 100: {1: VarType}}
-    oneof: 101=bId / 102=bInt / 106=bEnum / 107=bVector{1:{1:x,2:y,3:z}} ...
+    oneof: 101=bId / 102=bInt / 105=bString / 106=bEnum / 107=bVector{1:{1:x,2:y,3:z}} ...
   }
-  type: VarType 数字（21=Pfb / 12=Vec / 4=Bol / 3=Int）
+  type: VarType 数字（21=Pfb / 12=Vec / 4=Bol / 3=Int / 6=Str / 8=IntegerList / 11=StringList）
 }
 ```
+
+**数据连接（DataOut→DataIn，普通图 SysCall，2026-08-06 v10-v11 快照 CONFIRMED）**：
+
+- 连接挂在**目标侧 InParam** pin 上：`connects=[{1: id=源节点 nodeIndex, 2: connect={kind:4 OutParam}, 3: connect2={kind:4 OutParam}}]`；
+- 源 OutParam index=0 时 connect/connect2 均无 index 字段（2B 形态 `08 04`）；
+- 源侧只实例化 OutParam pin（i1/i2={kind:4} 无 index），**不挂 connects**（与 signals.md 监听消费一致）；
+- 实例：337.value OutParam → 3.key InParam：目标 key `connects=[{1:1, 2:{1:4}, 3:{1:4}}]`；
+- 列表参数值：`ArrayBase(class=10002)` + `bArray(109)` 元素列表，cases 三元素 [1,2,3] →
+  IntBase bInt 1/2/3；[a,b,c] → StringBase bString a/b/c；
 
 - **i1.index 与第三方 data.json 的 ShellIndex 完全对齐**（252 实测 0,1,2,5,6）→ 参数顺序裁决
   以 data.json（v2.2.10）为准；game_nodes.ts md 注释版已过时
@@ -152,8 +176,9 @@ dx/dy 可调）；`--all-server` 枚举 data.json 全部 Server 节点（ID 升�
 
 ## 待闭合
 
-- i2.index 语义（疑为 UI/定义内部序，需更多样本）
-- 控制流连接在 SysCall 节点上的实例化（OutFlow pin 规则见 signals.md，普通图内连线待验证）
+- i2.index 语义（数据连接样本 i1==i2 一致，252 样本 5/7 不等；疑为 UI/定义内部序，需更多样本）
+- 控制流连接在 SysCall 节点上的实例化（OutFlow pin 规则见 signals.md，普通图内 FlowOut→FlowIn 连线待验证）
+- Variant 变体未配置时 concreteId 缺失的默认语义（编辑器是否在运行时回退 KernelID=ID）
 
 ## 待逐步还原（剩余）
 

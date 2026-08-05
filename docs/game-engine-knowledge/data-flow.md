@@ -39,6 +39,23 @@
 
 连接双方必须使用兼容的[参数类型](parameter-types.md)。连接不仅需要指出来源节点和目标节点，还需要指出来源输出和目标输入。
 
+### wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v11 真实快照 CONFIRMED）
+
+```text
+目标侧 InParam pin 挂 connects（f5）：
+  connects = [{1: id=源节点 nodeIndex, 2: connect, 3: connect2}]
+  connect / connect2 = NodePin_Index{1: kind=4(OutParam)}，源 OutParam index=0 时无 index 字段
+源侧 OutParam pin：i1/i2={kind:4 OutParam}（index=0 缺失），value 跟随变体类型，不挂 connects
+```
+
+- 例：337 获取节点图变量 value → 3 多分支 key：目标 key
+  `connects=[{1:1, 2:{1:4}, 3:{1:4}}]`（id=源 nodeIndex 1）；
+- 列表参数值（如多分支 cases）：`ConcreteBase` 内 `ArrayBase(class=10002)` + `bArray(109)`
+  元素列表，`type` = 列表 VarType（8=IntegerList / 11=StringList）；
+- 变体切换（Int→Str）联动：concreteId=新 KernelID、pin type、`value.bConcreteValue.f1`
+  = TypeSelectorIndex、列表元素类型全部同步（详见 node-graphs.md）；
+- 完整解码样例见 `inspect-graph-nodes.py <map.gil> <graphId> --pins`。
+
 ## 输出复用
 
 ### 单节点多连线
