@@ -92,6 +92,39 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/verify-contro
 - 工具脚本行为与预期矛盾时，先与已知正确版本 diff（一次调用），不要从零新写 debug 脚本。
 - 新实验目录命名延续 `control-flow-caseN-<source>-to-<target>-v<M>-v<M+1>`。
 
+#### 实验形态预检（case3 新增节点教训，2026-08-06）
+
+预检阶段（用户动图前）先判定本轮实验形态，并确认 verify 脚本参数匹配，避免保存后才发现
+工具不支持而反复修：
+
+- **纯连线**：target 已在 before 图中 → 默认断言（节点集合不变、目标 bytes 相同）适用。
+- **新增节点 + 连线**：target 不在 before 图中 → 必须用 `--allow-added <N>`；
+  同时确认 `--target-generic` 会查 after（脚本已处理）。
+- 新增节点落图规律：编辑器**复用空闲 nodeIndex**（case3 用了 v8→v9 删除的 nodeIndex 2），
+  节点在 nodes 数组中按 nodeIndex 升序插入中间而非尾部追加 → `--target`、`--allow-added`
+  和实验目录名里的目标 nodeIndex 必须**保存后从 after 确认**，不能预猜。
+- 目标 InFlow 非默认时预期 `--target-index <N>`；若不知道编辑器目标 ShellIndex，
+  data.json FlowPin ShellIndex 可预查（case3 Break=1）。
+
+#### root 图外变化摘要（case3 已验证样板）
+
+compare-gil-root-wire.py 输出结构大，直接提取摘要，不要整包打印：
+
+```bash
+python3 .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-root-wire.py \
+  "$BEFORE" "$AFTER" 2>&1 | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+for c in d['changedRootFields']:
+    print(c['fieldNumber'], c['beforeCount'],'->',c['afterCount'],
+          c['beforeEncodedBytes'],'->',c['afterEncodedBytes'],
+          'equalLen:',c['equalLengthContentChange'])
+"
+```
+
+预期模式（已闭环）：root 10（NodeGraph）长度随图变化；root 46 等长变化标 INSUFFICIENT，
+不归因给连线。
+
 ## 已确认的连接骨架
 
 ### 数据连接

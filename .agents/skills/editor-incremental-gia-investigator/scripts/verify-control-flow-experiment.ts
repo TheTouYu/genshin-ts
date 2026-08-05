@@ -10,6 +10,7 @@
  *     --outflow-index 2 --expected-pin-raw <hex> \
  *     --before-hash <sha256> --after-hash <sha256> \
  *     [--target-index N]  expected InFlow index on target refs (default 0 = omitted) \
+ *     [--allow-added N]    target node newly placed (not in before); node set = before + N \
  *     [--source-generic 3 --source-concrete 4 --target-generic 70]
  *
  * Checks (raw before/after under <experiment-dir>/raw/):
