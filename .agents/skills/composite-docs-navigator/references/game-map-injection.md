@@ -60,7 +60,7 @@ Single-file mode uses `config.inject.nodeGraphId` as the target (`batch` mode us
 GIA graph id instead). If the target graph id does not exist in the map, injection fails
 with `[error] target NodeGraph not found: <id>`; create an empty placeholder graph first
 (see `node-graph-logic/node-graph-creation.md`, tool
-`create-empty-node-graph.ts` preview -> `--write`), then inject again.
+`gsts assets:node-graphs create` preview -> `--write`), then inject again.
 
 Real working example (2026-08-03, signal composite demo):
 

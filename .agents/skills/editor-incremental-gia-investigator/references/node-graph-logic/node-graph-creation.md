@@ -16,9 +16,51 @@
 领域 Authority：`docs/game-engine-knowledge/gil-structure-semantics.md`（NodeGraph 路径 /
 自由新建）、`docs/game-engine-knowledge/gia-generation-chain.md`（链路与坑位唯一入口）。
 
+## GIL header 长度字段（注入必须同步，勿当 bug 排查）
+
+`CONFIRMED`（v0-v8 快照逐轮验证 + 游戏报“文件损坏”实测）：GIL header 20B 含两个大端
+uint32 长度字段，编辑器每次保存都会更新，游戏加载时校验：
+
+```text
+hdr[0:4]  = 文件总长 - 4
+hdr[16:20] = payload 长度 = 文件总长 - 24
+```
+
+任何直接改 payload 的注入/回写都必须同步这两个字段，否则游戏报文件损坏
+（2026-08-05 实测踩坑：只改 payload 未改 header → 游戏拒绝加载）。
+自检：`struct.unpack('>I', d[0:4])[0] == len(d)-4` 且 `[16:20] == len(d)-24`。
+
+## 批量注入服务器节点定义（create-graphs.py，2026-08-05 已闭环）
+
+工具：`scripts/create-graphs.py`（可复用；新增图/追加节点/分批/网格布局一体）：
+
+```text
+python scripts/create-graphs.py <map.gil> --defs <data.json> \
+    --all-server --graph-id <已有图ID> --batch-size 50 --cols 5 --dx 440 --dy 360 \
+    --locked-hash <当前sha256> [--dry-run]
+```
+
+- `--all-server`：枚举 data.json 全部 System=Server 节点（ID 升序），自动分批
+- `--graph-id` 指向已有图：第一批自动排除图中已有节点 ID 并补齐；后续每批新建图
+  （`--name-prefix` 自动编号，跳过重名）；不指定则全部新建图
+- 每批一个图，网格坐标 `(x0 + (i%cols)*dx, y0 + (i//cols)*dy)`，nodeIndex 1..N 连续
+- 新图 wire 配方 = 编辑器原生（v1 快照）：root 10 图记录双层包装
+  `field1 -> field1 -> NodeGraph{Id, name, nodes[*]}`；节点 42B 同构
+- folder 条目：root 6（f1=4 记录）的 **f2.f4（“调试”文件夹）** 末尾追加
+  `f5={1:800, 2:图ID}`（1073741849 地图实测；gsts 工具找 f3“未分类页签”容器，
+  是 1073741850 新图结构——不同地图 folder 容器不同，以真实 diff 为准）
+- 图 ID：递归扫描全部 Id.f5（1073741xxx）取 max+1；空洞 ID 与编辑器内存池规则未闭合
+- 自动备份（首批）+ `--locked-hash` 前置校验；多批模式批内哈希自动传递
+- 回验链：`list-gil-node-graphs`（图数/节点数）→ `inspect-graph-nodes.py`（身份/坐标）
+  → root 字段差分（应仅 6/10 变化）→ header 长度自检
+- 已覆盖 434/434 全部 Server 节点（含 Variant 58 + Hidden 13），用户游戏核验通过
+
+**注入前必须确认游戏/编辑器已关闭**（2026-08-05 实测踩坑）：编辑器内存不感知磁盘
+变化，打开期间外部注入后点保存会用旧内存状态覆盖注入结果。注入后再让用户重新打开。
+
 ## 新建空 NodeGraph（已闭合，勿重做）
 
-编辑器原生空图 wire 结构（生成工具 `.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts`，已在
+编辑器原生空图 wire 结构（生成工具 `gsts assets:node-graphs create`，已在
 1073741850.gil 真实写回并被注入器识别）：
 
 ```text
@@ -35,7 +77,7 @@ root 6 重写“未分类页签”聚合 record（顶层 #1=4）：field 3 容�
 - 新地图无任何节点图时，注入器 `findFolderEntryField` 找不到目标；必须先生成空图
   （folder 条目存在 + root 10 append wrapper 的“创建新图”路径才可用）。
 - **目标图 ID 不存在但地图已有其他图**：同样报 `[error] target NodeGraph not found: <id>`，
-  先 `create-empty-node-graph.ts --graph-id <id> --output <candidate>` 预览 → `--write` 写回
+  先 `gsts assets:node-graphs create --graph-id <id> --output <candidate>` 预览 → `--write` 写回
   （自动备份 + 源 SHA 检查）→ 再注入。示例：`gsts-signal-composite-demo` 注入前为
   `1073741850.gil` 建空图 `1073741826`。
 - root 46 的等长变化语义 INSUFFICIENT，不模拟。
@@ -83,7 +125,7 @@ vendor `node_body()` 的 `x = body.x * 300 + Math.random() * 10 // shakings` 给
 ```text
 生成 GIA（生产 irToGia + readRegisteredSignalsFromGil 真实注册数据）
 → 用户编辑器导入（资产包导入验证）
-→ create-empty-node-graph 建空图（仅目标图不存在时）
+→ gsts assets:node-graphs create 建空图（仅目标图不存在时）
 → gsts 单文件注入（config.inject.nodeGraphId 为目标；多 WSL 用户需 GSTS_LOCALLOW_DIR）
 → 回读验证 → 用户游戏内核验
 ```
