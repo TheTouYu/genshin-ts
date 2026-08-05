@@ -120,6 +120,25 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 
 `.gil` 节点图分析采用两步工作流：先用控制流定位主要逻辑，再用数据流工具追踪指定节点的参数来源。不要使用一个命令默认打印整张图的控制流、数据流、所有参数和所有复合实现。
 
+> 需要给玩家/策划做“这张图在跑什么”的人读式概要时，用 `explain-gil-node-graph.ts`（见下），一次性输出事件入口、控制流主干、参数来源和系统/复合节点说明；机器级分析仍用两步工作流。
+
+### 一键解读（人读式概要）
+
+```bash
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图ID或名称>
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --auto
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
+```
+
+输出四段：
+
+- 事件入口（`When ...` 事件节点）；
+- 控制流执行树（从事件出发的分支主干，分支条件注明数据来源）；
+- 参数来源（每个节点每个输入：上游节点输出 / 字面量值（枚举自动转名）/ 未连线）；
+- 系统/复合节点：无 impl 图的定义节点标为“系统节点”（如发送信号/监听信号，无内部图，参数行为由信号名决定）；有 impl 图的标为“复合节点”并给出实现图 id。
+
+`--composite` 只输出指定复合/系统节点的定义接口（inputs/outputs/inflows/outflows），有 impl 时附带实现图 id。
+
 ### 控制流导航
 
 ```bash
@@ -130,14 +149,15 @@ npx tsx tools/trace-gil-exec-flow.ts <地图.gil> --composite <复合名>
 
 控制流工具只输出：
 
-- 事件入口和复合图外部 `InFlow` 入口；
+- 事件入口和复合图外部 `InFlow` 入口；纯数据复合（没有 `InFlow`/`OutFlow`）不会误报为事件入口；
+- 没有入口但存在执行边的孤立执行根会单独显示为“未连接入口的执行链”，JSON `paths` 中标记为 `entry_type=orphan-execution`；
 - 节点索引、API 名称、分支名称和执行路径；
 - 执行边数量、入口数量和复合节点接口；
 - 循环、汇合和复合 `OutFlow` 出口标记。
 
 它不会默认输出节点参数、全图数据流或复合图内部实现。`--composite` 才会把指定复合实现作为一张独立主图解析。
 
-`--auto` 只在存在唯一非空用户图时自动选择；发现多个候选时会列出名称、ID 和节点数并停止猜测。多候选时应显式使用 `--graph`，不要依赖图在文件中的顺序。
+`--auto` 在存在唯一非空用户图时选择该图；发现多个候选时会列出名称、ID 和节点数并停止猜测；没有候选时回退到 `_GSTS_main`，再回退到文件中的第一个图。多候选时应显式使用 `--graph`，不要依赖图在文件中的顺序。
 
 ### 数据流定点追踪
 
@@ -161,16 +181,22 @@ npx tsx tools/trace-gil-dataflow.ts <地图.gil> \
 - 图变量、事件上下文、字面量等终点来源；
 - 数据依赖确实穿过复合节点时的相关内部路径。
 
-`--node` 必须明确指定；`--input` 和 `--all-inputs` 二选一。`--max-depth N` 可以限制递归深度，连续相同的大量字面量会保留索引范围和重复数量而折叠显示。
+`--node` 必须明确指定；`--input` 和 `--all-inputs` 二选一。`--max-depth N` 可以限制递归深度，连续相同的大量字面量会保留起止索引和重复数量而折叠显示；直接使用 `--all-inputs` 时也遵循同一规则。
 
 ### JSON 输出
 
 两个工具的 JSON 契约分开：
 
-- 控制流：`input`、`target`、`event_entries`、`nodes`、`execution_edges`、`paths`、`composite_interfaces`；
+- 控制流：`input`、`target`、`event_entries`、`nodes`、`execution_edges`、`paths`、`composite_interfaces`；`paths` 还可包含 `entry_type=orphan-execution` 的孤立执行链；
 - 数据流：`input`、`target_node`、`target_inputs`、`dependency_paths`、`terminal_sources`。
 
-控制流 JSON 不包含全图 `dataflow`，数据流 JSON 不包含全图 `flow` 或节点目录。这样调用者可以先消费控制流结果，再把选定节点传给数据流工具。
+控制流 JSON 不包含全图 `dataflow`，数据流 JSON 不包含全图 `flow` 或节点目录。当前 focused 回归为：
+
+```bash
+npx tsx tests/gil_nodegraph_tools_test.ts
+```
+
+它在仓库 fixture 上锁定唯一 `--auto`、控制流/数据流 JSON 隔离、直接 `--all-inputs` 的重复参数折叠和根目录/模板脚本一致性；复杂真实 `.gil` 的矩阵核验仍需按具体样本另行记录。
 
 ### 低层兼容入口
 
