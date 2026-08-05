@@ -1,0 +1,113 @@
+---
+name: verify-injection
+description: 游戏核验的最小自动注入通道。当用户说“去核验”“核验”“游戏核验”“注入核验”“帮我跑核验”，或需要把某个编译器/编码规则的最小复现 case 注入游戏供用户核验时，使用本技能。它按约定复用专用验证地图与按分支命名的 placeholder 节点图，用最小 TS case 编译成 .gia、回填注入配置、单文件注入、解码断言 wire，最后通知用户去游戏核验。区别于 editor-incremental-gia-investigator（编辑器规则探索性快照实验）：本技能只做“已锁定规则的最小生产注入核验”，不研究未知规则。
+---
+
+# 最小核验注入通道（verify-injection）
+
+## 定位
+
+今天（2026-08-06）首次跑通“自动创建地图 → 自动注入节点图 → 注入最小 case → 用户游戏核验”全链路。
+本技能固化这条成功路径：**不每次新建地图**，复用专用验证地图；**每个核验分支一个 placeholder 节点图**；
+同一分支图内可挂同类型多个核验点（一个 TS 文件多个事件/多段逻辑）。
+
+## 约定
+
+- 专用验证地图：名字含 `GSTS核验`（当前实例：`1073741852`「InFlow核验」，已核验，见
+  `references/verified-cases.md`）。优先复用；只有需要隔离或地图损坏时才 `maps:create` 新建。
+- 分支节点图名：`verify-<点>`（如 `verify-inflow-index`）。注入后图名被替换为 `_GSTS_<gia基名>`。
+- case 文件：`verify/<分支>/<分支>.ts`，模板见 `references/template-case.ts`。
+- 注入配置：`gsts.verify.config.ts`（entries=`./verify`，outDir=`./dist-verify`）。
+
+## 最小路径（每条命令均已实测跑通）
+
+```bash
+cd /home/h/genshin-ts
+
+# 1. 定位验证地图（找 GSTS核验 前缀；记录 mapId 与已有图 id）
+node bin/gsts.mjs maps
+
+# 2. 确保分支 placeholder 图存在（不存在才执行；--write 会先备份再写回）
+#    （新建专用地图的替代命令：node bin/gsts.mjs maps:create --name "GSTS核验-xxx" --graphs "verify-a,verify-b"）
+node bin/gsts.mjs assets:node-graphs --gil <saveLevelDir>/<mapId>.gil --name verify-<点> --write
+
+# 3. 写最小 case：verify/<分支>/<分支>.ts（graph id 用约定 1073741825 即可，见关键点 4）
+
+# 4. 编译（config 此时不配 inject，见关键点 1）
+node bin/gsts.mjs -c gsts.verify.config.ts --noinject
+
+# 5. 解码 GIA 断言目标 wire（把预期 connects 与真实输出比对）
+npx tsx tools/decode-gia.ts dist-verify/verify/<分支>/<分支>.gia -o /tmp/verify-gia.json
+#    python3 提取片段见“wire 断言片段”
+
+# 6. 给 gsts.verify.config.ts 加 inject 段（mapId=验证地图 id、nodeGraphId=placeholder 图 id，模板见文件头注释；config 平时不配 inject，见关键点 1）
+
+# 7. 单文件注入
+node bin/gsts.mjs -c gsts.verify.config.ts dist-verify/verify/<分支>/<分支>.gia
+
+# 8. 注入后检查：图存在 + .gil 中 wire 形态保持
+npx tsx tools/list-gil-node-graphs.ts <saveLevelDir>/<mapId>.gil
+#    .gil 解码片段见“wire 断言片段”
+
+# 9. 通知用户去游戏核验：明确“看什么、正确/错误行为各是什么”（见 template-case.ts 注释风格）
+```
+
+## wire 断言片段（GIA 与注入后 .gil 通用，只换输入文件）
+
+```bash
+# 提取某节点（按 genericId 定位）所有 connects 的 connect/connect2
+npx tsx tools/decode-gia.ts <file.gia|file.gil> -o /tmp/g.json 2>/dev/null
+python3 - <<'EOF'
+import json
+d = json.load(open('/tmp/g.json'))
+def walk(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == 'nodes' and isinstance(v, list): return v
+            r = walk(v)
+            if r is not None: return r
+    elif isinstance(o, list):
+        for v in o:
+            r = walk(v)
+            if r is not None: return r
+    return None
+for n in walk(d):
+    if (n.get('genericId') or {}).get('nodeId') != <目标nodeId>: continue
+    for p in n.get('pins', []):
+        for c in p.get('connects', []):
+            print(c.get('id'), json.dumps(c.get('connect')), json.dumps(c.get('connect2')))
+EOF
+```
+
+注入后的 `.gil` 用 `tools/list-gil-node-graphs.ts` 找到目标图后，需按
+`nodeGraphMessage.decode` 结构（nodes 在 decode 顶层，`g.nodes`）提取；.gil 路径 =
+`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/<playerId>/Beyond_Local_Save_Level/<mapId>.gil`
+（本机 playerId=110170759，可用 `gsts maps` 输出确认）。
+
+## 关键点（实测踩坑，勿重踩）
+
+1. **编译阶段 config 不要配 inject**：只要 inject 存在（即使 `--noinject`），编译就会解析目标 gil，
+   `mapId/nodeGraphId` 未回填时直接报 `[error] target gil not found: .../0.gil`。
+   先 `--noinject` 编译验证，注入前再往 config 加 inject 段。
+2. **单文件注入**（`gsts <config> <file.gia>`）以 `config.inject.nodeGraphId` 为目标，且会把
+   GIA 内 graph id 自动改写为目标 id（`loadGiaGraph` setGraphId）——**DSL 里 `g.server({id})`
+   不必与 placeholder 图 id 一致**。这是最稳路径。
+3. **批量注入**（不带文件参数）按 GIA 内 graph id 找目标图（不改写），要求该 id 已存在于
+   地图；需要 placeholder 分配 id 与 DSL id 对齐，脆弱，默认不用。
+4. 新地图：`maps:create` 的 mapId = 现有最大 mapId + 1；`--graphs` 的 placeholder 图 id 从
+   `1073741825` 起自增。给已有地图加图用 `assets:node-graphs --gil ... --name ... --write`。
+5. `.gia` 默认输出到 IR JSON 同目录：`dist-verify/verify/<分支>/<分支>.gia`（config outDir 下）。
+6. 注入前自动备份目标 `.gil`；`assets:node-graphs --write` 也会备份。
+7. 注入成功 ≠ 游戏核验通过：wire 断言只是注入层证据，最终以用户游戏内结果为准。
+8. 目标节点图不存在时注入报 `[error] target NodeGraph not found: <id>` → 回到第 2 步建 placeholder。
+9. 破坏性操作边界：注入/新建地图前把 mapId、nodeGraphId、playerId、目标 .gil、源 .gia、命令
+   一次性展示给用户确认（除非用户已给出本轮明确授权）。
+
+## 核验闭环
+
+用户游戏核验后：
+
+1. 把结论写回 `references/verified-cases.md`（分支、地图/图 id、wire 形态、行为、日期、结果）。
+2. 若核验揭示生产 gap：更新对应权威文档的 gap 标注（区分“已修复待核验/已核验闭合”），
+   按 `composite-docs-maintainer` 路由。
+3. 报告中分开陈述：自动证据（编译/wire 断言/注入成功）与用户游戏证据，不得混淆。

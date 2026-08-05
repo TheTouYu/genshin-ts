@@ -69,7 +69,7 @@ src/cli/static_assembly/wire.js                 通用 wire 解析/编码（pars
 | 9 | 注入后图名被覆盖为 `_GSTS_<name>` | 预期行为（injector 用 GIA 图名替换）；空图占位名不重要 |
 | 10 | `gsts` 注入会自动覆盖 `src/resources/prefabs.ts`（从目标地图提取） | 新地图提取会删除旧地图的 prefab 定义；该文件与 `signals.ts` 一样属自动提取产物，已加入 `.gitignore`，提交前无需处理；不要手动提交其提取内容 |
 | 11 | 注入报 `multiple WSL LocalLow folders found` | 多 WSL 用户目录时显式设置 `GSTS_LOCALLOW_DIR=/mnt/c/Users/<user>/AppData/LocalLow`（按确认的游戏用户目录） |
-| 12 | 注入报 `[error] target NodeGraph not found: <id>` | 目标图 ID 在地图里不存在。先用 `gsts assets:node-graphs create --gil <map.gil> --graph-id <id> --output <candidate>` 预览，再 `--write`（自动备份 + 源 SHA 检查）写回空图占位，然后重新注入 |
+| 12 | 注入报 `[error] target NodeGraph not found: <id>` | 目标图 ID 在地图里不存在。先用 `gsts assets:node-graphs create --gil <map.gil> --output <candidate>` 预览（图 ID 自动分配，空图从 1073741825 起），再 `--write`（自动备份 + 源 SHA 检查）写回空图占位，然后重新注入 |
 | 13 | 单文件注入用错目标图 | 单文件模式 `node bin/gsts.mjs -c <config> <file.gia>` 以 `config.inject.nodeGraphId` 为目标 ID（批量模式才用 GIA 内 graph id）；注入前确认 config 的 `mapId`/`nodeGraphId` 与意图一致 |
 
 生成与建图工具已正式放入技能脚本目录（可复用资产）：
@@ -112,3 +112,32 @@ GIA 编辑器导入）均已 PASS。
 `genshin-ts-evidence/`）当作裁决依据，测试断言与生产输出冲突时先核对真实证据再决定改
 测试还是改代码。本轮即修正了 3 处与真实证据冲突的旧断言（capture 物理 pin、monitor
 OutParam 不落盘、列表 ParameterFlow 类型），生产代码零改动。
+
+## 最小核验注入通道（2026-08-06 首跑闭环，verify-injection skill）
+
+面向“已锁定规则的 Stage 3 生产编码行为核验”：不每次新建地图，复用按约定命名的专用验证地图
+（当前实例 `1073741852`「InFlow核验」），每个核验分支一个 placeholder 节点图（`verify-<点>`），
+最小 case 放 `verify/<分支>/<分支>.ts`，统一配置 `gsts.verify.config.ts`。
+
+```text
+写最小 case TS → gsts -c gsts.verify.config.ts --noinject 编译
+→ decode-gia 断言目标 wire（connects 的 connect/connect2 index）
+→ 确认 placeholder 图存在（assets:node-graphs --gil <map> --name verify-<点> --write）
+→ config 临时加 inject（mapId/nodeGraphId）→ 单文件注入 .gia
+→ list-gil-node-graphs + .gil 回读 wire → 用户游戏核验 → 登记 verified-cases.md
+```
+
+实测关键点（勿重踩）：
+
+- config 平时不配 inject：只要 inject 存在，编译阶段就会解析目标 gil，
+  `mapId=0` 时直接报 `target gil not found: 0.gil`；注入前再临时加 inject 段。
+- 单文件注入以 `config.inject.nodeGraphId` 为目标，且自动把 GIA 内 graph id 改写为目标 id
+  （`loadGiaGraph` setGraphId），因此 DSL `g.server({id})` 不必与 placeholder 图 id 一致；
+  批量注入则按 GIA id 找目标（需 id 已存在于地图），默认不用。
+- 新地图 `maps:create`：mapId = 现有最大 + 1，`--graphs` 的 placeholder id 从 1073741825 自增；
+  已有地图加图用 `assets:node-graphs --gil ... --name ... --write`（先备份再写回）。
+- 注入前自动备份目标 `.gil`；注入成功 ≠ 游戏核验通过，最终以用户游戏内结果为准。
+
+首个已核验实例（inflow-index，见 `.agents/skills/verify-injection/references/verified-cases.md`）：
+break_loop → finite_loop 的 `connect/connect2 = {kind: InFlow, index: 1}` 与真实编辑器 case3
+证据同构，用户游戏核验通过。

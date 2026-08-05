@@ -34,6 +34,7 @@
 ## 验证与文档
 
 - 优先运行针对性验证；TypeScript 生产代码改动通常还需运行 `npm run build`。通用构建为 `npm run build`，完整测试为 `npm test`。`npm test` 和 `npm run quicktest` 必须显式保持 `--noinject`，不得依赖测试配置中的 inject 参数决定自动测试是否写入真实地图。
+- 用户说“去核验/游戏核验”时，加载 `.agents/skills/verify-injection`（最小核验注入通道）：复用专用验证地图（当前 `1073741852`「InFlow核验」）、每分支一个 `verify-<点>` placeholder 图、`verify/<分支>/<分支>.ts` + `gsts.verify.config.ts` 编译注入；config 平时不配 inject（否则编译报 `target gil not found: 0.gil`），注入前临时加。
 - CLI-only 改动（`src/cli/`、CLI 相关 `tests/`、`src/i18n/` 文案）：生产管线（compiler/runtime/injector）不引用 `src/cli`，验证只需 ①类型检查（`npm run build` 或 `npx tsc --noEmit`，tsx 运行测试不查类型，类型错误只有 tsc 能抓到）②直接运行受影响测试（`npx tsx tests/<file>.ts`）③`git diff --check`；不需要 `npm test`/`npm run quicktest` 全量管线（GIA 生成与 tests 批量编译与 CLI 无关且成本高）。
 - 每次修改至少运行 `git diff --check`；未运行的验证必须明确标为“未运行”，不能臆测结果。
 - 代码、测试、真实 GIA 结论或工作流变化时，更新对应的权威文档；文档要区分当前实现、自动回归、真实 GIA、用户游戏验证、历史记录和待验证假设。
