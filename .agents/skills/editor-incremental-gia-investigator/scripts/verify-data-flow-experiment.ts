@@ -1,35 +1,33 @@
 #!/usr/bin/env tsx
 /**
- * Parameterized control-flow connection experiment verifier + isomorphic replay.
+ * Parameterized DATA-flow connection experiment verifier + isomorphic replay.
  *
- * One command replaces the per-round handwritten validator + replay pair for
- * ordinary NodeGraph SysCall FlowOut->FlowIn experiments:
+ * Clone of verify-control-flow-experiment.ts with the wire side flipped:
+ * control flow hangs on the SOURCE OutFlow, data flow hangs on the TARGET InParam
+ * (source OutParam is NOT instantiated for Fixed nodes, observed dataflow-case1).
  *
- *   npx tsx verify-control-flow-experiment.ts <experiment-dir> \
- *     --graph-id 1073741836 --source 11 --target 27 \
- *     --outflow-index 2 --expected-pin-raw <hex> \
+ *   npx tsx verify-data-flow-experiment.ts <experiment-dir> \
+ *     --graph-id 1073741836 --source 12 --target 24 \
+ *     --target-index 1 --target-type 3 --expected-pin-raw <hex> \
  *     --before-hash <sha256> --after-hash <sha256> \
- *     [--target-index N]  expected InFlow index on target refs (default 0 = omitted) \
- *     [--allow-added N]    target node newly placed (not in before); node set = before + N \
- *     [--sync-extra-pin 1]  allow exactly ONE pre-existing source pin value to change\
- *                           (editor-side list sync, e.g. cases); candidate takes after value \
- *     [--source-generic 3 --source-concrete 4 --target-generic 70]
+ *     [--source-generic 8 --target-generic 66]
  *
  * Checks (raw before/after under <experiment-dir>/raw/):
  *   1. hashes match the locked snapshots (when provided)
- *   2. node set unchanged, only --source changed
- *   3. --source gains one OutFlow pin carrying explicit index=--outflow-index,
- *      connects[0].id = --target, connect/connect2 kind=InFlow without index
+ *   2. node set unchanged, only --target changed
+ *   3. --target gains one InParam pin: i1/i2 kind=InParam with index=--target-index
+ *      (0 = omitted), type=--target-type, connects[0].id = --source, connect/connect2
+ *      kind=OutParam without index
  *   4. new pin raw bytes equal --expected-pin-raw (when provided)
- *   5. --target GraphNode raw bytes byte-identical (no InFlow pin instantiated)
+ *   5. --source GraphNode raw bytes byte-identical (source OutParam NOT instantiated)
  *   6. root-level diff is reported (not asserted; root 46 equal-length INSUFFICIENT is known)
  *   7. donor verify: the UNMODIFIED before graph is verified first; candidate may only
  *      fail with exactly the same donor error (bounded shim, e.g. node 32
  *      contextDeclaration.kind=7). Production injector is never modified.
- *   8. manual isomorphic replay: candidate constructed from before (new OutFlow pin
- *      inserted after the last existing OutFlow, before data pins) must encode to
- *      byte-identical NodeGraph as real after; a formal GIA is built and injected into
- *      a temporary GIL copy; readback must equal candidate and after. No real-map write.
+ *   8. manual isomorphic replay: candidate constructed from before (new InParam pin
+ *      appended to the target node) must encode to byte-identical NodeGraph as real
+ *      after; a formal GIA is built and injected into a temporary GIL copy; readback
+ *      must equal candidate and after. No real-map write.
  *
  * Outputs: <experiment-dir>/verify/validation.json,
  *          <experiment-dir>/verify/manual-flow-v1.{gia,gil}, verify/result.json
@@ -108,16 +106,23 @@ const experiment = path.resolve(args.dir ?? '.')
 const GRAPH_ID = Number(args['graph-id'] ?? 0)
 const SOURCE = Number(args.source ?? 0)
 const TARGET = Number(args.target ?? 0)
-const OUTFLOW_INDEX = Number(args['outflow-index'] ?? 1)
-const TARGET_INDEX = Number(args['target-index'] ?? 0) // expected InFlow index on target refs; 0 = omitted
+const TARGET_INDEX = Number(args['target-index'] ?? 0) // expected InParam index on target pin; 0 = omitted
+const TARGET_TYPE = Number(args['target-type'] ?? 0) // expected InParam type (proto type id, e.g. Int=3, Flt=5)
+type Wire = { source: number; target: number; index: number; type: number; sourceOutIndex: number }
+// --wires "13:16:1:5:1,12:24:2:3" (source:target:targetIndex:targetType[:sourceOutIndex],
+// comma separated; sourceOutIndex = source OutParam ShellIndex, default 0 = omitted in refs)
+// for a single save carrying multiple independent data wires; falls back to --source/--target pairs
+const WIRES: Wire[] = args.wires
+  ? args.wires.split(',').map((w) => {
+      const [s, t, i, ty, srcIdx] = w.split(':')
+      return { source: Number(s), target: Number(t), index: Number(i), type: Number(ty), sourceOutIndex: srcIdx ? Number(srcIdx) : 0 }
+    })
+  : [{ source: SOURCE, target: TARGET, index: TARGET_INDEX, type: TARGET_TYPE, sourceOutIndex: 0 }]
 const EXPECTED_RAW = (args['expected-pin-raw'] ?? '').replace(/\s+/g, '')
 const BEFORE_HASH = args['before-hash'] ?? ''
 const AFTER_HASH = args['after-hash'] ?? ''
 const SOURCE_GENERIC = args['source-generic'] ? Number(args['source-generic']) : 0
-const SOURCE_CONCRETE = args['source-concrete'] ? Number(args['source-concrete']) : 0
 const TARGET_GENERIC = args['target-generic'] ? Number(args['target-generic']) : 0
-const ALLOW_ADDED = args['allow-added'] ? Number(args['allow-added']) : 0 // newly placed target node (not in before)
-const SYNC_EXTRA_PIN = args['sync-extra-pin'] === '1' // allow exactly one pre-existing source pin value change
 const beforePath = path.join(experiment, 'raw/before.gil')
 const afterPath = path.join(experiment, 'raw/after.gil')
 const verifyDir = path.join(experiment, 'verify')
@@ -126,8 +131,8 @@ const gilPath = path.join(verifyDir, 'manual-flow-v1.gil')
 const resultPath = path.join(verifyDir, 'result.json')
 const validatorPath = path.join(verifyDir, 'validation.json')
 
-if (!GRAPH_ID || !SOURCE || !TARGET) {
-  console.error('usage: verify-control-flow-experiment.ts <dir> --graph-id N --source N --target N [--outflow-index N] [--target-index N] [--allow-added N] [--sync-extra-pin 1] [--expected-pin-raw hex] [--before-hash h] [--after-hash h] [--source-generic N] [--source-concrete N] [--target-generic N]')
+if (!GRAPH_ID || WIRES.length === 0 || WIRES.some((w) => !w.source || !w.target || !w.type)) {
+  console.error('usage: verify-data-flow-experiment.ts <dir> --graph-id N (--source N --target N --target-index N --target-type N | --wires "s:t:i:ty,...") [--expected-pin-raw hex (single wire)] [--before-hash h] [--after-hash h] [--source-generic N] [--target-generic N]')
   process.exit(2)
 }
 
@@ -195,85 +200,70 @@ function main(): number {
   const beforeNodes = byIndex(beforeGraph)
   const afterNodes = byIndex(afterGraph)
 
-  // 2. node set stable (plus declared added node), only source changed
+  // 2. node set stable, only the wire target nodes changed
   const expectedSet = [...beforeNodes.keys()]
-  if (ALLOW_ADDED) expectedSet.push(ALLOW_ADDED)
   assert.deepEqual(
     [...afterNodes.keys()].sort((a, b) => a - b),
     expectedSet.sort((a, b) => a - b),
-    'node set must not change (besides declared added node)'
+    'node set must not change'
   )
-  if (ALLOW_ADDED) {
-    const added = afterNodes.get(ALLOW_ADDED)
-    assert(added, `declared added node ${ALLOW_ADDED} missing in after`)
-    assert.equal(Number(added.genericId?.nodeId), TARGET_GENERIC,
-      'added node genericId must match --target-generic')
-  }
+  const targets = [...new Set(WIRES.map((w) => w.target))]
   const changed = [...beforeNodes.keys()].filter(
     (i) => JSON.stringify(beforeNodes.get(i)) !== JSON.stringify(afterNodes.get(i))
   )
-  assert.deepEqual(changed, [SOURCE], `only source node ${SOURCE} may change`)
-  ok(`node set stable${ALLOW_ADDED ? `; added node ${ALLOW_ADDED}` : ''}; only source changed`)
+  assert.deepEqual(changed, targets, `only wire target nodes ${targets.join(',')} may change`)
+  ok(`node set stable; only target${targets.length > 1 ? 's' : ''} ${targets.join(',')} changed`)
 
-  const sourceBefore = beforeNodes.get(SOURCE)
-  const sourceAfter = afterNodes.get(SOURCE)
+  const sourceBefore = beforeNodes.get(WIRES[0].source)
   if (SOURCE_GENERIC) assert.equal(Number(sourceBefore.genericId?.nodeId), SOURCE_GENERIC)
-  if (SOURCE_CONCRETE) assert.equal(Number(sourceBefore.concreteId?.nodeId), SOURCE_CONCRETE)
-  if (TARGET_GENERIC) {
-    const targetId = ALLOW_ADDED && TARGET === ALLOW_ADDED
-      ? afterNodes.get(TARGET)?.genericId?.nodeId
-      : beforeNodes.get(TARGET)?.genericId?.nodeId
-    assert.equal(Number(targetId), TARGET_GENERIC)
-  }
-  const beforePins = sourceBefore.pins.length
-  assert.equal(sourceAfter.pins.length, beforePins + 1, 'source must gain exactly one pin')
 
-  // 3. new OutFlow pin semantics
-  const flowPins = sourceAfter.pins.filter(
-    (pin: any) => pin.i1?.kind === 2 && Number(pin.i1?.index) === OUTFLOW_INDEX
-  )
-  assert.equal(flowPins.length, 1, `exactly one OutFlow pin with index=${OUTFLOW_INDEX}`)
-  const newPin = flowPins[0]
-  assert.equal(newPin.i2?.kind, 2)
-  assert.equal(Number(newPin.i2?.index), OUTFLOW_INDEX, 'i2 mirrors explicit index')
-  assert.equal(newPin.connects.length, 1)
-  assert.equal(newPin.connects[0].id, TARGET)
-  assert.equal(newPin.connects[0].connect.kind, 1, 'connect = InFlow')
-  assert.equal(newPin.connects[0].connect2.kind, 1, 'connect2 = InFlow')
-  assert.equal(newPin.connects[0].connect.index ?? 0, TARGET_INDEX,
-    `target InFlow index must be ${TARGET_INDEX === 0 ? 'absent' : TARGET_INDEX}`)
-  assert.equal(newPin.connects[0].connect2.index ?? 0, TARGET_INDEX,
-    `target InFlow index must be ${TARGET_INDEX === 0 ? 'absent' : TARGET_INDEX} (i2)`)
-  ok(`source OutFlow[${OUTFLOW_INDEX}] -> target ${TARGET}, InFlow refs without index`)
-
-  // 4. new pin raw bytes
-  const sourceRaw = extractNodeRaw(afterPath, SOURCE)
-  const sourcePins = topFields(sourceRaw).filter((field) => field.field === 4 && field.wire === 2)
-  assert.equal(sourcePins.length, sourceAfter.pins.length)
-  if (EXPECTED_RAW) {
-    const actual = Buffer.from(sourcePins[sourceAfter.pins.indexOf(newPin)].data).toString('hex')
-    assert.equal(actual, EXPECTED_RAW, 'new pin raw mismatch')
-    ok('new pin raw bytes match expected encoding')
-  } else {
-    console.log(
-      'INFO raw of new pin:',
-      Buffer.from(sourcePins[sourceAfter.pins.indexOf(newPin)].data).toString('hex')
+  // 3-5. per-wire: target gains one InParam pin; source byte-identical
+  for (const wire of WIRES) {
+    const targetBefore = beforeNodes.get(wire.target)
+    const targetAfter = afterNodes.get(wire.target)
+    if (TARGET_GENERIC) assert.equal(Number(targetBefore.genericId?.nodeId), TARGET_GENERIC)
+    const beforePins = targetBefore.pins.length
+    assert.equal(targetAfter.pins.length, beforePins + 1,
+      `wire ${wire.source}->${wire.target}: target must gain exactly one pin`)
+    const dataPins = targetAfter.pins.filter(
+      (pin: any) =>
+        pin.i1?.kind === 3 &&
+        (pin.i1?.index == null ? 0 : Number(pin.i1?.index)) === wire.index
     )
-  }
+    assert.equal(dataPins.length, 1, `exactly one InParam pin with index=${wire.index}`)
+    const newPin = dataPins[0]
+    assert.equal(newPin.i2?.kind, 3)
+    assert.equal((newPin.i2?.index == null ? 0 : Number(newPin.i2?.index)), wire.index, 'i2 mirrors index')
+    assert.equal(Number(newPin.type), wire.type, 'InParam type must match wire type')
+    assert.equal(newPin.connects.length, 1)
+    assert.equal(newPin.connects[0].id, wire.source)
+    assert.equal(newPin.connects[0].connect.kind, 4, 'connect = OutParam')
+    assert.equal(newPin.connects[0].connect2.kind, 4, 'connect2 = OutParam')
+    const srcIdx = wire.sourceOutIndex ?? 0
+    assert.equal(newPin.connects[0].connect.index ?? 0, srcIdx,
+      `source OutParam ref index must be ${srcIdx === 0 ? 'absent' : srcIdx}`)
+    assert.equal(newPin.connects[0].connect2.index ?? 0, srcIdx,
+      `source OutParam ref index must be ${srcIdx === 0 ? 'absent' : srcIdx} (i2)`)
+    ok(`target InParam[${wire.index}] type=${wire.type} <- source ${wire.source}, OutParam ref index=${srcIdx}`)
 
-  // 5. target: byte-identical when pre-existing; no InFlow pin instantiated in either case
-  if (ALLOW_ADDED && TARGET === ALLOW_ADDED) {
-    const addedRaw = extractNodeRaw(afterPath, TARGET)
-    assert.ok(addedRaw.length > 0, 'added target node raw must exist')
-    const addedPins = topFields(addedRaw).filter((f) => f.field === 4 && f.wire === 2)
-    assert.equal(addedPins.length, 0, 'added target node must not instantiate InFlow pins')
-  } else {
+    // 4. new pin raw bytes (single-wire mode only)
+    if (WIRES.length === 1 && EXPECTED_RAW) {
+      const targetRaw = extractNodeRaw(afterPath, wire.target)
+      const targetPins = topFields(targetRaw).filter((field) => field.field === 4 && field.wire === 2)
+      assert.equal(targetPins.length, targetAfter.pins.length)
+      const actual = Buffer.from(targetPins[targetAfter.pins.indexOf(newPin)].data).toString('hex')
+      assert.equal(actual, EXPECTED_RAW, 'new pin raw mismatch')
+      ok('new pin raw bytes match expected encoding')
+    }
+
+    // 5. source byte-identical (data wire hangs on target; source OutParam NOT instantiated)
     assert.ok(
-      Buffer.from(extractNodeRaw(beforePath, TARGET)).equals(Buffer.from(extractNodeRaw(afterPath, TARGET))),
-      'target node must be byte-identical'
+      Buffer.from(extractNodeRaw(beforePath, wire.source)).equals(
+        Buffer.from(extractNodeRaw(afterPath, wire.source))),
+      `source node ${wire.source} must be byte-identical`
     )
+    ok(`source node ${wire.source} byte-identical (no OutParam pin instantiated)`)
   }
-  ok('target node byte-identical / no InFlow pin instantiated')
 
   // 6. root-level diff report (informational)
   const beforePayload = readGilPayloadFields(beforePath).payload
@@ -291,47 +281,22 @@ function main(): number {
   const donorError = originalVerify.call(nodeGraphMessage, beforeGraph)
   console.log('INFO donor verify error:', donorError ?? 'none')
   const candidateGraph = structuredClone(beforeGraph)
-  const source = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === SOURCE)
-  assert(source, `source node ${SOURCE} missing`)
-  if (ALLOW_ADDED) {
-    // newly placed target node is a clean pinless node (asserted above); copy it from after
-    // so the replay covers only the connection increment, not editor node placement
-    candidateGraph.nodes.push(
-      afterGraph.nodes.find((node: any) => Number(node.nodeIndex) === ALLOW_ADDED)
-    )
-    const order = afterGraph.nodes.map((node: any) => Number(node.nodeIndex))
-    candidateGraph.nodes.sort(
-      (a: any, b: any) => order.indexOf(Number(a.nodeIndex)) - order.indexOf(Number(b.nodeIndex))
-    )
+  for (const wire of WIRES) {
+    const target = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === wire.target)
+    assert(target, `target node ${wire.target} missing`)
+    // data wire hangs on target side: append new InParam pin with connects -> source
+    // ponytail: append at tail; multi-pin target insertion position unverified yet
+    target.pins.push({
+      i1: { kind: 3, index: wire.index || undefined },
+      i2: { kind: 3, index: wire.index || undefined },
+      type: wire.type,
+      connects: [{
+        id: wire.source,
+        connect: { kind: 4, index: wire.sourceOutIndex || undefined },
+        connect2: { kind: 4, index: wire.sourceOutIndex || undefined }
+      }]
+    })
   }
-  if (SYNC_EXTRA_PIN) {
-    // editor may sync one pre-existing source pin (e.g. cases list grows with new branch);
-    // candidate must take the after value so bytes stay identical, still bounded to exactly one
-    const afterPins = afterNodes.get(SOURCE).pins.filter(
-      (pin: any) => !(pin.i1?.kind === 2 && Number(pin.i1?.index) === OUTFLOW_INDEX)
-    )
-    assert.equal(afterPins.length, source.pins.length,
-      'sync-extra-pin: after must hold before pins + new OutFlow only')
-    const diffs = source.pins
-      .map((pin: any, i: number) =>
-        JSON.stringify(pin) !== JSON.stringify(structuredClone(afterPins[i])) ? i : -1)
-      .filter((i: number) => i >= 0)
-    assert.equal(diffs.length, 1,
-      `sync-extra-pin: exactly one pre-existing pin may change, got ${diffs.length}`)
-    source.pins[diffs[0]] = structuredClone(afterPins[diffs[0]])
-    ok(`synced changed pre-existing source pin (position ${diffs[0]}) from after`)
-  }
-  // insert new OutFlow after the last existing OutFlow, before data pins
-  const lastOutFlow = source.pins.findLastIndex((pin: any) => pin.i1?.kind === 2)
-  source.pins.splice(lastOutFlow + 1, 0, {
-    i1: { kind: 2, index: OUTFLOW_INDEX },
-    i2: { kind: 2, index: OUTFLOW_INDEX },
-    connects: [{
-      id: TARGET,
-      connect: { kind: 1, index: TARGET_INDEX || undefined },
-      connect2: { kind: 1, index: TARGET_INDEX || undefined }
-    }]
-  })
   const candidateError = originalVerify.call(nodeGraphMessage, candidateGraph)
   if (donorError === null) {
     assert.equal(candidateError, null, `candidate must verify when donor verifies, got: ${candidateError}`)
@@ -410,7 +375,8 @@ function main(): number {
     graphId: GRAPH_ID,
     sourceNode: SOURCE,
     targetNode: TARGET,
-    outflowIndex: OUTFLOW_INDEX,
+    targetPinIndex: TARGET_INDEX,
+    targetPinType: TARGET_TYPE,
     donorVerify: donorError,
     rootDeltas: rootDiff.map(([l, r]) => ({ field: l.field, beforeBytes: l.data.length, afterBytes: r.data.length })),
     formalGia: {
