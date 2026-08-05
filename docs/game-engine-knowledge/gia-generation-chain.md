@@ -64,18 +64,18 @@ src/cli/static_assembly/wire.js                 通用 wire 解析/编码（pars
 | 4 | decode 后读 `genericId.id` 得到 undefined | decode 产物是 `genericId.nodeId`（int64 在 protobufjs 中显示为 Long 对象，`===` 数字比较前先 `.toString()` 或转 Number） |
 | 5 | `decode_gia_file(bytes)` 直接传 Uint8Array 报错 | 它只接受文件路径；先写临时文件再解码 |
 | 6 | tsx 脚本顶层 `await` 报 “Top-level await is currently not supported with the cjs output format” | 包 `async function main() { ... }; main()` |
-| 7 | 注入目标地图没有任何节点图时，注入器找不到目标（`findFolderEntryField` 失败） | 先用 `.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts` 生成空图（root 10 双层包装 + root 6 “未分类页签” #5 条目），再注入 |
+| 7 | 注入目标地图没有任何节点图时，注入器找不到目标（`findFolderEntryField` 失败） | 先用 `gsts assets:node-graphs create` 生成空图（root 10 双层包装 + root 6 “未分类页签” #5 条目），再注入 |
 | 8 | GIA 字节对比失败以为是 bug | 先排除 vendor 坐标抖动（#7 的 Math.random）与 filePath 时间戳；两者都非回归 |
 | 9 | 注入后图名被覆盖为 `_GSTS_<name>` | 预期行为（injector 用 GIA 图名替换）；空图占位名不重要 |
 | 10 | `gsts` 注入会自动覆盖 `src/resources/prefabs.ts`（从目标地图提取） | 新地图提取会删除旧地图的 prefab 定义；该文件与 `signals.ts` 一样属自动提取产物，已加入 `.gitignore`，提交前无需处理；不要手动提交其提取内容 |
 | 11 | 注入报 `multiple WSL LocalLow folders found` | 多 WSL 用户目录时显式设置 `GSTS_LOCALLOW_DIR=/mnt/c/Users/<user>/AppData/LocalLow`（按确认的游戏用户目录） |
-| 12 | 注入报 `[error] target NodeGraph not found: <id>` | 目标图 ID 在地图里不存在。先用 `create-empty-node-graph.ts --gil <map.gil> --graph-id <id> --output <candidate>` 预览，再 `--write`（自动备份 + 源 SHA 检查）写回空图占位，然后重新注入 |
+| 12 | 注入报 `[error] target NodeGraph not found: <id>` | 目标图 ID 在地图里不存在。先用 `gsts assets:node-graphs create --gil <map.gil> --graph-id <id> --output <candidate>` 预览，再 `--write`（自动备份 + 源 SHA 检查）写回空图占位，然后重新注入 |
 | 13 | 单文件注入用错目标图 | 单文件模式 `node bin/gsts.mjs -c <config> <file.gia>` 以 `config.inject.nodeGraphId` 为目标 ID（批量模式才用 GIA 内 graph id）；注入前确认 config 的 `mapId`/`nodeGraphId` 与意图一致 |
 
 生成与建图工具已正式放入技能脚本目录（可复用资产）：
 
 ```text
-.agents/skills/editor-incremental-gia-investigator/scripts/create-empty-node-graph.ts
+gsts assets:node-graphs create（正式命令，替代原 create-empty-node-graph.ts 脚本）
 .agents/skills/editor-incremental-gia-investigator/scripts/generate-signal-demo-gia.ts
 ```
 
@@ -93,7 +93,7 @@ GIA 编辑器导入）均已 PASS。
 
 ```text
 生成 GIA（生产 irToGia + 真实注册数据）→ 用户编辑器导入（资产包）
-→ create-empty-node-graph 建空图（仅目标图不存在时）→ gsts 单文件注入
+→ gsts assets:node-graphs create 建空图（仅目标图不存在时）→ gsts 单文件注入
 → 回读验证 → 用户游戏内核验
 ```
 
