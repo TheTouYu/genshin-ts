@@ -75,7 +75,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 只读取匹配模块和一个**恢复锚点**：优先使用用户或当前会话明确给出的 handoff/status 文件；没有 handoff 时，读取模块指向的领域 Authority。从锚点取得前快照、地图路径、`nodeGraphId`、已确认规则和下一缺口后直接工作。不要再次加载索引、`project-pipeline.md`、导航 Skill、通用领域文档或 PKC，除非锚点明确指出 coverage gap。
 
-用户给出 `MAP/GID/LOCKED_BEFORE/LOCKED_HASH` 且任务只读、唯一变化和验收字段明确时，按窄任务处理；普通连接只加载 `connections.md` 和 manifest。不要因为文件后缀是 `.gil` 就转入静态拼装 Context 或加载信号、Composite 全套文档。任务变为写回、结构歧义、生产修复或游戏验证时再按阶段切换补门。
+用户给出 `MAP/GID/LOCKED_BEFORE/LOCKED_HASH` 且任务只读、唯一变化和验收字段明确时，按窄任务处理；普通连接只加载 `connections.md` 和 manifest（manifest 绝对路径与只读范围见 connections.md「最小恢复」节，勿全盘搜索）。不要因为文件后缀是 `.gil` 就转入静态拼装 Context 或加载信号、Composite 全套文档。任务变为写回、结构歧义、生产修复或游戏验证时再按阶段切换补门。
 
 ### B. 冷启动
 

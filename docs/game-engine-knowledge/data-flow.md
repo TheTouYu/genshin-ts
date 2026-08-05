@@ -39,13 +39,19 @@
 
 连接双方必须使用兼容的[参数类型](parameter-types.md)。连接不仅需要指出来源节点和目标节点，还需要指出来源输出和目标输入。
 
-### wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v11 真实快照 CONFIRMED）
+### wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v11 + dataflow-case1 真实快照 CONFIRMED）
 
 ```text
 目标侧 InParam pin 挂 connects（f5）：
   connects = [{1: id=源节点 nodeIndex, 2: connect, 3: connect2}]
   connect / connect2 = NodePin_Index{1: kind=4(OutParam)}，源 OutParam index=0 时无 index 字段
-源侧 OutParam pin：i1/i2={kind:4 OutParam}（index=0 缺失），value 跟随变体类型，不挂 connects
+目标 InParam 的 i1/i2 index=ShellIndex：默认（Shell 0）缺失、非默认显式（case1: preset_index=1，
+case2: scale=1/preset_value=2）
+type 落盘（Int=3、Flt=5）；无默认值时不落 value
+源侧 OutParam **不实例化**（dataflow-case1/2：默认与非默认源、一源多目标源侧 bytes 全不变）；
+Variant 节点（如 337）的 OutParam pin 是变体配置产物，不是连线行为，value 跟随变体类型
+connect/connect2 指向源 OutParam：源默认（Shell0）省略 index，源非默认显式源 ShellIndex
+（case2: 拆分三维向量 y Shell=1 → connect.index=connect2.index=1）
 ```
 
 - 例：337 获取节点图变量 value → 3 多分支 key：目标 key

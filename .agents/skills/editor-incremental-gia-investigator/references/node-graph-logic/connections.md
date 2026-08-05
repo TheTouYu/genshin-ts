@@ -87,6 +87,9 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/verify-contro
   并按 after 节点顺序排序）。目标 InFlow 非默认时传 `--target-index <N>`，candidate 的
   connect/connect2 自动携带 index。
 - `readVarint` 返回 `{ value, next }`，`next` 是绝对游标；`position = key.next`，禁止 `+=`。
+- structuredClone 会丢失 protobufjs Message 原型（toJSON 失效，enum 从名字变数字）；candidate
+  与 after 的 pin 对比必须两侧都 clone 后再 JSON.stringify，否则全量误报（case4 --sync-extra-pin
+  教训）。
 - 第三方定义路径已记录在 manifest 恢复块，勿再全盘搜索。
 - 工具脚本行为与预期矛盾时，先与已知正确版本 diff（一次调用），不要从零新写 debug 脚本。
 - 新实验目录命名延续 `control-flow-caseN-<source>-to-<target>-v<M>-v<M+1>`。
@@ -131,8 +134,19 @@ for c in d['changedRootFields']:
 ### 数据连接
 
 - 挂在目标 InParam；`connects.id=源 nodeIndex`。
-- `connect/connect2` 指向源 OutParam；源 OutParam 实例化但不挂 connects。
+- `connect/connect2` 指向源 OutParam（kind=4）：源默认（Shell0）省略 index，**源非默认
+  显式源 ShellIndex**（dataflow-case2：拆分 y Shell=1 → `connect.index=connect2.index=1`）。
+- **源 OutParam 不实例化**（dataflow-case1/2：默认与非默认源、一源多目标源侧 bytes 全不变）；
+  v10 的 337 OutParam pin 是 Variant 变体配置产物，不是连线行为。
+- 目标 InParam 的 i1/i2 index=ShellIndex（默认省略、非默认显式：preset_index=1、
+  preset_value=2、scale=1）；type 落盘（Int=3、Flt=5）；无默认值时不落 value。
+- 一源多目标：各目标 pin 各挂 connects（id 同源），源不落盘；一次保存多线互不干扰。
+- 多 pin 目标按 ShellIndex 升序排列（现有样本 0→1→2 均为尾部追加，无中间插入证据）。
 - index=0 的 wire presence 与显式 `index:0` 必须通过 raw bytes 区分。
+- 验证：`verify-data-flow-experiment.ts <dir> --graph-id N --source N --target N
+  --target-index N --target-type N [--expected-pin-raw hex]`；多线一次保存用
+  `--wires "s:t:i:ty[:srcIdx],..."`（changed=目标集合、每个 source byte-identical、
+  candidate=before+各目标尾部追加新 pin）。
 
 ### 控制流连接
 
