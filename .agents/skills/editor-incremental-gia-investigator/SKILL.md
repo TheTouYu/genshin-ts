@@ -50,6 +50,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
 | 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
 | 新建节点图 / 用生产 irToGia 生成 GIA 资产、GIA 字节对比与可复现性 | `references/node-graph-logic/node-graph-creation.md` |
+| 节点实例 pin 快速回验：第三方定义对照、参数 pin 解码（第三方优先 95%） | `references/node-graph-logic/node-pin-validation.md` |
 | 第三方仓库交叉核对：用千星沙箱知识库 / 本地 thirdparty 代码包确认编码语义并与自有实验互证 | `references/third-party-cross-check.md` |
 
 需要确认 wire 类型码、组件/变量语义或参数类型时，先读 `third-party-cross-check.md`：

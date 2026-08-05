@@ -76,6 +76,17 @@ EOF
 判定标准：wire 类型码 == proto VarType == 自有实验 discriminator 时，类型语义确认；
 只靠文档文字不确认数字编码（文档不暴露内部枚举）。
 
+## 第三方优先快速回验（95% 原则，2026-08-05 沉淀）
+
+节点定义类问题（节点名/引脚/参数顺序）优先用第三方 data.json 快速回验，而不是每轮做
+完整相邻实验。信任度分层：名字/引脚方向/类型 95~98% 可信；内部版本有分歧时（如 252 的
+data.json 8 参数 vs md 注释 7 参数）不做价值判断，由真实相邻差分裁决（已裁决 data.json
+正确：实例 i1.index 0,1,2,5,6 与 data.json ShellIndex 全对齐）。
+
+回退顺序（冲突时）：真实相邻差分 > vendor gia.proto 字段号 > data.json > md 注释。
+
+流程与已闭合对照表见 `references/node-graph-logic/node-pin-validation.md`。
+
 ## 已闭合案例（勿重做）
 
 - 元件自定义变量组件（typeID=1，配置字段 11）：f2=名称、f3=类型码(VarType)、
