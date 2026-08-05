@@ -113,6 +113,7 @@ const AFTER_HASH = args['after-hash'] ?? ''
 const SOURCE_GENERIC = args['source-generic'] ? Number(args['source-generic']) : 0
 const SOURCE_CONCRETE = args['source-concrete'] ? Number(args['source-concrete']) : 0
 const TARGET_GENERIC = args['target-generic'] ? Number(args['target-generic']) : 0
+const ALLOW_ADDED = args['allow-added'] ? Number(args['allow-added']) : 0 // newly placed target node (not in before)
 const beforePath = path.join(experiment, 'raw/before.gil')
 const afterPath = path.join(experiment, 'raw/after.gil')
 const verifyDir = path.join(experiment, 'verify')
@@ -190,23 +191,36 @@ function main(): number {
   const beforeNodes = byIndex(beforeGraph)
   const afterNodes = byIndex(afterGraph)
 
-  // 2. node set stable, only source changed
+  // 2. node set stable (plus declared added node), only source changed
+  const expectedSet = [...beforeNodes.keys()]
+  if (ALLOW_ADDED) expectedSet.push(ALLOW_ADDED)
   assert.deepEqual(
     [...afterNodes.keys()].sort((a, b) => a - b),
-    [...beforeNodes.keys()].sort((a, b) => a - b),
-    'node set must not change'
+    expectedSet.sort((a, b) => a - b),
+    'node set must not change (besides declared added node)'
   )
+  if (ALLOW_ADDED) {
+    const added = afterNodes.get(ALLOW_ADDED)
+    assert(added, `declared added node ${ALLOW_ADDED} missing in after`)
+    assert.equal(Number(added.genericId?.nodeId), TARGET_GENERIC,
+      'added node genericId must match --target-generic')
+  }
   const changed = [...beforeNodes.keys()].filter(
     (i) => JSON.stringify(beforeNodes.get(i)) !== JSON.stringify(afterNodes.get(i))
   )
   assert.deepEqual(changed, [SOURCE], `only source node ${SOURCE} may change`)
-  ok('node set stable; only source changed')
+  ok(`node set stable${ALLOW_ADDED ? `; added node ${ALLOW_ADDED}` : ''}; only source changed`)
 
   const sourceBefore = beforeNodes.get(SOURCE)
   const sourceAfter = afterNodes.get(SOURCE)
   if (SOURCE_GENERIC) assert.equal(Number(sourceBefore.genericId?.nodeId), SOURCE_GENERIC)
   if (SOURCE_CONCRETE) assert.equal(Number(sourceBefore.concreteId?.nodeId), SOURCE_CONCRETE)
-  if (TARGET_GENERIC) assert.equal(Number(beforeNodes.get(TARGET)?.genericId?.nodeId), TARGET_GENERIC)
+  if (TARGET_GENERIC) {
+    const targetId = ALLOW_ADDED && TARGET === ALLOW_ADDED
+      ? afterNodes.get(TARGET)?.genericId?.nodeId
+      : beforeNodes.get(TARGET)?.genericId?.nodeId
+    assert.equal(Number(targetId), TARGET_GENERIC)
+  }
   const beforePins = sourceBefore.pins.length
   assert.equal(sourceAfter.pins.length, beforePins + 1, 'source must gain exactly one pin')
 
@@ -243,12 +257,19 @@ function main(): number {
     )
   }
 
-  // 5. target byte-identical
-  assert.ok(
-    Buffer.from(extractNodeRaw(beforePath, TARGET)).equals(Buffer.from(extractNodeRaw(afterPath, TARGET))),
-    'target node must be byte-identical'
-  )
-  ok('target node byte-identical (no InFlow pin instantiated)')
+  // 5. target: byte-identical when pre-existing; no InFlow pin instantiated in either case
+  if (ALLOW_ADDED && TARGET === ALLOW_ADDED) {
+    const addedRaw = extractNodeRaw(afterPath, TARGET)
+    assert.ok(addedRaw.length > 0, 'added target node raw must exist')
+    const addedPins = topFields(addedRaw).filter((f) => f.field === 4 && f.wire === 2)
+    assert.equal(addedPins.length, 0, 'added target node must not instantiate InFlow pins')
+  } else {
+    assert.ok(
+      Buffer.from(extractNodeRaw(beforePath, TARGET)).equals(Buffer.from(extractNodeRaw(afterPath, TARGET))),
+      'target node must be byte-identical'
+    )
+  }
+  ok('target node byte-identical / no InFlow pin instantiated')
 
   // 6. root-level diff report (informational)
   const beforePayload = readGilPayloadFields(beforePath).payload
@@ -268,12 +289,27 @@ function main(): number {
   const candidateGraph = structuredClone(beforeGraph)
   const source = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === SOURCE)
   assert(source, `source node ${SOURCE} missing`)
+  if (ALLOW_ADDED) {
+    // newly placed target node is a clean pinless node (asserted above); copy it from after
+    // so the replay covers only the connection increment, not editor node placement
+    candidateGraph.nodes.push(
+      afterGraph.nodes.find((node: any) => Number(node.nodeIndex) === ALLOW_ADDED)
+    )
+    const order = afterGraph.nodes.map((node: any) => Number(node.nodeIndex))
+    candidateGraph.nodes.sort(
+      (a: any, b: any) => order.indexOf(Number(a.nodeIndex)) - order.indexOf(Number(b.nodeIndex))
+    )
+  }
   // insert new OutFlow after the last existing OutFlow, before data pins
   const lastOutFlow = source.pins.findLastIndex((pin: any) => pin.i1?.kind === 2)
   source.pins.splice(lastOutFlow + 1, 0, {
     i1: { kind: 2, index: OUTFLOW_INDEX },
     i2: { kind: 2, index: OUTFLOW_INDEX },
-    connects: [{ id: TARGET, connect: { kind: 1 }, connect2: { kind: 1 } }]
+    connects: [{
+      id: TARGET,
+      connect: { kind: 1, index: TARGET_INDEX || undefined },
+      connect2: { kind: 1, index: TARGET_INDEX || undefined }
+    }]
   })
   const candidateError = originalVerify.call(nodeGraphMessage, candidateGraph)
   if (donorError === null) {

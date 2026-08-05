@@ -118,6 +118,59 @@ raw pin 为 `0a0408021002 120408021002 2a0a081b 12020801 1a020801`：源 OutFlow
 由此 OutFlow 0/1/2 全部由真实证据闭合：每个非默认出口都显式写源 index，默认出口省略；
 多个 OutFlow pin 按 index 升序排列，且整体位于参数 pin 之前（插在数组头部区域）。
 
+### 非默认目标 InFlow：connect/connect2 显式 index（2026-08-06 续轮）
+
+同一多分支节点继续只做一个连线变化：node 11 新增 `c / Case3` 并连接到新放置的
+node 2「有限循环」（SysCall 5，Fixed）的**非默认** FlowIn「跳出循环」（Break，
+ShellIndex=1）。本轮同时新增了目标节点（样本图原无多 FlowIn 节点），属于
+“新增节点 + 连线”实验形态。before/after SHA-256 分别为
+`6b304153...0a8ae` / `7bd15fd2...4acd1`。证据目录：
+
+```bash
+EXP3="$HOME/genshin-ts-evidence/node-graph-logic/node-graph-systematic/\
+2026-08-06-connection-v1/experiments/control-flow-case3-node11-to-node5-v13-v14"
+npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/\
+  verify-control-flow-experiment.ts "$EXP3" \
+  --graph-id 1073741836 --source 11 --target 2 --outflow-index 3 --target-index 1 \
+  --allow-added 2 --source-generic 3 --source-concrete 4 --target-generic 5 \
+  --expected-pin-raw "0a0408021003 120408021003 2a0e08021204080110011a0408011001" \
+  --before-hash 6b30415332eb07884957392e899cecac065fca43690a31bd9d9fad7c0490a8ae \
+  --after-hash 7bd15fd292bc036fa5ea6fa0482841294bc3c4a6f36cf0f8bf37bb87a6b4acd1
+```
+
+图级差分：added=[nodeIndex 2（SysCall 5，Fixed）]、removed=[]、metadata 不变、
+唯一 changed node 11（pins 4→5）。新增源 pin 位于 `pins[2]`（Case1/Case2 之后、
+参数 pin 之前）：
+
+```text
+OutFlow pin (Case3):
+  i1 = { kind: OutFlow, index: 3 }
+  i2 = { kind: OutFlow, index: 3 }
+  connects = [{
+    id: 2,
+    connect:  { kind: InFlow, index: 1 },
+    connect2: { kind: InFlow, index: 1 }
+  }]
+```
+
+raw pin 为 `0a0408021003 120408021003 2a0e08021204080110011a0408011001`：源
+OutFlow `index=3` 显式（与 OutFlow[1]/[2] 同构）；与默认目标 InFlow 样本的关键差异在
+connects 段 `2a0e 0802 1204 0801 1001 1a04 0801 1001` —— `connect` 与 `connect2`
+都显式携带目标 `index=1`（对应 Break 的 ShellIndex=1）。目标 node 2 不实例化 InFlow
+pin（pinCount=0，与默认目标行为一致）。参数化 Validator（`--allow-added` 支持新增
+节点实验形态）`ACCEPT 8/8`；case1/case2 在脚本扩展后回归仍 `ACCEPT 8/8`；手工同构重放
+（before + 新 pin + 新放置节点）+ 正式 GIA + 临时 GIL 回读与真实 after bytes 一致，未写
+真实地图。donor verify 仍只报 node 32 既有 `contextDeclaration.kind=7` gap。
+
+由此非默认目标 InFlow 闭合：**目标 InFlow index 非默认时，`connect/connect2` 显式写
+目标 ShellIndex（与源 OutFlow index 写法对称）；默认 InFlow[0] 两个引用都省略 index；
+目标节点无论默认还是非默认 InFlow 都不实例化 InFlow pin。** 源侧 OutFlow 显式 index
+证据扩展到 1/2/3。
+
+> 生产代码注意（本轮发现）：`applyEditorConnectionWireRules()` 当前无条件删除所有
+> InFlow connect 的 index，与非默认目标 InFlow 的真实 wire 冲突；修复需要独立
+> red/green 工作包（含目标 pin ShellIndex 来源），本轮只锁定 GIA 证据，未改生产代码。
+
 ## 控制流节点的参数
 
 执行节点通常还带有数据参数。例如“开启运动”可能需要：
@@ -134,8 +187,8 @@ raw pin 为 `0a0408021002 120408021002 2a0a081b 12020801 1a020801`：源 OutFlow
 
 ## 待逐步还原
 
-- 目标使用非默认 InFlow index 时，`connect/connect2.index` 的实际编码；
 - 事件节点的存储和触发类型；
 - 条件分支、循环和多出口节点的实际执行语义；
 - 同一输出 fork 的 connects 顺序已知，但游戏内执行顺序仍待验证；
-- 终点是否需要显式节点或仅由无后续连接表示。
+- 终点是否需要显式节点或仅由无后续连接表示；
+- 更高源 OutFlow index（>3）与混合默认/非默认目标 InFlow 的交叉组合。

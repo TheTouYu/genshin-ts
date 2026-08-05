@@ -83,6 +83,10 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/verify-contro
 
 - 上轮样板优先：`experiments/control-flow-case2-node11-to-node27-v12-v13/` 的 validator/replay
   或上面的参数化脚本都是已回归样板；复制改参数，不要重写。
+- `verify-control-flow-experiment.ts` 支持新增节点实验形态：传 `--allow-added <N>`
+  （节点集合 = before + N，目标 genericId 查 after，candidate 从 after 并入该无 pin 节点
+  并按 after 节点顺序排序）。目标 InFlow 非默认时传 `--target-index <N>`，candidate 的
+  connect/connect2 自动携带 index。
 - `readVarint` 返回 `{ value, next }`，`next` 是绝对游标；`position = key.next`，禁止 `+=`。
 - 第三方定义路径已记录在 manifest 恢复块，勿再全盘搜索。
 - 工具脚本行为与预期矛盾时，先与已知正确版本 diff（一次调用），不要从零新写 debug 脚本。
@@ -99,13 +103,19 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/verify-contro
 ### 控制流连接
 
 - 挂在源 OutFlow；`connects.id=目标 nodeIndex`。
-- 默认 OutFlow[0] 省略 i1/i2 index；真实样本已观察到 OutFlow[1] 显式 index=1。
-- 默认目标 InFlow 的 connect/connect2 省略 index；目标 GraphNode 不实例化 InFlow pin。
+- 默认 OutFlow[0] 省略 i1/i2 index；真实样本已观察到 OutFlow[1]/[2]/[3] 显式 index。
+- 默认目标 InFlow 的 connect/connect2 省略 index；非默认目标 InFlow 显式写目标
+  ShellIndex（case3：Break index=1，`connect.index=connect2.index=1`）。
+- 目标 GraphNode 无论默认还是非默认 InFlow 都不实例化 InFlow pin。
 - 普通 SysCall OutFlow 无 compositePinIndex；新增 OutFlow 位于既有参数 pin 之前。
 
-真实证据已闭合到 OutFlow 0/1/2（默认省略 index；非默认出口显式写源 index；多个 OutFlow 按
-index 升序排列且位于参数 pin 之前）和默认目标 InFlow 0（引用省略 index、目标不落 pin）；更高
-源 index、非默认目标 InFlow 与游戏执行语义仍是独立问题，不能由当前 production 行为反推。
+真实证据已闭合到 OutFlow 0/1/2/3 与目标 InFlow 0/1：源侧默认省略 index、非默认显式；
+目标侧同样默认省略、非默认显式写 ShellIndex；更高源 index、混合组合与游戏执行语义仍是
+独立问题，不能由当前 production 行为反推。
+
+> 生产 gap（2026-08-06 case3 发现）：`applyEditorConnectionWireRules()` 无条件删除所有
+> InFlow index，与非默认目标 InFlow 真实 wire 冲突，需独立 red/green 工作包修复；
+> 当前 `test-stage3-ordinary-graph-materializer.ts` 只覆盖默认目标。
 
 ## Validator 与重放预检
 
