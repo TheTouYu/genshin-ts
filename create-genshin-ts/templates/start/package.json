@@ -18,6 +18,9 @@
     "gil:decode": "tsx tools/decode-gil-raw.ts",
     "gil:signals": "tsx tools/decode-gil-signals.ts",
     "gil:node-graphs": "tsx tools/list-gil-node-graphs.ts",
+    "gil:parse-node-graph": "NODE_OPTIONS='--no-deprecation' tsx tools/parse-gil-node-graph.ts",
+    "gil:trace-exec": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-gil-exec-flow.ts",
+    "gil:trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-gil-dataflow.ts",
     "gil:inspect-variables": "tsx tools/inspect-gil-custom-variables.ts",
     "gil:scan-variables": "tsx tools/scan-gil-custom-variable-candidates.ts",
     "gil:extract-signals": "tsx tools/extract-signal-accessories-from-gil.ts"

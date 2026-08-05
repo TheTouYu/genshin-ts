@@ -1,4 +1,4 @@
-# GIA 分析工具索引
+# GIA/GIL 分析工具索引
 
 > 状态：当前推荐
 > 来源：当前工具实现 + 真实 GIA 分析流程
@@ -110,6 +110,80 @@ npx tsx tests/composite/trace-dataflow.ts 物理运动.gia 5 --all-params --comp
 ```
 
 ---
+
+## 1.4 GIL NodeGraph 控制流与数据流分析
+
+> 状态：当前实现
+> 来源：当前工具实现 + 只读 GIL 自动验证
+> 最近校验：2026-08-05
+> 适用范围：所有使用 Genshin-TS 工具链的游戏项目
+
+`.gil` 节点图分析采用两步工作流：先用控制流定位主要逻辑，再用数据流工具追踪指定节点的参数来源。不要使用一个命令默认打印整张图的控制流、数据流、所有参数和所有复合实现。
+
+### 控制流导航
+
+```bash
+npx tsx tools/trace-gil-exec-flow.ts <地图.gil> --graph <图ID或名称>
+npx tsx tools/trace-gil-exec-flow.ts <地图.gil> --graph auto
+npx tsx tools/trace-gil-exec-flow.ts <地图.gil> --composite <复合名>
+```
+
+控制流工具只输出：
+
+- 事件入口和复合图外部 `InFlow` 入口；
+- 节点索引、API 名称、分支名称和执行路径；
+- 执行边数量、入口数量和复合节点接口；
+- 循环、汇合和复合 `OutFlow` 出口标记。
+
+它不会默认输出节点参数、全图数据流或复合图内部实现。`--composite` 才会把指定复合实现作为一张独立主图解析。
+
+`--auto` 只在存在唯一非空用户图时自动选择；发现多个候选时会列出名称、ID 和节点数并停止猜测。多候选时应显式使用 `--graph`，不要依赖图在文件中的顺序。
+
+### 数据流定点追踪
+
+```bash
+npx tsx tools/trace-gil-dataflow.ts <地图.gil> \
+  --graph <图ID或名称> \
+  --node <节点索引或名称> \
+  --input <参数索引或名称>
+
+npx tsx tools/trace-gil-dataflow.ts <地图.gil> \
+  --graph <图ID或名称> \
+  --node <节点索引或名称> \
+  --all-inputs
+```
+
+数据流工具只从指定节点的 `InParam` 出发，显示：
+
+- 参数名称、类型、字面量或未连接状态；
+- 直接来源节点及其 `OutParam`；
+- 来源节点继续向上的相关输入依赖；
+- 图变量、事件上下文、字面量等终点来源；
+- 数据依赖确实穿过复合节点时的相关内部路径。
+
+`--node` 必须明确指定；`--input` 和 `--all-inputs` 二选一。`--max-depth N` 可以限制递归深度，连续相同的大量字面量会保留索引范围和重复数量而折叠显示。
+
+### JSON 输出
+
+两个工具的 JSON 契约分开：
+
+- 控制流：`input`、`target`、`event_entries`、`nodes`、`execution_edges`、`paths`、`composite_interfaces`；
+- 数据流：`input`、`target_node`、`target_inputs`、`dependency_paths`、`terminal_sources`。
+
+控制流 JSON 不包含全图 `dataflow`，数据流 JSON 不包含全图 `flow` 或节点目录。这样调用者可以先消费控制流结果，再把选定节点传给数据流工具。
+
+### 低层兼容入口
+
+```bash
+npx tsx tools/parse-gil-node-graph.ts <地图.gil> --graph <图ID或名称>
+npx tsx tools/parse-gil-node-graph.ts <地图.gil> --graph <图ID或名称> --full
+```
+
+`parse-gil-node-graph.ts` 默认只输出文件哈希、图统计和节点索引。`--full` 或显式 `--json` 才用于低层综合调试；日常分析优先使用上面的两个专用工具。
+
+### 证据边界
+
+这些工具只读 `.gil`，不会生成 `.gia`、注入 NodeGraph、覆盖地图或修改游戏文件。工具运行成功只证明当前解析器能够读取该文件；它不证明 GIA 生成、注入成功或游戏内行为正确。文档、自动运行、真实 GIL 观察和用户游戏核验必须分开记录。
 
 ## 2. 布局验证工具
 
