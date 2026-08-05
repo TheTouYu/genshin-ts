@@ -61,18 +61,13 @@ for (const b of blobs) {
     console.log(`node ${wantIdx} raw hex:`)
     console.log(hex(nf.data))
     if (flag === '--pins') {
-      const pinsField = m.find((f) => f.field === 4 && f.wire === 2)
-      if (!pinsField) {
+      const pins = m.filter((f) => f.field === 4 && f.wire === 2)
+      if (!pins.length) {
         console.log('(no pins field on wire)')
       } else {
-        const pins = topFields(pinsField.data)
-        pins.forEach((p, i) => {
-          if (p.wire !== 2) {
-            console.log(`pin[${i}] field=${p.field} wire=${p.wire} val=${p.value}`)
-            return
-          }
-          console.log(`--- pin[${i}] field=${p.field} len=${p.data.length} ---`)
-          console.log(hex(p.data))
+        pins.forEach((pin, i) => {
+          console.log(`--- pin[${i}] field=4 len=${pin.data.length} ---`)
+          console.log(hex(pin.data))
         })
       }
     }
