@@ -1,9 +1,9 @@
 # 节点图与拓扑
 
 > 状态：部分已验证
-> 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v6）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明
+> 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v8）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明与游戏核验
 > 最近校验：2026-08-05
-> 适用范围：节点图的概念结构、节点实例编码、SysCall 基础节点身份
+> 适用范围：节点图的概念结构、新建图/节点实例编码、批量注入（SysCall 基础节点）
 
 节点图是关卡逻辑的主要载体。一个节点图包含各种节点，以及节点之间的控制流和数据流连接。节点图必须挂载在实体或元件上才能运行，详见[节点图挂载与生命周期](graph-mounting.md)。
 
@@ -119,7 +119,38 @@ NodePin {
 - SysCall 固定节点 InParam 无 compositePinIndex（仅 SysGraph 有 CPI）
 - 解码工具：`scripts/inspect-graph-nodes.py <map.gil> <graphId> --pins`
 
-### 待闭合
+### 新建节点图 wire 配方（真实快照 v1 / v7-v8）
+
+新建图 = 两个原子变化（编辑器原生行为，注入时同构复刻）：
+
+```text
+root 10 末尾追加一条 field 1 记录（双层包装 field1 -> field1 -> NodeGraph）：
+  NodeGraph = {1: Id, 2: name(UTF-8), 3: nodes[*]}
+  Id        = {1: 10000(GraphOrigin), 2: 20000(GraphCategory), 3: 21001(GraphKind), 5: 图ID}
+  node      = {1: nodeIndex(1..N 连续), 2/3: NodeProperty{1:10001,2:20000,3:22000,5:节点ID},
+               5/6: x/y fixed32(float32)}
+root 6（f1=4 记录）的 f2.f4（「调试」文件夹）末尾追加 f5={1:800, 2:图ID}   # 800 = server 图 folder 值
+```
+
+- 图 ID 全局分配（与图外对象共用 ID 池）：编辑器新建图会跳过已占用 ID（v1：1830→1835，
+  1831-1834 被非图对象占用）；脚本注入取已用 ID max+1（1836+），空洞/内存池规则未闭合
+- 图名仅存于 NodeGraph.name 单处；节点创建不碰 root 6 folder（v2-v4 证据）
+- root 46 等长变化 = 编辑器保存副作用，不模拟；root 10 field4 的 field106 同理
+- **GIL header 长度字段必须同步**（见 gil-structure-semantics.md），否则游戏报文件损坏
+
+## 批量注入（一图多节点，2026-08-05 已闭环 434 节点）
+
+工具：`scripts/create-graphs.py`（skill 目录），每批一个图、网格排列（默认 5 列，
+dx/dy 可调）；`--all-server` 枚举 data.json 全部 Server 节点（ID 升序）自动分批，
+`--graph-id` 指向已有图时自动排除图中已有节点 ID 并补齐。详见
+`node-graph-creation.md`。
+
+- 样本-01..09（1073741836-44）：50×8 + 34 = 434 节点 = data.json 全部 Server 定义
+  （Fixed 376 + Variant 58 + Hidden 13；Hidden/Variant 编辑器显示行为待用户观察记录）
+- 用户游戏核验通过（2026-08-05）：无显示异常；Variant/Hidden 具体行为反馈待补充
+- 注入前必须确认游戏/编辑器已关闭（编辑器内存不感知磁盘变化，打开期间注入后保存会覆盖）
+
+## 待闭合
 
 - i2.index 语义（疑为 UI/定义内部序，需更多样本）
 - 控制流连接在 SysCall 节点上的实例化（OutFlow pin 规则见 signals.md，普通图内连线待验证）

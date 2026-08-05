@@ -2,7 +2,7 @@
 
 > 状态：部分已验证
 > 来源：真实 GIL 不可变相邻快照 + raw-wire 调查 + 当前 protobuf schema/源码 reader + 独立实验 Validator
-> 最近校验：2026-08-03
+> 最近校验：2026-08-05
 > 适用范围：锁定地图当前版本的相邻快照链，以及当前源码 reader 已闭合的有限 GIL 容器路径；不是完整或跨版本通用的 GIL schema
 
 本文记录从 GIL 根层逐步建立“字段路径 → protobuf 消息 → 资源或图结构 → 编辑器语义”的当前基线。目标是通过编辑器单变化和不可变相邻快照逐章闭合整棵语义树，而不是按字段位置、相邻 ID 或重复形状猜测含义。
@@ -65,6 +65,19 @@ Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快�
 
 `CONFIRMED`：GIL 文件由 20-byte header、protobuf-like payload 和 4-byte trailer 组成。本轮 payload 有 41 个根字段 occurrence，根字段编码大小之和恰好覆盖 372670 bytes。
 
+`CONFIRMED`：header 20B 含两个大端 uint32 长度字段，编辑器每次保存更新、游戏加载校验
+（2026-08-05 v0-v8 快照逐轮验证；注入只改 payload 未同步 header → 游戏报“文件损坏”）：
+
+```text
+hdr[0:4]  = 文件总长 - 4
+hdr[16:20] = payload 长度 = 文件总长 - 24
+其余 12B（样本恒为 00000001 / 00000326 / 00000002）保存时不变
+```
+
+直接修改 payload 的注入/回写必须同步两个字段并自检
+（`struct.unpack('>I', d[0:4])[0] == len(d)-4` 且 `[16:20] == len(d)-24`）；
+trailer 4B（样本恒为 00000679）不随保存变化。
+
 `CONFIRMED`：GIL payload 根不是 `gia.proto` 定义的 `.gia` `Root`。不能把相同字段号直接解释成 `Root.graph`、`Root.accessories`、`filePath`、`modeFlag` 或 `gameVersion`：
 
 - GIA `Root` 只定义 field 1–5，而当前 GIL 根出现大量更高字段号；
@@ -90,11 +103,23 @@ Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快�
 
 字段缺失、显式空 length-delimited 和显式 varint 必须分别记录。proto3 解码后的默认值不能证明字段在 wire 中存在。
 
-#### 新增观察（component-investigation exp14/15/18，2026-08-05）
+#### 新增观察（component-investigation exp14–18，2026-08-05）
 
-- **root 22**：疑似“编辑器编辑数据类型”注册表。基线含 `PropertyTransform`（f1）+ 计数 f2={1}；修改铭牌配置后追加 `ClientBeyondEntityNameplateCompEditData`（f2 计数→{2,1}）。
-- **root 35**：一次保存中从 6B 膨胀到 212B（9 条名称条目 + f2=2），内容为“选项一/测试/默认完成小计/默认极限小计/你好！/全屏/单击元件阵列/单击实例阵列/单击高级阵列”+ f501 值。该批变化与新增自定义镜头同一保存出现，但删除镜头/移除绑定均不回退，疑似一次性编辑器注册（与镜头生命周期无关，性质待确认）。
-- **root 21**：内容“1”→“1?”（exp14 后每保存变化，非业务字段，同 root 46 会话标记）。
+- **root 22**：exp1–17 的 value 始终为
+  `f1="PropertyTransform" + f2.bytes=01`。只修改铭牌显示内容的 exp18 中，field 1
+  追加 `ClientBeyondEntityNameplateCompEditData`，field 2 value bytes 从 `01` 变为
+  `0101`；此前记录中的 `02` 是 length 前缀，不是 payload 计数。字符串字面量支持把它
+  限定为“编辑数据类型名/类名注册候选”，但正式容器名、field 2 语义和其他组件规律仍为
+  `INSUFFICIENT`。
+- **root 35**：exp14 一次保存中从 6B 增长到 212B，新增 `选项卡/测试/默认成就/
+  默认极致成就/你好！/全局/初始物件阵营/初始玩家阵营/初始造物阵营` 九条字符串及伴随
+  f501 bytes。这九个字符串在 exp13 已全部存在于地图其他位置，exp14 后只是各多一份；
+  exp18 业务侧“测试”被改为“arstart”后 root 35 仍保留旧值。它不是当前业务文本的权威
+  来源，最多是持久化派生索引/缓存候选；正式容器名和 f501 语义仍为 `INSUFFICIENT`。
+- **root 21**：exp14 从空变为 UTF-8 `"1"`，exp15 变为 `"1?"`，exp16–18 保持不变。
+  不能写成“每轮保存变化”，也不能命名其正式语义。
+- **root 46**：exp18 value 长度保持 110B，但一个 22B 直接子记录被等长替换。该字段在
+  多轮保存中可等长变化，继续只记为未知同步状态。
 
 ### 关卡图名字（root 2）
 
@@ -513,6 +538,9 @@ root `2/10/43` 可分别按该草案有界解码为 `模型比对`、节点图�
 - root field `12` 的正式消息 schema、`12.1.501` 语义、多计时器共存、启停/运行状态编码和时长量化；
 - root field `5` 的正式消息 schema、关卡变量其他作用域/类型、负整数/范围和名称约束；
 - root fields `21/45/46` 的正式消息名和同步变化语义；
+- root field `22` 的正式消息名、field 2 伴随 bytes 语义，以及 EditData 类型名是否对所有组件采用同一注册规则；
+- root field `35` 的正式消息名、九条派生字符串和 f501 bytes 的用途；
+- type 27/28 引用 ID 的命名空间、definition/instance 分配与跨保存重写算法；
 - 当前字段路径的跨地图、跨游戏版本普适性。
 
 ## 整棵语义树的增量闭合方法
