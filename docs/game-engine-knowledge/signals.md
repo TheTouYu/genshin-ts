@@ -2,7 +2,7 @@
 
 > 状态：已验证（发送固定值、监听骨架、部分参数消费、信号定义修改和跨地图导入/注入）；全参数消费待验证
 > 来源：真实 GIL 相邻快照 + 批次 Validator + 当前代码实现 + 手工同构 GIA/GIL 回读 + 用户编辑器/游戏验证
-> 最近校验：2026-08-02
+> 最近校验：2026-08-05
 > 适用范围：服务器节点图普通发送与监听；当前跨地图结论覆盖 `cube_turn(face:str,direction:str)` 候选和地图 `1073741848/1849`
 >
 > 本轮具体候选、SHA-256 和用户测试记录见 [`signals/2026-08-01-monitor-consumption-batch.md`](signals/2026-08-01-monitor-consumption-batch.md)。
@@ -193,9 +193,8 @@ connects 数组 append 多条连接（id 7 与 id 8 共存），目标节点均�
 （实验 `print-string-chain-01`）：中间节点实例化自己的 OutFlow pin 挂 connects
 （id=下一目标）；SysCall 普通节点的 OutFlow pin **无 compositePinIndex**（仅 SysGraph
 复合调用节点如监听节点带 CPI=98）；OutFlow pin 实例化时插入 pins 数组位置 0，原
-InParam 后移逐字节保持。本样本仅
-覆盖监听→打印字符串一对节点、当前 monitor 定义和当前地图，不推广到其他执行输出布局；
-复合调用/分支等控制流骨架未调查。
+InParam 后移逐字节保持。本样本仅覆盖监听→打印字符串一对节点、当前 monitor 定义和当前地图；
+普通 SysCall 分支的控制流 wire 见下节及[控制流](control-flow.md)，复合调用仍需按自身定义布局验证。
 
 ### 分支节点多输出槽（2026-08-02 闭合）
 
@@ -209,14 +208,17 @@ ACCEPT 4/4、6/6、7/7）：
   落盘、无 OutFlow 实例化；监听 OutFlow connects 从 [8,7] 追加为 [8,7,20]，顺序即执行
   顺序（用户声明 1->2->3 与 wire 一致），全部 `{InFlow,InFlow}` 无 index（raw wire 3 处
   `12 02 08 01` 形态、显式 index=0 零出现）。
-- 连出"是"槽到打印字符串：只实例化**被连槽位的 1 个 OutFlow pin**，i1/i2 =
-  `{kind:OutFlow}` 2B 形态无 index、无 compositePinIndex（SysCall 家族）、connects
-  `{id:21,{InFlow,InFlow}}` 无 index。"否"槽不实例化，**槽位区分不落 index 字段**
-  （"否"槽未独立采样，视为同构假设）。
+- 连出“是”槽到打印字符串：只实例化**被连槽位的 1 个 OutFlow pin**；该槽在定义中是
+  ShellIndex 0，因此 i1/i2 = `{kind:OutFlow}` 2B 形态无 index、无 compositePinIndex
+  （SysCall 家族），connects `{id:21,{InFlow,InFlow}}` 无 index。“否”槽未独立采样；旧推测
+  “所有槽位都不落 index”不再成立。
 
-结论：OutFlow 无 index 规则从单槽（SysCall 1）扩展到多槽（SysCall 2）节点；多槽节点只
-实例化被连槽位的单 pin。生产比对差异 C（OutFlow i1/i2 写显式 index=0）对双分支同样
-成立。str 例外 connect2=3 在 print4（node 21）获得第 6 样本，与 node 9 逐字节同构。
+结论：多槽节点只实例化被连槽位。真实普通图后续实验
+`control-flow-case1-node11-to-node24-v11-v12` 又验证了多分支 SysCall 3 的 Case1：
+OutFlow[1] 的 i1/i2 显式 `index=1`，而目标默认 InFlow 引用仍无 index。当前规则应表述为
+“默认 OutFlow[0] 省略 index，已观察到的非默认 OutFlow[1] 保留显式 index”，详见
+[控制流](control-flow.md)。生产比对差异 C 对默认 OutFlow[0] 仍成立。str 例外 connect2=3
+在 print4（node 21）获得第 6 样本，与 node 9 逐字节同构。
 
 ## 信号定义原位修改
 

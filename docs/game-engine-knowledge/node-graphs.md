@@ -1,7 +1,7 @@
 # 节点图与拓扑
 
 > 状态：部分已验证
-> 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v8）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明与游戏核验
+> 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v12）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明与游戏核验
 > 最近校验：2026-08-05
 > 适用范围：节点图的概念结构、新建图/节点实例编码、批量注入（SysCall 基础节点）
 
@@ -177,7 +177,9 @@ dx/dy 可调）；`--all-server` 枚举 data.json 全部 Server 节点（ID 升�
 ## 待闭合
 
 - i2.index 语义（数据连接样本 i1==i2 一致，252 样本 5/7 不等；疑为 UI/定义内部序，需更多样本）
-- 控制流连接在 SysCall 节点上的实例化（OutFlow pin 规则见 signals.md，普通图内 FlowOut→FlowIn 连线待验证）
+- 普通图 SysCall 的基础 FlowOut→FlowIn wire 已闭合：连接挂源 OutFlow、默认 index 省略、
+  已观察到的非默认 OutFlow[1] 显式保留 index、目标 GraphNode 不变；OutFlow[2+] 和非默认目标
+  InFlow 仍待验证，详见[控制流](control-flow.md)
 - Variant 变体未配置时 concreteId 缺失的默认语义（编辑器是否在运行时回退 KernelID=ID）
 
 ## 待逐步还原（剩余）
