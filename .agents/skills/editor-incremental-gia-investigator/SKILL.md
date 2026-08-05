@@ -138,7 +138,7 @@ npx tsx tools/list-gil-node-graphs.ts <map.gil>
 
 只有以下情况才退出快速续轮并重新定位：
 
-- 当前地图 hash 未变化；
+- 当前地图 hash 未变化：先向用户确认是否真的保存成功（编辑器可能未落盘，exp11 实测用户以为已保存但 hash 未变），用户重试保存后再继续；
 - 锁定路径不存在，或用户明确切换地图/图；
 - 目标图出现约定外 metadata、节点或多项字段变化；
 - 观察与已有规则冲突；
@@ -219,6 +219,8 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 ```
 
 固定顺序为：文件大小/哈希/presence → 全 root raw bytes → 仅变化 root 的直接子记录集合差 → 唯一目标记录定点解码。完整流程见 `references/gil-whole-structure.md`。等长同步字段只记录变化，不能按重复出现猜测语义。
+
+同一保存中出现的**未声明额外变化**（如 root 注册表、信号、引用块），不能直接归因给用户声明操作：先记录；随后用“删除/回退该操作”的对照轮验证——若回退后这些变化不动，则它们与声明操作生命周期无关（exp14→17 实测：新增镜头时出现的 root35/root11/组件引用块在删除镜头后全部不回退，属一次性编辑器注册）。未经验证的归因写 `INSUFFICIENT`。
 
 定点解码优先复用 `scripts/` 下已有资产（如 `inspect-gil-root-container.py <before> <after> <rootField>`、各领域专用 inspect 脚本和 NodeGraph 比较器），不手写一次性解析；动手前先读模块 references 的工具清单，避免重复实现已有能力。现有资产不覆盖目标时才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。
 

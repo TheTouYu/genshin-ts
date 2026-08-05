@@ -90,6 +90,12 @@ Coordinator 只在用户保存后读取锁定地图以捕获新的不可变快�
 
 字段缺失、显式空 length-delimited 和显式 varint 必须分别记录。proto3 解码后的默认值不能证明字段在 wire 中存在。
 
+#### 新增观察（component-investigation exp14/15/18，2026-08-05）
+
+- **root 22**：疑似“编辑器编辑数据类型”注册表。基线含 `PropertyTransform`（f1）+ 计数 f2={1}；修改铭牌配置后追加 `ClientBeyondEntityNameplateCompEditData`（f2 计数→{2,1}）。
+- **root 35**：一次保存中从 6B 膨胀到 212B（9 条名称条目 + f2=2），内容为“选项一/测试/默认完成小计/默认极限小计/你好！/全屏/单击元件阵列/单击实例阵列/单击高级阵列”+ f501 值。该批变化与新增自定义镜头同一保存出现，但删除镜头/移除绑定均不回退，疑似一次性编辑器注册（与镜头生命周期无关，性质待确认）。
+- **root 21**：内容“1”→“1?”（exp14 后每保存变化，非业务字段，同 root 46 会话标记）。
+
 ### 关卡图名字（root 2）
 
 `GIL.payload.2`（payload 第一个字段，tag `0x12` len `0x18`）为显式 length-delimited UTF-8 字符串，即编辑器 UI 中的关卡图名字。
@@ -387,6 +393,12 @@ entry 逐字节不变。bool 与 integer entry 的顶层字段形状一致；fie
 `CONFIRMED_BOUNDED`，但仅限当前锁定地图、编辑器版本和本批自定义镜头样本。连续创建两个
 默认自定义镜头时，root `18.1[*]` records 按 `1→2→3` append-only 增加；既有 records
 逐字节保持。当前 identity 候选为 `1073741825/26/27`，不能推广为通用 ID 分配器。
+
+> 修正（component-investigation exp17，2026-08-05）：镜头 record **可删除**——删除
+> “自定义镜头_1”后 root 18 从 208B 回到 83B（对应 record 整体消失），其余 root 全部
+> 不动。“append-only”仅适用于创建序列，不适用于删除；删除不回退任何其他 root。
+> 另确认（exp14/16）：物件镜头绑定在组件 type 13 槽 f23.f4（f1=镜头槽名、f2=镜头名、
+> f502=镜头ID，双重引用 root 18）；移除绑定只清空槽配置，root 18 镜头定义保留。
 
 受限路径如下：
 
