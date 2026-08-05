@@ -2,7 +2,7 @@
 
 > 状态：部分已验证
 > 来源：真实 GIL 相邻快照 + 独立 raw-wire Validator + 手工同构重放 + 当前代码实现与自动回归
-> 最近校验：2026-08-05
+> 最近校验：2026-08-06
 > 适用范围：普通服务器节点图 SysCall 的基础 FlowOut→FlowIn 编码；事件、循环和游戏执行语义仍待验证
 
 控制流描述逻辑在什么时间、按照什么顺序执行。
@@ -86,6 +86,38 @@ OutFlow `index=1` 显式存在；目标默认 InFlow 的 `connect/connect2` 都�
 OutFlow index；`tests/composite/test-stage3-ordinary-graph-materializer.ts` 断言
 OutFlow[1] 的 `i1/i2.index=1` 不被删除。自动回归证明当前实现结构，不替代真实编辑器或游戏证据。
 
+### OutFlow[2] 与多 OutFlow pin 数组顺序（2026-08-06 续轮）
+
+同一多分支节点继续只做一个编辑器变化：node 11 的 `b / Case2` 连接到 node 27「创建实体」
+（SysCall 70，Fixed，未配置任何参数）的默认 FlowIn。before/after SHA-256 分别为
+`739ff14e...adf95` / `6b304153...0a8ae`。证据目录：
+
+```bash
+EXP2="$HOME/genshin-ts-evidence/node-graph-logic/node-graph-systematic/\
+2026-08-06-connection-v1/experiments/control-flow-case2-node11-to-node27-v12-v13"
+npx tsx "$EXP2/validator/validation.ts"
+npx tsx "$EXP2/replay/replay.ts"
+```
+
+图级差分同样唯一 changed node 11（pins 3→4），node 27 raw bytes 不变。新 pin 位于 `pins[1]`，
+在既有 Case1 OutFlow[1]（pins[0]）之后、数据参数 pin 之前：
+
+```text
+OutFlow pin (Case2):
+  i1 = { kind: OutFlow, index: 2 }
+  i2 = { kind: OutFlow, index: 2 }
+  connects = [{ id: 27, connect: { kind: InFlow }, connect2: { kind: InFlow } }]
+```
+
+raw pin 为 `0a0408021002 120408021002 2a0a081b 12020801 1a020801`：源 OutFlow `index=2`
+显式存在（与 OutFlow[1] 同构，仅 index 值 1→2 与 connects.id 24→27 不同）；目标 InFlow
+引用继续省略 index。独立 Validator `ACCEPT 8/8`；手工从 before 仅构造该 pin 后，正式 GIA、
+临时 GIL 回读与真实 after 的目标 NodeGraph bytes 完全一致，未写真实地图。donor verify
+仍在未修改 before 上报 node 32 `contextDeclaration.kind=7` 既有 gap，与 OutFlow[2] 无关。
+
+由此 OutFlow 0/1/2 全部由真实证据闭合：每个非默认出口都显式写源 index，默认出口省略；
+多个 OutFlow pin 按 index 升序排列，且整体位于参数 pin 之前（插在数组头部区域）。
+
 ## 控制流节点的参数
 
 执行节点通常还带有数据参数。例如“开启运动”可能需要：
@@ -103,7 +135,6 @@ OutFlow[1] 的 `i1/i2.index=1` 不被删除。自动回归证明当前实现结�
 ## 待逐步还原
 
 - 目标使用非默认 InFlow index 时，`connect/connect2.index` 的实际编码；
-- OutFlow[2+] 是否与已验证的 OutFlow[1] 使用同一显式 index 规则；
 - 事件节点的存储和触发类型；
 - 条件分支、循环和多出口节点的实际执行语义；
 - 同一输出 fork 的 connects 顺序已知，但游戏内执行顺序仍待验证；

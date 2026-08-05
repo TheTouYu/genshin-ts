@@ -79,8 +79,9 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-
 - 默认目标 InFlow 的 connect/connect2 省略 index；目标 GraphNode 不实例化 InFlow pin。
 - 普通 SysCall OutFlow 无 compositePinIndex；新增 OutFlow 位于既有参数 pin 之前。
 
-当前真实证据只闭合到 OutFlow 0/1 和目标 InFlow 0；更高源 index、非默认目标 InFlow 与游戏执行
-语义仍是独立问题，不能由当前 production 行为反推。
+真实证据已闭合到 OutFlow 0/1/2（默认省略 index；非默认出口显式写源 index；多个 OutFlow 按
+index 升序排列且位于参数 pin 之前）和默认目标 InFlow 0（引用省略 index、目标不落 pin）；更高
+源 index、非默认目标 InFlow 与游戏执行语义仍是独立问题，不能由当前 production 行为反推。
 
 ## Validator 与重放预检
 
