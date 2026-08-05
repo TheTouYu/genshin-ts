@@ -763,14 +763,32 @@ export function registerSignalInGil(input: {
   signal: SignalRegistrationInput
   templateBytes?: Uint8Array
 }): RegisterSignalResult {
-  const {
-    sourceHeader,
-    sourceRoot,
-    topField,
-    top,
-    index,
-    entries: existingEntries
-  } = readSignalSource(input.bytes)
+  const sourceHeader = header(input.bytes)
+  if (sourceHeader.headTag !== 0x0326 || sourceHeader.tailTag !== 0x0679) {
+    throw new Error('[error] invalid GIL header tags')
+  }
+  const sourcePayload = input.bytes.slice(20, -4)
+  const sourceRoot = fields(sourcePayload, 'GIL payload')
+  if (!Buffer.from(emitWireMessage(sourceRoot)).equals(Buffer.from(sourcePayload))) {
+    throw new Error('[error] GIL payload is not safely round-trippable')
+  }
+  const topField = one(sourceRoot, 10, 'top-level field 10')
+  let top = message(topField, 'top-level field 10')
+  let index: { field: WireField; fields: WireField[] }
+  let existingEntries: SignalIndexEntry[]
+  if (top.some((field) => field.number === 5 && field.wire === 2)) {
+    index = signalIndex(top)
+    existingEntries = signalEntries(index.fields)
+  } else {
+    // 全新地图尚无信号注册表：自动初始化空注册表
+    // （编辑器结构：field 5 = 空 message，有序插入，wire 无损；与 /tmp/init-signal-registry.mjs 同构）
+    const emptyRegistry: WireField = { number: 5, wire: 2, value: emitWireMessage([]) }
+    const insertAt = top.findIndex((field) => field.number > 5)
+    top = [...top]
+    top.splice(insertAt < 0 ? top.length : insertAt, 0, emptyRegistry)
+    index = { field: emptyRegistry, fields: [] }
+    existingEntries = []
+  }
   if (existingEntries.some((entry) => entry.name === input.signal.name)) {
     throw new Error(`[error] signal already registered: ${input.signal.name}`)
   }
@@ -793,6 +811,11 @@ export function registerSignalInGil(input: {
     one(templateRoot, 10, 'template top-level field 10'),
     'template field 10'
   )
+  if (!templateTop.some((field) => field.number === 5 && field.wire === 2)) {
+    throw new Error(
+      `[error] template GIL has no signal registry; use a donor GIL with registered signals`
+    )
+  }
   const template = signalEntries(signalIndex(templateTop).fields).find(
     (entry) => entry.name === input.templateSignalName
   )
