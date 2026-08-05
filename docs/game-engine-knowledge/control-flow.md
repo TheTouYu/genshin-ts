@@ -167,9 +167,9 @@ pin（pinCount=0，与默认目标行为一致）。参数化 Validator（`--all
 目标节点无论默认还是非默认 InFlow 都不实例化 InFlow pin。** 源侧 OutFlow 显式 index
 证据扩展到 1/2/3。
 
-> 生产代码注意（本轮发现）：`applyEditorConnectionWireRules()` 当前无条件删除所有
-> InFlow connect 的 index，与非默认目标 InFlow 的真实 wire 冲突；修复需要独立
-> red/green 工作包（含目标 pin ShellIndex 来源），本轮只锁定 GIA 证据，未改生产代码。
+> 生产代码跟进（已修复，2026-08-06）：`applyEditorConnectionWireRules()` 曾无条件删除所有
+> InFlow connect 的 index，与非默认目标 InFlow 的真实 wire 冲突；已按本证据修复
+> （仅默认 InFlow[0] 省略 index，非默认保留 ShellIndex），含 red/green 测试，待用户编辑器/游戏核验。
 
 ## 控制流节点的参数
 

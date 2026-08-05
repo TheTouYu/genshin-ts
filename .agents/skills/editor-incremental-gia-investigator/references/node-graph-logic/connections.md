@@ -3,14 +3,13 @@
 只在调查普通 NodeGraph 内 SysCall 的 DataOut→DataIn 或 FlowOut→FlowIn 时加载本模块。
 信号注册、监听/发送定义和信号参数仍走 `signals.md`；Composite 边界仍走 Composite 专项流程。
 
-## 最小恢复字段
+## 最小恢复（唯一锚点 = manifest 恢复块）
 
-```text
-map path / mapId / nodeGraphId / graph name
-before snapshot path + SHA-256
-用户约定的唯一连接：源 nodeIndex + pin 语义 → 目标 nodeIndex + pin 语义
-已确认规则 / 本轮只缺的 presence 或 index 问题
-```
+普通连接续作只读 connection-v1 的 notes/manifest.md 顶部「恢复块」（~15 行），不在此重复字段：
+`/home/h/genshin-ts-evidence/node-graph-logic/node-graph-systematic/2026-08-06-connection-v1/notes/manifest.md`
+（证据目录在 genshin-ts-evidence，不在仓库内，勿 find/grep 全盘搜索；历史 case 段仅在核对
+证据时读，恢复时跳过）。恢复块含 map path/mapId/GID/LOCKED_BEFORE/LOCKED_HASH/最近唯一
+操作/当前图状态/下一选题；每轮结束更新它。
 
 当前 Authority：
 
@@ -105,6 +104,8 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/verify-contro
   和实验目录名里的目标 nodeIndex 必须**保存后从 after 确认**，不能预猜。
 - 目标 InFlow 非默认时预期 `--target-index <N>`；若不知道编辑器目标 ShellIndex，
   data.json FlowPin ShellIndex 可预查（case3 Break=1）。
+- **新增分支 + 连线**（多分支节点）：编辑器会联动 cases 列表 +1 项（case4 实测）→
+  verify 加 `--sync-extra-pin 1`（允许恰好 1 个既有 pin 值变化，candidate 从 after 带值）。
 
 #### root 图外变化摘要（case3 已验证样板）
 
@@ -136,19 +137,21 @@ for c in d['changedRootFields']:
 ### 控制流连接
 
 - 挂在源 OutFlow；`connects.id=目标 nodeIndex`。
-- 默认 OutFlow[0] 省略 i1/i2 index；真实样本已观察到 OutFlow[1]/[2]/[3] 显式 index。
+- 默认 OutFlow[0] 省略 i1/i2 index；真实样本已观察到 OutFlow[1]/[2]/[3]/[4] 显式 index。
 - 默认目标 InFlow 的 connect/connect2 省略 index；非默认目标 InFlow 显式写目标
   ShellIndex（case3：Break index=1，`connect.index=connect2.index=1`）。
 - 目标 GraphNode 无论默认还是非默认 InFlow 都不实例化 InFlow pin。
 - 普通 SysCall OutFlow 无 compositePinIndex；新增 OutFlow 位于既有参数 pin 之前。
 
-真实证据已闭合到 OutFlow 0/1/2/3 与目标 InFlow 0/1：源侧默认省略 index、非默认显式；
-目标侧同样默认省略、非默认显式写 ShellIndex；更高源 index、混合组合与游戏执行语义仍是
-独立问题，不能由当前 production 行为反推。
+真实证据已闭合到 OutFlow 0/1/2/3/4 与目标 InFlow 0/1：源侧默认省略 index、非默认显式；
+目标侧同样默认省略、非默认显式写 ShellIndex；同一目标节点可同时挂默认+非默认 InFlow
+（case4：node 2 Start+Break 双连，两条线分别落各自源侧、目标不落 pin）；新增分支时编辑器
+联动 cases 列表（StringList +1 项）。更高源 index（>4）、游戏执行语义仍是独立问题，不能由
+当前 production 行为反推。
 
-> 生产 gap（2026-08-06 case3 发现）：`applyEditorConnectionWireRules()` 无条件删除所有
-> InFlow index，与非默认目标 InFlow 真实 wire 冲突，需独立 red/green 工作包修复；
-> 当前 `test-stage3-ordinary-graph-materializer.ts` 只覆盖默认目标。
+> 生产 gap（已修复，2026-08-06）：`applyEditorConnectionWireRules()` 曾无条件删除所有
+> InFlow index；现仅默认目标 InFlow[0] 省略、非默认保留 ShellIndex，
+> `test-stage3-ordinary-graph-materializer.ts` 已覆盖默认与非默认目标，待用户编辑器/游戏核验。
 
 ## Validator 与重放预检
 

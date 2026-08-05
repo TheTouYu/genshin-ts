@@ -115,4 +115,38 @@ assert.equal(editorFlowPins[0].i2.index, undefined, 'default OutFlow[0] may omit
 assert.equal(editorFlowPins[1].i1.index, 1, 'non-default OutFlow[1] must retain its index')
 assert.equal(editorFlowPins[1].i2.index, 1, 'non-default paired OutFlow[1] must retain its index')
 
+const editorInFlowConnects = [
+  {
+    id: 2,
+    connect: { kind: NodePin_Index_Kind.InFlow, index: 0 },
+    connect2: { kind: NodePin_Index_Kind.InFlow, index: 0 }
+  },
+  {
+    id: 3,
+    connect: { kind: NodePin_Index_Kind.InFlow, index: 1 },
+    connect2: { kind: NodePin_Index_Kind.InFlow, index: 1 }
+  }
+]
+applyEditorConnectionWireRules([{ pins: [{ i1: { kind: NodePin_Index_Kind.OutFlow, index: 0 }, connects: editorInFlowConnects }] }])
+assert.equal(
+  editorInFlowConnects[0].connect.index,
+  undefined,
+  'default target InFlow[0] may omit its index'
+)
+assert.equal(
+  editorInFlowConnects[0].connect2.index,
+  undefined,
+  'default target InFlow[0] may omit its paired index'
+)
+assert.equal(
+  editorInFlowConnects[1].connect.index,
+  1,
+  'non-default target InFlow must retain explicit ShellIndex'
+)
+assert.equal(
+  editorInFlowConnects[1].connect2.index,
+  1,
+  'non-default target InFlow must retain explicit paired ShellIndex'
+)
+
 console.log('PASS P3-W21 encoded ordinary Graph edge integrity contract')

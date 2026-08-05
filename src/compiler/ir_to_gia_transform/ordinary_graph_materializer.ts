@@ -14,8 +14,9 @@ export type OrdinaryFlowEdge = OrdinaryDataEdge
  *
  * Vendor `Connect.encode()` writes `node_connect_from(from_index)` / `node_connect_to(to_index)`,
  * which materializes connect2 = connect index and an explicit InFlow index. Real editor wire
- * omits the index field on InFlow connects and the default OutFlow[0] pin, but preserves
- * explicit indexes on non-default OutFlow pins. It also applies the connect2 exception
+ * omits the index field on default target InFlow[0] connects and the default OutFlow[0]
+ * pin, but preserves explicit indexes on non-default OutFlow pins and non-default target
+ * InFlow connects (target ShellIndex). It also applies the connect2 exception
  * for signal data consumption (str source OutParam[6] -> 3, entity source OutParam[9] -> 4).
  *
  * Must run after all index-based post-processing (compositePinIndex etc.), before serialization.
@@ -30,8 +31,10 @@ export function applyEditorConnectionWireRules(nodes: any[]): void {
       }
       for (const conn of pin.connects ?? []) {
         if (conn.connect?.kind === NodePin_Index_Kind.InFlow) {
-          if (conn.connect) delete conn.connect.index
-          if (conn.connect2) delete conn.connect2.index
+          // Real editor omits the index only on default target InFlow[0]; non-default
+          // targets write the explicit ShellIndex on both connect/connect2 (case3: Break=1).
+          if (conn.connect?.index === 0) delete conn.connect.index
+          if (conn.connect2?.index === 0) delete conn.connect2.index
         } else if (conn.connect?.kind === NodePin_Index_Kind.OutParam && conn.connect2) {
           // ponytail: data connect2 = source OutParam index, except str(6)->3, entity(9)->4.
           conn.connect2.index =
