@@ -64,6 +64,30 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-
 `extract-node-raw.ts --pins` 必须把 GraphNode 的每个重复 field 4 当作一个完整 NodePin；不要把
 第一个 NodePin 的 i1/i2/value/connects 内部字段误当成 pin 列表。
 
+#### 一条命令完成验证与重放（不要再手写 validator/replay）
+
+```bash
+npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/verify-control-flow-experiment.ts \
+  "$EXP" --graph-id 1073741836 --source 11 --target 27 --outflow-index 2 \
+  --expected-pin-raw "0a0408021002 120408021002 2a0a081b 12020801 1a020801" \
+  --before-hash <sha> --after-hash <sha>
+```
+
+输出 `<EXP>/verify/{validation.json,manual-flow-v1.gia,manual-flow-v1.gil,result.json}`，包含：
+哈希、唯一变化、OutFlow pin 语义与 raw、目标字节不变、root 变化报告、donor verify（通用
+限界 shim：candidate 只允许携带与未修改 before 完全相同的 verify 错误）、手工同构重放。
+该脚本已在 case1（OutFlow[1]）与 case2（OutFlow[2]）两个真实实验上回归 ACCEPT；新增实验
+只需换参数，禁止凭记忆重写验证逻辑。
+
+#### 续轮效率纪律（2026-08-06 复盘）
+
+- 上轮样板优先：`experiments/control-flow-case2-node11-to-node27-v12-v13/` 的 validator/replay
+  或上面的参数化脚本都是已回归样板；复制改参数，不要重写。
+- `readVarint` 返回 `{ value, next }`，`next` 是绝对游标；`position = key.next`，禁止 `+=`。
+- 第三方定义路径已记录在 manifest 恢复块，勿再全盘搜索。
+- 工具脚本行为与预期矛盾时，先与已知正确版本 diff（一次调用），不要从零新写 debug 脚本。
+- 新实验目录命名延续 `control-flow-caseN-<source>-to-<target>-v<M>-v<M+1>`。
+
 ## 已确认的连接骨架
 
 ### 数据连接

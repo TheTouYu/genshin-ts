@@ -9,6 +9,7 @@
  *     --graph-id 1073741836 --source 11 --target 27 \
  *     --outflow-index 2 --expected-pin-raw <hex> \
  *     --before-hash <sha256> --after-hash <sha256> \
+ *     [--target-index N]  expected InFlow index on target refs (default 0 = omitted) \
  *     [--source-generic 3 --source-concrete 4 --target-generic 70]
  *
  * Checks (raw before/after under <experiment-dir>/raw/):
@@ -105,6 +106,7 @@ const GRAPH_ID = Number(args['graph-id'] ?? 0)
 const SOURCE = Number(args.source ?? 0)
 const TARGET = Number(args.target ?? 0)
 const OUTFLOW_INDEX = Number(args['outflow-index'] ?? 1)
+const TARGET_INDEX = Number(args['target-index'] ?? 0) // expected InFlow index on target refs; 0 = omitted
 const EXPECTED_RAW = (args['expected-pin-raw'] ?? '').replace(/\s+/g, '')
 const BEFORE_HASH = args['before-hash'] ?? ''
 const AFTER_HASH = args['after-hash'] ?? ''
@@ -220,8 +222,10 @@ function main(): number {
   assert.equal(newPin.connects[0].id, TARGET)
   assert.equal(newPin.connects[0].connect.kind, 1, 'connect = InFlow')
   assert.equal(newPin.connects[0].connect2.kind, 1, 'connect2 = InFlow')
-  assert.equal(newPin.connects[0].connect.index ?? 0, 0, 'target InFlow index absent')
-  assert.equal(newPin.connects[0].connect2.index ?? 0, 0, 'target InFlow index absent (i2)')
+  assert.equal(newPin.connects[0].connect.index ?? 0, TARGET_INDEX,
+    `target InFlow index must be ${TARGET_INDEX === 0 ? 'absent' : TARGET_INDEX}`)
+  assert.equal(newPin.connects[0].connect2.index ?? 0, TARGET_INDEX,
+    `target InFlow index must be ${TARGET_INDEX === 0 ? 'absent' : TARGET_INDEX} (i2)`)
   ok(`source OutFlow[${OUTFLOW_INDEX}] -> target ${TARGET}, InFlow refs without index`)
 
   // 4. new pin raw bytes
