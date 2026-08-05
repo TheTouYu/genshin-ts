@@ -49,7 +49,8 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | 领域                                         | 模块                                     |
 | -------------------------------------------- | ---------------------------------------- |
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
-| 节点图逻辑：信号注册、发送、监听、参数或连接 | `references/node-graph-logic/signals.md` |
+| 节点图普通数据/控制流连接                    | `references/node-graph-logic/connections.md` |
+| 节点图逻辑：信号注册、发送、监听或信号参数   | `references/node-graph-logic/signals.md` |
 | 新建节点图 / 用生产 irToGia 生成 GIA 资产、GIA 字节对比与可复现性 | `references/node-graph-logic/node-graph-creation.md` |
 | 节点实例 pin 快速回验：第三方定义对照、参数 pin 解码（第三方优先 95%） | `references/node-graph-logic/node-pin-validation.md` |
 | 第三方仓库交叉核对：用千星沙箱知识库 / 本地 thirdparty 代码包确认编码语义并与自有实验互证 | `references/third-party-cross-check.md` |
@@ -73,6 +74,8 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 出现任一条件即走续作：用户说“继续/好了/已保存”、会话中已有明确 handoff/快照路径，或已锁定地图、图和下一轮变化。
 
 只读取匹配模块和一个**恢复锚点**：优先使用用户或当前会话明确给出的 handoff/status 文件；没有 handoff 时，读取模块指向的领域 Authority。从锚点取得前快照、地图路径、`nodeGraphId`、已确认规则和下一缺口后直接工作。不要再次加载索引、`project-pipeline.md`、导航 Skill、通用领域文档或 PKC，除非锚点明确指出 coverage gap。
+
+用户给出 `MAP/GID/LOCKED_BEFORE/LOCKED_HASH` 且任务只读、唯一变化和验收字段明确时，按窄任务处理；普通连接只加载 `connections.md` 和 manifest。不要因为文件后缀是 `.gil` 就转入静态拼装 Context 或加载信号、Composite 全套文档。任务变为写回、结构歧义、生产修复或游戏验证时再按阶段切换补门。
 
 ### B. 冷启动
 
@@ -307,10 +310,10 @@ Validator 接受后，将它提炼为 `scripts/` 下的最小参数化资产；�
 
 当相邻增量已经唯一且字段闭合时：
 
-1. 从前快照读取完整目标 NodeGraph；
-2. 只应用刚观察到的节点/pin/connection 增量；
+1. 从前快照读取完整目标 NodeGraph，并在修改前运行当前 `nodeGraphMessage.verify()`；若 untouched donor 已失败，把它记录为既有 schema/tooling 缺口，不归因给本轮增量；
+2. 只应用刚观察到的节点/pin/connection 增量；在调用 injector 前先让候选 NodeGraph bytes 与后一真实快照严格相等；
 3. 复用项目正式 GIA 包装器生成编辑器可导入文件，不从 injector 单元测试 fixture 复制最小 Root/header；至少断言正式 `fileType`、Root identity、`filePath` 和 `gameVersion`，同时不调用待验证 production lowering；
-4. 用现有 `createInjector().injectBytes()` 对 `/tmp` GIL 副本按明确 `targetId` 整图替换；
+4. 用现有 `createInjector().injectBytes()` 对 `/tmp` GIL 副本按明确 `targetId` 整图替换；donor 自身 verifier 不兼容时按领域 reference 的限界规则处理，禁止扩大为 production bypass；
 5. 回读目标 NodeGraph，与后一真实快照做 protobuf bytes 或严格结构比较；
 6. 同一次候选生成同源的正式 `.gia` 和临时 `.gil`，分别验证编辑器导入包装与目标图回读；
 7. 留下一个最小 runnable 断言，只输出 PASS/FAIL 和关键摘要。

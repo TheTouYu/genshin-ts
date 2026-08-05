@@ -18,7 +18,25 @@ Do not copy the project knowledge base into this skill. Use the shared domain ma
 
 ## Start here
 
-Before editing any documentation:
+先判断是**已锁定续作的小型维护**还是需要重新路由的完整维护，二者不要叠加。
+
+### Bounded continuation fast path
+
+满足以下全部条件时使用：
+
+- 用户提供了明确 handoff/manifest、Authority 和不可变 before/after 证据；
+- 只是在现有 Authority 内修正或补充一个已由 Validator 接受的有界结论；
+- 不新增知识域、不移动文档、不改公开路由/索引，也不涉及真实地图写回决策；
+- 当前会话已经读取适用 `AGENTS.md` 和目标领域调查 Skill。
+
+此时只读：目标 Authority、`references/evidence-and-status.md`、本轮原始证据摘要，以及当前
+source/test（若声明当前实现）。治理标签仍然生效，但不要重复加载 `documentation-map.md`、共享
+knowledge-domain map、Composite index、`analyze-workflow.md` 或完整 `gia-tools-reference.md`。
+只有目标归属不清、证据冲突、链接/路由变化或 coverage gap 时才退出快路。
+
+### Full maintenance route
+
+不满足快路条件时，编辑文档前：
 
 1. Read `docs/documentation-governance.md`.
 2. Read `docs/documentation-map.md`.
@@ -34,7 +52,7 @@ Before editing any documentation:
 5. Read the target document and current source/test evidence.
 6. Read the nearest `AGENTS.md` for any source or documentation directory involved.
 
-If the change comes from a real GIA or game-map operation, also read:
+For a real GIA or game-map change on the full route, also read:
 
 - `docs/composite-ir/index.md`
 - `docs/composite-ir/analyze-workflow.md`

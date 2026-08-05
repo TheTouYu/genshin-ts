@@ -1,6 +1,6 @@
 # 节点图逻辑模块：信号
 
-只在调查信号注册、发送、监听、信号参数、信号数据连接或信号 GIA/GIL 时加载本模块。通用快照、安全确认和证据层级仍由主 `SKILL.md` 负责。
+只在调查信号注册、发送、监听、信号参数、信号数据连接或信号 GIA/GIL 时加载本模块。普通 SysCall 之间、不涉及信号定义的 DataOut/FlowOut 连接改读 `connections.md`，避免为窄连接实验加载整套信号注册知识。通用快照、安全确认和证据层级仍由主 `SKILL.md` 负责。
 
 ## 最小恢复字段
 
@@ -150,14 +150,17 @@ Skill/调查工具由 `tsx` 直接运行且不进入生产构建时，运行该 
 
 - 执行连接挂在**源节点 OutFlow pin** 上（与数据连接挂在目标 InParam 相反）：
   `connects=[{id=目标节点, connect:{kind:InFlow}, connect2:{kind:InFlow}}]`，无 index。
-- InFlow/OutFlow 的 index 字段在 wire 上**缺失**（解码层 0 是 protobuf 默认值，
-  protobufjs encode 会把 `index:0` 写成显式 `10 00`，与真实 2B 形态 `08 01` 不同）。
+- 默认目标 InFlow 的 connect/connect2 index 在 wire 上**缺失**；默认 OutFlow[0] 的 i1/i2
+  index 同样缺失。已观察到的非默认 OutFlow[1] 则显式保留 index=1（普通图多分支 Case1，
+  `control-flow-case1-node11-to-node24-v11-v12`）。解码层 0 是 protobuf 默认值；
+  protobufjs encode 会把 `index:0` 写成显式 `10 00`，与真实 2B 形态不同。
 - fork = 同源 OutFlow pin 的 connects 数组 append；顺序即编辑器连线顺序，非按 id 排序。
 - 链式 = 中间节点实例化自己的 OutFlow pin（SysCall 普通节点**无** compositePinIndex，
   SysGraph 复合调用如监听节点有 CPI）；OutFlow pin 实例化时插入 pins 数组位置 0。
 - 目标节点无 InExec 实例 pin 落盘。
-- 多槽节点（双分支 SysCall 2）：只实例化被连槽位的 1 个 OutFlow pin，i1/i2 无 index、
-  无 CPI；作为 exec 目标时逐字节不变（实验 branch-node-01/02/03，Validator 4/4+6/6+7/7）。
+- 多槽节点只实例化被连槽位：双分支 SysCall 2 的“是”槽（ShellIndex 0）i1/i2 无 index；
+  普通图多分支 SysCall 3 的 Case1（ShellIndex 1）i1/i2 显式 index=1。两者均无 CPI，作为
+  exec 目标时 GraphNode 逐字节不变。当前 Authority：`docs/game-engine-knowledge/control-flow.md`。
 
 ### 生产比对红灯
 
