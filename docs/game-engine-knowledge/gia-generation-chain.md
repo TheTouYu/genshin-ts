@@ -4,6 +4,8 @@
 > 来源：2026-08-02 信号 GIA 全链路（`gsts-signal-demo-test.gia` 生成 + 注入 + 游戏核验）
 > 适用范围：用生产 `irToGia` 从地图注册数据生成正式 GIA、以及任何“生成 GIA 资产”任务
 
+> 知识树：生产链路与可复现性结论已录入 `knowledge/game-engine-knowledge/production-chain-evidence.md`（2026-08-08，bnd_7320a9bd）
+
 本文档是 GIA 生成链路的唯一入口：记录生产链路、可复现性边界和常见坑位，避免新会话
 重新踩坑。
 

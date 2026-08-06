@@ -6,6 +6,8 @@
 > 证据细节：`docs/game-engine-knowledge/signals.md` 及
 > `genshin-ts-evidence/node-graph-logic/signals/2026-08-01-monitor-signal/notes/manifest.md`
 
+> 知识树：红灯清单已录入 `knowledge/game-engine-knowledge/production-chain-evidence.md`（2026-08-08，bnd_7320a9bd）
+
 本文档是生产修复的唯一入口：记录红灯差异、wire 形态、修复范围和验证方式，避免后续会话
 丢失上下文。**修复前必须由用户明确要求**；未获要求时保持红灯，不进入 production seam。
 

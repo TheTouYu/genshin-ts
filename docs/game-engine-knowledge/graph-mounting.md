@@ -1,5 +1,7 @@
 # 节点图挂载与生命周期
 
+> 知识树：用户说明部分已录入 `knowledge/game-engine-knowledge/mounting-lifecycle-assets.md`（标注未验证，2026-08-08，bnd_7320a9bd）；type 3 槽 wire 规则见 `knowledge/game-engine-knowledge/gil-structure-closed-paths.md`
+
 > 状态：框架草案
 > 来源：用户对节点图挂载、实体生命周期和多人执行的说明
 > 最近校验：2026-08-01

@@ -1,5 +1,7 @@
 # 资产、关卡保存与导出文件
 
+> 知识树：已验证结论已录入 `knowledge/game-engine-knowledge/mounting-lifecycle-assets.md`（2026-08-08，bnd_7320a9bd）
+
 > 状态：已验证（文件与导入边界部分规则）
 > 来源：用户对关卡资产的说明 + 真实 GIL/GIA + 编辑器导入验证
 > 最近校验：2026-08-01

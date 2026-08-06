@@ -1,5 +1,7 @@
 # 游戏运行生命周期
 
+> 知识树：用户说明部分已录入 `knowledge/game-engine-knowledge/mounting-lifecycle-assets.md`（标注未验证，2026-08-08，bnd_7320a9bd）
+
 > 状态：框架草案
 > 来源：用户对完整游戏执行流程的说明
 > 最近校验：2026-08-01

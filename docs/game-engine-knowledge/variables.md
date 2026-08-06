@@ -1,5 +1,7 @@
 # 变量与作用域
 
+> 知识树：已验证结论已录入 `knowledge/game-engine-knowledge/variable-scopes-encoding.md`（2026-08-08，bnd_7320a9bd）
+
 > 状态：部分已验证
 > 来源：用户对变量作用域的说明 + 真实 GIL 不可变相邻快照
 > 最近校验：2026-08-02

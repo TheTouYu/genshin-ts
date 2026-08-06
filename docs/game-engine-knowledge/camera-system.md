@@ -1,5 +1,7 @@
 # 镜头系统
 
+> 知识树：已验证结论已录入 `knowledge/game-engine-knowledge/camera-ui-rules.md`（2026-08-08，bnd_7320a9bd）
+
 > 状态：部分已验证
 > 来源：用户概念说明 + 真实 GIL 不可变相邻快照与独立 Validator
 > 最近校验：2026-08-02

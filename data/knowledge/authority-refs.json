@@ -17,6 +17,21 @@
       ]
     },
     {
+      "id": "aref_03a519f8a31c18b438b480b9d1",
+      "path": "docs/game-engine-knowledge/variables.md",
+      "locator": "局部变量的 GIL 编码（真实 GIL 解析，2026-08-07）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "871403a7012e4bc0328585f3202b381d6187fe41856b67e126af3e4e3816df96",
+      "claim_ids": [
+        "clm_A154340AA0EAEA30107AB18040"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_085b746b8b4bdf228c8b4f7184",
       "path": "src/cli/static_assembly/inspection.ts",
       "locator": "inspectStaticAssemblyMap() and Inspection V1 construction",
@@ -62,6 +77,51 @@
       ]
     },
     {
+      "id": "aref_0d120872b52a289fc7db3ad4b3",
+      "path": "docs/game-engine-knowledge/variables.md",
+      "locator": "作用域总览与实体级/节点图级/局部变量章节",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "871403a7012e4bc0328585f3202b381d6187fe41856b67e126af3e4e3816df96",
+      "claim_ids": [
+        "clm_6D652403251D3F18F6983A6205"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_0d26653fc49a44e9b466ebd6ef",
+      "path": "docs/game-engine-knowledge/components.md",
+      "locator": "铭牌编码规则（nameplate-component exp1-14）与铭牌配置（38）分层",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "269dd2f79f45b15bbe301bd7094ecae40c39e1c4e9fe11269f0a61322ba2f6ae",
+      "claim_ids": [
+        "clm_24058447AFCCFA8DF512E9F13C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_0f71c33eade0666d41c4730080",
+      "path": "docs/game-engine-knowledge/variables.md",
+      "locator": "当前关卡变量的受限 GIL 观察（CONFIRMED_BOUNDED）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "871403a7012e4bc0328585f3202b381d6187fe41856b67e126af3e4e3816df96",
+      "claim_ids": [
+        "clm_47B704E1F571822F6E9171FEBE"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_13401bd2be8c8bd953fcb39e05",
       "path": "tests/static_assembly_package_consumer.ts",
       "locator": "whole npm-pack and installed-scaffold consumer regression",
@@ -98,7 +158,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b063c2b27992850fe463dba5ae83f7eb2be41c39538bfcba7c741f5eedee629b",
+      "approved_hash": "5d571d11562e044ec7b3cb459e0d446e63721b3abbed925d036214890b7b279b",
       "claim_ids": [
         "clm_23EAD146B7098B8A122AD6D73D"
       ],
@@ -242,6 +302,21 @@
       ]
     },
     {
+      "id": "aref_35ece7653831ae88b1196ac393",
+      "path": "docs/game-engine-knowledge/validation-workflow.md",
+      "locator": "证据层级与 GIL 写回安全门、默认选择原则",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "3c000d929f101dd002ef91c144d78e1620b41458e7f6f809da9c87b3eaa84e61",
+      "claim_ids": [
+        "clm_5105D81ADED6A1310E6CB7A690"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_38948e6f94b5b6e3c552947913",
       "path": "docs/game-engine-knowledge/control-flow.md",
       "locator": "普通图 SysCall 的 FlowOut→FlowIn 落盘",
@@ -299,6 +374,36 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_3bb35b476a1d2b6da0af215bcd",
+      "path": "docs/game-engine-knowledge/ui-controls.md",
+      "locator": "输入与响应、按钮组件、转发到其他实体章节（用户说明）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "35711161b07389be150d60db0d181bfe7dc89bffd79c860db7ace11a7b7c3915",
+      "claim_ids": [
+        "clm_E33409E56BC5A9B2BE17737F82"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_3bef570c041491916878fb652a",
+      "path": "docs/game-engine-knowledge/graph-mounting.md",
+      "locator": "挂载在实体上/元件上、特殊实体、多人联机与重复执行章节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "34f5821ac1cae22bab774488d1f8c90228c9fc4d713321fdcce95024a1995a41",
+      "claim_ids": [
+        "clm_D8AE4A86F79755B92C2FEB7E0C"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -437,6 +542,21 @@
       ]
     },
     {
+      "id": "aref_4c5e5276b19b596c0b1fecaafc",
+      "path": "docs/game-engine-knowledge/assets-and-files.md",
+      "locator": "GIL 与 GIA 两种文件核心区别、正式 GIA 导入包装（2026-08-01 监听信号实验）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "016f52bd2993576ac971f18ee435e432b8ceb6d6e598af228b9d99f6f1ac4325",
+      "claim_ids": [
+        "clm_6489492EFA850D495B4AE86A95"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_4d7e1fd04a0ce1b49ab6e1599d",
       "path": "src/compiler/gsts_config.ts",
       "locator": "GstsStaticColor and static assembly color properties",
@@ -503,7 +623,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "6d5fb26a60dd7012dc23f479f47ccc214c6ecbf8ae340b93f76d0fcd641d713d",
+      "approved_hash": "89f7b22d43cfb2e7f102fb110c06e924137793d588a36972e436ebb485c2f532",
       "claim_ids": [
         "clm_D43A6E214D6B1F20B8EF995757"
       ],
@@ -542,6 +662,36 @@
       ]
     },
     {
+      "id": "aref_60986dfe4acca395735bbfa5c1",
+      "path": "docs/game-engine-knowledge/camera-system.md",
+      "locator": "按玩家切换镜头与镜头切换入口章节（用户说明）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "2bf4b90647f99e41a817d6759a7a929407dfe4dac91316bb4f7011350389e86d",
+      "claim_ids": [
+        "clm_E33409E56BC5A9B2BE17737F82"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_617f91b11b4e063ff3102fbc7c",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "复合 impl 图内信号节点（2026-08-03 测试断言对齐）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ff9d9856348107598a6c99f77318620734ed869bd48b1b1970bc31dd9509d3e8",
+      "claim_ids": [
+        "clm_D4F75C7BF79D3B60EB8DF5EB3F"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_6478bd5c86335d60cd4036fcad",
       "path": "tests/gil_signal_registrations.ts",
       "locator": "6-layer regression: cloning, read-back, auto IDs, CLI args",
@@ -554,6 +704,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_68e97da2431d4e856d2f561770",
+      "path": "docs/game-engine-knowledge/game-lifecycle.md",
+      "locator": "总体流程与各阶段章节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "00d0242050fe367e122cff793adf41db1e725be870386422ca869e55905b50d0",
+      "claim_ids": [
+        "clm_CF2DBEA9639E2430744636FDDE"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -596,6 +761,21 @@
       "approved_hash": "c8135f7a192cb435167bb40bab7feb3502398771564eb8a432bf2d0b33e55c75",
       "claim_ids": [
         "clm_EB98A0BAEA640B8ECB6577B16C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_70fcc232631848d00f8f6fcf44",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "当前已闭合的有限字段树（root 10 复合容器 10.1/10.1.1/10.2/10.5.3）与注入器合并路径",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "89f7b22d43cfb2e7f102fb110c06e924137793d588a36972e436ebb485c2f532",
+      "claim_ids": [
+        "clm_F008D0E6E613365A09C857B504"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
@@ -662,15 +842,45 @@
       ]
     },
     {
+      "id": "aref_7c12c8b3767e1b6bad98421fe4",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "已验证的发送节点骨架与已验证的发送固定值参数（信号测试全参数 8 种）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ff9d9856348107598a6c99f77318620734ed869bd48b1b1970bc31dd9509d3e8",
+      "claim_ids": [
+        "clm_0FC97EF7B561C3DEEEAD6918A8"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_7d75ec9b118c317a2ddda50b91",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "多轴欧拉角顺序已闭合（2026-08-08）段落",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "6d5fb26a60dd7012dc23f479f47ccc214c6ecbf8ae340b93f76d0fcd641d713d",
+      "approved_hash": "89f7b22d43cfb2e7f102fb110c06e924137793d588a36972e436ebb485c2f532",
       "claim_ids": [
         "clm_A1E15CA57DDF9464638BB97C44"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_828497b93a0dd5f6d3473e72e8",
+      "path": "docs/game-engine-knowledge/camera-system.md",
+      "locator": "root 18 镜头容器与物件镜头组件绑定（exp14/17、exp13-14/16）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "2bf4b90647f99e41a817d6759a7a929407dfe4dac91316bb4f7011350389e86d",
+      "claim_ids": [
+        "clm_664BE24DA2E86A8DB6C85BC8F6"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
@@ -767,6 +977,21 @@
       ]
     },
     {
+      "id": "aref_9485d97663f05c70ef153c3b16",
+      "path": "docs/game-engine-knowledge/signals.md",
+      "locator": "信号定义原位修改（assets:signals update，2026-08-01 真实地图写回证据）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "ff9d9856348107598a6c99f77318620734ed869bd48b1b1970bc31dd9509d3e8",
+      "claim_ids": [
+        "clm_E84AC1061E900A2BFAB326D5C1"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
+      ]
+    },
+    {
       "id": "aref_94add3c73fadad175650fc1933",
       "path": "src/cli/static_assembly/football_geometry.ts",
       "locator": "truncatedIcosahedron / coverFace / edgeBars / coverBudget",
@@ -791,6 +1016,21 @@
       "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
       "claim_ids": [
         "clm_23C30B27044EC9F29E896D9EFF"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_9a542651fb55e772d19d7936f5",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "节点图挂载（type 3 槽）规则与工具（mount-case1/2/3/4 真实相邻快照 + 用户游戏核验）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "89f7b22d43cfb2e7f102fb110c06e924137793d588a36972e436ebb485c2f532",
+      "claim_ids": [
+        "clm_98EF365F97BE61A3874676F66A"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
@@ -827,6 +1067,21 @@
       ]
     },
     {
+      "id": "aref_a78da4e24fb7693ad7b7503285",
+      "path": "docs/game-engine-knowledge/components.md",
+      "locator": "自定义变量组件（1）条目编码（exp1-2）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "269dd2f79f45b15bbe301bd7094ecae40c39e1c4e9fe11269f0a61322ba2f6ae",
+      "claim_ids": [
+        "clm_83E525E46C62931D431B3202D6"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_ab78d420c34b6305669b03627c",
       "path": "src/cli/gil_signal_registrations.ts",
       "locator": "registerSignalInGil / assignSignalIds / validateSpec / buildParamPool",
@@ -857,6 +1112,21 @@
       ]
     },
     {
+      "id": "aref_b615135758d50f11ef4d9478be",
+      "path": "docs/game-engine-knowledge/gia-generation-chain.md",
+      "locator": "生产链路（成功路径）与可复现性边界",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "393686c5e05731c4b5aa45c9a8b9ef6d7332ebe73863d95d669a3bc032b63f65",
+      "claim_ids": [
+        "clm_FE7C817CA880B07A690AE9EBFE"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_b71ec7221fdab19a329a4a5b78",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "CompositePin 映射（内部图 compositePins）",
@@ -869,6 +1139,51 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_b9f1554a891909c84caa1c1ea5",
+      "path": "docs/game-engine-knowledge/components.md",
+      "locator": "组件类型映射表与配置字段号规律（component-investigation exp1-18）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "269dd2f79f45b15bbe301bd7094ecae40c39e1c4e9fe11269f0a61322ba2f6ae",
+      "claim_ids": [
+        "clm_7C97E7FE3F998EC4A648EC7B29"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_be0b899b942b6da9e209189e27",
+      "path": "docs/game-engine-knowledge/components.md",
+      "locator": "引用绑定模式与资源 ID 存储（exp9/10/13-15）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "269dd2f79f45b15bbe301bd7094ecae40c39e1c4e9fe11269f0a61322ba2f6ae",
+      "claim_ids": [
+        "clm_55953E975D035A08C89368C982"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_be2c562dc885281644c0feee02",
+      "path": "docs/game-engine-knowledge/signal-production-red-lights.md",
+      "locator": "红灯总表与修复范围（applyEditorConnectionWireRules）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "43ff2f8ca52c51bc2631a776f8a5cafee5d796fa773537c8f90fc231160fd582",
+      "claim_ids": [
+        "clm_2CA265DEC217A343CCEF7C3E29"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -1060,7 +1375,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "6d5fb26a60dd7012dc23f479f47ccc214c6ecbf8ae340b93f76d0fcd641d713d",
+      "approved_hash": "89f7b22d43cfb2e7f102fb110c06e924137793d588a36972e436ebb485c2f532",
       "claim_ids": [
         "clm_D855DC6B45CDA71076665B0BFA"
       ],

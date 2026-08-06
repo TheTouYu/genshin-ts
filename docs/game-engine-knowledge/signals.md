@@ -9,6 +9,8 @@
 >
 > 用生产 `irToGia` 从地图注册数据生成正式 GIA 资产的链路、可复现性边界（vendor 坐标抖动）和坑位清单见 [`gia-generation-chain.md`](gia-generation-chain.md)。
 
+> 知识树：已验证结论已录入 `knowledge/game-engine-knowledge/signal-production-encoding.md`（发送骨架/8 种固定值参数、原位修改、impl 图内信号，2026-08-08，bnd_7320a9bd）
+
 信号用于在节点图之间传递一次事件及其参数。编辑器导入可由正式 GIA 携带 send/monitor/server 三份 signal definition，在目标地图注册此前不存在的信号；用户已确认同一 `cube_turn` GIA 在另一关卡导入正常。直接写 GIL 的生产流程仍将“注册信号”和“注入 NodeGraph”分成两步：`assets:signals register/update` 修改注册表，injector 按信号名把 GIA 中的 donor identity 重绑定为目标地图 identity，并保持目标注册定义不变。
 
 2026-08-02 对用户修复版 `主图-发送-接受.gia` 与来源地图 `1073741849.gil` 做 raw-wire 比较，三份 `CompositeDef` payload 逐字节相同。当前 GIA 生产读取器从 GIL registry entry 读取参数名、三套参数 pinIndex 和 `signalVersion`，从三份 definition 读取信号名 pinIndex，并在最终 GIA 中保留原始 definition bytes，避免 schema 未声明的 field `106` 在 decode/encode 后丢失。自动回归为 `tests/composite/test-signal-registered-layout.ts`。

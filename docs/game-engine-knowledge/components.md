@@ -1,5 +1,7 @@
 # 组件
 
+> 知识树：已验证结论已录入 `knowledge/game-engine-knowledge/component-type-encoding.md`（2026-08-08，bnd_7320a9bd）
+
 > 状态：部分已验证（组件类型 1/6/12/13/16/17/18/27/28/29 已确认；3/14/19/4 待确认）
 > 来源：真实 GIL 相邻快照（nameplate-component exp1–14、component-investigation exp1–18、
 > static assembly 基础运动器样本）+ 当前实现与自动回归

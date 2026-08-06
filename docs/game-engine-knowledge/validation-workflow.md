@@ -5,6 +5,8 @@
 > 最近校验：2026-08-03
 > 适用范围：从真实关卡学习规则，并通过 GIA 或 GIL 验证
 
+> 知识树：证据层级与写回安全门已录入 `knowledge/game-engine-knowledge/production-chain-evidence.md`（2026-08-08，bnd_7320a9bd）
+
 游戏引擎规则优先通过真实编辑器的小步修改学习，而不是先根据当前代码推测。
 
 ## 第一阶段：编辑器增量学习

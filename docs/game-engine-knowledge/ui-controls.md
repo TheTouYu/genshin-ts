@@ -1,5 +1,7 @@
 # 屏幕控件与 UI
 
+> 知识树：用户说明部分已录入 `knowledge/game-engine-knowledge/camera-ui-rules.md`（标注未验证，2026-08-08，bnd_7320a9bd）
+
 > 状态：框架草案
 > 来源：用户对屏幕控件、输入和按钮事件的说明
 > 最近校验：2026-08-01

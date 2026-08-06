@@ -153,6 +153,18 @@
         "knowledge capture"
       ],
       "migration_status": "pilot"
+    },
+    {
+      "id": "game-engine-knowledge",
+      "name": "Game Engine Knowledge (real GIL/editor rules)",
+      "path": "knowledge/game-engine-knowledge",
+      "boundary": "已由真实 GIL 相邻快照、编辑器单变化或用户游戏核验闭合的游戏引擎规则；不是编译器实现细节、未验证推测或项目状态",
+      "keywords": [
+        "游戏引擎规则",
+        "真实GIL",
+        "编辑器证据"
+      ],
+      "migration_status": "pilot"
     }
   ],
   "topics": [
@@ -749,6 +761,104 @@
       "summary": "普通节点图 SysCall 控制流/数据流连接的真实 GIL 落盘：源目标 index 省略、connects 双写、Variant 自动实例化、替换/断线/排序规则（v9-v22）",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "variable-scopes-encoding",
+      "node_id": "game-engine-knowledge",
+      "title": "变量作用域与局部变量编码",
+      "path": "knowledge/game-engine-knowledge/variable-scopes-encoding.md",
+      "summary": "变量三种作用域（实体/图/局部）、局部变量 wire 无名 E<1016> 身份沿连线传递、关卡变量受限编码",
+      "keywords": [
+        "E<1016>",
+        "作用域",
+        "变量",
+        "局部变量"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "component-type-encoding",
+      "node_id": "game-engine-knowledge",
+      "title": "组件类型映射与编码",
+      "path": "knowledge/game-engine-knowledge/component-type-encoding.md",
+      "summary": "组件类型映射表、配置字段号 +10/+11 规律、铭牌 27 分层、自定义变量组件 1、名称引用+root 注册表、资源引用只存 ID",
+      "keywords": [
+        "类型映射",
+        "组件",
+        "配置字段号",
+        "铭牌"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "camera-ui-rules",
+      "node_id": "game-engine-knowledge",
+      "title": "镜头与屏幕 UI 规则",
+      "path": "knowledge/game-engine-knowledge/camera-ui-rules.md",
+      "summary": "root18 镜头容器、物件镜头组件 13 绑定、按玩家切换、UI 按钮事件转发顺序",
+      "keywords": [
+        "UI按钮",
+        "root18",
+        "物件镜头",
+        "镜头"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "mounting-lifecycle-assets",
+      "node_id": "game-engine-knowledge",
+      "title": "节点图挂载、生命周期与资产文件",
+      "path": "knowledge/game-engine-knowledge/mounting-lifecycle-assets.md",
+      "summary": "图挂实体/元件、多人重复执行、生命周期阶段、GIL vs GIA 与正式 GIA 导入包装",
+      "keywords": [
+        "GIA",
+        "GIL",
+        "挂载",
+        "生命周期"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "gil-structure-closed-paths",
+      "node_id": "game-engine-knowledge",
+      "title": "GIL 结构已闭合路径",
+      "path": "knowledge/game-engine-knowledge/gil-structure-closed-paths.md",
+      "summary": "主图 root10.1.1、复合 impl root10.4.1、挂载 type3 槽、root10 容器 field1/2/4 划分",
+      "keywords": [
+        "GIL",
+        "NodeGraph",
+        "root10",
+        "挂载槽"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "signal-production-encoding",
+      "node_id": "game-engine-knowledge",
+      "title": "信号生产与编码",
+      "path": "knowledge/game-engine-knowledge/signal-production-encoding.md",
+      "summary": "发送节点骨架与 8 种固定值参数、信号定义原位修改、复合 impl 图内信号节点",
+      "keywords": [
+        "信号",
+        "原位修改",
+        "发送节点",
+        "固定值参数"
+      ],
+      "permission": "internal"
+    },
+    {
+      "id": "production-chain-evidence",
+      "node_id": "game-engine-knowledge",
+      "title": "GIA 生产链路与证据层级",
+      "path": "knowledge/game-engine-knowledge/production-chain-evidence.md",
+      "summary": "GIA 生产链路五层、可复现性边界、信号生产红灯清单、六层证据层级",
+      "keywords": [
+        "GIA生产",
+        "可复现性",
+        "红灯",
+        "证据层级"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1076,6 +1186,106 @@
     "clm_EDCA91A83DB521C90679872ED1": {
       "fact_classes": [
         "cli_behavior"
+      ]
+    },
+    "clm_6D652403251D3F18F6983A6205": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_A154340AA0EAEA30107AB18040": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_47B704E1F571822F6E9171FEBE": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_7C97E7FE3F998EC4A648EC7B29": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_24058447AFCCFA8DF512E9F13C": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_83E525E46C62931D431B3202D6": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_55953E975D035A08C89368C982": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_664BE24DA2E86A8DB6C85BC8F6": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_E33409E56BC5A9B2BE17737F82": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_D8AE4A86F79755B92C2FEB7E0C": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_CF2DBEA9639E2430744636FDDE": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_6489492EFA850D495B4AE86A95": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_F008D0E6E613365A09C857B504": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_98EF365F97BE61A3874676F66A": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_0FC97EF7B561C3DEEEAD6918A8": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_E84AC1061E900A2BFAB326D5C1": {
+      "fact_classes": [
+        "writeback_behavior"
+      ]
+    },
+    "clm_D4F75C7BF79D3B60EB8DF5EB3F": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_FE7C817CA880B07A690AE9EBFE": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_2CA265DEC217A343CCEF7C3E29": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_5105D81ADED6A1310E6CB7A690": {
+      "fact_classes": [
+        "documented_contract"
       ]
     }
   }
