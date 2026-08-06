@@ -24,6 +24,26 @@ const GRAPH_TYPE = 20000
 const GRAPH_KIND = 21001
 const FOLDER_TYPE_SERVER_GRAPH = 800 // DEFAULT_GRAPH_TYPE_VALUES: 20000 -> 800
 
+// 最小 root 6：编辑器新图首次保存才有完整 records（33 条模板/元件目录）；
+// 占位节点图只需“未分类页签”聚合 record（#1=4，tab 含“未分类页签”），
+// folder entry 挂载点；编辑器打开保存后自会补全其余 records（与 maps:create 同构）
+export function minimalFolderRoot6(): Uint8Array {
+  const rootTab = emitWireMessage([
+    { number: 1, wire: 2, value: new TextEncoder().encode('root') },
+    { number: 3, wire: 0, value: 1 }
+  ])
+  const tab = emitWireMessage([
+    { number: 1, wire: 2, value: new TextEncoder().encode('未分类页签') },
+    { number: 3, wire: 0, value: 2 }
+  ])
+  const record = emitWireMessage([
+    { number: 1, wire: 0, value: 4 },
+    { number: 2, wire: 2, value: rootTab },
+    { number: 3, wire: 2, value: tab }
+  ])
+  return emitWireMessage([{ number: 1, wire: 2, value: record }])
+}
+
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
@@ -181,7 +201,17 @@ export function buildEmptyNodeGraph(
   graphId: number,
   name: string
 ): Uint8Array {
-  const root = readRoot(payload)
+  let root = readRoot(payload)
+  if (!root.some((f) => f.number === 6 && f.wire === 2) || !root.some((f) => f.number === 10 && f.wire === 2)) {
+    // 全新骨架地图（maps:create 无 --graphs）没有 root 6/10：先补最小挂载容器
+    root = [...root]
+    if (!root.some((f) => f.number === 6 && f.wire === 2)) {
+      root.push({ number: 6, wire: 2, value: minimalFolderRoot6() })
+    }
+    if (!root.some((f) => f.number === 10 && f.wire === 2)) {
+      root.push({ number: 10, wire: 2, value: emitWireMessage([{ number: 7, wire: 0, value: 1 }]) })
+    }
+  }
   const nextRoot = root.map((field) => {
     if (field.wire !== 2) return field
     if (field.number === 10) {
@@ -203,16 +233,16 @@ export function buildEmptyNodeGraph(
 
 function verifyNodeGraphReadBack(bytes: Uint8Array, graphId: number): void {
   const root = readRoot(bytes.slice(20, -4))
-  const top10 = parseWireMessage(
-    root.find((f) => f.number === 10 && f.wire === 2)!.value as Uint8Array
-  )!
+  const top10Field = root.find((f) => f.number === 10 && f.wire === 2)
+  if (!top10Field) throw new Error('[error] read-back: root 10 missing after create')
+  const top10 = parseWireMessage(top10Field.value as Uint8Array)!
   const found = top10
     .filter((f) => f.number === 1 && f.wire === 2)
     .some((f) => graphIdOf(f.value as Uint8Array) === graphId)
   if (!found) throw new Error('[error] read-back: graph wrapper missing in root 10')
-  const top6 = parseWireMessage(
-    root.find((f) => f.number === 6 && f.wire === 2)!.value as Uint8Array
-  )!
+  const top6Field = root.find((f) => f.number === 6 && f.wire === 2)
+  if (!top6Field) throw new Error('[error] read-back: root 6 missing after create')
+  const top6 = parseWireMessage(top6Field.value as Uint8Array)!
   const hasFolder = top6
     .filter((f) => f.number === 1 && f.wire === 2)
     .some((f) => {

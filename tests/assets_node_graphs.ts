@@ -107,4 +107,27 @@ assert.deepEqual(
   [1073741825, 1073741826]
 )
 
-console.log('PASS: assets_node_graphs assertions (create/read-back/duplicate/missing-tab/multi-graph)')
+// 6. 全新骨架地图（无 root 6/10，maps:create 无 --graphs）：自动补最小容器后创建成功
+const skeleton = emitWireMessage([
+  { number: 1, wire: 0, value: 1073741853 },
+  { number: 2, wire: 2, value: new TextEncoder().encode('gsts-verify') },
+  { number: 34, wire: 0, value: 1 },
+  { number: 39, wire: 0, value: 110170759 },
+  { number: 40, wire: 0, value: 1800000000 },
+  { number: 41, wire: 0, value: 1 }
+])
+const onSkeleton = buildEmptyNodeGraph(skeleton, 1073741825, '骨架图')
+const skeletonRoot = parseWireMessage(onSkeleton)
+assert.ok(skeletonRoot)
+assert.ok(skeletonRoot.some((f) => f.number === 6 && f.wire === 2), 'root 6 auto-created')
+assert.ok(skeletonRoot.some((f) => f.number === 10 && f.wire === 2), 'root 10 auto-created')
+const skeletonTop10 = parseWireMessage(
+  skeletonRoot.find((f) => f.number === 10 && f.wire === 2)!.value as Uint8Array
+)!
+assert.equal(skeletonTop10.filter((f) => f.number === 1 && f.wire === 2).length, 1)
+assert.deepEqual(
+  folderGraphIds(buildFile(onSkeleton, { schema: 1, headTag: 2, fileType: 3, tailTag: 4 })),
+  [1073741825]
+)
+
+console.log('PASS: assets_node_graphs assertions (create/read-back/duplicate/missing-tab/multi-graph/skeleton)')

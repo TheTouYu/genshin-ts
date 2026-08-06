@@ -276,26 +276,6 @@ export type CreateMapResult = {
 //   header：schema 1 / headTag 0x0326 / fileType 2 / tailTag 0x0679
 const FIRST_MAP_ID = 1073741825 // 图 ID 起点（gil-structure-semantics.md 自由新建节）
 
-// 最小 root 6：编辑器新图首次保存才有完整 records（33 条模板/元件目录）；
-// 占位节点图只需“未分类页签”聚合 record（#1=4，tab 含“未分类页签”），
-// buildEmptyNodeGraph 的 folder entry 挂载点；编辑器打开保存后自会补全其余 records
-function minimalFolderRoot6(): Uint8Array {
-  const rootTab = emitWireMessage([
-    { number: 1, wire: 2, value: new TextEncoder().encode('root') },
-    { number: 3, wire: 0, value: 1 }
-  ])
-  const tab = emitWireMessage([
-    { number: 1, wire: 2, value: new TextEncoder().encode('未分类页签') },
-    { number: 3, wire: 0, value: 2 }
-  ])
-  const record = emitWireMessage([
-    { number: 1, wire: 0, value: 4 },
-    { number: 2, wire: 2, value: rootTab },
-    { number: 3, wire: 2, value: tab }
-  ])
-  return emitWireMessage([{ number: 1, wire: 2, value: record }])
-}
-
 export function createMap(
   saveLevelDir: string,
   name: string,
@@ -334,13 +314,9 @@ export function createMap(
 
   const graphs: CreateMapResult['graphs'] = []
   if (graphNames.length > 0) {
-    // 骨架没有 root 6/10：先构造最小挂载容器，再逐个追加占位节点图
+    // 骨架没有 root 6/10：buildEmptyNodeGraph 会自动补最小挂载容器，再逐个追加占位节点图
     // 节点图 ID 自动分配：空地图从固定起始值 1073741825 起递增（nextGraphId），名字 = 传入名字
-    let nextPayload = emitWireMessage([
-      ...parseWireMessage(payload)!,
-      { number: 6, wire: 2, value: minimalFolderRoot6() },
-      { number: 10, wire: 2, value: emitWireMessage([{ number: 7, wire: 0, value: 1 }]) }
-    ])
+    let nextPayload = payload
     for (const graphName of graphNames) {
       const graphId = nextGraphId(nextPayload)
       nextPayload = buildEmptyNodeGraph(nextPayload, graphId, graphName)

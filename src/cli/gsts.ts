@@ -1745,7 +1745,6 @@ async function main() {
     .option('--config <file>', 'project config (for --map-id resolution)')
     .option('--gil <file>', 'explicit GIL source')
     .option('--map-id <id>', 'target map ID (location only; requires project config)')
-    .option('--graph-id <id>', 'new NodeGraph ID (default: 1073741825)')
     .option('--name <string>', 'new NodeGraph name (default: 新建节点图)')
     .option('--output <file>', 'create output without overwriting')
     .option('--write', 'write source GIL after backup')
