@@ -8,6 +8,7 @@ import { loadGstsConfig } from '../compiler/config_loader.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { applyEntities, exportEntities, type EntityImport } from './gil_entities.js'
+import { patchEntityColor, patchEntityTransform } from './static_assembly/patch.js'
 import {
   emitWireMessage,
   parseWireMessage,
@@ -16,9 +17,10 @@ import {
 } from './static_assembly/wire.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
-type Command = 'export' | 'import'
+type Command = 'export' | 'import' | 'patch'
 type Format = 'text' | 'json'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
+type Vector3 = readonly [number, number, number]
 
 type EntitiesFile = {
   schemaVersion: number
@@ -27,9 +29,9 @@ type EntitiesFile = {
 
 function usage(exitCode = 1): never {
   const output = [
-    'Export or import scene entities (root 5) of a GIL map.',
+    'Export, import or patch scene entities (root 5) of a GIL map.',
     '',
-    'Usage: gsts assets:entities [export|import] [options]',
+    'Usage: gsts assets:entities [export|import|patch] [options]',
     '',
     '  --entities <file>      entity import JSON (import only)',
     '  --definitions-gil <file>  donor GIL for definition records (import only)',
@@ -37,13 +39,20 @@ function usage(exitCode = 1): never {
     '  --gil <file>           explicit GIL source',
     '  --format <text|json>   output format (default: text)',
     '  --output <file>        create output without overwriting',
-    '  --write                write source GIL after backup (import only)',
+    '  --write                write source GIL after backup',
     '  -h, --help             show help',
     '',
+    'patch: gsts assets:entities patch <entity-id> [options]',
+    '  --color <#RRGGBB>      set custom color (0xAARRGGBB accepted)',
+    '  --position <x,y,z>     set transform position (sparse-encoded)',
+    '  --rotation <x,y,z>     set transform rotation in degrees (sparse-encoded)',
+    '  --scale <x,y,z>        set transform scale (dense three-axis)',
+    '',
     'Import entities are created from their component definition record;',
-    'components are inherited byte-for-byte. This command modifies .gil asset',
-    'structures. It is not GIA NodeGraph injection, runtime createPrefab, or',
-    'editor/game verification.'
+    'components are inherited byte-for-byte. patch performs a record-level',
+    'local replacement (only the target record bytes change). These commands',
+    'modify .gil asset structures. They are not GIA NodeGraph injection,',
+    'runtime createPrefab, or editor/game verification.'
   ].join('\n')
   console[exitCode === 0 ? 'log' : 'error'](output)
   process.exit(exitCode)
@@ -62,6 +71,22 @@ function nonNegativeId(raw: string, option: string): number {
   return result
 }
 
+function parseColor(raw: string, option: string): number {
+  const m = /^(#|0x)?([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(raw.trim())
+  if (!m) throw new Error(`[error] ${option} must be #RRGGBB or 0xAARRGGBB`)
+  const value = Number.parseInt(m[2], 16)
+  return m[2].length === 6 ? 0xff000000 | value : value
+}
+
+function parseVector3(raw: string, option: string): Vector3 {
+  const parts = raw.split(',')
+  if (parts.length !== 3) throw new Error(`[error] ${option} must be x,y,z`)
+  const values = parts.map((part) => Number(part))
+  if (values.some((value) => !Number.isFinite(value)))
+    throw new Error(`[error] ${option} must contain numbers`)
+  return [values[0], values[1], values[2]]
+}
+
 function parseArgs(argv: readonly string[]) {
   let command: Command = 'export'
   let mapId: number | undefined
@@ -71,8 +96,13 @@ function parseArgs(argv: readonly string[]) {
   let definitionsGilPath: string | undefined
   let write = false
   let format: Format = 'text'
+  let entityId: number | undefined
+  let color: number | undefined
+  let position: Vector3 | undefined
+  let rotation: Vector3 | undefined
+  let scale: Vector3 | undefined
   let index = 0
-  if (argv[0] === 'import' || argv[0] === 'export') {
+  if (argv[0] === 'import' || argv[0] === 'export' || argv[0] === 'patch') {
     command = argv[0]
     index++
   }
@@ -88,15 +118,40 @@ function parseArgs(argv: readonly string[]) {
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
       format = raw
     } else if (arg === '--write') write = true
+    else if (arg === '--color') color = parseColor(value(argv, index++), '--color')
+    else if (arg === '--position') position = parseVector3(value(argv, index++), '--position')
+    else if (arg === '--rotation') rotation = parseVector3(value(argv, index++), '--rotation')
+    else if (arg === '--scale') scale = parseVector3(value(argv, index++), '--scale')
     else if (arg === '--help' || arg === '-h') usage(0)
-    else usage()
+    else if (command === 'patch' && entityId === undefined) {
+      entityId = nonNegativeId(arg, 'entity-id')
+    } else usage()
   }
   if (gilPath && mapId !== undefined)
     throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (command === 'import' && !entitiesPath)
     throw new Error('[error] import requires --entities <file>')
+  if (command === 'patch') {
+    if (entityId === undefined) throw new Error('[error] patch requires <entity-id>')
+    if (color === undefined && position === undefined && rotation === undefined && scale === undefined)
+      throw new Error('[error] patch requires at least one of --color/--position/--rotation/--scale')
+  }
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, mapId, gilPath, outputPath, entitiesPath, definitionsGilPath, write, format }
+  return {
+    command,
+    mapId,
+    gilPath,
+    outputPath,
+    entitiesPath,
+    definitionsGilPath,
+    write,
+    format,
+    entityId,
+    color,
+    position,
+    rotation,
+    scale
+  }
 }
 
 function resolveGilPath(
@@ -266,6 +321,48 @@ async function runImport(
   }
 }
 
+async function runPatch(
+  args: ReturnType<typeof parseArgs>,
+  projectConfig: GstsConfig | undefined
+): Promise<void> {
+  const source = resolveGilPath(projectConfig, args)
+  if (!fs.existsSync(source.path) || !fs.statSync(source.path).isFile())
+    throw new Error(`[error] gil not found: ${source.path}`)
+  let bytes: Uint8Array = new Uint8Array(fs.readFileSync(source.path))
+  const entityId = args.entityId!
+  if (args.color !== undefined) bytes = patchEntityColor(bytes, entityId, args.color)
+  if (args.position !== undefined || args.rotation !== undefined || args.scale !== undefined) {
+    const current = exportEntities(bytes).find((entity) => entity.id === entityId)
+    if (!current) throw new Error(`[error] entity not found: ${entityId}`)
+    bytes = patchEntityTransform(bytes, entityId, {
+      position: args.position ?? current.position,
+      rotation: args.rotation ?? current.rotation,
+      scale: args.scale ?? current.scale
+    })
+  }
+  const changed = exportEntities(bytes).find((entity) => entity.id === entityId)
+  if (args.outputPath) {
+    writeNew(args.outputPath, bytes)
+    console.log(`candidate=${path.resolve(args.outputPath)}`)
+  } else if (args.write) {
+    const backup = backupPath(source.path)
+    fs.copyFileSync(source.path, backup)
+    fs.writeFileSync(source.path, bytes)
+    console.log(`backup=${backup}`)
+    console.log(`writePerformed=true`)
+  } else {
+    console.log('preview only; use --write to apply after backup, or --output for a candidate')
+  }
+  if (changed) {
+    console.log(
+      `entity=${changed.id} name=${changed.name} ` +
+        `position=${changed.position.join(',')} rotation=${changed.rotation.join(',')} ` +
+        `scale=${changed.scale.join(',')}${changed.color !== undefined && changed.color.enabled ? ` color=#${(changed.color.rgb & 0xffffff).toString(16).padStart(6, '0')}` : ''}`
+    )
+  }
+  console.log('editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving')
+}
+
 export async function runAssetsEntities(
   argv: readonly string[] = process.argv.slice(2),
   rootContext: RootContext = {}
@@ -276,6 +373,7 @@ export async function runAssetsEntities(
     projectConfig = await loadGstsConfig(rootContext.projectConfigPath, { profile: 'project' })
   }
   if (args.command === 'import') return runImport(args, projectConfig)
+  if (args.command === 'patch') return runPatch(args, projectConfig)
   return runExport(args, projectConfig)
 }
 

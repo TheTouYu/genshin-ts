@@ -380,7 +380,9 @@ aux 侧归属（root 27 aux 记录 f4 槽）:
   结构 = `f1{f1=1, f11{f1{f3: 0xAARRGGBB varint 列表}}}`，**最新在前**（头部插入）。
   用户确认语义为“最近使用的颜色”（非收藏表）。证据：v17 用户添加 3 色后列表
   [0xFF419E84, 0xFF0F3D20, 0xFF21DF0F, 0xFFED5757]（新色在旧粉红前）；v21 用户
-  再添加并修改新色 0xFFD75FFC 后列表 = [0xFFD75FFC, …4 旧色]——新色插头。
+  再添加并修改新色后列表 = [0xFFB75FFC, …4 旧色]——新色插头。
+  注意：v21 新色 wire 解码为 0xFFB75FFC（varint `fc bf dd fd 0f`），早期记录的
+  0xFFD75FFC 是误记（2026-08-07 静态复核修正）；用户 UI 显示值未与 wire 对齐验证。
   边界：经调色板添加/选色才入列表；直接输入色值上色不入列表（v17 应用色
   0xFF58D284 不在列表中）；脚本/import 注入颜色从不触发（v9 红/v12-v14 多彩贴片
   均未更新）。列表上限未知（v21 为 5 色）。
@@ -708,8 +710,9 @@ occurrence，wire walk 全部直接子字段），并把 v20→v21 相邻差分�
 
 **v20→v21 差分复核（`before=acce9d8e…` / `after=7fa4557a…`）**：仅 root `5/45/46`
 变化。root 45 30B→35B（MRU 加一色，与已闭合结论一致）；root 5 等长（24994B→24994B），
-定点为 `5.1[14].6{f1=22}.32.f3` 颜色 varint `0xFF58D284→0xFFD75FFC`（球体实体上
-新色，与用户 v21 声明一致）；root 46 110B 等长保存副作用。**root45 MRU 实验隔离性
+定点为 `5.1[14].6{f1=22}.32.f3` 颜色 varint `0xFF58D284→0xFFB75FFC`（球体实体上
+新色，与用户 v21 声明一致；wire 解码为 0xFFB75FFC，早期记录 0xFFD75FFC 已修正），
+f5 同步 `0x58D284→0xB75FFC`（编辑器 RGB 规范化）；root 46 110B 等长保存副作用。**root45 MRU 实验隔离性
 验证通过**（无其他 root 受扰动）。
 
 | root | 静态结构（v21） | 状态 |
@@ -731,6 +734,29 @@ occurrence，wire walk 全部直接子字段），并把 v20→v21 相邻差分�
 已闭合/部分闭合 root 的静态复核无冲突：root 2 名字、root 4/8 元件 def/instance、
 root 5 实体 + 变量记录、root 9 文本框 1073741829-1835、root 10 NodeGraph/CompositeDef/
 信号索引、root 12 空（无计时器）、root 18 镜头、root 27 aux×55 均与既有结论一致。
+
+### 记录级局部 patch 管线（2026-08-07，生产实现）
+
+`src/cli/static_assembly/patch.ts` + `gsts assets:entities patch`：把已闭合规则整理成
+读-改-写最小 diff（替代 `applyEntities` 整 payload 重建）。核心 `patchGilRecord`
+定位 `root N.f1[recordId]` 的 LenField，`mutate` 后经 `applyReplacement` 只替换目标
+记录字节，其余所有 root 字段原样保留（root 46 等编辑器自维护字段不触碰），
+`buildFile` 重建头部。已封装操作：
+
+- `patchEntityColor`：材质槽 `#6{f1=22}.f32` 的 f1=1 启用 + f3=0xAARRGGBB，
+  **f5 同步写为 f3 的 RGB 24 位部分**（编辑器保存规范化规则，v20→v21 实测：
+  f3 0xFF58D284→0xFFB75FFC 时 f5 0x58D284→0xB75FFC 同步；这是与既有
+  `gil_entities.setMaterialColor` 的关键差异——后者不写 f5，编辑器再保存会漂移）；
+- `patchEntityTransform`：f6{f1=1}.f11，复用 `gil_entities.setTransform`。
+
+验证（`tests/gil_patch_test.ts`，真实快照）：v20 快照 patch 球体实体 1077936137
+颜色 0xFFB75FFC 后，目标记录与 v21 编辑器保存记录**逐字节一致**；非目标记录与
+全部其他 root 字段字节不变；patch 幂等；全文件对比 patch 预览 vs v21 仅差
+root 45（编辑器 MRU 自更新）+ root 46（保存副作用）。
+
+`INSUFFICIENT`：装饰物挂接（root 27 aux append + 实体 f50 双向引用）尚未封装为
+patch 操作（机制相同，数据构造未做）；`patchGilRecord` 目前只按 `f1` varint 匹配
+记录 ID（其他 ID 字段的 root 需扩展）。
 
 ## 当前未知范围
 

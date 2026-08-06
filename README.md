@@ -66,9 +66,12 @@ For detailed usage and constraints, see the template guide and docs:
 | Extract existing custom prefab IDs | `inject.extractResources` | `src/resources/prefabs.ts` | No |
 | Build static custom prefabs | `gsts assets:static-assemblies` | `.gil` asset structures | No; only with `--write` |
 | Change custom-variable declarations | `gsts assets:custom-variables` | `.gil` asset structures | No; only with `--write` |
+| Export/import/patch scene entities | `gsts assets:entities` | `.gil` asset structures | No; only with `--write` |
 | Spawn an existing prefab at runtime | `createPrefab` | Runtime game entities | Does not modify editor assets |
 
 Static prefab assembly uses an existing template closure in the target map plus confirmed official base resources, with local position, rotation, and scale per item. It is neither GIA NodeGraph injection nor runtime spawning. Color currently inherits unknown template fields; arbitrary color encoding is not exposed.
+
+`assets:entities patch` performs record-level local replacement (only the target record bytes change; all other roots stay byte-identical). Color patch matches the editor byte-for-byte including the f5 RGB normalization (verified against real v20→v21 editor snapshots).
 
 ## Compilation Pipeline and Outputs
 

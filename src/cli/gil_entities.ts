@@ -229,7 +229,7 @@ function withEntityName(nameMessage: Uint8Array, name: string): Uint8Array {
   return emit(fields)
 }
 
-function setTransform(record: Uint8Array, transform: EntityTransform): Uint8Array {
+export function setTransform(record: Uint8Array, transform: EntityTransform): Uint8Array {
   const fields = parse(record)
   if (!fields) throw new Error('[error] invalid transform record')
   const owner = fields.find(
