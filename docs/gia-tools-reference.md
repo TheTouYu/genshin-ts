@@ -139,6 +139,24 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
 
 `--composite` 只输出指定复合/系统节点的定义接口（inputs/outputs/inflows/outflows），有 impl 时附带实现图 id。
 
+### 信号使用全量扫描
+
+```bash
+npx tsx tools/scan-gil-signals.ts <地图.gil>                    # 列出全部信号及使用图数
+npx tsx tools/scan-gil-signals.ts <地图.gil> --signal 足球      # 指定信号的完整使用清单
+npx tsx tools/scan-gil-signals.ts <地图.gil> --signal 足球 --json
+```
+
+扫描全部**主图 + 复合 impl 图**所有节点的信号 pin（`ClientExecNode`/`ClientSignal`，`i1.kind=5/6` 的字符串值）。信号名就编码在这些 pin 的 value 里，发送/监听节点是系统复合（无 impl 图）：
+
+- `发送信号`：信号名 pin `compositePinIndex=3`；
+- `监听信号`：信号名 pin `compositePinIndex=7`；
+- `向服务器节点图发送信号`：信号名 pin `compositePinIndex=16`，事件/行为名填在输入参数（如"开始蓄力""发射足球"）。
+
+输出按信号名聚合：发送/监听/其他三类节点清单（含图名+图ID+节点号），以及按图去重的图数统计。
+
+真实 GIA 核验案例（2026-08-06，1835.gil）：游戏内"足球"信号显示 25 个图使用到，全量扫描结果 = 14 个主图 + 2 个复合 impl 图（物理运动控制器 n=36、评分 n=5，信号藏在复合实现内部）+ 9 个信号事件定义图。只扫主图会漏掉 impl 图与定义图（定义图用的复合叫"向服务器节点图发送信号"，不叫"发送信号"，按节点名过滤也会漏）。
+
 ### 控制流导航
 
 ```bash
