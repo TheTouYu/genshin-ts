@@ -380,7 +380,7 @@ function traceSource(doc, cache, model, source, depth, maxDepth, callContext, st
       parentCallContext: callContext
     }
     result.cross_graph = {
-      graph: impl.name ?? sourceNode.composite.name,
+      graph: impl.name || sourceNode.composite.name,
       graph_id: impl.id,
       inner_node: innerNode.index,
       inner_api: innerNode.api,
@@ -445,12 +445,17 @@ function collapseLiteralBranches(branches) {
 function collectTerminals(branch, result) {
   if (!branch) return
   if (branch.source_type === 'literal') {
-    result.push({
+    const terminal = {
       type: 'literal',
       input: branch.index,
       name: branch.name,
       value: branch.value
-    })
+    }
+    if (branch.folded_count) {
+      terminal.input_end = branch.index_end
+      terminal.folded_count = branch.folded_count
+    }
+    result.push(terminal)
   }
   if (branch.source_type === 'node') {
     for (const source of branch.sources ?? []) {
@@ -501,7 +506,8 @@ function renderBranch(branch, indent) {
     return lines
   }
   if (branch.source_type === 'literal') {
-    lines.push(`${indent}${label} = ${valueText(branch.value)}`)
+    const folded = branch.folded_count ? `（重复 ${branch.folded_count} 次）` : ''
+    lines.push(`${indent}${label} = ${valueText(branch.value)}${folded}`)
     return lines
   }
   if (branch.source_type === 'unconnected') {
@@ -552,8 +558,10 @@ function buildDataflowReport(report, doc, options) {
   const target = findTargetNode(graph, options.node)
   const inputs = findTargetInputs(target, options)
   const cache = new Map()
-  const branches = inputs.map((input) =>
-    traceInput(doc, cache, graph, target, input, 0, options.maxDepth, undefined, new Set())
+  const branches = collapseLiteralBranches(
+    inputs.map((input) =>
+      traceInput(doc, cache, graph, target, input, 0, options.maxDepth, undefined, new Set())
+    )
   )
   const terminals = uniqueTerminals(branches)
 
@@ -595,7 +603,13 @@ function printHuman(report, result) {
     console.log('\n终点来源:')
     for (const source of result.terminal_sources) {
       if (source.type === 'literal') {
-        console.log(`  字面量 InParam[${source.input}] ${source.name}: ${valueText(source.value)}`)
+        const range = source.folded_count
+          ? `${source.input}-${source.input_end}`
+          : `${source.input}`
+        const folded = source.folded_count ? `（重复 ${source.folded_count} 次）` : ''
+        console.log(
+          `  字面量 InParam[${range}] ${source.name}: ${valueText(source.value)}${folded}`
+        )
       } else {
         console.log(
           `  n=${source.node} ${source.api}.${source.out_name ?? `OutParam[${source.out_index ?? '?'}]`}` +

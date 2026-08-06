@@ -141,7 +141,9 @@ function buildNodeSummaries(graph, incoming, outgoing) {
       Boolean(compositeEntry)
     const eventLike =
       isEventNode(node) ||
-      (node.kind === COMPOSITE_KIND && !node.composite?.interface?.inflows?.length)
+      (node.kind === COMPOSITE_KIND &&
+        !node.composite?.interface?.inflows?.length &&
+        Boolean(node.composite?.interface?.outflows?.length))
     const eventEntry = eventLike && incomingEdges.length === 0 && !hasInflow
     const entryType = compositeEntry ? 'composite-inflow' : eventEntry ? 'event' : undefined
     return {
@@ -214,10 +216,13 @@ function buildControlReport(report) {
   const { incoming, outgoing } = groupEdges(graph)
   const nodeSummaries = buildNodeSummaries(graph, incoming, outgoing)
   const entries = nodeSummaries.filter((node) => node.entry_type)
-  const paths = entries.map((entry) => ({
+  const orphanEntries = nodeSummaries.filter(
+    (node) => !node.entry_type && node.incoming_count === 0 && node.outgoing_count > 0
+  )
+  const pathForEntry = (entry, entryType = entry.entry_type) => ({
     entry: {
       ...nodeRef(nodes.get(entry.index)),
-      entry_type: entry.entry_type,
+      entry_type: entryType,
       boundary: entry.entry_boundary
     },
     branches: (() => {
@@ -226,7 +231,11 @@ function buildControlReport(report) {
         buildPath(edge, graph, nodes, outgoing, new Set([entry.index]), seen)
       )
     })()
-  }))
+  })
+  const paths = [
+    ...entries.map((entry) => pathForEntry(entry)),
+    ...orphanEntries.map((entry) => pathForEntry(entry, 'orphan-execution'))
+  ]
 
   return {
     input: report.input,
@@ -290,7 +299,7 @@ function printHuman(report, result) {
 
   console.log('\n控制流:')
   let renderedPath = false
-  for (const path of result.paths) {
+  for (const path of result.paths.filter((item) => item.entry.entry_type !== 'orphan-execution')) {
     const entryPrefix =
       path.entry.entry_type === 'composite-inflow'
         ? `外部入口 ${path.entry.boundary?.name ?? 'InFlow'} -> `
@@ -307,6 +316,21 @@ function printHuman(report, result) {
   }
   if (!renderedPath && result.event_entries.length > 0) {
     console.log('  入口均无已连接的执行下游')
+  }
+
+  const orphanPaths = result.paths.filter((item) => item.entry.entry_type === 'orphan-execution')
+  if (orphanPaths.length > 0) {
+    console.log('\n未连接入口的执行链:')
+    for (const path of orphanPaths) {
+      console.log(`  n=${path.entry.index} ${path.entry.api}`)
+      if (path.branches.length === 0) {
+        console.log('    -> (无下游)')
+        continue
+      }
+      for (let i = 0; i < path.branches.length; i++) {
+        renderPath(path.branches[i], '    ', i === path.branches.length - 1)
+      }
+    }
   }
 
   const disconnected = result.nodes.filter(
