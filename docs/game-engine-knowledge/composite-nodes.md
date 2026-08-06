@@ -95,10 +95,10 @@
 - 外层实例与内部画布之间的身份关系。
 - 复合节点布局、接口顺序和连接的真实关卡编码。
 
-## wire 编码（2026-08-06 v22-v38 真实相邻快照 CONFIRMED）
+## wire 编码（2026-08-06 v22-v48 真实相邻快照 CONFIRMED）
 
 > 状态：当前推荐
-> 来源：真实 GIL 相邻快照（composite-case1..16）+ 第三方 gia.proto 对照 + 既有复合普查
+> 来源：真实 GIL 相邻快照（composite-case1..26）+ 第三方 gia.proto 对照 + 既有复合普查
 > 最近校验：2026-08-06
 > 适用范围：用户自建复合节点的定义、映射与调用三层 wire
 
@@ -131,12 +131,12 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 
 | 字段 | 含义 |
 |---|---|
-| name(1) | 参数名（UTF-8，如“目标实体”）；**ControlFlow 无此字段**（控制流参数不落名字） |
+| name(1) | 参数名（UTF-8，如“目标实体”）；**ControlFlow 可选**——节点 FlowIn/FlowOut 映射无 name（v36），多分支 DefaultBranch 映射带 name="默认"（case23，= 内部引脚显示名） |
 | visible(2) | 恒 1 |
 | index(3) | NodePin.Index：数据={kind=3 InParam / 4 OutParam, ShellIndex 默认省略/非默认显式}；控制流={kind=2 OutFlow / 1 InFlow, 同规则} |
 | type(4) | ParameterFlow 类型：Ety={type1=1, type2=1, class 省略}；Str={class=5 StringBase, type1=6, type2=6}；Flt={class=4 FloatBase, type1=5, type2=5}；type2 恒=type1；class 仅非 Server 基础类型落盘；**未配置变体的 Variant 源输出 = {type1=1, type2=1}（v35 已定性：默认变体 Ety）** |
 | description(4) | ControlFlow 描述（常空，**显式落 len=0**） |
-| pinIndex(8) | **全局唯一身份号**（同复合内按**创建顺序**递增，样本 47→48→49→51→52→53/54；交换参数顺序不改变；实例 pin 用 field7 引用它） |
+| pinIndex(8) | **全局唯一身份号**（同复合内按**创建顺序**递增，样本 47→48→49→51→52→53/54/56/57/58/59；交换/排序参数顺序不改变；实例 pin 用 field7 引用它）。**分配器全局单调递增、删除不释放**（v42 实测：删 51/52 后新参数仍拿 55=max+1） |
 
 ### CompositePin 映射（内部图 compositePins）
 
@@ -148,16 +148,24 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 - `outerPin` = 外壳 pin（顺序号：参数列表第 N 个 → ShellIndex=N）
 - `innerPin` = 内部节点被绑定的真实 pin（身份：永远指向内部实际 Shell，如 target_entity=0、var_name=1）
 - 映射按**参数身份**（名字）绑定，与参数列表顺序无关
-- **共享输入（多对一）**：一个外壳输入可被多个内部 pin 共享——多个 CompositePin 指向同一
-  outer ShellIndex（v37 合并输入实测：被删参数的映射不删除，仅 outerPin.index 改写为目标输入
-  ShellIndex，数组按 outer Shell 升序重排）
-- compositePins 数组顺序不完全等于参数列表顺序（v35 观察到 out0/out1 交换位置；v36 控制流映射插头部，规则未闭合）
+- **共享参数（多对一）**：一个外壳参数可被多个内部 pin 共享——多个 CompositePin 指向同一
+  outer ShellIndex（数据输入 v37、控制流输出 case25、控制流输入 case26 均实测；被合并参数的
+  映射不删除，仅 outerPin.index 改写为目标参数 ShellIndex，数组按 outer Shell 升序重排）
+- **compositePins 数组顺序 = f2 参数出现顺序**（inflows → outflows → inputs → outputs，组内按
+  参数顺序；共享参数的多个映射按创建顺序排）——v30/v37/case21/case22/case23/case24 六样本
+  支持；v35/v36 观察到的乱序是“加参数未触发重排”的中间态，交换/合并/共享改写操作会触发重排
 
-### 内部控制流参数（v36 实测）
+### 内部控制流参数（v36/case23/case24 实测）
 
-- inflows(100)/outflows(101) 定义：{visible=1, index={kind=1 InFlow / 2 OutFlow}, description=显式空, pinIndex}，**无 name**
+- inflows(100)/outflows(101) 定义：{visible=1, index={kind=1 InFlow / 2 OutFlow}, description=显式空, pinIndex}；**name 可选**（323 的 FlowIn/FlowOut 映射无；多分支 DefaultBranch 映射带 name="默认"）
 - compositePins 追加同构映射：{outerPin={kind=1/2}, innerNodeId=内部节点, innerPin={kind=1/2} 双写}
 - 控制流参数定义后**实例不落控制流 pin**（惰性，与数据输入同规则；主图连线时才实例化 kind=1/2 pin + field7）
+- **排序**：与数据参数同规则——交换/前移 → ShellIndex 重写、pinIndex 身份保持、compositePin
+  outer 跟随、innerPin 保持；实例已落盘的控制流 pin 的 index 也跟随重写（case23：outflow 53
+  排序到第二后实例 OutFlow pin 的 Shell0→Shell1 显式）
+- **追加**：新参数插参数组尾部、compositePin 插对应组 ShellIndex 升序位置（case24）
+- **pinIndex 分配顺序：outflow 先于 inflow**（53/54、57/58 两样本，固定序或 UI 操作序）
+- **共享**：控制流输入/输出均支持多对一共享（case25/26，与数据输入共享同构）
 
 ### 内部节点连线（v35 首次实测，与宿主图普通连线同构）
 
@@ -168,6 +176,11 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 - **未配置变体的默认变体 = genericId**（= Variants 第一个 KernelID）：337 默认 Ety、323 默认 Int；
   加输出参数时内部 Variant 源自动实例化为默认变体（v34：337 落 concreteId=337 + value Out pin，
   输出 type 随之 = Ety {1,1}）
+- **内部控制流连线与宿主图完全同构**（case19）：源侧落 OutFlow pin（i1/i2={kind=2, ShellIndex
+  省略/显式}）+ connects=[{id=内部目标 nodeIndex, connect={kind=1 InFlow}, connect2 双写}]，
+  目标内部节点零感知；多分支的默认分支输出 = **DefaultBranch（Shell0）**，Case1..10 为
+  Shell1..10；**控制流连线不触发 Variant 自动实例化**（未配置变体的多分支源 cid 缺失——
+  实例化只为数据流类型绑定，v17 规则不扩展到控制流）；内部连线不产生 compositePins
 
 ### 调用侧（宿主图实例 pin）
 
@@ -185,13 +198,29 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 - **输出**：实例**永不落输出 pin**（v32 实测：输出被主图连线消费后实例零变化）——调用侧直接以
   `connects=[{id=复合实例 nodeIndex, connect={kind=4 OutParam, ShellIndex 默认省略/显式}, connect2 双写}]`
   引用它，与普通 Fixed 源完全同构；Variant 目标被此连线触发自动实例化（concreteId=目标类型
-  KernelID + 全部 R<T> pin 实例化，value=ConcreteBase 与 connects 并存，见 data-flow 规则）
+  KernelID + 全部 R<T> pin 实例化，value=ConcreteBase 与 connects 并存，见 data-flow 规则）；
+  输出参数**排序交换只影响 f2/compositePins**（实例输出侧不落盘故零变化，case22）
 - **控制流**（v38 实测）：输入（InFlow）作连线目标**不落 pin**（源侧 connects→实例 id，普通控制流
   目标规则）；输出（OutFlow）作源**落 pin**：i1/i2={kind=2 OutFlow, ShellIndex 默认省略/显式} +
   connects→目标 + **field7=outflows pinIndex**（样本：kind=2 无 index + connects→24 + field7=53，
   与普通控制流源同构仅多 field7；与 v28 _GSTS 样本一致）
 
-### 编辑器行为（v22-v38 逐轮单变化实测）
+### 内部 Variant 选型与改类型（case17/18/19 实测）
+
+- **内部 Variant 手动选型**：与宿主图同规则（v20/v21）——concreteId=选中变体 KernelID、R<T>
+  pin 全量实例化/重写（type、value.indexOfConcrete=TypeSelectorIndex 跟随），固定类型 pin 不实例化
+  （case17：337 选 Flt → concreteId 337→341、value Out pin type {1,1}→{class=4,5,5}、
+  indexOfConcrete 0→4 显式）
+- **改类型触发自身联动重写**：无论源方向还是目标方向（case18 宿主 node 19 改 Flt→Int：
+  cid 2659→20、自身两个 R<T> pin 全部重写）——Variant 节点自身 R<T> pin 联动与连线方向无关
+- **类型不匹配的复合输出参数被整个删除，非类型联动**（case17）：f2 outputs 项 + compositePins
+  映射项同步删（编辑器不追踪“输出参数 ← 内部节点 pin”的类型联动，类型一变即失效删除）
+- **断线行为由目标节点类型决定**（case18 闭合，非“内部图 vs 宿主图”差异）：
+  - **Variant 目标**（自动实例化 pin 带 value 配置）：断线 → **pin 保留、connects 移除**
+    （case17 内部 323、case18 宿主 node 19 两样本；type/value 随目标自身变体重写）
+  - **Fixed 目标**（连线新建 pin 无 value）：断线 → **整 pin 移除**（v21→v22 node 24 样本）
+
+### 编辑器行为（v22-v48 逐轮单变化实测）
 
 | 操作 | wire 变化 |
 |---|---|
@@ -209,11 +238,17 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 | 调用填值 | 实例新增 InParam pin（value 形态），定义层不动 |
 | 调用连线 | 实例新增 InParam pin（connects 形态），定义层/内部图零感知（运行时绑定） |
 | 调用消费输出 | 目标侧挂 connects（id=复合实例，kind=4 OutParam）触发目标 Variant 自动实例化；**实例零落盘**（输出 pin 永不实例化），定义层/内部图零感知 |
-| 交换参数顺序 | 三处联动：inputs 重排且 **ShellIndex 按新顺序重写（0,1…）**、pinIndex 保持、CompositePin outer 跟随而 **innerPin 保持内部真实 Shell**、实例 pins 跟随 |
+| 交换参数顺序 | 三处联动：inputs 重排且 **ShellIndex 按新顺序重写（0,1…）**、pinIndex 保持、CompositePin outer 跟随而 **innerPin 保持内部真实 Shell**、实例 pins 跟随；**输出参数交换同规则**（case22：仅 f2/compositePins 变化，实例输出侧零变化）；**控制流参数排序同规则**（case23：实例已落盘 OutFlow pin 的 index 跟随重写） |
+| 内部 Variant 选型 | concreteId=选中 KernelID + R<T> pin 全量重写（type/TypeSelectorIndex 跟随）；内部节点零感知，映射只经 compositePin（case17） |
+| 内部 Variant 改类型 | 自身联动重写 + **类型不匹配的复合输出参数整个删除**（f2 项 + compositePins 映射项，非类型联动）+ 断线（目标 Variant 保留 pin 清 connects / Fixed 删 pin）+ 实例重编号（case17） |
+| 追加控制流参数 | f2 inflows/outflows 追加（尾部、ShellIndex 顺延）+ compositePin 插对应组 ShellIndex 升序位置 + 实例重编号；pinIndex 分配 outflow 先于 inflow（case24） |
+| 合并共享参数 | f2 删被合并参数（pinIndex 不释放）+ 被删方 compositePin **不删除**、outerPin.index 改写为保留参数 ShellIndex + 按 outer Shell 升序重排 + 实例重编号；数据输入（v37）/控制流输出（case25）/控制流输入（case26）三向同构 |
 
-**三个“号”各司其职**：ShellIndex=顺序号（交换时重写）；pinIndex=身份号（保持，实例 field7 引用）；
-innerPin=内部真实 pin（保持）。实例 nodeIndex 在“修改 CompositeDef 结构”的保存后会重编号
-（样本 3→5→6→7→8→3：v31 复用 v24 后空闲的 node 3，首次非递增），规律与编辑器保存路径相关，未完全闭合。
+**三个“号”各司其职**：ShellIndex=顺序号（交换/排序时重写）；pinIndex=身份号（保持，实例 field7
+引用）；innerPin=内部真实 pin（保持）。实例 nodeIndex 在“修改 CompositeDef 结构”的保存后会
+重编号（样本 3→5→6→7→8→3→4→5→3→4→7→8→23→51：复用宿主图空闲 nodeIndex——v22 删除的
+23、v24 后空闲的 3 等；主图连线不触发重建，其余定义/内部图变化都触发），空闲号池精确分配规律
+与编辑器保存路径相关，未完全闭合。
 
 ### 复现命令
 
@@ -228,17 +263,10 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-
 
 ## 待逐步还原
 
-- 复合节点外部接口的定义结构。
-- 多控制流输入和输出的内部映射方式。
-- 数据参数如何跨越外部接口与内部画布。
 - 混合型复合节点的控制流和数据流边界。
 - 嵌套复合节点如何引用内部定义。
-- 外层实例与内部画布之间的身份关系。
 - 复合节点布局、接口顺序和连接的真实关卡编码。
-- 多输出复合的 Shell1 消费（connects 是否显式 index=1）与复合控制流输出（outflows 定义 + 实例 kind=2 pin 消费形态）。
-- 给内部 337 选 Flt 变体的确认性实验（type {1,1}→{class=4,5,5}、concreteId 337→341）。
-- 内部控制流连线（323 的 FlowIn 在内部接法：内部连线 + 复合 inflows 的运行时路径）。
-- compositePins 数组顺序规则（v35/v36/v37 观察未闭合）。
-- 内部节点在内部图中的连线与内部消费输入的方式（运行时绑定，wire 层待观察）。
-- field203=6、pinIndex 全局分配器位置、f2/f4 列表数量差（59 vs 29）。
-- 实例 nodeIndex 重编号的确切触发条件。
+- 内部节点在内部图中的连线与内部消费输入的方式（运行时绑定，wire 层已闭合，执行语义属游戏验证）。
+- field203=6 语义、pinIndex 全局分配器位置、f2/f4 列表数量差（59 vs 29，可只读普查）。
+- 实例 nodeIndex 重编号的空闲号池精确分配规律。
+- 复合节点执行语义（共享输入/输出运行时行为、分支执行顺序，游戏验证范畴）。
