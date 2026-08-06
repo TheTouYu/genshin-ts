@@ -177,6 +177,14 @@ root 6（f1=4 记录）的 f2.f4（「调试」文件夹）末尾追加 f5={1:80
 - root 46 等长变化 = 编辑器保存副作用，不模拟；root 10 field4 的 field106 同理
 - **GIL header 长度字段必须同步**（见 gil-structure-semantics.md），否则游戏报文件损坏
 
+## 精准修改工具（2026-08-08）
+
+`gsts assets:node-graphs read|patch` 提供记录级精准读-改-写：位置、参数固定值、
+数据/控制流连线、复合改名与参数改名（已闭合规则）；节点增删、复合接口结构变更、
+Variant 自动实例化等未闭合规则 fail closed。操作与证据见
+[`docs/architecture/gil-node-graph-edit.md`](../architecture/gil-node-graph-edit.md)，
+回归为 `tests/gil_nodegraph_edit_test.ts`（真实快照同构重放，逐字节断言）。
+
 ## 批量注入（一图多节点，2026-08-05 已闭环 434 节点）
 
 工具：`scripts/create-graphs.py`（skill 目录），每批一个图、网格排列（默认 5 列，
