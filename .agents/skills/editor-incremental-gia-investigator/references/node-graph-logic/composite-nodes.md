@@ -7,10 +7,10 @@
 
 复合节点续作只读 connection-v1 的 notes/manifest.md 顶部「恢复块」：
 `/home/h/genshin-ts-evidence/node-graph-logic/node-graph-systematic/2026-08-06-connection-v1/notes/manifest.md`
-（历史 case 段 v22-v30 是复合节点证据，仅核对时读）。恢复块含 map path/mapId/GID/
+（历史 case 段 v22-v48 是复合节点证据，仅核对时读）。恢复块含 map path/mapId/GID/
 LOCKED_BEFORE/LOCKED_HASH/最近唯一操作/当前图状态/下一选题；每轮结束更新它。
 
-当前 Authority：`docs/game-engine-knowledge/composite-nodes.md`（wire 章节 2026-08-06 v22-v30
+当前 Authority：`docs/game-engine-knowledge/composite-nodes.md`（wire 章节 2026-08-06 v22-v48
 CONFIRMED）；Variant 联动另见 `node-graphs.md`。
 
 ## 三处联动定位
@@ -32,20 +32,31 @@ field4 29 项，找"末尾追加"或"等长重排"）。宿主实例 nodeIndex �
 （3→5→6→7→8 样本），**保存后从 after 确认 nodeIndex，不要预猜**；等长变化（如交换参数
 顺序）文件 hash 变但大小不变，必须逐字节对比。
 
-## 已闭合骨架（v22-v30）
+## 已闭合骨架（v22-v48）
 
 - 创建：宿主图删原节点 + 加 SysGraph 实例（零 pins）；CompositeDef 追加（零参数时
   100-103 全省略）；内部图追加（原节点原样搬入，无坐标）。
 - 改复合名 / 改参数名：只写 CompositeDef.name(200) / inputs[].name(1)，其余不动、
   **不触发实例重编号**。
-- 加输入 pin：CompositeDef.inputs 追加 ParameterFlow + 内部图 compositePins 追加映射；
-  实例重编号。参数顺序 = 实例 pin 顺序 = CompositePin outer 顺序。
-- 调用填值：实例新增 InParam pin（i1/i2={kind=3, ShellIndex} + type + value + field7），
-  定义层不动。调用连线：同普通连接（connects→源 OutParam，源默认省略 index），仅多 field7；
-  内部图零感知（运行时绑定）。
-- 交换参数顺序：三处联动重排——ShellIndex 按新顺序重写、pinIndex 保持（身份号）、
-  CompositePin innerPin 保持内部真实 Shell（映射按参数身份绑定）、实例 pins 跟随。
-- 参数流 type 编码：Ety={type1=1, type2=1}；Str={class=5 StringBase, type1=6, type2=6}。
+- 加输入/输出/控制流 pin：CompositeDef 追加 ParameterFlow/ControlFlow + 内部图
+  compositePins 追加映射；实例重编号。参数顺序 = 实例 pin 顺序 = CompositePin outer 顺序。
+- 调用填值/连线：实例新增 InParam pin（i1/i2={kind=3, ShellIndex} + type + value/connects +
+  field7），定义层不动。输出：实例永不落输出 pin（被消费也零落盘，v32）。
+- 控制流调用（v38/case23）：InFlow 作目标不落 pin（源侧 connects→实例 id）；OutFlow 作源
+  落 kind=2 pin + connects + field7；实例已落盘控制流 pin 的 index 跟随 outflow 排序重写。
+- 交换参数顺序（v30 输入/case22 输出/case23 控制流三向）：ShellIndex 按新顺序重写、pinIndex
+  保持（身份号）、CompositePin outer 跟随而 innerPin 保持、实例 pins 跟随。
+- 内部 Variant 选型/改类型（case17/18）：concreteId=选中 KernelID + R<T> pin 全量联动重写
+  （与连线方向无关）；类型不匹配的复合输出参数**整个删除**（非类型联动）；断线行为由目标
+  节点类型决定——Variant 目标 pin 保留清 connects、Fixed 目标整 pin 移除。
+- 内部控制流连线（case19）：与宿主图完全同构（源落 OutFlow pin + connects→内部 nodeIndex）；
+  **控制流连线不触发 Variant 实例化**；多分支 DefaultBranch=Shell0、Case1..10=Shell1..10。
+- 共享参数（v37 输入/case25 输出/case26 输入三向）：合并=保留目标参数、删被合并参数
+  （pinIndex 不释放）、被删方映射 outer 改写为保留 ShellIndex、映射不删除、升序重排。
+- pinIndex 全局单调递增分配器，删除不释放（v42）；分配顺序 outflow 先于 inflow（两样本）。
+- compositePins 顺序 = f2 参数出现顺序（inflows→outflows→inputs→outputs，组内按参数顺序；
+  共享多映射按创建顺序）。
+- 参数流 type 编码：Ety={type1=1, type2=1}；Str={class=5,6,6}；Flt={class=4,5,5}。
 - 内部图 compositePins：outerPin=外壳（顺序号）、innerNodeId=内部节点、innerPin/innerPin2
   双写=内部真实 pin（身份）。
 
@@ -63,6 +74,8 @@ python3 .../scripts/compare-gil-root-wire.py "$BEFORE" "$AFTER" --output diff.js
 npx tsx .../scripts/compare-level10-containers.ts "$BEFORE" "$AFTER"
 # 宿主实例 / 内部节点 pin 定点 raw（含 field7）
 npx tsx .../scripts/extract-node-raw.ts "$AFTER" "$GID" "$NODE" --pins
+# 复合定义/内部图定点解码（v22-v48 资产化）：无参=列表摘要，N M=def/graph 详细
+npx tsx .../scripts/inspect-composite-def.ts "$GIL" [defIndex] [graphIndex]
 # 数据流/控制流 case 验证器（复合路径未覆盖，勿用于复合）
 npx tsx .../scripts/verify-data-flow-experiment.ts / verify-control-flow-experiment.ts
 ```
@@ -81,10 +94,7 @@ root 10 容器解析要点（v31 实测避坑）：
 
 ## 未闭合（下一轮候选）
 
-- 给内部 337 选 Flt 变体的确认性实验（type {1,1}→{class=4,5,5}、concreteId 337→341）与
-  内部控制流连线（323 的 FlowIn 内部接法）——最优先；
-- compositePins 数组顺序规则（v35/v36/v37 观察未闭合）；
-- 内部节点在内部图中的连线与消费输入方式；
-- 控制流参数（inflows/outflows 定义 + 实例 kind=2/1 pin）在自建复合上的实测；
-- field203=6、pinIndex 全局分配器位置、f2/f4 列表数量差（59 vs 29）；
-- 实例 nodeIndex 重编号的确切触发条件（v29 主图连线不重建，其余都重建）。
+- field203=6 语义、pinIndex 全局分配器位置、f2/f4 列表数量差（59 vs 29，可只读普查）；
+- 实例 nodeIndex 重编号的空闲号池精确分配规律（主图连线不重建已闭合，其余都重建）；
+- 复合节点执行语义（共享输入/输出运行时行为、分支执行顺序——游戏验证范畴）；
+- 嵌套复合节点、内部图消费输入的运行时绑定。
