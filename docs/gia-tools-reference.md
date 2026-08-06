@@ -137,7 +137,16 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
 - 参数来源（每个节点每个输入：上游节点输出 / 字面量值（枚举自动转名）/ 未连线）；
 - 系统/复合节点：无 impl 图的定义节点标为“系统节点”（如发送信号/监听信号，无内部图，参数行为由信号名决定）；有 impl 图的标为“复合节点”并给出实现图 id。
 
-`--composite` 只输出指定复合/系统节点的定义接口（inputs/outputs/inflows/outflows），有 impl 时附带实现图 id。
+`--composite` 输出指定复合/系统节点的定义接口（inputs/outputs/inflows/outflows）；有 impl 图时同时输出复合内部解读（事件入口、控制流、参数来源，与 `--graph` 同格式）。
+
+`--depth <n>`（默认 0=不展开）把嵌套复合递归展开：图内每个复合节点输出一行概要（名字、impl 图 id、调用点、接口），并缩进展开其内部的事件入口与控制流树，递归 n 层；循环引用与系统节点（无 impl）会标注。嵌套层不输出参数来源（防输出爆炸；复合节点的参数来源在顶层已覆盖）。示例：
+
+```bash
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph run.main --depth 2
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite 物理运动控制器 --depth 1
+```
+
+真实 GIA 核验（2026-08-06，1835.gil）：`run.main` 顶层 18 个复合节点，`--depth 1` 展开 14 个有 impl 的复合（含嵌套复合“物理运动控制器”内部的 StartTickManager 等 9 个复合）；自递归复合（如“向量内积乘法”内部再调自己）按层数截断，不会死循环。
 
 ### 信号使用全量扫描
 
