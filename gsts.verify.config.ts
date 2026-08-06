@@ -15,6 +15,8 @@ const config: GstsConfig = {
   compileRoot: '.',
   entries: ['./verify'],
   outDir: './dist-verify'
+  // 注入段见 SKILL.md 关键点 1（非信号 case 不配 inject；信号 case 编译时临时配
+  // inject 指向验证地图 + --noinject，编译完再单文件注入）
 }
 
 export default config

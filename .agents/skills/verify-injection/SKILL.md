@@ -14,7 +14,14 @@ description: 游戏核验的最小自动注入通道。当用户说“去核验�
 ## 约定
 
 - 专用验证地图：名字含 `GSTS核验`（当前实例：`1073741852`「InFlow核验」，已核验，见
-  `references/verified-cases.md`）。优先复用；只有需要隔离或地图损坏时才 `maps:create` 新建。
+  `references/verified-cases.md`；`1073741853`「gsts-verify」为信号核验实例，已注册
+  `verify_signal`、已有 `verify-graph-1` 图）。优先复用；只有需要隔离或地图损坏时才
+  `maps:create` 新建。
+- 从零新建（隔离场景）：`maps:create` 无 `--graphs` 时是 62B 最小骨架（无 root 6/10），
+  `assets:node-graphs create` 会自动补最小挂载容器（2026-08-05 修复）；新地图无信号
+  注册表，`assets:signals register` 会自动初始化 field 10.5（无需手工脚本），但需要
+  donor 地图：`--template-gil <donor.gil> --template-signal <名> --name <新名>` +
+  `--param k:v`（信号 case 必须先注册目标信号）。
 - 分支节点图名：`verify-<点>`（如 `verify-inflow-index`）。注入后图名被替换为 `_GSTS_<gia基名>`。
 - case 文件：`verify/<分支>/<分支>.ts`，模板见 `references/template-case.ts`。
 - 注入配置：`gsts.verify.config.ts`（entries=`./verify`，outDir=`./dist-verify`）。
@@ -86,9 +93,12 @@ EOF
 
 ## 关键点（实测踩坑，勿重踩）
 
-1. **编译阶段 config 不要配 inject**：只要 inject 存在（即使 `--noinject`），编译就会解析目标 gil，
-   `mapId/nodeGraphId` 未回填时直接报 `[error] target gil not found: .../0.gil`。
-   先 `--noinject` 编译验证，注入前再往 config 加 inject 段。
+1. **编译阶段 inject 的取舍**：非信号 case 不要配 inject——只要 inject 存在（即使
+   `--noinject`），编译就会解析目标 gil，`mapId/nodeGraphId` 未回填（=0）时直接报
+   `[error] target gil not found: .../0.gil`。**信号 case 例外**：GIA 生成从
+   `cfg.inject` 指向的 GIL 读信号注册表（`finalizeSignalEncoding`），不配 inject 报
+   `[error] signal registry is required when encoding signal nodes`；此时临时配 inject
+   （mapId 回填验证地图 id）+ `--noinject` 编译（防批量注入），编译完再单文件注入。
 2. **单文件注入**（`gsts <config> <file.gia>`）以 `config.inject.nodeGraphId` 为目标，且会把
    GIA 内 graph id 自动改写为目标 id（`loadGiaGraph` setGraphId）——**DSL 里 `g.server({id})`
    不必与 placeholder 图 id 一致**。这是最稳路径。
@@ -102,6 +112,8 @@ EOF
 8. 目标节点图不存在时注入报 `[error] target NodeGraph not found: <id>` → 回到第 2 步建 placeholder。
 9. 破坏性操作边界：注入/新建地图前把 mapId、nodeGraphId、playerId、目标 .gil、源 .gia、命令
    一次性展示给用户确认（除非用户已给出本轮明确授权）。
+10. **多分支共存**：`./verify` 下多个分支的 DSL graph id 必须互不相同（merge 按图 id 合并，
+    同 id 只出 1 个 GIA）；单文件注入会改写为目标图 id，DSL id 可随意取（用 1073741826+ 递增即可）。
 
 ## 核验闭环
 

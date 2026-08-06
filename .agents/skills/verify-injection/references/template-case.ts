@@ -1,6 +1,8 @@
 // 最小核验 case 模板（已随 verify-inflow-index 实例核验通过）
 // 用法：复制到 verify/<分支>/<分支>.ts，改事件、节点与断言点。
 // 结构：graph id 用约定 1073741825（单文件注入会改写为目标图 id，见 SKILL.md 关键点 2）；
+// 注意：./verify 下多分支共存时 DSL id 必须互不相同（merge 按图 id 合并，见关键点 10），
+// 从第二个分支起用 1073741826+。
 // 每个核验点 = 一个事件 + 一段逻辑；同类型多个核验点可放同一文件（同一分支图）。
 import { g } from 'genshin-ts/runtime/core'
 
