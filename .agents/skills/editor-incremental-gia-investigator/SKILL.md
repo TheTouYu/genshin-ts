@@ -17,7 +17,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 - 未知规则闭合前，不改生产代码，不调用待修 production lowering/finalize 链生成“规则证明”。
 - 不未经规模评估打印完整地图、整图 JSON 或 100 槽列表节点；默认只输出摘要和 PASS/FAIL。
 - 手工重放只写临时 GIA/GIL；真实注入前必须单独展示目标、当前 hash、命令、修改范围和回滚路径，并获得明确确认。
-- 真实注入前必须确认游戏/编辑器已关闭（2026-08-05 实测：编辑器内存不感知磁盘变化，打开期间外部注入后用户点保存会用旧内存状态覆盖注入结果，图批次整批丢失）。
+- 真实注入**不需要游戏/编辑器关闭**（2026-08-06 规则修订：注入后编辑器内存不感知磁盘变化，用户若用旧内存状态保存会覆盖注入结果——安全但不生效，注入本身无风险）。注入后应明确通知用户重新加载/测试，不要继续在旧编辑器内存上保存。
 - 用户可以对一个已锁定实验授予持续写回授权。授权后，同一 `map path/mapId/nodeGraphId`、同一实验目录和同一候选验证流程内，不再逐轮请求确认：候选通过严格回读后，先核对真实地图当前 hash 与锁定前快照一致，再创建唯一备份并原子写回，同时把同一候选 GIA 以不覆盖的清晰文件名复制到 `Beyond_Local_Export/` 根目录，随后直接通知用户测试。路径、ID、实验范围或预期 hash 任一变化时，持续授权失效并停止确认；授权不扩展到其他地图、图或实验。
 - 自动比较、临时注入、真实写回、GIA 导出、编辑器导入和游戏行为是不同证据层，分别报告。
 
@@ -50,6 +50,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | -------------------------------------------- | ---------------------------------------- |
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
 | 节点图普通数据/控制流连接与 Variant 选型 | `references/node-graph-logic/connections.md` |
+| 用户自建复合节点：创建/参数/改名/排序/调用侧 | `references/node-graph-logic/composite-nodes.md` |
 | 节点图逻辑：信号注册、发送、监听或信号参数   | `references/node-graph-logic/signals.md` |
 | 新建节点图 / 用生产 irToGia 生成 GIA 资产、GIA 字节对比与可复现性 | `references/node-graph-logic/node-graph-creation.md` |
 | 节点实例 pin 快速回验：第三方定义对照、参数 pin 解码（第三方优先 95%） | `references/node-graph-logic/node-pin-validation.md` |
@@ -90,11 +91,12 @@ PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID
 
 ### 修改信号的生产复用规则
 
-信号修改应复用创建信号的生产编码路径，不再编写独立的递归文本替换脚本。当前入口为 `gsts assets:signals update`，底层复用参数模板池、注册表索引构建、send/monitor/server 三份定义构建和规范回读；目标信号的三个 identity ID 自动读取并保持不变。
+信号修改复用生产编码路径（`gsts assets:signals update`），不再写独立递归替换脚本；
+写回流程与竞态门见 `references/node-graph-logic/signals.md` 与主 SKILL 写回安全节。
 
-写回流程固定为：读取源 hash → 生成临时候选 → 规范 `readRegisteredSignalsFromGil()` 回读 ID、名称和参数类型顺序 → 确认源 hash 未变 → 创建备份 → 写回 → 再次读取真实地图。候选回读或 hash 竞态失败时不得写回。原位修改成功不等于编辑器导入或游戏行为验证成功。
-
-多模型调查时，主模型维护共享 manifest 和 Authority，实验 Agent 可在自己的独立实验目录内捕获/比较并写 `diff.json`、局部 manifest 和 `result.json`，只有主模型执行真实地图写回。连续批次先固定每个相邻快照对，再并行调查并串行运行 Validator；用户编辑器每轮只做一个可归因变化，未知伴随变化标记 `INSUFFICIENT`，不推广规则。可直接复用 `references/parallel-investigation-prompts.md` 的提示词模板；完整流程见 `docs/operations/gil-parallel-investigation.md`。
+多模型调查时主模型维护共享 manifest/Authority，实验 Agent 在独立目录捕获比较；
+提示词模板见 `references/parallel-investigation-prompts.md`，完整流程见
+`docs/operations/gil-parallel-investigation.md`。
 
 ### C. 阶段切换
 
@@ -136,18 +138,13 @@ npx tsx tools/list-gil-node-graphs.ts <map.gil>
 
 ### 已锁定实验的快速续轮
 
-当上一轮已经锁定 `map path/mapId`、`nodeGraphId`、前快照和下一轮唯一变化，且用户只回复“好了/已保存”时，不重复执行 PKC 查询、`gsts maps`、全图列表、全仓状态或无关文档加载。直接沿用锁定上下文：
+上一轮已锁定 `map path/mapId`、`nodeGraphId`、前快照和下一轮唯一变化时，不重复 PKC 查询、
+`gsts maps`、全图列表或无关文档加载。直接：当前地图 hash 比对 → 复制新快照复核 →
+固定 nodeGraphId 相邻差分 → 更新 manifest 恢复块并约定下一轮唯一变化。
 
-```text
-当前地图 SHA-256
-→ 复制到新的不可变快照并复核 SHA-256
-→ 对固定 nodeGraphId 做相邻定点差分
-→ 更新规则覆盖矩阵并约定下一轮唯一变化
-```
+只有以下情况才退出快速续轮重新定位：
 
-只有以下情况才退出快速续轮并重新定位：
-
-- 当前地图 hash 未变化：先向用户确认是否真的保存成功（编辑器可能未落盘，exp11 实测用户以为已保存但 hash 未变），用户重试保存后再继续；
+- 当前地图 hash 未变化：先向用户确认是否真的保存成功（exp11 实测用户以为已保存但未落盘）；
 - 锁定路径不存在，或用户明确切换地图/图；
 - 目标图出现约定外 metadata、节点或多项字段变化；
 - 观察与已有规则冲突；
@@ -265,23 +262,9 @@ Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计�
 
 ## 第三方 schema 交叉检查
 
-第三方仓库只作为辅助证据源，不是当前 GIL Authority。执行前固定：
-
-```text
-仓库路径 / 分支或 tag / commit
-读取的 schema 或工具文件
-对应锁定快照及 SHA-256
-只检查的候选字段和输出上限
-```
-
-检查必须满足：
-
-- 不切换或修改第三方工作树，不读取无关大型数据文件；
-- 不扫描实时地图，不进行写回、round-trip、编辑器导入或游戏验证；
-- 先报告候选字段的 wire type、长度、UTF-8/varint 摘要和有限嵌套计数；
-- 将“schema 与当前 wire 相容”与“编辑器语义已确认”分开记录；
-- 与真实相邻差分不一致时，以文件事实为准并标记 `CONFLICT/INSUFFICIENT`；
-- 只有真实相邻差分和独立 Validator 接受后，才能把受限语义写入 Authority。
+固定仓库路径/commit、只读最小片段、与锁定快照做 wire 相容性检查；详细约束与已闭合案例见
+`references/third-party-cross-check.md`（含本地 proto `VarType` 枚举入口与千星知识库调用方式）。
+第三方结论只能作选题线索，标 `INSUFFICIENT`，直到独立 Validator 接受真实编辑器增量。
 
 ## 每轮输出
 

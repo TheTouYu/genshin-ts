@@ -203,6 +203,10 @@ for c in d['changedRootFields']:
 - 连线时若 Variant 未配置，编辑器**按目标 pin 类型自动选型**并实例化（v18：node 23
   连 Int 目标 → concreteId=50 C<T:Int> + OutParam Int），随后正常挂 connects。
 - 变体切换联动（v11）：concreteId/pin type/value/TypeSelectorIndex/列表元素类型全部跟随。
+- **已连线 Variant 改类型（v22 实测）**：源侧联动重写（concreteId/type/selector），
+  **类型不匹配的线自动断开且目标 InParam pin 整个移除**（不是只清 connects）→
+  `--variant-switch "node:kernelId:type:selector" --drop-target-pins "target:index,..."`
+  （断言源重写 + 目标整 pin 删除 + 其余 pin 原样）。
 - 跨类型数据直连被编辑器拒绝（用户游戏内确认），需先手动改类型再连线。
 
 > 生产 gap（已修复，2026-08-06）：`applyEditorConnectionWireRules()` 曾无条件删除所有
