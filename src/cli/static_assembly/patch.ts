@@ -30,22 +30,29 @@ import {
  *   f32 度数/坐标、稀疏编码（0 分量省略）、scale 三轴全写。
  */
 
-/** 在 root `rootField` 的 f1 记录中按 ID 定位并局部替换。 */
+/** 在 root `rootField` 的 `sectionField` 记录容器中按 ID 定位并局部替换。
+ *
+ * `match` 可选：覆盖默认的“记录 f1 = recordId”匹配（如 root8 实例需按
+ * f2.f1=defID 引用匹配时传入自定义匹配器）。 */
 export function patchGilRecord(
   bytes: Uint8Array,
   rootField: number,
   recordId: number,
-  mutate: (record: Uint8Array) => Uint8Array
+  mutate: (record: Uint8Array) => Uint8Array,
+  sectionField = 1,
+  match?: (record: Uint8Array) => boolean
 ): Uint8Array {
   const payload = bytes.slice(20, -4)
   const fields: LenField[] = []
   parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const matches = (record: Uint8Array) =>
+    match ? match(record) : readFieldVarint(record, 1) === recordId
   const target = fields.find(
     (field) =>
       field.depth === 2 &&
       field.p0 === rootField &&
-      field.p1 === 1 &&
-      readFieldVarint(payload.subarray(field.dataStart, field.dataEnd), 1) === recordId
+      field.p1 === sectionField &&
+      matches(payload.subarray(field.dataStart, field.dataEnd))
   )
   if (!target) {
     throw new Error(`[error] record ${recordId} not found in root ${rootField}`)
