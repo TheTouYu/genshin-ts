@@ -318,6 +318,32 @@ instance 129 = definition 129）是否与常规“元件 ID+1”一致；其他�
 证据快照：`~/genshin-ts-evidence/entities/create-entity-v5/raw/`（用户重存）、
 `create-entity-v6/raw/`（球体元件改色）、`create-entity-v7/raw/`（编辑器新建球体实体）。
 
+#### 元件/实体颜色编码（2026-08-06，v6/v8/v9 快照，用户游戏验证通过）
+
+- 材质颜色 = packed `0xAARRGGBB` varint（与 UI 文本框颜色同一编码）：白色 =
+  `0xFFFFFFFF`、粉红 = `0xFFED5757`（v6 球体元件改色样本，事后确认为粉色系）、
+  纯红 = `0xFFFF0000`（import 写入，用户验证游戏显示红色）。
+- 材质槽路径：实体 `#6{f1=22}.f32`（definition 侧 `#7{f1=22}.f32`）。内部：
+  `f1=1` = 启用自定义颜色标记（默认材质无此字段，v8 打开自定义后 21B→23B）、
+  `f3` = 颜色值 varint、`f4` = fixed32 100.0、`f5` = 材质引用（球体改色时
+  0x7FFFFFF→0x07B5AED7，语义 INSUFFICIENT）、`f6` = 6700。
+- **实体级独立颜色 CONFIRMED**：直接改写实体记录材质槽（元件保持默认色），
+  编辑器加载正常且游戏显示红色（用户核验）——实体可在元件之外独立改颜色。
+- **元件改色 → 全依赖同步**：root 4 definition + root 8 instance + **所有**
+  基于该元件的 root 5 实体记录同步重写同一材质槽（v8 实测：长方体元件开
+  自定义白色，29 个实体 = 长方体实体 136 + 火箭机身 141 + 27 个魔方块全同步）。
+
+证据快照：`create-entity-v8/raw/`（长方体元件开自定义白色）、
+`create-entity-v9/raw/`（红色方块 145 + 魔方整体抬高）。
+
+#### assets:entities import 更新语义（2026-08-06）
+
+- 实体 ID 已存在于 root 5 → **更新**已有记录（原位替换，不重复登记组条目）；
+  缺失字段继承原记录（transform/名称/已启用颜色值）；新增 `color: '#RRGGBB'`。
+- ID 冲突仅剩被 root 6 组条目（type 100/400）或已有实体占用的情形。
+- 场景地面 = y=0（编辑器实体默认放置面）；造型摆放时实体中心 y ≥ 0.5
+  才不会陷地（魔方 27 块 y∈{-1,0,1} 时底层看不见，抬到 {0.5,1.5,2.5} 后可见）。
+
 ### NodeGraph 路径
 
 `CONFIRMED`：当前 collector 在 `10.1.1[*]` 找到 13 个可由 `gia.NodeGraph` schema 解码的 blob，类型聚合均为 `20000`，共 301 个节点。该路径是当前 collector 加成功 schema 解码支持的操作性路径，不是 GIA `Root` 声明的路径。
