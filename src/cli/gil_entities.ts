@@ -103,7 +103,8 @@ function readTransform(record: Uint8Array, ownerFieldNumber: number): EntityTran
 
 function readColor(record: Uint8Array): GstsStaticColor | undefined {
   for (const field of parse(record) ?? []) {
-    if (field.wire !== 2 || field.number !== 5) continue
+    // 实体材质槽在 #6{f1=22}（不是 #5 名称槽；2026-08-06 v9 地图 27 块实测）
+    if (field.wire !== 2 || field.number !== 6) continue
     const entry = parse(field.value as Uint8Array)
     if (!entry) continue
     if (firstVarint(entry, 1) !== 22) continue
@@ -114,7 +115,9 @@ function readColor(record: Uint8Array): GstsStaticColor | undefined {
     if (!color.some((item) => item.number === 1 && item.wire === 0 && item.value === 1)) {
       return { enabled: false }
     }
-    const rgb = firstVarint(color, 5)
+    // 颜色值是 f3=0xAARRGGBB varint；f5 是材质引用（球体改色 0x7FFFFFF→0x07B5AED7）。
+    // readVarint 返回 int32（0xFFFFFFFF→-1），颜色必须规整为无符号
+    const rgb = (firstVarint(color, 3) ?? 0) >>> 0
     const opacity = color.find((item) => item.number === 4 && item.wire === 5)
     const overlay = firstVarint(color, 6)
     if (rgb === undefined || !opacity) continue
@@ -293,7 +296,8 @@ function materialColorOf(record: Uint8Array): number | undefined {
   if (!mat) return undefined
   const matFields = message(mat)
   if (firstVarint(matFields, 1) !== 1) return undefined
-  return firstVarint(matFields, 3)
+  // readVarint 返回 int32（0xFFFFFFFF→-1），颜色规整为无符号
+  return (firstVarint(matFields, 3) ?? 0) >>> 0
 }
 
 /**

@@ -136,4 +136,18 @@ assert.throws(
   /entity ID conflict/i
 )
 
+// 颜色回读：export 必须能读出实体级自定义颜色（真实 wire：实体材质槽在
+// #6{f1=22}.f32，颜色值 f3=0xAARRGGBB varint；2026-08-06 v9 地图 27 块实测，
+// readColor 曾读 #5/f5 导致颜色永远不可见）
+const colored = applyEntities({
+  bytes: applied,
+  definitions: [definition],
+  entities: [{ name: 'x', id: 1077936187, definitionId: 1077936182, color: 0xffff0000 }]
+})
+const coloredExported = exportEntities(colored)
+assert.equal(coloredExported.length, 1)
+assert.equal(coloredExported[0].color?.enabled, true)
+assert.equal(coloredExported[0].color?.rgb, 0xffff0000)
+assert.equal(coloredExported[0].color?.opacity, 100)
+
 console.log('gil entities tests passed')
