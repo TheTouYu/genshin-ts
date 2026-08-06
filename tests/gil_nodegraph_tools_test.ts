@@ -58,7 +58,7 @@ assert.match(human, /InParam\[3-100\]/)
 assert.match(human, /重复 98 次/)
 assert.equal((human.match(/InParam\[3\]/g) ?? []).length, 0)
 
-for (const name of ['trace-gil-exec-flow.ts', 'trace-gil-dataflow.ts']) {
+for (const name of ['trace-gil-exec-flow.ts', 'trace-gil-dataflow.ts', 'scan-gil-signals.ts']) {
   assert.deepEqual(
     readFileSync(path.join(root, 'tools', name)),
     readFileSync(path.join(root, 'create-genshin-ts/templates/start/tools', name))
@@ -74,5 +74,16 @@ assert.match(story, /n=10 复合:监听信号\.伤害值/) // 参数来源引用
 const comp = run('explain-gil-node-graph.ts', ['--composite', '定时任务'])
 assert.match(comp, /接口: inputs=\[目标实体:Entity, 定时器名称:String/)
 assert.match(comp, /impl图=/)
+
+// scan-gil-signals.ts：全量信号使用扫描（主图 + 复合 impl 图）
+const sig = run('scan-gil-signals.ts', ['--signal', '信号测试全参数'])
+assert.match(sig, /信号测试全参数 信号使用清单/)
+assert.match(sig, /主图 1073741842 信号调试-监听信号: n=10 监听信号/)
+assert.match(sig, /合计: 1 节点 \/ 1 图 \(发送 0、监听 1、其他 0\)/)
+const sigJson = JSON.parse(run('scan-gil-signals.ts', ['--signal', '信号测试全参数', '--json']))
+assert.equal(sigJson.summary.listen, 1)
+assert.equal(sigJson.summary.graphs, 1)
+assert.equal(sigJson.usages[0].composite, '监听信号')
+assert.equal(sigJson.usages[0].compIndex, 99)
 
 console.log('PASS GIL NodeGraph tool selection, contracts, literal folding, and template parity')
