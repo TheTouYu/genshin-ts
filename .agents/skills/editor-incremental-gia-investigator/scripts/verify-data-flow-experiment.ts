@@ -118,6 +118,28 @@ const WIRES: Wire[] = args.wires
       return { source: Number(s), target: Number(t), index: Number(i), type: Number(ty), sourceOutIndex: srcIdx ? Number(srcIdx) : 0 }
     })
   : [{ source: SOURCE, target: TARGET, index: TARGET_INDEX, type: TARGET_TYPE, sourceOutIndex: 0 }]
+// --replace-wire "source:target:targetIndex:targetType[:sourceKernelId]"
+// replace mode: target already has the InParam pin; the wire REPLACES its connects.id
+// (single-input-pin semantics). source is a Variant node: editor auto-instantiates the
+// variant matching the target type (concreteId = kernel id) and adds an OutParam pin.
+const REPLACE = args['replace-wire']
+  ? (() => {
+      const [s, t, i, ty, kid] = args['replace-wire']!.split(':')
+      return { source: Number(s), target: Number(t), index: Number(i), type: Number(ty), kernelId: kid ? Number(kid) : 0 }
+    })()
+  : null
+// --variant-select "nodeIndex:kernelId:type:typeSelectorIndex" --variant-pins "0:1"
+// manual variant selection without wiring: editor writes concreteId=kernel id and
+// instantiates every R<T> data pin (shell indexes listed in --variant-pins, ascending)
+// with value=ConcreteBase{bConcreteValue{indexOfConcrete=typeSelectorIndex (0 omitted),
+// value=<concrete type base>}}; fixed-type pins stay uninstantiated
+const VARIANT = args['variant-select']
+  ? (() => {
+      const [n, kid, ty, sel] = args['variant-select']!.split(':')
+      return { node: Number(n), kernelId: Number(kid), type: Number(ty), selector: Number(sel ?? 0) }
+    })()
+  : null
+const VARIANT_PINS = args['variant-pins'] ? args['variant-pins'].split(':').map(Number) : []
 const EXPECTED_RAW = (args['expected-pin-raw'] ?? '').replace(/\s+/g, '')
 const BEFORE_HASH = args['before-hash'] ?? ''
 const AFTER_HASH = args['after-hash'] ?? ''
@@ -131,8 +153,8 @@ const gilPath = path.join(verifyDir, 'manual-flow-v1.gil')
 const resultPath = path.join(verifyDir, 'result.json')
 const validatorPath = path.join(verifyDir, 'validation.json')
 
-if (!GRAPH_ID || WIRES.length === 0 || WIRES.some((w) => !w.source || !w.target || !w.type)) {
-  console.error('usage: verify-data-flow-experiment.ts <dir> --graph-id N (--source N --target N --target-index N --target-type N | --wires "s:t:i:ty,...") [--expected-pin-raw hex (single wire)] [--before-hash h] [--after-hash h] [--source-generic N] [--target-generic N]')
+if (!GRAPH_ID || (!REPLACE && !VARIANT && (WIRES.length === 0 || WIRES.some((w) => !w.source || !w.target || !w.type)))) {
+  console.error('usage: verify-data-flow-experiment.ts <dir> --graph-id N (--source N --target N --target-index N --target-type N | --wires "s:t:i:ty,..." | --replace-wire "s:t:i:ty[:kernelId]" | --variant-select "n:kernelId:type:selector" --variant-pins "i:i:...") [--expected-pin-raw hex (single wire)] [--before-hash h] [--after-hash h] [--source-generic N] [--target-generic N]')
   process.exit(2)
 }
 
@@ -207,17 +229,75 @@ function main(): number {
     expectedSet.sort((a, b) => a - b),
     'node set must not change'
   )
-  const targets = [...new Set(WIRES.map((w) => w.target))]
+  const expectedChanged = REPLACE
+    ? [REPLACE.source, REPLACE.target].sort((a, b) => a - b)
+    : VARIANT
+      ? [VARIANT.node]
+      : [...new Set(WIRES.map((w) => w.target))]
   const changed = [...beforeNodes.keys()].filter(
     (i) => JSON.stringify(beforeNodes.get(i)) !== JSON.stringify(afterNodes.get(i))
   )
-  assert.deepEqual(changed, targets, `only wire target nodes ${targets.join(',')} may change`)
-  ok(`node set stable; only target${targets.length > 1 ? 's' : ''} ${targets.join(',')} changed`)
+  assert.deepEqual(changed, expectedChanged, `only wire target nodes ${expectedChanged.join(',')} may change`)
+  ok(`node set stable; only target${expectedChanged.length > 1 ? 's' : ''} ${expectedChanged.join(',')} changed`)
 
+  if (VARIANT) {
+    // variant-select mode: manual variant choice without wiring
+    const before = beforeNodes.get(VARIANT.node)
+    const after = afterNodes.get(VARIANT.node)
+    assert.equal(Number(before.concreteId?.nodeId ?? 0), 0, 'variant node had no concreteId before')
+    assert.equal(Number(after.concreteId?.nodeId), VARIANT.kernelId, 'concreteId = selected variant kernel id')
+    assert.equal(after.pins.length, before.pins.length + VARIANT_PINS.length,
+      'each R<T> data pin is instantiated')
+    for (const [i, shell] of VARIANT_PINS.entries()) {
+      const pin = after.pins.find(
+        (p: any) => p.i1?.kind === 3 && (p.i1?.index == null ? 0 : Number(p.i1?.index)) === shell
+      )
+      assert(pin, `R<T> pin shell=${shell} instantiated`)
+      assert.equal(pin.i2?.kind, 3)
+      assert.equal((pin.i2?.index == null ? 0 : Number(pin.i2?.index)), shell, 'i2 mirrors index')
+      assert.equal(Number(pin.type), VARIANT.type, 'pin type follows selected variant')
+      assert.equal(pin.connects?.length ?? 0, 0, 'no connects without wiring')
+      assert.equal(pin.value?.class, 10000, 'value class = ConcreteBase')
+      assert.equal(pin.value?.alreadySetVal, true)
+      const sel = pin.value?.bConcreteValue?.indexOfConcrete ?? 0
+      assert.equal(Number(sel), VARIANT.selector, 'indexOfConcrete = TypeSelectorIndex')
+    }
+    ok(`variant select: node ${VARIANT.node} concreteId=${VARIANT.kernelId}, ` +
+      `${VARIANT_PINS.length} R<T> pins instantiated (type=${VARIANT.type}, selector=${VARIANT.selector})`)
+  } else if (REPLACE) {
+    // replace mode: target keeps its InParam pin, connects.id is swapped to the new source;
+    // source is a Variant node auto-instantiated by the editor (concreteId + OutParam pin)
+    const targetBefore = beforeNodes.get(REPLACE.target)
+    const targetAfter = afterNodes.get(REPLACE.target)
+    assert.equal(targetAfter.pins.length, targetBefore.pins.length, 'replace: target pin count unchanged')
+    const targetPin = targetAfter.pins.find(
+      (pin: any) => pin.i1?.kind === 3 && (pin.i1?.index == null ? 0 : Number(pin.i1?.index)) === REPLACE.index
+    )
+    assert(targetPin, `target InParam index=${REPLACE.index} exists`)
+    assert.equal(targetPin.connects.length, 1)
+    assert.equal(targetPin.connects[0].id, REPLACE.source, 'connects.id replaced with new source')
+    assert.equal(targetPin.connects[0].connect.kind, 4, 'connect = OutParam')
+    assert.equal(targetPin.connects[0].connect2.kind, 4, 'connect2 = OutParam')
+    assert.equal(targetPin.connects[0].connect.index ?? 0, 0, 'source OutParam ref index absent (shell 0)')
+    ok(`replace: target InParam[${REPLACE.index}] connects.id -> ${REPLACE.source}`)
+
+    const sourceBefore = beforeNodes.get(REPLACE.source)
+    const sourceAfter = afterNodes.get(REPLACE.source)
+    assert.equal(Number(sourceBefore.concreteId?.nodeId ?? 0), 0, 'Variant source had no concreteId before')
+    if (REPLACE.kernelId) {
+      assert.equal(Number(sourceAfter.concreteId?.nodeId), REPLACE.kernelId, 'editor auto-picked variant kernel id')
+    }
+    assert.equal(sourceAfter.pins.length, sourceBefore.pins.length + 1, 'Variant source gains one OutParam pin')
+    const outPin = sourceAfter.pins[sourceAfter.pins.length - 1]
+    assert.equal(outPin.i1?.kind, 4, 'source new pin OutParam')
+    assert.equal(outPin.i2?.kind, 4, 'source new pin OutParam (i2)')
+    assert.equal(Number(outPin.type), REPLACE.type, 'source OutParam type matches target type')
+    assert.equal(outPin.connects?.length ?? 0, 0, 'source OutParam carries no connects')
+    ok(`replace: Variant source ${REPLACE.source} auto-instantiated (kernel=${REPLACE.kernelId}, OutParam type=${REPLACE.type})`)
+  } else {
+    // 3-5. per-wire: target gains one InParam pin; source byte-identical
   const sourceBefore = beforeNodes.get(WIRES[0].source)
   if (SOURCE_GENERIC) assert.equal(Number(sourceBefore.genericId?.nodeId), SOURCE_GENERIC)
-
-  // 3-5. per-wire: target gains one InParam pin; source byte-identical
   for (const wire of WIRES) {
     const targetBefore = beforeNodes.get(wire.target)
     const targetAfter = afterNodes.get(wire.target)
@@ -264,6 +344,7 @@ function main(): number {
     )
     ok(`source node ${wire.source} byte-identical (no OutParam pin instantiated)`)
   }
+  }
 
   // 6. root-level diff report (informational)
   const beforePayload = readGilPayloadFields(beforePath).payload
@@ -281,21 +362,86 @@ function main(): number {
   const donorError = originalVerify.call(nodeGraphMessage, beforeGraph)
   console.log('INFO donor verify error:', donorError ?? 'none')
   const candidateGraph = structuredClone(beforeGraph)
-  for (const wire of WIRES) {
-    const target = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === wire.target)
-    assert(target, `target node ${wire.target} missing`)
-    // data wire hangs on target side: append new InParam pin with connects -> source
-    // ponytail: append at tail; multi-pin target insertion position unverified yet
-    target.pins.push({
-      i1: { kind: 3, index: wire.index || undefined },
-      i2: { kind: 3, index: wire.index || undefined },
-      type: wire.type,
-      connects: [{
-        id: wire.source,
-        connect: { kind: 4, index: wire.sourceOutIndex || undefined },
-        connect2: { kind: 4, index: wire.sourceOutIndex || undefined }
-      }]
+  if (VARIANT) {
+    // variant-select: concreteId = kernel id + instantiate each R<T> data pin
+    const node = candidateGraph.nodes.find((n: any) => Number(n.nodeIndex) === VARIANT.node)
+    assert(node, `variant node ${VARIANT.node} missing`)
+    node.concreteId = { class: 10001, type: 20000, kind: 22000, nodeId: VARIANT.kernelId }
+    const concreteValue = {
+      indexOfConcrete: VARIANT.selector || undefined,
+      value: {
+        class: 2,
+        itemType: { classBase: 1, type_server: { type: VARIANT.type } },
+        bInt: {}
+      }
+    }
+    for (const shell of VARIANT_PINS) {
+      const insertAt = node.pins.findIndex(
+        (pin: any) => (pin.i1?.index == null ? 0 : Number(pin.i1?.index)) > shell
+      )
+      const pin = {
+        i1: { kind: 3, index: shell || undefined },
+        i2: { kind: 3, index: shell || undefined },
+        value: { class: 10000, alreadySetVal: true, bConcreteValue: concreteValue },
+        type: VARIANT.type
+      }
+      if (insertAt === -1) node.pins.push(pin)
+      else node.pins.splice(insertAt, 0, pin)
+    }
+  } else if (REPLACE) {
+    // replace mode: swap connects.id on the existing target pin; auto-instantiate the
+    // Variant source (concreteId = kernel id + one OutParam pin matching target type)
+    const target = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === REPLACE.target)
+    assert(target, `target node ${REPLACE.target} missing`)
+    const targetPin = target.pins.find(
+      (pin: any) => pin.i1?.kind === 3 && (pin.i1?.index == null ? 0 : Number(pin.i1?.index)) === REPLACE.index
+    )
+    assert(targetPin, `target InParam index=${REPLACE.index} exists`)
+    targetPin.connects[0].id = REPLACE.source
+    const source = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === REPLACE.source)
+    assert(source, `source node ${REPLACE.source} missing`)
+    source.concreteId = {
+      class: 10001, type: 20000, kind: 22000, nodeId: REPLACE.kernelId
+    }
+    source.pins.push({
+      i1: { kind: 4 },
+      i2: { kind: 4 },
+      value: {
+        class: 10000,
+        alreadySetVal: true,
+        bConcreteValue: {
+          value: {
+            class: 2,
+            itemType: { classBase: 1, type_server: { type: 3 } },
+            bInt: {}
+          }
+        }
+      },
+      type: REPLACE.type
     })
+  } else {
+    for (const wire of WIRES) {
+      const target = candidateGraph.nodes.find((node: any) => Number(node.nodeIndex) === wire.target)
+      assert(target, `target node ${wire.target} missing`)
+      // data wire hangs on target side: insert InParam pin with connects -> source
+      // v18->v19 evidence: editor inserts by ShellIndex ascending, NOT tail append
+      // (node 24 gained index=0 pin at array head ahead of existing index 1/2)
+      const newPin = {
+        i1: { kind: 3, index: wire.index || undefined },
+        i2: { kind: 3, index: wire.index || undefined },
+        type: wire.type,
+        connects: [{
+          id: wire.source,
+          connect: { kind: 4, index: wire.sourceOutIndex || undefined },
+          connect2: { kind: 4, index: wire.sourceOutIndex || undefined }
+        }]
+      }
+      const insertAt = target.pins.findIndex(
+        (pin: any) => (pin.i1?.index == null ? 0 : Number(pin.i1?.index)) > (wire.index || 0)
+      )
+      if (insertAt === -1) target.pins.push(newPin)
+      else target.pins.splice(insertAt, 0, newPin)
+    }
   }
   const candidateError = originalVerify.call(nodeGraphMessage, candidateGraph)
   if (donorError === null) {

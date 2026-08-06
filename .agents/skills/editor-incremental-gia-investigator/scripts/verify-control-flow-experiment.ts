@@ -230,12 +230,12 @@ function main(): number {
 
   // 3. new OutFlow pin semantics
   const flowPins = sourceAfter.pins.filter(
-    (pin: any) => pin.i1?.kind === 2 && Number(pin.i1?.index) === OUTFLOW_INDEX
+    (pin: any) => pin.i1?.kind === 2 && (pin.i1?.index ?? 0) === OUTFLOW_INDEX
   )
   assert.equal(flowPins.length, 1, `exactly one OutFlow pin with index=${OUTFLOW_INDEX}`)
   const newPin = flowPins[0]
   assert.equal(newPin.i2?.kind, 2)
-  assert.equal(Number(newPin.i2?.index), OUTFLOW_INDEX, 'i2 mirrors explicit index')
+  assert.equal((newPin.i2?.index ?? 0), OUTFLOW_INDEX, 'i2 mirrors explicit index')
   assert.equal(newPin.connects.length, 1)
   assert.equal(newPin.connects[0].id, TARGET)
   assert.equal(newPin.connects[0].connect.kind, 1, 'connect = InFlow')
@@ -308,7 +308,7 @@ function main(): number {
     // editor may sync one pre-existing source pin (e.g. cases list grows with new branch);
     // candidate must take the after value so bytes stay identical, still bounded to exactly one
     const afterPins = afterNodes.get(SOURCE).pins.filter(
-      (pin: any) => !(pin.i1?.kind === 2 && Number(pin.i1?.index) === OUTFLOW_INDEX)
+      (pin: any) => !(pin.i1?.kind === 2 && (pin.i1?.index ?? 0) === OUTFLOW_INDEX)
     )
     assert.equal(afterPins.length, source.pins.length,
       'sync-extra-pin: after must hold before pins + new OutFlow only')
@@ -324,8 +324,8 @@ function main(): number {
   // insert new OutFlow after the last existing OutFlow, before data pins
   const lastOutFlow = source.pins.findLastIndex((pin: any) => pin.i1?.kind === 2)
   source.pins.splice(lastOutFlow + 1, 0, {
-    i1: { kind: 2, index: OUTFLOW_INDEX },
-    i2: { kind: 2, index: OUTFLOW_INDEX },
+    i1: { kind: 2, index: OUTFLOW_INDEX || undefined },
+    i2: { kind: 2, index: OUTFLOW_INDEX || undefined },
     connects: [{
       id: TARGET,
       connect: { kind: 1, index: TARGET_INDEX || undefined },
