@@ -378,7 +378,10 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run build`：完整编译
 - `npm run dev`：增量编译（配置 inject 后会自动注入）
 - `npm run maps`：列出最近编辑的地图
+- `npm run maps:create -- <名字> --map-id <id>`：创建新地图骨架
+- `npm run maps:rename -- <名字> --map-id <id>`：给地图改名
 - `npm run backup`：打开注入备份目录
+- `npx gsts maps --format json --include-hash`：稳定、默认脱敏的地图发现 JSON
 - `npm run assets:custom-variables`：预览 `assets.customVariables` 配置对 `.gil` 自定义变量的变更
 - `npm run assets:custom-variables -- --write`：备份后写回真实地图
 - `npm run assets:custom-variables -- --map-id <id>`：临时指定地图
@@ -402,6 +405,23 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run assets:signals -- register --name <name> --param <name:type> --map-id <id>`：注册信号（preview）
 
 上述 GIL 资产命令的完整用法、wire 规则与证据分级见 `docs/GIL_ASSET_COMMANDS_ZH.md`（英文版 `docs/GIL_ASSET_COMMANDS.md`）。所有写操作默认只预览，`--write` 才备份后写回，写回后需重新加载地图再保存。
+
+GIL/GIA 调试工具（只读）：
+
+- `npm run gil:node-graphs -- <map.gil>`：列出地图内全部节点图（ID/类型/名称/节点数）
+- `npm run gil:parse-node-graph -- <map.gil> [--graph <id|auto> | --composite <名称> | --list]`：解析节点图结构（节点/引脚/连接）
+- `npm run gil:compare-node-graph -- <before.gil> <after.gil> <graphId> [--full]`：对比两个 GIL 的同一节点图差异（注入前后验证用）
+- `npm run gil:decode -- <map.gil>`：raw wire 解码输出
+- `npm run gil:signals -- <map.gil> [output-prefix]`：解码信号注册表
+- `npm run gil:extract-signals -- <map.gil> [output.json]`：提取信号附属结构
+- `npm run gil:inspect-variables -- <map.gil> <变量名> [occurrence]`：查看自定义变量
+- `npm run gil:scan-variables -- <map.gil>`：扫描变量候选
+- `npm run gil:trace-exec -- <map.gil> [--graph <id|name|auto>]`：GIL 层执行流追踪
+- `npm run gil:trace-dataflow -- <map.gil> --node <索引|名称>`：GIL 层数据流追踪
+- `npm run gil:dump-layout -- <file.gia>`：提取 GIA 节点位置，分析布局规律
+- `npm run gia:decode -- [选项] <file.gia>`：解码 GIA 产物
+- `npm run trace-exec -- <file.gia> [--json] [--io] [--detail=N]`：GIA 层执行流追踪
+- `npm run trace-dataflow -- <file.gia> <节点索引> <InParam索引> [--composite <名称>]`：GIA 层数据流链追溯
 
 `assets.staticAssemblies` 的 item 使用相对元件原点的局部 Transform；元件自身的 `position`、`rotation`、`scale` 则是场景 Transform。主体和 item 颜色支持启用/关闭自定义颜色、`0xRRGGBB`、0–100 透明度及 `overwrite`/`multiply`，未知材质字段仍继承模板。`components` 当前仅支持 `{ type: 'followMotion', preset: 'fullFollow' }`，会在定义和实例两侧同步添加“完全跟随”快照；省略时不新增组件。该组件已有真实 GIL、自动回归、受限写回和用户编辑器/游戏验证证据。复杂模型可用 `structureFile: './assemblies/model.json'` 替代配置中的 `items`、`color` 和 `components`；严格 JSON 使用 `schemaVersion: 1`，保存主颜色、组件和 items，相对 `gsts.config.ts` 解析，并可引用 `node_modules/genshin-ts/schemas/static-assembly.schema.json` 获得补全。它不会从 `.gil` 提取结构。模板、资源 ID、主 ID 和两侧辅助 ID 都必须先针对目标地图确认，不能复制文档示例值直接写回。
 

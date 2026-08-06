@@ -379,7 +379,10 @@ Rules:
 - `npm run build`: full compile
 - `npm run dev`: incremental compile (auto inject if configured)
 - `npm run maps`: list recent maps
+- `npm run maps:create -- <name> --map-id <id>`: create a new map skeleton
+- `npm run maps:rename -- <name> --map-id <id>`: rename a map
 - `npm run backup`: open backup directory
+- `npx gsts maps --format json --include-hash`: stable, privacy-safe map discovery JSON
 - `npm run assets:custom-variables`: preview configured GIL custom-variable changes
 - `npm run assets:custom-variables -- --write`: back up and write the real map
 - `npm run assets:custom-variables -- --map-id <id>`: temporarily choose a map
@@ -403,6 +406,23 @@ Rules:
 - `npm run assets:signals -- register --name <name> --param <name:type> --map-id <id>`: register a signal (preview)
 
 Full usage, wire rules, and evidence tiers for these GIL asset commands: `docs/GIL_ASSET_COMMANDS.md` (Chinese: `docs/GIL_ASSET_COMMANDS_ZH.md`). All writes are preview-only by default; `--write` backs up and applies, then reload the map before saving.
+
+GIL/GIA debug tools (read-only):
+
+- `npm run gil:node-graphs -- <map.gil>`: list all NodeGraphs (ID/type/name/node count)
+- `npm run gil:parse-node-graph -- <map.gil> [--graph <id|auto> | --composite <name> | --list]`: parse graph structure (nodes/pins/connections)
+- `npm run gil:compare-node-graph -- <before.gil> <after.gil> <graphId> [--full]`: diff one NodeGraph between two GIL files (pre/post-injection checks)
+- `npm run gil:decode -- <map.gil>`: raw wire decode dump
+- `npm run gil:signals -- <map.gil> [output-prefix]`: decode the signal registry
+- `npm run gil:extract-signals -- <map.gil> [output.json]`: extract signal accessory structures
+- `npm run gil:inspect-variables -- <map.gil> <name> [occurrence]`: inspect a custom variable
+- `npm run gil:scan-variables -- <map.gil>`: scan variable candidates
+- `npm run gil:trace-exec -- <map.gil> [--graph <id|name|auto>]`: GIL-level exec-flow trace
+- `npm run gil:trace-dataflow -- <map.gil> --node <index|name>`: GIL-level dataflow trace
+- `npm run gil:dump-layout -- <file.gia>`: extract GIA node positions (layout analysis)
+- `npm run gia:decode -- [options] <file.gia>`: decode a GIA artifact
+- `npm run trace-exec -- <file.gia> [--json] [--io] [--detail=N]`: GIA-level exec-flow trace
+- `npm run trace-dataflow -- <file.gia> <nodeIndex> <inParamIndex> [--composite <name>]`: GIA-level dataflow chain trace
 
 Each `assets.staticAssemblies` item uses a local Transform relative to the assembly origin; the assembly's own `position`, `rotation`, and `scale` are scene Transforms. Main and item colors support enabled/disabled custom color, `0xRRGGBB`, 0–100 opacity, and `overwrite`/`multiply`; unknown material fields remain inherited. `components` currently supports only `{ type: 'followMotion', preset: 'fullFollow' }`, adding the same Full Follow snapshot to definition and instance records; omission adds no component. This component has real-GIL, automatic-regression, bounded writeback, and user editor/game validation evidence. Complex models may replace config-level `items`, `color`, and `components` with `structureFile: './assemblies/model.json'`. The strict JSON file uses `schemaVersion: 1`, owns `color`, `components`, and `items`, resolves relative to `gsts.config.ts`, and can use `node_modules/genshin-ts/schemas/static-assembly.schema.json` for completion. It does not extract structures from `.gil`. Confirm the template, resource IDs, prefab ID, and both auxiliary ID lists for the target map—never copy documentation IDs into a real write.
 

@@ -9,9 +9,15 @@
     "build": "gsts",
     "dev": "gsts dev",
     "maps": "gsts maps",
+    "maps:create": "gsts maps:create",
+    "maps:rename": "gsts maps:rename",
     "backup": "gsts open backup",
     "assets:custom-variables": "gsts assets:custom-variables",
     "assets:static-assemblies": "gsts assets:static-assemblies",
+    "assets:entities": "gsts assets:entities",
+    "assets:mounts": "gsts assets:mounts",
+    "assets:node-graphs": "gsts assets:node-graphs",
+    "assets:signals": "gsts assets:signals",
     "trace-exec": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-exec-flow.ts",
     "trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-dataflow.ts",
     "gia:decode": "NODE_OPTIONS='--no-deprecation' tsx tools/decode-gia.ts",
@@ -23,7 +29,9 @@
     "gil:trace-dataflow": "NODE_OPTIONS='--no-deprecation' tsx tools/trace-gil-dataflow.ts",
     "gil:inspect-variables": "tsx tools/inspect-gil-custom-variables.ts",
     "gil:scan-variables": "tsx tools/scan-gil-custom-variable-candidates.ts",
-    "gil:extract-signals": "tsx tools/extract-signal-accessories-from-gil.ts"
+    "gil:extract-signals": "tsx tools/extract-signal-accessories-from-gil.ts",
+    "gil:compare-node-graph": "NODE_OPTIONS='--no-deprecation' tsx tools/compare-gil-node-graph.ts",
+    "gil:dump-layout": "tsx tools/dump-layout.ts"
   },
   "dependencies": {
     "genshin-ts": "latest"
