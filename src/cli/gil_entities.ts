@@ -2,6 +2,7 @@ import type {
   GstsStaticAssemblyComponent,
   GstsStaticColor
 } from '../compiler/gsts_config.js'
+import { buildFile, readUint32BE } from '../injector/binary.js'
 import {
   emitWireMessage as emit,
   findWireRecord as findRecord,
@@ -399,9 +400,13 @@ export function applyEntities(params: {
   }
   top5.value = emit(section)
   const rebuilt = emit(top)
-  return new Uint8Array([
-    ...new Uint8Array(params.bytes.slice(0, 20)),
-    ...rebuilt,
-    ...new Uint8Array(params.bytes.slice(-4))
-  ])
+  // 头部长字段必须重建：编辑器按头部长度解析 payload，旧长度会导致“存档损坏”
+  // （2026-08-06 实测：applyEntities 曾原样复制源头，payload 变大后长度字段过期，
+  // 编辑器拒绝加载；其他写回路径统一用 buildFile）
+  return buildFile(rebuilt, {
+    schema: readUint32BE(params.bytes, 4),
+    headTag: readUint32BE(params.bytes, 8),
+    fileType: readUint32BE(params.bytes, 12),
+    tailTag: readUint32BE(params.bytes, params.bytes.length - 4)
+  })
 }

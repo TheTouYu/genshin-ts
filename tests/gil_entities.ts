@@ -99,6 +99,15 @@ assert.ok(
   Buffer.from(registry).includes(Buffer.from([0x08, 0xc8, 0x01, 0x10, 0xbb, 0x80, 0x80, 0x82, 0x04])),
   'entity registry entry missing'
 )
+// 头部长度字段必须重建：编辑器按头部长度解析 payload，源头部原样复制会在
+// payload 变大后导致“存档损坏”（2026-08-06 实测根因）
+const dataView = new DataView(applied.buffer, applied.byteOffset, applied.byteLength)
+assert.equal(
+  dataView.getUint32(16, false),
+  applied.length - 24,
+  'header payload length must match actual payload'
+)
+assert.equal(dataView.getUint32(0, false), applied.length - 4, 'header size field must match file size')
 // 重复 ID 拒绝
 assert.throws(
   () =>
