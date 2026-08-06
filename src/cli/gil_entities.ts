@@ -300,33 +300,44 @@ export function entityFromDefinition(
   return setTransform(emit(out), params.transform)
 }
 
-function registerEntity(top: readonly WireField[], entityId: number): void {
-  for (const topField of top) {
-    if (topField.number !== 6 || topField.wire !== 2) continue
-    const records = message(topField)
-    for (const recordField of records) {
-      if (recordField.number !== 1 || recordField.wire !== 2) continue
-      const recordFields = message(recordField)
-      if (firstVarint(recordFields, 1) !== 3) continue
-      const group = recordFields.find((field) => field.number === 3 && field.wire === 2)
-      if (!group) continue
-      const groupFields = message(group)
-      if (!groupFields.some((field) => field.number === 1 && field.wire === 2)) continue
-      groupFields.push({
-        number: 5,
-        wire: 2,
-        value: emit([
-          { number: 1, wire: 0, value: 200 },
-          { number: 2, wire: 0, value: entityId }
-        ])
-      })
-      group.value = emit(groupFields)
-      recordField.value = emit(recordFields)
-      topField.value = emit(records)
-      return
-    }
+function registerEntity(top: readonly WireField[], entityId: number, definitionId: number): void {
+  const entry = emit([
+    { number: 1, wire: 0, value: 200 },
+    { number: 2, wire: 0, value: entityId }
+  ])
+  const root6 = top.find((field) => field.number === 6 && field.wire === 2)
+  if (!root6) throw new Error('[error] root 6 section not found')
+  const records = message(root6)
+  for (const recordField of records) {
+    if (recordField.number !== 1 || recordField.wire !== 2) continue
+    const recordFields = message(recordField)
+    if (firstVarint(recordFields, 1) !== 3) continue
+    const group = recordFields.find((field) => field.number === 3 && field.wire === 2)
+    if (!group) continue
+    const groupFields = message(group)
+    if (!groupFields.some((field) => field.number === 1 && field.wire === 2)) continue
+    // 编辑器登记为纯追加式：新条目（type=200 实体）追加到组末尾，不按元件插入
+    // （v3→v4 真实样本：五棱柱实体 135 的 (200,135) 追加在 (400,134)(100,133) 之后）
+    groupFields.push({ number: 5, wire: 2, value: entry })
+    group.value = emit(groupFields)
+    recordField.value = emit(recordFields)
+    root6.value = emit(records)
+    return
   }
-  throw new Error('[error] root 6 entity registry group not found')
+  // 全新地图无实体组（root 6 #1=3）：创建最小实体组记录（同构于编辑器结构，
+  // record #2={1:'root',3:1}，group #1='未分类页签'/#3=2；与 minimalFolderRoot6 同构）
+  const group = emit([
+    { number: 1, wire: 2, value: TEXT.encode('未分类页签') },
+    { number: 3, wire: 0, value: 2 },
+    { number: 5, wire: 2, value: entry }
+  ])
+  const record = emit([
+    { number: 1, wire: 0, value: 3 },
+    { number: 2, wire: 2, value: emit([{ number: 1, wire: 2, value: TEXT.encode('root') }, { number: 3, wire: 0, value: 1 }]) },
+    { number: 3, wire: 2, value: group }
+  ])
+  records.push({ number: 1, wire: 2, value: record })
+  root6.value = emit(records)
 }
 
 export function applyEntities(params: {
@@ -337,16 +348,39 @@ export function applyEntities(params: {
   const top = parse(params.bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
   const occupied = new Set<number>()
-  for (const record of records(top, 5, 1)) {
-    const id = recordId(record)
-    if (id !== undefined) occupied.add(id)
+  // 实体 ID 与 definition/instance/entity 共用计数器：root 5 实体 + root 6 组全部条目
+  // （100/400/200）都占用 ID，冲突会致编辑器报“存档损坏”
+  const top5Existing = top.find((field) => field.number === 5 && field.wire === 2)
+  if (top5Existing) {
+    for (const record of records(top, 5, 1)) {
+      const id = recordId(record)
+      if (id !== undefined) occupied.add(id)
+    }
+  }
+  for (const field of top) {
+    if (field.number !== 6 || field.wire !== 2) continue
+    for (const recordField of message(field)) {
+      if (recordField.number !== 1 || recordField.wire !== 2) continue
+      const recordFields = message(recordField)
+      if (firstVarint(recordFields, 1) !== 3) continue
+      const group = recordFields.find((f) => f.number === 3 && f.wire === 2)
+      if (!group) continue
+      for (const entry of message(group)) {
+        if (entry.number !== 5 || entry.wire !== 2) continue
+        const id = firstVarint(message(entry), 2)
+        if (id !== undefined) occupied.add(id)
+      }
+    }
   }
   for (const entity of params.entities) {
     if (occupied.has(entity.id)) throw new Error(`[error] entity ID conflict: ${entity.id}`)
     occupied.add(entity.id)
   }
-  const top5 = top.find((field) => field.number === 5 && field.wire === 2)
-  if (!top5) throw new Error('[error] root 5 section not found')
+  let top5 = top.find((field) => field.number === 5 && field.wire === 2)
+  if (!top5) {
+    top5 = { number: 5, wire: 2, value: emit([]) }
+    top.push(top5)
+  }
   const section = message(top5)
   for (const entity of params.entities) {
     const definition = findRecord(params.definitions, entity.definitionId)
@@ -361,7 +395,7 @@ export function applyEntities(params: {
       }
     })
     section.push({ number: 1, wire: 2, value: record })
-    registerEntity(top, entity.id)
+    registerEntity(top, entity.id, entity.definitionId)
   }
   top5.value = emit(section)
   const rebuilt = emit(top)

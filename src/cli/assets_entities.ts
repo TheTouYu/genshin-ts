@@ -9,6 +9,7 @@ import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { applyEntities, exportEntities, type EntityImport } from './gil_entities.js'
 import {
+  emitWireMessage,
   parseWireMessage,
   wireRecords,
   wireRecordId
@@ -31,6 +32,7 @@ function usage(exitCode = 1): never {
     'Usage: gsts assets:entities [export|import] [options]',
     '',
     '  --entities <file>      entity import JSON (import only)',
+    '  --definitions-gil <file>  donor GIL for definition records (import only)',
     '  --map-id <id>          target map ID (location only)',
     '  --gil <file>           explicit GIL source',
     '  --format <text|json>   output format (default: text)',
@@ -66,6 +68,7 @@ function parseArgs(argv: readonly string[]) {
   let gilPath: string | undefined
   let outputPath: string | undefined
   let entitiesPath: string | undefined
+  let definitionsGilPath: string | undefined
   let write = false
   let format: Format = 'text'
   let index = 0
@@ -79,6 +82,7 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--gil') gilPath = value(argv, index++)
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--entities') entitiesPath = value(argv, index++)
+    else if (arg === '--definitions-gil') definitionsGilPath = value(argv, index++)
     else if (arg === '--format') {
       const raw = value(argv, index++)
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
@@ -92,7 +96,7 @@ function parseArgs(argv: readonly string[]) {
   if (command === 'import' && !entitiesPath)
     throw new Error('[error] import requires --entities <file>')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { command, mapId, gilPath, outputPath, entitiesPath, write, format }
+  return { command, mapId, gilPath, outputPath, entitiesPath, definitionsGilPath, write, format }
 }
 
 function resolveGilPath(
@@ -214,9 +218,22 @@ async function runImport(
   const sourceBytes = new Uint8Array(fs.readFileSync(source.path))
   const payload = parseWireMessage(sourceBytes.slice(20, -4))
   if (!payload) throw new Error('[error] malformed GIL payload')
-  const definitions = wireRecords(payload, 4, 1)
+  const definitions = payload.some((f) => f.number === 4 && f.wire === 2)
+    ? wireRecords(payload, 4, 1)
+    : []
+  if (args.definitionsGilPath) {
+    // donor 地图的 definition records 补充到目标（目标已有优先，donor 只补缺失 ID）
+    const donorBytes = new Uint8Array(fs.readFileSync(path.resolve(args.definitionsGilPath)))
+    const donorRoot = parseWireMessage(donorBytes.slice(20, -4))
+    if (!donorRoot) throw new Error('[error] malformed donor GIL payload')
+    const donorIds = new Set(definitions.map((record) => wireRecordId(record)))
+    for (const record of wireRecords(donorRoot, 4, 1)) {
+      if (!donorIds.has(wireRecordId(record))) definitions.push(record)
+    }
+  }
   const missing = entities.entities.filter(
-    (entity) => !definitions.some((record) => wireRecordId(record) === entity.definitionId)
+    (entity) =>
+      !definitions.some((record) => wireRecordId(record) === entity.definitionId)
   )
   if (missing.length) {
     throw new Error(
