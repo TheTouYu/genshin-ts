@@ -7,6 +7,7 @@
 ## 开始前
 
 - 使用前先读 `README.md`；中文场景同时读 `README_ZH.md` 和 `docs/EDITOR_BOUNDARIES_ZH.md`。
+- 涉及 `.gil` 资产创建/修改（元件、实体、装饰物、节点图容器、信号注册、节点图挂载、关卡变量）时，先读 `docs/GIL_ASSET_COMMANDS_ZH.md`（英文版 `docs/GIL_ASSET_COMMANDS.md`）：默认 preview、`--write` 才备份后写回、写回后需重载地图再保存。
 - 先区分“代码可以完成的部分”和“必须在编辑器中完成的资源或配置”。缺少编辑器资源时，明确说明阻塞点，不要猜测资源已存在。
 - 用户要求从官方基础模型拼装、缩放或旋转并生成新元件时，先走只读 `maps JSON → inspect → --asset-config → plan`，再查模板/ID/验证边界；复杂结构可使用版本化 JSON `structureFile`，但不要把它当作从 `.gil` 自动提取。`inspect`/`plan` 不授权写回，`closureStatus=complete` 不代表游戏兼容；运行时生成实体查 `createPrefab`，节点图替换查 GIA injection，不要混为一谈。
 

@@ -24,6 +24,15 @@ Language note:
 - Ability units, combat presets, and other battle-side authored data.
 - Text bubbles, minimap markers, sound-effect players, nameplates, and similar presentation resources.
 
+> GIL-level bounded exceptions: NodeGraph containers can be created with
+> `assets:node-graphs create`, signals registered with `assets:signals register`,
+> custom prefabs generated with `assets:static-assemblies`, and entities /
+> decorations created, attached, or recolored with `assets:entities`. These tools
+> only cover GIL structures closed via real-snapshot reverse engineering (see
+> `docs/GIL_ASSET_COMMANDS.md`); they do not make this list generally code-able.
+> Components, paths, UI layout, global timers, shop/currency, and similar items
+> still require the editor.
+
 ## What Should Usually Be Implemented In Code
 - Game phases and state transitions.
 - Build / occupy / unlock logic.

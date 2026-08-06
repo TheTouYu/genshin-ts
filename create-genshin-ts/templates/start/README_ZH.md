@@ -19,6 +19,8 @@ npm run dev
 - `dist/`：编译产物（`.gs.ts` / `.json` / `.gia`）
 - `docs/EDITOR_BOUNDARIES.md`：英文版代码与编辑器职责边界说明
 - `docs/EDITOR_BOUNDARIES_ZH.md`：中文版代码与编辑器职责边界说明与术语参考
+- `docs/GIL_ASSET_COMMANDS.md`：英文版 GIL 资产命令参考（节点图/实体/挂载/信号等）
+- `docs/GIL_ASSET_COMMANDS_ZH.md`：中文版 GIL 资产命令参考（节点图/实体/挂载/信号等）
 - `CLAUDE.md` / `AGENTS.md`：AI 协作指引（建议先读）
 
 ## 注入配置示例（可选）
@@ -72,7 +74,14 @@ export default config
 
 - 代码优先负责运行时规则：玩法流程、状态机、波次逻辑、经济结算、校验、刷怪、结算、信号编排。
 - 编辑器通常负责资源与配置：元件、组件、路径、界面布局/控件组、信号、全局计时器、商店、货币、能力单元、文本气泡、小地图标识、音频资源等。
-- 受限例外：`assets:static-assemblies` 可基于目标地图中已有的模板闭包和已确认的官方基础资源，生成新的静态拼装自定义元件。它直接修改 `.gil` 资产结构，不是 GIA 节点图注入，也不代表任意编辑器资产都能由代码生成。
+- 受限例外：以下 GIL 资产操作已由 `assets:*` 命令封装（规则来自真实编辑器保存快照，见 `docs/GIL_ASSET_COMMANDS_ZH.md`）：
+  - `assets:static-assemblies`：基于目标地图已有模板闭包生成静态拼装自定义元件；
+  - `assets:node-graphs`：创建空节点图容器（注入目标占位）；
+  - `assets:entities`：创建/导出场景实体、记录级改颜色/transform、装饰物双向挂接；
+  - `assets:mounts`：节点图挂载/解除（元件 def 或场景实体，type 3 槽）；
+  - `assets:signals`：信号注册/检查/修复/更新；
+  - `assets:custom-variables`：关卡变量预览/写回。
+  它们直接修改 `.gil` 资产结构，不是 GIA 节点图注入，也不代表任意编辑器资产都能由代码生成。
 - 在设计或实现功能前，先查看 `docs/EDITOR_BOUNDARIES_ZH.md`，并明确区分：
   - 代码改动
   - 仍需手动完成的编辑器配置
@@ -380,6 +389,19 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run assets:static-assemblies -- --asset-config <file> --map-id <id>`：兼容的默认 preview，不修改地图
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`：保存离线候选，不覆盖已有文件
 - `npm run assets:static-assemblies -- --map-id <id> --write`：显式备份并写回真实地图
+- `npm run assets:node-graphs -- create --name <name> --map-id <id>`：创建空节点图容器（注入目标占位，ID 自动分配）
+- `npm run assets:entities -- export --gil <file.gil> --format json`：导出场景实体清单
+- `npm run assets:entities -- import --entities <file> --map-id <id>`：从元件定义创建实体（预览）
+- `npm run assets:entities -- patch <entity-id> --color <#RRGGBB> --map-id <id>`：记录级改实体颜色（preview，`--write` 写回）
+- `npm run assets:entities -- patch <entity-id> --attach-aux <aux-id> --map-id <id>`：装饰物双向挂接（preview）
+- `npm run assets:mounts -- list --map-id <id>`：盘点全图节点图/元件/实体及挂载关系
+- `npm run assets:mounts -- list --graph <gid> --map-id <id>`：反向查询某图挂在哪些目标上
+- `npm run assets:mounts -- attach <target-id> --graph <gid> [--def|--entity] --map-id <id>`：挂载节点图（preview）
+- `npm run assets:mounts -- detach <target-id> --graph <gid> [--def|--entity] --map-id <id>`：解除挂载（preview）
+- `npm run assets:signals -- inspect --gil <file.gil>`：检查信号注册表
+- `npm run assets:signals -- register --name <name> --param <name:type> --map-id <id>`：注册信号（preview）
+
+上述 GIL 资产命令的完整用法、wire 规则与证据分级见 `docs/GIL_ASSET_COMMANDS_ZH.md`（英文版 `docs/GIL_ASSET_COMMANDS.md`）。所有写操作默认只预览，`--write` 才备份后写回，写回后需重新加载地图再保存。
 
 `assets.staticAssemblies` 的 item 使用相对元件原点的局部 Transform；元件自身的 `position`、`rotation`、`scale` 则是场景 Transform。主体和 item 颜色支持启用/关闭自定义颜色、`0xRRGGBB`、0–100 透明度及 `overwrite`/`multiply`，未知材质字段仍继承模板。`components` 当前仅支持 `{ type: 'followMotion', preset: 'fullFollow' }`，会在定义和实例两侧同步添加“完全跟随”快照；省略时不新增组件。该组件已有真实 GIL、自动回归、受限写回和用户编辑器/游戏验证证据。复杂模型可用 `structureFile: './assemblies/model.json'` 替代配置中的 `items`、`color` 和 `components`；严格 JSON 使用 `schemaVersion: 1`，保存主颜色、组件和 items，相对 `gsts.config.ts` 解析，并可引用 `node_modules/genshin-ts/schemas/static-assembly.schema.json` 获得补全。它不会从 `.gil` 提取结构。模板、资源 ID、主 ID 和两侧辅助 ID 都必须先针对目标地图确认，不能复制文档示例值直接写回。
 

@@ -19,6 +19,8 @@ Docs: `https://gsts.moe`
 - `dist/`: build outputs (`.gs.ts` / `.json` / `.gia`)
 - `docs/EDITOR_BOUNDARIES.md`: English code-vs-editor responsibility guide
 - `docs/EDITOR_BOUNDARIES_ZH.md`: Chinese code-vs-editor responsibility guide and terminology reference
+- `docs/GIL_ASSET_COMMANDS.md`: English GIL asset command reference (node graphs / entities / mounts / signals)
+- `docs/GIL_ASSET_COMMANDS_ZH.md`: Chinese GIL asset command reference (node graphs / entities / mounts / signals)
 - `CLAUDE.md` / `AGENTS.md`: AI collaboration notes (read first)
 
 ## Injection Config Example (Optional)
@@ -72,7 +74,14 @@ Language entry:
 
 - Use code for runtime rules: gameplay flow, state machines, wave logic, economy, validation, spawning, settlement, and signal orchestration.
 - Normally use the editor for authored resources and configuration: prefabs, components, paths, UI layouts/control groups, signals, global timers, shops, currencies, ability units, text bubbles, minimap markers, and audio assets.
-- Bounded exception: `assets:static-assemblies` can build new static custom prefabs from an existing template closure in the target map and confirmed official base resources. It modifies `.gil` assets directly, is not GIA NodeGraph injection, and does not imply that arbitrary editor assets can be generated in code.
+- Bounded exception: the following GIL asset operations are wrapped by `assets:*` commands (rules derived from real editor save snapshots, see `docs/GIL_ASSET_COMMANDS.md`):
+  - `assets:static-assemblies`: build static custom prefabs from an existing template closure;
+  - `assets:node-graphs`: create an empty NodeGraph container (injection target placeholder);
+  - `assets:entities`: create/export scene entities, record-level color/transform patches, bidirectional decoration attachment;
+  - `assets:mounts`: mount/unmount NodeGraphs (definition or scene entity, type 3 slot);
+  - `assets:signals`: signal register/inspect/repair/update;
+  - `assets:custom-variables`: level-variable preview/writeback.
+  They modify `.gil` assets directly, are not GIA NodeGraph injection, and do not imply that arbitrary editor assets can be generated in code.
 - Before proposing or implementing a feature, check `docs/EDITOR_BOUNDARIES.md` and explicitly separate:
   - code changes
   - editor setup still required
@@ -381,6 +390,19 @@ Rules:
 - `npm run assets:static-assemblies -- --asset-config <file> --map-id <id>`: compatible preview without modifying the map
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`: save an offline candidate without overwriting an existing file
 - `npm run assets:static-assemblies -- --map-id <id> --write`: explicitly back up and write the real map
+- `npm run assets:node-graphs -- create --name <name> --map-id <id>`: create an empty NodeGraph container (injection placeholder, auto-assigned ID)
+- `npm run assets:entities -- export --gil <file.gil> --format json`: export scene entities
+- `npm run assets:entities -- import --entities <file> --map-id <id>`: create entities from a component definition (preview)
+- `npm run assets:entities -- patch <entity-id> --color <#RRGGBB> --map-id <id>`: record-level entity color patch (preview; `--write` to apply)
+- `npm run assets:entities -- patch <entity-id> --attach-aux <aux-id> --map-id <id>`: bidirectional decoration attachment (preview)
+- `npm run assets:mounts -- list --map-id <id>`: full survey of node graphs / definitions / entities and their mounts
+- `npm run assets:mounts -- list --graph <gid> --map-id <id>`: reverse lookup of which targets mount a graph
+- `npm run assets:mounts -- attach <target-id> --graph <gid> [--def|--entity] --map-id <id>`: mount a NodeGraph (preview)
+- `npm run assets:mounts -- detach <target-id> --graph <gid> [--def|--entity] --map-id <id>`: unmount a NodeGraph (preview)
+- `npm run assets:signals -- inspect --gil <file.gil>`: inspect the signal registry
+- `npm run assets:signals -- register --name <name> --param <name:type> --map-id <id>`: register a signal (preview)
+
+Full usage, wire rules, and evidence tiers for these GIL asset commands: `docs/GIL_ASSET_COMMANDS.md` (Chinese: `docs/GIL_ASSET_COMMANDS_ZH.md`). All writes are preview-only by default; `--write` backs up and applies, then reload the map before saving.
 
 Each `assets.staticAssemblies` item uses a local Transform relative to the assembly origin; the assembly's own `position`, `rotation`, and `scale` are scene Transforms. Main and item colors support enabled/disabled custom color, `0xRRGGBB`, 0–100 opacity, and `overwrite`/`multiply`; unknown material fields remain inherited. `components` currently supports only `{ type: 'followMotion', preset: 'fullFollow' }`, adding the same Full Follow snapshot to definition and instance records; omission adds no component. This component has real-GIL, automatic-regression, bounded writeback, and user editor/game validation evidence. Complex models may replace config-level `items`, `color`, and `components` with `structureFile: './assemblies/model.json'`. The strict JSON file uses `schemaVersion: 1`, owns `color`, `components`, and `items`, resolves relative to `gsts.config.ts`, and can use `node_modules/genshin-ts/schemas/static-assembly.schema.json` for completion. It does not extract structures from `.gil`. Confirm the template, resource IDs, prefab ID, and both auxiliary ID lists for the target map—never copy documentation IDs into a real write.
 
