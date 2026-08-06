@@ -373,8 +373,12 @@ aux 侧归属（root 27 aux 记录 f4 槽）:
   “球体材质引用”语义。v6 球体改色样本 hex `…28 d7 ae b5 07 30 ac 34` 中 f5 varint
   `d7 ae b5 07` = 0xED5757（粉红 RGB，与 f3=0xFFED5757 一致）；此前记录的
   “0x7FFFFFF→0x07B5AED7 材质引用”是把 5 字节 varint 读反的解码错误，作废。
-  材质槽完整字段：`f1=1` 启用自定义颜色标记（编辑器默认 aux 无此字段）、
-  `f3=0xAARRGGBB`、`f4=fixed32 100.0`、`f5=RGB`、`f6=6700`。
+  材质槽完整字段：`f1=1` 启用自定义颜色标记、`f3=0xAARRGGBB`、`f4=fixed32 100.0`、
+  `f5=RGB`、`f6=6700`。
+  **v21 补充（2026-08-08）**：live aux（从未改色的贴片）材质槽 = `f1=1, f3=0xFFFFFFFF,
+  f4=100.0, f5=0xFFFFFF, f6=6700`——f3=0xFFFFFFFF 是“默认色”标记（非实际颜色），
+  f5=0xFFFFFF 是默认白；删除占位 aux（f2=空模型 10005018）材质槽无 f1（被重置），
+  f3 仍为 0xFFFFFFFF。此前“编辑器默认 aux 无 f1”记录作废。
 - **root 45 = 编辑器“最近使用的颜色” MRU 列表（2026-08-06 v0-v21 全链闭合）**：
   v0 无此 root，v1-v5 空记录（len=0），v6 用户调色板选色后出现单条粉红 0xFFED5757；
   结构 = `f1{f1=1, f11{f1{f3: 0xAARRGGBB varint 列表}}}`，**最新在前**（头部插入）。
@@ -402,6 +406,24 @@ aux 侧归属（root 27 aux 记录 f4 槽）:
   伴随变化：root 22 属性注册表新增 `PropertyChildModel` 条目（f2 位图 5→6 字节，
   推测旋转时登记子模型跟随属性，单样本 INSUFFICIENT）；root 27 贴片 aux 不变
   （局部坐标随实体旋转，游戏引擎处理）；root 46 等长保存副作用。
+- **多轴欧拉角顺序已闭合（2026-08-08，用户分步旋转三步样本 + wire 交叉）**：
+  编辑器旋转 = YXZ 内旋，矩阵 `R = Ry(β)·Rx(α)·Rz(γ)`，面板显示值 = wire 值（直写）。
+  证据：用户对平面实体 1077936138 分步旋转（X45→Z~25→Y~30→X-45），每步面板值
+  （44.10,0,23.44 → 28.78,29.33,41.26 → -7.49,1.09,35.67）与保存后 wire 逐值一致，
+  且按 YXZ 内旋分解的三步矩阵一致性误差≈0（其他 5 种顺序 0.3+）；分步旋转 = 矩阵级
+  累积后按 YXZ 重新分解显示（绕 Z 25° 后 X 从 45→44.10 即重分解证据）。
+  **旧脚本 .local/tmp/generate-football.ts 的 eulerToNormal 已作废**：其“Unity ZXY”
+  假设方向碰巧对（YXZ 内旋 z=0 等价），但 x 分量符号反了（生成 +asin(n_y)，正确应为
+  -asin(n_y)），这是“飞散方板球壳”的直接原因之一。旋转面板输入即 wire 值；
+  basisToEuler（football_geometry.ts）默认 EULER_ORDER='yxz' 按此闭合规则提取。
+  证据快照：`entities/football-empty-model-sample*/raw/`（before 7fa4557a / 中间 / after 2cb749a4）。
+- **空模型实体（root5 场景实体 res=10005018）规则已闭合（2026-08-08，用户样本 1077936172）**：
+  编辑器“空物体/空模型” = root5 实体记录，f2={f1:10005018, f2:1}（资源 ID 直接作定义引用，
+  无 root4 定义配对）、f8=10005018；f5 槽 11 个（t=1 名称/13/14/38/t=40 挂接（f50 空）/111/61/62/19/20/52）、
+  f6 槽 14 个（t=1 transform + t=22 材质默认色 f3=0xFFFFFFFF + 组件引用等）、f7 组件 6 个（含 t=18 移动）。
+  这是“空父对象”宿主语义，**区别于 aux 删除占位**（aux f2=10005018 + f4{t=20} 槽）。
+  创建新实体时 root 6 大记录（组ID=3）f3.f5 列表末尾追加 `{f1:200, f2:新实体ID}`（真实样本差分，
+  568B→579B +11B），root 46 等长保存副作用；本次创建无 root 22 新条目。
 - **编辑器保存会规范化（v13 实测）**：材质槽 `f5` 被同步为 f3 颜色的 RGB 部分
   （深灰 0xFF171A22→f5=0x171A22、蓝 0xFF0000FF→f5=0xFF），手写时必须直接写
   RGB 而非固定 0xFFFFFF；0 贴片块的空挂接列表（f50）会被清空，生成时不要写；
@@ -754,9 +776,66 @@ root 5 实体 + 变量记录、root 9 文本框 1073741829-1835、root 10 NodeGr
 全部其他 root 字段字节不变；patch 幂等；全文件对比 patch 预览 vs v21 仅差
 root 45（编辑器 MRU 自更新）+ root 46（保存副作用）。
 
-`INSUFFICIENT`：装饰物挂接（root 27 aux append + 实体 f50 双向引用）尚未封装为
-patch 操作（机制相同，数据构造未做）；`patchGilRecord` 目前只按 `f1` varint 匹配
-记录 ID（其他 ID 字段的 root 需扩展）。
+## patch 管线：装饰物（aux）操作（2026-08-08 封装，`src/cli/static_assembly/patch.ts`）
+
+装饰物操作已封装为记录级 patch，复用上方已闭合的 aux 双向引用规则：
+
+- `attachAux(bytes, entityId, auxId)`：**双向引用一次写完**——实体侧
+  f5{t=40}.f50 = {f501: auxID 列表}（append，已有槽则更新 f50，无槽则新建
+  f5{t=40} 槽）；aux 侧 f4{t=40}.f50 = {f502: ownerID}（无槽则新建）。
+  幂等：已挂载则实体侧原样返回。
+- `detachAux(bytes, entityId, auxId)`：实体 f501 列表移除；空列表回落到
+  **编辑器规范化形态**（f50 = 空 message len 0，槽保留，v21 球体实体实测）；
+  aux 侧移除 f4{t=40} 槽。后者无真实编辑器样本，是 attach 的逆操作推断
+  （INSUFFICIENT：编辑器内删除装饰物走的是 f2 换空模型 + t=20 槽，不是 detach）。
+- `patchAuxColor(bytes, auxId, argb)`：材质槽 `#5{f1=22}.f32`，f3/f5 同步
+  （同实体颜色的编辑器规范化规则）。
+- `patchAuxTransform(bytes, auxId, transform)`：f5{t=1}.f11（position 稀疏 /
+  rotation 度数稀疏 / scale 三轴全量），复用 `gil_entities.setTransform` 的
+  槽号参数化（实体 f6 / aux f5）。`readAuxTransform` 供 CLI 读回当前值。
+- `createAuxRecord(bytes, record)`：新建 aux 记录（root 27 f2 append，
+  patchRootField 替换整个 root message，applyReplacement 修复祖先长度）。
+- `buildAuxRecord(spec)`：按 v21 编辑器产物结构生成记录（f4{t=1 名称,t=40 挂接,
+  t=111 占位} + f5{t=1 transform,t=5,t=2,t=22 材质} + f12 空），字段树与
+  v21 live aux 同构（tests/gil_patch_test.ts shape 断言）。
+
+CLI（`gsts assets:entities patch`）：`--attach-aux <id>` / `--detach-aux <id>`
+作用于实体；`--aux <id>` 把 --color/--position/--rotation/--scale 切换到 aux 对象。
+
+验证（`tests/gil_patch_test.ts`，v21 真实快照）：挂载后实体 f501 列表与 aux f502
+归属一致（双向），且与编辑器星球样本同构（f50 = {f501: auxID varint 嵌套
+message}）；detach 后空列表 = 空 f50 message；颜色 patch f3/f5 同步且 owner 保留；
+transform patch 回读一致且 owner 保留；createAux 字段树与 v21 live aux 同构；
+全部操作只改动目标记录（跨 root 操作例外：attach/detach 合法同时改 root 5 与
+root 27）。
+
+## 节点图挂载（type 3 槽）规则与工具（2026-08-08 封装，`src/cli/gil_graph_mounts.ts`）
+
+**规则（mount-case1/2/3/4 真实相邻快照 + 用户游戏核验，CONFIRMED）**：
+
+- 挂载生效节点图 = 实体槽 type 3：槽列表（def root4 f7 / 元件实例 root8 f6 /
+  场景实体 root5 f6）中 {1:3} 的槽，恒为槽列表第 3 条（15 条槽按 type 升序
+  [1,2,3,4,5,6,7,8,11,12,16,17,19,20,22]）。
+- 空槽形态 = `08036a00`（{1:3, 13:空}）；挂载后 f13.f1 每条 =
+  `{1: {1:1, 2:图GID, 501:20000}}`（**两层 f1 包装**，501:20000 为 varint）；
+  多图 = f13.f1 repeated 按挂载顺序追加（+17B/图）；解除最后一个图 → f13 回空。
+- 图 GID 用完整值（1073741828，与 root10 Id.f5 同空间），不是短号。
+- 三个容器各自独立记录：def 挂载双写 root4（f1=defID）+ root8 全部引用实例
+  （f2.f1=defID 全值，含多实例）；场景实体挂载只写 root5（f1=场景实体 ID）。
+- root6 分类聚合登记新 def ID 一次性，与挂载/解除生命周期无关（解除不回退）；
+  root10/root9/root27 与挂载无关；挂载已有图不改图本体。
+
+**CLI（`gsts assets:mounts`）**：`<attach|detach|list> <target-id>`，
+`--def`（root4+root8 双写）/ `--entity`（root5）；`--graph <gid>`（attach/detach）；
+`--output` 候选 / `--write` 备份后写回；幂等；图存在性校验（root10 双层包装
+Id.f5）；`--def` 无实例时只写 root4，不存在 def 报错。
+
+验证（`tests/gil_graph_mounts.ts` + `tests/fixtures/mount_records.ts`）：
+attach/detach 输出与 mount-case1/2/3/4 真实快照记录**逐字节一致**（空→挂 1828→
+c1、空→两图→c3、c1→解除→c2、实体 {1826}→{1826,1844}→回退）；def 多实例同步
+（patchAllMatching 逐条推进，测试抓出过只处理首条的 bug）；def 无实例边界；
+attach→detach 整文件 sha256 还原。真实注入：entity 与 def 两路径 attach/detach
+各一轮，用户游戏核验全部通过，地图恢复原始 hash。
 
 ## 当前未知范围
 
