@@ -32,6 +32,21 @@
       ]
     },
     {
+      "id": "aref_088b387cedd5c2f7cb59451660",
+      "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/connections.md",
+      "locator": "控制流：源新增 OutFlow",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6e04804190aa318d8bf482f098149bbc3f4efb22e18dbbca18382588b05a2241",
+      "claim_ids": [
+        "clm_DDD535B52FFFF56D5072712050"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_0cb2d13f91cfb10d54e670d4cb",
       "path": "docs/composite-ir/04-validation-signal.md",
       "locator": "section 13 listen-node (onSignal) instance encoding v7-v10",
@@ -74,6 +89,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_1de78737960006bd44fbd49dbc",
+      "path": "docs/game-engine-knowledge/node-graphs.md",
+      "locator": "Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 + v18 + v21 快照 + data.json Variants 表闭环）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b063c2b27992850fe463dba5ae83f7eb2be41c39538bfcba7c741f5eedee629b",
+      "claim_ids": [
+        "clm_23EAD146B7098B8A122AD6D73D"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -212,6 +242,51 @@
       ]
     },
     {
+      "id": "aref_38948e6f94b5b6e3c552947913",
+      "path": "docs/game-engine-knowledge/control-flow.md",
+      "locator": "普通图 SysCall 的 FlowOut→FlowIn 落盘",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "e2d82e4118540c3f9217f68e1a7822dd277f862294272c250ae162ae98470fd9",
+      "claim_ids": [
+        "clm_DDD535B52FFFF56D5072712050"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_38b8d74f79d3003073f5c81862",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "调用侧（宿主图实例 pin）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
+      "claim_ids": [
+        "clm_8CC703AD6EAB67CF889F4D05F2"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_3997f87b96a16bd17980f5a50f",
+      "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/composite-nodes.md",
+      "locator": "已闭合骨架（v22-v48）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "275ea788a36f3c9e66ef6c48834402c071ba64da6bb1e253ca23ba5f6ddb8697",
+      "claim_ids": [
+        "clm_0D5030477987A86DE4D2A6A265"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_39bc846325e8542fe6216cceb3",
       "path": "docs/game-engine-knowledge/validation-workflow.md",
       "locator": "整体语义树的章节式调查；单变化、不可变快照、presence、Validator 和证据状态边界",
@@ -299,6 +374,36 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_41a1e9342a7af9ad1194e47af5",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "参数流定义（CompositeDef.inputs/outputs/inflows/outflows）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
+      "claim_ids": [
+        "clm_D0216263867D8BDE9A5B831253"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_4581cc1f1e48032d64837d454e",
+      "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/connections.md",
+      "locator": "Variant 手动选型：concreteId=KernelID + R<T> pin 实例化",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6e04804190aa318d8bf482f098149bbc3f4efb22e18dbbca18382588b05a2241",
+      "claim_ids": [
+        "clm_23EAD146B7098B8A122AD6D73D"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -542,6 +647,21 @@
       ]
     },
     {
+      "id": "aref_8a73d3cf6dce0ca3a5b098f446",
+      "path": ".agents/skills/editor-incremental-gia-investigator/references/node-graph-logic/connections.md",
+      "locator": "数据流：目标新增 InParam（单线或 --wires 多线一次保存）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6e04804190aa318d8bf482f098149bbc3f4efb22e18dbbca18382588b05a2241",
+      "claim_ids": [
+        "clm_1AD56D30A3A2DF6F08673BA49C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_8d54507653cac609d4988414f0",
       "path": "docs/architecture/injector-system.md",
       "locator": "3.4 向特定 NodeGraph 增加节点：相邻快照与整图替换",
@@ -584,6 +704,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_95358d99f9942609a52f0cee0f",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "内部 Variant 选型与改类型（case17/18/19 实测）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
+      "claim_ids": [
+        "clm_23C30B27044EC9F29E896D9EFF"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -647,6 +782,21 @@
       ]
     },
     {
+      "id": "aref_b71ec7221fdab19a329a4a5b78",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "CompositePin 映射（内部图 compositePins）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
+      "claim_ids": [
+        "clm_E259AE61C383F9B8447CA9D77C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_bfba4c82cfb4ff1f7f70fe96b4",
       "path": "tests/composite/test-stage3-composite-accessory-fail-fast.ts",
       "locator": "partial accessory output rejection and error code regression",
@@ -676,6 +826,21 @@
         "documented_contract",
         "external_game_evidence",
         "writeback_behavior"
+      ]
+    },
+    {
+      "id": "aref_cd27648993baf325a209a89f01",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "wire 编码（2026-08-06 v22-v48 真实相邻快照 CONFIRMED）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
+      "claim_ids": [
+        "clm_0D5030477987A86DE4D2A6A265"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -754,6 +919,21 @@
       ]
     },
     {
+      "id": "aref_e1112103882bfdae6b2aa904ef",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "编辑器行为（v22-v48 逐轮单变化实测）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "580c61a5b9f562817b10b078f84e7451c01c7d217b33d2bf604dc419fe48f742",
+      "claim_ids": [
+        "clm_8848DCF0478F05D2FC81D6FE41"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_e190a4844c7344c1d3900e5d8d",
       "path": "AGENTS.md",
       "locator": "回复与协作：知识优先的最小单变化收敛流程",
@@ -811,6 +991,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_f121b31ba78483ddabc5f21e75",
+      "path": "docs/game-engine-knowledge/data-flow.md",
+      "locator": "wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v21 + dataflow-case1-4 真实快照 CONFIRMED）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "19ab88bd56229ca7360f466e2700c107ad6fcc24115ee9dc9a3df38f8b757b5f",
+      "claim_ids": [
+        "clm_1AD56D30A3A2DF6F08673BA49C"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -1164,7 +1359,7 @@
       "locator": "tool selection and evidence limits",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "b7dc5264ed7ca40da189320a5f4af7fae6ab36bd22865eaa87dce7e7edbce5cb",
+      "approved_hash": "f42979e905601849ab6ef87f933af5a1f6d7d8760438682701632b15faab3cb2",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH4ZJ0Q06EDE5T9ETYCAGK4"

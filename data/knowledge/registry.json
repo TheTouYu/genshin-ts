@@ -731,6 +731,24 @@
       "summary": "",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "composite-editor-wire",
+      "node_id": "composite-boundary",
+      "title": "真实编辑器复合 wire（v22-v48 相邻快照）",
+      "path": "knowledge/composite-boundary/composite-editor-wire.md",
+      "summary": "用户自建复合节点在真实编辑器 GIL 中的三层落盘、参数流/映射/调用侧 wire 与逐操作行为（composite-case1..26）",
+      "keywords": [],
+      "permission": "internal"
+    },
+    {
+      "id": "ordinary-connection-wire-encoding",
+      "node_id": "gia-wire-analysis",
+      "title": "普通 SysCall 连接 wire 编码（真实编辑器快照）",
+      "path": "knowledge/gia-wire-analysis/ordinary-connection-wire-encoding.md",
+      "summary": "普通节点图 SysCall 控制流/数据流连接的真实 GIL 落盘：源目标 index 省略、connects 双写、Variant 自动实例化、替换/断线/排序规则（v9-v22）",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -996,6 +1014,51 @@
       ]
     },
     "clm_1E31BAC638F84B68E6F1CB17B4": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_8CC703AD6EAB67CF889F4D05F2": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_23C30B27044EC9F29E896D9EFF": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_E259AE61C383F9B8447CA9D77C": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_23EAD146B7098B8A122AD6D73D": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_DDD535B52FFFF56D5072712050": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_8848DCF0478F05D2FC81D6FE41": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_1AD56D30A3A2DF6F08673BA49C": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_0D5030477987A86DE4D2A6A265": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_D0216263867D8BDE9A5B831253": {
       "fact_classes": [
         "external_game_evidence"
       ]
