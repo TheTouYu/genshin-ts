@@ -137,6 +137,10 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
 - 参数来源（每个节点每个输入：上游节点输出 / 字面量值（枚举自动转名）/ 未连线）；
 - 系统/复合节点：无 impl 图的定义节点标为“系统节点”（如发送信号/监听信号，无内部图，参数行为由信号名决定）；有 impl 图的标为“复合节点”并给出实现图 id。
 
+树上每个节点附带关键参数摘要：变量设置类节点显示变量名（如 `Set Custom Variable [变量="ballVx"]`，规则见 variables.md），发送/监听信号节点显示信号名（如 `系统:发送信号 [信号="日志操作"]`，信号名编码见 signals.md）。
+
+复合 impl 图的执行链按 compositePins 的 InFlow 映射显示为“外部入口”（如 `外部入口 显示键盘: n=13 ...`），不再误报为孤立执行链；只有确实无事件入口、无外部 InFlow 的链才显示“孤立执行链”。
+
 `--composite` 输出指定复合/系统节点的定义接口（inputs/outputs/inflows/outflows）；有 impl 图时同时输出复合内部解读（事件入口、控制流、参数来源，与 `--graph` 同格式）。
 
 `--depth <n>`（默认 0=不展开）把嵌套复合递归展开：图内每个复合节点输出一行概要（名字、impl 图 id、调用点、接口），并缩进展开其内部的事件入口与控制流树，递归 n 层；循环引用与系统节点（无 impl）会标注。嵌套层不输出参数来源（防输出爆炸；复合节点的参数来源在顶层已覆盖）。示例：
@@ -155,6 +159,8 @@ npx tsx tools/scan-gil-signals.ts <地图.gil>                    # 列出全部
 npx tsx tools/scan-gil-signals.ts <地图.gil> --signal 足球      # 指定信号的完整使用清单
 npx tsx tools/scan-gil-signals.ts <地图.gil> --signal 足球 --json
 ```
+
+不带 `--signal` 时列出本文件全部被使用信号（每行含发送/监听/其他节点数与去重图数），适合先看全景再定点。
 
 扫描全部**主图 + 复合 impl 图**所有节点的信号 pin（`ClientExecNode`/`ClientSignal`，`i1.kind=5/6` 的字符串值）。信号名就编码在这些 pin 的 value 里，发送/监听节点是系统复合（无 impl 图）：
 
