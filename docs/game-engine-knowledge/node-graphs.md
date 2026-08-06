@@ -93,6 +93,9 @@ NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CON
 - 变体切换联动：pin `type`（3=Int→6=Str）、`value.bConcreteValue.f1 = TypeSelectorIndex`
   （337 Int=2/Str=5，多分支 Int=0 省略/Str=1）、cases 列表类型（IntegerList=8→StringList=11）
   全部跟随变体；
+- **已连线 Variant 改类型（v22 实测）**：源侧联动重写（concreteId=新 KernelID、R<T> pin
+  type/value/indexOfConcrete 跟随），**类型不匹配的线自动断开且目标 InParam pin 整个移除**
+  （不只是 clears connects，与"替换线改 connects.id"对照：替换是改 id，类型失效是删整 pin）；
 - 推论：批量注入写 `concreteId=ID` 对 Variant 节点是冗余（编辑器保存会移除，Fixed 保留）；
   游戏/编辑器显示不依赖它（434 节点注入核验通过）。signals.md 既有记录
   （获取局部变量 str=2656/int=20/bool=18）即 KernelID，与 data.json 一致。
@@ -191,7 +194,8 @@ dx/dy 可调）；`--all-server` 枚举 data.json 全部 Server 节点（ID 升�
 - i2.index 语义（数据连接样本 i1==i2 一致，252 样本 5/7 不等；疑为 UI/定义内部序，需更多样本）
 - 普通图 SysCall 的基础 FlowOut→FlowIn wire 已闭合：连接挂源 OutFlow、默认 index 省略、
   非默认 OutFlow[1]/[2]/[3]/[4] 显式保留 index、目标 GraphNode 不变（详见[控制流](control-flow.md)）
-- Variant 选型对已连线的联动：先连线后手动改类型时既有 connects 如何处理（未测）
+- Variant 选型对已连线的联动已闭合（2026-08-06 v22）：先连线后手动改类型 → 源联动重写 +
+  类型不匹配的线自动断开 + 目标 InParam pin 整个移除（见上）
 - 更高源 OutFlow index（>4）与游戏执行语义（游戏验证范畴）
 
 ## 待逐步还原（剩余）
