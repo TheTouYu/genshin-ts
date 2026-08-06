@@ -241,6 +241,42 @@ export function graphExists(bytes: Uint8Array, graphId: number): boolean {
   return false
 }
 
+/** 盘点：root10 全部节点图（双层包装 Id.f5 + NodeGraph.f2 名称，单次遍历）。 */
+export function graphCatalog(bytes: Uint8Array): { id: number; name?: string }[] {
+  const root = parse(bytes.slice(20, -4)) ?? []
+  const out: { id: number; name?: string }[] = []
+  for (const record of wireRecords(root, 10, 1)) {
+    const nodeGraph = parse(record)?.find((field) => field.wire === 2 && field.number === 1)
+    const fields = parse(nodeGraph?.value as Uint8Array) ?? []
+    const gid = parse(
+      fields.find((field) => field.wire === 2 && field.number === 1)?.value as Uint8Array
+    )?.find((field) => field.wire === 0 && field.number === 5)?.value
+    if (typeof gid !== 'number') continue
+    const name = fields.find((field) => field.wire === 2 && field.number === 2)
+    out.push({
+      id: gid,
+      ...(name ? { name: new TextDecoder().decode(name.value as Uint8Array) } : {})
+    })
+  }
+  return out
+}
+
+/** 盘点：root4 全部元件定义及其挂载图（f7 槽，无槽 → []）。 */
+export function listDefMounts(bytes: Uint8Array): { id: number; graphs: number[] }[] {
+  const root = parse(bytes.slice(20, -4)) ?? []
+  return wireRecords(root, 4, 1)
+    .map((record) => ({ id: wireRecordId(record), graphs: readMountedGraphs(record, 7) }))
+    .filter((d): d is { id: number; graphs: number[] } => d.id !== undefined)
+}
+
+/** 盘点：root5 全部场景实体及其挂载图（f6 槽，无槽 → []）。 */
+export function listEntityMounts(bytes: Uint8Array): { id: number; graphs: number[] }[] {
+  const root = parse(bytes.slice(20, -4)) ?? []
+  return wireRecords(root, 5, 1)
+    .map((record) => ({ id: wireRecordId(record), graphs: readMountedGraphs(record, 6) }))
+    .filter((d): d is { id: number; graphs: number[] } => d.id !== undefined)
+}
+
 /** 读图名（root10 双层包装 NodeGraph.f2，无则 undefined）。 */
 export function readGraphName(bytes: Uint8Array, graphId: number): string | undefined {
   const root = parse(bytes.slice(20, -4)) ?? []
@@ -268,9 +304,11 @@ function usage(exitCode = 1): never {
   const output = [
     'Mount or unmount a NodeGraph on a component definition or scene entity (type 3 slot).',
     '',
-    'Usage: gsts assets:mounts <attach|detach|list> <target-id> [options]',
+    'Usage: gsts assets:mounts <attach|detach> <target-id> [options]',
+    '       gsts assets:mounts list [<target-id>] [options]',
     '',
-    '  --graph <graph-id>   NodeGraph GID (required for attach/detach)',
+    '  --graph <graph-id>   NodeGraph GID (required for attach/detach;',
+    '                       with list without a target-id prints reverse lookup)',
     '  --def                target is a component definition (root4 + root8 instances)',
     '  --entity             target is a scene entity (root5; default)',
     '  --gil <file>         explicit GIL source',
@@ -281,6 +319,11 @@ function usage(exitCode = 1): never {
     '',
     'attach adds a graph to the mount slot (idempotent, appended in order);',
     'detach removes it (last removal leaves the empty 08036a00 slot).',
+    'list <target-id> prints that target\'s mounted graphs; list without a',
+    'target-id prints a full survey: every node graph (root10, with name),',
+    'every definition (root4) and scene entity (root5) with their mounts,',
+    'and graphs not mounted anywhere. list --graph <gid> (no target-id)',
+    'prints which definitions/entities mount that graph.',
     'These commands modify .gil asset structures. They are not GIA NodeGraph',
     'injection, runtime behavior, or editor/game verification.'
   ].join('\n')
@@ -330,7 +373,8 @@ function parseArgs(argv: readonly string[]) {
   }
   if (gilPath && mapId !== undefined)
     throw new Error('[error] --gil and --map-id are mutually exclusive')
-  if (targetId === undefined) throw new Error('[error] missing <target-id>')
+  if (targetId === undefined && command !== 'list')
+    throw new Error('[error] missing <target-id> (list without a target-id prints a survey)')
   if (command !== 'list' && graphId === undefined)
     throw new Error(`[error] ${command} requires --graph <graph-id>`)
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
@@ -371,6 +415,39 @@ function backupPath(gilPath: string): string {
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
 }
 
+/** 盘点输出：全量（无 --graph）或反向查询（--graph <gid>）。 */
+function printSurvey(bytes: Uint8Array, graphFilter?: number): void {
+  const catalog = graphCatalog(bytes)
+  const names = new Map(catalog.map((g) => [g.id, g.name]))
+  const nameOf = (id: number) => (names.get(id) ? ` name=${names.get(id)}` : '')
+  const defs = listDefMounts(bytes)
+  const entities = listEntityMounts(bytes)
+  if (graphFilter !== undefined) {
+    console.log(`graph=${graphFilter}${nameOf(graphFilter)}`)
+    for (const d of defs) if (d.graphs.includes(graphFilter)) console.log(`target=${d.id} kind=def`)
+    for (const e of entities) if (e.graphs.includes(graphFilter)) console.log(`target=${e.id} kind=entity`)
+    return
+  }
+  console.log(`== node graphs (${catalog.length}) ==`)
+  for (const g of catalog) {
+    console.log(`graph=${g.id}${g.name !== undefined ? ` name=${g.name}` : ''}`)
+  }
+  console.log(`== definitions (${defs.length}) ==`)
+  for (const d of defs) {
+    console.log(`target=${d.id} kind=def graphs=${d.graphs.join(',') || '(none)'}`)
+  }
+  console.log(`== entities (${entities.length}) ==`)
+  for (const e of entities) {
+    console.log(`target=${e.id} kind=entity graphs=${e.graphs.join(',') || '(none)'}`)
+  }
+  const mounted = new Set([...defs, ...entities].flatMap((t) => t.graphs))
+  const unmounted = catalog.filter((g) => !mounted.has(g.id))
+  console.log(`== graphs not mounted anywhere (${unmounted.length}) ==`)
+  for (const g of unmounted) {
+    console.log(`graph=${g.id}${g.name !== undefined ? ` name=${g.name}` : ''}`)
+  }
+}
+
 async function runMounts(
   args: ReturnType<typeof parseArgs>,
   projectConfig: GstsConfig | undefined
@@ -380,6 +457,13 @@ async function runMounts(
     throw new Error(`[error] gil not found: ${source.path}`)
   let bytes: Uint8Array = new Uint8Array(fs.readFileSync(source.path))
   if (args.command === 'list') {
+    if (args.targetId === undefined) {
+      if (args.graphId !== undefined && !graphExists(bytes, args.graphId)) {
+        throw new Error(`[error] graph ${args.graphId} not found in root 10`)
+      }
+      printSurvey(bytes, args.graphId)
+      return
+    }
     const graphs = args.kind === 'def'
       ? mountedDefGraphs(bytes, args.targetId)
       : mountedEntityGraphs(bytes, args.targetId)

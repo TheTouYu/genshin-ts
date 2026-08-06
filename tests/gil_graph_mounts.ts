@@ -3,8 +3,11 @@ import assert from 'node:assert/strict'
 import {
   attachMountedGraph,
   detachMountedGraph,
+  graphCatalog,
   graphExists,
   instanceReferencesDef,
+  listDefMounts,
+  listEntityMounts,
   mountGraphToDef,
   mountGraphToEntity,
   readMountedGraphs,
@@ -138,6 +141,25 @@ function hexOf(bytes: Uint8Array): string {
 {
   const mutated = setMountedGraphs(recordBytes(c4_ent_1077936180), ENT_SLOT, [1073741826])
   assert.equal(hexOf(mutated), c2_ent_1077936180)
+}
+
+// ---- 盘点：graphCatalog / listDefMounts / listEntityMounts ----
+
+{
+  const map = miniMap(
+    recordBytes(c1_def_1077936183),
+    recordBytes(c1_inst_1077936187),
+    recordBytes(c4_ent_1077936180),
+    [1073741826, 1073741844, 1073741828]
+  )
+  const catalog = graphCatalog(map)
+  assert.deepEqual(
+    catalog.map((g) => g.id),
+    [1073741826, 1073741844, 1073741828]
+  )
+  assert.equal(catalog[0].name, 'graph-1073741826')
+  assert.deepEqual(listDefMounts(map), [{ id: 1077936183, graphs: [1073741828] }])
+  assert.deepEqual(listEntityMounts(map), [{ id: 1077936180, graphs: [1073741826, 1073741844] }])
 }
 
 // ---- 幂等 ----

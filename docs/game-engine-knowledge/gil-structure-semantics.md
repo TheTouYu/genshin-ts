@@ -825,10 +825,19 @@ root 27）。
 - root6 分类聚合登记新 def ID 一次性，与挂载/解除生命周期无关（解除不回退）；
   root10/root9/root27 与挂载无关；挂载已有图不改图本体。
 
-**CLI（`gsts assets:mounts`）**：`<attach|detach|list> <target-id>`，
-`--def`（root4+root8 双写）/ `--entity`（root5）；`--graph <gid>`（attach/detach）；
-`--output` 候选 / `--write` 备份后写回；幂等；图存在性校验（root10 双层包装
-Id.f5）；`--def` 无实例时只写 root4，不存在 def 报错。
+**CLI（`gsts assets:mounts`）**：`<attach|detach> <target-id>` / `list [<target-id>]`；
+`--def`（root4+root8 双写）/ `--entity`（root5）；`--graph <gid>`（attach/detach；
+`list` 不带 target-id 时改为反向查询：打印哪些 def/实体挂载该图）；`--output` 候选 /
+`--write` 备份后写回；幂等；图存在性校验（root10 双层包装 Id.f5）；`--def` 无实例时
+只写 root4，不存在 def 报错。
+
+**盘点（`list` 不带 target-id，2026-08-08 新增）**：单次遍历输出四段——① root10 全部
+节点图（GID+名称，`graphCatalog`）；② root4 全部元件定义（`listDefMounts`，51 条/
+cd72deb3 实测）；③ root5 全部场景实体（`listEntityMounts`，16 条实测，root5 无独立
+变量记录，变量列表嵌在某条实体记录内部，不构成独立记录）；④ 未被任何 def/实体挂载
+的图。新用户据此即可看到当前地图的全部原件、场景实体与可用节点图，再按 target-id
+执行 attach/detach。真实快照实测（cd72deb3）：def 1077936183 → {1829,1830}、实体
+1077936180 → {1826,1844}，与恢复块一致；未挂载图含 1073741828 等 10 张。
 
 验证（`tests/gil_graph_mounts.ts` + `tests/fixtures/mount_records.ts`）：
 attach/detach 输出与 mount-case1/2/3/4 真实快照记录**逐字节一致**（空→挂 1828→
