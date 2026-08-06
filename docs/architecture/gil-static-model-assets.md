@@ -1192,6 +1192,15 @@ import 按真实编辑器“从元件新增场景实体”规则创建：复制�
 同构重放验证：`tests/gil_entities.ts` 断言转换结果与真实实体记录逐字节一致。
 两个样本中“空模型”类实体还会多一个 f1=20 默认能力，规则未闭合，import 不写入。
 
+当前实现允许输入 `sourceDefinitionId`，把“用于复制结构的 root 4 definition”与最终写入实体
+`f2.1` 的 `definitionId` 分开；省略时两者保持原有同值行为。这样可从独立、已验证的空模型
+definition 生成 `definitionId/resourceId=10005018` 的直接资源实体，而不会把 donor definition
+或 donor ID 复制进目标地图。`--expect-source-hash <sha256>` 在读取时拒绝过期源，`--write`
+还会在备份前复核源未漂移，并通过同目录临时文件原子替换目标。`tests/gil_entities.ts` 覆盖
+异号转换、CLI 输入、错误哈希拒绝、自动备份和无残留临时文件；`football-vnext-solid-shell`
+阶段 A 离线候选与旧生成器逐字节一致。以上新增部分属于当前实现和自动候选证据，尚未完成
+该新 CLI 路径的真实写回或编辑器/游戏验证。
+
 **Transform 稀疏向量（编码与解码必须按字段号，不按出现顺序）**：真实实体/辅助记录中的
 位置/旋转向量省略零值分量且不保证三轴连续——样本中 position 编码为 `{f1, f3}`（y 省略）、
 rotation 只有 `{f2}`。读回时按字段号 1/2/3 定位，缺省值分别为 0（位置/旋转）与 1（缩放）；

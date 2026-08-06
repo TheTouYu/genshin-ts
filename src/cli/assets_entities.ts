@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -43,11 +44,12 @@ function usage(exitCode = 1): never {
     '',
     '  --entities <file>      entity import JSON (import only)',
     '  --definitions-gil <file>  donor GIL for definition records (import only)',
+    '  --expect-source-hash <sha256>  reject a source that changed since planning',
     '  --map-id <id>          target map ID (location only)',
     '  --gil <file>           explicit GIL source',
     '  --format <text|json>   output format (default: text)',
     '  --output <file>        create output without overwriting',
-    '  --write                write source GIL after backup',
+    '  --write                atomically write source GIL after backup',
     '  -h, --help             show help',
     '',
     'patch: gsts assets:entities patch <entity-id> [options]',
@@ -61,9 +63,10 @@ function usage(exitCode = 1): never {
     '                         --color/--position/--rotation/--scale',
     '',
     'Import entities are created from their component definition record;',
-    'components are inherited byte-for-byte. patch performs a record-level',
-    'local replacement (only the target record bytes change). These commands',
-    'modify .gil asset structures. They are not GIA NodeGraph injection,',
+    'sourceDefinitionId optionally selects a donor record without changing',
+    'the definitionId written to the entity. Components are inherited byte-for-byte.',
+    'patch performs a record-level local replacement (only the target record bytes change).',
+    'These commands modify .gil asset structures. They are not GIA NodeGraph injection,',
     'runtime createPrefab, or editor/game verification.'
   ].join('\n')
   console[exitCode === 0 ? 'log' : 'error'](output)
@@ -106,6 +109,7 @@ function parseArgs(argv: readonly string[]) {
   let outputPath: string | undefined
   let entitiesPath: string | undefined
   let definitionsGilPath: string | undefined
+  let expectedSourceHash: string | undefined
   let write = false
   let format: Format = 'text'
   let entityId: number | undefined
@@ -128,7 +132,12 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--entities') entitiesPath = value(argv, index++)
     else if (arg === '--definitions-gil') definitionsGilPath = value(argv, index++)
-    else if (arg === '--format') {
+    else if (arg === '--expect-source-hash') {
+      const raw = value(argv, index++).toLowerCase()
+      if (!/^[0-9a-f]{64}$/.test(raw))
+        throw new Error('[error] --expect-source-hash must be a 64-character SHA-256')
+      expectedSourceHash = raw
+    } else if (arg === '--format') {
       const raw = value(argv, index++)
       if (raw !== 'text' && raw !== 'json') throw new Error('[error] --format must be text or json')
       format = raw
@@ -179,6 +188,7 @@ function parseArgs(argv: readonly string[]) {
     outputPath,
     entitiesPath,
     definitionsGilPath,
+    expectedSourceHash,
     write,
     format,
     entityId,
@@ -226,6 +236,45 @@ function backupPath(gilPath: string): string {
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
 }
 
+function sha256(bytes: Uint8Array): string {
+  return createHash('sha256').update(bytes).digest('hex')
+}
+
+function readSource(filePath: string, expectedHash?: string): { bytes: Uint8Array; hash: string } {
+  const bytes = new Uint8Array(fs.readFileSync(filePath))
+  const hash = sha256(bytes)
+  if (expectedHash && hash !== expectedHash) {
+    throw new Error(`[error] source SHA-256 mismatch: expected ${expectedHash}, got ${hash}`)
+  }
+  return { bytes, hash }
+}
+
+function assertSourceUnchanged(filePath: string, expectedHash: string): void {
+  const currentHash = sha256(new Uint8Array(fs.readFileSync(filePath)))
+  if (currentHash !== expectedHash) {
+    throw new Error(
+      `[error] source changed during operation: expected ${expectedHash}, got ${currentHash}`
+    )
+  }
+}
+
+function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): string {
+  assertSourceUnchanged(gilPath, sourceHash)
+  const backup = backupPath(gilPath)
+  const temporary = path.join(
+    path.dirname(gilPath),
+    `.${path.basename(gilPath)}.${process.pid}.${Date.now()}.tmp`
+  )
+  fs.copyFileSync(gilPath, backup)
+  try {
+    fs.writeFileSync(temporary, candidate, { flag: 'wx' })
+    fs.renameSync(temporary, gilPath)
+  } finally {
+    fs.rmSync(temporary, { force: true })
+  }
+  return backup
+}
+
 function loadEntitiesFile(filePath: string): EntitiesFile {
   const absolute = path.resolve(filePath)
   let parsed: unknown
@@ -260,10 +309,19 @@ function loadEntitiesFile(filePath: string): EntitiesFile {
       throw new Error(`[error] ${field}.id must be a non-negative safe integer`)
     if (!Number.isSafeInteger(item.definitionId) || (item.definitionId as number) < 0)
       throw new Error(`[error] ${field}.definitionId must be a non-negative safe integer`)
+    if (
+      item.sourceDefinitionId !== undefined &&
+      (!Number.isSafeInteger(item.sourceDefinitionId) || (item.sourceDefinitionId as number) < 0)
+    ) {
+      throw new Error(`[error] ${field}.sourceDefinitionId must be a non-negative safe integer`)
+    }
     return {
       name: item.name,
       id: item.id as number,
       definitionId: item.definitionId as number,
+      ...(item.sourceDefinitionId === undefined
+        ? {}
+        : { sourceDefinitionId: item.sourceDefinitionId as number }),
       ...(vector('position') ? { position: vector('position')! } : {}),
       ...(vector('rotation') ? { rotation: vector('rotation')! } : {}),
       ...(vector('scale') ? { scale: vector('scale')! } : {}),
@@ -288,7 +346,7 @@ async function runExport(
 ): Promise<void> {
   const source = resolveGilPath(projectConfig, args)
   const before = fs.statSync(source.path)
-  const bytes = new Uint8Array(fs.readFileSync(source.path))
+  const { bytes, hash } = readSource(source.path, args.expectedSourceHash)
   const entities = exportEntities(bytes)
   const serialized = prettyStableJson({ schemaVersion: 1, entities })
   if (args.outputPath) writeNew(args.outputPath, serialized)
@@ -303,6 +361,7 @@ async function runExport(
       )
     }
     console.log('compatibility=not-proven; editorOrGameValidation=not-performed')
+    console.log(`sourceSha256=${hash}`)
   }
   const after = fs.statSync(source.path)
   if (before.mtimeMs !== after.mtimeMs || before.size !== after.size) {
@@ -318,7 +377,7 @@ async function runImport(
   const source = resolveGilPath(projectConfig, args)
   if (!fs.existsSync(source.path) || !fs.statSync(source.path).isFile())
     throw new Error(`[error] gil not found: ${source.path}`)
-  const sourceBytes = new Uint8Array(fs.readFileSync(source.path))
+  const { bytes: sourceBytes, hash: sourceHash } = readSource(source.path, args.expectedSourceHash)
   const payload = parseWireMessage(sourceBytes.slice(20, -4))
   if (!payload) throw new Error('[error] malformed GIL payload')
   const definitions = payload.some((f) => f.number === 4 && f.wire === 2)
@@ -334,23 +393,25 @@ async function runImport(
       if (!donorIds.has(wireRecordId(record))) definitions.push(record)
     }
   }
-  const missing = entities.entities.filter(
-    (entity) =>
-      !definitions.some((record) => wireRecordId(record) === entity.definitionId)
-  )
+  const missing = entities.entities.filter((entity) => {
+    const sourceDefinitionId = entity.sourceDefinitionId ?? entity.definitionId
+    return !definitions.some((record) => wireRecordId(record) === sourceDefinitionId)
+  })
   if (missing.length) {
     throw new Error(
-      `[error] definition IDs not found in map: ${[...new Set(missing.map((entity) => entity.definitionId))].join(', ')}`
+      `[error] source definition IDs not found: ${[
+        ...new Set(missing.map((entity) => entity.sourceDefinitionId ?? entity.definitionId))
+      ].join(', ')}`
     )
   }
   const candidate = applyEntities({ bytes: sourceBytes, definitions, entities: entities.entities })
+  console.log(`sourceSha256=${sourceHash}`)
+  console.log(`candidateSha256=${sha256(candidate)}`)
   if (args.outputPath) {
     writeNew(args.outputPath, candidate)
     console.log(`candidate=${path.resolve(args.outputPath)}`)
   } else if (args.write) {
-    const backup = backupPath(source.path)
-    fs.copyFileSync(source.path, backup)
-    fs.writeFileSync(source.path, candidate)
+    const backup = writeBack(source.path, candidate, sourceHash)
     console.log(`backup=${backup}`)
     console.log(`writePerformed=true`)
   } else {
@@ -366,7 +427,7 @@ async function runPatch(
   const source = resolveGilPath(projectConfig, args)
   if (!fs.existsSync(source.path) || !fs.statSync(source.path).isFile())
     throw new Error(`[error] gil not found: ${source.path}`)
-  let bytes: Uint8Array = new Uint8Array(fs.readFileSync(source.path))
+  let { bytes, hash: sourceHash } = readSource(source.path, args.expectedSourceHash)
   const entityId = args.entityId!
   if (args.attachAuxId !== undefined) bytes = attachAux(bytes, entityId, args.attachAuxId)
   if (args.detachAuxId !== undefined) bytes = detachAux(bytes, entityId, args.detachAuxId)
@@ -393,13 +454,13 @@ async function runPatch(
     }
   }
   const changed = exportEntities(bytes).find((entity) => entity.id === entityId)
+  console.log(`sourceSha256=${sourceHash}`)
+  console.log(`candidateSha256=${sha256(bytes)}`)
   if (args.outputPath) {
     writeNew(args.outputPath, bytes)
     console.log(`candidate=${path.resolve(args.outputPath)}`)
   } else if (args.write) {
-    const backup = backupPath(source.path)
-    fs.copyFileSync(source.path, backup)
-    fs.writeFileSync(source.path, bytes)
+    const backup = writeBack(source.path, bytes, sourceHash)
     console.log(`backup=${backup}`)
     console.log(`writePerformed=true`)
   } else {

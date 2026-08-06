@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 
+import { runAssetsEntities } from '../src/cli/assets_entities.js'
 import {
   applyEntities,
   entityFromDefinition,
@@ -17,6 +22,17 @@ const ENT_HEX =
   '08ba80808204120608b6808082042a1708015a130a11e7aeade5a4b4e68c87e7a4bae7898c5f312a0b080db2010620ffffffff0f2a16080eba01110a0f1a0d4d50416374696f6e47726f75702a0a08268203050d0000803f2a0508289203002a05086fea05002a05083d8a04002a05083e9204002a050813e201002a050834f20300322f08015a2b0a0a0d7a7434401d8d1260401205158cc283c21a0f0d0000803f150000803f1d0000803fa81fffffffff0f320408026200320408036a003206080472020801320808057a040801100132050806820100324508078a01400d00002041150000803f1d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7dcdcccc3d320a08089201050801a81f013235080baa01300a2e0a0b47495f526f6f744e6f646512001a00b21f0ce4b8ade5bf83e58e9fe782b9c01f01ca1f08526f6f744e6f64653208080cb20103a81f0132050810d2010032050811da010032070813ea0102080132050814f201003218081682021318ffffffff0f250000c84228ffffff0730ac343a6508121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f64653a06080110015a003a06080310016a003a0708131001ea01003a07080610018201003a07080e1001c2010040aee5c409'
 
 const definition = Buffer.from(DEF_HEX, 'hex')
+
+function replaceVarint(record: Uint8Array, number: number, value: number): Uint8Array {
+  const fields = parseWireMessage(record)
+  assert.ok(fields)
+  const matches = fields.filter((field) => field.number === number && field.wire === 0)
+  assert.equal(matches.length, 1)
+  matches[0].value = value
+  return emit(fields)
+}
+
+const emptyDefinition = replaceVarint(definition, 2, 10005018)
 
 // 同构重放：真实 transform（来自实体 1077936186 的 f6[0]），
 // 转换结果必须与真实实体记录逐字节一致。
@@ -117,6 +133,119 @@ assert.equal(
   'header payload length must match actual payload'
 )
 assert.equal(dataView.getUint32(0, false), applied.length - 4, 'header size field must match file size')
+
+// sourceDefinitionId 只选择转换模板；definitionId 才写入实体 relation。这样可用独立
+// root4 空模型 definition 生成直接资源实体 10005018，而不把 donor definition 加入目标地图。
+const directResource = applyEntities({
+  bytes: mini,
+  definitions: [emptyDefinition],
+  entities: [
+    {
+      name: '足球vNext宿主',
+      id: 1077936188,
+      definitionId: 10005018,
+      sourceDefinitionId: 1077936182,
+      scale: [0.1, 0.1, 0.1]
+    }
+  ]
+})
+const directEntity = exportEntities(directResource).find((entity) => entity.id === 1077936188)
+assert.ok(directEntity)
+assert.equal(directEntity.definitionId, 10005018)
+assert.equal(directEntity.resourceId, 10005018)
+assert.deepEqual(directEntity.scale, [Math.fround(0.1), Math.fround(0.1), Math.fround(0.1)])
+
+// CLI 同一路径必须接受 sourceDefinitionId，并用哈希门拒绝过期源。
+const directory = mkdtempSync(path.join(tmpdir(), 'gsts-entity-source-definition-'))
+const sourcePath = path.join(directory, 'source.gil')
+const donorPath = path.join(directory, 'donor.gil')
+const entitiesPath = path.join(directory, 'entities.json')
+const candidatePath = path.join(directory, 'candidate.gil')
+const donorDefinition = replaceVarint(emptyDefinition, 1, 1077936200)
+writeFileSync(sourcePath, mini)
+writeFileSync(
+  donorPath,
+  buildFile(
+    emit([{ number: 4, wire: 2, value: emit([{ number: 1, wire: 2, value: donorDefinition }]) }]),
+    {
+      schema: 1,
+      headTag: 2,
+      fileType: 3,
+      tailTag: 4
+    }
+  )
+)
+writeFileSync(
+  entitiesPath,
+  JSON.stringify({
+    schemaVersion: 1,
+    entities: [
+      {
+        name: '足球vNext宿主',
+        id: 1077936188,
+        definitionId: 10005018,
+        sourceDefinitionId: 1077936200,
+        scale: [0.1, 0.1, 0.1]
+      }
+    ]
+  })
+)
+const sourceHash = createHash('sha256').update(readFileSync(sourcePath)).digest('hex')
+await runAssetsEntities([
+  'import',
+  '--gil',
+  sourcePath,
+  '--entities',
+  entitiesPath,
+  '--definitions-gil',
+  donorPath,
+  '--expect-source-hash',
+  sourceHash,
+  '--output',
+  candidatePath
+])
+const cliEntity = exportEntities(new Uint8Array(readFileSync(candidatePath))).find(
+  (entity) => entity.id === 1077936188
+)
+assert.equal(cliEntity?.definitionId, 10005018)
+assert.equal(cliEntity?.resourceId, 10005018)
+await assert.rejects(
+  runAssetsEntities([
+    'import',
+    '--gil',
+    sourcePath,
+    '--entities',
+    entitiesPath,
+    '--definitions-gil',
+    donorPath,
+    '--expect-source-hash',
+    '0'.repeat(64),
+    '--output',
+    path.join(directory, 'stale.gil')
+  ]),
+  /source SHA-256 mismatch/i
+)
+
+const writeSourcePath = path.join(directory, 'write-source.gil')
+writeFileSync(writeSourcePath, mini)
+await runAssetsEntities([
+  'import',
+  '--gil',
+  writeSourcePath,
+  '--entities',
+  entitiesPath,
+  '--definitions-gil',
+  donorPath,
+  '--expect-source-hash',
+  sourceHash,
+  '--write'
+])
+assert.ok(readFileSync(writeSourcePath).equals(readFileSync(candidatePath)))
+const backups = readdirSync(path.join(directory, '.gsts', 'backups'))
+assert.equal(backups.length, 1)
+assert.ok(readFileSync(path.join(directory, '.gsts', 'backups', backups[0])).equals(mini))
+assert.equal(readdirSync(directory).filter((name) => name.endsWith('.tmp')).length, 0)
+
 // 重复 ID = 更新已有实体（记录替换，不重复登记组条目，实体数不变）
 const updated = applyEntities({
   bytes: applied,

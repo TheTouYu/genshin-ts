@@ -36,6 +36,8 @@ export type EntityImport = {
   name?: string
   id: number
   definitionId: number
+  /** 仅用于选择转换模板；省略时与 definitionId 相同，不会写入目标实体。 */
+  sourceDefinitionId?: number
   position?: readonly [number, number, number]
   rotation?: readonly [number, number, number]
   scale?: readonly [number, number, number]
@@ -477,7 +479,10 @@ export function applyEntities(params: {
   }
   const section = message(top5)
   for (const entity of params.entities) {
-    const definition = findRecord(params.definitions, entity.definitionId)
+    const definition = findRecord(
+      params.definitions,
+      entity.sourceDefinitionId ?? entity.definitionId
+    )
     const existing = existingById.get(entity.id)
     const base = existing ? readTransform(existing, 6) : undefined
     let color: number | undefined
