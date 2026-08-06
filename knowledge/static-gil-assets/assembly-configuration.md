@@ -76,3 +76,27 @@ No claims are created by this Blueprint structure Bundle.
 这是 commit 8fb0e52 的当前实现和确定性合成 fixture 自动回归契约，不是新的真实地图、编辑器或游戏证据。closureStatus=complete 只说明当前已知 field 4/6/8/27 闭包检查通过，兼容性仍为 unknown；freeRuns 仅是绑定源哈希的 proposal，不是编辑器全局 ID 分配协议。plan 不生成候选、不授权 write，也不实现 verify、receipt 或 rollback。
 
 <!-- CLAIM:END clm_CFC2CA7A47D98ED4C1C40B081E -->
+
+<!-- CLAIM:START clm_A1E15CA57DDF9464638BB97C44 -->
+
+### 编辑器多轴旋转 = YXZ 内旋（R = Ry·Rx·Rz），面板值 = wire 值
+
+编辑器 rotation 编码为 YXZ 内旋欧拉角：矩阵 R = Ry(β)·Rx(α)·Rz(γ)；旋转面板显示值 = wire 存储值（直写）；分步旋转 = 矩阵级累积后按 YXZ 重新分解显示（绕 Z 25° 后 X 分量 45→44.10 即重分解证据）；单轴旋转只写对应分量。football_geometry.ts 的 basisToEuler 默认 EULER_ORDER='yxz' 按此提取。
+
+#### 适用边界
+
+真实用户样本 entities/football-empty-model-sample*/raw（分步 X45→Z25→Y30→X-45，面板值 44.10,0,23.44→28.78,29.33,41.26→-7.49,1.09,35.67 与 wire 逐值一致；YXZ 三步矩阵一致性误差≈0，其他 5 种顺序 0.3+）。适用 aux/实体 transform；gimbal lock 附近分解未实测；旧脚本 eulerToNormal 的 x 符号 bug 已作废（飞散方板根因）。
+
+<!-- CLAIM:END clm_A1E15CA57DDF9464638BB97C44 -->
+
+<!-- CLAIM:START clm_EDCA91A83DB521C90679872ED1 -->
+
+### 截角二十面体足球几何模块（football_geometry.ts）可复用
+
+src/cli/static_assembly/football_geometry.ts 提供确定性截角二十面体构造（60 顶点 / 12 五边形 + 20 六边形 / 90 边，外接半径可调、全部共球面、面共面正多边形）、面片条带覆盖（面平面局部基、跨度较小方向等分、中心线求交、无缝隙；预算 192 条）、边线（弦中点 + 长轴对齐边方向 + 截面参数；90 条）；配套 tests/football_geometry_test.ts 红绿断言全过；282 aux 预算（192 面片 + 90 边线）+ 1 宿主 = 283 新记录；候选生成 .local/tmp/generate-football-v2.ts 已写回 1073741853 并经用户游戏核验（大致正确，正方形条带拟合五边形偏粗糙）。
+
+#### 适用边界
+
+纯数学模块不触碰 GIL；面片/边线 transform 经 buildAuxRecord + attachAux（patch.ts）注入；欧拉角顺序依赖 yxz 规则 Claim；条带宽度/厚度/表面偏移/边线截面等参数可调；用户游戏核验为一轮证据，高精度拟合（五棱柱/三棱柱压扁做面片）待下一轮。
+
+<!-- CLAIM:END clm_EDCA91A83DB521C90679872ED1 -->

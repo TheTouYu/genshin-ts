@@ -353,7 +353,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a61b56f0cadc68dae58363f7e3ca6d40116d6cf5a0ed08b2b6d0d7592e51cb72",
+      "approved_hash": "f5d0cb15b8dae3aa403b31ac769a7d5608bccff770a373fe8bdcd0cc15a43bdc",
       "claim_ids": [
         "clm_880C4DB58E0AD04C130A856689"
       ],
@@ -497,6 +497,36 @@
       ]
     },
     {
+      "id": "aref_5d737662fbb6a4ad7d20784584",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "空模型实体（root5 场景实体 res=10005018）规则已闭合段落",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d5fb26a60dd7012dc23f479f47ccc214c6ecbf8ae340b93f76d0fcd641d713d",
+      "claim_ids": [
+        "clm_D43A6E214D6B1F20B8EF995757"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_5f6f390acacd351f14421b1e96",
+      "path": "src/cli/static_assembly/patch.ts",
+      "locator": "buildAuxRecord / attachAux（aux 编码与双向挂接）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b4aff8e2d97c1dba2a24ac5aa574ac388cef7f797c156aad203afb453a782fec",
+      "claim_ids": [
+        "clm_EDCA91A83DB521C90679872ED1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_5f76872984aa1d7136b24fcbb2",
       "path": "tests/cli_static_assembly_plan.ts",
       "locator": "public CLI deterministic plan and read-only/output safety regression",
@@ -632,6 +662,36 @@
       ]
     },
     {
+      "id": "aref_7d75ec9b118c317a2ddda50b91",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "多轴欧拉角顺序已闭合（2026-08-08）段落",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "6d5fb26a60dd7012dc23f479f47ccc214c6ecbf8ae340b93f76d0fcd641d713d",
+      "claim_ids": [
+        "clm_A1E15CA57DDF9464638BB97C44"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_83e1ce0f2cb6d325e41c3db70c",
+      "path": "tests/football_geometry_test.ts",
+      "locator": "拓扑/条带/边线/欧拉 round-trip 断言",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "039fd95592c5130e75903d0490a278729e8a5cfd9154b0e31fc5aa0f6414d195",
+      "claim_ids": [
+        "clm_EDCA91A83DB521C90679872ED1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_8743f5362b4be1417f55301da2",
       "path": "tests/composite/test-composite-call-input-types.ts",
       "locator": "callComposite and declareDetached input type regression",
@@ -704,6 +764,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_94add3c73fadad175650fc1933",
+      "path": "src/cli/static_assembly/football_geometry.ts",
+      "locator": "truncatedIcosahedron / coverFace / edgeBars / coverBudget",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7d8d7b589401bedf84a76447ad7f760e8819a55cd72b714923aebbb1ac86de11",
+      "claim_ids": [
+        "clm_EDCA91A83DB521C90679872ED1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -964,13 +1039,28 @@
       ]
     },
     {
+      "id": "aref_eaf5465fc887561cbd60f6ad64",
+      "path": "src/cli/static_assembly/football_geometry.ts",
+      "locator": "basisToEuler / EULER_ORDER='yxz'",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7d8d7b589401bedf84a76447ad7f760e8819a55cd72b714923aebbb1ac86de11",
+      "claim_ids": [
+        "clm_A1E15CA57DDF9464638BB97C44"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_ed4923d5b5291ada326dcd22e8",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "GIL 根与 GIA Root 的边界；锁定快照 SHA-256、root wire 统计与直接解码冲突",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "a957b7fb361c7ed7719b43c47f43d4849f77a984a88cf6b2e3627eb733639147",
+      "approved_hash": "6d5fb26a60dd7012dc23f479f47ccc214c6ecbf8ae340b93f76d0fcd641d713d",
       "claim_ids": [
         "clm_D855DC6B45CDA71076665B0BFA"
       ],
@@ -1359,7 +1449,7 @@
       "locator": "tool selection and evidence limits",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "f42979e905601849ab6ef87f933af5a1f6d7d8760438682701632b15faab3cb2",
+      "approved_hash": "69850b48451d9a62e60ee769fd676e0a7901de2eaaa2189fc2cea9d77069e2f0",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH4ZJ0Q06EDE5T9ETYCAGK4"

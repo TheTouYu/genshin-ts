@@ -27,3 +27,15 @@ No claims are created by this Blueprint structure Bundle.
 该约束来自模板定义 1077936131 与模板实例 1077936129 不同的真实样本、focused red/green regression、候选与写后独立闭包回读及用户游戏通过。它不要求所有地图都使用异号 ID，也不证明 ID 必须连续；update/delete 和自动 ID 分配仍未实现或验证。
 
 <!-- CLAIM:END clm_C86C803AF4C0869C6B0936196D -->
+
+<!-- CLAIM:START clm_D43A6E214D6B1F20B8EF995757 -->
+
+### 空模型实体（root5 res=10005018）可作无可见资源宿主，创建需 root6 组登记
+
+编辑器“空物体/空模型” = root5 场景实体记录：f2={f1:10005018, f2:1}（资源 ID 直接作定义引用，无 root4 定义配对）、f8=10005018、f5 槽 11 个（含 t=40 挂接槽）、f6 槽 14 个（transform + 默认色材质 f3=0xFFFFFFFF）、f7 组件 6 个；可作无可见资源宿主挂装饰物（宿主 scale 建议保持 [1,1,1]）。创建新实体时 root6 大记录（组ID=3）f3.f5 列表末尾追加 {f1:200, f2:新实体ID}；root46 等长保存副作用；无 root22 新条目。
+
+#### 适用边界
+
+用户样本 1077936172（目标地图内编辑器创建，571B）+ 1849 备份三空模型实体（1077936176/6180/6182）交叉；区别于 aux 删除占位（aux f2=10005018 + f4{t=20} 槽）；root6 登记仅实测实体创建路径；跨地图 ID 空间独立。
+
+<!-- CLAIM:END clm_D43A6E214D6B1F20B8EF995757 -->
