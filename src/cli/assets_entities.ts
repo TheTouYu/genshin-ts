@@ -173,7 +173,17 @@ function loadEntitiesFile(filePath: string): EntitiesFile {
       definitionId: item.definitionId as number,
       ...(vector('position') ? { position: vector('position')! } : {}),
       ...(vector('rotation') ? { rotation: vector('rotation')! } : {}),
-      ...(vector('scale') ? { scale: vector('scale')! } : {})
+      ...(vector('scale') ? { scale: vector('scale')! } : {}),
+      ...(item.color !== undefined
+        ? (() => {
+            if (
+              typeof item.color !== 'string' ||
+              !/^#[0-9a-fA-F]{6}$/.test(item.color)
+            )
+              throw new Error(`[error] ${field}.color must be '#RRGGBB'`)
+            return { color: 0xff000000 | parseInt(item.color.slice(1), 16) }
+          })()
+        : {})
     }
   })
   return { schemaVersion: 1, entities }

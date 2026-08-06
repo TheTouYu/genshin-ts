@@ -56,7 +56,16 @@ const mini = buildFile(
               wire: 2,
               value: emit([
                 text(1, '未分类页签'),
-                { number: 3, wire: 0, value: 2 }
+                { number: 3, wire: 0, value: 2 },
+                // 组条目 (100, definition)：ID 被 definition 登记占用，实体不得复用
+                {
+                  number: 5,
+                  wire: 2,
+                  value: emit([
+                    { number: 1, wire: 0, value: 100 },
+                    { number: 2, wire: 0, value: 1077936182 }
+                  ])
+                }
               ])
             }
           ])
@@ -108,13 +117,21 @@ assert.equal(
   'header payload length must match actual payload'
 )
 assert.equal(dataView.getUint32(0, false), applied.length - 4, 'header size field must match file size')
-// 重复 ID 拒绝
+// 重复 ID = 更新已有实体（记录替换，不重复登记组条目，实体数不变）
+const updated = applyEntities({
+  bytes: applied,
+  definitions: [definition],
+  entities: [{ name: 'x', id: 1077936187, definitionId: 1077936182 }]
+})
+const updatedExported = exportEntities(updated)
+assert.equal(updatedExported.length, 1, 'update must not duplicate entity')
+assert.equal(updatedExported[0].name, 'x')
 assert.throws(
   () =>
     applyEntities({
       bytes: applied,
       definitions: [definition],
-      entities: [{ name: 'x', id: 1077936187, definitionId: 1077936182 }]
+      entities: [{ name: 'x', id: 1077936182, definitionId: 1077936182 }]
     }),
   /entity ID conflict/i
 )

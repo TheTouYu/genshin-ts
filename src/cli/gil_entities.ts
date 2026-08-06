@@ -33,15 +33,18 @@ export type ExportedEntity = {
 }
 
 export type EntityImport = {
-  name: string
+  name?: string
   id: number
   definitionId: number
   position?: readonly [number, number, number]
   rotation?: readonly [number, number, number]
   scale?: readonly [number, number, number]
+  /** 0xAARRGGBB（解析自 '#RRGGBB'） */
+  color?: number
 }
 
 const TEXT = new TextEncoder()
+const TEXT_DECODER = new TextDecoder()
 
 function firstVarint(fields: readonly WireField[] | undefined, number: number): number | undefined {
   const field = fields?.find((item) => item.number === number && item.wire === 0)
@@ -255,9 +258,83 @@ function setTransform(record: Uint8Array, transform: EntityTransform): Uint8Arra
  * 装饰物列表 f7→f6（transform 更新为新位置）、组件槽 f8→f7（逐字节继承）、
  * 删除 def 独有 f10 与 packed 501，新增 f2={f1=defRef}。
  */
+/**
+ * 实体名称：首个能力槽 `#5` 内层 f11（UTF-8）。
+ */
+function entityNameOf(record: Uint8Array): string | undefined {
+  const fields = parse(record)
+  if (!fields) return undefined
+  const firstAbility = fields.find((field) => field.number === 5 && field.wire === 2)
+  if (!firstAbility) return undefined
+  for (const child of message(firstAbility)) {
+    if (child.number === 11 && child.wire === 2) {
+      return TEXT_DECODER.decode(child.value as Uint8Array)
+    }
+  }
+  return undefined
+}
+
+/**
+ * 材质槽已启用自定义颜色时的颜色值（#6{f1=22}.f32 的 f1=1 且 f3 varint）。
+ */
+function materialColorOf(record: Uint8Array): number | undefined {
+  const fields = parse(record)
+  if (!fields) return undefined
+  const slot = fields.find(
+    (field) =>
+      field.wire === 2 &&
+      field.number === 6 &&
+      parse(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 22
+      )
+  )
+  if (!slot) return undefined
+  const mat = message(slot).find((field) => field.number === 32 && field.wire === 2)
+  if (!mat) return undefined
+  const matFields = message(mat)
+  if (firstVarint(matFields, 1) !== 1) return undefined
+  return firstVarint(matFields, 3)
+}
+
+/**
+ * 写入实体级自定义颜色（材质槽 #6{f1=22}.f32：f1=1 启用 + f3=0xAARRGGBB）。
+ * 编码来自真实样本：白色=0xFFFFFFFF（启用标记 08 01）、粉红=0xFFED5757
+ * （2026-08-06 v8：用户给长方体打开自定义颜色默认白色，材质槽 21B→23B）。
+ */
+function setMaterialColor(record: Uint8Array, argb: number): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] entity record malformed')
+  const slot = fields.find(
+    (field) =>
+      field.wire === 2 &&
+      field.number === 6 &&
+      parse(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 22
+      )
+  )
+  if (!slot) throw new Error('[error] definition has no material slot (cannot set color)')
+  const slotFields = message(slot)
+  const mat = slotFields.find((field) => field.number === 32 && field.wire === 2)
+  if (!mat) throw new Error('[error] material slot missing field 32')
+  const matFields = message(mat)
+  mat.value = emit([
+    { number: 1, wire: 0, value: 1 },
+    { number: 3, wire: 0, value: argb },
+    ...matFields.filter((field) => field.number !== 1 && field.number !== 3)
+  ])
+  slot.value = emit(slotFields)
+  return emit(fields)
+}
+
 export function entityFromDefinition(
   definition: Uint8Array,
-  params: { id: number; name: string; definitionId: number; transform: EntityTransform }
+  params: {
+    id: number
+    name: string
+    definitionId: number
+    transform: EntityTransform
+    color?: number
+  }
 ): Uint8Array {
   const fields = parse(definition)
   if (!fields) throw new Error('[error] invalid definition record')
@@ -298,7 +375,9 @@ export function entityFromDefinition(
   }
   pushDefaults()
   if (resourceId !== undefined) out.push({ number: 8, wire: 0, value: resourceId })
-  return setTransform(emit(out), params.transform)
+  let record = setTransform(emit(out), params.transform)
+  if (params.color !== undefined) record = setMaterialColor(record, params.color)
+  return record
 }
 
 function registerEntity(top: readonly WireField[], entityId: number, definitionId: number): void {
@@ -373,8 +452,14 @@ export function applyEntities(params: {
       }
     }
   }
+  const existingById = new Map<number, Uint8Array>()
+  for (const record of records(top, 5, 1)) {
+    const id = recordId(record)
+    if (id !== undefined) existingById.set(id, record)
+  }
   for (const entity of params.entities) {
-    if (occupied.has(entity.id)) throw new Error(`[error] entity ID conflict: ${entity.id}`)
+    if (occupied.has(entity.id) && !existingById.has(entity.id))
+      throw new Error(`[error] entity ID conflict: ${entity.id}`)
     occupied.add(entity.id)
   }
   let top5 = top.find((field) => field.number === 5 && field.wire === 2)
@@ -385,18 +470,36 @@ export function applyEntities(params: {
   const section = message(top5)
   for (const entity of params.entities) {
     const definition = findRecord(params.definitions, entity.definitionId)
+    const existing = existingById.get(entity.id)
+    const base = existing ? readTransform(existing, 6) : undefined
+    let color: number | undefined
+    if (entity.color !== undefined) color = entity.color
+    else if (existing) color = materialColorOf(existing)
     const record = entityFromDefinition(definition, {
       id: entity.id,
-      name: entity.name,
+      name: entity.name ?? (existing ? entityNameOf(existing) ?? '' : ''),
       definitionId: entity.definitionId,
       transform: {
-        position: entity.position ?? [0, 0, 0],
-        rotation: entity.rotation ?? [0, 0, 0],
-        scale: entity.scale ?? [1, 1, 1]
-      }
+        position: entity.position ?? base?.position ?? [0, 0, 0],
+        rotation: entity.rotation ?? base?.rotation ?? [0, 0, 0],
+        scale: entity.scale ?? base?.scale ?? [1, 1, 1]
+      },
+      ...(color !== undefined ? { color } : {})
     })
-    section.push({ number: 1, wire: 2, value: record })
-    registerEntity(top, entity.id, entity.definitionId)
+    if (existing) {
+      // 更新已有实体：原位替换记录，不重复登记组条目
+      const index = section.findIndex(
+        (field) =>
+          field.number === 1 &&
+          field.wire === 2 &&
+          Buffer.from(field.value as Uint8Array).equals(Buffer.from(existing))
+      )
+      if (index < 0) throw new Error(`[error] existing entity record not found: ${entity.id}`)
+      section[index] = { number: 1, wire: 2, value: record }
+    } else {
+      section.push({ number: 1, wire: 2, value: record })
+      registerEntity(top, entity.id, entity.definitionId)
+    }
   }
   top5.value = emit(section)
   const rebuilt = emit(top)
