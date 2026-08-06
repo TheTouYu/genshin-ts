@@ -75,7 +75,7 @@ function float32(value: number): Uint8Array {
   return result
 }
 
-function readTransform(record: Uint8Array, ownerFieldNumber: number): EntityTransform {
+export function readTransform(record: Uint8Array, ownerFieldNumber: number): EntityTransform {
   const fields = parse(record)
   const owner = fields?.find(
     (field) =>
@@ -229,13 +229,17 @@ function withEntityName(nameMessage: Uint8Array, name: string): Uint8Array {
   return emit(fields)
 }
 
-export function setTransform(record: Uint8Array, transform: EntityTransform): Uint8Array {
+export function setTransform(
+  record: Uint8Array,
+  transform: EntityTransform,
+  slotNumber = 6
+): Uint8Array {
   const fields = parse(record)
   if (!fields) throw new Error('[error] invalid transform record')
   const owner = fields.find(
     (field) =>
       field.wire === 2 &&
-      field.number === 6 &&
+      field.number === slotNumber &&
       parse(field.value as Uint8Array)?.some(
         (child) => child.number === 1 && child.wire === 0 && child.value === 1
       )
