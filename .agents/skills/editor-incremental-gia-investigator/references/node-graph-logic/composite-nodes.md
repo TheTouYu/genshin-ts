@@ -51,17 +51,39 @@ field4 29 项，找"末尾追加"或"等长重排"）。宿主实例 nodeIndex �
 
 ## 常用命令
 
+工具脚本都在 `/home/h/genshin-ts/.agents/skills/editor-incremental-gia-investigator/scripts/`
+（python 与 ts 混用；ts 用 `npx tsx` 跑）：
+
 ```bash
+# 图级差分（added/removed/changed 摘要）——genshin-ts/tools/ 下
+npx tsx /home/h/genshin-ts/tools/compare-gil-node-graph.ts "$BEFORE" "$AFTER" "$GID"
+# 全 GIL root occurrence wire 对比（rootPresenceStable + changedRootFields，含等长变化）
+python3 .../scripts/compare-gil-root-wire.py "$BEFORE" "$AFTER" --output diff.json
+# root 10 容器 field2(CompositeDef)/field4(内部图) 逐项字节对比（v31 固化，见下）
+npx tsx .../scripts/compare-level10-containers.ts "$BEFORE" "$AFTER"
 # 宿主实例 / 内部节点 pin 定点 raw（含 field7）
-npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-raw.ts \
-  "$AFTER" "$GID" "$NODE" --pins
-# root 10 容器 field2（CompositeDef）/field4（内部图）列表逐项字节对比
-# （临时脚本模式见 manifest v22-v30 各段；对比必须按 occurrence 不能按字段号去重）
+npx tsx .../scripts/extract-node-raw.ts "$AFTER" "$GID" "$NODE" --pins
+# 数据流/控制流 case 验证器（复合路径未覆盖，勿用于复合）
+npx tsx .../scripts/verify-data-flow-experiment.ts / verify-control-flow-experiment.ts
 ```
+
+root 10 容器解析要点（v31 实测避坑）：
+- `readGilPayloadFields` 的顶层 fields 是 parseMessage **递归**结果（含全部深度），
+  取 Level 容器必须 `filter(depth === 1 && field === 10)`；`find(field === 10)` 会命中深层字段。
+- root 10 的 field2/field4 列表项是**单层 f1 包装**（f1 内容直接是 CompositeDef/NodeGraph 字段），
+  与 gia.proto 的 CompositeDefWrapper{InnerWrapper} 两层结构不符，protobufjs decode 会错位/越界；
+  可靠解码用 gil_wire_lib.walk（只收集 wire=2 嵌套 message；varint 字段如 Id 需手动扫）。
+- 字符串字段（CompositeDef name/description、ParameterFlow name、NodeGraph name）不能递归 walk，
+  UTF-8 中文内容会当 message 解析越界；直接按字段号取 bytes 解码。
+- compare-gil-root-wire.py 的 encodedBytes 含 tag+len，valueBytes 不含；directChildDelta 的
+  added/removed 是 occurrence 级替换（按 wire 顺序对齐，不是字段号聚合）。
+- 每轮差分输出归档到 case 目录（root-wire-diff.json 等），manifest 记 SHA-256。
 
 ## 未闭合（下一轮候选）
 
-- 输出参数（outputs(103)/OutParam 侧对称结构）——最优先；
+- 给内部 337 选 Flt 变体的确认性实验（type {1,1}→{class=4,5,5}、concreteId 337→341）与
+  内部控制流连线（323 的 FlowIn 内部接法）——最优先；
+- compositePins 数组顺序规则（v35/v36/v37 观察未闭合）；
 - 内部节点在内部图中的连线与消费输入方式；
 - 控制流参数（inflows/outflows 定义 + 实例 kind=2/1 pin）在自建复合上的实测；
 - field203=6、pinIndex 全局分配器位置、f2/f4 列表数量差（59 vs 29）；
