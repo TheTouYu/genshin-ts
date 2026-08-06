@@ -199,6 +199,10 @@ nodeGraphId / type / name / node count
 snapshot path / SHA-256
 ```
 
+**字符串字段（参数名、变量值等）写入 manifest/Authority 前必须从 wire hex 解码确认**，
+不能沿用用户口述或猜测（2026-08-06 实测：输出参数名口述与 wire 不符，未解码直接记录
+导致 v31 段误记）。
+
 用户只说“又修改了”且对象 identity 或旧值不明确时，先问一个澄清问题；不要依赖差分反推用户意图。用户声明与 raw-wire 不一致时，以文件事实为准并标记 `CONFLICT`。
 
 每个实验在 `notes/manifest` 中维护可续作的最小状态，不依赖聊天上下文恢复：
@@ -228,7 +232,7 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 
 同一保存中出现的**未声明额外变化**（如 root 注册表、信号、引用块），不能直接归因给用户声明操作：先记录；随后用“删除/回退该操作”的对照轮验证——若回退后这些变化不动，则它们与声明操作生命周期无关（exp14→17 实测：新增镜头时出现的 root35/root11/组件引用块在删除镜头后全部不回退，属一次性编辑器注册）。未经验证的归因写 `INSUFFICIENT`。
 
-定点解码优先复用 `scripts/` 下已有资产（如 `inspect-gil-root-container.py <before> <after> <rootField>`、各领域专用 inspect 脚本和 NodeGraph 比较器），不手写一次性解析；动手前先读模块 references 的工具清单，避免重复实现已有能力。现有资产不覆盖目标时才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。
+定点解码优先复用 `scripts/` 下已有资产（如 `inspect-gil-root-container.py <before> <after> <rootField>`、各领域专用 inspect 脚本、`compare-level10-containers.ts`（root 10 容器 field2 CompositeDef/field4 内部图逐项字节对比，复合模块常用）和 NodeGraph 比较器），不手写一次性解析；动手前先读模块 references 的工具清单，避免重复实现已有能力。现有资产不覆盖目标时才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。
 
 已锁定 NodeGraph 的专项差分命令（`compare-gil-node-graph.ts` 摘要 → `--full` 定点提取）、
 字段清单和 raw-wire 形态断言速查见匹配模块的 reference「快速相邻比较」。原则：先摘要确认
@@ -291,7 +295,8 @@ Validator 接受后，将它提炼为 `scripts/` 下的最小参数化资产；�
 一条真实正常路径和一条失败路径验证。稳定的长恢复路径写入 manifest 顶部恢复块，并在命令中用
 `SIG/MAP/GID/LOCKED_BEFORE/LOCKED_HASH` 等短变量引用，减少重复上下文；变量
 只缩短表达，不扩大授权或证据范围。每会话开跑前粘贴一次恢复块，`LOCKED_BEFORE/LOCKED_HASH`
-随每轮更新。
+随每轮更新并**立即 `sha256sum` 复核两处一致**（2026-08-06 实测：路径指向 before.gil 但 hash
+对应 after.gil，恢复块自相矛盾导致基线错认）。
 
 ## 手工同构重放
 
