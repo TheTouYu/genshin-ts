@@ -20,7 +20,7 @@ function usage(exitCode = 0) {
     '选项:',
     '  --graph <id|name|auto>   选择主图；auto 选择唯一非空用户图',
     '  --composite <id|name>   解读指定复合/系统节点的定义接口',
-    '  --depth <n>             复合子图展开层数（默认 1）',
+    '  --depth <n>             嵌套复合展开层数（默认 0=不展开，仅显式指定才展开）',
     '  -h, --help              显示帮助',
     '',
     '输出: 事件入口、控制流执行树、每个节点输入参数来源、系统/复合节点说明。'
@@ -34,7 +34,7 @@ function parseArgs(args) {
   const filePath = args[0]
   if (!filePath || filePath.startsWith('-')) usage(1)
 
-  const options = { graph: undefined, composite: undefined, depth: 1, auto: false }
+  const options = { graph: undefined, composite: undefined, depth: 0, auto: false }
   for (let i = 1; i < args.length; i++) {
     const arg = args[i]
     const next = () => args[++i]
@@ -147,20 +147,35 @@ function nodeLabel(node) {
   return `系统:${c.name}`
 }
 
-function printTree(entry, flowFrom, nodeMap, kind = '事件') {
-  console.log(`${kind}: n=${entry.index} ${entry.api}`)
+// 树上节点的关键参数摘要：变量设置类显示变量名，信号系统节点显示信号名
+function keyParam(node) {
+  if (node.composite && node.composite.graph_id === undefined) {
+    const signal = (node.pins ?? []).find(
+      (p) => p.kind === 'ClientExecNode' || p.kind === 'ClientSignal'
+    )
+    if (signal?.value !== undefined) return `信号=${literalText(signal.value)}`
+    return undefined
+  }
+  if (/^Set\b/.test(node.api ?? '') && /Variable/.test(node.api ?? '')) {
+    const str = (node.inputs ?? []).find((i) => i.type === 'Str' && i.value !== undefined)
+    if (str) return `变量=${literalText(str.value)}`
+  }
+  return undefined
+}
+
+function printTree(entry, flowFrom, nodeMap, kind = '事件', indent = '') {
+  console.log(`${indent}${kind}: n=${entry.index} ${entry.api}`)
   const visited = new Set([entry.index])
   const printBranch = (nid, via, depth) => {
-    const pad = '  '.repeat(depth + 1)
+    const pad = indent + '  '.repeat(depth + 1)
     const node = nodeMap.get(nid)
     if (!node) {
       console.log(`${pad}${via} → n=${nid} (节点不存在)`)
       return
     }
     const cond = conditionText(node, nodeMap)
-    console.log(
-      `${pad}${via} → n=${nid} ${nodeLabel(node)}${cond ? `  [条件: ${cond}]` : ''}`
-    )
+    const key = keyParam(node)
+    console.log(`${pad}${via} → n=${nid} ${nodeLabel(node)}${key ? ` [${key}]` : ''}${cond ? `  [条件: ${cond}]` : ''}`)
     if (visited.has(nid)) {
       console.log(`${pad}(与上方路径合并/循环，不再展开)`)
       return
@@ -180,17 +195,122 @@ function conditionText(node, nodeMap) {
   return inputOrigin(cond, nodeMap)
 }
 
-function printInputs(node, nodeMap) {
+function printInputs(node, nodeMap, indent = '') {
   const inputs = node.inputs ?? []
   if (!inputs.length) {
-    console.log(`    (无参数输入)`)
+    console.log(`${indent}    (无参数输入)`)
     return
   }
   for (const input of inputs) {
     const origin = inputOrigin(input, nodeMap)
-    console.log(`    ${input.name}${input.type ? `:${input.type}` : ''} ← ${origin}`)
+    console.log(`${indent}    ${input.name}${input.type ? `:${input.type}` : ''} ← ${origin}`)
   }
 }
+
+// 图正文：系统/复合节点说明 + 事件入口 + 控制流 + 参数来源
+function explainGraphBody(graph, options, indent = '') {
+  const nodeMap = new Map(graph.nodes.map((n) => [n.index, n]))
+  const { events, orphans, flowFrom } = buildExecTree(graph, nodeMap)
+
+  if (!indent) {
+    console.log(`图: ${graph.name ?? '(复合实现)'} (id=${graph.id}, ${graph.node_count} 节点)`)
+    console.log(`连线: ${graph.dataflow.length} 条数据流, ${graph.flow.length} 条执行流`)
+    console.log('')
+  }
+
+  // 系统/复合节点说明
+  const special = graph.nodes.filter((n) => n.composite)
+  if (special.length) {
+    console.log(`${indent}【系统/复合节点】(${special.length})`)
+    for (const n of special) {
+      const c = n.composite
+      if (c.graph_id === undefined) {
+        const signal = (n.pins ?? []).find((p) => p.kind === 'ClientExecNode' || p.kind === 'ClientSignal')
+        const sigName = signal?.value !== undefined ? literalText(signal.value) : '(未命名)'
+        console.log(`${indent}  n=${n.index} ${nodeLabel(n)}：系统节点，无内部图；信号名 ${sigName}，参数行为由信号名决定`)
+      } else {
+        console.log(`${indent}  n=${n.index} ${nodeLabel(n)}：复合节点`)
+      }
+    }
+    console.log('')
+  }
+
+  // 事件与控制流
+  if (!events.length && !orphans.length) {
+    console.log(`${indent}【控制流】无事件入口、无孤立执行链（执行流 ${graph.flow.length} 条）`)
+  } else {
+    console.log(`${indent}【事件入口】(${events.length})`)
+    for (const ev of events) console.log(`${indent}  n=${ev.index} ${nodeLabel(ev)}`)
+    console.log('')
+    console.log(`${indent}【控制流】从事件入口出发的执行主干（分支条件注明数据来源）`)
+    for (const ev of events) {
+      const hasOut = (flowFrom.get(ev.index)?.length ?? 0) > 0
+      if (!hasOut) {
+        console.log(`${indent}事件: n=${ev.index} ${nodeLabel(ev)}（未连线，无执行出边）`)
+      } else {
+        printTree(ev, flowFrom, nodeMap, '事件', indent)
+      }
+    }
+    if (orphans.length) {
+      // 复合 impl：外部 InFlow 入口（compositePins 中 outer.kind=1 的映射）不是孤立链
+      const boundaryIn = new Map()
+      for (const b of graph.boundary ?? []) {
+        if (b.outer?.kind === 1) boundaryIn.set(b.inner_node, b.outer_name ?? `InFlow[${b.outer.index ?? 0}]`)
+      }
+      const external = orphans.filter((o) => boundaryIn.has(o.index))
+      const realOrphans = orphans.filter((o) => !boundaryIn.has(o.index))
+      if (external.length) {
+        console.log(`${indent}【外部入口】复合由调用方 InFlow 驱动（${external.length} 条）：`)
+        for (const orph of external) printTree(orph, flowFrom, nodeMap, `外部入口 ${boundaryIn.get(orph.index)}`, indent)
+      }
+      if (realOrphans.length) {
+        console.log('')
+        console.log(`${indent}孤立执行链（不挂任何事件入口，${realOrphans.length} 条）：`)
+        for (const orph of realOrphans) printTree(orph, flowFrom, nodeMap, '入口', indent)
+      }
+    }
+    console.log('')
+  }
+
+  // 参数来源
+  if (!options.nested) {
+    console.log(`${indent}【参数来源】每个节点的输入参数从哪来`)
+    for (const node of graph.nodes) {
+      console.log(`${indent}  n=${node.index} ${nodeLabel(node)}`)
+      printInputs(node, nodeMap, indent)
+    }
+  }
+}
+
+// 嵌套复合展开：递归输出 graph.children 中每个复合的内部逻辑
+function printNestedComposites(graph, depth, indent = '') {
+  const children = graph.children ?? []
+  if (!children.length || depth <= 0) return
+  console.log(`${indent}【嵌套复合展开】(${children.length} 个复合，展开 ${depth} 层)`)
+  for (const child of children) {
+    const iface = child.interface
+    const fmt = (pins) => pins.map((p) => `${p.name}:${p.type ?? '?'}`).join(', ') || '(无)'
+    const callSites = child.call_sites.length ? `调用点 n=${child.call_sites.join('/')}` : ''
+    console.log(`${indent}┌─ ${child.name} (impl图=${child.graph_id ?? '无'}) ${callSites}`)
+    if (!child.graph) {
+      const reason =
+        child.status === 'no-implementation-graph'
+          ? '系统节点，无内部图'
+          : child.status === 'cycle'
+            ? '循环引用，跳过'
+            : '未展开'
+      console.log(`${indent}│   ${reason}`)
+      continue
+    }
+    if (iface) {
+      console.log(`${indent}│   接口: inputs=[${fmt(iface.inputs ?? [])}] outputs=[${fmt(iface.outputs ?? [])}]`)
+      console.log(`${indent}│         inflows=[${fmt(iface.inflows ?? [])}] outflows=[${fmt(iface.outflows ?? [])}]`)
+    }
+    explainGraphBody(child.graph, { nested: true }, indent + '│  ')
+    printNestedComposites(child.graph, depth - 1, indent + '│  ')
+  }
+}
+
 
 function explain(doc, report, options) {
   const { input, target, graph } = report
@@ -210,64 +330,17 @@ function explain(doc, report, options) {
     }
     if (!graph) {
       console.log(`状态: no-implementation-graph（系统节点，无内部图；参数行为由节点定义决定）`)
+      return
     }
+    console.log('')
+    console.log(`复合内部: ${graph.name} (${graph.node_count} 节点)`)
+    explainGraphBody(graph, options)
+    printNestedComposites(graph, options.depth, '')
     return
   }
 
-  const nodeMap = new Map(graph.nodes.map((n) => [n.index, n]))
-  const { events, orphans, flowFrom } = buildExecTree(graph, nodeMap)
-
-  console.log(`图: ${graph.name} (id=${graph.id}, ${graph.node_count} 节点)`)
-  console.log(`连线: ${graph.dataflow.length} 条数据流, ${graph.flow.length} 条执行流`)
-  console.log('')
-
-  // 系统/复合节点说明
-  const special = graph.nodes.filter((n) => n.composite)
-  if (special.length) {
-    console.log(`【系统/复合节点】(${special.length})`)
-    for (const n of special) {
-      const c = n.composite
-      if (c.graph_id === undefined) {
-        const signal = (n.pins ?? []).find((p) => p.kind === 'ClientExecNode' || p.kind === 'ClientSignal')
-        const sigName = signal?.value !== undefined ? literalText(signal.value) : '(未命名)'
-        console.log(`  n=${n.index} ${nodeLabel(n)}：系统节点，无内部图；信号名 ${sigName}，参数行为由信号名决定`)
-      } else {
-        console.log(`  n=${n.index} ${nodeLabel(n)}：复合节点，实现图 ${c.graph_id}`)
-      }
-    }
-    console.log('')
-  }
-
-  // 事件与控制流
-  if (!events.length && !orphans.length) {
-    console.log(`【控制流】无事件入口、无孤立执行链（执行流 ${graph.flow.length} 条）`)
-  } else {
-    console.log(`【事件入口】(${events.length})`)
-    for (const ev of events) console.log(`  n=${ev.index} ${ev.api}`)
-    console.log('')
-    console.log('【控制流】从事件入口出发的执行主干（分支条件注明数据来源）')
-    for (const ev of events) {
-      const hasOut = (flowFrom.get(ev.index)?.length ?? 0) > 0
-      if (!hasOut) {
-        console.log(`事件: n=${ev.index} ${ev.api}（未连线，无执行出边）`)
-      } else {
-        printTree(ev, flowFrom, nodeMap)
-      }
-    }
-    if (orphans.length) {
-      console.log('')
-      console.log(`孤立执行链（不挂任何事件入口，${orphans.length} 条）：`)
-      for (const orph of orphans) printTree(orph, flowFrom, nodeMap, '入口')
-    }
-    console.log('')
-  }
-
-  // 参数来源
-  console.log('【参数来源】每个节点的输入参数从哪来')
-  for (const node of graph.nodes) {
-    console.log(`  n=${node.index} ${nodeLabel(node)}`)
-    printInputs(node, nodeMap)
-  }
+  explainGraphBody(graph, options)
+  printNestedComposites(graph, options.depth, '')
 }
 
 function main() {

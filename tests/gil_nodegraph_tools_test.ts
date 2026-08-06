@@ -74,6 +74,9 @@ assert.match(story, /n=10 复合:监听信号\.伤害值/) // 参数来源引用
 const comp = run('explain-gil-node-graph.ts', ['--composite', '定时任务'])
 assert.match(comp, /接口: inputs=\[目标实体:Entity, 定时器名称:String/)
 assert.match(comp, /impl图=/)
+const compNested = run('explain-gil-node-graph.ts', ['--composite', '定时任务', '--depth', '1'])
+assert.match(compNested, /复合内部:.*\(5 节点\)/)
+assert.match(compNested, /When Timer Is Triggered/)
 
 // scan-gil-signals.ts：全量信号使用扫描（主图 + 复合 impl 图）
 const sig = run('scan-gil-signals.ts', ['--signal', '信号测试全参数'])
