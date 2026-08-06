@@ -10,6 +10,10 @@
 
 ## 当前检查点
 
+- 足球空模型建模（2026-08-08）：空模型宿主规则 + 多轴欧拉角顺序（YXZ 内旋）已闭合（真实用户样本，见 `docs/game-engine-knowledge/gil-structure-semantics.md`）；
+  候选生成 `.local/tmp/generate-football-v2.ts`（几何模块 `src/cli/static_assembly/football_geometry.ts`，192 面片 + 90 边线 = 282 aux）；
+  已写回目标地图 1073741853：写后 SHA-256 `f5303c00…e2b7`，自动断言与写后回读通过，**用户游戏核验通过**（“大致是足球样子”；
+  正方形条带拟合五边形偏粗糙，下一轮改用五棱柱/三棱柱高精度拟合，用户已放置样本：五棱柱高1底边距顶点1、三棱柱高1边长1）。
 - 当前实现入口：`gsts maps --format json`、`gsts assets:static-assemblies inspect|plan`，以及兼容保留的 preview/output/write。
 - 只读检查点：共享 wire/index/closure 已建立；inspection/plan V1 schema 和公开类型已发布，plan 绑定源、资产配置、结构文件与规范化语义。
 - 自动验证检查点：七项 focused 回归、构建和 tarball 消费通过；`npm test` 在既有 `tests/builtins_math_success_test.ts:42:17` 的 LocalVariable int/float 诊断处停止，本轮未降低断言。
