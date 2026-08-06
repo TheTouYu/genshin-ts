@@ -1,8 +1,8 @@
 # 节点图与拓扑
 
 > 状态：部分已验证
-> 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v12）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明与游戏核验
-> 最近校验：2026-08-05
+> 来源：真实 GIL 相邻快照（node-graph-systematic 2026-08-05 v1-v12 + 2026-08-06 v13-v21）+ 第三方仓库 data.json/gia.proto 对照 + 用户编辑器说明与游戏核验
+> 最近校验：2026-08-06
 > 适用范围：节点图的概念结构、新建图/节点实例编码、批量注入（SysCall 基础节点）
 
 节点图是关卡逻辑的主要载体。一个节点图包含各种节点，以及节点之间的控制流和数据流连接。节点图必须挂载在实体或元件上才能运行，详见[节点图挂载与生命周期](graph-mounting.md)。
@@ -73,14 +73,23 @@ genericId = concreteId = NodeProperty{
 （GraphOrigin=10000 / GraphCategory=20000 / GraphKind=21001；NodeOrigin=10001 / NodeCategory=20000 /
 NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CONFIRMED。
 
-**Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 快照 + data.json `Variants` 表闭环）**：
+**Variant 节点 concreteId = 选中变体的 KernelID（2026-08-06 v9-v11 + v18 + v21 快照 + data.json `Variants` 表闭环）**：
 
 - Fixed 节点：`concreteId = genericId = 节点 ID`（编辑器保存后保留）；
 - Variant 节点：`concreteId = 选中变体的 KernelID`；**未配置变体时 concreteId 不落盘**（9 个
   Variant 节点保存后 concreteId 全缺失）；
 - 实例验证：337 获取节点图变量连 Int → concreteId=339，切 Str → 342（data.json 337 的
   `Variants`：`C<T:Int> KernelID=339` / `C<T:Str> KernelID=342`）；3 多分支选 Int → 3，
-  切 Str → 4；
+  切 Str → 4；node 23 获取自定义变量连 Int 目标 → 50；node 18 是否相等手动选 Int → 370；
+- **手动选型与连线自动实例化同构**（v21 vs v18）：concreteId 缺失→KernelID +
+  **所有 R<T> 数据 pin 实例化**（i1/i2 index=ShellIndex 默认省略/非默认显式、type 跟随、
+  无 connects）；**固定类型 pin 不实例化**（v21：是否相等 result Out Bol 不落盘）；
+- 实例化 pin 的 value=ConcreteBase(class=10000, alreadySetVal=true) +
+  `bConcreteValue.indexOfConcrete = TypeSelectorIndex`（data.json `Variants` 列表 0-based
+  位置；0 省略：50 Int=0，非 0 显式：337 Int=2/Str=5、14 Int=5）+
+  value={class: 具体类型 base, itemType:{classBase:Server, type_server:{type: VarType}}}；
+- 连线时若 Variant 未配置，编辑器**按目标 pin 类型自动选型**并实例化（v18：node 23 连
+  Int 目标 → concreteId=50 C<T:Int> + OutParam Int），随后正常挂 connects；
 - 变体切换联动：pin `type`（3=Int→6=Str）、`value.bConcreteValue.f1 = TypeSelectorIndex`
   （337 Int=2/Str=5，多分支 Int=0 省略/Str=1）、cases 列表类型（IntegerList=8→StringList=11）
   全部跟随变体；
@@ -128,11 +137,14 @@ NodePin {
 }
 ```
 
-**数据连接（DataOut→DataIn，普通图 SysCall，2026-08-06 v10-v11 快照 CONFIRMED）**：
+**数据连接（DataOut→DataIn，普通图 SysCall，2026-08-06 v10-v21 快照 CONFIRMED）**：
 
 - 连接挂在**目标侧 InParam** pin 上：`connects=[{1: id=源节点 nodeIndex, 2: connect={kind:4 OutParam}, 3: connect2={kind:4 OutParam}}]`；
-- 源 OutParam index=0 时 connect/connect2 均无 index 字段（2B 形态 `08 04`）；
-- 源侧只实例化 OutParam pin（i1/i2={kind:4} 无 index），**不挂 connects**（与 signals.md 监听消费一致）；
+- 源 OutParam index=0 时 connect/connect2 均无 index 字段（2B 形态 `08 04`）；源非默认显式源 ShellIndex；
+- 源侧：Fixed 源只实例化 OutParam pin（i1/i2={kind:4} 无 index），**不挂 connects**（与 signals.md 监听消费一致）；
+  一源多目标源仍不落盘；**Variant 源连线时自动实例化**（concreteId=目标类型 KernelID + OutParam pin）；
+- 目标侧：多 pin 目标新增 pin 按 ShellIndex 升序插入数组（v19 实测）；已有线被新线**替换**（connects.id 改写，
+  不新增 pin，v18 实测）；
 - 实例：337.value OutParam → 3.key InParam：目标 key `connects=[{1:1, 2:{1:4}, 3:{1:4}}]`；
 - 列表参数值：`ArrayBase(class=10002)` + `bArray(109)` 元素列表，cases 三元素 [1,2,3] →
   IntBase bInt 1/2/3；[a,b,c] → StringBase bString a/b/c；
@@ -178,9 +190,9 @@ dx/dy 可调）；`--all-server` 枚举 data.json 全部 Server 节点（ID 升�
 
 - i2.index 语义（数据连接样本 i1==i2 一致，252 样本 5/7 不等；疑为 UI/定义内部序，需更多样本）
 - 普通图 SysCall 的基础 FlowOut→FlowIn wire 已闭合：连接挂源 OutFlow、默认 index 省略、
-  已观察到的非默认 OutFlow[1] 显式保留 index、目标 GraphNode 不变；OutFlow[2+] 和非默认目标
-  InFlow 仍待验证，详见[控制流](control-flow.md)
-- Variant 变体未配置时 concreteId 缺失的默认语义（编辑器是否在运行时回退 KernelID=ID）
+  非默认 OutFlow[1]/[2]/[3]/[4] 显式保留 index、目标 GraphNode 不变（详见[控制流](control-flow.md)）
+- Variant 选型对已连线的联动：先连线后手动改类型时既有 connects 如何处理（未测）
+- 更高源 OutFlow index（>4）与游戏执行语义（游戏验证范畴）
 
 ## 待逐步还原（剩余）
 

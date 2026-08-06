@@ -2,7 +2,7 @@
 
 > 状态：框架草案
 > 来源：用户对游戏编辑器和关卡结构的说明
-> 最近校验：2026-08-01
+> 最近校验：2026-08-06
 > 适用范围：参数来源、数据节点和数据引脚连接
 
 数据流描述一个参数值从哪里产生、经过什么处理，以及最终进入哪个节点输入。实体级变量、节点图级变量和局部变量的可见范围见[变量与作用域](variables.md)。
@@ -39,19 +39,21 @@
 
 连接双方必须使用兼容的[参数类型](parameter-types.md)。连接不仅需要指出来源节点和目标节点，还需要指出来源输出和目标输入。
 
-### wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v11 + dataflow-case1 真实快照 CONFIRMED）
+### wire 编码（普通图 SysCall 数据连接，2026-08-06 v10-v21 + dataflow-case1-4 真实快照 CONFIRMED）
 
 ```text
 目标侧 InParam pin 挂 connects（f5）：
   connects = [{1: id=源节点 nodeIndex, 2: connect, 3: connect2}]
   connect / connect2 = NodePin_Index{1: kind=4(OutParam)}，源 OutParam index=0 时无 index 字段
 目标 InParam 的 i1/i2 index=ShellIndex：默认（Shell 0）缺失、非默认显式（case1: preset_index=1，
-case2: scale=1/preset_value=2）
-type 落盘（Int=3、Flt=5）；无默认值时不落 value
-源侧 OutParam **不实例化**（dataflow-case1/2：默认与非默认源、一源多目标源侧 bytes 全不变）；
-Variant 节点（如 337）的 OutParam pin 是变体配置产物，不是连线行为，value 跟随变体类型
+case2: scale=1/preset_value=2，case4: target_entity=0 缺失）
+type 落盘（Int=3、Flt=5、Ety=1）；无默认值时不落 value
+Fixed 源 OutParam **不实例化**（case1/2/4：默认与非默认源、一源多目标、缺号源侧 bytes 全不变）；
+Variant 源连线时自动实例化（v18）：concreteId=目标类型 KernelID + OutParam pin（属变体选型，见 node-graphs.md）
 connect/connect2 指向源 OutParam：源默认（Shell0）省略 index，源非默认显式源 ShellIndex
 （case2: 拆分三维向量 y Shell=1 → connect.index=connect2.index=1）
+**多 pin 目标新增 pin 按 ShellIndex 升序插入数组**（case4: 已有 1/2 时补 0 号插头部，非尾部追加）
+**替换语义**（case3）：目标 InParam 已有线时，新线改写该 pin 的 connects.id（不新增 pin/connects）
 ```
 
 - 例：337 获取节点图变量 value → 3 多分支 key：目标 key
@@ -60,6 +62,8 @@ connect/connect2 指向源 OutParam：源默认（Shell0）省略 index，源非
   元素列表，`type` = 列表 VarType（8=IntegerList / 11=StringList）；
 - 变体切换（Int→Str）联动：concreteId=新 KernelID、pin type、`value.bConcreteValue.f1`
   = TypeSelectorIndex、列表元素类型全部同步（详见 node-graphs.md）；
+- 跨类型数据直连（如 Int→L<Int>）被编辑器拒绝（用户游戏内确认，2026-08-06），需先手动
+  改 Variant 类型再连线；
 - 完整解码样例见 `inspect-graph-nodes.py <map.gil> <graphId> --pins`。
 
 ## 输出复用
@@ -101,8 +105,9 @@ connect/connect2 指向源 OutParam：源默认（Shell0）省略 index，源非
 ## 待逐步还原
 
 - 普通数据节点的身份、输入、输出和值结构。
-- 数据输出连接到控制流节点参数的编码。
-- 一个输出连接多个消费者时的存储顺序和语义。
+- 数据输出连接到控制流节点参数的编码（普通 SysCall 已闭合；事件节点、复合节点待验证）。
+- 一个输出连接多个消费者时的存储顺序和语义（一源多目标已闭合：各目标各挂 connects、源不落盘）。
 - 相同数据节点复制后的身份和布局规则。
 - 查询节点、计算节点、有状态节点和有副作用节点的边界。
 - 列表、结构体和字典在数据流中的创建、拆分和连接。
+- 执行语义（数据值在 fork/分支中的实际求值时机，游戏验证范畴）。

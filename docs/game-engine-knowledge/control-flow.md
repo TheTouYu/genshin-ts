@@ -171,6 +171,33 @@ pin（pinCount=0，与默认目标行为一致）。参数化 Validator（`--all
 > InFlow connect 的 index，与非默认目标 InFlow 的真实 wire 冲突；已按本证据修复
 > （仅默认 InFlow[0] 省略 index，非默认保留 ShellIndex），含 red/green 测试，待用户编辑器/游戏核验。
 
+### 默认 OutFlow[0]（index 省略）与数据+控制流同节点并存（2026-08-06 续轮）
+
+同一地图内再做两个相邻快照实验（dataflow-case5，before/after SHA-256
+`32d0603f...fee5` / `ebe73dfa...832`）：node 27「创建实体」（SysCall 70，Fixed）的默认
+FlowOut 连接到 node 24「设置预设状态」（SysCall 66）的默认 FlowIn。node 24 同时已是
+3 条数据线的目标（target_entity/preset_index/preset_value）和 node 11 Case1 的控制流目标。
+
+图级差分唯一 changed node 27（pins 0→1），node 24 raw bytes 完全不变。新 pin：
+
+```text
+OutFlow pin (默认输出):
+  i1 = { kind: OutFlow }            # index=0 省略（与数据流源默认 index 省略对称）
+  i2 = { kind: OutFlow }
+  connects = [{ id: 24, connect: { kind: InFlow }, connect2: { kind: InFlow } }]
+```
+
+raw pin 为 `0a020802 12020802 2a0a0818 12020801 1a020801`。由此闭合：
+
+- **默认 OutFlow[0] 的 i1/i2.index 省略**（此前仅有数据流源默认省略样本，控制流源默认出口
+  至此补齐）；真实证据覆盖源 OutFlow 0/1/2/3/4 与目标 InFlow 0/1；
+- **数据+控制流可同节点并存**：node 24 同时是 3 数据线目标 + 2 控制流线目标，目标侧只落
+  数据 pins（3 个 InParam），控制流线全部只出现在源侧（node 11 与 node 27 各一条 OutFlow）；
+
+独立 Validator `verify-control-flow-experiment.ts --outflow-index 0`（index=0 省略形态
+支持）`ACCEPT 8/8`；dataflow case1-4 回归无损。手工重放 GIA/GIL 与真实 after bytes 一致，
+未写真实地图；donor verify 仍只报 node 32 既有 `contextDeclaration.kind=7` gap。
+
 ## 控制流节点的参数
 
 执行节点通常还带有数据参数。例如“开启运动”可能需要：
@@ -191,4 +218,4 @@ pin（pinCount=0，与默认目标行为一致）。参数化 Validator（`--all
 - 条件分支、循环和多出口节点的实际执行语义；
 - 同一输出 fork 的 connects 顺序已知，但游戏内执行顺序仍待验证；
 - 终点是否需要显式节点或仅由无后续连接表示；
-- 更高源 OutFlow index（>3）与混合默认/非默认目标 InFlow 的交叉组合。
+- 更高源 OutFlow index（>4）与更高目标 InFlow index 的交叉组合（0/1 已闭合）。

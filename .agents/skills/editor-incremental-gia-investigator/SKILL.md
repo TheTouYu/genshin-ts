@@ -49,7 +49,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | 领域                                         | 模块                                     |
 | -------------------------------------------- | ---------------------------------------- |
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
-| 节点图普通数据/控制流连接                    | `references/node-graph-logic/connections.md` |
+| 节点图普通数据/控制流连接与 Variant 选型 | `references/node-graph-logic/connections.md` |
 | 节点图逻辑：信号注册、发送、监听或信号参数   | `references/node-graph-logic/signals.md` |
 | 新建节点图 / 用生产 irToGia 生成 GIA 资产、GIA 字节对比与可复现性 | `references/node-graph-logic/node-graph-creation.md` |
 | 节点实例 pin 快速回验：第三方定义对照、参数 pin 解码（第三方优先 95%） | `references/node-graph-logic/node-pin-validation.md` |
@@ -107,6 +107,10 @@ PKC 查询优先使用索引、Authority 或 handoff 已给出的精确 Topic ID
 ```text
 本轮唯一变化：未绑定发送节点 → 绑定信号 foo；没有新增连接或其他节点。
 ```
+
+用户口述的节点名/槽位可能与 wire 实际不符（2026-08-06 实测：口述“获取节点图变量”实际是
+node 23「获取自定义变量」50，靠坐标与 changed 集合核实）。操作前先定点读源/目标 nodeIndex、
+generic/concrete ID 与坐标，向用户复述你理解的节点身份再动手，避免基于口述名建错实验。
 
 若用户只说“好了/已保存”，沿用上一轮明确约定的唯一变化；若没有明确约定，先问一个问题，不扫描猜测。用户补充“这是编辑器允许的最小操作”时，按实际原子操作更新声明：自动生成的默认子对象不视为越界，但仍须与手工附加修改区分。用户报告多个界面值时，明确分成“实际修改”“只读观察”“编辑器联动”，只有实际修改进入唯一变化 claim。
 
