@@ -58,7 +58,7 @@ assert.match(human, /InParam\[3-100\]/)
 assert.match(human, /重复 98 次/)
 assert.equal((human.match(/InParam\[3\]/g) ?? []).length, 0)
 
-for (const name of ['trace-gil-exec-flow.ts', 'trace-gil-dataflow.ts', 'scan-gil-signals.ts']) {
+for (const name of ['trace-gil-exec-flow.ts', 'trace-gil-dataflow.ts', 'scan-gil-signals.ts', 'explain-gil-node-graph.ts']) {
   assert.deepEqual(
     readFileSync(path.join(root, 'tools', name)),
     readFileSync(path.join(root, 'create-genshin-ts/templates/start/tools', name))
@@ -74,6 +74,7 @@ assert.match(story, /n=10 复合:监听信号\.伤害值/) // 参数来源引用
 const comp = run('explain-gil-node-graph.ts', ['--composite', '定时任务'])
 assert.match(comp, /接口: inputs=\[目标实体:Entity, 定时器名称:String/)
 assert.match(comp, /impl图=/)
+assert.match(comp, /← 接口 目标实体/) // 复合 impl 内部输入标注外部接口映射
 const compNested = run('explain-gil-node-graph.ts', ['--composite', '定时任务', '--depth', '1'])
 assert.match(compNested, /复合内部:.*\(5 节点\)/)
 assert.match(compNested, /When Timer Is Triggered/)
@@ -88,5 +89,74 @@ assert.equal(sigJson.summary.listen, 1)
 assert.equal(sigJson.summary.graphs, 1)
 assert.equal(sigJson.usages[0].composite, '监听信号')
 assert.equal(sigJson.usages[0].compIndex, 99)
+
+// foldableChain：线性链折叠探测（单入单出、无真实条件、visited 中止）
+const { foldableChain } = await import('../tools/explain-gil-node-graph.js')
+const nm = (ids: number[]) =>
+  new Map(ids.map((i) => [i, { index: i, api: `N${i}`, inputs: [] }]))
+const flowFrom = new Map([
+  [1, [{ to: 2, via: 'Branch[0]' }]],
+  [2, [{ to: 3, via: 'Branch[0]' }]],
+  [3, [{ to: 4, via: 'Branch[0]' }]],
+  [4, [{ to: 5, via: 'Branch[0]' }]]
+])
+const flowTo = new Map([
+  [2, 1],
+  [3, 1],
+  [4, 1],
+  [5, 1]
+])
+const ids = [1, 2, 3, 4, 5]
+let chain = foldableChain(1, 'Branch[0]', flowFrom, flowTo, nm(ids), new Set())
+assert.deepEqual(
+  chain.map((c: { nid: number }) => c.nid),
+  [1, 2, 3, 4, 5]
+)
+flowTo.set(4, 2) // 汇合点中止
+chain = foldableChain(1, 'Branch[0]', flowFrom, flowTo, nm(ids), new Set())
+assert.deepEqual(
+  chain.map((c: { nid: number }) => c.nid),
+  [1, 2, 3]
+)
+flowTo.set(4, 1)
+flowFrom.set(3, [
+  { to: 4, via: 'true' },
+  { to: 9, via: 'false' }
+]) // 分支点中止
+chain = foldableChain(1, 'Branch[0]', flowFrom, flowTo, nm(ids), new Set())
+assert.deepEqual(
+  chain.map((c: { nid: number }) => c.nid),
+  [1, 2]
+)
+flowFrom.set(3, [{ to: 4, via: 'Branch[0]' }])
+chain = foldableChain(1, 'Branch[0]', flowFrom, flowTo, nm(ids), new Set([3])) // visited 中止
+assert.deepEqual(
+  chain.map((c: { nid: number }) => c.nid),
+  [1, 2]
+)
+const nmCond = new Map([
+  [1, { index: 1, api: 'N1', inputs: [] }],
+  [
+    2,
+    {
+      index: 2,
+      api: 'N2',
+      inputs: [
+        {
+          name: 'Bol',
+          type: 'Bol',
+          present: true,
+          sources: [{ node: 7, api: 'X', pin_name: 'Out' }]
+        }
+      ]
+    }
+  ],
+  [3, { index: 3, api: 'N3', inputs: [] }]
+])
+chain = foldableChain(1, 'Branch[0]', flowFrom, flowTo, nmCond, new Set()) // 真实条件中止
+assert.deepEqual(
+  chain.map((c: { nid: number }) => c.nid),
+  [1]
+)
 
 console.log('PASS GIL NodeGraph tool selection, contracts, literal folding, and template parity')

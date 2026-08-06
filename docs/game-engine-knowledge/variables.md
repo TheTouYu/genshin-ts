@@ -54,6 +54,17 @@
 → 下游节点消费或设置
 ```
 
+### 局部变量的 GIL 编码（真实 GIL 解析，2026-08-07）
+
+真实图 `_GSTS_param-turn`（265 节点，star-cube-nexus 备份）中确认：**局部变量在 wire 中无名，只有类型码与连线引用**。
+
+- `Get Local Variable`（vendor id 18）：inputs `[R<T>]`（类型选择），outputs `[E<1016>, R<T>]`；`E<1016>` 输出是局部值身份的起点（即编辑器里的“创建局部值”）。
+- `Set Local Variable`（vendor id 19）：inputs `[E<1016>, R<T>]`；`E<1016>` 输入沿数据连线接收局部值身份（通常直接来自某 `Get Local Variable.E<1016>` 输出），`R<T>` 是要写入的值。
+- `E<1016>` 是 **Local Variable 类型码**（vendor `enum_id.ts`：`LocalVariable: 1016`），不是索引或名字；局部变量没有名字字段，身份只能靠 `E<1016>` 连线引用链追溯（例：`n=35 Set Local Variable ← n=34 Get Local Variable.E<1016>`）。
+- 因此“局部变量按名映射”不可行——名称在任何位置都不存在；工具（explain-gil-node-graph）对局部变量节点显示其 `E<1016>` 输入的连线来源作为身份摘要。
+
+验证层级：真实 GIL 解析（备份图）+ vendor 节点 pin 记录；未做编辑器单变化实验，未写回。
+
 ## 局部变量与复合节点
 
 复合节点多次调用时，每个调用实例的外部连线可能不同。因此，即使复合节点内部使用的是同一个局部参数位置，不同调用收到的实际值也可能不同。

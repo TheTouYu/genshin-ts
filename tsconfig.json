@@ -31,6 +31,8 @@
     "scripts",
     "examples",
     "tests",
+    "tools/explain-gil-node-graph.ts",
+    "tools/parse-gil-node-graph.ts",
     "resources/**/*.json",
     "gsts.config.ts",
     "gsts.test.config.ts"

@@ -123,19 +123,19 @@ function eventLike(node) {
 
 function buildExecTree(graph, nodeMap) {
   const flowFrom = new Map() // node -> [{to, via}]
-  const flowTo = new Set()
+  const flowTo = new Map() // node -> 执行入边数
   for (const e of graph.flow ?? []) {
     if (!flowFrom.has(e.from.node)) flowFrom.set(e.from.node, [])
     flowFrom
       .get(e.from.node)
       .push({ to: e.to.node, via: e.from.pin_name ?? `Out[${e.from.pin?.index ?? 0}]` })
-    flowTo.add(e.to.node)
+    flowTo.set(e.to.node, (flowTo.get(e.to.node) ?? 0) + 1)
   }
   const events = (graph.nodes ?? []).filter((n) => eventLike(n) && !flowTo.has(n.index))
   const orphans = (graph.nodes ?? []).filter(
     (n) => !eventLike(n) && !flowTo.has(n.index) && (flowFrom.get(n.index)?.length ?? 0) > 0
   )
-  return { events, orphans, flowFrom }
+  return { events, orphans, flowFrom, flowTo }
 }
 
 // ---- 输出 ----
@@ -148,13 +148,19 @@ function nodeLabel(node) {
 }
 
 // 树上节点的关键参数摘要：变量设置类显示变量名，信号系统节点显示信号名
-function keyParam(node) {
+function keyParam(node, nodeMap) {
   if (node.composite && node.composite.graph_id === undefined) {
     const signal = (node.pins ?? []).find(
       (p) => p.kind === 'ClientExecNode' || p.kind === 'ClientSignal'
     )
     if (signal?.value !== undefined) return `信号=${literalText(signal.value)}`
     return undefined
+  }
+  if (/Local Variable/.test(node.api ?? '')) {
+    // 局部变量 wire 无名（E<1016> 是 Local Variable 类型码），身份沿 E<1016> 连线传递
+    const lv = (node.inputs ?? []).find((i) => i.type === 'E<1016>')
+    if (lv) return `局部变量 ← ${inputOrigin(lv, nodeMap)}`
+    return '局部变量'
   }
   if (/^Set\b/.test(node.api ?? '') && /Variable/.test(node.api ?? '')) {
     const str = (node.inputs ?? []).find((i) => i.type === 'Str' && i.value !== undefined)
@@ -163,7 +169,30 @@ function keyParam(node) {
   return undefined
 }
 
-function printTree(entry, flowFrom, nodeMap, kind = '事件', indent = '') {
+// 探测从 startNid 出发的线性折叠段：起点单出；段内节点单入单出、无真实条件、未访问
+// 副作用：段内节点加入 visited（调用方链长 <3 时自行回退删除）
+export function foldableChain(startNid, via, flowFrom, flowTo, nodeMap, visited) {
+  const chain = []
+  let cur = startNid
+  let curVia = via
+  while (cur !== undefined && !visited.has(cur)) {
+    const n = nodeMap.get(cur)
+    if (!n) break
+    const o = flowFrom.get(cur) ?? []
+    const merged = chain.length > 0 && (flowTo.get(cur) ?? 0) > 1
+    if (o.length > 1 || merged) break // 分支点不折叠；链尾（无出边）允许入链
+    const cond = conditionText(n, nodeMap)
+    if (cond && !cond.startsWith('字面量 ')) break // 真实条件不折叠，保留分支信息
+    chain.push({ nid: cur, via: curVia, node: n })
+    visited.add(cur)
+    if (o.length === 0) break // 链尾
+    curVia = o[0].via
+    cur = o[0].to
+  }
+  return chain
+}
+
+function printTree(entry, flowFrom, flowTo, nodeMap, kind = '事件', indent = '') {
   console.log(`${indent}${kind}: n=${entry.index} ${entry.api}`)
   const visited = new Set([entry.index])
   const printBranch = (nid, via, depth) => {
@@ -173,15 +202,44 @@ function printTree(entry, flowFrom, nodeMap, kind = '事件', indent = '') {
       console.log(`${pad}${via} → n=${nid} (节点不存在)`)
       return
     }
+    const outs = flowFrom.get(nid) ?? []
+    // 线性链折叠：起点单出；段内节点单入单出且无真实条件；≥3 个节点合成一行
+    // 局部变量：折叠前先探测，链太短(<3)时回退到逐行输出
+    if (outs.length === 1 && !visited.has(nid)) {
+      const chain = foldableChain(nid, via, flowFrom, flowTo, nodeMap, visited)
+      if (chain.length >= 3) {
+        const items = chain.map(({ nid: id, node: n }) => {
+          const key = keyParam(n, nodeMap)
+          return `n=${id} ${nodeLabel(n)}${key ? ` [${key}]` : ''}`
+        })
+        const lines = []
+        for (let i = 0; i < items.length; i += 6) {
+          const seg = items.slice(i, i + 6).join(' → ')
+          lines.push(i === 0 ? `${pad}${chain[0].via} → ${seg}` : `${pad}→ ${seg}`)
+        }
+        console.log(lines.join('\n'))
+        const tail = flowFrom.get(chain[chain.length - 1].nid) ?? []
+        const next = tail[0]?.to
+        if (next !== undefined) {
+          if (visited.has(next)) {
+            console.log(`${pad}(与上方路径合并/循环，不再展开)`)
+          } else {
+            printBranch(next, tail[0].via, depth)
+          }
+        }
+        return
+      }
+      for (const c of chain) visited.delete(c.nid)
+    }
     const cond = conditionText(node, nodeMap)
-    const key = keyParam(node)
+    const key = keyParam(node, nodeMap)
     console.log(`${pad}${via} → n=${nid} ${nodeLabel(node)}${key ? ` [${key}]` : ''}${cond ? `  [条件: ${cond}]` : ''}`)
     if (visited.has(nid)) {
       console.log(`${pad}(与上方路径合并/循环，不再展开)`)
       return
     }
     visited.add(nid)
-    for (const child of flowFrom.get(nid) ?? []) printBranch(child.to, child.via, depth + 1)
+    for (const child of outs) printBranch(child.to, child.via, depth + 1)
   }
   for (const child of flowFrom.get(entry.index) ?? []) {
     printBranch(child.to, child.via, 0)
@@ -195,22 +253,32 @@ function conditionText(node, nodeMap) {
   return inputOrigin(cond, nodeMap)
 }
 
-function printInputs(node, nodeMap, indent = '') {
+function printInputs(node, nodeMap, indent = '', boundaryIn = new Map()) {
   const inputs = node.inputs ?? []
   if (!inputs.length) {
     console.log(`${indent}    (无参数输入)`)
     return
   }
   for (const input of inputs) {
-    const origin = inputOrigin(input, nodeMap)
-    console.log(`${indent}    ${input.name}${input.type ? `:${input.type}` : ''} ← ${origin}`)
+    let shown = inputOrigin(input, nodeMap)
+    // 复合 impl 内部：未连线输入可能来自外部接口（boundary kind=3 数据输入映射）
+    if (shown === '未连线') {
+      const bound = boundaryIn.get(`${node.index}:${input.index}`)
+      if (bound) shown = `接口 ${bound}`
+    }
+    console.log(`${indent}    ${input.name}${input.type ? `:${input.type}` : ''} ← ${shown}`)
   }
 }
 
 // 图正文：系统/复合节点说明 + 事件入口 + 控制流 + 参数来源
 function explainGraphBody(graph, options, indent = '') {
   const nodeMap = new Map(graph.nodes.map((n) => [n.index, n]))
-  const { events, orphans, flowFrom } = buildExecTree(graph, nodeMap)
+  const { events, orphans, flowFrom, flowTo } = buildExecTree(graph, nodeMap)
+  // 复合 impl 图：外部接口数据输入（boundary inner kind=3）→ outer 名称，供内部节点参数来源标注
+  const boundaryIn = new Map()
+  for (const b of graph.boundary ?? []) {
+    if (b.inner?.kind === 3) boundaryIn.set(`${b.inner_node}:${b.inner.index}`, b.outer_name)
+  }
 
   if (!indent) {
     console.log(`图: ${graph.name ?? '(复合实现)'} (id=${graph.id}, ${graph.node_count} 节点)`)
@@ -248,7 +316,7 @@ function explainGraphBody(graph, options, indent = '') {
       if (!hasOut) {
         console.log(`${indent}事件: n=${ev.index} ${nodeLabel(ev)}（未连线，无执行出边）`)
       } else {
-        printTree(ev, flowFrom, nodeMap, '事件', indent)
+        printTree(ev, flowFrom, flowTo, nodeMap, '事件', indent)
       }
     }
     if (orphans.length) {
@@ -261,12 +329,12 @@ function explainGraphBody(graph, options, indent = '') {
       const realOrphans = orphans.filter((o) => !boundaryIn.has(o.index))
       if (external.length) {
         console.log(`${indent}【外部入口】复合由调用方 InFlow 驱动（${external.length} 条）：`)
-        for (const orph of external) printTree(orph, flowFrom, nodeMap, `外部入口 ${boundaryIn.get(orph.index)}`, indent)
+        for (const orph of external) printTree(orph, flowFrom, flowTo, nodeMap, `外部入口 ${boundaryIn.get(orph.index)}`, indent)
       }
       if (realOrphans.length) {
         console.log('')
         console.log(`${indent}孤立执行链（不挂任何事件入口，${realOrphans.length} 条）：`)
-        for (const orph of realOrphans) printTree(orph, flowFrom, nodeMap, '入口', indent)
+        for (const orph of realOrphans) printTree(orph, flowFrom, flowTo, nodeMap, '入口', indent)
       }
     }
     console.log('')
@@ -277,7 +345,7 @@ function explainGraphBody(graph, options, indent = '') {
     console.log(`${indent}【参数来源】每个节点的输入参数从哪来`)
     for (const node of graph.nodes) {
       console.log(`${indent}  n=${node.index} ${nodeLabel(node)}`)
-      printInputs(node, nodeMap, indent)
+      printInputs(node, nodeMap, indent, boundaryIn)
     }
   }
 }
