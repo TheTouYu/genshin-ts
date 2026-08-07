@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { decodeUtf8, readGilPayloadFields } from './gil_extract_utils.js'
-import { buildEmptyNodeGraph, nextGraphId } from './assets_node_graphs.js'
+import { buildEmptyNodeGraph, ensureMinimalContainers, nextGraphId } from './assets_node_graphs.js'
 import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
 export type MapsResultV1 = {
@@ -119,7 +119,7 @@ function gipMapEntry(mapId: number, name: string, nowSec: number): WireField[] {
   ]
 }
 
-// 在“未分类页签”容器内追加 {5: {1:1600, 2:图ID}}
+// 在“未分类页签”容器内追加 {5: {1:1600, 2:图ID}}；同图链接已存在则跳过（round4 曾重复注册 1855）
 function appendGipFolderLink(tabTree: WireField[], mapId: number): WireField[] {
   return tabTree.map((tab) => {
     if (tab.number !== 3 || tab.wire !== 2) return tab
@@ -127,6 +127,15 @@ function appendGipFolderLink(tabTree: WireField[], mapId: number): WireField[] {
     if (!tabMsg || printableWireText(tabMsg.find((f) => f.number === 1 && f.wire === 2)?.value as Uint8Array) !== '未分类页签') {
       return tab
     }
+    const hasLink = tabMsg.some(
+      (f) =>
+        f.number === 5 &&
+        f.wire === 2 &&
+        parseWireMessage(f.value as Uint8Array)?.some(
+          (e) => e.number === 2 && e.wire === 0 && e.value === mapId
+        )
+    )
+    if (hasLink) return tab
     const link = emitWireMessage([
       { number: 1, wire: 0, value: GIP_FOLDER_TYPE },
       { number: 2, wire: 0, value: mapId }
@@ -135,7 +144,8 @@ function appendGipFolderLink(tabTree: WireField[], mapId: number): WireField[] {
   })
 }
 
-// 注册新图到 .gip（追加顶层条目 + 页签链接）；.gip 不存在时跳过（warn）
+// 注册图到 .gip（顶层条目 + 页签链接）；.gip 不存在时跳过（warn）。
+// 查重：mapId 已注册则更新条目（名字/时间戳）与链接，不追加（round4 曾重复注册 1855）
 function gipRegister(
   saveLevelDir: string,
   mapId: number,
@@ -156,7 +166,19 @@ function gipRegister(
     return { ...field, value: emitWireMessage(appendGipFolderLink(tabTree, mapId)) }
   })
   const nowSec = Math.floor(Date.now() / 1000)
-  writeGip(gipPath, emitWireMessage([...updated, { number: 2, wire: 2, value: emitWireMessage(gipMapEntry(mapId, name, nowSec)) }]))
+  const entry = emitWireMessage(gipMapEntry(mapId, name, nowSec))
+  let found = false
+  const withEntry = updated.map((field) => {
+    if (field.number !== 2 || field.wire !== 2) return field
+    const old = parseWireMessage(field.value as Uint8Array)
+    if (!old) return field
+    const id = old.find((f) => f.number === 1 && f.wire === 0)?.value
+    if (typeof id !== 'number' || id !== mapId) return field
+    found = true
+    return { ...field, value: entry }
+  })
+  const final = found ? withEntry : [...withEntry, { number: 2, wire: 2, value: entry }]
+  writeGip(gipPath, emitWireMessage(final))
 }
 
 // 更新 .gip 中地图条目名字（编辑器列表同步显示新名）；.gip 不存在时跳过
@@ -301,20 +323,24 @@ export function createMap(
       `[error] cannot determine player account id from save level parent dir: ${playerIdDir}`
     )
   }
-  const payload = emitWireMessage([
-    { number: 1, wire: 0, value: nextId },
-    { number: 2, wire: 2, value: new TextEncoder().encode(name) },
-    { number: 34, wire: 0, value: 1 },
-    { number: 39, wire: 0, value: playerId },
-    { number: 40, wire: 0, value: Math.floor(Date.now() / 1000) },
-    { number: 41, wire: 0, value: 1 }
-  ])
+  const payload = ensureMinimalContainers(
+    emitWireMessage([
+      { number: 1, wire: 0, value: nextId },
+      { number: 2, wire: 2, value: new TextEncoder().encode(name) },
+      { number: 34, wire: 0, value: 1 },
+      { number: 39, wire: 0, value: playerId },
+      { number: 40, wire: 0, value: Math.floor(Date.now() / 1000) },
+      { number: 41, wire: 0, value: 1 }
+    ])
+  )
+  // 无 --graphs 也补最小 root 6/10 挂载容器（round4：缺容器游戏加载失败导致列表全空）；
+  // 编辑器打开保存后自会补全其余 records
   const header = { schema: 1, headTag: 0x0326, fileType: 2, tailTag: 0x0679 }
   let file = buildFile(payload, header)
 
   const graphs: CreateMapResult['graphs'] = []
   if (graphNames.length > 0) {
-    // 骨架没有 root 6/10：buildEmptyNodeGraph 会自动补最小挂载容器，再逐个追加占位节点图
+    // 骨架已含 root 6/10（ensureMinimalContainers）：buildEmptyNodeGraph 逐个追加占位节点图
     // 节点图 ID 自动分配：空地图从固定起始值 1073741825 起递增（nextGraphId），名字 = 传入名字
     let nextPayload = payload
     for (const graphName of graphNames) {

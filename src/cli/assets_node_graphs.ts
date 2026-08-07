@@ -13,6 +13,68 @@ import {
   printableWireText,
   type WireField
 } from './static_assembly/wire.js'
+import {
+  addCompositePin,
+  addGraphNode,
+  addOutFlow,
+  addParamFlow,
+  buildVarValue,
+  chooseMovedIndex,
+  chooseRebuildIndex,
+  createComposite,
+  delCompositePin,
+  delGraphNode,
+  delInstanceCompositePin,
+  delParamFlow,
+  flowMetas,
+  isCompositeInstance,
+  linkInParam,
+  listCompositeDefs,
+  listGraphs,
+  locateBlobField,
+  locateGraphField,
+  nodeInputType,
+  nodeName,
+  parseGraphNodes,
+  parseNodeRecord,
+  parseTypedValue,
+  patchGraphNode,
+  patchRecord,
+  removeOutFlow,
+  renameCompositeDef,
+  renameParamFlow,
+  renumberGraphNode,
+  resolveDefId,
+  resolveGraphId,
+  setNodePos,
+  setParam,
+  swapCompositePinInners,
+  swapInstancePins,
+  swapParamFlows,
+  unlinkInParam,
+  VAR_TYPE_NAME,
+  type NodeView,
+  type PinView
+} from './static_assembly/graph_edit.js'
+
+const KIND_NAMES: Record<number, string> = { 1: 'InFlow', 2: 'OutFlow', 3: 'InParam', 4: 'OutParam', 5: 'ClientExec', 6: 'ClientSignal' }
+const VAR_TYPE_NAME_REV: Record<string, number> = Object.fromEntries(
+  Object.entries(VAR_TYPE_NAME).map(([k, v]) => [v.toLowerCase(), Number(k)])
+)
+
+/** 提取图 blob（供 composite 操作扫描实例）。 */
+function graphBlob(bytes: Uint8Array, graphId: number): Uint8Array {
+  const payload = bytes.slice(20, -4)
+  const { field } = locateGraphField(payload, graphId)
+  return payload.subarray(field.dataStart, field.dataEnd)
+}
+
+/** 提取 CompositeDef blob（供 del-input 查 pinIndex）。 */
+function defBlob(bytes: Uint8Array, defId: number): Uint8Array {
+  const payload = bytes.slice(20, -4)
+  const field = locateBlobField(payload, 2, defId)
+  return payload.subarray(field.dataStart, field.dataEnd)
+}
 
 // 依据（编辑器真实证据，见 docs/game-engine-knowledge/gil-structure-semantics.md）：
 //   - root 10 追加一条 field 1 wrapper：{id:{class:10000,type:20000,kind:21001,nodeId}, name}
@@ -47,28 +109,68 @@ export function minimalFolderRoot6(): Uint8Array {
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
+  sub: 'create' | 'read' | 'patch'
   gilPath: string | undefined
   mapId: number | undefined
   name: string
   outputPath: string | undefined
   write: boolean
+  json: boolean
+  graph: string | undefined
+  node: number | undefined
+  composite: string | undefined
+  ops: string[]
 }
 
-function usage(exitCode = 1): never {
+function usage(exitCode = 0): never {
   const output = [
-    'Usage: gsts assets:node-graphs [create] [options]',
+    'Usage: gsts assets:node-graphs <sub> [options]',
     '',
+    '  create                       create an empty NodeGraph (root 10 wrapper + root 6 folder)',
+    '  read                         inspect graphs / nodes / pins / connections / composite defs',
+    '  patch                        apply precise node-graph edits (preview by default)',
+    '',
+    'Options:',
     '  --config <file>   project config (for --map-id resolution)',
     '  --gil <file>      explicit GIL source',
     '  --map-id <id>     target map ID (location only; requires project config)',
-    '  --name <string>   new NodeGraph name (default: 新建节点图)',
-    '  --output <file>   create output without overwriting',
-    '  --write           write source GIL after backup',
+    '  --name <string>   create: new NodeGraph name (default: 新建节点图)',
+    '  --graph <id|name> read/patch: target node graph (default: first graph)',
+    '  --node <n>        read: single node detail',
+    '  --composite <id|name>  read: composite def detail',
+    '  --json            read: machine-readable output',
+    '  --output <file>   patch: write result to a new file (no overwrite)',
+    '  --write           patch: write source GIL after backup',
     '  -h, --help        show help',
     '',
-    'Creates an empty NodeGraph (root 10 wrapper + root 6 folder entry) in a map GIL.',
-    'The injector can only target graphs that exist with a folder entry; use this',
-    'command to create a placeholder before injecting into a new map.'
+    'patch ops (order matters, applied sequentially):',
+    '  node <idx> pos <x> <y>                 set node position',
+    '  node <idx> param <shell> <typed>       set InParam value (int:1 flt:1.5 str:abc bool:true vec:1,2,3 gid:1 pfb:1 cfg:1)',
+    '  node <idx> link <shell> <src-idx> [src-shell]   data connection to InParam shell',
+    '  node <idx> unlink <shell>              remove data connection (Fixed: remove pin / Variant: clear connects)',
+    '  node-add <generic-id> <x> <y>          add node (min free index; donor must be pinless)',
+    '  node-del <idx>                          remove node record (def stays)',
+    '  node <idx> flow <shell> <dst-idx> [dst-shell]   control-flow connection from OutFlow shell',
+    '  node <idx> flow-rm <shell> <target>    disconnect control-flow from OutFlow shell to target node',
+    '  composite <def-id> rename <name>       rename composite definition',
+    '  composite <def-id> param <kind> <shell> rename <name>   kind=input|output|inflow|outflow',
+    '  composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>  add input param from impl pin (type=int|flt|str|bool|gid|ety; renumbers instance unless already at min free)',
+    '  composite create <name> <anchor-idx> <node-idx...>  wrap selected nodes into a new composite',
+    '      (anchor stays in place as the instance, other nodes move into the impl graph;',
+    '      control-flow OutFlows auto-lift to composite outflows; data inputs stay inside)',
+    '  composite <def-id> del-input <shell>                remove composite input (def flow + compositePin + instance pin; instance renumbered)',
+    '  composite <def-id> swap-input <a> <b>               swap two composite inputs (def flows + compositePins + instance pins; instance renumbered)',
+    '      (del/swap renumber = min free excluding current slot; cross-round tombstones without session history may differ from editor)',
+    '',
+    'Examples:',
+    '  gsts assets:node-graphs read --gil map.gil --graph 1073741836',
+    '  gsts assets:node-graphs read --gil map.gil --graph 样本-01 --node 24 --json',
+    '  gsts assets:node-graphs patch --gil map.gil --graph 1073741836 node 24 link 1 12',
+    '  gsts assets:node-graphs patch --gil map.gil --graph 1073741836 node 4 param 0 pfb:1234 --write',
+    '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 rename 我的复合 --write',
+    '  gsts assets:node-graphs patch --gil map.gil --graph 1073741836 composite create 我的复合 1 1 11',
+    '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 del-input 2',
+    '  gsts assets:node-graphs patch --gil map.gil composite 1610612744 swap-input 0 1'
   ].join('\n')
   console[exitCode === 0 ? 'log' : 'error'](output)
   process.exit(exitCode)
@@ -81,13 +183,19 @@ function value(argv: readonly string[], index: number): string {
 }
 
 function parseArgs(argv: readonly string[]): Args {
+  let sub: Args['sub'] = 'create'
   let gilPath: string | undefined
   let mapId: number | undefined
   let name = '新建节点图'
   let outputPath: string | undefined
   let write = false
+  let json = false
+  let graph: string | undefined
+  let node: number | undefined
+  let composite: string | undefined
+  const ops: string[] = []
   let index = 0
-  if (argv[0] === 'create') index++
+  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch') sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
     if (arg === '--gil') gilPath = value(argv, index++)
@@ -95,13 +203,22 @@ function parseArgs(argv: readonly string[]): Args {
     else if (arg === '--name') name = value(argv, index++)
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--write') write = true
+    else if (arg === '--json') json = true
+    else if (arg === '--graph') graph = value(argv, index++)
+    else if (arg === '--node') node = Number(value(argv, index++))
+    else if (arg === '--composite') composite = value(argv, index++)
     else if (arg === '--help' || arg === '-h') usage(0)
+    else if (sub === 'patch') ops.push(arg)
     else usage()
   }
+  if (sub === 'create' && ops.length) usage()
+  if (sub === 'patch' && !ops.length) usage()
   if (gilPath && mapId !== undefined)
     throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
-  return { gilPath, mapId, name, outputPath, write }
+  if (sub === 'create' && (graph || node || composite || json))
+    throw new Error('[error] create does not accept --graph/--node/--composite/--json')
+  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, ops }
 }
 
 // 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
@@ -196,22 +313,33 @@ function appendFolderEntry(root6: WireField[], graphId: number): WireField[] {
   return root6.map((f) => (f === folderRecord ? { ...f, value: rebuiltBytes } : f))
 }
 
+// 补最小 root 6/10 挂载容器（全新骨架地图没有这两层，游戏会加载失败——round4 事故）；
+// 与 buildEmptyNodeGraph 同构，编辑器打开保存后自会补全其余 records
+// root 6 = minimalFolderRoot6()（“未分类页签”聚合 record，暂无图条目）；root 10 = {7:1}
+export function ensureMinimalContainers(payload: Uint8Array): Uint8Array {
+  const root = readRoot(payload)
+  if (
+    root.some((f) => f.number === 6 && f.wire === 2) &&
+    root.some((f) => f.number === 10 && f.wire === 2)
+  ) {
+    return payload
+  }
+  const next = [...root]
+  if (!next.some((f) => f.number === 6 && f.wire === 2)) {
+    next.push({ number: 6, wire: 2, value: minimalFolderRoot6() })
+  }
+  if (!next.some((f) => f.number === 10 && f.wire === 2)) {
+    next.push({ number: 10, wire: 2, value: emitWireMessage([{ number: 7, wire: 0, value: 1 }]) })
+  }
+  return emitWireMessage(next)
+}
+
 export function buildEmptyNodeGraph(
   payload: Uint8Array,
   graphId: number,
   name: string
 ): Uint8Array {
-  let root = readRoot(payload)
-  if (!root.some((f) => f.number === 6 && f.wire === 2) || !root.some((f) => f.number === 10 && f.wire === 2)) {
-    // 全新骨架地图（maps:create 无 --graphs）没有 root 6/10：先补最小挂载容器
-    root = [...root]
-    if (!root.some((f) => f.number === 6 && f.wire === 2)) {
-      root.push({ number: 6, wire: 2, value: minimalFolderRoot6() })
-    }
-    if (!root.some((f) => f.number === 10 && f.wire === 2)) {
-      root.push({ number: 10, wire: 2, value: emitWireMessage([{ number: 7, wire: 0, value: 1 }]) })
-    }
-  }
+  const root = readRoot(ensureMinimalContainers(payload))
   const nextRoot = root.map((field) => {
     if (field.wire !== 2) return field
     if (field.number === 10) {
@@ -293,6 +421,14 @@ export async function runAssetsNodeGraphs(
   const source = resolveGilPath(projectConfig, args)
   const gil = source.path
   const sourceBytes = new Uint8Array(fs.readFileSync(gil))
+  if (args.sub === 'read') {
+    runRead(sourceBytes, gil, args)
+    return
+  }
+  if (args.sub === 'patch') {
+    runPatch(sourceBytes, gil, args)
+    return
+  }
   const sourceSha = sha256Bytes(sourceBytes)
   const payload = sourceBytes.slice(20, -4)
   const graphId = nextGraphId(payload)
@@ -338,4 +474,326 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     console.error(error instanceof Error ? error.message : String(error))
     process.exitCode = 1
   })
+}
+
+// ==================== read / patch 子命令 ====================
+
+function pinText(pin: PinView): string {
+  const parts = [`${KIND_NAMES[pin.kind] ?? pin.kind}[${pin.index}]`]
+  if (pin.type !== undefined) parts.push(VAR_TYPE_NAME[pin.type] ?? `T${pin.type}`)
+  if (pin.valueText && pin.valueText !== '未设置') parts.push(`= ${pin.valueText}`)
+  if (pin.compositePinIndex !== undefined) parts.push(`cpi=${pin.compositePinIndex}`)
+  for (const c of pin.connects) {
+    parts.push(`→ n${c.id} ${KIND_NAMES[c.kind] ?? c.kind}[${c.index ?? 0}]`)
+  }
+  return parts.join(' ')
+}
+
+function nodeText(n: NodeView, bytes: Uint8Array): string {
+  const defName = listCompositeDefs(bytes).find((d) => d.id === n.genericId)?.name
+  const name = defName ? `复合:${defName}` : (nodeName(n.genericId) ?? `API#${n.genericId}`)
+  const cid = n.concreteId !== undefined && n.concreteId !== n.genericId ? ` cid=${n.concreteId}` : ''
+  return `n=${n.index} ${name} (${n.genericId}${cid}) pos=(${n.x},${n.y})`
+}
+
+function runRead(bytes: Uint8Array, gil: string, args: Args): void {
+  if (args.composite !== undefined) {
+    const defId = resolveDefId(bytes, args.composite)
+    const payload = bytes.slice(20, -4)
+    const field = locateBlobField(payload, 2, defId)
+    const blob = payload.subarray(field.dataStart, field.dataEnd)
+    const metas = flowMetas(blob)
+    if (args.json) {
+      console.log(JSON.stringify({ gil, compositeDef: defId, flows: metas }, null, 2))
+      return
+    }
+    console.log(`composite def ${defId}`)
+    for (const m of metas) {
+      const type = m.type !== undefined ? (VAR_TYPE_NAME[m.type] ?? `T${m.type}`) : ''
+      console.log(`  ${KIND_NAMES[m.kind] ?? m.kind}[${m.shell}] ${m.name ?? '(无名)'}${type ? ' ' + type : ''} pinIndex=${m.pinIndex ?? '?'}`)
+    }
+    return
+  }
+  if (args.graph === undefined) {
+    const graphs = listGraphs(bytes)
+    const defs = listCompositeDefs(bytes)
+    if (args.json) {
+      console.log(JSON.stringify({ gil, graphs, composites: defs.map((d) => ({ id: d.id, name: d.name })) }, null, 2))
+      return
+    }
+    for (const g of graphs) console.log(`graph ${g.id} ${g.name ?? '(无名)'} nodes=${g.nodeCount}${g.id >= 1073741825 && g.id < 1073741825 + 100 ? '' : ' (impl)'}`)
+    console.log(`composites: ${defs.length}`)
+    for (const d of defs) console.log(`  def ${d.id} ${d.name ?? '(无名)'}`)
+    return
+  }
+  const graphId = resolveGraphId(bytes, args.graph)
+  const payload = bytes.slice(20, -4)
+  const { field } = locateGraphField(payload, graphId)
+  const blob = payload.subarray(field.dataStart, field.dataEnd)
+  const nodes = parseGraphNodes(blob)
+  const want = args.node
+  const selected = want !== undefined ? nodes.filter((n) => n.index === want) : nodes
+  if (args.json) {
+    console.log(JSON.stringify({ gil, graphId, nodes: selected }, null, 2))
+    return
+  }
+  for (const n of selected) {
+    console.log(nodeText(n, bytes))
+    for (const pin of n.pins) console.log(`    ${pinText(pin)}`)
+  }
+}
+
+type InstanceMeta = { defId: number; pinIndex?: number; type?: number }
+
+function instanceMeta(bytes: Uint8Array, node: Uint8Array, shell: number, kind: number): InstanceMeta | undefined {
+  if (!isCompositeInstance(node)) return undefined
+  const payload = bytes.slice(20, -4)
+  const view = parseNodeRecord(node)
+  const field = locateBlobField(payload, 2, view.genericId)
+  const metas = flowMetas(payload.subarray(field.dataStart, field.dataEnd))
+  const meta = metas.find((m) => m.kind === kind && m.shell === shell)
+  return { defId: view.genericId, pinIndex: meta?.pinIndex, type: meta?.type }
+}
+
+function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned: Set<number>): Uint8Array {
+  let current = bytes
+  let i = 0
+  const summary: string[] = []
+  while (i < ops.length) {
+    const op = ops[i]
+    if (op === 'composite') {
+      if (ops[i + 1] === 'create') {
+        const name = ops[i + 2]
+        const anchor = Number(ops[i + 3])
+        const nodes = ops.slice(i + 4).map(Number)
+        if (name === undefined || !Number.isFinite(anchor) || nodes.length === 0 || nodes.some((n) => !Number.isFinite(n))) {
+          throw new Error('[error] composite create <name> <anchor-idx> <node-idx...>')
+        }
+        current = createComposite(current, graphId, name, nodes, anchor)
+        summary.push(`composite create "${name}" anchor=n${anchor} nodes=[${nodes.join(',')}] → def 自动分配`)
+        i += 4 + nodes.length
+        continue
+      }
+      const defId = resolveDefId(current, ops[i + 1])
+      const verb = ops[i + 2]
+      if (verb === 'rename') {
+        const name = ops[i + 3]
+        if (name === undefined) throw new Error('[error] composite rename needs <name>')
+        current = patchRecord(current, 2, defId, (b) => renameCompositeDef(b, name))
+        summary.push(`composite ${defId} rename → ${name}`)
+        i += 4
+        continue
+      }
+      if (verb === 'param') {
+        const kindName = ops[i + 3]
+        const shell = Number(ops[i + 4])
+        if (ops[i + 5] !== 'rename') throw new Error('[error] composite param <kind> <shell> rename <name>')
+        const name = ops[i + 6]
+        const kind = kindName === 'input' ? 3 : kindName === 'output' ? 4 : kindName === 'inflow' ? 1 : kindName === 'outflow' ? 2 : undefined
+        if (kind === undefined) throw new Error('[error] param kind must be input|output|inflow|outflow')
+        if (name === undefined) throw new Error('[error] composite param rename needs <name>')
+        current = patchRecord(current, 2, defId, (b) => renameParamFlow(b, kind, shell, name))
+        summary.push(`composite ${defId} ${kindName}[${shell}] rename → ${name}`)
+        i += 7
+        continue
+      }
+      if (verb === 'add-input') {        const shell = Number(ops[i + 3])
+        const name = ops[i + 4]
+        const typeName = ops[i + 5]
+        const innerNode = ops[i + 6] !== undefined ? Number(ops[i + 6]) : undefined
+        const innerShell = ops[i + 7] !== undefined ? Number(ops[i + 7]) : undefined
+        if (name === undefined || typeName === undefined || innerNode === undefined || innerShell === undefined) {
+          throw new Error('[error] composite add-input <shell> <name> <type> <inner-node> <inner-shell>')
+        }
+        const varType = VAR_TYPE_NAME_REV[typeName]
+        if (varType === undefined) throw new Error(`[error] unknown type ${typeName}`)
+        // 找图中实例（必须唯一），重编号选择器（原位判定 + 未闭合 fail closed）
+        const instances = parseGraphNodes(graphBlob(current, graphId)).filter((n) => n.genericId === defId)
+        if (instances.length !== 1) throw new Error(`[error] 复合实例数 ${instances.length}（非 1）未闭合，拒绝`)
+        const oldIndex = instances[0].index
+        const newIndex = chooseRebuildIndex(graphBlob(current, graphId), oldIndex, innerNode)
+        current = patchRecord(current, 2, defId, (b) => addParamFlow(b, 3, shell, name, varType))
+        current = patchRecord(current, 4, defId, (b) => addCompositePin(b, 3, shell, innerNode, innerShell))
+        if (newIndex !== undefined) {
+          current = patchRecord(current, 1, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
+        }
+        summary.push(`composite ${defId} add-input[${shell}] ${name} ${typeName} inner=n${innerNode}[${innerShell}]（实例 n${oldIndex}${newIndex !== undefined ? `→n${newIndex}` : ' 原位'}）`)
+        i += 8
+        continue
+      }
+      if (verb === 'del-input') {
+        const shell = Number(ops[i + 3])
+        if (!Number.isFinite(shell)) throw new Error('[error] composite del-input <shell>')
+        const instances = parseGraphNodes(graphBlob(current, graphId)).filter((n) => n.genericId === defId)
+        if (instances.length !== 1) throw new Error(`[error] 复合实例数 ${instances.length}（非 1）未闭合，拒绝`)
+        const oldIndex = instances[0].index
+        const metas = flowMetas(defBlob(current, defId))
+        const target = metas.find((m) => m.kind === 3 && m.shell === shell)
+        if (!target) throw new Error(`[error] def ${defId} 无 input shell ${shell}`)
+        const newIndex = chooseMovedIndex(graphBlob(current, graphId), oldIndex)
+        current = patchRecord(current, 2, defId, (b) => delParamFlow(b, 3, shell))
+        current = patchRecord(current, 4, defId, (b) => delCompositePin(b, 3, shell))
+        current = patchGraphNode(current, graphId, oldIndex, (n) => delInstanceCompositePin(n, 3, shell, target.pinIndex!))
+        current = patchRecord(current, 1, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
+        summary.push(`composite ${defId} del-input[${shell}]（实例 n${oldIndex}→n${newIndex}；跨轮墓碑无会话史可能低于编辑器）`)
+        i += 4
+        continue
+      }
+      if (verb === 'swap-input') {
+        const a = Number(ops[i + 3])
+        const b = Number(ops[i + 4])
+        if (!Number.isFinite(a) || !Number.isFinite(b)) throw new Error('[error] composite swap-input <a> <b>')
+        const instances = parseGraphNodes(graphBlob(current, graphId)).filter((n) => n.genericId === defId)
+        if (instances.length !== 1) throw new Error(`[error] 复合实例数 ${instances.length}（非 1）未闭合，拒绝`)
+        const oldIndex = instances[0].index
+        const newIndex = chooseMovedIndex(graphBlob(current, graphId), oldIndex)
+        current = patchRecord(current, 2, defId, (bl) => swapParamFlows(bl, 3, a, b))
+        current = patchRecord(current, 4, defId, (bl) => swapCompositePinInners(bl, 3, a, b))
+        current = patchGraphNode(current, graphId, oldIndex, (n) => swapInstancePins(n, 3, a, b))
+        current = patchRecord(current, 1, graphId, (bl) => renumberGraphNode(bl, oldIndex, newIndex))
+        summary.push(`composite ${defId} swap-input ${a}↔${b}（实例 n${oldIndex}→n${newIndex}；跨轮墓碑无会话史可能低于编辑器）`)
+        i += 5
+        continue
+      }
+      throw new Error(`[error] unknown composite op ${verb}`)
+    }
+    if (op === 'node-add') {
+      const genericId = Number(ops[i + 1])
+      const x = Number(ops[i + 2])
+      const y = Number(ops[i + 3])
+      if (![genericId, x, y].every(Number.isFinite))
+        throw new Error('[error] node-add needs <generic-id> <x> <y>')
+      current = patchRecord(current, 1, graphId, (blob) => addGraphNode(blob, genericId, x, y, tombstoned))
+      summary.push(`add node generic=${genericId} pos=(${x},${y})`)
+      i += 4
+      continue
+    }
+    if (op === 'node-del') {
+      const target = Number(ops[i + 1])
+      if (!Number.isFinite(target)) throw new Error('[error] node-del needs <idx>')
+      tombstoned.add(target)
+      current = patchRecord(current, 1, graphId, (blob) => delGraphNode(blob, target))
+      summary.push(`del node ${target}`)
+      i += 2
+      continue
+    }
+    if (op !== 'node') throw new Error(`[error] unknown op ${op}`)
+    const nodeIndex = Number(ops[i + 1])
+    const action = ops[i + 2]
+    const nodeOp = (mutate: (n: Uint8Array, meta: InstanceMeta | undefined) => Uint8Array, label: string) => {
+      const before = current
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => {
+        const meta = instanceMeta(before, n, Number(ops[i + 3]), 3)
+        return mutate(n, meta)
+      })
+      summary.push(`node ${nodeIndex} ${label}`)
+    }
+    if (action === 'pos') {
+      const x = Number(ops[i + 3])
+      const y = Number(ops[i + 4])
+      if (Number.isNaN(x) || Number.isNaN(y)) throw new Error('[error] pos needs <x> <y>')
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => setNodePos(n, x, y))
+      summary.push(`node ${nodeIndex} pos (${x},${y})`)
+      i += 5
+    } else if (action === 'param') {
+      const shell = Number(ops[i + 3])
+      const typed = parseTypedValue(ops[i + 4])
+      nodeOp((n, meta) => setParam(n, shell, typed, meta?.pinIndex), `param[${shell}] ${ops[i + 4]}`)
+      i += 5
+    } else if (action === 'link') {
+      const shell = Number(ops[i + 3])
+      const srcNode = Number(ops[i + 4])
+      const srcShell =
+        ops[i + 5] !== undefined && Number.isFinite(Number(ops[i + 5])) ? Number(ops[i + 5]) : 0
+      let type: number | undefined
+      let pinIndex: number | undefined
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => {
+        const view = parseNodeRecord(n)
+        const meta = instanceMeta(current, n, shell, 3)
+        if (meta) {
+          type = meta.type
+          pinIndex = meta.pinIndex
+        } else {
+          type = nodeInputType(view.genericId, shell)
+        }
+        if (type === undefined) {
+          throw new Error(`[error] 无法确定 node ${nodeIndex} InParam[${shell}] 的类型（定义缺失），link 需要目标 pin 类型`)
+        }
+        return linkInParam(n, shell, srcNode, srcShell, type, pinIndex)
+      })
+      summary.push(`node ${nodeIndex} link[${shell}] ← n${srcNode}[${srcShell}] type=${type}`)
+      i += srcShell !== 0 ? 6 : 5
+    } else if (action === 'unlink') {
+      const shell = Number(ops[i + 3])
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => unlinkInParam(n, shell))
+      summary.push(`node ${nodeIndex} unlink[${shell}]`)
+      i += 4
+    } else if (action === 'flow') {
+      const shell = Number(ops[i + 3])
+      const dstNode = Number(ops[i + 4])
+      const dstShell =
+        ops[i + 5] !== undefined && Number.isFinite(Number(ops[i + 5])) ? Number(ops[i + 5]) : 0
+      let pinIndex: number | undefined
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => {
+        const meta = instanceMeta(current, n, shell, 2)
+        pinIndex = meta?.pinIndex
+        return addOutFlow(n, shell, dstNode, dstShell, pinIndex)
+      })
+      summary.push(`node ${nodeIndex} flow[${shell}] → n${dstNode}[${dstShell}]`)
+      i += dstShell !== 0 ? 6 : 5
+    } else if (action === 'flow-rm') {
+      const shell = Number(ops[i + 3])
+      const targetNode = Number(ops[i + 4])
+      if (!Number.isFinite(targetNode)) throw new Error('[error] flow-rm needs target node: node <idx> flow-rm <shell> <target>')
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => removeOutFlow(n, shell, targetNode))
+      summary.push(`node ${nodeIndex} flow-rm[${shell}] → n${targetNode}`)
+      i += 5
+    } else {
+      throw new Error(`[error] unknown node op ${action}`)
+    }
+  }
+  console.log(summary.map((s) => `applied: ${s}`).join('\n'))
+  return current
+}
+
+function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
+  const sourceSha = sha256Bytes(bytes)
+  // composite create/del-input/swap-input/add-input 需要宿主图定位实例；rename/param 不需要图（用 0 安全）
+  const hasNodeOps = args.ops.some((op) => op === 'node')
+  const hasComposite = args.ops.some(
+    (op, i) =>
+      op === 'composite' &&
+      (args.ops[i + 1] === 'create' || ['add-input', 'del-input', 'swap-input'].includes(args.ops[i + 2]))
+  )
+  const graphId =
+    hasNodeOps || hasComposite
+      ? resolveGraphId(bytes, args.graph ?? String(listGraphs(bytes)[0]?.id ?? ''))
+      : 0
+  const tombstoned = new Set<number>()
+  const result = applyOps(bytes, graphId, args.ops, tombstoned)
+  const candidateSha = sha256Bytes(result)
+  if (args.write) {
+    const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
+    if (nowSha !== sourceSha) throw new Error('[error] source GIL changed since read; aborting write')
+    const backupDir = path.join(path.dirname(gil), '.gsts', 'backups')
+    fs.mkdirSync(backupDir, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.node-graph-patch.bak`)
+    fs.copyFileSync(gil, backup)
+    fs.writeFileSync(gil, result)
+    console.log(`backup=${backup}`)
+    console.log(`written=${gil}`)
+  } else if (args.outputPath) {
+    const absolute = path.resolve(args.outputPath)
+    if (fs.existsSync(absolute)) throw new Error(`[error] output already exists: ${absolute}`)
+    fs.mkdirSync(path.dirname(absolute), { recursive: true })
+    fs.writeFileSync(absolute, result)
+    console.log(`written=${absolute}`)
+  } else {
+    console.log(`preview=${gil}`)
+  }
+  console.log(
+    `graphId=${graphId} sourceSha256=${sourceSha} candidateSha256=${candidateSha} ` +
+      `size=${bytes.length}->${result.length}`
+  )
 }
