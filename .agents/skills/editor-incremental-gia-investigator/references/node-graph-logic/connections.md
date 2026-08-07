@@ -63,7 +63,10 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-
 ```
 
 `extract-node-raw.ts --pins` 必须把 GraphNode 的每个重复 field 4 当作一个完整 NodePin；不要把
-第一个 NodePin 的 i1/i2/value/connects 内部字段误当成 pin 列表。
+第一个 NodePin 的 i1/i2/value/connects 内部字段误当成 pin 列表。**对比前后 pin 时必须包含 raw
+hex 内容行，不能只比 `--- pin[N] field=4 len=XX ---` 元数据行**（2026-08-08 case4 实测：
+connects.id 3→5 改写但元数据行全同，只比元数据误报"逐字节一致"）；可靠做法：直接解析 node
+raw hex 提取 field4 记录 bytes 对比，或对比含 hex 的完整输出块。
 
 #### 一条命令完成验证与重放（不要再手写 validator/replay）
 

@@ -315,7 +315,10 @@ Validator 接受后，将它提炼为 `scripts/` 下的最小参数化资产；�
 `SIG/MAP/GID/LOCKED_BEFORE/LOCKED_HASH` 等短变量引用，减少重复上下文；变量
 只缩短表达，不扩大授权或证据范围。每会话开跑前粘贴一次恢复块，`LOCKED_BEFORE/LOCKED_HASH`
 随每轮更新并**立即 `sha256sum` 复核两处一致**（2026-08-06 实测：路径指向 before.gil 但 hash
-对应 after.gil，恢复块自相矛盾导致基线错认）。
+对应 after.gil，恢复块自相矛盾导致基线错认）。**manifest 写入后立即 grep 恢复块 LOCKED 两行
+与快照 sha256sum 一致**（2026-08-08 case4 实测：python 多段 replace 脚本部分生效——case 段
+追加成功但 LOCKED 替换未命中，未核对导致恢复块停在旧基线；manifest 更新脚本应在写入后回读
+核对，或先单独验证每段 old 文本命中再写入）。
 
 ## 手工同构重放
 
