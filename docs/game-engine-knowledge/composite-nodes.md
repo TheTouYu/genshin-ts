@@ -134,9 +134,10 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 | name(1) | 参数名（UTF-8，如“目标实体”）；**ControlFlow 可选**——节点 FlowIn/FlowOut 映射无 name（v36），多分支 DefaultBranch 映射带 name="默认"（case23，= 内部引脚显示名） |
 | visible(2) | 恒 1 |
 | index(3) | NodePin.Index：数据={kind=3 InParam / 4 OutParam, ShellIndex 默认省略/非默认显式}；控制流={kind=2 OutFlow / 1 InFlow, 同规则} |
-| type(4) | ParameterFlow 类型：Ety={type1=1, type2=1, class 省略}；Int={class=2, type1=3, type2=3}；Flt={class=4 FloatBase, type1=5, type2=5}；Str={class=5 StringBase, type1=6, type2=6}；**Bol={class=6, type1=4, type2=4, 101={1:1}}（case2 实测 080618042004aa06020801；field101 子消息语义待查）**；type2 恒=type1；class 仅非 Server 基础类型落盘（class 大类型号：Int=2/Flt=4/Str=5/Bol=6，Ety 无；与 type1/type2=VAR_TYPE_NAME 值不同）；**未配置变体的 Variant 源输出 = {type1=1, type2=1}（v35 已定性：默认变体 Ety）** |
+| type(4) | ParameterFlow 类型：Ety={type1=1, type2=1, class 省略}；Int={class=2, type1=3, type2=3}；Flt={class=4 FloatBase, type1=5, type2=5}；Str={class=5 StringBase, type1=6, type2=6}；**Bol={class=6, type1=4, type2=4, 101={1:1}}（case2/case6 两样本实测，逐字节一致
+  080618042004aa06020801；field101 子消息语义待查）**；type2 恒=type1；class 仅非 Server 基础类型落盘（class 大类型号：Int=2/Flt=4/Str=5/Bol=6，Ety 无；与 type1/type2=VAR_TYPE_NAME 值不同）；**未配置变体的 Variant 源输出 = {type1=1, type2=1}（v35 已定性：默认变体 Ety）** |
 | description(4) | ControlFlow 描述（常空，**显式落 len=0**） |
-| pinIndex(8) | **全局唯一身份号**（同复合内按**创建顺序**递增，样本 47→48→49→51→52→53/54/56/57/58/59；交换/排序参数顺序不改变；实例 pin 用 field7 引用它）。**分配器全局单调递增、删除不释放**（v42 实测：删 51/52 后新参数仍拿 55=max+1） |
+| pinIndex(8) | **全局唯一身份号**（同复合内按**创建顺序**递增，样本 47→48→49→51→52→53/54/56/57/58/59→60→89；交换/排序参数顺序不改变；实例 pin 用 field7 引用它）。**分配器规律（2026-08-08 case6/case7 四样本 CONFIRMED）**：①无手动删除史时**单调递增**（现存 max+1 起跳过全局占用/墓碑，case1=60、case2=89）；②**手动删除参数后该 def 全部已删号（含合并/类型删除墓碑）回收进池，新分配取池最小**（case6=51、case7=52；配对样本：是否触发事件 89→删→51、控制表达式 60→删→52） |
 
 ### CompositePin 映射（内部图 compositePins）
 
@@ -249,10 +250,10 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 **三个“号”各司其职**：ShellIndex=顺序号（交换/排序时重写）；pinIndex=身份号（保持，实例 field7
 引用）；innerPin=内部真实 pin（保持）。实例 nodeIndex 在“修改 CompositeDef 结构”的保存后可能
 重编号（样本 51→3→5→6→7→8→3…：复用宿主图空闲 nodeIndex；主图连线不触发重建）。
-**统一假说（2026-08-08 case1/case2/case8/case9/case4/case5 七样本 CONFIRMED）**：任何
+**统一假说（2026-08-08 case1/case2/case8/case9/case4/case5/case6/case7 九样本 CONFIRMED）**：任何
 def 参数结构变化（加输入/删参数/交换顺序/加输出）→ 编辑器**重建复合实例** → nodeIndex =
 **最小空闲号排除本次删除的墓碑**（case4：3 为墓碑→5；case5：5→6；case8：7→8；case1：
-51→3；case9：8→3）；若分配结果 == 当前 nodeIndex 则 wire 零变化（**case2 的“不重编号”
+51→3；case9：8→3；case6：6→3；**case7：3→5——实例从 3 移走 → 3 为本次墓碑 → 取 5**）；若分配结果 == 当前 nodeIndex 则 wire 零变化（**case2 的“不重编号”
 = 原位重建**）。调用侧填值/连线不改 def → 不重建（case3）。
 
 **重编号分配规律（composite-add-param-case1 v59→v60 + case4 闭合）**：实例 nodeIndex =
@@ -260,13 +261,15 @@ def 参数结构变化（加输入/删参数/交换顺序/加输出）→ 编辑
 重编号 = 节点记录 f1 改写 + 记录移到 nodeIndex 升序位置 + 全图源侧 connects 目标 ID 改写，pin
 内容（cpi/connects/value/位置）逐字节不变。
 
-**加输入参数的接口联动（v59→v60 闭合）**：① def 参数流追加 {1:name, 2:1, 3:{1:kind,
-2:shell}, 4:type 流, 8:pinIndex=全局 max+1}（插该 kind 列表末尾）；② impl 图 compositePins
-追加 {1:kind, 2:shell}（按 kind/index 升序插入）；③ 实例重编号；④ 源侧 connects 更新。
-type 流 = {1:f1, 3:VarType, 4:VarType}（Ety 特例 {1:1, 4:1}）；f1 映射 {Ety:1, Int:2,
-Flt:4, Str:5}（Bol=3 为推断）。**impl 内部节点重写属于该操作事实**（用户 2026-08-08
-确认：编辑器只能把内部节点引脚提升为复合参数，不存在“只加参数”的原子操作；本轮提升
-多分支输入时 impl node 3 concreteId 落盘 + 输入 pins 实例化，其精确规则待更多样本）。
+**加输入参数＝提升内部节点输入（case2/case6 两样本同构闭合，2026-08-08）**：① def 参数流
+追加 {1:name, 2:1, 3:{1:kind, 2:shell}, 4:type 流, 8:pinIndex}（插该 kind 列表末尾）；
+② impl 图 compositePins 追加 {1:{1:kind,2:shell}outer, 2:innerNodeId, 3:{innerPin},
+4:{innerPin}双写}（按 kind/index 升序插入；innerPin=被提升内部 pin 身份，与 ShellIndex
+可重合如 08031002）；③ 实例重编号（统一假说）；④ 宿主图源侧 connects 更新；⑤ **宿主实例
+与内部节点 pins 零变化**（提升不新增调用侧 pin，未填值/连线；被提升 pin 可本无落盘——
+node 1 提升前仅落盘 1 pin）。type 流 = {1:f1, 3:VarType, 4:VarType}（Ety 特例 {1:1, 4:1}）；
+f1 映射 {Ety:1, Int:2, Flt:4, Str:5, **Bol:6**}（Bol=6 由 case2/case6 实测闭合，非早前
+推断的 3）。
 
 ### 复现命令
 
@@ -285,7 +288,7 @@ npx tsx .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-
 - 嵌套复合节点如何引用内部定义。
 - 复合节点布局、接口顺序和连接的真实关卡编码。
 - 内部节点在内部图中的连线与内部消费输入的方式（运行时绑定，wire 层已闭合，执行语义属游戏验证）。
-- field203=6 语义、pinIndex 全局分配器位置、f2/f4 列表数量差（59 vs 29，可只读普查）。
+- field203=6 语义、f2/f4 列表数量差（59 vs 29，可只读普查）。
 - 实例 nodeIndex 重编号的空闲号池精确分配规律（v59→v60 已闭合：最小空洞含墓碑；
   新增节点分配器是否同源待验证）。
 - 复合节点执行语义（共享输入/输出运行时行为、分支执行顺序，游戏验证范畴）。
