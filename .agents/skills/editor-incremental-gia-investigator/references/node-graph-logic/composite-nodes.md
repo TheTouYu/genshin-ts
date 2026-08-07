@@ -42,8 +42,12 @@ field4 29 项，找"末尾追加"或"等长重排"）。宿主实例 nodeIndex �
 - 改复合名 / 改参数名：只写 CompositeDef.name(200) / inputs[].name(1)，其余不动、
   **不触发实例重编号**。
 - 加输入/输出/控制流 pin：CompositeDef 追加 ParameterFlow/ControlFlow + 内部图
-  compositePins 追加映射（按 (kind,index) 升序插入）；**实例重编号非必要联动（case2 实测：
-  提升内部节点输入时宿主实例与内部节点 pins 零变化，case1 的 51→3 重编号触发因素未闭合）**。参数顺序 = 实例 pin 顺序 = CompositePin outer 顺序。
+  compositePins 追加映射（按 (kind,index) 升序插入）；**实例重编号非必要联动（case2/case6
+  两样本实测：提升内部节点输入时宿主实例与内部节点 pins 零变化；实例重编号统一假说
+  见下：重建时最小空闲排除墓碑，原位则零变化）**。
+- **提升输入 = 加输入参数（case2/case6 同构）**：def 插 {1:name,2:1,3:{1:kind,2:shell},
+  4:type,8:pinIndex} + compositePins 插 {1:outer,2:innerNode,3:inner,4:inner双写}；
+  宿主实例与内部节点 pins 零变化（被提升 pin 可本无落盘）；Bol type 两样本 CONFIRMED。参数顺序 = 实例 pin 顺序 = CompositePin outer 顺序。
 - 调用填值/连线：实例新增 InParam pin（i1/i2={kind=3, ShellIndex} + type + value/connects +
   field7），定义层不动。输出：实例永不落输出 pin（被消费也零落盘，v32）。
 - 控制流调用（v38/case23）：InFlow 作目标不落 pin（源侧 connects→实例 id）；OutFlow 作源
@@ -57,14 +61,14 @@ field4 29 项，找"末尾追加"或"等长重排"）。宿主实例 nodeIndex �
   **控制流连线不触发 Variant 实例化**；多分支 DefaultBranch=Shell0、Case1..10=Shell1..10。
 - 共享参数（v37 输入/case25 输出/case26 输入三向）：合并=保留目标参数、删被合并参数
   （pinIndex 不释放）、被删方映射 outer 改写为保留 ShellIndex、映射不删除、升序重排。
-- pinIndex 全局单调递增分配器，删除不释放（v42）；跨 def 共享同一分配器（case2：def 内
-  max=60 时新参数拿 89——61-87 被其他 def 占用、88 全局缺失，精确规律未闭合）；
-  分配顺序 outflow 先于 inflow（两样本）。
+- pinIndex 分配器（2026-08-08 case6/case7 四样本 CONFIRMED）：无手动删除史=单调递增
+  （跳过占用/墓碑）；**手动删除后该 def 全部已删号回收进池、取池最小**（89→删→51、
+  60→删→52 两对配对样本）；分配顺序 outflow 先于 inflow（两样本）。
 - compositePins 顺序 = f2 参数出现顺序（inflows→outflows→inputs→outputs，组内按参数顺序；
   共享多映射按创建顺序）。
 - 参数流 type 编码：Ety={type1=1, type2=1}（无 class）；Int={class=2, type1=3, type2=3}；
   Flt={class=4, type1=5, type2=5}；Str={class=5, type1=6, type2=6}；**Bol={class=6,
-  type1=4, type2=4, field101={1:1}}（case2 闭合）**；class 大类型号与 type1/type2 值不同。
+  type1=4, type2=4, field101={1:1}}（case2/case6 两样本 CONFIRMED）**；class 大类型号与 type1/type2 值不同。
 - 内部图 compositePins：outerPin=外壳（顺序号）、innerNodeId=内部节点、innerPin/innerPin2
   双写=内部真实 pin（身份）。
 
