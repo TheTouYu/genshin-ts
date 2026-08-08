@@ -10,7 +10,7 @@
 
 - 真实结构 Authority：`docs/game-engine-knowledge/gil-structure-semantics.md`
 - 静态资产生产说明：`docs/architecture/gil-static-model-assets.md`
-- 当前 CLI：`src/cli/assets_static_assemblies.ts`、`src/cli/assets_entities.ts`、`src/cli/assets_mounts.ts`
+- 当前 CLI：`src/cli/assets_static_assemblies.ts`、`src/cli/assets_entities.ts`、`src/cli/gsts.ts`（`assets:mounts` 路由）
 - 当前核心实现：`src/cli/gil_static_assemblies.ts`、`src/cli/gil_entities.ts`、`src/cli/gil_graph_mounts.ts`
 - focused 回归：`tests/gil_static_assemblies.ts`、`tests/gil_entities.ts`、`tests/gil_graph_mounts.ts`
 
