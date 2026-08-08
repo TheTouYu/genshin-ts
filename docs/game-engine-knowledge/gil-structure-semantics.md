@@ -501,10 +501,22 @@ aux 侧归属（root 27 aux 记录 f4 槽）:
   “0x7FFFFFF→0x07B5AED7 材质引用”是把 5 字节 varint 读反的解码错误，作废。
   材质槽完整字段：`f1=1` 启用自定义颜色标记、`f3=0xAARRGGBB`、`f4=fixed32 100.0`、
   `f5=RGB`、`f6=6700`。
-  **v21 补充（2026-08-08）**：live aux（从未改色的贴片）材质槽 = `f1=1, f3=0xFFFFFFFF,
-  f4=100.0, f5=0xFFFFFF, f6=6700`——f3=0xFFFFFFFF 是“默认色”标记（非实际颜色），
-  f5=0xFFFFFF 是默认白；删除占位 aux（f2=空模型 10005018）材质槽无 f1（被重置），
-  f3 仍为 0xFFFFFFFF。此前“编辑器默认 aux 无 f1”记录作废。
+  **v1→v2→v3 相邻链修正（2026-08-08）**：地图 `1073741862` 中编辑器新建的
+  definition/instance 两侧默认 aux，材质槽 raw 均为
+  `18ffffffff0f250000c84228ffffff0730ac34`，字段严格为 `f3=0xFFFFFFFF,
+  f4=100.0, f5=0xFFFFFF, f6=6700`，**没有显式 f1**（v2 SHA-256
+  `71bf02de…e204e`）。下一轮只在宿主自定义元件启用自定义颜色并选取
+  `0xFFD92727`，宿主 definition/instance 材质同步新增 `f1=1`，f3/f5 分别变为
+  `0xFFD92727/0xD92727`；root 45 MRU 同值，而 root 27 两条 aux raw hash 均保持
+  `d2f0503a…136c4` 不变（v3 SHA-256 `f6f85f8a…8318b`）。因此当前受限结论是：
+  **新建默认 aux 可省略 f1；宿主材质启用自定义颜色时显式写 f1=1**。v21 某条既有
+  aux 的 `f1=1, f3=0xFFFFFFFF, f4=100.0, f5=0xFFFFFF, f6=6700` 仍是有效 raw
+  观察，但在缺少其创建与颜色操作历史时，不能再把它命名为“从未改色的默认 aux”，
+  也不能据此作废无 f1 的默认形态。aux 自身从默认到自定义颜色的 transition 尚未实验，
+  保持 `INSUFFICIENT`。证据：
+  `~/genshin-ts-evidence/gil-whole-structure/2026-08-08-entity-component-rules-lab/experiments/`
+  `v1-to-v2-add-decoration/` 与 `v2-to-v3-enable-custom-color/`；两轮独立 Validator
+  均直接从 raw 快照接受关键断言。
 - **root 45 = 编辑器“最近使用的颜色” MRU 列表（2026-08-06 v0-v21 全链闭合）**：
   v0 无此 root，v1-v5 空记录（len=0），v6 用户调色板选色后出现单条粉红 0xFFED5757；
   结构 = `f1{f1=1, f11{f1{f3: 0xAARRGGBB varint 列表}}}`，**最新在前**（头部插入）。
