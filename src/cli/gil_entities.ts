@@ -2,7 +2,7 @@ import type {
   GstsStaticAssemblyComponent,
   GstsStaticColor
 } from '../compiler/gsts_config.js'
-import { buildFile, readUint32BE } from '../injector/binary.js'
+import { buildFile, readUint32BE, readVarint } from '../injector/binary.js'
 import {
   buildOfficialPrefabRecord,
   isOfficialResourceId,
@@ -34,6 +34,7 @@ export type ExportedEntity = {
   rotation: readonly [number, number, number]
   scale: readonly [number, number, number]
   components: readonly GstsStaticAssemblyComponent[]
+  auxIds: readonly number[]
   color?: GstsStaticColor
 }
 
@@ -66,6 +67,34 @@ function floatVector(data: Uint8Array): [number, number, number] {
     }
   }
   return values as [number, number, number]
+}
+
+function readVarintStream(data: Uint8Array): number[] {
+  const result: number[] = []
+  let offset = 0
+  while (offset < data.length) {
+    const item = readVarint(data, offset)
+    if (!item) throw new Error('[error] malformed entity aux ID list')
+    result.push(item.value >>> 0)
+    offset = item.next
+  }
+  return result
+}
+
+/** 读取实体 f5{f1=40}.f50.f501 的装饰物 ID 列表。 */
+export function readEntityAuxIds(record: Uint8Array): number[] {
+  for (const field of parse(record) ?? []) {
+    if (field.wire !== 2 || field.number !== 5) continue
+    const slot = parse(field.value as Uint8Array)
+    if (!slot || firstVarint(slot, 1) !== 40) continue
+    const f50 = slot.find((child) => child.number === 50 && child.wire === 2)
+    if (!f50) return []
+    const list = parse(f50.value as Uint8Array)?.find(
+      (child) => child.number === 501 && child.wire === 2
+    )
+    return list ? readVarintStream(list.value as Uint8Array) : []
+  }
+  return []
 }
 
 function vector(values: readonly number[], sparse: boolean): Uint8Array {
@@ -222,7 +251,8 @@ export function exportEntities(bytes: Uint8Array): ExportedEntity[] {
       ...(resourceId === undefined ? {} : { resourceId }),
       ...readTransform(record, 6),
       ...(readColor(record) ? { color: readColor(record)! } : {}),
-      components
+      components,
+      auxIds: readEntityAuxIds(record)
     })
   }
   return result.sort((a, b) => a.id - b.id)

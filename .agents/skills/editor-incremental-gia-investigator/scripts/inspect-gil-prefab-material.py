@@ -24,7 +24,14 @@ def one(message: bytes, field: int, kind: str):
 
 
 def find_record(payload: bytes, root_field: int, identity: int) -> bytes:
-    found = [record for record in records(payload, root_field) if record_id(record) == identity]
+    found = []
+    for record in records(payload, root_field):
+        try:
+            candidate = record_id(record)
+        except ValueError:
+            continue
+        if candidate == identity:
+            found.append(record)
     if len(found) != 1:
         raise ValueError(f'expected one root {root_field} record {identity}, found {len(found)}')
     return found[0]
@@ -82,6 +89,9 @@ def aux_summary(section: int, record: bytes) -> dict:
     transform = one(transform_slot, 11, 'bytes')
     transform_fields = {number: value for number, kind, value in walk(transform) if kind == 'bytes'}
     relation = matches(record, 12, 'bytes')
+    if len(relation) > 1:
+        raise ValueError(f'expected at most one f12 relation, found {len(relation)}')
+    relation_value = relation[0] if relation else None
     return {
         'section': section,
         'id': record_id(record),
@@ -98,7 +108,9 @@ def aux_summary(section: int, record: bytes) -> dict:
         },
         'material': material_summary(record, 5),
         'f11Present': bool(matches(record, 11, 'bytes')),
-        'f12Reference': record_id(relation[0]) if len(relation) == 1 else None,
+        'f12Present': relation_value is not None,
+        'f12ExplicitEmpty': relation_value == b'',
+        'f12Reference': record_id(relation_value) if relation_value else None,
         'rawSha256': hashlib.sha256(record).hexdigest(),
         'rawBytes': len(record),
     }

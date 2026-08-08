@@ -1183,7 +1183,8 @@ field 28:
 `tests/static_assembly_structure.ts` 覆盖解析校验。
 
 **场景实体（root 5）**：新增 `gsts assets:entities export/import`。
-export 从 root 5 提取实体（f5 名称、f2.1 定义引用、f6 transform、f7 组件槽、f8 资源）；
+export 从 root 5 提取实体（f5 名称、f2.1 定义引用、f5{t=40}.f50.f501 装饰物 ID、
+f6 transform、f7 组件槽、f8 资源），JSON 字段 `auxIds` 直接列出实体挂载的装饰物；
 import 按真实编辑器“从元件新增场景实体”规则创建：复制元件定义记录并转换
 （资源 f2→f8、名称/能力 f6→f5 且追加 f1=19/f28 与 f1=52/f62 两个默认能力、
 装饰物 f7→f6、组件槽 f8→f7 逐字节继承、删除 f10 与 packed 501、新增 f2={f1=defRef}），

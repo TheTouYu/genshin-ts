@@ -81,8 +81,10 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-pr
 
 它要求目标 definition/instance ID 各唯一存在，保留 root occurrence 顺序，输出 root changed
 set、definition/instance 材质 presence/raw hash、field 501 packed aux ID、root 22 名称/flags、
-root 27 双 section 的唯一小型增删和 root 45 packed MRU。root presence/order/wire type 变化、
-目标缺失或 aux 差分超过 `--max-aux-delta` 时 fail closed；它是定点 Investigator，不替代 L1
+root 27 双 section 的唯一小型增删和 root 45 packed MRU。目标选择只按明确 record ID，允许
+容器中并存没有直接 f1 ID 的无关 child；entity aux 的显式空 f12 会分别输出 presence/empty，
+不会当作引用 ID 解码。root presence/order/wire type 变化、目标缺失或 aux 差分超过
+`--max-aux-delta` 时 fail closed；它是定点 Investigator，不替代 L1
 `compare-gil-root-wire.py`，也不替代从 raw 独立重算的 Validator。
 
 相邻实验复制上一轮 validate.py 作为新 Validator 时，必须重新核对：`EXPECTED` 两个 SHA-256

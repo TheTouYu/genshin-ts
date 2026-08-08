@@ -7,7 +7,12 @@ import {
   readUint32BE
 } from '../../injector/binary.js'
 import type { LenField } from '../../injector/types.js'
-import { readTransform, setTransform, type EntityTransform } from '../gil_entities.js'
+import {
+  readEntityAuxIds,
+  readTransform,
+  setTransform,
+  type EntityTransform
+} from '../gil_entities.js'
 import {
   emitWireMessage as emit,
   parseWireMessage as parse,
@@ -227,40 +232,6 @@ export function createAuxRecord(bytes: Uint8Array, record: Uint8Array): Uint8Arr
   })
 }
 
-/** 平铺 varint 流读取（f501 auxID 列表不是 protobuf message，不能走 parse）。 */
-function readVarintStream(data: Uint8Array): number[] {
-  const out: number[] = []
-  let i = 0
-  while (i < data.length) {
-    let v = 0
-    let shift = 0
-    while (i < data.length) {
-      const b = data[i++]
-      v |= (b & 0x7f) << shift
-      if (!(b & 0x80)) break
-      shift += 7
-    }
-    out.push(v >>> 0)
-  }
-  return out
-}
-
-/** 读实体 f5{t=40}.f50 的 f501 auxID 列表（无槽/空 → []）。 */
-function entityAuxIds(record: Uint8Array): number[] {
-  const fields = parse(record)
-  if (!fields) return []
-  for (const field of fields) {
-    if (field.wire !== 2 || field.number !== 5) continue
-    const slot = parse(field.value as Uint8Array)
-    if (!slot?.some((c) => c.number === 1 && c.wire === 0 && c.value === 40)) continue
-    const f50 = slot.find((c) => c.number === 50 && c.wire === 2)
-    if (!f50) return []
-    const list = parse(f50.value as Uint8Array)?.find((c) => c.number === 501 && c.wire === 2)
-    return list ? readVarintStream(list.value as Uint8Array) : []
-  }
-  return []
-}
-
 /** 写实体 f5{t=40} 槽的 f501 列表（槽不存在则新建）。 */
 function setEntityAuxIds(record: Uint8Array, ids: number[]): Uint8Array {
   const fields = parse(record)
@@ -344,7 +315,7 @@ function clearAuxOwner(record: Uint8Array): Uint8Array {
  */
 export function attachAux(bytes: Uint8Array, entityId: number, auxId: number): Uint8Array {
   bytes = patchGilRecord(bytes, 5, entityId, (record) => {
-    const ids = entityAuxIds(record)
+    const ids = readEntityAuxIds(record)
     return ids.includes(auxId) ? record : setEntityAuxIds(record, [...ids, auxId])
   })
   return patchGilRecord(bytes, 27, auxId, (record) => setAuxOwner(record, entityId), AUX_SECTION)
@@ -356,7 +327,7 @@ export function attachAux(bytes: Uint8Array, entityId: number, auxId: number): U
  */
 export function detachAux(bytes: Uint8Array, entityId: number, auxId: number): Uint8Array {
   bytes = patchGilRecord(bytes, 5, entityId, (record) => {
-    const ids = entityAuxIds(record)
+    const ids = readEntityAuxIds(record)
     if (!ids.includes(auxId)) return record
     const rest = ids.filter((id) => id !== auxId)
     return setEntityAuxIds(record, rest)

@@ -196,6 +196,10 @@ function auxOwner(bytes: Uint8Array, auxId: number): number | undefined {
   const patched = attachAux(v21, SPHERE, AUX_LIVE)
   assert.deepEqual(entityAuxIds(patched, SPHERE), [AUX_LIVE])
   assert.equal(auxOwner(patched, AUX_LIVE), SPHERE)
+  assert.deepEqual(
+    exportEntities(patched).find((entity) => entity.id === SPHERE)?.auxIds,
+    [AUX_LIVE]
+  )
   assertOnlyTargetRecordChanged(v21, patched, 5, SPHERE, 27)
   assertOnlyTargetRecordChanged(v21, patched, 27, AUX_LIVE, 5)
   const twice = attachAux(patched, SPHERE, AUX_LIVE)
