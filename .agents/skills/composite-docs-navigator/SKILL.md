@@ -30,7 +30,7 @@ Choose one or more routes before reading deeply:
 | engine API usage, event examples, vector/entity/variable API lookup | Engine API search | `docs/architecture/docs-search.md`, collection `engine-api-usage`; use `engine-api-signatures` for exact signatures |
 | documentation update after any of the above | Documentation | also load `.agents/skills/composite-docs-maintainer/SKILL.md` |
 
-Do not read unrelated references merely because this skill was triggered.
+Do not read unrelated references merely because this skill was triggered. Closed CLI tasks stay on the command path first; load additional references only after command failure, ambiguity, or an explicit request to investigate the rule.
 
 ## Knowledge-load mode
 

@@ -6,6 +6,7 @@ import type {
 import { analyzeStaticAssemblyClosure } from './closure.js'
 import { hashCanonicalJson, sha256Bytes } from './json.js'
 import { createStaticAssemblyMapIndex } from './map_index.js'
+import { isOfficialResourceId } from '../official_prefabs.js'
 
 export type StaticAssemblyPlanInput = {
   bytes: Uint8Array
@@ -32,12 +33,17 @@ function normalizeAssembly(
   errors: Diagnostic[]
 ): Record<string, unknown> {
   const assembly = input.resolved
-  const closure = analyzeStaticAssemblyClosure(index, {
-    definitionId: assembly.templatePrefabId,
-    instanceId: assembly.templateInstanceId,
-    name: assembly.templateName
-  })
-  if (closure.status !== 'complete') {
+  // 官方模板源：templatePrefabId 是官方 resID（[1e7,1e9)）时目标地图没有本地模板
+  // 定义/实例，closure 检查不适用，骨架由 official_prefabs 程序化生成。
+  const officialTemplate = isOfficialResourceId(assembly.templatePrefabId)
+  const closure = officialTemplate
+    ? undefined
+    : analyzeStaticAssemblyClosure(index, {
+        definitionId: assembly.templatePrefabId,
+        instanceId: assembly.templateInstanceId,
+        name: assembly.templateName
+      })
+  if (closure && closure.status !== 'complete') {
     errors.push({
       code: 'template-closure-incomplete',
       field: `assets.staticAssemblies.${assembly.name}`,
@@ -83,9 +89,9 @@ function normalizeAssembly(
       definitionId: assembly.templatePrefabId,
       instanceId: assembly.templateInstanceId,
       name: assembly.templateName,
-      closureStatus: closure.status,
+      closureStatus: closure?.status ?? 'official-resource',
       compatibility: 'unknown',
-      diagnostics: closure.diagnostics
+      diagnostics: closure?.diagnostics ?? []
     },
     definitionAuxiliaryIds: assembly.definitionAuxiliaryIds,
     instanceAuxiliaryIds: assembly.instanceAuxiliaryIds,

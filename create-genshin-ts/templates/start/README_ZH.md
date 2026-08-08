@@ -76,7 +76,7 @@ export default config
 - 编辑器通常负责资源与配置：元件、组件、路径、界面布局/控件组、信号、全局计时器、商店、货币、能力单元、文本气泡、小地图标识、音频资源等。
 - 受限例外：以下 GIL 资产操作已由 `assets:*` 命令封装（规则来自真实编辑器保存快照，见 `docs/GIL_ASSET_COMMANDS_ZH.md`）：
   - `assets:static-assemblies`：基于目标地图已有模板闭包生成静态拼装自定义元件；
-  - `assets:node-graphs`：创建空节点图容器（注入目标占位）；
+  - `assets:node-graphs`：创建空节点图容器（注入目标占位），`read`/`patch` 精准修改节点图逻辑；
   - `assets:entities`：创建/导出场景实体、记录级改颜色/transform、装饰物双向挂接；
   - `assets:mounts`：节点图挂载/解除（元件 def 或场景实体，type 3 槽）；
   - `assets:signals`：信号注册/检查/修复/更新；
@@ -393,6 +393,8 @@ g.server({ id: 1073741825 }).on('whenEntityIsCreated', (evt, f) => {
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`：保存离线候选，不覆盖已有文件
 - `npm run assets:static-assemblies -- --map-id <id> --write`：显式备份并写回真实地图
 - `npm run assets:node-graphs -- create --name <name> --map-id <id>`：创建空节点图容器（注入目标占位，ID 自动分配）
+- `npm run assets:node-graphs -- read --gil <文件.gil> --graph <id|名称>`：查看图内节点/引脚/连线
+- `npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 24 link 1 12 --write`：节点图精准修改（位置/参数/连线/复合改名）
 - `npm run assets:entities -- export --gil <file.gil> --format json`：导出场景实体清单
 - `npm run assets:entities -- import --entities <file> --map-id <id>`：从元件定义创建实体（预览）
 - `npm run assets:entities -- patch <entity-id> --color <#RRGGBB> --map-id <id>`：记录级改实体颜色（preview，`--write` 写回）

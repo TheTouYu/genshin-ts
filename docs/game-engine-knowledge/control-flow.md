@@ -198,6 +198,31 @@ raw pin 为 `0a020802 12020802 2a0a0818 12020801 1a020801`。由此闭合：
 支持）`ACCEPT 8/8`；dataflow case1-4 回归无损。手工重放 GIA/GIL 与真实 after bytes 一致，
 未写真实地图；donor verify 仍只报 node 32 既有 `contextDeclaration.kind=7` gap。
 
+## 断线（flow-rm 真实形态，2026-08-08 闭合）
+
+2026-08-08 `flowrm-case1-node11-unlink-n24-v53-v54` 实验只删除了 node 11 OutFlow[1]
+指向 node 24 的一条控制流线（该 pin 同时还有 → n51 第二条线）。before/after SHA-256
+分别为 `cd72deb3...d9f47` / `0b61ade2...b39c5`（文件大小 -12 字节）。图级比较唯一
+changed 仍是 node 11，pinCount 6→6 不变。定点 raw 对比：
+
+```text
+before pin[0] OutFlow[1]: 22 24 ... 2a0a 0818 12020801 1a020801  2a0a 0833 12020801 1a020801
+after  pin[0] OutFlow[1]: 22 18 ...                            2a0a 0833 12020801 1a020801
+```
+
+由此闭合：
+
+- **编辑器断线 = 从源 OutFlow pin 的 connects 重复字段列表删除 f1=target 匹配的整条
+  记录**；pin 的 i1/i2 与其他 connects 逐字节保留，不重建、不重排、不移除 pin；
+- 目标侧节点完全不变（控制流目标侧本就不落盘）；
+- 图外仅 root46 等长替换（与既有 case 一致的已知同步，不归因）。
+
+**删到空形态（flowrm-case2 v54→v55 闭合，2026-08-08）**：紧接上轮只删除 node 11
+OutFlow[2] → node 27 的唯一连线（before/after `0b61ade2...b39c5` /
+`d325f6fc...e3b0`）。pinCount 6→5：**断后无余线的 OutFlow pin 整条 field 4 记录
+移除**，其余 pin 逐字节不变、顺序不变（`2218 0a0408021002...` 整段消失）。
+与 Fixed 目标断线（整 pin 移除）同构；目标侧节点仍不变。
+
 ## 控制流节点的参数
 
 执行节点通常还带有数据参数。例如“开启运动”可能需要：

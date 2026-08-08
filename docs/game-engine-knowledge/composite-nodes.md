@@ -228,7 +228,7 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 |---|---|
 | 创建（包装节点） | 宿主图删原节点+加 SysGraph 实例；CompositeDef 追加（无参数流）；内部图追加（原节点搬入，无坐标） |
 | 改复合名字 | 只写 CompositeDef.name(200)，实例/内部图不变 |
-| 加输入 pin（提升内部节点输入） | CompositeDef.inputs 追加 ParameterFlow（插到 inputs 列表末尾，纯插入）+ 内部图 compositePins 按 (kind,index) 升序插入 {outerPin={kind,Shell}, innerNodeId, innerPin 双写}；**宿主实例与内部节点 pins 零变化（case2 实测 2026-08-08：无重编号、无 pin 变化；提升不要求内部 pin 已落盘）**；case1 观察到的实例 51→3 重编号与提升输入解耦（触发边界见下方重编号段落） |
+| 加输入 pin（提升内部节点输入） | CompositeDef.inputs 追加 ParameterFlow（插到 inputs 列表末尾，纯插入）+ 内部图 compositePins 按 (kind,index) 升序插入 {outerPin={kind,Shell}, innerNodeId, innerPin 双写}；**宿主实例与内部节点 pins 零变化（case2/6/7 三样本实测 2026-08-08：提升不要求内部 pin 已落盘）**；实例重编号 = 重建分配器（见下方模型：case2 原位因排除自身后最小空闲==原位；case7 移走因 innerNode==实例位置，单样本 INSUFFICIENT） |
 | 加输出 pin | CompositeDef.outputs 追加 ParameterFlow（kind=4 OutParam）+ 内部图 compositePins 追加 OutParam 侧映射（innerNodeId 指向内部输出节点）+ 实例 nodeIndex 重编号；**实例不落输出 pin**（v32 证实：被消费也不落盘，输出侧永不实例化） |
 | 加第二个输出 | outputs 追加（index=1 显式 Shell1）+ compositePins 追加（outerPin index=1、innerNodeId=新内部节点）；多输出时 ShellIndex 升序、pinIndex 继续用全局分配器（v34：49→51，中间 50 被其它占用）；内部节点零感知 |
 | 内部图加节点 | 内部图 nodes 插入（按 nodeIndex 升序，新放置带坐标 f5/f6）；CompositeDef f2 不变；**实例 nodeIndex 重编号且宿主图所有引用它的 connects.id 跟随改写**（v33：node19 connects 3→5） |
@@ -249,27 +249,39 @@ ParameterFlow（数据参数）与 ControlFlow（控制流）共用骨架（v36 
 
 **三个“号”各司其职**：ShellIndex=顺序号（交换/排序时重写）；pinIndex=身份号（保持，实例 field7
 引用）；innerPin=内部真实 pin（保持）。实例 nodeIndex 在“修改 CompositeDef 结构”的保存后可能
-重编号（样本 51→3→5→6→7→8→3…：复用宿主图空闲 nodeIndex；主图连线不触发重建）。
-**统一假说（2026-08-08 case1/case2/case8/case9/case4/case5/case6/case7 九样本 CONFIRMED）**：任何
-def 参数结构变化（加输入/删参数/交换顺序/加输出）→ 编辑器**重建复合实例** → nodeIndex =
-**最小空闲号排除本次删除的墓碑**（case4：3 为墓碑→5；case5：5→6；case8：7→8；case1：
-51→3；case9：8→3；case6：6→3；**case7：3→5——实例从 3 移走 → 3 为本次墓碑 → 取 5**）；若分配结果 == 当前 nodeIndex 则 wire 零变化（**case2 的“不重编号”
-= 原位重建**）。调用侧填值/连线不改 def → 不重建（case3）。
+重编号（样本 51→3→5→6→7→8→3→5…：复用宿主图空闲 nodeIndex；主图连线不触发重建）。
+**实例重建分配器模型（2026-08-08 case1-9 全样本细化）**：任何 def 参数结构变化（加输入/删参数/
+交换顺序/加输出）→ 编辑器重建复合实例（删旧建新）。分配 = **排除自身后最小空闲 nodeIndex**：
+case1 51→3、case6 6→3、case9 8→3、case8 7→8、case4 3→5、case5 5→6（排除 3+5）。
+**原位（wire 零变化）当且仅当排除自身后最小空闲 == 原位**（case2 3→3：无墓碑史场景）；
+case7 3→5 是唯一“在最小空闲位却移走”的样本，其可观测差异 = **innerNode == 实例 nodeIndex
+（3==3）** → 推断“innerNode 冲突时排除原位”，但仅单样本 INSUFFICIENT（case3/4 零 pins 实例
+同样移走，双样本）。**墓碑跨轮（删参数轮之间累积、消费模型）**：case4 墓碑 3 → case5 排除 3
+（跨轮有效）→ case6 时 3 可用（已消费）；跨轮墓碑仅覆盖删参数轮，提升轮自身墓碑只在本轮有效。
+调用侧填值/连线不改 def → 不重建（case3）。**工具 fail closed 边界**：innerNode==原位、实例零
+pins 均拒绝；pinIndex 回收池（case6=51/case7=52）与全局分配史（case2=89）单快照不可推断。
+
+**节点图工具（gsts assets:node-graphs patch，2026-08-08 round3）**：`composite create`
+（case8 骨架闭合：锚点原位变实例、出口自动提升、内部搬入、defId=0x6000000N 最小空闲、
+pinIndex 默认全文件 max+1——有删除史时编辑器取回收池，工具需显式 pinStart 重放）、
+`composite del-input`（case4 逐字节闭合）、`composite swap-input`（case8 def/impl/pins
+逐字节闭合）。del/swap 实例重编号 = 排除原位取最小空闲（总是移动）；跨轮墓碑无会话史，
+编辑器手动删过参数后工具可能选到更小号（case5/swap-case8 文档边界）。
 
 **重编号分配规律（composite-add-param-case1 v59→v60 + case4 闭合）**：实例 nodeIndex =
 **最小空洞且排除墓碑**（case4：node 3 刚删为墓碑 → 跳过取 5；case1：51→3 中 3 非墓碑直接取）；
 重编号 = 节点记录 f1 改写 + 记录移到 nodeIndex 升序位置 + 全图源侧 connects 目标 ID 改写，pin
 内容（cpi/connects/value/位置）逐字节不变。
 
-**加输入参数＝提升内部节点输入（case2/case6 两样本同构闭合，2026-08-08）**：① def 参数流
+**加输入参数＝提升内部节点输入（case2/case6/case7 三样本同构闭合，2026-08-08）**：① def 参数流
 追加 {1:name, 2:1, 3:{1:kind, 2:shell}, 4:type 流, 8:pinIndex}（插该 kind 列表末尾）；
 ② impl 图 compositePins 追加 {1:{1:kind,2:shell}outer, 2:innerNodeId, 3:{innerPin},
 4:{innerPin}双写}（按 kind/index 升序插入；innerPin=被提升内部 pin 身份，与 ShellIndex
-可重合如 08031002）；③ 实例重编号（统一假说）；④ 宿主图源侧 connects 更新；⑤ **宿主实例
+可重合如 08031002）；③ 实例重编号（见下方分配器模型）；④ 宿主图源侧 connects 更新；⑤ **宿主实例
 与内部节点 pins 零变化**（提升不新增调用侧 pin，未填值/连线；被提升 pin 可本无落盘——
-node 1 提升前仅落盘 1 pin）。type 流 = {1:f1, 3:VarType, 4:VarType}（Ety 特例 {1:1, 4:1}）；
-f1 映射 {Ety:1, Int:2, Flt:4, Str:5, **Bol:6**}（Bol=6 由 case2/case6 实测闭合，非早前
-推断的 3）。
+node 1 提升前仅落盘 1 pin）。type 流 = {1:f1(class), 3:VarType, 4:VarType}；**Ety 无 class f1**
+（= {3:1, 4:1}，case3 实测 18012001）；f1 映射 {Int:2, Flt:4, Str:5, **Bol:6**}（Bol=6 由
+case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）。
 
 ### 复现命令
 

@@ -118,7 +118,13 @@ NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CON
 42B：{1: nodeIndex, 2: genericId(13B), 3: concreteId(13B), 5: x(fixed32), 6: y(fixed32)}
 ```
 
-- nodeIndex 从 1 开始，同图内连续递增；新增节点 = nodes 数组 append（图记录 +44B）
+- nodeIndex 从 1 开始；**新增节点 = 最小空闲空洞**，但**删除造成的空洞不复用**
+  （node-add-case2 v57→v58：node 3 删除后新增取 4 而非 3；node-add-case1 空洞 3..10
+  从未分配过故取 3；空图新增取 1 即 append，是其特例）——删除号墓碑是编辑器会话内
+  内存态，快照不可见，工具需在同一命令序列内跟踪；**nodes 数组按 nodeIndex 升序
+  插入/删除**（node-del-case1 v56→v57：删除 = 移除记录，def 记录不删），其余记录逐字节
+  不动（新增 +44B / 删除 -44B）；**新增节点不落盘默认 pin**（打印字符串有默认参数
+  也 pinCount=0，node-add-case2）
 - x/y = float32（fixed32 wire）；坐标由编辑器画布位置决定
 - 无 pins 字段落盘（实例 pin 仅在赋值/连接时生成）
 

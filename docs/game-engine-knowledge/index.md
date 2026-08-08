@@ -49,6 +49,8 @@ GIL 整体结构与语义树
 ├── 当前有限闭合资源、场景实体、NodeGraph、CompositeDef 和信号索引路径
 ├── 已确认两个同类型样本中的 definition → instance → owner 链
 ├── 已确认两个场景实体样本中的 entity → definition reference → owner 链
+├── 已确认官方预制元件引用 → 自定义元件 → 实体三层链路（root 8 单写/
+│   root 4 定义/root 5 实体 + root 6 页签类别 400/100/200，见 gil-structure-semantics.md）
 ├── 已确认默认节点图的自由新建记录、稳定 ID 与显式 UTF-8 名称字段
 ├── 已确认节点图 A 自由新增“关卡开始时”节点的单节点增量
 └── 隔离 root 46 等长同步变化，按章节和编辑器单变化继续闭合未知字段

@@ -8,6 +8,13 @@ import type {
 } from '../compiler/gsts_config.js'
 import { buildFile, encodeVarint, readUint32BE } from '../injector/binary.js'
 import {
+  buildAuxiliaryRecord,
+  buildCustomDefinitionRecord,
+  buildOfficialPrefabRecord,
+  isOfficialResourceId,
+  resolveItemResourceId
+} from './official_prefabs.js'
+import {
   collectWireVarints as allVarints,
   emitWireMessage as emit,
   findWireRecord as findRecord,
@@ -109,6 +116,47 @@ function setPackedIds(record: Uint8Array, ids: readonly number[]): Uint8Array {
   const result = rewrite(record)
   if (changed !== 1) throw new Error(`[error] expected one packed field 501, changed ${changed}`)
   return result
+}
+
+/** 官方空模板的槽40.f50 为空；创建装饰物时补入 packed f501 ID 列表。 */
+function addPackedIds(
+  record: Uint8Array,
+  ids: readonly number[],
+  ownerFieldNumber: number
+): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid prefab record')
+  const owner = fields.find((field) => {
+    if (field.number !== ownerFieldNumber || field.wire !== 2) return false
+    return message(field).some(
+      (child) => child.number === 1 && child.wire === 0 && child.value === 40
+    )
+  })
+  if (!owner) throw new Error('[error] prefab decoration slot 40 not found')
+  const ownerFields = message(owner)
+  const f50 = nth(ownerFields, 50)
+  const f50Fields = message(f50)
+  if (f50Fields.some((field) => field.number === 501)) {
+    throw new Error('[error] prefab decoration slot already has packed field 501')
+  }
+  f50Fields.push({
+    number: 501,
+    wire: 2,
+    value: Buffer.concat(ids.map((id) => Buffer.from(encodeVarint(id))))
+  })
+  f50.value = emit(f50Fields)
+  owner.value = emit(ownerFields)
+  return emit(fields)
+}
+
+/** 官方引用实例转自定义实例：f2 从 {1:resID,2:1} 改为 {1:root4 definition ID}。 */
+function setInstanceDefinition(record: Uint8Array, definitionId: number): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] invalid prefab instance record')
+  const relation = nth(fields, 2)
+  if (relation.wire !== 2) throw new Error('[error] prefab instance relation is not a message')
+  relation.value = emit([{ number: 1, wire: 0, value: definitionId }])
+  return emit(fields)
 }
 
 function float32(value: number): Uint8Array {
@@ -488,6 +536,56 @@ function copyRegistry(top6: WireField[], sourceOwnerId: number, ownerId: number)
     throw new Error(`[error] component ${sourceOwnerId} has no field 6 registry entries`)
 }
 
+/**
+ * 官方模板源页签注册：在“未分类页签”组追加 {100, prefabId}（自定义元件）与
+ * {400, prefabId}（官方引用实例）。编辑器真实样本：引用官方元件页签追加 {400, 实例ID}
+ * （轮 4），转自定义后追加 {100, 定义ID} 且 {400} 条目保留（轮 6）。
+ */
+function registerPrefab(top6: WireField[], prefabId: number): void {
+  const entries = [
+    emit([
+      { number: 1, wire: 0, value: 100 },
+      { number: 2, wire: 0, value: prefabId }
+    ]),
+    emit([
+      { number: 1, wire: 0, value: 400 },
+      { number: 2, wire: 0, value: prefabId }
+    ])
+  ]
+  for (const topField of top6) {
+    if (topField.number !== 1 || topField.wire !== 2) continue
+    const record = message(topField)
+    for (const child of record) {
+      if (child.number !== 3 || child.wire !== 2) continue
+      const group = message(child)
+      if (!group.some((field) => field.number === 1 && field.wire === 2)) continue
+      for (const entry of entries) group.push({ number: 5, wire: 2, value: entry })
+      child.value = emit(group)
+      topField.value = emit(record)
+      return
+    }
+  }
+  // 无命名组（如合成 fixture）：创建最小页签组，同 registerEntity 语义。
+  const group = emit([
+    { number: 1, wire: 2, value: TEXT.encode('未分类页签') },
+    { number: 3, wire: 0, value: 2 },
+    ...entries.map((entry) => ({ number: 5, wire: 2, value: entry }))
+  ])
+  const record = emit([
+    { number: 1, wire: 0, value: 3 },
+    {
+      number: 2,
+      wire: 2,
+      value: emit([
+        { number: 1, wire: 2, value: TEXT.encode('root') },
+        { number: 3, wire: 0, value: 1 }
+      ])
+    },
+    { number: 3, wire: 2, value: group }
+  ])
+  top6.push({ number: 1, wire: 2, value: record })
+}
+
 function assertIdsFree(top: readonly WireField[], ids: readonly number[]): void {
   const occupied = new Set<number>()
   for (const [topNumber, recordNumber] of [
@@ -564,12 +662,79 @@ export function applyStaticAssembly(params: {
   const top6 = message(nth(top, 6))
   const top8 = message(nth(top, 8))
   const top27 = message(nth(top, 27))
-  const sourceDefinition = findRecord(
-    top4.filter((field) => field.number === 1).map((field) => field.value as Uint8Array),
-    assembly.templatePrefabId
-  )
+  const top4Records = top4
+    .filter((field) => field.number === 1)
+    .map((field) => field.value as Uint8Array)
+  const auxiliaryDefinitions = top27
+    .filter((field) => field.number === 1)
+    .map((field) => field.value as Uint8Array)
+  const auxiliaryInstances = top27
+    .filter((field) => field.number === 2)
+    .map((field) => field.value as Uint8Array)
+  // 官方模板源：templatePrefabId 是官方 resID 时，目标地图没有本地模板记录，
+  // 程序化生成 root 4 定义 + root 8 实例 + 页签 {100}/{400} + 装饰物记录。
+  if (isOfficialResourceId(assembly.templatePrefabId)) {
+    const sceneTransform = {
+      position: assembly.position,
+      rotation: assembly.rotation ?? [0, 0, 0],
+      scale: assembly.scale ?? [1, 1, 1]
+    }
+    let definition = buildCustomDefinitionRecord({
+      id: assembly.prefabId,
+      resourceId: assembly.templatePrefabId,
+      name: assembly.name,
+      transform: sceneTransform
+    })
+    definition = addPackedIds(definition, assembly.definitionAuxiliaryIds, 6)
+    definition = setStaticAssemblyComponents(definition, assembly.components ?? [], 8)
+    if (assembly.color) definition = setColor(definition, assembly.color)
+    top4.push({ number: 1, wire: 2, value: definition })
+    let instance = buildOfficialPrefabRecord({
+      id: assembly.prefabId,
+      resourceId: assembly.templatePrefabId,
+      name: assembly.name,
+      transform: sceneTransform
+    })
+    instance = setInstanceDefinition(instance, assembly.prefabId)
+    instance = addPackedIds(instance, assembly.instanceAuxiliaryIds, 5)
+    instance = setStaticAssemblyComponents(instance, assembly.components ?? [], 7)
+    if (assembly.color) instance = setColor(instance, assembly.color)
+    top8.push({ number: 1, wire: 2, value: instance })
+    for (const [index, item] of assembly.items.entries()) {
+      const resourceId = resolveItemResourceId(top4Records, item.resourceId)
+      const transform = assemblyTransform(item)
+      const name = `装饰物_${index + 1}`
+      top27.push({
+        number: 1,
+        wire: 2,
+        value: buildAuxiliaryRecord({
+          id: assembly.definitionAuxiliaryIds[index],
+          resourceId,
+          ownerId: assembly.prefabId,
+          name,
+          transform
+        })
+      })
+      top27.push({
+        number: 2,
+        wire: 2,
+        value: buildAuxiliaryRecord({
+          id: assembly.instanceAuxiliaryIds[index],
+          resourceId,
+          ownerId: assembly.prefabId,
+          name,
+          transform,
+          definitionAuxiliaryId: assembly.definitionAuxiliaryIds[index]
+        })
+      })
+    }
+    registerPrefab(top6, assembly.prefabId)
+  } else {
+  const sourceDefinition = findRecord(top4Records, assembly.templatePrefabId)
   const sourceInstance = findRecord(
-    top8.filter((field) => field.number === 1).map((field) => field.value as Uint8Array),
+    top8
+      .filter((field) => field.number === 1)
+      .map((field) => field.value as Uint8Array),
     assembly.templateInstanceId
   )
   const sourceDefinitionIds = packedIds(sourceDefinition)
@@ -622,15 +787,12 @@ export function applyStaticAssembly(params: {
   instance = setStaticAssemblyComponents(instance, assembly.components ?? [], 7)
   top8.push({ number: 1, wire: 2, value: instance })
 
-  const auxiliaryDefinitions = top27
-    .filter((field) => field.number === 1)
-    .map((field) => field.value as Uint8Array)
-  const auxiliaryInstances = top27
-    .filter((field) => field.number === 2)
-    .map((field) => field.value as Uint8Array)
   for (const [index, item] of assembly.items.entries()) {
     const sourceDefinitionId = sourceDefinitionIds[index % sourceDefinitionIds.length]
     const sourceInstanceId = sourceInstanceIds[index % sourceInstanceIds.length]
+    // 装饰物引用元件：item.resourceId 命中 root 4 本地定义（自定义元件）时
+    // 取其 f2（官方资源 ID）写入 aux f2（真实样本轮 10：引用自定义球体写 10009002）。
+    const resourceId = resolveItemResourceId(top4Records, item.resourceId)
     top27.push({
       number: 1,
       wire: 2,
@@ -638,7 +800,7 @@ export function applyStaticAssembly(params: {
         id: assembly.definitionAuxiliaryIds[index],
         ownerId: assembly.prefabId,
         sourceOwnerId: assembly.templatePrefabId,
-        item,
+        item: { ...item, resourceId },
         ordinal: index + 1
       })
     })
@@ -650,13 +812,14 @@ export function applyStaticAssembly(params: {
         ownerId: assembly.prefabId,
         sourceOwnerId: assembly.templateInstanceId,
         definitionId: assembly.definitionAuxiliaryIds[index],
-        item,
+        item: { ...item, resourceId },
         ordinal: index + 1
       })
     })
   }
 
   copyRegistry(top6, assembly.templatePrefabId, assembly.prefabId)
+  }
   nth(top, 4).value = emit(top4)
   nth(top, 6).value = emit(top6)
   nth(top, 8).value = emit(top8)

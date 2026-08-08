@@ -24,8 +24,9 @@
 - 能力单元、战斗预设及其他战斗侧预配置数据。
 - 文本气泡、小地图标识、音效播放器、铭牌等表现资源。
 
-> GIL 级受限例外：节点图容器可用 `assets:node-graphs create` 创建、信号可用
-> `assets:signals register` 注册、自定义元件可用 `assets:static-assemblies` 生成、
+> GIL 级受限例外：节点图容器可用 `assets:node-graphs create` 创建、节点图逻辑
+> （位置/固定参数/数据与控制流连线/复合改名）可用 `assets:node-graphs read|patch`
+> 精准修改、信号可用 `assets:signals register` 注册、自定义元件可用 `assets:static-assemblies` 生成、
 > 实体与装饰物可用 `assets:entities` 创建/挂接/改色。这些工具只覆盖已通过真实
 > 快照逆向闭合的 GIL 结构（见 `docs/GIL_ASSET_COMMANDS_ZH.md`），不代表本清单
 > 整体可代码化；组件、路径、UI 布局、全局计时器、商店/货币等仍须在编辑器中完成。

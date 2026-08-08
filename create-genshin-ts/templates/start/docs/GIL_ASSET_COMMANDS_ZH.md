@@ -32,6 +32,67 @@ npm run assets:node-graphs -- create --name 我的图 --map-id <id>   # 预览
 npm run assets:node-graphs -- create --name 我的图 --map-id <id> --write
 ```
 
+## assets:node-graphs read —— 精准读取节点图现状
+
+读取任意节点图/节点/引脚/连线/复合定义的当前 wire 状态，供人机协同
+（先展示现状，再给出候选 diff）：
+
+```bash
+npm run assets:node-graphs -- read --gil <文件.gil>                        # 全部图 + 复合定义
+npm run assets:node-graphs -- read --gil <文件.gil> --graph <id|名称>      # 图内节点/引脚/连线
+npm run assets:node-graphs -- read --gil <文件.gil> --graph <id|名称> --node 24
+npm run assets:node-graphs -- read --gil <文件.gil> --composite <id|名称>  # 复合接口（pinIndex/类型）
+npm run assets:node-graphs -- read --gil <文件.gil> --graph 样本-01 --json  # 机器可读
+```
+
+## assets:node-graphs patch —— 节点图精准修改（读-改-写）
+
+全部操作走记录级局部替换（只改目标 NodeGraph / CompositeDef 记录字节，
+文件其余部分原样保留）。默认只预览；`--write` 先备份再写回真实地图。
+操作按顺序依次应用：
+
+```bash
+# 节点位置
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 24 pos 1200 1500 --write
+
+# InParam 固定值（类型：int flt str bool vec gid pfb cfg）
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 4 param 0 pfb:1234
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 7 param 1 str:你好
+
+# 数据连线：InParam[shell] ← 源节点 OutParam[源shell]
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 24 link 1 12
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 24 unlink 1
+
+# 控制流连线：OutFlow[shell] → 目标 InFlow[目标shell]
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 11 flow 1 24
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> node 11 flow-rm 1
+
+# 复合定义（全局操作，不需要 --graph）
+npm run assets:node-graphs -- patch --gil <文件.gil> composite 1610612744 rename 我的复合
+npm run assets:node-graphs -- patch --gil <文件.gil> composite 1610612744 param input 1 rename 目标实体
+
+# 复合接口：加/删/换输入
+# add-input：把 impl 图内 InParam 提升为复合输入（def 参数流 + compositePin + 实例 pin；实例重编号除非已在最小空闲位）
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> composite 1610612744 add-input 2 控制表达式 int 3 0
+# del-input：删除复合输入（def 参数流 + compositePin + 实例 pin；实例重编号）
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> composite 1610612744 del-input 2
+# swap-input：交换两个复合输入（def 参数流 + compositePins + 实例 pins；实例重编号）
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> composite 1610612744 swap-input 0 1
+
+# 把选中节点打包成新复合（需要 --graph）：
+#   锚点节点原位变实例（坐标=选中中心），其余选中节点搬进新 impl 图（坐标相对化）；
+#   控制流 OutFlow 自动提升为复合出口（按原出口号命名），数据输入留在内部；
+#   nodeId = 0x6000000N 最小空闲；pinIndex = 全文件 max+1（编辑器用回收池，有删除史时可能不同）
+npm run assets:node-graphs -- patch --gil <文件.gil> --graph <id|名称> composite create 我的复合 1 1 11
+```
+
+一条命令可串联多个操作。新建 pin 遵循已闭合的编辑器规则（pin 数组排序、
+默认 index 省略、非默认 ShellIndex 显式、数据连线挂目标侧/控制流挂源侧）。
+未闭合的编辑器规则（Variant 自动实例化、entity 固定值、打包复合的锚点选择、
+范围外连线自动注册为复合输入、选中复合实例打包）一律 fail closed 报错，
+不猜测编码。del/swap-input 的实例重编号 = 排除当前位取最小空闲；编辑器还会
+跳过跨轮墓碑号，所以在编辑器里手动删过参数后，工具可能选到比编辑器更小的号。
+
 ## assets:entities —— 创建/导出/修改场景实体与装饰物
 
 - `export`：把 root 5 场景实体导出为 JSON（盘点/备份）。

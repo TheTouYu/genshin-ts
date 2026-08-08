@@ -25,7 +25,9 @@ Language note:
 - Text bubbles, minimap markers, sound-effect players, nameplates, and similar presentation resources.
 
 > GIL-level bounded exceptions: NodeGraph containers can be created with
-> `assets:node-graphs create`, signals registered with `assets:signals register`,
+> `assets:node-graphs create`, precise node-graph logic edits (positions, literal
+> parameters, data/control-flow connections, composite renames) with
+> `assets:node-graphs read|patch`, signals registered with `assets:signals register`,
 > custom prefabs generated with `assets:static-assemblies`, and entities /
 > decorations created, attached, or recolored with `assets:entities`. These tools
 > only cover GIL structures closed via real-snapshot reverse engineering (see

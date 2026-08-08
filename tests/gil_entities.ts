@@ -13,6 +13,17 @@ import {
 import { emitWireMessage as emit, parseWireMessage } from '../src/cli/static_assembly/wire.js'
 import { buildFile } from '../src/injector/binary.js'
 
+// 空地图骨架没有 root 5；实体导出应返回空列表而不是把缺失容器当作损坏。
+assert.deepEqual(
+  exportEntities(
+    buildFile(
+      emit([{ number: 2, wire: 2, value: new TextEncoder().encode('空地图') }]),
+      { schema: 1, headTag: 2, fileType: 3, tailTag: 4 }
+    )
+  ),
+  []
+)
+
 // 真实编辑器样本（add-entity-from-component-1077936182 实验）：
 // before.gil 中的元件定义 1077936182（箭头指示牌_1）与 after.gil 中的
 // 场景实体 1077936186（从该元件新增）。转换结果应与真实实体逐字节一致。
@@ -154,6 +165,25 @@ assert.ok(directEntity)
 assert.equal(directEntity.definitionId, 10005018)
 assert.equal(directEntity.resourceId, 10005018)
 assert.deepEqual(directEntity.scale, [Math.fround(0.1), Math.fround(0.1), Math.fround(0.1)])
+// 直接资源实体（目标地图 root 4 无 definitionId 定义）必须写 relation 内建标记
+// {1:resId, 2:1}——真实编辑器样本（1077936172/1077936173/1077936175）f2 均带
+// {2:1}；缺标记的实体编辑器加载时被忽略（2026-08-07 实测：注入的 1077936176
+// 编辑器不可见，用户新建实体直接复用了该 ID，保存后覆盖注入记录）。
+const directTop = parseWireMessage(directResource.slice(20, -4))
+assert.ok(directTop)
+const directEntityBytes = (directTop.find((field) => field.number === 5 && field.wire === 2)!
+  .value as Uint8Array)
+const directEntityRecord = parseWireMessage(directEntityBytes)!
+  .find((field) => field.number === 1 && field.wire === 2)
+assert.ok(directEntityRecord, 'direct resource entity record missing')
+const directRelation = parseWireMessage(directEntityRecord.value as Uint8Array)!
+  .find((field) => field.number === 2 && field.wire === 2)
+assert.ok(directRelation, 'direct resource entity relation missing')
+assert.equal(
+  Buffer.from(directRelation.value as Uint8Array).toString('hex'),
+  '089ad4e2041001',
+  'builtin resource entity relation must be {1:10005018, 2:1}'
+)
 
 // CLI 同一路径必须接受 sourceDefinitionId，并用哈希门拒绝过期源。
 const directory = mkdtempSync(path.join(tmpdir(), 'gsts-entity-source-definition-'))
@@ -278,5 +308,64 @@ assert.equal(coloredExported.length, 1)
 assert.equal(coloredExported[0].color?.enabled, true)
 assert.equal(coloredExported[0].color?.rgb, 0xffff0000)
 assert.equal(coloredExported[0].color?.opacity, 100)
+
+// apply-candidate：hash-gated 候选写回（备份 = 源、目标 = 候选、无残留 tmp）
+const applySourcePath = path.join(directory, 'apply-source.gil')
+writeFileSync(applySourcePath, mini)
+await runAssetsEntities([
+  'apply-candidate',
+  '--gil',
+  applySourcePath,
+  '--candidate',
+  candidatePath,
+  '--expect-source-hash',
+  sourceHash
+])
+assert.ok(readFileSync(applySourcePath).equals(readFileSync(candidatePath)))
+const applyBackups = readdirSync(path.join(directory, '.gsts', 'backups'))
+assert.equal(applyBackups.length, 2)
+assert.ok(
+  readFileSync(path.join(directory, '.gsts', 'backups', applyBackups[1])).equals(mini),
+  'apply-candidate backup must equal pre-write source'
+)
+assert.equal(readdirSync(directory).filter((name) => name.endsWith('.tmp')).length, 0)
+
+// apply-candidate 参数与哈希门错误
+await assert.rejects(
+  runAssetsEntities([
+    'apply-candidate',
+    '--gil',
+    applySourcePath,
+    '--candidate',
+    candidatePath
+  ]),
+  /expect-source-hash/i
+)
+await assert.rejects(
+  runAssetsEntities([
+    'apply-candidate',
+    '--gil',
+    applySourcePath,
+    '--candidate',
+    candidatePath,
+    '--expect-source-hash',
+    '0'.repeat(64)
+  ]),
+  /source SHA-256 mismatch/i
+)
+const applySource2 = path.join(directory, 'apply-source-2.gil')
+writeFileSync(applySource2, mini)
+await assert.rejects(
+  runAssetsEntities([
+    'apply-candidate',
+    '--gil',
+    applySource2,
+    '--candidate',
+    path.join(directory, 'missing.gil'),
+    '--expect-source-hash',
+    sourceHash
+  ]),
+  /ENOENT/i
+)
 
 console.log('gil entities tests passed')

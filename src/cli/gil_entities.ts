@@ -4,6 +4,11 @@ import type {
 } from '../compiler/gsts_config.js'
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import {
+  buildOfficialPrefabRecord,
+  isOfficialResourceId,
+  officialPrefabName
+} from './official_prefabs.js'
+import {
   emitWireMessage as emit,
   findWireRecord as findRecord,
   parseWireMessage as parse,
@@ -190,7 +195,13 @@ export function exportEntities(bytes: Uint8Array): ExportedEntity[] {
   const top = parse(bytes.slice(20, -4))
   if (!top) throw new Error('[error] malformed GIL payload')
   const result: ExportedEntity[] = []
-  for (const record of records(top, 5, 1)) {
+  const entityContainer = top.find((field) => field.number === 5 && field.wire === 2)
+  if (!entityContainer) return result
+  const entityRecords = parse(entityContainer.value as Uint8Array)
+  if (!entityRecords) throw new Error('[error] malformed GIL root 5 container')
+  for (const record of entityRecords
+    .filter((field) => field.number === 1 && field.wire === 2)
+    .map((field) => field.value as Uint8Array)) {
     const id = recordId(record)
     if (id === undefined) continue
     const name = entityName(record)
@@ -344,6 +355,8 @@ export function entityFromDefinition(
     definitionId: number
     transform: EntityTransform
     color?: number
+    /** 目标地图 root 4 无本地 definition 时，实体 relation 需写内建资源标记 {2:1} */
+    builtinResource?: boolean
   }
 ): Uint8Array {
   const fields = parse(definition)
@@ -364,7 +377,14 @@ export function entityFromDefinition(
       out.push({ number: 1, wire: 0, value: params.id })
     } else if (field.number === 2) {
       resourceId = typeof field.value === 'number' ? field.value : undefined
-      out.push({ number: 2, wire: 2, value: emit([{ number: 1, wire: 0, value: params.definitionId }]) })
+      out.push({
+        number: 2,
+        wire: 2,
+        value: emit([
+          { number: 1, wire: 0, value: params.definitionId },
+          ...(params.builtinResource ? [{ number: 2, wire: 0, value: 1 }] : [])
+        ])
+      })
     } else if (field.number === 6) {
       nameOccurrence++
       out.push({
@@ -463,9 +483,26 @@ export function applyEntities(params: {
     }
   }
   const existingById = new Map<number, Uint8Array>()
-  for (const record of records(top, 5, 1)) {
-    const id = recordId(record)
-    if (id !== undefined) existingById.set(id, record)
+  if (top5Existing) {
+    for (const record of records(top, 5, 1)) {
+      const id = recordId(record)
+      if (id !== undefined) existingById.set(id, record)
+    }
+  }
+  // 目标地图 root 4 本地 definition ID 集合：definitionId 不在集合内时实体是
+  // “直接 res 引用”，relation 必须带内建标记 {2:1}（2026-08-07 实测：缺标记的
+  // 实体编辑器加载时被忽略，用户新建实体直接复用该 ID 并覆盖注入记录）。
+  const localDefinitions = new Set<number>()
+  // 官方直引判定：definitionId 是官方 resID 且本地无对应定义（或用户显式给了
+  // donor 定义时仍走定义转换路径）。
+  function findRecordExists(records: readonly Uint8Array[], id: number): boolean {
+    return records.some((record) => recordId(record) === id)
+  }
+  if (top.find((field) => field.number === 4 && field.wire === 2)) {
+    for (const record of records(top, 4, 1)) {
+      const id = recordId(record)
+      if (id !== undefined) localDefinitions.add(id)
+    }
   }
   for (const entity of params.entities) {
     if (occupied.has(entity.id) && !existingById.has(entity.id))
@@ -479,26 +516,41 @@ export function applyEntities(params: {
   }
   const section = message(top5)
   for (const entity of params.entities) {
-    const definition = findRecord(
-      params.definitions,
-      entity.sourceDefinitionId ?? entity.definitionId
-    )
+    const sourceDefinitionId = entity.sourceDefinitionId ?? entity.definitionId
+    // 官方直引：目标地图无本地定义时以官方骨架生成实体（f2={1:resID,2:1}、
+    // f5×10/f6×15/f7×6/f8=resID，与 root 8 官方引用实例同构）。真实样本：
+    // 平面实体 1077936142（after-place-official-entity.gil）
+    const official = isOfficialResourceId(entity.definitionId) && !findRecordExists(params.definitions, sourceDefinitionId)
     const existing = existingById.get(entity.id)
     const base = existing ? readTransform(existing, 6) : undefined
     let color: number | undefined
     if (entity.color !== undefined) color = entity.color
     else if (existing) color = materialColorOf(existing)
-    const record = entityFromDefinition(definition, {
-      id: entity.id,
-      name: entity.name ?? (existing ? entityNameOf(existing) ?? '' : ''),
-      definitionId: entity.definitionId,
-      transform: {
-        position: entity.position ?? base?.position ?? [0, 0, 0],
-        rotation: entity.rotation ?? base?.rotation ?? [0, 0, 0],
-        scale: entity.scale ?? base?.scale ?? [1, 1, 1]
-      },
-      ...(color !== undefined ? { color } : {})
-    })
+    const transform = {
+      position: entity.position ?? base?.position ?? [0, 0, 0],
+      rotation: entity.rotation ?? base?.rotation ?? [0, 0, 0],
+      scale: entity.scale ?? base?.scale ?? [1, 1, 1]
+    }
+    const name = entity.name ?? (existing ? entityNameOf(existing) ?? '' : '')
+    let record: Uint8Array
+    if (official) {
+      record = buildOfficialPrefabRecord({
+        id: entity.id,
+        resourceId: entity.definitionId,
+        name: name || (officialPrefabName(entity.definitionId) ?? ''),
+        transform
+      })
+      if (color !== undefined) record = setMaterialColor(record, color)
+    } else {
+      record = entityFromDefinition(findRecord(params.definitions, sourceDefinitionId), {
+        id: entity.id,
+        name,
+        definitionId: entity.definitionId,
+        transform,
+        builtinResource: !localDefinitions.has(entity.definitionId),
+        ...(color !== undefined ? { color } : {})
+      })
+    }
     if (existing) {
       // 更新已有实体：原位替换记录，不重复登记组条目
       const index = section.findIndex(

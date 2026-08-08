@@ -9,6 +9,7 @@ import { loadGstsConfig } from '../compiler/config_loader.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget } from './gil_paths.js'
 import { applyEntities, exportEntities, type EntityImport } from './gil_entities.js'
+import { isOfficialResourceId } from './official_prefabs.js'
 import {
   attachAux,
   detachAux,
@@ -26,7 +27,7 @@ import {
 } from './static_assembly/wire.js'
 import { prettyStableJson } from './static_assembly/json.js'
 
-type Command = 'export' | 'import' | 'patch'
+type Command = 'export' | 'import' | 'patch' | 'apply-candidate'
 type Format = 'text' | 'json'
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 type Vector3 = readonly [number, number, number]
@@ -40,10 +41,11 @@ function usage(exitCode = 1): never {
   const output = [
     'Export, import or patch scene entities (root 5) of a GIL map.',
     '',
-    'Usage: gsts assets:entities [export|import|patch] [options]',
+    'Usage: gsts assets:entities [export|import|patch|apply-candidate] [options]',
     '',
     '  --entities <file>      entity import JSON (import only)',
     '  --definitions-gil <file>  donor GIL for definition records (import only)',
+    '  --candidate <file>     candidate GIL to apply (apply-candidate only)',
     '  --expect-source-hash <sha256>  reject a source that changed since planning',
     '  --map-id <id>          target map ID (location only)',
     '  --gil <file>           explicit GIL source',
@@ -66,6 +68,10 @@ function usage(exitCode = 1): never {
     'sourceDefinitionId optionally selects a donor record without changing',
     'the definitionId written to the entity. Components are inherited byte-for-byte.',
     'patch performs a record-level local replacement (only the target record bytes change).',
+    'apply-candidate: gsts assets:entities apply-candidate [options]',
+    '  Hash-gated writeback of a pre-built candidate file: the source must match',
+    '  --expect-source-hash exactly, then the candidate replaces it atomically',
+    '  after an automatic backup (same semantics as import --write).',
     'These commands modify .gil asset structures. They are not GIA NodeGraph injection,',
     'runtime createPrefab, or editor/game verification.'
   ].join('\n')
@@ -108,6 +114,7 @@ function parseArgs(argv: readonly string[]) {
   let gilPath: string | undefined
   let outputPath: string | undefined
   let entitiesPath: string | undefined
+  let candidatePath: string | undefined
   let definitionsGilPath: string | undefined
   let expectedSourceHash: string | undefined
   let write = false
@@ -121,7 +128,7 @@ function parseArgs(argv: readonly string[]) {
   let attachAuxId: number | undefined
   let detachAuxId: number | undefined
   let index = 0
-  if (argv[0] === 'import' || argv[0] === 'export' || argv[0] === 'patch') {
+  if (argv[0] === 'import' || argv[0] === 'export' || argv[0] === 'patch' || argv[0] === 'apply-candidate') {
     command = argv[0]
     index++
   }
@@ -131,6 +138,7 @@ function parseArgs(argv: readonly string[]) {
     else if (arg === '--gil') gilPath = value(argv, index++)
     else if (arg === '--output') outputPath = value(argv, index++)
     else if (arg === '--entities') entitiesPath = value(argv, index++)
+    else if (arg === '--candidate') candidatePath = value(argv, index++)
     else if (arg === '--definitions-gil') definitionsGilPath = value(argv, index++)
     else if (arg === '--expect-source-hash') {
       const raw = value(argv, index++).toLowerCase()
@@ -158,6 +166,11 @@ function parseArgs(argv: readonly string[]) {
     throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (command === 'import' && !entitiesPath)
     throw new Error('[error] import requires --entities <file>')
+  if (command === 'apply-candidate') {
+    if (!candidatePath) throw new Error('[error] apply-candidate requires --candidate <file>')
+    if (expectedSourceHash === undefined)
+      throw new Error('[error] apply-candidate requires --expect-source-hash <sha256>')
+  }
   if (command === 'patch') {
     if (entityId === undefined) throw new Error('[error] patch requires <entity-id>')
     if (auxId !== undefined) {
@@ -187,6 +200,7 @@ function parseArgs(argv: readonly string[]) {
     gilPath,
     outputPath,
     entitiesPath,
+    candidatePath,
     definitionsGilPath,
     expectedSourceHash,
     write,
@@ -369,6 +383,27 @@ async function runExport(
   }
 }
 
+async function runApplyCandidate(
+  args: ReturnType<typeof parseArgs>,
+  projectConfig: GstsConfig | undefined
+): Promise<void> {
+  // hash-gated 候选写回：源必须逐字匹配 --expect-source-hash，随后候选原子替换
+  // （自动备份 + 同目录临时文件 rename，语义与 import --write 一致）。
+  const source = resolveGilPath(projectConfig, args)
+  if (!fs.existsSync(source.path) || !fs.statSync(source.path).isFile())
+    throw new Error(`[error] gil not found: ${source.path}`)
+  const { bytes: sourceBytes, hash: sourceHash } = readSource(source.path, args.expectedSourceHash)
+  const candidate = new Uint8Array(fs.readFileSync(path.resolve(args.candidatePath!)))
+  if (candidate.length < 24) throw new Error('[error] candidate is not a valid GIL file')
+  const payload = parseWireMessage(candidate.slice(20, -4))
+  if (!payload) throw new Error('[error] candidate GIL payload is malformed')
+  const backup = writeBack(source.path, candidate, sourceHash)
+  console.log(`sourceSha256=${sourceHash}`)
+  console.log(`candidateSha256=${sha256(candidate)}`)
+  console.log(`backup=${backup}`)
+  console.log(`writePerformed=true`)
+}
+
 async function runImport(
   args: ReturnType<typeof parseArgs>,
   projectConfig: GstsConfig | undefined
@@ -395,6 +430,8 @@ async function runImport(
   }
   const missing = entities.entities.filter((entity) => {
     const sourceDefinitionId = entity.sourceDefinitionId ?? entity.definitionId
+    // 官方基础元件直引（resID 在 [1e7,1e9)）不需要目标地图 root 4 本地定义。
+    if (isOfficialResourceId(sourceDefinitionId)) return false
     return !definitions.some((record) => wireRecordId(record) === sourceDefinitionId)
   })
   if (missing.length) {
@@ -494,6 +531,7 @@ export async function runAssetsEntities(
     projectConfig = await loadGstsConfig(rootContext.projectConfigPath, { profile: 'project' })
   }
   if (args.command === 'import') return runImport(args, projectConfig)
+  if (args.command === 'apply-candidate') return runApplyCandidate(args, projectConfig)
   if (args.command === 'patch') return runPatch(args, projectConfig)
   return runExport(args, projectConfig)
 }

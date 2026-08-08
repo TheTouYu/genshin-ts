@@ -76,7 +76,7 @@ Language entry:
 - Normally use the editor for authored resources and configuration: prefabs, components, paths, UI layouts/control groups, signals, global timers, shops, currencies, ability units, text bubbles, minimap markers, and audio assets.
 - Bounded exception: the following GIL asset operations are wrapped by `assets:*` commands (rules derived from real editor save snapshots, see `docs/GIL_ASSET_COMMANDS.md`):
   - `assets:static-assemblies`: build static custom prefabs from an existing template closure;
-  - `assets:node-graphs`: create an empty NodeGraph container (injection target placeholder);
+  - `assets:node-graphs`: create an empty NodeGraph container (injection target placeholder), `read`/`patch` precise node-graph logic edits;
   - `assets:entities`: create/export scene entities, record-level color/transform patches, bidirectional decoration attachment;
   - `assets:mounts`: mount/unmount NodeGraphs (definition or scene entity, type 3 slot);
   - `assets:signals`: signal register/inspect/repair/update;
@@ -394,6 +394,8 @@ Rules:
 - `npm run assets:static-assemblies -- --gil <source.gil> --output <candidate.gil>`: save an offline candidate without overwriting an existing file
 - `npm run assets:static-assemblies -- --map-id <id> --write`: explicitly back up and write the real map
 - `npm run assets:node-graphs -- create --name <name> --map-id <id>`: create an empty NodeGraph container (injection placeholder, auto-assigned ID)
+- `npm run assets:node-graphs -- read --gil <file.gil> --graph <id|name>`: inspect nodes/pins/connections
+- `npm run assets:node-graphs -- patch --gil <file.gil> --graph <id|name> node 24 link 1 12 --write`: precise node-graph edits (positions, params, connections, composite renames)
 - `npm run assets:entities -- export --gil <file.gil> --format json`: export scene entities
 - `npm run assets:entities -- import --entities <file> --map-id <id>`: create entities from a component definition (preview)
 - `npm run assets:entities -- patch <entity-id> --color <#RRGGBB> --map-id <id>`: record-level entity color patch (preview; `--write` to apply)
