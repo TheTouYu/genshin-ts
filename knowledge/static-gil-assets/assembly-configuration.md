@@ -69,11 +69,11 @@ No claims are created by this Blueprint structure Bundle.
 
 ### 静态拼装只读发现与确定性计划安全契约
 
-公开只读路径按 `maps JSON → inspect → --asset-config → plan` 分层：maps 只负责稳定脱敏的地图元数据，inspect 从源 bytes 建立定义、实例、两侧辅助、owner registry、Transform 和占用 ID 索引，plan 再将源 GIL、资产配置文件、结构文件和规范化 assembly 语义绑定到 canonical JSON SHA-256。只有模板定义/实例精确匹配、当前已知闭包完整且所有显式 ID 无冲突时状态为 ready；否则生成机器可读 blocked 计划并非零退出。inspect/plan 的 `--output` 只新建，源 hash/mtime 保持不变且不创建地图备份。
+公开只读路径按 maps JSON → inspect → --asset-config → plan 分层：maps 只负责稳定脱敏的地图元数据，inspect 从源 bytes 建立定义、实例、两侧辅助、owner registry、Transform 和占用 ID 索引，plan 将源 GIL、配置与规范化 assembly 语义绑定到 canonical JSON SHA-256。本地模板源只有 definition/instance 精确匹配、已知闭包完整且显式 ID 无冲突时 ready；官方 resID 模板在目标地图没有本地模板闭包，使用 closureStatus=official-resource 并由正式官方骨架路径生成。其余错误生成机器可读 blocked 计划。inspect/plan 的 --output 只新建，源 hash/mtime 保持不变且不创建地图备份。
 
 #### 适用边界
 
-这是 commit 8fb0e52 的当前实现和确定性合成 fixture 自动回归契约，不是新的真实地图、编辑器或游戏证据。closureStatus=complete 只说明当前已知 field 4/6/8/27 闭包检查通过，兼容性仍为 unknown；freeRuns 仅是绑定源哈希的 proposal，不是编辑器全局 ID 分配协议。plan 不生成候选、不授权 write，也不实现 verify、receipt 或 rollback。
+这是当前 plan.ts 与 focused regression 的当前实现契约，不是新的真实地图、编辑器或游戏证据。complete 只说明本地模板的当前已知 field 4/6/8/27 闭包通过；official-resource 只说明模板被识别为已支持官方 resID，二者兼容性仍需候选/编辑器分层验证。plan 不生成候选、不授权 write。
 
 <!-- CLAIM:END clm_CFC2CA7A47D98ED4C1C40B081E -->
 

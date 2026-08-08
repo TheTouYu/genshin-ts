@@ -18,11 +18,11 @@
 
 ### 参数流共用骨架与 ShellIndex/pinIndex 双号语义
 
-CompositeDef 的 ParameterFlow（数据）与 ControlFlow（控制流）共用骨架：name(1)（ControlFlow 可选——FlowIn/FlowOut 映射无 name、多分支 DefaultBranch 带 name="默认"）、visible(2)=1、index(3)={数据 kind=3 InParam/4 OutParam、控制流 kind=2 OutFlow/1 InFlow；ShellIndex 默认省略/非默认显式}、type(4)（Ety={type1=1,type2=1} class 省略、Str={class=5,6,6}、Flt={class=4,5,5}；未配置变体的 Variant 源输出={1,1} 默认 Ety，v35）、description(4)（ControlFlow 显式落 len=0）、pinIndex(8)。pinIndex 是全局唯一身份号：同复合内按创建顺序递增、交换/排序参数顺序不改变、分配器全局单调递增删除不释放（v42：删 51/52 后新参数仍拿 55=max+1）、分配顺序 outflow 先于 inflow（53/54、57/58 两样本）；ShellIndex 是顺序号，交换/排序时按新顺序重写（0,1,...）。
+CompositeDef 的 ParameterFlow（数据）与 ControlFlow（控制流）共用 name/visible/index/type-or-description/pinIndex 骨架。ShellIndex 是顺序号，交换、删除中间参数或排序时按新顺序重写；pinIndex 是实例 field 7 引用的身份号，交换/排序时保持。类型流当前实测：Ety={type1=1,type2=1,class 省略}，Int={class=2,3,3}，Flt={class=4,5,5}，Str={class=5,6,6}，Bol={class=6,type1=4,type2=4,field101={1:1}}。pinIndex 在没有手动删除史时从现存最大值起跳过占用/墓碑；发生手动参数删除后，该 definition 的已删除号进入回收池，新分配取池中最小值。
 
 #### 适用边界
 
-复合参数定义/排序 wire 证据（v22-v48 相邻快照）；pinIndex 全局分配器位置未定位（仅观察行为）；实例 pin 用 field7 引用 pinIndex。
+结论来自 v22-v48 参数定义/排序相邻快照与 2026-08-08 case6/case7 删除后再提升的四个配对样本。它确认当前 ShellIndex/pinIndex 分工及受限回收行为，不定位编辑器全局分配器，不证明跨 definition、跨会话或其它参数类型的通用分配协议；outflow 先于 inflow 的既有样本顺序仍成立。
 
 <!-- CLAIM:END clm_23C30B27044EC9F29E896D9EFF -->
 
@@ -66,10 +66,10 @@ case17/18/19 实测；普通连接语境同规则起源见 gia-wire-analysis ord
 
 ### 内部图连线与宿主图同构及编辑器逐操作 wire 行为
 
-内部图连线与宿主图普通连线完全同构：connects 挂目标侧 InParam（id=内部源 nodeIndex、connect/connect2={kind=4 OutParam} 双写）、源侧不落 connects、value 与 connects 并存（Variant 自动实例化自带 value）；未配置变体的 Variant 目标按源类型自动实例化（同宿主图 v18 规则，如源 337 默认 Ety→目标 323 concreteId 缺失→328 Ety TypeSelectorIndex=5）、默认变体=genericId（Variant 列表第一个 KernelID：337 默认 Ety、323 默认 Int）；内部控制流连线（case19）源侧落 OutFlow pin+connects、目标内部节点零感知、不触发 Variant 自动实例化；多分支默认分支输出=DefaultBranch（Shell0）、Case1..10=Shell1..10；内部连线不产生 compositePins。编辑器逐操作行为（创建/加输入输出 pin/加控制流参数/内部加节点连线/合并共享/改参数名/调用填值连线/交换参数顺序/追加控制流参数）见 Authority 行为表；实例 nodeIndex 在修改 CompositeDef 结构的保存后重编号（样本 3→5→6→7→8→23→51，复用宿主图空闲 nodeIndex），主图连线不触发重建。
+复合内部实现图的数据/控制流连线与宿主图普通连接同构：数据 connects 挂目标 InParam，控制流 connects 挂源 OutFlow，目标控制流节点零感知，内部连线不产生 compositePins；Variant 自动实例化和类型失效删除沿用普通图规则。编辑器修改 CompositeDef 参数结构时会重建复合实例，但 nodeIndex 不保证变化：分配以排除自身后的最小空洞为基础，受本轮墓碑、跨轮墓碑消费和 innerNode 冲突约束；最小可用号等于原位时可出现 wire 原位零变化。调用侧填值/连线不改 definition，因此不触发实例重建。实例移动时节点记录按 nodeIndex 顺序重排，宿主图所有指向它的 connects.id 同步改写，实例既有 pin 内容保持。
 
 #### 适用边界
 
-内部连线 wire 已闭合（v33/v34/v35/case19）；空闲号池精确分配规律与编辑器保存路径相关未完全闭合；执行语义属游戏验证范畴。
+内部连接骨架由 v33-v35/case17-19 闭合；实例重建模型由 2026-08-08 case1-9 细化。最小空洞与墓碑规律是当前编辑器会话的受限观察，innerNode==原位冲突仍为单样本 INSUFFICIENT，工具对此 fail closed；运行时执行语义仍属游戏验证。
 
 <!-- CLAIM:END clm_8848DCF0478F05D2FC81D6FE41 -->

@@ -1287,6 +1287,16 @@
       "fact_classes": [
         "documented_contract"
       ]
+    },
+    "clm_184E301A2C7323E818C606720A": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_3319B38030FCF6DDD38C57147C": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
     }
   }
 }
