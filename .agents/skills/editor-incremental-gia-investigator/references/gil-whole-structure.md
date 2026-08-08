@@ -68,6 +68,22 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-ro
 它比较指定 root 的直接 field-1 子记录集合差，只接受唯一差分（append 一条 / 删除一条 /
 一换一），并定点解码到 depth 2（varint / fixed32 / UTF-8 摘要）；差分不唯一、无变化或
 root 缺失时失败。字段语义仍由后续单属性相邻实验和独立 Validator 闭合，脚本只缩短定位。
+它不适用于 root `22` 的重复字符串/flags 或 root `27` 的 field 1/2 双 section。
+
+静态元件材质、宿主 packed aux 列表、root `22/27/45` 联动使用：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/inspect-gil-prefab-material.py \
+  <before.gil> <after.gil> \
+  --definition-id <definitionId> --instance-id <instanceId> \
+  --output <experiment>/investigator/prefab-material.json
+```
+
+它要求目标 definition/instance ID 各唯一存在，保留 root occurrence 顺序，输出 root changed
+set、definition/instance 材质 presence/raw hash、field 501 packed aux ID、root 22 名称/flags、
+root 27 双 section 的唯一小型增删和 root 45 packed MRU。root presence/order/wire type 变化、
+目标缺失或 aux 差分超过 `--max-aux-delta` 时 fail closed；它是定点 Investigator，不替代 L1
+`compare-gil-root-wire.py`，也不替代从 raw 独立重算的 Validator。
 
 相邻实验复制上一轮 validate.py 作为新 Validator 时，必须重新核对：`EXPECTED` 两个 SHA-256
 与 `raw/*.gil.sha256` 逐字节一致、断言方向（before/after）与本轮唯一变化一致、删除不再

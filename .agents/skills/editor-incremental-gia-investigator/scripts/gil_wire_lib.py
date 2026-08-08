@@ -149,6 +149,55 @@ def root_field1_records(payload: bytes, root_field: int):
                 raise ValueError(f'unsupported root wire {wire}')
 
 
+def root_occurrences(payload: bytes, root_field: int, kind: str = 'bytes') -> list[bytes | int]:
+    """Return every matching root occurrence without collapsing repeated fields."""
+    return [value for field, wire, value in walk(payload) if field == root_field and wire == kind]
+
+
+def one_root(payload: bytes, root_field: int) -> bytes:
+    """Return one length-delimited root occurrence, failing on absent/duplicate roots."""
+    matches = root_occurrences(payload, root_field)
+    if len(matches) != 1 or not isinstance(matches[0], bytes):
+        raise ValueError(f'expected one bytes root {root_field}, found {len(matches)}')
+    return matches[0]
+
+
+def records(payload: bytes, root_field: int, child_field: int = 1) -> list[bytes]:
+    """Return direct length-delimited child records in occurrence order."""
+    return [
+        value
+        for field, wire, value in walk(one_root(payload, root_field))
+        if field == child_field and wire == 'bytes' and isinstance(value, bytes)
+    ]
+
+
+def record_id(record: bytes) -> int:
+    """Read one direct field-1 varint identity, failing on ambiguity."""
+    matches = [value for field, wire, value in walk(record) if field == 1 and wire == 'varint']
+    if len(matches) != 1 or not isinstance(matches[0], int):
+        raise ValueError(f'expected one record ID, found {len(matches)}')
+    return matches[0]
+
+
+def packed_varints(data: bytes) -> list[int]:
+    """Decode a length-delimited packed varint payload."""
+    out = []
+    i = 0
+    while i < len(data):
+        value = shift = 0
+        while True:
+            if i >= len(data):
+                raise ValueError('truncated packed varint')
+            byte = data[i]
+            i += 1
+            value |= (byte & 0x7F) << shift
+            if not byte & 0x80:
+                break
+            shift += 7
+        out.append(value)
+    return out
+
+
 def f32(raw: int) -> float:
     return struct.unpack('<f', struct.pack('<I', raw))[0]
 

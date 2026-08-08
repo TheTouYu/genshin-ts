@@ -73,6 +73,17 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 
 开始前只选一种模式，不叠加执行：
 
+### A0. 实验初始化短路
+
+以下任务属于 `bootstrap-only`，不执行冷启动清单：用户明确要新建一张干净地图/空实验对象，且目标是随后由用户逐轮编辑并比较。此阶段只允许：
+
+1. 读取根 `AGENTS.md`；
+2. 查看目标 CLI 的 `--help` 和必要配置；
+3. 在破坏性写入前请求确认；
+4. 创建后记录实际路径、ID、大小、SHA-256，并停止。
+
+不要在初始化前读取 `docs/game-engine-knowledge/index.md`、`project-pipeline.md`、PKC、Composite 导航、完整 Authority、测试或实时地图全量清单。初始化不是规则调查；第一处用户变化保存后，才按下面的续作或冷启动流程加载调查所需的最小模块。
+
 ### A. 已有任务续作（优先）
 
 出现任一条件即走续作：用户说“继续/好了/已保存”、会话中已有明确 handoff/快照路径，或已锁定地图、图和下一轮变化。
@@ -200,6 +211,10 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/capture-experi
   <current-map> <before-snapshot> <experiment-directory>
 ```
 
+两个 capture 脚本都是固定位置参数接口，不把 `--help` 当探测命令；需要确认接口时直接读脚本
+顶部 usage，连续调查默认直接使用 `capture-experiment.py`。每条关键命令单独检查 exit code，
+不要把失败探测与后续成功命令串在同一 shell 中掩盖错误。
+
 相邻快照使用明确语义名：
 
 ```text
@@ -248,11 +263,19 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
   --output <experiment>/coordinator/root-wire-diff.json
 ```
 
-固定顺序为：文件大小/哈希/presence → 全 root raw bytes → 仅变化 root 的直接子记录集合差 → 唯一目标记录定点解码。完整流程见 `references/gil-whole-structure.md`。等长同步字段只记录变化，不能按重复出现猜测语义。
+固定顺序为：文件大小/哈希/presence → 全 root raw bytes → 仅变化 root 的直接子记录集合差 → 唯一目标记录定点解码。完整流程见 `references/gil-whole-structure.md`。等长同步字段只记录变化，不能按重复出现猜测语义。摘要脚本只挑选标量键和小型计数，禁止把 `before/after/rootFields` 整对象重新打印出来。
 
 同一保存中出现的**未声明额外变化**（如 root 注册表、信号、引用块），不能直接归因给用户声明操作：先记录；随后用“删除/回退该操作”的对照轮验证——若回退后这些变化不动，则它们与声明操作生命周期无关（exp14→17 实测：新增镜头时出现的 root35/root11/组件引用块在删除镜头后全部不回退，属一次性编辑器注册）。未经验证的归因写 `INSUFFICIENT`。
 
-定点解码优先复用 `scripts/` 下已有资产（如 `inspect-gil-root-container.py <before> <after> <rootField>`、各领域专用 inspect 脚本、`compare-level10-containers.ts`（root 10 容器 field2 CompositeDef/field4 内部图逐项字节对比，复合模块常用）和 NodeGraph 比较器），不手写一次性解析；动手前先读模块 references 的工具清单，避免重复实现已有能力。现有资产不覆盖目标时才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。
+定点解码优先复用 `scripts/` 下已有资产。静态元件材质/装饰物调查使用
+`inspect-gil-prefab-material.py <before> <after> --definition-id <ID> --instance-id <ID>`，它覆盖
+root 4/8 材质和 packed aux 列表、root 22、root 27 双 section、root 45 packed MRU；不要用
+只接受 field-1 唯一差的 `inspect-gil-root-container.py` 解析 root 22/27。其他领域再选对应
+inspect、`compare-level10-containers.ts`（root 10 容器 field2 CompositeDef/field4 内部图逐项
+字节对比）或 NodeGraph 比较器。动手前先读模块 references 的工具清单；现有资产不覆盖目标时
+才允许临时解码，同一解码模式重复三轮后必须按下方规则资产化。wire2 既可能是嵌套 message、
+UTF-8，也可能是 packed varint；必须按目标路径和 presence 断言选型，解析失败时逐层打印小型
+field/wire 摘要定位，不能放宽路径或靠手算 hex。
 
 已锁定 NodeGraph 的专项差分命令（`compare-gil-node-graph.ts` 摘要 → `--full` 定点提取）、
 字段清单和 raw-wire 形态断言速查见匹配模块的 reference「快速相邻比较」。原则：先摘要确认
@@ -282,7 +305,7 @@ raw-wire 或 round-trip 断言。
 
 Validator 可以读取 Investigator 结果以知道待裁决 claim，但关键断言必须直接从原始 before/after 快照重新计算，包括 SHA-256、相邻链、字段 presence、记录集合差、引用方向和目标 ID。不得仅检查 `result.json` 内部一致性，或调用 Investigator 生成的中间 JSON/辅助函数后把同一结果称为独立验证。
 
-Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计算的检查、`ACCEPT/CONFLICT/INSUFFICIENT`、适用范围和未验证层级；Coordinator 只合并这些独立检查通过的 claim。Validator 断言失败时公开定位失败检查，优先排除 encoded bytes/value bytes、presence 或路径筛选错误；修正断言后必须从原始快照重跑，不得放宽语义 claim 来制造 `ACCEPT`。
+Validator 只能写自己的 `validation.json`。裁决中逐项记录重新计算的检查、`ACCEPT/CONFLICT/INSUFFICIENT`、适用范围和未验证层级；Coordinator 只合并这些独立检查通过的 claim。每个断言使用可定位的检查名或显式失败消息，禁止只输出空 `AssertionError`。Validator 断言失败时公开定位失败检查，优先排除 encoded bytes/value bytes、presence、wire2 packed/message 选型或路径筛选错误；修正断言后必须从原始快照重跑，不得放宽语义 claim 来制造 `ACCEPT`。
 
 ## 第三方 schema 交叉检查
 
