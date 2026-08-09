@@ -82,6 +82,54 @@
 
 每个 item 使用局部面中心、面外法线和有语义的面内基；不要逐面手调欧拉角。
 
+### 2A. 标准生产模板（直接复制，勿读源码/历史脚本）
+
+**asset-config.mjs**（地图绑定/ID/场景 Transform 留这里）：
+
+```js
+export default {
+  assets: {
+    staticAssemblies: [
+      {
+        name: '足球',
+        prefabId: 1077936139,          // 先 inspect 联合盘点取空闲 ID
+        templatePrefabId: 10005018,    // 空模型宿主
+        templateInstanceId: 10005018,
+        templateName: '空模型',
+        position: [0, 1.5, 0],         // 场景 Transform（球心在半径上方落地）
+        scale: [0.25, 0.25, 0.25],     // 直径 0.5m = R=1.0 元件 × 0.25（用户 2026-08-09 偏好）
+        definitionAuxiliaryIds: Array.from({ length: 132 }, (_, i) => 1073742280 + i),
+        instanceAuxiliaryIds: Array.from({ length: 132 }, (_, i) => 1073742440 + i),
+        structureFile: './football.structure.json'
+      }
+    ]
+  }
+}
+```
+
+**generate-structure.mjs**（132 个 item，复用已闭合几何；rotation 单位为度，直接写）：
+
+```js
+import { truncatedIcosahedron, prismPanels, basisToEuler } from '<repo>/src/cli/static_assembly/football_geometry.js'
+import { writeFileSync } from 'node:fs'
+const ball = truncatedIcosahedron(1.0)             // R=1.0 共边基准
+const panels = prismPanels(ball, { thickness: 0.02, surfaceOffset: 0.0 })
+const items = panels.map((p) => ({
+  resourceId: p.kind === 'pentagon' ? 10009005 : 10009004,
+  position: p.center,
+  rotation: basisToEuler(p.xAxis, p.yAxis, p.zAxis),
+  scale: p.scale.map((s, i) => (i === 1 ? s : s * 1.02)),   // +2% 遮缝只放大平面两轴
+  color: { enabled: true, rgb: p.kind === 'pentagon' ? 1514018 : 12107976, opacity: 100, overlay: 'overwrite' }
+}))
+writeFileSync('football.structure.json', JSON.stringify({ items }))
+```
+
+**尺寸/颜色默认值**（2026-08-09 用户反馈）：
+
+- 直径 0.5m：元件 R=1.0（直径 2m）+ 场景实体 scale=0.25。不要用 R=0.25 重算几何——元件可复用、可再缩放；
+- 默认色：五边形 `rgb=1514018`（0x171A22）、三角形 `rgb=12107976`（0xB8C0C8），无纯黑纯白；
+- 用户要求“不刺眼”时改用柔和色候选（见 calibration-and-geometry.md 待定色板，确认后回填），不要自行引入纯黑纯白。
+
 ### 3. 正式 CLI 生成新元件
 
 把 132 个 item 放入 `structureFile`，配置中保留地图绑定、模板、ID 和场景 Transform。执行：

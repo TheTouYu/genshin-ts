@@ -19,6 +19,13 @@
 
 ## 0. CLI 速查
 
+### 0A. 环境速查（省去路径探索，勿读源码找路径）
+
+- 游戏目录由 gsts CLI 自动解析：China 区为 `AppData/LocalLow/miHoYo/原神/BeyondLocal/<player>/Beyond_Local_Save_Level/`（`player` 唯一时自动选，多账号才需配置）。不要读 `src/cli/gil_paths.ts` 源码、不要 `find /mnt`、不要找 gsts.config 确认——`maps`/`inspect`/`export` 直接可用。
+- 地图列表/ID：`node ./bin/gsts.mjs maps --format json --include-hash`；写回前源 SHA 以 `sha256sum <实际路径>` 为准。
+- 证据目录固定 `~/genshin-ts-evidence/static-assembly/`，按 `<模型>-v<n>` 建子目录；历史脚本只作模板线索，优先用下方标准模板。
+- 足球几何生成器：`src/cli/static_assembly/football_geometry.ts` 的 `truncatedIcosahedron()`/`prismPanels()`/`basisToEuler()`，调用模板见 football-success-path.md「标准生产模板」，无需读源码；其它几何同样只写 item 列表，不手调欧拉角。
+
 `assets:static-assemblies` 子命令（`plan` / `inspect` / `export` / 默认 preview）：
 
 ```bash
