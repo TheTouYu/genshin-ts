@@ -4,6 +4,7 @@ import path from 'node:path'
 
 import { buildFile, readUint32BE } from '../injector/binary.js'
 import { decodeUtf8, readGilPayloadFields } from './gil_extract_utils.js'
+import { syncGilToTemp, tempDirOf } from './gil_paths.js'
 import { buildEmptyNodeGraph, ensureMinimalContainers, nextGraphId } from './assets_node_graphs.js'
 import { emitWireMessage, parseWireMessage, printableWireText, type WireField } from './static_assembly/wire.js'
 
@@ -95,6 +96,15 @@ function gipPathOf(saveLevelDir: string): string {
   return path.join(saveLevelDir, '..', GIP_FILENAME)
 }
 
+// 双写目标：玩家级 gip + 编辑器活动目录 Temp 的 gip（编辑器列表只读 Temp gip，
+// 玩家级 gip 仅兼容 CLI 自身；Temp 目录不存在时只剩玩家级）
+function gipPathsOf(saveLevelDir: string): string[] {
+  const paths = [gipPathOf(saveLevelDir)]
+  const tempGip = path.join(tempDirOf(saveLevelDir), GIP_FILENAME)
+  if (fs.existsSync(tempGip)) paths.push(tempGip)
+  return paths
+}
+
 function readGipPayload(gipPath: string): Uint8Array {
   const bytes = new Uint8Array(fs.readFileSync(gipPath))
   return bytes.slice(20, -4)
@@ -146,39 +156,41 @@ function appendGipFolderLink(tabTree: WireField[], mapId: number): WireField[] {
 
 // 注册图到 .gip（顶层条目 + 页签链接）；.gip 不存在时跳过（warn）。
 // 查重：mapId 已注册则更新条目（名字/时间戳）与链接，不追加（round4 曾重复注册 1855）
+// 双写：玩家级 gip + 编辑器活动目录 Temp 的 gip（编辑器列表只读 Temp gip，2026-08-09 实测）
 function gipRegister(
   saveLevelDir: string,
   mapId: number,
   name: string,
   warn: (message: string) => void
 ): void {
-  const gipPath = gipPathOf(saveLevelDir)
-  if (!fs.existsSync(gipPath)) {
-    warn(`skip .gip register (missing): ${gipPath}`)
-    return
+  for (const gipPath of gipPathsOf(saveLevelDir)) {
+    if (!fs.existsSync(gipPath)) {
+      warn(`skip .gip register (missing): ${gipPath}`)
+      continue
+    }
+    const root = parseWireMessage(readGipPayload(gipPath))
+    if (!root) throw new Error(`[error] malformed .gip payload: ${gipPath}`)
+    const updated = root.map((field) => {
+      if (field.number !== 1 || field.wire !== 2) return field
+      const tabTree = parseWireMessage(field.value as Uint8Array)
+      if (!tabTree) return field
+      return { ...field, value: emitWireMessage(appendGipFolderLink(tabTree, mapId)) }
+    })
+    const nowSec = Math.floor(Date.now() / 1000)
+    const entry = emitWireMessage(gipMapEntry(mapId, name, nowSec))
+    let found = false
+    const withEntry = updated.map((field) => {
+      if (field.number !== 2 || field.wire !== 2) return field
+      const old = parseWireMessage(field.value as Uint8Array)
+      if (!old) return field
+      const id = old.find((f) => f.number === 1 && f.wire === 0)?.value
+      if (typeof id !== 'number' || id !== mapId) return field
+      found = true
+      return { ...field, value: entry }
+    })
+    const final = found ? withEntry : [...withEntry, { number: 2, wire: 2, value: entry }]
+    writeGip(gipPath, emitWireMessage(final))
   }
-  const root = parseWireMessage(readGipPayload(gipPath))
-  if (!root) throw new Error(`[error] malformed .gip payload: ${gipPath}`)
-  const updated = root.map((field) => {
-    if (field.number !== 1 || field.wire !== 2) return field
-    const tabTree = parseWireMessage(field.value as Uint8Array)
-    if (!tabTree) return field
-    return { ...field, value: emitWireMessage(appendGipFolderLink(tabTree, mapId)) }
-  })
-  const nowSec = Math.floor(Date.now() / 1000)
-  const entry = emitWireMessage(gipMapEntry(mapId, name, nowSec))
-  let found = false
-  const withEntry = updated.map((field) => {
-    if (field.number !== 2 || field.wire !== 2) return field
-    const old = parseWireMessage(field.value as Uint8Array)
-    if (!old) return field
-    const id = old.find((f) => f.number === 1 && f.wire === 0)?.value
-    if (typeof id !== 'number' || id !== mapId) return field
-    found = true
-    return { ...field, value: entry }
-  })
-  const final = found ? withEntry : [...withEntry, { number: 2, wire: 2, value: entry }]
-  writeGip(gipPath, emitWireMessage(final))
 }
 
 // 更新 .gip 中地图条目名字（编辑器列表同步显示新名）；.gip 不存在时跳过
@@ -188,36 +200,37 @@ function gipRename(
   newName: string,
   warn: (message: string) => void
 ): void {
-  const gipPath = gipPathOf(saveLevelDir)
-  if (!fs.existsSync(gipPath)) {
-    warn(`skip .gip rename (missing): ${gipPath}`)
-    return
-  }
-  const root = parseWireMessage(readGipPayload(gipPath))
-  if (!root) throw new Error(`[error] malformed .gip payload: ${gipPath}`)
-  let found = false
-  const updated = root.map((field) => {
-    if (field.number !== 2 || field.wire !== 2) return field
-    const entry = parseWireMessage(field.value as Uint8Array)
-    if (!entry) return field
-    const id = entry.find((f) => f.number === 1 && f.wire === 0)?.value
-    if (typeof id !== 'number' || id !== mapId) return field
-    found = true
-    return {
-      ...field,
-      value: emitWireMessage(
-        entry.map((f) =>
-          f.number === 2 && f.wire === 2
-            ? { ...f, value: new TextEncoder().encode(newName) }
-            : f
-        )
-      )
+  for (const gipPath of gipPathsOf(saveLevelDir)) {
+    if (!fs.existsSync(gipPath)) {
+      warn(`skip .gip rename (missing): ${gipPath}`)
+      continue
     }
-  })
-  if (!found) {
-    warn(`map ${mapId} not registered in .gip; editor list may keep old name`)
+    const root = parseWireMessage(readGipPayload(gipPath))
+    if (!root) throw new Error(`[error] malformed .gip payload: ${gipPath}`)
+    let found = false
+    const updated = root.map((field) => {
+      if (field.number !== 2 || field.wire !== 2) return field
+      const entry = parseWireMessage(field.value as Uint8Array)
+      if (!entry) return field
+      const id = entry.find((f) => f.number === 1 && f.wire === 0)?.value
+      if (typeof id !== 'number' || id !== mapId) return field
+      found = true
+      return {
+        ...field,
+        value: emitWireMessage(
+          entry.map((f) =>
+            f.number === 2 && f.wire === 2
+              ? { ...f, value: new TextEncoder().encode(newName) }
+              : f
+          )
+        )
+      }
+    })
+    if (!found) {
+      warn(`map ${mapId} not registered in .gip; editor list may keep old name`)
+    }
+    writeGip(gipPath, emitWireMessage(updated))
   }
-  writeGip(gipPath, emitWireMessage(updated))
 }
 
 export type RenameMapResult = {
@@ -273,6 +286,8 @@ export function renameMap(
   fs.writeFileSync(gilPath, newFile)
   warn(`backup=${backupPath}`)
   gipRename(saveLevelDir, mapId, newName, warn)
+  const tempCopied = syncGilToTemp(saveLevelDir, `${mapId}.gil`)
+  if (tempCopied) warn(`temp-sync=${tempCopied}`)
   return {
     mapId,
     gilPath,
@@ -359,6 +374,8 @@ export function createMap(
   fs.writeFileSync(gilPath, file)
   warn(`created=${gilPath}`)
   gipRegister(saveLevelDir, nextId, name, warn)
+  const tempCopied = syncGilToTemp(saveLevelDir, `${nextId}.gil`)
+  if (tempCopied) warn(`temp-sync=${tempCopied}`)
   return {
     mapId: nextId,
     gilPath,

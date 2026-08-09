@@ -146,3 +146,21 @@ export function resolveGilTarget(cfg: GstsInjectConfig): ResolvedGilTarget {
 export function resolveGilFolder(cfg: GstsInjectConfig): ResolvedGilFolder {
   return resolveBase(cfg)
 }
+
+// 编辑器（游戏）实际读写的地图活动目录是 BeyondLocal/<player>/Temp/：地图列表来自
+// Temp/Beyond_Local_Save_Player.gip，打开/保存地图时 .gil 双写 Temp 与
+// Beyond_Local_Save_Level/。CLI 以 Save_Level 为准，新文件或写回必须同步到 Temp
+// 并注册 Temp gip，编辑器列表才能看到（2026-08-09 实测：仅写 Save_Level 时编辑器不显示）。
+export function tempDirOf(saveLevelDir: string): string {
+  return path.join(saveLevelDir, '..', 'Temp')
+}
+
+export function syncGilToTemp(saveLevelDir: string, fileName: string): string | null {
+  const tempDir = tempDirOf(saveLevelDir)
+  if (!existsDir(tempDir)) return null
+  const src = path.join(saveLevelDir, fileName)
+  if (!exists(src)) return null
+  const dst = path.join(tempDir, fileName)
+  fs.copyFileSync(src, dst)
+  return dst
+}

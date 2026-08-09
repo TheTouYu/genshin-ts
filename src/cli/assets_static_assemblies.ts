@@ -14,7 +14,7 @@ import type {
   StaticAssemblySourceLocator
 } from '../compiler/gsts_config.js'
 import { t } from '../i18n/index.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
 import { applyStaticPrefabCategories } from './gil_static_prefab_categories.js'
 import { applyStaticPrefabUpdate } from './gil_static_prefab_updates.js'
@@ -316,6 +316,8 @@ async function runPreview(
       fs.copyFileSync(source.path, backup)
       fs.copyFileSync(temporary, resultPath)
       console.log(`backup=${backup}`)
+      const tempCopied = syncGilToTemp(path.dirname(source.path), path.basename(source.path))
+      if (tempCopied) console.log(`temp-sync=${tempCopied}`)
     } else if (args.outputPath) writeNew(args.outputPath, candidateBytes)
     console.log(`writePerformed=${args.write}`)
   } finally {

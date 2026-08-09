@@ -35,6 +35,7 @@ compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets
 - 用户说“只给计划”“不要读取真实地图”“不要运行 maps”时，进入 `plan-only` 短路：只读根规则、本 Skill 的相关参考和一次只读 PKC 查询；不运行 `maps`、资产 inspect/export、源码测试，不扫描 `$GTS_EVIDENCE_HOME`，也不创建任何文件。答案使用 `<mapId>/<sourceSha>/<newId>` 占位符，并把现场盘点列为后续步骤。
 - 用户只禁止写回但允许候选时，可读取地图并生成离线候选；停在 `候选就绪`。
 - 用户明确授权写回前，仍须先展示已锁定候选的完整安全门；早先的宽泛“可以做”不替代该确认。若用户在当前轮明确说“直接注入/直接写回”，可把这句话作为本轮确认，但仍要记录源 SHA、候选 SHA、修改范围和自动备份；
+- **任务内新地图写回例外**：用户任务明确要求“放在一张新地图里/新建地图做模型”时，本轮 `maps:create` 创建的新地图是任务内产物，写回它属于任务执行的一部分，不需要再等一次确认（见「写回安全门」）；这只适用于本轮自己创建、确认空闲的新地图，不适用于任何用户既有地图；
 - 不自动恢复历史候选、manifest 或证据目录。只有用户明确说“继续/恢复某一轮”或给出对应路径/对象时才读取；同类历史模型不能冒充当前目标；
 - 更严格的新约束始终优先。用户在工作中途改成只读时，立即停止后续地图/文件操作。
 
@@ -93,8 +94,8 @@ python tools/pkc.py progressive-query \
 → 新建模型走正式 CLI plan；既有模型走 closure/export 盘点
 → 不覆盖候选
 → 最小闭包/回读
-→ 展示安全门并确认
-→ hash-gated 原子写回 + 备份
+→ 展示安全门（任务内新地图：展示完直接写回；既有地图：等明确确认）
+→ hash-gated 原子写回 + 备份（新地图任务还需补场景实例 import）
 → 写后回读
 → 用户重新加载并截图/游戏核验
 → 视觉反馈分类；若规则未知则转增量调查
@@ -193,7 +194,9 @@ python tools/pkc.py progressive-query \
 - 场景 Transform、item 摘要和触及 roots；
 - 精确命令、自动备份位置和回滚方式。
 
-得到针对这份候选的明确确认后，优先用固定候选的 hash-gated 原子入口：
+**任务内新地图直接写回**：任务明确要求“放在一张新地图里”时，安全门展示完即可执行 hash-gated 写回并回读，不用停下来等确认——创建新地图并放置模型正是用户本轮要求做的事，任务指令就是授权。写回后仍如实报告状态，不得把 `写回成功` 冒充 `用户视觉核验`。任务还要求“做成一个元件放在地图里”时，元件闭包写回后继续用 `assets:entities import` 生成并写回场景实例（两步都是任务内动作），全部就位后才报告 `写回成功`。
+
+**其余情况（用户既有地图、共享地图、非本轮创建的地图）**：必须展示安全门并得到针对这份候选的明确确认后，再优先用固定候选的 hash-gated 原子入口：
 
 ```bash
 node ./bin/gsts.mjs assets:entities apply-candidate \
@@ -249,6 +252,8 @@ PKC 只从已提交 Authority 创建 knowledge-plan；工作树结论保持 pend
 - `inspect` 用于身份/闭包，复杂 Transform 以 `export` 回读为准。
 - 编辑器保存会规范化默认字段；候选验证比较目标闭包，不要求用户保存后整文件哈希不变。
 - 新地图用 `maps:create` 创建后**可直接** `assets:static-assemblies`（2026-08-09 起骨架预置空 root 4/8/27 段）。若目标地图缺 4/8/27 段（旧骨架地图），static-assemblies 报 `unsupported GIL layout`：不要用 `assets:entities import` 平铺实体绕行，改用新预置地图或在成熟地图上创建。
+- **编辑器可见性 = Temp 活动目录**（2026-08-09 实测）：编辑器地图列表只读 `BeyondLocal/<player>/Temp/Beyond_Local_Save_Player.gip`，.gil 双写 Temp 与 `Beyond_Local_Save_Level/`；CLI 已自动同步（`maps:create` 复制 .gil 到 Temp + 双写 gip，写回同步 Temp）。手工复制/注册只应在游戏关闭时做，否则编辑器内存版 gip 会覆盖磁盘注册；游戏运行中不要注册。
+- **ID 复用陷阱**：删除过的地图 ID 被 maps:create 复用后，编辑器仍看不到（列表来自 Temp gip 不是目录扫描），且编辑器新建地图取 Temp gip max+1 可能覆盖未注册的同 ID .gil——所以新地图创建后必须确认 `temp-sync` 日志出现。
 - 截图发现方向错误时，先修资源局部基或校准结论，不在每个面上散落补偿角。
 - 用户反馈仍有缝时，保留成功候选和反馈证据，进入单变量精确数据调查，不把“整体满意”写成几何完全通过。
 

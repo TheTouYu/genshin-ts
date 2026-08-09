@@ -24,7 +24,8 @@
 - `user_edit/` 是参考样本目录，只能读取用于解码分析，不可写入、修改或删除任何文件。
   .gia 输出始终写入 `~/genshin-ts/Beyond_Local_Export/` 根目录（游戏加载目录），而不是 `user_edit/` 下；该目录允许写入，但不得覆盖无法解释的现有文件。
 - `/mnt/` 是 Win11 数据盘，禁止无目的扫描或递归遍历（例如 `find /mnt`）；除非用户明确指定具体路径，否则不要访问其中的数据。
-  当前本机游戏目录：`/home/h/genshin-ts/Beyond_Local_Export/`。
+  当前本机游戏目录：`/home/h/genshin-ts/Beyond_Local_Export/`（.gia 加载目录）。
+  .gil 地图实际目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Local_Save_Level/`（CLI 读写），编辑器活动目录为同级 `Temp/`（列表 gip 与 .gil 双写，2026-08-09 实测；CLI 已自动同步 Temp）。
 
 ## 安全与 Git
 

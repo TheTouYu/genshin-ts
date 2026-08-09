@@ -7,7 +7,7 @@ import type { GstsConfig } from '../compiler/gsts_config.js'
 import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import { t } from '../i18n/index.js'
-import { resolveGilTarget } from './gil_paths.js'
+import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
 import { applyEntities, exportEntities, type EntityImport } from './gil_entities.js'
 import { isOfficialResourceId } from './official_prefabs.js'
 import {
@@ -286,6 +286,8 @@ function writeBack(gilPath: string, candidate: Uint8Array, sourceHash: string): 
   } finally {
     fs.rmSync(temporary, { force: true })
   }
+  // 编辑器活动目录 Temp 同步（编辑器列表/内容以 Temp 为准，2026-08-09 实测）
+  syncGilToTemp(path.dirname(gilPath), path.basename(gilPath))
   return backup
 }
 
