@@ -98,6 +98,22 @@ NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CON
   （不只是 clears connects，与"替换线改 connects.id"对照：替换是改 id，类型失效是删整 pin）；
 - 推论：批量注入写 `concreteId=ID` 对 Variant 节点是冗余（编辑器保存会移除，Fixed 保留）；
   游戏/编辑器显示不依赖它（434 节点注入核验通过）。signals.md 既有记录
+
+### 多分支（SysCall 3）实操场景（2026-08-09 tab-input-multibranch 快照闭合）
+
+编辑器放置多分支 + key 数据流 + case 出边的完整落盘（地图 1073741849 `_GSTS_tab-input`，
+证据 `~/genshin-ts-evidence/node-graph-logic/tab-input-multibranch/raw/`）：
+
+- **节点创建**：f2/f3 引用 `{1:10001, 2:20000, 3:22000, 5:3}`（generic=concrete=3，Int
+  变体 KernelID=3，与工具 `nodeRefWire(3, 22000)` 构造一致）；两个 InParam 落盘：
+  `[0]` key（type=3 Int，ConcreteBase，connects 挂目标侧←事件 Int），`[1]` cases
+  （type=8 IntegerList，ConcreteBase 空列表）；未连线前无 OutFlow pin；
+- **key 数据流**：`connects=[{1:1, 2:{1:4,2:2}, 3:{1:4,2:2}}]`（id=源 nodeIndex，kind 4
+  OutParam index=2 = When Tab Is Selected 的 Int 输出）；
+- **case 出边**：Case1 = OutFlow[1]（index=1 显式）→ 目标默认 InFlow（省略 index）；
+  默认分支（若连线）= OutFlow[0]（index 省略）——与 control-flow.md 规则一致；
+  未连线的 case 不实例化 OutFlow pin；新 OutFlow 排在 InParam 前；
+- **cases 列表值**：条目结构见 data-flow.md；bInt(102) 的 val 在字段 1。
   （获取局部变量 str=2656/int=20/bool=18）即 KernelID，与 data.json 一致。
 
 ### 节点 ID 目录（第三方 data.json，558 节点）

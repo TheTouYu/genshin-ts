@@ -60,6 +60,10 @@ connect/connect2 指向源 OutParam：源默认（Shell0）省略 index，源非
   `connects=[{1:1, 2:{1:4}, 3:{1:4}}]`（id=源 nodeIndex 1）；
 - 列表参数值（如多分支 cases）：`ConcreteBase` 内 `ArrayBase(class=10002)` + `bArray(109)`
   元素列表，`type` = 列表 VarType（8=IntegerList / 11=StringList）；
+  **cases 条目结构**（2026-08-09 tab-input-multibranch 快照闭合）：条目 =
+  `{1:2, 2:1, 4:{1:1, 6:{2:3}}, 102:{1:val}}`——`102` 是 `IntBaseValue`（bInt），
+  **val 在字段 1**（`IntBaseValue { int32 val = 1 }`，gia.proto）；条目末尾追加新值
+  只需克隆末条并把 `102.{1}` 改为新 key 值；
 - 变体切换（Int→Str）联动：concreteId=新 KernelID、pin type、`value.bConcreteValue.f1`
   = TypeSelectorIndex、列表元素类型全部同步（详见 node-graphs.md）；
 - 跨类型数据直连（如 Int→L<Int>）被编辑器拒绝（用户游戏内确认，2026-08-06），需先手动
