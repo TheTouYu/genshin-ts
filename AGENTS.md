@@ -45,4 +45,5 @@
   规则过期、缺失或表述不清时，按证据更新适用范围最小的规则文件。
 - 只有高频、可复用、可行动且已证实的经验才能进入 `AGENTS.md`；局部案例、临时路径和待验证推测应写入测试、状态、checkpoint 或权威技术文档。
 - 知识录入固定从项目根运行 `python tools/pkc.py`；当天提交只纳入已提交基线，工作树变化保持受保护。一个 knowledge-plan 内串行完成 Claim、Authority Ref 和必要的 stale refresh，所有 mutation 完成后只做一次最终 delta check，再 finalize；必须展示并等待精确 Bundle content hash 确认后才能 approve/apply；`bundle-approve`/`bundle-apply` 默认 dry-run，必须显式加 `--apply` 才会落盘（2026-08-01 曾静默假成功，靠 claim_count 核验发现）。apply 后运行 `rebuild`、`validate`、`tree` 和 `git diff --check`。
+- 用户要求“派独立/单独模型”跑任务或验证时，必须用 `isolated-model-evaluator` 技能（`evaluate.py --root <项目> --skill <显式技能路径> --task-file <任务> --output-dir <目录>`，只读任务带 `--assert-no-changes`，默认 deepseek-v4-flash max 或按用户指定）；禁止裸跑 `pi -p`（无 trace/成本记录）。执行类任务：子模型只产 /tmp 候选，主代理校验后写回真实地图。
 - 完成报告应包含“规则反馈检查”：是否发现不一致、证据、更新的最小规则文件，以及未推广的局部经验。
