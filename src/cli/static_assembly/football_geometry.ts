@@ -58,6 +58,23 @@ export type EdgeBar = {
   scale: [number, number, number]
 }
 
+/** 三/五棱柱球壳面片；两种资源的零旋转高度轴均为 Y，单顶点朝 -Z。 */
+export type PrismPanel = {
+  kind: 'pentagon' | 'triangle'
+  center: Vec3
+  xAxis: Vec3
+  yAxis: Vec3
+  zAxis: Vec3
+  /** 资源 scale 语义 = 底面外接圆直径 1（2026-08-09 用户实测），故：五棱柱 [2×外接半径, 厚, 2×外接半径]；三棱柱 [边长/0.866, 厚, 边长/0.866]。 */
+  scale: [number, number, number]
+}
+
+export type PrismPanelOptions = {
+  thickness: number
+  /** 面片中心从多面体面平面沿外法线偏移的距离。 */
+  surfaceOffset: number
+}
+
 const PHI = (1 + Math.sqrt(5)) / 2
 
 function norm(v: Vec3): number {
@@ -256,6 +273,67 @@ export function truncatedIcosahedron(radius: number): TruncatedIcosahedron {
   if (edgeSet.size !== 90) throw new Error(`[geometry] unique edges ${edgeSet.size} != 90`)
 
   return { radius, vertices: vertexList, faces, edges: [...edgeSet.values()] }
+}
+
+/**
+ * 用 12 个五棱柱和 120 个三棱柱精确覆盖截角二十面体的 32 个面。
+ * 资源局部 Y 对齐面外法线，局部 -Z 对齐五边形顶点或三角片的中心顶点。
+ */
+export function prismPanels(
+  ball: TruncatedIcosahedron,
+  options: PrismPanelOptions
+): PrismPanel[] {
+  if (!(options.thickness > 0) || !Number.isFinite(options.surfaceOffset)) {
+    throw new Error('[geometry] prism thickness must be positive and surface offset finite')
+  }
+  const panels: PrismPanel[] = []
+  for (const face of ball.faces) {
+    const center = scale(
+      face.vertices.reduce((sum, vertex) => add(sum, vertex), [0, 0, 0]),
+      1 / face.vertices.length
+    )
+    const yAxis = normalize(center, 1)
+    const makePanel = (
+      kind: PrismPanel['kind'],
+      panelCenter: Vec3,
+      targetVertex: Vec3,
+      planarScale: number
+    ): PrismPanel => {
+      const intendedZ = normalize(sub(panelCenter, targetVertex), 1)
+      const xAxis = normalize(cross(yAxis, intendedZ), 1)
+      const zAxis = normalize(cross(xAxis, yAxis), 1)
+      return {
+        kind,
+        center: add(panelCenter, scale(yAxis, options.surfaceOffset)),
+        xAxis,
+        yAxis,
+        zAxis,
+        scale: [planarScale, options.thickness, planarScale]
+      }
+    }
+    if (face.kind === 'pentagon') {
+      // 直径语义：外接半径 r -> scale = r / 0.5 = 2r
+      panels.push(
+        makePanel('pentagon', center, face.vertices[0], 2 * norm(sub(face.vertices[0], center)))
+      )
+      continue
+    }
+    for (let index = 0; index < face.vertices.length; index++) {
+      const current = face.vertices[index]
+      const next = face.vertices[(index + 1) % face.vertices.length]
+      const triangleCenter = scale(add(add(center, current), next), 1 / 3)
+      // 直径语义：边长 s -> scale = s / 0.866 = 2s/√3
+      panels.push(
+        makePanel(
+          'triangle',
+          triangleCenter,
+          center,
+          (2 / Math.sqrt(3)) * norm(sub(next, current))
+        )
+      )
+    }
+  }
+  return panels
 }
 
 /** 凸多边形内一条竖直线段（u=uc）与多边形边的交点 v 集合。 */

@@ -10,6 +10,7 @@ import {
   basisToEuler,
   coverFace,
   edgeBars,
+  prismPanels,
   truncatedIcosahedron,
   type FaceStrip,
   type Vec3
@@ -18,6 +19,7 @@ import {
 const RADIUS = 1.0
 const FACE = { stripWidth: 0.12, thickness: 0.02, surfaceOffset: 0.01 }
 const EDGE = { width: 0.02, radialOffset: 0.005 }
+const PRISM = { thickness: 0.02, surfaceOffset: 0.01 }
 
 const ball = truncatedIcosahedron(RADIUS)
 
@@ -81,6 +83,80 @@ for (const f of ball.faces) {
   }
 }
 console.log('PASS 32 面全部共面且为正多边形')
+
+// ---- 棱柱面片 ----
+const panels = prismPanels(ball, PRISM)
+assert.equal(panels.length, 132, '棱柱面片=132')
+assert.equal(panels.filter((panel) => panel.kind === 'pentagon').length, 12, '五棱柱=12')
+assert.equal(panels.filter((panel) => panel.kind === 'triangle').length, 120, '三棱柱=120')
+let panelIndex = 0
+for (const face of ball.faces) {
+  const sum = face.vertices.reduce((acc, vertex) => add(acc, vertex), [0, 0, 0])
+  const center: Vec3 = [
+    sum[0] / face.vertices.length,
+    sum[1] / face.vertices.length,
+    sum[2] / face.vertices.length
+  ]
+  const normal = normalize(center)
+  const count = face.kind === 'pentagon' ? 1 : 6
+  for (let piece = 0; piece < count; piece++) {
+    const panel = panels[panelIndex++]
+    const planeCenter = sub(panel.center, scale(normal, PRISM.surfaceOffset))
+    const expectedCenter =
+      face.kind === 'pentagon'
+        ? center
+        : scale(
+            add(add(center, face.vertices[piece]), face.vertices[(piece + 1) % 6]),
+            1 / 3
+          )
+    assertVec(planeCenter, expectedCenter, '面片中心')
+    assert.ok(Math.abs(dot(panel.yAxis, normal) - 1) < 1e-6, '局部 Y 对齐外法线')
+    assert.ok(Math.abs(dot(cross(panel.xAxis, panel.yAxis), panel.zAxis) - 1) < 1e-6, '局部基右手系')
+    assert.equal(panel.scale[1], PRISM.thickness, '棱柱厚度')
+    if (face.kind === 'pentagon') {
+      const radius = Math.hypot(...sub(face.vertices[0], center))
+      assert.ok(
+        Math.abs(panel.scale[0] - 2 * radius) < 1e-12 &&
+          Math.abs(panel.scale[2] - 2 * radius) < 1e-12,
+        '五棱柱直径语义缩放（scale = 2×外接半径）'
+      )
+      assertVec(
+        sub(planeCenter, scale(panel.zAxis, radius)),
+        face.vertices[0],
+        '五棱柱本地 -Z 顶点'
+      )
+    } else {
+      const next = face.vertices[(piece + 1) % 6]
+      const side = Math.hypot(...sub(next, face.vertices[piece]))
+      assert.ok(
+        Math.abs(panel.scale[0] - (2 * side) / Math.sqrt(3)) < 1e-12 &&
+          Math.abs(panel.scale[2] - (2 * side) / Math.sqrt(3)) < 1e-12,
+        '三棱柱直径语义缩放（scale = 边长/0.866）'
+      )
+      assertVec(
+        sub(planeCenter, scale(panel.zAxis, side / Math.sqrt(3))),
+        center,
+        '三棱柱本地 -Z 顶点'
+      )
+      const edgeMidpoint = add(
+        planeCenter,
+        scale(panel.zAxis, side / (2 * Math.sqrt(3)))
+      )
+      const reconstructed = [
+        add(edgeMidpoint, scale(panel.xAxis, side / 2)),
+        sub(edgeMidpoint, scale(panel.xAxis, side / 2))
+      ]
+      for (const vertex of [face.vertices[piece], next]) {
+        assert.ok(
+          reconstructed.some((candidate) => distance(candidate, vertex) < 1e-6),
+          '三棱柱相对边端点'
+        )
+      }
+    }
+  }
+}
+assert.equal(panelIndex, panels.length, '全部棱柱面片均已核对')
+console.log('PASS 棱柱面片: 12 个五棱柱 + 120 个三棱柱，Transform 与资源基准一致')
 
 // ---- 面片条带覆盖 ----
 let stripCount = 0
@@ -157,7 +233,11 @@ function eulerToBasis(e: Vec3, order: 'zyx' | 'yxz' | 'xyz'): [Vec3, Vec3, Vec3]
     [R[0][2], R[1][2], R[2][2]]
   ]
 }
-for (const s of [...coverFace(ball.faces[0], FACE), ...edgeBars(ball.edges.slice(0, 3), EDGE)]) {
+for (const s of [
+  ...panels,
+  ...coverFace(ball.faces[0], FACE),
+  ...edgeBars(ball.edges.slice(0, 3), EDGE)
+]) {
   const e = basisToEuler(s.xAxis, s.yAxis, s.zAxis)
   const [x2, y2, z2] = eulerToBasis(e, 'yxz')
   for (let i = 0; i < 3; i++) {
@@ -179,6 +259,18 @@ function sub(a: Vec3, b: Vec3): Vec3 {
 }
 function add(a: Vec3, b: Vec3): Vec3 {
   return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+}
+function scale(v: Vec3, factor: number): Vec3 {
+  return [v[0] * factor, v[1] * factor, v[2] * factor]
+}
+function normalize(v: Vec3): Vec3 {
+  return scale(v, 1 / Math.hypot(...v))
+}
+function distance(a: Vec3, b: Vec3): number {
+  return Math.hypot(...sub(a, b))
+}
+function assertVec(actual: Vec3, expected: Vec3, label: string): void {
+  assert.ok(distance(actual, expected) < 1e-6, `${label}: ${actual} != ${expected}`)
 }
 function dot(a: Vec3, b: Vec3): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
