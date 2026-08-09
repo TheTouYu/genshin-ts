@@ -288,47 +288,99 @@ async function runPreview(
       : undefined
     if (categoryResult) fs.writeFileSync(temporary, categoryResult.bytes)
     const candidateBytes = fs.readFileSync(temporary)
-    console.log(`mode=${args.write ? 'write' : args.outputPath ? 'output' : 'preview'}`)
-    console.log(`source=${source.path}`)
-    console.log(`sourceSha256=${sha256Bytes(sourceBytes)}`)
+    const mode = args.write ? 'write' : args.outputPath ? 'output' : 'preview'
+    const jsonMode = args.format === 'json'
+    // text 模式输出原有 key=value 日志；json 模式 stdout 只输出 JSON，日志改走 stderr
+    const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+    const summary: {
+      schemaVersion: number
+      kind: string
+      mode: string
+      source: string
+      sourceSha256: string
+      assemblies: { name: string; prefabId: number }[]
+      updates: { name: string; prefabId: number; instanceId: number }[]
+      categories: { name: string; prefabIds: readonly number[] }[]
+      touchedTopLevelFields: number[]
+      field9: string
+      candidateSha256: string
+      write?: { backup: string; tempSync?: string; temp?: string; tempSyncSkipped?: string }
+      writePerformed: boolean
+    } = {
+      schemaVersion: 1,
+      kind: 'gsts.static-assembly.preview',
+      mode,
+      source: source.path,
+      sourceSha256: sha256Bytes(sourceBytes),
+      assemblies: [],
+      updates: [],
+      categories: [],
+      touchedTopLevelFields: [],
+      field9: 'unchanged-by-current-implementation',
+      candidateSha256: '',
+      writePerformed: args.write
+    }
+    log(`mode=${mode}`)
+    log(`source=${source.path}`)
+    log(`sourceSha256=${summary.sourceSha256}`)
     for (const [index, result] of results.entries()) {
-      console.log(`assemblyName=${selected[index].name}`)
-      console.log(`newPrefabId=${result.prefabId}`)
+      log(`assemblyName=${selected[index].name}`)
+      log(`newPrefabId=${result.prefabId}`)
+      summary.assemblies.push({ name: selected[index].name, prefabId: result.prefabId })
     }
     for (const [index, result] of updateResults.entries()) {
-      console.log(`updatedPrefabName=${updates[index].expectedName}`)
-      console.log(`updatedPrefabId=${result.prefabId}`)
-      console.log(`updatedInstanceId=${result.instanceId}`)
+      log(`updatedPrefabName=${updates[index].expectedName}`)
+      log(`updatedPrefabId=${result.prefabId}`)
+      log(`updatedInstanceId=${result.instanceId}`)
+      summary.updates.push({
+        name: updates[index].expectedName,
+        prefabId: result.prefabId,
+        instanceId: result.instanceId
+      })
     }
     for (const category of categoryResult?.categories ?? []) {
-      console.log(`updatedPrefabCategory=${category.name}`)
-      console.log(`categoryPrefabIds=${category.prefabIds.join(',')}`)
+      log(`updatedPrefabCategory=${category.name}`)
+      log(`categoryPrefabIds=${category.prefabIds.join(',')}`)
+      summary.categories.push({ name: category.name, prefabIds: category.prefabIds })
     }
     const touched = new Set<number>()
     if (selected.length) [4, 6, 8, 27].forEach((field) => touched.add(field))
     if (updateResults.length) [4, 8].forEach((field) => touched.add(field))
     if (categoryResult) touched.add(6)
-    console.log(`touchedTopLevelFields=${[...touched].sort((a, b) => a - b).join(',') || 'none'}`)
-    console.log('field9=unchanged-by-current-implementation')
-    console.log(`candidateSha256=${sha256Bytes(candidateBytes)}`)
+    const touchedFields = [...touched].sort((a, b) => a - b)
+    summary.touchedTopLevelFields = touchedFields
+    log(`touchedTopLevelFields=${touchedFields.join(',') || 'none'}`)
+    log('field9=unchanged-by-current-implementation')
+    summary.candidateSha256 = sha256Bytes(candidateBytes)
+    log(`candidateSha256=${summary.candidateSha256}`)
     const resultPath = args.outputPath ? path.resolve(args.outputPath) : source.path
     if (args.write) {
       const backup = backupPath(source.path)
       fs.copyFileSync(source.path, backup)
       fs.copyFileSync(temporary, resultPath)
-      console.log(`backup=${backup}`)
+      const writeInfo: NonNullable<typeof summary.write> = { backup }
+      log(`backup=${backup}`)
       const tempCopied = syncGilToTemp(path.dirname(source.path), path.basename(source.path))
-      if (tempCopied) console.log(`temp-sync=${tempCopied}`)
+      if (tempCopied) {
+        writeInfo.tempSync = tempCopied
+        log(`temp-sync=${tempCopied}`)
+      }
       if (args.mapId !== undefined) {
         try {
           const result = resyncMap(path.dirname(source.path), args.mapId)
-          if (result.tempPath) console.log(`temp=${result.tempPath}`)
+          if (result.tempPath) {
+            writeInfo.temp = result.tempPath
+            log(`temp=${result.tempPath}`)
+          }
         } catch (error) {
-          console.log(`temp-sync-skipped=${(error as Error).message}`)
+          writeInfo.tempSyncSkipped = (error as Error).message
+          log(`temp-sync-skipped=${(error as Error).message}`)
         }
       }
+      summary.write = writeInfo
     } else if (args.outputPath) writeNew(args.outputPath, candidateBytes)
-    console.log(`writePerformed=${args.write}`)
+    log(`writePerformed=${args.write}`)
+    if (jsonMode) process.stdout.write(prettyStableJson(summary))
   } finally {
     fs.rmSync(temporary, { force: true })
   }
