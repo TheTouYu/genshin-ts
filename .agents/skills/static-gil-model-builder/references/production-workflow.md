@@ -4,6 +4,7 @@
 
 ## 目录
 
+0. CLI 速查（子命令与颜色格式）
 1. 锁定地图与源哈希
 2. 联合只读盘点
 3. 资产配置与对象分流
@@ -15,6 +16,26 @@
 9. 固定候选原子写回
 10. 写后最小回读
 11. 用户视觉核验
+
+## 0. CLI 速查
+
+`assets:static-assemblies` 子命令（`plan` / `inspect` / `export` / 默认 preview）：
+
+```bash
+node ./bin/gsts.mjs assets:static-assemblies plan \
+  --asset-config <config.mjs> --map-id <mapId> --output <dir>/plan.json --format json
+node ./bin/gsts.mjs assets:static-assemblies inspect --map-id <mapId> --format json
+node ./bin/gsts.mjs assets:static-assemblies export --map-id <mapId> --format json
+node ./bin/gsts.mjs assets:static-assemblies \
+  --asset-config <config.mjs> --map-id <mapId> --output <dir>/candidate.gil
+node ./bin/gsts.mjs assets:static-assemblies \
+  --asset-config <config.mjs> --map-id <mapId> --write   # 直接写回（有 hash gate）
+```
+
+- `plan` 只算 ID 冲突/结构，不生成候选；`inspect` 读闭包身份；`export` 回读两层 Transform/颜色；preview 生成候选（`--output` 拒绝覆盖，`--write` 直接写回）。
+- 颜色格式（item 或 assembly 级 `color` 字段）：`{ enabled: true, rgb: <0xRRGGBB 十进制>, opacity: <0-100>, overlay: 'overwrite' | 'multiply' }`。纯黑 `0xFF000000`/纯白 `0xFFFFFF` 在足球等模型中已验证刺眼，使用 v2 已验收色（见 football-success-path.md）。
+- `assets:entities export/import/patch`：`export` 回读 root 5 实体；`import` 从已有 definition 建实体；`patch` 改既有实体。候选一律 `--output` 新文件，写回用 `apply-candidate --expect-source-hash`。
+- 新地图 `maps:create` 骨架已预置空 root 4/8/27 段（2026-08-09 起），开箱支持 static-assemblies；旧骨架地图缺段会报 `unsupported GIL layout`。
 
 ## 1. 锁定地图与源哈希
 

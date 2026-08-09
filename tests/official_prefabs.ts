@@ -198,7 +198,13 @@ const result = applyStaticAssembly({
     templateInstanceId: 999,
     templateName: 'ignore',
     position: [0, 0, 0],
-    items: [{ resourceId: 10009002, position: [1, 2, 3] }],
+    items: [
+      {
+        resourceId: 10009002,
+        position: [1, 2, 3],
+        color: { enabled: true, rgb: 0x123456, opacity: 100, overlay: 'overwrite' }
+      }
+    ],
     definitionAuxiliaryIds: [301],
     instanceAuxiliaryIds: [302]
   }
@@ -247,6 +253,20 @@ const auxiliaryOwnerId = (record: Uint8Array) => {
   const config = parse(slot.find((field) => field.number === 50)!.value as Uint8Array)!
   return config.find((field) => field.number === 502)!.value
 }
+const auxiliaryColorVarints = (record: Uint8Array) => {
+  const material = parse(record)!
+    .filter((field) => field.number === 5 && field.wire === 2)
+    .map((field) => parse(field.value as Uint8Array)!)
+    .find((fields) => fields.some((field) => field.number === 1 && field.value === 22))!
+  const color = parse(material.find((field) => field.number === 32)!.value as Uint8Array)!
+  return color.filter((field) => field.wire === 0).map((field) => [field.number, field.value])
+}
+const expectedAuxiliaryColor = [
+  [1, 1],
+  [3, 0xff123456 | 0],
+  [5, 0x123456],
+  [6, 6700]
+]
 const newAuxDefinition = wireRecords(resultTop, 27, 1).find((r) => {
   const first = parse(r)![0]
   return first.number === 1 && first.value === 301
@@ -254,6 +274,11 @@ const newAuxDefinition = wireRecords(resultTop, 27, 1).find((r) => {
 assert.ok(newAuxDefinition, 'official template must create definition-side auxiliary')
 assert.equal(parse(newAuxDefinition)!.find((f) => f.number === 2)!.value, 10009002)
 assert.equal(auxiliaryOwnerId(newAuxDefinition), 300, 'definition aux must belong to the new definition')
+assert.deepEqual(
+  auxiliaryColorVarints(newAuxDefinition),
+  expectedAuxiliaryColor,
+  'definition aux must apply item color'
+)
 const newAuxInstance = wireRecords(resultTop, 27, 2).find((r) => {
   const first = parse(r)![0]
   return first.number === 1 && first.value === 302
@@ -261,6 +286,11 @@ const newAuxInstance = wireRecords(resultTop, 27, 2).find((r) => {
 assert.ok(newAuxInstance, 'official template must create instance-side auxiliary')
 const auxInstanceFields = parse(newAuxInstance)!
 assert.equal(auxiliaryOwnerId(newAuxInstance), 300, 'instance aux must belong to the new reference')
+assert.deepEqual(
+  auxiliaryColorVarints(newAuxInstance),
+  expectedAuxiliaryColor,
+  'instance aux must apply item color'
+)
 const backlink = parse(auxInstanceFields.find((f) => f.number === 12)!.value as Uint8Array)!
 assert.equal(backlink.find((f) => f.number === 1)!.value, 301, 'instance aux must backlink definition aux')
 const root6 = (resultTop.find((f) => f.number === 6 && f.wire === 2)!.value as Uint8Array)

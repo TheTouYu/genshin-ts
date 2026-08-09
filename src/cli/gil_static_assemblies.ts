@@ -704,29 +704,25 @@ export function applyStaticAssembly(params: {
       const resourceId = resolveItemResourceId(top4Records, item.resourceId)
       const transform = assemblyTransform(item)
       const name = `装饰物_${index + 1}`
-      top27.push({
-        number: 1,
-        wire: 2,
-        value: buildAuxiliaryRecord({
-          id: assembly.definitionAuxiliaryIds[index],
-          resourceId,
-          ownerId: assembly.prefabId,
-          name,
-          transform
-        })
+      let definitionAuxiliary = buildAuxiliaryRecord({
+        id: assembly.definitionAuxiliaryIds[index],
+        resourceId,
+        ownerId: assembly.prefabId,
+        name,
+        transform
       })
-      top27.push({
-        number: 2,
-        wire: 2,
-        value: buildAuxiliaryRecord({
-          id: assembly.instanceAuxiliaryIds[index],
-          resourceId,
-          ownerId: assembly.prefabId,
-          name,
-          transform,
-          definitionAuxiliaryId: assembly.definitionAuxiliaryIds[index]
-        })
+      if (item.color) definitionAuxiliary = setColor(definitionAuxiliary, item.color)
+      top27.push({ number: 1, wire: 2, value: definitionAuxiliary })
+      let instanceAuxiliary = buildAuxiliaryRecord({
+        id: assembly.instanceAuxiliaryIds[index],
+        resourceId,
+        ownerId: assembly.prefabId,
+        name,
+        transform,
+        definitionAuxiliaryId: assembly.definitionAuxiliaryIds[index]
       })
+      if (item.color) instanceAuxiliary = setColor(instanceAuxiliary, item.color)
+      top27.push({ number: 2, wire: 2, value: instanceAuxiliary })
     }
     registerPrefab(top6, assembly.prefabId)
   } else {

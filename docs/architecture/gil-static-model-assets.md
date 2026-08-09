@@ -1000,6 +1000,12 @@ node bin/gsts.mjs assets:static-assemblies --asset-config gsts.static-assemblies
 `field 32` 中已由真实 GIL 观察确认的 `field 1/3/4/5/6`，保留材质等其它未知字段；定义/实例及
 两侧辅助记录使用相同颜色快照。颜色行为已有 raw-wire 自动回归和 §19.2.2 的受限游戏验证。
 
+2026-08-09 当前实现补齐了官方 resID 模板分支的逐 item 颜色：该分支在程序化生成 definition-side
+与 instance-side aux 后分别调用同一个 `setColor()`，不再只生成默认白色材质。
+`tests/official_prefabs.ts` 的 focused red/green 直接断言两侧启用字段、ARGB、RGB 和 overlay 一致；
+本轮“高精度足球”离线候选的 `export` 进一步回读出 12 个启用黑色与 120 个启用白色 item。
+这些只证明当前工作树和候选行为，尚未经过该候选的真实地图写回或编辑器/游戏验证。
+
 复杂模型还可使用 `structureFile` 将可移植结构从配置中分离。公开配置使用互斥联合：内联分支提供
 `items`/`color`，文件分支只提供 `structureFile`；地图相关名称、模板 ID、新 prefab ID、两侧辅助
 ID 和场景 Transform 始终留在配置。`src/cli/static_assembly_structure.ts` 将相对配置目录的严格
@@ -1013,6 +1019,27 @@ resource/Transform/color 字段；未知字段、非法版本、空 items、非�
 `tests/static_assembly_package_consumer.ts` 的 `npm pack`、全新脚手架、本地 tarball 安装、包名类型
 导入和已安装 CLI help 回归。这只证明当前发布包与脚手架消费链路，不证明新的结构文件入口已经经过
 真实地图写回或游戏验证；从已有 `.gil` 提取结构仍是独立的未实现功能。
+
+`src/cli/static_assembly/football_geometry.ts` 现提供 `prismPanels()`：在已有 60 顶点、12 个五边形、
+20 个六边形和 90 条边的截角二十面体上，用 12 个五棱柱直接覆盖五边形，并把每个六边形拆成
+6 个正三角形，共生成 120 个三棱柱。局部 Y 对齐面外法线，资源零旋转的局部 `-Z` 顶点对齐
+目标顶点；五棱柱 X/Z 使用直径语义（scale = 2×外接半径）、三棱柱 X/Z 使用直径语义
+（scale = 边长/0.866），与 2026-08-09 用户实测的“基础元件外接圆直径 1”一致。
+`tests/football_geometry_test.ts` 锁定 132 片数量、顶点重建、右手基和全部 YXZ 欧拉角 round-trip。
+
+地图 `1073741862` 的离线候选
+`$HOME/genshin-ts-evidence/static-assembly/football-prism-shell-v1/candidate.gil` 基于源 SHA-256
+`07706ec207ee94c6dcdd3e5a50a1110a916f5ff263d5175e0b5e6dfca8b1c4f3`，生成 prefab
+`1077936135`“高精度足球”，候选 SHA-256 为
+`d69e509119e8a25db57b0d6732bd91633d847a6cddbb868c2ea54207f165b5ff`。正式 plan 为 `ready`，
+候选闭包 `complete`，逐件资源、颜色和 Transform export round-trip 通过，root raw diff 仅变化
+`4/6/8/27`，候选生成后真实源地图哈希保持不变。用户针对该精确候选确认后，
+`assets:entities apply-candidate` 通过源哈希门原子写回；写后目标 SHA-256 与候选一致，自动备份
+`1073741862.gil.2026-08-08T16-40-43-819Z.bak` 的 SHA-256 与写前源一致，写后 inspect 再次确认
+prefab `1077936135` 闭包 `complete`，且无残留临时文件。该层级是当前实现、自动候选和写回成功
+证据。用户重新加载后提供游戏截图，确认元件可见但 v1 视觉质量不通过：白色过亮、面片边界
+穿透背景、黑色五边形覆盖偏小；具体截图与证据边界见 `game-engine-knowledge/gil-structure-semantics.md`。
+后续应保留 v1 并用统一参数生成并排 v2，尚未进入 root 5 场景实体阶段。
 
 #### 19.2.1 第一轮生产验证
 

@@ -19,6 +19,8 @@ compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets
 - 对已有复杂 prefab/entity 的局部视觉调参：盘点完整 closure 后，对 definition-side、prefab-instance-side、scene-entity-side aux 做记录级最小 patch，并同步回读；
 - 用户截图/游戏反馈后的有界结论与知识回填。
 
+**复杂静态模型（魔方、足球、建筑等）必须实现为单个自定义元件：空模型模板 + 装饰物闭包（root 4/8/27）。禁止拆成大量 root 5 场景实体平铺**——实体集在游戏内难整体操控（移动/缩放要改全部实体）。只有用户明确要求“多个独立场景对象”时才走 root 5 实体路径，并先说明取舍。
+
 以下任务转给其它 Skill：
 
 - 读现有节点图逻辑：`gil-node-graph-reading`；
@@ -145,7 +147,7 @@ python tools/pkc.py progressive-query \
 
 资源局部基必须先乘进目标面基。只把法线对齐而忽略面内 roll，会产生“方向对了但花纹转错”的模型。旋转使用当前已闭合的 YXZ 内旋规则；具体公式和足球示例见几何参考。
 
-`10009005` 五棱柱的 X/Z scale 语义是底面外接半径，不是正五边形的最终可见面高。由多面体几何推导出的面高、外接直径或为遮缝而放大的值，都只能标为该轮视觉补偿实验，不能升级为资源尺寸真值。足球首次完整成功路径及 `0.3105` 的残余微缝见 [足球成功路径](references/football-success-path.md)。
+`10009005` 五棱柱的 X/Z scale 语义是底面**外接圆直径 1**（外接半径 0.5 @ scale=1，2026-08-09 用户实测），目标外接半径 r 对应 `scale.x/z = 2r`；正五边形的可见面高（顶点到对边距离）不是 scale 真值。由多面体几何推导出的面高、外接直径或为遮缝而放大的值，都只能标为该轮视觉补偿实验，不能升级为资源尺寸真值。足球首次完整成功路径及 `0.3105` 的残余微缝见 [足球成功路径](references/football-success-path.md)。
 
 ### ID 计划
 
@@ -241,11 +243,12 @@ PKC 只从已提交 Authority 创建 knowledge-plan；工作树结论保持 pend
 
 - `.local/tmp` 生成器和历史脚本是恢复线索，不是生产 Authority；优先正式 CLI。
 - 已有复杂模型的局部调参不能只改 definition 或 instance 一侧；至少核对 definition-side、prefab-instance-side、scene-entity-side 三组 aux。
-- `0.3105` 这类绝对尺寸/系数若来自视觉补偿，只能作为该轮实验参数，不能替代 `10009005` 的外接半径几何基准。
+- `0.3105` 这类绝对尺寸/系数若来自视觉补偿，只能作为该轮实验参数，不能替代 `10009005` 的外接圆直径 1 几何基准（真实语义：scale=2×目标外接半径）。
 - `compatibility=unknown` 表示还没做编辑器/游戏验证，不等于候选结构失败。
 - 当前官方模板路径的逐 item 颜色需要以候选 `export` 为准；配置写了颜色但回读未启用时，不要承诺颜色或只改单侧 aux。
 - `inspect` 用于身份/闭包，复杂 Transform 以 `export` 回读为准。
 - 编辑器保存会规范化默认字段；候选验证比较目标闭包，不要求用户保存后整文件哈希不变。
+- 新地图用 `maps:create` 创建后**可直接** `assets:static-assemblies`（2026-08-09 起骨架预置空 root 4/8/27 段）。若目标地图缺 4/8/27 段（旧骨架地图），static-assemblies 报 `unsupported GIL layout`：不要用 `assets:entities import` 平铺实体绕行，改用新预置地图或在成熟地图上创建。
 - 截图发现方向错误时，先修资源局部基或校准结论，不在每个面上散落补偿角。
 - 用户反馈仍有缝时，保留成功候选和反馈证据，进入单变量精确数据调查，不把“整体满意”写成几何完全通过。
 
