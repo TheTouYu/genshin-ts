@@ -23,22 +23,51 @@ description: 精准编辑真实地图节点图的专用技能。当用户要求"
 ```bash
 # 读（先看现状）
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id|名>           # 全图节点/引脚/连线
-npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id> --node <n>   # 单节点
+npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id> --node <n>   # 单节点（explain 过长时定点替代）
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --composite <defId>       # 复合定义接口
 npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json                        # 底层结构（含 value）
-npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <graphId>                # 差分（验证改动唯一性）
+npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <graphId>                # 差分（仅单图，见安全流程第 3 步）
+
+# 建图 / 挂载（2026-08-09 turn-ctl 实战验证）
+npx tsx src/cli/gsts.ts assets:node-graphs create --gil <map.gil> --name <图名> --output <候选.gil>   # 新建空图（--output 不覆盖）
+npx tsx src/cli/gsts.ts assets:mounts attach <entity-id> --gil <map.gil> --graph <gid> --output <候选.gil>  # 挂载到场景实体（默认）或 --def 元件定义
+npx tsx src/cli/gsts.ts assets:mounts list [<target-id>] --gil <map.gil>                 # 挂载全景 / 某目标的挂载列表
 
 # 改（默认 preview 不落盘；--output 写候选；--write 备份+写回真实）
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <ops...> --output <候选.gil>
 ```
+
+### 节点 ID / 名称查询速查（先查这里，别翻第三方定义文件）
+
+```bash
+# 名称→ID（node_pin_records.ts 的 reflectMap 含变体 concreteId 与 indexOfConcrete，一行命中）
+grep -n "3D Vector Zoom\|Subtraction\|Multiple Branches" \
+  src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts
+# 精确解析（多行排版）
+python3 - <<'PY'
+import re
+src = open('src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts').read()
+for m in re.finditer(r"name: '([^']+)',\s*\n\s*id: (\d+),(.*?)(?=\n  \})", src, re.S):
+    if any(k in m.group(1) for k in ('Zoom', 'Subtract', 'Multiply', '缩放', '减法', '乘法')):
+        print(m.group(1), m.group(2), re.findall(r"\[(\d+), '([^']+)'\]", m.group(3)))
+PY
+# 备选：python .agents/skills/editor-incremental-gia-investigator/scripts/extract-node-defs.py <data.json> --list
+```
+
+### 图编辑库导出位置（自写脚本 import 前先查这里）
+
+| 模块 | 导出 |
+|---|---|
+| `src/cli/static_assembly/wire.ts` | `parseWireMessage` / `emitWireMessage`（wire 编解码，脚本 import 首选；**不在** graph_edit.ts） |
+| `src/cli/static_assembly/graph_edit.ts` | `addGraphNode` / `copyGraphNode` / `setParam` / `linkInParam` / `addOutFlow` / `addParamFlow` / `buildVarValue` / `wrapConcreteValue` / `parseNodeRecord` / `locateBlobField` / `addGraphVariable` / `patchRecord` / `patchGraphNode` 等 |
 
 ### patch ops（顺序执行）
 
 | op | 语法 | 说明 |
 |---|---|---|
 | 位置 | `node <idx> pos <x> <y>` | 设节点坐标 |
-| 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（Int:1 Flt:1.5 Str:abc Bol:true Vec:1,2,3 Gid:1 Pfb:1 Cfg:1；类型前缀大小写敏感） |
-| cases 列表 | `node <idx> cases <v1,v2,...>` | 全量替换 MultiBranch cases（IntegerList；需已有非空列表作模板） |
+| 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（Int:1 Flt:1.5 Str:abc Bol:true Vec:1,2,3 Gid:1 Pfb:1 Cfg:1；类型前缀大小写敏感；**R<T> pin 自动 ConcreteBase 包装**） |
+| cases 列表 | `node <idx> cases <v1,v2,...>` | 全量替换 MultiBranch cases（Int/Str 均可；需已有非空列表作模板） |
 | 数据连线 | `node <idx> link <shell> <src-idx> [src-shell]` | 目标 InParam ← 源节点输出 |
 | 断数据线 | `node <idx> unlink <shell>` | Fixed 删 pin / Variant 清 connects |
 | 控制流连线 | `node <idx> flow <shell> <dst-idx> [dst-shell]` | 源 OutFlow → 目标 InFlow（pin 不存在会自动新建） |
@@ -56,13 +85,19 @@ npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <o
 ## 安全流程（写回真实地图的固定步骤）
 
 ```
+0. 动源图前先导出：parse --json 落盘源图全量结构（复制源 + 对比基准），再开始改
 1. 快照：cp 真实 .gil → ~/genshin-ts-evidence/<实验>/raw/before.gil + sha256sum 记录
-2. 候选：patch --output /tmp/cand.gil（或分步脚本），不碰真实文件
-3. 回读：read/parse 验证候选结构符合预期；compare 验证改动唯一性（无意外变更）
+2. 候选：patch --output /tmp/cand.gil（或分步脚本 step1→step2→…），不碰真实文件
+3. 回读：read/parse 验证候选结构符合预期；改动唯一性验证：
+   a. 单图细节：tools/compare-gil-node-graph.ts <before> <after> <graphId>（仅单图）
+   b. 文件级全量：用 playbook「文件级 diff 脚本模板」对比 before/after 全部记录，
+      输出应为「预期改动 + 其余记录逐字节相同」；可疑项先逐字节核对再下结论
+      （注意 def+impl 同 id 双记录：记录键必须带序号，勿用首次匹配）
 4. 写回前：sha256sum 真实文件 == 步骤 1 记录（用户可能又在游戏里动过，变了就停下问）
 5. 写回：cp 候选 → 真实 .gil（先备份 .gsts/backups/<map>.<时间戳>.<说明>.bak）
 6. 复读：写回后再 read 一遍真实文件确认
-7. 报告：告诉用户备份路径 + 改动摘要 + 游戏核验点
+7. 报告：备份路径 + 改动摘要 + 游戏核验点；工作区指纹用
+   `find src tests docs .agents -newer <候选.gil> -type f`（git status 有会话前改动会误报）
 ```
 
 ## 已闭合 wire 规则速查（真实快照 + 工具回归）
@@ -83,12 +118,50 @@ npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <o
 | 功能 | 现状 | 对策 |
 |---|---|---|
 | node-add Variant 节点（含 MultiBranch） | 工具拒绝（Variant donor 未闭合） | 用户在编辑器加节点 → 快照差分闭合规则；**复制已闭合**（`node-copy` 可克隆现有实例） |
-| 图变量定义（graph variables） | 注册已闭合（`graph-var-add`，Str 模板）；**使用**（Set/Get）已闭合（Str 变体字节）；跨图复制节点未做 op（临时脚本） | Set Str 变体 f3=326、indexOfConcrete=3（详见 wire-rules） |
-| cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源） | 空列表无法克隆模板，fail closed |
+| 图变量定义（graph variables） | 注册已闭合（`graph-var-add`，Str 模板）；**使用**（Set/Get）已闭合（全变体 f3/indexOfConcrete 见 wire-rules；R<T> 固定值已闭合）；**跨图复制 f6 变量记录已验证**（turn-ctl：11 个 Ety/Bol 原样搬移，见 wire-rules） | 跨图复制节点未做正式 op（用 playbook copySeq 模板，临时脚本） |
+| cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源；Q2 扩展 Str 条目） | 空列表无法克隆模板，fail closed |
 | 节点重编号 / 墓碑复用 | 部分闭合（composite ops 有） | 尽量不触发 |
 | 复合实例的节点增删 | 未闭合 | 用户编辑器最小变化 |
 
+## 布局规范（新建/复制节点必读；用户验收项，2026-08-09 turn-ctl 复盘）
+
+- 坐标约定：x 向右、y 向下；**事件入口在链顶部（y 最小），执行流沿 y 递增向下**，不要横排
+- **一条事件线 ≤ 20 节点**：超长链拆复合节点（`composite create`）或纵向折行（分两列，右列 x+800）
+- 多条事件线**左右分栏**：创建链 / 信号链 / 停止链按 x 分区（栏间留 ≥800 空隙）；同一链内 x 固定或微增（步进 ≤200），主步进在 y（400~600）
+- 分支节点：true/false 分支向左右下方展开，汇合点归位（y 继续向下）
+- **复制源图节点必须重排坐标**（copySeq/copyFromSrc 传新 x,y），禁止保留源图坐标或让序号累积推远 x；新图从 (0,0) 起排
+- 回读检查：read 时看 pos——链内 y 应单调递增、x 分栏清晰；发现大横线/孤岛立刻重排
+
 ## 常见任务 playbook
+
+### 文件级 diff 脚本模板（安全流程第 3 步 b；turn-ctl 实战验证）
+
+```ts
+// /tmp/diff-gil-records.ts：遍历 before/after 全部 section 记录，逐字节比对
+import { readFileSync } from 'node:fs'
+import { parseMessage } from '/home/h/genshin-ts/src/injector/binary.js'
+function records(gil: Buffer): string[] {
+  const payload = gil.slice(20, -4)
+  const fields: any[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const out: string[] = []
+  // 按 (section, id, 序号) 建键——同 id 双记录（def+impl）必须带序号区分
+  for (const f of fields.filter((x) => x.wire === 2)) {
+    out.push(`${f.number}#${f.field}#${f.dataStart}:${require('crypto').createHash('sha256')
+      .update(payload.subarray(f.dataStart, f.dataEnd)).digest('hex').slice(0, 12)}`)
+  }
+  return out
+}
+// 输出 CHANGED/ADD/REMOVED 列表；期望 = 预期改动 + 其余逐字节相同
+```
+
+### 跨图复制节点（copySeq 模板；turn-ctl 实战验证）
+
+```ts
+// 从源图提取 raw 节点记录 → 改 f1=新索引 + f5/f6=新 pos → 注入目标图
+// 关键：① 复制前先 parse 源图落盘（f1 索引重映射表）② 全图连线 id 重映射 ③ 坐标按布局规范重排
+// 完整示例：/tmp/build-turn-ctl.ts（2026-08-09，77 节点新建图）
+```
 
 ### 删旧节点 + 清理（2026-08-09 tab-input 实战）
 1. 先 `flow-rm` 断开指向被删节点的源侧连线（事件→旧分支、多分支默认分支→旧占位）
@@ -122,4 +195,6 @@ npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <o
 - **before 不落盘**：只记 hash 不存文件 → 之后无法字节级差分（务必 cp 快照）
 - **param 设值会清 connects**：值/连线二选一（编辑器规则），设值前确认该 pin 无线
 - **节点索引会变**：composite ops 可能重编号；后续 op 用新索引
+- **WSL 环境无 diff 命令**：文本对比用 `python3 -c "import difflib..."` 或 tools/compare
+- **同 id 双记录**：复合 def 与 impl 图共用同一 id（如 1610612779 中心旋转），全量 diff 时记录键必须带序号，逐字节 hash 核对，勿用首次匹配（会误报变化）
 - 用户要求只读分析时用 `gil-node-graph-reading`，本技能只管改

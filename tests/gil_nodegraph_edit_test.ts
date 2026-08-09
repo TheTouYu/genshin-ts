@@ -12,7 +12,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
-import { parseWireMessage } from '../src/cli/static_assembly/wire.js'
+import { emitWireMessage, parseWireMessage } from '../src/cli/static_assembly/wire.js'
 
 import {
   addCompositePin,
@@ -52,7 +52,10 @@ import {
   swapCompositePinInners,
   swapInstancePins,
   swapParamFlows,
-  unlinkInParam
+  unlinkInParam,
+  wrapConcreteValue,
+  reflectConcreteIndex,
+  nodeInputTypeName
 } from '../src/cli/static_assembly/graph_edit.js'
 
 const EVIDENCE = '/home/h/genshin-ts-evidence/node-graph-logic/node-graph-systematic/2026-08-06-connection-v1/experiments'
@@ -734,6 +737,74 @@ function instanceMeta(file: Uint8Array, nodeIndex: number) {
   assert.equal(sha256(f6of(patched)), sha256(f6of(after)), 'graphValues f6 逐字节（Str 模板）')
   passed++
   console.log('PASS 图变量注册（NodeGraph f6 graphValues，Str 模板）')
+}
+
+
+// ===== R<T> 固定值 ConcreteBase 包装 + Str cases（2026-08-09 param-turn Q3/Q2 闭合）=====
+
+{
+  // wrapConcreteValue：indexOfConcrete=0 省略（Equal Str，run.main n43 同构）
+  const inner = buildVarValue(6, '更新wv')
+  const w0 = wrapConcreteValue(inner, 0)
+  const f0 = parseWireMessage(w0)!
+  assert.equal(f0.find((x) => x.number === 1)?.value, 10000, 'ConcreteBase class')
+  assert.equal(f0.find((x) => x.number === 2)?.value, 1, 'alreadySetVal')
+  const bcv = parseWireMessage(f0.find((x) => x.number === 110)!.value as Uint8Array)!
+  assert.equal(bcv.find((x) => x.number === 1), undefined, 'indexOfConcrete=0 省略')
+  assert.equal(
+    sha256(bcv.find((x) => x.number === 2)!.value as Uint8Array),
+    sha256(inner),
+    '内层具体 VarBase 原样保留'
+  )
+  // indexOfConcrete=3 显式（Set Str，n70 修复目标形态）
+  const w3 = wrapConcreteValue(inner, 3)
+  const bcv3 = parseWireMessage(parseWireMessage(w3)!.find((x) => x.number === 110)!.value as Uint8Array)!
+  assert.equal(bcv3.find((x) => x.number === 1)?.value, 3, 'indexOfConcrete=3 显式')
+  passed++
+  console.log('PASS wrapConcreteValue（ConcreteBase 包装，indexOfConcrete 省略/显式）')
+
+  // reflectConcreteIndex = reflectMap 位置（Set/Get/Equal/MultiBranch 实测映射）
+  const map: Array<[number, number, number]> = [
+    [323, 326, 3], // Set Str
+    [323, 324, 1], // Set Flt
+    [323, 328, 5], // Set Ety
+    [337, 339, 2], // Get Int
+    [337, 342, 5], // Get Str
+    [14, 14, 0],   // Equal Str
+    [3, 4, 1]      // Multiple Branches Str
+  ]
+  for (const [gid, cid, expect] of map) {
+    assert.equal(reflectConcreteIndex(gid, cid), expect, `reflectConcreteIndex(${gid},${cid})`)
+  }
+  assert.equal(nodeInputTypeName(14, 1), 'R<T>', 'nodeInputTypeName')
+  passed++
+  console.log('PASS reflectConcreteIndex（reflectMap 位置=indexOfConcrete）')
+
+  // Str MultiBranch cases：真实编辑器模板（1073741835 log.add n35）→ ['rotate'] 单条
+  const templatePin = Buffer.from('0a04080310011204080310011ac80208904e1001f206bf02080112ba0208924e100122070801a20602080bea06a8020a1f0805100122070801a206020806ca060f0a0d2de887aae58aa8e5b084e997a80a2b0805100122070801a206020806ca061b0a19e4b89de6bb91e58f8de5bcb9e4bd8de7bdae2de9809fe5baa60a1e0805100122070801a206020806ca060e0a0ce789a9e79086e8bf90e58aa80a180805100122070801a206020806ca06080a06e8af8ae696ad0a180805100122070801a206020806ca06080a06e5ae9ee9aa8c0a180805100122070801a206020806ca06080a06e5ae88e58dab0a180805100122070801a206020806ca06080a06e789a9e790860a1b0805100122070801a206020806ca060b0a09e78ab6e68081e69cba0a180805100122070801a206020806ca06080a06e99481e5ae9a0a190805100122070801a206020806ca06090a07e689abe68f8f2d200b', 'hex')
+  const nodeRec = emitWireMessage([
+    { number: 1, wire: 0, value: 999 },
+    { number: 4, wire: 2, value: templatePin }
+  ])
+  const patched = setCasesList(nodeRec, ['rotate'])
+  const rec = parseWireMessage(patched)!
+  const pin = parseWireMessage(rec.find((x) => x.number === 4)!.value as Uint8Array)!
+  const v = parseWireMessage(pin.find((x) => x.number === 3)!.value as Uint8Array)!
+  assert.equal(v.find((x) => x.number === 1)?.value, 10000, 'cases 外层 ConcreteBase 保留')
+  const l1 = parseWireMessage(v.find((x) => x.number === 110)!.value as Uint8Array)!
+  assert.equal(l1.find((x) => x.number === 1)?.value, 1, 'Str indexOfConcrete=1')
+  const l2 = parseWireMessage(l1.find((x) => x.number === 2)!.value as Uint8Array)!
+  assert.equal(l2.find((x) => x.number === 1)?.value, 10002, 'ArrayBase')
+  const arr = parseWireMessage(l2.find((x) => x.number === 109)!.value as Uint8Array)!
+  const entries = arr.filter((x) => x.number === 1 && x.wire === 2)
+  assert.equal(entries.length, 1, '单条 case')
+  const entry = parseWireMessage(entries[0].value as Uint8Array)!
+  assert.equal(entry.find((x) => x.number === 1)?.value, 5, 'StringBase class')
+  const bstr = parseWireMessage(entry.find((x) => x.number === 105)!.value as Uint8Array)!
+  const text = new TextDecoder().decode(bstr.find((x) => x.number === 1)!.value as Uint8Array)
+  assert.equal(text, 'rotate', 'bString.val=rotate')
+  passed++
+  console.log('PASS MultiBranch Str cases 全量替换（bString 条目，单条）')
 }
 
 console.log(`\n${passed} tests passed`)

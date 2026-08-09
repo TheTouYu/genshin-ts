@@ -36,6 +36,7 @@ import {
   locateBlobField,
   locateGraphField,
   nodeInputType,
+  nodeInputTypeName,
   nodeName,
   parseGraphNodes,
   parseNodeRecord,
@@ -46,6 +47,7 @@ import {
   renameCompositeDef,
   renameParamFlow,
   renumberGraphNode,
+  reflectConcreteIndex,
   resolveDefId,
   resolveGraphId,
   setNodePos,
@@ -56,6 +58,7 @@ import {
   swapParamFlows,
   unlinkInParam,
   VAR_TYPE_NAME,
+  wrapConcreteValue,
   type NodeView,
   type PinView
 } from './static_assembly/graph_edit.js'
@@ -723,16 +726,30 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
       summary.push(`node ${nodeIndex} pos (${x},${y})`)
       i += 5
     } else if (action === 'cases') {
-      const values = (ops[i + 3] ?? '').split(',').map((s) => Number(s.trim()))
-      if (values.length === 0 || values.some((v) => !Number.isFinite(v)))
+      const raw = (ops[i + 3] ?? '').split(',').map((s) => s.trim())
+      if (raw.length === 0 || raw.some((v) => v === ''))
         throw new Error('[error] cases needs <v1,v2,...>')
+      const values: Array<string | number> = raw.every((v) => /^-?\d+$/.test(v))
+        ? raw.map(Number)
+        : raw
       current = patchGraphNode(current, graphId, nodeIndex, (n) => setCasesList(n, values))
       summary.push(`node ${nodeIndex} cases=[${values.join(',')}]`)
       i += 4
     } else if (action === 'param') {
       const shell = Number(ops[i + 3])
       const typed = parseTypedValue(ops[i + 4])
-      nodeOp((n, meta) => setParam(n, shell, typed, meta?.pinIndex), `param[${shell}] ${ops[i + 4]}`)
+      nodeOp((n, meta) => {
+        const view = parseNodeRecord(n)
+        // R<T> 泛型 pin：固定值需 ConcreteBase 包装（indexOfConcrete = reflectMap 位置）
+        if (nodeInputTypeName(view.genericId, shell) === 'R<T>') {
+          const idx = reflectConcreteIndex(view.genericId, view.concreteId)
+          if (idx === undefined) {
+            throw new Error('[error] R<T> param 需要 concreteId/reflectMap（Variant 节点），无法确定 indexOfConcrete')
+          }
+          return setParam(n, shell, { ...typed, bytes: wrapConcreteValue(typed.bytes, idx) }, meta?.pinIndex)
+        }
+        return setParam(n, shell, typed, meta?.pinIndex)
+      }, `param[${shell}] ${ops[i + 4]}`)
       i += 5
     } else if (action === 'link') {
       const shell = Number(ops[i + 3])

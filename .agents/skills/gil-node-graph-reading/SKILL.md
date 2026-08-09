@@ -24,8 +24,9 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 | `tools/trace-gil-dataflow.ts` | 数据流定点：某节点输入来源 | `--node <id>` `--all-inputs` `--json` |
 | `tools/parse-gil-node-graph.ts` | 底层结构化解析（变量定义/inputs/value/boundary） | `--graph` `--composite` `--json` |
 | `tools/compare-gil-node-graph.ts` | 两个图/文件对比 | 见 `--help` |
+| `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代） | `--gil <地图> --graph <id> [--node <n>]` |
 
-运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）。
+运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 用 `npx tsx src/cli/gsts.ts <子命令>`。
 
 ## 追踪 playbook（按顺序，需要才深入）
 
@@ -51,6 +52,13 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图名>
 - 控制流树读不懂或太长时，先看折叠行（线性链已压缩），再按需展开
 - 嵌套复合默认不展开（`--depth 0`）；要追复合内部逻辑用 Step 3
 
+### Step 2.5 输出过长怎么办（大图必读，2026-08-09 turn-ctl 复盘）
+大图（Assembly List 60+ pin 节点、长参数段）会让 explain/read 输出上千行，**不要反复跑同命令分页**：
+- 只看控制流：`explain ... | grep -E "^事件:|^  (Branch|default|true|false|complete|n=)"`（跳过大段「参数来源」）
+- 只看单节点：`gsts assets:node-graphs read --gil <地图> --graph <id> --node <n>`（--node 定点）
+- 结构化提取：`parse --json > /tmp/g.json` 后 python 按 index 过滤（比 explain 更省 token）
+- 大 pin 节点（Assembly List 等）直接跳过「参数来源」段，pin 值用 --node 定点查
+
 ### Step 3 追进复合
 ```bash
 npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
@@ -73,6 +81,7 @@ npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --
 - **几何/状态自洽**：有位移/旋转/轮转逻辑时，用数值互相验证（如旋转 90° 后坐标变换与变量轮转顺序是否吻合）
 - **写而不读**：局部变量被 Set 但无任何 Get 消费 = 冗余；复合定义存在但主图未调用 = 死代码
 - 复合内部能直接 `Get Node Graph Variable` 读宿主图变量（impl 与宿主共享变量空间）
+- **跨图复制/清空源图场景**：动任何图之前，先 `parse --json` 把源图全量落盘（复制源 + 对比基准），与 `gil-node-graph-editing` 的安全流程第 0 步联动
 
 ### Step 6 输出报告
 按下面的模板给用户报告，**疑点单独列**（不猜测，标注"需用户/游戏核验"）。

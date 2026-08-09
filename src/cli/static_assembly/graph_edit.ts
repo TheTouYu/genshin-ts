@@ -124,6 +124,40 @@ function varBase(classId: number, type: number, oneof: WireField): Uint8Array {
   ])
 }
 
+/**
+ * R<T> 泛型 pin 固定值 = ConcreteBase 包装（2026-08-09 param-turn Q3 闭合；
+ * 真实快照：run.main n43 Equal-Str / 平滑反弹面y n31/n34 Set-Bol / n50 Set-Flt）。
+ * indexOfConcrete = 节点族 reflectMap 中 concreteId 的位置（0 省略）。
+ */
+export function wrapConcreteValue(inner: Uint8Array, indexOfConcrete: number): Uint8Array {
+  const concreteFields: WireField[] = []
+  if (indexOfConcrete > 0) concreteFields.push({ number: 1, wire: 0, value: indexOfConcrete })
+  concreteFields.push({ number: 2, wire: 2, value: inner })
+  return sub([
+    { number: 1, wire: 0, value: 10000 },
+    { number: 2, wire: 0, value: 1 },
+    { number: 110, wire: 2, value: sub(concreteFields) }
+  ])
+}
+
+/** 变体 concreteId 在节点族 reflectMap 中的位置（R<T> 固定值 indexOfConcrete 来源）。 */
+export function reflectConcreteIndex(
+  nodeId: number,
+  concreteId: number | undefined
+): number | undefined {
+  const record = RECORDS.find((r) => r.id === nodeId) as
+    | { reflectMap?: Array<[number, string]> }
+    | undefined
+  if (!record?.reflectMap || concreteId === undefined) return undefined
+  const i = record.reflectMap.findIndex(([id]) => id === concreteId)
+  return i < 0 ? undefined : i
+}
+
+/** 节点定义输入类型原名（'R<T>' 等，INPUT_TYPE 未收录的名字）。 */
+export function nodeInputTypeName(nodeId: number, shell: number): string | undefined {
+  return RECORDS.find((r) => r.id === nodeId)?.inputs?.[shell]
+}
+
 /** 固定值编码（字段顺序按真实快照：class, alreadySetVal, itemType, oneof）。 */
 export function buildVarValue(type: number, value: string | number): Uint8Array {
   switch (type) {
@@ -505,11 +539,12 @@ function isCasesPin(b: Uint8Array): boolean {
 }
 
 /**
- * 设置 MultiBranch cases 列表（2026-08-09 tab-input-multibranch 真实快照闭合）。
- * 全量替换语义（幂等）：用第一条 entry 作模板，每项只改 bInt(102) 的字段 1
- * （IntBaseValue.int32 val = 字段 1，非字段 2）。空列表无法克隆模板 → fail closed。
+ * 设置 MultiBranch cases 列表（2026-08-09 tab-input-multibranch 真实快照闭合；
+ * 2026-08-09 param-turn Q2 扩展 Str 变体：条目模板含 bInt(102)→数值，含 bString(105)→字符串）。
+ * 全量替换语义（幂等）：用第一条 entry 作模板，每项只改对应值字段 1
+ * （IntBaseValue.int32 val / StringBaseValue.string val 均为字段 1）。空列表无法克隆模板 → fail closed。
  */
-export function setCasesList(node: Uint8Array, values: number[]): Uint8Array {
+export function setCasesList(node: Uint8Array, values: Array<string | number>): Uint8Array {
   const nodeFields = parseWireMessage(node)
   if (!nodeFields) throw new Error('[error] node record unparseable')
   const pinField = nodeFields.find(
@@ -532,16 +567,27 @@ export function setCasesList(node: Uint8Array, values: number[]): Uint8Array {
   const entryList = entries.filter((x) => x.wire === 2 && x.number === 1)
   if (entryList.length === 0) throw new Error('[error] cases list empty; cannot clone entry template')
   const template = parseWireMessage(entryList[0].value as Uint8Array)!
+  const hasBInt = template.some((x) => x.number === 102 && x.wire === 2)
+  const hasBString = template.some((x) => x.number === 105 && x.wire === 2)
+  if (!hasBInt && !hasBString) {
+    throw new Error('[error] cases entry template has neither bInt(102) nor bString(105)')
+  }
   const newEntries = emitWireMessage(
     values.map((val) => ({
       number: 1,
       wire: 2,
       value: emitWireMessage(
-        template.map((x) =>
-          x.number === 102 && x.wire === 2
-            ? { ...x, value: emitWireMessage([{ number: 1, wire: 0, value: val }]) }
-            : x
-        )
+        template.map((x) => {
+          if (hasBInt && x.number === 102 && x.wire === 2) {
+            if (typeof val !== 'number') throw new Error('[error] Int cases need numeric values')
+            return { ...x, value: emitWireMessage([{ number: 1, wire: 0, value: val }]) }
+          }
+          if (hasBString && x.number === 105 && x.wire === 2) {
+            if (typeof val !== 'string') throw new Error('[error] Str cases need string values')
+            return { ...x, value: emitWireMessage([{ number: 1, wire: 2, value: textBytes(val) }]) }
+          }
+          return x
+        })
       )
     }))
   )

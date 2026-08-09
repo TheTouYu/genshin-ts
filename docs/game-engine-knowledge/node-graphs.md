@@ -115,6 +115,13 @@ NodeKind=22000；COMPOSITE_NODE_DECL.GraphKind=21002）。节点身份编码 CON
   未连线的 case 不实例化 OutFlow pin；新 OutFlow 排在 InParam 前；
 - **cases 列表值**：条目结构见 data-flow.md；bInt(102) 的 val 在字段 1。
   （获取局部变量 str=2656/int=20/bool=18）即 KernelID，与 data.json 一致。
+- **Str 变体（cid=4，2026-08-09 param-turn Q2 真实快照 log.add n35 闭合）**：key/cases
+  的 ConcreteBase `bConcreteValue.f1=1`（Str 在 reflectMap 位置 1）；key pin 无 f4 type
+  字段；cases = ConcreteBase + ArrayBase{class=10002} + bArray{entries=StringBase 条目×N}，
+  每条目 `{1:5, 2:1, 4:itemType{1:1,100:{1:6}}, 105:bString{1:val}}`；f4=11（StringList）
+- **跨图复制 Variant 节点（2026-08-09 Q2 一次性脚本）**：提取 donor 节点 raw → 改
+  f1=新 nodeIndex/f5/f6=pos → 改引脚字节（key connects.id、cases 条目、OutFlow connects）
+  → 注入目标图 nodes 组（升序插入）；未做成正式 op，需要时临时脚本
 
 ### 节点 ID 目录（第三方 data.json，558 节点）
 
@@ -161,6 +168,20 @@ NodePin {
   type: VarType 数字（21=Pfb / 12=Vec / 4=Bol / 3=Int / 6=Str / 8=IntegerList / 11=StringList）
 }
 ```
+
+**R<T> 泛型 pin 固定值（2026-08-09 param-turn Q3 闭合；裸 VarBase 游戏不识别显示为空）**：
+
+```text
+VarBase{ class=10000(ConcreteBase), alreadySetVal=true,
+  bConcreteValue(110){ indexOfConcrete=reflectMap 位置(0 省略), value=具体 VarBase } }
+```
+
+具体 VarBase（StringBase 例）：`{1:5, 2:1, 4:itemType{1:1,100:{1:6}}, 105:bString{1:val}, 4:6}`
+（尾随 f4=VarType 码；EnumBase 例无 alreadySetVal，见 平滑反弹面y n31 pin[2]）。
+真实快照：run.main n43（Equal Str，indexOfConcrete 省略）、平滑反弹面y n31/n34（Set Bol
+indexOfConcrete=2）、n50（Set Flt=1）、param-turn n32（Equal Str 省略）。indexOfConcrete
+= reflectMap 0-based 位置（Set Str=3、Get Str=5、Equal Str=0、MultiBranch Str=1）。
+CLI param op 对 R<T> pin 自动包装（reflectConcreteIndex 查位置）。
 
 **数据连接（DataOut→DataIn，普通图 SysCall，2026-08-06 v10-v21 快照 CONFIRMED）**：
 

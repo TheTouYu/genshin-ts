@@ -46,7 +46,7 @@ VarBase   {1:class, 2:alreadySetVal, 4:itemType, 101:bId, 102:bInt, 104:bFloat,
 - 已连线 Variant 改类型：类型不匹配的线自动断开且目标 InParam pin 整个移除
 - 批量注入写 concreteId 对 Variant 是冗余（编辑器保存会移除）
 
-## MultiBranch（SysCall 3）实操（2026-08-09 tab-input-multibranch 闭合）
+## MultiBranch（SysCall 3）实操（2026-08-09 tab-input-multibranch 闭合；Q2 补 Str 变体）
 
 节点（Int 变体）落盘：
 - 节点引用 f2/f3 = `{1:10001, 2:20000, 3:22000, 5:3}`（generic=concrete=3）
@@ -54,6 +54,12 @@ VarBase   {1:class, 2:alreadySetVal, 4:itemType, 101:bId, 102:bInt, 104:bFloat,
 - InParam[1]：cases（type=8 IntegerList，ConcreteBase）
 - 未连线 case 不实例化 OutFlow pin；Case1=OutFlow[1]（index=1 显式）→ 目标默认 InFlow
 - 默认分支（若连线）= OutFlow[0]（index 省略）
+
+Str 变体（cid=4，reflectMap 位置 1；2026-08-09 Q2 真实快照 log.add n35 闭合）：
+- key/cases 的 ConcreteBase indexOfConcrete=1；key pin 无 f4 type 字段
+- cases = ConcreteBase + ArrayBase{class=10002, alreadySetVal, itemType{1:1,100:{1:11}},
+  bArray{entries=[StringBase{class=5, alreadySetVal, itemType{1:1,100:{1:6}}, bString}×N]}}
+- CLI `cases` op 支持字符串（`node <idx> cases rotate,a,b`；条目模板 bString 改 val）
 
 cases 条目结构（bInt 的 val 在字段 1！）：
 ```
@@ -68,15 +74,45 @@ cases 条目结构（bInt 的 val 在字段 1！）：
 - GraphVariable（Str 模板）：`{2:name, 3:6, 4:VarBase, 7:6, 8:6}`；f7=keyType f8=valueType 均=type
 - VarBase：f1=class(5=StringBase)、f4=itemType `{1:1, 100:{1:6}}`、f105=bString 空（空也落盘）
 - 其他类型（Int 等）未验证 → fail closed；工具 op `graph-var-add <name> <type>`（仅 6）
-- 「使用」（获取/设置节点）未闭合，待编辑器最小变化快照
+- 「使用」（获取/设置节点）已闭合（见下节）
+- **跨图复制变量（2026-08-09 turn-ctl 实战验证）**：从源图原样复制 NodeGraph f6 记录字节（
+  11 个 Ety/Bol 变量直接搬移成功，含 VarBase 内层值）；新建变量用模板同构推导：
+  Flt = `VarBase{class=4, alreadySetVal=1, itemType{1:1,100:{1:5}}, bFloat(104){1:值}}`，
+  Set Flt wrapConcreteValue indexOfConcrete=1（Get Flt=4）
 
-## 图变量使用（Set/Get Node Graph Variable，2026-08-09 闭合）
+## 图变量使用（Set/Get Node Graph Variable，2026-08-09 闭合；Q1 全变体验证 1073741835）
 
-- Set (323) Str 变体：f3=326（S<T:Str>）；pin[0] 变量名 StringBase+bString type=6；
-  pin[1] 值 ConcreteBase+indexOfConcrete=3（Flt=1/Bol=2/Str=3，0=Int 省略）；
-  pin[2] Bol(exposed) 默认 false 省略；设固定值用 setParam（替换为 StringBase+bString）
-- Get (337) 同理（变体 339=Str）；跨图复制节点用临时脚本（提取源图 raw → 注入目标图，
-  改 f1/pos + setParam），未做成正式 op
+**indexOfConcrete = 节点族 reflectMap 中的位置**（不是全局类型码；来源 node_pin_records.ts
+reflectMap，真实快照验证 20+ 实例）。变体 f3（concreteId）与 indexOfConcrete：
+
+| 类型 | Set (323) | Get (337) |
+|---|---|---|
+| Int | 323 / 0 | 339 / 2 |
+| Flt | 324 / 1 | 341 / 4 |
+| Bol | 325 / 2 | 340 / 3 |
+| Str | 326 / 3 | 342 / 5 |
+| Gid | 327 / 4 | 338 / 1 |
+| Ety | 328 / 5 | 337 / 0 |
+| L<Flt> | 332 / 9 | 346 / 9 |
+| L<Str> | 333 / 10 | 347 / 10 |
+| Vec | 334 / 11 | 348 / 11 |
+| L<Ety> | 335 / 12 | 349 / 12 |
+| Pfb | 535 / 15 | 539 / 15 |
+| L<Cfg> | 536 / 16 | 540 / 16 |
+| D<Int,L<Str>> | 2913 / 20 | 3054 / 20 |
+
+（Gid/Cfg/Fct 等其余变体可按同一规则推导，暂无真实快照；L<*>/D<> 有快照。）
+
+- Set (323) pin：pin[0] 变量名 StringBase+bString type=6；pin[1] 值 R<T>（见下）；
+  pin[2] Bol(exposed) 默认 false 省略；编辑器实例会落盘 InParam[2]（EnumBase 空 bEnum）
+- Get (337)：pin[0] 变量名；OutParam R<T> 带 ConcreteBase 实例化值（连接时自动实例化）
+- **R<T> 固定值（2026-08-09 Q3 闭合；游戏不识别裸 VarBase，必须 ConcreteBase 包装）**：
+  `VarBase{class=10000, alreadySetVal=1, bConcreteValue{indexOfConcrete(0 省略), 具体VarBase}}`
+  具体 VarBase 如 StringBase{class=5, alreadySetVal, itemType{1:1,100:{1:6}}, bString, f4=6}
+  （尾随 f4=VarType 码；EnumBase 无 alreadySetVal）。真实快照：run.main n43（Equal Str）、
+  平滑反弹面y n31/n34（Set Bol）、n50（Set Flt）、param-turn n32（Equal Str）。
+  CLI：`node <idx> param <shell> Str:xx` 对 R<T> pin 自动包装（reflectConcreteIndex）
+- 旧错误记录："Get 变体 339=Str" 不对——339=Int（Str=342）
 
 ## 节点增删（node-add-case1/2 + node-del-case1 + tab-input 复制闭合）
 
@@ -85,10 +121,22 @@ cases 条目结构（bInt 的 val 在字段 1！）：
 - 有同 genericId donor 时克隆 f2/f3（含 concreteId/kind）；无 donor 按 SysCall Fixed
   模板构造（genericId=concreteId, kind=22000）
 - Variant donor（genericId≠concreteId）与 Variant 新增未闭合 → fail closed
+  （2026-08-09 Q2 跨图复制 Variant 节点用一次性脚本：提取 donor raw → 改 f1/pos/引脚字节
+  → 注入目标图；未做成正式 op）
 - **node-copy（编辑器复制粘贴语义，2026-08-09 tab-input case2-6 闭合）**：
   完整克隆源记录全部字段（f2/f3 + 所有 pin 含固定值/cpi/ClientExec + f6wire2 `08061001`
   + f9=1），仅重分配 nodeIndex（最小空闲）+ 新 pos（f5/f6 wire5）
 - node-del：从 nodes 数组移除该记录；nodeIndex 变回空洞可复用；root4 def 记录不删
+
+## R<T> 固定值编码（2026-08-09 param-turn Q3 闭合；游戏不识别裸 VarBase）
+
+- R<T> 泛型 pin 的固定值必须 ConcreteBase 包装（编辑器原生快照：run.main n43 Equal Str、
+  平滑反弹面y n31/n34 Set Bol、n50 Set Flt、param-turn n32 Equal Str）
+- `VarBase{1:10000, 2:1, 110: bConcreteValue{1:indexOfConcrete(0省略), 2:具体VarBase}}`
+- indexOfConcrete = 节点族 reflectMap 位置（reflectConcreteIndex）；CLI param op 对
+  R<T> pin 自动包装（`node <idx> param <shell> Str:xx`），非 R<T> pin 保持裸 VarBase
+- 具体 VarBase 与 buildVarValue 同构；Set Str 固定值（idx=3）无直接真实快照（同构推导，
+  已写回 n70 待游戏核验）
 
 ## 复合（composite-nodes.md 闭合）
 
@@ -96,6 +144,14 @@ cases 条目结构（bInt 的 val 在字段 1！）：
 - 复合定义 impl 图与实例记录分离；改名/参数改名走 def 记录
 - add/del/swap-input 会重编号实例节点（chooseRebuildIndex/chooseMovedIndex 规则；
   跨轮墓碑无会话史可能低于编辑器）
+
+## 运算节点变体（2026-08-09 turn-ctl 实战证据）
+
+- Subtraction（减法运算）：id 202，reflectMap `[[202,'S<T:Int>'],[203,'S<T:Flt>']]`——Flt 变体
+  concreteId=203、indexOfConcrete=1；`0 - x` 即数值取反（无独立取负节点）
+- 3D Vector Zoom（三维向量缩放）：id 12，入参 (Vec, Flt)，`基准轴 × direction` 生成目标角度
+  （U 面基准 (0,1,0)×90=(0,90,0)）；「乘法运算」为泛型不支持 vec×float
+- 来源：src/thirdparty/.../node_data/node_pin_records.ts（reflectMap）+ miliastra 知识库
 
 ## DoubleBranch 分支语义（2026-08-09 param-turn 原图证据闭合）
 
