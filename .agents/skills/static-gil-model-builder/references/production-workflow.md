@@ -22,7 +22,7 @@
 ### 0A. 环境速查（省去路径探索，勿读源码找路径）
 
 - 游戏目录由 gsts CLI 自动解析：China 区为 `AppData/LocalLow/miHoYo/原神/BeyondLocal/<player>/Beyond_Local_Save_Level/`（`player` 唯一时自动选，多账号才需配置）。不要读 `src/cli/gil_paths.ts` 源码、不要 `find /mnt`、不要找 gsts.config 确认——`maps`/`inspect`/`export` 直接可用。
-- 地图列表/ID：`node ./bin/gsts.mjs maps --format json --include-hash`；写回前源 SHA 以 `sha256sum <实际路径>` 为准。
+- 地图列表/ID：`node ./bin/gsts.mjs maps --format json --include-hash`；写回前源 SHA 以 `sha256sum <实际路径>` 为准。**管道解析 JSON 时禁止 `2>&1`**（warning 走 stderr，合并会污染 JSON 流）；要丢弃 warning 用 `2>/dev/null`。
 - 证据目录固定 `~/genshin-ts-evidence/static-assembly/`，按 `<模型>-v<n>` 建子目录；历史脚本只作模板线索，优先用下方标准模板。
 - 足球几何生成器：`src/cli/static_assembly/football_geometry.ts` 的 `truncatedIcosahedron()`/`prismPanels()`/`basisToEuler()`，调用模板见 football-success-path.md「标准生产模板」，无需读源码；其它几何同样只写 item 列表，不手调欧拉角。
 
@@ -40,9 +40,10 @@ node ./bin/gsts.mjs assets:static-assemblies \
 ```
 
 - `plan` 只算 ID 冲突/结构，不生成候选；`inspect` 读闭包身份；`export` 回读两层 Transform/颜色；preview 生成候选（`--output` 拒绝覆盖，`--write` 直接写回）。
+- **输出契约（2026-08-09 四轮评测实测 + preview 已修复）**：`--format json` 在 `plan`/`inspect`/`export` 和 preview 主路径均生效；preview 的 json 输出为 `gsts.static-assembly.preview` 对象（顶层 `mode`/`source`/`sourceSha256`/`assemblies[{name,prefabId}]`/`updates`/`categories`/`touchedTopLevelFields`/`candidateSha256`/`write`/`writePerformed`），json 模式下人类可读日志走 stderr、stdout 纯 JSON。text 模式（默认）输出 `key=value`。另外 bash 管道退出码取最后一个命令（`| head`/`| tail` 会吞掉 gsts 的退出码），判断命令成败用 `set -o pipefail` 或先跑命令再看 `$?`。
 - 颜色格式（item 或 assembly 级 `color` 字段）：`{ enabled: true, rgb: <0xRRGGBB 十进制>, opacity: <0-100>, overlay: 'overwrite' | 'multiply' }`。纯黑 `0xFF000000`/纯白 `0xFFFFFF` 在足球等模型中已验证刺眼，使用 v2 已验收色（见 football-success-path.md）。
 - `assets:entities export/import/patch`：`export` 回读 root 5 实体；`import` 从已有 definition 建实体；`patch` 改既有实体。候选一律 `--output` 新文件，写回用 `apply-candidate --expect-source-hash`。
-- `assets:entities import` 完整用法（2026-08-09 第 4 轮评测实测）：实体 JSON 仅 `schemaVersion: 1` + `entities[]`，每项 `{ name, id, definitionId, position, rotation, scale }`（`id` 为场景实体 ID，`definitionId` 为刚写回的元件 definition ID）；命令 `assets:entities import --map-id <id> --entities <entity.json> --output <candidate.gil>` 生成候选，`apply-candidate` 写回后输出 `temp=` 即 Temp 已同步。不要再 `--help` 或 grep 源码确认参数。
+- `assets:entities import` 完整用法（2026-08-09 第 4 轮评测实测）：实体 JSON 仅 `schemaVersion: 1` + `entities[]`，每项 `{ name, id, definitionId, position, rotation, scale }`（`id` 为场景实体 ID，`definitionId` 为刚写回的元件 definition ID）；命令 `assets:entities import --map-id <id> --entities <entity.json> --output <candidate.gil>` 生成候选，`apply-candidate` 写回后输出 `temp=` 即 Temp 已同步。**命令签名以本节/§3A/§9 为准，不要再 `--help` 或 grep 源码确认参数（2026-08-09 评测曾因 grep 源码浪费 26 个调用）**。
 - 新地图 `maps:create` 骨架已预置空 root 4/8/27 段（2026-08-09 起），开箱支持 static-assemblies；旧骨架地图缺段会报 `unsupported GIL layout`。
 - **编辑器活动目录 = `BeyondLocal/<player>/Temp/`（2026-08-09 实测）**：编辑器地图列表只读 `Temp/Beyond_Local_Save_Player.gip`，打开/保存 .gil 双写 Temp 与 `Beyond_Local_Save_Level/`；CLI 以 Save_Level 为准，但 `maps:create`/`rename`/写回已自动同步 Temp（`temp-sync=` 日志）并双写 gip。仅写 Save_Level 而不同步 Temp 时，编辑器列表看不到新地图（第一轮可见、第二轮不可见的根因）。
 - 编辑器新建地图的 ID = Temp gip 最大 ID + 1，可能覆盖目录中未注册的同 ID .gil；因此 CLI 操作（创建/写回/注册）应在游戏关闭时进行——游戏运行中编辑器会用内存版 gip 覆盖磁盘注册。
@@ -144,6 +145,8 @@ export default {
 
 结构文件只保存 `schemaVersion: 1`、可移植 items/组件/颜色；地图绑定信息留在配置。输出和证据文件使用新目录，CLI 的 `--output` 会拒绝覆盖，失败后不要删除旧候选再冒充同一轮。
 
+**structureFile 的 item 字段白名单（2026-08-09 评测实测）**：每项只支持 `resourceId` / `position` / `rotation` / `scale` / `color`（及组件字段）；自定义字段（如 `name`）会被 plan 拒绝。
+
 ### 3A. 用户明确要求 root 5 场景实体
 
 先判断是哪一种：
@@ -181,6 +184,15 @@ node ./bin/gsts.mjs assets:entities patch <entityId> \
   ]
 }
 ```
+
+**实体 import“问题→答案”速查（2026-08-09 四轮评测实测，别再去读源码）**：
+
+| 问题 | 答案 |
+|---|---|
+| import 后实体回读是否携带 aux/装饰物引用？ | 是：`assets:entities export` 回读可见 auxIds（wire 层携带） |
+| 游戏/编辑器渲染是否一定显示装饰物？ | 不一定：已知 Bug（见 §7）——游戏内场景实体装饰物可能丢失，根因未定位 |
+| 报告能写什么结论？ | 只能写“回读携带 aux”；不能写“渲染正常”或“装饰物随实体显示” |
+| 实体 Transform 在哪确认？ | `assets:entities export`（场景层），不要从 definition 的 transform 推断 |
 
 生成候选：
 
@@ -286,6 +298,24 @@ node ./bin/gsts.mjs assets:static-assemblies export \
 - item 资源、顺序、位置、旋转、缩放回读一致；
 - 场景位置从 `export` 回读一致。
 
+**输出结构示例（2026-08-09 评测实测，字段名以此为准）**：
+
+- `inspect --format json`：顶层含 `definitions[]`（每项 `id`/`packedIds`/`transform`）、`instances[]`、`auxiliaryIds` 等；候选 inspect 会包含地图全部既有闭包，**按新 prefabId 过滤**再数数量。
+- `export --format json`：`assemblies[]`（每项 `items[]`，含 `resourceId`/`position`/`rotation`/`scale`/`color`）。
+- `plan --format json`：顶层 `status`/`errors`/`conflicts`/`assemblies`/`planHash`；**没有 `itemCount` 字段**（不要 `d['itemCount']`）。
+- `preview`（无子命令）：`--format json` 输出 `gsts.static-assembly.preview` 对象（见 §0A 输出契约）；text 模式输出 `key=value` 文本。
+
+**标准回读断言脚本模板（复制即用，纯标准库）**：
+
+```python
+# python3 readback.py <export.json>；比较 item 用 float32 容差 1e-4，禁 numpy
+import json, sys, math
+items = json.load(open(sys.argv[1]))['assemblies'][0]['items']
+def close(a, b, tol=1e-4): return all(abs(x - y) <= tol for x, y in zip(a, b))
+# 逐面片断言示例：inner - surface >= 0.005
+# 注意：heredoc 里写 python 时用绝对路径或 os.path.expanduser，不要在代码里写 $VAR（单引号 EOF 不展开）
+
+
 需要确认未触及区域时才运行 root diff：
 
 ```bash
@@ -300,6 +330,10 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 不要用 `inspect-gil-prefab-material.py` 验证新增 prefab；它要求 before 已存在目标 definition/instance，失败是工具范围不匹配，不是候选证明。
 
 ## 7. 当前实现限制
+
+### 已知 Bug：实体 import 后装饰物丢失（待修，2026-08-09 第四轮用户核验）
+
+`assets:entities import` 从已有 definition 生成场景实体时，**带装饰物的元件在场景实体上装饰物丢失**：元件库里的原件（prefab）正常，但实体引用进场景后只剩主体无装饰物。四张评测图全部命中，用户核验确认。根因未定位，后续安排时间处理；处理前不要把“实体 import 写回成功”当“实体显示正常”，报告需额外标注该限制。
 
 ### 官方模板逐 item 颜色能力
 
