@@ -522,7 +522,13 @@ export function applyEntities(params: {
   // 目标地图 root 4 本地 definition ID 集合：definitionId 不在集合内时实体是
   // “直接 res 引用”，relation 必须带内建标记 {2:1}（2026-08-07 实测：缺标记的
   // 实体编辑器加载时被忽略，用户新建实体直接复用该 ID 并覆盖注入记录）。
+// 自定义元件 ID 区间：游戏/编辑器只认 0x40400000 区间（>=1077936129）的元件
+// def/inst/entity ID。0x4000xxxx 区间的实体加载时被整体丢弃 → 地图打开为空
+// （2026-08-09 R4 空图根因；aux ID 无此限制）。
+const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
+
   const localDefinitions = new Set<number>()
+
   // 官方直引判定：definitionId 是官方 resID 且本地无对应定义（或用户显式给了
   // donor 定义时仍走定义转换路径）。
   function findRecordExists(records: readonly Uint8Array[], id: number): boolean {
@@ -535,6 +541,11 @@ export function applyEntities(params: {
     }
   }
   for (const entity of params.entities) {
+    if (entity.id < MIN_CUSTOM_ENTITY_ID) {
+      throw new Error(
+        `[error] entity ID ${entity.id} is below the custom entity ID range (>= ${MIN_CUSTOM_ENTITY_ID}); lower IDs are dropped by the game and the map opens empty`
+      )
+    }
     if (occupied.has(entity.id) && !existingById.has(entity.id))
       throw new Error(`[error] entity ID conflict: ${entity.id}`)
     occupied.add(entity.id)

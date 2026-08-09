@@ -16,7 +16,7 @@ assert.equal(
 const bytes = buildStaticAssemblyFixture()
 const assembly = {
   name: '新拼装',
-  prefabId: 300,
+  prefabId: 1077936200,
   templatePrefabId: FIXTURE_IDS.definition,
   templateInstanceId: FIXTURE_IDS.instance,
   templateName: '模板',
@@ -48,6 +48,12 @@ const blocked = createStaticAssemblyPlan({
 })
 assert.equal(blocked.status, 'blocked')
 assert.ok(blocked.errors.some((error) => error.code === 'id-conflict'))
+const lowPrefabId = createStaticAssemblyPlan({
+  ...input,
+  assemblies: [{ resolved: { ...assembly, prefabId: 300 } }]
+})
+assert.equal(lowPrefabId.status, 'blocked')
+assert.ok(lowPrefabId.errors.some((error) => error.code === 'prefab-id-out-of-range'))
 const overlap = createStaticAssemblyPlan({
   ...input,
   assemblies: [
@@ -56,7 +62,7 @@ const overlap = createStaticAssemblyPlan({
       resolved: {
         ...assembly,
         name: 'second',
-        prefabId: 400,
+        prefabId: 1077936300,
         definitionAuxiliaryIds: [301],
         instanceAuxiliaryIds: [402]
       }

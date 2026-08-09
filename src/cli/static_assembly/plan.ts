@@ -27,12 +27,24 @@ function color(value: GstsResolvedStaticAssembly['color']) {
     : value
 }
 
+// 自定义元件 ID 区间：游戏/编辑器只认 0x40400000 区间（>=1077936129）的元件
+// def/inst/entity ID。0x4000xxxx 区间的元件加载时被整体丢弃 → 地图打开为空
+// （2026-08-09 R4 空图根因：1073742xxx 全空，1077936xxx 全正常；aux ID 无此限制）。
+const MIN_CUSTOM_PREFAB_ID = 1077936129 // 0x40400001
+
 function normalizeAssembly(
   input: StaticAssemblyPlanInput['assemblies'][number],
   index: ReturnType<typeof createStaticAssemblyMapIndex>,
   errors: Diagnostic[]
 ): Record<string, unknown> {
   const assembly = input.resolved
+  if (assembly.prefabId < MIN_CUSTOM_PREFAB_ID) {
+    errors.push({
+      code: 'prefab-id-out-of-range',
+      field: `assets.staticAssemblies.${assembly.name}.prefabId`,
+      message: `prefabId ${assembly.prefabId} is below the custom prefab ID range (>= ${MIN_CUSTOM_PREFAB_ID}); such prefabs are dropped by the game and the map opens empty`
+    })
+  }
   // 官方模板源：templatePrefabId 是官方 resID（[1e7,1e9)）时目标地图没有本地模板
   // 定义/实例，closure 检查不适用，骨架由 official_prefabs 程序化生成。
   const officialTemplate = isOfficialResourceId(assembly.templatePrefabId)
