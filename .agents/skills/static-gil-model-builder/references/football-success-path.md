@@ -84,6 +84,8 @@
 
 ### 2A. 标准生产模板（直接复制，勿读源码/历史脚本）
 
+**模板已验证（2026-08-09 第 4 轮评测）**：`truncatedIcosahedron(1.0)`/`prismPanels(ball,{thickness,surfaceOffset})`/`basisToEuler(x,y,z)` 签名与模板一致，勿 grep 源码确认；`structureFile` 输入**必须含 `schemaVersion: 1`**（`src/cli/static_assembly_structure.ts` 强制校验，缺失即报错），即 `JSON.stringify({ schemaVersion: 1, items })`，勿 grep 源码确认。
+
 **asset-config.mjs**（地图绑定/ID/场景 Transform 留这里）：
 
 ```js
@@ -121,7 +123,7 @@ const items = panels.map((p) => ({
   scale: p.scale.map((s, i) => (i === 1 ? s : s * 1.02)),   // +2% 遮缝只放大平面两轴
   color: { enabled: true, rgb: p.kind === 'pentagon' ? 1514018 : 12107976, opacity: 100, overlay: 'overwrite' }
 }))
-writeFileSync('football.structure.json', JSON.stringify({ items }))
+writeFileSync('football.structure.json', JSON.stringify({ schemaVersion: 1, items }))
 ```
 
 **尺寸/颜色默认值**（2026-08-09 用户反馈）：

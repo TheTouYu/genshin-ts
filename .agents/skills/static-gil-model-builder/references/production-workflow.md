@@ -42,6 +42,7 @@ node ./bin/gsts.mjs assets:static-assemblies \
 - `plan` 只算 ID 冲突/结构，不生成候选；`inspect` 读闭包身份；`export` 回读两层 Transform/颜色；preview 生成候选（`--output` 拒绝覆盖，`--write` 直接写回）。
 - 颜色格式（item 或 assembly 级 `color` 字段）：`{ enabled: true, rgb: <0xRRGGBB 十进制>, opacity: <0-100>, overlay: 'overwrite' | 'multiply' }`。纯黑 `0xFF000000`/纯白 `0xFFFFFF` 在足球等模型中已验证刺眼，使用 v2 已验收色（见 football-success-path.md）。
 - `assets:entities export/import/patch`：`export` 回读 root 5 实体；`import` 从已有 definition 建实体；`patch` 改既有实体。候选一律 `--output` 新文件，写回用 `apply-candidate --expect-source-hash`。
+- `assets:entities import` 完整用法（2026-08-09 第 4 轮评测实测）：实体 JSON 仅 `schemaVersion: 1` + `entities[]`，每项 `{ name, id, definitionId, position, rotation, scale }`（`id` 为场景实体 ID，`definitionId` 为刚写回的元件 definition ID）；命令 `assets:entities import --map-id <id> --entities <entity.json> --output <candidate.gil>` 生成候选，`apply-candidate` 写回后输出 `temp=` 即 Temp 已同步。不要再 `--help` 或 grep 源码确认参数。
 - 新地图 `maps:create` 骨架已预置空 root 4/8/27 段（2026-08-09 起），开箱支持 static-assemblies；旧骨架地图缺段会报 `unsupported GIL layout`。
 - **编辑器活动目录 = `BeyondLocal/<player>/Temp/`（2026-08-09 实测）**：编辑器地图列表只读 `Temp/Beyond_Local_Save_Player.gip`，打开/保存 .gil 双写 Temp 与 `Beyond_Local_Save_Level/`；CLI 以 Save_Level 为准，但 `maps:create`/`rename`/写回已自动同步 Temp（`temp-sync=` 日志）并双写 gip。仅写 Save_Level 而不同步 Temp 时，编辑器列表看不到新地图（第一轮可见、第二轮不可见的根因）。
 - 编辑器新建地图的 ID = Temp gip 最大 ID + 1，可能覆盖目录中未注册的同 ID .gil；因此 CLI 操作（创建/写回/注册）应在游戏关闭时进行——游戏运行中编辑器会用内存版 gip 覆盖磁盘注册。
