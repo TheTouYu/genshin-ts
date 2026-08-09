@@ -45,7 +45,7 @@ import {
   extractSignalsFromGil,
   readRegisteredSignalsFromGil
 } from './gil_signals.js'
-import { listMaps, renameMap, createMap } from './maps.js'
+import { listMaps, renameMap, createMap, resyncMap } from './maps.js'
 import { getMapKey, loadState, saveState } from './state.js'
 import { createUi } from './ui.js'
 import { openAndSelect, openDir } from './windows_open.js'
@@ -1346,6 +1346,22 @@ async function runMapsCreate(opts: GlobalOptions, commandOptions: { name: string
   }
 }
 
+async function runMapsResync(opts: GlobalOptions, commandOptions: { mapId: string }) {
+  const loaded = await loadConfigOrNull(opts, 'project')
+  const gil: GstsInjectConfig = loaded?.cfg.inject ?? {}
+  const resolved = resolveGilFolder(gil)
+  const mapId = Number(commandOptions.mapId)
+  if (!Number.isSafeInteger(mapId) || mapId < 0) {
+    throw new Error(`[error] invalid map id: ${commandOptions.mapId}`)
+  }
+  const result = resyncMap(resolved.saveLevelDir, mapId, {
+    warn: (message) => console.error(`[warning] ${message}`)
+  })
+  ui.ok(`resynced map ${result.mapId}: ${result.name}`)
+  console.log(`gil=${result.gilPath} size=${result.size}`)
+  console.log(`temp=${result.tempPath ?? '(no Temp dir)'}`)
+}
+
 async function runOpen(target: string | undefined, opts: GlobalOptions) {
   if (!target) throw new Error('[error] missing target (map|backup|data)')
   const { dataDir, backupsDir } = ensureDataDirs()
@@ -1694,6 +1710,15 @@ async function main() {
     .action(async (commandOptions: { name: string; graphs?: string }) => {
       const opts = program.opts<GlobalOptions>()
       await runMapsCreate(opts, commandOptions)
+    })
+
+  program
+    .command('maps:resync')
+    .description(t('cmdMapsResync'))
+    .requiredOption('--map-id <id>', t('mapsOptMapId'))
+    .action(async (commandOptions: { mapId: string }) => {
+      const opts = program.opts<GlobalOptions>()
+      await runMapsResync(opts, commandOptions)
     })
 
   program

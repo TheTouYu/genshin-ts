@@ -38,6 +38,7 @@ node ./bin/gsts.mjs assets:static-assemblies \
 - 新地图 `maps:create` 骨架已预置空 root 4/8/27 段（2026-08-09 起），开箱支持 static-assemblies；旧骨架地图缺段会报 `unsupported GIL layout`。
 - **编辑器活动目录 = `BeyondLocal/<player>/Temp/`（2026-08-09 实测）**：编辑器地图列表只读 `Temp/Beyond_Local_Save_Player.gip`，打开/保存 .gil 双写 Temp 与 `Beyond_Local_Save_Level/`；CLI 以 Save_Level 为准，但 `maps:create`/`rename`/写回已自动同步 Temp（`temp-sync=` 日志）并双写 gip。仅写 Save_Level 而不同步 Temp 时，编辑器列表看不到新地图（第一轮可见、第二轮不可见的根因）。
 - 编辑器新建地图的 ID = Temp gip 最大 ID + 1，可能覆盖目录中未注册的同 ID .gil；因此 CLI 操作（创建/写回/注册）应在游戏关闭时进行——游戏运行中编辑器会用内存版 gip 覆盖磁盘注册。
+- **看不到地图时**：完全退出游戏 → `gsts maps:resync --map-id <mapId>`（复制 .gil 到 Temp + 双写 gip 注册）→ 重开游戏。resync 输出 `temp=` 路径即同步成功；无 `temp=` 表示 Temp 目录不存在。
 
 ## 1. 锁定地图与源哈希
 

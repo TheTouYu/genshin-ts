@@ -5,7 +5,7 @@ import path from 'node:path'
 
 import { buildFile, decodeUtf8, readUint32BE } from '../src/injector/binary.js'
 import { readGilPayloadFields } from '../src/cli/gil_extract_utils.js'
-import { createMap, listMaps, renameMap } from '../src/cli/maps.js'
+import { createMap, listMaps, renameMap, resyncMap } from '../src/cli/maps.js'
 import { emitWireMessage, parseWireMessage, printableWireText } from '../src/cli/static_assembly/wire.js'
 
 // 临时目录：saveLevelDir = <tmp>/110170759/Beyond_Local_Save_Level（父目录名 = 账号 ID）
@@ -253,5 +253,26 @@ assert.throws(() => renameMap(saveLevelDir, 999999999, '新名', { warn: () => {
 
 // --- renameMap：目标不存在报错 ---
 assert.throws(() => renameMap(saveLevelDir, 123456789, '新名', { warn: () => {} }), /ENOENT|not found/)
+
+// --- resyncMap：复制到 Temp + 双写 gip 注册 ---
+const tempDir = path.join(saveLevelDir, '..', 'Temp')
+mkdirSync(tempDir, { recursive: true })
+// Temp gip 先复制一份玩家级 gip 作为编辑器列表基线
+const tempGip = path.join(tempDir, 'Beyond_Local_Save_Player.gip')
+writeFileSync(tempGip, readFileSync(gipPath))
+const resynced = resyncMap(saveLevelDir, created.mapId, { warn: () => {} })
+assert.ok(resynced.tempPath, 'temp copy created')
+assert.ok(existsSync(resynced.tempPath!), 'temp .gil exists')
+assert.equal(
+  readFileSync(resynced.tempPath!).toString('hex'),
+  readFileSync(created.gilPath).toString('hex'),
+  'temp copy matches save-level file'
+)
+const tempGipRoot = parseWireMessage(readGilPayloadFields(tempGip).payload)!
+const tempEntries = tempGipRoot.filter((f) => f.number === 2 && f.wire === 2).length
+assert.ok(
+  tempEntries >= gipEntryCount(),
+  'temp gip gained entry (was ' + gipEntryCount() + ', now ' + tempEntries + ')'
+)
 
 console.log('CLI maps create/rename/name tests passed')

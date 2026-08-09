@@ -10,6 +10,7 @@
   "cmdMaps": "以文本或稳定脱敏 JSON 列出地图 .gil 文件（含关卡图名字）",
   "cmdMapsRename": "重命名关卡图（root 2，UTF-8；自动备份后写回）",
   "cmdMapsCreate": "创建新关卡图（新建骨架：ID/名字/账号/时间戳；写入新 .gil 文件）",
+  "cmdMapsResync": "重新同步地图到编辑器活动目录 Temp 并注册 gip（修复“编辑器列表看不到地图”）",
   "mapsOptMapId": "目标地图 ID（可先运行 `gsts maps`）",
   "mapsOptName": "关卡图名字（UTF-8）",
   "mapsOptGraphs": "同时创建的占位节点图名字（逗号分隔；ID 自动分配，空地图从 1073741825 起）",

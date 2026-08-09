@@ -10,6 +10,7 @@
   "cmdMaps": "List .gil maps as text or stable privacy-safe JSON (with map names)",
   "cmdMapsRename": "Rename a level map (root 2, UTF-8; backups then writes back)",
   "cmdMapsCreate": "Create a new level map (new-file skeleton: ID/name/account/timestamp; writes a new .gil file)",
+  "cmdMapsResync": "Re-sync a map into the editor active Temp dir and register its gip entry (fix: map missing from editor list)",
   "mapsOptMapId": "Target map ID (run `gsts maps` first)",
   "mapsOptName": "Level map name (UTF-8)",
   "mapsOptGraphs": "Comma-separated placeholder NodeGraph names (IDs auto-allocated from 1073741825 on empty maps)",

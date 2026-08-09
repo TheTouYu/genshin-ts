@@ -313,6 +313,30 @@ export type CreateMapResult = {
 //   header：schema 1 / headTag 0x0326 / fileType 2 / tailTag 0x0679
 const FIRST_MAP_ID = 1073741825 // 图 ID 起点（gil-structure-semantics.md 自由新建节）
 
+// 重新同步指定地图到编辑器活动目录 Temp + 双写 gip 注册（修复“编辑器看不到地图”）。
+// 场景：maps:create/写回时游戏开着，编辑器内存版 gip 覆盖了磁盘注册；游戏关闭后
+// 重跑本命令即可把 .gil 复制到 Temp 并重新注册条目/页签链接。
+export function resyncMap(
+  saveLevelDir: string,
+  mapId: number,
+  dependencies: ListMapsDependencies = {}
+): { mapId: number; name: string; gilPath: string; size: number; tempPath: string | null } {
+  const warn = dependencies.warn ?? (() => {})
+  const gilPath = path.join(saveLevelDir, `${mapId}.gil`)
+  if (!fs.existsSync(gilPath)) {
+    throw new Error(`[error] map file not found: ${gilPath}`)
+  }
+  const sourceBytes = new Uint8Array(fs.readFileSync(gilPath))
+  const { payload, fields } = readGilPayloadFields(gilPath)
+  const nameField = fields.find((field) => field.p0 === 2 && field.depth === 1)
+  const name =
+    (nameField && decodeUtf8(payload.subarray(nameField.dataStart, nameField.dataEnd))) ??
+    `map-${mapId}`
+  gipRegister(saveLevelDir, mapId, name, warn)
+  const tempPath = syncGilToTemp(saveLevelDir, `${mapId}.gil`)
+  return { mapId, name, gilPath, size: sourceBytes.length, tempPath }
+}
+
 export function createMap(
   saveLevelDir: string,
   name: string,

@@ -253,6 +253,7 @@ PKC 只从已提交 Authority 创建 knowledge-plan；工作树结论保持 pend
 - 编辑器保存会规范化默认字段；候选验证比较目标闭包，不要求用户保存后整文件哈希不变。
 - 新地图用 `maps:create` 创建后**可直接** `assets:static-assemblies`（2026-08-09 起骨架预置空 root 4/8/27 段）。若目标地图缺 4/8/27 段（旧骨架地图），static-assemblies 报 `unsupported GIL layout`：不要用 `assets:entities import` 平铺实体绕行，改用新预置地图或在成熟地图上创建。
 - **编辑器可见性 = Temp 活动目录**（2026-08-09 实测）：编辑器地图列表只读 `BeyondLocal/<player>/Temp/Beyond_Local_Save_Player.gip`，.gil 双写 Temp 与 `Beyond_Local_Save_Level/`；CLI 已自动同步（`maps:create` 复制 .gil 到 Temp + 双写 gip，写回同步 Temp）。手工复制/注册只应在游戏关闭时做，否则编辑器内存版 gip 会覆盖磁盘注册；游戏运行中不要注册。
+- **看不到地图的处理流程**：症状——`maps:create`/写回后编辑器列表看不到新地图（游戏开着时注册被内存版 gip 覆盖）。处理：①完全退出游戏；②运行 `gsts maps:resync --map-id <mapId>`（复制 .gil 到 Temp + 重新注册 gip，输出 `temp=` 路径确认）；③重开游戏查看。若仍看不到，检查 `maps` 列表确认地图存在、Temp gip 是否含该 ID（`maps:resync` 输出无 `temp=` 说明 Temp 目录缺失）。
 - **ID 复用陷阱**：删除过的地图 ID 被 maps:create 复用后，编辑器仍看不到（列表来自 Temp gip 不是目录扫描），且编辑器新建地图取 Temp gip max+1 可能覆盖未注册的同 ID .gil——所以新地图创建后必须确认 `temp-sync` 日志出现。
 - 截图发现方向错误时，先修资源局部基或校准结论，不在每个面上散落补偿角。
 - 用户反馈仍有缝时，保留成功候选和反馈证据，进入单变量精确数据调查，不把“整体满意”写成几何完全通过。
