@@ -8,6 +8,7 @@ import type { GstsInjectConfig } from '../compiler/gsts_config.js'
 import { loadGstsConfig } from '../compiler/config_loader.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resyncMap } from './maps.js'
 import { applyEntities, exportEntities, type EntityImport } from './gil_entities.js'
 import { isOfficialResourceId } from './official_prefabs.js'
 import {
@@ -250,6 +251,18 @@ function backupPath(gilPath: string): string {
   return path.join(directory, `${path.basename(gilPath)}.${stamp}.bak`)
 }
 
+// 写回 Save_Level 后同步编辑器 Temp + gip 注册（2026-08-09：漏同步则编辑器列表/内容滞后）。
+// 幂等：gip 已有链接跳过、Temp 不存在时静默跳过；失败只告警不阻断写回结果。
+function syncEditorTemp(gilPath: string, mapId: number | undefined): void {
+  if (mapId === undefined) return
+  try {
+    const result = resyncMap(path.dirname(gilPath), mapId)
+    if (result.tempPath) console.log(`temp=${result.tempPath}`)
+  } catch (error) {
+    console.log(`temp-sync-skipped=${(error as Error).message}`)
+  }
+}
+
 function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex')
 }
@@ -404,6 +417,7 @@ async function runApplyCandidate(
   console.log(`candidateSha256=${sha256(candidate)}`)
   console.log(`backup=${backup}`)
   console.log(`writePerformed=true`)
+  syncEditorTemp(source.path, args.mapId)
 }
 
 async function runImport(
@@ -453,6 +467,7 @@ async function runImport(
     const backup = writeBack(source.path, candidate, sourceHash)
     console.log(`backup=${backup}`)
     console.log(`writePerformed=true`)
+    syncEditorTemp(source.path, args.mapId)
   } else {
     console.log(`entities=${entities.entities.length}`)
     console.log('preview only; use --write to apply after backup, or --output for a candidate')
@@ -502,6 +517,7 @@ async function runPatch(
     const backup = writeBack(source.path, bytes, sourceHash)
     console.log(`backup=${backup}`)
     console.log(`writePerformed=true`)
+    syncEditorTemp(source.path, args.mapId)
   } else {
     console.log('preview only; use --write to apply after backup, or --output for a candidate')
   }

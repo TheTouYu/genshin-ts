@@ -15,6 +15,7 @@ import type {
 } from '../compiler/gsts_config.js'
 import { t } from '../i18n/index.js'
 import { resolveGilTarget, syncGilToTemp } from './gil_paths.js'
+import { resyncMap } from './maps.js'
 import { applyStaticAssembly } from './gil_static_assemblies.js'
 import { applyStaticPrefabCategories } from './gil_static_prefab_categories.js'
 import { applyStaticPrefabUpdate } from './gil_static_prefab_updates.js'
@@ -318,6 +319,14 @@ async function runPreview(
       console.log(`backup=${backup}`)
       const tempCopied = syncGilToTemp(path.dirname(source.path), path.basename(source.path))
       if (tempCopied) console.log(`temp-sync=${tempCopied}`)
+      if (args.mapId !== undefined) {
+        try {
+          const result = resyncMap(path.dirname(source.path), args.mapId)
+          if (result.tempPath) console.log(`temp=${result.tempPath}`)
+        } catch (error) {
+          console.log(`temp-sync-skipped=${(error as Error).message}`)
+        }
+      }
     } else if (args.outputPath) writeNew(args.outputPath, candidateBytes)
     console.log(`writePerformed=${args.write}`)
   } finally {
