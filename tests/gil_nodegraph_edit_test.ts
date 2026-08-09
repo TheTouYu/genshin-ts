@@ -17,6 +17,7 @@ import { parseWireMessage } from '../src/cli/static_assembly/wire.js'
 import {
   addCompositePin,
   addGraphNode,
+  addGraphVariable,
   addOutFlow,
   addParamFlow,
   blobId,
@@ -27,6 +28,7 @@ import {
   chooseMovedIndex,
   chooseRebuildIndex,
   compositePinWire,
+  copyGraphNode,
   createComposite,
   delCompositePin,
   delGraphNode,
@@ -45,6 +47,7 @@ import {
   renameParamFlow,
   renumberGraphNode,
   setNodePos,
+  setCasesList,
   setParam,
   swapCompositePinInners,
   swapInstancePins,
@@ -664,6 +667,73 @@ function instanceMeta(file: Uint8Array, nodeIndex: number) {
   assert.deepEqual(mine.pins, editor.pins, 'swap 实例 pins（整 pin 互换 + 身份跟随位置）')
   passed++
   console.log('PASS composite swap-input（case8：def/compositePins/实例 pins；重编号跨轮墓碑边界）')
+}
+
+// ===== MultiBranch cases 列表（tab-input-multibranch after2→final 闭合）=====
+
+{
+  const dir = '/home/h/genshin-ts-evidence/node-graph-logic/tab-input-multibranch/raw'
+  const before = read(`${dir}/after2.gil`)
+  const after = read(`${dir}/final.gil`)
+  const GID2 = 1073741827
+  // node8 cases [1..5] → [1..6]（final 同时删了旧节点/默认分支线，只做 cases pin 级断言）
+  const patched = patchGraphNode(before, GID2, 8, (n) => setCasesList(n, [1, 2, 3, 4, 5, 6]))
+  const casesPinRaw = (file: Uint8Array): Uint8Array => {
+    const rec = parseWireMessage(nodeRecord(file, GID2, 8))!
+    const pinField = rec.find(
+      (f) => f.number === 4 && f.wire === 2 && (() => {
+        const p = parseWireMessage(f.value as Uint8Array)!
+        const i1 = p.find((x) => x.number === 1 && x.wire === 2)
+        const ii = parseWireMessage(i1!.value as Uint8Array)!
+        return ii.find((x) => x.number === 1)?.value === 3 && (ii.find((x) => x.number === 2)?.value ?? 0) === 1
+      })()
+    )
+    return pinField!.value as Uint8Array
+  }
+  assert.equal(sha256(casesPinRaw(patched)), sha256(casesPinRaw(after)), 'cases [1..6] pin raw')
+  passed++
+  console.log('PASS MultiBranch cases 列表全量替换（bInt(102) val=字段1）')
+}
+
+// ===== 节点复制（tab-input case2-6 编辑器复制快照闭合）=====
+
+{
+  const dir = '/home/h/genshin-ts-evidence/node-graph-logic/tab-input-multibranch/raw'
+  const before = read(`${dir}/before-case2-6.gil`)
+  const after = read(`${dir}/after-case2-6-editor.gil`)
+  const GID2 = 1073741827
+  // 复制 n7（发送信号复合，带 pin 值）→ 应与编辑器复制的 n2 逐字节一致
+  const patched = patchRecord(before, 1, GID2, (blob) =>
+    copyGraphNode(blob, 7, 1896.3492431640625, 431.3492126464844)
+  )
+  const mine = parseGraphNodes(graphBlob(patched, GID2)).find((n) => n.index === 2)
+  const editor = parseGraphNodes(graphBlob(after, GID2)).find((n) => n.index === 2)
+  assert.equal(JSON.stringify(mine.pins), JSON.stringify(editor.pins), 'copy pins（含值/cpi）')
+  assert.equal(mine.genericId, editor.genericId, 'copy genericId')
+  assert.equal(mine.concreteId, editor.concreteId, 'copy concreteId')
+  assert.equal(mine.x, editor.x, 'copy pos x')
+  assert.equal(mine.y, editor.y, 'copy pos y')
+  passed++
+  console.log('PASS node-copy 完整克隆（复制粘贴语义，tab-input n7→n2）')
+}
+
+// ===== 图变量注册（tab-input gvar-registered 快照闭合）=====
+
+{
+  const dir = '/home/h/genshin-ts-evidence/node-graph-logic/tab-input-multibranch/raw'
+  const before = read(`${dir}/before-case2-6.gil`)
+  const after = read(`${dir}/after-gvar-registered.gil`)
+  const GID2 = 1073741827
+  const patched = patchRecord(before, 1, GID2, (blob) => addGraphVariable(blob, '变量_1', 6))
+  const f6of = (file: Uint8Array): Uint8Array => {
+    const payload = file.slice(20, -4)
+    const f = locateBlobField(payload, 1, GID2)
+    const ng = parseWireMessage(payload.subarray(f.dataStart, f.dataEnd))!
+    return ng.find((x) => x.number === 6 && x.wire === 2)!.value as Uint8Array
+  }
+  assert.equal(sha256(f6of(patched)), sha256(f6of(after)), 'graphValues f6 逐字节（Str 模板）')
+  passed++
+  console.log('PASS 图变量注册（NodeGraph f6 graphValues，Str 模板）')
 }
 
 console.log(`\n${passed} tests passed`)

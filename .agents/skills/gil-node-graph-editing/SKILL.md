@@ -37,13 +37,16 @@ npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <o
 | op | 语法 | 说明 |
 |---|---|---|
 | 位置 | `node <idx> pos <x> <y>` | 设节点坐标 |
-| 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（int:1 flt:1.5 str:abc bool:true vec:1,2,3 gid:1 pfb:1 cfg:1） |
+| 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（Int:1 Flt:1.5 Str:abc Bol:true Vec:1,2,3 Gid:1 Pfb:1 Cfg:1；类型前缀大小写敏感） |
+| cases 列表 | `node <idx> cases <v1,v2,...>` | 全量替换 MultiBranch cases（IntegerList；需已有非空列表作模板） |
 | 数据连线 | `node <idx> link <shell> <src-idx> [src-shell]` | 目标 InParam ← 源节点输出 |
 | 断数据线 | `node <idx> unlink <shell>` | Fixed 删 pin / Variant 清 connects |
 | 控制流连线 | `node <idx> flow <shell> <dst-idx> [dst-shell]` | 源 OutFlow → 目标 InFlow（pin 不存在会自动新建） |
 | 断控制流线 | `node <idx> flow-rm <shell> <target>` | 从源 OutFlow 删一条 connects；无余线时整 pin 移除 |
 | 加节点 | `node-add <generic-id> <x> <y>` | 仅 Fixed 节点（Variant fail closed）；无 pin 落盘 |
+| 复制节点 | `node-copy <src-idx> <x> <y>` | 完整克隆源记录（含 pin 值/cpi/ClientExec），即编辑器复制粘贴语义 |
 | 删节点 | `node-del <idx>` | 删记录；**先断掉指向它的连线**（源侧 connects 会悬空） |
+| 图变量注册 | `graph-var-add <name> <type>` | 仅 Str(6) 闭合；exposed/structId 默认省略 |
 | 复合改名 | `composite <def-id> rename <名>` | |
 | 复合参数改名 | `composite <def-id> param input\|output\|inflow\|outflow <shell> rename <名>` | |
 | 复合加输入 | `composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>` | 实例唯一才允许 |
@@ -79,9 +82,9 @@ npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <o
 
 | 功能 | 现状 | 对策 |
 |---|---|---|
-| node-add Variant 节点（含 MultiBranch） | 工具拒绝（Variant donor 未闭合） | 用户在编辑器加节点 → 快照差分闭合规则 |
-| 图变量定义（graph variables） | 工具无 op | 同上，或用户编辑器配置 |
-| cases 列表写入 | 工具 param 不支持列表 | `scripts/patch-cases-list.ts`（已验证） |
+| node-add Variant 节点（含 MultiBranch） | 工具拒绝（Variant donor 未闭合） | 用户在编辑器加节点 → 快照差分闭合规则；**复制已闭合**（`node-copy` 可克隆现有实例） |
+| 图变量定义（graph variables） | 注册已闭合（`graph-var-add`，Str 模板）；**使用**（Set/Get）已闭合（Str 变体字节）；跨图复制节点未做 op（临时脚本） | Set Str 变体 f3=326、indexOfConcrete=3（详见 wire-rules） |
+| cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源） | 空列表无法克隆模板，fail closed |
 | 节点重编号 / 墓碑复用 | 部分闭合（composite ops 有） | 尽量不触发 |
 | 复合实例的节点增删 | 未闭合 | 用户编辑器最小变化 |
 
@@ -93,7 +96,7 @@ npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <o
 3. 回读确认剩下的连线没有悬空目标
 
 ### 给 MultiBranch 加 case 分支
-1. 确认 cases 列表已含该 key 值（没有用 `scripts/patch-cases-list.ts` 补）
+1. 确认 cases 列表已含该 key 值（没有用 `node <idx> cases <v1,v2,...>` 补）
 2. `node <mb-idx> flow <case-shell> <发送信号节点>`（Case1=shell1, Case2=shell2...）
 3. 回读：新 OutFlow pin 应排在 InParam 前、非默认 index 显式
 

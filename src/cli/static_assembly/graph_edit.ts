@@ -494,6 +494,70 @@ export function setParam(
   return rebuildNode(node, [...pinsOf(node), pin])
 }
 
+/** InParam[1]（IntegerList）cases pin 识别（MultiBranch SysCall 3）。 */
+function isCasesPin(b: Uint8Array): boolean {
+  const f = parseWireMessage(b)
+  if (!f) return false
+  const i1 = f.find((x) => x.number === 1 && x.wire === 2)
+  if (!i1) return false
+  const idx = parseWireMessage(i1.value as Uint8Array)!
+  return idx.find((x) => x.number === 1)?.value === 3 && (idx.find((x) => x.number === 2)?.value ?? 0) === 1
+}
+
+/**
+ * 设置 MultiBranch cases 列表（2026-08-09 tab-input-multibranch 真实快照闭合）。
+ * 全量替换语义（幂等）：用第一条 entry 作模板，每项只改 bInt(102) 的字段 1
+ * （IntBaseValue.int32 val = 字段 1，非字段 2）。空列表无法克隆模板 → fail closed。
+ */
+export function setCasesList(node: Uint8Array, values: number[]): Uint8Array {
+  const nodeFields = parseWireMessage(node)
+  if (!nodeFields) throw new Error('[error] node record unparseable')
+  const pinField = nodeFields.find(
+    (f) => f.number === 4 && f.wire === 2 && isCasesPin(f.value as Uint8Array)
+  )
+  if (!pinField) throw new Error('[error] node has no InParam[1] (cases) pin')
+  const pin = parseWireMessage(pinField.value as Uint8Array)!
+  const vf = pin.find((x) => x.number === 3 && x.wire === 2)
+  if (!vf) throw new Error('[error] cases pin has no value')
+  const v = parseWireMessage(vf.value as Uint8Array)!
+  const l1 = v.find((x) => x.wire === 2 && x.number === 110)
+  if (!l1) throw new Error('[error] cases value has no f110')
+  const l1m = parseWireMessage(l1.value as Uint8Array)!
+  const l2 = l1m.find((x) => x.wire === 2 && x.number === 2)
+  if (!l2) throw new Error('[error] f110 has no f2')
+  const l2m = parseWireMessage(l2.value as Uint8Array)!
+  const arr = l2m.find((x) => x.wire === 2 && x.number === 109)
+  if (!arr) throw new Error('[error] ArrayBase has no bArray(109)')
+  const entries = parseWireMessage(arr.value as Uint8Array)!
+  const entryList = entries.filter((x) => x.wire === 2 && x.number === 1)
+  if (entryList.length === 0) throw new Error('[error] cases list empty; cannot clone entry template')
+  const template = parseWireMessage(entryList[0].value as Uint8Array)!
+  const newEntries = emitWireMessage(
+    values.map((val) => ({
+      number: 1,
+      wire: 2,
+      value: emitWireMessage(
+        template.map((x) =>
+          x.number === 102 && x.wire === 2
+            ? { ...x, value: emitWireMessage([{ number: 1, wire: 0, value: val }]) }
+            : x
+        )
+      )
+    }))
+  )
+  const newL2 = emitWireMessage(
+    l2m.map((x) => (x.number === 109 && x.wire === 2 ? { ...x, value: newEntries } : x))
+  )
+  const newL1 = emitWireMessage(
+    l1m.map((x) => (x.number === 2 && x.wire === 2 ? { ...x, value: newL2 } : x))
+  )
+  const newV = emitWireMessage(v.map((x) => (x.number === 110 && x.wire === 2 ? { ...x, value: newL1 } : x)))
+  const newPin = emitWireMessage(pin.map((x) => (x.number === 3 && x.wire === 2 ? { ...x, value: newV } : x)))
+  return emitWireMessage(
+    nodeFields.map((f) => (f === pinField ? { number: 4, wire: 2, value: newPin } : f))
+  )
+}
+
 function pinsOf(node: Uint8Array): Uint8Array[] {
   return (parseWireMessage(node) ?? [])
     .filter((f) => f.number === 4 && f.wire === 2)
@@ -1461,6 +1525,55 @@ function nodeRefWire(id: number, kind: number): Uint8Array {
  *  模板构造（genericId=concreteId，kind=22000）。Variant donor（genericId≠concreteId）
  *  与 Variant 新增未闭合，fail closed。坐标默认值(-908,1274)为单样本观察，调用方必须
  *  显式给位置。 */
+function insertNodeRecord(fields: WireField[], node: Uint8Array, index: number): Uint8Array {
+  const records = fields.filter((f) => f.number === 3 && f.wire === 2)
+  const insertAt = records.findIndex((f) => parseNodeRecord(f.value as Uint8Array).index > index)
+  const out: WireField[] = []
+  let seen = 0
+  for (const f of fields) {
+    if (f.number === 3 && f.wire === 2) {
+      if (seen === insertAt) out.push({ number: 3, wire: 2, value: node })
+      seen++
+    }
+    out.push(f)
+  }
+  if (insertAt < 0 || seen === insertAt) out.push({ number: 3, wire: 2, value: node })
+  return sub(out)
+}
+
+/**
+ * 注册节点图变量（2026-08-09 tab-input gvar-registered 真实快照闭合）。
+ * 仅闭合 Str 类型模板：NodeGraph 追加 f6 graphValues，
+ * GraphVariable {f2:name, f3:type=6, f4:VarBase{f1:5, f4:itemType{1:1,100:{1:6}},
+ * f105:bString空}, f7:6, f8:6}；exposed/structId 默认省略。
+ * 其他类型未验证 → fail closed。
+ */
+export function addGraphVariable(blob: Uint8Array, name: string, type: number): Uint8Array {
+  if (type !== 6) throw new Error('[error] graph variable registration only closed for Str (6) type')
+  const fields = parseWireMessage(blob)
+  if (!fields) throw new Error('[error] graph blob unparseable')
+  const varBase = sub([
+    { number: 1, wire: 0, value: 5 },
+    {
+      number: 4,
+      wire: 2,
+      value: sub([
+        { number: 1, wire: 0, value: 1 },
+        { number: 100, wire: 2, value: sub([{ number: 1, wire: 0, value: 6 }]) }
+      ])
+    },
+    { number: 105, wire: 2, value: new Uint8Array(0) }
+  ])
+  const variable = sub([
+    { number: 2, wire: 2, value: new TextEncoder().encode(name) },
+    { number: 3, wire: 0, value: 6 },
+    { number: 4, wire: 2, value: varBase },
+    { number: 7, wire: 0, value: 6 },
+    { number: 8, wire: 0, value: 6 }
+  ])
+  return sub([...fields, { number: 6, wire: 2, value: variable }])
+}
+
 export function addGraphNode(blob: Uint8Array, genericId: number, x: number, y: number, exclude?: ReadonlySet<number>): Uint8Array {
   const fields = parseWireMessage(blob)
   if (!fields) throw new Error('[error] graph blob unparseable')
@@ -1490,18 +1603,41 @@ export function addGraphNode(blob: Uint8Array, genericId: number, x: number, y: 
     { number: 5, wire: 5, value: float32Bytes(x) },
     { number: 6, wire: 5, value: float32Bytes(y) }
   ])
-  const insertAt = records.findIndex((f) => parseNodeRecord(f.value as Uint8Array).index > index)
-  const out: WireField[] = []
-  let seen = 0
-  for (const f of fields) {
-    if (f.number === 3 && f.wire === 2) {
-      if (seen === insertAt) out.push({ number: 3, wire: 2, value: node })
-      seen++
-    }
-    out.push(f)
-  }
-  if (insertAt < 0 || seen === insertAt) out.push({ number: 3, wire: 2, value: node })
-  return sub(out)
+  return insertNodeRecord(fields, node, index)
+}
+
+/**
+ * 复制节点（2026-08-09 tab-input case2-6 编辑器复制快照闭合）：
+ * 完整克隆源记录（f2/f3/pins 含值/cpi/f6wire2/f9），仅重分配 nodeIndex（最小空闲）
+ * 与新 pos（f5/f6 wire5）。与 addGraphNode 不同：带全部 pin（含固定值），
+ * 即编辑器「复制粘贴」语义；addGraphNode 是「新建」语义（无 pin 落盘）。
+ */
+export function copyGraphNode(
+  blob: Uint8Array,
+  srcIndex: number,
+  x: number,
+  y: number,
+  exclude?: ReadonlySet<number>
+): Uint8Array {
+  const fields = parseWireMessage(blob)
+  if (!fields) throw new Error('[error] graph blob unparseable')
+  const records = fields.filter((f) => f.number === 3 && f.wire === 2)
+  const views = records.map((f) => parseNodeRecord(f.value as Uint8Array))
+  if (!views.some((v) => v.index === srcIndex)) throw new Error(`[error] node ${srcIndex} not found`)
+  const used = new Set(views.map((v) => v.index))
+  let index = 1
+  while (used.has(index) || exclude?.has(index)) index++
+  const srcRec = records.find((f) => parseNodeRecord(f.value as Uint8Array).index === srcIndex)!
+  const srcFields = parseWireMessage(srcRec.value as Uint8Array)!
+  const node = sub(
+    srcFields.map((f) => {
+      if (f.number === 1) return { number: 1, wire: 0, value: index }
+      if (f.number === 5) return { number: 5, wire: 5, value: float32Bytes(x) }
+      if (f.number === 6 && f.wire === 5) return { number: 6, wire: 5, value: float32Bytes(y) }
+      return f
+    })
+  )
+  return insertNodeRecord(fields, node, index)
 }
 
 // ---- 节点删除（node-del-case1 v56→v57 闭合）----

@@ -62,13 +62,32 @@ cases 条目结构（bInt 的 val 在字段 1！）：
 例：[1,2,3,4,5] 的末条 102 段 = b2 06 02 08 05（field102 len2 {1:5}）
 ```
 
-## 节点增删（node-add-case1/2 + node-del-case1 闭合）
+## 图变量注册（2026-08-09 tab-input gvar-registered 闭合）
+
+- NodeGraph 追加 f6（graphValues，repeated）；注册时 exposed/structId 默认省略
+- GraphVariable（Str 模板）：`{2:name, 3:6, 4:VarBase, 7:6, 8:6}`；f7=keyType f8=valueType 均=type
+- VarBase：f1=class(5=StringBase)、f4=itemType `{1:1, 100:{1:6}}`、f105=bString 空（空也落盘）
+- 其他类型（Int 等）未验证 → fail closed；工具 op `graph-var-add <name> <type>`（仅 6）
+- 「使用」（获取/设置节点）未闭合，待编辑器最小变化快照
+
+## 图变量使用（Set/Get Node Graph Variable，2026-08-09 闭合）
+
+- Set (323) Str 变体：f3=326（S<T:Str>）；pin[0] 变量名 StringBase+bString type=6；
+  pin[1] 值 ConcreteBase+indexOfConcrete=3（Flt=1/Bol=2/Str=3，0=Int 省略）；
+  pin[2] Bol(exposed) 默认 false 省略；设固定值用 setParam（替换为 StringBase+bString）
+- Get (337) 同理（变体 339=Str）；跨图复制节点用临时脚本（提取源图 raw → 注入目标图，
+  改 f1/pos + setParam），未做成正式 op
+
+## 节点增删（node-add-case1/2 + node-del-case1 + tab-input 复制闭合）
 
 - node-add：nodeIndex = 最小空闲空洞；记录按 nodeIndex 升序插入；无 pin 落盘
   （有默认参数的节点新增也不落盘默认 pin）
 - 有同 genericId donor 时克隆 f2/f3（含 concreteId/kind）；无 donor 按 SysCall Fixed
   模板构造（genericId=concreteId, kind=22000）
 - Variant donor（genericId≠concreteId）与 Variant 新增未闭合 → fail closed
+- **node-copy（编辑器复制粘贴语义，2026-08-09 tab-input case2-6 闭合）**：
+  完整克隆源记录全部字段（f2/f3 + 所有 pin 含固定值/cpi/ClientExec + f6wire2 `08061001`
+  + f9=1），仅重分配 nodeIndex（最小空闲）+ 新 pos（f5/f6 wire5）
 - node-del：从 nodes 数组移除该记录；nodeIndex 变回空洞可复用；root4 def 记录不删
 
 ## 复合（composite-nodes.md 闭合）
@@ -77,3 +96,9 @@ cases 条目结构（bInt 的 val 在字段 1！）：
 - 复合定义 impl 图与实例记录分离；改名/参数改名走 def 记录
 - add/del/swap-input 会重编号实例节点（chooseRebuildIndex/chooseMovedIndex 规则；
   跨轮墓碑无会话史可能低于编辑器）
+
+## DoubleBranch 分支语义（2026-08-09 param-turn 原图证据闭合）
+
+- Double Branch (2)：InParam Bol **true → OutFlow[0]、false → OutFlow[1]**
+- 证据：param-turn n36（OR=false 即 face==U 且不忙 → 旋转链在 OutFlow[1]）
+- 复制 DoubleBranch 后改分支时，先按此语义确认方向，否则逻辑会反

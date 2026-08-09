@@ -16,11 +16,13 @@ import {
 import {
   addCompositePin,
   addGraphNode,
+  addGraphVariable,
   addOutFlow,
   addParamFlow,
   buildVarValue,
   chooseMovedIndex,
   chooseRebuildIndex,
+  copyGraphNode,
   createComposite,
   delCompositePin,
   delGraphNode,
@@ -47,6 +49,7 @@ import {
   resolveDefId,
   resolveGraphId,
   setNodePos,
+  setCasesList,
   setParam,
   swapCompositePinInners,
   swapInstancePins,
@@ -145,11 +148,14 @@ function usage(exitCode = 0): never {
     '',
     'patch ops (order matters, applied sequentially):',
     '  node <idx> pos <x> <y>                 set node position',
+    '  node <idx> cases <v1,v2,...>       set MultiBranch cases list (IntegerList, full replace)',
     '  node <idx> param <shell> <typed>       set InParam value (int:1 flt:1.5 str:abc bool:true vec:1,2,3 gid:1 pfb:1 cfg:1)',
     '  node <idx> link <shell> <src-idx> [src-shell]   data connection to InParam shell',
     '  node <idx> unlink <shell>              remove data connection (Fixed: remove pin / Variant: clear connects)',
     '  node-add <generic-id> <x> <y>          add node (min free index; donor must be pinless)',
+    '  node-copy <src-idx> <x> <y>             copy node with all pins/values (editor paste semantics)',
     '  node-del <idx>                          remove node record (def stays)',
+    '  graph-var-add <name> <type>              register graph variable (only Str=6 closed)',
     '  node <idx> flow <shell> <dst-idx> [dst-shell]   control-flow connection from OutFlow shell',
     '  node <idx> flow-rm <shell> <target>    disconnect control-flow from OutFlow shell to target node',
     '  composite <def-id> rename <name>       rename composite definition',
@@ -668,6 +674,16 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
       i += 4
       continue
     }
+    if (op === 'node-copy') {
+      const src = Number(ops[i + 1])
+      const x = Number(ops[i + 2])
+      const y = Number(ops[i + 3])
+      if (![src, x, y].every(Number.isFinite)) throw new Error('[error] node-copy needs <src-idx> <x> <y>')
+      current = patchRecord(current, 1, graphId, (blob) => copyGraphNode(blob, src, x, y, tombstoned))
+      summary.push(`copy node ${src} pos=(${x},${y})`)
+      i += 4
+      continue
+    }
     if (op === 'node-del') {
       const target = Number(ops[i + 1])
       if (!Number.isFinite(target)) throw new Error('[error] node-del needs <idx>')
@@ -675,6 +691,17 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
       current = patchRecord(current, 1, graphId, (blob) => delGraphNode(blob, target))
       summary.push(`del node ${target}`)
       i += 2
+      continue
+    }
+    if (op === 'graph-var-add') {
+      const name = ops[i + 1]
+      const type = ops[i + 2]
+      if (name === undefined || type === undefined) throw new Error('[error] graph-var-add needs <name> <type>')
+      const t = Number(type)
+      if (Number.isNaN(t)) throw new Error('[error] graph-var-add type must be numeric (6=Str)')
+      current = patchRecord(current, 1, graphId, (blob) => addGraphVariable(blob, name, t))
+      summary.push(`graph-var-add ${name} type=${t}`)
+      i += 3
       continue
     }
     if (op !== 'node') throw new Error(`[error] unknown op ${op}`)
@@ -695,6 +722,13 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
       current = patchGraphNode(current, graphId, nodeIndex, (n) => setNodePos(n, x, y))
       summary.push(`node ${nodeIndex} pos (${x},${y})`)
       i += 5
+    } else if (action === 'cases') {
+      const values = (ops[i + 3] ?? '').split(',').map((s) => Number(s.trim()))
+      if (values.length === 0 || values.some((v) => !Number.isFinite(v)))
+        throw new Error('[error] cases needs <v1,v2,...>')
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => setCasesList(n, values))
+      summary.push(`node ${nodeIndex} cases=[${values.join(',')}]`)
+      i += 4
     } else if (action === 'param') {
       const shell = Number(ops[i + 3])
       const typed = parseTypedValue(ops[i + 4])
@@ -759,7 +793,7 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
 function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
   const sourceSha = sha256Bytes(bytes)
   // composite create/del-input/swap-input/add-input 需要宿主图定位实例；rename/param 不需要图（用 0 安全）
-  const hasNodeOps = args.ops.some((op) => op === 'node')
+  const hasNodeOps = args.ops.some((op) => op === 'node' || op === 'graph-var-add')
   const hasComposite = args.ops.some(
     (op, i) =>
       op === 'composite' &&
