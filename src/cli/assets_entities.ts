@@ -413,11 +413,24 @@ async function runApplyCandidate(
   const payload = parseWireMessage(candidate.slice(20, -4))
   if (!payload) throw new Error('[error] candidate GIL payload is malformed')
   const backup = writeBack(source.path, candidate, sourceHash)
-  console.log(`sourceSha256=${sourceHash}`)
-  console.log(`candidateSha256=${sha256(candidate)}`)
-  console.log(`backup=${backup}`)
-  console.log(`writePerformed=true`)
+  const jsonMode = args.format === 'json'
+  const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+  log(`sourceSha256=${sourceHash}`)
+  log(`candidateSha256=${sha256(candidate)}`)
+  log(`backup=${backup}`)
+  log('writePerformed=true')
   syncEditorTemp(source.path, args.mapId)
+  if (jsonMode)
+    process.stdout.write(
+      prettyStableJson({
+        schemaVersion: 1,
+        kind: 'entities-apply-candidate',
+        sourceSha256: sourceHash,
+        candidateSha256: sha256(candidate),
+        backup,
+        writePerformed: true
+      })
+    )
 }
 
 async function runImport(
@@ -458,20 +471,34 @@ async function runImport(
     )
   }
   const candidate = applyEntities({ bytes: sourceBytes, definitions, entities: entities.entities })
-  console.log(`sourceSha256=${sourceHash}`)
-  console.log(`candidateSha256=${sha256(candidate)}`)
+  const summary: Record<string, unknown> = {
+    schemaVersion: 1,
+    kind: 'entities-import',
+    sourceSha256: sourceHash,
+    candidateSha256: sha256(candidate)
+  }
+  const jsonMode = args.format === 'json'
+  const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+  log(`sourceSha256=${sourceHash}`)
+  log(`candidateSha256=${sha256(candidate)}`)
   if (args.outputPath) {
     writeNew(args.outputPath, candidate)
-    console.log(`candidate=${path.resolve(args.outputPath)}`)
+    summary.candidate = path.resolve(args.outputPath)
+    log(`candidate=${summary.candidate}`)
   } else if (args.write) {
     const backup = writeBack(source.path, candidate, sourceHash)
-    console.log(`backup=${backup}`)
-    console.log(`writePerformed=true`)
+    summary.backup = backup
+    summary.writePerformed = true
+    log(`backup=${backup}`)
+    log('writePerformed=true')
     syncEditorTemp(source.path, args.mapId)
   } else {
-    console.log(`entities=${entities.entities.length}`)
-    console.log('preview only; use --write to apply after backup, or --output for a candidate')
+    summary.entities = entities.entities.length
+    summary.previewOnly = true
+    log(`entities=${entities.entities.length}`)
+    log('preview only; use --write to apply after backup, or --output for a candidate')
   }
+  if (jsonMode) process.stdout.write(prettyStableJson(summary))
 }
 
 async function runPatch(
@@ -508,35 +535,60 @@ async function runPatch(
     }
   }
   const changed = exportEntities(bytes).find((entity) => entity.id === entityId)
-  console.log(`sourceSha256=${sourceHash}`)
-  console.log(`candidateSha256=${sha256(bytes)}`)
+  const summary: Record<string, unknown> = {
+    schemaVersion: 1,
+    kind: 'entities-patch',
+    sourceSha256: sourceHash,
+    candidateSha256: sha256(bytes)
+  }
+  const jsonMode = args.format === 'json'
+  const log = (line: string) => (jsonMode ? console.error(line) : console.log(line))
+  log(`sourceSha256=${sourceHash}`)
+  log(`candidateSha256=${sha256(bytes)}`)
   if (args.outputPath) {
     writeNew(args.outputPath, bytes)
-    console.log(`candidate=${path.resolve(args.outputPath)}`)
+    summary.candidate = path.resolve(args.outputPath)
+    log(`candidate=${summary.candidate}`)
   } else if (args.write) {
     const backup = writeBack(source.path, bytes, sourceHash)
-    console.log(`backup=${backup}`)
-    console.log(`writePerformed=true`)
+    summary.backup = backup
+    summary.writePerformed = true
+    log(`backup=${backup}`)
+    log('writePerformed=true')
     syncEditorTemp(source.path, args.mapId)
   } else {
-    console.log('preview only; use --write to apply after backup, or --output for a candidate')
+    summary.previewOnly = true
+    log('preview only; use --write to apply after backup, or --output for a candidate')
   }
   if (args.auxId !== undefined) {
     const t = readAuxTransform(bytes, args.auxId)
-    console.log(
+    summary.aux = { id: args.auxId, position: t.position, rotation: t.rotation, scale: t.scale }
+    log(
       `aux=${args.auxId} position=${t.position.join(',')} rotation=${t.rotation.join(',')} ` +
         `scale=${t.scale.join(',')}`
     )
   } else if (changed) {
-    console.log(
+    summary.entity = {
+      id: changed.id,
+      name: changed.name,
+      position: changed.position,
+      rotation: changed.rotation,
+      scale: changed.scale,
+      color:
+        changed.color !== undefined && changed.color.enabled
+          ? `#${(changed.color.rgb & 0xffffff).toString(16).padStart(6, '0')}`
+          : undefined
+    }
+    log(
       `entity=${changed.id} name=${changed.name} ` +
         `position=${changed.position.join(',')} rotation=${changed.rotation.join(',')} ` +
         `scale=${changed.scale.join(',')}${changed.color !== undefined && changed.color.enabled ? ` color=#${(changed.color.rgb & 0xffffff).toString(16).padStart(6, '0')}` : ''}`
     )
   }
-  if (args.attachAuxId !== undefined) console.log(`attached aux=${args.attachAuxId} -> entity=${entityId}`)
-  if (args.detachAuxId !== undefined) console.log(`detached aux=${args.detachAuxId} from entity=${entityId}`)
-  console.log('editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving')
+  if (args.attachAuxId !== undefined) log(`attached aux=${args.attachAuxId} -> entity=${entityId}`)
+  if (args.detachAuxId !== undefined) log(`detached aux=${args.detachAuxId} from entity=${entityId}`)
+  log('editorOrGameValidation=not-performed; editor memory ignores disk writes, reload map before saving')
+  if (jsonMode) process.stdout.write(prettyStableJson(summary))
 }
 
 export async function runAssetsEntities(

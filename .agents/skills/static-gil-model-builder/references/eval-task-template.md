@@ -25,15 +25,16 @@ python /home/h/portable-knowledge/skills/isolated-model-evaluator/scripts/evalua
 - 候选：`node ./bin/gsts.mjs assets:static-assemblies --asset-config <cfg>.mjs --map-id <id> --output <cand>.gil --format json 2>/dev/null`（writePerformed=false）
 - 回读：`assets:static-assemblies inspect --gil <cand>.gil --format json`（definitions/instances/packedIds）；`export --gil <cand>.gil --format json`（assemblies[].items 的 position/scale/color）
 - 写回（任务内新地图）：`assets:static-assemblies --asset-config <cfg>.mjs --map-id <id> --write --format json 2>/dev/null`（输出 sourceSha256/candidateSha256/backupPath）
-- 实体两步：`assets:entities import --map-id <id> --entities <e>.json --expect-source-hash <sha> --output <cand>.gil --format json` → `assets:entities apply-candidate --map-id <id> --candidate <cand>.gil --expect-source-hash <sha>`（输出 backup + temp=）
+- 实体两步：`assets:entities import --map-id <id> --entities <e>.json --expect-source-hash <sha> --output <cand>.gil --format json 2>/dev/null`（stdout 为 JSON：sourceSha256/candidateSha256/candidate；text 日志走 stderr）→ `assets:entities apply-candidate --map-id <id> --candidate <cand>.gil --expect-source-hash <sha> --format json 2>/dev/null`（输出 backup + writePerformed）
 - 写后确认：`sha256sum` 目标 `Beyond_Local_Save_Level/<id>.gil` 与 `Temp/<id>.gil` 一致
-- 只操作本轮 maps:create 的新地图；evidence 用本轮新建子目录（勿读旧目录冒充）
+- 只操作本轮 maps:create 的新地图；evidence 用本轮新建子目录。**禁止 ls/cat/find 任何旧 evidence 或旧评测输出（`~/genshin-ts-evidence/`、`/tmp/gil-eval-*`）**：旧生成器含废弃尺寸语义（如半尺寸当 scale）会误导，所有公式以本任务内嵌为准，旧目录不存在直接忽略
 
 ### 闭合事实（勿再校准）
 
-- **10009001 长方体 scale=1 = 1×1×1（边长 1 米，半尺寸 0.5）**；块半尺寸 = 0.5×scale
+- **10009001 长方体 scale=1 = 1×1×1（边长 1 米，半尺寸 0.5）；scale 就是边长（米）**。写 scale 时**直接写目标边长**，禁止把“边长/2（半尺寸）”写进 scale（R6 翻车根因：生成器把半尺寸 0.465/0.24 当 scale 写入，游戏实际渲染只有设计一半大，块间缝≈一块宽）。半尺寸 = 0.5×scale 只用于贴片偏移等中间计算
 - 贴片中心 = 块中心 ± (块半尺寸 + 半厚 + 间隙 0.005~0.01)；逐面片断言内表面 − 块表面 ≥ 0.005，**浮点比较加容差**（`≥ 0.005 - 1e-6`）
-- 连续性公式（生成器内断言）：相邻块中心距 vs 块边长 → 缝 = 距 − 边长（目标 0.02~0.1 均匀）；贴片边长 = 块边长 − 贴片间缝×2；贴片间缝与块间缝对齐
+- 连续性公式（生成器内断言）：相邻块中心距 vs 块边长 → 缝 = 距 − 边长（目标 0.02~0.1 均匀）；贴片边长 = 块边长 − 贴片间缝×2；**贴片间缝建议 0.02，与块间缝解耦**（R6 魔方视觉反馈：贴片间缝与块间缝对齐导致视觉缝双倍宽 0.14，像面板格栅；贴片应几乎占满块面才像真魔方）
+- 生成器自检必须包含：scale == 目标边长（防止半尺寸混入）、贴片内表面 ≥ 块表面 + 0.005 - 1e-6、缝 = 中心距 − 边长 在目标范围
 - 颜色：`{enabled: true, rgb: 0xRRGGBB, opacity: 100, overlay: 'overwrite'}`；禁纯黑纯白（深灰/浅灰近似）
 - 元件 def/inst/entity ID ≥ 1077936129（0x40400000 段，建议 1077936190 起递增）；aux 用 1073742xxx（无限制）
 - 已知 bug（production-workflow §7）：assets:entities import 后场景实体装饰物游戏内可能丢失；报告只能写"回读携带 aux"，不能写渲染正常
