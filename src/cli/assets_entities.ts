@@ -253,13 +253,17 @@ function backupPath(gilPath: string): string {
 
 // 写回 Save_Level 后同步编辑器 Temp + gip 注册（2026-08-09：漏同步则编辑器列表/内容滞后）。
 // 幂等：gip 已有链接跳过、Temp 不存在时静默跳过；失败只告警不阻断写回结果。
-function syncEditorTemp(gilPath: string, mapId: number | undefined): void {
+function syncEditorTemp(
+  gilPath: string,
+  mapId: number | undefined,
+  log: (line: string) => void = console.log
+): void {
   if (mapId === undefined) return
   try {
     const result = resyncMap(path.dirname(gilPath), mapId)
-    if (result.tempPath) console.log(`temp=${result.tempPath}`)
+    if (result.tempPath) log(`temp=${result.tempPath}`)
   } catch (error) {
-    console.log(`temp-sync-skipped=${(error as Error).message}`)
+    log(`temp-sync-skipped=${(error as Error).message}`)
   }
 }
 
@@ -419,7 +423,7 @@ async function runApplyCandidate(
   log(`candidateSha256=${sha256(candidate)}`)
   log(`backup=${backup}`)
   log('writePerformed=true')
-  syncEditorTemp(source.path, args.mapId)
+  syncEditorTemp(source.path, args.mapId, log)
   if (jsonMode)
     process.stdout.write(
       prettyStableJson({
@@ -491,7 +495,7 @@ async function runImport(
     summary.writePerformed = true
     log(`backup=${backup}`)
     log('writePerformed=true')
-    syncEditorTemp(source.path, args.mapId)
+    syncEditorTemp(source.path, args.mapId, log)
   } else {
     summary.entities = entities.entities.length
     summary.previewOnly = true
@@ -555,7 +559,7 @@ async function runPatch(
     summary.writePerformed = true
     log(`backup=${backup}`)
     log('writePerformed=true')
-    syncEditorTemp(source.path, args.mapId)
+    syncEditorTemp(source.path, args.mapId, log)
   } else {
     summary.previewOnly = true
     log('preview only; use --write to apply after backup, or --output for a candidate')

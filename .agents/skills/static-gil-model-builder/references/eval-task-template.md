@@ -46,6 +46,11 @@ python /home/h/portable-knowledge/skills/isolated-model-evaluator/scripts/evalua
 
 - 魔方：def/inst 1077936190、实体 1077936191；def aux 1073742600+ / inst aux 1073742800+（与 items 等长）
 - 字母 A：def/inst 1077936200、实体 1077936201；G：1077936210/6211；aux 段 1073742700+/1073742900+
+- **aux 段长度 = 该模型 items 数**（含贴片/圆柱条）：分配前先算各模型 items 数，段起点 + items 数 不能撞到下一段（R6.2 事故：A 224 items 从 2700 起用到 2924，撞 G inst 2900 段；plan 报 `assembly IDs conflict`）；段间留 ≥100 空间，或按 items 数动态推进起点
+
+### 环境提示
+
+- 技能目录下 `evals/` 与 `evals.json` 是评测历史，**对完成任务无用，勿读**（R6.2 浪费 2 次调用）
 
 ### 流程与速度提示
 
