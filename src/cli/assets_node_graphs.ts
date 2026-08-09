@@ -22,7 +22,9 @@ import {
   buildVarValue,
   chooseMovedIndex,
   chooseRebuildIndex,
+  clearGraphNodes,
   copyGraphNode,
+  copyGraphNodesFromBlob,
   createComposite,
   delCompositePin,
   delGraphNode,
@@ -125,6 +127,7 @@ type Args = {
   graph: string | undefined
   node: number | undefined
   composite: string | undefined
+  srcGil: string | undefined
   ops: string[]
 }
 
@@ -142,6 +145,7 @@ function usage(exitCode = 0): never {
     '  --map-id <id>     target map ID (location only; requires project config)',
     '  --name <string>   create: new NodeGraph name (default: 新建节点图)',
     '  --graph <id|name> read/patch: target node graph (default: first graph)',
+    '  --src-gil <file>   patch: source GIL for node-copy-from (cross-graph copy)',
     '  --node <n>        read: single node detail',
     '  --composite <id|name>  read: composite def detail',
     '  --json            read: machine-readable output',
@@ -157,7 +161,11 @@ function usage(exitCode = 0): never {
     '  node <idx> unlink <shell>              remove data connection (Fixed: remove pin / Variant: clear connects)',
     '  node-add <generic-id> <x> <y>          add node (min free index; donor must be pinless)',
     '  node-copy <src-idx> <x> <y>             copy node with all pins/values (editor paste semantics)',
+    '  node-copy-from <src-gid> <idx1,idx2,...> <x> <y>   copy nodes from another graph in --src-gil',
+    '                                      (keeps relative layout, remaps intra-list links;',
+    '                                      links to nodes outside the list fail closed)',
     '  node-del <idx>                          remove node record (def stays)',
+    '  graph-clear                             remove ALL nodes (graph record/variables kept)',
     '  graph-var-add <name> <type>              register graph variable (only Str=6 closed)',
     '  node <idx> flow <shell> <dst-idx> [dst-shell]   control-flow connection from OutFlow shell',
     '  node <idx> flow-rm <shell> <target>    disconnect control-flow from OutFlow shell to target node',
@@ -202,6 +210,7 @@ function parseArgs(argv: readonly string[]): Args {
   let graph: string | undefined
   let node: number | undefined
   let composite: string | undefined
+  let srcGil: string | undefined
   const ops: string[] = []
   let index = 0
   if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch') sub = argv[0] as Args['sub'], index++
@@ -214,6 +223,7 @@ function parseArgs(argv: readonly string[]): Args {
     else if (arg === '--write') write = true
     else if (arg === '--json') json = true
     else if (arg === '--graph') graph = value(argv, index++)
+    else if (arg === '--src-gil') srcGil = value(argv, index++)
     else if (arg === '--node') node = Number(value(argv, index++))
     else if (arg === '--composite') composite = value(argv, index++)
     else if (arg === '--help' || arg === '-h') usage(0)
@@ -227,7 +237,7 @@ function parseArgs(argv: readonly string[]): Args {
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
   if (sub === 'create' && (graph || node || composite || json))
     throw new Error('[error] create does not accept --graph/--node/--composite/--json')
-  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, ops }
+  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, srcGil, ops }
 }
 
 // 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
@@ -564,7 +574,13 @@ function instanceMeta(bytes: Uint8Array, node: Uint8Array, shell: number, kind: 
   return { defId: view.genericId, pinIndex: meta?.pinIndex, type: meta?.type }
 }
 
-function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned: Set<number>): Uint8Array {
+function applyOps(
+  bytes: Uint8Array,
+  graphId: number,
+  ops: string[],
+  tombstoned: Set<number>,
+  src?: { payload: Uint8Array }
+): Uint8Array {
   let current = bytes
   let i = 0
   const summary: string[] = []
@@ -687,6 +703,23 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
       i += 4
       continue
     }
+    if (op === 'node-copy-from') {
+      if (!src) throw new Error('[error] node-copy-from needs --src-gil <file>')
+      const srcGid = Number(ops[i + 1])
+      const idxList = ops[i + 2].split(',').map((s) => Number(s.trim()))
+      const x = Number(ops[i + 3])
+      const y = Number(ops[i + 4])
+      if (![srcGid, x, y].every(Number.isFinite) || !idxList.length || !idxList.every(Number.isFinite))
+        throw new Error('[error] node-copy-from needs <src-gid> <idx1,idx2,...> <x> <y>')
+      const srcField = locateBlobField(src.payload, 1, srcGid)
+      const srcBlob = src.payload.subarray(srcField.dataStart, srcField.dataEnd)
+      current = patchRecord(current, 1, graphId, (blob) =>
+        copyGraphNodesFromBlob(blob, srcBlob, idxList, x, y)
+      )
+      summary.push(`copy ${idxList.length} nodes from graph ${srcGid} at (${x},${y})`)
+      i += 5
+      continue
+    }
     if (op === 'node-del') {
       const target = Number(ops[i + 1])
       if (!Number.isFinite(target)) throw new Error('[error] node-del needs <idx>')
@@ -694,6 +727,12 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
       current = patchRecord(current, 1, graphId, (blob) => delGraphNode(blob, target))
       summary.push(`del node ${target}`)
       i += 2
+      continue
+    }
+    if (op === 'graph-clear') {
+      current = patchRecord(current, 1, graphId, (blob) => clearGraphNodes(blob))
+      summary.push('clear all nodes (graph record/variables/mount kept)')
+      i += 1
       continue
     }
     if (op === 'graph-var-add') {
@@ -810,7 +849,9 @@ function applyOps(bytes: Uint8Array, graphId: number, ops: string[], tombstoned:
 function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
   const sourceSha = sha256Bytes(bytes)
   // composite create/del-input/swap-input/add-input 需要宿主图定位实例；rename/param 不需要图（用 0 安全）
-  const hasNodeOps = args.ops.some((op) => op === 'node' || op === 'graph-var-add')
+  const hasNodeOps = args.ops.some((op) =>
+    ['node', 'node-add', 'node-copy', 'node-copy-from', 'node-del', 'graph-clear', 'graph-var-add'].includes(op)
+  )
   const hasComposite = args.ops.some(
     (op, i) =>
       op === 'composite' &&
@@ -821,7 +862,7 @@ function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
       ? resolveGraphId(bytes, args.graph ?? String(listGraphs(bytes)[0]?.id ?? ''))
       : 0
   const tombstoned = new Set<number>()
-  const result = applyOps(bytes, graphId, args.ops, tombstoned)
+  const result = applyOps(bytes, graphId, args.ops, tombstoned, args.srcGil ? { payload: new Uint8Array(fs.readFileSync(args.srcGil)).slice(20, -4) } : undefined)
   const candidateSha = sha256Bytes(result)
   if (args.write) {
     const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))

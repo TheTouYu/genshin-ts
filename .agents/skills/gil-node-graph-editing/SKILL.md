@@ -26,7 +26,9 @@ npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id|名>
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id> --node <n>   # 单节点（explain 过长时定点替代）
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --composite <defId>       # 复合定义接口
 npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json                        # 底层结构（含 value）
-npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <graphId>                # 差分（仅单图，见安全流程第 3 步）
+npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <graphId>                # 差分（仅单图）
+npx tsx tools/diff-gil-files.ts <before.gil> <after.gil> [--detail <graphId>] [--full]    # 文件级全量 diff（含同 id 双记录）
+# 管道解析 JSON 时用 ./node_modules/.bin/tsx（npx 的 npm notice 会污染 stdout）
 
 # 建图 / 挂载（2026-08-09 turn-ctl 实战验证）
 npx tsx src/cli/gsts.ts assets:node-graphs create --gil <map.gil> --name <图名> --output <候选.gil>   # 新建空图（--output 不覆盖）
@@ -35,6 +37,11 @@ npx tsx src/cli/gsts.ts assets:mounts list [<target-id>] --gil <map.gil>        
 
 # 改（默认 preview 不落盘；--output 写候选；--write 备份+写回真实）
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <ops...> --output <候选.gil>
+# 跨图复制（把另一张图/另一文件的节点链搬过来）：
+npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <候选.gil> --src-gil <源图.gil> --graph <目标图> \
+  node-copy-from <源图id> <idx1,idx2,...> <x> <y> --output <新候选.gil>   # 保持相对布局 + 自动重映射连线
+# 清空图全部节点（保留图记录/变量/挂载）：
+npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> graph-clear --output <候选.gil>
 ```
 
 ### 节点 ID / 名称查询速查（先查这里，别翻第三方定义文件）
@@ -75,6 +82,8 @@ PY
 | 加节点 | `node-add <generic-id> <x> <y>` | 仅 Fixed 节点（Variant fail closed）；无 pin 落盘 |
 | 复制节点 | `node-copy <src-idx> <x> <y>` | 完整克隆源记录（含 pin 值/cpi/ClientExec），即编辑器复制粘贴语义 |
 | 删节点 | `node-del <idx>` | 删记录；**先断掉指向它的连线**（源侧 connects 会悬空） |
+| 清空图 | `graph-clear` | 移除全部节点（图记录/变量/挂载保留） |
+| 跨图复制 | `node-copy-from <src-gid> <idx1,idx2,...> <x> <y>` | 配 `--src-gil <文件>`；保持源内相对布局平移、自动重映射列表内连线；引用列表外节点 fail closed 报错 |
 | 图变量注册 | `graph-var-add <name> <type>` | 仅 Str(6) 闭合；exposed/structId 默认省略 |
 | 复合改名 | `composite <def-id> rename <名>` | |
 | 复合参数改名 | `composite <def-id> param input\|output\|inflow\|outflow <shell> rename <名>` | |
@@ -118,7 +127,7 @@ PY
 | 功能 | 现状 | 对策 |
 |---|---|---|
 | node-add Variant 节点（含 MultiBranch） | 工具拒绝（Variant donor 未闭合） | 用户在编辑器加节点 → 快照差分闭合规则；**复制已闭合**（`node-copy` 可克隆现有实例） |
-| 图变量定义（graph variables） | 注册已闭合（`graph-var-add`，Str 模板）；**使用**（Set/Get）已闭合（全变体 f3/indexOfConcrete 见 wire-rules；R<T> 固定值已闭合）；**跨图复制 f6 变量记录已验证**（turn-ctl：11 个 Ety/Bol 原样搬移，见 wire-rules） | 跨图复制节点未做正式 op（用 playbook copySeq 模板，临时脚本） |
+| 图变量定义（graph variables） | 注册已闭合（`graph-var-add`，Str 模板）；**使用**（Set/Get）已闭合（全变体 f3/indexOfConcrete 见 wire-rules；R<T> 固定值已闭合）；**跨图复制 f6 变量记录已验证**（turn-ctl：11 个 Ety/Bol 原样搬移，见 wire-rules） | 图变量跨图复制仍是临时脚本（f6 记录搬移，见 wire-rules）；节点跨图复制已正式化（`node-copy-from`） |
 | cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源；Q2 扩展 Str 条目） | 空列表无法克隆模板，fail closed |
 | 节点重编号 / 墓碑复用 | 部分闭合（composite ops 有） | 尽量不触发 |
 | 复合实例的节点增删 | 未闭合 | 用户编辑器最小变化 |
@@ -134,33 +143,25 @@ PY
 
 ## 常见任务 playbook
 
-### 文件级 diff 脚本模板（安全流程第 3 步 b；turn-ctl 实战验证）
+### 文件级 diff（安全流程第 3 步 b；替代自写脚本）
 
-```ts
-// /tmp/diff-gil-records.ts：遍历 before/after 全部 section 记录，逐字节比对
-import { readFileSync } from 'node:fs'
-import { parseMessage } from '/home/h/genshin-ts/src/injector/binary.js'
-function records(gil: Buffer): string[] {
-  const payload = gil.slice(20, -4)
-  const fields: any[] = []
-  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
-  const out: string[] = []
-  // 按 (section, id, 序号) 建键——同 id 双记录（def+impl）必须带序号区分
-  for (const f of fields.filter((x) => x.wire === 2)) {
-    out.push(`${f.number}#${f.field}#${f.dataStart}:${require('crypto').createHash('sha256')
-      .update(payload.subarray(f.dataStart, f.dataEnd)).digest('hex').slice(0, 12)}`)
-  }
-  return out
-}
-// 输出 CHANGED/ADD/REMOVED 列表；期望 = 预期改动 + 其余逐字节相同
+```bash
+./node_modules/.bin/tsx tools/diff-gil-files.ts <before.gil> <after.gil>            # 全部图记录逐字节比对
+./node_modules/.bin/tsx tools/diff-gil-files.ts <before.gil> <after.gil> --detail <gid>  # 对变化图追加节点级 diff
 ```
+输出：ADD/REMOVED/CHANGED + 每图 blob sha256 摘要；**期望 = 预期改动 + 其余记录逐字节相同**；
+同 id 双记录（def+impl）按记录序号自动分开，不再误报。
 
-### 跨图复制节点（copySeq 模板；turn-ctl 实战验证）
+### 跨图复制整条链（node-copy-from 用法）
 
-```ts
-// 从源图提取 raw 节点记录 → 改 f1=新索引 + f5/f6=新 pos → 注入目标图
-// 关键：① 复制前先 parse 源图落盘（f1 索引重映射表）② 全图连线 id 重映射 ③ 坐标按布局规范重排
-// 完整示例：/tmp/build-turn-ctl.ts（2026-08-09，77 节点新建图）
+```bash
+# 1) 先 parse 源图落盘，确认要复制的节点闭包（被引用节点必须都在列表里）
+./node_modules/.bin/tsx tools/parse-gil-node-graph.ts <源图.gil> --graph <源图id> --json > /tmp/src.json
+# 2) 复制：闭包列表（逗号分隔）+ 链左上角目标坐标；相对布局自动保持
+./node_modules/.bin/tsx src/cli/gsts.ts assets:node-graphs patch --gil <候选.gil> --src-gil <源图.gil> \
+  --graph <目标图id> node-copy-from <源图id> 1,2,3,...,30,62,...,69 800 200 --output <新候选.gil>
+# 3) 回读检查 pos（链内 y 单调递增、x 分栏清晰）与连线（无悬空）
+# 注意：复制列表外引用会报错并给出缺失索引；图变量（f6）需另行复制（见 wire-rules）
 ```
 
 ### 删旧节点 + 清理（2026-08-09 tab-input 实战）

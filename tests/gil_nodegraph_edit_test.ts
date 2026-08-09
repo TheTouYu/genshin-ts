@@ -55,7 +55,9 @@ import {
   unlinkInParam,
   wrapConcreteValue,
   reflectConcreteIndex,
-  nodeInputTypeName
+  nodeInputTypeName,
+  clearGraphNodes,
+  copyGraphNodesFromBlob
 } from '../src/cli/static_assembly/graph_edit.js'
 
 const EVIDENCE = '/home/h/genshin-ts-evidence/node-graph-logic/node-graph-systematic/2026-08-06-connection-v1/experiments'
@@ -805,6 +807,90 @@ function instanceMeta(file: Uint8Array, nodeIndex: number) {
   assert.equal(text, 'rotate', 'bString.val=rotate')
   passed++
   console.log('PASS MultiBranch Str cases 全量替换（bString 条目，单条）')
+}
+
+// ===== 跨图复制 + 清空图（2026-08-09 turn-ctl 复盘正式化，真实源 = param-turn before）=====
+{
+  const TURN_BEFORE = '/home/h/genshin-ts-evidence/turn-ctl/raw/before.gil'
+  const PARAM_TURN = 1073741826
+  const src = read(TURN_BEFORE)
+  const srcPayload = src.slice(20, -4)
+  const srcField = locateBlobField(srcPayload, 1, PARAM_TURN)
+  const srcBlob = srcPayload.subarray(srcField.dataStart, srcField.dataEnd)
+  // 空目标图 blob（只有 id 无节点）
+  const dstBlob = emitWireMessage([
+    { number: 1, wire: 0, value: 0 },
+    { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 0, value: 1073741999 }]) }
+  ])
+  // 从节点 1 出发的引用闭包（探测：1..30+62..69，与 turn-ctl 复制列表一致）
+  const CLOSURE = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    26, 27, 28, 29, 30, 62, 63, 64, 65, 66, 67, 68, 69
+  ]
+  const out = copyGraphNodesFromBlob(dstBlob, srcBlob, CLOSURE, 800, 200)
+  const views = parseGraphNodes(out)
+  assert.equal(views.length, CLOSURE.length, '复制数量')
+  assert.deepEqual(views.map((v) => v.index), CLOSURE.map((_, i) => i + 1), '新索引 1..38 顺序分配')
+  // 相对布局：源内 minX/minY → (800,200)
+  const raw = (recIdx: number, fieldNo: 5 | 6): number => {
+    const recs = parseWireMessage(out)!.filter((f) => f.number === 3 && f.wire === 2)
+    const rec = recs.find((f) => parseNodeRecord(f.value as Uint8Array).index === recIdx)!
+    const nf = parseWireMessage(rec.value as Uint8Array)!
+    const ff = nf.find((g) => g.number === fieldNo && g.wire === 5)
+    if (!ff) return 0
+    const buf = ff.value as Uint8Array
+    return new DataView(buf.buffer, buf.byteOffset, buf.byteLength).getFloat32(0, true)
+  }
+  const srcRaw = (recIdx: number, fieldNo: 5 | 6): number => {
+    const recs = parseWireMessage(srcBlob)!.filter((f) => f.number === 3 && f.wire === 2)
+    const rec = recs.find((f) => parseNodeRecord(f.value as Uint8Array).index === recIdx)!
+    const nf = parseWireMessage(rec.value as Uint8Array)!
+    const ff = nf.find((g) => g.number === fieldNo && g.wire === 5)
+    if (!ff) return 0
+    const buf = ff.value as Uint8Array
+    return new DataView(buf.buffer, buf.byteOffset, buf.byteLength).getFloat32(0, true)
+  }
+  const srcXs = CLOSURE.map((i) => srcRaw(i, 5))
+  const srcYs = CLOSURE.map((i) => srcRaw(i, 6))
+  const srcMinX = Math.min(...srcXs)
+  const srcMinY = Math.min(...srcYs)
+  const near = (a: number, b: number, msg: string) =>
+    assert.ok(Math.abs(a - b) < 1e-3, `${msg}: ${a} vs ${b}`)
+  near(raw(1, 5), 800, 'minX 平移到目标 x')
+  near(raw(1, 6), 200 + srcRaw(1, 6) - srcMinY, 'minY 平移到目标 y')
+  const new62 = CLOSURE.indexOf(62) + 1 // 源 62 复制后新索引
+  near(raw(2, 5) - raw(1, 5), srcRaw(2, 5) - srcRaw(1, 5), 'x 相对布局保持')
+  near(raw(new62, 6) - raw(1, 6), srcRaw(62, 6) - srcRaw(1, 6), 'y 相对布局保持（ASSEMBLY 行）')
+  // 连线 remap：所有 connects 目标 ∈ 1..38
+  const records = parseWireMessage(out)!.filter((f) => f.number === 3 && f.wire === 2)
+  for (const rec of records) {
+    const nf = parseWireMessage(rec.value as Uint8Array)!
+    for (const pin of nf.filter((g) => g.number === 4 && g.wire === 2)) {
+      const pf = parseWireMessage(pin.value as Uint8Array)!
+      for (const conn of pf.filter((x) => x.number === 5 && x.wire === 2)) {
+        const cf = parseWireMessage(conn.value as Uint8Array)!
+        const id = cf.find((y) => y.number === 1 && y.wire === 0)?.value
+        if (typeof id === 'number') assert.ok(id >= 1 && id <= 38, `remap connects -> ${id}`)
+      }
+    }
+  }
+  passed++
+  console.log('PASS copyGraphNodesFromBlob（索引/布局/连线 remap，闭包 38 节点）')
+
+  // fail closed：列表不完整（缺被引用节点）必须抛错
+  assert.throws(() => copyGraphNodesFromBlob(dstBlob, srcBlob, [1, 2, 3], 0, 0), /not in copy list/)
+  assert.throws(() => copyGraphNodesFromBlob(dstBlob, srcBlob, [999], 0, 0), /not found/)
+  passed++
+  console.log('PASS copyGraphNodesFromBlob fail-closed（列表外引用/缺节点抛错）')
+
+  // 清空图：保留图记录与变量，仅移除节点
+  const cleared = clearGraphNodes(srcBlob)
+  assert.equal(parseGraphNodes(cleared).length, 0, '节点清零')
+  const recs = parseWireMessage(cleared)!
+  assert.ok(recs.some((f) => f.number === 1 && f.wire === 2), '图 id 保留')
+  assert.ok(recs.some((f) => f.number === 6 && f.wire === 2), '图变量 f6 保留')
+  passed++
+  console.log('PASS clearGraphNodes（节点清零/记录与变量保留）')
 }
 
 console.log(`\n${passed} tests passed`)

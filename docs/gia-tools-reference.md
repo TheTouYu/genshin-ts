@@ -297,6 +297,7 @@ npx tsx tools/parse-gil-node-graph.ts <地图.gil> --graph <图ID或名称> --fu
 | `scan-gil-custom-variable-candidates.ts` | **GIL 自定义变量批量候选扫描** — 按定义容器枚举名称、类型码、初值 wire 摘要及可识别的 CustomPrefab 所有者                     | `npx tsx tools/scan-gil-custom-variable-candidates.ts <地图.gil>`                         |
 | `list-gil-node-graphs.ts`                | **GIL NodeGraph 列表** — 只读列出图 ID、类型、名称和节点数，用于先定位目标图                                                  | `npx tsx tools/list-gil-node-graphs.ts <地图.gil>`                                        |
 | `compare-gil-node-graph.ts`              | **相邻 GIL 快照的定点 NodeGraph 比较** — 输出文件哈希、图元数据变化和 added/removed/changed 节点摘要；`--full` 才展开完整节点 | `npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <nodeGraphId> [--full]` |
+| `diff-gil-files.ts`                      | **文件级全量 diff**（2026-08-09 turn-ctl 复盘新增）— 遍历全部 NodeGraph 记录按序号独立比对（同 id 双记录 def+impl 天然分开），输出 ADD/REMOVED/CHANGED + blob sha256 摘要；`--detail <graphId>` 追加节点级 diff | `npx tsx tools/diff-gil-files.ts <before.gil> <after.gil> [--detail <graphId>] [--full]` |
 | `preview_markdown.ts`                    | **终端渲染 Markdown**                                                                                                         | `npx tsx tools/preview_markdown.ts <文件.md>`                                             |
 
 **`decode-gia.ts` 选项与常用查询：**

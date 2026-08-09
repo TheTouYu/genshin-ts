@@ -1705,6 +1705,115 @@ export function delGraphNode(blob: Uint8Array, nodeIndex: number): Uint8Array {
   return sub(out)
 }
 
+/** 清空图全部节点（2026-08-09 turn-ctl 复盘：替代自写 clear-param-turn.ts 循环 delGraphNode）。
+ *  保留图记录/变量/挂载，仅移除所有 nodes 记录。 */
+export function clearGraphNodes(blob: Uint8Array): Uint8Array {
+  const fields = parseWireMessage(blob)
+  if (!fields) throw new Error('[error] graph blob unparseable')
+  return sub(fields.filter((f) => !(f.number === 3 && f.wire === 2)))
+}
+
+/**
+ * 跨图批量复制节点（2026-08-09 turn-ctl 实战验证后正式化，替代自写 copyFromSrc+remapAll）：
+ * 从 srcBlob 提取 srcIndexes 列表的节点记录（含全部 pin 值），插入 dstBlob：
+ * - 新索引：从 1 起分配（跳过 dst 已用）
+ * - 位置：保持源图内相对布局，平移使列表左上角落在 (x,y)（勿堆同点/横排）
+ * - 连线：pin connects 里引用列表内节点的旧索引 → 新索引；
+ *   引用列表外节点 → fail closed 抛错（提示把目标节点加入列表，避免悬空）
+ */
+export function copyGraphNodesFromBlob(
+  dstBlob: Uint8Array,
+  srcBlob: Uint8Array,
+  srcIndexes: readonly number[],
+  x: number,
+  y: number
+): Uint8Array {
+  const srcFields = parseWireMessage(srcBlob)
+  if (!srcFields) throw new Error('[error] src graph blob unparseable')
+  const srcRecs = srcFields.filter((f) => f.number === 3 && f.wire === 2)
+  const srcViews = srcRecs.map((f) => parseNodeRecord(f.value as Uint8Array))
+  const want = new Set(srcIndexes)
+  const missing = [...want].filter((i) => !srcViews.some((v) => v.index === i))
+  if (missing.length) throw new Error(`[error] src nodes not found: ${missing.join(',')}`)
+
+  // 新索引分配（保持 srcIndexes 顺序，最小空闲）
+  const dstFields = parseWireMessage(dstBlob)
+  if (!dstFields) throw new Error('[error] dst graph blob unparseable')
+  const used = new Set(
+    dstFields.filter((f) => f.number === 3 && f.wire === 2).map((f) => parseNodeRecord(f.value as Uint8Array).index)
+  )
+  const assigned = new Map<number, number>()
+  let index = 1
+  for (const s of srcIndexes) {
+    while (used.has(index)) index++
+    assigned.set(s, index)
+    used.add(index)
+  }
+
+  // 相对布局平移：列表内 minX/minY → (x, y)
+  const posOf = (f: WireField): { px: number; py: number } => {
+    const nf = parseWireMessage(f.value as Uint8Array)!
+    const pxField = nf.find((g) => g.number === 5 && g.wire === 5)
+    const pyField = nf.find((g) => g.number === 6 && g.wire === 5)
+    const f32 = (field: { value: number | Uint8Array } | undefined) => {
+      if (!field) return 0
+      const buf = field.value as Uint8Array
+      return new DataView(buf.buffer, buf.byteOffset, buf.byteLength).getFloat32(0, true)
+    }
+    return { px: f32(pxField), py: f32(pyField) }
+  }
+  const srcPos = srcRecs.filter((f) => want.has(parseNodeRecord(f.value as Uint8Array).index)).map(posOf)
+  const minX = Math.min(...srcPos.map((p) => p.px))
+  const minY = Math.min(...srcPos.map((p) => p.py))
+
+  // 复制 + remap 连线
+  const remapIndex = (id: number): number | undefined => assigned.get(id)
+  const nodeOf = (srcIndex: number): Uint8Array => {
+    const rec = srcRecs.find((f) => parseNodeRecord(f.value as Uint8Array).index === srcIndex)!
+    const nf = parseWireMessage(rec.value as Uint8Array)!
+    const newIndex = assigned.get(srcIndex)!
+    const out: WireField[] = []
+    for (const g of nf) {
+      if (g.number === 1) {
+        out.push({ number: 1, wire: 0, value: newIndex })
+      } else if (g.number === 5) {
+        out.push({ number: 5, wire: 5, value: float32Bytes(x + (posOf(rec).px - minX)) })
+      } else if (g.number === 6 && g.wire === 5) {
+        out.push({ number: 6, wire: 5, value: float32Bytes(y + (posOf(rec).py - minY)) })
+      } else if (g.number === 4 && g.wire === 2) {
+        // pins：remap connects 目标索引
+        const pin = parseWireMessage(g.value as Uint8Array)!
+        const pinNext = pin.map((p) => {
+          if (p.number !== 5 || p.wire !== 2) return p
+          const conn = parseWireMessage(p.value as Uint8Array)!
+          const idField = conn.find((c) => c.number === 1 && c.wire === 0)
+          if (!idField || typeof idField.value !== 'number') return p
+          const mapped = remapIndex(idField.value)
+          if (mapped === undefined) {
+            throw new Error(
+              `[error] node ${srcIndex} pin connects -> src node ${idField.value} not in copy list ` +
+                `(${srcIndexes.join(',')}); add it or break the link first`
+            )
+          }
+          return {
+            ...p,
+            value: emitWireMessage(
+              conn.map((c) => (c.number === 1 && c.wire === 0 ? { ...c, value: mapped } : c))
+            )
+          }
+        })
+        out.push({ ...g, value: emitWireMessage(pinNext) })
+      } else {
+        out.push(g)
+      }
+    }
+    return emitWireMessage(out)
+  }
+  let result = dstBlob
+  for (const s of srcIndexes) result = insertNodeRecord(parseWireMessage(result)!, nodeOf(s), assigned.get(s)!)
+  return result
+}
+
 // ---- 节点定义查询（新建数据 pin 的 type 来源 / 读侧名称）----
 
 const RECORDS = NODE_PIN_RECORDS as Array<{ id: number; name?: string; inputs?: string[] }>
