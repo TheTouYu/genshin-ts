@@ -1,0 +1,269 @@
+---
+name: static-gil-model-builder
+description: 在 Genshin-TS 中规划、校准、拼装、生成候选并安全写回复杂静态 GIL 模型，并把经过真实地图/编辑器/游戏验证的路径沉淀为可复制经验。用户提到“制作复杂元件/实体”“用基础元件拼模型”“空模型加装饰物”“足球/魔方/字母/建筑模型”“校准三棱柱或五棱柱朝向”“调整既有复杂元件的装饰物尺寸”“assets:static-assemblies”“assets:entities”或要把静态模型写进指定地图时都必须使用本 Skill，即使用户没有说“Skill”。不用于只读节点图逻辑分析、运行时 createPrefab 玩法逻辑或纯 GIA NodeGraph 注入。
+compatibility: Genshin-TS repository with node, tsx, python tools/pkc.py, assets:static-assemblies, assets:entities, and a user-verifiable GIL map.
+---
+
+# 复杂静态 GIL 模型制作
+
+把复杂模型拆成已知基础几何，先闭合资源局部坐标，再通过正式静态资产 CLI 生成可追溯候选，最后由用户在编辑器/游戏中确认视觉结果。新建复杂 prefab 闭包和已有复杂 prefab/entity 的局部视觉 patch 是两条不同路径，必须先分流；目标是让后续模型复用经过证据验证的生产路径，而不是复制一次性脚本或猜 GIL 字段。
+
+## 任务边界
+
+本 Skill 负责：
+
+- 自定义元件：root 4 definition + root 8 instance + root 27 双侧装饰物闭包；
+- 场景实体：root 5 entity + root 6 登记 + 必要的实例侧装饰物；
+- 基础元件尺寸、零旋转朝向和局部轴校准；
+- 复杂模型的几何拆分、局部 Transform、ID 计划、候选和安全写回；
+- 对已有复杂 prefab/entity 的局部视觉调参：盘点完整 closure 后，对 definition-side、prefab-instance-side、scene-entity-side aux 做记录级最小 patch，并同步回读；
+- 用户截图/游戏反馈后的有界结论与知识回填。
+
+以下任务转给其它 Skill：
+
+- 读现有节点图逻辑：`gil-node-graph-reading`；
+- 未知 GIL 编码的真实相邻快照调查：`editor-incremental-gia-investigator`；
+- 已锁定 NodeGraph/GIA 的游戏注入核验：`verify-injection`；
+- 运行时创建、物理、碰撞和节点图玩法：按对应引擎/编译器路径处理，不混入静态视觉模型。
+
+## 授权边界优先
+
+调用任何工具前，先提取用户给出的**本轮操作上限**。业务 intent `map-writeback` 只表示知识路由，不等于已经授权访问地图、生成候选或写回。
+
+- 用户说“只给计划”“不要读取真实地图”“不要运行 maps”时，进入 `plan-only` 短路：只读根规则、本 Skill 的相关参考和一次只读 PKC 查询；不运行 `maps`、资产 inspect/export、源码测试，不扫描 `$GTS_EVIDENCE_HOME`，也不创建任何文件。答案使用 `<mapId>/<sourceSha>/<newId>` 占位符，并把现场盘点列为后续步骤。
+- 用户只禁止写回但允许候选时，可读取地图并生成离线候选；停在 `候选就绪`。
+- 用户明确授权写回前，仍须先展示已锁定候选的完整安全门；早先的宽泛“可以做”不替代该确认。若用户在当前轮明确说“直接注入/直接写回”，可把这句话作为本轮确认，但仍要记录源 SHA、候选 SHA、修改范围和自动备份；
+- 不自动恢复历史候选、manifest 或证据目录。只有用户明确说“继续/恢复某一轮”或给出对应路径/对象时才读取；同类历史模型不能冒充当前目标；
+- 更严格的新约束始终优先。用户在工作中途改成只读时，立即停止后续地图/文件操作。
+
+`plan-only` 的目标是给出可执行顺序和缺失输入，不是提前证明当前地图、ID、候选或源码状态。没有实际候选文件、SHA 和最小回读时，状态只能写 `计划就绪`，不能写 `候选就绪`。
+
+## 启动路由
+
+先判断目标对象，再选命令：
+
+| 情况 | 路径 | 关键约束 |
+| --- | --- | --- |
+| 新建复杂静态 prefab/元件 | `assets:static-assemblies` | 创建 root 4/8/27 闭包，走 plan → candidate → inspect/export → 写回门 |
+| 已有复杂 prefab/entity，只改位置、颜色或装饰物 Transform | `assets:entities patch` 或记录级 patch | 不创建新闭包；按实际 closure/export 找记录，同步三侧 aux |
+| 已有 definition，新建一个场景实体 | `assets:entities import` | 只复用已有 definition；确认 root 5/root 6 登记 |
+| 未知资源尺寸、pivot 或局部基 | 最小校准 + 增量调查 | 先闭合缺失事实，不用待修生产链证明未知规则 |
+
+`assets:static-assemblies` 的成功只证明“新闭包创建”路径；它不是更新既有复杂模型的通用入口。已有模型的局部调参必须保留未改字段，并验证 definition-side、prefab-instance-side、scene-entity-side 三组 aux 仍一致。
+
+1. 读取根 `AGENTS.md`，运行 `git status --short --branch`，保护已有改动；若命中 `plan-only`，`git status` 也可省略，因为本轮不会修改工作树。
+2. 选择唯一 Context `static-gil-assembly-production`，创建、分配 ID、候选或写回统一使用精确 intent：
+
+```bash
+python tools/pkc.py progressive-query \
+  --context static-gil-assembly-production \
+  --intent map-writeback \
+  --max-level 2 --limit 3 --check-authority
+```
+
+3. 只读取查询返回的 `minimum_files`。不要同时预加载整套传统文档。
+4. 制作候选前读取 [生产工作流](references/production-workflow.md)。涉及新几何或未知资源朝向时，再读 [校准与几何](references/calibration-and-geometry.md)。
+5. 只有 Authority/正式工具没有目标编码时，才切换到增量调查；已知空模型、官方基础资源、Transform 和装饰物闭包不要让用户重复编辑器造样本。
+
+## 先确定交付对象
+
+| 用户真正需要的对象 | 默认入口 | 结果 |
+| --- | --- | --- |
+| 可复用自定义元件，并在场景放一个实例 | `assets:static-assemblies` | root 4/8/27 + root 6 分类登记 |
+| 从目标已有 definition 新建 root 5，或更新既有实体 | `assets:entities import/patch` | root 5 + root 6 实体登记 |
+| 全新复杂 root 5，且目标没有所需 definition/aux 闭包 | 默认先做静态元件；强制 root 5 时检查 coverage | 不把 donor import 冒充完整闭包迁移 |
+| 一组静态视觉零件，整体移动 | 空模型宿主 + 装饰物 | 一个主对象管理局部 Transform |
+| 可踢、可碰撞、会运动的足球 | 先完成视觉模型；物理核心另立工作包 | 不把静态模型成功冒充玩法成功 |
+
+用户没有明确要求可复用元件或运行时实体时，复杂静态模型默认做成“空模型自定义元件 + 一个场景实例”。这条路径保留一个清晰原点，也便于后续导出和继续调参。
+
+`assets:entities import` 能从已有 definition 生成实体快照，`patch` 能改既有实体或挂接**已存在**的 aux；它们不会凭 donor 自动把全新的 root 4/root 27 复杂闭包移植进目标。若用户要求全新复杂 root 5，而目标没有可复用 definition/aux，先按生产参考确认当前正式工具是否已覆盖；没有就报告 coverage gap，不用一次性脚本假装正式生产路径。
+
+## 总流程
+
+```text
+目标与输出语义
+→ 只读地图/ID 盘点
+→ 基础资源是否已知？
+   ├─ 已知：直接设计模型
+   └─ 未知：最小校准元件 → 候选 → 写回 → 用户截图
+→ 几何拆分与 Transform 计划
+→ 新建模型走正式 CLI plan；既有模型走 closure/export 盘点
+→ 不覆盖候选
+→ 最小闭包/回读
+→ 展示安全门并确认
+→ hash-gated 原子写回 + 备份
+→ 写后回读
+→ 用户重新加载并截图/游戏核验
+→ 视觉反馈分类；若规则未知则转增量调查
+→ 权威知识回填
+```
+
+每次开始时说明本轮最多推进到哪个门：`计划就绪`、`候选就绪`、`写回成功`或`用户视觉核验`。四个状态不能混称“完成”；`候选就绪` 至少要求真实 candidate 文件、SHA 和闭包回读。
+
+## 未知基础元件先校准
+
+只要缺少以下任一事实，就不要直接生成完整复杂模型：
+
+- 原始尺寸、局部原点/几何锚点或缩放轴语义；
+- `rotation=[0,0,0]` 时的朝向；
+- 哪个局部轴是高度/挤出轴；
+- 绕 X/Y/Z 正角度后的可见方向；
+- 材质、颜色或几何资源是否在目标地图正常显示。
+
+校准 demo 要小而可判读：
+
+1. 用空模型作不可见主体；
+2. 放一个已知 `1×1×1` 长方体作尺寸/坐标参照；
+3. 每种未知资源至少放零旋转样本；
+4. 需要闭合旋转时，再放 Y 轴水平旋转和 X 轴侧翻样本；
+5. 用整齐网格位置隔开，向用户明确每行/列含义；
+6. 不混入物理、碰撞、节点图、颜色实验或完整模型。
+
+用户截图后，只记录截图能证明的事实。透视图可确认可见朝向、相对尺度、明显脱离和旋转结果；精确 Transform 数值来自候选回读和用户给出的地格/标尺，不从像素距离猜。
+
+已闭合资源与本轮三棱柱/五棱柱基准见 [校准与几何](references/calibration-and-geometry.md)。
+
+## 设计复杂模型
+
+### 两层坐标
+
+- 元件 `position/rotation/scale`：整个模型在场景中的 Transform；
+- item `position/rotation/scale`：装饰物相对模型原点的局部 Transform。
+
+先锁定模型原点、外形尺寸和朝向，再计算所有 item；不要把场景坐标直接写进局部坐标。已知 `1×1×1` 只证明尺寸，不自动证明资源 pivot。pivot 未被 Authority/真实校准闭合时，计划只能给目标几何中心符号和公式 `t = c - R·(S⊙g)`（`g` 为资源几何中心相对 pivot 的局部向量），禁止出现任何数值 `item.position` 或可复制的 items 配置，即使旁边标了“假设/待确认”。
+
+### 几何拆分
+
+按最少且最贴合目标面的基础元件拆分：
+
+1. 优先一个基础元件精确表达一个面或体；
+2. 没有六棱柱时，用六个正三角形组成正六边形；
+3. 只在视觉需要时添加边线、遮缝或内核；
+4. 先算零件预算；模型可用更少零件表达时，不继续用矩形条带逼近；
+5. 先生成一个面或一个局部小样，确认后再扩展到完整模型。
+
+资源局部基必须先乘进目标面基。只把法线对齐而忽略面内 roll，会产生“方向对了但花纹转错”的模型。旋转使用当前已闭合的 YXZ 内旋规则；具体公式和足球示例见几何参考。
+
+`10009005` 五棱柱的 X/Z scale 语义是底面外接半径，不是正五边形的最终可见面高。由多面体几何推导出的面高、外接直径或为遮缝而放大的值，都只能标为该轮视觉补偿实验，不能升级为资源尺寸真值。足球首次完整成功路径及 `0.3105` 的残余微缝见 [足球成功路径](references/football-success-path.md)。
+
+### ID 计划
+
+- 不猜 ID，也不把“连续”当规则；
+- 联合静态元件 inspect、实体 export 和 root 6 登记看占用；
+- root 4 definition 与 root 8 instance 可同 ID，但 root 5 实体 ID 必须避免与 definition/instance/entity 冲突；
+- definition-side 与 instance-side aux 各提供一组与 item 等长的显式 ID；
+- 计划显示 `conflicts=[]` 只是当前工具检查通过，不能替代候选闭包回读。
+
+复杂模型优先把 items 放进严格 `structureFile`，地图名称、模板、ID 和场景 Transform 留在配置中。这样调几何时不会反复改地图绑定信息。
+
+## 候选验证预算
+
+新建闭包只做能阻止坏写回的检查：
+
+1. `plan.status=ready`，源 SHA 与盘点一致；
+2. 候选输出不覆盖旧文件，并记录 SHA/大小；
+3. `inspect` 找到新 definition/instance，闭包 `complete`，aux 数量正确；
+4. `export` 回读资源、两层 Transform 和 item 顺序；
+5. 必要时 root raw diff 只出现计划字段；
+6. 当前地图仍保持源 SHA。
+
+既有模型 patch 还必须增加：
+
+- patch 前保存 closure/export 摘要和源 SHA；
+- 目标 aux 按资源、owner 和实际挂接关系分类，不按历史连续 ID 猜测；
+- definition-side、prefab-instance-side、scene-entity-side 的目标记录数量和资源分布一致；
+- position、rotation、Y 厚度、颜色及未知字段保持不变，只改变声明的字段；
+- patch 后候选与源的变化记录可解释，三侧目标字段逐条回读一致。
+
+满足这些条件就停止自动验证，让用户去游戏看。不要为了“更放心”无限叠加同源解析脚本。
+
+`inspect-gil-prefab-material.py` 要求目标 ID 在 before/after 都存在，适合既有元件材质修改，不适合新增元件。新增元件用 `inspect + export + root diff`。
+
+## 写回安全门
+
+真实写回前展示：
+
+- 地图 ID、名字、玩家/区服和实际路径；
+- 当前源 SHA；
+- 候选路径、SHA、大小；
+- 新 prefab/entity/aux ID；
+- 场景 Transform、item 摘要和触及 roots；
+- 精确命令、自动备份位置和回滚方式。
+
+得到针对这份候选的明确确认后，优先用固定候选的 hash-gated 原子入口：
+
+```bash
+node ./bin/gsts.mjs assets:entities apply-candidate \
+  --map-id <mapId> \
+  --candidate <candidate.gil> \
+  --expect-source-hash <locked-source-sha256>
+```
+
+写后只做目标/候选哈希一致、备份/源哈希一致和目标闭包回读。随后通知用户**重新加载地图再保存**；旧编辑器内存保存会覆盖磁盘写回。
+
+## 截图与游戏核验
+
+用户给截图时切换为只读 intent：
+
+```bash
+python tools/pkc.py progressive-query \
+  --context static-gil-assembly-production \
+  --intent screenshot-validation \
+  --max-level 2 --limit 3 --check-authority
+```
+
+读取图片尺寸与 SHA，对照候选的已知布局判断。不要在截图阶段读取真实地图或扩大写授权。
+
+报告分层：
+
+- 候选结构通过；
+- 写回成功；
+- 编辑器可见/布局视觉通过；
+- 游戏行为通过或尚未验证。
+
+静态截图不能证明碰撞、运动、多人同步或玩法逻辑。
+
+## 证据与知识回填
+
+把用户截图保存为不可变证据：
+
+```bash
+python .agents/skills/editor-incremental-gia-investigator/scripts/capture-evidence.py \
+  <source-image> <evidence-directory>
+```
+
+更新适用范围最小的 `docs/game-engine-knowledge/` Authority，记录地图/对象、候选与截图 SHA、观察、适用版本和未证明事项。不要把一次性 ID、路径或待验证推测写进 `AGENTS.md`。
+
+PKC 只从已提交 Authority 创建 knowledge-plan；工作树结论保持 pending。按项目规则展示精确 Bundle content hash，等待用户批准后再 apply。
+
+## 已知陷阱
+
+- `.local/tmp` 生成器和历史脚本是恢复线索，不是生产 Authority；优先正式 CLI。
+- 已有复杂模型的局部调参不能只改 definition 或 instance 一侧；至少核对 definition-side、prefab-instance-side、scene-entity-side 三组 aux。
+- `0.3105` 这类绝对尺寸/系数若来自视觉补偿，只能作为该轮实验参数，不能替代 `10009005` 的外接半径几何基准。
+- `compatibility=unknown` 表示还没做编辑器/游戏验证，不等于候选结构失败。
+- 当前官方模板路径的逐 item 颜色需要以候选 `export` 为准；配置写了颜色但回读未启用时，不要承诺颜色或只改单侧 aux。
+- `inspect` 用于身份/闭包，复杂 Transform 以 `export` 回读为准。
+- 编辑器保存会规范化默认字段；候选验证比较目标闭包，不要求用户保存后整文件哈希不变。
+- 截图发现方向错误时，先修资源局部基或校准结论，不在每个面上散落补偿角。
+- 用户反馈仍有缝时，保留成功候选和反馈证据，进入单变量精确数据调查，不把“整体满意”写成几何完全通过。
+
+## 每轮报告
+
+```text
+对象：自定义元件 / 场景实体 / 校准 demo
+目标：mapId / 名称 / 锁定源 SHA
+结构：主体资源 / item 数 / 资源分布 / ID 范围
+Transform：场景层 + 局部层摘要
+证据：plan / candidate / closure / writeback / screenshot-game
+状态：计划就绪 | 候选就绪 | 写回成功 | 用户视觉核验通过
+限制：颜色、物理、碰撞、跨地图或其它未验证层
+下一步：只写一个动作
+```
+
+## 按需参考
+
+- [校准与几何](references/calibration-and-geometry.md)：基础资源局部基、校准布局、复杂几何与足球拆分。
+- [生产工作流](references/production-workflow.md)：正式 CLI 命令、配置骨架、候选/写回/回读和当前限制。
+- [足球成功路径](references/football-success-path.md)：首次完整足球闭包、三侧局部 patch、视觉补偿和未闭合项。

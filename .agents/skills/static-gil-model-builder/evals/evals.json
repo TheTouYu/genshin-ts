@@ -1,0 +1,65 @@
+{
+  "skill_name": "static-gil-model-builder",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想在‘模型实验室’地图里，用空模型做宿主，三棱柱和五棱柱做装饰物，拼一个高精度足球。你先只读规划，不要生成候选、更不要写地图。",
+      "expected_output": "选择 static-gil-assembly-production/map-writeback；复用已验证的三棱柱/五棱柱局部基和现有 prismPanels 几何，只有 Authority 缺失时才提出最小校准板；给出自定义元件、几何拆分、ID/候选/安全门和证据分层，不访问或写真实地图。",
+      "files": [],
+      "expectations": [
+        "本轮状态写为计划就绪，而不是候选就绪",
+        "不运行 maps、不读取真实地图、不扫描或恢复未点名的历史候选",
+        "复用空模型宿主、12 个五棱柱和 120 个三棱柱以及现有 prismPanels/basisToEuler",
+        "后续正式路径包含 plan、candidate、inspect/export、候选哈希确认门和用户游戏核验边界"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "用已知 1x1x1 长方体在 mapId 12345 做一个字母 H 自定义元件，只生成离线 candidate，位置放 [10,1,0]，不要写回。",
+      "expected_output": "识别长方体尺寸与朝向已知，跳过完整校准；pivot 未有 Authority 时不得猜数值 item.position，只能给几何中心与换算公式；使用 assets:static-assemblies 的 plan/output 路径，显式盘点 ID、区分场景与局部 Transform，并停在候选就绪，不请求或执行真实写回。",
+      "files": [],
+      "expectations": [
+        "跳过完整基础元件校准，但把 pivot 作为独立证据门",
+        "pivot 未闭合时不输出任何数值 item.position，只给 t = c - R·(S⊙g) 或等价公式",
+        "本轮计划回答写计划就绪；真实 candidate、SHA 和闭包回读完成后才写候选就绪",
+        "正式执行停在离线 candidate，不运行 apply-candidate"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "帮我分析现有足球地图里的节点图是怎么处理碰撞和计分的，只读，不要改任何模型或地图。",
+      "expected_output": "明确该任务属于 gil-node-graph-reading，而不是静态模型制作；不启动静态拼装、ID 分配、候选或写回流程。",
+      "files": [],
+      "expectations": [
+        "明确 static-gil-model-builder 不适用并路由到 gil-node-graph-reading",
+        "不运行静态拼装、ID 分配、candidate 或写回命令",
+        "遵守只读边界并把真实地图定位留到获得授权之后"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "高精度足球v2 已经存在于 mapId 1073741862。用户反馈只有黑色五边形区域还有小缝；请只调五棱柱的 X/Z 尺寸，三角片、位置、旋转、颜色和厚度都不要改。用户明确说本轮可以直接注入，但要先生成不覆盖 candidate 并通过回读。",
+      "expected_output": "走既有复杂 prefab/entity 的局部 patch 路径，而不是重新创建静态闭包；先锁源 SHA 并 inspect/export 盘点 prefab definition、prefab instance 和 scene entity，按资源实际筛出三组各 12 个五棱柱，同步 patch 36 条 aux，保留其它字段，生成 candidate 后逐条回读并使用 apply-candidate 的 hash gate；把视觉补偿和游戏验证分层报告。",
+      "files": [],
+      "expectations": [
+        "不使用新的 assets:static-assemblies 配置覆盖已有足球",
+        "明确核对 definition-side、prefab-instance-side、scene-entity-side 三组 aux，并合计 36 条五棱柱记录",
+        "只改变五棱柱 X/Z，保持 position、rotation、Y 厚度、颜色和三角片不变",
+        "候选不覆盖旧文件，写回使用 expect-source-hash，备份哈希等于写前源哈希",
+        "把 0.3105 标为本轮视觉补偿实验，不称为精确五边形几何真值"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "用户给了高精度足球v2 的游戏截图：整体轮廓和亮度基本满意，但五边形附近仍能看到很小的间隔。请把这次经验固化到 static-gil-model-builder，并告诉我下一轮应该怎么继续。",
+      "expected_output": "只把截图支持的结论写成视觉层反馈：模型可见、整体基本满意、五边形仍有微缝；保留候选/写回/截图哈希证据，明确 geometry-closed 尚未成立，把 0.3105 留作本轮视觉补偿，不推广为通用值；下一轮只调查精确五边形边界/局部顶点/pivot 等一个变量，三角片保持不变，必要时转 editor-incremental-gia-investigator。",
+      "files": [],
+      "expectations": [
+        "不把用户截图描述升级成精确浮点几何或完全无缝规则",
+        "明确区分候选闭包、写回成功、用户视觉核验和几何规则闭合",
+        "下一轮方案只改变一个可唯一归因变量，并保留现有成功证据",
+        "技能或参考文档记录视觉补偿值与未闭合项，而不是修改生产源码来证明未知规则"
+      ]
+    }
+  ]
+}
