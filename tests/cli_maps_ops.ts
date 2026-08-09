@@ -52,12 +52,16 @@ assert.deepEqual(
   [
     [1, 0, created.mapId],
     [2, 2, new TextEncoder().encode('未分类页签_存档_测试')],
+    // 空 root 4/8/27：新地图开箱支持 assets:static-assemblies 元件闭包
+    [4, 2, new Uint8Array()],
+    [8, 2, new Uint8Array()],
+    [27, 2, new Uint8Array()],
     [34, 0, 1],
     [39, 0, playerId],
     [40, 0, Math.floor(Date.now() / 1000)],
     [41, 0, 1]
   ],
-  'new-map skeleton fields match editor-observed layout'
+  'new-map skeleton fields include empty root 4/8/27 for static assemblies'
 )
 // 无 --graphs 也补最小 root 6/10 挂载容器（round4：缺容器游戏加载失败导致列表全空）
 assert.ok(rootFields.some((f) => f.number === 6 && f.wire === 2), 'root 6 container present')

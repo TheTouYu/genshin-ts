@@ -323,10 +323,15 @@ export function createMap(
       `[error] cannot determine player account id from save level parent dir: ${playerIdDir}`
     )
   }
+  // 预置空 root 4/8/27 段：新地图开箱即支持 assets:static-assemblies 元件闭包
+  // （map_index 要求段存在，空段安全返回空记录；编辑器保存后自会补全/规范化）
   const payload = ensureMinimalContainers(
     emitWireMessage([
       { number: 1, wire: 0, value: nextId },
       { number: 2, wire: 2, value: new TextEncoder().encode(name) },
+      { number: 4, wire: 2, value: new Uint8Array() },
+      { number: 8, wire: 2, value: new Uint8Array() },
+      { number: 27, wire: 2, value: new Uint8Array() },
       { number: 34, wire: 0, value: 1 },
       { number: 39, wire: 0, value: playerId },
       { number: 40, wire: 0, value: Math.floor(Date.now() / 1000) },
