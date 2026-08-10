@@ -706,6 +706,30 @@ export function addOutFlow(
  *  flowrm-case2 v54→v55）：只删 connects 中 f1=targetNode 的整条记录；
  *  断后仍有余线 → pin 保留（i1/i2 与其他 connects 逐字节不变）；断后无余线 →
  *  整条 pin 记录移除（其余 pin 逐字节不变、顺序不变）；目标侧节点不动。 */
+/**
+ * 控制流连线追加（flow-append 闭合：2026-08-11 用户 main 图手工分叉快照）：
+ * OutFlow pin 已存在 → 在其 connects(f5) 列表末尾追加一条新线（多出口分叉）；
+ * pin 不存在 → 与 addOutFlow 相同（新建）。
+ */
+export function appendOutFlow(
+  node: Uint8Array,
+  shell: number,
+  dstNode: number,
+  dstShell: number,
+  compositePinIndex?: number
+): Uint8Array {
+  const existing = findPin(node, PIN_KIND.OUT_FLOW, shell)
+  if (!existing) return addOutFlow(node, shell, dstNode, dstShell, compositePinIndex)
+  const next = [
+    ...existing.fields,
+    { number: 5, wire: 2, value: connectWire(dstNode, PIN_KIND.IN_FLOW, dstShell) }
+  ]
+  return rebuildNode(
+    node,
+    pinsOf(node).map((p) => (pinKindOf(p) === PIN_KIND.OUT_FLOW && pinShell(p) === shell ? sub(next) : p))
+  )
+}
+
 export function removeOutFlow(node: Uint8Array, shell: number, targetNode: number): Uint8Array {
   const existing = findPin(node, PIN_KIND.OUT_FLOW, shell)
   if (!existing) throw new Error(`[error] node has no OutFlow shell ${shell}`)

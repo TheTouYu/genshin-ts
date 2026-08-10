@@ -18,6 +18,7 @@ import {
   addGraphNode,
   addGraphVariable,
   addOutFlow,
+  appendOutFlow,
   addParamFlow,
   buildVarValue,
   chooseMovedIndex,
@@ -64,6 +65,7 @@ import {
   type NodeView,
   type PinView
 } from './static_assembly/graph_edit.js'
+import { autoLayout, checkLayout, planFlowUpgrade } from './static_assembly/graph_layout.js'
 
 const KIND_NAMES: Record<number, string> = { 1: 'InFlow', 2: 'OutFlow', 3: 'InParam', 4: 'OutParam', 5: 'ClientExec', 6: 'ClientSignal' }
 const VAR_TYPE_NAME_REV: Record<string, number> = Object.fromEntries(
@@ -117,7 +119,7 @@ export function minimalFolderRoot6(): Uint8Array {
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
-  sub: 'create' | 'read' | 'patch'
+  sub: 'create' | 'read' | 'patch' | 'layout'
   gilPath: string | undefined
   mapId: number | undefined
   name: string
@@ -129,6 +131,7 @@ type Args = {
   composite: string | undefined
   srcGil: string | undefined
   ops: string[]
+  layoutCheck: boolean
 }
 
 function usage(exitCode = 0): never {
@@ -138,6 +141,7 @@ function usage(exitCode = 0): never {
     '  create                       create an empty NodeGraph (root 10 wrapper + root 6 folder)',
     '  read                         inspect graphs / nodes / pins / connections / composite defs',
     '  patch                        apply precise node-graph edits (preview by default)',
+  '  layout                       auto-layout / lint a graph (--check = lint only)',
     '',
     'Options:',
     '  --config <file>   project config (for --map-id resolution)',
@@ -211,9 +215,11 @@ function parseArgs(argv: readonly string[]): Args {
   let node: number | undefined
   let composite: string | undefined
   let srcGil: string | undefined
+  let layoutCheck = false
   const ops: string[] = []
   let index = 0
-  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch') sub = argv[0] as Args['sub'], index++
+  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout')
+    sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
     if (arg === '--gil') gilPath = value(argv, index++)
@@ -224,6 +230,7 @@ function parseArgs(argv: readonly string[]): Args {
     else if (arg === '--json') json = true
     else if (arg === '--graph') graph = value(argv, index++)
     else if (arg === '--src-gil') srcGil = value(argv, index++)
+    else if (arg === '--check') layoutCheck = true
     else if (arg === '--node') node = Number(value(argv, index++))
     else if (arg === '--composite') composite = value(argv, index++)
     else if (arg === '--help' || arg === '-h') usage(0)
@@ -232,12 +239,15 @@ function parseArgs(argv: readonly string[]): Args {
   }
   if (sub === 'create' && ops.length) usage()
   if (sub === 'patch' && !ops.length) usage()
+  if (sub === 'layout' && !graph) usage()
   if (gilPath && mapId !== undefined)
     throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
   if (sub === 'create' && (graph || node || composite || json))
     throw new Error('[error] create does not accept --graph/--node/--composite/--json')
-  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, srcGil, ops }
+  if (sub === 'layout' && (node || composite || srcGil || ops.length))
+    throw new Error('[error] layout does not accept --node/--composite/--src-gil/ops')
+  return { sub, gilPath, mapId, name, outputPath, write, json, graph, node, composite, srcGil, ops, layoutCheck }
 }
 
 // 自动分配下一个节点图 ID：扫描地图已有图 ID，取 max+1；一个都没有时用固定起始值
@@ -446,6 +456,10 @@ export async function runAssetsNodeGraphs(
   }
   if (args.sub === 'patch') {
     runPatch(sourceBytes, gil, args)
+    return
+  }
+  if (args.sub === 'layout') {
+    runLayout(sourceBytes, gil, args)
     return
   }
   const sourceSha = sha256Bytes(sourceBytes)
@@ -845,6 +859,88 @@ function applyOps(
   }
   console.log(summary.map((s) => `applied: ${s}`).join('\n'))
   return current
+}
+
+function runLayout(bytes: Uint8Array, gil: string, args: Args): void {
+  const graphId = resolveGraphId(bytes, args.graph ?? '')
+  const payload = bytes.slice(20, -4)
+  const { field, section } = locateGraphField(payload, graphId)
+  const blob = payload.subarray(field.dataStart, field.dataEnd)
+  const nodes = parseGraphNodes(blob)
+
+  // lint 模式：只检查不修改
+  const violations = checkLayout(nodes)
+  if (args.layoutCheck) {
+    if (violations.length === 0) {
+      console.log(`layout-ok graph=${graphId} nodes=${nodes.length}`)
+      return
+    }
+    console.log(`layout-violations graph=${graphId} nodes=${nodes.length} count=${violations.length}`)
+    for (const v of violations) console.log(`  [${v.kind}] n${v.node} ${v.detail}`)
+    return
+  }
+
+  // 长线自动升级为分叉线（2026-08-11 规则：超限线注册为新线，而非折行）
+  const flowEdits = planFlowUpgrade(nodes)
+
+  // 自动布局：生成新坐标 → 逐节点写 pos
+  const layout = autoLayout(nodes)
+  if (layout.size === 0) {
+    console.log(`layout-empty graph=${graphId} (0 nodes)`)
+    return
+  }
+  let result = bytes
+  // 先应用连接编辑（plan 顺序保证 remove 在 append 前）
+  for (const e of flowEdits) {
+    result = patchGraphNode(
+      result,
+      graphId,
+      e.node,
+      (n) => (e.op === 'remove' ? removeOutFlow(n, 0, e.dst) : appendOutFlow(n, 0, e.dst, 0)),
+      section
+    )
+  }
+  let changed = 0
+  for (const [idx, pos] of layout) {
+    const before = nodes.find((n) => n.index === idx)
+    if (!before) continue
+    const dx = Math.abs(before.x - pos.x)
+    const dy = Math.abs(before.y - pos.y)
+    if (dx < 0.5 && dy < 0.5) continue
+    result = patchGraphNode(result, graphId, idx, (n) => setNodePos(n, pos.x, pos.y), section)
+    changed++
+  }
+  if (changed === 0 && flowEdits.length === 0) {
+    console.log(`layout-noop graph=${graphId} nodes=${nodes.length} (already conformant)`)
+    return
+  }
+
+  const sourceSha = sha256Bytes(bytes)
+  const candidateSha = sha256Bytes(result)
+  if (args.write) {
+    const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))
+    if (nowSha !== sourceSha) throw new Error('[error] source GIL changed since read; aborting write')
+    const backupDir = path.join(path.dirname(gil), '.gsts', 'backups')
+    fs.mkdirSync(backupDir, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backup = path.join(backupDir, `${path.basename(gil)}.${stamp}.layout.bak`)
+    fs.copyFileSync(gil, backup)
+    fs.writeFileSync(gil, result)
+    console.log(`backup=${backup}`)
+    console.log(`written=${gil}`)
+  } else if (args.outputPath) {
+    const absolute = path.resolve(args.outputPath)
+    if (fs.existsSync(absolute)) throw new Error(`[error] output already exists: ${absolute}`)
+    fs.mkdirSync(path.dirname(absolute), { recursive: true })
+    fs.writeFileSync(absolute, result)
+    console.log(`written=${absolute}`)
+  } else {
+    console.log(`preview=${gil}`)
+  }
+  console.log(
+    `graphId=${graphId} flow=${flowEdits.length} moved=${changed}/${nodes.length} sourceSha256=${sourceSha} candidateSha256=${candidateSha} ` +
+      `size=${bytes.length}->${result.length}`
+  )
 }
 
 function runPatch(bytes: Uint8Array, gil: string, args: Args): void {

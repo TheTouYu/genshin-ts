@@ -19,6 +19,7 @@ import {
   addGraphNode,
   addGraphVariable,
   addOutFlow,
+  appendOutFlow,
   addParamFlow,
   blobId,
   blobName,
@@ -305,6 +306,33 @@ function instanceMeta(file: Uint8Array, nodeIndex: number) {
   }
   passed++
   console.log('PASS flowrm-case1 断线（多 connects 删一条；删空整 pin 移除）')
+}
+
+// flow-append（2026-08-11 用户 main 图手工分叉闭合）：超长链自动升级为分叉线
+// 真实形态 = 4 步：断 10→11、断 20→21（removeOutFlow）、入口 1 追加 11、追加 21（appendOutFlow）
+// 断言 node 1/10/20 的 pins 与 after 逐字节一致（全图 blob 不可比：基线坐标显式编码 vs 编辑器省略默认值）
+{
+  const dir = 'tests/fixtures/flow-upgrade-20260811'
+  const gid = 1073741825
+  const before = read(`${dir}/before.gil`)
+  const after = read(`${dir}/after.gil`)
+  let patched = patchGraphNode(before, gid, 10, (n) => removeOutFlow(n, 0, 11))
+  patched = patchGraphNode(patched, gid, 20, (n) => removeOutFlow(n, 0, 21))
+  patched = patchGraphNode(patched, gid, 1, (n) => appendOutFlow(n, 0, 11, 0))
+  patched = patchGraphNode(patched, gid, 1, (n) => appendOutFlow(n, 0, 21, 0))
+  for (const idx of [1, 10, 20]) {
+    const a = parseGraphNodes(graphBlob(patched, gid)).find((n) => n.index === idx)
+    const b = parseGraphNodes(graphBlob(after, gid)).find((n) => n.index === idx)
+    assert.equal(JSON.stringify(a.pins), JSON.stringify(b.pins), `flow-append node ${idx} pins`)
+  }
+  const view = parseGraphNodes(graphBlob(patched, gid)).find((n) => n.index === 1)!
+  assert.deepEqual(
+    view.pins.filter((p) => p.kind === 2)[0].connects.map((c) => c.id),
+    [2, 11, 21],
+    '入口 OutFlow[0] connects 顺序 = 首线 + 追加线'
+  )
+  passed++
+  console.log('PASS flow-append 长线升级分叉（1→[2,11,21]，断 10→11/20→21，connects 追加语义）')
 }
 }
 
