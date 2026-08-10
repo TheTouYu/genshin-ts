@@ -7,10 +7,14 @@ import { parseMessage } from '../src/injector/binary.js'
 import { loadGiaProto } from '../src/injector/proto.js'
 import type { LenField } from '../src/injector/types.js'
 import { compareGilNodeGraph } from './compare-gil-node-graph.js'
+import { blobId, blobName } from '../src/cli/static_assembly/graph_edit.js'
 
 // 文件级全量 diff（2026-08-09 turn-ctl 复盘：替代自写 compare-blobs/diff-def/compare-records/diff-roots
-// 等临时脚本）。遍历 before/after 全部 NodeGraph 记录，按记录序号独立比对（同 id 双记录 def+impl
-// 天然分开），输出 ADD/REMOVED/CHANGED + blob sha256 摘要；--detail <graphId> 追加节点级 diff。
+// 等临时脚本）。遍历 before/after 全部 NodeGraph（section 1/4）+ CompositeDef（section 2）记录，
+// 按记录序号独立比对（同 id 双记录 def+impl 天然分开），输出 ADD/REMOVED/CHANGED + blob sha256 摘要；
+// --detail <graphId> 追加节点级 diff。
+// 2026-08-12 复盘补：新增 composites 段（section 2 CompositeDef 记录级 sha 比对）——此前只收
+// section 1/4，复合 def 改动（add-input/add-inflow 等）漏检，逼子代理自写逐 section sha 探针。
 
 function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex')
@@ -52,6 +56,27 @@ function listGraphs(gilPath: string): GraphSummary[] {
   })
 }
 
+type DefSummary = { seq: number; id: number; name: string; blobSha: string }
+
+/** CompositeDef（section 2）记录摘要：id/name 用 graph_edit 的纯 wire 解析（无 proto 依赖）。 */
+function listDefs(gilPath: string): DefSummary[] {
+  const { payload } = readGilPayloadFields(gilPath)
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  const defBlobFields = fields.filter(
+    (f) => f.depth === 3 && f.p0 === 10 && f.p1 === 2 && f.p2 === 1
+  )
+  return defBlobFields.map((field, seq) => {
+    const blob = payload.subarray(field.dataStart, field.dataEnd)
+    return {
+      seq,
+      id: blobId(blob, 2) ?? -1,
+      name: blobName(blob, 2) ?? '',
+      blobSha: sha256(blob).slice(0, 12)
+    }
+  })
+}
+
 function usage(): never {
   console.error(
     'Usage: npx tsx tools/diff-gil-files.ts <before.gil> <after.gil> [--detail <graphId>] [--full]'
@@ -73,17 +98,27 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const afterBytes = readFileSync(afterPath)
   const before = listGraphs(beforePath)
   const after = listGraphs(afterPath)
+  const beforeDefs = listDefs(beforePath)
+  const afterDefs = listDefs(afterPath)
   const key = (g: GraphSummary) => `#${g.seq} gid=${g.id} "${g.name}"`
-  const afterBySeq = new Map(after.map((g) => [g.seq, g]))
-  const added: GraphSummary[] = []
-  const removed: GraphSummary[] = []
-  const changed: { before: GraphSummary; after: GraphSummary }[] = []
-  for (const g of after) {
-    const old = before[g.seq]
-    if (!old) added.push(g)
-    else if (old.blobSha !== g.blobSha) changed.push({ before: old, after: g })
+  const defKey = (d: DefSummary) => `def#${d.seq} id=${d.id} "${d.name}"`
+  // 按记录序号独立比对（同 id 双记录 def+impl 天然分开）
+  const diffBySeq = <T extends { seq: number; blobSha: string }>(
+    b: T[],
+    a: T[],
+    k: (t: T) => string
+  ) => {
+    const added = a.filter((x) => !b.some((y) => y.seq === x.seq))
+    const removed = b.filter((x) => !a.some((y) => y.seq === x.seq))
+    const changed: { before: T; after: T }[] = []
+    for (const x of a) {
+      const old = b.find((y) => y.seq === x.seq)
+      if (old && old.blobSha !== x.blobSha) changed.push({ before: old, after: x })
+    }
+    return { added, removed, changed, unchanged: a.length - added.length - changed.length }
   }
-  for (let i = after.length; i < before.length; i++) removed.push(before[i])
+  const graphsDiff = diffBySeq(before, after, key)
+  const defsDiff = diffBySeq(beforeDefs, afterDefs, defKey)
 
   const detail = Number.isFinite(detailId)
     ? compareGilNodeGraph(beforePath, afterPath, detailId, full)
@@ -98,14 +133,26 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         graphs: {
           beforeCount: before.length,
           afterCount: after.length,
-          added: added.map((g) => ({ ...g, key: key(g) })),
-          removed: removed.map((g) => ({ ...g, key: key(g) })),
-          changed: changed.map((c) => ({
+          added: graphsDiff.added.map((g) => ({ ...g, key: key(g) })),
+          removed: graphsDiff.removed.map((g) => ({ ...g, key: key(g) })),
+          changed: graphsDiff.changed.map((c) => ({
             key: key(c.before),
             before: c.before,
             after: c.after
           })),
-          unchanged: after.length - added.length - changed.length
+          unchanged: graphsDiff.unchanged
+        },
+        composites: {
+          beforeCount: beforeDefs.length,
+          afterCount: afterDefs.length,
+          added: defsDiff.added.map((d) => ({ ...d, key: defKey(d) })),
+          removed: defsDiff.removed.map((d) => ({ ...d, key: defKey(d) })),
+          changed: defsDiff.changed.map((c) => ({
+            key: defKey(c.before),
+            before: c.before,
+            after: c.after
+          })),
+          unchanged: defsDiff.unchanged
         },
         ...(detail ? { detail } : {})
       },

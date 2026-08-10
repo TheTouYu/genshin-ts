@@ -27,7 +27,7 @@ npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --graph <id> --n
 npx tsx src/cli/gsts.ts assets:node-graphs read --gil <map.gil> --composite <defId>       # 复合定义接口
 npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json                        # 底层结构（含 value）
 npx tsx tools/compare-gil-node-graph.ts <before.gil> <after.gil> <graphId>                # 差分（仅单图）
-npx tsx tools/diff-gil-files.ts <before.gil> <after.gil> [--detail <graphId>] [--full]    # 文件级全量 diff（含同 id 双记录）
+npx tsx tools/diff-gil-files.ts <before.gil> <after.gil> [--detail <graphId>] [--full]    # 文件级全量 diff（NodeGraph 1/4 + CompositeDef 2，含同 id 双记录）
 # 管道解析 JSON 时用 ./node_modules/.bin/tsx（npx 的 npm notice 会污染 stdout）
 
 # 建图 / 挂载（2026-08-09 turn-ctl 实战验证）
@@ -84,7 +84,7 @@ PY
 | 断数据线 | `node <idx> unlink <shell>` | Fixed 删 pin / Variant 清 connects |
 | 控制流连线 | `node <idx> flow <shell> <dst-idx> [dst-shell]` | 源 OutFlow → 目标 InFlow（pin 不存在会自动新建） |
 | 断控制流线 | `node <idx> flow-rm <shell> <target>` | 从源 OutFlow 删一条 connects；无余线时整 pin 移除 |
-| 加节点 | `node-add <generic-id> <x> <y>` | 仅 Fixed 节点（Variant fail closed）；无 pin 落盘 |
+| 加节点 | `node-add <generic-id> <x> <y>` 或 4 参 `node-add <generic-id> <concrete-id> <x> <y>` | 3 参=旧形式（Variant donor fail closed）；4 参=显式 concrete（reflectMap 校验，f2/f3 与真实样本同构，2026-08-12 闭合）；无 pin 落盘 |
 | 复制节点 | `node-copy <src-idx> <x> <y>` | 完整克隆源记录（含 pin 值/cpi/ClientExec），即编辑器复制粘贴语义 |
 | 删节点 | `node-del <idx>` | 删记录；**先断掉指向它的连线**（源侧 connects 会悬空） |
 | 清空图 | `graph-clear` | 移除全部节点（图记录/变量/挂载保留） |
@@ -93,6 +93,7 @@ PY
 | 复合改名 | `composite <def-id> rename <名>` | |
 | 复合参数改名 | `composite <def-id> param input\|output\|inflow\|outflow <shell> rename <名>` | |
 | 复合加输入 | `composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>` | 实例唯一才允许 |
+| 复合加 InFlow | `composite <def-id> add-inflow <shell> <name> <inner-node> <inner-shell>` | 只 patch def+impl，**实例不落 pin**（真实实例无 InFlow pin）；inflow 记录无 name 字段（2026-08-12 闭合） |
 | 复合创建 | `composite create <名> <anchor-idx> <node-idx...>` | 选节点打包成复合 |
 | 复合删/换输入 | `composite <def-id> del-input <shell>` / `swap-input <a> <b>` | 实例重编号 |
 
@@ -131,7 +132,8 @@ PY
 
 | 功能 | 现状 | 对策 |
 |---|---|---|
-| node-add Variant 节点（含 MultiBranch） | 工具拒绝（Variant donor 未闭合） | 用户在编辑器加节点 → 快照差分闭合规则；**复制已闭合**（`node-copy` 可克隆现有实例） |
+| ~~node-add Variant 节点（含 MultiBranch）~~ | ✅ 已闭合（2026-08-12）：`node-add <generic> <concrete> <x> <y>` 显式 concrete（f2/f3=nodeRefWire 22000 双写，与真实样本逐字节同构）；无 concrete 的 Variant donor 仍 fail closed | 显式 concrete 用前先 `read --json` 确认 reflectMap 含之 |
+| 复合 impl 记录 id 查找 | ✅ 已闭合（2026-08-12）：`compositeImplGraphId` 读 def field4.sub4（defId≠implId，勿硬编码 +0x10000） | add-input/del-input/swap-input/add-inflow 均已用 |
 | 图变量定义（graph variables） | 注册已闭合（`graph-var-add`，Str 模板）；**使用**（Set/Get）已闭合（全变体 f3/indexOfConcrete 见 wire-rules；R<T> 固定值已闭合）；**跨图复制 f6 变量记录已验证**（turn-ctl：11 个 Ety/Bol 原样搬移，见 wire-rules） | 图变量跨图复制仍是临时脚本（f6 记录搬移，见 wire-rules）；节点跨图复制已正式化（`node-copy-from`） |
 | cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源；Q2 扩展 Str 条目） | 空列表无法克隆模板，fail closed |
 | 节点重编号 / 墓碑复用 | 部分闭合（composite ops 有） | 尽量不触发 |
@@ -161,8 +163,12 @@ PY
 ./node_modules/.bin/tsx tools/diff-gil-files.ts <before.gil> <after.gil>            # 全部图记录逐字节比对
 ./node_modules/.bin/tsx tools/diff-gil-files.ts <before.gil> <after.gil> --detail <gid>  # 对变化图追加节点级 diff
 ```
-输出：ADD/REMOVED/CHANGED + 每图 blob sha256 摘要；**期望 = 预期改动 + 其余记录逐字节相同**；
+输出：`graphs`（主图+impl 图 section 1/4）+ `composites`（CompositeDef section 2，2026-08-12 复盘补）
+两段 ADD/REMOVED/CHANGED + 每记录 blob sha256 摘要；**期望 = 预期改动 + 其余记录逐字节相同**；
 同 id 双记录（def+impl）按记录序号自动分开，不再误报。
+**stdout 是纯 JSON**：管道解析用 `2>/dev/null` 或 `NODE_OPTIONS=--no-deprecation` 前缀
+（tsx 的 DeprecationWarning 是**两行** stderr，`2>&1 | grep -v Deprecation` 只滤第一行，
+第二行 `(Use node --trace-deprecation ...)` 会破坏 JSON 解析——实测踩坑）。
 **2026-08-10 增强**：①`--detail` 参数值不再误报 Usage（原 bug：值不以 `--` 开头被拒）；②主图+impl 图（section 4）全量覆盖（原只比主图，复合 impl 变化漏检）。`compare-gil-node-graph` 同步支持 impl 图。
 
 ### 跨图复制整条链（node-copy-from 用法）
