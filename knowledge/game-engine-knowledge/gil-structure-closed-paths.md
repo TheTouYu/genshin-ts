@@ -25,3 +25,15 @@ root field 10 正式消息名未知；10.1 之外子容器未闭合；10.1.1 的
 mount-case1/2/3/4 真实相邻快照 + 用户游戏核验（2026-08-08）；attach/detach 输出与真实快照记录逐字节一致（tests/gil_graph_mounts.ts）；真实注入 entity 与 def 两路径 attach/detach 各一轮用户游戏核验全部通过，地图恢复原始 hash；未覆盖：挂载记录的完整 schema 之外字段、其他槽类型语义
 
 <!-- CLAIM:END clm_98EF365F97BE61A3874676F66A -->
+
+<!-- CLAIM:START clm_C9B4B93B4DBE45BABAE487EC44 -->
+
+### instance-side aux 的 f12={f1:宿主ID}（definition 与实体各持一套）
+
+root27.f2 instance-side aux 的 f12={f1:宿主ID}，宿主为 definition ID 或场景实体 ID；definition-side aux（root27.f1）无 f12。真实样本（1073741862 足球）：definition 与场景实体各持有 132 条 instance-side aux，除 f1/f502/f12 外逐字节一致；definition 记录本身不带 f5{t=40} 挂接槽。该结构是 assets:entities import 自动挂接（复制 definition 的 instance-side aux 到实体）的编码依据。
+
+#### 适用边界
+
+2026-08-10 前文档标记 INSUFFICIENT；现由 1073741862 真实地图解码 + 1073741878 游戏核验闭合；覆盖当前编辑器版本（v21 产物），不证明其他版本。
+
+<!-- CLAIM:END clm_C9B4B93B4DBE45BABAE487EC44 -->

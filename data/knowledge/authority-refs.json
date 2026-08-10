@@ -158,7 +158,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e4f7227394e2a598ae0018a9b421963ce53259432defc889a12649be2027fe",
+      "approved_hash": "fd6bd8c05e4df35a599b0c60eca69eede52fdb955602d55cc9ecf1c2f12311ca",
       "claim_ids": [
         "clm_23EAD146B7098B8A122AD6D73D"
       ],
@@ -194,6 +194,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_2625193826e5884b1af8bb8ee9",
+      "path": "src/cli/gil_entities.ts",
+      "locator": "attachDefinitionAuxes/writeEntityAuxIds/writeAuxOwner/carryAuxSlot",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "b7ee645d7fccdce634a9cdde928bc719659064820f4b0ad0434dbb240b014c9c",
+      "claim_ids": [
+        "clm_E4F7263D5D1B51415F6EA85DE1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -278,7 +293,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "6302d8dd9f362020f9bdff4b5683a3be047f281d3b8daf816ad5d4a1c7cbdc23",
+      "approved_hash": "388fb06a3773da24465bb9e85489f5e704f717240012e07bcf1ebc90ec4426e6",
       "claim_ids": [
         "clm_2CFB8DF7716132B41A820E8001"
       ],
@@ -428,7 +443,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "6c7c2cc710b599cdc20cbe4c82c11a7640636799fecdcbe2e249d3f048ede7b4",
+      "approved_hash": "19f3d05d1dedcf057d3fc6c1e4e28230d2ee4768b085e0dd95757c6eab5a03ee",
       "claim_ids": [
         "clm_2B593993003299201E6F576C7E"
       ],
@@ -623,7 +638,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_D43A6E214D6B1F20B8EF995757"
       ],
@@ -638,7 +653,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "b4aff8e2d97c1dba2a24ac5aa574ac388cef7f797c156aad203afb453a782fec",
+      "approved_hash": "5dd05573adc8bdb3ffea9ab78da90c0e29ca2e996d0bd059bac716c74ec9bbe1",
       "claim_ids": [
         "clm_EDCA91A83DB521C90679872ED1"
       ],
@@ -767,13 +782,28 @@
       ]
     },
     {
+      "id": "aref_6d7249dfea57c1621b0baa2470",
+      "path": "tests/gil_entities.ts",
+      "locator": "新建挂接/双向引用/更新幂等/无 aux 不挂 断言",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "2f163eca03af26974f2b896402d2e1bd1291bd01e88c1f700f10ec427baa6cd4",
+      "claim_ids": [
+        "clm_E4F7263D5D1B51415F6EA85DE1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_70fcc232631848d00f8f6fcf44",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "当前已闭合的有限字段树（root 10 复合容器 10.1/10.1.1/10.2/10.5.3）与注入器合并路径",
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_F008D0E6E613365A09C857B504"
       ],
@@ -803,7 +833,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "d53179074025096205184f4c1ae0afd3c289cef6bb2bebd2fb9add85de19046e",
+      "approved_hash": "65fc42d65d60e6c97eebf4c442cfd9c70046679c6631e6624e69a335cbd56a3a",
       "claim_ids": [
         "clm_2CFB8DF7716132B41A820E8001"
       ],
@@ -857,13 +887,28 @@
       ]
     },
     {
+      "id": "aref_7c7d90a9a70d67b456dd7a9212",
+      "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
+      "locator": "f12={f1:宿主ID} 行",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
+      "claim_ids": [
+        "clm_C9B4B93B4DBE45BABAE487EC44"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_7d75ec9b118c317a2ddda50b91",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "多轴欧拉角顺序已闭合（2026-08-08）段落",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_A1E15CA57DDF9464638BB97C44"
       ],
@@ -893,7 +938,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "039fd95592c5130e75903d0490a278729e8a5cfd9154b0e31fc5aa0f6414d195",
+      "approved_hash": "e6ca975f9cf1052e389599b89e248bf8289673e043c60df1630ed2b141dede1b",
       "claim_ids": [
         "clm_EDCA91A83DB521C90679872ED1"
       ],
@@ -998,7 +1043,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "7d8d7b589401bedf84a76447ad7f760e8819a55cd72b714923aebbb1ac86de11",
+      "approved_hash": "b9c6a62297fdb59ab21395f9eee3ada4594dbf9a9e9b38d04c464e3d6d3bd541",
       "claim_ids": [
         "clm_EDCA91A83DB521C90679872ED1"
       ],
@@ -1028,7 +1073,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_98EF365F97BE61A3874676F66A"
       ],
@@ -1058,7 +1103,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "ea680facd68f2893fe9c26df0628da633db0939a0121bcb7d3302c425979999c",
+      "approved_hash": "b5870458830e6bd7702f04e27caf262d993fca9c70c63498a99039b9d33dd0d0",
       "claim_ids": [
         "clm_F25959994F5CD6EEE49495F001"
       ],
@@ -1073,7 +1118,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_3319B38030FCF6DDD38C57147C"
       ],
@@ -1223,7 +1268,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "6302d8dd9f362020f9bdff4b5683a3be047f281d3b8daf816ad5d4a1c7cbdc23",
+      "approved_hash": "388fb06a3773da24465bb9e85489f5e704f717240012e07bcf1ebc90ec4426e6",
       "claim_ids": [
         "clm_4F59DF5C7CB9EEB3B39BDA8E0E"
       ],
@@ -1240,7 +1285,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_184E301A2C7323E818C606720A"
       ],
@@ -1285,7 +1330,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "6734645db2eb6f7a37fd3bfef827aa6a47951740aee780baa4ddf908f324388e",
+      "approved_hash": "c9e69de740925627ffbe2a9fd39a67e7ca03423cf3daa81915a16fb23496c48f",
       "claim_ids": [
         "clm_CFC2CA7A47D98ED4C1C40B081E"
       ],
@@ -1330,7 +1375,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "d53179074025096205184f4c1ae0afd3c289cef6bb2bebd2fb9add85de19046e",
+      "approved_hash": "65fc42d65d60e6c97eebf4c442cfd9c70046679c6631e6624e69a335cbd56a3a",
       "claim_ids": [
         "clm_C86C803AF4C0869C6B0936196D"
       ],
@@ -1360,7 +1405,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "ea680facd68f2893fe9c26df0628da633db0939a0121bcb7d3302c425979999c",
+      "approved_hash": "b5870458830e6bd7702f04e27caf262d993fca9c70c63498a99039b9d33dd0d0",
       "claim_ids": [
         "clm_880C4DB58E0AD04C130A856689"
       ],
@@ -1384,13 +1429,28 @@
       ]
     },
     {
+      "id": "aref_e700320e933663e456bd6315e5",
+      "path": ".agents/skills/static-gil-model-builder/references/production-workflow.md",
+      "locator": "§7 已修复：实体 import 后装饰物丢失（游戏核验通过）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7bc52fcf949fe971787eebc0066822a57302914bb029e975f84b977ce11465cc",
+      "claim_ids": [
+        "clm_E4F7263D5D1B51415F6EA85DE1"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_eaf5465fc887561cbd60f6ad64",
       "path": "src/cli/static_assembly/football_geometry.ts",
       "locator": "basisToEuler / EULER_ORDER='yxz'",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "7d8d7b589401bedf84a76447ad7f760e8819a55cd72b714923aebbb1ac86de11",
+      "approved_hash": "b9c6a62297fdb59ab21395f9eee3ada4594dbf9a9e9b38d04c464e3d6d3bd541",
       "claim_ids": [
         "clm_A1E15CA57DDF9464638BB97C44"
       ],
@@ -1405,7 +1465,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "96e96089693e5ca96be19091d436addc64cac33caafc284023beae4de082d08e",
+      "approved_hash": "59e825702c02905c5e7b49a8a19a83e6fcd5c7b76478bb415493a592d70b8ef4",
       "claim_ids": [
         "clm_D855DC6B45CDA71076665B0BFA"
       ],
@@ -1435,7 +1495,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "eb002accfab5f51b9f9d926e0e41adc18c52c738682ca18646df195ff5c01132",
+      "approved_hash": "e79eca81fe147eab78d4d4a65f2999867b5c7a32b59c4423e7a7d67c7f295472",
       "claim_ids": [
         "clm_1AD56D30A3A2DF6F08673BA49C"
       ],
@@ -1794,7 +1854,7 @@
       "locator": "tool selection and evidence limits",
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
-      "approved_hash": "69850b48451d9a62e60ee769fd676e0a7901de2eaaa2189fc2cea9d77069e2f0",
+      "approved_hash": "6f2d45fffd21776e67d9271aa19cbeb3149fe3c8048dd0748d144e15458ded86",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYH4ZJ0Q06EDE5T9ETYCAGK4"
@@ -2120,7 +2180,7 @@
       "locator": "StaticAssemblyConfig, parseArgs(), loadConfig(), backupPath(), runAssetsStaticAssemblies()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "7e233fd78c66c3015865bcf4cada0e75f14ac241ff19efe99cc00223bcf5db25",
+      "approved_hash": "96631b7ef7a6bfa4b97a2a567bcd95f0b7cdeaa815086e06049e9d575c78e5b0",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",
@@ -2153,7 +2213,7 @@
       "locator": "GstsStaticAssembly types, assemblyTransform(), setAuxiliary(), copyRegistry(), assertIdsFree(), applyStaticAssembly()",
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
-      "approved_hash": "d53179074025096205184f4c1ae0afd3c289cef6bb2bebd2fb9add85de19046e",
+      "approved_hash": "65fc42d65d60e6c97eebf4c442cfd9c70046679c6631e6624e69a335cbd56a3a",
       "change_policy": "review_on_change",
       "claim_ids": [
         "clm_01KYF24E5RX2APB1GZ2KZGYBFX",

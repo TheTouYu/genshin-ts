@@ -63,3 +63,15 @@ No claims are created by this Blueprint structure Bundle.
 结论来自地图 1073741862 的真实编辑器 v2→v3 单材质操作、全 root raw 比较和独立 Validator；确认宿主 definition/instance 同步、当前颜色值与引用 aux 不传播，不证明 aux 自身启用自定义颜色的 transition、所有材质族或跨版本行为。
 
 <!-- CLAIM:END clm_3319B38030FCF6DDD38C57147C -->
+
+<!-- CLAIM:START clm_E4F7263D5D1B51415F6EA85DE1 -->
+
+### 实体 import 自动挂接 definition 的 instance-side aux（场景实体装饰物修复）
+
+assets:entities import（applyEntities）从已有 definition 生成场景实体时，自动复制 definition 的 instance-side aux（root27.f2 中 f4{t=40}.f50.f502=definitionId 的记录）并重挂到实体：实体 f5{t=40}.f50.f501 写新 aux ID 列表；每条副本分配新 aux ID（root27 全部记录最大 ID+1 起递增），f502 与 f12{f1} 改为实体 ID，其余字段 byte-for-byte 保留；更新既有实体时保留旧 f5{t=40} 槽（覆盖 definition 自带空槽），重复 import 幂等。根因：definition 记录本身无 f5{t=40} 挂接槽，import 若不复制 root27 记录，实体只剩主体无装饰物（2026-08-09 四张评测图用户核验确认）。
+
+#### 适用边界
+
+覆盖 applyEntities 新建与更新路径；definition 无 instance-side aux（含官方直引无本地 definition）时为空操作；aux ID 分配仅保证 root27 内唯一；游戏渲染已核验（1073741878），但不覆盖其它编辑器版本的 aux 结构差异。
+
+<!-- CLAIM:END clm_E4F7263D5D1B51415F6EA85DE1 -->

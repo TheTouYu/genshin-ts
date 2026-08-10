@@ -1297,6 +1297,16 @@
       "fact_classes": [
         "external_game_evidence"
       ]
+    },
+    "clm_E4F7263D5D1B51415F6EA85DE1": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_C9B4B93B4DBE45BABAE487EC44": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
     }
   }
 }
