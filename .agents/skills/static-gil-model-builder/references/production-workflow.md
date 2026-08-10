@@ -194,6 +194,7 @@ node ./bin/gsts.mjs assets:entities patch <entityId> \
 | 报告能写什么结论？ | 可写“回读携带 aux + root diff 仅计划字段 + 游戏核验通过（1073741878 元件/实体双路径）” |
 | 实体 Transform 在哪确认？ | `assets:entities export`（场景层），不要从 definition 的 transform 推断 |
 | 实体换到 items 数不同的 def？ | import 只改 def 引用、**保留旧 aux**；先 detach 全部旧 aux 再 import（见 §7） |
+| 新 prefab 只在候选、未写回，怎么生成实体候选？ | `--gil <prefab候选.gil>` 作为源 import；`--definitions-gil` 只补 root 4，缺 root 27 克隆记录 → 不完整候选（见上） |
 
 生成候选：
 
@@ -207,6 +208,19 @@ node ./bin/gsts.mjs assets:entities import \
 ```
 
 `sourceDefinitionId` 可选择不同的转换来源；`--definitions-gil <donor.gil>` 只把 donor definition 补进**转换时的只读模板集合**，不会把 donor 的 root 4 definition 或 root 27 aux 闭包写进目标。目标缺少复杂模型闭包时不要靠它跨地图搬运。
+
+**prefab 只在离线候选、尚未写回时，用 `--gil <prefab-candidate.gil>` 作为 import 源（2026-08-11 V5 实测）**：
+
+```bash
+node ./bin/gsts.mjs assets:entities import \
+  --gil <prefab-candidate.gil> \
+  --entities <entities.json> \
+  --output <evidence>/entity-import.candidate.gil
+```
+
+源 GIL 同时提供 root 4 definition 和 root 27 instance-side aux donor，import 自动把 instance-side aux 克隆一套挂到实体（f502/f12 改为实体 ID），实体候选自带克隆记录——等价"先写回 prefab 再 import"两段流程的离线版（等角螺线 V4/V5 即用此法，克隆 aux 数 = 新 prefab items 数）。
+
+**反例（勿再踩）**：`--map-id` + `--definitions-gil <candidate.gil>` 只补 root 4 definition，**不补 root 27**——import 能成功、实体 `auxIds` 也会写入（来自 definition 的 aux 槽），但实体候选里**没有 root-27 克隆记录**，是不完整候选。识别方法：候选 `inspect` 中 aux ID 出现次数为 1（仅实体 ID 列表；完整候选为 2 = ID 列表 + root27 记录），或 root diff 无 root 27 新增。V5 首版产物已存档 `entity-candidate-v5-incomplete.gil` 作对照。
 
 实体候选至少回读：
 
@@ -326,7 +340,15 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
   --output <evidence>/root-wire-diff.json
 ```
 
-新建自定义元件通常只改变 root `4/6/8/27`。出现 root 之外的未知变化时停止解释。
+新建自定义元件通常只改变 root `4/6/8/27`（prefab 步：root 4 +1 def / 6 ±1 登记 / 8 +1 inst / 27 +2×items aux；entity 步：root 5 +1 / 6 ±1 / 27 +items 克隆）。出现 root 之外的未知变化时停止解释。
+
+diff 输出很啰嗦，用本 skill 附带的摘要脚本代替手写解析（V4/V5 实测，曾各花 7+/4+ 次解析调用）：
+
+```bash
+python3 .agents/skills/static-gil-model-builder/references/root-diff-summary.py <root-wire-diff.json> [--detail]
+```
+
+只核对 root 级别 added/removed 计数与 rootPresenceStable；**不要逐字节解释 root 6 内部记录**（±1 是登记组记录重写，V4 曾为此考古 16 个调用）。
 
 不要用 `inspect-gil-prefab-material.py` 验证新增 prefab；它要求 before 已存在目标 definition/instance，失败是工具范围不匹配，不是候选证明。
 
