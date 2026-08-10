@@ -35,7 +35,7 @@ npx tsx src/cli/gsts.ts assets:node-graphs create --gil <map.gil> --name <图名
 npx tsx src/cli/gsts.ts assets:mounts attach <entity-id> --gil <map.gil> --graph <gid> --output <候选.gil>  # 挂载到场景实体（默认）或 --def 元件定义
 npx tsx src/cli/gsts.ts assets:mounts list [<target-id>] --gil <map.gil>                 # 挂载全景 / 某目标的挂载列表
 
-# 改（默认 preview 不落盘；--output 写候选；--write 备份+写回真实）
+# 改（默认 preview 不落盘；--output 写候选；--write 备份+写回真实；**impl 图（复合实例体，16107xxxxx）可直接 patch**，2026-08-10 魔方 Bind 复合实战验证）
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <ops...> --output <候选.gil>
 # 跨图复制（把另一张图/另一文件的节点链搬过来）：
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <候选.gil> --src-gil <源图.gil> --graph <目标图> \
@@ -73,7 +73,7 @@ PY
 | op | 语法 | 说明 |
 |---|---|---|
 | 位置 | `node <idx> pos <x> <y>` | 设节点坐标 |
-| 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（Int:1 Flt:1.5 Str:abc Bol:true Vec:1,2,3 Gid:1 Pfb:1 Cfg:1；类型前缀大小写敏感；**R<T> pin 自动 ConcreteBase 包装**） |
+| 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（Int:1 Flt:1.5 Str:abc Bol:true Vec:1,2,3 Gid:1 Pfb:1 Cfg:1 **EnumItem:1101**；类型前缀大小写敏感；**R<T> pin 自动 ConcreteBase 包装**）。EnumItem 编码=bEnum{1:枚举数值}（2026-08-10 真实快照闭合：Bind 复合 668 InParam[5]/[6]） |
 | cases 列表 | `node <idx> cases <v1,v2,...>` | 全量替换 MultiBranch cases（Int/Str 均可；需已有非空列表作模板） |
 | 数据连线 | `node <idx> link <shell> <src-idx> [src-shell]` | 目标 InParam ← 源节点输出 |
 | 断数据线 | `node <idx> unlink <shell>` | Fixed 删 pin / Variant 清 connects |
@@ -131,6 +131,7 @@ PY
 | cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源；Q2 扩展 Str 条目） | 空列表无法克隆模板，fail closed |
 | 节点重编号 / 墓碑复用 | 部分闭合（composite ops 有） | 尽量不触发 |
 | 复合实例的节点增删 | 未闭合 | 用户编辑器最小变化 |
+| ~~impl 图（section 4）patch~~ | ✅ 已闭合（2026-08-10）：`--graph <impl 图 id>` 自动探测 section 4，node pos/param/link/flow 等 op 可用（Bind 复合 668 EnumItem 实战） | 仅节点级 op；node-add/node-del 等结构性 op 未验证 |
 
 ## 布局规范（新建/复制节点必读；用户验收项，2026-08-09 turn-ctl 复盘）
 
@@ -151,6 +152,7 @@ PY
 ```
 输出：ADD/REMOVED/CHANGED + 每图 blob sha256 摘要；**期望 = 预期改动 + 其余记录逐字节相同**；
 同 id 双记录（def+impl）按记录序号自动分开，不再误报。
+**2026-08-10 增强**：①`--detail` 参数值不再误报 Usage（原 bug：值不以 `--` 开头被拒）；②主图+impl 图（section 4）全量覆盖（原只比主图，复合 impl 变化漏检）。`compare-gil-node-graph` 同步支持 impl 图。
 
 ### 跨图复制整条链（node-copy-from 用法）
 

@@ -66,10 +66,10 @@ function topFields(buf: Uint8Array): { field: number; wire: number; data: Uint8A
 
 function readNodeGraph(gilPath: string, graphId: number): { graph: NodeGraph; wirePinCounts: Map<number, number> } {
   const { payload, fields } = readGilPayloadFields(gilPath)
-  const blobs: LenField[] = []
-  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields, {
-    nodeGraphBlobFields: blobs
-  })
+  // 主图(section 1) + 复合 impl 图(section 4)（2026-08-10：原来只收 section 1，impl 图无法 diff）
+  const blobs = fields.filter(
+    (f) => f.depth === 3 && f.p0 === 10 && (f.p1 === 1 || f.p1 === 4) && f.p2 === 1
+  )
   const { nodeGraphMessage } = loadGiaProto()
   for (const field of blobs) {
     const graph = nodeGraphMessage.decode(

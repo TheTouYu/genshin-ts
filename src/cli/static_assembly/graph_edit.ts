@@ -77,6 +77,7 @@ const INPUT_TYPE: Record<string, number> = {
   Vec: 12,
   'L<Ety>': 13,
   'L<Vec>': 15,
+  EnumItem: 14,
   Fct: 17,
   Cfg: 20,
   Pfb: 21,
@@ -182,6 +183,12 @@ export function buildVarValue(type: number, value: string | number): Uint8Array 
         value: value === 1 || String(value) === 'true'
           ? sub([{ number: 1, wire: 0, value: 1 }])
           : new Uint8Array()
+      })
+    case 14: // EnumItem：bEnum{1: 枚举数值}（真实快照：Bind 复合 668 InParam[5]/[6]，2026-08-10 闭合）
+      return varBase(6, 14, {
+        number: 106,
+        wire: 2,
+        value: sub([{ number: 1, wire: 0, value: Number(value) }])
       })
     case 12: {
       // Vector：bVector{1: Vec{1:x, 2:y, 3:z}}，float32
@@ -1532,9 +1539,10 @@ export function patchGraphNode(
   bytes: Uint8Array,
   graphId: number,
   nodeIndex: number,
-  mutate: (node: Uint8Array) => Uint8Array
+  mutate: (node: Uint8Array) => Uint8Array,
+  section: 1 | 4 = 1
 ): Uint8Array {
-  return patchRecord(bytes, 1, graphId, (blob) => {
+  return patchRecord(bytes, section, graphId, (blob) => {
     const fields = parseWireMessage(blob)
     if (!fields) throw new Error('[error] graph blob unparseable')
     let done = false

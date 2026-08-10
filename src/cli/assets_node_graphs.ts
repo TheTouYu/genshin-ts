@@ -577,6 +577,7 @@ function instanceMeta(bytes: Uint8Array, node: Uint8Array, shell: number, kind: 
 function applyOps(
   bytes: Uint8Array,
   graphId: number,
+  section: 1 | 4,
   ops: string[],
   tombstoned: Set<number>,
   src?: { payload: Uint8Array }
@@ -640,7 +641,7 @@ function applyOps(
         current = patchRecord(current, 2, defId, (b) => addParamFlow(b, 3, shell, name, varType))
         current = patchRecord(current, 4, defId, (b) => addCompositePin(b, 3, shell, innerNode, innerShell))
         if (newIndex !== undefined) {
-          current = patchRecord(current, 1, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
+          current = patchRecord(current, section, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
         }
         summary.push(`composite ${defId} add-input[${shell}] ${name} ${typeName} inner=n${innerNode}[${innerShell}]（实例 n${oldIndex}${newIndex !== undefined ? `→n${newIndex}` : ' 原位'}）`)
         i += 8
@@ -658,8 +659,8 @@ function applyOps(
         const newIndex = chooseMovedIndex(graphBlob(current, graphId), oldIndex)
         current = patchRecord(current, 2, defId, (b) => delParamFlow(b, 3, shell))
         current = patchRecord(current, 4, defId, (b) => delCompositePin(b, 3, shell))
-        current = patchGraphNode(current, graphId, oldIndex, (n) => delInstanceCompositePin(n, 3, shell, target.pinIndex!))
-        current = patchRecord(current, 1, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
+        current = patchGraphNode(current, graphId, oldIndex, (n) => delInstanceCompositePin(n, 3, shell, target.pinIndex!), section)
+        current = patchRecord(current, section, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
         summary.push(`composite ${defId} del-input[${shell}]（实例 n${oldIndex}→n${newIndex}；跨轮墓碑无会话史可能低于编辑器）`)
         i += 4
         continue
@@ -674,8 +675,8 @@ function applyOps(
         const newIndex = chooseMovedIndex(graphBlob(current, graphId), oldIndex)
         current = patchRecord(current, 2, defId, (bl) => swapParamFlows(bl, 3, a, b))
         current = patchRecord(current, 4, defId, (bl) => swapCompositePinInners(bl, 3, a, b))
-        current = patchGraphNode(current, graphId, oldIndex, (n) => swapInstancePins(n, 3, a, b))
-        current = patchRecord(current, 1, graphId, (bl) => renumberGraphNode(bl, oldIndex, newIndex))
+        current = patchGraphNode(current, graphId, oldIndex, (n) => swapInstancePins(n, 3, a, b), section)
+        current = patchRecord(current, section, graphId, (bl) => renumberGraphNode(bl, oldIndex, newIndex))
         summary.push(`composite ${defId} swap-input ${a}↔${b}（实例 n${oldIndex}→n${newIndex}；跨轮墓碑无会话史可能低于编辑器）`)
         i += 5
         continue
@@ -688,7 +689,7 @@ function applyOps(
       const y = Number(ops[i + 3])
       if (![genericId, x, y].every(Number.isFinite))
         throw new Error('[error] node-add needs <generic-id> <x> <y>')
-      current = patchRecord(current, 1, graphId, (blob) => addGraphNode(blob, genericId, x, y, tombstoned))
+      current = patchRecord(current, section, graphId, (blob) => addGraphNode(blob, genericId, x, y, tombstoned))
       summary.push(`add node generic=${genericId} pos=(${x},${y})`)
       i += 4
       continue
@@ -698,7 +699,7 @@ function applyOps(
       const x = Number(ops[i + 2])
       const y = Number(ops[i + 3])
       if (![src, x, y].every(Number.isFinite)) throw new Error('[error] node-copy needs <src-idx> <x> <y>')
-      current = patchRecord(current, 1, graphId, (blob) => copyGraphNode(blob, src, x, y, tombstoned))
+      current = patchRecord(current, section, graphId, (blob) => copyGraphNode(blob, src, x, y, tombstoned))
       summary.push(`copy node ${src} pos=(${x},${y})`)
       i += 4
       continue
@@ -713,7 +714,7 @@ function applyOps(
         throw new Error('[error] node-copy-from needs <src-gid> <idx1,idx2,...> <x> <y>')
       const srcField = locateBlobField(src.payload, 1, srcGid)
       const srcBlob = src.payload.subarray(srcField.dataStart, srcField.dataEnd)
-      current = patchRecord(current, 1, graphId, (blob) =>
+      current = patchRecord(current, section, graphId, (blob) =>
         copyGraphNodesFromBlob(blob, srcBlob, idxList, x, y)
       )
       summary.push(`copy ${idxList.length} nodes from graph ${srcGid} at (${x},${y})`)
@@ -724,13 +725,13 @@ function applyOps(
       const target = Number(ops[i + 1])
       if (!Number.isFinite(target)) throw new Error('[error] node-del needs <idx>')
       tombstoned.add(target)
-      current = patchRecord(current, 1, graphId, (blob) => delGraphNode(blob, target))
+      current = patchRecord(current, section, graphId, (blob) => delGraphNode(blob, target))
       summary.push(`del node ${target}`)
       i += 2
       continue
     }
     if (op === 'graph-clear') {
-      current = patchRecord(current, 1, graphId, (blob) => clearGraphNodes(blob))
+      current = patchRecord(current, section, graphId, (blob) => clearGraphNodes(blob))
       summary.push('clear all nodes (graph record/variables/mount kept)')
       i += 1
       continue
@@ -741,7 +742,7 @@ function applyOps(
       if (name === undefined || type === undefined) throw new Error('[error] graph-var-add needs <name> <type>')
       const t = Number(type)
       if (Number.isNaN(t)) throw new Error('[error] graph-var-add type must be numeric (6=Str)')
-      current = patchRecord(current, 1, graphId, (blob) => addGraphVariable(blob, name, t))
+      current = patchRecord(current, section, graphId, (blob) => addGraphVariable(blob, name, t))
       summary.push(`graph-var-add ${name} type=${t}`)
       i += 3
       continue
@@ -754,14 +755,14 @@ function applyOps(
       current = patchGraphNode(current, graphId, nodeIndex, (n) => {
         const meta = instanceMeta(before, n, Number(ops[i + 3]), 3)
         return mutate(n, meta)
-      })
+      }, section)
       summary.push(`node ${nodeIndex} ${label}`)
     }
     if (action === 'pos') {
       const x = Number(ops[i + 3])
       const y = Number(ops[i + 4])
       if (Number.isNaN(x) || Number.isNaN(y)) throw new Error('[error] pos needs <x> <y>')
-      current = patchGraphNode(current, graphId, nodeIndex, (n) => setNodePos(n, x, y))
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => setNodePos(n, x, y), section)
       summary.push(`node ${nodeIndex} pos (${x},${y})`)
       i += 5
     } else if (action === 'cases') {
@@ -771,7 +772,7 @@ function applyOps(
       const values: Array<string | number> = raw.every((v) => /^-?\d+$/.test(v))
         ? raw.map(Number)
         : raw
-      current = patchGraphNode(current, graphId, nodeIndex, (n) => setCasesList(n, values))
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => setCasesList(n, values), section)
       summary.push(`node ${nodeIndex} cases=[${values.join(',')}]`)
       i += 4
     } else if (action === 'param') {
@@ -810,12 +811,12 @@ function applyOps(
           throw new Error(`[error] 无法确定 node ${nodeIndex} InParam[${shell}] 的类型（定义缺失），link 需要目标 pin 类型`)
         }
         return linkInParam(n, shell, srcNode, srcShell, type, pinIndex)
-      })
+      }, section)
       summary.push(`node ${nodeIndex} link[${shell}] ← n${srcNode}[${srcShell}] type=${type}`)
       i += srcShell !== 0 ? 6 : 5
     } else if (action === 'unlink') {
       const shell = Number(ops[i + 3])
-      current = patchGraphNode(current, graphId, nodeIndex, (n) => unlinkInParam(n, shell))
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => unlinkInParam(n, shell), section)
       summary.push(`node ${nodeIndex} unlink[${shell}]`)
       i += 4
     } else if (action === 'flow') {
@@ -828,14 +829,14 @@ function applyOps(
         const meta = instanceMeta(current, n, shell, 2)
         pinIndex = meta?.pinIndex
         return addOutFlow(n, shell, dstNode, dstShell, pinIndex)
-      })
+      }, section)
       summary.push(`node ${nodeIndex} flow[${shell}] → n${dstNode}[${dstShell}]`)
       i += dstShell !== 0 ? 6 : 5
     } else if (action === 'flow-rm') {
       const shell = Number(ops[i + 3])
       const targetNode = Number(ops[i + 4])
       if (!Number.isFinite(targetNode)) throw new Error('[error] flow-rm needs target node: node <idx> flow-rm <shell> <target>')
-      current = patchGraphNode(current, graphId, nodeIndex, (n) => removeOutFlow(n, shell, targetNode))
+      current = patchGraphNode(current, graphId, nodeIndex, (n) => removeOutFlow(n, shell, targetNode), section)
       summary.push(`node ${nodeIndex} flow-rm[${shell}] → n${targetNode}`)
       i += 5
     } else {
@@ -861,8 +862,18 @@ function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
     hasNodeOps || hasComposite
       ? resolveGraphId(bytes, args.graph ?? String(listGraphs(bytes)[0]?.id ?? ''))
       : 0
+  // impl 图（复合实例体）patch：resolveGraphId 只认主图，这里探测 section 4 回退
+  let section: 1 | 4 = 1
+  if (hasNodeOps && graphId !== 0) {
+    try {
+      locateBlobField(bytes.slice(20, -4), 1, graphId)
+    } catch {
+      locateBlobField(bytes.slice(20, -4), 4, graphId)
+      section = 4
+    }
+  }
   const tombstoned = new Set<number>()
-  const result = applyOps(bytes, graphId, args.ops, tombstoned, args.srcGil ? { payload: new Uint8Array(fs.readFileSync(args.srcGil)).slice(20, -4) } : undefined)
+  const result = applyOps(bytes, graphId, section, args.ops, tombstoned, args.srcGil ? { payload: new Uint8Array(fs.readFileSync(args.srcGil)).slice(20, -4) } : undefined)
   const candidateSha = sha256Bytes(result)
   if (args.write) {
     const nowSha = sha256Bytes(new Uint8Array(fs.readFileSync(gil)))

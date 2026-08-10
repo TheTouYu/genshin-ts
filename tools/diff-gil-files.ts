@@ -27,8 +27,12 @@ type GraphSummary = {
 
 function listGraphs(gilPath: string): GraphSummary[] {
   const { payload } = readGilPayloadFields(gilPath)
-  const nodeGraphBlobFields: LenField[] = []
-  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, [], { nodeGraphBlobFields })
+  const fields: LenField[] = []
+  parseMessage(payload, 0, payload.length, 0, 0, 0, 0, 0, 0, 0, fields)
+  // 主图(section 1) + 复合 impl 图(section 4)（2026-08-10：原来只收 section 1，impl 图变化漏检）
+  const nodeGraphBlobFields = fields.filter(
+    (f) => f.depth === 3 && f.p0 === 10 && (f.p1 === 1 || f.p1 === 4) && f.p2 === 1
+  )
   const { nodeGraphMessage } = loadGiaProto()
   return nodeGraphBlobFields.map((field, seq) => {
     const blob = payload.subarray(field.dataStart, field.dataEnd)
@@ -57,9 +61,12 @@ function usage(): never {
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [beforePath, afterPath, ...flags] = process.argv.slice(2)
-  if (!beforePath || !afterPath || flags.some((f) => !f.startsWith('--'))) usage()
-  const detailId = Number(flags[flags.indexOf('--detail') + 1] ?? NaN)
-  if (flags.includes('--detail') && !Number.isFinite(detailId)) usage()
+  const detailIdx = flags.indexOf('--detail')
+  if (!beforePath || !afterPath) usage()
+  // 只允许 --detail <id> / --full；--detail 的值是裸数字，不算非法 flag
+  if (flags.some((f, i) => !f.startsWith('--') && i !== detailIdx + 1)) usage()
+  const detailId = Number(detailIdx >= 0 ? (flags[detailIdx + 1] ?? NaN) : NaN)
+  if (detailIdx >= 0 && !Number.isFinite(detailId)) usage()
   const full = flags.includes('--full')
 
   const beforeBytes = readFileSync(beforePath)
