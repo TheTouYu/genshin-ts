@@ -193,6 +193,7 @@ node ./bin/gsts.mjs assets:entities patch <entityId> \
 | 游戏/编辑器渲染是否一定显示装饰物？ | 已修复并游戏核验（2026-08-10，见 §7）：import 自动复制 definition 的 instance-side aux 并双向挂接，实体装饰物完整显示且随实体缩放 |
 | 报告能写什么结论？ | 可写“回读携带 aux + root diff 仅计划字段 + 游戏核验通过（1073741878 元件/实体双路径）” |
 | 实体 Transform 在哪确认？ | `assets:entities export`（场景层），不要从 definition 的 transform 推断 |
+| 实体换到 items 数不同的 def？ | import 只改 def 引用、**保留旧 aux**；先 detach 全部旧 aux 再 import（见 §7） |
 
 生成候选：
 
@@ -343,6 +344,38 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 - 单测（`tests/gil_entities.ts`）：新建挂接/双向引用/更新幂等/无 aux 不挂——通过；
 - 候选验证（1073741862 /tmp 副本）：root diff 仅 root 5（+1 实体）/root 6（+1 组条目）/root 27（+132 aux），其余 root 逐字节不变；132 条 clone 与 donor 除 f1/f502/f12 外逐字段一致——通过；
 - **游戏核验（1073741878「装饰物元件测试」，2026-08-10 用户确认）**：新建元件（4 个装饰物：红主体/绿半透明五棱柱 Y90°/蓝三棱柱 Y-45°/黄薄片）+ import 实体整体 scale 2 倍——用户核验通过，实体装饰物完整显示、随实体缩放。元件与实体两条路径均验证。
+
+### 已有地图增量添加新 prefab（2026-08-10 球门+足球地图实测）
+
+`assets:static-assemblies` 不能更新已存在的 prefab 闭包：同 `prefabId` 会冲突，反复恢复骨架重建效率低且丢失用户编辑器改动。向已有地图**增量添加**新资产时：
+
+1. 用**新 prefabId + 新 aux 区间**（def/inst 各一组、数量 = 新 items 数），不触碰既有闭包的 ID；
+2. config 只含新 assembly；`plan` 基于当前地图（含既有闭包），`status=ready` 即表示无 ID 冲突；
+3. 候选 = 完整地图 + 新闭包：回读确认**既有 def/inst 完整保留**、新 def/inst 各唯一一条；
+4. 场景实体用 `assets:entities import`（def 引用新 prefabId）追加，既有实体不动；
+5. 若用户已打开过编辑器保存，源 SHA 会变化——写回前以 `plan`/`sha256sum` 最新值为准，勿用旧 SHA 硬写。
+
+### 实体换 def（换版本）时实体侧 aux 必须重建（2026-08-10 实测）
+
+实体从旧 def 切换到 items 数不同的新 def（如足球 132 → 224）时，**`import` 更新既有实体只改 def 引用、保留旧挂接槽**（`carryAuxSlot` 设计：`if (!existing || readEntityAuxIds(existing).length === 0)` 才自动克隆新 def 的 instance-side aux）。后果：实体 `auxIds` 数量仍是旧 def 的 items 数，游戏显示旧装饰物残留/不完整。
+
+**修复路径（一次性 tsx 脚本，勿循环 264 次 CLI）**：
+
+1. 读当前地图 bytes；
+2. 对目标实体 `exportEntities` 取 `auxIds`，逐个 `detachAux(bytes, entityId, auxId)`（`src/cli/static_assembly/patch.ts` 导出）；
+3. 再调 `applyEntities({ bytes, definitions: wireRecords(parseWireMessage(bytes.slice(20,-4)), 4, 1), entities })`（此时实体无挂接 → 自动克隆新 def 的 instance-side aux、重挂 f502=f12=实体 ID）；
+4. 写候选 → `assets:entities apply-candidate --expect-source-hash` 写回；
+5. 回读断言：实体 `auxIds` 数量 = 新 def items 数，且 ID 落在 root27 新分配区间。
+
+### 复用已验收资产：从真实地图导出闭包重建（2026-08-10 版本追溯教训）
+
+structure 文件名（`prism-shell-v2`/`upgrade4`）不代表验收级；用户说“版本不对”时不要按 evidence 文件名猜，直接读用户核验过的真实地图：
+
+```bash
+node ./bin/gsts.mjs assets:static-assemblies export --map-id <核验过的mapId> --format json
+```
+
+取目标 assembly 的 `items[]`（含 resourceId/position/rotation/scale/color 全字段）写成 `structure.json`，即可在新地图重建同款闭包。这是“复用已验收资产”的可靠路径：几何、颜色、缩放逐字节来自真实闭包，不经过二次推导。
 
 ### 官方模板逐 item 颜色能力
 

@@ -273,6 +273,9 @@ PKC 只从已提交 Authority 创建 knowledge-plan；工作树结论保持 pend
 - **ID 复用陷阱**：删除过的地图 ID 被 maps:create 复用后，编辑器仍看不到（列表来自 Temp gip 不是目录扫描），且编辑器新建地图取 Temp gip max+1 可能覆盖未注册的同 ID .gil——所以新地图创建后必须确认 `temp-sync` 日志出现。
 - **生成器自检纪律**（R6.1 trace 11 次失败全在自检迭代）：断言数字必须从参数表（EDGE/GAP/块数/颜色数）推导，禁止手写魔数；颜色数断言按实现实际颜色（魔方 7 色含深灰体，断言 ≥5）；一次跑完所有断言再报（勿 fail-fast 一次一个）；readback 断言按 scale 白名单排除参照块（1×1×1 尺寸参照、0.5 块等）；生成器先本地 python 自检再进 CLI。详见 [字母专业建模指南](references/letter-font-guide.md) 自检纪律节。
 - 截图发现方向错误时，先修资源局部基或校准结论，不在每个面上散落补偿角。
+- **向已有地图增量添加新资产**：`assets:static-assemblies` 不能更新已存在 prefabId 的闭包，用**新 prefabId + 新 aux 区间**增量添加（候选基于当前地图只加新闭包，既有闭包完整保留）；用户打开编辑器保存后源 SHA 会变，写回前重取。
+- **实体换 def（换版本）保留旧 aux**（2026-08-10 实测）：`assets:entities import` 更新既有实体只改 def 引用、保留旧挂接槽；新 def items 数与旧实体 auxIds 不一致时游戏显示旧装饰物残留。修复：一次性 tsx 脚本 detach 全部旧 aux 后重新 applyEntities（自动克隆新 def 的 instance-side aux），回读断言 auxIds 数 = 新 def items 数。详见 production-workflow §7。
+- **验收版本以真实地图闭包为准**：structure 文件名（v2/upgrade4）不代表验收级；复用已验收资产用 `assets:static-assemblies export --map-id <核验过的地图>` 导出 items 写成 structure.json 重建，不按 evidence 文件名猜版本。
 - 用户反馈仍有缝时，保留成功候选和反馈证据，进入单变量精确数据调查，不把“整体满意”写成几何完全通过。
 
 ## 每轮报告
