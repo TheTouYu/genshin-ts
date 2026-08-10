@@ -190,8 +190,8 @@ node ./bin/gsts.mjs assets:entities patch <entityId> \
 | 问题 | 答案 |
 |---|---|
 | import 后实体回读是否携带 aux/装饰物引用？ | 是：`assets:entities export` 回读可见 auxIds（wire 层携带） |
-| 游戏/编辑器渲染是否一定显示装饰物？ | 不一定：已知 Bug（见 §7）——游戏内场景实体装饰物可能丢失，根因未定位 |
-| 报告能写什么结论？ | 只能写“回读携带 aux”；不能写“渲染正常”或“装饰物随实体显示” |
+| 游戏/编辑器渲染是否一定显示装饰物？ | 已修复并游戏核验（2026-08-10，见 §7）：import 自动复制 definition 的 instance-side aux 并双向挂接，实体装饰物完整显示且随实体缩放 |
+| 报告能写什么结论？ | 可写“回读携带 aux + root diff 仅计划字段 + 游戏核验通过（1073741878 元件/实体双路径）” |
 | 实体 Transform 在哪确认？ | `assets:entities export`（场景层），不要从 definition 的 transform 推断 |
 
 生成候选：
@@ -331,9 +331,18 @@ python .agents/skills/editor-incremental-gia-investigator/scripts/compare-gil-ro
 
 ## 7. 当前实现限制
 
-### 已知 Bug：实体 import 后装饰物丢失（待修，2026-08-09 第四轮用户核验）
+### 已修复：实体 import 后装饰物丢失（2026-08-10 修复，游戏核验通过）
 
-`assets:entities import` 从已有 definition 生成场景实体时，**带装饰物的元件在场景实体上装饰物丢失**：元件库里的原件（prefab）正常，但实体引用进场景后只剩主体无装饰物。四张评测图全部命中，用户核验确认。根因未定位，后续安排时间处理；处理前不要把“实体 import 写回成功”当“实体显示正常”，报告需额外标注该限制。
+`assets:entities import` 从已有 definition 生成场景实体时，**带装饰物的元件在场景实体上装饰物丢失**：元件库里的原件（prefab）正常，但实体引用进场景后只剩主体无装饰物。四张评测图全部命中（2026-08-09 用户核验确认）。
+
+**根因（2026-08-10 闭合）**：import 只写 root 5 实体记录 + root 6 登记，从不复制装饰物。真实样本（1073741862 足球）显示 definition 与实体**各有一套** instance-side aux（root27.f2，f502 owner=宿主）：definition 有 132 条、实体有 132 条，除 f1/f502/f12 外逐字节一致；而 definition 记录本身不带 f5{t=40} 挂接槽（挂接只存在于 root27），因此 import 生成的实体既无 f501 列表也无 27.2 aux 记录。
+
+**修复**：`applyEntities` 生成实体时自动复制 definition 的 instance-side aux（root27.f2 中 f502=definitionId 的记录）并重挂：新 aux ID（root27 最大 ID+1 起）、f502/f12{f1} 改为实体 ID、实体 f5{t=40}.f50.f501 写新 aux ID 列表；更新既有实体时保留旧挂接槽（覆盖 definition 自带空 t=40 槽），重复 import 幂等。
+
+**证据分层（2026-08-10 全部通过）**：
+- 单测（`tests/gil_entities.ts`）：新建挂接/双向引用/更新幂等/无 aux 不挂——通过；
+- 候选验证（1073741862 /tmp 副本）：root diff 仅 root 5（+1 实体）/root 6（+1 组条目）/root 27（+132 aux），其余 root 逐字节不变；132 条 clone 与 donor 除 f1/f502/f12 外逐字段一致——通过；
+- **游戏核验（1073741878「装饰物元件测试」，2026-08-10 用户确认）**：新建元件（4 个装饰物：红主体/绿半透明五棱柱 Y90°/蓝三棱柱 Y-45°/黄薄片）+ import 实体整体 scale 2 倍——用户核验通过，实体装饰物完整显示、随实体缩放。元件与实体两条路径均验证。
 
 ### 官方模板逐 item 颜色能力
 

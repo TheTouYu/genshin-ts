@@ -8,9 +8,10 @@ import { runAssetsEntities } from '../src/cli/assets_entities.js'
 import {
   applyEntities,
   entityFromDefinition,
-  exportEntities
+  exportEntities,
+  readEntityAuxIds
 } from '../src/cli/gil_entities.js'
-import { emitWireMessage as emit, parseWireMessage } from '../src/cli/static_assembly/wire.js'
+import { emitWireMessage as emit, parseWireMessage, wireMessage } from '../src/cli/static_assembly/wire.js'
 import { buildFile } from '../src/injector/binary.js'
 
 // 空地图骨架没有 root 5；实体导出应返回空列表而不是把缺失容器当作损坏。
@@ -367,6 +368,130 @@ await assert.rejects(
     sourceHash
   ]),
   /ENOENT/i
+)
+
+// ---- import 自动挂接 definition 的 instance-side aux（2026-08-10 修复）----
+// 真实样本（1073741862 足球）：实体与 definition 各有 132 条 instance-side
+// aux（root27.f2），除 f1/f502/f12 外逐字节一致；import 生成的实体必须复制
+// 一套挂接，否则场景实体只剩主体无装饰物（production-workflow §7 已知 Bug）。
+const auxDefId = 1077936200
+const auxEntityId = 1077936201
+const donorAuxId = 1073741825 // 0x40000001 起独立 ID 空间
+const auxDefinition = replaceVarint(definition, 1, auxDefId)
+const donorAux = emit([
+  { number: 1, wire: 0, value: donorAuxId },
+  { number: 2, wire: 0, value: 10009001 },
+  {
+    number: 4,
+    wire: 2,
+    value: emit([
+      { number: 1, wire: 0, value: 1 },
+      { number: 11, wire: 2, value: emit([text(1, '贴片')]) }
+    ])
+  },
+  {
+    number: 4,
+    wire: 2,
+    value: emit([
+      { number: 1, wire: 0, value: 40 },
+      { number: 50, wire: 2, value: emit([{ number: 502, wire: 0, value: auxDefId }]) }
+    ])
+  },
+  {
+    number: 5,
+    wire: 2,
+    value: emit([
+      { number: 1, wire: 0, value: 1 },
+      { number: 11, wire: 2, value: new Uint8Array(0) }
+    ])
+  },
+  { number: 12, wire: 2, value: emit([{ number: 1, wire: 0, value: auxDefId }]) }
+])
+const miniWithAux = buildFile(
+  emit([
+    { number: 4, wire: 2, value: emit([{ number: 1, wire: 2, value: auxDefinition }]) },
+    { number: 5, wire: 2, value: emit([]) },
+    {
+      number: 6,
+      wire: 2,
+      value: emit([
+        {
+          number: 1,
+          wire: 2,
+          value: emit([
+            { number: 1, wire: 0, value: 3 },
+            { number: 2, wire: 2, value: new Uint8Array(8) },
+            {
+              number: 3,
+              wire: 2,
+              value: emit([text(1, '未分类页签'), { number: 3, wire: 0, value: 2 }])
+            }
+          ])
+        }
+      ])
+    },
+    { number: 27, wire: 2, value: emit([{ number: 2, wire: 2, value: donorAux }]) }
+  ]),
+  { schema: 1, headTag: 2, fileType: 3, tailTag: 4 }
+)
+const auxApplied = applyEntities({
+  bytes: miniWithAux,
+  definitions: [auxDefinition],
+  entities: [{ name: '贴片实体', id: auxEntityId, definitionId: auxDefId }]
+})
+const auxTop = parseWireMessage(auxApplied.slice(20, -4))
+assert.ok(auxTop)
+const auxCreated = wireMessage(
+  auxTop.find((field) => field.number === 5 && field.wire === 2)!
+).find((field) => field.number === 1 && field.wire === 2)!
+// 实体侧挂接：f5{t=40}.f50.f501 = [新 aux ID]（donor max=1073741825 → +1）
+assert.deepEqual(readEntityAuxIds(auxCreated.value as Uint8Array), [1073741826])
+// root27.f2：donor 原样保留 + 一条 clone
+const auxRecords = wireMessage(
+  auxTop.find((field) => field.number === 27 && field.wire === 2)!
+)
+  .filter((field) => field.number === 2 && field.wire === 2)
+  .map((field) => field.value as Uint8Array)
+assert.equal(auxRecords.length, 2)
+assert.equal(Buffer.from(auxRecords[0]).toString('hex'), Buffer.from(donorAux).toString('hex'))
+const cloneFields = parseWireMessage(auxRecords[1])
+assert.ok(cloneFields)
+assert.equal(cloneFields.find((field) => field.number === 1 && field.wire === 0)?.value, 1073741826)
+// clone 侧挂接：f4{t=40}.f50.f502 = 实体、f12{f1} = 实体（双向引用）
+const cloneSlot = parseWireMessage(
+  cloneFields.find(
+    (field) =>
+      field.number === 4 &&
+      field.wire === 2 &&
+      parseWireMessage(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 40
+      )
+  )!.value as Uint8Array
+)!
+assert.equal(cloneSlot.find((field) => field.number === 1)?.value, 40)
+const cloneF50 = parseWireMessage(cloneSlot.find((field) => field.number === 50)!.value as Uint8Array)!
+assert.equal(cloneF50.find((field) => field.number === 502)?.value, auxEntityId)
+const cloneF12 = parseWireMessage(
+  cloneFields.find((field) => field.number === 12 && field.wire === 2)!.value as Uint8Array
+)!
+assert.equal(cloneF12.find((field) => field.number === 1)?.value, auxEntityId)
+// 更新幂等：同一实体再次 import，挂接保留、不新增 aux 记录
+const auxReApplied = applyEntities({
+  bytes: auxApplied,
+  definitions: [auxDefinition],
+  entities: [{ name: '贴片实体', id: auxEntityId, definitionId: auxDefId }]
+})
+const auxReTop = parseWireMessage(auxReApplied.slice(20, -4))
+assert.ok(auxReTop)
+const auxReCreated = wireMessage(
+  auxReTop.find((field) => field.number === 5 && field.wire === 2)!
+).find((field) => field.number === 1 && field.wire === 2)!
+assert.deepEqual(readEntityAuxIds(auxReCreated.value as Uint8Array), [1073741826])
+assert.equal(
+  wireMessage(auxReTop.find((field) => field.number === 27 && field.wire === 2)!).filter(
+    (field) => field.number === 2 && field.wire === 2
+  ).length,
+  2
 )
 
 console.log('gil entities tests passed')

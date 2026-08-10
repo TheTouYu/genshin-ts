@@ -2,7 +2,7 @@ import type {
   GstsStaticAssemblyComponent,
   GstsStaticColor
 } from '../compiler/gsts_config.js'
-import { buildFile, readUint32BE, readVarint } from '../injector/binary.js'
+import { buildFile, encodeVarint, readUint32BE, readVarint } from '../injector/binary.js'
 import {
   buildOfficialPrefabRecord,
   isOfficialResourceId,
@@ -95,6 +95,177 @@ export function readEntityAuxIds(record: Uint8Array): number[] {
     return list ? readVarintStream(list.value as Uint8Array) : []
   }
   return []
+}
+
+/** 读取 aux 记录 f4{f1=40}.f50.f502 的宿主 ID（instance-side aux 的归属）。 */
+function auxOwnerOf(record: Uint8Array): number | undefined {
+  for (const field of parse(record) ?? []) {
+    if (field.wire !== 2 || field.number !== 4) continue
+    const slot = parse(field.value as Uint8Array)
+    if (!slot || firstVarint(slot, 1) !== 40) continue
+    const f50 = slot.find((child) => child.number === 50 && child.wire === 2)
+    if (!f50) continue
+    return firstVarint(parse(f50.value as Uint8Array), 502)
+  }
+  return undefined
+}
+
+function varintBytes(values: readonly number[]): Uint8Array {
+  return Uint8Array.from(values.flatMap((value) => Array.from(encodeVarint(value))))
+}
+
+/** 写 aux f4{t=40} 槽的 f502 ownerID（槽不存在则新建；与 attachAux 编码同构）。 */
+function writeAuxOwner(record: Uint8Array, ownerId: number): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] aux record malformed')
+  const f50Value = emit([{ number: 502, wire: 0, value: ownerId }])
+  const slotIndex = fields.findIndex(
+    (field) =>
+      field.wire === 2 &&
+      field.number === 4 &&
+      parse(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 40
+      )
+  )
+  if (slotIndex >= 0) {
+    const slotFields = message(fields[slotIndex])
+    const f50 = slotFields.find((child) => child.number === 50 && child.wire === 2)
+    if (f50) f50.value = f50Value
+    else slotFields.push({ number: 50, wire: 2, value: f50Value })
+    fields[slotIndex] = { ...fields[slotIndex], value: emit(slotFields) }
+  } else {
+    fields.push({
+      number: 4,
+      wire: 2,
+      value: emit([
+        { number: 1, wire: 0, value: 40 },
+        { number: 50, wire: 2, value: f50Value }
+      ])
+    })
+  }
+  return emit(fields)
+}
+
+/** 写实体 f5{t=40} 槽的 f501 ID 列表（槽不存在则新建；与 attachAux 编码同构）。 */
+function writeEntityAuxIds(record: Uint8Array, ids: number[]): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] entity record malformed')
+  const f50Value =
+    ids.length === 0 ? new Uint8Array() : emit([{ number: 501, wire: 2, value: varintBytes(ids) }])
+  const slotIndex = fields.findIndex(
+    (field) =>
+      field.wire === 2 &&
+      field.number === 5 &&
+      parse(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 40
+      )
+  )
+  if (slotIndex >= 0) {
+    const slotFields = message(fields[slotIndex])
+    const f50 = slotFields.find((child) => child.number === 50 && child.wire === 2)
+    if (f50) f50.value = f50Value
+    else slotFields.push({ number: 50, wire: 2, value: f50Value })
+    fields[slotIndex] = { ...fields[slotIndex], value: emit(slotFields) }
+  } else {
+    fields.push({
+      number: 5,
+      wire: 2,
+      value: emit([
+        { number: 1, wire: 0, value: 40 },
+        { number: 50, wire: 2, value: f50Value }
+      ])
+    })
+  }
+  return emit(fields)
+}
+
+/** 改写 aux f12{f1} 的宿主 ID（实体挂载样本 f12={f1: 宿主ID}，非空）。 */
+function withAuxHostId(record: Uint8Array, hostId: number): Uint8Array {
+  const fields = parse(record)
+  if (!fields) throw new Error('[error] aux record malformed')
+  const f12 = fields.find((field) => field.number === 12 && field.wire === 2)
+  if (!f12) return record
+  const inner = parse(f12.value as Uint8Array)
+  const f1 = inner?.find((field) => field.number === 1 && field.wire === 0)
+  if (!f1) return record
+  f1.value = hostId
+  f12.value = emit(inner!)
+  return emit(fields)
+}
+
+/** 把旧实体记录的 f5{t=40} 挂接槽整体带到新记录（覆盖 definition 自带空槽）。 */
+function carryAuxSlot(from: Uint8Array, to: Uint8Array): Uint8Array {
+  const fromFields = parse(from)
+  const slot = fromFields?.find(
+    (field) =>
+      field.wire === 2 &&
+      field.number === 5 &&
+      parse(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 40
+      )
+  )
+  if (!slot) return to
+  const toFields = parse(to)
+  if (!toFields) throw new Error('[error] entity record malformed')
+  const existingIndex = toFields.findIndex(
+    (field) =>
+      field.wire === 2 &&
+      field.number === 5 &&
+      parse(field.value as Uint8Array)?.some(
+        (child) => child.number === 1 && child.wire === 0 && child.value === 40
+      )
+  )
+  if (existingIndex >= 0) toFields[existingIndex] = slot
+  else toFields.push(slot)
+  return emit(toFields)
+}
+
+/**
+ * 把 definition 的 instance-side aux（root27.f2 中 f502=definitionId 的记录）
+ * 复制一套挂到实体：新 aux ID（root27 最大 ID+1 起）、f502/f12 指向实体、
+ * 实体 f5{t=40}.f50.f501 写新 aux ID 列表。无可用 aux 时返回 undefined。
+ * 真实样本（1073741862 足球）：definition 与实体各有 132 条 instance-side
+ * aux，除 f1/f502/f12 外逐字节一致。
+ */
+function attachDefinitionAuxes(
+  top: WireField[],
+  entityRecord: Uint8Array,
+  definitionId: number,
+  entityId: number
+): Uint8Array | undefined {
+  let root27 = top.find((field) => field.number === 27 && field.wire === 2)
+  const donors = (root27 ? message(root27) : [])
+    .filter((field) => field.number === 2 && field.wire === 2)
+    .map((field) => field.value as Uint8Array)
+    .filter((record) => auxOwnerOf(record) === definitionId)
+  if (donors.length === 0) return undefined
+  let nextId = 0x40000001
+  if (root27) {
+    for (const sub of message(root27)) {
+      if (sub.wire !== 2) continue
+      const id = recordId(sub.value as Uint8Array)
+      if (id !== undefined && id >= nextId) nextId = id + 1
+    }
+  }
+  const clones: Uint8Array[] = []
+  for (const donor of donors) {
+    let record = writeAuxOwner(donor, entityId)
+    record = withAuxHostId(record, entityId)
+    const fields = parse(record)
+    if (!fields) throw new Error('[error] aux record malformed')
+    const f1 = fields.find((field) => field.number === 1 && field.wire === 0)
+    if (!f1) throw new Error('[error] aux record missing field 1')
+    f1.value = nextId++
+    clones.push(emit(fields))
+  }
+  if (!root27) {
+    root27 = { number: 27, wire: 2, value: emit([]) }
+    top.push(root27)
+  }
+  const fields = message(root27)
+  for (const record of clones) fields.push({ number: 2, wire: 2, value: record })
+  root27.value = emit(fields)
+  return writeEntityAuxIds(entityRecord, clones.map((record) => recordId(record)!))
 }
 
 function vector(values: readonly number[], sparse: boolean): Uint8Array {
@@ -591,6 +762,15 @@ const MIN_CUSTOM_ENTITY_ID = 1077936129 // 0x40400001
         builtinResource: !localDefinitions.has(entity.definitionId),
         ...(color !== undefined ? { color } : {})
       })
+    }
+    if (existing) {
+      // 更新已有实体：保留旧记录挂接槽，避免更新后装饰物丢失
+      record = carryAuxSlot(existing, record)
+    }
+    // 挂接 definition 的 instance-side aux（新建实体，或旧实体无挂接时）
+    if (!existing || readEntityAuxIds(existing).length === 0) {
+      const attached = attachDefinitionAuxes(top, record, sourceDefinitionId, entity.id)
+      if (attached !== undefined) record = attached
     }
     if (existing) {
       // 更新已有实体：原位替换记录，不重复登记组条目
