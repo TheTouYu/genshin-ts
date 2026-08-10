@@ -464,9 +464,15 @@ export function basisToEuler(x: Vec3, y: Vec3, z: Vec3, order: EulerOrder = EULE
   if (order === 'yxz') {
     // R = Ry·Rx·Rz：α=asin(-R12)、β=atan2(R02,R22)、γ=atan2(R10,R11)
     const alpha = Math.asin(Math.min(1, Math.max(-1, -m[1][2])))
-    const beta = Math.atan2(m[0][2], m[2][2])
     const cosA = Math.cos(alpha)
-    const gamma = Math.abs(cosA) < 1e-6 ? 0 : Math.atan2(m[1][0], m[1][1])
+    if (Math.abs(cosA) < 1e-6) {
+      // gimbal lock（α=±90°）：β 与 γ 合并为一个自由度 δ=β∓γ，取 γ=0
+      // α=+90° 时 R00=cos(β-γ)、R01=sin(β-γ)；α=-90° 时 R00=cos(β+γ)、R01=-sin(β+γ)
+      const delta = Math.atan2(alpha > 0 ? m[0][1] : -m[0][1], m[0][0])
+      return [rad(alpha), rad(delta), 0]
+    }
+    const beta = Math.atan2(m[0][2], m[2][2])
+    const gamma = Math.atan2(m[1][0], m[1][1])
     return [rad(alpha), rad(beta), rad(gamma)]
   }
   if (order === 'zyx') {

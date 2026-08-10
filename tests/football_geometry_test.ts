@@ -246,6 +246,44 @@ for (const s of [
 }
 console.log('PASS 欧拉角(YXZ 内旋，真实编辑器规则) round-trip 自洽')
 
+// ---- gimbal lock 回归（2026-08-10 球门：水平线全部错转 90°）----
+// 生成器基构造：x = normalize(cross(up, y))，z = cross(x, y)；水平线（y 的 y 分量≈0）
+// 会让 z 轴沿 ±Y，α=±90° 进入 lock，旧代码 γ=0、β=atan2(0,0)=0 丢失 β-γ 自由度
+function lineBasis(dir: Vec3): [Vec3, Vec3, Vec3] {
+  const len = Math.hypot(dir[0], dir[1], dir[2])
+  const y = dir.map((v) => v / len) as unknown as Vec3
+  const up: Vec3 = Math.abs(y[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0]
+  const xn = normalize(cross(up, y))
+  return [xn, y, cross(xn, y)]
+}
+for (const dir of [
+  [1, 0, 0],
+  [-1, 0, 0],
+  [0, 0, 1],
+  [0, 0, -1],
+  [0.4065, 0, -0.9136],
+  [0.5, 0, 0.866]
+] as Vec3[]) {
+  const [x, y, z] = lineBasis(dir)
+  const e = basisToEuler(x, y, z)
+  const [x2, y2, z2] = eulerToBasis(e, 'yxz')
+  for (let i = 0; i < 3; i++) {
+    assert.ok(
+      Math.abs(x2[i] - x[i]) < 1e-6 && Math.abs(y2[i] - y[i]) < 1e-6 && Math.abs(z2[i] - z[i]) < 1e-6,
+      `水平线 lock round-trip ${JSON.stringify(dir)}`
+    )
+  }
+}
+console.log('PASS gimbal lock（水平线）欧拉角 round-trip 回归')
+
+// 横梁（沿 X）应精确分解为 [90,90,0]；修复前为 [90,0,0]（局部 Y 被转到 Z 而非 X）
+const beamE = basisToEuler(...lineBasis([1, 0, 0] as Vec3))
+assert.ok(
+  Math.abs(beamE[0] - 90) < 1e-6 && Math.abs(beamE[1] - 90) < 1e-6 && Math.abs(beamE[2]) < 1e-6,
+  `横梁应 [90,90,0] 实际 ${JSON.stringify(beamE)}`
+)
+console.log('PASS 横梁（沿 X）精确分解 [90,90,0]')
+
 // ---- 预算 ----
 const totalAux = stripCount + bars.length
 console.log(`摘要: 面片条带=${stripCount} 边线=${bars.length} 总 aux=${totalAux}（预算含 1 宿主实体 → ${totalAux + 1} 条新记录）`)
