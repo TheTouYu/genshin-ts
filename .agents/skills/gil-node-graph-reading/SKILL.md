@@ -24,6 +24,7 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 | `tools/trace-gil-dataflow.ts` | 数据流定点：某节点输入来源 | `--node <id>` `--all-inputs` `--json` |
 | `tools/parse-gil-node-graph.ts` | 底层结构化解析（变量定义/inputs/value/boundary） | `--graph` `--composite` `--json` |
 | `tools/compare-gil-node-graph.ts` | 两个图/文件对比 | 见 `--help` |
+| `gsts assets:node-graphs layout --check` | 布局 lint：读图并报告违规（flow-upward/backward、chain-vertical、long-chain、block-order、line-align、data-detached、data-chain-long、island、overlap） | `--gil <地图> --graph <id>` |
 | `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代） | `--gil <地图> --graph <id> [--node <n>]` |
 
 运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 用 `npx tsx src/cli/gsts.ts <子命令>`。

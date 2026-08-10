@@ -37,6 +37,11 @@ npx tsx src/cli/gsts.ts assets:mounts list [<target-id>] --gil <map.gil>        
 
 # 改（默认 preview 不落盘；--output 写候选；--write 备份+写回真实；**impl 图（复合实例体，16107xxxxx）可直接 patch**，2026-08-10 魔方 Bind 复合实战验证）
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <map.gil> --graph <id> <ops...> --output <候选.gil>
+# 自动布局 / 布局 lint（2026-08-11 布局长期方案）：
+npx tsx src/cli/gsts.ts assets:node-graphs layout --gil <map.gil> --graph <id> --check          # 只检查（lint），报告违规
+npx tsx src/cli/gsts.ts assets:node-graphs layout --gil <map.gil> --graph <id> --output <候选> # 按拓扑自动重排 → 候选
+npx tsx src/cli/gsts.ts assets:node-graphs layout --gil <map.gil> --graph <id> --write         # 自动重排 + 备份写回
+# 说明：引擎 src/cli/static_assembly/graph_layout.ts（autoLayout 坐标 + planFlowUpgrade 超限拆线 + checkLayout lint）；自动布局会改写连接（超长线自动升级为分叉线），先 --output 预览再 --write
 # 跨图复制（把另一张图/另一文件的节点链搬过来）：
 npx tsx src/cli/gsts.ts assets:node-graphs patch --gil <候选.gil> --src-gil <源图.gil> --graph <目标图> \
   node-copy-from <源图id> <idx1,idx2,...> <x> <y> --output <新候选.gil>   # 保持相对布局 + 自动重映射连线
@@ -133,14 +138,20 @@ PY
 | 复合实例的节点增删 | 未闭合 | 用户编辑器最小变化 |
 | ~~impl 图（section 4）patch~~ | ✅ 已闭合（2026-08-10）：`--graph <impl 图 id>` 自动探测 section 4，node pos/param/link/flow 等 op 可用（Bind 复合 668 EnumItem 实战） | 仅节点级 op；node-add/node-del 等结构性 op 未验证 |
 
-## 布局规范（新建/复制节点必读；用户验收项，2026-08-09 turn-ctl 复盘）
+## 布局规范（书页式；新建/复制/自动布局必读；2026-08-11 用户确认 + 引擎 graph_layout.ts 实现，真实地图 1073741849 三图验证）
 
-- 坐标约定：x 向右、y 向下；**事件入口在链顶部（y 最小），执行流沿 y 递增向下**，不要横排
-- **一条事件线 ≤ 20 节点**：超长链拆复合节点（`composite create`）或纵向折行（分两列，右列 x+800）
-- 多条事件线**左右分栏**：创建链 / 信号链 / 停止链按 x 分区（栏间留 ≥800 空隙）；同一链内 x 固定或微增（步进 ≤200），主步进在 y（400~600）
-- 分支节点：true/false 分支向左右下方展开，汇合点归位（y 继续向下）
+总体像看书：**长线横向（从左到右），多条长线从上到下堆叠成行**；事件起点 = 一个长方形代码块，块从上到下排列。
+
+- 坐标约定：x 向右、y 向下；行内节点步进 800（NODE_X_STEP）、行距 900（ROW_Y_STEP）、事件块间距 1200（BLOCK_Y_GAP）
+- **事件起点（入口）= 一个代码块，块从上到下排列**；入口在行首，块内第一条线（OutFlow connects 顺序）与入口同行，后续线各占一行
+- **一条长线 ≤ 10 个控制流节点**（LINE_LIMIT）：超限由引擎自动升级为分叉线（断开超限点、把新线头注册到入口 OutFlow，每条线独立成行）；lint 提示 long-chain 时也可用 `composite create` 拆复合节点
+- 块内多条长线按执行顺序（OutFlow 顺序）从上到下，线行首垂直对齐（同一 x）
+- **分支 = 叉子**：分支节点与上游同行（水平对齐），out[0] 同行右侧，其余出口同一 x 列垂直排列（间隔 900）；入口分叉时 out[1..] 从行首起垂直排列
+- 数据源跟随消费者：单节点贴边（同行左侧优先，间隙 400）不重叠；多轮运算链（约 5 个）横排成一条线；更多建议写复合节点（lint data-chain-long）
 - **复制源图节点必须重排坐标**（copySeq/copyFromSrc 传新 x,y），禁止保留源图坐标或让序号累积推远 x；新图从 (0,0) 起排
-- 回读检查：read 时看 pos——链内 y 应单调递增、x 分栏清晰；发现大横线/孤岛立刻重排
+- **自动布局一键重排**：`layout --output/--write` 按拓扑重排（书页式 + 超限自动拆线分叉 + 数据源吸附 + 孤立节点收尾栏）——新建/复制图后直接跑，再手工微调
+- **写回前 lint**：`layout --check` 零违规才算布局合格。违规类型：flow-upward（执行流向上）/ flow-backward（同行向左）/ chain-vertical（竖排链）/ long-chain（一行连续 >10 控制流节点，建议拆复合）/ block-order（事件块顺序错）/ line-align（分叉线行首未与入口对齐）/ data-detached（数据源离消费者 >1200）/ data-chain-long（数据链 >5，建议复合）/ island（孤岛 >2000）/ overlap（重叠）
+- 回读检查：read 时看 pos——每条线内 x 递增、线间行首对齐且间隔 900；发现竖排链/孤岛/重叠立刻重排
 
 ## 常见任务 playbook
 
@@ -162,7 +173,7 @@ PY
 # 2) 复制：闭包列表（逗号分隔）+ 链左上角目标坐标；相对布局自动保持
 ./node_modules/.bin/tsx src/cli/gsts.ts assets:node-graphs patch --gil <候选.gil> --src-gil <源图.gil> \
   --graph <目标图id> node-copy-from <源图id> 1,2,3,...,30,62,...,69 800 200 --output <新候选.gil>
-# 3) 回读检查 pos（链内 y 单调递增、x 分栏清晰）与连线（无悬空）
+# 3) 回读检查 pos（每条线内 x 递增、线间行首对齐间隔 900）与连线（无悬空）；超长链交给自动布局拆线
 # 注意：复制列表外引用会报错并给出缺失索引；图变量（f6）需另行复制（见 wire-rules）
 ```
 
