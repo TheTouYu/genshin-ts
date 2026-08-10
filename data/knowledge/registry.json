@@ -859,6 +859,17 @@
         "证据层级"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "node-graph-layout",
+      "node_id": "game-engine-knowledge",
+      "title": "节点图书页式布局规范与自动布局引擎",
+      "path": "knowledge/game-engine-knowledge/node-graph-layout.md",
+      "summary": "2026-08-11 用户确认的书页式布局规范：横向长线、多线堆叠成行、超限自动拆线分叉、叉子对齐、数据源跟随；引擎 graph_layout.ts 自动布局 + lint",
+      "keywords": [
+        "布局,layout,node-graph,auto-layout,书页式"
+      ],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1306,6 +1317,11 @@
     "clm_C9B4B93B4DBE45BABAE487EC44": {
       "fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    "clm_D724F6EB325FFD8A791E37502B": {
+      "fact_classes": [
+        "cli_behavior"
       ]
     }
   }

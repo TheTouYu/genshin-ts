@@ -212,6 +212,21 @@
       ]
     },
     {
+      "id": "aref_2798be2eafbd74795a16f86c8e",
+      "path": "src/cli/static_assembly/graph_layout.ts",
+      "locator": "planFlowUpgrade/autoLayout/checkLayout",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "067ffcc88c3502c691236bdc896db8764b1c799e21444d1ff072079affb5652a",
+      "claim_ids": [
+        "clm_D724F6EB325FFD8A791E37502B"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_281924d7d3afc12322fb6176fb",
       "path": "src/compiler/ir_to_gia_transform/composite.ts",
       "locator": "Composite root/impl boundary materialization, pin-hole/special-arg overlay and metadata ownership",
@@ -812,6 +827,21 @@
       ]
     },
     {
+      "id": "aref_759f8dbcf6928e0480fcb4ccdf",
+      "path": ".agents/skills/gil-node-graph-editing/SKILL.md",
+      "locator": "布局规范（书页式）段落",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "7c96947ce5e2acce1c32acf30cdd4a4ebd6fc0edb26891bbc0136180b7f1a3fa",
+      "claim_ids": [
+        "clm_D724F6EB325FFD8A791E37502B"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    {
       "id": "aref_7615f2a373c38f6507086fabc8",
       "path": "src/compiler/ir_to_gia_transform/pins.ts",
       "locator": "typed pin helper and physical pin index mapping used by Composite boundary encoding",
@@ -1276,6 +1306,21 @@
         "documented_contract",
         "external_game_evidence",
         "writeback_behavior"
+      ]
+    },
+    {
+      "id": "aref_c3023744deece824736d206b4a",
+      "path": "tests/graph_layout_test.ts",
+      "locator": "12 用例",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7f7247cd94a24b632f8b2d99b2a7729e795d1e3a4a868ec32e109f99628aa51a",
+      "claim_ids": [
+        "clm_D724F6EB325FFD8A791E37502B"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
