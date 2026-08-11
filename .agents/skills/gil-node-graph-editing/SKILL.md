@@ -71,7 +71,10 @@ PY
 | 模块 | 导出 |
 |---|---|
 | `src/cli/static_assembly/wire.ts` | `parseWireMessage` / `emitWireMessage`（wire 编解码，脚本 import 首选；**不在** graph_edit.ts） |
-| `src/cli/static_assembly/graph_edit.ts` | `addGraphNode` / `copyGraphNode` / `setParam` / `linkInParam` / `addOutFlow` / `addParamFlow` / `buildVarValue` / `wrapConcreteValue` / `parseNodeRecord` / `locateBlobField` / `addGraphVariable` / `patchRecord` / `patchGraphNode` 等 |
+| `src/cli/static_assembly/graph_edit.ts` | `addGraphNode` / `copyGraphNode` / `setParam` / `linkInParam` / `addOutFlow` / `addParamFlow` / `buildVarValue` / `wrapConcreteValue` / `parseNodeRecord` / `locateBlobField` / `addGraphVariable` / `patchRecord` / `patchGraphNode` / `addCompositePin` / `parseGraphNodes` / `locateGraphField` 等 |
+| `src/cli/static_assembly/wire.ts` 导出名 | `parseWireMessage` / `emitWireMessage` / `wireMessage`（**没有 `sub`**——2026-08-12 bind-hold 曾 import `sub` 连错 2 次；自写脚本先 `grep "^export"` 再 import） |
+| `src/cli/static_assembly/graph_edit.ts` 复合构建 | `buildCompositeDef` / `buildCompositeImplGraph` / `addInflowFlow` / `compositePinWire`（2026-08-11 eval-split 备选方案实战：`composite create` 会把内部全部 OutFlow 提升为复合 outflow，**内部链复合必须用这组库函数手建 def+impl**，见常见任务 playbook「复合构建（程序化）」） |
+| `src/cli/gil_signal_registrations.ts` | `registerSignalInGil` / `repairSignalInGil` / `updateSignalInGil`（CLI 被残缺注册阻塞时的直调入口；读回用 `tools/scan-gil-signal-registry.ts`） |
 
 ### patch ops（顺序执行）
 
@@ -80,19 +83,19 @@ PY
 | 位置 | `node <idx> pos <x> <y>` | 设节点坐标 |
 | 参数 | `node <idx> param <shell> <typed>` | 设 InParam 固定值（Int:1 Flt:1.5 Str:abc Bol:true Vec:1,2,3 Gid:1 Pfb:1 Cfg:1 **EnumItem:1101**；类型前缀大小写敏感；**R<T> pin 自动 ConcreteBase 包装**）。EnumItem 编码=bEnum{1:枚举数值}（2026-08-10 真实快照闭合：Bind 复合 668 InParam[5]/[6]） |
 | cases 列表 | `node <idx> cases <v1,v2,...>` | 全量替换 MultiBranch cases（Int/Str 均可；需已有非空列表作模板） |
-| 数据连线 | `node <idx> link <shell> <src-idx> [src-shell]` | 目标 InParam ← 源节点输出 |
+| 数据连线 | `node <idx> link <shell> <src-idx> [src-shell]` | 目标 InParam ← 源节点输出；**对"已有 value 无 connects"的 Fixed pin 是静默 no-op**（linkInParam 只替换已有 f5，graph_edit.ts:689）——值→连线转换用 `tools/gil-pin-value-to-link.ts`（2026-08-12 bind-hold 实测） |
 | 断数据线 | `node <idx> unlink <shell>` | Fixed 删 pin / Variant 清 connects |
 | 控制流连线 | `node <idx> flow <shell> <dst-idx> [dst-shell]` | 源 OutFlow → 目标 InFlow（pin 不存在会自动新建） |
 | 断控制流线 | `node <idx> flow-rm <shell> <target>` | 从源 OutFlow 删一条 connects；无余线时整 pin 移除 |
 | 加节点 | `node-add <generic-id> <x> <y>` 或 4 参 `node-add <generic-id> <concrete-id> <x> <y>` | 3 参=旧形式（Variant donor fail closed）；4 参=显式 concrete（reflectMap 校验，f2/f3 与真实样本同构，2026-08-12 闭合）；无 pin 落盘 |
 | 复制节点 | `node-copy <src-idx> <x> <y>` | 完整克隆源记录（含 pin 值/cpi/ClientExec），即编辑器复制粘贴语义 |
-| 删节点 | `node-del <idx>` | 删记录；**先断掉指向它的连线**（源侧 connects 会悬空） |
+| 删节点 | `node-del <idx>` | 删记录；**先断掉指向它的连线**（源侧 connects 会悬空）；impl 图（section 4）实测可用（2026-08-12 bind-hold 首验）；索引变空洞，后续 node-add 复用最小空洞（diff 显示 changed 而非 removed，属正常） |
 | 清空图 | `graph-clear` | 移除全部节点（图记录/变量/挂载保留） |
 | 跨图复制 | `node-copy-from <src-gid> <idx1,idx2,...> <x> <y>` | 配 `--src-gil <文件>`；保持源内相对布局平移、自动重映射列表内连线；引用列表外节点 fail closed 报错 |
 | 图变量注册 | `graph-var-add <name> <type>` | 仅 Str(6) 闭合；exposed/structId 默认省略 |
 | 复合改名 | `composite <def-id> rename <名>` | |
 | 复合参数改名 | `composite <def-id> param input\|output\|inflow\|outflow <shell> rename <名>` | |
-| 复合加输入 | `composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>` | 实例唯一才允许 |
+| 复合加输入 | `composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>` | 实例唯一才允许；每输入只绑 1 条 inner——**共享映射**（1 outer 供多 inner，如 pivot→668 IP1×4、c1→668/99/365 IP0×3）用 `tools/inject-composite-pin.ts` 补注（2026-08-12 bind-hold 流程） |
 | 复合加 InFlow | `composite <def-id> add-inflow <shell> <name> <inner-node> <inner-shell>` | 只 patch def+impl，**实例不落 pin**（真实实例无 InFlow pin）；inflow 记录无 name 字段（2026-08-12 闭合） |
 | 复合创建 | `composite create <名> <anchor-idx> <node-idx...>` | 选节点打包成复合 |
 | 复合删/换输入 | `composite <def-id> del-input <shell>` / `swap-input <a> <b>` | 实例重编号 |
@@ -124,7 +127,7 @@ PY
 - **数据流**：connects 挂目标侧 InParam；替换线改 connects.id；Variant 类型不匹配删整 pin
 - **Variant/MultiBranch**：concreteId=KernelID（3 多分支 Int=3 / Str=4）；key/cases 两个 InParam；
   cases 列表 IntegerList type=8；未连线 case 不实例化 OutFlow pin
-- **节点增删**：node-del 只删记录；node-add 用最小空闲索引、无 pin 落盘
+- **节点增删**：node-del 只删记录（impl 图 section 4 已闭合，2026-08-12）；node-add 用最小空闲索引（复用删除空洞）、无 pin 落盘
 - **cases 条目**（scripts/patch-cases-list.ts 已验证）：`{1:2, 2:1, 4:{1:1,6:{2:3}}, 102:{1:val}}`，
   bInt(102) 的 val 在字段 1
 
@@ -138,7 +141,7 @@ PY
 | cases 列表写入 | ✅ 已正式化（`node <idx> cases <v1,v2,...>`，2026-08-09 并入 CLI；`scripts/patch-cases-list.ts` 逻辑同源；Q2 扩展 Str 条目） | 空列表无法克隆模板，fail closed |
 | 节点重编号 / 墓碑复用 | 部分闭合（composite ops 有） | 尽量不触发 |
 | 复合实例的节点增删 | 未闭合 | 用户编辑器最小变化 |
-| ~~impl 图（section 4）patch~~ | ✅ 已闭合（2026-08-10）：`--graph <impl 图 id>` 自动探测 section 4，node pos/param/link/flow 等 op 可用（Bind 复合 668 EnumItem 实战） | 仅节点级 op；node-add/node-del 等结构性 op 未验证 |
+| ~~impl 图（section 4）patch~~ | ✅ 已闭合（2026-08-10）：`--graph <impl 图 id>` 自动探测 section 4，node pos/param/link/flow 等 op 可用（Bind 复合 668 EnumItem 实战）；✅ node-add / node-del / unlink 等结构性 op 已实测（2026-08-12 bind-hold：12 unlink + node-del + 5 node-add 全成功，回读/布局/diff 全过） |compositePin 注入需脚本（`tools/inject-composite-pin.ts`，未入 CLI ops） |
 
 ## 布局规范（书页式；新建/复制/自动布局必读；2026-08-11 用户确认 + 引擎 graph_layout.ts 实现，真实地图 1073741849 三图验证）
 
@@ -152,6 +155,7 @@ PY
 - 数据源跟随消费者：单节点贴边（同行左侧优先，间隙 400）不重叠；多轮运算链（约 5 个）横排成一条线；更多建议写复合节点（lint data-chain-long）
 - **复制源图节点必须重排坐标**（copySeq/copyFromSrc 传新 x,y），禁止保留源图坐标或让序号累积推远 x；新图从 (0,0) 起排
 - **自动布局一键重排**：`layout --output/--write` 按拓扑重排（书页式 + 超限自动拆线分叉 + 数据源吸附 + 孤立节点收尾栏）——新建/复制图后直接跑，再手工微调
+- **自动布局已知局限**（2026-08-11 eval-split 实测）：对跨行执行流（如 上游 busySet 行 → 下方实例行）会产出 `flow-upward` 违规——引擎按拓扑排位不保证流方向；跑完自动布局**必须重跑 `layout --check`**，剩余违规按规则手排（flow-upward：把目标行挪到源行下方；data-detached：数据源贴消费者 ≤1200；island：节点移到最近行内）
 - **写回前 lint**：`layout --check` 零违规才算布局合格。违规类型：flow-upward（执行流向上）/ flow-backward（同行向左）/ chain-vertical（竖排链）/ long-chain（一行连续 >10 控制流节点，建议拆复合）/ block-order（事件块顺序错）/ line-align（分叉线行首未与入口对齐）/ data-detached（数据源离消费者 >1200）/ data-chain-long（数据链 >5，建议复合）/ island（孤岛 >2000）/ overlap（重叠）
 - 回读检查：read 时看 pos——每条线内 x 递增、线间行首对齐且间隔 900；发现竖排链/孤岛/重叠立刻重排
 
@@ -195,6 +199,18 @@ PY
 
 ### 改发送信号参数（face/direction 等）
 `node <idx> param <shell> str:U`——先 read 确认 shell 号和当前值
+
+### 信号注册与回读（assets:signals；2026-08-11 eval-split 复盘）
+
+1. **先探活**：`npx tsx tools/scan-gil-signal-registry.ts <候选.gil> --gate` —— 存在残缺注册项（definition 缺 field 106 信号名 CPI，如 1073741849 的 `cube2_test_turn` 1610612777/78/79）时，`assets:signals inspect/register/repair` **整体不可用**（`readRegisteredSignalsFromGil` 对任一残缺项抛错）。gate 退出码 1 = CLI 必挂，直接走第 3 步绕过，别浪费时间试 CLI。
+2. **布局池规则**（register 前先评估参数可行性）：池 = **单个模板信号**（`--template-signal` 取本图信号 / `--template-gil` 取 donor 文件）内**同类型参数的真实布局集合**；同类型参数每出现一次必须消费一套**真实且不同**的布局，套数不足 fail-closed 拒绝（报错如 `parameter type "str" needs 2 distinct layouts, but the template GIL provides 1`）。本图 entity 布局全图只有 1 套（pin 三元组 69/77/84）→ 4 个 entity 参数不可行，**不要**手写布局绕过（pinIndex 必须来自注册定义，不能推算）。
+3. **repair 限制**：`repair` 要求 donor 与 target **同名**且 donor 完整；残缺项无同名完整 donor 时无法修复，只能编辑器重建或删。
+4. **绕过路径**（CLI 被阻塞时）：自写脚本 `import { registerSignalInGil } from 'src/cli/gil_signal_registrations'` 直调（返回 bytes+ids，无 CLI 外壳回读校验），产出候选后用手工/宽容工具回读自洽。注册后必须回读三份定义布局：send 信号名 CPI / monitor 执行输出+信号名 CPI（`tools/scan-gil-signal-registry.ts --signal <名> --defs`）。
+
+### 复合构建（程序化；2026-08-11 eval-split 备选方案）
+
+`composite create` 会把所选节点的内部 OutFlow 全部提升为复合 outflow——需要**内部链闭合**的复合（如 监听/停止事件 → Hold → 发信号 全在 impl 内）必须用库函数手建：
+`buildCompositeDef(defId, 名, [])` → `addInflowFlow(defBlob, 0)` → `buildCompositeImplGraph(defId, nodes, [compositePinWire(1, 0, 6, 1, 0)])`，def+impl 两条记录 append 到 root10（section 2/4，用 `patchRecord`/`applyReplacement` 或自写 append 时注意插入序）；实例节点 = 仅 defId 引用的裸记录。复合 impl 内可放事件节点（真实样本：定时任务 impl 1610612737 含 When Timer Is Triggered）。
 
 ## 增量规则闭合流程（遇到工具不支持的编辑）
 

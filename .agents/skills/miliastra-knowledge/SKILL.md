@@ -76,6 +76,24 @@ rag_search(["嘲讽和仇恨系统配置", "怪物追击玩家行为"])
   → get_document(["仇恨配置"])
 ```
 
+## 本地回退（2026-08-12 main 轮实测：远程 API 对基础引擎节点不可用）
+
+本知识库覆盖**千星沙箱**玩法内容。查询**基础引擎节点**（520 旋转运动器/668 实体重绑/
+365 激活/337 GetVar/323 SetVar 等）时远程 API 大概率查不到（get_node_info 中英文名都
+返回"未找到匹配"；rag_search 可能 (no output)），**不要反复重试**，直接本地查：
+
+```bash
+# 节点语义/参数 → 本地打包数据（原神 miliastra 节点包）
+ls src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/
+# 如 client_node_metadata.ts / client_enum_values.ts / client_graph_encoding.ts
+grep -rn "Add Basic Target-Oriented" src/thirdparty/ | head
+```
+
+引擎节点语义的权威来源是 `docs/game-engine-knowledge/` 与
+`miliastra-knowledge/references/`（节点语义表），远程 KB 查不到时先看这两处。
+调用远程 API 前先 `curl -sI https://ugc.070077.xyz/` 探活；http 端点会 301 到 https，
+curl 要加 `-L`。
+
 ## 输出时怎么整理给用户
 
 - 来自 `get_node_info`：说明节点用途和关键参数，注意引用字段名

@@ -9,14 +9,21 @@
  * 运行：npx tsx tests/gil_nodegraph_edit_test.ts
  */
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { copyFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 
 import { emitWireMessage, parseWireMessage } from '../src/cli/static_assembly/wire.js'
 
 import {
   addCompositePin,
   addGraphNode,
+  addInflowFlow,
+  compositeImplGraphId,
+  nodeInputConcreteType,
+  PIN_KIND,
   addGraphVariable,
   addOutFlow,
   appendOutFlow,
@@ -57,6 +64,10 @@ import {
   wrapConcreteValue,
   reflectConcreteIndex,
   nodeInputTypeName,
+  nodeOutputType,
+  nodeOutputTypeName,
+  defaultVarValue,
+  addOutParam,
   clearGraphNodes,
   copyGraphNodesFromBlob
 } from '../src/cli/static_assembly/graph_edit.js'
@@ -919,6 +930,330 @@ function instanceMeta(file: Uint8Array, nodeIndex: number) {
   assert.ok(recs.some((f) => f.number === 6 && f.wire === 2), '图变量 f6 保留')
   passed++
   console.log('PASS clearGraphNodes（节点清零/记录与变量保留）')
+}
+
+// ===== 魔方重构工具缺口回归（2026-08-12：tests/fixtures/cube-e1-base.gil = 真实地图
+// 1073741849 副本，主图 1073741846、复合 def/impl 1610700002/1610710002）=====
+
+const CUBE = 'tests/fixtures/cube-e1-base.gil'
+const CUBE_GID = 1073741846
+const CUBE_DEF = 1610700002
+const CUBE_IMPL = 1610710002
+
+function implBlob(file: Uint8Array, implId: number): Uint8Array {
+  const payload = file.slice(20, -4)
+  const field = locateBlobField(payload, 4, implId)
+  return payload.subarray(field.dataStart, field.dataEnd)
+}
+
+// 修复 1：复合 def 记录 id ≠ impl 图记录 id（def 1610700002 → impl 1610710002，
+// def blob field4.sub4.field5）；add-input 三处联动 def+impl+实例
+{
+  const before = read(CUBE)
+  const payload = before.slice(20, -4)
+  assert.equal(compositeImplGraphId(payload, CUBE_DEF), CUBE_IMPL, 'def field4.sub4 → impl id')
+  assert.throws(() => locateBlobField(payload, 4, CUBE_DEF), /not found/, 'defId 查 section 4 必失败（旧 bug 根因）')
+  const newIndex = chooseRebuildIndex(graphBlob(before, CUBE_GID), 46, 2)
+  assert.equal(newIndex, undefined, '实例 46 原位（排除自身后最小空闲==原位）')
+  let patched = patchRecord(before, 2, CUBE_DEF, (b) => addParamFlow(b, 3, 1, 'cubie1', 1))
+  patched = patchRecord(patched, 4, compositeImplGraphId(patched.slice(20, -4), CUBE_DEF), (b) =>
+    addCompositePin(b, 3, 1, 2, 0)
+  )
+  assert.equal(sha256(graphBlob(patched, CUBE_GID)), sha256(graphBlob(before, CUBE_GID)), '宿主图零变化（原位）')
+  const metas = flowMetas(defBlob(patched, CUBE_DEF))
+  const input = metas.find((m) => m.kind === 3 && m.shell === 1)
+  assert.equal(input?.name, 'cubie1', '新 input name')
+  assert.equal(input?.type, 1, '新 input Ety')
+  assert.equal(input?.pinIndex, 1975, 'pinIndex = def 内 max(1974)+1')
+  const pins4 = parseWireMessage(implBlob(patched, CUBE_IMPL))!.filter((f) => f.number === 4 && f.wire === 2)
+  const added = pins4.find((f) => {
+    const pf = parseWireMessage(f.value as Uint8Array)!
+    const outer = parseWireMessage((pf.find((x) => x.number === 1 && x.wire === 2)!).value as Uint8Array)!
+    return outer.find((x) => x.number === 1)?.value === 3 && (outer.find((x) => x.number === 2)?.value ?? 0) === 1
+  })!
+  assert.equal(
+    Buffer.from(added.value as Uint8Array).toString('hex'),
+    '0a040803100110021a02080322020803',
+    '新增 compositePin {outer:{1:3,2:1}, innerNode:2, inner:{1:3} 双写}'
+  )
+  passed++
+  console.log('PASS 修复1 compositeImplGraphId + add-input（def+impl 联动；实例原位）')
+}
+
+// 修复 2：add-inflow —— def inflow 追加（真实样本形态：无名、type 空）+ impl
+// compositePin（inner kind=InFlow）+ 实例不落 pin/零变化
+{
+  const before = read(CUBE)
+  const def = patchRecord(before, 2, CUBE_DEF, (b) => addInflowFlow(b, 0))
+  const inflows = parseWireMessage(defBlob(def, CUBE_DEF))!.filter((f) => f.number === 100 && f.wire === 2)
+  assert.equal(inflows.length, 2, 'inflows 1→2')
+  const added = parseWireMessage(inflows[1].value as Uint8Array)!
+  assert.equal(added.find((x) => x.number === 1), undefined, '新增 inflow 无名（真实样本无 name 字段）')
+  assert.equal(added.find((x) => x.number === 2)?.value, 1, 'visible=1')
+  assert.equal(
+    Buffer.from(added.find((x) => x.number === 3)!.value as Uint8Array).toString('hex'),
+    '0801',
+    'index={1:1}（shell0 省略）'
+  )
+  assert.equal((added.find((x) => x.number === 4)!.value as Uint8Array).length, 0, 'type 显式空')
+  assert.equal(added.find((x) => x.number === 8)?.value, 1975, 'pinIndex = max+1')
+  let patched = patchRecord(before, 2, CUBE_DEF, (b) => addInflowFlow(b, 0))
+  patched = patchRecord(patched, 4, compositeImplGraphId(patched.slice(20, -4), CUBE_DEF), (b) =>
+    addCompositePin(b, 1, 0, 2, 0, PIN_KIND.IN_FLOW)
+  )
+  const pins4 = parseWireMessage(implBlob(patched, CUBE_IMPL))!.filter((f) => f.number === 4 && f.wire === 2)
+  assert.equal(pins4.length, 7, 'compositePins 6→7')
+  assert.equal(
+    Buffer.from(pins4[1].value as Uint8Array).toString('hex'),
+    '0a02080110021a02080122020801',
+    '新增 compositePin {outer:{1:1}, innerNode:2, inner:{1:1} 双写}（(1,0) 后升序插入）'
+  )
+  assert.equal(sha256(graphBlob(patched, CUBE_GID)), sha256(graphBlob(before, CUBE_GID)), '宿主图零变化（实例不落 InFlow pin）')
+  const inst = parseGraphNodes(graphBlob(patched, CUBE_GID)).find((n) => n.index === 46)!
+  assert.deepEqual(inst.pins.map((p) => [p.kind, p.index, p.compositePinIndex]), [[2, 0, 4], [3, 0, 100]], '实例 n46 形态不变')
+  passed++
+  console.log('PASS 修复2 addInflowFlow + compositePin InFlow（实例零变化）')
+}
+
+// 修复 3：node-add 显式 concrete —— f2/f3 与真实 Variant 样本（n40 MultiBranch g3/c4）
+// 逐字节同构；无 concrete 的 Variant donor 仍 fail closed
+{
+  const before = read(CUBE)
+  const patched = patchRecord(before, 1, CUBE_GID, (blob) => addGraphNode(blob, 3, 200, 200, undefined, 4))
+  const view = parseGraphNodes(graphBlob(patched, CUBE_GID)).find(
+    (n) => n.genericId === 3 && n.concreteId === 4 && n.index !== 39 && n.index !== 40
+  )!
+  assert.equal(view.index, 78, '最小空闲 78')
+  assert.equal(view.pins.length, 0, '无 pin 落盘')
+  const refs = (rec: Uint8Array) =>
+    parseWireMessage(rec)!.filter((f) => f.number === 2 || f.number === 3).map((f) => Buffer.from(f.value as Uint8Array).toString('hex'))
+  assert.deepEqual(refs(nodeRecord(patched, CUBE_GID, 78)), refs(nodeRecord(before, CUBE_GID, 40)), 'f2/f3 与 n40 样本逐字节同构')
+  assert.throws(() => patchRecord(before, 1, CUBE_GID, (b) => addGraphNode(b, 3, 0, 0)), /Variant/, '无 concrete 的 Variant donor 仍 fail closed')
+  const plain = patchRecord(before, 1, CUBE_GID, (blob) => addGraphNode(blob, 1, 100, 100))
+  const pv = parseGraphNodes(graphBlob(plain, CUBE_GID)).find((n) => n.genericId === 1 && n.index !== 1 && n.index !== 30)!
+  assert.equal(pv.concreteId, 1, '3 参（无 concrete）路径不变')
+  passed++
+  console.log('PASS 修复3 addGraphNode 显式 concrete（refs 与真实样本同构 + 校验保留）')
+}
+
+// 修复 4：R<T> 泛型 pin 的 link type —— reflectMap 条目名 'S<T:...>' → INPUT_TYPE
+{
+  assert.equal(nodeInputConcreteType(323, 328), 1, 'SetVar Ety')
+  assert.equal(nodeInputConcreteType(323, 324), 5, 'SetVar Flt')
+  assert.equal(nodeInputConcreteType(337, 340), 4, 'GetVar Bol')
+  assert.equal(nodeInputConcreteType(3, 4), 6, 'MultiBranch Str')
+  assert.equal(nodeInputConcreteType(14, 14), 6, 'Equal Str')
+  assert.equal(nodeInputConcreteType(323, undefined), undefined)
+  assert.equal(nodeInputConcreteType(323, 9999), undefined, '未知 concrete fail closed')
+  passed++
+  console.log('PASS 修复4 nodeInputConcreteType（reflectMap 解析，5 样本 + fail closed）')
+}
+
+// CLI 级端到端：4 个修复的完整命令链（真实地图副本 → 临时目录，逐文件输出）
+{
+  const dir = mkdtempSync(path.join(tmpdir(), 'cube-toolfix-'))
+  const cube = path.join(dir, 'e1.gil')
+  copyFileSync(CUBE, cube)
+  const cli = (args: string[]) =>
+    execFileSync('./node_modules/.bin/tsx', ['src/cli/gsts.ts', 'assets:node-graphs', ...args], {
+      encoding: 'utf8',
+      cwd: process.cwd()
+    })
+  try {
+    // 修复 1：add-input 成功（旧代码在此报 impl graph not found）
+    const s2 = path.join(dir, 's2.gil')
+    const out2 = cli(['patch', '--gil', cube, '--graph', '1073741846', 'composite', '1610700002', 'add-input', '1', 'cubie1', 'ety', '2', '0', '--output', s2])
+    assert.ok(out2.includes('add-input[1] cubie1 ety'), 'add-input 成功')
+    const m2 = flowMetas(defBlob(read(s2), CUBE_DEF))
+    assert.equal(m2.filter((m) => m.kind === 3).length, 2, 'inputs 2 条')
+    assert.equal(m2.find((m) => m.kind === 3 && m.shell === 1)?.type, 1)
+    // 修复 2：add-inflow 只动 def+impl，实例不变
+    const s3 = path.join(dir, 's3.gil')
+    cli(['patch', '--gil', s2, '--graph', '1073741846', 'composite', '1610700002', 'add-inflow', '0', 'InFlow2', '2', '0', '--output', s3])
+    const m3 = flowMetas(defBlob(read(s3), CUBE_DEF))
+    assert.equal(m3.filter((m) => m.kind === 1).length, 2, 'inflows 2 条')
+    assert.equal(m3.filter((m) => m.kind === 3).length, 2, 'inputs 2 条')
+    const inst3 = parseGraphNodes(graphBlob(read(s3), CUBE_GID)).find((n) => n.index === 46)!
+    assert.equal(inst3.pins.filter((p) => p.kind === 1).length, 0, '实例无 InFlow pin')
+    // 修复 3：node-add 3 4 200 200 → generic=3 concrete=4（Variant）
+    const s4 = path.join(dir, 's4.gil')
+    cli(['patch', '--gil', s3, '--graph', '1073741846', 'node-add', '3', '4', '200', '200', '--output', s4])
+    const mb = parseGraphNodes(graphBlob(read(s4), CUBE_GID)).find((n) => n.genericId === 3 && n.index !== 39 && n.index !== 40)!
+    assert.equal(mb.concreteId, 4, 'concrete=4')
+    assert.equal(mb.x, 200)
+    assert.equal(mb.y, 200)
+    assert.throws(() => cli(['patch', '--gil', s3, '--graph', '1073741846', 'node-add', '3', '9999', '500', '500', '--output', path.join(dir, 'bad.gil')]), /reflectMap 不含 concrete/, '非法 concrete 拒绝')
+    // 修复 4：impl 图 node-add 337/323(c328) + 跨图复制 GetVar(n47) 作源 + link R<T>
+    const s5 = path.join(dir, 's5.gil')
+    cli(['patch', '--gil', s4, '--graph', '1610710002', 'node-add', '337', '100', '100', 'node-add', '323', '328', '200', '100', '--output', s5])
+    const s6 = path.join(dir, 's6.gil')
+    cli(['patch', '--gil', s5, '--graph', '1610710002', 'node-copy-from', '1073741846', '47', '300', '100', '--src-gil', s4, '--output', s6])
+    const s7 = path.join(dir, 's7.gil')
+    const out7 = cli(['patch', '--gil', s6, '--graph', '1610710002', 'node', '15', 'link', '1', '16', '--output', s7])
+    assert.ok(out7.includes('link[1] ← n16[0] type=1'), 'R<T> link type 经 reflectMap 解析')
+    const sv = parseGraphNodes(implBlob(read(s7), CUBE_IMPL)).find((n) => n.index === 15)!
+    const pin = sv.pins.find((p) => p.kind === 3 && p.index === 1)!
+    assert.equal(pin.type, 1, 'InParam[1] Ety')
+    assert.deepEqual(pin.connects.map((c) => c.id), [16], '连线 → n16 OutParam[0]')
+    passed++
+    console.log('PASS CLI 端到端 4 修复链（add-input → add-inflow → node-add Variant → impl link R<T>）')
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+// 修复 5（2026-08-12）：Str 变体（GetVar 342 / SetVar 326）pin 编码——
+// defaultVarValue（oneof 空消息，与真实 OutParam 样本同构）+ addOutParam（源侧
+// OutParam pin 补全，编辑器画线语义）+ nodeOutputType（'R<T>'/'E<1016>' 判别）
+{
+  // 1) defaultVarValue：{1:class, 4:{1:1,100:{1:type}}, oneof:空消息}——无 f2(alreadySetVal)
+  //    （与真实 GetCustomVar Flt 54 样本 / n41 / n43 OutParam 同构）
+  assert.equal(
+    Buffer.from(defaultVarValue(6)).toString('hex'),
+    '080522070801a206020806ca0600',
+    'Str 默认值（class=5, itemType=6, bString 空）'
+  )
+  assert.equal(
+    Buffer.from(defaultVarValue(4)).toString('hex'),
+    '080622070801a206020804d20600',
+    'Bol 默认值（class=6, itemType=4, bEnum 空）'
+  )
+  assert.equal(
+    Buffer.from(defaultVarValue(5)).toString('hex'),
+    '080422070801a206020805c20600',
+    'Flt 默认值（class=4, itemType=5, bFloat 空）'
+  )
+  assert.equal(
+    Buffer.from(defaultVarValue(8)).toString('hex'),
+    '08924e22070801a206020808ea0600',
+    'L<Int> = ArrayBase(10002) + bArray 空（真实 n31 AssemblyList OutParam 样本）'
+  )
+  assert.throws(() => defaultVarValue(17), /未闭合/, 'Fct 未闭合 fail closed')
+  // 2) wrapConcreteValue(defaultVarValue(5), 4) 与真实 Get Custom Variable 样本
+  //    （证据 composite-case1-wrap-customvar-v22-v23，impl 1610612744 n23 g=50 c=54 Flt）
+  //    OutParam f3 逐字节一致（indexOfConcrete=4 = reflectMap 54 的位置）
+  const getCustomF3 = '08904e1001f206120804120e080422070801a206020805c20600'
+  assert.equal(
+    Buffer.from(wrapConcreteValue(defaultVarValue(5), 4)).toString('hex'),
+    getCustomF3,
+    'wrapConcreteValue(defaultVarValue(Flt),4) == GetCustomVar 样本 OutParam f3 逐字节'
+  )
+  const before = read(CUBE)
+  // 3) addOutParam：342 节点 OutParam pin（Str 变体，idx=5）形态与 n69 同构
+  const withNode = patchRecord(before, 1, CUBE_GID, (b) => addGraphNode(b, 337, 0, 0, undefined, 342))
+  const newIdx = parseGraphNodes(graphBlob(withNode, CUBE_GID)).find(
+    (n) => n.genericId === 337 && n.concreteId === 342
+  )!.index
+  const withOut = patchGraphNode(withNode, CUBE_GID, newIdx, (n) => addOutParam(n, 0, 6, 5), 1)
+  const newView = parseGraphNodes(graphBlob(withOut, CUBE_GID)).find((n) => n.index === newIdx)!
+  const outPin = newView.pins.find((p) => p.kind === 4 && p.index === 0)!
+  assert.equal(outPin.type, 6, 'OutParam Str')
+  assert.ok(outPin.valueText.includes('ConcreteBase') && outPin.valueText.includes('5'), 'value=ConcreteBase idx 5')
+  const newPinFields = parseWireMessage(
+    (parseWireMessage(nodeRecord(withOut, CUBE_GID, newIdx))!).find(
+      (f) => f.number === 4 && f.wire === 2 &&
+        (() => { const pin = parseWireMessage(f.value as Uint8Array)!; const i = parseWireMessage((pin.find((x) => x.number === 1)!.value) as Uint8Array)!; return i.find((x) => x.number === 1)?.value === 4 })()
+    )!.value as Uint8Array
+  )!
+  assert.equal(Buffer.from(newPinFields.find((f) => f.number === 3)!.value as Uint8Array).toString('hex'),
+    Buffer.from(wrapConcreteValue(defaultVarValue(6), 5)).toString('hex'),
+    'Str OutParam f3 = ConcreteBase{idx:5, Str 默认值}'
+  )
+  // n69 同构：pin 结构字段序一致（i1/i2={1:4}, f3, f4），f4 按类型替换 5→6
+  assert.equal(newPinFields.find((f) => f.number === 4)!.value, 6, 'pin f4=Str')
+  const n69 = parseNodeRecord(nodeRecord(before, CUBE_GID, 69))
+  assert.equal(n69.pins.find((p) => p.kind === 4 && p.index === 0)!.type, 5, 'n69 OutParam Flt（f4=5 参照）')
+  // 4) nodeOutputType / nodeOutputTypeName
+  assert.equal(nodeOutputType(10, 0), 12, '3D Vector Addition OutParam[0] Vec')
+  assert.equal(nodeOutputType(252, 0), 1, 'Create Prefab OutParam[0] Ety')
+  assert.equal(nodeOutputTypeName(18, 0), 'E<1016>', 'GetLocal OutParam[0] 虚拟名')
+  assert.equal(nodeOutputType(18, 0), undefined, 'E<1016> 未收录 → undefined（不落 pin）')
+  assert.equal(nodeOutputType(18, 1), undefined, "'R<T>' 输出名 → undefined（应走 reflectMap）")
+  passed++
+  console.log('PASS 修复5 defaultVarValue + addOutParam + nodeOutputType（Str 变体 pin 与 n69 同构）')
+}
+
+// CLI 级：Str 变体（342/326）端到端 —— node-add 显式 concrete + param + link
+// （源侧 OutParam pin 自动补全；SetVar R<T> param 走 ConcreteBase idx=3）
+{
+  const dir = mkdtempSync(path.join(tmpdir(), 'cube-strvar-'))
+  const cube = path.join(dir, 'e1.gil')
+  copyFileSync(CUBE, cube)
+  const cli = (args: string[]) =>
+    execFileSync('./node_modules/.bin/tsx', ['src/cli/gsts.ts', 'assets:node-graphs', ...args], {
+      encoding: 'utf8',
+      cwd: process.cwd()
+    })
+  try {
+    const s1 = path.join(dir, 's1.gil')
+    cli(['patch', '--gil', cube, '--graph', '1073741846',
+      'node-add', '337', '342', '100', '100',
+      'node-add', '323', '326', '1100', '100',
+      'node-add', '1', '200', '200',
+      '--output', s1])
+    const gv = parseGraphNodes(graphBlob(read(s1), CUBE_GID)).find((n) => n.genericId === 337 && n.concreteId === 342)!
+    const sv = parseGraphNodes(graphBlob(read(s1), CUBE_GID)).find((n) => n.genericId === 323 && n.concreteId === 326)!
+    const ps = parseGraphNodes(graphBlob(read(s1), CUBE_GID)).find((n) => n.genericId === 1 && n.pins.length === 0)!
+    const s2 = path.join(dir, 's2.gil')
+    const out = cli(['patch', '--gil', s1, '--graph', '1073741846',
+      'node', String(gv.index), 'param', '0', 'Str:current_face',
+      'node', String(gv.index), 'flow', '0', String(ps.index),
+      'node', String(ps.index), 'link', '0', String(gv.index),
+      'node', String(sv.index), 'param', '0', 'Str:current_face',
+      'node', String(sv.index), 'param', '1', 'Str:U',
+      '--output', s2])
+    assert.ok(out.includes(`out-param[0] type=6 idx=5`), '源 GetVar OutParam 自动补全（Str idx=5）')
+    const gv2 = parseGraphNodes(graphBlob(read(s2), CUBE_GID)).find((n) => n.genericId === 337 && n.concreteId === 342)!
+    const outP = gv2.pins.find((p) => p.kind === 4 && p.index === 0)!
+    assert.equal(outP.type, 6, 'OutParam Str')
+    assert.ok(outP.valueText.includes('ConcreteBase') && outP.valueText.includes('5'), 'ConcreteBase idx=5')
+    const sv2 = parseGraphNodes(graphBlob(read(s2), CUBE_GID)).find((n) => n.genericId === 323 && n.concreteId === 326)!
+    const rtp = sv2.pins.find((p) => p.kind === 3 && p.index === 1)!
+    assert.equal(rtp.type, 6, 'SetVar InParam[1] Str')
+    assert.ok(rtp.valueText.includes('ConcreteBase') && rtp.valueText.includes('3'), 'SetVar ConcreteBase idx=3（reflectMap 位置）')
+    const ps2 = parseGraphNodes(graphBlob(read(s2), CUBE_GID)).find((n) => n.index === ps.index)!
+    const inP = ps2.pins.find((p) => p.kind === 3 && p.index === 0)!
+    assert.deepEqual(inP.connects.map((c) => c.id), [gv2.index], 'Print String ← GetVar Str')
+    assert.equal(inP.type, 6, '目标 InParam Str')
+    // 实例源不补 pin：从复合实例 n3 输出 link 到 n5 InParam[0]（实例无 OutParam pin）
+    const s3 = path.join(dir, 's3.gil')
+    const out3 = cli(['patch', '--gil', s2, '--graph', '1073741846', 'node', '5', 'link', '0', '3', '--output', s3])
+    assert.ok(!out3.includes('out-param'), '实例源不补 OutParam pin')
+    const inst = parseGraphNodes(graphBlob(read(s3), CUBE_GID)).find((n) => n.index === 3)!
+    assert.equal(inst.pins.filter((p) => p.kind === 4).length, 0, '实例仍无 OutParam pin')
+    // 固定类型源不补 pin：3D Vector Addition（Vec 输出，真实 n5-19 无 OutParam 记录）
+    const s3b = path.join(dir, 's3b.gil')
+    const out3b = cli(['patch', '--gil', s2, '--graph', '1073741846', 'node', '6', 'link', '1', '5', '--output', s3b])
+    assert.ok(!out3b.includes('out-param[0] type='), 'Vec 固定输出不落 pin（编辑器行为）')
+    const vecSrc = parseGraphNodes(graphBlob(read(s3b), CUBE_GID)).find((n) => n.index === 5)!
+    assert.equal(vecSrc.pins.filter((p) => p.kind === 4).length, 0, 'n5 无 OutParam pin')
+    passed++
+    console.log('PASS CLI 端到端 Str 变体（342/326）param/link 源侧 pin 补全 + 实例不补')
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+// 修复 5b（2026-08-12）：多 connects pin 的 flow/link 替换语义——
+// 真实 n1（When Entity Is Created）OutFlow[0] 三连（n4/n21/n30），
+// 旧 map() 实现会把每条旧 connect 都替换成同一条新线（重复 3 条）；修后只留 1 条
+{
+  const before = read(CUBE)
+  const n1before = parseGraphNodes(graphBlob(before, CUBE_GID)).find((n) => n.index === 1)!
+  const oldConns = n1before.pins.find((p) => p.kind === 2 && p.index === 0)!.connects
+  assert.equal(oldConns.length, 3, '真实 n1 三连（前提）')
+  const after = patchGraphNode(before, CUBE_GID, 1, (n) => addOutFlow(n, 0, 99, 0), 1)
+  const n1 = parseGraphNodes(graphBlob(after, CUBE_GID)).find((n) => n.index === 1)!
+  const f = n1.pins.find((p) => p.kind === 2 && p.index === 0)!
+  assert.deepEqual(f.connects.map((c) => c.id), [99], 'flow 替换：3 connects → 1 条新线')
+  // linkInParam 替换不回归：n24 SetVar InParam[1] 单线替换
+  const after2 = patchGraphNode(before, CUBE_GID, 24, (n) => linkInParam(n, 1, 12, 0, 1), 1)
+  const n24 = parseGraphNodes(graphBlob(after2, CUBE_GID)).find((n) => n.index === 24)!
+  const p24 = n24.pins.find((p) => p.kind === 3 && p.index === 1)!
+  assert.deepEqual(p24.connects.map((c) => c.id), [12], 'link 替换单线')
+  assert.equal(p24.connects.length, 1, '无重复线')
+  passed++
+  console.log('PASS 修复5b 多 connects 替换语义（flow 三连→1 + link 单线不回归）')
 }
 
 console.log(`\n${passed} tests passed`)

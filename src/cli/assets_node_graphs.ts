@@ -16,10 +16,13 @@ import {
 import {
   addCompositePin,
   addGraphNode,
+  addOutParam,
   addGraphVariable,
+  addInflowFlow,
   addOutFlow,
   appendOutFlow,
   addParamFlow,
+  compositeImplGraphId,
   buildVarValue,
   chooseMovedIndex,
   chooseRebuildIndex,
@@ -38,9 +41,12 @@ import {
   listGraphs,
   locateBlobField,
   locateGraphField,
+  nodeInputConcreteType,
   nodeInputType,
   nodeInputTypeName,
   nodeName,
+  nodeOutputTypeName,
+  PIN_KIND,
   parseGraphNodes,
   parseNodeRecord,
   parseTypedValue,
@@ -163,7 +169,7 @@ function usage(exitCode = 0): never {
     '  node <idx> param <shell> <typed>       set InParam value (int:1 flt:1.5 str:abc bool:true vec:1,2,3 gid:1 pfb:1 cfg:1)',
     '  node <idx> link <shell> <src-idx> [src-shell]   data connection to InParam shell',
     '  node <idx> unlink <shell>              remove data connection (Fixed: remove pin / Variant: clear connects)',
-    '  node-add <generic-id> <x> <y>          add node (min free index; donor must be pinless)',
+    '  node-add <generic-id> [concrete-id] <x> <y>   add node (Variant when concrete-id given; min free index)',
     '  node-copy <src-idx> <x> <y>             copy node with all pins/values (editor paste semantics)',
     '  node-copy-from <src-gid> <idx1,idx2,...> <x> <y>   copy nodes from another graph in --src-gil',
     '                                      (keeps relative layout, remaps intra-list links;',
@@ -176,6 +182,7 @@ function usage(exitCode = 0): never {
     '  composite <def-id> rename <name>       rename composite definition',
     '  composite <def-id> param <kind> <shell> rename <name>   kind=input|output|inflow|outflow',
     '  composite <def-id> add-input <shell> <name> <type> <inner-node> <inner-shell>  add input param from impl pin (type=int|flt|str|bool|gid|ety; renumbers instance unless already at min free)',
+    '  composite <def-id> add-inflow <shell> <name> <inner-node> <inner-shell>  add InFlow entry (def flow + impl compositePin; instance untouched)',
     '  composite create <name> <anchor-idx> <node-idx...>  wrap selected nodes into a new composite',
     '      (anchor stays in place as the instance, other nodes move into the impl graph;',
     '      control-flow OutFlows auto-lift to composite outflows; data inputs stay inside)',
@@ -653,12 +660,32 @@ function applyOps(
         const oldIndex = instances[0].index
         const newIndex = chooseRebuildIndex(graphBlob(current, graphId), oldIndex, innerNode)
         current = patchRecord(current, 2, defId, (b) => addParamFlow(b, 3, shell, name, varType))
-        current = patchRecord(current, 4, defId, (b) => addCompositePin(b, 3, shell, innerNode, innerShell))
+        current = patchRecord(current, 4, compositeImplGraphId(current.slice(20, -4), defId), (b) =>
+          addCompositePin(b, 3, shell, innerNode, innerShell)
+        )
         if (newIndex !== undefined) {
           current = patchRecord(current, section, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
         }
         summary.push(`composite ${defId} add-input[${shell}] ${name} ${typeName} inner=n${innerNode}[${innerShell}]（实例 n${oldIndex}${newIndex !== undefined ? `→n${newIndex}` : ' 原位'}）`)
         i += 8
+        continue
+      }
+      if (verb === 'add-inflow') {
+        const shell = Number(ops[i + 3])
+        const name = ops[i + 4]
+        const innerNode = ops[i + 5] !== undefined ? Number(ops[i + 5]) : undefined
+        const innerShell = ops[i + 6] !== undefined ? Number(ops[i + 6]) : undefined
+        if (!Number.isFinite(shell) || name === undefined || innerNode === undefined || innerShell === undefined) {
+          throw new Error('[error] composite add-inflow <shell> <name> <inner-node> <inner-shell>')
+        }
+        // 实例不落 InFlow pin（真实复合实例无 InFlow pin：控制流连线挂源侧 connects，
+        // 实例侧惰性）→ 只 patch def + impl，实例零变化
+        current = patchRecord(current, 2, defId, (b) => addInflowFlow(b, shell))
+        current = patchRecord(current, 4, compositeImplGraphId(current.slice(20, -4), defId), (b) =>
+          addCompositePin(b, 1, shell, innerNode, innerShell, PIN_KIND.IN_FLOW)
+        )
+        summary.push(`composite ${defId} add-inflow[${shell}] ${name} inner=n${innerNode}[${innerShell}]（实例不落 pin）`)
+        i += 7
         continue
       }
       if (verb === 'del-input') {
@@ -672,7 +699,9 @@ function applyOps(
         if (!target) throw new Error(`[error] def ${defId} 无 input shell ${shell}`)
         const newIndex = chooseMovedIndex(graphBlob(current, graphId), oldIndex)
         current = patchRecord(current, 2, defId, (b) => delParamFlow(b, 3, shell))
-        current = patchRecord(current, 4, defId, (b) => delCompositePin(b, 3, shell))
+        current = patchRecord(current, 4, compositeImplGraphId(current.slice(20, -4), defId), (b) =>
+          delCompositePin(b, 3, shell)
+        )
         current = patchGraphNode(current, graphId, oldIndex, (n) => delInstanceCompositePin(n, 3, shell, target.pinIndex!), section)
         current = patchRecord(current, section, graphId, (b) => renumberGraphNode(b, oldIndex, newIndex))
         summary.push(`composite ${defId} del-input[${shell}]（实例 n${oldIndex}→n${newIndex}；跨轮墓碑无会话史可能低于编辑器）`)
@@ -688,7 +717,9 @@ function applyOps(
         const oldIndex = instances[0].index
         const newIndex = chooseMovedIndex(graphBlob(current, graphId), oldIndex)
         current = patchRecord(current, 2, defId, (bl) => swapParamFlows(bl, 3, a, b))
-        current = patchRecord(current, 4, defId, (bl) => swapCompositePinInners(bl, 3, a, b))
+        current = patchRecord(current, 4, compositeImplGraphId(current.slice(20, -4), defId), (bl) =>
+          swapCompositePinInners(bl, 3, a, b)
+        )
         current = patchGraphNode(current, graphId, oldIndex, (n) => swapInstancePins(n, 3, a, b), section)
         current = patchRecord(current, section, graphId, (bl) => renumberGraphNode(bl, oldIndex, newIndex))
         summary.push(`composite ${defId} swap-input ${a}↔${b}（实例 n${oldIndex}→n${newIndex}；跨轮墓碑无会话史可能低于编辑器）`)
@@ -698,14 +729,22 @@ function applyOps(
       throw new Error(`[error] unknown composite op ${verb}`)
     }
     if (op === 'node-add') {
+      // 4 个数字 token = <generic-id> [concrete-id] <x> <y>（Variant 显式 concrete；
+      // 3 个 = 旧形式 <generic-id> <x> <y> 向后兼容）。旧 CLI 4 数字 token 必为
+      // unknown-op 错误，无历史调用，无歧义。concrete 合法性：reflectMap 必须含之。
       const genericId = Number(ops[i + 1])
-      const x = Number(ops[i + 2])
-      const y = Number(ops[i + 3])
+      const four = Number.isFinite(Number(ops[i + 3])) && Number.isFinite(Number(ops[i + 4]))
+      const concreteId = four ? Number(ops[i + 2]) : undefined
+      const x = Number(ops[i + (four ? 3 : 2)])
+      const y = Number(ops[i + (four ? 4 : 3)])
       if (![genericId, x, y].every(Number.isFinite))
-        throw new Error('[error] node-add needs <generic-id> <x> <y>')
-      current = patchRecord(current, section, graphId, (blob) => addGraphNode(blob, genericId, x, y, tombstoned))
-      summary.push(`add node generic=${genericId} pos=(${x},${y})`)
-      i += 4
+        throw new Error('[error] node-add needs <generic-id> [concrete-id] <x> <y>')
+      if (concreteId !== undefined && reflectConcreteIndex(genericId, concreteId) === undefined) {
+        throw new Error(`[error] generic ${genericId} reflectMap 不含 concrete ${concreteId}（Variant 校验失败）`)
+      }
+      current = patchRecord(current, section, graphId, (blob) => addGraphNode(blob, genericId, x, y, tombstoned, concreteId))
+      summary.push(`add node generic=${genericId}${concreteId !== undefined ? ` concrete=${concreteId}` : ''} pos=(${x},${y})`)
+      i += four ? 5 : 4
       continue
     }
     if (op === 'node-copy') {
@@ -808,8 +847,8 @@ function applyOps(
     } else if (action === 'link') {
       const shell = Number(ops[i + 3])
       const srcNode = Number(ops[i + 4])
-      const srcShell =
-        ops[i + 5] !== undefined && Number.isFinite(Number(ops[i + 5])) ? Number(ops[i + 5]) : 0
+      const hasSrcShell = ops[i + 5] !== undefined && Number.isFinite(Number(ops[i + 5]))
+      const srcShell = hasSrcShell ? Number(ops[i + 5]) : 0
       let type: number | undefined
       let pinIndex: number | undefined
       current = patchGraphNode(current, graphId, nodeIndex, (n) => {
@@ -820,6 +859,11 @@ function applyOps(
           pinIndex = meta.pinIndex
         } else {
           type = nodeInputType(view.genericId, shell)
+          // R<T> 泛型 pin（Set/Get Node Graph Variable 等）：concreteId 经 reflectMap
+          // 条目名 'S<T:...>' 解析具体类型；非 R<T> 的未知名不猜测
+          if (type === undefined && nodeInputTypeName(view.genericId, shell) === 'R<T>') {
+            type = nodeInputConcreteType(view.genericId, view.concreteId)
+          }
         }
         if (type === undefined) {
           throw new Error(`[error] 无法确定 node ${nodeIndex} InParam[${shell}] 的类型（定义缺失），link 需要目标 pin 类型`)
@@ -827,7 +871,34 @@ function applyOps(
         return linkInParam(n, shell, srcNode, srcShell, type, pinIndex)
       }, section)
       summary.push(`node ${nodeIndex} link[${shell}] ← n${srcNode}[${srcShell}] type=${type}`)
-      i += srcShell !== 0 ? 6 : 5
+      // 源侧 OutParam pin 补全（2026-08-12 闭合，Str 变体 bug 修复）：
+      // 真实数据源节点中 **仅 R<T> 族输出**（'R<T>'，如 GetVar/GetLocal/Subtraction/
+      // GetCustomVar）落默认值 pin（n41/n69/n43/n71 + 证据 case1 GetCustomVar 54）；
+      // 固定类型输出不落 pin（n5 3D VecAdd Vec、n6-20 CreatePrefab Ety、v21 Equal Bol、
+      // n43 GetLocal E<1016> 虚拟 pin——真实样本全部无记录，编辑器同样容忍缺 pin）。
+      // 缺 pin / 编码错 → 编辑器加载失败 → 保存丢弃节点 → 连线断开（用户实测）。
+      // 规则（对照真实样本）：
+      //  - 源输出名 'R<T>' → concreteId 经 reflectMap 解析（含 generic==concrete 的基础变体）
+      //  - 其余输出名（Vec/Ety/Bol/'L<R<T>>'/'E<1016>' 等）→ 不落 pin（编辑器行为）
+      //  - 复合实例无 OutParam pin（真实 n3/n39 实例）→ 不补
+      //  - 默认值编码未闭合的类型（Fct/L<Ety>/L<Vec> 等）→ fail closed 跳过并告警
+      const srcRec = parseGraphNodes(graphBlob(current, graphId)).find((n) => n.index === srcNode)
+      if (srcRec && srcRec.genericId < 1610000000 && !srcRec.pins.some((p) => p.kind === PIN_KIND.OUT_PARAM && p.index === srcShell)) {
+        const srcOutName = nodeOutputTypeName(srcRec.genericId, srcShell)
+        const srcOutType = srcOutName === 'R<T>' ? nodeInputConcreteType(srcRec.genericId, srcRec.concreteId) : undefined
+        if (srcOutType === undefined) {
+          summary.push(`node ${srcNode} out-param[${srcShell}] ${srcOutName ?? '?'} 输出不落 pin（编辑器行为/未闭合）`)
+        } else {
+          try {
+            const srcIdx = reflectConcreteIndex(srcRec.genericId, srcRec.concreteId)
+            current = patchGraphNode(current, graphId, srcNode, (n) => addOutParam(n, srcShell, srcOutType, srcIdx), section)
+            summary.push(`node ${srcNode} out-param[${srcShell}] type=${srcOutType}${srcIdx !== undefined ? ` idx=${srcIdx}` : ''}`)
+          } catch (e) {
+            summary.push(`node ${srcNode} out-param[${srcShell}] 默认值未闭合（${String(e).slice(0, 80)}），未补 pin（fail closed）`)
+          }
+        }
+      }
+      i += hasSrcShell ? 6 : 5
     } else if (action === 'unlink') {
       const shell = Number(ops[i + 3])
       current = patchGraphNode(current, graphId, nodeIndex, (n) => unlinkInParam(n, shell), section)
@@ -836,8 +907,8 @@ function applyOps(
     } else if (action === 'flow') {
       const shell = Number(ops[i + 3])
       const dstNode = Number(ops[i + 4])
-      const dstShell =
-        ops[i + 5] !== undefined && Number.isFinite(Number(ops[i + 5])) ? Number(ops[i + 5]) : 0
+      const hasDstShell = ops[i + 5] !== undefined && Number.isFinite(Number(ops[i + 5]))
+      const dstShell = hasDstShell ? Number(ops[i + 5]) : 0
       let pinIndex: number | undefined
       current = patchGraphNode(current, graphId, nodeIndex, (n) => {
         const meta = instanceMeta(current, n, shell, 2)
@@ -845,7 +916,7 @@ function applyOps(
         return addOutFlow(n, shell, dstNode, dstShell, pinIndex)
       }, section)
       summary.push(`node ${nodeIndex} flow[${shell}] → n${dstNode}[${dstShell}]`)
-      i += dstShell !== 0 ? 6 : 5
+      i += hasDstShell ? 6 : 5
     } else if (action === 'flow-rm') {
       const shell = Number(ops[i + 3])
       const targetNode = Number(ops[i + 4])
@@ -952,7 +1023,7 @@ function runPatch(bytes: Uint8Array, gil: string, args: Args): void {
   const hasComposite = args.ops.some(
     (op, i) =>
       op === 'composite' &&
-      (args.ops[i + 1] === 'create' || ['add-input', 'del-input', 'swap-input'].includes(args.ops[i + 2]))
+      (args.ops[i + 1] === 'create' || ['add-input', 'add-inflow', 'del-input', 'swap-input'].includes(args.ops[i + 2]))
   )
   const graphId =
     hasNodeOps || hasComposite

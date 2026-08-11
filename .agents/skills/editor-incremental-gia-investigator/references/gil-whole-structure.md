@@ -173,6 +173,22 @@ root 27 双 section 的唯一小型增删和 root 45 packed MRU。目标选择�
   靠真实快照逐字节对比测试抓回。新容器的嵌套深度必须从真实记录 hex 数，
   不能凭“跟之前那个一样”。
 
+## 解码入口：loadGiaProto（2026-08-12 proto-probe 教训）
+
+需要把 GIL 记录解成 protobuf 消息对象时，用项目现成的入口，不要自己 require/拼路径：
+
+```ts
+import { loadGiaProto } from '../src/injector/proto.js'   // 同步函数！不要 await
+const proto = loadGiaProto()                              // { root, rootMessage: Root, nodeGraphMessage: NodeGraph }
+// 整图解码见 tools/parse-gil-node-graph.ts 的 loadDocument()（graphsById/defsById/implGraphsById）
+// 节点图消息 = proto.nodeGraphMessage.decode(graphBlob)；根层 = proto.rootMessage.decode(payload)
+```
+
+split2 曾在此连错 4 次（trace 199151-201630）：require `dist/.../gia.js`（编译产物无消息类导出）、
+顶层 `await loadGiaProto()`（tsx cjs 不支持顶层 await，函数本身是同步的）、消息名/字段路径猜错
+（`graph.inner.graph.nodes` 不存在，直接 `nodeGraphMessage.decode(blob)` 后按 `nodes` 字段遍历即可）。
+先在 `tools/parse-gil-node-graph.ts` 找同类用法照抄，再动手写新解码脚本。
+
 ## Validator 与知识合并
 
 独立 Validator 必须直接读取原始快照并重新计算：

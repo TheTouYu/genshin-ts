@@ -231,13 +231,17 @@ function containsText(data: Uint8Array, expected: string, depth = 0): boolean {
   return false
 }
 
-function definitionNameCompositePinIndex(raw: Uint8Array, signalName: string): number {
+function definitionNameCompositePinIndex(
+  raw: Uint8Array,
+  signalName: string
+): number | undefined {
   for (const encoded of readFieldMessages(raw, 106)) {
     if (!containsText(encoded, signalName)) continue
     const pinIndex = readFieldVarint(encoded, 8)
     if (pinIndex !== undefined) return pinIndex
   }
-  throw new Error(`[error] signal name pin layout is missing: ${signalName}`)
+  // 残缺 definition（缺 field 106 信号名 CPI）：返回 undefined，由调用方跳过该信号（2026-08-11 容错）
+  return undefined
 }
 
 function readSignalLayouts(payload: Uint8Array): Map<string, SignalLayout> {
@@ -272,47 +276,56 @@ function readSignalLayouts(payload: Uint8Array): Map<string, SignalLayout> {
     const serverDef = serverId ? definitions.get(serverId) : undefined
     if (!sendDef || !monitorDef || !serverDef) continue
     const serverParams = readFieldMessages(serverDef, 102)
-    const params = entry
-      .filter((item) => item.number === 4 && item.wire === 2)
-      .map((item, index) => {
-        const param = parseWireMessage(item.value as Uint8Array) ?? []
-        const paramName = fieldText(param, 1)
-        const typeCode = fieldVarint(param, 2)
-        const sendPinIndex = fieldVarint(param, 4)
-        const monitorPinIndex = fieldVarint(param, 5)
-        const serverPinIndex = fieldVarint(param, 6)
-        const serverTypeBytes = serverParams[index]
-          ? readFieldBytes(serverParams[index], 4)
-          : undefined
-        const serverType = serverTypeBytes
-          ? (readFieldVarint(serverTypeBytes, 3) ?? readFieldVarint(serverTypeBytes, 4))
-          : undefined
-        if (
-          !paramName ||
-          typeCode === undefined ||
-          sendPinIndex === undefined ||
-          monitorPinIndex === undefined ||
-          serverPinIndex === undefined ||
-          serverType === undefined
-        ) {
-          throw new Error(`[error] incomplete signal parameter layout: ${name}`)
-        }
-        return {
-          name: paramName,
-          type: mapSignalParamType(typeCode),
-          sendPinIndex,
-          monitorPinIndex,
-          serverPinIndex,
-          serverType
-        }
+    const paramItems = entry.filter((item) => item.number === 4 && item.wire === 2)
+    const params: SignalLayout['params'] = []
+    let broken = false
+    for (let index = 0; index < paramItems.length; index++) {
+      if (broken) break
+      const item = paramItems[index]
+      const param = parseWireMessage(item.value as Uint8Array) ?? []
+      const paramName = fieldText(param, 1)
+      const typeCode = fieldVarint(param, 2)
+      const sendPinIndex = fieldVarint(param, 4)
+      const monitorPinIndex = fieldVarint(param, 5)
+      const serverPinIndex = fieldVarint(param, 6)
+      const serverTypeBytes = serverParams[index]
+        ? readFieldBytes(serverParams[index], 4)
+        : undefined
+      const serverType = serverTypeBytes
+        ? (readFieldVarint(serverTypeBytes, 3) ?? readFieldVarint(serverTypeBytes, 4))
+        : undefined
+      if (
+        !paramName ||
+        typeCode === undefined ||
+        sendPinIndex === undefined ||
+        monitorPinIndex === undefined ||
+        serverPinIndex === undefined ||
+        serverType === undefined
+      ) {
+        // 残缺参数布局：跳过该信号，不中断整表读取（2026-08-11 容错，配合 scan-gil-signal-registry 探活）
+        broken = true
+        break
+      }
+      params.push({
+        name: paramName,
+        type: mapSignalParamType(typeCode),
+        sendPinIndex,
+        monitorPinIndex,
+        serverPinIndex,
+        serverType
       })
+    }
+    if (broken) continue
     const signalVersion = fieldVarint(entry, 6)
-    if (signalVersion === undefined) throw new Error(`[error] signal version is missing: ${name}`)
+    if (signalVersion === undefined) continue
+    const sendNameCpi = definitionNameCompositePinIndex(sendDef, name)
+    const monitorNameCpi = definitionNameCompositePinIndex(monitorDef, name)
+    if (sendNameCpi === undefined || monitorNameCpi === undefined) continue
     result.set(name, {
       signalVersion,
       params,
-      sendNameCompositePinIndex: definitionNameCompositePinIndex(sendDef, name),
-      monitorNameCompositePinIndex: definitionNameCompositePinIndex(monitorDef, name),
+      sendNameCompositePinIndex: sendNameCpi,
+      monitorNameCompositePinIndex: monitorNameCpi,
       definitionBytes: {
         send: Buffer.from(sendDef).toString('base64'),
         monitor: Buffer.from(monitorDef).toString('base64'),

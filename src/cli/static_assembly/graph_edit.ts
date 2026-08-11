@@ -216,13 +216,59 @@ export function buildVarValue(type: number, value: string | number): Uint8Array 
   }
 }
 
+
+/** OutParam 默认值（数据源 pin 的编辑器同构形态，2026-08-12 闭合）：
+ *  真实样本 OutParam（n41 GetVar Bol / n43 GetLocal Bol / 证据 case1 GetCustomVar Flt 54 /
+ *  n31 AssemblyList）：ConcreteBase 内值为 {1:class, 4:itemType, oneof:空消息}——
+ *  **无 f2(alreadySetVal)**（n69/n67/n68 带 f2 的形态是同图并存的旧编辑器输出，本工具
+ *  统一采用无 f2 形态，与 GetCustomVar 真实样本逐字节同构）。class/oneof 字段号与
+ *  buildVarValue 同表；L<X>（7-11）= ArrayBase(10002) + bArray(109) 空（n31 样本）。
+ *  其余类型未闭合 → fail closed。 */
+export function defaultVarValue(type: number): Uint8Array {
+  const empty = new Uint8Array()
+  const item = { number: 4, wire: 2, value: itemTypeBytes(type) }
+  const withOneof = (classId: number, oneof: WireField): Uint8Array =>
+    sub([{ number: 1, wire: 0, value: classId }, item, oneof])
+  switch (type) {
+    case 3: // Int
+      return withOneof(2, { number: 102, wire: 2, value: empty })
+    case 5: // Float
+      return withOneof(4, { number: 104, wire: 2, value: empty })
+    case 6: // String
+      return withOneof(5, { number: 105, wire: 2, value: empty })
+    case 4: // Boolean
+      return withOneof(6, { number: 106, wire: 2, value: empty })
+    case 14: // EnumItem
+      return withOneof(6, { number: 106, wire: 2, value: empty })
+    case 12: // Vector
+      return withOneof(7, { number: 107, wire: 2, value: empty })
+    case 1: // Entity
+      return withOneof(1, { number: 101, wire: 2, value: empty })
+    case 2: // GUID
+    case 20: // Configuration
+    case 21: // Prefab
+      return withOneof(1, { number: 101, wire: 2, value: empty })
+    case 7: // L<Gid>
+    case 8: // L<Int>
+    case 9: // L<Bol>
+    case 10: // L<Flt>
+    case 11: // L<Str>
+      return withOneof(10002, { number: 109, wire: 2, value: empty })
+    default:
+      throw new Error(`[error] OutParam 默认值未闭合 VarType=${type}（fail closed，不猜字节）`)
+  }
+}
+
 /** 解析 CLI 形如 `int:123` / `str:abc` / `vec:1,2,3` 的类型化值。 */
 export function parseTypedValue(text: string): { type: number; bytes: Uint8Array } {
   const colon = text.indexOf(':')
   if (colon <= 0) throw new Error(`[error] 值必须带类型前缀，如 int:123 str:abc vec:1,2,3：${text}`)
   const name = text.slice(0, colon)
   const raw = text.slice(colon + 1)
-  const type = INPUT_TYPE[name]
+  // 类型前缀大小写不敏感（文档用小写 str:，实现键为大写 Str:；2026-08-11 统一）
+  const type =
+    INPUT_TYPE[name] ??
+    INPUT_TYPE[Object.keys(INPUT_TYPE).find((k) => k.toLowerCase() === name.toLowerCase()) ?? '']
   if (type === undefined) throw new Error(`[error] 未知值类型 ${name}（支持 Int/Flt/Str/Bol/Vec/Gid/Pfb/Cfg）`)
   return { type, bytes: buildVarValue(type, raw) }
 }
@@ -401,6 +447,25 @@ export function blobName(blob: Uint8Array, section: 1 | 2 | 4): string | undefin
   const fields = parseWireMessage(blob)
   if (!fields) return undefined
   return wireText(fields, section === 2 ? 200 : 2)
+}
+
+/** 复合 def 对应的 impl 图记录 id（def 记录 id ≠ impl 图记录 id）：
+ *  def blob field4（wire2）子消息的 field4（wire2）内 field5 varint。
+ *  真实样本：def 1610700002 → impl 1610710002（= defId+0x10000）、
+ *  def 1610700003 → impl 1610710003；createComposite 生成的 def → impl 同 defId。
+ *  以 def field4.sub4 为准，禁止 defId+偏移硬编码。 */
+export function compositeImplGraphId(payload: Uint8Array, defId: number): number {
+  const field = locateBlobField(payload, 2, defId)
+  const defFields = parseWireMessage(payload.subarray(field.dataStart, field.dataEnd))
+  const idMsg = defFields?.find((f) => f.number === 4 && f.wire === 2)
+  const idFields = idMsg ? parseWireMessage(idMsg.value as Uint8Array) : undefined
+  const implMsg = idFields?.find((f) => f.number === 4 && f.wire === 2)
+  const implFields = implMsg ? parseWireMessage(implMsg.value as Uint8Array) : undefined
+  const implId = implFields?.find((f) => f.number === 5 && f.wire === 0)?.value
+  if (typeof implId !== 'number') {
+    throw new Error(`[error] composite def ${defId} 无 impl 图 id（field4.sub4.field5）`)
+  }
+  return implId
 }
 
 // ---- 修改原语（GraphNode 记录级：bytes → bytes）----
@@ -634,10 +699,15 @@ export function linkInParam(
 ): Uint8Array {
   const existing = findPin(node, PIN_KIND.IN_PARAM, shell)
   if (existing) {
-    // 原地替换 connects(f5)；已有 value 保留（Variant 实例 pin 形态）
-    const next = existing.fields.map((f) =>
-      f.number === 5 ? { ...f, value: connectWire(srcNode, PIN_KIND.OUT_PARAM, srcShell) } : f
-    )
+    // 原地替换 connects(f5)；已有 value 保留（Variant 实例 pin 形态）。
+    // 多 connects 时只保留一条新线（与 addOutFlow 同修，2026-08-12）
+    let replaced = false
+    const next = existing.fields.flatMap((f) => {
+      if (f.number !== 5) return [f]
+      if (replaced) return []
+      replaced = true
+      return [{ ...f, value: connectWire(srcNode, PIN_KIND.OUT_PARAM, srcShell) }]
+    })
     return rebuildNode(
       node,
       pinsOf(node).map((p) => (pinKindOf(p) === PIN_KIND.IN_PARAM && pinShell(p) === shell ? sub(next) : p))
@@ -651,6 +721,30 @@ export function linkInParam(
   ]
   if (compositePinIndex !== undefined) fields.push({ number: 7, wire: 0, value: compositePinIndex })
   return rebuildNode(node, [...pinsOf(node), sub(fields)])
+}
+
+
+/** 数据源 OutParam pin 补全（2026-08-12 闭合，Str 变体 bug 修复核心）：
+ *  真实数据源节点均带默认值 pin（n41/n69 GetVar、n43 GetLocal OutParam[1]、n31 AssemblyList
+ *  ——编辑器画线时源侧落 pin，缺 pin 或编码错会导致编辑器加载失败→保存丢弃节点→断线）。
+ *  形态与真实样本逐字段同构：{i1/i2={OutParam, shell}, f3=ConcreteBase{1:10000, 2:1,
+ *  110:{1:indexOfConcrete?(0 省略), 2:defaultVarValue}}, f4: VarType}。
+ *  已有 pin 不覆盖（保留现值；值/连线二选一规则）。 */
+export function addOutParam(
+  node: Uint8Array,
+  shell: number,
+  type: number,
+  indexOfConcrete?: number
+): Uint8Array {
+  const existing = findPin(node, PIN_KIND.OUT_PARAM, shell)
+  if (existing) return node
+  const pin = sub([
+    { number: 1, wire: 2, value: pinIndexWire(PIN_KIND.OUT_PARAM, shell) },
+    { number: 2, wire: 2, value: pinIndexWire(PIN_KIND.OUT_PARAM, shell) },
+    { number: 3, wire: 2, value: wrapConcreteValue(defaultVarValue(type), indexOfConcrete ?? 0) },
+    { number: 4, wire: 0, value: type }
+  ])
+  return rebuildNode(node, [...pinsOf(node), pin])
 }
 
 /**
@@ -685,9 +779,15 @@ export function addOutFlow(
 ): Uint8Array {
   const existing = findPin(node, PIN_KIND.OUT_FLOW, shell)
   if (existing) {
-    const next = existing.fields.map((f) =>
-      f.number === 5 ? { ...f, value: connectWire(dstNode, PIN_KIND.IN_FLOW, dstShell) } : f
-    )
+    // 替换语义：多 connects 的 pin（真实 n1 事件出口三连）只保留一条新线
+    // （2026-08-12 修：原 map() 会把每个旧 connect 都替换成同一条 → 重复线）
+    let replaced = false
+    const next = existing.fields.flatMap((f) => {
+      if (f.number !== 5) return [f]
+      if (replaced) return []
+      replaced = true
+      return [{ ...f, value: connectWire(dstNode, PIN_KIND.IN_FLOW, dstShell) }]
+    })
     return rebuildNode(
       node,
       pinsOf(node).map((p) => (pinKindOf(p) === PIN_KIND.OUT_FLOW && pinShell(p) === shell ? sub(next) : p))
@@ -847,6 +947,32 @@ export function addParamFlow(
   return sub(next)
 }
 
+/** 复合 def 追加 InFlow（真实样本 def 1610700003 field100：{2:1, 3:{1:1[,2:shell]},
+ *  4:显式空, 8:pinIndex}——无名（composite-nodes.md「name 可选」）、type(4) 恒空，
+ *  与 ParameterFlow 的 type 流语义不同）。pinIndex = 该 def 内全局单调递增 max+1
+ *  （同 addParamFlow 分配器）。实例侧不落 InFlow pin，只 patch def+impl。 */
+export function addInflowFlow(blob: Uint8Array, shell: number): Uint8Array {
+  const fields = parseWireMessage(blob)
+  if (!fields) throw new Error('[error] composite def unparseable')
+  let maxPi = 0
+  for (const f of fields) {
+    if (f.wire !== 2 || (f.number !== 100 && f.number !== 101 && f.number !== 102 && f.number !== 103)) continue
+    const pi = wireVarint(parseWireMessage(f.value as Uint8Array) ?? [], 8)
+    if (pi !== undefined && pi > maxPi) maxPi = pi
+  }
+  const flow = sub([
+    { number: 2, wire: 0, value: 1 },
+    { number: 3, wire: 2, value: pinIndexWire(PIN_KIND.IN_FLOW, shell) },
+    { number: 4, wire: 2, value: new Uint8Array(0) },
+    { number: 8, wire: 0, value: maxPi + 1 }
+  ])
+  const next = [...fields]
+  let last = -1
+  for (let i = 0; i < next.length; i++) if (next[i].number === 100 && next[i].wire === 2) last = i
+  next.splice(last + 1, 0, { number: 100, wire: 2, value: flow })
+  return sub(next)
+}
+
 /** compositePin wire（case1/2/6/7/8 同构样本）：{1:{1:kind,2:shell}(outerPin),
  *  2:innerNodeId, 3:{1:innerKind,2:innerShell}(innerPin), 4:同 inner 双写}；
  *  outer/inner 的 index=0（Shell0）省略。inner 引用可未落盘的 pin 身份
@@ -871,19 +997,21 @@ export function compositePinWire(
 }
 
 /** impl 图 compositePins（NodeGraph.f4）按 (kind, index) 升序插入。真实形态（case1/2/6/7
- *  同构样本）：{1:{1:kind,2:shell}(outerPin), 2:innerNodeId, 3:{1:3,2:innerShell}(innerPin),
- *  4:同 inner 双写}；outer/inner 的 index=0（Shell0）省略。inner kind 固定 InParam(3)
- *  （输入提升）；输出提升未闭合。 */
+ *  同构样本）：{1:{1:kind,2:shell}(outerPin), 2:innerNodeId, 3:{1:innerKind,2:innerShell}(innerPin),
+ *  4:同 inner 双写}；outer/inner 的 index=0（Shell0）省略。innerKind 默认 InParam(3)
+ *  （输入提升）；控制流入口提升（add-inflow）用 InFlow(1)（真实 impl 1610710002 样本）。
+ *  输出提升未闭合。 */
 export function addCompositePin(
   blob: Uint8Array,
   kind: number,
   shell: number,
   innerNode: number,
-  innerShell: number
+  innerShell: number,
+  innerKind: number = PIN_KIND.IN_PARAM
 ): Uint8Array {
   const fields = parseWireMessage(blob)
   if (!fields) throw new Error('[error] impl graph unparseable')
-  const newPin = compositePinWire(kind, shell, innerNode, PIN_KIND.IN_PARAM, innerShell)
+  const newPin = compositePinWire(kind, shell, innerNode, innerKind, innerShell)
   const out: WireField[] = []
   let inserted = false
   for (const f of fields) {
@@ -1652,7 +1780,14 @@ export function addGraphVariable(blob: Uint8Array, name: string, type: number): 
   return sub([...fields, { number: 6, wire: 2, value: variable }])
 }
 
-export function addGraphNode(blob: Uint8Array, genericId: number, x: number, y: number, exclude?: ReadonlySet<number>): Uint8Array {
+export function addGraphNode(
+  blob: Uint8Array,
+  genericId: number,
+  x: number,
+  y: number,
+  exclude?: ReadonlySet<number>,
+  concreteId?: number
+): Uint8Array {
   const fields = parseWireMessage(blob)
   if (!fields) throw new Error('[error] graph blob unparseable')
   const records = fields.filter((f) => f.number === 3 && f.wire === 2)
@@ -1660,12 +1795,21 @@ export function addGraphNode(blob: Uint8Array, genericId: number, x: number, y: 
   const used = new Set(views.map((v) => v.index))
   let index = 1
   while (used.has(index) || exclude?.has(index)) index++
-  const donorView = views.find((v) => v.genericId === genericId)
+  // 显式 concrete 时跳过 donor 路径（含 Variant donor 检查）：f2/f3 直接构造
+  const donorView =
+    concreteId !== undefined ? undefined : views.find((v) => v.genericId === genericId)
   if (donorView && donorView.concreteId !== undefined && donorView.concreteId !== genericId) {
     throw new Error('[error] donor is a Variant node; adding Variant nodes not closed')
   }
   let refs: WireField[]
-  if (donorView) {
+  if (concreteId !== undefined && concreteId !== genericId) {
+    // Variant 新增（显式 concrete）：f2/f3 = 真实 Variant 样本同构
+    // （主图 n40 MultiBranch g3/c4、n4 SetVar 323/328）：{1:10001,2:20000,3:22000,5:id}
+    refs = [
+      { number: 2, wire: 2, value: nodeRefWire(genericId, 22000) },
+      { number: 3, wire: 2, value: nodeRefWire(concreteId, 22000) }
+    ]
+  } else if (donorView) {
     const donorRec = records.find((f) => parseNodeRecord(f.value as Uint8Array).index === donorView.index)!
     const donorFields = parseWireMessage(donorRec.value as Uint8Array)!
     refs = donorFields.filter((f) => f.number === 2 || f.number === 3).map((f) => ({ ...f }))
@@ -1848,12 +1992,41 @@ export function copyGraphNodesFromBlob(
 
 // ---- 节点定义查询（新建数据 pin 的 type 来源 / 读侧名称）----
 
-const RECORDS = NODE_PIN_RECORDS as Array<{ id: number; name?: string; inputs?: string[] }>
+const RECORDS = NODE_PIN_RECORDS as Array<{ id: number; name?: string; inputs?: string[]; outputs?: string[] }>
 
 /** 目标定义输入类型（link 新建 pin 时 type 字段的权威来源，data-flow 闭合规则）。 */
 export function nodeInputType(nodeId: number, shell: number): number | undefined {
   const name = RECORDS.find((r) => r.id === nodeId)?.inputs?.[shell]
   return name === undefined ? undefined : INPUT_TYPE[name]
+}
+
+/** 源节点输出类型原名（'R<T>' / 'E<1016>' 等，INPUT_TYPE 未收录的名字）。 */
+export function nodeOutputTypeName(nodeId: number, shell: number): string | undefined {
+  return RECORDS.find((r) => r.id === nodeId)?.outputs?.[shell]
+}
+
+/** 源节点输出类型（link 补源 OutParam pin 时 type 的权威来源）。'E<1016>' 等未收录
+ *  名字返回 undefined → 不落 pin（真实 n43 GetLocal OutParam[0] 虚拟 pin 无记录，
+ *  编辑器同样容忍）。调用方注意：输出名 'R<T>' 时应优先用 reflectMap 解析变体类型
+ *  （nodeInputConcreteType），本函数对 'R<T>' 返回 undefined。 */
+export function nodeOutputType(nodeId: number, shell: number): number | undefined {
+  const name = RECORDS.find((r) => r.id === nodeId)?.outputs?.[shell]
+  return name === undefined ? undefined : INPUT_TYPE[name]
+}
+
+/** R<T> 泛型 pin 的具体 VarType（link 的 type 来源；也用于源 OutParam 补全）：
+ *  concreteId 在 RECORDS reflectMap 的条目名 'S<T:Ety>' → 提取 'Ety' → INPUT_TYPE。
+ *  节点族基 id（如 GetVar 337='S<T:Ety>'、SetCustom 22='S<T:Int>'）也在 reflectMap 内，
+ *  因此 generic==concrete 的"基础变体"同样解析成功。非 'S<T:...>' 形态（Dict 等）未闭合
+ *  → undefined。与 reflectConcreteIndex 同源（后者返回条目位置，用于固定值包装）。 */
+export function nodeInputConcreteType(nodeId: number, concreteId: number | undefined): number | undefined {
+  if (concreteId === undefined) return undefined
+  const record = RECORDS.find((r) => r.id === nodeId) as
+    | { reflectMap?: Array<[number, string]> }
+    | undefined
+  const name = record?.reflectMap?.find(([id]) => id === concreteId)?.[1]
+  const inner = name === undefined ? undefined : /^S<T:(.+)>$/.exec(name)?.[1]
+  return inner === undefined ? undefined : INPUT_TYPE[inner]
 }
 
 export function nodeName(nodeId: number): string | undefined {

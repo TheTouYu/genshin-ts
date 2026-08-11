@@ -26,6 +26,7 @@ description: 读取真实 GIL 节点图逻辑的专用技能。当用户要求"�
 | `tools/compare-gil-node-graph.ts` | 两个图/文件对比 | 见 `--help` |
 | `gsts assets:node-graphs layout --check` | 布局 lint：读图并报告违规（flow-upward/backward、chain-vertical、long-chain、block-order、line-align、data-detached、data-chain-long、island、overlap） | `--gil <地图> --graph <id>` |
 | `gsts assets:node-graphs read` | 单节点/单图原始 pin 值（explain 过长时的定点替代） | `--gil <地图> --graph <id> [--node <n>]` |
+| `tools/scan-gil-var-pins.ts` | 变量类节点（Get/Set Custom/Node Graph Variable）变量名 pin 完整性扫描——**交付候选前必跑**（2026-08-12 split2 复盘新增） | `<地图.gil> [--graph <id>] [--json] [--list-names]` |
 
 运行方式：`npx tsx tools/<工具>.ts <文件> [参数]`（仓库根目录下）；`gsts` 用 `npx tsx src/cli/gsts.ts <子命令>`。
 
@@ -77,6 +78,9 @@ npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --
 
 ### Step 5 语义验证（确保理解正确而不是猜）
 读懂了"大概"不等于"读懂"。用这些手段验证：
+- **变量名 pin 完整性（2026-08-12 split2 复盘新增）**：Set/Get Custom Variable、Set/Get Node Graph
+  Variable 的变量名 pin 必须存在且非空。交付候选前跑 `npx tsx tools/scan-gil-var-pins.ts <候选.gil>`，
+  0 违规才过关（它把 explain 的 `[变量=...]` 注解变成可机器核查的断言）
 - **图变量默认值**：`parse --json` 看 `graph.variables`（每个变量带初始值，如 `direction="cw"`——这决定首次行为）
 - **未连线条件**：分支节点的 Bol 输入 `字面量 Default(0)/True(1)` 表示条件未连线，**默认值决定固定走哪个分支**（可能是设计，也可能是死分支）
 - **几何/状态自洽**：有位移/旋转/轮转逻辑时，用数值互相验证（如旋转 90° 后坐标变换与变量轮转顺序是否吻合）
@@ -101,6 +105,10 @@ npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --
 ```
 
 - `[变量="pivot"]`：变量设置类节点的变量名（Set Node Graph Variable / Set Custom Variable）
+  **缺失该注解 = 变量名 pin 缺失（硬伤）**：explain 输出里变量设置类节点不带 `[变量=...]` 说明其
+  变量名 pin 没落盘——编辑器加载后下拉为空、运行时写不进变量；explain/parse/layout --check 都不会报错
+  （2026-08-12 split2：init 链 9 个 Set Custom Variable 因此漏检）。看到即视为违规，用
+  `gsts assets:node-graphs read --node` 或 `tools/scan-gil-var-pins.ts` 复核。
 - `[信号="cube_turn"]`：系统信号节点（发送/监听）的信号名
 - `[局部变量 ← n=34 Get Local Variable.E<1016>]`：局部变量身份来源。**E<1016> 是 Local Variable
   类型码，不是索引**；局部变量 wire 无名（引擎事实），身份只能沿 E<1016> 连线追溯
@@ -135,6 +143,8 @@ npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --
 - **信号参数在发送节点**：信号带什么参数看发送节点（scan --signal 定点会列出发送/监听位置）
 - **图变量默认值影响首次行为**：`direction` 这类记忆变量初始值 = 第一次运行的行为
 - **空图/测试残留**：list 里 0 节点图、`GSTS_` 前缀图、`信号测试全参数` 类信号是测试/注入残留，跳过
+- **`[变量=...]` 注解缺失 ≠ 无关紧要**：变量设置类节点没显示变量名 = 变量名 pin 缺失，是交付硬伤
+  （不是可选参数）；explain/layout 都不报错，只有逐节点核 pin 才看得到
 - **不要猜**：引擎规则不确定时查 `docs/game-engine-knowledge/`；查不到就列为疑点交给用户/游戏核验
 
 ## 报告模板

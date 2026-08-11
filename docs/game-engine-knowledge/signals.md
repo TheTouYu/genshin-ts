@@ -374,3 +374,26 @@ fail-closed（未知图拒绝）PASS。生产红灯（connect2 例外与 exec in
 - 全参数端到端游戏行为。
 
 参数类型总表见[参数类型](parameter-types.md)，直接值与数据连接见[数据流与连接](data-flow.md)，正式 GIA/GIL 资产边界见[资产、关卡保存与导出文件](assets-and-files.md)，证据分层见[验证与规则学习流程](validation-workflow.md)。
+# 候选：signals.md 追加段落（2026-08-11 eval-split 复盘建议；docs 不在本次落地范围内）
+
+插入位置：signals.md 「注册流程」附近（line 287 之后）。
+
+## 注册布局池（in-map 模式；2026-08-11 eval-split 实测）
+
+`assets:signals register --template-signal <本图信号>` 与 `--template-gil <donor>` 同一套池规则：
+布局池 = **单个模板**内同类型参数的真实布局集合（`gil_signal_registrations.ts buildParamPool(entries=[template])`），
+同类型参数每出现一次必须消费一套真实且不同的布局；套数不足 fail-closed（实测报错
+`parameter type "str" needs 2 distinct layouts, but the template GIL provides 1`）。
+本图（1073741849）entity 参数全部共用 pin 三元组 69/77/84，即 entity 布局只有 1 套 →
+单信号注册 4 个 entity 参数（face_turn c1..c4）不可行；相邻地图最多 3 套（1073741826 物理运动引擎实体）。
+结论：需要多 entity 参数的信号必须先在编辑器注册同型 donor，或改用非 entity 参数方案。
+
+## 残缺注册项阻塞 CLI 与绕过（2026-08-11 eval-split 发现）
+
+`readRegisteredSignalsFromGil()` → `readSignalLayouts()` 对**任一**注册项缺 signal-name
+pin layout（definition field 106）即整体抛错 → `assets:signals inspect/register/repair`
+在本图全部不可用。1073741849 的 `cube2_test_turn`（1610612777/78/79，schema 与 cube_turn 相同）
+即残缺项（与上文 cube_turn 旧布局 1610612741/42/43 同款）；`repair` 要求 donor 与 target 同名
+且 donor 完整 → 本图无法修复。绕过：自写脚本直调 `registerSignalInGil()`（库函数无全表回读校验），
+产出后回读自洽；宽容读注册表工具 = `tools/scan-gil-signal-registry.ts`（残缺项单条标记，
+`--gate` 探活退出码 1）。跨地图已知残缺：1073741826 也有 3 个残缺项。
