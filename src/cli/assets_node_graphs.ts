@@ -56,6 +56,7 @@ import {
   renameCompositeDef,
   renameParamFlow,
   renumberGraphNode,
+  hasReflectMap,
   reflectConcreteIndex,
   resolveDefId,
   resolveGraphId,
@@ -739,7 +740,11 @@ function applyOps(
       const y = Number(ops[i + (four ? 4 : 3)])
       if (![genericId, x, y].every(Number.isFinite))
         throw new Error('[error] node-add needs <generic-id> [concrete-id] <x> <y>')
-      if (concreteId !== undefined && reflectConcreteIndex(genericId, concreteId) === undefined) {
+      if (
+        concreteId !== undefined &&
+        hasReflectMap(genericId) &&
+        reflectConcreteIndex(genericId, concreteId) === undefined
+      ) {
         throw new Error(`[error] generic ${genericId} reflectMap 不含 concrete ${concreteId}（Variant 校验失败）`)
       }
       current = patchRecord(current, section, graphId, (blob) => addGraphNode(blob, genericId, x, y, tombstoned, concreteId))

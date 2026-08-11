@@ -141,6 +141,14 @@ export function wrapConcreteValue(inner: Uint8Array, indexOfConcrete: number): U
   ])
 }
 
+/** 节点族是否有变体 reflectMap（无 map = 非 Variant，concrete 即自身）。 */
+export function hasReflectMap(nodeId: number): boolean {
+  const record = RECORDS.find((r) => r.id === nodeId) as
+    | { reflectMap?: Array<[number, string]> }
+    | undefined
+  return record?.reflectMap !== undefined
+}
+
 /** 变体 concreteId 在节点族 reflectMap 中的位置（R<T> 固定值 indexOfConcrete 来源）。 */
 export function reflectConcreteIndex(
   nodeId: number,
@@ -755,8 +763,11 @@ export function addOutParam(
 export function unlinkInParam(node: Uint8Array, shell: number): Uint8Array {
   const existing = findPin(node, PIN_KIND.IN_PARAM, shell)
   if (!existing) throw new Error(`[error] node has no InParam shell ${shell}`)
+  // 清 connects 保留 pin 仅当 pin 同时有固定值（Variant 混合形态）；
+  // 纯链接 pin / 固定值 pin / 空 pin：整 pin 移除（同 OutFlow 删空语义，2026-08-11 修复）
+  const hasConnects = existing.fields.some((f) => f.number === 5 && f.wire === 2)
   const hasValue = existing.fields.some((f) => f.number === 3 && f.wire === 2)
-  if (hasValue) {
+  if (hasConnects && hasValue) {
     const next = existing.fields.filter((f) => f.number !== 5)
     return rebuildNode(node, [sub(next)])
   }
