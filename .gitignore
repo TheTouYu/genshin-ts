@@ -34,3 +34,7 @@ src/resources/signals.ts
 src/resources/prefabs.ts
 dist-verify/
 __pycache__/
+
+# Local tool state
+/.gsts/
+/.pi/

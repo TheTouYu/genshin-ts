@@ -34,6 +34,8 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 
+> **脚本位置**：本技能脚本在 `<技能目录>/scripts/` 下（绝对路径 `/home/h/genshin-ts/.agents/skills/debug-log-investigator/scripts/`），**不在** `/home/h/genshin-ts/scripts/`（旧位置）。运行前先 `ls` 确认，或用 `scripts/gia_log.py` 相对本文件目录解析（2026-08-12 复盘：子代理曾 find 3 轮才定位）。
+
 ## 已闭合编码规则速查（详情见 debug-log-format.md）
 
 ### 容器与记录

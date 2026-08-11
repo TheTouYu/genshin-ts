@@ -61,6 +61,33 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <图名>
 - 结构化提取：`parse --json > /tmp/g.json` 后 python 按 index 过滤（比 explain 更省 token）
 - 大 pin 节点（Assembly List 等）直接跳过「参数来源」段，pin 值用 --node 定点查
 
+### Step 2.6 parse --json 输出键名速查（勿猜结构，2026-08-12 复盘）
+
+魔方重构 eval-main/eval-bindhold 曾反复 `python3 -c "d=json.load(...)"` 探测结构（42 次浪费）；顶层与常用子结构如下（真实输出，`npx tsx tools/parse-gil-node-graph.ts <map.gil> --graph <id> --json`）：
+
+- 顶层：`input`（path/bytes/sha256）、`target`（kind/id/name/type/selection）、`graph`、`status`、`discovery`（auto_candidates[]）
+- `graph`：`id` / `type` / `name` / `scope` / `node_count` / `variables`（图变量，带初始值）/ `boundary` / `nodes` / `dataflow` / `flow` / `children`（复合子图）
+- `graph.nodes[i]`：`index` / `api` / `generic_id` / `concrete_id` / `kind` / `position` / `inputs` / `outputs` / `pins`
+- `graph.dataflow` / `graph.flow` 元素：`{from, to, wire}`；按 index 过滤用 `nodes` 的 `index` 字段
+- 键名变了？先 `python3 -c "import json,sys; print(list(json.load(sys.stdin).keys()))"` 一行确认，不要写多行探测
+
+### Step 2.7 节点名 → ID 查询（读图时需要节点 ID 时先查这里，勿 grep 全仓库）
+
+```bash
+# 一行命中（reflectMap 含变体 concreteId 与 indexOfConcrete）
+grep -n "3D Vector Zoom\|Subtraction\|Multiple Branches" \
+  src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts
+# 精确解析（多行排版，按关键词过滤）
+python3 - <<'PY'
+import re
+src = open('src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts').read()
+for m in re.finditer(r"name: '([^']+)',\s*\n\s*id: (\d+),(.*?)(?=\n  \})", src, re.S):
+    if any(k in m.group(1) for k in ('Zoom', 'Subtract', 'Multiply', '缩放', '减法', '乘法')):
+        print(m.group(1), m.group(2), re.findall(r"\[(\d+), '([^']+)'\]", m.group(3)))
+PY
+```
+（与 `gil-node-graph-editing` SKILL.md「名称→ID 速查」同源，读图分析时同样适用）
+
 ### Step 3 追进复合
 ```bash
 npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite <复合名>
