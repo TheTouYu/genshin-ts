@@ -3,6 +3,10 @@
 
 用法: python3 root-diff-summary.py <root-wire-diff.json> [--detail]
 
+  输入是 compare-gil-root-wire.py 输出的 JSON 文件，不是 .gil 文件。
+  完整管道：
+    compare-gil-root-wire.py <源.gil> <候选.gil> | tee /tmp/root-diff.json | root-diff-summary.py /dev/stdin
+
 输出 root 级别摘要：rootPresenceStable、每个 changedRootField 的
 fieldNumber/beforeCount/afterCount/directChildDelta(added/removed)。
 --detail 再打印 added/removed 记录的 sha256 前 16 位。
@@ -26,7 +30,17 @@ def main() -> int:
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     detail = '--detail' in sys.argv[1:]
     if len(args) != 1:
-        print('usage: root-diff-summary.py <root-wire-diff.json> [--detail]', file=sys.stderr)
+        print(
+            'usage: root-diff-summary.py <root-wire-diff.json> [--detail]\n'
+            '\n'
+            '  输入是 compare-gil-root-wire.py 的 JSON 输出，不是 .gil 文件。\n'
+            '  用法示例：\n'
+            '    compare-gil-root-wire.py src.gil cand.gil > /tmp/diff.json\n'
+            '    root-diff-summary.py /tmp/diff.json\n'
+            '  或一行管道：\n'
+            '    compare-gil-root-wire.py src.gil cand.gil | root-diff-summary.py /dev/stdin\n',
+            file=sys.stderr,
+        )
         return 2
     d = json.load(open(args[0]))
     print('rootPresenceStable:', d.get('rootPresenceStable'))

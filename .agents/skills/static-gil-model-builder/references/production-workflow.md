@@ -40,6 +40,14 @@ node ./bin/gsts.mjs assets:static-assemblies \
 ```
 
 - `plan` 只算 ID 冲突/结构，不生成候选；`inspect` 读闭包身份；`export` 回读两层 Transform/颜色；preview 生成候选（`--output` 拒绝覆盖，`--write` 直接写回）。
+
+- **inspect JSON 顶层键名速查（勿猜 `assemblies`——它只存在于 export 输出）**：
+  `definitions[]`（每个含 `id`/`names`/`packedIds`/`transform`）、
+  `instances[]`（每个含 `prefabId`/`instanceId`/`packedIds`/`itemCount`）、
+  `templateCandidates[]`（每个含 `definitionAuxiliaryIds`/`instanceAuxiliaryIds` 等）、
+  `occupiedIds`（**是 dict**：键 `definitionAuxiliaries` + `instanceAuxiliaries`，值各为 int 数组）、
+  `evidenceBoundary`、`warnings`。
+  **管道 JSON 务必 `2>/dev/null` 而非 `2>&1`**（warning 走 stderr 会污染 JSON 流）。
 - **输出契约（2026-08-09 四轮评测实测 + preview 已修复）**：`--format json` 在 `plan`/`inspect`/`export` 和 preview 主路径均生效；preview 的 json 输出为 `gsts.static-assembly.preview` 对象（顶层 `mode`/`source`/`sourceSha256`/`assemblies[{name,prefabId}]`/`updates`/`categories`/`touchedTopLevelFields`/`candidateSha256`/`write`/`writePerformed`），json 模式下人类可读日志走 stderr、stdout 纯 JSON。text 模式（默认）输出 `key=value`。另外 bash 管道退出码取最后一个命令（`| head`/`| tail` 会吞掉 gsts 的退出码），判断命令成败用 `set -o pipefail` 或先跑命令再看 `$?`。
 - 颜色格式（item 或 assembly 级 `color` 字段）：`{ enabled: true, rgb: <0xRRGGBB 十进制>, opacity: <0-100>, overlay: 'overwrite' | 'multiply' }`。纯黑 `0xFF000000`/纯白 `0xFFFFFF` 在足球等模型中已验证刺眼，使用 v2 已验收色（见 football-success-path.md）。
 - `assets:entities export/import/patch`：`export` 回读 root 5 实体；`import` 从已有 definition 建实体；`patch` 改既有实体。候选一律 `--output` 新文件，写回用 `apply-candidate --expect-source-hash`。
