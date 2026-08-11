@@ -44,8 +44,10 @@ def walk_fields(buf, i, end):
             i += ln
         elif wire == 1:
             yield field, wire, buf[i:i+8], i + 8
+            i += 8
         elif wire == 5:
             yield field, wire, buf[i:i+4], i + 4
+            i += 4
         else:
             return
 
@@ -99,20 +101,27 @@ def decode_param(v2):
                 if tw == 5:
                     val = f32(tv)
                 elif tw == 2:
-                    s = printable(tv)
-                    if s is not None: val = s
-                    else:
-                        try: vs = list(walk_fields(tv, 0, len(tv)))
-                        except Exception: vs = []
-                        for vf, vw, vv, _ in vs:
-                            if vf == 1 and vw == 0 and isinstance(vv, int): val = vv
-                            elif vf == 1 and vw == 5: val = f32(vv)
-                            elif vf == 1 and vw == 2 and isinstance(vv, bytes):
-                                s2 = printable(vv)
-                                if s2 is not None: val = s2
-                                else:
-                                    fv = f32(vv)
-                                    val = fv if fv is not None else vv.hex()
+                    try: vs = list(walk_fields(tv, 0, len(tv)))
+                    except Exception: vs = []
+                    got = False
+                    for vf, vw, vv, _ in vs:
+                        if vf != 1: continue
+                        if vw == 0 and isinstance(vv, int):
+                            val = vv; got = True
+                        elif vw == 5:
+                            val = f32(vv); got = True
+                        elif vw == 2 and isinstance(vv, bytes):
+                            s2 = printable(vv)
+                            if s2 is not None:
+                                val = s2; got = True
+                            elif len(vv) == 4:
+                                fv = f32(vv)
+                                if fv is not None:
+                                    val = fv; got = True
+                    if not got:
+                        s = printable(tv)
+                        if s is not None: val = s
+                        else: val = tv.hex()
                 elif tw == 0:
                     val = tv
     if isinstance(val, int) and typ == 14:
@@ -173,7 +182,9 @@ def cmd_records(recs):
             elif f in (7, 9, 10, 21, 22):
                 if f == 7:
                     for f2, w2, v2, _ in walk_fields(x, 0, len(x)):
-                        if f2 == 2: info['graph'] = int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
+                        if f2 == 2:
+                            if isinstance(v2, int): info['graph'] = v2
+                            else: info['graph'] = int.from_bytes(v2, 'big') if len(v2) <= 4 else v2.hex()
                 elif f == 21: info['f21'] = f'f21:{len(x)}B'
                 elif f == 22: info['f22'] = 'log'
                 else: info[f] = len(x)

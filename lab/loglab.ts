@@ -1,6 +1,6 @@
-// 日志格式解析实验 4：控制流 + 运算
-// 覆盖：if 分支、算术运算（+8）、for 循环、字符串拼接
-// 目标：闭合控制流帧结构（条件判断/循环控制）与算术节点编码
+// 日志格式解析实验 5：四则运算 + while 循环 + 嵌套 if + 大于比较
+// 目标：闭合 subtraction/multiplication/division/modulo 操作码（301-304）、
+//       while 循环编译形态、嵌套 double_branch、大于比较（103）
 import { g } from 'genshin-ts/runtime/core'
 
 const graph = g
@@ -14,20 +14,28 @@ const graph = g
   .on('whenEntityIsCreated', (_evt, f) => {
     f.printString('start')
 
-    // if 分支
-    if (f.get('flag')) {
-      f.printString('branch-true')
-    } else {
-      f.printString('branch-false')
-    }
-
-    // 算术：count = count + 8 → 50
-    f.set('count', f.get('count') + 8)
+    // 四则运算：42-10=32, *2=64, /4=16
+    f.set('count', f.get('count') - 10)
+    f.printString(str(f.get('count')))
+    f.set('count', f.multiplication(f.get('count'), 2))
+    f.printString(str(f.get('count')))
+    f.set('count', f.division(f.get('count'), 4))
     f.printString(str(f.get('count')))
 
-    // for 循环 3 次
-    for (let i = 0; i < 3; i++) {
-      f.printString('loop-body')
+    // while 循环 2 次
+    let i = 0
+    while (i < 2) {
+      f.printString('while-body')
+      i = i + 1
+    }
+
+    // 嵌套 if + 大于比较（count=1 不大于 50 → nested-false）
+    if (f.get('flag')) {
+      if (f.get('count') > 50) {
+        f.printString('nested-true')
+      } else {
+        f.printString('nested-false')
+      }
     }
 
     f.printString('done')
