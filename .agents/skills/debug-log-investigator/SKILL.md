@@ -26,10 +26,11 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | 工具 | 作用 |
 |---|---|
 | `scripts/gia_log.py <日志.gia> text` | 提取 f22 文本日志（按记录序，验证打印顺序） |
-| `scripts/gia_log.py <日志.gia> records` | 记录概览（进程号/会话/实体/图ID/f21 大小） |
-| `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码） |
+| `scripts/gia_log.py <日志.gia> records` | 记录概览（进程号/会话/实体/**图名**/f21 大小）；`--gil <地图.gil>` 标注图名、`--graph <id>` 过滤 |
+| `scripts/gia_log.py <日志.gia> frames` | **f21 帧表**：head/负载/IN/OUT 参数（已按 VarType+ENUM_VALUE 解码，**标注节点名与图名**）；`--gil`/`--rec <n>`/`--graph <id>` 过滤 |
 | `scripts/gia_log.py <日志.gia> dump` | 逐帧原始结构 dump（无压缩，精确核对用） |
 | `scripts/gia_log.py latest` | 输出日志目录下最新 .gia 路径 |
+| `scripts/dump_gil_index.ts <地图.gil>` | 生成图名/节点名索引 JSON（gia_log.py `--gil` 复用；tsx 运行，输出到 /tmp 缓存） |
 
 日志目录：`/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/110170759/Beyond_Debug_Log/`
 
@@ -52,7 +53,13 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | 12 | Vector | f22 | 3×float |
 | 14 | EnumItem | f24 | varint（ENUM_VALUE） |
 | 16 | LocalVariable | f26 | varint（18=循环体/19=当前循环值） |
+| 8 | — | f18 | varint |
+| 11 | — | f21 | 待解 |
 | 18 | VariableSnapshot | f28 | varint |
+| 21 | — | f31 | 待解 |
+
+- **Vector 值**解码为 `(x, y, z)`（缺省分量补 0）
+- **EnumItem 常用值**：`1100`=完全跟随 `1101`=跟随位置 `1102`=跟随旋转；`1200`=相对 `1201`=世界（668 跟随设备的坐标系/跟随类型）
 
 - 参数序号从 0 开始，**序号 0 的 f1 字段省略不编码**
 - 整数变量在帧内编码为 float（类型5）；循环迭代变量是 Integer（类型3）
@@ -78,6 +85,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 
 ### 两级帧与负载
 - 帧 ID = `{主帧号,子记录号}` 字节对；get/set = `{N.04子}` 先 + `{N.03主}` 后；print/str/add/事件/分支 = 单级
+- **帧主帧号 = 图内节点序号**（对 GIL 图索引逐号对应）；**复合内帧（两字节 head）= impl 图节点序号**（`复合:名称 > 节点名` 自动标注）
 - **f6 = "计算的负载"**：get/set 面板负载 = 04+03 两帧 f6 之和；循环面板负载 = 0d 全部帧 f6 之和（不含循环体内节点帧）
 
 ### finite_loop 帧模式（for i=0;i<3 → 起始0 终点2，比较 <=）
@@ -92,7 +100,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 1. **定位文件**：`gia_log.py latest` 或按用户告知的文件名；先 `capture-evidence.py` 存证据快照+sha256
 2. **文本日志**：`text` 子命令 → 验证打印顺序与预期逻辑一致（这是"红绿灯"，先确认逻辑执行了）
 3. **记录概览**：`records` → 找 f21 记录（新会话在最后）
-4. **帧表解码**：`frames` → 得到逐节点执行序列（head/负载/IN/OUT）
+4. **帧表解码**：`frames --gil <地图.gil> --rec <n>` → 得到逐节点执行序列（head/负载/IN/OUT + 节点名/图名）
 5. **原始核对**：`dump` → 对可疑帧看原始结构（值解析异常时）
 6. **语义对照**：
    - 类型码 → 上面 VarType 表
