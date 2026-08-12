@@ -40,6 +40,7 @@ import {
   listCompositeDefs,
   listGraphs,
   locateBlobField,
+  validateNodeGraphs,
   locateGraphField,
   nodeInputConcreteType,
   nodeInputType,
@@ -126,7 +127,7 @@ export function minimalFolderRoot6(): Uint8Array {
 type RootContext = { projectConfigPath?: string; projectConfig?: GstsConfig }
 
 type Args = {
-  sub: 'create' | 'read' | 'patch' | 'layout'
+  sub: 'create' | 'read' | 'patch' | 'layout' | 'validate'
   gilPath: string | undefined
   mapId: number | undefined
   name: string
@@ -149,6 +150,7 @@ function usage(exitCode = 0): never {
     '  read                         inspect graphs / nodes / pins / connections / composite defs',
     '  patch                        apply precise node-graph edits (preview by default)',
   '  layout                       auto-layout / lint a graph (--check = lint only)',
+  '  validate                     check R<T> concreteId/pin consistency, variable names, skill-graph node guard',
     '',
     'Options:',
     '  --config <file>   project config (for --map-id resolution)',
@@ -226,7 +228,7 @@ function parseArgs(argv: readonly string[]): Args {
   let layoutCheck = false
   const ops: string[] = []
   let index = 0
-  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout')
+  if (argv[0] === 'create' || argv[0] === 'read' || argv[0] === 'patch' || argv[0] === 'layout' || argv[0] === 'validate')
     sub = argv[0] as Args['sub'], index++
   for (; index < argv.length; index++) {
     const arg = argv[index]
@@ -468,6 +470,17 @@ export async function runAssetsNodeGraphs(
   }
   if (args.sub === 'layout') {
     runLayout(sourceBytes, gil, args)
+    return
+  }
+  if (args.sub === 'validate') {
+    const issues = validateNodeGraphs(sourceBytes)
+    const errors = issues.filter((it) => !it.warn)
+    if (errors.length === 0) console.log('validate: OK（R<T> concreteId 与 pin indexOfConcrete 全部一致）')
+    for (const it of issues) {
+      console.log(`${it.warn ? '[warn]' : '[error]'} graph ${it.graphId} node ${it.node}: ${it.message}`)
+    }
+    if (issues.length > 0) console.log(`validate: ${errors.length} error(s), ${issues.length - errors.length} warning(s)`)
+    if (errors.length > 0) process.exitCode = 1
     return
   }
   const sourceSha = sha256Bytes(sourceBytes)

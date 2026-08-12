@@ -17,6 +17,21 @@
       ]
     },
     {
+      "id": "aref_038883c977f5b650be2203f236",
+      "path": "docs/game-engine-knowledge/debug-log-format.md",
+      "locator": "两级帧/负载 f6/finite_loop 节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "claim_ids": [
+        "clm_8D210530744937ADB0BA9B1A0F"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_03a519f8a31c18b438b480b9d1",
       "path": "docs/game-engine-knowledge/variables.md",
       "locator": "局部变量的 GIL 编码（真实 GIL 解析，2026-08-07）",
@@ -197,6 +212,21 @@
       ]
     },
     {
+      "id": "aref_23024d053339a3863bd9e3043f",
+      "path": "src/cli/static_assembly/graph_edit.ts",
+      "locator": "unlinkInParam 实现（2026-08-11 修复）",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "9a5e579b002d40d36d9821496205674193ff4c0894da18872b01e594aeaeceec",
+      "claim_ids": [
+        "clm_161175FC4599AA6F2DEABB82E0"
+      ],
+      "supports_fact_classes": [
+        "writeback_behavior"
+      ]
+    },
+    {
       "id": "aref_2625193826e5884b1af8bb8ee9",
       "path": "src/cli/gil_entities.ts",
       "locator": "attachDefinitionAuxes/writeEntityAuxIds/writeAuxOwner/carryAuxSlot",
@@ -317,6 +347,21 @@
       ]
     },
     {
+      "id": "aref_3415e39a227b9e30896afecb28",
+      "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
+      "locator": "块间端面缝隙处理节（V9/V11/V11.1）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "4dee55dd342ec15540d544bcedaefa4900b8a1dd010fa9a90f5d66dd48a7fcbb",
+      "claim_ids": [
+        "clm_5CD8CFA765853432D2C6303215"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_347b2c2c0d5ec93f1254f21330",
       "path": "tests/compare_gil_node_graph_test.ts",
       "locator": "focused CLI regression: empty graph to one placeholder node",
@@ -344,6 +389,21 @@
       ],
       "supports_fact_classes": [
         "documented_contract"
+      ]
+    },
+    {
+      "id": "aref_380339b8f8e61db2fdabdd9d1f",
+      "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
+      "locator": "颜色按块索引渐变节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "4dee55dd342ec15540d544bcedaefa4900b8a1dd010fa9a90f5d66dd48a7fcbb",
+      "claim_ids": [
+        "clm_3E3A3F0F7CA0698E7E2DE7749E"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -464,6 +524,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_3c3ed11fe0e1120061c99a7280",
+      "path": "docs/game-engine-knowledge/debug-log-format.md",
+      "locator": "容器格式/版本单元/结构链接节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "claim_ids": [
+        "clm_43C39823DA58DBAB7172840ABC"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -602,6 +677,21 @@
       ]
     },
     {
+      "id": "aref_5331661f69591a298f45ad2189",
+      "path": ".agents/skills/gil-node-graph-editing/SKILL.md",
+      "locator": "安全流程第 3c 步：变量名三方一致性",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "5b7a98e0b04f8b50cb300ffdd298d79cdc4efd295b0739e20b7c3ec76cbf3270",
+      "claim_ids": [
+        "clm_38E9BD071D723E4A8FD6C039B5"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_5787c6a96f5faf7925d0d0cc36",
       "path": "tests/gil_static_assemblies.ts",
       "locator": "focused closure and color raw-wire regression",
@@ -713,7 +803,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "dd8e734e4434701cf3396c20f5001bfdc17d4f99c75dd2289d1228002fb2ca2e",
+      "approved_hash": "8bd5827207b05e673ed7391b88289e24b8d858387ed91c3250d8a1ad6278dcfb",
       "claim_ids": [
         "clm_D4F75C7BF79D3B60EB8DF5EB3F"
       ],
@@ -833,7 +923,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "7c96947ce5e2acce1c32acf30cdd4a4ebd6fc0edb26891bbc0136180b7f1a3fa",
+      "approved_hash": "5b7a98e0b04f8b50cb300ffdd298d79cdc4efd295b0739e20b7c3ec76cbf3270",
       "claim_ids": [
         "clm_D724F6EB325FFD8A791E37502B"
       ],
@@ -869,6 +959,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_78ed7c515c1c3718a9283a15c8",
+      "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
+      "locator": "等 F 划分算法节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "4dee55dd342ec15540d544bcedaefa4900b8a1dd010fa9a90f5d66dd48a7fcbb",
+      "claim_ids": [
+        "clm_CB27A68091705B8229DC60E932"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -908,7 +1013,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "dd8e734e4434701cf3396c20f5001bfdc17d4f99c75dd2289d1228002fb2ca2e",
+      "approved_hash": "8bd5827207b05e673ed7391b88289e24b8d858387ed91c3250d8a1ad6278dcfb",
       "claim_ids": [
         "clm_0FC97EF7B561C3DEEEAD6918A8"
       ],
@@ -1007,6 +1112,21 @@
       ]
     },
     {
+      "id": "aref_8a8b866818d0e74acf1e8b71e8",
+      "path": "docs/game-engine-knowledge/debug-log-format.md",
+      "locator": "记录字段与 f21/f22 节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "claim_ids": [
+        "clm_C6D426185B6125E4484CB8C948"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_8d54507653cac609d4988414f0",
       "path": "docs/architecture/injector-system.md",
       "locator": "3.4 向特定 NodeGraph 增加节点：相邻快照与整图替换",
@@ -1058,7 +1178,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "dd8e734e4434701cf3396c20f5001bfdc17d4f99c75dd2289d1228002fb2ca2e",
+      "approved_hash": "8bd5827207b05e673ed7391b88289e24b8d858387ed91c3250d8a1ad6278dcfb",
       "claim_ids": [
         "clm_E84AC1061E900A2BFAB326D5C1"
       ],
@@ -1094,6 +1214,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_9643fbf048edbcbdcab02e7a19",
+      "path": "src/cli/assets_node_graphs.ts",
+      "locator": "applyOps node-add hasReflectMap 校验",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "f7919b3154c1d42ec2e68fedfdc9369affbff6102577afd173a701ae2024a307",
+      "claim_ids": [
+        "clm_D92D905F8A575968BAA423A7E7"
+      ],
+      "supports_fact_classes": [
+        "cli_behavior"
       ]
     },
     {
@@ -1202,6 +1337,21 @@
       ]
     },
     {
+      "id": "aref_b122e03d98c9ed18378e98a5b6",
+      "path": ".agents/skills/debug-log-investigator/SKILL.md",
+      "locator": "工具链 gia_log.py records/frames",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "cdd01dcf45744b829cbc18ce1991e3df311bb0f524afceb079b8c9d6c06ecf40",
+      "claim_ids": [
+        "clm_8A72C10C71952438959C200669"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b615135758d50f11ef4d9478be",
       "path": "docs/game-engine-knowledge/gia-generation-chain.md",
       "locator": "生产链路（成功路径）与可复现性边界",
@@ -1229,6 +1379,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_b9908a6e3d5a33eddb24ea7944",
+      "path": "docs/game-engine-knowledge/debug-log-format.md",
+      "locator": "记录字段与 f21/f22 节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "claim_ids": [
+        "clm_8A72C10C71952438959C200669"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1309,6 +1474,21 @@
       ]
     },
     {
+      "id": "aref_c2920bbd6a8bd47f30607e5837",
+      "path": ".agents/skills/debug-log-investigator/SKILL.md",
+      "locator": "工具链 gia_log.py records/frames",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "cdd01dcf45744b829cbc18ce1991e3df311bb0f524afceb079b8c9d6c06ecf40",
+      "claim_ids": [
+        "clm_C6D426185B6125E4484CB8C948"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_c3023744deece824736d206b4a",
       "path": "tests/graph_layout_test.ts",
       "locator": "12 用例",
@@ -1381,6 +1561,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_dc36d4fbd8733b65f595c934fa",
+      "path": ".agents/skills/static-gil-model-builder/references/curve-path-decoration.md",
+      "locator": "等 F 划分算法节",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "4dee55dd342ec15540d544bcedaefa4900b8a1dd010fa9a90f5d66dd48a7fcbb",
+      "claim_ids": [
+        "clm_1850E17524FC028FF5B0791A03"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -1480,7 +1675,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "7bc52fcf949fe971787eebc0066822a57302914bb029e975f84b977ce11465cc",
+      "approved_hash": "812a5a3c7ff06db1a06dc64ead925c3f241c9ebdc447bcc71df6ebeba6ca9d9c",
       "claim_ids": [
         "clm_E4F7263D5D1B51415F6EA85DE1"
       ],
@@ -1576,6 +1771,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_fab6198f498c8c77370c18cce6",
+      "path": ".agents/skills/debug-log-investigator/SKILL.md",
+      "locator": "受控实验流程/实验地图",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "cdd01dcf45744b829cbc18ce1991e3df311bb0f524afceb079b8c9d6c06ecf40",
+      "claim_ids": [
+        "clm_9B948639C6EA426949824A5E3F"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

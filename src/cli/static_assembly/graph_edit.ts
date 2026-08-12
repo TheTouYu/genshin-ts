@@ -2121,3 +2121,128 @@ export function locateGraphField(
     return { field: locateBlobField(payload, 4, graphId), section: 4 }
   }
 }
+
+// ---- 节点图静态校验（2026-08-12：R<T> 编码一致性、变量名完整性）----
+
+export type GraphIssue = { graphId: number; node: number; message: string; warn?: boolean }
+
+/**
+ * 校验整份 GIL 的所有主图与复合 impl 图：
+ * - genericId 必须在 CLI 权威节点表（NODE_PIN_RECORDS）或引擎系统段（0x60000000+）中；
+ *   技能图体系区间 200000~210000（graphType 20001/20002/20007）→ 硬错误
+ *   （关卡图引擎不识别，游戏重存会删除，2026-08-12 事故节点 200011 同款）；
+ *   其余未知 ID → 警告
+ * - Variant 节点（有 reflectMap）必须带有效 concreteId（f3.field5）
+ * - R<T> pin 的 ConcreteBase indexOfConcrete 必须与 concreteId 一致
+ *   （GetCustomVariable 50/54 输出 pin 仍写 Ety 的 idx2 → 游戏解析失败
+ *   甚至启动失败，2026-08-12 真实事故；本次校验即防此类错误）
+ *   注：type 字段与 reflectMap 推导不一致是官方模板常态（非错误）
+ * - Get/SetCustomVariable（50/22）IN1 变量名必须填写
+ * - SetCustomVariable IN2 必须有类型指示（ConcreteBase）或连线
+ */
+export function validateNodeGraphs(bytes: Uint8Array): GraphIssue[] {
+  const issues: GraphIssue[] = []
+  const payload = bytes.slice(20, -4)
+  for (const g of listGraphs(bytes)) {
+    const { field } = locateGraphField(payload, g.id)
+    const blob = payload.subarray(field.dataStart, field.dataEnd)
+    for (const rec of (parseWireMessage(blob) ?? []).filter((f) => f.number === 3 && f.wire === 2)) {
+      const fields = parseWireMessage(rec.value as Uint8Array) ?? []
+      const index = wireVarint(fields, 1) ?? 0
+      const genericId = nodePropertyId(fields.find((f) => f.number === 2)?.value as Uint8Array | undefined) ?? 0
+      const concreteId = nodePropertyId(fields.find((f) => f.number === 3)?.value as Uint8Array | undefined)
+      const record = RECORDS.find((r) => r.id === genericId) as
+        | { reflectMap?: Array<[number, string]> }
+        | undefined
+      if (record === undefined) {
+        if (genericId >= 200000 && genericId < 210000) {
+          issues.push({
+            graphId: g.id,
+            node: index,
+            message: `genericId ${genericId} 属技能图体系（graphType 20001/20002/20007，区间 200000~210000，实测 client_node_metadata）——关卡图引擎不识别，重存会删除该节点（2026-08-12 事故节点 200011 同款）`
+          })
+        } else if (genericId < 1610612736 /* 0x60000000：系统节点/复合宿主段 */) {
+          issues.push({
+            graphId: g.id,
+            node: index,
+            message: `genericId ${genericId} 不在 CLI 权威节点表且非系统段，请人工确认`,
+            warn: true
+          })
+        }
+        // 0x60000000+ 系统节点（事件/输入等）与 1610700xxx 复合宿主：引擎认识，放行
+        continue
+      }
+      const pins = fields.filter((f) => f.number === 4 && f.wire === 2)
+      if (record.reflectMap !== undefined) {
+        if (concreteId === undefined) {
+          issues.push({ graphId: g.id, node: index, message: `genericId ${genericId} 缺 concreteId（默认变体，官方模板常见；手工指定 Flt 等变体时必填）`, warn: true })
+          continue
+        }
+        const expectedIdx = reflectConcreteIndex(genericId, concreteId)
+        if (expectedIdx === undefined) {
+          issues.push({
+            graphId: g.id,
+            node: index,
+            message: `concreteId ${concreteId} 不在 genericId ${genericId} 的 reflectMap`
+          })
+          continue
+        }
+        const expectedType = nodeInputConcreteType(genericId, concreteId)
+        for (const pf of pins) {
+          const pin = parseWireMessage(pf.value as Uint8Array) ?? []
+          const v3 = pin.find((f) => f.number === 3 && f.wire === 2)
+          if (!v3) continue
+          const cb = parseWireMessage(v3.value as Uint8Array)
+          if (!cb || wireVarint(cb, 1) !== 10000) continue
+          const f110 = cb.find((f) => f.number === 110 && f.wire === 2)
+          const inner = f110 ? parseWireMessage(f110.value as Uint8Array) : undefined
+          const idx = inner ? (wireVarint(inner, 1) ?? 0) : 0
+          const ptype = wireVarint(pin, 4)
+          const i1 = indexOf(pin.find((f) => f.number === 1)?.value as Uint8Array | undefined)
+          const where = `pin${i1?.kind ?? '?'}.${i1?.index ?? '?'}`
+          if (idx !== expectedIdx) {
+            issues.push({
+              graphId: g.id,
+              node: index,
+              message: `${where} ConcreteBase indexOfConcrete=${idx} 与 concreteId ${concreteId}（reflectMap 位置 ${expectedIdx}）不匹配`
+            })
+          }
+        }
+      }
+      const inParam = (shell: number) =>
+        pins
+          .map((f) => parseWireMessage(f.value as Uint8Array) ?? [])
+          .find((pin) => {
+            const i1 = indexOf(pin.find((f) => f.number === 1)?.value as Uint8Array | undefined)
+            return i1?.kind === PIN_KIND.IN_PARAM && (i1.index ?? 0) === shell
+          })
+      // Get/SetCustomVariable：IN1 变量名必须填写
+      if (genericId === 50 || genericId === 22) {
+        const in1 = inParam(1)
+        const hasName = in1?.some((f) => f.number === 3 && f.wire === 2)
+        if (!hasName) {
+          issues.push({
+            graphId: g.id,
+            node: index,
+            message: `${genericId === 50 ? '获取' : '设置'}自定义变量：变量名未填写（IN1 缺值）`,
+            warn: true
+          })
+        }
+      }
+      // SetCustomVariable：IN2 必须有类型指示或连线
+      if (genericId === 22) {
+        const in2 = inParam(2)
+        if (!in2) {
+          issues.push({ graphId: g.id, node: index, message: '设置自定义变量：IN2 缺失', warn: true })
+        } else {
+          const hasValue = in2.some((f) => f.number === 3 && f.wire === 2)
+          const hasConn = in2.some((f) => f.number === 5 && f.wire === 2)
+          if (!hasValue && !hasConn) {
+            issues.push({ graphId: g.id, node: index, message: '设置自定义变量：IN2 裸 pin（无类型指示也无连线）', warn: true })
+          }
+        }
+      }
+    }
+  }
+  return issues
+}

@@ -165,6 +165,16 @@
         "编辑器证据"
       ],
       "migration_status": "pilot"
+    },
+    {
+      "id": "debug-log-format",
+      "name": "Debug Log Format and Query",
+      "path": "knowledge/debug-log-format",
+      "boundary": "Beyond_Debug_Log 调试日志（.gia）的容器结构与执行帧编码规则、查询与受控实验流程；不含具体实验记录、日志内容、项目状态或未验证假设。",
+      "keywords": [
+        "Beyond_Debug_Log, debug log, gia 日志, f21 帧, f22 文本, VarType, ENUM_VALUE, gia_log"
+      ],
+      "migration_status": "pilot"
     }
   ],
   "topics": [
@@ -870,6 +880,42 @@
         "布局,layout,node-graph,auto-layout,书页式"
       ],
       "permission": "internal"
+    },
+    {
+      "id": "container-and-records",
+      "node_id": "debug-log-format",
+      "title": "容器与记录字段",
+      "path": "knowledge/debug-log-format/container-and-records.md",
+      "summary": "调试日志 .gia 的容器结构、版本单元标识与 f21/f22 双通道记录字段",
+      "keywords": [],
+      "permission": "internal"
+    },
+    {
+      "id": "frame-encoding-rules",
+      "node_id": "debug-log-format",
+      "title": "帧负载编码规则",
+      "path": "knowledge/debug-log-format/frame-encoding-rules.md",
+      "summary": "参数类型码、枚举操作码、节点 ID 对照与两级帧/负载规则",
+      "keywords": [],
+      "permission": "internal"
+    },
+    {
+      "id": "investigation-workflow",
+      "node_id": "debug-log-format",
+      "title": "查询与受控实验流程",
+      "path": "knowledge/debug-log-format/investigation-workflow.md",
+      "summary": "从日志定位到逐节点解码的查询流程与受控实验驱动破译闭环",
+      "keywords": [],
+      "permission": "internal"
+    },
+    {
+      "id": "curve-path-decoration",
+      "node_id": "static-gil-assets",
+      "title": "沿曲线路径连续装饰物铺放",
+      "path": "knowledge/static-gil-assets/curve-path-decoration.md",
+      "summary": "等 F 划分算法、块长/截面比、块数模式与端面缝隙处理（等角螺线 V4-V11 真实样本）",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1320,6 +1366,66 @@
       ]
     },
     "clm_D724F6EB325FFD8A791E37502B": {
+      "fact_classes": [
+        "cli_behavior"
+      ]
+    },
+    "clm_43C39823DA58DBAB7172840ABC": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_C6D426185B6125E4484CB8C948": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_8A72C10C71952438959C200669": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_8D210530744937ADB0BA9B1A0F": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_9B948639C6EA426949824A5E3F": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1850E17524FC028FF5B0791A03": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_CB27A68091705B8229DC60E932": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_5CD8CFA765853432D2C6303215": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_3E3A3F0F7CA0698E7E2DE7749E": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_38E9BD071D723E4A8FD6C039B5": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_161175FC4599AA6F2DEABB82E0": {
+      "fact_classes": [
+        "writeback_behavior"
+      ]
+    },
+    "clm_D92D905F8A575968BAA423A7E7": {
       "fact_classes": [
         "cli_behavior"
       ]

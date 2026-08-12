@@ -37,3 +37,27 @@ dataflow case1-5 真实相邻快照；替换/插入/自动实例化 wire 证据�
 v20-v22 真实相邻快照；复合内部同规则实测 case17/18（见 composite-boundary composite-editor-wire）；自动实例化语义覆盖数据流，不扩展到控制流。
 
 <!-- CLAIM:END clm_D0216263867D8BDE9A5B831253 -->
+
+<!-- CLAIM:START clm_161175FC4599AA6F2DEABB82E0 -->
+
+### InParam 混合形态 pin：清 connects 保留 pin 的条件
+
+InParam pin 的 connects（field 5）与固定值（field 3）可共存（Variant 混合形态）；断开连线时仅当 pin 同时有固定值才清 connects 保留 pin，纯链接 pin / 固定值 pin / 空 pin 整 pin 移除（同 OutFlow 删空语义，unlinkInParam 2026-08-11 修复）。
+
+#### 适用边界
+
+来自 CLI 编辑 op 的 wire 语义（graph_edit.ts unlinkInParam）；与编辑器删除语义一致性待游戏内核验。
+
+<!-- CLAIM:END clm_161175FC4599AA6F2DEABB82E0 -->
+
+<!-- CLAIM:START clm_D92D905F8A575968BAA423A7E7 -->
+
+### node-add 变体验证：无 reflectMap 的节点族跳过 concrete 校验
+
+node-add 指定 concrete-id 时仅对含 reflectMap 的 Variant 节点族校验 concrete 存在性；无 reflectMap 的节点族（非 Variant，concrete 即自身）跳过校验（hasReflectMap 判定，2026-08-11 修复），避免误报。[error] generic <id> reflectMap 不含 concrete <id>（Variant 校验失败）仅对 Variant 族抛出。
+
+#### 适用边界
+
+来自 CLI node-add op（assets_node_graphs.ts）；reflectMap 来源为第三方 node_pin_records.ts。
+
+<!-- CLAIM:END clm_D92D905F8A575968BAA423A7E7 -->

@@ -37,3 +37,15 @@ CONFIRMED_BOUNDED：在当前锁定地图和编辑器版本中，连续创建两
 不推广到实体变量、节点图变量、其他类型或游戏运行时作用域；完整 raw-wire 路径、presence 边界、Validator 见 gil-structure-semantics.md；9 轮相邻实验由证据提交 d7bd151f9b8e914ca4ad3a1873021983e08c4f0f 锁定；未执行 round-trip、真实写回、编辑器导入或游戏行为验证
 
 <!-- CLAIM:END clm_47B704E1F571822F6E9171FEBE -->
+
+<!-- CLAIM:START clm_38E9BD071D723E4A8FD6C039B5 -->
+
+### 变量名三方一致性：错一个不报错但逻辑静默错
+
+节点图变量名必须三方一致（定义名 == 设置时名 == 使用时名），含大小写/全角半角/前后缀差异；名字错一个编译不报错但逻辑静默错（2026-08-11 游戏核验教训）。核查：tools/scan-gil-var-pins.ts 候选零新增违规（缺/空/裸节点），再逐节点核对实体自定义变量定义集 vs Get/Set Custom Variable 引用名 vs 图变量（Node Graph Variable）。
+
+#### 适用边界
+
+优先改引用侧对齐定义侧；read --node 输出带 [变量=...] 注解可逐变量核对。
+
+<!-- CLAIM:END clm_38E9BD071D723E4A8FD6C039B5 -->
