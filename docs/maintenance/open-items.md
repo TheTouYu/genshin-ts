@@ -11,6 +11,16 @@
 
 ## 已落地（DONE）
 
+### 2026-08-13 eval-tabbar-cli 复盘（tabBar 区域配置子代理，1500s 贴顶）
+
+| 发现 | 证据 | 落地方式 |
+|---|---|---|
+| 子代理 7 次 stash + 14 次 build 自证"HEAD 已存在的构建阻塞"，~31 调用/~10 分钟 | trace L26690-34626 | `isolated-model-evaluator/SKILL.md` 新条目：派活前跑基线、把已知失败清单写进任务文件（含快捷判定：git diff HEAD 空 + git show HEAD 有缺陷 = 已证明） |
+| `npm run build` 每次冷启 ~47s（prebuild rm -rf dist），改码循环全用 build | 实测 47.3s vs noEmit 增量热态 4-5s | `static-gil-model-builder/SKILL.md` 新节「验证回路与 CLI 约定」：fast typecheck 回路 / plan blocked 看 stdout JSON（本次 18 调用考古） / fixture f5-f6 形状坑 / 槽字节探针片段 |
+| plan CLI blocked 时 exit 1 且 stderr 空，失败原因只在 stdout JSON | trace call 74-88（L30279-34626） | `src/cli/assets_static_assemblies.ts` 应用补丁：blocked 时 stderr 输出错误码摘要（routing 测试信息 1!==0 → plan blocked: prefab-id-out-of-range） |
+| 复盘技能"超时即未完成"判定粗糙（本次 exit 124 但 final.md 完整、agent_end 干净） | trace L64583/64584 时序 | `task-trace-review/SKILL.md` Step 1.5：按时序区分 agent_end 前后被掐；tool_errors 逐条分类（grep 无匹配是假错误） |
+| 子代理无 edit 工具，13 处仓库源码编辑 + 3 处 /tmp 脚本 patch 全走 python3 heredoc（/tmp 脚本被打坏 2 次） | invocation.json 工具集 + trace L43267/L46000 | OPEN 区 O3 登记（evaluate.py 派活加 edit 工具） |
+
 ### 2026-08-12 四技能专项复盘（本轮，commit 75c2541）
 
 | 发现 | 证据 | 落地方式 |
@@ -33,6 +43,23 @@
 - `205b88f` cases/node-copy/graph-var-add ops + 图变量注册/Str 变体 Set/DoubleBranch 语义闭合
 
 ## 未落地（OPEN）
+
+### O2. `build_fixture.ts` 的 def name 形状（f5）与 `exportStaticAssemblies`（f6.f11.f1）不符
+
+- 证据：eval-tabbar-cli trace L50845（exported count 0）→ L53722（复制 buildMiniMap 60+ 行）；fixture 只服务 plan 类测试所以没暴露。
+- 期望形态：修 fixture 的 name 字段到 f6 或抽共享 buildMiniMap helper。
+- 何时做：下次回读/export 类测试需要 fixture 时。
+
+### O3. evaluate.py 派活默认给子代理加 edit 工具
+
+- 证据：eval-tabbar-cli 13 处源码编辑全走 python3 heredoc（无 edit 工具），/tmp 脚本 patch 坏 2 次；评估类任务保持 read,bash。
+- 何时做：下次派活前改 evaluate.py 的 --tools 默认值。
+
+### O4. `npx tsx -e` 不可用（输出 tsx register 包乱码），探针脚本必须写 /tmp/*.mts 再跑
+
+- 证据：eval-tabbar-cli trace L32112。
+- 期望形态：技能/任务文件注记。
+- 何时做：下次派活任务文件模板加一行。
 
 ### O1. GIA 解析/编码无独立 CLI（已由 genshin-model-studio 覆盖，登记为指针）
 

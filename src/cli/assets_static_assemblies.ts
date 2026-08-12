@@ -237,7 +237,13 @@ async function runPlan(
   if (before.mtimeMs !== after.mtimeMs || before.size !== after.size) {
     throw new Error('[error] plan source changed during read-only operation')
   }
-  if (result.status === 'blocked') process.exitCode = 1
+  if (result.status === 'blocked') {
+    process.exitCode = 1
+    const codes = (result.errors ?? []).map((e) => e.code ?? e.message)
+    console.error(
+      `[error] plan blocked${codes.length ? `: ${codes.join('; ')}` : ''} (details in stdout JSON)`
+    )
+  }
 }
 
 async function runPreview(

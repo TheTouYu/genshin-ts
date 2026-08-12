@@ -194,6 +194,36 @@ python tools/pkc.py progressive-query \
 
 `inspect-gil-prefab-material.py` 要求目标 ID 在 before/after 都存在，适合既有元件材质修改，不适合新增元件。新增元件用 `inspect + export + root diff`。
 
+## 验证回路与 CLI 约定（2026-08-12 tabBar 区域配置任务复盘，trace 证据见 eval-tabbar-cli）
+
+- **快速类型检查回路**：`npx tsc -p tsconfig.json --noEmit --incremental` 首次冷启 ~45s、之后热 ~5s；`npm run build` 因 prebuild `rm -rf dist` 每次冷启 ~47s——改代码循环用 noEmit 快速回路，只有需要跑 `bin/gsts.mjs`（CLI 读 dist）或最终验收时才 build。不要用裸 `npx tsc -p tsconfig.json`（增量 emit 会报 TS5055 overwrite）。
+- **plan CLI 非零退出约定**：`assets:static-assemblies plan` blocked 时 exit 1 且 **stderr 为空**，原因在 stdout JSON 的 `errors[]`（如 `prefab-id-out-of-range`）与 `assemblies[].template.diagnostics`——先解析 stdout 再下结论，不要在 stderr 上考古（本次为此多花 18 个调用）。
+- **fixture 形状坑**：`tests/fixtures/static-assembly/build_fixture.ts` 的 def name 在 f5（旧形状），`exportStaticAssemblies` 读 f6.f11.f1 → 基于该 fixture 的地图 `export` 恒为 0；回读/export 类测试复用 `tests/static_assembly_export.ts` 的 `buildMiniMap` 形状（或先修 fixture 再复用）。
+- **槽字节探针**（复用下面这段，别每次重调 walk API；本次试了 4 次才调对）：
+```python
+python3 -c "
+import sys; sys.path.insert(0, '.agents/skills/editor-incremental-gia-investigator/scripts')
+from gil_wire_lib import walk
+from pathlib import Path
+def records_in(payload, section):
+    out = []
+    for (fnum, wire, val) in walk(payload):
+        if fnum == section and wire == 'bytes':
+            for (sf, sw, sv) in walk(val):
+                if sf == 1 and sw == 'bytes': out.append(sv)
+    return out
+def rec_id(rec):
+    return next((val for (f, w, val) in walk(rec) if f == 1 and w == 'varint'), None)
+data = Path('<map.gil>').read_bytes()
+payload = data[20:-4]
+rec = next(r for r in records_in(payload, <4|5>) if rec_id(r) == <id>)
+slots = [(f, v) for (f, w, v) in walk(rec) if f == <8|7> and w == 'bytes']
+for (f, v) in slots:
+    codes = [c for (c, cw, cv) in walk(v) if c == 1 and cw == 'varint']
+    print(len(v), codes[0] if codes else '?')
+"
+```
+
 ## 写回安全门
 
 真实写回前展示：
