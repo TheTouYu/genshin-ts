@@ -205,8 +205,23 @@ function basicMotionComponent(): Uint8Array {
   )
 }
 
-function tabBarComponent(regionName: string, options: readonly string[]): Uint8Array {
-  const region = emit([
+type TabBarRegionConfig = {
+  regionType: 'box' | 'sphere'
+  regionSize: readonly [number, number, number]
+  regionRadius: number
+  regionCenter: readonly [number, number, number]
+}
+
+function isZeroVector(value: readonly [number, number, number]): boolean {
+  return value.every((component) => component === 0)
+}
+
+/** 真实样本 exp5（盒体）：f11 = { f1 空, f2 = {X,Y,Z} float32, f3 空 } + f502 + f503。 */
+function boxRegionBlock(
+  regionName: string,
+  size: readonly [number, number, number]
+): Uint8Array {
+  return emit([
     {
       number: 11,
       wire: 2,
@@ -216,9 +231,9 @@ function tabBarComponent(regionName: string, options: readonly string[]): Uint8A
           number: 2,
           wire: 2,
           value: emit([
-            { number: 1, wire: 5, value: float32(1) },
-            { number: 2, wire: 5, value: float32(1) },
-            { number: 3, wire: 5, value: float32(1) }
+            { number: 1, wire: 5, value: float32(size[0]) },
+            { number: 2, wire: 5, value: float32(size[1]) },
+            { number: 3, wire: 5, value: float32(size[2]) }
           ])
         },
         { number: 3, wire: 2, value: new Uint8Array() }
@@ -227,6 +242,52 @@ function tabBarComponent(regionName: string, options: readonly string[]): Uint8A
     { number: 502, wire: 2, value: TEXT.encode(regionName) },
     { number: 503, wire: 0, value: 1 }
   ])
+}
+
+/**
+ * 真实样本 exp6（球体）：f1 = 1 类型标记 + f12 = { f1 = 偏移子块, f2 = float32 半径 } + f502 + f503。
+ * 偏移全 0 时 f12.f1 = 空块（与 exp6 样本逐字节一致）；非零偏移子块 {f1=X,f2=Y,f3=Z} float32
+ * 与盒体尺寸子块同构，属推断编码（待游戏验证）。
+ */
+function sphereRegionBlock(
+  regionName: string,
+  radius: number,
+  center: readonly [number, number, number]
+): Uint8Array {
+  const centerBlock = isZeroVector(center)
+    ? new Uint8Array()
+    : emit([
+        { number: 1, wire: 5, value: float32(center[0]) },
+        { number: 2, wire: 5, value: float32(center[1]) },
+        { number: 3, wire: 5, value: float32(center[2]) }
+      ])
+  return emit([
+    { number: 1, wire: 0, value: 1 },
+    {
+      number: 12,
+      wire: 2,
+      value: emit([
+        { number: 1, wire: 2, value: centerBlock },
+        { number: 2, wire: 5, value: float32(radius) }
+      ])
+    },
+    { number: 502, wire: 2, value: TEXT.encode(regionName) },
+    { number: 503, wire: 0, value: 1 }
+  ])
+}
+
+function tabBarComponent(
+  regionName: string,
+  options: readonly string[],
+  region: TabBarRegionConfig
+): Uint8Array {
+  if (region.regionType === 'box' && !isZeroVector(region.regionCenter)) {
+    throw new Error('[error] non-zero box region center is unsupported (no real sample)')
+  }
+  const regionBlock =
+    region.regionType === 'sphere'
+      ? sphereRegionBlock(regionName, region.regionRadius, region.regionCenter)
+      : boxRegionBlock(regionName, region.regionSize)
   const optionFields = options.map((option, index) => {
     const ordinal = index + 1
     return {
@@ -247,7 +308,7 @@ function tabBarComponent(regionName: string, options: readonly string[]): Uint8A
   return emit([
     { number: 1, wire: 0, value: 17 },
     { number: 2, wire: 0, value: 1 },
-    { number: 27, wire: 2, value: emit([{ number: 1, wire: 2, value: region }, ...optionFields]) }
+    { number: 27, wire: 2, value: emit([{ number: 1, wire: 2, value: regionBlock }, ...optionFields]) }
   ])
 }
 
@@ -262,7 +323,42 @@ function componentSnapshot(component: GstsStaticAssemblyComponent): {
     return { typeCode: 18, bytes: basicMotionComponent() }
   }
   if (component.type === 'tabBar') {
-    return { typeCode: 17, bytes: tabBarComponent(component.regionName, component.options) }
+    // 内联配置（gsts.config.ts / structure 文件外的组件）与 prefab update 都经此校验：
+    // 非法区域组合 fail closed（盒体无中心偏移样本证据，不做猜测）。
+    const regionType = component.regionType ?? 'box'
+    if (regionType !== 'box' && regionType !== 'sphere') {
+      throw new Error('[error] tabBar regionType must be box or sphere')
+    }
+    const regionSize = component.regionSize ?? [1, 1, 1]
+    const regionRadius = component.regionRadius ?? 1
+    const regionCenter = component.regionCenter ?? [0, 0, 0]
+    if (regionType === 'box') {
+      if (component.regionRadius !== undefined) {
+        throw new Error('[error] tabBar regionRadius must be omitted for box regionType')
+      }
+      if (regionSize.some((axis) => !Number.isFinite(axis) || axis <= 0)) {
+        throw new Error('[error] tabBar regionSize must contain positive finite sizes')
+      }
+    } else {
+      if (component.regionSize !== undefined) {
+        throw new Error('[error] tabBar regionSize must be omitted for sphere regionType')
+      }
+      if (!Number.isFinite(regionRadius) || regionRadius <= 0) {
+        throw new Error('[error] tabBar regionRadius must be a positive finite number')
+      }
+    }
+    if (regionCenter.some((axis) => !Number.isFinite(axis))) {
+      throw new Error('[error] tabBar regionCenter must contain finite numbers')
+    }
+    return {
+      typeCode: 17,
+      bytes: tabBarComponent(component.regionName, component.options, {
+        regionType,
+        regionSize,
+        regionRadius,
+        regionCenter
+      })
+    }
   }
   throw new Error('[error] unsupported static assembly component')
 }

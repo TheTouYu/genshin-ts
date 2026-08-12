@@ -133,6 +133,58 @@ function componentSlots(record: Uint8Array, fieldNumber: number): Uint8Array[] {
     .map((field) => field.value as Uint8Array)
 }
 
+type TabBarRegionGeometry = {
+  regionType?: 'box' | 'sphere'
+  regionSize?: readonly [number, number, number]
+  regionRadius?: number
+  regionCenter?: readonly [number, number, number]
+}
+
+/** float32 量化值规整为可读小数（如 0.10000000149011612 → 0.1）。 */
+function quantizeFloat(value: number): number {
+  return Number(value.toFixed(6))
+}
+
+/**
+ * 解码选项卡区域几何（真实样本 exp5/exp6）：
+ * 盒体 f11.f2 = {X,Y,Z} float32；球体 f1=1 + f12 = { f1=偏移子块, f2=float32 半径 }。
+ * 默认盒体 1×1×1 不输出 region 字段（保持旧导出形状）；球体恒输出 regionType。
+ */
+function decodeTabBarRegion(
+  region: WireField | undefined
+): TabBarRegionGeometry {
+  if (!region) return {}
+  const regionFields = parse(region.value as Uint8Array)
+  if (!regionFields) return {}
+  const box = regionFields.find((field) => field.number === 11 && field.wire === 2)
+  if (box) {
+    const boxFields = parse(box.value as Uint8Array)
+    const sizeField = boxFields?.find((field) => field.number === 2 && field.wire === 2)
+    if (!sizeField) return {}
+    const size = floatVector(sizeField.value as Uint8Array).map(quantizeFloat) as [
+      number,
+      number,
+      number
+    ]
+    const isDefault = size[0] === 1 && size[1] === 1 && size[2] === 1
+    return isDefault ? {} : { regionType: 'box', regionSize: size }
+  }
+  const marker = regionFields.find((field) => field.number === 1 && field.wire === 0)
+  const sphere = regionFields.find((field) => field.number === 12 && field.wire === 2)
+  if (marker?.value !== 1 || !sphere) return {}
+  const sphereFields = parse(sphere.value as Uint8Array)
+  const radiusField = sphereFields?.find((field) => field.number === 2 && field.wire === 5)
+  if (!radiusField) return {}
+  const radius = quantizeFloat(Buffer.from(radiusField.value as Uint8Array).readFloatLE(0))
+  const centerField = sphereFields?.find((field) => field.number === 1 && field.wire === 2)
+  const center = centerField ? floatVector(centerField.value as Uint8Array) : [0, 0, 0]
+  return {
+    regionType: 'sphere',
+    regionRadius: radius,
+    regionCenter: [quantizeFloat(center[0]), quantizeFloat(center[1]), quantizeFloat(center[2])]
+  }
+}
+
 function decodeComponent(slot: Uint8Array): GstsStaticAssemblyComponent | undefined {
   const fields = parse(slot)
   if (!fields) return undefined
@@ -163,7 +215,9 @@ function decodeComponent(slot: Uint8Array): GstsStaticAssemblyComponent | undefi
       const text = shortName ? printable(shortName.value as Uint8Array) : undefined
       if (text) options.push(text)
     }
-    if (regionName && options.length) return { type: 'tabBar', regionName, options }
+    if (regionName && options.length) {
+      return { type: 'tabBar', regionName, options, ...decodeTabBarRegion(region) }
+    }
   }
   return undefined
 }

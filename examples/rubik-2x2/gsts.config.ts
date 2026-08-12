@@ -1,4 +1,4 @@
-import type { GstsConfig } from '../../../src/compiler/gsts_config.js'
+import type { GstsConfig } from '../../src/compiler/gsts_config.js'
 
 const config: GstsConfig = {
   compileRoot: '.',

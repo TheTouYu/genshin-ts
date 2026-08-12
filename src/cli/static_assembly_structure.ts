@@ -84,10 +84,73 @@ function color(filePath: string, field: string, value: unknown): GstsStaticColor
   }
 }
 
+function zeroVector(value: readonly [number, number, number]): boolean {
+  return value.every((component) => component === 0)
+}
+
+function tabBarRegion(
+  filePath: string,
+  field: string,
+  source: JsonObject
+): {
+  regionType: 'box' | 'sphere'
+  regionSize: readonly [number, number, number]
+  regionRadius: number
+  regionCenter: readonly [number, number, number]
+} {
+  const regionType = source.regionType === undefined ? 'box' : source.regionType
+  if (regionType !== 'box' && regionType !== 'sphere') {
+    fail(filePath, `${field}.regionType`, 'must be box or sphere')
+  }
+  const center =
+    source.regionCenter === undefined
+      ? ([0, 0, 0] as const)
+      : vector(filePath, `${field}.regionCenter`, source.regionCenter)
+  if (regionType === 'box') {
+    if (source.regionRadius !== undefined) {
+      fail(filePath, `${field}.regionRadius`, 'must be omitted for box regionType')
+    }
+    const size =
+      source.regionSize === undefined
+        ? ([1, 1, 1] as const)
+        : vector(filePath, `${field}.regionSize`, source.regionSize)
+    if (size.some((axis) => axis <= 0)) {
+      fail(filePath, `${field}.regionSize`, 'must contain positive sizes')
+    }
+    if (!zeroVector(center)) {
+      // 真实样本只有盒体 f11.f1 空（= 无中心偏移），无非零证据：fail closed，不做猜测。
+      fail(
+        filePath,
+        `${field}.regionCenter`,
+        'non-zero box region center is unsupported (no real sample); keep [0,0,0]'
+      )
+    }
+    return { regionType: 'box', regionSize: size, regionRadius: 1, regionCenter: center }
+  }
+  if (source.regionSize !== undefined) {
+    fail(filePath, `${field}.regionSize`, 'must be omitted for sphere regionType')
+  }
+  const radius =
+    source.regionRadius === undefined
+      ? 1
+      : finiteNumber(filePath, `${field}.regionRadius`, source.regionRadius)
+  if (radius <= 0) fail(filePath, `${field}.regionRadius`, 'must be a positive number')
+  return { regionType: 'sphere', regionSize: [1, 1, 1], regionRadius: radius, regionCenter: center }
+}
+
 function component(filePath: string, index: number, value: unknown): GstsStaticAssemblyComponent {
   const field = `components[${index}]`
   const source = object(filePath, field, value)
-  exactFields(filePath, field, source, ['type', 'preset', 'regionName', 'options'])
+  exactFields(filePath, field, source, [
+    'type',
+    'preset',
+    'regionName',
+    'options',
+    'regionType',
+    'regionSize',
+    'regionRadius',
+    'regionCenter'
+  ])
   if (source.type === 'followMotion') {
     if (source.preset !== 'fullFollow') fail(filePath, `${field}.preset`, 'must be fullFollow')
     return { type: 'followMotion', preset: 'fullFollow' }
@@ -110,7 +173,16 @@ function component(filePath: string, index: number, value: unknown): GstsStaticA
     ) {
       fail(filePath, `${field}.options`, 'must be a non-empty array of non-empty strings')
     }
-    return { type: 'tabBar', regionName: source.regionName, options: source.options as string[] }
+    const region = tabBarRegion(filePath, field, source)
+    return {
+      type: 'tabBar',
+      regionName: source.regionName as string,
+      options: source.options as string[],
+      regionType: region.regionType,
+      ...(region.regionType === 'box'
+        ? { regionSize: region.regionSize, regionCenter: region.regionCenter }
+        : { regionRadius: region.regionRadius, regionCenter: region.regionCenter })
+    }
   }
   fail(filePath, `${field}.type`, 'must be followMotion, basicMotion or tabBar')
 }
