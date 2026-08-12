@@ -45,8 +45,10 @@ INST_AUX_BASE = 1073741905       # 角块 inst aux 用到 1872；32 items → 19
 POS = [1.5, 1.2, 0.0]            # 场景位置
 MICRO = 0.44                     # 微块边长
 MICRO_C = 0.23                   # 微块中心偏移
-MICRO_PATCH = [0.41, 0.02, 0.41]  # 微块薄片尺寸（留缝 0.03）
-MICRO_OFFSET = 0.235             # 薄片外贴偏移
+MICRO_PATCH = [0.38, 0.01, 0.38]  # 微块薄片尺寸（用户 2026-08-12 手动验证：厚度 0.01）
+MICRO_GAP = 0.01                 # 薄片外贴间隙（SKILL 规律 0.005~0.01）
+# 偏移公式：装饰物即主体 → 表面 = 块中心 + 块半长（0.23+0.22=0.45），再 + 半厚 + 间隙
+MICRO_OFFSET = MICRO_C + MICRO / 2 + MICRO_PATCH[1] / 2 + MICRO_GAP
 OPTIONS = ['R', 'L', 'U', 'D', 'F', 'B']
 OUT = 'examples/rubik-2x2/assets/plans/controller-config.mjs'
 
@@ -115,17 +117,20 @@ def selfcheck(a):
     assert a['components'][0]['regionRadius'] == 3
     assert a['components'][0]['regionCenter'] == [0.1, 0, 0]
     assert a['templatePrefabId'] == EMPTY  # 模板必须是空模型，灰长方体模板会把装饰物包住看不见
-    # 薄片外贴断言：内表面 − 微块表面 ≥ 0.005（容差 1e-6）
-    # 表面 = MICRO/2 = 0.22；内表面 = |偏移| − 半厚(0.01)
+    half_thick = MICRO_PATCH[1] / 2
+    # 薄片外贴断言：内表面 − 真实块表面 ≥ 0.005（容差 1e-6）
+    # 装饰物即主体：真实表面 = 块中心 MICRO_C + 块半长 MICRO/2（=0.45），
+    # 不是 MICRO/2（=0.22，那会漏中心偏移——v9/v10 全黑根因）
+    surface = MICRO_C + MICRO / 2
     for it in a['items']:
         if it['scale'][1] != MICRO_PATCH[1]:
             continue  # 主体
         # 偏移轴 = 位置绝对值等于 MICRO_OFFSET 的轴（块中心是 MICRO_C，不等于 MICRO_OFFSET）
         axis = next(i for i in range(3) if abs(it['position'][i]) == MICRO_OFFSET)
-        inner = abs(it['position'][axis]) - 0.01
-        assert inner - MICRO / 2 >= 0.005 - 1e-6, (it['position'], axis, inner)
-        # 薄片不越出微块表面太多（外表面 = 表面 + 半厚 + 间隙 + 半厚）
-        assert abs(it['position'][axis]) <= MICRO / 2 + 0.02 + 1e-6, it['position']
+        inner = abs(it['position'][axis]) - half_thick
+        assert inner - surface >= 0.005 - 1e-6, (it['position'], axis, inner)
+        # 薄片不越出块表面太多（外表面 = 表面 + 半厚 + 间隙 + 半厚）
+        assert abs(it['position'][axis]) <= surface + MICRO_PATCH[1] + 0.02 + 1e-6, it['position']
     # 主体不互相穿透：块中心间距 0.46 > 块边长 0.44（每轴相邻两块）
     assert 2 * MICRO_C - MICRO > 0
     # 元件 scale 必须是目标边长 1（防止半尺寸混入 scale）

@@ -140,7 +140,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              -0.235,
+              -0.465,
               -0.23,
               -0.23
             ],
@@ -150,9 +150,9 @@ export default {
               90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -165,7 +165,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               -0.23,
-              -0.235,
+              -0.465,
               -0.23
             ],
             "rotation": [
@@ -174,9 +174,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -190,7 +190,7 @@ export default {
             "position": [
               -0.23,
               -0.23,
-              -0.235
+              -0.465
             ],
             "rotation": [
               -90,
@@ -198,9 +198,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -236,7 +236,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              0.235,
+              0.465,
               -0.23,
               -0.23
             ],
@@ -246,9 +246,9 @@ export default {
               -90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -261,7 +261,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               0.23,
-              -0.235,
+              -0.465,
               -0.23
             ],
             "rotation": [
@@ -270,9 +270,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -286,7 +286,7 @@ export default {
             "position": [
               0.23,
               -0.23,
-              -0.235
+              -0.465
             ],
             "rotation": [
               -90,
@@ -294,9 +294,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -332,7 +332,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              -0.235,
+              -0.465,
               -0.23,
               0.23
             ],
@@ -342,9 +342,9 @@ export default {
               90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -357,7 +357,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               -0.23,
-              -0.235,
+              -0.465,
               0.23
             ],
             "rotation": [
@@ -366,9 +366,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -382,7 +382,7 @@ export default {
             "position": [
               -0.23,
               -0.23,
-              0.235
+              0.465
             ],
             "rotation": [
               90,
@@ -390,9 +390,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -428,7 +428,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              0.235,
+              0.465,
               -0.23,
               0.23
             ],
@@ -438,9 +438,9 @@ export default {
               -90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -453,7 +453,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               0.23,
-              -0.235,
+              -0.465,
               0.23
             ],
             "rotation": [
@@ -462,9 +462,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -478,7 +478,7 @@ export default {
             "position": [
               0.23,
               -0.23,
-              0.235
+              0.465
             ],
             "rotation": [
               90,
@@ -486,9 +486,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -524,7 +524,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              -0.235,
+              -0.465,
               0.23,
               -0.23
             ],
@@ -534,9 +534,9 @@ export default {
               90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -549,7 +549,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               -0.23,
-              0.235,
+              0.465,
               -0.23
             ],
             "rotation": [
@@ -558,9 +558,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -574,7 +574,7 @@ export default {
             "position": [
               -0.23,
               0.23,
-              -0.235
+              -0.465
             ],
             "rotation": [
               -90,
@@ -582,9 +582,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -620,7 +620,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              0.235,
+              0.465,
               0.23,
               -0.23
             ],
@@ -630,9 +630,9 @@ export default {
               -90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -645,7 +645,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               0.23,
-              0.235,
+              0.465,
               -0.23
             ],
             "rotation": [
@@ -654,9 +654,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -670,7 +670,7 @@ export default {
             "position": [
               0.23,
               0.23,
-              -0.235
+              -0.465
             ],
             "rotation": [
               -90,
@@ -678,9 +678,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -716,7 +716,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              -0.235,
+              -0.465,
               0.23,
               0.23
             ],
@@ -726,9 +726,9 @@ export default {
               90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -741,7 +741,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               -0.23,
-              0.235,
+              0.465,
               0.23
             ],
             "rotation": [
@@ -750,9 +750,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -766,7 +766,7 @@ export default {
             "position": [
               -0.23,
               0.23,
-              0.235
+              0.465
             ],
             "rotation": [
               90,
@@ -774,9 +774,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -812,7 +812,7 @@ export default {
           {
             "resourceId": 10009001,
             "position": [
-              0.235,
+              0.465,
               0.23,
               0.23
             ],
@@ -822,9 +822,9 @@ export default {
               -90
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -837,7 +837,7 @@ export default {
             "resourceId": 10009001,
             "position": [
               0.23,
-              0.235,
+              0.465,
               0.23
             ],
             "rotation": [
@@ -846,9 +846,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,
@@ -862,7 +862,7 @@ export default {
             "position": [
               0.23,
               0.23,
-              0.235
+              0.465
             ],
             "rotation": [
               90,
@@ -870,9 +870,9 @@ export default {
               0
             ],
             "scale": [
-              0.41,
-              0.02,
-              0.41
+              0.38,
+              0.01,
+              0.38
             ],
             "color": {
               "enabled": true,

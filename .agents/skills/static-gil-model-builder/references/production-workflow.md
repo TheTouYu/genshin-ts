@@ -386,6 +386,18 @@ python3 .agents/skills/static-gil-model-builder/references/root-diff-summary.py 
 4. 场景实体用 `assets:entities import`（def 引用新 prefabId）追加，既有实体不动；
 5. 若用户已打开过编辑器保存，源 SHA 会变化——写回前以 `plan`/`sha256sum` 最新值为准，勿用旧 SHA 硬写。
 
+### 更新既有 prefab 闭包 = 恢复写回前备份重生成（2026-08-13 控制器 v10/v11 实测）
+
+同 `prefabId` 的既有闭包（含 def/inst/entity 三侧 aux）不能用 `static-assemblies` 直接更新（plan 必报 id-conflict）。视觉调参/参数修正的唯一生产路径：
+
+1. 找写回前备份：**备份在 `<gil 所在目录>/.gsts/backups/`（游戏 Save_Level 目录下，不是项目根 .gsts）**，文件名 `<map>.gil.<ISO时间戳>.bak`，SHA = 写回前源（用 `sha256sum` 与当时 plan.json 的 source sha 核对）；
+2. 把备份复制覆盖目标 .gil（源回到旧 SHA）→ 重新 `plan`（不再冲突）→ 生成新候选 → `apply-candidate --expect-source-hash <旧SHA>`；
+3. 若该 prefab 有场景实体：恢复后实体不存在，需重新 `assets:entities import`（实体 JSON 可复用），生成实体候选再 apply；
+4. 副作用：编辑器保存时的规范化布局（如 root 5 自动补的“默认模版”实体、被编辑实体 aux 重写新 ID）会随恢复消失，用户下次编辑器保存会重新生成——已知行为，写回前告知用户。
+5. 恢复前先把当前地图状态存档到证据目录（防意外），再动备份。
+
+**比对用户编辑器修改**（2026-08-13 实测）：编辑器保存会把被编辑实体的 aux **整体重写为新 ID 区间**（同 ID 记录 transform 不变，改动全部落新区间）。比对法：候选 vs 当前地图做 aux ID 集合差（removed/added 各 N），再解析新 ID 区间的 transform——解析路径 f5→f11→f1/f2/f3 是嵌套 wire message（每轴 wire=5 float32），不是 12 字节 packed。
+
 ### 实体换 def（换版本）时实体侧 aux 必须重建（2026-08-10 实测）
 
 实体从旧 def 切换到 items 数不同的新 def（如足球 132 → 224）时，**`import` 更新既有实体只改 def 引用、保留旧挂接槽**（`carryAuxSlot` 设计：`if (!existing || readEntityAuxIds(existing).length === 0)` 才自动克隆新 def 的 instance-side aux）。后果：实体 `auxIds` 数量仍是旧 def 的 items 数，游戏显示旧装饰物残留/不完整。
