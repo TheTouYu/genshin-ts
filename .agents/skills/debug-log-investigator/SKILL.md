@@ -97,6 +97,14 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 跳出: 比较 false → 走循环完成分支（如 0f print done）
 ```
 
+### 2026-08-13/14 魔方 P4 新增实证（节点级）
+
+- **循环内执行**：finite_loop 循环体帧 head 复用（每轮相同 head），可配合 --rec 按轮核对 8 块迭代。
+- **Query Dictionary Value by Key（1158）**：IN0=字典 raw（Get Node Graph Variable 输出 27 型），IN1=key，OUT0=值。**字典未填充时 OUT0 显示 `13=0.0`（空/默认值）**——排障时先看 OUT0 类型码 13。
+- **Get Corresponding Value From List（128）**：**下标 0-based**——IN1=1 取第 2 个元素；越界返回空实体（Entity= 空）。1..N 遍历习惯会导致最后一块空（P4 实证）。
+- **罗德里格斯链（旋转轴转换）**：3 段 zoom/subtraction/cross 组合；核对关键中间值（v·c、u×v·s、u·(u·v)）。
+- **rotation 输出（Get Entity Location and Rotation 的 OUT1）**：欧拉角（YXZ 内旋）；**组合旋转后可用矩阵反推验证轴语义**（2026-08-13 实证：匀速旋转 axis 为局部轴，M_new = M·R_local）。
+
 ## 查询流程（逐层）
 
 1. **定位文件**：`gia_log.py latest` 或按用户告知的文件名；先 `capture-evidence.py` 存证据快照+sha256

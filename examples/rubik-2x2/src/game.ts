@@ -1,29 +1,59 @@
 // P4 第二步：8 角块动态创建 + 6 选项分派（每块自旋 + 5 段直线公转）
 //
-// 设计（ADR-0003）：
-//   - whenEntityIsCreated（挂载在关卡实体 1094713345 上）→ 8 × createPrefab 创建角块
-//   - 创建中心 (3,3,3)，角偏移 ±0.4825（与 gen-assets.py CORNERS 顺序一致）
-//   - whenTabIsSelected（挂载在控制器 1077936138 上）→ tabId 1..6 = R/L/U/D/F/B 分派
-//   - 每步：4 块自旋（90°/s × 1s）+ 5 段直线公转（每段 18°、0.2s，定时器序列 0.2/0.4/0.6/0.8 启动）
-//   - 段速度 = 弦向量/0.2 = v·(cos18−1)/0.2 + (axis×v)·sin18/0.2（运行时按当前位置计算）
+// 设计（ADR-0003，v5 修正）：
+//   - whenEntityIsCreated（挂载在控制器 1077936138 上）→ 8 × createPrefab 创建角块
+//   - 创建中心 (3,3,3)，角偏移 ±0.5（与 gen-assets.py CORNERS 一致；v5 修正 ±0.4825 → ±0.5，
+//     0.965 尺寸块中心距 1.0 留缝 0.035，与装配体摆放一致）
+//   - whenTabIsSelected → tabId 1..6 = R/L/U/D/F/B 分派
+//   - 每步：4 块自旋（90°/s × 1s）+ 5 段直线公转（每段 18°、0.2s，定时器 0.2/0.4/0.6/0.8 启动）
+//   - v5 公转改为**一次性预计算**：段速度基于转动起始位置 v0 递推
+//     p_k = v0·cos(k·18°) + (axis×v0)·sin(k·18°)，vel_k = (p_k − p_{k−1})·5
+//     定时器回调 capture 速度向量直接加运动器，**不再读取运行时位置**
+//     （v4 缺陷：逐段读实时位置 + 平行分量未去除 → 每轮漂移 0.032，8 轮累积 0.256 块重叠；
+//     2026-08-13 日志 23-32-10 会话逐帧实证）
 //   - 转动期间输入锁（图变量 lock），1s 后解锁
 //
 // 核验点：
-//   ① whenEntityIsCreated 是否在关卡实体挂载的图上触发
-//   ② 8 角块是否出现在 (3,3,3) 为中心的位置，贴纸朝向正确
+//   ① whenEntityIsCreated 是否在控制器挂载的图上触发
+//   ② 8 角块是否出现在 (3,3,3) 为中心的位置（±0.5 留缝），贴纸朝向正确
 //   ③ 各层旋转方向符号（R 从 +X 看顺时针 = WCA；符号待游戏核验）
 //   ④ 一实体两运动器（自旋+公转）是否并行生效
-//   ⑤ 5 段折线逼近弧的平滑度、输入锁时序
+//   ⑤ 连续多轮转动后角块是否仍对齐网格（无累积漂移）
 import { g } from 'genshin-ts/runtime/core'
 import type { IntValue } from 'genshin-ts/runtime/value'
 // ServerExecutionFlowFunctions 定义于 src/definitions/nodes.ts（2026-08-13 修正 import 路径：
 // 原 'genshin-ts/runtime/definitions/nodes' 无对应导出，tsc TS2307；管线 tsx 不查类型故此前未暴露）
 import type { ServerExecutionFlowFunctions } from 'genshin-ts/definitions/nodes'
 
-// 18° 段常量（cos18°=0.9510565, sin18°=0.309017）：
-//   vel = v·(cos−1)/0.2 + (axis×v)·sin/0.2
-const K_LINEAR = -0.2447175 // (0.9510565 − 1) / 0.2
-const K_CROSS = 1.545085 // 0.309017 / 0.2
+// 18° 段预计算常量（v5）：p_k = v0·Ck + (axis×v0)·Sk；vel_k = (p_k − p_{k−1})·K_VEL
+const C1 = 0.9510565 // cos18°
+const S1 = 0.309017 // sin18°
+const C2 = 0.809017 // cos36°
+const S2 = 0.587785 // sin36°
+const C3 = 0.587785 // cos54°
+const S3 = 0.809017 // sin54°
+const C4 = 0.309017 // cos72°
+const S4 = 0.9510565 // sin72°
+const C5 = 0 // cos90°
+const S5 = 1 // sin90°
+const K_VEL = 5 // 1/0.2s
+const DEG2RAD = 0.017453292519943295 // π/180
+
+// 罗德里格斯：v 绕单位轴 u 旋转 θ（c=cosθ, s=sinθ）
+// v' = u·(u·v) + (v − u·(u·v))·c + (u×v)·s
+function gstsRotateVec(
+  f: ServerExecutionFlowFunctions,
+  v: ReturnType<typeof f.create3dVector>,
+  u: ReturnType<typeof f.create3dVector>,
+  c: number,
+  s: number
+): ReturnType<typeof f.create3dVector> {
+  const vp = f._3dVectorZoom(u, f._3dVectorDotProduct(u, v))
+  return f._3dVectorAddition(
+    f._3dVectorAddition(vp, f._3dVectorZoom(f._3dVectorSubtraction(v, vp), c)),
+    f._3dVectorZoom(f._3dVectorCrossProduct(u, v), s)
+  )
+}
 
 const graph = g
   .server({
@@ -37,7 +67,22 @@ const graph = g
       b4: entity(0),
       b5: entity(0),
       b6: entity(0),
-      b7: entity(0)
+      b7: entity(0),
+      // v5.4：块列表（循环遍历）+ 层轴字典 + 5 个速度字典（key=块索引 0..7）
+      blocks: [entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0), entity(0)],
+      axes: dict([
+        { k: 1, v: vec3([-1, 0, 0]) }, // R：x+ 层绕 X 负转
+        { k: 2, v: vec3([1, 0, 0]) }, // L：x− 层绕 X 正转
+        { k: 3, v: vec3([0, -1, 0]) }, // U：y+ 层绕 Y 负转
+        { k: 4, v: vec3([0, 1, 0]) }, // D：y− 层绕 Y 正转
+        { k: 5, v: vec3([0, 0, -1]) }, // F：z+ 层绕 Z 负转
+        { k: 6, v: vec3([0, 0, 1]) } // B：z− 层绕 Z 正转
+      ]),
+      vels1: dict([{ k: 0, v: vec3([0, 0, 0]) }]),
+      vels2: dict([{ k: 0, v: vec3([0, 0, 0]) }]),
+      vels3: dict([{ k: 0, v: vec3([0, 0, 0]) }]),
+      vels4: dict([{ k: 0, v: vec3([0, 0, 0]) }]),
+      vels5: dict([{ k: 0, v: vec3([0, 0, 0]) }])
     }
   })
   .on('whenEntityIsCreated', (_evt, f) => {
@@ -46,7 +91,7 @@ const graph = g
       // 角块 i 位置 = (3,3,3) + 0.4825·(dx,dy,dz)，rotate=(0,0,0)，owner=关卡实体
       const c0 = f.createPrefab(
         1077936129,
-        f.create3dVector(2.5175, 2.5175, 2.5175),
+        f.create3dVector(2.5, 2.5, 2.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -56,7 +101,7 @@ const graph = g
       f.setNodeGraphVariable('b0', c0, false)
       const c1 = f.createPrefab(
         1077936130,
-        f.create3dVector(3.4825, 2.5175, 2.5175),
+        f.create3dVector(3.5, 2.5, 2.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -66,7 +111,7 @@ const graph = g
       f.setNodeGraphVariable('b1', c1, false)
       const c2 = f.createPrefab(
         1077936131,
-        f.create3dVector(2.5175, 2.5175, 3.4825),
+        f.create3dVector(2.5, 2.5, 3.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -76,7 +121,7 @@ const graph = g
       f.setNodeGraphVariable('b2', c2, false)
       const c3 = f.createPrefab(
         1077936132,
-        f.create3dVector(3.4825, 2.5175, 3.4825),
+        f.create3dVector(3.5, 2.5, 3.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -86,7 +131,7 @@ const graph = g
       f.setNodeGraphVariable('b3', c3, false)
       const c4 = f.createPrefab(
         1077936133,
-        f.create3dVector(2.5175, 3.4825, 2.5175),
+        f.create3dVector(2.5, 3.5, 2.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -96,7 +141,7 @@ const graph = g
       f.setNodeGraphVariable('b4', c4, false)
       const c5 = f.createPrefab(
         1077936134,
-        f.create3dVector(3.4825, 3.4825, 2.5175),
+        f.create3dVector(3.5, 3.5, 2.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -106,7 +151,7 @@ const graph = g
       f.setNodeGraphVariable('b5', c5, false)
       const c6 = f.createPrefab(
         1077936135,
-        f.create3dVector(2.5175, 3.4825, 3.4825),
+        f.create3dVector(2.5, 3.5, 3.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -116,7 +161,7 @@ const graph = g
       f.setNodeGraphVariable('b6', c6, false)
       const c7 = f.createPrefab(
         1077936136,
-        f.create3dVector(3.4825, 3.4825, 3.4825),
+        f.create3dVector(3.5, 3.5, 3.5),
         f.create3dVector(0, 0, 0),
         stage,
         false,
@@ -124,29 +169,64 @@ const graph = g
         [] as IntValue[]
       )
       f.setNodeGraphVariable('b7', c7, false)
+      // v5.4：块列表（循环按坐标筛选层成员，替代静态 layers）
+      f.setNodeGraphVariable('blocks', [c0, c1, c2, c3, c4, c5, c6, c7], false)
   })
   .on('whenTabIsSelected', (evt, f) => {
     if (f.equal(f.getNodeGraphVariable('lock').asType('bool'), false)) {
       f.setNodeGraphVariable('lock', true, false)
-      // tabId 1..6 = R/L/U/D/F/B；层轴与方向（WCA：R 从 +X 看顺时针，符号待游戏核验）
-      // R：x+ 层绕 X 负转（b1,b3,b5,b7）
-      if (f.equal(evt.tabId, 1)) {
-        gstsServerMove(f, -1, 0, 0, 'b1', 'b3', 'b5', 'b7')
-      } else if (f.equal(evt.tabId, 2)) {
-        // L：x− 层绕 X 正转（b0,b2,b4,b6）
-        gstsServerMove(f, 1, 0, 0, 'b0', 'b2', 'b4', 'b6')
-      } else if (f.equal(evt.tabId, 3)) {
-        // U：y+ 层绕 Y 负转（b4,b5,b6,b7）
-        gstsServerMove(f, 0, -1, 0, 'b4', 'b5', 'b6', 'b7')
-      } else if (f.equal(evt.tabId, 4)) {
-        // D：y− 层绕 Y 正转（b0,b1,b2,b3）
-        gstsServerMove(f, 0, 1, 0, 'b0', 'b1', 'b2', 'b3')
-      } else if (f.equal(evt.tabId, 5)) {
-        // F：z+ 层绕 Z 负转（b2,b3,b6,b7）
-        gstsServerMove(f, 0, 0, -1, 'b2', 'b3', 'b6', 'b7')
-      } else {
-        // B：z− 层绕 Z 正转（b0,b1,b4,b5）
-        gstsServerMove(f, 0, 0, 1, 'b0', 'b1', 'b4', 'b5')
+      // v5.4：层轴查表 + 8 块循环按当前坐标筛选层成员
+      // （魔方转动后层成员变化，静态 layers 失效——00-26-27 日志 U 层误转底层块实证；
+      //   循环体只物化一次，节点数可控）
+      const axis = f.queryDictionaryValueByKey(
+        f.getNodeGraphVariable('axes').asDict('int', 'vec3'),
+        evt.tabId
+      )
+      const isR = f.equal(evt.tabId, 1)
+      const isL = f.equal(evt.tabId, 2)
+      const isU = f.equal(evt.tabId, 3)
+      const isD = f.equal(evt.tabId, 4)
+      const isF = f.equal(evt.tabId, 5)
+      const isB = f.equal(evt.tabId, 6)
+      const center = f.create3dVector(3, 3, 3)
+      for (let i = 0n; i < 8n; i++) {
+        const e = f.getCorrespondingValueFromList(
+          f.getNodeGraphVariable('blocks').asType('entity_list'),
+          i
+        )
+        const loc = f.getEntityLocationAndRotation(e).location
+        const inLayer = f.logicalOrOperation(
+          f.logicalOrOperation(
+            f.logicalOrOperation(
+              f.logicalAndOperation(isR, f.greaterThan(loc.x, 3)),
+              f.logicalAndOperation(isL, f.lessThan(loc.x, 3))
+            ),
+            f.logicalAndOperation(isU, f.greaterThan(loc.y, 3))
+          ),
+          f.logicalOrOperation(
+            f.logicalOrOperation(
+              f.logicalAndOperation(isD, f.lessThan(loc.y, 3)),
+              f.logicalAndOperation(isF, f.greaterThan(loc.z, 3))
+            ),
+            f.logicalAndOperation(isB, f.lessThan(loc.z, 3))
+          )
+        )
+        f.doubleBranch(inLayer, () => {
+          // v5.5：自旋轴 = 世界层轴转换到块局部系（引擎 axis 为"相对朝向"，绕局部轴右乘；
+          // localAxis = Rz(−rz)·Rx(−rx)·Ry(−ry)·worldAxis，日志 00-37-42 矩阵实证）
+          const rot = f.getEntityLocationAndRotation(e).rotate
+          const cy = f.cosineFunction(f.multiplication(rot.y, DEG2RAD))
+          const sy = f.sineFunction(f.multiplication(rot.y, DEG2RAD))
+          const v1 = gstsRotateVec(f, axis, f.create3dVector(0, 1, 0), cy, f.multiplication(sy, -1))
+          const cx = f.cosineFunction(f.multiplication(rot.x, DEG2RAD))
+          const sx = f.sineFunction(f.multiplication(rot.x, DEG2RAD))
+          const v2 = gstsRotateVec(f, v1, f.create3dVector(1, 0, 0), cx, f.multiplication(sx, -1))
+          const cz = f.cosineFunction(f.multiplication(rot.z, DEG2RAD))
+          const sz = f.sineFunction(f.multiplication(rot.z, DEG2RAD))
+          const localAxis = gstsRotateVec(f, v2, f.create3dVector(0, 0, 1), cz, f.multiplication(sz, -1))
+          f.addUniformBasicRotationBasedMotionDevice(e, 'spin', 1, 90, localAxis)
+          gstsServerOrbitBlock(f, e, axis, center, i)
+        }, () => {})
       }
       // 1s 后解锁（转动总时长 = 5 段 × 0.2s = 1s，与自旋同步）
       setTimeout((_e, tf) => {
@@ -155,81 +235,71 @@ const graph = g
     }
   })
 
-// 一次层转动：4 块自旋（90°/s × 1s）+ 5 段公转（段 k 于 t=(k−1)·0.2 启动）
-function gstsServerMove(
+// 单块 5 段公转（v5.4 循环内 1 份物化）：速度按块索引存 5 个字典（vels1..vels5），
+// 定时器回调按块索引查字典 + blocks 列表取实体，不再读取运行时位置
+function gstsServerOrbitBlock(
   f: ServerExecutionFlowFunctions,
-  ax: number,
-  ay: number,
-  az: number,
-  b0: string,
-  b1: string,
-  b2: string,
-  b3: string
+  e: ReturnType<typeof f.getEntityLocationAndRotation>,
+  axis: ReturnType<typeof f.create3dVector>,
+  center: ReturnType<typeof f.create3dVector>,
+  i: bigint
 ) {
-  gstsServerSpin(f, b0, ax, ay, az)
-  gstsServerSpin(f, b1, ax, ay, az)
-  gstsServerSpin(f, b2, ax, ay, az)
-  gstsServerSpin(f, b3, ax, ay, az)
-  gstsServerOrbit(f, b0, ax, ay, az, 'orbit1')
-  gstsServerOrbit(f, b1, ax, ay, az, 'orbit1')
-  gstsServerOrbit(f, b2, ax, ay, az, 'orbit1')
-  gstsServerOrbit(f, b3, ax, ay, az, 'orbit1')
+  const loc = f.getEntityLocationAndRotation(e).location
+  const v0 = f._3dVectorSubtraction(loc, center)
+  // v5.3 修正：旋转只作用于垂直分量，平行分量必须保持
+  // （此前 p_k = v0·Ck + axv·Sk 压缩平行分量 → 每轮漂移 0.5，日志 00-20-15 逐帧实证）
+  const vp = f._3dVectorZoom(axis, f._3dVectorDotProduct(axis, v0))
+  const vPerp = f._3dVectorSubtraction(v0, vp)
+  const axv = f._3dVectorCrossProduct(axis, vPerp)
+  // p_k = vp + vPerp·Ck + axv·Sk（k = 1..5，18° 步进到 90°）；vel_k = (p_k − p_{k−1})·K_VEL
+  const p1 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C1), f._3dVectorZoom(axv, S1)))
+  const vel1 = f._3dVectorZoom(f._3dVectorSubtraction(p1, v0), K_VEL)
+  const p2 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C2), f._3dVectorZoom(axv, S2)))
+  const vel2 = f._3dVectorZoom(f._3dVectorSubtraction(p2, p1), K_VEL)
+  const p3 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C3), f._3dVectorZoom(axv, S3)))
+  const vel3 = f._3dVectorZoom(f._3dVectorSubtraction(p3, p2), K_VEL)
+  const p4 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C4), f._3dVectorZoom(axv, S4)))
+  const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
+  const p5 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C5), f._3dVectorZoom(axv, S5)))
+  const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
+  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, vel1)
+  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, vel2)
+  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i, vel3)
+  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i, vel4)
+  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i, vel5)
+  f.addUniformBasicLinearMotionDevice(e, 'orbit1', 0.2, vel1)
   setTimeout((_e, tf) => {
-    gstsServerOrbit(tf, b0, ax, ay, az, 'orbit2')
-    gstsServerOrbit(tf, b1, ax, ay, az, 'orbit2')
-    gstsServerOrbit(tf, b2, ax, ay, az, 'orbit2')
-    gstsServerOrbit(tf, b3, ax, ay, az, 'orbit2')
+    tf.addUniformBasicLinearMotionDevice(
+      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
+      'orbit2',
+      0.2,
+      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i)
+    )
   }, 200)
   setTimeout((_e, tf) => {
-    gstsServerOrbit(tf, b0, ax, ay, az, 'orbit3')
-    gstsServerOrbit(tf, b1, ax, ay, az, 'orbit3')
-    gstsServerOrbit(tf, b2, ax, ay, az, 'orbit3')
-    gstsServerOrbit(tf, b3, ax, ay, az, 'orbit3')
+    tf.addUniformBasicLinearMotionDevice(
+      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
+      'orbit3',
+      0.2,
+      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i)
+    )
   }, 400)
   setTimeout((_e, tf) => {
-    gstsServerOrbit(tf, b0, ax, ay, az, 'orbit4')
-    gstsServerOrbit(tf, b1, ax, ay, az, 'orbit4')
-    gstsServerOrbit(tf, b2, ax, ay, az, 'orbit4')
-    gstsServerOrbit(tf, b3, ax, ay, az, 'orbit4')
+    tf.addUniformBasicLinearMotionDevice(
+      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
+      'orbit4',
+      0.2,
+      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i)
+    )
   }, 600)
   setTimeout((_e, tf) => {
-    gstsServerOrbit(tf, b0, ax, ay, az, 'orbit5')
-    gstsServerOrbit(tf, b1, ax, ay, az, 'orbit5')
-    gstsServerOrbit(tf, b2, ax, ay, az, 'orbit5')
-    gstsServerOrbit(tf, b3, ax, ay, az, 'orbit5')
+    tf.addUniformBasicLinearMotionDevice(
+      tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
+      'orbit5',
+      0.2,
+      tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i)
+    )
   }, 800)
-}
-
-// 自旋：绕层轴 90°/s × 1s（角速度恒 90，方向由轴符号表达）
-function gstsServerSpin(
-  f: ServerExecutionFlowFunctions,
-  b: string,
-  ax: number,
-  ay: number,
-  az: number
-) {
-  const block = f.getNodeGraphVariable(b).asType('entity')
-  f.addUniformBasicRotationBasedMotionDevice(block, 'spin', 1, 90, f.create3dVector(ax, ay, az))
-}
-
-// 单段公转：v = 当前位置 − 中心；vel = v·K_LINEAR + (axis×v)·K_CROSS（18° 弦向量/0.2s）
-function gstsServerOrbit(
-  f: ServerExecutionFlowFunctions,
-  b: string,
-  ax: number,
-  ay: number,
-  az: number,
-  name: string
-) {
-  const block = f.getNodeGraphVariable(b).asType('entity')
-  const loc = f.getEntityLocationAndRotation(block).location
-  const v = f._3dVectorSubtraction(loc, f.create3dVector(3, 3, 3))
-  const axv = f._3dVectorCrossProduct(f.create3dVector(ax, ay, az), v)
-  const vel = f._3dVectorAddition(
-    f._3dVectorZoom(v, K_LINEAR),
-    f._3dVectorZoom(axv, K_CROSS)
-  )
-  f.addUniformBasicLinearMotionDevice(block, name, 0.2, vel)
 }
 
 export default graph

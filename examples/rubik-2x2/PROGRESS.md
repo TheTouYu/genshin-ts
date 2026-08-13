@@ -100,4 +100,13 @@
 - **修复（v3）**：`assets/plans/asset-updates.mjs` 用官方 `staticPrefabUpdates` 原地更新 8 个角块闭包，双写 basicMotion；备份 `.gsts/backups/1073741882.gil.2026-08-13T13-54-27-231Z.bak`；gen-assets.py 同步加 components（新地图重建时生效）。**注意：v3 写的是 type 18（历史误判产物），游戏内不生效**。
 - **修复（v4，2026-08-13 差分复盘）**：type 18 是模板自带组件（用户 UI 只显示 1/3/6，GIL 槽为 [18,1,3,19,6,14]），真正的基础运动器是 **type 4**（用户两次手动添加差分确认 + 控制器对照：控制器有 4 能转、角块无 4 不能转；1849“组件比对-基础运动器”元件相对模板基线新增槽也是 4）。生产代码 `basicMotionComponent()` 18→4、三个测试锁定字节同步、export/entities 解码同步；**8 角块已重新写回 type 4**（写后 SHA 193691b7…，备份 `.gsts/backups/1073741882.gil.2026-08-13T14-51-30-279Z.bak`，用户手动加的命中检测/物件镜头保留）。
 - **文档纠正**：`docs/game-engine-knowledge/components.md` 删除“模板自带 basicMotion/旋转无需组件”错误结论并修正 type 4=基础运动器（v4）；`docs/architecture/gil-static-model-assets.md` 19.2.4 标注历史误判；CLI 文档 zh/en 同步；PROGRESS 待办 33 闭合。
-- **待游戏核验**：角块转动生效（U/R）、方向符号、双运动器并行（ADR-0003）、5 段平滑度、输入锁。
+
+## 变更记录 2026-08-13/14（P4 第二步 v5.x：转动闭环——位置+朝向全验证）
+
+- **v5（方案 A）**：tab 事件一次性预计算 5 段速度（p_k 递推），定时器回调不再读运行时位置。缺陷：layers 字典未填充 → 运动器作用空实体（日志 00-14-20）。
+- **v5.1/5.2**：数据驱动（axes/layers 字典）+ whenEntityIsCreated 填充 layers。缺陷：①getCorrespondingValueFromList 下标 1..4（应为 0-based）→ 第 4 块越界空；②p_k 公式压缩平行分量 → 每轮漂移 0.5（日志 00-20-15 逐帧）。
+- **v5.3**：平行分量保持（vp + vPerp·Ck + axv·Sk）+ 0-based → **单面连续旋转精确**（用户核验）。
+- **v5.4**：组合旋转错位根因 = 魔方转动后层成员变化，静态 layers 失效 → **循环 + 按当前坐标筛选层成员**（节点 2400→240，循环体只物化 1 次）。
+- **v5.5**：组合旋转朝向错乱根因 = 运动器 axis 为"相对朝向"（局部轴，官方定义+矩阵实证）→ **自旋轴 = R^T·worldAxis（罗德里格斯×3，YXZ 内旋）** → **任意面连续/组合旋转位置+朝向全部精确**（用户核验：数据非常完美）。
+- **知识落盘**：`docs/game-engine-knowledge/motion-devices.md` 运动器运行时行为专章（轴语义/公式/层成员/DSL 笔记）；TASKS.md P4-1/P4-2 关闭。
+- **遗留**：P4-3（CLI 组件移除+逐组件验证）、P4-4（examples 构建类型）、P4-5（type 4 变体）、P4-6（type 18 UI 名）、定时器 tick 量化（⚪）——见 TASKS.md。

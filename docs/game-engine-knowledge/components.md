@@ -24,8 +24,8 @@
 |---|---|---|---|---|
 | 1 | 自定义变量组件 | f11 | 变量条目 f2名称/f3类型码/f4默认值/f5/f6引用 | CONFIRMED（exp1-2） |
 | 6 | 特效播放 | f16 | 特效条目 f1资源ID+f10{2:ID}、f503条目名；空=7B | CONFIRMED（exp8-10） |
-| 12 | 命中检测 | f22 | 区域配置+触发参数；空配置=7B | CONFIRMED（exp6） |
-| 13 | 物件镜头组件 | f23 | 镜头绑定 f4.f502=镜头ID；空=7B | CONFIRMED（exp13-14） |
+| 12 | 命中检测 | f22 | 区域配置+触发参数；空配置=7B | CONFIRMED（exp6 + 2026-08-13 差分复核：81B 槽逐字节一致） |
+| 13 | 物件镜头组件 | f23 | 镜头绑定 f4.f502=镜头ID；空=7B | CONFIRMED（exp13-14 + 2026-08-13 差分复核：7B 空槽） |
 | 16 | 全局计时器 | f26 | 计时器名引用 f1；空=7B | CONFIRMED（exp5/15） |
 | 17 | 选项卡 | f27 | 区域配置+选项列表 | CONFIRMED（exp4） |
 | 27 | 铭牌 | f38 | 501 配置列表（+11 规律） | CONFIRMED（nameplate exp） |
@@ -164,7 +164,8 @@ f27 = 配置：
 > 状态：官方节点定义确认（第三方包 `utils/node_data/data.json` 节点 ID **85**，
 > `Execution.Motion_Device.Add_Rotation_Motion`，与 `src/definitions/nodes.ts` 的
 > `addUniformBasicRotationBasedMotionDevice` helper 签名一致）
-> 验证层级：官方定义 + 本仓库生成定义双来源一致；尚未游戏验证
+> 验证层级：官方定义 + 本仓库生成定义双来源一致 + **2026-08-13/14 魔方 P4 全流程游戏核验**
+> （轴语义、轨道公式、层成员动态、组合旋转矩阵分析见 [运动器运行时行为](motion-devices.md)）
 
 魔方等旋转逻辑**不需要**静态 basicMotion 组件参数（f14 内部字节）的定制——但**实体必须显式配置 basicMotion 组件本身（type 4，默认快照即可）**，
 节点图运行时添加运动器才会生效。组件**不会自动补全**：基础元件模板自带 `[18,1,3,19,6,14]`（其中 1/3/6 为 UI 可见的
