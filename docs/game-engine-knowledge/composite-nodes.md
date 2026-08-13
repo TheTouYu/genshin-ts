@@ -283,6 +283,92 @@ node 1 提升前仅落盘 1 pin）。type 流 = {1:f1(class), 3:VarType, 4:VarTy
 （= {3:1, 4:1}，case3 实测 18012001）；f1 映射 {Int:2, Flt:4, Str:5, **Bol:6**}（Bol=6 由
 case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）。
 
+### 复合内部图变量节点（get/set_node_graph_variable，2026-08-14 差分 CONFIRMED）
+
+> 状态：已闭合（轮 1 获取 / 轮 2 设置，rubik 地图 1073741882 编辑器相邻保存差分 + 生产 .gia 生成对照）
+> 证据：编辑器官方 wire（orbit_calc 内部图 nodeIndex 1 / 23）vs 生产 game.gia 宿主图 nodeIndex 60（同构）
+
+**核心结论：复合内部放图变量读/写节点 = 与宿主图完全同构，不走 implVariables。**
+
+- 复合节点是**资产**（不属于某张图/关卡）：复合内部画布中"获取/设置图变量"的**变量选择列表为空**
+  （编辑器无法枚举图变量），但变量名可手填，节点可正常放置，运行时经调用上下文读宿主图变量。
+- wire 同构（以 vels1 = dict(int,vec3) 为例，key=3 Integer / value=12 Vector）：
+
+| 节点 | genericId | concreteId（按变量类型选变体） | pins |
+|---|---|---|---|
+| 获取图变量 | 337 | Get_Node_Graph_Variable__Dict_Int_Vec = 3046 | InParam:StringBase 变量名字面量 + OutParam:type=27 |
+| 设置图变量 | 323 | Set_Node_Graph_Variable__Dict_Int_Vec = 2905 | InParam:StringBase 变量名字面量 + InParam(1):type=27 值 |
+
+- **变量名 = InParam 字面量字符串**（bString "vels1"，type=6），无特殊变量引用结构。
+- **OutParam/值 pin 的 dict 编码**：type=27(Dictionary) + value =
+  `ConcreteBase{alreadySetVal, bConcreteValue{indexOfConcrete:20, value: MapBase{
+  itemType{type_server{type:27, kind:2(Pair), items{key, value, structId 省略}}, bMap{mapPairs:[]}}},
+  structs{class:1, inner{wrapper{class:10003 MapBase, mapPair{key, value}}}}}}`
+- **indexOfConcrete=20** 对 Dict<Int,Vec>（获取 3046 与设置 2905 两样本一致；其他 k/v 组合待样本）。
+- **值输入不连线不填值 → 编辑器落"默认空 dict"**：ConcreteBase + MapBase + bMap:{}（key/value 类型仍按变量类型编码，
+  alreadySetVal=true）——未连线值 pin 的惰性默认形态。
+- **dict 变体按 k/v 类型细分**（第三方 node_id.ts CONFIRMED）：Set_Node_Graph_Variable__Dict_* 从 2858 起按
+  (key∈Entity/GUID/Int/Bool/Float/Str/Faction/Vec/Config/Prefab × value∈同集+List 族) 枚举；Dict_Int_Vec=2905。
+- 内部图新放置节点带坐标（x/y，fixed32 float bits）；包装搬入节点无坐标（既有规则）。
+
+**生产对照（#4 根因修正）**：
+- 宿主图路径已正确（生产 game.gia 宿主图 get_node_graph_variable 编码与官方逐字段一致，仅 .gia/.gil class 编码层
+  差异：UserDefined/20000/22000 vs SystemDefined/Server/SysCall——注入转换通用差异）。
+- 复合路径错误：①composite.ts 从 `def.implVariables` 取变量类型，但该字段仅来自复合定义显式声明
+  `variables` 选项（composite_registry.ts:376），复合内读的是**图变量**，官方 wire 证明不走 implVariables；
+  ②argVarType/argVarBaseClass 无 dict 分支返回 0（Ety）；③makeVarBaseValue 无 MapBase 分支。
+- 修复方向：复合路径改从图变量列表（IR 顶层 variables，type='dict'+dict{k,v} 子字段）取类型；
+  argVarType→VarType.Dictionary(27)、argVarBaseClass→MapBase(10003)、makeVarBaseValue 按官方样本补
+  itemType{kind:Pair,items{key,value}} + bMap + ConcreteBase 包装（indexOfConcrete 待查表）。
+
+### 复合公开 dict 输出参数（2026-08-14 轮 3 差分 CONFIRMED）
+
+> 证据：orbit_calc 内部「获取图变量 vels1」节点提升为输出，编辑器相邻保存差分（after-轮2 → after-轮3）
+> 范围：dict 类型 ParameterFlow 编码 + 提升联动
+
+- **CompositeDef.outputs 追加 dict ParameterFlow**：name=编辑器默认「变量值」、index={kind=4 OutParam, idx=5}、
+  type=ParameterFlow.Type：`{class=10003 MapBase, type1=27(Dictionary), type2=27, mapType{key=3, value=12,
+  f6=1, f7=1}}`（wire 080x：08 93 4e 18 1b 20 1b ca 06 08 18 03 20 0c 30 01 38 01；f6/f7 语义待查，
+  可能客户端类型标记）、pinIndex=43（编辑器全局分配器，与生产 200-204 不同源）。
+- **compositePins 追加**：`{outerPin={kind:4 OutParam, index:5}, innerNodeId=1（内部获取节点）,
+  innerPin={kind:4}, innerPin2 双写}`——映射到内部节点 OutParam（与 vec3 输出同构）。
+- **实例重编号**：宿主图 gsts_orbit_calc 实例 nodeIndex 84→108（加输出参数触发重建，已知规则）；
+  宿主图引用该实例的 connects.id 全部跟随改写（node 61/63/65/67/69/70 changed，pinCount 不变）。
+- **实例不落输出 pin**（既有规则，提升后未被消费）。
+- 内部图 nodes 零变化（23→23）；提升只写 def + compositePins。
+
+### 复合公开 dict 输入参数（2026-08-14 轮 4 差分 CONFIRMED）
+
+> 证据：orbit_calc 内部「设置图变量」值输入提升为复合输入，编辑器相邻保存差分（after-轮3 → after-轮4）
+
+- **CompositeDef.inputs 追加 dict ParameterFlow**：name=「变量值」、index={kind=3 InParam, idx=3}、
+  type=ParameterFlow.Type **与 dict 输出逐字节相同**（08934e181b201bca06081803200c30013801）——
+  输入/输出共用 ParameterFlow.Type 编码（class=10003 MapBase, type1/type2=27, mapType{key,value,f6,f7}）、
+  pinIndex=44（继续全局分配器）。
+- **compositePins 插入输入组尾部**：{outerPin={kind:3 InParam, index:3}, innerNodeId=23（设置节点）,
+  innerPin={kind:3 InParam, index:1}（内部真实 pin=值输入）, innerPin2 双写}；原 outputs 映射整体后移一位
+  （outerPin.index 保持，kind 升序插入规则再验证）。
+- **内部节点零变化**（nodes 23→23；提升不要求内部 pin 已落盘——既有规则）。
+- **实例重编号**：宿主图实例 108→109 + 引用 connects.id 跟随改写（6 节点 changed，pinCount 不变）。
+
+### 嵌套复合调用（2026-08-14 轮 5 差分 CONFIRMED）
+
+> 证据：orbit_calc 内部手工放置 gsts_orbit_point 复合 + 连线到新增 DTC 节点，编辑器相邻保存差分（after-轮4 → after-轮5）
+
+- **内部图放复合节点 = SysGraph 实例，与主图调用完全同构**：genericId=concreteId=被调复合 id（1610700001）、
+  有坐标、kind=SysGraph。
+- **嵌套调用不产生新 CompositeDef**（field2 仍 5 项；复合是全局资产，被调复合只引用不重复定义）✅ 资产模型实证。
+- **已连线输入 pin 落 compositePinIndex = 被调 def 参数 pinIndex**（c=103, s=104 与 def[1] inputs pinIndex 精确对应）——
+  注意内部嵌套实例用 compositePinIndex 字段（非主图实例的 field7？解码字段名差异待查）。
+- **未连线输入惰性**：vp/vPerp/axv 未落盘；c/s 落盘（FloatBase 0.587785/0.809017 = 编辑器 UI 记住的默认值，
+  wire 无默认值字段，来源=实例 UI 状态，待验证；生产显式传值不受影响）。
+- **连线 = 目标侧 connects**（{id:嵌套实例, connect:{kind:4 OutParam} 双写}，ShellIndex 省略=输出0）——与主图调用同构；
+  源侧（嵌套实例）零落盘（实例不落 OutParam pin——既有规则）。
+- **DTC 目标按源类型自动实例化**：genericId 180 → concreteId 189、InParam value=ConcreteBase(indexOfConcrete=5=Vector)
+  → VectorBase bVector{} + connects——与生产 DTC_IN_PARAM_VARTYPE_SEQUENCE[5]=Vector 完全一致（生产已知规则再验证）。
+- **联动**：宿主图 orbit_calc 实例重编号 109→134 + 引用 connects 跟随改写（6 节点）；内部 compositePins 零变化
+  （嵌套调用不产生 compositePins——既有规则）。
+
 ### 复现命令
 
 ```bash
