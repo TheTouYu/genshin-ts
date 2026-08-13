@@ -37,3 +37,39 @@ GIL 保存完整关卡（资产、初始状态和相互引用），验证完整�
 GIL/GIA 用途划分来自用户说明；正式 GIA 导入包装字段来自 2026-08-01 监听信号真实实验（负证据：最小包装被忽略）+ 用户确认可导入样本；“编辑器可检测并导入”仍需用户编辑器验证；每类资产在 GIL/GIA 的登记结构、依赖闭包计算、导入身份分配规则未验证
 
 <!-- CLAIM:END clm_6489492EFA850D495B4AE86A95 -->
+
+<!-- CLAIM:START clm_6AD25A9E855663EA2CCACF78DC -->
+
+### 选项卡选中事件链路与 tabId 值域
+
+whenTabIsSelected（选项卡选中）事件在挂载选项卡组件的实体节点图上触发（assets:mounts attach --entity 路径）；payload 含 eventSourceEntity/eventSourceGuid/tabId/selectorEntity；tabId 从 1 开始（1~6 对应选项配置顺序，魔方 R/L/U/D/F/B=1-6）。验证：用户游戏核验 + Beyond_Debug_Log 逐帧（7 次点击 4 帧链完整执行，OUT2:Integer=tabId）。
+
+#### 适用边界
+
+仅实体选项卡（3D 组件 type 17）；不覆盖屏幕 UI 按钮（ui-controls）事件路径；tabId 值域以选项顺序为准
+
+<!-- CLAIM:END clm_6AD25A9E855663EA2CCACF78DC -->
+
+<!-- CLAIM:START clm_6BE48E8DC77BF0D1636506D8D9 -->
+
+### Data Type Conversion 的 Int→Str 枚举为 802
+
+节点 Data Type Conversion（id=180）的转换目标类型由 EnumItem（类型14）操作码决定：Int→Str=802、Bool→Str=806、Float→Str=808。验证：2026-08-13 魔方 P4 真实 Beyond_Debug_Log 逐帧（whenTabIsSelected 事件 tabId Integer→String 转换帧 IN1=802），与既有 806/808 样本同源一致。
+
+#### 适用边界
+
+仅服务端 Data Type Conversion 节点；不覆盖其他类型转换节点（如 Flt→Int 四舍五入）的目标枚举
+
+<!-- CLAIM:END clm_6BE48E8DC77BF0D1636506D8D9 -->
+
+<!-- CLAIM:START clm_8509374E5A139C10B4B0CCCB44 -->
+
+### 匀速旋转型基础运动器 90° 配方行为
+
+Add Uniform Basic Rotation-Based Motion Device（节点 id=85）参数配方：mover_name 标识、duration=1、angular_velocity=90、axis=(1,0,0) 时绕世界 X 轴连续累积旋转（每次触发 +90°，再触发继续 +90°，不会回退或局部轴错乱）；target_entity 可传事件源实体。验证：2026-08-13 魔方 P4 用户游戏核验（连续累积）+ 真实日志逐帧（IN2:Float=1.0、IN3:Float=90.0、IN4:Vector=(1,0,0)、IN0:Entity=事件源）。
+
+#### 适用边界
+
+仅匀速旋转型（node 85）；不覆盖朝向目标/直线/定点运动器；axis 为世界轴方向向量，旋转轴过世界原点（魔方中心）场景已验证
+
+<!-- CLAIM:END clm_8509374E5A139C10B4B0CCCB44 -->

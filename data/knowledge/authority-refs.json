@@ -23,7 +23,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
       "claim_ids": [
         "clm_8D210530744937ADB0BA9B1A0F"
       ],
@@ -113,7 +113,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "2fb5502214f10f086629a7ca741c1b99dccc16dd45c7c4d1185907d722a55794",
+      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
       "claim_ids": [
         "clm_24058447AFCCFA8DF512E9F13C"
       ],
@@ -533,7 +533,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
       "claim_ids": [
         "clm_43C39823DA58DBAB7172840ABC"
       ],
@@ -1133,7 +1133,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
       "claim_ids": [
         "clm_C6D426185B6125E4484CB8C948"
       ],
@@ -1247,6 +1247,21 @@
       ]
     },
     {
+      "id": "aref_981786afc67533a637466f6d8f",
+      "path": "docs/game-engine-knowledge/debug-log-format.md",
+      "locator": "枚举操作码表 802 IntegerToString",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
+      "claim_ids": [
+        "clm_6BE48E8DC77BF0D1636506D8D9"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_9a542651fb55e772d19d7936f5",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "节点图挂载（type 3 槽）规则与工具（mount-case1/2/3/4 真实相邻快照 + 用户游戏核验）",
@@ -1313,7 +1328,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "2fb5502214f10f086629a7ca741c1b99dccc16dd45c7c4d1185907d722a55794",
+      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
       "claim_ids": [
         "clm_83E525E46C62931D431B3202D6"
       ],
@@ -1358,7 +1373,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "cdd01dcf45744b829cbc18ce1991e3df311bb0f524afceb079b8c9d6c06ecf40",
+      "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
       "claim_ids": [
         "clm_8A72C10C71952438959C200669"
       ],
@@ -1403,7 +1418,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "7d5e4f4c9721916794fa9426281988767fab9316b713c0062a0a0157b1642696",
+      "approved_hash": "d9f9731b222b6defce128cbaee9865e45756e1b37d005b98a9aac869f4bf2a36",
       "claim_ids": [
         "clm_8A72C10C71952438959C200669"
       ],
@@ -1418,7 +1433,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "2fb5502214f10f086629a7ca741c1b99dccc16dd45c7c4d1185907d722a55794",
+      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
       "claim_ids": [
         "clm_7C97E7FE3F998EC4A648EC7B29"
       ],
@@ -1433,7 +1448,7 @@
       "role": "external_environment_behavior",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "2fb5502214f10f086629a7ca741c1b99dccc16dd45c7c4d1185907d722a55794",
+      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
       "claim_ids": [
         "clm_55953E975D035A08C89368C982"
       ],
@@ -1495,7 +1510,7 @@
       "role": "current_implementation",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "cdd01dcf45744b829cbc18ce1991e3df311bb0f524afceb079b8c9d6c06ecf40",
+      "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
       "claim_ids": [
         "clm_C6D426185B6125E4484CB8C948"
       ],
@@ -1534,6 +1549,21 @@
       ]
     },
     {
+      "id": "aref_ca43ef65dcc374e39aefcf225e",
+      "path": "docs/game-engine-knowledge/components.md",
+      "locator": "旋转实现：运行时添加匀速旋转型基础运动器（已闭合）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
+      "claim_ids": [
+        "clm_8509374E5A139C10B4B0CCCB44"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_cd27648993baf325a209a89f01",
       "path": "docs/game-engine-knowledge/composite-nodes.md",
       "locator": "wire 编码（2026-08-06 v22-v48 真实相邻快照 CONFIRMED）",
@@ -1561,6 +1591,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_d427176954715304cab7a8d21a",
+      "path": "docs/game-engine-knowledge/components.md",
+      "locator": "选项卡选中事件链路（2026-08-13 魔方 P4 最小实验闭合）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
+      "claim_ids": [
+        "clm_6AD25A9E855663EA2CCACF78DC"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
@@ -1810,7 +1855,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "invalidate_on_change",
-      "approved_hash": "cdd01dcf45744b829cbc18ce1991e3df311bb0f524afceb079b8c9d6c06ecf40",
+      "approved_hash": "9e0fd25188c65b8af51b16b0087e738ceb19837fba92b50ba7214f0a3dac9216",
       "claim_ids": [
         "clm_9B948639C6EA426949824A5E3F"
       ],
