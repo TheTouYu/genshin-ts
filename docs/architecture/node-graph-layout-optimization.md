@@ -60,6 +60,10 @@
 
 ## 6. 生产代码发现记录（边优化边积累）
 
+- ✅ **#1（2026-08-14 已修复）callComposite 字面量输入崩溃**：buildCompositeCallArgs 原样 push 字面量
+  （number/bigint/boolean/string）进 args，collectDataDeps 对裸值调用 getMetadata() 崩溃
+  （gs_to_ir_json failed）。修复：按复合输入声明类型包装字面量 + collectDataDeps 防御；
+  回归测试 tests/composite_literal_inputs.ts（字面量输入 + 循环内调用）。测试缺口：原 tests 只用 new bool(true) 包装值。
 - ⚪ L4：布局坐标不规则来源（怀疑存在绕过 layoutPositions 的写入路径）——待定位。
 - ⚪ 复合节点覆盖边界（复合内 setTimeout/字典/循环）——阶段 C 逐项小实验。
 

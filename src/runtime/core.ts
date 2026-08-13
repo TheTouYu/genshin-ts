@@ -1305,7 +1305,23 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
     const compositeInputIndices: Array<number | undefined> = [undefined]
     let fallbackIndex = 0
     for (const [name, val] of Object.entries(inputs)) {
-      args.push(val as value)
+      let v = val as value
+      // 2026-08-14 修复（生产 bug #1）：callComposite 字面量输入（number/bigint/boolean/string）
+      // 未包装成 value 实例，下游 collectDataDeps 对裸值调用 getMetadata 崩溃。
+      // 按复合输入声明类型包装；非 value 对象（数组等）保持原样（另有约束）。
+      if (v !== null && v !== undefined && typeof v !== 'object') {
+        const t = def?.inputs?.[name]?.type
+        // 按声明类型包装（构造器签名在 types:["gsts"] 全局下被解析为 0 参，经 any 绕过——类型疑点另行排查）
+        const Ctor = (
+          t === 'int' ? int
+          : t === 'float' ? float
+          : t === 'bool' ? bool
+          : t === 'str' ? str
+          : generic
+        ) as any
+        v = new Ctor(val)
+      }
+      args.push(v)
       compositeInputIndices.push(this.getCompositeInputIndex(def, name, fallbackIndex))
       fallbackIndex++
     }
@@ -3143,7 +3159,8 @@ function removeUnusedNodesFromFlow(flow: ExecutionFlow): ExecutionFlow | null {
 
   const collectDataDeps = (record: MetaCallRecord) => {
     for (const arg of record.args) {
-      const meta = arg.getMetadata()
+      // 防御（2026-08-14）：args 可能含非 value 裸值（历史路径/外部调用）
+      const meta = arg?.getMetadata?.()
       if (!meta || meta.kind !== 'pin') continue
       const depId = meta.record.id
       if (dataById.has(depId)) enqueueData(depId)
