@@ -19,7 +19,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -32,6 +32,12 @@ export default {
           1073741849,
           1073741850,
           1073741851
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -53,7 +59,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -77,7 +83,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -101,7 +107,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -126,7 +132,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -139,6 +145,12 @@ export default {
           1073741852,
           1073741853,
           1073741854
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -160,7 +172,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -184,7 +196,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -208,7 +220,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -233,7 +245,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -246,6 +258,12 @@ export default {
           1073741855,
           1073741856,
           1073741857
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -267,7 +285,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -291,7 +309,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -315,7 +333,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -340,7 +358,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -353,6 +371,12 @@ export default {
           1073741858,
           1073741859,
           1073741860
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -374,7 +398,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -398,7 +422,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -422,7 +446,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -447,7 +471,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -460,6 +484,12 @@ export default {
           1073741861,
           1073741862,
           1073741863
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -481,7 +511,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -505,7 +535,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -529,7 +559,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -554,7 +584,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -567,6 +597,12 @@ export default {
           1073741864,
           1073741865,
           1073741866
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -588,7 +624,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -612,7 +648,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -636,7 +672,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -661,7 +697,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -674,6 +710,12 @@ export default {
           1073741867,
           1073741868,
           1073741869
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -695,7 +737,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -719,7 +761,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -743,7 +785,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -768,7 +810,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -781,6 +823,12 @@ export default {
           1073741870,
           1073741871,
           1073741872
+        ],
+        "components": [
+          {
+            "type": "basicMotion",
+            "preset": "default"
+          }
         ],
         "items": [
           {
@@ -802,7 +850,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -826,7 +874,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -850,7 +898,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }

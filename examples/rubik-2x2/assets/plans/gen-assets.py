@@ -16,11 +16,11 @@ import json
 
 CUBE = 10009001   # 长方体（元件模板 + 薄片：平面 scale 厚度不生效，长方体才有真厚度）
 PLANE = 10009003  # 平面（仅参考，不再用于薄片）
-BODY_COLOR = 0x404040  # 灰黑主体
-FACE_COLORS = {  # 方向 -> 薄片颜色（标准魔方；白色用浅灰白避免刺眼）
-    'x+': 0xFF0000, 'x-': 0xFF8C00,
-    'y+': 0xD0D0D0, 'y-': 0xFFFF00,
-    'z+': 0x00FF00, 'z-': 0x0000FF,
+BODY_COLOR = 0x303030  # 灰黑主体（2026-08-13 亮度 50%→75%：0x404040 → 0x303030）
+FACE_COLORS = {  # 方向 -> 薄片颜色（标准魔方；白色用浅灰白避免刺眼；2026-08-13 亮度减半）
+    'x+': 0xBF0000, 'x-': 0xBF6900,
+    'y+': 0x9C9C9C, 'y-': 0xBFBF00,
+    'z+': 0x00BF00, 'z-': 0x0000BF,
 }
 # 薄片几何（长方体）：边长 0.9（留缝 0.1），厚度 0.025，外贴偏移 = 表面 0.5 + 半厚 0.0125 + 间隙 0.0075
 PATCH_SCALE = [0.9, 0.025, 0.9]
@@ -82,6 +82,10 @@ def main():
             'color': color(BODY_COLOR),
             'definitionAuxiliaryIds': def_aux,
             'instanceAuxiliaryIds': inst_aux,
+            # 2026-08-13 修正：实体必须显式配置组件，模板从不自带。
+            # 角块需要节点图运行时添加运动器，必须配 basicMotion 组件（默认快照即可）。
+            # P4 最小实验控制器同理（用户当时手动补了该组件才正常执行）。
+            'components': [{'type': 'basicMotion', 'preset': 'default'}],
             'items': items,
         })
     cfg = {'assets': {'staticAssemblies': assemblies}}

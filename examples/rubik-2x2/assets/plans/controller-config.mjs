@@ -19,7 +19,7 @@ export default {
         ],
         "color": {
           "enabled": true,
-          "rgb": 4210752,
+          "rgb": 3158064,
           "opacity": 100,
           "overlay": "overwrite"
         },
@@ -132,7 +132,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -156,7 +156,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -180,7 +180,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -204,7 +204,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -228,7 +228,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -252,7 +252,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -276,7 +276,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -300,7 +300,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -324,7 +324,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -348,7 +348,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -372,7 +372,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -396,7 +396,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -420,7 +420,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -444,7 +444,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -468,7 +468,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16776960,
+              "rgb": 12566272,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -492,7 +492,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -516,7 +516,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -540,7 +540,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -564,7 +564,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -588,7 +588,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -612,7 +612,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -636,7 +636,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -660,7 +660,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -684,7 +684,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 255,
+              "rgb": 191,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -708,7 +708,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -732,7 +732,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16747520,
+              "rgb": 12544256,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -756,7 +756,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -780,7 +780,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -804,7 +804,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 4210752,
+              "rgb": 3158064,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -828,7 +828,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 16711680,
+              "rgb": 12517376,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -852,7 +852,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 13684944,
+              "rgb": 10263708,
               "opacity": 100,
               "overlay": "overwrite"
             }
@@ -876,7 +876,7 @@ export default {
             ],
             "color": {
               "enabled": true,
-              "rgb": 65280,
+              "rgb": 48896,
               "opacity": 100,
               "overlay": "overwrite"
             }
