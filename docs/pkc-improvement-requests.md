@@ -1,0 +1,141 @@
+# PKC 使用体验改进需求（提交给 portable-knowledge 项目）
+
+- 提交日期：2026-08-13
+- 提交方：genshin-ts 项目（千星沙箱开发，日常用 PKC 沉淀游戏引擎实测规则）
+- 版本信息：`portable_knowledge 0.2.0rc5`，source_commit `2e97a0470fec4c78a5db30b3aff809c8fe40ffe4`，operator_contract `0.1`
+- 使用方式：项目内 `python tools/pkc.py ...`（wrapper），knowledge-plan 录入 + bundle approve/apply
+
+## 背景
+
+本需求来自一次真实的批量录入实践（2026-08-13，控制器视觉修复复盘）：
+
+- 目标：录入 2 条新 claim（薄片偏移公式、编辑器 aux 重写比对法）+ 各 1 条 authority ref
+- 实际过程：**finalize 被 23 条历史 stale/invalidated refs 全量阻塞 → 被迫先做 23 条维护 refresh（bundle 1）→ apply 后 plan 快照过期 → abandon 重做 plan 两次 → 才最终完成**
+- 总计 3 次 git 提交、2 次 plan abandon、1 次翻源码查参数值域
+
+以下需求按真实遇到的顺序排列，每条附完整复现路径，可直接作为 issue 描述。
+
+---
+
+## R1（P0）：CLI help 不暴露参数合法值域，必须翻源码
+
+### 现状
+
+- `knowledge-plan add-authority-ref --role`：传入 `authority` 报 `AUTHORITY_REF_ROLE: invalid role`，但 `--help` 不列出合法值。合法值在 `portable_knowledge/authority.py`：`ROLES = {"design_intent","current_implementation","documented_contract","external_environment_behavior"}`（`POLICIES`、`FACT_CLASSES` 同理）。
+- `bundle-approve` / `bundle-apply` 的 `--content-hash` 是 **required**（不带直接 usage 报错退出），但 `--help` 的 usage 行没有 `[required]` 标记，帮助文本也未说明该参数从 `bundle-status` 输出获取。
+- `knowledge-plan check --mode delta` 的 `--mode` 取值同样不在 help 中枚举。
+
+### 期望
+
+- 所有枚举参数在 help 中列出合法值（argparse `choices=` 会自动展示，当前实现已用 `choices=` 的改为检查是否被 `argparse.SUPPRESS` 或自定义 help 吞掉）。
+- required 参数在 usage 与帮助文本中显式标注（如 `--content-hash CONTENT_HASH (required)`），并说明获取途径（`bundle-status`）。
+- 验收：新用户不读源码、只看 `--help`，能完成 `add-authority-ref` 与 `bundle-approve`。
+
+### 复现
+
+```bash
+python tools/pkc.py knowledge-plan add-authority-ref <plan> --claim-id <id> \
+  --path docs/x.md --locator y --role authority --change-policy invalidate_on_change
+# → AUTHORITY_REF_ROLE: invalid role（help 未告知合法值）
+python tools/pkc.py bundle-approve <bundle_id> --apply
+# → error: the following arguments are required: --content-hash
+```
+
+---
+
+## R2（P0）：finalize 全量预检把 historical 范围的 stale refs 全部设为 blocking，阻碍无关录入
+
+### 现状
+
+`knowledge-plan finalize` 的 full staged preflight 检查**所有** authority refs，`PLAN_FULL_AUTHORITY_NOT_CURRENT` 一律 `blocking: true`，即使 `authority_scope: historical`（与本 plan 完全无关的 refs，如别的主题引用的源文件被后续提交改动）。
+
+### 实际影响
+
+本次录入 2 条新 claim（涉及 `static-gil-assets`），被 23 条 historical refs（`components.md`、`src/cli/*`、`gil-structure-semantics.md` 等无关路径）阻塞。录入者被迫：先建维护 plan 批量 refresh 23 条 → 提交 → 重做录入 plan。**录入 2 条 claim 变成 25 条 refs 的维护任务**。
+
+### 期望（三选一，倾向 A）
+
+- **A（推荐）**：`authority_scope == "historical"` 的 `PLAN_FULL_AUTHORITY_NOT_CURRENT` 降级为 warning（非阻塞），仅在 plan 末尾提示"存在 N 条 historical stale refs，建议单独维护"；`plan_affected` 仍 blocking。
+- B：提供 `finalize --allow-historical-stale` 显式开关。
+- C：保持阻塞，但 `recommended_action` 明确指出"可先 abandon 本 plan，在独立维护 plan 中处理"（见 R3）。
+
+验收：存在 historical stale refs 时，新 claim 的 plan 仍可 finalize；维护工作可延后且不阻塞主线录入。
+
+### 复现
+
+```bash
+# 1) 先有任意 refs 的源文件被后续提交修改（stale）
+# 2) 建 plan 录入一条与它们无关的新 claim
+python tools/pkc.py knowledge-plan finalize <plan>
+# → PLAN_FULL_AUTHORITY_NOT_CURRENT × N，全部 blocking
+```
+
+---
+
+## R3（P0）：plan 的 authority 快照来自 git HEAD，维护 bundle apply 后不提交会持续误报，且错误信息误导
+
+### 现状
+
+- plan 在 init 时从 **git HEAD** 快照 `data/knowledge/authority-refs.json`；`finalize` 的 preflight 也用 plan 快照（`_with_overlay` 覆盖）比对 **HEAD 中的源文件**。
+- 因此"维护 bundle apply 成功"（工作树 refs 已更新为 approved hash）之后，**只要不 commit，finalize 仍报同样的 stale**——因为 plan 快照和 HEAD 都是旧值。
+- 错误信息 `recommended_action: "Review and refresh or retire this Ref; historical refs may use a separate authority-maintenance plan, then rebase this open plan"` 在本场景**完全误导**：refs 已经 refresh 过（bundle 已 applied），问题是快照过期，rebase 还返回 `PLAN_REBASE_NOOP`（HEAD 未变，rebase 无操作）。
+
+### 实际影响
+
+本次 abandon 了 2 个 plan、重做了 4 次相同的 add-claim 长参数，才靠翻源码（`authority.py` 的 `observe_authority_refs`、`semantic_plan.py` 的 `_with_overlay`）定位到"必须 commit 后重建 plan"。
+
+### 期望
+
+- `PLAN_FULL_AUTHORITY_NOT_CURRENT` 的报错中区分两种成因：
+  1. **ref 从未 refresh**（approved_hash 落后于源）→ 现有 recommended_action；
+  2. **refs 已在工作树更新但 HEAD 未提交**（ref.approved_hash 与工作树一致、与 HEAD 不一致）→ 提示"维护 bundle 已 apply，请先提交 git，再 abandon 并重建 plan"。
+- `rebase` 在 plan 快照过期时（HEAD 未变但工作树 refs 已变）不应返回 NOOP，应能刷新快照或明确告知唯一路径。
+- 验收：按上述场景复现时，错误信息能让操作者一次定位到"commit + 重建 plan"，无需翻源码。
+
+---
+
+## R4（P1）：录入缺乏文件驱动方式，长文本参数不可复用
+
+### 现状
+
+`init → add-claim → add-authority-ref → check → finalize` 是 5 步串行 CLI；claim 的 title/statement/boundary 全部以命令行参数传入，无法从文件读取。
+
+### 实际影响
+
+- 一次 claim 的 statement 约 200 字，需在 shell 中手动转义；plan 废弃重做时需原样重打（本次重打 4 次）。
+- 同一结论要同时进文档（PROGRESS.md/技能）与知识树时，文本无法复用，需维护两份。
+
+### 期望（二选一）
+
+- A：`knowledge-plan add-claim` 支持 `--from-file <markdown>`，解析固定格式（如 `# 标题 / ## 声明 / ## 边界` 三段）。
+- B：提供 `knowledge-plan import <bundle-manifest.json>`：一个 JSON 文件描述多 claim + refs，一次 init/add/finalize 完成批量录入。
+- 验收：一条 200 字 claim 的录入从"3 次命令 + 手动转义"变为"1 个草稿文件 + 1 次命令"；批量（≥2 claims）时命令数不随 claim 数增长。
+
+---
+
+## R5（P2）：检索输出的键名与筛选能力
+
+### 现状
+
+- `knowledge-search --format json` 的 results 条目主键叫 `id`（实际是 claim_id），无 `claim_id` 别名；`node_id`/`topic_id` 需要再次关联。
+- `query` 无按 claim 状态（`authority_status`）筛选参数；`knowledge-search` 的结果里 `authority_status: pending_review` 与 `current` 混排，无法只看已确认结论。
+
+### 期望
+
+- results 条目提供 `claim_id` 字段（或文档说明 `id` 即 claim_id）。
+- 两个检索命令均支持 `--status current|pending_review|...` 过滤。
+- 验收：用一条已确认 claim 检索，结果字段可明确区分 id 语义；可过滤掉未确认条目。
+
+---
+
+## 附：本次实践的命令序列（供复现与测试）
+
+```bash
+# 1. 录入 plan（2 claims + 2 refs）→ finalize 被 23 条 historical stale 阻塞（R2）
+# 2. 建维护 plan，refresh 23 条 refs → finalize → bundle bnd_0f7e36c9 → approve/apply（成功）
+# 3. 原 plan rebase → NOOP（R3）；finalize 仍报同样的 stale（R3 根因）
+# 4. abandon 重做 plan（快照仍旧）→ 再 abandon → 提交维护 bundle（c837047）→ 第三次建 plan → 成功
+# 5. finalize → bundle bnd_e756e32a → approve/apply → rebuild/validate 通过
+```
+
+全程 3 次 git 提交、2 次 plan abandon、1 次源码阅读。其中 R2、R3 合计约 70% 的额外轮次。
