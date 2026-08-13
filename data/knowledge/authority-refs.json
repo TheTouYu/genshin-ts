@@ -227,6 +227,21 @@
       ]
     },
     {
+      "id": "aref_24db2081745097c01e6e405668",
+      "path": "docs/game-engine-knowledge/motion-devices.md",
+      "locator": "第 5 节 层成员动态",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "claim_ids": [
+        "clm_549B34333DEE92CFD22A232AE1"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_2625193826e5884b1af8bb8ee9",
       "path": "src/cli/gil_entities.ts",
       "locator": "attachDefinitionAuxes/writeEntityAuxIds/writeAuxOwner/carryAuxSlot",
@@ -962,6 +977,21 @@
       ]
     },
     {
+      "id": "aref_76a4b1901305e85b78f23a5e2c",
+      "path": "docs/game-engine-knowledge/motion-devices.md",
+      "locator": "第 7 节 DSL 实现笔记",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "claim_ids": [
+        "clm_C8DF8E12E10763D2C632790741"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_776ff4fb0cfabb30ebc5688dfe",
       "path": "src/cli/gil_static_assemblies.ts",
       "locator": "fullFollowComponent(), setComponents(), validateAssembly(), applyStaticAssembly() definition field 8 / instance field 7",
@@ -1382,6 +1412,21 @@
       ]
     },
     {
+      "id": "aref_b2a698cb245c3e80edeb9754e4",
+      "path": "docs/game-engine-knowledge/motion-devices.md",
+      "locator": "第 3 节 轴语义",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "claim_ids": [
+        "clm_115296A1DA128D115CAC202DD0"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_b615135758d50f11ef4d9478be",
       "path": "docs/game-engine-knowledge/gia-generation-chain.md",
       "locator": "生产链路（成功路径）与可复现性边界",
@@ -1436,6 +1481,21 @@
       "approved_hash": "b4d6c0901c3bd5b859513a1d347bd56243330605e99dd0d0442790107fac7478",
       "claim_ids": [
         "clm_7C97E7FE3F998EC4A648EC7B29"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_bbc8721c4cc2839293ef9f8cd0",
+      "path": "docs/game-engine-knowledge/motion-devices.md",
+      "locator": "第 4 节 轨道/公转公式",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "claim_ids": [
+        "clm_02691D5BF0DDBAD95E355C3933"
       ],
       "supports_fact_classes": [
         "external_game_evidence"
@@ -1768,6 +1828,21 @@
       "approved_hash": "b9c6a62297fdb59ab21395f9eee3ada4594dbf9a9e9b38d04c464e3d6d3bd541",
       "claim_ids": [
         "clm_A1E15CA57DDF9464638BB97C44"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_eb7b6940bad192ccdfa5f7724c",
+      "path": "docs/game-engine-knowledge/motion-devices.md",
+      "locator": "第 1 节 组件前置依赖（components.md 基础运动器节）",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a2b915648432a1a8cbf6bee2f986c3fee8b11a2e55a1663b19b28c4a11f2e3d8",
+      "claim_ids": [
+        "clm_4EBE2D912F213036BFCFD1C616"
       ],
       "supports_fact_classes": [
         "external_game_evidence"

@@ -916,6 +916,15 @@
       "summary": "等 F 划分算法、块长/截面比、块数模式与端面缝隙处理（等角螺线 V4-V11 真实样本）",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "motion-device-runtime",
+      "node_id": "game-engine-knowledge",
+      "title": "运动器运行时行为",
+      "path": "knowledge/game-engine-knowledge/motion-device-runtime.md",
+      "summary": "",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1451,6 +1460,31 @@
       ]
     },
     "clm_8509374E5A139C10B4B0CCCB44": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_115296A1DA128D115CAC202DD0": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_02691D5BF0DDBAD95E355C3933": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_549B34333DEE92CFD22A232AE1": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_C8DF8E12E10763D2C632790741": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_4EBE2D912F213036BFCFD1C616": {
       "fact_classes": [
         "external_game_evidence"
       ]

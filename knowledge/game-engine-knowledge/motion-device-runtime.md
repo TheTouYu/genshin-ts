@@ -1,0 +1,63 @@
+# 运动器运行时行为
+
+
+
+<!-- CLAIM:START clm_115296A1DA128D115CAC202DD0 -->
+
+### 匀速旋转运动器 axis 为相对朝向（实体局部轴）
+
+匀速旋转型基础运动器的 axis 参数语义为相对朝向（官方定义 Relative Orientation）：绕实体局部轴旋转（M_new = M·R_local，日志矩阵实证）。绕世界层轴旋转必须传 localAxis = R_current^T · worldAxis（YXZ 内旋 R = Ry·Rx·Rz，罗德里格斯 x3：Rz(-rz)·Rx(-rx)·Ry(-ry)·worldAxis）。不转换时单面连续旋转恰好局部轴=世界轴观察不出，组合旋转朝向错乱。
+
+#### 适用边界
+
+仅匀速旋转型基础运动器（节点 85）；其他运动器轴语义未验证；欧拉角约定复用 2026-08-08 已闭合结论。
+
+<!-- CLAIM:END clm_115296A1DA128D115CAC202DD0 -->
+
+<!-- CLAIM:START clm_02691D5BF0DDBAD95E355C3933 -->
+
+### 公转分段公式必须保持平行分量
+
+5 段折线逼近圆弧时，段位置 p_k = v_parallel + v_perp·cos(k·18°) + cross(axis, v_perp)·sin(k·18°)，速度 vel_k = (p_k - p_{k-1})/0.2。直接缩放 v0（p_k = v0·Ck + axv·Sk）会压缩旋转轴平行分量，每轮漂移 0.5、多轮累积（2026-08-13 两次独立实证）。
+
+#### 适用边界
+
+90 度圆弧 5 段折线场景；平行分量保持公式对任意角度适用但未逐角度验证。
+
+<!-- CLAIM:END clm_02691D5BF0DDBAD95E355C3933 -->
+
+<!-- CLAIM:START clm_549B34333DEE92CFD22A232AE1 -->
+
+### 魔方转动后层成员动态变化
+
+魔方层旋转后层成员变化：绕 X 转时 X 层成员恒定（x 坐标不变），Y/Z 层成员随转动变化。组合旋转时静态层成员映射失效（错误转动不属于该层的块导致错位），必须按当前坐标实时筛选层成员（如 y>3 判 U 层）。
+
+#### 适用边界
+
+2x2 魔方 6 层场景；单面连续旋转静态映射恰好有效。
+
+<!-- CLAIM:END clm_549B34333DEE92CFD22A232AE1 -->
+
+<!-- CLAIM:START clm_C8DF8E12E10763D2C632790741 -->
+
+### getCorrespondingValueFromList 下标为 0-based
+
+getCorrespondingValueFromList（节点 128）的序号参数为 0-based：序号 1 取第 2 个元素，越界返回空实体（日志实证：1..4 取 4 元素列表导致第 4 个为空，运动器作用于空实体）。
+
+#### 适用边界
+
+节点 128；其他列表取元素节点未验证。
+
+<!-- CLAIM:END clm_C8DF8E12E10763D2C632790741 -->
+
+<!-- CLAIM:START clm_4EBE2D912F213036BFCFD1C616 -->
+
+### 运动器生效要求实体预配置 basicMotion 组件（type 4）
+
+节点图运行时添加运动器要求目标实体预配置 basicMotion 组件（type 4，9B 默认槽 080410017203c81f01），运行时节点不会补齐组件；基础元件模板自带 [18,1,3,19,6,14] 不含 basicMotion。旧结论 type 18=基础运动器为历史误判（2026-08-13 差分+控制器对照修正）。
+
+#### 适用边界
+
+基础运动器组件；跟随运动器等其他组件前置未涉及。
+
+<!-- CLAIM:END clm_4EBE2D912F213036BFCFD1C616 -->
