@@ -39,21 +39,72 @@ const S5 = 1 // sin90°
 const K_VEL = 5 // 1/0.2s
 const DEG2RAD = 0.017453292519943295 // π/180
 
-// 罗德里格斯：v 绕单位轴 u 旋转 θ（c=cosθ, s=sinθ）
+// 罗德里格斯复合：v 绕单位轴 u 旋转 θ（c=cosθ, s=sinθ）
 // v' = u·(u·v) + (v − u·(u·v))·c + (u×v)·s
-function gstsRotateVec(
-  f: ServerExecutionFlowFunctions,
-  v: ReturnType<typeof f.create3dVector>,
-  u: ReturnType<typeof f.create3dVector>,
-  c: number,
-  s: number
-): ReturnType<typeof f.create3dVector> {
-  const vp = f._3dVectorZoom(u, f._3dVectorDotProduct(u, v))
-  return f._3dVectorAddition(
-    f._3dVectorAddition(vp, f._3dVectorZoom(f._3dVectorSubtraction(v, vp), c)),
-    f._3dVectorZoom(f._3dVectorCrossProduct(u, v), s)
-  )
-}
+// （2026-08-14 复合化：内部连线封装，宿主图只留调用）
+const gstsRotateVec = g.defineComposite('gsts_rotate_vec', {
+  inputs: { v: { type: 'vec3' }, u: { type: 'vec3' }, c: { type: 'float' }, s: { type: 'float' } },
+  outputs: { out: { type: 'vec3' } },
+  build: ({ v, u, c, s }, f) => {
+    const vp = f._3dVectorZoom(u, f._3dVectorDotProduct(u, v))
+    const out = f._3dVectorAddition(
+      f._3dVectorAddition(vp, f._3dVectorZoom(f._3dVectorSubtraction(v, vp), c)),
+      f._3dVectorZoom(f._3dVectorCrossProduct(u, v), s)
+    )
+    return { out }
+  }
+})
+
+// 轨道段位置复合：p_k = vp + vPerp·c + axv·s（2026-08-14 复合化，5 段共用）
+const gstsOrbitPoint = g.defineComposite('gsts_orbit_point', {
+  inputs: {
+    vp: { type: 'vec3' },
+    vPerp: { type: 'vec3' },
+    axv: { type: 'vec3' },
+    c: { type: 'float' },
+    s: { type: 'float' }
+  },
+  outputs: { p: { type: 'vec3' } },
+  build: ({ vp, vPerp, axv, c, s }, f) => {
+    const p = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, c), f._3dVectorZoom(axv, s)))
+    return { p }
+  }
+})
+
+// 层成员筛选复合：按当前坐标判断块是否在目标层（2026-08-14 复合化，8 块共用）
+const gstsInLayer = g.defineComposite('gsts_in_layer', {
+  inputs: {
+    x: { type: 'float' },
+    y: { type: 'float' },
+    z: { type: 'float' },
+    isR: { type: 'bool' },
+    isL: { type: 'bool' },
+    isU: { type: 'bool' },
+    isD: { type: 'bool' },
+    isF: { type: 'bool' },
+    isB: { type: 'bool' }
+  },
+  outputs: { hit: { type: 'bool' } },
+  build: ({ x, y, z, isR, isL, isU, isD, isF, isB }, f) => {
+    const hit = f.logicalOrOperation(
+      f.logicalOrOperation(
+        f.logicalOrOperation(
+          f.logicalAndOperation(isR, f.greaterThan(x, 3)),
+          f.logicalAndOperation(isL, f.lessThan(x, 3))
+        ),
+        f.logicalAndOperation(isU, f.greaterThan(y, 3))
+      ),
+      f.logicalOrOperation(
+        f.logicalOrOperation(
+          f.logicalAndOperation(isD, f.lessThan(y, 3)),
+          f.logicalAndOperation(isF, f.greaterThan(z, 3))
+        ),
+        f.logicalAndOperation(isB, f.lessThan(z, 3))
+      )
+    )
+    return { hit }
+  }
+})
 
 const graph = g
   .server({
@@ -195,35 +246,30 @@ const graph = g
           i
         )
         const loc = f.getEntityLocationAndRotation(e).location
-        const inLayer = f.logicalOrOperation(
-          f.logicalOrOperation(
-            f.logicalOrOperation(
-              f.logicalAndOperation(isR, f.greaterThan(loc.x, 3)),
-              f.logicalAndOperation(isL, f.lessThan(loc.x, 3))
-            ),
-            f.logicalAndOperation(isU, f.greaterThan(loc.y, 3))
-          ),
-          f.logicalOrOperation(
-            f.logicalOrOperation(
-              f.logicalAndOperation(isD, f.lessThan(loc.y, 3)),
-              f.logicalAndOperation(isF, f.greaterThan(loc.z, 3))
-            ),
-            f.logicalAndOperation(isB, f.lessThan(loc.z, 3))
-          )
-        )
+        const inLayer = f.callComposite(gstsInLayer, {
+          x: loc.x,
+          y: loc.y,
+          z: loc.z,
+          isR,
+          isL,
+          isU,
+          isD,
+          isF,
+          isB
+        }).hit
         f.doubleBranch(inLayer, () => {
           // v5.5：自旋轴 = 世界层轴转换到块局部系（引擎 axis 为"相对朝向"，绕局部轴右乘；
           // localAxis = Rz(−rz)·Rx(−rx)·Ry(−ry)·worldAxis，日志 00-37-42 矩阵实证）
           const rot = f.getEntityLocationAndRotation(e).rotate
           const cy = f.cosineFunction(f.multiplication(rot.y, DEG2RAD))
           const sy = f.sineFunction(f.multiplication(rot.y, DEG2RAD))
-          const v1 = gstsRotateVec(f, axis, f.create3dVector(0, 1, 0), cy, f.multiplication(sy, -1))
+          const v1 = f.callComposite(gstsRotateVec, { v: axis, u: f.create3dVector(0, 1, 0), c: cy, s: f.multiplication(sy, -1) }).out
           const cx = f.cosineFunction(f.multiplication(rot.x, DEG2RAD))
           const sx = f.sineFunction(f.multiplication(rot.x, DEG2RAD))
-          const v2 = gstsRotateVec(f, v1, f.create3dVector(1, 0, 0), cx, f.multiplication(sx, -1))
+          const v2 = f.callComposite(gstsRotateVec, { v: v1, u: f.create3dVector(1, 0, 0), c: cx, s: f.multiplication(sx, -1) }).out
           const cz = f.cosineFunction(f.multiplication(rot.z, DEG2RAD))
           const sz = f.sineFunction(f.multiplication(rot.z, DEG2RAD))
-          const localAxis = gstsRotateVec(f, v2, f.create3dVector(0, 0, 1), cz, f.multiplication(sz, -1))
+          const localAxis = f.callComposite(gstsRotateVec, { v: v2, u: f.create3dVector(0, 0, 1), c: cz, s: f.multiplication(sz, -1) }).out
           f.addUniformBasicRotationBasedMotionDevice(e, 'spin', 1, 90, localAxis)
           gstsServerOrbitBlock(f, e, axis, center, i)
         }, () => {})
@@ -252,15 +298,15 @@ function gstsServerOrbitBlock(
   const vPerp = f._3dVectorSubtraction(v0, vp)
   const axv = f._3dVectorCrossProduct(axis, vPerp)
   // p_k = vp + vPerp·Ck + axv·Sk（k = 1..5，18° 步进到 90°）；vel_k = (p_k − p_{k−1})·K_VEL
-  const p1 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C1), f._3dVectorZoom(axv, S1)))
+  const p1 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C1, s: S1 }).p
   const vel1 = f._3dVectorZoom(f._3dVectorSubtraction(p1, v0), K_VEL)
-  const p2 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C2), f._3dVectorZoom(axv, S2)))
+  const p2 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C2, s: S2 }).p
   const vel2 = f._3dVectorZoom(f._3dVectorSubtraction(p2, p1), K_VEL)
-  const p3 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C3), f._3dVectorZoom(axv, S3)))
+  const p3 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C3, s: S3 }).p
   const vel3 = f._3dVectorZoom(f._3dVectorSubtraction(p3, p2), K_VEL)
-  const p4 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C4), f._3dVectorZoom(axv, S4)))
+  const p4 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C4, s: S4 }).p
   const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
-  const p5 = f._3dVectorAddition(vp, f._3dVectorAddition(f._3dVectorZoom(vPerp, C5), f._3dVectorZoom(axv, S5)))
+  const p5 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C5, s: S5 }).p
   const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
   f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, vel1)
   f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, vel2)
