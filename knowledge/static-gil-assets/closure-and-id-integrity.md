@@ -75,3 +75,15 @@ assets:entities import（applyEntities）从已有 definition 生成场景实体
 覆盖 applyEntities 新建与更新路径；definition 无 instance-side aux（含官方直引无本地 definition）时为空操作；aux ID 分配仅保证 root27 内唯一；游戏渲染已核验（1073741878），但不覆盖其它编辑器版本的 aux 结构差异。
 
 <!-- CLAIM:END clm_E4F7263D5D1B51415F6EA85DE1 -->
+
+<!-- CLAIM:START clm_C0A7988BF0C42961F748BF69AC -->
+
+### 编辑器保存会把被编辑实体的 aux 整体重写为新 ID 区间
+
+用户用编辑器保存地图后，被编辑实体的 aux 记录被整体重写为新 ID 区间：同 ID 记录 transform 不变，改动全部落在新增 ID 区间（控制器案例：旧 1073741937-1073741968 移除、新 1073741969-1073742000 加入，改动位于新区间）。比对用户编辑器修改的方法：候选 vs 当前地图做 aux ID 集合差（removed/added），再解析新区间 transform——解析路径 f5→f11→f1/f2/f3 是嵌套 wire message（每轴 wire=5 float32），不是 12 字节 packed。编辑器保存还会规范化其他 root（如 root 5 自动补默认模版实体）。
+
+#### 适用边界
+
+Beyond_Local 编辑器保存行为，2026-08-13 地图 1073741882 控制器案例实测；root 5 规范化细节随编辑器版本可能变化，新版本需重新验证；不影响 CLI 写回候选本身。
+
+<!-- CLAIM:END clm_C0A7988BF0C42961F748BF69AC -->

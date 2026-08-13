@@ -100,3 +100,15 @@ src/cli/static_assembly/football_geometry.ts 提供确定性截角二十面体�
 纯数学模块不触碰 GIL；面片/边线 transform 经 buildAuxRecord + attachAux（patch.ts）注入；欧拉角顺序依赖 yxz 规则 Claim；条带宽度/厚度/表面偏移/边线截面等参数可调；用户游戏核验为一轮证据，高精度拟合（五棱柱/三棱柱压扁做面片）待下一轮。
 
 <!-- CLAIM:END clm_EDCA91A83DB521C90679872ED1 -->
+
+<!-- CLAIM:START clm_6C67D5B49095C7CC9D3FD8DBEE -->
+
+### 装饰物即主体时薄片外贴偏移 = 主体中心 + 主体半长 + 半厚 + 间隙
+
+静态元件以空模型为模板、微块主体与彩面薄片都是装饰物 item 时，薄片外贴偏移必须以主体装饰物的中心为基准：offset = MICRO_C + MICRO/2 + patch_half_thickness + gap（控制器实测 0.23 + 0.22 + 0.005 + 0.01 = 0.465）。漏加主体中心（如 v9 偏移 0.235、v10 偏移 0.28，均小于块外表面 0.45）会把全部薄片埋在块体内导致元件全黑。模板即主体（模板=可见实体）时基准为 0，偏移 = 半长 + 半厚 + 间隙。
+
+#### 适用边界
+
+仅静态 GIL 元件装配（assets:static-assemblies 生成器几何）；薄片厚度 0.01、间隙 0.01 为 rubik-2x2 控制器 2026-08-13 用户游戏核验通过的实测值；用户编辑器手动修正值 0.454/0.449/0.455 作为权威证据；不适用于运行时动态创建。
+
+<!-- CLAIM:END clm_6C67D5B49095C7CC9D3FD8DBEE -->

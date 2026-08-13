@@ -1429,6 +1429,16 @@
       "fact_classes": [
         "cli_behavior"
       ]
+    },
+    "clm_6C67D5B49095C7CC9D3FD8DBEE": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_C0A7988BF0C42961F748BF69AC": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
     }
   }
 }

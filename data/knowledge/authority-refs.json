@@ -902,6 +902,21 @@
       ]
     },
     {
+      "id": "aref_6eb9797d984da25950f58689cd",
+      "path": ".agents/skills/static-gil-model-builder/references/production-workflow.md",
+      "locator": "更新既有 prefab 闭包→比对用户编辑器修改（aux 重写新 ID 区间，2026-08-13 实测）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "90b8ddd64bcff48460e803b1d16824368851843e657c99c03dba691ae82be2f5",
+      "claim_ids": [
+        "clm_C0A7988BF0C42961F748BF69AC"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_70fcc232631848d00f8f6fcf44",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "当前已闭合的有限字段树（root 10 复合容器 10.1/10.1.1/10.2/10.5.3）与注入器合并路径",
@@ -1681,6 +1696,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_e772106f141c72b94418731b8b",
+      "path": ".agents/skills/static-gil-model-builder/SKILL.md",
+      "locator": "装饰物即主体→薄片外贴偏移规律（2026-08-13 控制器 v11 复盘）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "10d4f3ed474e3fbf03c9bdaecacebf8fffa894bf7a397e47fa473ec4d671dc70",
+      "claim_ids": [
+        "clm_6C67D5B49095C7CC9D3FD8DBEE"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
       ]
     },
     {
