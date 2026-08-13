@@ -71,6 +71,55 @@ const gstsOrbitPoint = g.defineComposite('gsts_orbit_point', {
   }
 })
 
+// 自旋块复合（2026-08-14 封装型）：世界层轴转换到块局部系 + 添加自旋运动器——
+// 把"自旋这件事"的范围封装清晰（含嵌套调用 gsts_rotate_vec）
+// 自旋轴计算复合（2026-08-14 封装型，纯数据）：世界层轴 → 块局部系（罗德里格斯×3）。
+// 动作（addMotion）留在宿主——exec 复合需 outflow 连接，纯数据复合更简单清晰
+const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
+  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' } },
+  outputs: { localAxis: { type: 'vec3' } },
+  build: ({ e, axis }, f) => {
+    const rot = f.getEntityLocationAndRotation(e).rotate
+    const cy = f.cosineFunction(f.multiplication(rot.y, DEG2RAD))
+    const sy = f.sineFunction(f.multiplication(rot.y, DEG2RAD))
+    const v1 = f.callComposite(gstsRotateVec, { v: axis, u: f.create3dVector(0, 1, 0), c: cy, s: f.multiplication(sy, -1) }).out
+    const cx = f.cosineFunction(f.multiplication(rot.x, DEG2RAD))
+    const sx = f.sineFunction(f.multiplication(rot.x, DEG2RAD))
+    const v2 = f.callComposite(gstsRotateVec, { v: v1, u: f.create3dVector(1, 0, 0), c: cx, s: f.multiplication(sx, -1) }).out
+    const cz = f.cosineFunction(f.multiplication(rot.z, DEG2RAD))
+    const sz = f.sineFunction(f.multiplication(rot.z, DEG2RAD))
+    const localAxis = f.callComposite(gstsRotateVec, { v: v2, u: f.create3dVector(0, 0, 1), c: cz, s: f.multiplication(sz, -1) }).out
+    return { localAxis }
+  }
+})
+
+// 轨道速度计算复合（2026-08-14 封装型）：5 段速度预计算 + 字典存储——
+// 定时器回调只查字典取用（复合内 setTimeout 不可用——生产发现 #3）
+// 轨道速度计算复合（2026-08-14 封装型，纯数据）：5 段速度预计算。
+// 字典存储/orbit1/定时器留在宿主（exec 动作与复合内 setTimeout 限制）
+const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
+  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
+  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
+  build: ({ e, axis, center }, f) => {
+    const loc = f.getEntityLocationAndRotation(e).location
+    const v0 = f._3dVectorSubtraction(loc, center)
+    const vp = f._3dVectorZoom(axis, f._3dVectorDotProduct(axis, v0))
+    const vPerp = f._3dVectorSubtraction(v0, vp)
+    const axv = f._3dVectorCrossProduct(axis, vPerp)
+    const p1 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C1, s: S1 }).p
+    const vel1 = f._3dVectorZoom(f._3dVectorSubtraction(p1, v0), K_VEL)
+    const p2 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C2, s: S2 }).p
+    const vel2 = f._3dVectorZoom(f._3dVectorSubtraction(p2, p1), K_VEL)
+    const p3 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C3, s: S3 }).p
+    const vel3 = f._3dVectorZoom(f._3dVectorSubtraction(p3, p2), K_VEL)
+    const p4 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C4, s: S4 }).p
+    const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
+    const p5 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C5, s: S5 }).p
+    const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
+    return { vel1, vel2, vel3, vel4, vel5 }
+  }
+})
+
 // 层成员筛选复合：按当前坐标判断块是否在目标层（2026-08-14 复合化，8 块共用）
 const gstsInLayer = g.defineComposite('gsts_in_layer', {
   inputs: {
@@ -258,20 +307,17 @@ const graph = g
           isB
         }).hit
         f.doubleBranch(inLayer, () => {
-          // v5.5：自旋轴 = 世界层轴转换到块局部系（引擎 axis 为"相对朝向"，绕局部轴右乘；
-          // localAxis = Rz(−rz)·Rx(−rx)·Ry(−ry)·worldAxis，日志 00-37-42 矩阵实证）
-          const rot = f.getEntityLocationAndRotation(e).rotate
-          const cy = f.cosineFunction(f.multiplication(rot.y, DEG2RAD))
-          const sy = f.sineFunction(f.multiplication(rot.y, DEG2RAD))
-          const v1 = f.callComposite(gstsRotateVec, { v: axis, u: f.create3dVector(0, 1, 0), c: cy, s: f.multiplication(sy, -1) }).out
-          const cx = f.cosineFunction(f.multiplication(rot.x, DEG2RAD))
-          const sx = f.sineFunction(f.multiplication(rot.x, DEG2RAD))
-          const v2 = f.callComposite(gstsRotateVec, { v: v1, u: f.create3dVector(1, 0, 0), c: cx, s: f.multiplication(sx, -1) }).out
-          const cz = f.cosineFunction(f.multiplication(rot.z, DEG2RAD))
-          const sz = f.sineFunction(f.multiplication(rot.z, DEG2RAD))
-          const localAxis = f.callComposite(gstsRotateVec, { v: v2, u: f.create3dVector(0, 0, 1), c: cz, s: f.multiplication(sz, -1) }).out
+          // 纯数据复合计算 + 宿主动作（exec 复合需 outflow，动作留宿主更简单）
+          const localAxis = f.callComposite(gstsSpinBlock, { e, axis }).localAxis
           f.addUniformBasicRotationBasedMotionDevice(e, 'spin', 1, 90, localAxis)
-          gstsServerOrbitBlock(f, e, axis, center, i)
+          const calc = f.callComposite(gstsOrbitCalc, { e, axis, center })
+          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, calc.vel1)
+          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, calc.vel2)
+          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i, calc.vel3)
+          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i, calc.vel4)
+          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i, calc.vel5)
+          f.addUniformBasicLinearMotionDevice(e, 'orbit1', 0.2, calc.vel1)
+          gstsServerOrbitTimers(f, i)
         }, () => {})
       }
       // 解锁改为相对时序：orbit5 实际触发后 +250ms 解锁（见 gstsServerOrbitBlock 的 orbit5 回调），
@@ -279,39 +325,12 @@ const graph = g
     }
   })
 
-// 单块 5 段公转（v5.4 循环内 1 份物化）：速度按块索引存 5 个字典（vels1..vels5），
-// 定时器回调按块索引查字典 + blocks 列表取实体，不再读取运行时位置
-function gstsServerOrbitBlock(
+// orbit2-5 定时器（2026-08-14：速度预计算已封装到 gsts_orbit_calc 复合；
+// 复合内 setTimeout 不可用——生产发现 #3，定时器留在宿主）
+function gstsServerOrbitTimers(
   f: ServerExecutionFlowFunctions,
-  e: ReturnType<typeof f.getEntityLocationAndRotation>,
-  axis: ReturnType<typeof f.create3dVector>,
-  center: ReturnType<typeof f.create3dVector>,
   i: bigint
 ) {
-  const loc = f.getEntityLocationAndRotation(e).location
-  const v0 = f._3dVectorSubtraction(loc, center)
-  // v5.3 修正：旋转只作用于垂直分量，平行分量必须保持
-  // （此前 p_k = v0·Ck + axv·Sk 压缩平行分量 → 每轮漂移 0.5，日志 00-20-15 逐帧实证）
-  const vp = f._3dVectorZoom(axis, f._3dVectorDotProduct(axis, v0))
-  const vPerp = f._3dVectorSubtraction(v0, vp)
-  const axv = f._3dVectorCrossProduct(axis, vPerp)
-  // p_k = vp + vPerp·Ck + axv·Sk（k = 1..5，18° 步进到 90°）；vel_k = (p_k − p_{k−1})·K_VEL
-  const p1 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C1, s: S1 }).p
-  const vel1 = f._3dVectorZoom(f._3dVectorSubtraction(p1, v0), K_VEL)
-  const p2 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C2, s: S2 }).p
-  const vel2 = f._3dVectorZoom(f._3dVectorSubtraction(p2, p1), K_VEL)
-  const p3 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C3, s: S3 }).p
-  const vel3 = f._3dVectorZoom(f._3dVectorSubtraction(p3, p2), K_VEL)
-  const p4 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C4, s: S4 }).p
-  const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
-  const p5 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C5, s: S5 }).p
-  const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
-  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, vel1)
-  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, vel2)
-  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i, vel3)
-  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i, vel4)
-  f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i, vel5)
-  f.addUniformBasicLinearMotionDevice(e, 'orbit1', 0.2, vel1)
   setTimeout((_e, tf) => {
     tf.addUniformBasicLinearMotionDevice(
       tf.getCorrespondingValueFromList(tf.getNodeGraphVariable('blocks').asType('entity_list'), i),
