@@ -317,9 +317,13 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - 复合路径错误：①composite.ts 从 `def.implVariables` 取变量类型，但该字段仅来自复合定义显式声明
   `variables` 选项（composite_registry.ts:376），复合内读的是**图变量**，官方 wire 证明不走 implVariables；
   ②argVarType/argVarBaseClass 无 dict 分支返回 0（Ety）；③makeVarBaseValue 无 MapBase 分支。
-- 修复方向：复合路径改从图变量列表（IR 顶层 variables，type='dict'+dict{k,v} 子字段）取类型；
-  argVarType→VarType.Dictionary(27)、argVarBaseClass→MapBase(10003)、makeVarBaseValue 按官方样本补
-  itemType{kind:Pair,items{key,value}} + bMap + ConcreteBase 包装（indexOfConcrete 待查表）。
+- **修复（2026-08-14 已提交）**：①buildCompositeAccessories 新增 graphVariables 参数（index.ts 传 IR 顶层
+  variables），与 def.implVariables 合并进 buildImplGraphNodes 的 variablesByName（复合自身声明优先）；
+  ②resolved_node.ts resolveNodeIdentity 的 suffix 计算补 dict 分支（dict_<k>_<v>，vec3→vec、config_id/prefab_id
+  replaceAll 兼容双出现）——get_node_graph_variable 由此经 inferVarSuffix 解析到 concreteId=3046（Dict_Int_Vec），
+  vendor 物化路径自动生成与官方 golden 逐字段一致的 OutParam（type=27、ConcreteBase indexOfConcrete=20、
+  MapBase{items{key:3,value:12}}）；③回归测试 tests/composite/test-composite-get-node-graph-variable-dict.ts
+  （shared 与 legacy 双后端 PASS + E2E 全链路 PASS）。
 
 ### 复合公开 dict 输出参数（2026-08-14 轮 3 差分 CONFIRMED）
 

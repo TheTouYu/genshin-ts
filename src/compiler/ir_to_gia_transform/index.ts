@@ -800,7 +800,7 @@ export function irToGia(ir: IRDocument, opts: IrToGiaOptions): Uint8Array {
   const compositeDefs: CompositeDefIR[] = irDoc.compositeDefs ?? []
   for (const def of compositeDefs) {
     try {
-      const accs = buildCompositeAccessories(def, compositeDefById)
+      const accs = buildCompositeAccessories(def, compositeDefById, irDoc.variables)
       root.accessories.push(...accs)
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error)

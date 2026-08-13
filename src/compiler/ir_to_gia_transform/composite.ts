@@ -226,7 +226,9 @@ export type {
  */
 export function buildCompositeAccessories(
   def: CompositeDefIR,
-  compositeDefById?: Map<number, CompositeDefIR>
+  compositeDefById?: Map<number, CompositeDefIR>,
+  /** IR 顶层图变量列表（复合内 get/set_node_graph_variable 按名字解析类型用，#4） */
+  graphVariables?: CompositeDefIR['implVariables']
 ): GraphUnit[] {
   const accessories: GraphUnit[] = []
 
@@ -275,12 +277,18 @@ export function buildCompositeAccessories(
     implOutParamMap.set(cp.innerNodeId, arr)
   }
 
+  // #4：复合内图变量节点按名字解析类型需要完整变量表——图变量（IR 顶层 variables）
+  // 与复合自身 implVariables（defineComposite variables 选项）合并，自身声明优先。
+  const implVariablesForEncoding = [
+    ...(graphVariables ?? []),
+    ...(def.implVariables ?? [])
+  ]
   const implNodes = buildImplGraphNodes(
     implNodesForEncoding,
     nodeIndexMap,
     filteredEdges,
     implOutParamMap,
-    def.implVariables,
+    implVariablesForEncoding,
     def,
     boundaryPins,
     compositeDefById

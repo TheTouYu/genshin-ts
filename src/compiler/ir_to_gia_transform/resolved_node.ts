@@ -345,7 +345,9 @@ export function resolveNodeIdentity(
     ? typed.name === 'vec3' ? 'vec' : typed.name
     : typed?.kind === 'list' && typed.element.kind === 'scalar'
       ? `list_${typed.element.name === 'vec3' ? 'vec' : typed.element.name}`
-      : undefined
+      : typed?.kind === 'dict' && typed.key.kind === 'scalar' && typed.value.kind === 'scalar'
+        ? `dict_${typed.key.name === 'vec3' ? 'vec' : typed.key.name}_${typed.value.name === 'vec3' ? 'vec' : typed.value.name}`
+        : undefined
   if (!suffix) {
     if (typed && (isSetter || isGetter)) {
       recordFallback(context, {
@@ -359,7 +361,9 @@ export function resolveNodeIdentity(
 
   const concreteNodeId =
     nodeIds.get(`${lower}__${suffix}`) ??
-    nodeIds.get(`${lower}__${suffix.replace('_config_id', '_config').replace('_prefab_id', '_prefab')}`)
+    nodeIds.get(
+      `${lower}__${suffix.replaceAll('_config_id', '_config').replaceAll('_prefab_id', '_prefab')}`
+    )
   if (concreteNodeId === undefined && (isSetter || isGetter)) {
     recordFallback(context, {
       reason: 'missing-concrete-variant',
