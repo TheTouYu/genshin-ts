@@ -67,6 +67,15 @@
 
 选项内容、触发范围、事件参数和选项身份的具体规则仍需通过真实关卡增量逐项还原。
 
+### 选项卡选中事件链路（2026-08-13 魔方 P4 最小实验闭合）
+
+> 验证层级：用户游戏核验 + 真实 Beyond_Debug_Log 逐帧确认（7 次点击全部完整执行）
+
+- 事件名：**whenTabIsSelected**（“选项卡选中”）；节点图挂载在**挂载选项卡组件的实体**上触发（魔方控制器实体 1077936138，`assets:mounts attach --entity`）。
+- 事件 payload（与 `events-payload.ts` 一致）：`eventSourceEntity`（事件源实体）/ `eventSourceGuid` / **`tabId`** / `selectorEntity`（选择者角色实体）。
+- **tabId 从 1 开始**（1~6 对应配置的选项顺序，魔方 R/L/U/D/F/B = 1/2/3/4/5/6；用户直接确认）。
+- 日志帧特征：单帧 `head=图内节点序号`，OUT0:Entity=2、OUT1:GUID=实体ID、OUT2:Integer=tabId、OUT3:Entity=选择者。
+
 ### 选项卡 GIL 编码（code 17）
 
 > 状态：真实 GIL 已观察 + 当前实现 + 自动回归 + 编辑器手动添加确认

@@ -71,7 +71,7 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | 值 | 含义 | 值 | 含义 |
 |---|---|---|---|
 | 100-104 | == < <= > >= | 300-308 | + - * / % ^ max min log |
-| 200-203 | AND OR XOR NOT | 806/808 | BoolToStr / FltToStr |
+| 200-203 | AND OR XOR NOT | 802/806/808 | IntToStr / BoolToStr / FltToStr |
 
 ### 节点 ID ↔ 日志特征（node_pin_records.ts）
 | 节点 | ID | 日志特征 |

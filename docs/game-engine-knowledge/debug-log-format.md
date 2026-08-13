@@ -82,6 +82,7 @@ f21 = {
 | 100-104 | 比较：等于/小于/小于等于/大于/大于等于 | 循环条件 0d08 用 102（<=） |
 | 200-203 | 逻辑：AND/OR/XOR/NOT | 循环条件组合 0d0a(200 AND)、0d09(203 NOT) |
 | 300-308 | 数学：加法/减法/乘法/除法/取模/幂/最大/最小/对数 | addition 帧(300)、循环步进 0d07(300) |
+| 802 | IntegerToString | str(int) 转换帧（2026-08-13 魔方 P4 日志闭合：Int→Str 转换 IN1=802） |
 | 806 | BooleanToString | str(bool) 转换帧 |
 | 808 | FloatingPointToString | str(float) 转换帧 |
 
@@ -96,7 +97,7 @@ f21 = {
 | Get Node Graph Variable | 337 | 输入：Str | 两级帧 `{N.04 子帧, N.03 主帧}`；IN0=实体上下文(类型1=2)、IN1=变量名 |
 | Set Node Graph Variable | 323 | 输入：Str,R\<T\>,Bol | 两级帧；IN0=实体上下文、IN1=变量名、IN2=值、IN3=类型4=1、IN4=类型4=''（是否触发事件=否） |
 | Addition | 200/201 | 输入：R\<T\>,R\<T\>；输出：R\<T\> | 单帧；IN0=操作数、IN1=操作数、IN2=类型14=300 |
-| Data Type Conversion | 180 | 输入：R\<K\> | 单帧；IN0=值、IN1=类型14=808/806、OUT0=类型6 |
+| Data Type Conversion | 180 | 输入：R\<K\> | 单帧；IN0=值、IN1=类型14=802(int)/806(bool)/808(float)、OUT0=类型6 |
 
 ### 两级帧 ID 规律
 
