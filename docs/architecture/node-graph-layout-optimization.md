@@ -47,6 +47,7 @@
 - **已抽取 3 个复合**（rubik 图）：gsts_rotate_vec（罗德里格斯轴转换）、gsts_orbit_point（轨道段位置）、gsts_in_layer（层成员筛选）。
 - **效果**：顶层图节点 290 → **8**（-97%）；GIA 布局从稀疏乱序（290 个 x 值）→ 规则网格（4 列）；宿主图拥挤大幅缓解。
 - **v2（2026-08-14）**：再抽 2 个封装型复合（gsts_spin_block 自旋轴计算 / gsts_orbit_calc 轨道速度计算，均纯数据）——宿主节点 239→187；顶层图保持 8 节点 4 列。生产发现 #3：复合内 setTimeout 不可用（missing compiler metadata）——exec 复合需显式 outflow 连接（addMotion 返回 void 拿不到 tail），动作留宿主更简单。
+- **v3（2026-08-14）**：gsts_spin_block 升级为 **exec 复合**（registerExecNode + outflow 连接，动作入复合）；gsts_orbit_calc 保持纯数据（生产发现 #4 阻塞字典动作入复合）。宿主 187→186。**exec 复合路径已验证**（registerExecNode+outflow 官方支持），后续生产补上 dict 变量类型推断即可整块打包。
 - 顺带修复：callComposite 字面量输入崩溃（生产发现 #1）。
 - 验证方式：编译 → GIA 解码（节点/布局）→ 注入 → 用户编辑器/游戏核验。
 ## 4. 优化方向（候选，按实验逐项验证）

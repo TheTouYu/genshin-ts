@@ -21,6 +21,7 @@
 //   ⑤ 连续多轮转动后角块是否仍对齐网格（无累积漂移）
 import { g } from 'genshin-ts/runtime/core'
 import type { IntValue } from 'genshin-ts/runtime/value'
+import { float, int, str } from 'genshin-ts/runtime/value'
 // ServerExecutionFlowFunctions 定义于 src/definitions/nodes.ts（2026-08-13 修正 import 路径：
 // 原 'genshin-ts/runtime/definitions/nodes' 无对应导出，tsc TS2307；管线 tsx 不查类型故此前未暴露）
 import type { ServerExecutionFlowFunctions } from 'genshin-ts/definitions/nodes'
@@ -73,11 +74,12 @@ const gstsOrbitPoint = g.defineComposite('gsts_orbit_point', {
 
 // 自旋块复合（2026-08-14 封装型）：世界层轴转换到块局部系 + 添加自旋运动器——
 // 把"自旋这件事"的范围封装清晰（含嵌套调用 gsts_rotate_vec）
-// 自旋轴计算复合（2026-08-14 封装型，纯数据）：世界层轴 → 块局部系（罗德里格斯×3）。
-// 动作（addMotion）留在宿主——exec 复合需 outflow 连接，纯数据复合更简单清晰
+// 自旋块复合（2026-08-14 v2：exec 复合，含动作）：世界层轴 → 块局部系（罗德里格斯×3）+ 添加自旋运动器。
+// exec 复合经 registerExecNode + outflow 连接（生产探索：官方复合无限制，生产经此路径支持动作）
 const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
   inputs: { e: { type: 'entity' }, axis: { type: 'vec3' } },
-  outputs: { localAxis: { type: 'vec3' } },
+  outputs: {},
+  outflows: ['done'],
   build: ({ e, axis }, f) => {
     const rot = f.getEntityLocationAndRotation(e).rotate
     const cy = f.cosineFunction(f.multiplication(rot.y, DEG2RAD))
@@ -89,14 +91,25 @@ const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
     const cz = f.cosineFunction(f.multiplication(rot.z, DEG2RAD))
     const sz = f.sineFunction(f.multiplication(rot.z, DEG2RAD))
     const localAxis = f.callComposite(gstsRotateVec, { v: v2, u: f.create3dVector(0, 0, 1), c: cz, s: f.multiplication(sz, -1) }).out
-    return { localAxis }
+    const tail = f.registerExecNode('add_uniform_basic_rotation_based_motion_device', [
+      e,
+      new str('spin'),
+      new float(1),
+      new float(90),
+      localAxis
+    ])
+    f.outflow('done', tail, 0)
+    return {}
   }
 })
 
 // 轨道速度计算复合（2026-08-14 封装型）：5 段速度预计算 + 字典存储——
 // 定时器回调只查字典取用（复合内 setTimeout 不可用——生产发现 #3）
-// 轨道速度计算复合（2026-08-14 封装型，纯数据）：5 段速度预计算。
-// 字典存储/orbit1/定时器留在宿主（exec 动作与复合内 setTimeout 限制）
+// 轨道块复合（2026-08-14 v2：exec 复合，含动作）：5 段速度预计算 + 字典存储 + orbit1。
+// 定时器（orbit2-5）留宿主（复合内 setTimeout 不可用——生产发现 #3）
+// 轨道速度计算复合（2026-08-14 v3：纯数据输出 + 字典存储留宿主）——
+// 生产发现 #4：复合内 get_node_graph_variable 的 dict 输出类型未从 implVariables 推断（默认 Ety），
+// 字典存储动作留宿主；后续生产支持后可将 setOrAdd 纳入复合
 const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
   inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
   outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
@@ -307,9 +320,8 @@ const graph = g
           isB
         }).hit
         f.doubleBranch(inLayer, () => {
-          // 纯数据复合计算 + 宿主动作（exec 复合需 outflow，动作留宿主更简单）
-          const localAxis = f.callComposite(gstsSpinBlock, { e, axis }).localAxis
-          f.addUniformBasicRotationBasedMotionDevice(e, 'spin', 1, 90, localAxis)
+          // exec 复合（自旋动作）+ 纯数据复合（速度）+ 宿主动作（字典存储/orbit1——生产发现 #4）
+          f.callComposite(gstsSpinBlock, { e, axis })
           const calc = f.callComposite(gstsOrbitCalc, { e, axis, center })
           f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, calc.vel1)
           f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, calc.vel2)
