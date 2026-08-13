@@ -274,12 +274,8 @@ const graph = g
           gstsServerOrbitBlock(f, e, axis, center, i)
         }, () => {})
       }
-      // 1.5s 后解锁（2026-08-14 生产发现 #2：orbit5 定时器 800ms + 0.2s 时长，tick 不稳时
-      // 可能晚于 1000ms 结束；解锁后立即操作会替换/中断未完成的旧运动器 → 缺末段 → 永久偏差。
-      // 延后到 1500ms 给运动器结束余量；事件驱动解锁（whenBasicMotionDeviceStops 挂角块）待后续。）
-      setTimeout((_e, tf) => {
-        tf.setNodeGraphVariable('lock', false, false)
-      }, 1500)
+      // 解锁改为相对时序：orbit5 实际触发后 +250ms 解锁（见 gstsServerOrbitBlock 的 orbit5 回调），
+      // 消除绝对 1000ms 解锁与 tick 不稳导致的末段中断（生产发现 #2 的底层修复）
     }
   })
 
@@ -347,6 +343,11 @@ function gstsServerOrbitBlock(
       0.2,
       tf.queryDictionaryValueByKey(tf.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i)
     )
+    // 生产发现 #2 底层修复：相对时序解锁——orbit5 实际触发后 +250ms（0.2s 时长 + 50ms 余量）
+    // 解锁，不受绝对 1000ms 与 tick 不稳影响；4 块各触发一次，幂等。
+    setTimeout((_e2, tf2) => {
+      tf2.setNodeGraphVariable('lock', false, false)
+    }, 250)
   }, 800)
 }
 
