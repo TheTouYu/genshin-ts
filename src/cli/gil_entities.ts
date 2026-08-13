@@ -414,7 +414,8 @@ function decodeComponent(slot: Uint8Array): GstsStaticAssemblyComponent | undefi
   const enabled = fields.some((field) => field.number === 2 && field.wire === 0 && field.value === 1)
   if (!enabled) return undefined
   if (code === 9) return { type: 'followMotion', preset: 'fullFollow' }
-  if (code === 18) return { type: 'basicMotion', preset: 'default' }
+  // 2026-08-13 修正：基础运动器真实类型码为 4（原 18 为模板自带组件误判）
+  if (code === 4) return { type: 'basicMotion', preset: 'default' }
   if (code === 17) {
     const config = fields.find((field) => field.number === 27 && field.wire === 2)
     if (!config) return undefined

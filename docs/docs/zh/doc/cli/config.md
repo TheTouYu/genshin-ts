@@ -61,7 +61,7 @@ export default config
 
 元件自身 Transform 是场景坐标，item Transform 是相对元件原点的局部坐标。`scale: [1, 1, 1]` 表示资源原始尺寸，不保证所有资源在游戏中都是 1×1×1。模板定义 ID 和实例 ID 不保证相同，必须分别确认。颜色 `rgb` 使用 `0xRRGGBB`，`opacity` 为 0–100，叠加方式为 `overwrite` 或 `multiply`；`enabled: false` 关闭自定义颜色。未声明 `color` 时继承模板快照，材质等其它未知字段保持不变。
 
-`components` 当前支持两个保守快照：`{ type: 'followMotion', preset: 'fullFollow' }` 同步添加“跟随运动器—完全跟随”，即同时跟随目标位置和朝向；`{ type: 'basicMotion', preset: 'default' }` 同步添加真实空模型样本中观察到的基础运动器默认快照。省略 `components` 时不新增组件，完整继承模板现有组件。跟随运动器和基础运动器均已有真实 GIL、自动回归、受限写回和用户游戏验证；基础运动器还经过编辑器回存后的双侧快照复扫。两者都不开放内部数值对应的未验证细粒度参数。
+`components` 当前支持两个保守快照：`{ type: 'followMotion', preset: 'fullFollow' }` 同步添加“跟随运动器—完全跟随”，即同时跟随目标位置和朝向；`{ type: 'basicMotion', preset: 'default' }` 同步添加基础运动器默认快照（2026-08-13 修正：类型码为 **4**，9B 槽 `080410017203c81f01`；旧实现误用模板自带 type 18 槽，游戏内运动器不生效）。省略 `components` 时不新增组件，完整继承模板现有组件。跟随运动器已有真实 GIL、自动回归、受限写回和用户游戏验证；基础运动器类型码经 2026-08-13 用户两次手动添加差分 + 控制器游戏对照确认，修复后待游戏核验。两者都不开放内部数值对应的未验证细粒度参数。
 
 元件分类支持更新已有页签，也支持创建新页签。创建时设置 `create: true`；省略 `id` 时，工具会读取 `root` 下现有分类的最大 ID 并加 1。名称写入分类节点 `field 1`，分类 ID 写入 `field 3`。例如：
 

@@ -197,12 +197,12 @@ function fullFollowComponent(): Uint8Array {
 }
 
 function basicMotionComponent(): Uint8Array {
-  return Buffer.from(
-    '08121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587' +
-      'bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2' +
-      'abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f6465',
-    'hex'
-  )
+  // 2026-08-13 修正：真实"基础运动器"组件为 type 4（9B 默认快照 080410017203c81f01）。
+  // 此前 type 18（101B）是模板自带组件（含受击/被击倒特效子块），2026-07-29 A/B 差分
+  // 把新建元件的模板自带槽误判为用户新增的基础运动器槽。证据：2026-08-13 用户两次
+  // 手动添加"基础运动器"（相邻快照差分，字节逐字节一致）+ 控制器游戏对照
+  // （控制器有 type 4 能转，角块无 type 4 不能转）。
+  return Buffer.from('080410017203c81f01', 'hex')
 }
 
 type TabBarRegionConfig = {
@@ -320,7 +320,7 @@ function componentSnapshot(component: GstsStaticAssemblyComponent): {
     return { typeCode: 9, bytes: fullFollowComponent() }
   }
   if (component.type === 'basicMotion' && component.preset === 'default') {
-    return { typeCode: 18, bytes: basicMotionComponent() }
+    return { typeCode: 4, bytes: basicMotionComponent() }
   }
   if (component.type === 'tabBar') {
     // 内联配置（gsts.config.ts / structure 文件外的组件）与 prefab update 都经此校验：

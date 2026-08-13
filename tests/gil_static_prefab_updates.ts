@@ -66,14 +66,15 @@ const basicMotion = applyStaticPrefabUpdate({
     components: [{ type: 'basicMotion', preset: 'default' }]
   }
 })
-const basicDefinition = components(record(basicMotion.bytes, 4, FIXTURE_IDS.definition), 8, 18)
-const basicInstance = components(record(basicMotion.bytes, 8, FIXTURE_IDS.instance), 7, 18)
+const basicDefinition = components(record(basicMotion.bytes, 4, FIXTURE_IDS.definition), 8, 4)
+const basicInstance = components(record(basicMotion.bytes, 8, FIXTURE_IDS.instance), 7, 4)
 assert.equal(basicDefinition.length, 1)
 assert.equal(basicInstance.length, 1)
 assert.equal(Buffer.from(basicDefinition[0]).equals(Buffer.from(basicInstance[0])), true)
 assert.equal(
+  // 2026-08-13 修正：基础运动器真实类型码 4（9B 默认快照），旧 18 为模板自带组件误判
   Buffer.from(basicDefinition[0]).toString('hex'),
-  '08121001e2015e4a25180120012a0032003d0000803f420052005801ba1f0ce58f97e587bbe789b9e69588d81f0d5228180120012a0032003d0000803f420052005801ba1f0fe8a2abe587bbe58092e789b9e69588d81f0d5a0b47495f526f6f744e6f6465'
+  '080410017203c81f01'
 )
 
 writeFileSync(gilPath, sourceBytes)

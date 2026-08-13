@@ -128,8 +128,10 @@ assert.equal(exported[0].definitionId, 1077936182)
 assert.deepEqual(exported[0].auxIds, [])
 assert.equal(exported[0].resourceId, 20001454)
 assert.deepEqual(exported[0].position, [10, 0, 0])
-assert.equal(exported[0].components.length, 1)
-assert.equal(exported[0].components[0].type, 'basicMotion')
+// 2026-08-13 修正：该真实样本（箭头指示牌 def 1077936182）组件为模板基线
+// [18,1,3,19,6,14]，不含基础运动器（type 4）；type 18 不再被误解码为 basicMotion，
+// 因此导出组件列表应为空（1/3/6/14/18/19 均不在公开组件解码范围）。
+assert.deepEqual(exported[0].components, [])
 // registry 登记：root 6 的 f1=3 组应含 {f1=200, f2=1077936187}
 const registry = (top.find((field) => field.number === 6 && field.wire === 2)!
   .value as Uint8Array)

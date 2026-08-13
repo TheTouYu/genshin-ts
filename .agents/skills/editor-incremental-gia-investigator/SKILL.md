@@ -51,6 +51,7 @@ compatibility: Genshin-TS repository with Node.js, tsx, tools/pkc.py, tools/list
 | 领域                                         | 模块                                     |
 | -------------------------------------------- | ---------------------------------------- |
 | GIL 根层、整体字段树、自由新建或自由修改对象 | `references/gil-whole-structure.md`      |
+| 静态 GIL 组件槽差分：用户在编辑器加/移除/改组件后的归因与快照对照 | `references/component-diff.md`（脚本 `scripts/component-diff.ts`） |
 | 节点图普通数据/控制流连接与 Variant 选型 | `references/node-graph-logic/connections.md` |
 | 用户自建复合节点：创建/参数/改名/排序/调用侧 | `references/node-graph-logic/composite-nodes.md` |
 | 节点图逻辑：信号注册、发送、监听或信号参数   | `references/node-graph-logic/signals.md` |
