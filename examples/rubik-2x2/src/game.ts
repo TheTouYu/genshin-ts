@@ -274,10 +274,12 @@ const graph = g
           gstsServerOrbitBlock(f, e, axis, center, i)
         }, () => {})
       }
-      // 1s 后解锁（转动总时长 = 5 段 × 0.2s = 1s，与自旋同步）
+      // 1.5s 后解锁（2026-08-14 生产发现 #2：orbit5 定时器 800ms + 0.2s 时长，tick 不稳时
+      // 可能晚于 1000ms 结束；解锁后立即操作会替换/中断未完成的旧运动器 → 缺末段 → 永久偏差。
+      // 延后到 1500ms 给运动器结束余量；事件驱动解锁（whenBasicMotionDeviceStops 挂角块）待后续。）
       setTimeout((_e, tf) => {
         tf.setNodeGraphVariable('lock', false, false)
-      }, 1000)
+      }, 1500)
     }
   })
 
