@@ -66,6 +66,12 @@
 | 向量分量 | vec3 有 `.x/.y/.z` getter（生成 split3dVector 节点） |
 | 三角函数 | `cosineFunction/sineFunction`（弧度输入；角度需乘 π/180） |
 
+## 复合节点编写（2026-08-14 方法论，详见 game-from-scratch/references/composite-authoring.md）
+
+- 调用：f.callComposite(handle, { 输入名: 值 })；多输出 res.输出名；嵌套/循环内可调用。
+- 优先**纯数据复合**（inputs/outputs 类型声明，build 只算）；需要动作用 registerExecNode + outflows + f.outflow。
+- 能力边界：setTimeout 不可用（#3）、dict 图变量读写不可用（#4）、startTimer 可用（float_list 输入）、字面量输入自动包装（#1 已修复）。
+- 价值：复用型（多处调用）+ 封装型（单次但职责清晰）；通用型复合（比较/数学扩展）是跨项目资产。
 ## 四层交叉验证链
 
 ```text

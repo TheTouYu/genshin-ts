@@ -98,6 +98,12 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
 - **引擎规则速查（先查再问）**：`references/engine-rules.md`——坐标系（Y 垂直上、XZ 地面）、运动器 6 类全表与选择准则（无椭圆类，轨迹用分段直线）、关键事件 payload（含 whenEntityIsCreated / whenBasicMotionDeviceStops / whenTimerIsTriggered）、关卡实体（g.stage）、动态创建（createPrefab 无 GUID）、定时器同步推进、输入锁模式。设计/实现前先翻它，避免向用户重复问已沉淀的规则。
 - **组件前置依赖**：运动类节点（如旋转运动器）要求目标实体带**基础运动器组件（basicMotion）**，否则节点执行时报错（P4 最小实验真实踩坑：用户手动补组件后日志恢复正常；基础元件模板自带 preset=default）。
 
+### 复合节点编写（2026-08-14 方法论沉淀——重要技能）
+
+- **原则：能做成复合节点的，一定往这个方向靠**——即使未被别处使用也不亏（布局清晰），
+  别处复用更赚，跨项目复用是巨大资产。
+- 两种价值：**复用型**（多处调用）+ **封装型**（单次调用但"一件事"范围清晰，如自旋/层筛选）。
+- 能力边界与编写步骤见 `references/composite-authoring.md`；通用型复合（比较/数学扩展）是跨项目资产。
 ### 玩法逻辑架构模式（用户 2026-08-10/12 亲手教学，rubik 旋转）
 
 旋转类玩法拆成**两大块独立实现**：
