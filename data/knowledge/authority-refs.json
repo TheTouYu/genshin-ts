@@ -977,6 +977,21 @@
       ]
     },
     {
+      "id": "aref_76272384443898cd8612efdd7f",
+      "path": "docs/game-engine-knowledge/motion-devices.md",
+      "locator": "第 7.5 节 负载与时序稳定性",
+      "role": "external_environment_behavior",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "c0eec2536bd353be85b19133ea5fc7af49d3545abde49b31769ed019c075c3b4",
+      "claim_ids": [
+        "clm_36A5D97790563B962E5E968EF2"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_76a4b1901305e85b78f23a5e2c",
       "path": "docs/game-engine-knowledge/motion-devices.md",
       "locator": "第 7 节 DSL 实现笔记",
