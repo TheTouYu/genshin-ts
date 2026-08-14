@@ -1097,6 +1097,21 @@
       ]
     },
     {
+      "id": "aref_7061d3c60a75b4a422f23ee964",
+      "path": "tests/composite/test-composite-node-family-coverage.ts",
+      "locator": "coverage matrix test implementation",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "f4546d615758465f662732b6b5d5558370bfb686177ddaf3ca0a4eba45e0638a",
+      "claim_ids": [
+        "clm_740967E3FFD383A6EEA8C68637"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
+      ]
+    },
+    {
       "id": "aref_70fcc232631848d00f8f6fcf44",
       "path": "docs/game-engine-knowledge/gil-structure-semantics.md",
       "locator": "当前已闭合的有限字段树（root 10 复合容器 10.1/10.1.1/10.2/10.5.3）与注入器合并路径",
@@ -2236,6 +2251,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_f6b25b97d8f3a47e3453d7e362",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "coverage matrix documentation (event family section)",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "1e04d8974c819f46fa22abacef3ab57f96ea92c11e55f70c07aba4e14d1a683d",
+      "claim_ids": [
+        "clm_740967E3FFD383A6EEA8C68637"
+      ],
+      "supports_fact_classes": [
+        "evidence_scope"
       ]
     },
     {

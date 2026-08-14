@@ -1598,6 +1598,11 @@
       "fact_classes": [
         "documented_contract"
       ]
+    },
+    "clm_740967E3FFD383A6EEA8C68637": {
+      "fact_classes": [
+        "evidence_scope"
+      ]
     }
   }
 }
