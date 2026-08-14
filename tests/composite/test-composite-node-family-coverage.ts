@@ -326,6 +326,50 @@ const cases: FamilyCase[] = [
   }
 ]
 
+// —— 事件族覆盖（2026-08-15 扩展）：复合内 f.on 编码矩阵 ——
+// 已验证（游戏实测）：whenCustomVariableChanges / whenTimerIsTriggered / whenEntityIsCreated；
+// 本矩阵在编译层批量验证其余代表事件能否在复合 impl 内编码（payload 引脚/元数据缺口会在此暴露）。
+// 覆盖 10 类事件语义：状态变量 / 实体生命周期 / 碰撞触发 / 战斗伤害 / 运动停止 / 定时器 /
+// UI 交互 / 单位状态 / 阵营玩家 / 装备背包。
+const EVENT_COVERAGE_NAMES = [
+  'whenPresetStatusChanges',
+  'whenComplexCreationPresetStatusChanges',
+  'whenEntityIsCreated',
+  'whenEntityIsDestroyed',
+  'whenEnteringCollisionTrigger',
+  'whenExitingCollisionTrigger',
+  'whenAttacked',
+  'whenAttackHits',
+  'whenBasicMotionDeviceStops',
+  'whenGlobalTimerIsTriggered',
+  'whenTabIsSelected',
+  'whenTextBubbleIsCompleted',
+  'whenUnitStatusChanges',
+  'whenUnitStatusEnds',
+  'whenEntityFactionChanges',
+  'whenTheActiveCharacterChanges',
+  'whenEquipmentIsEquipped',
+  'whenItemIsAddedToInventory'
+]
+for (const evt of EVENT_COVERAGE_NAMES) {
+  const short = evt.replace('when', '').toLowerCase()
+  cases.push({
+    name: 'fam_evt_' + short,
+    family: 'event',
+    def: () =>
+      g.defineComposite('fam_evt_' + short, {
+        inputs: {},
+        outputs: {},
+        build: (_a, f) => {
+          f.on(evt as never, (_e: any, ef: any) => {
+            ef.registerExecNode('print_string', [new str('evt')])
+          })
+          return {}
+        }
+      })
+  })
+}
+
 // —— 迭代收敛：构建全部 → 失败定位 → 移除 → 重试 ——
 let remaining = [...cases]
 const failures: Array<{ name: string; family: string; error: string }> = []

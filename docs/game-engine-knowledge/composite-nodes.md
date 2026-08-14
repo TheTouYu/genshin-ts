@@ -561,6 +561,15 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 | 局部变量 | get/set_local_variable | ✅（既有测试） | ⏳ |
 | 定时器 | start_timer | ✅（8-14 实证） | ✅（v2 定时器宿主） |
 | 组合 | loc+vec 链 / dict+vec 链 | ✅ | ✅ |
+| 事件族 | f.on(事件) 复合 impl 内注册（2026-08-15 扩展：18 代表事件 × 10 类语义全覆盖） | ✅（45/45 一次通过） | ⏳ 游戏层仅 whenCustomVariableChanges / whenTimerIsTriggered / whenEntityIsCreated 实测 |
+
+**事件族编译层矩阵明细（2026-08-15）**：状态变量（whenPresetStatusChanges、whenComplexCreationPresetStatusChanges）、
+实体生命周期（whenEntityIsCreated/Destroyed）、碰撞触发（whenEntering/ExitingCollisionTrigger）、战斗伤害
+（whenAttacked、whenAttackHits）、运动停止（whenBasicMotionDeviceStops）、定时器（whenGlobalTimerIsTriggered）、
+UI 交互（whenTabIsSelected、whenTextBubbleIsCompleted）、单位状态（whenUnitStatusChanges/Ends）、阵营玩家
+（whenEntityFactionChanges、whenTheActiveCharacterChanges）、装备背包（whenEquipmentIsEquipped、
+whenItemIsAddedToInventory）——全部在复合 impl 内 f.on 编码通过；**编译层 PASS 只证明编码无缺口，
+事件触发语义需逐事件游戏核验**（#21 已证 whenNodeGraphVariableChanges 图变量不触发）。
 
 **已知 DSL 约束**（编译层暴露）：
 - createPrefab 的 prefabId 参数不支持数据节点（只接受字面量/实例）——复合输入传 prefabId 实例
