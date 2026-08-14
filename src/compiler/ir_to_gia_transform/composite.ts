@@ -772,11 +772,18 @@ function materializeImplOrdinaryGraphWithVendor(
             return remapSpecialArgInputIndex(node.type, index)
           }
           const physicalIndex = remapPinHoleInputIndex(node.type, index)
-          // Any ordinary boundary capture targeted by compositePins requires a real typed
-          // physical InParam. Pin-hole/special-arg families remain sparse because their
-          // physical indexes are owned by their adapters.
+          // 编辑器规则（2026-08-14 轮 6/9/9b 差分终裁）：已配置 Variant/Fixed 的 boundary capture
+          // 落物理 pin（默认值形态，如 equal ioc=5）；**未配置 Variant（无 concreteId）不落盘**
+          // （compositePins overlay 提供值，物理 pin 不存在——轮 9 get_custom_variable 样本）。
+          const unconfiguredVariant =
+            result.dtcConcreteNid === undefined &&
+            result.gvConcreteNid === undefined &&
+            result.customVariableConcreteNid === undefined &&
+            result.localVariableConcreteNid === undefined &&
+            result.ordinaryConcreteNid === undefined
           if (
             boundaryInputIndexes.has(physicalIndex) &&
+            !unconfiguredVariant &&
             !isSharedPinHoleAdapterNodeType(node.type) &&
             !isSharedSpecialArgAdapterNodeType(node.type)
           ) {
@@ -1641,6 +1648,16 @@ function buildImplNodePins(
           })
         }
       } else if (isBoundaryInput && !usesPinHoleRemap) {
+        // 编辑器规则（轮 6/9/9b）：未配置 Variant 的 boundary capture 不落物理 pin
+        // （compositePins overlay 提供）；已配置 Variant/Fixed 落盘（默认值形态）
+        const unconfiguredVariant =
+          gvConcreteNid === undefined &&
+          customVariableConcreteNid === undefined &&
+          localVariableConcreteNid === undefined
+        if (unconfiguredVariant) {
+          if (!usesPinHoleRemap && !usesSpecialArgRemap) sequentialPinIndex++
+          continue
+        }
         const inputType =
           boundaryInputTypes.get(pinIndex) ??
           getImplArgType(arg) ??

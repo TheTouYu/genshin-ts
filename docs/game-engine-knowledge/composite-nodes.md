@@ -467,6 +467,20 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - compositePins 零变化（条件/分支值未提升为复合参数——纯内部节点）。
 - 生产对照：DSL f.multipleBranches(v, [...]) 编译层通过（fam_ctl_mbranch）；官方 golden 已可逐字段对照。
 
+### 提升输入物理 pin 落盘：Fixed vs Variant（2026-08-14 轮 6/9 差分 CONFIRMED）
+
+> 轮 6：加法节点（Fixed）提升输入 → 全 pin 物化（3:0 提升 + 3:1 未连线 + 4:0 输出都落盘）
+> 轮 9：get_custom_variable（Variant，未配置 concreteId）提升变量名输入 → **不落 InParam(1)**；
+> 仅目标实体（连线）落 InParam(0)
+
+- **规则**：Fixed 节点提升输入 → 物理 pin 落盘；**Variant 未配置节点提升 capture → 不落物理 pin**
+  （capture 经 compositePins overlay 提供，无需物理 pin）。
+- **终裁**：test-custom-variable 断言「captured InParam 不编码」= **与编辑器一致，断言正确**——
+  生产 materialize 的「boundary capture 保留物理 pin」（P4-W7 注释假设）与编辑器 Variant 行为不符，
+  生产需修（Variant capture 不创建物理 pin；已存在的默认值/连线 pin 保持——轮 4 dict 输入提升
+  内部节点零变化为证）。
+- 观察项：目标实体源 node 34（gid 73）自动补入（编辑器为用户填充实体源）。
+
 ### 复现命令
 
 ```bash

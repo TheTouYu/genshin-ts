@@ -1,4 +1,6 @@
 // @ts-nocheck
+// 2026-08-14 更新：断言从「captured InParam 不编码」改为「已配置 Variant capture 落盘」——
+// 差分轮 9b 终裁（编辑器 equal cid=370 提升落盘）；未配置 Variant 不落盘见轮 9。
 
 import assert from 'node:assert/strict'
 
@@ -88,11 +90,11 @@ const expected = {
 for (const [name, expectedPin] of Object.entries(expected)) {
   const node = nodeByName.get(name)
   assert.ok(node, `missing ${name} at InParam[1]`)
-  assert.equal(
-    node.pins.some((pin) => pin.i1?.kind === 3 && pin.i1?.index === 0),
-    false,
-    `${name} must not encode captured InParam[0]`
-  )
+  // 2026-08-14 轮 9b 差分终裁：已配置 Variant 的 capture 提升落物理 pin（默认值形态）——
+  // 编辑器 equal（cid 370）提升输入落盘（ioc=5）；未配置 Variant 不落盘（轮 9 get_custom_variable）
+  const capturedPin = node.pins.find((pin) => pin.i1?.kind === 3 && pin.i1?.index === 0)
+  assert.ok(capturedPin, `${name} must encode captured InParam[0] (configured Variant)`)
+  assert.equal(capturedPin.type, 1, 'captured InParam[0] type must be entity')
   assert.equal(node.concreteId?.nodeId, expectedPin.concreteNodeId)
 
   const output = node.pins.find((pin) => pin.i1?.kind === 4 && pin.i1?.index === 0)
