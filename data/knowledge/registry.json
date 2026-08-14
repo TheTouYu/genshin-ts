@@ -1537,6 +1537,11 @@
       "fact_classes": [
         "transform_defaults"
       ]
+    },
+    "clm_26377685777BD6F2DE40A797D4": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
     }
   }
 }

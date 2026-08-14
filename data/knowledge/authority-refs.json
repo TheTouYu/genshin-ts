@@ -617,6 +617,21 @@
       ]
     },
     {
+      "id": "aref_3fd14200bbbda9745717570001",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "#21",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "50f20eb58d73d8d5d6c2b2471c58795d9c6b3236b5f95eb6e27df3c16c1e26e9",
+      "claim_ids": [
+        "clm_26377685777BD6F2DE40A797D4"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_408d1683769af803c77e99272d",
       "path": "tests/long_motion_device_stop_handler_test.ts",
       "locator": "formal 20-branch Stage 1 to Stage 2 regression and IR structure assertions",
