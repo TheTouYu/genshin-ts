@@ -204,12 +204,19 @@ export class CompositeRegistry {
         } else if (
           hasExec &&
           impl?.captureNodeId &&
-          !hasCompositeEventNode(impl)
+          !isPureEventComposite(
+            impl,
+            inflowMarks,
+            (impl?.outflowMarks ?? []) as Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>,
+            explicitInflowDefs
+          )
         ) {
-          // 事件复合（impl 含 when_* 事件节点，如 whenTimerIsTriggered）以事件为
-          // 执行入口，capture 节点无物理 InFlow——不生成调用流 InFlow 路由。
-          // （2026-08-14 v20：事件流复合与调用流复合分离架构；2690 日志实证
-          //   事件回调是独立执行流，复合输入 capture 在事件流中不可见）
+          // 纯事件复合（如 gsts_orbit_trigger：无 outflow、无调用流入口，impl 含
+          // when_* 事件节点）以事件为执行入口，capture 节点无物理 InFlow——不生成
+          // 调用流 InFlow 路由（2026-08-14 v20 架构）。
+          // 注意：混合复合（调用流 + 事件节点，如 gsts_orbit_segment：有 done outflow、
+          // 被调用流消费）必须有调用流 InFlow——2026-08-14 v20 回归实证：误判为事件
+          // 复合 → InFlow 路由被砍 → 注入后 MB 分支→复合调用的 exec 边无接口对应被丢。
           const captureEdges = impl.edges[impl.captureNodeId] ?? []
           if (captureEdges.length > 0) {
             for (const edge of captureEdges) {
@@ -294,7 +301,14 @@ export class CompositeRegistry {
         const isMultiInflow = totalInflows > 1
         const isMultiOutflow = totalOutflows > 1
 
-        const isEventComposite = impl ? hasCompositeEventNode(impl) : false
+        const isEventComposite = impl
+          ? isPureEventComposite(
+              impl,
+              inflowMarks,
+              (impl?.outflowMarks ?? []) as Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>,
+              explicitInflowDefs
+            )
+          : false
 
         return {
           name,
@@ -434,6 +448,20 @@ export class CompositeRegistry {
     // 事件复合判定：impl exec 链含 when_* 事件节点（f.on 注册的复合内事件入口）
     function hasCompositeEventNode(impl: CompositeCapture): boolean {
       return (impl.execNodes ?? []).some((n) => n.nodeType.startsWith('when_'))
+    }
+    // 纯事件复合判定（v20 回归修正）：有事件节点 + 无 outflow 标记 + 无显式 inflow 声明。
+    // 混合复合（orbit_segment：whenCustomVariableChanges 事件 + done outflow + 调用流）
+    // 不算纯事件复合——它需要调用流 InFlow 入口。
+    function isPureEventComposite(
+      impl: CompositeCapture,
+      inflowMarks: Array<{ name: string; innerNodeId: number; inflowPinIndex: number }>,
+      outflowMarks: Array<{ name: string; innerNodeId: number; outflowPinIndex: number }>,
+      explicitInflowDefs: CompositeFlowDef[]
+    ): boolean {
+      if (!hasCompositeEventNode(impl)) return false
+      if (outflowMarks.length > 0) return false
+      if (explicitInflowDefs.length > 0) return false
+      return true
     }
 
     function normalizeFlowDefs(defs: Array<string | CompositeFlowDef>): CompositeFlowDef[] {
