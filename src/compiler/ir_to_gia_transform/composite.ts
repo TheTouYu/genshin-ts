@@ -49,6 +49,7 @@ import {
 } from './pin_hole_adapter.js'
 import {
   resolveArgumentTypes,
+  DICT_KV_VARIANT_NODE_TYPES,
   resolveNodeIdentity,
   usesSharedOrdinaryConcreteIdentity,
   usesSharedVariantResolution
@@ -486,8 +487,7 @@ function buildImplGraphNodes(
     // only as a non-shared fallback for any still-unmigrated concrete-wrapped family.
     // assembly typed concrete: nodeId already resolved to variant; keep it as concrete only.
     const ordinaryConcreteNid =
-      usesSharedOrdinaryConcreteIdentity(node.type) ||
-      node.type === 'set_or_add_key_value_pairs_to_dictionary'
+      usesSharedOrdinaryConcreteIdentity(node.type) || DICT_KV_VARIANT_NODE_TYPES.has(node.type)
         ? sharedConcreteNid
         : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
           ? nodeId

@@ -426,6 +426,47 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - 复合内 setTimeout 不可用（生产发现 #3，定时器留宿主）
 - 事件注册留宿主（复合是资产，不挂事件）
 
+### 打包自动注册输入（2026-08-14 轮 7 差分 CONFIRMED，manifest 缺口闭合）
+
+> 证据：宿主图选中 2 个相邻 doubleBranch 节点 → 创建复合 → 编辑器保存差分（vs v6 注入基线）
+
+- **打包时源在范围外的连线 → 自动注册为复合输入**：def inputs 追加（自动命名「输入1」、类型=源类型 bool、
+  pinIndex 继续全局分配器）；compositePins 追加 {outer={3:0}, innerNode=内部条件节点, inner={3:0}}；
+  实例落 InParam + 源侧连线改写（实例 connects→源节点，源侧零落盘——与普通调用连线同构）。
+- **控制流自动注册**：打包内 doubleBranch 的控制流提升为复合 inflow/outflow（inflow name 空、outflow name=「是」
+  ——分支名直接提升）；实例落 OutFlow pin（field7 引用）。
+- **打包内既有连线保留**（内部节点条件 ← 内部节点输出，connects 保持）。
+- **打包节点保留坐标**（x/y 有值——与 v23「包装搬入无坐标」不同，观察项：可能 exec/控制流节点打包保留坐标，
+  或编辑器版本差异）。
+- **def id ≠ 实例 id**：打包复合 def id=1610612749、宿主实例 gid=1610612741（差 8）——与生产复合
+  （实例 id=def id）不同，观察项（编辑器打包复合的引用 id 空间）。
+- 生产对照：DSL defineComposite 是声明式（inputs 显式声明），无需打包自动注册——该规律服务于
+  「整图打包」理论（用户）：编辑器可把任意主图逻辑打包为复合，外部连线自动成为输入。
+
+### 复合内多分支默认形态（2026-08-14 轮 8 差分 CONFIRMED）
+
+> 证据：orbit_calc 内部添加「多分支」节点（全部默认、无分支条件、无新增分支），编辑器保存差分
+
+- **默认未配置多分支 = 空壳节点**：genericId=3（Multiple_Branches）、**无 concreteId**（Variant 未配置）、
+  **零 pins**（无分支条件值、无分支输出）——与内部图普通 Variant 节点规则一致（v33：未配置无 cid、零 pins）。
+- 新增节点取 nodeIndex 1（内部图最小空闲分配器）。
+- 后续分支配置（条件值/Case 分支）需差分轮 8b 补 golden。
+
+### 复合内多分支配置形态（2026-08-14 轮 8b 差分 CONFIRMED）
+
+> 证据：orbit_calc 内多分支节点配置——局部变量节点作条件 + 新增 2 分支（值 1/2）+ 三分支连线，编辑器保存差分
+
+- **concreteId 按条件类型选变体**：条件为 int → Multiple_Branches__Int=3（Generic=3 同 id）。
+- **pins 形态**：
+  - OutFlow 0/1/2（DefaultBranch=0、Case1=1、Case2=2——与宿主图 v38/case19 规则一致）+ connects→目标 InFlow（内部连线同构）
+  - InParam(0) 条件：type=条件类型（int=3）、value=ConcreteBase{IntBase}（默认）+ connects→数据源
+  - **InParam(1) 分支值列表**：type=**XXList**（int→IntegerList=8）、value=ConcreteBase{ArrayBase,
+    bArray.entries:[IntBase{val:1}, IntBase{val:2}]}——每个 Case 值一个 entry（有序）
+- 局部变量节点（Get_Local_Variable gid 18 / cid 20）作条件源：OutParam(1)=局部变量值 + 初始值 InParam(0)
+  （IntBase 默认）——复合内局部变量与宿主图同构。
+- compositePins 零变化（条件/分支值未提升为复合参数——纯内部节点）。
+- 生产对照：DSL f.multipleBranches(v, [...]) 编译层通过（fam_ctl_mbranch）；官方 golden 已可逐字段对照。
+
 ### 复现命令
 
 ```bash

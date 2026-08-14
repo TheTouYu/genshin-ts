@@ -192,6 +192,9 @@ export function applyMultipleBranchesSpecialArgs(
       if (pin && typeof pin.setType === 'function') {
         pin.setType({ t: 'b', b: controlArg.type === 'str' ? 'Str' : 'Int' })
         // Leave pin.value null so encode uses empty schema body (alreadySetVal=false).
+        // 2026-08-14 golden 对照：官方条件 pin 为 ConcreteBase 包装默认值——差异来源是 vendor
+        // simple_value_var 的 empty_simple 兼容策略（basic.ts 注释：编辑器导出兼容/校验避免），
+        // 语义等价（条件值来自连线），保持生产策略不改为官方形态（记录于 composite-nodes.md）。
       } else {
         setLiteralArgValue(
           giaNode,

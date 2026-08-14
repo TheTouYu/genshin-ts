@@ -482,3 +482,17 @@ g.server({}).on('playerLogin', (evt, f) => {
 ```
 
 编排：data exec → exec exec，compositeDataEdges 记录跨复合数据流。
+
+
+## 生产发现记录（2026-08-14 差分驱动）
+
+| # | 场景 | 根因 | 修复 |
+|---|---|---|---|
+| 1 | callComposite 字面量输入崩溃 | 裸 number/bigint/string 无 getMetadata | buildCompositeCallArgs 按声明类型包装（+collectDataDeps 防御） |
+| 2 | 连续旋转最后位置永久偏差 | orbit5 缺末段（1500ms 空等） | 相对时序解锁（orbit5 触发后 +250ms） |
+| 3 | 复合内 setTimeout | 缺少编译器元数据 | 定时器回调留宿主 |
+| 4 | 复合内 get_node_graph_variable dict 类型 Ety | variablesByName 只来自 implVariables + suffix 无 dict 分支 | graphVariables 传入 + dict suffix + kv 变体 + conn dict k/v 补全 + buildConnPin dict |
+| 5 | 定时器回调 callComposite 传局部变量句柄崩溃 | 句柄 {localVariable, value} 无 getMetadata（转换器只对高层 API 位置参数解 .value） | buildCompositeCallArgs 识别句柄取其 value（markPin 值类实例） |
+| 6 | 参数边界防御（系列） | ir_builder/composite_registry 对 null/非 value 直接 getMetadata | null 占位 + arg?.getMetadata?.() 防御（回归 test-call-composite-input-boundary.ts） |
+| 7 | callComposite ID 类型字面量输入（prefab_id 等） | buildCompositeCallArgs 包装只支持 int/float/bool/str，ID 类型 fallback generic | Ctor 映射扩展（prefab_id→prefabId 等，pid: bigint → prefabId 实例） |
+| 8 | 复合内空列表参数（new list('int')） | list 基类 toIRLiteral 返回 null，{...null} 展开成 {} → argVarType(undefined) | composite_registry 保留 null 占位；空列表用 listLiteral |

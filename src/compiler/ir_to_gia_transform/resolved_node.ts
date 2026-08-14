@@ -342,10 +342,9 @@ export function resolveNodeIdentity(
           ? inputs[1]?.type
           : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
 
-  // set_or_add_key_value_pairs_to_dictionary：kv 变体由 dict 参数（或 key/value 参数）类型决定
-  // （对齐 node_id.ts resolveGiaNodeId 的 set_or_add 分支语义；枚举键不带 Dict_ 前缀，
-  //  如 Set_or_Add_Key_Value_Pairs_to_Dictionary__Int_Vec=995）
-  if (node.type === 'set_or_add_key_value_pairs_to_dictionary') {
+  // dict KV 变体族：concreteId 由 dict 参数（或 key/value 参数）类型决定
+  // （对齐 node_id.ts resolveGiaNodeId 的 kv 分支语义；枚举键格式不统一——查询双格式）
+  if (DICT_KV_VARIANT_NODE_TYPES.has(node.type)) {
     const dictType = inputs[0]?.type
     const kvType =
       dictType?.kind === 'dict' && dictType.key.kind === 'scalar' && dictType.value.kind === 'scalar'
@@ -358,7 +357,9 @@ export function resolveNodeIdentity(
     const kSuffix = kType ? (kType.name === 'vec3' ? 'vec' : kType.name) : undefined
     const vSuffix = vType ? (vType.name === 'vec3' ? 'vec' : vType.name) : undefined
     if (kSuffix && vSuffix) {
-      const kvConcrete = nodeIds.get(`${lower}__${kSuffix}_${vSuffix}`)
+      const direct = nodeIds.get(`${lower}__${kSuffix}_${vSuffix}`)
+      const prefixed = nodeIds.get(`${lower}__dict_${kSuffix}_${vSuffix}`)
+      const kvConcrete = direct ?? prefixed
       if (kvConcrete !== undefined) {
         return { logicalType: node.type, genericNodeId, concreteNodeId: kvConcrete }
       }
@@ -402,6 +403,22 @@ export function resolveNodeIdentity(
   }
   return { logicalType: node.type, genericNodeId, concreteNodeId }
 }
+
+/**
+ * dict KV 变体族：concreteId 由字典 key/value 类型决定（node_id.ts resolveGiaNodeId 已有
+ * kv 分支；复合路径 2026-08-14 统一纳管——set_or_add 先行，query_dictionary 等一并覆盖）。
+ * 枚举键格式不统一（部分带 Dict_ 前缀部分不带），concreteId 查询需双格式。
+ */
+export const DICT_KV_VARIANT_NODE_TYPES = new Set([
+  'set_or_add_key_value_pairs_to_dictionary',
+  'query_dictionary_value_by_key',
+  'clear_dictionary',
+  'get_list_of_keys_from_dictionary',
+  'get_list_of_values_from_dictionary',
+  'query_dictionary_s_length',
+  'sort_dictionary_by_key',
+  'sort_dictionary_by_value'
+])
 
 const SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = new Set([
   'addition',
@@ -496,7 +513,7 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
   return (
     nodeType === 'set_node_graph_variable' ||
     nodeType === 'get_node_graph_variable' ||
-    nodeType === 'set_or_add_key_value_pairs_to_dictionary' ||
+    DICT_KV_VARIANT_NODE_TYPES.has(nodeType) ||
     nodeType === 'set_custom_variable' ||
     nodeType === 'get_custom_variable' ||
     nodeType === 'set_local_variable' ||

@@ -197,6 +197,43 @@ const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
   }
 })
 
+// 转动块数据准备复合（2026-08-14 v7：循环体数据逻辑入复合，8 块共用）——
+// 输入 {i, tabId}：内部 blocks[i] 查询 + 层轴字典查询 + isR..isB 比较 + 嵌套 inLayer 层判断；
+// 输出 {e, axis, hit}——宿主保留 doubleBranch（exec 动作 + 定时器留宿主，#3）
+const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
+  inputs: { i: { type: 'int' }, tabId: { type: 'int' } },
+  outputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, hit: { type: 'bool' } },
+  build: ({ i, tabId }, f) => {
+    const e = f.getCorrespondingValueFromList(
+      f.getNodeGraphVariable('blocks').asType('entity_list'),
+      i
+    )
+    const axis = f.queryDictionaryValueByKey(
+      f.getNodeGraphVariable('axes').asDict('int', 'vec3'),
+      tabId
+    )
+    const isR = f.equal(tabId, 1)
+    const isL = f.equal(tabId, 2)
+    const isU = f.equal(tabId, 3)
+    const isD = f.equal(tabId, 4)
+    const isF = f.equal(tabId, 5)
+    const isB = f.equal(tabId, 6)
+    const loc = f.getEntityLocationAndRotation(e).location
+    const hit = f.callComposite(gstsInLayer, {
+      x: loc.x,
+      y: loc.y,
+      z: loc.z,
+      isR,
+      isL,
+      isU,
+      isD,
+      isF,
+      isB
+    }).hit
+    return { e, axis, hit }
+  }
+})
+
 // 角块创建复合（2026-08-14 v6：createPrefab 动作入复合，8 块共用）——
 // 输入 {pid, stage, x, y, z}：内部 createPrefab（位置向量组装/旋转零/默认参数）+ 输出实体；
 // prefabId 只能字面量（DSL 约束：createPrefab 的 prefabId 参数不支持数据节点），宿主传实例
@@ -369,39 +406,13 @@ const graph = g
       // v5.4：层轴查表 + 8 块循环按当前坐标筛选层成员
       // （魔方转动后层成员变化，静态 layers 失效——00-26-27 日志 U 层误转底层块实证；
       //   循环体只物化一次，节点数可控）
-      const axis = f.queryDictionaryValueByKey(
-        f.getNodeGraphVariable('axes').asDict('int', 'vec3'),
-        evt.tabId
-      )
-      const isR = f.equal(evt.tabId, 1)
-      const isL = f.equal(evt.tabId, 2)
-      const isU = f.equal(evt.tabId, 3)
-      const isD = f.equal(evt.tabId, 4)
-      const isF = f.equal(evt.tabId, 5)
-      const isB = f.equal(evt.tabId, 6)
       const center = f.create3dVector(3, 3, 3)
       for (let i = 0n; i < 8n; i++) {
-        const e = f.getCorrespondingValueFromList(
-          f.getNodeGraphVariable('blocks').asType('entity_list'),
-          i
-        )
-        const loc = f.getEntityLocationAndRotation(e).location
-        const inLayer = f.callComposite(gstsInLayer, {
-          x: loc.x,
-          y: loc.y,
-          z: loc.z,
-          isR,
-          isL,
-          isU,
-          isD,
-          isF,
-          isB
-        }).hit
-        f.doubleBranch(inLayer, () => {
-          // exec 复合（自旋动作）+ 计算存储复合（速度+字典，#4 已修复）+ 宿主动作（orbit1）
-          f.callComposite(gstsSpinBlock, { e, axis })
-          // v4：速度计算 + 字典存储全在复合内；v6：orbit1 运动器也入复合（链尾）
-          f.callComposite(gstsOrbitCalc, { e, axis, center, i })
+        // v7：数据准备入复合（blocks[i]/axis/isR..isB/inLayer）；exec 动作 + 定时器留宿主
+        const turn = f.callComposite(gstsTurnCheck, { i, tabId: evt.tabId })
+        f.doubleBranch(turn.hit, () => {
+          f.callComposite(gstsSpinBlock, { e: turn.e, axis: turn.axis })
+          f.callComposite(gstsOrbitCalc, { e: turn.e, axis: turn.axis, center, i })
           gstsServerOrbitTimers(f, i)
         }, () => {})
       }
