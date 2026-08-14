@@ -21,7 +21,7 @@
 //   ⑤ 连续多轮转动后角块是否仍对齐网格（无累积漂移）
 import { g } from 'genshin-ts/runtime/core'
 import type { IntValue } from 'genshin-ts/runtime/value'
-import { float, int, listLiteral, str } from 'genshin-ts/runtime/value'
+import { bool, float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 // ServerExecutionFlowFunctions 定义于 src/definitions/nodes.ts（2026-08-13 修正 import 路径：
 // 原 'genshin-ts/runtime/definitions/nodes' 无对应导出，tsc TS2307；管线 tsx 不查类型故此前未暴露）
 import type { ServerExecutionFlowFunctions } from 'genshin-ts/definitions/nodes'
@@ -289,6 +289,52 @@ const gstsCreateCorner = g.defineComposite('gsts_create_corner', {
   }
 })
 
+
+// 魔方生成复合（2026-08-14 大规模复合化 #14：实体创建全链 70+ 节点 → 1 调用）——
+// 输入 {stage}：内部 8 × create_corner + b0-b7 变量写入；输出 8 实体（宿主组 blocks 数组——
+// 复合内 entity_list 数组字面量有 matchTypes/vendor 编码缺口，blocks 数组留在宿主 v13 已验证路径）
+const gstsSpawnRubik = g.defineComposite('gsts_spawn_rubik', {
+  inputs: { stage: { type: 'entity' } },
+  outputs: { c0: { type: 'entity' }, c1: { type: 'entity' }, c2: { type: 'entity' }, c3: { type: 'entity' }, c4: { type: 'entity' }, c5: { type: 'entity' }, c6: { type: 'entity' }, c7: { type: 'entity' } },
+  outflows: ['done'],
+  build: ({ stage }, f) => {
+    const c0 = f.callComposite(gstsCreateCorner, { pid: 1077936129n, stage, x: 2.5, y: 2.5, z: 2.5 }).e
+    f.setNodeGraphVariable('b0', c0, false)
+    const c1 = f.callComposite(gstsCreateCorner, { pid: 1077936130n, stage, x: 3.5, y: 2.5, z: 2.5 }).e
+    f.setNodeGraphVariable('b1', c1, false)
+    const c2 = f.callComposite(gstsCreateCorner, { pid: 1077936131n, stage, x: 2.5, y: 2.5, z: 3.5 }).e
+    f.setNodeGraphVariable('b2', c2, false)
+    const c3 = f.callComposite(gstsCreateCorner, { pid: 1077936132n, stage, x: 3.5, y: 2.5, z: 3.5 }).e
+    f.setNodeGraphVariable('b3', c3, false)
+    const c4 = f.callComposite(gstsCreateCorner, { pid: 1077936133n, stage, x: 2.5, y: 3.5, z: 2.5 }).e
+    f.setNodeGraphVariable('b4', c4, false)
+    const c5 = f.callComposite(gstsCreateCorner, { pid: 1077936134n, stage, x: 3.5, y: 3.5, z: 2.5 }).e
+    f.setNodeGraphVariable('b5', c5, false)
+    const c6 = f.callComposite(gstsCreateCorner, { pid: 1077936135n, stage, x: 2.5, y: 3.5, z: 3.5 }).e
+    f.setNodeGraphVariable('b6', c6, false)
+    const c7 = f.callComposite(gstsCreateCorner, { pid: 1077936136n, stage, x: 3.5, y: 3.5, z: 3.5 }).e
+    const setB7 = f.node('set_node_graph_variable', [new str('b7'), c7, new bool(false)])
+    f.outflow('done', setB7, 0)
+    return { c0, c1, c2, c3, c4, c5, c6, c7 }
+  }
+})
+
+// Tab 锁门复合（2026-08-14 大规模复合化 #14）：lock 检查 + set lock——
+// 输出 unlocked（lock==false 时 true 且已上锁）；主图 Tab 区域节点数降到阈值内
+const gstsTabLock = g.defineComposite('gsts_tab_lock', {
+  inputs: {},
+  outputs: { unlocked: { type: 'bool' } },
+  outflows: ['done'],
+  build: (_i, f) => {
+    const isFree = f.equal(f.getNodeGraphVariable('lock').asType('bool'), false)
+    // 上锁 = 写 isFree（isFree=true 时 lock=true）；f.node 返回 ref 供 outflow 绑定，
+    // f.link 显式连 capture→setLock（f.node detached 不自动连主链）
+    const setLock = f.node('set_node_graph_variable', [new str('lock'), isFree, new bool(false)])
+    f.link(f.entry(), 0, setLock, 0)
+    f.outflow('done', setLock, 0)
+    return { unlocked: isFree }
+  }
+})
 // 层成员筛选复合：按当前坐标判断块是否在目标层（2026-08-14 复合化，8 块共用）
 const gstsInLayer = g.defineComposite('gsts_in_layer', {
   inputs: {
@@ -355,85 +401,18 @@ const graph = g
     }
   })
   .on('whenEntityIsCreated', (_evt, f) => {
-    // 图只挂控制器：本事件在控制器创建时触发（日志已验证 rec1），角块创建与变量
-    // 读写都在控制器实例内完成（图变量按挂载实体实例隔离，跨实例读取为空——2026-08-13 日志结论）
-      // 角块 i 位置 = (3,3,3) + 0.4825·(dx,dy,dz)，rotate=(0,0,0)，owner=关卡实体
-      const c0 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936129n,
-        stage,
-        x: 2.5,
-        y: 2.5,
-        z: 2.5
-      }).e
-      f.setNodeGraphVariable('b0', c0, false)
-      const c1 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936130n,
-        stage,
-        x: 3.5,
-        y: 2.5,
-        z: 2.5
-      }).e
-      f.setNodeGraphVariable('b1', c1, false)
-      const c2 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936131n,
-        stage,
-        x: 2.5,
-        y: 2.5,
-        z: 3.5
-      }).e
-      f.setNodeGraphVariable('b2', c2, false)
-      const c3 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936132n,
-        stage,
-        x: 3.5,
-        y: 2.5,
-        z: 3.5
-      }).e
-      f.setNodeGraphVariable('b3', c3, false)
-      const c4 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936133n,
-        stage,
-        x: 2.5,
-        y: 3.5,
-        z: 2.5
-      }).e
-      f.setNodeGraphVariable('b4', c4, false)
-      const c5 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936134n,
-        stage,
-        x: 3.5,
-        y: 3.5,
-        z: 2.5
-      }).e
-      f.setNodeGraphVariable('b5', c5, false)
-      const c6 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936135n,
-        stage,
-        x: 2.5,
-        y: 3.5,
-        z: 3.5
-      }).e
-      f.setNodeGraphVariable('b6', c6, false)
-      const c7 = f.callComposite(gstsCreateCorner, {
-        pid: 1077936136n,
-        stage,
-        x: 3.5,
-        y: 3.5,
-        z: 3.5
-      }).e
-      f.setNodeGraphVariable('b7', c7, false)
-      // v5.4：块列表（循环按坐标筛选层成员，替代静态 layers）
-      f.setNodeGraphVariable('blocks', [c0, c1, c2, c3, c4, c5, c6, c7], false)
+    // #14 大规模复合化：实体创建全链（8×create_corner + b0-b7）打包为 gsts_spawn_rubik；
+    // blocks 数组在宿主组（复合内 entity_list 数组字面量缺口，v13 已验证路径）
+    const cubes = f.callComposite(gstsSpawnRubik, { stage })
+    f.setNodeGraphVariable('blocks', [cubes.c0, cubes.c1, cubes.c2, cubes.c3, cubes.c4, cubes.c5, cubes.c6, cubes.c7], false)
   })
   .on('whenTabIsSelected', (evt, f) => {
     // #13 复合内事件验证链：每次 Tab 设置自定义变量（触发事件=是）→
     // orbit_segment 复合内 whenCustomVariableChanges 事件触发 → print 变量名
     f.setCustomVariable(evt.eventSourceEntity, new str('tab_count'), evt.tabId, true)
-    if (f.equal(f.getNodeGraphVariable('lock').asType('bool'), false)) {
-      f.setNodeGraphVariable('lock', true, false)
-      // v5.4：层轴查表 + 8 块循环按当前坐标筛选层成员
-      // （魔方转动后层成员变化，静态 layers 失效——00-26-27 日志 U 层误转底层块实证；
-      //   循环体只物化一次，节点数可控）
+    // #14 大规模复合化：lock 门打包为 gsts_tab_lock（检查+上锁）；
+    // 循环+定时器留宿主（复合内 setTimeout 不可用——生产发现 #3）
+    if (f.callComposite(gstsTabLock, {}).unlocked) {
       const center = f.create3dVector(3, 3, 3)
       for (let i = 0n; i < 8n; i++) {
         // v8：转动一块完整封装（数据准备+层判断+自旋+轨道）；定时器留宿主（#3）
