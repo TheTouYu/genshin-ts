@@ -63,6 +63,34 @@ const anyGreater = g.defineComposite("any_greater", {
 
 积累这类通用复合（比较/数学/条件组合）→ 跨项目复用资产。
 
+### 已验证资产目录（2026-08-15 从 rubik v20 提炼，全部游戏核验通过）
+
+**A. 通用数学/几何类（纯数据、零玩法依赖，可直接复制到任何项目）**
+
+| 复合 | 接口 | 内容 | 适用 |
+|---|---|---|---|
+| `rotate_vec` | (v:vec3, u:vec3, c:float, s:float) → out:vec3 | Rodrigues 旋转公式（轴角参数化） | 任意 3D 旋转 |
+| `local_axis_rot` | (v:vec3, angle:float, u:vec3) → out:vec3 | 绕任意轴旋转（角度制，内部转弧度，含 cos/sin） | 旋转运动器类玩法 |
+| `spin_axis_triple` | (v:vec3, rot:vec3) → out:vec3 | 三轴顺序旋转（Y→X→Z 局部系） | 刚体朝向变换 |
+| `orbit_point` | (vp, vPerp, axv:vec3, c, s:float) → p:vec3 | 圆周运动点计算 p = vp + vPerp·c + axv·s | 环绕/轨道类玩法 |
+| `axis_compare` | (coord:float, isPos, isNeg:bool) → hit:bool | 阈值比较（>3 或 <3，方向参数化） | 范围/层判断 |
+| `any_greater` | (a,b,c,t:float) → hit:bool | 多值超阈值（一次比较多个） | 通用条件组合 |
+
+**B. 机制模式类（模式可复用，需按项目参数化）**
+
+| 模式 | 参考实现 | 适用场景 |
+|---|---|---|
+| **定时器序列调度**（scheduler+trigger 分离） | gsts_orbit_scheduler（调用流注册 start_timer 序列）+ gsts_orbit_trigger（事件流分发） | 任何"延迟序列动作"：一次注册多个时间点，事件触发时按 timerName 分发 |
+| **MB 分发**（dispatch） | gsts_orbit_segment_dispatch（seg → multipleBranches → 各子复合） | 按运行时索引/名称分发到不同子逻辑 |
+| **输入锁 + 解锁**（tab_lock 模式） | 输入期间忽略新输入；完成后 registerExecNode('start_timer') 解锁 | 互斥/防抖玩法 |
+| **信号封装** | 复合内 sendSignal（msg/tag 参数） + 图级 onSignal 消费 | 跨图/跨实体事件通知 |
+| **混合复合**（事件旁路+调用流） | verify_event_comp / tab_lock | 同复合内既有调用流入口又有事件监听 |
+
+**C. 玩法特定（不复用，仅作编写范例）**：spawn_rubik、turn_block、create_corner、layer_hit、in_layer。
+
+**复用判定标准**：inputs/outputs 全为通用标量/vec3 + 不读图变量/不依赖实体状态 = A 类直接复制；
+依赖 start_timer/事件/信号 = B 类按模式重写；依赖魔方特有状态 = C 类只借鉴结构。
+
 ## 6. 陷阱清单（生产发现汇总）
 
 - callComposite 输入用 f.callComposite（handle 不可直接调用）；字面量输入修复后自动包装。

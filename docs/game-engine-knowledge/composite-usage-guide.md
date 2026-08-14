@@ -182,7 +182,23 @@ get/set_node_graph_variable 的**变量名必须字面量 str**；编辑器保�
 7. **读图自检（修复后强制）**：注入后读 .gil 主图全景 + 复合 impl 图——判定标准：dispatch 类复合应显示"外部入口 InFlow → MB 分支 → 各子复合调用"，执行流条数 = MB 分支数 + 后续链；接口 inflows 非空（混合复合必须有调用流入口）。
 8. **游戏核验**：行为不变（复合化不改逻辑）+ 新能力按 case 验证。
 
-## 7. 设计检查清单（写完复合后逐条过）
+## 7. 跨项目资产：从已验证项目提炼（2026-08-15 资产化）
+
+rubik v20 的 22 个复合按可复用性分三档（详见 game-from-scratch 技能
+references/composite-authoring.md 资产目录）：
+
+- **A 类 · 通用数学/几何**（纯数据、零玩法依赖，直接复制）：rotate_vec、local_axis_rot、
+  spin_axis_triple、orbit_point、axis_compare、any_greater。
+- **B 类 · 机制模式**（模式可复用、按项目参数化）：定时器序列调度（scheduler+trigger 分离）、
+  MB 分发（dispatch）、输入锁+解锁（tab_lock）、信号封装、混合复合。
+- **C 类 · 玩法特定**（仅作编写范例）：spawn_rubik、turn_block 等。
+
+**复用判定标准**：inputs/outputs 全为通用标量/vec3 且不读图变量/不依赖实体状态 = A 类直接复制；
+依赖 start_timer/事件/信号 = B 类按模式重写；依赖特有状态 = C 类只借鉴结构。
+
+新项目开工时先查本目录：能直接复用的先复制，能套模式的先套模式，再写玩法特有的部分。
+
+## 8. 设计检查清单（写完复合后逐条过）
 
 - [ ] 每层打开 5~7 节点？超过 → 继续拆
 - [ ] 分类正确？（数据/调用流/事件流/混合）接口语义清晰？
