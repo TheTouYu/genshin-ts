@@ -692,6 +692,21 @@
       ]
     },
     {
+      "id": "aref_4c301ef2c501e8b79d97504f8a",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "#20a",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0634804b8b7842aaa68980db33795127d304714236ffa4a98f1b8e4f57a768f2",
+      "claim_ids": [
+        "clm_2B77A59F626CEE63E0191669C5"
+      ],
+      "supports_fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    {
       "id": "aref_4c382d377794f52e30a953f6c0",
       "path": "src/compiler/ts_to_gs_transform/expr.ts",
       "locator": "transformExpression: shorthand property assignment lowering around the LocalVariable VarPlan branch",
@@ -1217,6 +1232,21 @@
       ]
     },
     {
+      "id": "aref_868dc0d47c2f24dae77320e288",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "#20b",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0634804b8b7842aaa68980db33795127d304714236ffa4a98f1b8e4f57a768f2",
+      "claim_ids": [
+        "clm_B90783C13F06F78A94728CDBB3"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_8743f5362b4be1417f55301da2",
       "path": "tests/composite/test-composite-call-input-types.ts",
       "locator": "callComposite and declareDetached input type regression",
@@ -1544,6 +1574,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_b8a12c6ae9b70b0e6ed770e6b3",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "#20c",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "0634804b8b7842aaa68980db33795127d304714236ffa4a98f1b8e4f57a768f2",
+      "claim_ids": [
+        "clm_CCF86C1A5174DFAD6DDC47ABDB"
+      ],
+      "supports_fact_classes": [
+        "transform_defaults"
       ]
     },
     {

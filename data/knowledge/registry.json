@@ -1522,6 +1522,21 @@
       "fact_classes": [
         "runtime_behavior"
       ]
+    },
+    "clm_2B77A59F626CEE63E0191669C5": {
+      "fact_classes": [
+        "external_game_evidence"
+      ]
+    },
+    "clm_B90783C13F06F78A94728CDBB3": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_CCF86C1A5174DFAD6DDC47ABDB": {
+      "fact_classes": [
+        "transform_defaults"
+      ]
     }
   }
 }

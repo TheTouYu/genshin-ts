@@ -49,3 +49,39 @@ vendor 物化不生成普通 exec 节点的 InFlow/OutFlow pins；synthetic（�
 适用于复合 build 的 exec 链构建与输出设计；纯数据输出（不派生自被写入变量）不受影响；多层嵌套时每层同样适用。
 
 <!-- CLAIM:END clm_5B4ACBBBD0D7F05AAAA4B77FDF -->
+
+<!-- CLAIM:START clm_2B77A59F626CEE63E0191669C5 -->
+
+### 事件回调中复合 capture 参数是惰性引用非快照
+
+复合输入 capture 在事件回调（延迟执行路径，如 whenTimerIsTriggered）中不是调用时快照：引擎沿数据链追回宿主数据源（2690 日志 rec7：注册时 i=1→DTC 输出 1，定时器触发时重求值为 0）。事件回调需要调用时值必须用事件载荷字段（timerName/timerSequenceId/eventSourceEntity）或字面量，不能引用 capture。旧 setTimeout 机制正常是因为编译器用 __gsts_timeout_N_cap_i 字典做了显式值快照。
+
+#### 适用边界
+
+复合内事件回调引用 capture 参数的场景；同步执行路径（复合调用时刻）capture 正常；宿主 setTimeout 回调（编译器快照）不受影响
+
+<!-- CLAIM:END clm_2B77A59F626CEE63E0191669C5 -->
+
+<!-- CLAIM:START clm_B90783C13F06F78A94728CDBB3 -->
+
+### impl 内部 exec 边指向的复合调用节点必须有物理 InFlow pin
+
+impl 图内 multiple_branches 分支等内部 exec 边指向的复合调用节点必须补物理 InFlow pin：buildCompositeCallPins 只生成显式声明的 flow pin，requiredCompositeCallInflows 只从 boundaryPins（复合自己的 InFlow 边界映射）收集，内部 exec 边目标的 InFlow 不在其中；主图路径在 ordinary materializer 自动建 pin，impl 路径合成节点后生成（materializeLegacyImplGraphNode）漏了。修复：syntheticNodes 生成后扫描 implEdges 收集每个合成节点被内部 exec 边指向的 InFlow index 补 pin（与 #11/#12 同构）。2691 日志实证：trigger MB→dispatch 调用后 dispatch 零帧。
+
+#### 适用边界
+
+复合 impl 内部 exec 边（MB 分支→复合调用）场景；复合自己的边界 InFlow（boundaryPins）不受影响；纯数据流调用（数据复合被当数据节点）无需 InFlow
+
+<!-- CLAIM:END clm_B90783C13F06F78A94728CDBB3 -->
+
+<!-- CLAIM:START clm_CCF86C1A5174DFAD6DDC47ABDB -->
+
+### 纯事件复合判定=事件节点+无 outflow+无显式 inflow
+
+纯事件复合（如 gsts_orbit_trigger：无 inputs/outputs/inflows/outflows，入口=f.on 事件）与混合复合（调用流+事件节点，如 gsts_orbit_segment：whenCustomVariableChanges 事件+done outflow+调用流需求）必须区分：判定过宽（只要 impl 含 when_* 就当纯事件复合）会砍掉混合复合的调用流 InFlow 路由→CompositeDef inflows=[]→注入器按接口裁剪调用点引脚→MB 分支边被丢（2691 读图自检实证）。正确判定=事件节点+无 outflow 标记+无显式 inflow 声明三条件。
+
+#### 适用边界
+
+复合定义接口判定场景；纯事件复合（trigger）与混合复合（orbit_segment）的区分；不影响纯调用流复合
+
+<!-- CLAIM:END clm_CCF86C1A5174DFAD6DDC47ABDB -->
