@@ -105,7 +105,15 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 - **罗德里格斯链（旋转轴转换）**：3 段 zoom/subtraction/cross 组合；核对关键中间值（v·c、u×v·s、u·(u·v)）。
 - **rotation 输出（Get Entity Location and Rotation 的 OUT1）**：欧拉角（YXZ 内旋）；**组合旋转后可用矩阵反推验证轴语义**（2026-08-13 实证：匀速旋转 axis 为局部轴，M_new = M·R_local）。
 - **复合 head 前缀 = 调用栈（2026-08-14 #12 实证）**：head=320702 读作「宿主节点 0x32(50)=turn_block 调用 → impl 节点 7=velocity 复合 → velocity impl 节点 2」。turn_block 内 impl 序号：3202 doubleBranch / 3203 spin_block / 3204 store / 3205 运动器(84) / 3206 turn_check / 3207 velocity。用 grep -o "head=32[0-9a-f][0-9a-f]" | sort | uniq -c 即可得到复合内各节点执行计数——**链尾普通 exec 节点计数为 0 即断链信号**。
-- **复合内 exec 链断链诊断（2026-08-14 #12 闭环）**：现象 = 复合内全部节点有帧但链尾普通节点（如运动器）零帧 → done outflow 不触发 → 宿主链零帧 → 锁/后续逻辑不响应。根因两段：① core.ts connect 对 composite call 返回对象（仅 __markerNodeId 无 id）用 sourceRef.id → IR implEdges 源 "undefined" → materialize 静默丢边；② 即使 IR 边正确，普通 exec 节点缺物理 InFlow pin。修复后日志判据：链尾节点出现帧（m1 head=3205 4 帧）+ 宿主链恢复（head=34/36/3a/3f 等）+ 定时器写入 __gsts_timeout_N_index。
+- **复合内 exec 链断链诊断（2026-08-14 #12 闭环）**
+- **capture 路由缺失诊断（2026-08-14 #17 闭环）**：现象 = 编辑器复合参数显示 NaN/0（如 orbit_point 的
+  c/s）+ 游戏加载失败（节点参数类型错误）。根因 = 复合输入（capture）传给子复合调用参数时，
+  capture 占位值 toIRLiteral 返回 null → 序列化丢 capture 标记 → 参数丢失。
+  检查链：① IR 子复合调用参数是否带 capture: true（而非 null 占位）② GIA compositePins 是否有
+  outer InParam → 子复合调用 InParam 路由 ③ 调用点（子复合）capture 参数物理 pin 不落盘（编辑器规则）。
+  修复后判据：日志 turn_check getList IN1 有值（0/1）、velocity 链数值正确。
+  方法论教训：规则未闭合前不要在生产代码里猜语义——先让用户在编辑器做最小差分（10 秒）学真实 wire。
+：现象 = 复合内全部节点有帧但链尾普通节点（如运动器）零帧 → done outflow 不触发 → 宿主链零帧 → 锁/后续逻辑不响应。根因两段：① core.ts connect 对 composite call 返回对象（仅 __markerNodeId 无 id）用 sourceRef.id → IR implEdges 源 "undefined" → materialize 静默丢边；② 即使 IR 边正确，普通 exec 节点缺物理 InFlow pin。修复后日志判据：链尾节点出现帧（m1 head=3205 4 帧）+ 宿主链恢复（head=34/36/3a/3f 等）+ 定时器写入 __gsts_timeout_N_index。
 
 ### 玩法逻辑调试流程（从用户反馈到逐帧定位，2026-08-13/14 实证）
 
