@@ -115,6 +115,10 @@ const gstsOrbitSegment = g.defineComposite('gsts_orbit_segment', {
   outputs: {},
   outflows: ['done'],
   build: ({ i, name, vel }, f) => {
+    // #13 复合内事件（2026-08-14 生产支持）：监听实体自定义变量变化 → 打印变量名（验证链）
+    f.on('whenCustomVariableChanges', (evt, ef) => {
+      ef.registerExecNode('print_string', [evt.variableName as never])
+    })
     const e = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('blocks').asType('entity_list'),
       i
@@ -422,6 +426,9 @@ const graph = g
       f.setNodeGraphVariable('blocks', [c0, c1, c2, c3, c4, c5, c6, c7], false)
   })
   .on('whenTabIsSelected', (evt, f) => {
+    // #13 复合内事件验证链：每次 Tab 设置自定义变量（触发事件=是）→
+    // orbit_segment 复合内 whenCustomVariableChanges 事件触发 → print 变量名
+    f.setCustomVariable(evt.eventSourceEntity, new str('tab_count'), evt.tabId, true)
     if (f.equal(f.getNodeGraphVariable('lock').asType('bool'), false)) {
       f.setNodeGraphVariable('lock', true, false)
       // v5.4：层轴查表 + 8 块循环按当前坐标筛选层成员
