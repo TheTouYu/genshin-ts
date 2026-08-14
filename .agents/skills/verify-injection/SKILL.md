@@ -91,6 +91,20 @@ EOF
 `/mnt/c/Users/touyu/AppData/LocalLow/miHoYo/原神/BeyondLocal/<playerId>/Beyond_Local_Save_Level/<mapId>.gil`
 （本机 playerId=110170759，可用 `gsts maps` 输出确认）。
 
+## 挂载目标选择（2026-08-14 地图异常教训，必读）
+
+节点图必须挂载到实体才生效（graph-mounting.md），但挂载目标有硬性规则：
+
+1. **禁止手动添加关卡实体**（1094713345，官方 defId=10003004）：关卡实体由游戏运行时
+   默认创建，GIL 不预置；`assets:entities import` 手动添加 → 游戏报"地图异常"无法启动
+   （2026-08-14 两次作废实证）。
+2. **挂载目标 = 普通场景实体**：官方空模型 10005018（static-assemblies 创建）或
+   `assets:entities import` 普通实体；确认 export 列表里该实体 comps 正常。
+3. **tabBar 组件只能加普通实体**（魔方控制器 1077936138 已验证），禁止加关卡实体。
+4. 地图作废特征：游戏加载报"地图异常"；排查优先查是否手动加过关卡实体。
+5. 流程顺序（从零地图）：maps:create --graphs → 建普通实体（static-assemblies 或 import）→
+   注册信号（如需）→ 注入图 → mounts attach 到普通实体 → 读图自检。
+
 ## 关键点（实测踩坑，勿重踩）
 
 1. **编译阶段 inject 的取舍**：非信号 case 不要配 inject——只要 inject 存在（即使
