@@ -115,6 +115,24 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
   方法论教训：规则未闭合前不要在生产代码里猜语义——先让用户在编辑器做最小差分（10 秒）学真实 wire。
 ：现象 = 复合内全部节点有帧但链尾普通节点（如运动器）零帧 → done outflow 不触发 → 宿主链零帧 → 锁/后续逻辑不响应。根因两段：① core.ts connect 对 composite call 返回对象（仅 __markerNodeId 无 id）用 sourceRef.id → IR implEdges 源 "undefined" → materialize 静默丢边；② 即使 IR 边正确，普通 exec 节点缺物理 InFlow pin。修复后日志判据：链尾节点出现帧（m1 head=3205 4 帧）+ 宿主链恢复（head=34/36/3a/3f 等）+ 定时器写入 __gsts_timeout_N_index。
 
+### 2026-08-14 复合定时器链新增实证（#19/#20 闭环）
+
+- **事件回调中 capture 惰性重求值（#19）**：现象 = 定时器触发帧存在（When Timer → 分发帧）
+  但后续动作零帧。根因 = 复合输入 capture 在**事件回调（延迟执行路径）**中不是调用时快照，
+  引擎沿数据链追回宿主数据源（2690 rec7：注册时 i=1→DTC OUT="1"，触发时重求值=0→"0"，
+  Equal(timerName,"0") 失败）。检查链：① 回调里是否用了 capture 派生值做匹配
+  ② 帧序列是否出现"主图 Finite Loop 帧混入事件回调"（追源证据）
+  ③ 事件载荷字段（timerName/timerSequenceId/eventSourceEntity）是否可用。
+  修复判据：回调改用事件载荷 + 字面量（case 内 i 字面量），触发后动作帧出现。
+- **impl 内部 exec 边 → 复合调用零内部帧（#20）**：现象 = 事件触发 → MB 匹配 → 复合调用帧
+  出现，但被调复合 impl 零帧。根因 = 复合调用节点缺物理 InFlow pin（buildCompositeCallPins
+  只生成显式声明的 flow pin；impl 内部 exec 边目标的 InFlow 不在 boundaryPins 收集范围）。
+  检查链：① read 复合 impl 图（gil-node-graph-reading）核对 MB 分支 → 子复合调用边是否
+  存在 ② 被调复合接口 inflows 是否非空（**混合复合被误判为纯事件复合 → inflows=[] →
+  注入器裁剪调用点引脚 → 分支边丢失，#20c**）。
+  修复判据：读图自检执行流条数 = MB 分支数 + 后续链数（dispatch 应为 5 条），
+  被调复合 inflows 非空。
+
 ### 玩法逻辑调试流程（从用户反馈到逐帧定位，2026-08-13/14 实证）
 
 1. **等日志落盘**：游戏退出时才写日志（内存累积）——先请用户退出游戏，再找最新文件。

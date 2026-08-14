@@ -97,6 +97,20 @@ npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph <主图> --depth 2 
 复合的执行起点显示为【外部入口】（InFlow 驱动），不是孤立链。`--depth N` 递归展开嵌套复合，
 循环引用自动标注。复合内部节点的数据输入显示 `← 接口 <名>`（来自调用方传参）。
 
+### Step 3.5 修复后读图自检（2026-08-14 方法论强制，勿跳）
+**修改生产代码（编译/注入后）的第一件事是读图自检，通过后才交用户游戏测试。**
+编译产物 .gia 正确 ≠ 注入后 .gil 正确（#20b/#20c 实证：.gia 有边、.gil 丢边——
+注入器按 CompositeDef 接口裁剪调用点引脚）。自检清单：
+- 复合接口完整性：被调用复合（尤其被 MB 分支调用的）必须有 `inflows` 非空
+  （混合复合=调用流+事件节点，如 orbit_segment 有 whenCustomVariableChanges + done
+  outflow，必须有 InFlow 入口；纯事件复合如 trigger 接口全空是正常的）
+- 执行流条数：MB 分支 → 子复合调用的边应逐条可见；"外部入口 InFlow → MB →
+  各分支"结构完整；执行流条数 = 分支数 + 后续链数
+- 事件复合：事件入口 → MB 分发 → case 各分支完整（trigger 应为 10 条执行流）
+- 判定标准详见 docs/game-engine-knowledge/composite-nodes.md #20 章节验证命令
+读图自检发现问题 → 直接修（不浪费用户测试轮次）；读图技能覆盖面不足无法定位 →
+记录技能缺口（覆盖范围、缺什么），再查 debug-log-investigator 日志。
+
 ### Step 4 数据流定点（查具体节点参数来源）
 ```bash
 npx tsx tools/trace-gil-dataflow.ts <地图.gil> --graph <图名> --node <id> --all-inputs

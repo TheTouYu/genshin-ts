@@ -117,6 +117,75 @@ npm run health:composite -- <file.gia>
 验证方式：rubik 19 复合 + 7 主图调用全绿；篡改实验（图变量名清空 → C2 FAIL、
 调用点字面量清空 → C1-host FAIL）确认检出能力。退出码 1 = 有 FAIL。
 
+## #20 事件复合/混合复合与 impl 内部 exec 边（2026-08-14 v20 回归系列，读图自检闭环）
+
+### 背景：调用流复合 / 事件流复合分离架构（用户 2026-08-14 架构指导）
+
+复合节点应明确区分两类（接口语义清晰）：
+
+- **调用流复合**（如 gsts_orbit_scheduler "设置定时器"）：输入参数 + InFlow 入口 + outflow
+  出口——由调用方执行流驱动；复合输入 capture 在**同一条执行流**内可见。
+- **事件流复合**（如 gsts_orbit_trigger "定时器触发时"）：**无 inputs/outputs/inflows/
+  outflows**，入口 = 复合内 f.on 注册的事件节点（whenTimerIsTriggered 等）——由事件驱动，
+  与调用流完全独立。
+
+**关键语义（2690 日志实证）**：复合输入 capture 在**事件回调（延迟执行路径）**中是惰性
+引用而非调用时快照——事件触发时引擎沿数据链追回宿主数据源（主图循环变量已复位 → 得 0）。
+所以事件回调需要调用时值，**必须用事件载荷字段**（timerName/timerSequenceId/
+eventSourceEntity）或字面量，不能引用 capture 参数。旧 setTimeout 机制正常，是因为编译器
+用 __gsts_timeout_N_cap_i 字典做了显式值快照。
+
+### 规则 #20a：事件回调里不要用 capture 匹配（2690 日志）
+
+症状：定时器触发后 dispatch 永不执行（5 段公转缺失）。根因：回调里
+`f.equal(evt.timerName, tname)` 的 tname 依赖 capture i——注册时 i=1→"1"（rec1[334]），
+触发时 capture 重求值=0→"0"（rec7[6]），Equal 失败。
+修复：用 evt.timerName 做 multipleBranches 分发（case 内 i 字面量）、
+evt.timerSequenceId 传段、evt.eventSourceEntity 传 target——全部事件自带数据。
+
+### 规则 #20b：impl 内部 exec 边指向的复合调用节点必须有物理 InFlow pin（2691 日志）
+
+症状：trigger 事件 → MB 匹配 case → dispatch 调用帧出现，但 **dispatch 内部零帧**
+（无 seg 分发/无 orbit_segment/无运动器）。读图自检（gil-node-graph-reading）发现
+注入后 .gil 里 dispatch 复合只有 1 条执行流——MB 4 分支 → orbit_segment 调用边全丢。
+根因链：
+1. `buildCompositeCallPins` 只生成显式声明的 flow pin；impl 内部 exec 边（MB 分支 →
+   复合调用）目标的 InFlow 不在其中（`requiredCompositeCallInflows` 只从 boundaryPins
+   收集——即复合自己的 InFlow 边界映射）。
+2. 主图路径有同样逻辑但目标在 ordinary materializer 中（graph.flow 自动建 pin）；
+   impl 路径合成节点后生成（materializeLegacyImplGraphNode），漏了。
+修复：syntheticNodes 生成后扫描 implEdges，收集每个合成节点被内部 exec 边指向的
+InFlow index，补物理 InFlow pin（与 #11/#12 同构）。
+
+### 规则 #20c：纯事件复合判定（v20 回归，读图自检发现）
+
+症状：注入后 MB 分支边丢失（同 #20b 表象）。根因：v20 加的 `hasCompositeEventNode`
+判定太宽——只要 impl 含 when_* 事件节点就当纯事件复合，把 **混合复合**
+（gsts_orbit_segment：whenCustomVariableChanges 事件 + done outflow + 调用流需求）
+的调用流 InFlow 路由砍掉 → CompositeDef inflows=[] → 注入器按接口裁剪调用点引脚 →
+MB 分支边无接口对应被丢。
+修复：纯事件复合判定 = **事件节点 + 无 outflow 标记 + 无显式 inflow 声明** 三条件
+（trigger 符合、orbit_segment 不符合）。
+
+### 流程沉淀：修复后必须读图自检（用户 2026-08-14 方法论强制）
+
+修复生产代码并编译/注入后，**第一件事**是用 gil-node-graph-reading 技能读解析出的
+节点图（.gil 注入结果）验证结构符合预期——通过后才交用户游戏测试；读图自检发现
+问题则直接修复，不浪费用户测试轮次。若读图技能覆盖面不足无法定位，再查日志。
+经验：**编译产物 .gia 正确 ≠ 注入后 .gil 正确**（#20b/#20c 都是 .gia 有边、
+.gil 丢边——注入器按 CompositeDef 接口裁剪调用点引脚）。
+
+### 验证命令（读图自检）
+
+```bash
+# 主图全景 + 复合 impl 图
+npx tsx tools/list-gil-node-graphs.ts <地图.gil>
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --graph _GSTS_game
+npx tsx tools/explain-gil-node-graph.ts <地图.gil> --composite gsts_orbit_segment_dispatch
+# 判定标准：dispatch 类复合应显示 "外部入口 InFlow → MB 分支 → 各子复合调用"，
+# 执行流条数 = MB 分支数 + 后续链；接口 inflows 非空（混合复合必须有调用流入口）
+```
+
 ## 待逐步还原
 
 - 复合节点外部接口的定义结构。

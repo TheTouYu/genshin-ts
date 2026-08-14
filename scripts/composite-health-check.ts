@@ -193,6 +193,28 @@ function checkImplGraph(name: string, g: any, implInfo: any) {
         ' 内部节点 idx=' + cp.innerNodeId + ' 缺物理 flow pin（#11 系列缺陷模式）')
     }
   }
+  // ---- C3b: impl 内部 exec 边 → 合成调用节点物理 InFlow（#20 回归自动防线） ----
+  // 症状：MB 分支 → 复合调用边存在（connects 指向 1:0）但目标节点无物理 InFlow pin →
+  // 引擎无法进入被调复合 impl（2691 日志：trigger MB→dispatch 调用后 dispatch 零帧）。
+  // 判定：只检查**被 exec 边（InFlow connects）指向**的合成调用节点（generic 22001）——
+  // 上游普通节点 OutFlow connects 的 InFlow 目标。纯数据流调用（数据复合被当数据节点
+  // 消费，如 turn_check→axis_compare）无 exec 边进入，不需要 InFlow，不报。
+  const execTargetIds = new Set<number>()
+  for (const n of nodes) {
+    for (const p of n.pins ?? []) {
+      if (p.i1?.kind !== 2) continue // OutFlow
+      for (const c of p.connects ?? []) execTargetIds.add(c.id)
+    }
+  }
+  for (const n of nodes) {
+    if (n.genericId?.kind !== 22001) continue
+    if (!execTargetIds.has(n.nodeIndex)) continue // 非 exec 边目标（纯数据调用）
+    const hasInFlow = (n.pins ?? []).some((p: any) => p.i1?.kind === 1)
+    if (!hasInFlow) {
+      fail('C3b-inflow', name + ': 复合调用节点 idx=' + n.nodeIndex + ' 被 exec 边指向但无物理 InFlow pin（#20：缺失 → 被调复合零帧）')
+    }
+  }
+
   // detached 链尾：有 InFlow 的 exec 节点无 OutFlow 连接 → 尾节点
   // （#15：f.node 注册 exec 不自动连 tail，链尾必须显式 f.link）
   for (const n of nodes) {
