@@ -417,7 +417,12 @@ export const DICT_KV_VARIANT_NODE_TYPES = new Set([
   'get_list_of_values_from_dictionary',
   'query_dictionary_s_length',
   'sort_dictionary_by_key',
-  'sort_dictionary_by_value'
+  'sort_dictionary_by_value',
+  // 2026-08-14 变体族覆盖差集补充（node_id.ts 有 kv 变体推断但复合路径未纳管）
+  'create_dictionary',
+  'query_if_dictionary_contains_specific_key',
+  'query_if_dictionary_contains_specific_value',
+  'remove_key_value_pairs_from_dictionary_by_key'
 ])
 
 const SHARED_SCALAR_SAME_TYPE_BINARY_NODE_TYPES = new Set([

@@ -290,6 +290,39 @@ const cases: FamilyCase[] = [
       outputs: { r: { type: 'str' } },
       build: ({ v }, f) => ({ r: f.dataTypeConversion(v, 'str') })
     })
+  },
+  {
+    name: 'fam_dict_create', family: 'dictionary',
+    def: () => g.defineComposite('fam_dict_create', {
+      inputs: { k: { type: 'int' }, v: { type: 'vec3' } },
+      outputs: { r: { type: 'dict' } },
+      build: ({ k, v }, f) => ({ r: f.assemblyDictionary([{ k, v }]) })
+    })
+  },
+  {
+    name: 'fam_dict_query_contains', family: 'dictionary',
+    def: () => g.defineComposite('fam_dict_query_contains', {
+      inputs: { k: { type: 'int' } },
+      outputs: { r: { type: 'bool' } },
+      build: ({ k }, f) => ({
+        r: f.queryIfDictionaryContainsSpecificKey(f.getNodeGraphVariable('axes').asDict('int', 'vec3'), k)
+      })
+    })
+  },
+  {
+    name: 'fam_dict_remove_key', family: 'dictionary',
+    def: () => g.defineComposite('fam_dict_remove_key', {
+      inputs: { k: { type: 'int' } },
+      outputs: {},
+      outflows: ['done'],
+      build: ({ k }, f) => {
+        const tail = f.registerExecNode('remove_key_value_pairs_from_dictionary_by_key', [
+          f.getNodeGraphVariable('axes').asDict('int', 'vec3'), k
+        ])
+        f.outflow('done', tail, 0)
+        return {}
+      }
+    })
   }
 ]
 
