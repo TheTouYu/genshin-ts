@@ -308,7 +308,7 @@
       "role": "documented_contract",
       "baseline_state": "committed_baseline",
       "change_policy": "review_on_change",
-      "approved_hash": "73db30ea170c6662da7c288f9270786259ede7251cb5effe9310bb6d89ce29f7",
+      "approved_hash": "54c4e8b1add9d2e9409598e2700dadf25856c3b44c026689392a2e83eb91dceb",
       "claim_ids": [
         "clm_4502C6F37E622E56958CA09B8F"
       ],

@@ -20,11 +20,11 @@ Reports must keep current source behavior, automatic regression, real GIA observ
 
 ### Composite health-check guardrail: closed rules as automated C1-C4 checks with CI scan
 
-scripts/composite-health-check.ts 把已闭合规则（#12-#18、#20）编码为编译产物体检：C1 capture 路由完整性（#17：调用点 InParam 必须有连接/字面量/路由）、C2 图变量名字面量（#18+编辑器保存副作用）、C3 exec 链完整性+flow 路由物理 pin（#12/#13/#15）、C3b impl 内部 exec 边→合成节点物理 InFlow（#20）、C4 OutParam 惰性求值（#15 写后读派生值）；双模式：GIA 产物（单文件或 --scan 目录递归，任一文件 FAIL 退出码 1）与 --ir 源码 IR 构建；--scan 已接入 npm test 尾部（批量编译后自动体检全部测试产物）。IR 模式 C3-ir 检查 implEdges 时须按权威类型 NextConnection = number | { node_id } 兼容两种形状（曾误用 conn.targetId 导致所有带执行边的复合误报）。
+scripts/composite-health-check.ts 把已闭合规则（#12-#18、#20）编码为编译产物体检：C1 capture 路由完整性（#17：调用点 InParam 必须有连接/字面量/路由）、C2 图变量名字面量（#18+编辑器保存副作用）、C3 exec 链完整性+flow 路由物理 pin（#12/#13/#15）、C3b impl 内部 exec 边→合成节点物理 InFlow（#20）、C4 OutParam 惰性求值（#15 写后读派生值）；双模式：GIA 产物（单文件或 --scan 目录递归，任一文件 FAIL 退出码 1）与 --ir 源码 IR 构建；--scan 已接入 npm test 尾部（批量编译后自动体检全部测试产物）。IR 模式 C3-ir 检查 implEdges 时须按权威类型 NextConnection = number | { node_id } 兼容两种形状（曾误用 conn.targetId 导致所有带执行边的复合误报）。验证数据（2026-08-15 复核）：rubik v20 生产产物 22 复合 + 5 主图调用 0 FAIL 0 WARN；全量 71 测试产物扫描 0 FAIL 后接入 npm test。
 
 #### 适用边界
 
-证据：rubik 产物全绿 + 篡改检出实验（C2/C1-host）+ 2026-08-15 全量 71 个测试产物扫描 0 FAIL 后接入 npm test；体检通过只覆盖已编码的缺陷模式，不证明游戏行为正确；--ir 模式需要 dist 已构建（npm test 的 build 步骤保证）。
+体检通过只覆盖已编码的缺陷模式，不证明游戏行为正确；--ir 模式仅适用于小 case 入口（执行入口注册 server 的运行时类型匹配限制——rubik 复杂 handler 超出范围），生产产物一律用 GIA 模式/--scan；--scan 需要 dist/tests 已由批量编译生成。
 
 <!-- CLAIM:END clm_4502C6F37E622E56958CA09B8F -->
 
