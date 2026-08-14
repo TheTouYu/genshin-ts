@@ -88,13 +88,20 @@
 ## 编译产物体检工具（2026-08-14 自动化防线）
 
 ```bash
-# GIA 产物模式（默认入口）：检查已编译 .gia（rubik 生产产物全绿验证）
-npx tsx scripts/composite-health-check.ts examples/rubik-2x2/dist/src/game.gia
-# IR 构建模式：直接检查入口源码构建的 compositeDefs（小 case）
+# --scan 目录模式（CI 自动防线，2026-08-15 起为默认）：递归扫描全部 .gia 产物，
+# 任一文件 FAIL 即退出码 1；已接入 npm test 尾部（批量编译后自动体检）
+npm run health:composite
+npx tsx scripts/composite-health-check.ts --scan dist/tests
+# GIA 单文件模式：检查已编译 .gia
+npx tsx scripts/composite-health-check.ts <file.gia>
+# IR 构建模式：直接检查入口源码构建的 compositeDefs（小 case；需 dist 已构建）
 npx tsx scripts/composite-health-check.ts --ir <entry.ts>
-# npm 快捷入口
-npm run health:composite -- <file.gia>
 ```
+
+> 2026-08-15 修复：IR 模式 C3-ir 曾误用 `conn.targetId` 检查 implEdges——真实形状是
+> `NextConnection = number | { node_id }`（IR.d.ts 权威类型），导致任何带执行边的复合
+> 都误报"目标节点不存在 id=undefined"；已改为兼容两种形状，layout-sequence 等入口
+> 复绿。接入 npm test 时全量扫描 71 个测试产物（22 个含复合）0 FAIL，无噪音。
 
 四类检查（对应已闭合规则 → 自动防线）：
 
@@ -115,7 +122,8 @@ npm run health:composite -- <file.gia>
   正常读取不报。
 
 验证方式：rubik 19 复合 + 7 主图调用全绿；篡改实验（图变量名清空 → C2 FAIL、
-调用点字面量清空 → C1-host FAIL）确认检出能力。退出码 1 = 有 FAIL。
+调用点字面量清空 → C1-host FAIL）确认检出能力；2026-08-15 全量扫描 71 个测试产物
+（22 含复合）0 FAIL 后接入 npm test。退出码 1 = 有 FAIL（scan 模式任一文件 FAIL 即退出 1）。
 
 ## #20 事件复合/混合复合与 impl 内部 exec 边（2026-08-14 v20 回归系列，读图自检闭环）
 

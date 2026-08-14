@@ -303,15 +303,16 @@ async function checkIrMode(entry: string) {
           fail('C2-ir', def.name + ': get_node_graph_variable 变量名非字面量 str（#18 已知边界）node=' + node.id)
         }
       }
-      // C3: implEdges 目标存在
+      // C3: implEdges 目标存在（NextConnection = number | { node_id }）
       const nodeIds = new Set((def.implNodes ?? []).map((n: any) => n.id))
       for (const [srcId, conns] of Object.entries(def.implEdges ?? {})) {
         if (!nodeIds.has(Number(srcId))) {
           fail('C3-ir', def.name + ': implEdges 源节点不存在 id=' + srcId)
         }
         for (const c of conns as any[]) {
-          if (!nodeIds.has(c.targetId)) {
-            fail('C3-ir', def.name + ': implEdges 目标节点不存在 id=' + c.targetId + '（#12 缺陷模式）')
+          const targetId = typeof c === 'number' ? c : (c as any)?.node_id
+          if (typeof targetId !== 'number' || !nodeIds.has(targetId)) {
+            fail('C3-ir', def.name + ': implEdges 目标节点不存在 id=' + targetId + '（#12 缺陷模式）')
           }
         }
       }
@@ -334,34 +335,74 @@ const args = process.argv.slice(2)
 const giaArg = args.find((a) => !a.startsWith('--'))
 const irIdx = args.indexOf('--ir')
 const irArg = irIdx >= 0 ? args[irIdx + 1] : undefined
+const scanIdx = args.indexOf('--scan')
+const scanArg = scanIdx >= 0 ? args[scanIdx + 1] : undefined
+
+function report(label: string) {
+  const fails = results.filter((r) => r.level === 'FAIL')
+  const warns = results.filter((r) => r.level === 'WARN')
+  const passes = results.filter((r) => r.level === 'PASS')
+  console.log('')
+  console.log('=== 体检结果(' + label + '): FAIL=' + fails.length + ' WARN=' + warns.length + ' PASS=' + passes.length + ' ===')
+  for (const r of results) {
+    console.log(r.level.padEnd(5) + ' [' + r.check + '] ' + r.detail)
+  }
+  console.log('')
+}
 
 if (irArg) {
   const summary = await checkIrMode(irArg)
   console.log('IR mode: docs=' + summary.docs + ' composites=' + summary.composites)
+  report('IR')
+  if (results.some((r) => r.level === 'FAIL')) process.exitCode = 1
+} else if (scanArg) {
+  // --scan <dir>: 递归扫描目录下全部 .gia 产物（自动防线 CI 入口）
+  const { readdirSync, statSync } = await import('node:fs')
+  const { join } = await import('node:path')
+  const files: string[] = []
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name)
+      if (statSync(full).isDirectory()) walk(full)
+      else if (full.endsWith('.gia')) files.push(full)
+    }
+  }
+  walk(scanArg)
+  if (files.length === 0) {
+    console.error('--scan: no .gia files under ' + scanArg)
+    process.exit(2)
+  }
+  let withComposites = 0
+  let anyFail = false
+  for (const file of files) {
+    const before = results.length
+    const summary = await checkGiaFile(file)
+    if (summary.defs + summary.impls + summary.mainCalls > 0) withComposites++
+    const fileResults = results.slice(before)
+    const fileFails = fileResults.filter((r) => r.level === 'FAIL')
+    const fileWarns = fileResults.filter((r) => r.level === 'WARN')
+    console.log(
+      file + ': defs=' + summary.defs + ' impls=' + summary.impls +
+        ' mainCalls=' + summary.mainCalls + ' FAIL=' + fileFails.length +
+        ' WARN=' + fileWarns.length
+    )
+    for (const r of fileFails) console.log('  ' + r.level.padEnd(5) + ' [' + r.check + '] ' + r.detail)
+    if (fileFails.length > 0) anyFail = true
+  }
+  console.log('')
+  console.log('scan: files=' + files.length + ' withComposites=' + withComposites)
+  if (anyFail) {
+    console.log('RESULT: FAIL（扫描发现编译产物缺陷模式）')
+    process.exitCode = 1
+  } else {
+    console.log('RESULT: PASS')
+  }
 } else if (giaArg) {
   const summary = await checkGiaFile(giaArg)
   console.log('GIA mode: defs=' + summary.defs + ' impls=' + summary.impls + ' mainCalls=' + summary.mainCalls)
+  report('GIA')
+  if (results.some((r) => r.level === 'FAIL')) process.exitCode = 1
 } else {
-  console.error('Usage: npx tsx scripts/composite-health-check.ts <file.gia> | --ir <entry.ts>')
+  console.error('Usage: npx tsx scripts/composite-health-check.ts <file.gia> | --ir <entry.ts> | --scan <dir>')
   process.exit(2)
-}
-
-const fails = results.filter((r) => r.level === 'FAIL')
-const warns = results.filter((r) => r.level === 'WARN')
-const passes = results.filter((r) => r.level === 'PASS')
-console.log('')
-console.log('=== 体检结果: FAIL=' + fails.length + ' WARN=' + warns.length + ' PASS=' + passes.length + ' ===')
-for (const r of results) {
-  console.log(r.level.padEnd(5) + ' [' + r.check + '] ' + r.detail)
-}
-console.log('')
-if (fails.length > 0) {
-  console.log('RESULT: FAIL（编译产物存在缺陷模式）')
-  process.exitCode = 1
-} else if (warns.length > 0) {
-  console.log('RESULT: WARN（有风险提示，需人工确认）')
-  process.exitCode = 0
-} else {
-  console.log('RESULT: PASS')
-  process.exitCode = 0
 }
