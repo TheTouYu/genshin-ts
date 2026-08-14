@@ -1789,6 +1789,21 @@
       ]
     },
     {
+      "id": "aref_cd34530bf2dc981f8fd1031043",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
+      "locator": "#四",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bfe3cc80b6c35649ce83d183924a8b7b725c33c552282ac29acd43aea459ddbb",
+      "claim_ids": [
+        "clm_12A31493E5D86934BB0318E84A"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_cf52a2d9276e0cc970846ddfa7",
       "path": "src/compiler/ts_to_gs_transform/expression_semantics.ts",
       "locator": "classifyExpressionSemantics() list length branch and storable runtime-value classification",
@@ -1831,6 +1846,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_d908a5cf8581eee04864e99524",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
+      "locator": "#四",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bfe3cc80b6c35649ce83d183924a8b7b725c33c552282ac29acd43aea459ddbb",
+      "claim_ids": [
+        "clm_C1CB8EAE24C63D9C6497B022C7"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {
@@ -1936,6 +1966,21 @@
       ],
       "supports_fact_classes": [
         "cli_behavior"
+      ]
+    },
+    {
+      "id": "aref_e24c98bf45e1b84a6fec30ef1c",
+      "path": "docs/game-engine-knowledge/retrospective-2026-08-14.md",
+      "locator": "#四",
+      "role": "design_intent",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "bfe3cc80b6c35649ce83d183924a8b7b725c33c552282ac29acd43aea459ddbb",
+      "claim_ids": [
+        "clm_34362D9ED0266C1229DCA72EF8"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

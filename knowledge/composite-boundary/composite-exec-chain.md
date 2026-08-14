@@ -85,3 +85,15 @@ impl 图内 multiple_branches 分支等内部 exec 边指向的复合调用节�
 复合定义接口判定场景；纯事件复合（trigger）与混合复合（orbit_segment）的区分；不影响纯调用流复合
 
 <!-- CLAIM:END clm_CCF86C1A5174DFAD6DDC47ABDB -->
+
+<!-- CLAIM:START clm_26377685777BD6F2DE40A797D4 -->
+
+### 复合内有限循环/事件/信号能力边界（#21 游戏实测）
+
+复合 build 内 f.finiteLoop 可用（纯图节点，2696 日志 8 次循环帧实证）；复合内 whenCustomVariableChanges（实体自定义变量+触发=是）触发、whenNodeGraphVariableChanges（图变量变化）不触发（轮 12f + 2695 独立复现）；复合内 f.sendSignal 可编码+图级 onSignal 消费参数；混合复合（事件+调用流共存）必须 entry→outflow 调用流 + 事件独立旁路（纯事件复合不可被调用流链式调用）。
+
+#### 适用边界
+
+复合内事件/循环/信号能力场景；纯事件复合调用限制；宿主 setTimeout 不受影响
+
+<!-- CLAIM:END clm_26377685777BD6F2DE40A797D4 -->

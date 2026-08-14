@@ -175,6 +175,14 @@
         "Beyond_Debug_Log, debug log, gia 日志, f21 帧, f22 文本, VarType, ENUM_VALUE, gia_log"
       ],
       "migration_status": "pilot"
+    },
+    {
+      "id": "project-evolution",
+      "name": "project-evolution",
+      "path": "knowledge/project-evolution",
+      "boundary": "可复用的项目进化方法论与长期学习机制；不包含单次修复的技术细节",
+      "keywords": [],
+      "migration_status": "pilot"
     }
   ],
   "topics": [
@@ -934,6 +942,15 @@
       "summary": "合成→普通 exec 边的 IR 源解析与目标 InFlow pin 完整规则；断链诊断判据（日志零帧→IR/GIA 检查）",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "evolution-methodology",
+      "node_id": "project-evolution",
+      "title": "长期进化方法论",
+      "path": "knowledge/project-evolution/evolution-methodology.md",
+      "summary": "规则到实现到测试回练、分层证据、三层知识落盘、修复后反思三连、用户教学反哺",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1541,6 +1558,21 @@
     "clm_26377685777BD6F2DE40A797D4": {
       "fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    "clm_C1CB8EAE24C63D9C6497B022C7": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_12A31493E5D86934BB0318E84A": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_34362D9ED0266C1229DCA72EF8": {
+      "fact_classes": [
+        "documented_contract"
       ]
     }
   }
