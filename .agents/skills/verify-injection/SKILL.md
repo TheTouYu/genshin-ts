@@ -26,6 +26,10 @@ description: 游戏核验的最小自动注入通道。当用户说“去核验�
   无 donor 时自动使用；`--template-signal` 仍可用作 donor 覆盖（布局与 pin 基址从 donor 克隆，
   此时字节与内置路径一致，仅当 donor 覆盖所有参数类型时生效）。重复的非 str 同型参数
   （如两个 int）仍需 donor（编辑器无此布局证据，fail-closed）。
+  **端到端已验（2026-08-15）**：在真实无信号地图副本（1073741880.gil）上
+  `register --name verify_ping --param msg:str --param tag:str --output <副本输出>` 全流程
+  通过——空注册表自动初始化、规范 pin（12/34/40、16/35/41）、CLI 候选回读、inspect 确认。
+  剩余待验：真实地图 `--write` + 游戏内信号可用性（需用户游戏核验）。
 - 分支节点图名：`verify-<点>`（如 `verify-inflow-index`）。注入后图名被替换为 `_GSTS_<gia基名>`。
 - case 文件：`verify/<分支>/<分支>.ts`，模板见 `references/template-case.ts`。
 - 注入配置：`gsts.verify.config.ts`（entries=`./verify`，outDir=`./dist-verify`）。
