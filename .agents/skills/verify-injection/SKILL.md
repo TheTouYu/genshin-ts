@@ -13,10 +13,11 @@ description: 游戏核验的最小自动注入通道。当用户说“去核验�
 
 ## 约定
 
-- 专用验证地图：名字含 `GSTS核验`（当前实例：`1073741852`「InFlow核验」，已核验，见
-  `references/verified-cases.md`；`1073741853`「gsts-verify」为信号核验实例，已注册
-  `verify_signal`、已有 `verify-graph-1` 图）。优先复用；只有需要隔离或地图损坏时才
-  `maps:create` 新建。
+- 专用验证地图：名字含 `GSTS核验`（当前实例：`1073741888`「GSTS核验-复合族4」——
+  复合族验证实验最终地图：图 1825/1826/1827 挂载到普通实体 1077936151，信号 `verify_ping`
+  （msg:str/tag:str）已注册。优先复用；只有需要隔离或地图损坏时才 `maps:create` 新建。
+  历史实例：`1073741852`「InFlow核验」、`1073741853`「gsts-verify」（见
+  `references/verified-cases.md`）。
 - 从零新建（隔离场景）：`maps:create` 无 `--graphs` 时是 62B 最小骨架（无 root 6/10），
   `assets:node-graphs create` 会自动补最小挂载容器（2026-08-05 修复）；新地图无信号
   注册表，`assets:signals register` 会自动初始化 field 10.5（无需手工脚本）。
