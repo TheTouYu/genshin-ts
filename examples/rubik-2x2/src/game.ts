@@ -518,12 +518,23 @@ const gstsOrbitScheduler = g.defineComposite('gsts_orbit_scheduler', {
       new bool(false),
       f.assemblyList([new float(0.2), new float(0.4), new float(0.6), new float(0.8)], 'float')
     ])
-    // 回调：按 timerName 路由到本块 → 段分发复合（seg = timerSequenceId）
+    // 回调：按 evt.timerName（事件自带数据，注册时的块名 "0".."7"）分发。
+    // #19 修复：不能用 capture 输入 i 做匹配——capture 在事件回调（延迟执行）路径
+    // 被引擎惰性重新求值（2690 日志实证：注册时 i=1→"1"，触发时重求值为 0→"0"，
+    // Equal 失败 → dispatch 永不执行 → 5 段公转缺失）。case 内 i 用字面量，
+    // seg/target 用事件数据（timerSequenceId/eventSourceEntity）——全部非 capture。
     f.on('whenTimerIsTriggered', (evt: any, ef: any) => {
-      const nameMatch = f.equal(evt.timerName, tname)
-      f.doubleBranch(nameMatch, () => {
-        ef.callComposite(gstsOrbitSegmentDispatch, { i, seg: evt.timerSequenceId as never, target })
-      }, () => {})
+      f.multipleBranches(evt.timerName as never, {
+        '0': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 0, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '1': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 1, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '2': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 2, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '3': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 3, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '4': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 4, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '5': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 5, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '6': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 6, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        '7': () => { ef.callComposite(gstsOrbitSegmentDispatch, { i: 7, seg: evt.timerSequenceId as never, target: evt.eventSourceEntity }) },
+        default: () => {}
+      })
     })
     // 解锁回调：lock 变量置 false
     f.on('whenTimerIsTriggered', (evt: any, ef: any) => {
