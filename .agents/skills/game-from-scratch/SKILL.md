@@ -104,6 +104,8 @@ node ./bin/gsts.mjs assets:entities apply-candidate \
   别处复用更赚，跨项目复用是巨大资产。
 - 两种价值：**复用型**（多处调用）+ **封装型**（单次调用但"一件事"范围清晰，如自旋/层筛选）。
 - 能力边界与编写步骤见 `references/composite-authoring.md`；通用型复合（比较/数学扩展）是跨项目资产。
+- **使用层总纲见 `docs/game-engine-knowledge/composite-usage-guide.md`**（何时复合化 5-7 节点标准、
+  四种形态分类、接口设计、调用流/事件流/混合三模式参考实现、已知边界、验证流程、设计检查清单）。
 ### 玩法逻辑架构模式（用户 2026-08-10/12 亲手教学，rubik 旋转）
 
 旋转类玩法拆成**两大块独立实现**：
