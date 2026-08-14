@@ -384,6 +384,48 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - **联动**：宿主图 orbit_calc 实例重编号 109→134 + 引用 connects 跟随改写（6 节点）；内部 compositePins 零变化
   （嵌套调用不产生 compositePins——既有规则）。
 
+### 提升输入 → 内部节点物理 pin 落盘（2026-08-14 轮 6 差分 CONFIRMED，addition 样本）
+
+> 证据：orbit_calc 内部新增「加法」节点（不连线）+ 提升输入 0 为复合输入，编辑器相邻保存差分（vs v5 注入基线）
+
+- **提升的输入落盘物理 InParam**：compositePins 新增 {outer={3:4}, innerNode=1(加法), inner={3:0}}，
+  加法节点 pins=[3:0, 3:1, 4:0]——提升的输入 0 有物理 InParam。
+- **编辑器 Fixed 节点全 pin 物化**：未提升未连线的输入 1（3:1）和输出（4:0）也落盘——
+  与生产 vendor materialize 的惰性（只落盘有连线/边界 pin）不同；无连线默认值 pin 对游戏无影响（观察项）。
+- **裁决**：生产 materialize 的"boundary capture 保留物理 pin"（composite.ts capturedInputIndexes 边界
+  逻辑）与编辑器一致 ✅——旧测试 test-custom-variable 断言"captured InParam 不编码"与编辑器行为冲突
+  （节点族不同：测试对象为 Variant 的 get_custom_variable，本轮为 Fixed 加法——严格裁决需 custom
+  variable 专属样本，暂标记"断言待更新，证据倾向陈旧"）。
+
+### 复合节点族覆盖矩阵（2026-08-14 编译层批量验证）
+
+> 证据：tests/composite/test-composite-node-family-coverage.ts（自动迭代收敛：构建全部→失败定位→移除重试）
+> 分层：编译层 PASS ≠ 游戏正确——游戏层以 rubik 实际用例核验为准；矩阵每轮差分/核验后更新
+
+| 族 | 代表节点 | 编译层 | 游戏层 |
+|---|---|---|---|
+| 算术 | addition/multiplication | ✅ | ✅（rubik 速度计算） |
+| 比较 | equal | ✅ | ✅（lock 检查） |
+| 向量 | _3d_vector_add/cross/create3d_vector | ✅ | ✅（rubik 轨道计算） |
+| 三角 | sine/cosine | ✅ | ✅（自旋轴转换） |
+| 列表 | get_corresponding_value_from_list | ✅ | ✅（blocks 查询） |
+| 字典 | query/keys/set_or_add/clear | ✅ | ✅（vels/axes） |
+| 图变量 | get/set_node_graph_variable | ✅ | ✅（vels/blocks） |
+| 查询 | get_entity_location_and_rotation | ✅ | ✅（层判断） |
+| 动作 | print/create_prefab/线性运动器 | ✅ | ✅（角块创建/轨道） |
+| 控制流 | double_branch/multiple_branches | ✅ | ⏳ 待游戏核验（多出口语义） |
+| 自定义变量 | get/set_custom_variable | ✅ | ⏳ 待核验 |
+| 转换 | data_type_conversion | ✅ | ⏳ 待核验 |
+| 局部变量 | get/set_local_variable | ✅（既有测试） | ⏳ |
+| 定时器 | start_timer | ✅（8-14 实证） | ✅（v2 定时器宿主） |
+| 组合 | loc+vec 链 / dict+vec 链 | ✅ | ✅ |
+
+**已知 DSL 约束**（编译层暴露）：
+- createPrefab 的 prefabId 参数不支持数据节点（只接受字面量/实例）——复合输入传 prefabId 实例
+- 复合内空列表参数需 listLiteral（list 基类 toIRLiteral 返回 null）
+- 复合内 setTimeout 不可用（生产发现 #3，定时器留宿主）
+- 事件注册留宿主（复合是资产，不挂事件）
+
 ### 复现命令
 
 ```bash
