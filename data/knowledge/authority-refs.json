@@ -317,6 +317,21 @@
       ]
     },
     {
+      "id": "aref_2925708d9831d56c7390ea827d",
+      "path": "docs/game-engine-knowledge/composite-nodes.md",
+      "locator": "rule details referenced by the guide",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "73db30ea170c6662da7c288f9270786259ede7251cb5effe9310bb6d89ce29f7",
+      "claim_ids": [
+        "clm_1EB7BE64DF651835F79AE4DB94"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_2b2d716ee98d5f69f76e8c4e6e",
       "path": "tests/stage1_expression_semantics_test.ts",
       "locator": "focused Stage 1 assertions for list length int lowering and captured timer handle metadata",
@@ -1532,6 +1547,21 @@
       ]
     },
     {
+      "id": "aref_af8a080722636eec081040eb3c",
+      "path": "docs/game-engine-knowledge/composite-usage-guide.md",
+      "locator": "the usage guide itself",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "31bdfa4ac603a6c296315ab4507e74e052a9d7df620c03388a210f5c05c883f0",
+      "claim_ids": [
+        "clm_1EB7BE64DF651835F79AE4DB94"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
+      ]
+    },
+    {
       "id": "aref_b122e03d98c9ed18378e98a5b6",
       "path": ".agents/skills/debug-log-investigator/SKILL.md",
       "locator": "工具链 gia_log.py records/frames",
@@ -1846,6 +1876,21 @@
       ],
       "supports_fact_classes": [
         "runtime_behavior"
+      ]
+    },
+    {
+      "id": "aref_d730db94a0e29d62c88924c170",
+      "path": ".agents/skills/game-from-scratch/SKILL.md",
+      "locator": "skill pointer to the guide",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "review_on_change",
+      "approved_hash": "a0c0feed7a94082dd7315322259569664ef1bb8cb228d6a93f284224f7797149",
+      "claim_ids": [
+        "clm_1EB7BE64DF651835F79AE4DB94"
+      ],
+      "supports_fact_classes": [
+        "documented_contract"
       ]
     },
     {

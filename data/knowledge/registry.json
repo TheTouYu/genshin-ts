@@ -951,6 +951,15 @@
       "summary": "规则到实现到测试回练、分层证据、三层知识落盘、修复后反思三连、用户教学反哺",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "composite-usage-guide",
+      "node_id": "composite-boundary",
+      "title": "Composite usage guide (author view)",
+      "path": "knowledge/composite-boundary/composite-usage-guide.md",
+      "summary": "Author-facing guide: when to composite, four forms, interface design, three architecture patterns, known boundaries, verification flow",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1571,6 +1580,11 @@
       ]
     },
     "clm_34362D9ED0266C1229DCA72EF8": {
+      "fact_classes": [
+        "documented_contract"
+      ]
+    },
+    "clm_1EB7BE64DF651835F79AE4DB94": {
       "fact_classes": [
         "documented_contract"
       ]
