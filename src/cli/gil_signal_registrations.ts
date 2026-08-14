@@ -99,6 +99,217 @@ export const PARAM_TYPE_CODES: Partial<Record<SignalParamType, number>> = {
   faction_list: 24
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Builtin parameter layouts: byte-verbatim from editor-created signals.
+// Evidence: 信号测试全参数 / 信号测试全参数-列表 (map 1073741849), verify_ping
+// (map 1073741888) — descriptors verified identical across maps 1849/1850/1888.
+// Each row: "n3-hex|n4-hex" per node kind; pins = canonical per-type base
+// (send/monitor/server) as allocated by the editor on fresh maps; field2 = the
+// per-type constant inside the send node's n3 (monitor n3 field2 = field2 + 3,
+// the three fixed outputs). Same-type repeats: send +4k, monitor +k, server +k,
+// field2 +k (verified for str in cube_turn/verify_ping/face_turn).
+// ─────────────────────────────────────────────────────────────────────────────
+type BuiltinParamLayout = {
+  send: string
+  mon: string
+  ser: string
+  pins: readonly [number, number, number]
+  field2: number
+}
+
+const BUILTIN_PARAM_LAYOUTS: Partial<Record<SignalParamType, BuiltinParamLayout>> = {
+  entity: {
+    send: '08 03 10 01|18 01 20 01',
+    mon: '08 04 10 04|18 01 20 01',
+    ser: '08 03 10 01|18 01 20 01',
+    pins: [69, 77, 84],
+    field2: 1
+  },
+  guid: {
+    send: '08 03 10 05|08 01 18 02 20 02',
+    mon: '08 04 10 08|08 01 18 02 20 02',
+    ser: '08 03 10 05|08 01 18 0e 20 0e',
+    pins: [94, 113, 126],
+    field2: 5
+  },
+  int: {
+    send: '08 03|08 02 18 03 20 03',
+    mon: '08 04 10 03|08 02 18 03 20 03',
+    ser: '08 03|08 02 18 03 20 03',
+    pins: [68, 76, 83],
+    field2: 0
+  },
+  bool: {
+    send: '08 03 10 04|08 06 18 04 20 04 aa 06 02 08 01',
+    mon: '08 04 10 07|08 06 18 04 20 04 aa 06 02 08 01',
+    ser: '08 03 10 04|08 06 18 05 20 05 aa 06 04 08 c1 9a 0c',
+    pins: [93, 112, 125],
+    field2: 4
+  },
+  float: {
+    send: '08 03 10 01|08 04 18 05 20 05',
+    mon: '08 04 10 04|08 04 18 05 20 05',
+    ser: '08 03 10 01|08 04 18 07 20 07',
+    pins: [90, 109, 122],
+    field2: 1
+  },
+  str: {
+    send: '08 03|08 05 18 06 20 06',
+    mon: '08 04 10 03|08 05 18 06 20 06',
+    ser: '08 03|08 05 18 09 20 09',
+    pins: [12, 34, 40],
+    field2: 0
+  },
+  guid_list: {
+    send: '08 03 10 03|08 92 4e 18 07 20 07 b2 06 08 0a 06 08 01 18 02 20 02',
+    mon: '08 04 10 06|08 92 4e 18 07 20 07 b2 06 08 0a 06 08 01 18 02 20 02',
+    ser: '08 03 10 03|08 92 4e 18 0f 20 0f b2 06 08 0a 06 08 01 18 0e 20 0e',
+    pins: [136, 150, 163],
+    field2: 3
+  },
+  float_list: {
+    send: '08 03 10 08|08 92 4e 18 08 20 08 b2 06 08 0a 06 08 02 18 03 20 03',
+    mon: '08 04 10 0b|08 92 4e 18 08 20 08 b2 06 08 0a 06 08 02 18 03 20 03',
+    ser: '08 03 10 08|08 92 4e 18 04 20 04 b2 06 08 0a 06 08 02 18 03 20 03',
+    pins: [141, 155, 168],
+    field2: 8
+  },
+  bool_list: {
+    send: '08 03 10 02|08 92 4e 18 09 20 09 b2 06 0d 0a 0b 08 06 18 04 20 04 aa 06 02 08 01',
+    mon: '08 04 10 05|08 92 4e 18 09 20 09 b2 06 0d 0a 0b 08 06 18 04 20 04 aa 06 02 08 01',
+    ser: '08 03 10 02|08 92 4e 18 06 20 06 b2 06 0f 0a 0d 08 06 18 05 20 05 aa 06 04 08 c1 9a 0c',
+    pins: [70, 78, 85],
+    field2: 2
+  },
+  int_list: {
+    send: '08 03 10 07|08 92 4e 18 0a 20 0a b2 06 08 0a 06 08 04 18 05 20 05',
+    mon: '08 04 10 0a|08 92 4e 18 0a 20 0a b2 06 08 0a 06 08 04 18 05 20 05',
+    ser: '08 03 10 07|08 92 4e 18 08 20 08 b2 06 08 0a 06 08 04 18 07 20 07',
+    pins: [140, 154, 167],
+    field2: 7
+  },
+  str_list: {
+    send: '08 03 10 06|08 92 4e 18 0b 20 0b b2 06 08 0a 06 08 05 18 06 20 06',
+    mon: '08 04 10 09|08 92 4e 18 0b 20 0b b2 06 08 0a 06 08 05 18 06 20 06',
+    ser: '08 03 10 06|08 92 4e 18 0a 20 0a b2 06 08 0a 06 08 05 18 09 20 09',
+    pins: [139, 153, 166],
+    field2: 6
+  },
+  vec3: {
+    send: '08 03 10 02|08 07 18 0c 20 0c',
+    mon: '08 04 10 05|08 07 18 0c 20 0c',
+    ser: '08 03 10 02|08 07 18 0b 20 0b',
+    pins: [91, 110, 123],
+    field2: 2
+  },
+  entity_list: {
+    send: '08 03 10 02|08 92 4e 18 0d 20 0d b2 06 06 0a 04 18 01 20 01',
+    mon: '08 04 10 05|08 92 4e 18 0d 20 0d b2 06 06 0a 04 18 01 20 01',
+    ser: '08 03 10 02|08 92 4e 18 02 20 02 b2 06 06 0a 04 18 01 20 01',
+    pins: [135, 149, 162],
+    field2: 2
+  },
+  vec3_list: {
+    send: '08 03 10 05|08 92 4e 18 0f 20 0f b2 06 08 0a 06 08 07 18 0c 20 0c',
+    mon: '08 04 10 08|08 92 4e 18 0f 20 0f b2 06 08 0a 06 08 07 18 0c 20 0c',
+    ser: '08 03 10 05|08 92 4e 18 0c 20 0c b2 06 08 0a 06 08 07 18 0b 20 0b',
+    pins: [138, 152, 165],
+    field2: 5
+  },
+  config_id: {
+    send: '08 03 10 08|08 01 18 14 20 14',
+    mon: '08 04 10 0b|08 01 18 14 20 14',
+    ser: '08 03 10 08|08 01 18 12 20 12',
+    pins: [97, 116, 129],
+    field2: 8
+  },
+  prefab_id: {
+    send: '08 03 10 07|08 01 18 15 20 15',
+    mon: '08 04 10 0a|08 01 18 15 20 15',
+    ser: '08 03 10 07|08 01 18 13 20 13',
+    pins: [96, 115, 128],
+    field2: 7
+  },
+  config_id_list: {
+    send: '08 03|08 92 4e 18 16 20 16 b2 06 08 0a 06 08 01 18 14 20 14',
+    mon: '08 04 10 03|08 92 4e 18 16 20 16 b2 06 08 0a 06 08 01 18 14 20 14',
+    ser: '08 03|08 92 4e 18 14 20 14 b2 06 08 0a 06 08 01 18 12 20 12',
+    pins: [133, 147, 160],
+    field2: 0
+  },
+  prefab_id_list: {
+    send: '08 03 10 01|08 92 4e 18 17 20 17 b2 06 08 0a 06 08 01 18 15 20 15',
+    mon: '08 04 10 04|08 92 4e 18 17 20 17 b2 06 08 0a 06 08 01 18 15 20 15',
+    ser: '08 03 10 01|08 92 4e 18 15 20 15 b2 06 08 0a 06 08 01 18 13 20 13',
+    pins: [134, 148, 161],
+    field2: 1
+  }
+}
+
+// Server definition identity field 4 n2 (byte-verbatim from editor output):
+// {1:10001, 2:20002, 3:22000, 5:2000} — identical in maps 1849 and 1888.
+const BUILTIN_SERVER_F4_N2 = new Uint8Array([
+  0x08, 0x91, 0x4e, 0x10, 0xa2, 0x9c, 0x01, 0x18, 0xf0, 0xab, 0x01, 0x28, 0xd0, 0x0f
+])
+
+// Monitor fixed outputs (byte-verbatim from editor output; canonical fresh-map pins).
+const BUILTIN_MONITOR_FIXED: { name: string; n3: string; n4: string; pin: number }[] = [
+  { name: '事件源实体', n3: '08 04', n4: '18 01 20 01', pin: 15 },
+  { name: '事件源GUID', n3: '08 04 10 01', n4: '08 01 18 02 20 02', pin: 16 },
+  { name: '信号来源实体', n3: '08 04 10 02', n4: '18 01 20 01', pin: 17 }
+]
+
+// Signal-name pin n4 messages (byte-verbatim from verify_ping; name replaced).
+const BUILTIN_NAMEPIN_N4: Record<'send' | 'mon' | 'ser', string> = {
+  send: '08 05 12 1b 08 05 10 01 22 05 08 01 a2 06 00 ca 06 0d 0a 0b 76 65 72 69 66 79 5f 70 69 6e 67 30 01 3a 02 08 04',
+  mon: '08 05 12 1b 08 05 10 01 22 05 08 01 a2 06 00 ca 06 0d 0a 0b 76 65 72 69 66 79 5f 70 69 6e 67 30 01 3a 02 08 04',
+  ser: '08 05 12 1d 08 05 10 01 22 07 08 02 aa 06 02 10 09 ca 06 0d 0a 0b 76 65 72 69 66 79 5f 70 69 6e 67 20 09 30 01 3a 02 08 04'
+}
+const BUILTIN_NAMEPIN_PINS: Record<'send' | 'mon' | 'ser', number> = { send: 43, mon: 44, ser: 46 }
+
+function hexToBytes(hex: string): Uint8Array {
+  const parts = hex.trim().split(/\s+/).filter(Boolean)
+  return new Uint8Array(parts.map((part) => parseInt(part, 16)))
+}
+
+function splitLayout(row: string): { n3: Uint8Array; n4: Uint8Array } {
+  const [n3, n4] = row.split('|')
+  return { n3: hexToBytes(n3), n4: hexToBytes(n4) }
+}
+
+// Set (or add) the varint field 2 inside an n3 descriptor, keeping other fields.
+function n3WithField2(n3: Uint8Array, field2: number): Uint8Array {
+  const parsed = fields(n3, 'builtin n3 descriptor')
+  const existing = parsed.find((entry) => entry.number === 2 && entry.wire === 0)
+  const next = existing
+    ? parsed.map((entry) => (entry === existing ? { ...entry, value: field2 } : entry))
+    : [...parsed, { number: 2, wire: 0, value: field2 }]
+  next.sort((a, b) => a.number - b.number)
+  return emitWireMessage(next)
+}
+
+// Replace the signal name inside a name-pin n4 message
+// (field 2 -> field 105 -> field 1 holds the name string).
+function namePinWithSignal(n4: Uint8Array, name: string): Uint8Array {
+  const top = fields(n4, 'builtin name pin n4')
+  const inner = top.find((entry) => entry.number === 2 && entry.wire === 2)
+  if (!inner) return n4
+  const innerFields = message(inner, 'builtin name pin n4 field 2')
+  const nextInner = innerFields.map((entry) => {
+    if (entry.number !== 105 || entry.wire !== 2) return entry
+    const sub = fields(entry.value as Uint8Array, 'builtin name pin name field')
+    const nameField = sub.find((nested) => nested.number === 1 && nested.wire === 2)
+    if (!nameField) return entry
+    return { ...entry, value: emitWireMessage([{ ...nameField, value: TEXT.encode(name) }]) }
+  })
+  return emitWireMessage(
+    top.map((entry) => (entry === inner ? { ...entry, value: emitWireMessage(nextInner) } : entry))
+  )
+}
+
+const BUILTIN_PLACEHOLDER_PREFIX = 'param_'
+
+
 function fields(data: Uint8Array, label: string): WireField[] {
   const result = parseWireMessage(data)
   if (!result) throw new Error(`[error] invalid ${label}`)
@@ -304,6 +515,296 @@ function buildParamPool(top: readonly WireField[], entries: SignalIndexEntry[]):
     }
   }
   return { byType }
+}
+
+// Count occurrences of each parameter type in a spec.
+function paramTypeCounts(params: readonly SignalRegistrationParam[]): Map<SignalParamType, number> {
+  const counts = new Map<SignalParamType, number>()
+  for (const param of params) counts.set(param.type, (counts.get(param.type) ?? 0) + 1)
+  return counts
+}
+
+function poolCovers(pool: SignalPool, params: readonly SignalRegistrationParam[]): boolean {
+  for (const [type, count] of paramTypeCounts(params)) {
+    if ((pool.byType.get(type)?.length ?? 0) < count) return false
+  }
+  return true
+}
+
+// Generate builtin ParamTemplates for one type, k = startK .. startK+count-1.
+// Same-type repeat pins: send +4k (verified for str), monitor +1k, server +1k;
+// n3 field2 = layout.field2 + k (send/server), layout.field2 + 3 + k (monitor).
+function builtinTemplatesFor(
+  type: SignalParamType,
+  count: number,
+  startK: number
+): ParamTemplates[] {
+  const layout = BUILTIN_PARAM_LAYOUTS[type]
+  if (!layout) return []
+  const placeholder = BUILTIN_PLACEHOLDER_PREFIX + type
+  const typeCode = PARAM_TYPE_CODES[type]
+  if (typeCode === undefined) return []
+  const out: ParamTemplates[] = []
+  for (let offset = 0; offset < count; offset++) {
+    const k = startK + offset
+    const sendStep = type === 'str' ? 4 : 1
+    const s = layout.pins[0] + sendStep * k
+    const m = layout.pins[1] + k
+    const r = layout.pins[2] + k
+    const send = splitLayout(layout.send)
+    const mon = splitLayout(layout.mon)
+    const ser = splitLayout(layout.ser)
+    out.push({
+      sourceSignal: 'builtin-layouts',
+      sourceParam: placeholder,
+      index: {
+        number: 4,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: TEXT.encode(placeholder) },
+          { number: 2, wire: 0, value: typeCode },
+          { number: 3, wire: 0, value: 1 },
+          { number: 4, wire: 0, value: s },
+          { number: 5, wire: 0, value: m },
+          { number: 6, wire: 0, value: r }
+        ])
+      },
+      send: {
+        number: 102,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: TEXT.encode(placeholder) },
+          { number: 2, wire: 0, value: 1 },
+          { number: 3, wire: 2, value: n3WithField2(send.n3, layout.field2 + k) },
+          { number: 4, wire: 2, value: send.n4 },
+          { number: 8, wire: 0, value: s }
+        ])
+      },
+      monitor: {
+        number: 103,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: TEXT.encode(placeholder) },
+          { number: 2, wire: 0, value: 1 },
+          { number: 3, wire: 2, value: n3WithField2(mon.n3, layout.field2 + 3 + k) },
+          { number: 4, wire: 2, value: mon.n4 },
+          { number: 8, wire: 0, value: m }
+        ])
+      },
+      server: {
+        number: 102,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: TEXT.encode(placeholder) },
+          { number: 2, wire: 0, value: 1 },
+          { number: 3, wire: 2, value: n3WithField2(ser.n3, layout.field2 + k) },
+          { number: 4, wire: 2, value: ser.n4 },
+          { number: 8, wire: 0, value: r }
+        ])
+      }
+    })
+  }
+  return out
+}
+
+// Merge map-derived templates with builtin ones for the spec's types. Same-type
+// repeats beyond the map's templates are extrapolated for str only (verified
+// editor pattern); other types fail closed (no real editor evidence exists).
+function mergePoolFor(params: readonly SignalRegistrationParam[], mapPool: SignalPool): SignalPool {
+  const byType = new Map(mapPool.byType)
+  for (const [type, count] of paramTypeCounts(params)) {
+    const existing = mapPool.byType.get(type) ?? []
+    const missing = count - existing.length
+    if (missing <= 0) continue
+    if (type !== 'str') {
+      // Fail closed for repeats: only the verified single layout exists for
+      // non-str types; a second occurrence needs a donor signal registered in
+      // the editor. A single occurrence with no map template uses builtin k=0.
+      const repeat = existing.length > 0 || missing > 1
+      if (repeat) {
+        throw new Error(
+          `[error] parameter type "${type}" needs ${count} distinct layouts, but the map provides ${existing.length}; ` +
+            'builtin layouts cover one occurrence per type (verified editor bytes); ' +
+            'repeated non-str params need a donor signal registered in the editor'
+        )
+      }
+    }
+    byType.set(type, [...existing, ...builtinTemplatesFor(type, missing, existing.length)])
+  }
+  return { byType }
+}
+
+// Build a synthetic donor template (entry + three definitions) for the builtin
+// path. Definitions reuse the same builder the donor path uses, so param
+// cloning, pin assignment and index assembly stay on one code path.
+function builtinFixedEntry(fixed: { name: string; n3: string; n4: string; pin: number }): WireField {
+  return {
+    number: 103,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 1, wire: 2, value: TEXT.encode(fixed.name) },
+      { number: 2, wire: 0, value: 1 },
+      { number: 3, wire: 2, value: hexToBytes(fixed.n3) },
+      { number: 4, wire: 2, value: hexToBytes(fixed.n4) },
+      { number: 8, wire: 0, value: fixed.pin }
+    ])
+  }
+}
+
+// Fixed input/output pin entries (byte-verbatim from verify_ping, fresh-map
+// canonical pins). n100/n101 pins: send 3/5, monitor 13, server 19/20; the
+// extra server pin (field 106, no name) uses pin 45.
+function builtinPins100(kind: 'send' | 'ser'): WireField {
+  const pin = kind === 'send' ? 3 : 19
+  return {
+    number: 100,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 2, wire: 0, value: 1 },
+      { number: 3, wire: 2, value: hexToBytes('08 01') },
+      { number: 4, wire: 2, value: emitWireMessage([]) },
+      { number: 8, wire: 0, value: pin }
+    ])
+  }
+}
+function builtinPins101(kind: 'send' | 'mon' | 'ser'): WireField {
+  const pin = kind === 'send' ? 5 : kind === 'mon' ? 13 : 20
+  return {
+    number: 101,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 2, wire: 0, value: 1 },
+      { number: 3, wire: 2, value: hexToBytes('08 02') },
+      { number: 4, wire: 2, value: emitWireMessage([]) },
+      { number: 8, wire: 0, value: pin }
+    ])
+  }
+}
+function builtinServerExtraPin(): WireField {
+  return {
+    number: 106,
+    wire: 2,
+    value: emitWireMessage([
+      { number: 2, wire: 0, value: 1 },
+      { number: 3, wire: 2, value: hexToBytes('08 05') },
+      { number: 4, wire: 2, value: hexToBytes('08 02 20 03') },
+      { number: 5, wire: 2, value: hexToBytes('08 05 10 01 a2 06 04 08 bc 9b 0c') },
+      { number: 8, wire: 0, value: 45 }
+    ])
+  }
+}
+function builtinSignalDef(kind: 'send' | 'mon' | 'ser', signal: SignalRegistrationSpec): WireField {
+  const sendIdentity = encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId)
+  const monIdentity = encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId)
+  const serverIdentity = encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId)
+  // Verified against the editor's own bytes: send n107 field 3 references the
+  // SERVER identity (type 20002); server n107 field 3 references the SEND identity.
+  const inner =
+    kind === 'mon'
+      ? { 1: 1002, name: signal.name, a: sendIdentity, b: serverIdentity }
+      : kind === 'ser'
+        ? { 1: 1001, name: signal.name, a: monIdentity, b: sendIdentity }
+        : { 1: 1001, name: signal.name, a: monIdentity, b: serverIdentity }
+  const fields: WireField[] = [
+    { number: 1, wire: 0, value: inner[1] },
+    {
+      // monitor def carries the name under field 102, send/server under 101
+      number: kind === 'mon' ? 102 : 101,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 2, value: TEXT.encode(inner.name) },
+        { number: 2, wire: 2, value: inner.a },
+        { number: 3, wire: 2, value: inner.b }
+      ])
+    }
+  ]
+  return { number: 107, wire: 2, value: emitWireMessage(fields) }
+}
+const BUILTIN_DISPLAY: Record<'send' | 'mon' | 'ser', { text: string; kind: number }> = {
+  send: { text: '发送信号', kind: 1 },
+  mon: { text: '监听信号', kind: 2 },
+  ser: { text: '向服务器节点图发送信号', kind: 1 }
+}
+
+function buildBuiltinTemplate(
+  signal: SignalRegistrationSpec,
+  pool: SignalPool
+): { template: SignalIndexEntry; templateDefinitions: WireField[] } {
+  const first = signal.params[0]
+  const firstTemplates = pool.byType.get(first.type)?.[0]
+  if (!firstTemplates) throw new Error(`[error] no layout for parameter type: ${first.type}`)
+  const kinds: { kind: 'send' | 'mon' | 'ser'; entry: WireField }[] = [
+    { kind: 'send', entry: firstTemplates.send! },
+    { kind: 'mon', entry: firstTemplates.monitor! },
+    { kind: 'ser', entry: firstTemplates.server! }
+  ]
+  const templateDefinitions = kinds.map(({ kind, entry }) => {
+    const id =
+      kind === 'send' ? signal.sendId : kind === 'mon' ? signal.monitorId : signal.serverId
+    const identity = encodeNodeIdentity(
+      kind === 'ser' ? CLIENT_NODE_TYPE : SERVER_NODE_TYPE,
+      id
+    )
+    const root: WireField[] = [
+      {
+        number: 4,
+        wire: 2,
+        value: emitWireMessage([
+          { number: 1, wire: 2, value: identity },
+          { number: 2, wire: 2, value: kind === 'ser' ? BUILTIN_SERVER_F4_N2 : identity },
+          { number: 4, wire: 2, value: emitWireMessage([]) },
+          { number: 5, wire: 0, value: 2 }
+        ])
+      }
+    ]
+    if (kind !== 'mon') root.push(builtinPins100(kind))
+    root.push(builtinPins101(kind))
+    if (kind === 'mon') {
+      for (const fixed of BUILTIN_MONITOR_FIXED) root.push(builtinFixedEntry(fixed))
+    }
+    root.push(entry)
+    if (kind === 'ser') root.push(builtinServerExtraPin())
+    root.push({
+      number: 106,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 2, value: TEXT.encode('信号名') },
+        ...(kind === 'ser'
+          ? [
+              { number: 2, wire: 0, value: 1 },
+              { number: 3, wire: 2, value: hexToBytes('08 05 10 01') }
+            ]
+          : []),
+        { number: 4, wire: 2, value: namePinWithSignal(hexToBytes(BUILTIN_NAMEPIN_N4[kind]), signal.name) },
+        { number: 5, wire: 2, value: hexToBytes('08 06 10 01') },
+        { number: 8, wire: 0, value: BUILTIN_NAMEPIN_PINS[kind] }
+      ])
+    })
+    root.push(builtinSignalDef(kind, signal))
+    root.push({ number: 200, wire: 2, value: TEXT.encode(BUILTIN_DISPLAY[kind].text) })
+    root.push({ number: 203, wire: 0, value: BUILTIN_DISPLAY[kind].kind })
+    root.push({ number: 204, wire: 0, value: 8 })
+    return { number: 2, wire: 2, value: emitWireMessage([{ number: 1, wire: 2, value: emitWireMessage(root) }]) }
+  })
+  const template: SignalIndexEntry = {
+    field: {
+      number: 3,
+      wire: 2,
+      value: emitWireMessage([
+        { number: 1, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.sendId) },
+        { number: 2, wire: 2, value: encodeNodeIdentity(SERVER_NODE_TYPE, signal.monitorId) },
+        { number: 3, wire: 2, value: TEXT.encode(signal.name) },
+        { number: 4, wire: 2, value: firstTemplates.index.value },
+        { number: 6, wire: 0, value: 2 },
+        { number: 7, wire: 2, value: encodeNodeIdentity(CLIENT_NODE_TYPE, signal.serverId) }
+      ])
+    },
+    name: signal.name,
+    params: [...signal.params],
+    identity: { sendId: signal.sendId, monitorId: signal.monitorId, serverId: signal.serverId },
+    paramEntries: [firstTemplates.index]
+  }
+  return { template, templateDefinitions }
 }
 
 function cloneParamEntry(template: WireField, oldName: string, newName: string): WireField {
@@ -759,7 +1260,7 @@ export function updateSignalInGil(input: {
 
 export function registerSignalInGil(input: {
   bytes: Uint8Array
-  templateSignalName: string
+  templateSignalName?: string
   signal: SignalRegistrationInput
   templateBytes?: Uint8Array
 }): RegisterSignalResult {
@@ -804,29 +1305,62 @@ export function registerSignalInGil(input: {
     if (occupiedIds.has(id)) throw new Error(`[error] signal node ID already occupied: ${id}`)
   }
 
-  const templateBytes = input.templateBytes ?? input.bytes
-  const templatePayload = templateBytes.slice(20, -4)
-  const templateRoot = fields(templatePayload, 'template GIL payload')
-  const templateTop = message(
-    one(templateRoot, 10, 'template top-level field 10'),
-    'template field 10'
-  )
-  if (!templateTop.some((field) => field.number === 5 && field.wire === 2)) {
-    throw new Error(
-      `[error] template GIL has no signal registry; use a donor GIL with registered signals`
+  // Resolve the parameter-layout source: an explicit donor signal, or builtin
+  // layouts (byte-verbatim from editor-created signals) when no donor covers
+  // every requested parameter type.
+  let source:
+    | {
+        template: SignalIndexEntry
+        pool: SignalPool
+        templateDefinitions: WireField[]
+        templateName: string
+      }
+    | undefined
+  if (input.templateSignalName !== undefined) {
+    const templateBytes = input.templateBytes ?? input.bytes
+    const templatePayload = templateBytes.slice(20, -4)
+    const templateRoot = fields(templatePayload, 'template GIL payload')
+    const templateTop = message(
+      one(templateRoot, 10, 'template top-level field 10'),
+      'template field 10'
     )
+    if (!templateTop.some((field) => field.number === 5 && field.wire === 2)) {
+      throw new Error(
+        `[error] template GIL has no signal registry; use a donor GIL with registered signals`
+      )
+    }
+    const donor = signalEntries(signalIndex(templateTop).fields).find(
+      (entry) => entry.name === input.templateSignalName
+    )
+    if (!donor) throw new Error(`[error] template signal not found: ${input.templateSignalName}`)
+    const donorPool = buildParamPool(templateTop, [donor])
+    if (poolCovers(donorPool, signal.params)) {
+      validateSpec(signal, donorPool)
+      source = {
+        template: donor,
+        pool: donorPool,
+        templateDefinitions: templateTop.filter(
+          (field) => field.number === 2 && definitionTexts(field).includes(donor.name)
+        ),
+        templateName: donor.name
+      }
+    }
   }
-  const template = signalEntries(signalIndex(templateTop).fields).find(
-    (entry) => entry.name === input.templateSignalName
-  )
-  if (!template) throw new Error(`[error] template signal not found: ${input.templateSignalName}`)
-
-  const pool = buildParamPool(templateTop, [template])
-  validateSpec(signal, pool)
-
-  const templateDefinitions = templateTop.filter(
-    (field) => field.number === 2 && definitionTexts(field).includes(template.name)
-  )
+  if (source === undefined) {
+    // Builtin fallback: map-derived pin bases are reused when the map already
+    // has same-type signals; otherwise canonical fresh-map bases are used.
+    const mapPool = buildParamPool(top, existingEntries)
+    const pool = mergePoolFor(signal.params, mapPool)
+    validateSpec(signal, pool)
+    const built = buildBuiltinTemplate(signal, pool)
+    source = {
+      template: built.template,
+      pool,
+      templateDefinitions: built.templateDefinitions,
+      templateName: 'builtin-layouts'
+    }
+  }
+  const { template, pool, templateDefinitions, templateName } = source
   const byId = new Map(templateDefinitions.map((field) => [definitionNodeId(field), field]))
   const orderedTemplateIds = [
     template.identity.serverId,
@@ -876,6 +1410,6 @@ export function registerSignalInGil(input: {
   return {
     bytes: result,
     signal,
-    templateSignalName: template.name
+    templateSignalName: templateName!
   }
 }

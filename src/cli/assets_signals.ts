@@ -39,10 +39,10 @@ function usage(exitCode = 1): never {
     '  --output <file>          create output without overwriting',
     '  --write                  write source GIL after backup',
     '  --template-gil <file>    optional donor GIL for parameter layouts',
-    '  --template-signal <name> existing signal to clone parameter entries from',
+    '  --template-signal <name> optional donor signal (builtin layouts cover all types; donor overrides)',
     '  --target-signal <name>   existing signal to update or repair in place',
     '  --name <name>            resulting signal name',
-    '  --param <name:type>      new signal parameter (repeatable, <=9; donor layouts required for repeats)',
+    '  --param <name:type>      new signal parameter (repeatable, <=9; repeated non-str types need a donor)',
     '  --send-id <id>           new signal send node ID (auto when omitted)',
     '  --monitor-id <id>        new signal monitor node ID (auto when omitted)',
     '  --server-id <id>         new signal server identity node ID (auto when omitted)',
@@ -120,7 +120,9 @@ export function parseArgs(argv: readonly string[]) {
     throw new Error('[error] --gil and --map-id are mutually exclusive')
   if (write && outputPath) throw new Error('[error] --write and --output are mutually exclusive')
   if (command === 'register') {
-    if (!templateSignalName) throw new Error('[error] --template-signal is required')
+    // --template-signal is optional: builtin layouts cover every parameter
+    // type (byte-verbatim from editor-created signals), so fresh maps can
+    // register signals without a donor.
   } else if (command === 'update') {
     if (!targetSignalName) throw new Error('[error] --target-signal is required')
     if (!name) throw new Error('[error] --name is required')
