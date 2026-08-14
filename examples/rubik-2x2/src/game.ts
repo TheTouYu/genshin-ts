@@ -199,6 +199,8 @@ const gstsOrbitStore = g.defineComposite('gsts_orbit_store', {
   outputs: {},
   outflows: ['done'],
   build: ({ i, vel1, vel2, vel3, vel4, vel5 }, f) => {
+    // 展开型复合：5 段写入，每段区域 2 节点（get 句柄 + set_or_add）——保持字面量变量名
+    // （getNodeGraphVariable 需字面量推断 dict 类型；str pin 无法静态查表——#18 拆分尝试失败登记）
     const d1 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
       f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, vel1
     ])
@@ -223,10 +225,6 @@ const gstsOrbitStore = g.defineComposite('gsts_orbit_store', {
   }
 })
 
-// 转动块数据准备复合（2026-08-14 v7：循环体数据逻辑入复合，8 块共用）——
-// 输入 {i, tabId}：内部 blocks[i] 查询 + 层轴字典查询 + isR..isB 比较 + 嵌套 inLayer 层判断；
-// 输出 {e, axis, hit}——宿主保留 doubleBranch（exec 动作 + 定时器留宿主，#3）
-// tabId → 6 轴标志复合（2026-08-14 #16 递归拆分）：内部 6 个 equal
 const gstsTabAxisFlags = g.defineComposite('gsts_tab_axis_flags', {
   inputs: { tabId: { type: 'int' } },
   outputs: { isR: { type: 'bool' }, isL: { type: 'bool' }, isU: { type: 'bool' }, isD: { type: 'bool' }, isF: { type: 'bool' }, isB: { type: 'bool' } },
@@ -246,7 +244,7 @@ const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
   inputs: { i: { type: 'int' }, tabId: { type: 'int' } },
   outputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, hit: { type: 'bool' } },
   build: ({ i, tabId }, f) => {
-    // #16 递归拆分：6 轴标志 → gsts_tab_axis_flags（原 15 节点 → 本复合 6 节点）
+    // #18 递归拆分：位置读取+层判断 → gsts_layer_hit（原 10 节点 → 本复合 4 节点）
     const e = f.getCorrespondingValueFromList(
       f.getNodeGraphVariable('blocks').asType('entity_list'),
       i
@@ -256,11 +254,8 @@ const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
       tabId
     )
     const flags = f.callComposite(gstsTabAxisFlags, { tabId })
-    const loc = f.getEntityLocationAndRotation(e).location
-    const hit = f.callComposite(gstsInLayer, {
-      x: loc.x,
-      y: loc.y,
-      z: loc.z,
+    const hit = f.callComposite(gstsLayerHit, {
+      e,
       isR: flags.isR,
       isL: flags.isL,
       isU: flags.isU,
@@ -271,6 +266,7 @@ const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
     return { e, axis, hit }
   }
 })
+
 // 转动一块复合（2026-08-14 v8：封装型「转动一块」完整封装）——
 // 输入 {i, tabId, center}：内部 turn_check 数据准备 + doubleBranch（命中 → spinBlock + orbitCalc 嵌套
 // exec 复合调用）；输出 {hit} 供宿主定时器分支（setTimeout 留宿主 #3）
@@ -392,6 +388,47 @@ const gstsTabLock = g.defineComposite('gsts_tab_lock', {
   }
 })
 // 层成员筛选复合：按当前坐标判断块是否在目标层（2026-08-14 复合化，8 块共用）
+// 坐标轴比较复合（2026-08-14 #18 递归拆分）：单轴层判断——内部 5 节点
+const gstsAxisCompare = g.defineComposite('gsts_axis_compare', {
+  inputs: { coord: { type: 'float' }, isPos: { type: 'bool' }, isNeg: { type: 'bool' } },
+  outputs: { hit: { type: 'bool' } },
+  build: ({ coord, isPos, isNeg }, f) => ({
+    hit: f.logicalOrOperation(
+      f.logicalAndOperation(isPos, f.greaterThan(coord, 3)),
+      f.logicalAndOperation(isNeg, f.lessThan(coord, 3))
+    )
+  })
+})
+
+// 块层命中复合（2026-08-14 #18 递归拆分）：位置读取 + 坐标分解 + 层判断——内部 5 节点
+const gstsLayerHit = g.defineComposite('gsts_layer_hit', {
+  inputs: {
+    e: { type: 'entity' },
+    isR: { type: 'bool' },
+    isL: { type: 'bool' },
+    isU: { type: 'bool' },
+    isD: { type: 'bool' },
+    isF: { type: 'bool' },
+    isB: { type: 'bool' }
+  },
+  outputs: { hit: { type: 'bool' } },
+  build: ({ e, isR, isL, isU, isD, isF, isB }, f) => {
+    const loc = f.getEntityLocationAndRotation(e).location
+    const hit = f.callComposite(gstsInLayer, {
+      x: loc.x,
+      y: loc.y,
+      z: loc.z,
+      isR,
+      isL,
+      isU,
+      isD,
+      isF,
+      isB
+    }).hit
+    return { hit }
+  }
+})
+
 const gstsInLayer = g.defineComposite('gsts_in_layer', {
   inputs: {
     x: { type: 'float' },
@@ -406,21 +443,13 @@ const gstsInLayer = g.defineComposite('gsts_in_layer', {
   },
   outputs: { hit: { type: 'bool' } },
   build: ({ x, y, z, isR, isL, isU, isD, isF, isB }, f) => {
+    // #18 递归拆分：坐标比较 → gsts_axis_compare（原 17 节点 → 本复合 6 节点）
     const hit = f.logicalOrOperation(
       f.logicalOrOperation(
-        f.logicalOrOperation(
-          f.logicalAndOperation(isR, f.greaterThan(x, 3)),
-          f.logicalAndOperation(isL, f.lessThan(x, 3))
-        ),
-        f.logicalAndOperation(isU, f.greaterThan(y, 3))
+        f.callComposite(gstsAxisCompare, { coord: x, isPos: isR, isNeg: isL }).hit,
+        f.callComposite(gstsAxisCompare, { coord: y, isPos: isU, isNeg: isD }).hit
       ),
-      f.logicalOrOperation(
-        f.logicalOrOperation(
-          f.logicalAndOperation(isD, f.lessThan(y, 3)),
-          f.logicalAndOperation(isF, f.greaterThan(z, 3))
-        ),
-        f.logicalAndOperation(isB, f.lessThan(z, 3))
-      )
+      f.callComposite(gstsAxisCompare, { coord: z, isPos: isF, isNeg: isB }).hit
     )
     return { hit }
   }
