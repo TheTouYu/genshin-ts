@@ -341,6 +341,29 @@ export function resolveNodeIdentity(
         : isLocalSetter
           ? inputs[1]?.type
           : declaredType ?? inputs[1]?.type ?? inputs[2]?.type ?? inputs[0]?.type
+
+  // set_or_add_key_value_pairs_to_dictionary：kv 变体由 dict 参数（或 key/value 参数）类型决定
+  // （对齐 node_id.ts resolveGiaNodeId 的 set_or_add 分支语义；枚举键不带 Dict_ 前缀，
+  //  如 Set_or_Add_Key_Value_Pairs_to_Dictionary__Int_Vec=995）
+  if (node.type === 'set_or_add_key_value_pairs_to_dictionary') {
+    const dictType = inputs[0]?.type
+    const kvType =
+      dictType?.kind === 'dict' && dictType.key.kind === 'scalar' && dictType.value.kind === 'scalar'
+        ? { k: dictType.key, v: dictType.value }
+        : undefined
+    const fallbackK = inputs[1]?.type
+    const fallbackV = inputs[2]?.type
+    const kType = kvType?.k ?? (fallbackK?.kind === 'scalar' ? fallbackK : undefined)
+    const vType = kvType?.v ?? (fallbackV?.kind === 'scalar' ? fallbackV : undefined)
+    const kSuffix = kType ? (kType.name === 'vec3' ? 'vec' : kType.name) : undefined
+    const vSuffix = vType ? (vType.name === 'vec3' ? 'vec' : vType.name) : undefined
+    if (kSuffix && vSuffix) {
+      const kvConcrete = nodeIds.get(`${lower}__${kSuffix}_${vSuffix}`)
+      if (kvConcrete !== undefined) {
+        return { logicalType: node.type, genericNodeId, concreteNodeId: kvConcrete }
+      }
+    }
+  }
   const suffix = typed?.kind === 'scalar'
     ? typed.name === 'vec3' ? 'vec' : typed.name
     : typed?.kind === 'list' && typed.element.kind === 'scalar'
@@ -473,6 +496,7 @@ export function usesSharedVariantResolution(nodeType: string): boolean {
   return (
     nodeType === 'set_node_graph_variable' ||
     nodeType === 'get_node_graph_variable' ||
+    nodeType === 'set_or_add_key_value_pairs_to_dictionary' ||
     nodeType === 'set_custom_variable' ||
     nodeType === 'get_custom_variable' ||
     nodeType === 'set_local_variable' ||

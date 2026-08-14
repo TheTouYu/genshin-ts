@@ -317,13 +317,24 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - 复合路径错误：①composite.ts 从 `def.implVariables` 取变量类型，但该字段仅来自复合定义显式声明
   `variables` 选项（composite_registry.ts:376），复合内读的是**图变量**，官方 wire 证明不走 implVariables；
   ②argVarType/argVarBaseClass 无 dict 分支返回 0（Ety）；③makeVarBaseValue 无 MapBase 分支。
-- **修复（2026-08-14 已提交）**：①buildCompositeAccessories 新增 graphVariables 参数（index.ts 传 IR 顶层
-  variables），与 def.implVariables 合并进 buildImplGraphNodes 的 variablesByName（复合自身声明优先）；
+- **修复（2026-08-14 提交 ddacb2e + 字典入复合配套）**：
+  ①buildCompositeAccessories 新增 graphVariables 参数（index.ts 传 IR 顶层 variables），与 def.implVariables 合并进
+  buildImplGraphNodes 的 variablesByName（复合自身声明优先）；
   ②resolved_node.ts resolveNodeIdentity 的 suffix 计算补 dict 分支（dict_<k>_<v>，vec3→vec、config_id/prefab_id
   replaceAll 兼容双出现）——get_node_graph_variable 由此经 inferVarSuffix 解析到 concreteId=3046（Dict_Int_Vec），
   vendor 物化路径自动生成与官方 golden 逐字段一致的 OutParam（type=27、ConcreteBase indexOfConcrete=20、
-  MapBase{items{key:3,value:12}}）；③回归测试 tests/composite/test-composite-get-node-graph-variable-dict.ts
-  （shared 与 legacy 双后端 PASS + E2E 全链路 PASS）。
+  MapBase{items{key:3,value:12}}）；
+  ③**set_or_add_key_value_pairs_to_dictionary 等 dict 动作入复合的完整链**（rubik v4 字典入复合实战驱动）：
+    a) composite_registry.ts implNodes args 序列化补 conn dict 子字段（与 ir_builder.buildConnectionArgument 同构，
+    之前 dict 连接的 k/v 丢失 → 无法选 kv 变体）；
+    b) buildImplConnTypeIndex 保存 dict 子字段（connTypeIndex 供 resolveArgumentTypes 推断 dict 类型）；
+    c) resolved_node.ts usesSharedVariantResolution 纳入 set_or_add + resolveNodeIdentity 加 kv 特判
+    （枚举键不带 Dict_ 前缀：Set_or_Add_Key_Value_Pairs_to_Dictionary__Int_Vec=995）；
+    d) composite.ts ordinaryConcreteNid 扩展 set_or_add（sharedConcreteNid 落到 concreteId）；
+    e) buildConnPin 支持 dict（官方形态：ConcreteBase{indexOfConcrete:0} + MapBase{itemType{type:27, kind:2 Pair,
+    items{key,value}}, bMap{mapPairs:[]}}，与宿主图 set_or_add InParam 逐字段一致）；
+  ④回归：新测试 shared+legacy 双后端 PASS + E2E 全链路 PASS；rubik 编译通过（impl 图 setOrAdd concreteId=995、
+    get 节点 3046、宿主节点 190→180）。
 
 ### 复合公开 dict 输出参数（2026-08-14 轮 3 差分 CONFIRMED）
 

@@ -355,12 +355,27 @@ export class CompositeRegistry {
                 } else {
                   giaType = RUNTIME_TO_GIA_TYPE[typeName] ?? typeName
                 }
+                // #4 配套：dict 连接补 k/v 子字段（与 ir_builder.buildConnectionArgument 同构），
+                // 否则复合内 dict 类型节点（get/set 图变量、set_or_add 等）无法选 kv 变体
+                let dictInfo: { k: string; v: string } | undefined
+                if (giaType === 'dict') {
+                  const getKey =
+                    typeName === 'dict'
+                      ? (a as any).getKeyType?.()
+                      : (a as any).getDictKeyType?.()
+                  const getVal =
+                    typeName === 'dict'
+                      ? (a as any).getValueType?.()
+                      : (a as any).getDictValueType?.()
+                  if (getKey && getVal) dictInfo = { k: getKey, v: getVal }
+                }
                 return withCompositeInputIndex({
                   type: 'conn' as const,
                   value: {
                     node_id: meta.record.id,
                     index: meta.pinIndex,
-                    type: giaType
+                    type: giaType,
+                    ...(dictInfo ? { dict: dictInfo } : {})
                   } as any,
                   ...(isCaptureInput ? { capture: true as const } : {})
                 })

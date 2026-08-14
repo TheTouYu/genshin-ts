@@ -107,13 +107,16 @@ const gstsSpinBlock = g.defineComposite('gsts_spin_block', {
 // 定时器回调只查字典取用（复合内 setTimeout 不可用——生产发现 #3）
 // 轨道块复合（2026-08-14 v2：exec 复合，含动作）：5 段速度预计算 + 字典存储 + orbit1。
 // 定时器（orbit2-5）留宿主（复合内 setTimeout 不可用——生产发现 #3）
-// 轨道速度计算复合（2026-08-14 v3：纯数据输出 + 字典存储留宿主）——
-// 生产发现 #4：复合内 get_node_graph_variable 的 dict 输出类型未从 implVariables 推断（默认 Ety），
-// 字典存储动作留宿主；后续生产支持后可将 setOrAdd 纳入复合
+// 轨道速度计算+存储复合（2026-08-14 v4：#4 修复后字典动作入复合）——
+// 5 段速度预计算 + setOrAdd 写字典全在复合内（生产发现 #4 已修复，官方 wire 同构验证）；
+// setOrAdd 是 exec 动作节点 → 复合 exec 化：registerExecNode 链 + outflow('done')；
+// 输出精简为 vel1（宿主 orbit1 运动器直接取用），vel2..5 仅入字典供定时器查询；
+// 定时器（orbit2-5）留宿主（复合内 setTimeout 不可用——生产发现 #3）
 const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
-  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' } },
-  outputs: { vel1: { type: 'vec3' }, vel2: { type: 'vec3' }, vel3: { type: 'vec3' }, vel4: { type: 'vec3' }, vel5: { type: 'vec3' } },
-  build: ({ e, axis, center }, f) => {
+  inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' }, i: { type: 'int' } },
+  outputs: { vel1: { type: 'vec3' } },
+  outflows: ['done'],
+  build: ({ e, axis, center, i }, f) => {
     const loc = f.getEntityLocationAndRotation(e).location
     const v0 = f._3dVectorSubtraction(loc, center)
     const vp = f._3dVectorZoom(axis, f._3dVectorDotProduct(axis, v0))
@@ -129,7 +132,38 @@ const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
     const vel4 = f._3dVectorZoom(f._3dVectorSubtraction(p4, p3), K_VEL)
     const p5 = f.callComposite(gstsOrbitPoint, { vp, vPerp, axv, c: C5, s: S5 }).p
     const vel5 = f._3dVectorZoom(f._3dVectorSubtraction(p5, p4), K_VEL)
-    return { vel1, vel2, vel3, vel4, vel5 }
+    // 5 个 setOrAdd 动作链（exec）：registerExecNode + connect 链尾 → outflow('done')
+    const d1 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+      f.getNodeGraphVariable('vels1').asDict('int', 'vec3'),
+      i,
+      vel1
+    ])
+    const d2 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+      f.getNodeGraphVariable('vels2').asDict('int', 'vec3'),
+      i,
+      vel2
+    ])
+    const d3 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+      f.getNodeGraphVariable('vels3').asDict('int', 'vec3'),
+      i,
+      vel3
+    ])
+    const d4 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+      f.getNodeGraphVariable('vels4').asDict('int', 'vec3'),
+      i,
+      vel4
+    ])
+    const d5 = f.registerExecNode('set_or_add_key_value_pairs_to_dictionary', [
+      f.getNodeGraphVariable('vels5').asDict('int', 'vec3'),
+      i,
+      vel5
+    ])
+    f.connect(d1, 0, d2, 0)
+    f.connect(d2, 0, d3, 0)
+    f.connect(d3, 0, d4, 0)
+    f.connect(d4, 0, d5, 0)
+    f.outflow('done', d5, 0)
+    return { vel1 }
   }
 })
 
@@ -320,14 +354,10 @@ const graph = g
           isB
         }).hit
         f.doubleBranch(inLayer, () => {
-          // exec 复合（自旋动作）+ 纯数据复合（速度）+ 宿主动作（字典存储/orbit1——生产发现 #4）
+          // exec 复合（自旋动作）+ 计算存储复合（速度+字典，#4 已修复）+ 宿主动作（orbit1）
           f.callComposite(gstsSpinBlock, { e, axis })
-          const calc = f.callComposite(gstsOrbitCalc, { e, axis, center })
-          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels1').asDict('int', 'vec3'), i, calc.vel1)
-          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels2').asDict('int', 'vec3'), i, calc.vel2)
-          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels3').asDict('int', 'vec3'), i, calc.vel3)
-          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels4').asDict('int', 'vec3'), i, calc.vel4)
-          f.setOrAddKeyValuePairsToDictionary(f.getNodeGraphVariable('vels5').asDict('int', 'vec3'), i, calc.vel5)
+          // v4：速度计算 + 字典存储全在复合内（#4 修复验证），orbit1 用返回的 vel1
+          const calc = f.callComposite(gstsOrbitCalc, { e, axis, center, i })
           f.addUniformBasicLinearMotionDevice(e, 'orbit1', 0.2, calc.vel1)
           gstsServerOrbitTimers(f, i)
         }, () => {})

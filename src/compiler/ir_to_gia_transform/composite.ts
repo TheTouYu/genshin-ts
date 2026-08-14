@@ -485,11 +485,13 @@ function buildImplGraphNodes(
     // shared resolveNodeIdentity. Handwritten resolveImplOrdinaryConcreteNodeId remains
     // only as a non-shared fallback for any still-unmigrated concrete-wrapped family.
     // assembly typed concrete: nodeId already resolved to variant; keep it as concrete only.
-    const ordinaryConcreteNid = usesSharedOrdinaryConcreteIdentity(node.type)
-      ? sharedConcreteNid
-      : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
-        ? nodeId
-        : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
+    const ordinaryConcreteNid =
+      usesSharedOrdinaryConcreteIdentity(node.type) ||
+      node.type === 'set_or_add_key_value_pairs_to_dictionary'
+        ? sharedConcreteNid
+        : assemblyGenericId !== undefined && nodeId !== assemblyGenericId
+          ? nodeId
+          : resolveImplOrdinaryConcreteNodeId(node.type, producedType)
     // Synthetic call lowerer owns SysGraph identity; ordinary nodes stay SysCall.
     const callIdentity = resolveCompositeCallIdentity(node, compositeDefById)
     const calledDef = callIdentity?.calledDef
@@ -1051,16 +1053,21 @@ function buildImplConnTypeIndex(
   for (const node of implNodes) {
     for (const arg of node.args ?? []) {
       if (!arg || arg.type !== 'conn') continue
-      const conn = arg.value as { node_id: number; index: number; type?: string }
+      const conn = arg.value as {
+        node_id: number
+        index: number
+        type?: string
+        dict?: { k: string; v: string }
+      }
       if (!conn.type) continue
-      const outputTypes = index.get(conn.node_id) ?? new Map<number, { type: string }>()
+      const outputTypes = index.get(conn.node_id) ?? new Map<number, { type: string; dict?: { k: string; v: string } }>()
       const existingType = outputTypes.get(conn.index)?.type
       if (existingType && existingType !== conn.type) {
         throw new Error(
           `[error] conflicting impl conn types for ${conn.node_id}.${conn.index}: ${existingType} vs ${conn.type}`
         )
       }
-      outputTypes.set(conn.index, { type: conn.type })
+      outputTypes.set(conn.index, { type: conn.type, ...(conn.dict ? { dict: conn.dict } : {}) })
       index.set(conn.node_id, outputTypes)
     }
   }
@@ -1680,7 +1687,12 @@ function buildImplNodePins(
         }
       }
       // 其他 conn arg：用连接携带的真实类型构建占位 pin，避免 float 输入被误编码成 int。
-      const pin = buildConnPin(pinIndex, connType ?? inferInputTypeFromNode(node.type, pinIndex))
+      // dict 连接带 k/v（composite_registry 补全，#4 配套），避免编码成 dict(Ety,Ety)
+      const pin = buildConnPin(
+        pinIndex,
+        connType ?? inferInputTypeFromNode(node.type, pinIndex),
+        connType === 'dict' ? (conn as any).dict : undefined
+      )
       if (needsConcreteWrapping(node.type) && pin.value) {
         pin.value = wrapConcreteValueForNodeInput(node.type, pin.value, connType, pinIndex) as any
       }
@@ -2015,7 +2027,31 @@ function buildPlaceholderPin(pinIndex: number, nodeType: string): NodePin {
 /**
  * 为连线输入创建占位 pin（基于类型字符串如 'int'/'float'，而非 nodeType）
  */
-function buildConnPin(pinIndex: number, typeName: string): NodePin {
+function buildConnPin(
+  pinIndex: number,
+  typeName: string,
+  dictKV?: { k: string; v: string }
+): NodePin {
+  // dict 连接（#4 配套）：按官方形态编码——ConcreteBase(indexOfConcrete:0) + MapBase
+  // {itemType{type:27 Dictionary, kind:2 Pair, items{key,value}}, bMap{mapPairs:[]}}，
+  // 与宿主图 set_or_add 等 dict InParam 逐字段一致（官方 .gil 轮 1/2 样本）
+  if (dictKV) {
+    const keyType = argVarType(dictKV.k)
+    const valueType = argVarType(dictKV.v)
+    return {
+      i1: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+      i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
+      value: {
+        class: VarBase_Class.ConcreteBase,
+        alreadySetVal: true,
+        bConcreteValue: {
+          indexOfConcrete: 0,
+          value: makeDictVarBaseValue(keyType, valueType, false)
+        }
+      } as any,
+      type: VarType.Dictionary
+    }
+  }
   const varType = argVarType(typeName)
   const varClass = argVarBaseClass(typeName)
   return {
@@ -2023,6 +2059,27 @@ function buildConnPin(pinIndex: number, typeName: string): NodePin {
     i2: { kind: NodePin_Index_Kind.InParam, index: pinIndex },
     value: makeVarBaseValue(varClass, varType, false),
     type: varType
+  }
+}
+
+/** dict 内层 MapBase（官方 itemType{type:27, kind:2 Pair, items{key,value}} + bMap 空） */
+function makeDictVarBaseValue(
+  keyType: number,
+  valueType: number,
+  setVal: boolean
+): Record<string, unknown> {
+  return {
+    class: VarBase_Class.MapBase,
+    alreadySetVal: setVal,
+    itemType: {
+      classBase: 1,
+      type_server: {
+        type: VarType.Dictionary,
+        kind: 2,
+        items: { key: keyType, value: valueType }
+      }
+    },
+    bMap: { mapPairs: [] }
   }
 }
 
