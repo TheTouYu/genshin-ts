@@ -529,8 +529,9 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   → m1 OutFlow[0]（done）→ 宿主 outflow 链。任一环缺 pin 或 connects 即断链。
 - **回归**：tests/composite/test-composite-synthetic-to-ordinary-exec-edge.ts（IR + GIA 双层，
   vendor/legacy 双后端，红绿验证）；相关套件 9 项全 PASS。
-- **状态**：自动回归通过、生产 GIA 重编译通过、副本注入 read 验证通过；**待用户游戏验证**
-  （注入后重新加载地图；注意编辑器保存可能改写 flow pin——注入后先游戏测试再动编辑器）。
+- **状态**：自动回归通过、生产 GIA 重编译通过、副本注入 read 验证通过；
+  **用户游戏验证通过（2026-08-14 15:21 日志 2679）**：m1 运动器 head=3205 4 帧（修复前 0 帧）、
+  宿主链恢复（head=34/36/3a/3f 等）、定时器恢复（__gsts_timeout_N_index 写入）、锁释放可连续转动。
 
 ### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 

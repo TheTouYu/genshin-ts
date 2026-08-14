@@ -104,6 +104,8 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 - **Get Corresponding Value From List（128）**：**下标 0-based**——IN1=1 取第 2 个元素；越界返回空实体（Entity= 空）。1..N 遍历习惯会导致最后一块空（P4 实证）。
 - **罗德里格斯链（旋转轴转换）**：3 段 zoom/subtraction/cross 组合；核对关键中间值（v·c、u×v·s、u·(u·v)）。
 - **rotation 输出（Get Entity Location and Rotation 的 OUT1）**：欧拉角（YXZ 内旋）；**组合旋转后可用矩阵反推验证轴语义**（2026-08-13 实证：匀速旋转 axis 为局部轴，M_new = M·R_local）。
+- **复合 head 前缀 = 调用栈（2026-08-14 #12 实证）**：head=320702 读作「宿主节点 0x32(50)=turn_block 调用 → impl 节点 7=velocity 复合 → velocity impl 节点 2」。turn_block 内 impl 序号：3202 doubleBranch / 3203 spin_block / 3204 store / 3205 运动器(84) / 3206 turn_check / 3207 velocity。用 grep -o "head=32[0-9a-f][0-9a-f]" | sort | uniq -c 即可得到复合内各节点执行计数——**链尾普通 exec 节点计数为 0 即断链信号**。
+- **复合内 exec 链断链诊断（2026-08-14 #12 闭环）**：现象 = 复合内全部节点有帧但链尾普通节点（如运动器）零帧 → done outflow 不触发 → 宿主链零帧 → 锁/后续逻辑不响应。根因两段：① core.ts connect 对 composite call 返回对象（仅 __markerNodeId 无 id）用 sourceRef.id → IR implEdges 源 "undefined" → materialize 静默丢边；② 即使 IR 边正确，普通 exec 节点缺物理 InFlow pin。修复后日志判据：链尾节点出现帧（m1 head=3205 4 帧）+ 宿主链恢复（head=34/36/3a/3f 等）+ 定时器写入 __gsts_timeout_N_index。
 
 ### 玩法逻辑调试流程（从用户反馈到逐帧定位，2026-08-13/14 实证）
 
@@ -119,6 +121,8 @@ description: 查询/分析原神 Beyond_Debug_Log 调试日志（.gia）的专�
 | Get Entity Location OUT0 偏离网格 | 位置漂移（公式/预计算问题） | 核对速度计算中间值 |
 | rotation 组合后异常 | 轴语义（局部轴） | 矩阵反推验证（YXZ 内旋 R=Ry·Rx·Rz） |
 | 循环帧 head 复用 | 循环内执行 | 按轮核对各迭代值 |
+| 复合内上游全执行、链尾普通节点零帧（如 head=3205 运动器 0 帧） | synthetic→ordinary exec 边断链（IR 边源 "undefined" / 目标缺 InFlow pin） | ① check IR implEdges 无 "undefined" 源 ② read 复合 impl 图核对链尾节点有 InFlow pin + 上游 OutFlow connects |
+| 链尾节点出现帧 + 宿主链恢复 + 定时器写入（__gsts_timeout_N_index） | 断链修复生效 | 对照修复前后帧分布（head=32xx uniq -c）确认仅链尾列从 0 变非 0 |
 
 5. **数值对比**：实际读取值 vs 期望（网格坐标/理论速度）——差异即根因方向。
 6. **修复 → 注入 → 用户重测 → 新日志复验**：每轮一个可归因变量，日志确认修复生效。

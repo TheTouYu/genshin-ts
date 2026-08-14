@@ -98,6 +98,7 @@ f21 = {
 | Set Node Graph Variable | 323 | 输入：Str,R\<T\>,Bol | 两级帧；IN0=实体上下文、IN1=变量名、IN2=值、IN3=类型4=1、IN4=类型4=''（是否触发事件=否） |
 | Addition | 200/201 | 输入：R\<T\>,R\<T\>；输出：R\<T\> | 单帧；IN0=操作数、IN1=操作数、IN2=类型14=300 |
 | Data Type Conversion | 180 | 输入：R\<K\> | 单帧；IN0=值、IN1=类型14=802(int)/806(bool)/808(float)、OUT0=类型6 |
+| Add Uniform Basic Linear Motion Device（运动器） | 84 | 输入：Ety,Str,Flt,Vec | 单帧；复合内 head=3205 前缀（#12 实证 2026-08-14：修复前 0 帧/修复后 4 帧） |
 
 ### 两级帧 ID 规律
 
@@ -196,6 +197,8 @@ f21 = {
 - 两级帧 ID：图变量 get/set = {N.03 主, N.04 子}（04 先于 03）；print/str/运算/事件/分支 = 单级
 - 变量初始值不出现在 f21（只记录执行帧；while 计数器首次写回后才出现值）
 - 节点定义查询流程（复用）：`grep -n "节点英文名" src/thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/node_pin_records.ts`（见 gil-node-graph-editing 技能"节点 ID / 名称查询速查"）
+- **复合内 exec 链断链判据（2026-08-14 #12 实证）**：复合调用复合内某普通 exec 节点（如运动器 84）整段零帧、但上游复合调用节点（store/velocity 等）有帧 → 合成→普通 exec 边断链。三态对照：复合内全部执行但链尾普通节点零帧 = IR 边丢失（implEdges 源 "undefined"）或目标缺物理 InFlow pin；修复后链尾节点出现帧（m1 head=3205 4 帧）+ 宿主链恢复（head=34+）+ 定时器写入（__gsts_timeout_N_index）。
+- **复合 head 前缀 = 调用栈**：head=320702 读作「宿主节点 0x32=50（turn_block 调用）→ impl 节点 7（velocity）→ velocity impl 节点 2」；复合内各 impl 节点按其序号占 head 次高位（3202 doubleBranch / 3203 spin_block / 3204 store / 3205 运动器 / 3206 turn_check / 3207 velocity）。
 
 ## 待解问题
 
