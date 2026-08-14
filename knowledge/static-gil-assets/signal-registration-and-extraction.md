@@ -6,11 +6,11 @@
 
 ### Signal registration tool chain: cloning pool, auto-assigned IDs, safe writeback, extraction linkage
 
-gsts assets:signals 向地图 GIL 注册新信号：从模板信号按参数类型克隆条目（每类型一次、<=9 参数、类型池来自目标地图现有信号，缺失类型报错提示先在编辑器注册）；省略 send/monitor/server 节点 ID 时自动从当前最大占用 +1 连续分配（信号 ID 段 0x60000000，内置定义占用 1610612738..1610612740）；--write 前校验源 SHA、自动备份到同级 .gsts/backups/、写入前做结构回读验证；写回成功后自动提取 src/resources/signals.ts（与 inject 流程共享 readRegisteredSignalsFromGil 解析器）。
+gsts assets:signals 向地图 GIL 注册新信号：参数布局来源两路——①提供 --template-signal（可配 --template-gil 独立 donor）时从模板信号按参数类型克隆条目；②省略时使用内置参数布局表（字节 100% 来自编辑器真实信号，覆盖 str/int/float/bool/vec3/entity/guid/prefab_id/config_id 及全部列表类型；新鲜地图 pin 基址与编辑器一致：str=12/34/40、int=68/76/83 等；同地图内复用已有类型的基址）。str 同型重复按 send+4/mon+1/ser+1 自动递增（编辑器实证）；非 str 同型重复无编辑器布局证据，fail-closed 要求 donor。省略 send/monitor/server 节点 ID 时自动从当前最大占用 +1 连续分配（信号 ID 段 0x60000000，内置定义占用 1610612738..1610612740）；--write 前校验源 SHA、自动备份到同级 .gsts/backups/、写入前做结构回读验证；写回成功后自动提取 src/resources/signals.ts（与 inject 流程共享 readRegisteredSignalsFromGil 解析器）。端到端已验（2026-08-15）：真实无信号地图副本（1073741880.gil）从零注册 verify_ping（msg/tag str）全流程通过——空注册表自动初始化、规范 pin、CLI 候选回读、inspect 确认。
 
 #### 适用边界
 
-工具当前行为，证据为自动回归测试 + 真实地图写入 + 用户游戏内验证；不包含修改已有信号（未实现）；不包含编辑器 pin 分配细节（编辑器私有）。
+工具当前行为，证据为自动回归测试（tests/signal_registration_builtin.ts 字节对比 donor==builtin）+ 真实地图副本端到端 + CLI 候选回读；游戏内信号可用性未核验（需用户真实地图 --write + 游戏测试）；不包含修改已有信号（未实现）；编辑器 pin 分配算法细节未完全闭合（仅新鲜地图规范基址与同地图复用规则有实证）。
 
 <!-- CLAIM:END clm_747B855B2F15D8CF565A95D92D -->
 
