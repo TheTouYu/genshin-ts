@@ -543,8 +543,13 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   OutParam，与"未配置 Variant 不落盘"规则同构）；有位置 x/y。
 - **CompositeDef 无事件声明**：field2 12→12 不变——事件不产生 inflows/outflows 式 def 扩展。
 - **compositePins 无事件映射**（5 条不变）；**宿主调用实例无变化**（4 pins 不变）。
-- **触发语义**：未连线事件节点 = 复合内图入口但无出口（游戏验证范畴）；需**连线差分**（事件
-  OutFlow → 内部节点）闭合触发链 wire 与运行语义——下一轮。
+- **连线后（轮 12b，after 3bcf2f61）**：事件节点 OutFlow[0] connects → {id:2, kind:1, index:0}
+  （事件 → 运动器 InFlow[0]）——事件 OutFlow 连线后落盘；目标运动器**无物理 InFlow pin**
+  （编辑器规范：exec 边靠 connects 驱动）。
+- **触发语义（轮 12c 游戏实证，2026-08-14）**：编辑器保存版（含连线事件节点 + 无 flow pin）
+  游戏完美通过——转动/定时器/锁释放全正常（日志 2681：m1 4 帧、__gsts_timeout 208 次）。
+  自定义变量变化事件**未被触发**（用户测试未改变自定义变量，日志事件帧 0）——事件触发链
+  的运行语义仍待专门测试（改变自定义变量 → 事件 OutFlow → 运动器）。
 - **生产缺口不变**：DSL 复合 build 无事件注册 API（g.server().on 是图级入口）——待事件触发语义
   闭合后设计（如 f.on('whenCustomVariableChanges', cb) 或复合级 events 声明）。
 
@@ -561,10 +566,14 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   **用户澄清：编辑器复合内可放事件节点（复合可包含一切节点，甚至整图打包成复合）**——
   生产 DSL 复合 build 无事件注册 API（g.server().on 是图级入口）＝**生产 DSL 知识/实现缺口**，
   不排除；**轮 12 差分已闭合 wire 形态（2026-08-14）**，见下方独立章节。
-- **编辑器保存会丢注入 flow pin（2026-08-14 轮 12 实证，重要）**：编辑器打开含注入复合的 .gil
-  再保存时，用编辑器内存状态整体重写——不识别注入的物理 flow pin（InFlow/OutFlow），
-  turn_block n2 InFlow / m1 InFlow+OutFlow 被丢弃（-13B）→ exec 链断 → 游戏又零帧。
-  **对策：注入后测试前不要用编辑器保存；差分/编辑后必须重新注入生产版**（轮 11 样本丢失同因）。
+- **编辑器保存会丢注入 flow pin（2026-08-14 轮 12 实证，专门调查闭环）**：编辑器打开含注入
+  复合的 .gil 再保存时，按编辑器规范重写 impl 节点 pins——**无 connects 的 flow pin 不落盘**
+  （n2 InFlow0 / m1 InFlow0+OutFlow0 被丢弃；有 connects 的 n4 OutFlow0 保留）。
+  **但游戏执行不受影响（轮 12c 游戏实证）**：编辑器保存版（flow pin 已丢）游戏完美通过、
+  m1 运动器 4 帧执行——**exec 链由 connects 记录驱动，目标节点无需物理 InFlow pin**
+  （与编辑器自建复合 impl 节点全无物理 flow pin 但正常一致）。
+  **推论**：生产补的物理 flow pin 非必要但无害（编辑器会丢、游戏不看）；#12 游戏通过的关键
+  = core.ts 边修复（IR 边存在 → connects 存在）。生产未来可对齐编辑器规范（不落裸 flow pin）。
 - **观察项（低风险）**：复合输出 OutParam 的 ioc 用硬编码 concreteOutputIndex（bool→0/float→1/
   str→2/int→3，其他 default 0）——与 vendor 输出 ioc 可能不同（v5/v7 输出核验正常——运行时值
   不受影响）；待差分验证输出 ioc 编辑器值后决定是否对齐。
