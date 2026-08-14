@@ -556,8 +556,13 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   Set Custom Variable(22) InFlow[0]（变量名 ← 事件 OutParam2、新值 ← 事件 OutParam4、
   InParam4 Bol false=不触发事件）；目标 n6 无物理 InFlow pin（再次证实 connects 驱动）。
   监听变量名的配置字段不在 CLI 可见 pins 中（待用户面板核对或 raw 深挖）。
-- **生产缺口不变**：DSL 复合 build 无事件注册 API（g.server().on 是图级入口）——待事件触发语义
-  闭合后设计（如 f.on('whenCustomVariableChanges', cb) 或复合级 events 声明）。
+- **触发语义（轮 12e 日志实证，2026-08-14）**：orbit_segment 复合正常执行（192 帧）、定时器
+  1272 次，但事件帧 0——**图变量变化不触发「自定义变量变化」事件**（魔方 lock/blocks/axes 全是
+  图变量）；事件只监听**实体自定义变量**（用户面板确认：监听该实体全部自定义变量，且仅当
+  Set Custom Variable 的"触发事件"=是 时触发）。事件触发链的运行帧仍待受控测试（需要主图
+  有"设置自定义变量（触发事件=是）"动作源）。
+- **生产缺口不变**：DSL 复合 build 无事件注册 API（g.server().on 是图级入口）——待事件触发链
+  受控测试闭合后设计（如 f.on('whenCustomVariableChanges', cb) 或复合级 events 声明）。
 
 ### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 
