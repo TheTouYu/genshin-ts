@@ -47,6 +47,21 @@
       ]
     },
     {
+      "id": "aref_05b21f089c561a9ad4570e1c3e",
+      "path": "tests/composite/test-composite-synthetic-to-ordinary-exec-edge.ts",
+      "locator": "S12 回归：IR+GIA 双层断言，vendor/legacy 双后端红绿",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "51271a7806fed4993bb752d2e812140f17337d9e8259894f151be970ae270b10",
+      "claim_ids": [
+        "clm_629530CF4A9643B2DFAD822F7D"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_085b746b8b4bdf228c8b4f7184",
       "path": "src/cli/static_assembly/inspection.ts",
       "locator": "inspectStaticAssemblyMap() and Inspection V1 construction",
@@ -74,6 +89,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_0c114a0587afd5a17239fe4688",
+      "path": "src/runtime/core.ts",
+      "locator": "connect() addEdge(current, sourceId, ...) ~1780-1812",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "aa05f1f23a6b7b21981fdc0323d7840d64129d6ee7c0e58ef3c776e11e627ca9",
+      "claim_ids": [
+        "clm_A0AABCE5C788D7B423C905F0E7"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
@@ -629,6 +659,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_48734aaad773b64bec49f97d73",
+      "path": "src/compiler/ir_to_gia_transform/composite.ts",
+      "locator": "materializeImplOrdinaryGraphWithVendor overlay targetInFlow ~1145-1165; legacy 同族补丁 ~620-650",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "7b10368d8a13b28f26551a8c77a0990a09506d4c975057900490aae257936cb6",
+      "claim_ids": [
+        "clm_629530CF4A9643B2DFAD822F7D"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {

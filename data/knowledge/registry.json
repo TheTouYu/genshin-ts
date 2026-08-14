@@ -925,6 +925,15 @@
       "summary": "",
       "keywords": [],
       "permission": "internal"
+    },
+    {
+      "id": "composite-exec-chain",
+      "node_id": "composite-boundary",
+      "title": "Composite exec chain integrity",
+      "path": "knowledge/composite-boundary/composite-exec-chain.md",
+      "summary": "合成→普通 exec 边的 IR 源解析与目标 InFlow pin 完整规则；断链诊断判据（日志零帧→IR/GIA 检查）",
+      "keywords": [],
+      "permission": "internal"
     }
   ],
   "relationships": [],
@@ -1492,6 +1501,16 @@
     "clm_36A5D97790563B962E5E968EF2": {
       "fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    "clm_A0AABCE5C788D7B423C905F0E7": {
+      "fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    "clm_629530CF4A9643B2DFAD822F7D": {
+      "fact_classes": [
+        "runtime_behavior"
       ]
     }
   }
