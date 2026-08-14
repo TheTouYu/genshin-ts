@@ -550,6 +550,12 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   游戏完美通过——转动/定时器/锁释放全正常（日志 2681：m1 4 帧、__gsts_timeout 208 次）。
   自定义变量变化事件**未被触发**（用户测试未改变自定义变量，日志事件帧 0）——事件触发链
   的运行语义仍待专门测试（改变自定义变量 → 事件 OutFlow → 运动器）。
+- **配置监听变量后（轮 12d，after d1c498a5）**：事件节点获得 **concreteId=36**（reflectMap 36 =
+  Int 变体；监听变量类型决定变体）；输出 OutParam3/4（R<T> 旧值/新值）连线后落盘（OutParam0-2
+  Ety/Gid/Str 未连线不落——"无 connects 不落盘"规则一致）；用户构建测试链：事件 OutFlow[0] →
+  Set Custom Variable(22) InFlow[0]（变量名 ← 事件 OutParam2、新值 ← 事件 OutParam4、
+  InParam4 Bol false=不触发事件）；目标 n6 无物理 InFlow pin（再次证实 connects 驱动）。
+  监听变量名的配置字段不在 CLI 可见 pins 中（待用户面板核对或 raw 深挖）。
 - **生产缺口不变**：DSL 复合 build 无事件注册 API（g.server().on 是图级入口）——待事件触发语义
   闭合后设计（如 f.on('whenCustomVariableChanges', cb) 或复合级 events 声明）。
 
