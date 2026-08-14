@@ -16,7 +16,7 @@ const eventComp = g.defineComposite('verify_event_comp', {
   }
 })
 
-const graph = g.server({ id: 1073741827, variables: { flag: false } }).on('whenTabIsSelected', (_e: any, f: any) => {
+const graph = g.server({ id: 1073741826, variables: { flag: false } }).on('whenTabIsSelected', (_e: any, f: any) => {
   f.callComposite(eventComp, {})
   f.setNodeGraphVariable('flag', true, false)
 })

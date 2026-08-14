@@ -17,7 +17,7 @@ const loopComp = g.defineComposite('verify_loop_comp', {
   }
 })
 
-const graph = g.server({ id: 1073741826 }).on('whenTabIsSelected', (_e: any, f: any) => {
+const graph = g.server({ id: 1073741825 }).on('whenTabIsSelected', (_e: any, f: any) => {
   f.callComposite(loopComp, {})
 })
 export default graph
