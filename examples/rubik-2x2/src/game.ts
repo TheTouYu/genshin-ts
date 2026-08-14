@@ -312,27 +312,37 @@ const gstsSpawnRubik = g.defineComposite('gsts_spawn_rubik', {
     f.setNodeGraphVariable('b5', c5, false)
     const c6 = f.callComposite(gstsCreateCorner, { pid: 1077936135n, stage, x: 2.5, y: 3.5, z: 3.5 }).e
     f.setNodeGraphVariable('b6', c6, false)
-    const c7 = f.callComposite(gstsCreateCorner, { pid: 1077936136n, stage, x: 3.5, y: 3.5, z: 3.5 }).e
+    const c7Call = f.callComposite(gstsCreateCorner, { pid: 1077936136n, stage, x: 3.5, y: 3.5, z: 3.5 })
+    const c7 = c7Call.e
+    // f.node detached：必须显式 link c7 create_corner → setB7（否则链尾断，blocks 永不设置——
+    // 2685 日志 rec0 在 c7 后截断实证）
     const setB7 = f.node('set_node_graph_variable', [new str('b7'), c7, new bool(false)])
+    f.link(c7Call as never, 0, setB7, 0)
     f.outflow('done', setB7, 0)
     return { c0, c1, c2, c3, c4, c5, c6, c7 }
   }
 })
 
 // Tab 锁门复合（2026-08-14 大规模复合化 #14）：lock 检查 + set lock——
-// 输出 unlocked（lock==false 时 true 且已上锁）；主图 Tab 区域节点数降到阈值内
+// done outflow 只在「未锁」分支触发（set lock 后）；宿主在调用后无条件续链，
+// 锁着时 done 不触发 → 宿主循环不执行。
+// 不用数据输出判断：OutParam 引用的数据节点在宿主消费时会二次求值（引擎惰性语义），
+// 「读 lock→写 lock→输出派生值」会读到写入后的值（2685 日志 rec1 实证：unlocked 二次求值=false）
 const gstsTabLock = g.defineComposite('gsts_tab_lock', {
   inputs: {},
-  outputs: { unlocked: { type: 'bool' } },
+  outputs: {},
   outflows: ['done'],
   build: (_i, f) => {
     const isFree = f.equal(f.getNodeGraphVariable('lock').asType('bool'), false)
-    // 上锁 = 写 isFree（isFree=true 时 lock=true）；f.node 返回 ref 供 outflow 绑定，
-    // f.link 显式连 capture→setLock（f.node detached 不自动连主链）
-    const setLock = f.node('set_node_graph_variable', [new str('lock'), isFree, new bool(false)])
-    f.link(f.entry(), 0, setLock, 0)
-    f.outflow('done', setLock, 0)
-    return { unlocked: isFree }
+    const br = f.node('double_branch', [isFree])
+    f.link(f.entry(), 0, br, 0)
+    f.connectOutFlow(br, 0, () => {
+      const setLock = f.node('set_node_graph_variable', [new str('lock'), new bool(true), new bool(false)])
+      f.link(br, 0, setLock, 0)
+      f.outflow('done', setLock, 0)
+    })
+    f.connectOutFlow(br, 1, () => {})
+    return {}
   }
 })
 // 层成员筛选复合：按当前坐标判断块是否在目标层（2026-08-14 复合化，8 块共用）
@@ -410,20 +420,19 @@ const graph = g
     // #13 复合内事件验证链：每次 Tab 设置自定义变量（触发事件=是）→
     // orbit_segment 复合内 whenCustomVariableChanges 事件触发 → print 变量名
     f.setCustomVariable(evt.eventSourceEntity, new str('tab_count'), evt.tabId, true)
-    // #14 大规模复合化：lock 门打包为 gsts_tab_lock（检查+上锁）；
-    // 循环+定时器留宿主（复合内 setTimeout 不可用——生产发现 #3）
-    if (f.callComposite(gstsTabLock, {}).unlocked) {
-      const center = f.create3dVector(3, 3, 3)
-      for (let i = 0n; i < 8n; i++) {
-        // v8：转动一块完整封装（数据准备+层判断+自旋+轨道）；定时器留宿主（#3）
-        const hit = f.callComposite(gstsTurnBlock, { i, tabId: evt.tabId, center }).hit
-        f.doubleBranch(hit, () => {
-          gstsServerOrbitTimers(f, i)
-        }, () => {})
-      }
-      // 解锁改为相对时序：orbit5 实际触发后 +250ms 解锁（见 gstsServerOrbitBlock 的 orbit5 回调），
-      // 消除绝对 1000ms 解锁与 tick 不稳导致的末段中断（生产发现 #2 的底层修复）
+    // #14 大规模复合化：lock 门打包为 gsts_tab_lock——done 只在未锁分支触发，
+    // 锁着时宿主续链不执行；循环+定时器留宿主（复合内 setTimeout 不可用——生产发现 #3）
+    f.callComposite(gstsTabLock, {})
+    const center = f.create3dVector(3, 3, 3)
+    for (let i = 0n; i < 8n; i++) {
+      // v8：转动一块完整封装（数据准备+层判断+自旋+轨道）；定时器留宿主（#3）
+      const hit = f.callComposite(gstsTurnBlock, { i, tabId: evt.tabId, center }).hit
+      f.doubleBranch(hit, () => {
+        gstsServerOrbitTimers(f, i)
+      }, () => {})
     }
+    // 解锁改为相对时序：orbit5 实际触发后 +250ms 解锁（见 gstsServerOrbitBlock 的 orbit5 回调），
+    // 消除绝对 1000ms 解锁与 tick 不稳导致的末段中断（生产发现 #2 的底层修复）
   })
 
 // orbit2-5 定时器（2026-08-14：速度预计算已封装到 gsts_orbit_calc 复合；
