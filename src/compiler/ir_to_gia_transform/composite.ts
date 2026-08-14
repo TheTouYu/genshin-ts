@@ -608,7 +608,8 @@ function buildImplGraphNodes(
       nodeIndexMap,
       boundaryInputIndexesByNode,
       boundaryInputTypesByNode,
-      implConnTypeIndex
+      implConnTypeIndex,
+      boundaryPins
     )
   }
 
@@ -701,7 +702,9 @@ function materializeImplOrdinaryGraphWithVendor(
   nodeIndexMap: Map<number, number>,
   boundaryInputIndexesByNode: Map<number, Set<number>>,
   boundaryInputTypesByNode: Map<number, Map<number, string>>,
-  implConnTypeIndex: Map<number, Map<number, { type: string }>>
+  implConnTypeIndex: Map<number, Map<number, { type: string }>>,
+  /** compositePins（outflow 映射补内部节点 OutFlow pin 用，#11） */
+  boundaryPins: CompositeDefIR['compositePins'] = []
 ): GraphNode[] {
   const graph = new Graph('server', 0, '', 0)
   const vendorNodes = new Map<number, Node<any>>()
@@ -955,6 +958,32 @@ function materializeImplOrdinaryGraphWithVendor(
           connect: { kind: NodePin_Index_Kind.InFlow, index: getEdgeTargetIndex(edge) },
           connect2: { kind: NodePin_Index_Kind.InFlow, index: getEdgeTargetIndex(edge) }
         }
+      })
+    }
+  }
+
+  // 2026-08-14 修复（#11，v8 游戏失败）：outflow 映射的内部节点缺 OutFlow pin——
+  // vendor 物化对 registerExecNode 等 exec 节点不生成 OutFlow pins；outflow('done', ref, 0) 绑定
+  // 的 OutFlow pin 不存在 → 复合 done 不触发 → 宿主 outflow 链断（turn_block done→宿主分支零帧）。
+  // 编辑器 exec 节点有 OutFlow（轮 10 差分 set lock 样本）；此处按 compositePins outflow 映射补 pin。
+  for (const cp of boundaryPins) {
+    if (cp.outerPinKind !== NodePin_Index_Kind.OutFlow) continue
+    const inner = nodeResults.find((result) => result.node.id === cp.innerNodeId)
+    const encodedInner = inner
+      ? encodedNodes.find((node) => node.nodeIndex === inner.nodeIndex)
+      : undefined
+    if (!encodedInner) continue
+    const idx = cp.innerPinIndex ?? 0
+    const hasFlow = (encodedInner.pins ?? []).some(
+      (pin: any) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && pin.i1?.index === idx
+    )
+    if (!hasFlow) {
+      encodedInner.pins = encodedInner.pins ?? []
+      encodedInner.pins.push({
+        i1: { kind: NodePin_Index_Kind.OutFlow, index: idx },
+        i2: { kind: NodePin_Index_Kind.OutFlow, index: idx },
+        type: 0,
+        value: null
       })
     }
   }
