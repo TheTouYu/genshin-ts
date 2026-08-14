@@ -962,26 +962,30 @@ function materializeImplOrdinaryGraphWithVendor(
     }
   }
 
-  // 2026-08-14 修复（#11，v8 游戏失败）：outflow 映射的内部节点缺 OutFlow pin——
-  // vendor 物化对 registerExecNode 等 exec 节点不生成 OutFlow pins；outflow('done', ref, 0) 绑定
-  // 的 OutFlow pin 不存在 → 复合 done 不触发 → 宿主 outflow 链断（turn_block done→宿主分支零帧）。
-  // 编辑器 exec 节点有 OutFlow（轮 10 差分 set lock 样本）；此处按 compositePins outflow 映射补 pin。
+  // 2026-08-14 修复（#11 系列，v8 游戏失败驱动）：compositePins 控制流映射指向的内部节点
+  // flow pin 缺失——vendor 物化对 registerExecNode 等 exec 节点不生成 InFlow/OutFlow pins。
+  // #11 OutFlow：outflow('done', ref, 0) 绑定的 OutFlow pin 不存在 → 复合 done 不触发 → 宿主
+  // outflow 链断（turn_block done→宿主分支零帧）；系统性检查进一步发现全部 exec 复合的
+  // InFlow 映射同样缺失（编辑器有物理 flow pin——轮 10 差分 set lock 样本）——一并补齐。
   for (const cp of boundaryPins) {
-    if (cp.outerPinKind !== NodePin_Index_Kind.OutFlow) continue
+    if (cp.outerPinKind !== NodePin_Index_Kind.OutFlow && cp.outerPinKind !== NodePin_Index_Kind.InFlow) {
+      continue
+    }
     const inner = nodeResults.find((result) => result.node.id === cp.innerNodeId)
     const encodedInner = inner
       ? encodedNodes.find((node) => node.nodeIndex === inner.nodeIndex)
       : undefined
     if (!encodedInner) continue
     const idx = cp.innerPinIndex ?? 0
+    const flowKind = cp.outerPinKind
     const hasFlow = (encodedInner.pins ?? []).some(
-      (pin: any) => pin.i1?.kind === NodePin_Index_Kind.OutFlow && pin.i1?.index === idx
+      (pin: any) => pin.i1?.kind === flowKind && pin.i1?.index === idx
     )
     if (!hasFlow) {
       encodedInner.pins = encodedInner.pins ?? []
       encodedInner.pins.push({
-        i1: { kind: NodePin_Index_Kind.OutFlow, index: idx },
-        i2: { kind: NodePin_Index_Kind.OutFlow, index: idx },
+        i1: { kind: flowKind, index: idx },
+        i2: { kind: flowKind, index: idx },
         type: 0,
         value: null
       })
