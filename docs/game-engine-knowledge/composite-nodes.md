@@ -533,6 +533,21 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   **用户游戏验证通过（2026-08-14 15:21 日志 2679）**：m1 运动器 head=3205 4 帧（修复前 0 帧）、
   宿主链恢复（head=34/36/3a/3f 等）、定时器恢复（__gsts_timeout_N_index 写入）、锁释放可连续转动。
 
+### 复合内事件节点 wire（2026-08-14 轮 12 差分 CONFIRMED）
+
+> 证据：用户编辑器在 gsts_orbit_segment 复合内添加「自定义变量变化时」事件节点（未连线）并保存；
+> before 6536e43a（v12 注入版）→ after aeb66738。root10 field4 impl 图 [3] 484B→513B nodes 3→4。
+
+- **事件节点 = impl 图普通节点记录**：新节点 index=1（最小空闲索引分配，before 的 n2/n3/n4 不变）；
+  genericId=36（When Custom Variable Changes）、**无 concreteId**、**0 pins**（未连线时无 OutFlow/
+  OutParam，与"未配置 Variant 不落盘"规则同构）；有位置 x/y。
+- **CompositeDef 无事件声明**：field2 12→12 不变——事件不产生 inflows/outflows 式 def 扩展。
+- **compositePins 无事件映射**（5 条不变）；**宿主调用实例无变化**（4 pins 不变）。
+- **触发语义**：未连线事件节点 = 复合内图入口但无出口（游戏验证范畴）；需**连线差分**（事件
+  OutFlow → 内部节点）闭合触发链 wire 与运行语义——下一轮。
+- **生产缺口不变**：DSL 复合 build 无事件注册 API（g.server().on 是图级入口）——待事件触发语义
+  闭合后设计（如 f.on('whenCustomVariableChanges', cb) 或复合级 events 声明）。
+
 ### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 
 > 方法：node_id.ts 全部变体推断分支 vs 复合路径纳管集合（usesSharedVariantResolution +
@@ -545,7 +560,11 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - **事件节点（when_custom_variable_changes / when_node_graph_variable_changes）**：
   **用户澄清：编辑器复合内可放事件节点（复合可包含一切节点，甚至整图打包成复合）**——
   生产 DSL 复合 build 无事件注册 API（g.server().on 是图级入口）＝**生产 DSL 知识/实现缺口**，
-  不排除；待差分验证（轮 11：复合内事件节点的 wire 与触发语义）。
+  不排除；**轮 12 差分已闭合 wire 形态（2026-08-14）**，见下方独立章节。
+- **编辑器保存会丢注入 flow pin（2026-08-14 轮 12 实证，重要）**：编辑器打开含注入复合的 .gil
+  再保存时，用编辑器内存状态整体重写——不识别注入的物理 flow pin（InFlow/OutFlow），
+  turn_block n2 InFlow / m1 InFlow+OutFlow 被丢弃（-13B）→ exec 链断 → 游戏又零帧。
+  **对策：注入后测试前不要用编辑器保存；差分/编辑后必须重新注入生产版**（轮 11 样本丢失同因）。
 - **观察项（低风险）**：复合输出 OutParam 的 ioc 用硬编码 concreteOutputIndex（bool→0/float→1/
   str→2/int→3，其他 default 0）——与 vendor 输出 ioc 可能不同（v5/v7 输出核验正常——运行时值
   不受影响）；待差分验证输出 ioc 编辑器值后决定是否对齐。
