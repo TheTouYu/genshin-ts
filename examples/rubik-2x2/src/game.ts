@@ -21,7 +21,7 @@
 //   ⑤ 连续多轮转动后角块是否仍对齐网格（无累积漂移）
 import { g } from 'genshin-ts/runtime/core'
 import type { IntValue } from 'genshin-ts/runtime/value'
-import { float, int, str } from 'genshin-ts/runtime/value'
+import { float, int, listLiteral, str } from 'genshin-ts/runtime/value'
 // ServerExecutionFlowFunctions 定义于 src/definitions/nodes.ts（2026-08-13 修正 import 路径：
 // 原 'genshin-ts/runtime/definitions/nodes' 无对应导出，tsc TS2307；管线 tsx 不查类型故此前未暴露）
 import type { ServerExecutionFlowFunctions } from 'genshin-ts/definitions/nodes'
@@ -133,7 +133,7 @@ const gstsOrbitSegment = g.defineComposite('gsts_orbit_segment', {
 // 轨道速度计算+存储复合（2026-08-14 v4：#4 修复后字典动作入复合）——
 // 5 段速度预计算 + setOrAdd 写字典全在复合内（生产发现 #4 已修复，官方 wire 同构验证）；
 // setOrAdd 是 exec 动作节点 → 复合 exec 化：registerExecNode 链 + outflow('done')；
-// 输出精简为 vel1（宿主 orbit1 运动器直接取用），vel2..5 仅入字典供定时器查询；
+// v6：orbit1 运动器入复合（链尾 outflow），vel1 输出保留（向后兼容，宿主不再消费）；
 // 定时器（orbit2-5）留宿主（复合内 setTimeout 不可用——生产发现 #3）
 const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
   inputs: { e: { type: 'entity' }, axis: { type: 'vec3' }, center: { type: 'vec3' }, i: { type: 'int' } },
@@ -185,8 +185,45 @@ const gstsOrbitCalc = g.defineComposite('gsts_orbit_calc', {
     f.connect(d2, 0, d3, 0)
     f.connect(d3, 0, d4, 0)
     f.connect(d4, 0, d5, 0)
-    f.outflow('done', d5, 0)
+    // v6：orbit1 运动器入复合（链尾）——宿主只调一次复合，不再直调运动器
+    const m1 = f.registerExecNode('add_uniform_basic_linear_motion_device', [
+      e,
+      new str('orbit1'),
+      new float(0.2),
+      vel1
+    ])
+    f.outflow('done', m1, 0)
     return { vel1 }
+  }
+})
+
+// 角块创建复合（2026-08-14 v6：createPrefab 动作入复合，8 块共用）——
+// 输入 {pid, stage, x, y, z}：内部 createPrefab（位置向量组装/旋转零/默认参数）+ 输出实体；
+// prefabId 只能字面量（DSL 约束：createPrefab 的 prefabId 参数不支持数据节点），宿主传实例
+const gstsCreateCorner = g.defineComposite('gsts_create_corner', {
+  inputs: {
+    pid: { type: 'prefab_id' },
+    stage: { type: 'entity' },
+    x: { type: 'float' },
+    y: { type: 'float' },
+    z: { type: 'float' }
+  },
+  outputs: { e: { type: 'entity' } },
+  outflows: ['done'],
+  build: ({ pid, stage, x, y, z }, f) => {
+    const e = f.createPrefab(
+      pid,
+      f.create3dVector(x, y, z),
+      f.create3dVector(0, 0, 0),
+      stage,
+      false,
+      0,
+      new listLiteral('int')
+    )
+    // createPrefab 是 exec 节点：绑定复合出口（createPrefab 返回实体，record 从 metadata 取）
+    const meta = (e as unknown as { getMetadata?: () => { record?: { id: number } } }).getMetadata?.()
+    if (meta?.record) f.outflow('done', meta.record as never, 0)
+    return { e }
   }
 })
 
@@ -259,85 +296,69 @@ const graph = g
     // 图只挂控制器：本事件在控制器创建时触发（日志已验证 rec1），角块创建与变量
     // 读写都在控制器实例内完成（图变量按挂载实体实例隔离，跨实例读取为空——2026-08-13 日志结论）
       // 角块 i 位置 = (3,3,3) + 0.4825·(dx,dy,dz)，rotate=(0,0,0)，owner=关卡实体
-      const c0 = f.createPrefab(
-        1077936129,
-        f.create3dVector(2.5, 2.5, 2.5),
-        f.create3dVector(0, 0, 0),
+      const c0 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936129n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 2.5,
+        y: 2.5,
+        z: 2.5
+      }).e
       f.setNodeGraphVariable('b0', c0, false)
-      const c1 = f.createPrefab(
-        1077936130,
-        f.create3dVector(3.5, 2.5, 2.5),
-        f.create3dVector(0, 0, 0),
+      const c1 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936130n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 3.5,
+        y: 2.5,
+        z: 2.5
+      }).e
       f.setNodeGraphVariable('b1', c1, false)
-      const c2 = f.createPrefab(
-        1077936131,
-        f.create3dVector(2.5, 2.5, 3.5),
-        f.create3dVector(0, 0, 0),
+      const c2 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936131n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 2.5,
+        y: 2.5,
+        z: 3.5
+      }).e
       f.setNodeGraphVariable('b2', c2, false)
-      const c3 = f.createPrefab(
-        1077936132,
-        f.create3dVector(3.5, 2.5, 3.5),
-        f.create3dVector(0, 0, 0),
+      const c3 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936132n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 3.5,
+        y: 2.5,
+        z: 3.5
+      }).e
       f.setNodeGraphVariable('b3', c3, false)
-      const c4 = f.createPrefab(
-        1077936133,
-        f.create3dVector(2.5, 3.5, 2.5),
-        f.create3dVector(0, 0, 0),
+      const c4 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936133n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 2.5,
+        y: 3.5,
+        z: 2.5
+      }).e
       f.setNodeGraphVariable('b4', c4, false)
-      const c5 = f.createPrefab(
-        1077936134,
-        f.create3dVector(3.5, 3.5, 2.5),
-        f.create3dVector(0, 0, 0),
+      const c5 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936134n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 3.5,
+        y: 3.5,
+        z: 2.5
+      }).e
       f.setNodeGraphVariable('b5', c5, false)
-      const c6 = f.createPrefab(
-        1077936135,
-        f.create3dVector(2.5, 3.5, 3.5),
-        f.create3dVector(0, 0, 0),
+      const c6 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936135n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 2.5,
+        y: 3.5,
+        z: 3.5
+      }).e
       f.setNodeGraphVariable('b6', c6, false)
-      const c7 = f.createPrefab(
-        1077936136,
-        f.create3dVector(3.5, 3.5, 3.5),
-        f.create3dVector(0, 0, 0),
+      const c7 = f.callComposite(gstsCreateCorner, {
+        pid: 1077936136n,
         stage,
-        false,
-        0,
-        [] as IntValue[]
-      )
+        x: 3.5,
+        y: 3.5,
+        z: 3.5
+      }).e
       f.setNodeGraphVariable('b7', c7, false)
       // v5.4：块列表（循环按坐标筛选层成员，替代静态 layers）
       f.setNodeGraphVariable('blocks', [c0, c1, c2, c3, c4, c5, c6, c7], false)
@@ -379,9 +400,8 @@ const graph = g
         f.doubleBranch(inLayer, () => {
           // exec 复合（自旋动作）+ 计算存储复合（速度+字典，#4 已修复）+ 宿主动作（orbit1）
           f.callComposite(gstsSpinBlock, { e, axis })
-          // v4：速度计算 + 字典存储全在复合内（#4 修复验证），orbit1 用返回的 vel1
-          const calc = f.callComposite(gstsOrbitCalc, { e, axis, center, i })
-          f.addUniformBasicLinearMotionDevice(e, 'orbit1', 0.2, calc.vel1)
+          // v4：速度计算 + 字典存储全在复合内；v6：orbit1 运动器也入复合（链尾）
+          f.callComposite(gstsOrbitCalc, { e, axis, center, i })
           gstsServerOrbitTimers(f, i)
         }, () => {})
       }

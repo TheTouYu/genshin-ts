@@ -384,8 +384,14 @@ export class CompositeRegistry {
                   ...(isCaptureInput ? { capture: true as const } : {})
                 })
               }
+              // 防御（2026-08-14 系列 #8）：toIRLiteral 返回 null（如 list 基类）时保留 null
+              // 占位，避免 {...null} 展开成 {} 导致下游 argVarType(undefined) 崩溃
+              const literal = a.toIRLiteral()
+              if (literal === null) {
+                return withCompositeInputIndex(null as unknown as Record<string, unknown>)
+              }
               return withCompositeInputIndex({
-                ...a.toIRLiteral(),
+                ...literal,
                 ...(isCaptureInput ? { capture: true as const } : {})
               })
             })

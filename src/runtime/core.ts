@@ -1318,11 +1318,18 @@ export class MetaCallRegistry implements ExecutionFlowRegistry {
       if (v !== null && v !== undefined && typeof v !== 'object') {
         const t = def?.inputs?.[name]?.type
         // 按声明类型包装（构造器签名在 types:["gsts"] 全局下被解析为 0 参，经 any 绕过——类型疑点另行排查）
+        // 2026-08-14 修复（生产 bug #7）：ID 类型（prefab_id/config_id/guid/faction/entity）
+        // 字面量输入也按声明类型包装（原 fallback generic 会导致下游 parseValue 类型校验失败）
         const Ctor = (
           t === 'int' ? int
           : t === 'float' ? float
           : t === 'bool' ? bool
           : t === 'str' ? str
+          : t === 'prefab_id' ? prefabId
+          : t === 'config_id' ? configId
+          : t === 'guid' ? guid
+          : t === 'faction' ? faction
+          : t === 'entity' ? entity
           : generic
         ) as any
         v = new Ctor(val)
