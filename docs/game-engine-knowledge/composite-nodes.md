@@ -573,10 +573,32 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   - generic pin 放宽：matchType/parseValue 对 generic pin（事件 R<T> 输出）放行标量具体类型
     （dict/_list 除外，需具体泛型）——主图事件同样受益。
   - 回归：tests/composite/test-composite-event-node.ts（IR+GIA 双层）；8 项套件无回归。
-  - 游戏验证（日志 2684）：Tab → 主图 Set Custom Variable(tab_count, 触发=是) → 复合全部实例
-    事件节点触发（两级帧 490203/490204，OUT 含变量名/新值）→ 回调 print_string 执行
-    （head=4903 IN0=tab_count）——与编辑器差分样本（轮 12f）逐点一致。
   - 提交：37d1e9b（生产支持）+ 92d6d77（rubik 演示链）。
+
+### 大规模复合化与回归修复（2026-08-14 #14/#15，分层复盘）
+
+> 用户标准：每层区域节点数 5~7，超限即复合化（哪怕单次调用）——维护/查错/布局收益。
+
+- **#14 大规模复合化（a186e67）**：主图 155→116 节点——gsts_spawn_rubik（实体创建 70+ 节点 → 1
+  调用，8×create_corner + b0-b7 变量）+ gsts_tab_lock（锁门）。主图 whenEntityIsCreated 区域 5 节点达标。
+- **#15 回归修复（3d9a449，2685→2686 日志实证）**——两个生产缺陷：
+  - **缺陷 1（f.node detached 链尾）**：f.node 注册的节点不自动连 tail（detached）；链尾节点
+    必须显式 f.link（spawn 的 setB7 未 link → c7 后链断，blocks 永不设置——rec0 帧截断实证）。
+    **规则**：复合 build 链尾动作节点优先用 f.registerExecNode/便捷方法（自动连），
+    或 f.node + 显式 f.link。
+  - **缺陷 2（OutParam 惰性求值）——生产语义缺口**：复合 return { x } 的输出 OutParam 在宿主
+    消费时**重新求值**其引用的内部数据链（非调用时刻快照）。「读变量→写同一变量→输出派生值」
+    必错（tab_lock 原设计 unlocked=equal(lock,false)：宿主 doubleBranch 消费时二次求值读到
+    写入后的 lock → false → 不转动；rec1 两组 get+equal 实证）。
+    **规则**：复合输出勿派生自会被复合内部写入的变量；条件动作用 **outflow 分支语义**
+    （done 只在实际分支触发，宿主调用后无条件续链——锁着时 done 不触发自然不执行）。
+  - **分层复盘**（用户要求三层检查）：①用法层——f.node 自动连/输出快照两个假设未验证就写
+    （违反不猜原则）；②设计层——setNodeGraphVariable 返回 void 迫使 f.node+link 脆弱模式
+    （待改进：返回 ref）；OutParam 惰性求值语义需文档化；③实现层——OutParam 求值时机与编辑器
+    是否一致待差分验证（编辑器复合输出派生自被写入变量时的行为）；分支 outflow 编辑器对比
+    （轮 10 只见过链尾无条件 outflow，分支条件 outflow 由 2686 游戏日志验证）。
+  - **游戏验证（2686）**：tab_lock 单次求值（get→equal→true→真分支→set lock）→ done 触发 →
+    宿主循环正常执行；8 块创建、转动、事件链、定时器全恢复。
 
 ### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 
