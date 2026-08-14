@@ -556,13 +556,17 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   Set Custom Variable(22) InFlow[0]（变量名 ← 事件 OutParam2、新值 ← 事件 OutParam4、
   InParam4 Bol false=不触发事件）；目标 n6 无物理 InFlow pin（再次证实 connects 驱动）。
   监听变量名的配置字段不在 CLI 可见 pins 中（待用户面板核对或 raw 深挖）。
-- **触发语义（轮 12e 日志实证，2026-08-14）**：orbit_segment 复合正常执行（192 帧）、定时器
-  1272 次，但事件帧 0——**图变量变化不触发「自定义变量变化」事件**（魔方 lock/blocks/axes 全是
-  图变量）；事件只监听**实体自定义变量**（用户面板确认：监听该实体全部自定义变量，且仅当
-  Set Custom Variable 的"触发事件"=是 时触发）。事件触发链的运行帧仍待受控测试（需要主图
-  有"设置自定义变量（触发事件=是）"动作源）。
-- **生产缺口不变**：DSL 复合 build 无事件注册 API（g.server().on 是图级入口）——待事件触发链
-  受控测试闭合后设计（如 f.on('whenCustomVariableChanges', cb) 或复合级 events 声明）。
+- **触发语义（轮 12f 日志实证，2026-08-14，完全闭合）**：主图 Set Custom Variable（触发事件=是，
+  head=5f，IN4:Boolean=1）设置变量"测试"=666 → **复合全部实例的事件节点同时触发**（head=41/48/
+  57/58 = 4 个 orbit_segment 调用实例）；事件节点两级帧 {N.04 子先 OUT, N.03 主后 IN0:Boolean=}
+  （与图变量 get/set 同构），OUT 序列：Entity=2 / GUID=1077936138 / Str=变量名"测试" / R<T>=旧值
+  （首次空）/ R<T>=新值 666 / Boolean=；事件 OutFlow → 内部 Set Custom Variable（IN4=空=不触发）
+  → 无死循环。**监听边界**：图变量变化不触发（轮 12e），仅实体自定义变量（触发事件=是）触发；
+  复合实例激活即监听（实例级监听器）。
+- **生产缺口（可设计）**：DSL 复合 build 无事件注册 API。设计依据已齐：
+  defineComposite({ ..., events: ['whenCustomVariableChanges'] }) + build 内
+  f.on('whenCustomVariableChanges', (evt, ef) => { evt: {entity, guid, name, oldValue, newValue} })
+  ——事件节点 = impl 普通节点（genericId=36 + concreteId 变体 + OutFlow connects + OutParam 数据连线）。
 
 ### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 
