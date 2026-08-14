@@ -1082,6 +1082,21 @@
       ]
     },
     {
+      "id": "aref_7965b22805a5976f7a3cd43cb0",
+      "path": "tests/composite/test-composite-capture-routing.ts",
+      "locator": "S14 capture 路由回归（IR+GIA 双层）",
+      "role": "documented_contract",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "cf1524956baaf65088c27856f26cd0dc472a875671b61ec97053a8e8b5ab9dfd",
+      "claim_ids": [
+        "clm_5B4ACBBBD0D7F05AAAA4B77FDF"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
+      ]
+    },
+    {
       "id": "aref_7a1ca428c84877466e93864ebd",
       "path": "src/compiler/ir_to_gia_transform/composite.ts",
       "locator": "Composite accessory build and impl identity validation",
@@ -1139,6 +1154,21 @@
       ],
       "supports_fact_classes": [
         "external_game_evidence"
+      ]
+    },
+    {
+      "id": "aref_7c8c7af67c920f5160505ed614",
+      "path": "src/runtime/composite_registry.ts",
+      "locator": "toCompositeDefIR args 序列化 capture 占位 ~389-410",
+      "role": "current_implementation",
+      "baseline_state": "committed_baseline",
+      "change_policy": "invalidate_on_change",
+      "approved_hash": "03dd896255e282e11d814ea333b2459c5a699e86ac3780ecf988637eb95ba4c2",
+      "claim_ids": [
+        "clm_055FEF3F9617AC525DD344F7BB"
+      ],
+      "supports_fact_classes": [
+        "runtime_behavior"
       ]
     },
     {
