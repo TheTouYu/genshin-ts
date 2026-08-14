@@ -234,6 +234,24 @@ const gstsTurnCheck = g.defineComposite('gsts_turn_check', {
   }
 })
 
+// 转动一块复合（2026-08-14 v8：封装型「转动一块」完整封装）——
+// 输入 {i, tabId, center}：内部 turn_check 数据准备 + doubleBranch（命中 → spinBlock + orbitCalc 嵌套
+// exec 复合调用）；输出 {hit} 供宿主定时器分支（setTimeout 留宿主 #3）
+const gstsTurnBlock = g.defineComposite('gsts_turn_block', {
+  inputs: { i: { type: 'int' }, tabId: { type: 'int' }, center: { type: 'vec3' } },
+  outputs: { hit: { type: 'bool' } },
+  outflows: ['done'],
+  build: ({ i, tabId, center }, f) => {
+    const turn = f.callComposite(gstsTurnCheck, { i, tabId })
+    f.doubleBranch(turn.hit, () => {
+      f.callComposite(gstsSpinBlock, { e: turn.e, axis: turn.axis })
+      const r = f.callComposite(gstsOrbitCalc, { e: turn.e, axis: turn.axis, center, i })
+      f.outflow('done', r, 0)
+    }, () => {})
+    return { hit: turn.hit }
+  }
+})
+
 // 角块创建复合（2026-08-14 v6：createPrefab 动作入复合，8 块共用）——
 // 输入 {pid, stage, x, y, z}：内部 createPrefab（位置向量组装/旋转零/默认参数）+ 输出实体；
 // prefabId 只能字面量（DSL 约束：createPrefab 的 prefabId 参数不支持数据节点），宿主传实例
@@ -408,11 +426,9 @@ const graph = g
       //   循环体只物化一次，节点数可控）
       const center = f.create3dVector(3, 3, 3)
       for (let i = 0n; i < 8n; i++) {
-        // v7：数据准备入复合（blocks[i]/axis/isR..isB/inLayer）；exec 动作 + 定时器留宿主
-        const turn = f.callComposite(gstsTurnCheck, { i, tabId: evt.tabId })
-        f.doubleBranch(turn.hit, () => {
-          f.callComposite(gstsSpinBlock, { e: turn.e, axis: turn.axis })
-          f.callComposite(gstsOrbitCalc, { e: turn.e, axis: turn.axis, center, i })
+        // v8：转动一块完整封装（数据准备+层判断+自旋+轨道）；定时器留宿主（#3）
+        const hit = f.callComposite(gstsTurnBlock, { i, tabId: evt.tabId, center }).hit
+        f.doubleBranch(hit, () => {
           gstsServerOrbitTimers(f, i)
         }, () => {})
       }
