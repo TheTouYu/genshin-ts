@@ -600,9 +600,26 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
   - **游戏验证（2686）**：tab_lock 单次求值（get→equal→true→真分支→set lock）→ done 触发 →
     宿主循环正常执行；8 块创建、转动、事件链、定时器全恢复。
 
-### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
+### 复合输入→子复合调用参数（2026-08-14 轮 13 差分 CONFIRMED + #17 生产修复）
 
-> 方法：node_id.ts 全部变体推断分支 vs 复合路径纳管集合（usesSharedVariantResolution +
+> 触发：v16 递归拆分引入「复合输入传给子复合调用参数」——orbit_step 的 c/s（capture）传
+> orbit_point 调用 → 编辑器显示 NaN → 游戏无法启动（加载类型错误）。
+> 差分：用户把 orbit_step 输入 c/s 连到 orbit_point 调用 c/s（after 862b635b）。
+
+- **编辑器规则**：复合输入 → 子复合调用参数 = **compositePins 路由**——调用点（子复合）的
+  capture InParam **物理 pin 不落盘**（after：orbit_point 调用只剩连接输入，c/s 无 pin）；
+  compositePins 提供 outer InParam → 子复合调用 InParam 的路由。
+- **生产缺陷（#17 根因）**：capture 输入是未赋值占位值，toIRLiteral() 返回 null——
+  composite_registry 序列化按 null 占位处理（丢 capture 标记）→ 下游 classify 当 missing →
+  子复合调用参数丢失（null/NaN）。**修复**：capture 占位保留 capture: true + 类型标记
+  （与 conn 分支同构）→ classify 走 capture 路由 → compositePins 正确生成。
+- **游戏验证（2688）**：turn_check capture 输入 IN1 有值（0/1，之前空）、velocity prep 链
+  数值正确、转动/公转/事件链/定时器全正常。
+- **编辑器保存副作用（用户澄清，与规则无关）**：修改复合输入参数定义（类型）会导致所有
+  调用点的参数被重置为默认值（如 C1/S1 字面量清零）——编辑器改定义联动行为，不是
+  参数传递规则的一部分；生产注入不受影响。
+
+### 变体族覆盖差集与事件项（2026-08-14 系统扩展检查）
 > DICT_KV_VARIANT_NODE_TYPES + usesSharedOrdinaryConcreteIdentity + gv/custom/local concrete）求差集
 
 - **已纳管（差集补充，2026-08-14）**：create_dictionary / query_if_dictionary_contains_specific_key /
