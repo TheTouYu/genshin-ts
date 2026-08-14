@@ -494,6 +494,19 @@ case2/case6 实测闭合，非早前推断的 3；Bol 另有 field101={1:1}）�
 - **修复**：materialize GIA 对象层对 type=16 pin 置 value=null（对齐宿主；GIA 字节省略 value 字段）。
 - test-local-variable 断言更新（undefined → null）；两个旧测试（local/custom-variable）全部转绿。
 
+### 打包 exec 链：outflow 自动提升（2026-08-14 轮 10 差分 CONFIRMED）
+
+> 证据：宿主图打包 lock 检查链（equal 46 + double_branch 47 + set lock 48——数据+控制流+动作混合链），编辑器保存差分
+
+- **outflow 自动提升 = 执行链尾**：打包复合 outflow → 链尾 set lock（exec 动作）的 OutFlow；
+  inflow → 链头 double_branch 的 InFlow（入口）——与轮 7 控制流提升同构，动作节点作为链尾时出口指向它。
+- **自动注册输入**：打包范围外连线（get lock → equal 条件）→ 复合输入「输入1」（bool）——与轮 7 一致；
+  内部字面量（set lock 的写入值 true/false、变量名 "lock"）不注册（内部值）。
+- **打包保留已配置变体**：equal cid=786（Bool）、set lock cid=325（Bool）原样搬入。
+- **内部连线保留**：equal → double_branch（条件）connects 保持。
+- **嵌套打包**（轮 7 的复合实例再打包）编辑器允许（用户方案确认），实例作为内部节点搬入（本轮最终
+  打包的是普通节点链——46/47/48 重排后为 lock 链）。
+
 ### 复现命令
 
 ```bash
