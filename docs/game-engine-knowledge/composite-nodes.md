@@ -85,6 +85,38 @@
 - 节点坐标影响可读性，不应直接当作执行顺序。
 - 真正的执行和数据依赖由连接决定。
 
+## 编译产物体检工具（2026-08-14 自动化防线）
+
+```bash
+# GIA 产物模式（默认入口）：检查已编译 .gia（rubik 生产产物全绿验证）
+npx tsx scripts/composite-health-check.ts examples/rubik-2x2/dist/src/game.gia
+# IR 构建模式：直接检查入口源码构建的 compositeDefs（小 case）
+npx tsx scripts/composite-health-check.ts --ir <entry.ts>
+# npm 快捷入口
+npm run health:composite -- <file.gia>
+```
+
+四类检查（对应已闭合规则 → 自动防线）：
+
+- **C1 capture 路由完整性（#17）**：主图/复合内每个 composite call 的 InParam 必须有
+  连接、字面量值或 compositePins 路由——无连接且无值 = capture 路由丢失或编辑器保存清空。
+  注意：capture 路由（outer InParam → call InParam）**调用点物理 pin 不落盘是 #17 正常行为**，
+  不检查 InParam/OutParam 物理 pin；仅 flow 路由（InFlow/OutFlow）要求内部节点存在物理
+  flow pin（#11 缺陷模式）。
+- **C2 字面量参数值（#18 + 编辑器保存副作用）**：get/set_node_graph_variable 类节点
+  （识别 = InParam0 str + OutParam 或 InParam1）变量名必须字面量 str；编辑器保存会清空
+  变量名/调用点字面量参数（固定参数变 0）。事件节点（whenCustomVariableChanges 变量名
+  参数来自事件对象 conns）已排除，避免误报。
+- **C3 flow pin exec 链（#12/#13/#15）**：exec 边 OutFlow connects 目标节点必须存在；
+  flow 路由内部节点缺物理 flow pin = FAIL；exec 链尾无 outflow 路由消费 = WARN
+  （#15 f.node detached 链尾模式）。
+- **C4 OutParam 惰性求值（#15）**：输出 OutParam 指向 get 类节点且同 impl 内有同名
+  变量 set 写入 = FAIL（写后读派生值必错——tab_lock 历史 bug 模式）；仅 get 无写入 =
+  正常读取不报。
+
+验证方式：rubik 19 复合 + 7 主图调用全绿；篡改实验（图变量名清空 → C2 FAIL、
+调用点字面量清空 → C1-host FAIL）确认检出能力。退出码 1 = 有 FAIL。
+
 ## 待逐步还原
 
 - 复合节点外部接口的定义结构。
