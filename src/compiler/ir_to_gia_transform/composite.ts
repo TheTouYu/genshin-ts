@@ -54,6 +54,7 @@ import {
   usesSharedOrdinaryConcreteIdentity,
   usesSharedVariantResolution
 } from './resolved_node.js'
+import { get_index_of_concrete } from '../../thirdparty/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/node_data/helpers.js'
 import { ROOT_IMPL_ORDINARY_COVERAGE_CONTRACT } from './root_impl_ordinary_coverage_matrix.js'
 import { ROOT_ORDINARY_CAPABILITY_CONTRACT } from './root_ordinary_capability_inventory.js'
 import {
@@ -932,6 +933,7 @@ function materializeImplOrdinaryGraphWithVendor(
       if (needsConcreteWrapping(source.node.type) && pin.value) {
         pin.value = wrapConcreteValueForNodeInput(
           source.node.type,
+          resolveImplNodeId(source.node.type, (source.node as any).args),
           pin.value,
           inputType,
           pinIndex
@@ -1647,6 +1649,7 @@ function buildImplNodePins(
         if (needsConcreteWrapping(node.type) && pin.value) {
           pin.value = wrapConcreteValueForNodeInput(
             node.type,
+            resolveImplNodeId(node.type, node.args as any),
             pin.value,
             inputType,
             pinIndex
@@ -1694,7 +1697,13 @@ function buildImplNodePins(
         connType === 'dict' ? (conn as any).dict : undefined
       )
       if (needsConcreteWrapping(node.type) && pin.value) {
-        pin.value = wrapConcreteValueForNodeInput(node.type, pin.value, connType, pinIndex) as any
+        pin.value = wrapConcreteValueForNodeInput(
+          node.type,
+          resolveImplNodeId(node.type, node.args as any),
+          pin.value,
+          connType,
+          pinIndex
+        ) as any
       }
       pins.push(pin)
       const connNum = arg.value as { node_id: number; index: number }
@@ -2132,17 +2141,27 @@ function varTypeNameFromVarType(varType: number): string {
 
 function wrapConcreteValueForNodeInput(
   nodeType: string,
+  genericId: number,
   innerValue: Record<string, unknown>,
   typeName: string | undefined,
   pinIndex: number
 ): Record<string, unknown> {
+  // 2026-08-14 修复（v7 游戏拒绝加载：equal 参数不匹配）：Variant 节点的 indexOfConcrete 必须来自
+  // vendor concrete map（get_index_of_concrete），硬编码 concreteInputIndex（int→0）与 vendor 不一致
+  // （Equal__Int 两输入 ioc 应为 5）——capture/conn 输入 pin 由此拿到正确 ioc。
+  const resolved = typeName ?? inferInputTypeFromNode(nodeType, pinIndex)
+  let ioc: number
+  if (nodeType.startsWith('data_type_conversion_')) {
+    ioc = concreteInputIndex(typeName)
+  } else {
+    const vendorIoc = get_index_of_concrete(genericId, true, pinIndex, argVarType(resolved))
+    ioc = vendorIoc ?? concreteInputIndex(resolved)
+  }
   return {
     class: 10000,
     alreadySetVal: true,
     bConcreteValue: {
-      indexOfConcrete: nodeType.startsWith('data_type_conversion_')
-        ? concreteInputIndex(typeName)
-        : concreteInputIndex(typeName ?? inferInputTypeFromNode(nodeType, pinIndex)),
+      indexOfConcrete: ioc,
       value: innerValue
     }
   }
@@ -2207,7 +2226,13 @@ function buildLiteralPin(
   }
 
   if (needsConcreteWrapping(nodeType)) {
-    pinValue = wrapConcreteValueForNodeInput(nodeType, pinValue, argType, pinIndex)
+    pinValue = wrapConcreteValueForNodeInput(
+      nodeType,
+      resolveImplNodeId(nodeType, undefined),
+      pinValue,
+      argType,
+      pinIndex
+    )
   }
 
   return {
