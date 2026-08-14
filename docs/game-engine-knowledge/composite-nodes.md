@@ -124,9 +124,12 @@ npx tsx scripts/composite-health-check.ts --ir <entry.ts>
   变量 set 写入 = FAIL（写后读派生值必错——tab_lock 历史 bug 模式）；仅 get 无写入 =
   正常读取不报。
 
-验证方式：rubik 19 复合 + 7 主图调用全绿；篡改实验（图变量名清空 → C2 FAIL、
-调用点字面量清空 → C1-host FAIL）确认检出能力；2026-08-15 全量扫描 71 个测试产物
-（22 含复合）0 FAIL 后接入 npm test。退出码 1 = 有 FAIL（scan 模式任一文件 FAIL 即退出 1）。
+验证方式：rubik v20 生产产物（22 复合 + 5 主图调用）全绿（2026-08-15 复核，0 FAIL 0 WARN）；
+篡改实验（图变量名清空 → C2 FAIL、调用点字面量清空 → C1-host FAIL）确认检出能力；
+2026-08-15 全量扫描 71 个测试产物（22 含复合）0 FAIL 后接入 npm test。
+退出码 1 = 有 FAIL（scan 模式任一文件 FAIL 即退出 1）。IR 模式仅适用于小 case 入口
+（--ir 会执行入口源码注册 server，复杂生产入口如 rubik 的 handler 类型匹配超出其范围——
+生产产物一律用 GIA 模式/--scan）。
 
 ## #20 事件复合/混合复合与 impl 内部 exec 边（2026-08-14 v20 回归系列，读图自检闭环）
 
