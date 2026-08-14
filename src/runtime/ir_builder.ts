@@ -117,7 +117,10 @@ function buildArgument(record: MetaCallRecord, arg: value, argIndex: number): Ar
     return { ...(argument as Record<string, unknown>), compositeInputIndex } as unknown as Argument
   }
 
-  const meta = arg.getMetadata()
+  // 防御（2026-08-14 系列）：null/undefined 可选输入保留 null 占位（声明索引），
+  // 非 value 裸值/句柄不在此层崩溃（上游应包装；此处仅 fail-closed 不崩）
+  if (arg === null || arg === undefined) return withCompositeInputIndex(null as unknown as Argument)
+  const meta = arg?.getMetadata?.()
   // An uninitialized runtime value represents an omitted optional input. Keep its
   // null IR placeholder so Composite call pins preserve their declared index.
   if (!meta) return withCompositeInputIndex(arg.toIRLiteral())

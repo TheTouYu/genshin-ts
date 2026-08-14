@@ -344,7 +344,11 @@ export class CompositeRegistry {
                 if (compositeInputIndex === undefined) return arg
                 return { ...arg, compositeInputIndex }
               }
-              const meta = a.getMetadata()
+              // 防御（2026-08-14 系列）：null/undefined 参数保留 null 占位；非 value 不崩溃
+              if (a === null || a === undefined) {
+                return withCompositeInputIndex(null as unknown as Record<string, unknown>)
+              }
+              const meta = a?.getMetadata?.()
               const isCaptureInput = (a as any).__captureInputName !== undefined
               if (meta?.kind === 'pin') {
                 let giaType: string
